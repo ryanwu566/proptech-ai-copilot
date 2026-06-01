@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>{{ report.module_name }} Report #{{ report.assessment_id }}</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 24mm 18mm;
+      }
+
+      body {
+        color: #172033;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      h1 {
+        color: #0f766e;
+        font-size: 24px;
+        margin: 0 0 4px;
+      }
+
+      h2 {
+        border-bottom: 1px solid #d7dee8;
+        color: #263449;
+        font-size: 15px;
+        margin: 22px 0 10px;
+        padding-bottom: 6px;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      th,
+      td {
+        border: 1px solid #d7dee8;
+        padding: 8px;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: #eef6f5;
+        width: 34%;
+      }
+
+      .meta {
+        color: #59677c;
+        margin-bottom: 18px;
+      }
+
+      .score {
+        background: #eef6f5;
+        border: 1px solid #b9d8d4;
+        border-radius: 4px;
+        margin: 10px 0;
+        padding: 12px;
+      }
+
+      .score strong {
+        color: #0f766e;
+        font-size: 20px;
+      }
+
+      .disclaimer {
+        background: #fff7ed;
+        border: 1px solid #fed7aa;
+        padding: 10px;
+      }
+
+      pre {
+        background: #f6f8fb;
+        border: 1px solid #d7dee8;
+        font-family: Consolas, monospace;
+        font-size: 10px;
+        overflow-wrap: break-word;
+        padding: 10px;
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>{{ report.module_name }}</h1>
+    <div class="meta">
+      Report ID: {{ report.module_slug }}-{{ report.assessment_id }}<br />
+      Created At: {{ report.created_at }}
+    </div>
+
+    <h2>Input Summary</h2>
+    <table>
+      <tbody>
+        {% for label, value in report.input_summary.items() %}
+        <tr>
+          <th>{{ label }}</th>
+          <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h2>Analysis Result</h2>
+    <p>{{ report.analysis_result.summary }}</p>
+    <div class="score">
+      Risk Level: <strong>{{ report.analysis_result.risk_level }}</strong><br />
+      Risk Score: <strong>{{ report.analysis_result.score }}</strong>
+    </div>
+    <pre>{{ report.analysis_result.details | tojson(indent=2) }}</pre>
+
+    <h2>Recommended Handling</h2>
+    <ul>
+      {% for item in report.analysis_result.recommendations %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+
+    <h2>Data Sources</h2>
+    <ul>
+      {% for source in report.data_sources %}
+      <li>{{ source }}</li>
+      {% endfor %}
+    </ul>
+
+    <h2>Disclaimer</h2>
+    <p class="disclaimer">{{ report.disclaimer }}</p>
+  </body>
+</html>

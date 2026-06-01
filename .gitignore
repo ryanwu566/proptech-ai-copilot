@@ -1,0 +1,14 @@
+﻿__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+frontend_next/node_modules/
+frontend_next/.next/
+frontend_next/.env.local
+
+*.db
+*.sqlite
+reports/output/
+.DS_Store
