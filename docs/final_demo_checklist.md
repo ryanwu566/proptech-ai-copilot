@@ -1,0 +1,81 @@
+# 最終展示檢查清單
+
+## 展示前 10 分鐘
+
+- 使用兩個 PowerShell 視窗，分別啟動 backend 與 frontend。
+- 開啟 `http://localhost:3000`，確認 Dashboard 可載入。
+- 執行 `powershell -ExecutionPolicy Bypass -File .\scripts\check_demo.ps1`。
+- 預先跑過 TaxOracle 三個 demo case，確認燈號與說明文字。
+- 下載一次 HTML report，確認瀏覽器可正常開啟。
+- 關閉不必要的程式與通知，保留展示所需分頁。
+
+## 後端啟動檢查
+
+```powershell
+.\scripts\start_backend.ps1
+```
+
+瀏覽器開啟 `http://localhost:8000/health`，應看到 `status` 為 `ok`。
+
+## 前端啟動檢查
+
+另開 PowerShell 視窗：
+
+```powershell
+.\scripts\start_frontend.ps1
+```
+
+瀏覽器開啟 `http://localhost:3000`，應顯示 Next.js SaaS 後台首頁。
+
+## TaxOracle 三案例檢查
+
+| Demo case | 預期資格 | 預期燈號 |
+| --- | --- | --- |
+| `DEMO-LOW` | `eligible` | `green` |
+| `DEMO-MEDIUM` | `manual_review` | `yellow` |
+| `DEMO-HIGH` | `not_eligible` | `red` |
+
+確認每個案例都能顯示 Rule Trace、缺件清單、五年列管提醒與中文說明。
+
+## HTML Report 下載檢查
+
+- 在 TaxOracle 結果頁點擊下載 HTML report。
+- 確認報告包含案件摘要、資格結果、風險燈號、Rule Trace、補件清單、五年列管、中文說明與免責聲明。
+- 本 MVP 不提供 PDF。
+
+## 常見問題
+
+### Backend 沒開
+
+執行：
+
+```powershell
+.\scripts\start_backend.ps1
+```
+
+### Port 3000 或 8000 被占用
+
+先找出占用程序：
+
+```powershell
+Get-NetTCPConnection -State Listen | Where-Object { $_.LocalPort -in 3000,8000 }
+```
+
+關閉不需要的舊程序後重新啟動。展示前不要臨時修改前端 API port。
+
+### npm install 失敗
+
+確認 Node.js 與 npm 可用，再於 `frontend_next` 執行：
+
+```powershell
+npm.cmd install
+```
+
+若現場網路不穩，優先使用已安裝完成的本機環境。
+
+## 展示提醒
+
+- 主線只講 TaxOracle：資格快篩、Rule Trace、五年列管與 HTML report。
+- 清楚說明 AI 只負責將結構化結果改寫成說明，資格由 deterministic rule engine 判斷。
+- 清楚說明目前使用 mock data，不是正式報稅、法律、估價或核貸系統。
+- Lite 模組快速帶過即可，不要花太多時間談尚未完成的擴充功能。

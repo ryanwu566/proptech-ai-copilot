@@ -1,0 +1,9 @@
+services:
+  proptech-ai-copilot:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}

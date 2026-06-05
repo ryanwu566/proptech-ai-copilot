@@ -1,0 +1,5 @@
+case_id,client_name,sold_self_occupied,residency_condition_met,purchase_within_reasonable_period,purchased_self_occupied,same_owner,land_value_available,required_docs_complete,enters_five_year_monitoring,exceptional_circumstances
+DEMO-LOW,王小明,true,true,true,true,true,true,true,true,false
+DEMO-MEDIUM,林小姐,true,true,true,true,true,false,false,true,false
+DEMO-HIGH,陳先生,false,false,false,true,false,false,false,false,true
+

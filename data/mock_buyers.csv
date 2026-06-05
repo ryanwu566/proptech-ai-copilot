@@ -1,0 +1,4 @@
+buyer_id,name,monthly_income,monthly_debt,cash,property_count,mortgage_count
+B001,張小姐,90000,15000,3500000,0,0
+B002,李先生,70000,32000,1200000,2,2
+

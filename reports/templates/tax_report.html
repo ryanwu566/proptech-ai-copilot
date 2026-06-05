@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <title>TaxOracle 報告 - {{ case.case_id }}</title>
+  <style>
+    body { font-family: Arial, "Microsoft JhengHei", sans-serif; color: #1f2937; margin: 40px; line-height: 1.6; }
+    h1, h2 { color: #0f172a; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; background: #f8fafc; }
+    .signal-green { color: #15803d; } .signal-yellow { color: #a16207; } .signal-red { color: #b91c1c; }
+    table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+    th { background: #f1f5f9; } .disclaimer { margin-top: 28px; color: #475569; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>TaxOracle 稅務先知分析報告</h1>
+  <h2>案件摘要</h2>
+  <p>案件編號：{{ case.case_id }}<br>客戶名稱：{{ case.client_name }}</p>
+  <div class="grid">
+    <div class="card"><strong>資格結果</strong><br>{{ result.eligibility_status }}</div>
+    <div class="card"><strong>風險分數</strong><br>{{ result.risk_score }}</div>
+    <div class="card"><strong>燈號</strong><br><span class="signal-{{ result.signal_color }}">{{ result.signal_color }}</span></div>
+  </div>
+  <h2>Rule Trace</h2>
+  <table>
+    <thead><tr><th>規則</th><th>項目</th><th>結果</th><th>說明</th><th>風險分</th></tr></thead>
+    <tbody>
+    {% for trace in result.rule_traces %}
+      <tr><td>{{ trace.code }}</td><td>{{ trace.title }}</td><td>{{ trace.outcome }}</td><td>{{ trace.detail }}</td><td>{{ trace.risk_points }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <h2>補件清單</h2>
+  <ul>{% for item in result.missing_docs %}<li>{{ item }}</li>{% else %}<li>目前無補件項目</li>{% endfor %}</ul>
+  <h2>五年列管 Timeline</h2>
+  <ul>{% for item in result.reminder_timeline %}<li>{{ item }}</li>{% else %}<li>本案目前未建立五年列管提醒</li>{% endfor %}</ul>
+  <h2>中文說明</h2>
+  <p>{{ result.ai_explanation.headline }}</p>
+  <p>{{ result.ai_explanation.customer_script }}</p>
+  <p><small>說明來源：{{ result.ai_explanation.source }}</small></p>
+  <p class="disclaimer"><strong>免責聲明：</strong>{{ result.disclaimer }}</p>
+</body>
+</html>
