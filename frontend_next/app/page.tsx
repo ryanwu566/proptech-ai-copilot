@@ -1,137 +1,140 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { api, downloadTaxReport, MarketResult, TaxCase, TaxResult } from "@/lib/api";
-import { Badge, Button, Card, Metric, Notice } from "@/components/ui";
+import type { ReactNode } from "react";
+import { AppShell } from "@/components/app-shell";
+import { AppPage } from "@/components/sidebar";
+import { WorkflowStepper } from "@/components/workflow-stepper";
+import { Badge, Button, EmptyState, Notice } from "@/components/ui";
+import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
+import { api, downloadTaxReport, MapInsightResult, MapPoiLayer, MarketResult, TaxCase, TaxResult } from "@/lib/api";
 
-type Page = "儀表板" | "TaxOracle" | "Market Insight Lite" | "Aegis-Credit Lite" | "LexProp Lite" | "歷史案件";
-const pages: Page[] = ["儀表板", "TaxOracle", "Market Insight Lite", "Aegis-Credit Lite", "LexProp Lite", "歷史案件"];
-const icons = ["▦", "◆", "▥", "◒", "◎", "≡"];
+const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
+type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
 
 export default function Home() {
-  const [page, setPage] = useState<Page>("儀表板");
-  return (
-    <div className="min-h-screen bg-canvas">
-      <aside className="fixed inset-y-0 left-0 w-64 border-r border-slate-200 bg-slate-950 px-4 py-6 text-white">
-        <div className="mb-8 px-2">
-          <p className="text-xs font-bold tracking-[0.22em] text-blue-300">PROPTECH AI</p>
-          <h1 className="mt-2 text-lg font-bold">Copilot Console</h1>
-          <p className="mt-2 text-xs text-slate-400">產品化競賽展示版本</p>
-        </div>
-        <nav className="space-y-1">
-          {pages.map((item, index) => (
-            <button key={item} onClick={() => setPage(item)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${page === item ? "bg-blue-600 font-bold" : "text-slate-300 hover:bg-slate-900"}`}>
-              <span>{icons[index]}</span>{item}
-            </button>
-          ))}
-        </nav>
-        <div className="absolute bottom-6 left-4 right-4 rounded-xl border border-slate-800 p-3 text-xs text-slate-400">
-          Mock data mode<br /><span className="text-emerald-400">● FastAPI backend</span>
-        </div>
-      </aside>
-      <main className="ml-64 min-w-0">
-        <Header page={page} />
-        <div className="mx-auto max-w-[1366px] p-8">{renderPage(page, setPage)}</div>
-      </main>
-    </div>
-  );
+  const [page, setPage] = useState<AppPage>("儀表板");
+  const [requestedCase, setRequestedCase] = useState("");
+  const openTax = (caseId = "") => { setRequestedCase(caseId); setPage("TaxOracle"); };
+  return <AppShell page={page} onNavigate={setPage}>{renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
-function renderPage(page: Page, setPage: (page: Page) => void) {
-  if (page === "TaxOracle") return <TaxOracle />;
-  if (page === "Market Insight Lite") return <MarketInsight />;
+function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (caseId?: string) => void, requestedCase: string) {
+  if (page === "TaxOracle") return <TaxOracle requestedCase={requestedCase} />;
+  if (page === "Market Insight Lite") return <MarketInsight onMap={() => setPage("Map Insight Lite")} />;
+  if (page === "Map Insight Lite") return <MapInsight />;
   if (page === "Aegis-Credit Lite") return <AegisCredit />;
   if (page === "LexProp Lite") return <LexProp />;
   if (page === "歷史案件") return <History />;
-  return <Dashboard setPage={setPage} />;
+  return <Dashboard setPage={setPage} openTax={openTax} />;
 }
 
-function Header({ page }: { page: Page }) {
-  return <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-8"><div><p className="text-xs font-semibold text-slate-400">PropTech AI Copilot</p><h2 className="text-lg font-bold">{page}</h2></div><Badge value="mock-data" /></header>;
-}
-
-function Title({ title, subtitle }: { title: string; subtitle: string }) {
-  return <div className="mb-7"><h2 className="text-3xl font-bold tracking-tight">{title}</h2><p className="mt-2 max-w-4xl text-sm leading-6 text-muted">{subtitle}</p></div>;
-}
-
-function Dashboard({ setPage }: { setPage: (page: Page) => void }) {
-  const steps = [
-    ["01", "選擇 TaxOracle demo case", "低、中、高風險案例清楚對應 green、yellow、red。"],
-    ["02", "執行分析", "資格由 TX001-TX009 deterministic rule engine 產生。"],
-    ["03", "下載 HTML report", "將結果、補件與五年列管整理成客戶溝通報告。"],
-  ];
-  return <>
-    <Title title="營運儀表板" subtitle="TaxOracle 是主展示線，其他模組提供 Lite 情境補強。推薦以競賽展示模式快速走完完整流程。" />
-    <div className="grid gap-4 md:grid-cols-3"><Metric label="核心引擎" value="TX001-TX009" note="deterministic rule engine" /><Metric label="展示案例" value="3 組" note="eligible / manual_review / not_eligible" /><Metric label="資料模式" value="Offline Mock" note="不串政府 API" /></div>
-    <Card className="mt-6 border-blue-200 bg-gradient-to-br from-white to-blue-50">
-      <div className="flex items-start justify-between gap-6"><div><p className="text-xs font-bold tracking-widest text-blue-600">DEMO MODE</p><h3 className="mt-2 text-2xl font-bold">競賽展示模式</h3><p className="mt-2 text-sm text-muted">三步驟完成 TaxOracle 產品展示，適合 3 分鐘簡報。</p></div><Button onClick={() => setPage("TaxOracle")}>開始展示</Button></div>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">{steps.map(([number, title, detail]) => <div key={number} className="rounded-2xl border border-blue-100 bg-white p-4"><p className="text-xs font-bold text-blue-600">{number}</p><h4 className="mt-2 font-bold">{title}</h4><p className="mt-2 text-xs leading-5 text-muted">{detail}</p></div>)}</div>
-    </Card>
-    <div className="mt-6 grid gap-5 lg:grid-cols-3">
-      <Card className="lg:col-span-2"><p className="text-xs font-bold text-blue-600">PRIMARY WORKFLOW</p><h3 className="mt-3 text-2xl font-bold">TaxOracle 稅務先知</h3><p className="mt-2 text-sm leading-7 text-muted">展示重購退稅資格、風險燈號、補件清單、五年列管與 HTML 報告。</p></Card>
-      <Card><p className="text-xs font-bold text-emerald-600">LITE INSIGHT</p><h3 className="mt-3 text-xl font-bold">Market Insight Lite</h3><p className="mt-2 text-sm leading-7 text-muted">區域行情、POI 生活機能、ESG / SDG 11 Lite。</p><div className="mt-5"><Button secondary onClick={() => setPage("Market Insight Lite")}>查看區域洞察</Button></div></Card>
-    </div>
-  </>;
-}
-
-function TaxOracle() {
-  const [cases, setCases] = useState<TaxCase[]>([]);
-  const [selected, setSelected] = useState("");
-  const [result, setResult] = useState<TaxResult>();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [analyzing, setAnalyzing] = useState(false);
-  useEffect(() => { api.demoCases().then((rows) => { setCases(rows); setSelected(rows[0]?.case_id ?? ""); }).catch((e) => setError(e.message)).finally(() => setLoading(false)); }, []);
-  const taxCase = cases.find((item) => item.case_id === selected);
-  async function analyze() { if (!taxCase) return; setAnalyzing(true); setError(""); try { setResult(await api.analyzeTax(taxCase)); } catch (e) { setError((e as Error).message); } finally { setAnalyzing(false); } }
-  return <>
-    <Title title="TaxOracle 稅務先知" subtitle="稅務資格快篩與五年列管提醒。AI 只負責說明，資格判斷由 Python deterministic rule engine 完成。" />
-    {error && <Notice tone="error">{error}</Notice>}
-    <Card className="mt-4"><div className="flex flex-wrap items-end gap-4"><label className="min-w-64 flex-1 text-sm font-bold">選擇 demo case<select disabled={loading} value={selected} onChange={(e) => { setSelected(e.target.value); setResult(undefined); }} className="mt-2 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 font-normal">{cases.map((item) => <option key={item.case_id}>{item.case_id}</option>)}</select></label><Button disabled={loading || analyzing || !taxCase} onClick={analyze}>{analyzing ? "分析中..." : "執行 TaxOracle 分析"}</Button></div>{loading && <p className="mt-4 text-sm text-muted">載入 demo case 中...</p>}</Card>
-    {result && taxCase && <TaxResultView result={result} taxCase={taxCase} />}
-  </>;
-}
-
-function TaxResultView({ result, taxCase }: { result: TaxResult; taxCase: TaxCase }) {
-  const [downloadError, setDownloadError] = useState("");
-  const [downloading, setDownloading] = useState(false);
-  async function download() { setDownloading(true); setDownloadError(""); try { await downloadTaxReport(taxCase); } catch (e) { setDownloadError((e as Error).message); } finally { setDownloading(false); } }
-  return <div className="mt-6 space-y-5">
-    <div className="grid gap-4 md:grid-cols-3"><Metric label="資格結論" value={<Badge value={result.eligibility_status} />} /><Metric label="風險分數" value={result.risk_score} /><Metric label="風險燈號" value={<Badge value={result.signal_color} />} /></div>
-    <Card><div className="flex flex-wrap items-start justify-between gap-4"><div><h3 className="font-bold">為什麼是這個結果？</h3><p className="mt-2 text-sm text-muted">{result.ai_explanation.headline}</p><p className="mt-3 text-xs font-bold text-blue-700">AI 只負責說明，資格判斷由 TX001-TX009 rule engine 完成。</p></div><Button disabled={downloading} onClick={download}>{downloading ? "產生報告中..." : "下載 HTML report"}</Button></div>{downloadError && <div className="mt-4"><Notice tone="error">{downloadError}</Notice></div>}</Card>
-    <Card><h3 className="font-bold">Rule Trace</h3><div className="mt-4 overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-3 py-3">規則</th><th className="px-3">項目</th><th className="px-3">結果</th><th className="px-3">說明</th><th className="px-3">分數</th></tr></thead><tbody>{result.rule_traces.map((row) => <tr key={row.code} className="border-b border-slate-100"><td className="px-3 py-3 font-bold">{row.code}</td><td className="px-3">{row.title}</td><td className="px-3"><Badge value={row.outcome} /></td><td className="px-3 text-muted">{row.detail}</td><td className="px-3">{row.risk_points}</td></tr>)}</tbody></table></div></Card>
-    <div className="grid gap-4 md:grid-cols-2"><Card><h3 className="font-bold">補件清單</h3><ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted">{(result.missing_docs.length ? result.missing_docs : ["目前無補件項目"]).map((item) => <li key={item}>{item}</li>)}</ul></Card><Card><h3 className="font-bold">五年列管 Timeline</h3><ul className="mt-3 space-y-2 text-sm text-muted">{result.reminder_timeline.map((item) => <li key={item}>{item}</li>)}</ul></Card></div>
-    <Notice tone="warning">{result.disclaimer}</Notice>
+function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; openTax: (caseId?: string) => void }) {
+  const [selectedCase, setSelectedCase] = useState("DEMO-LOW");
+  return <div className="space-y-6">
+    <DecisionHero onPrimary={() => openTax(selectedCase)} onSecondary={() => setPage("Map Insight Lite")} />
+    <section><SectionTitle title="選一筆案件開始" note="先選擇決策情境，再進入稅務快篩。" /><div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3"><CaseCard title="低風險換屋案" status="eligible" signal="green" description="展示完整可行流程與報告輸出" selected={selectedCase === "DEMO-LOW"} onSelect={() => setSelectedCase("DEMO-LOW")} onOpen={() => openTax("DEMO-LOW")} /><CaseCard title="中風險持分案" status="manual_review" signal="yellow" description="展示人工補件與資格複核" selected={selectedCase === "DEMO-MEDIUM"} onSelect={() => setSelectedCase("DEMO-MEDIUM")} onOpen={() => openTax("DEMO-MEDIUM")} /><CaseCard title="高風險非自住案" status="not_eligible" signal="red" description="展示規則阻擋與關鍵風險" selected={selectedCase === "DEMO-HIGH"} onSelect={() => setSelectedCase("DEMO-HIGH")} onOpen={() => openTax("DEMO-HIGH")} /></div></section>
+    <section><SectionTitle title="分析流程" note="從案件條件一路整理成可溝通的決策報告。" /><div className="mt-3"><WorkflowStepper /></div></section>
+    <section><SectionTitle title="下一步可以補強什麼？" note="搭配地圖、行情與風險摘要，補齊客戶說明。" /><div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><ModuleTile hint="TAX" title="稅務快篩" description="判斷資格與補件" tone="cyan" onClick={() => openTax(selectedCase)} /><ModuleTile hint="MAP" title="地圖洞察" description="查看區域與 POI" tone="green" onClick={() => setPage("Map Insight Lite")} /><ModuleTile hint="MARKET" title="區域行情" description="補充市場背景" tone="amber" onClick={() => setPage("Market Insight Lite")} /><ModuleTile hint="RISK" title="風險摘要" description="房貸與判決風險" tone="violet" onClick={() => setPage("Aegis-Credit Lite")} /></div></section>
   </div>;
 }
 
-function MarketInsight() {
-  const [regions, setRegions] = useState<{city:string;district:string}[]>([]);
-  const [selected, setSelected] = useState("");
-  const [result, setResult] = useState<MarketResult>();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+function SectionTitle({ title, note }: { title: string; note: string }) {
+  return <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-4 gap-y-1"><h2 className="text-base font-bold text-slate-950">{title}</h2><p className="break-words text-xs text-slate-500">{note}</p></div>;
+}
+
+function TaxOracle({ requestedCase }: { requestedCase: string }) {
+  const [cases, setCases] = useState<TaxCase[]>([]), [selected, setSelected] = useState(""), [result, setResult] = useState<TaxResult>(), [error, setError] = useState(""), [loading, setLoading] = useState(true), [analyzing, setAnalyzing] = useState(false), [tab, setTab] = useState<ResultTab>("原因");
+  useEffect(() => { api.demoCases().then((rows) => { setCases(rows); setSelected(requestedCase && rows.some((r) => r.case_id === requestedCase) ? requestedCase : rows[0]?.case_id ?? ""); }).catch((e) => setError(e.message)).finally(() => setLoading(false)); }, [requestedCase]);
+  const taxCase = cases.find((item) => item.case_id === selected);
+  async function analyze() { if (!taxCase) return; setAnalyzing(true); setError(""); try { setResult(await api.analyzeTax(taxCase)); setTab("原因"); } catch (e) { setError((e as Error).message); } finally { setAnalyzing(false); } }
+  function reset() { setResult(undefined); setSelected(cases[0]?.case_id ?? ""); setError(""); }
+  return <div className="space-y-5">
+    <PageHeader kicker="案件決策" title="TaxOracle 稅務先知" description="重購退稅資格快篩、五年列管提醒與客戶溝通報告" />
+    <WorkflowStepper />
+    {error && <ErrorState message={error} />}
+    <div className="grid items-start gap-4 lg:grid-cols-[38%_minmax(0,62%)]">
+      <SectionCard title="選擇案件" description="載入案件條件並執行規則快篩">
+        <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">{cases.map((item, index) => <button key={item.case_id} disabled={loading} onClick={() => { setSelected(item.case_id); setResult(undefined); }} className={`flex items-center justify-between rounded-lg border px-3 py-2.5 text-left transition ${selected === item.case_id ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100" : "border-stone-200 bg-white hover:border-stone-300"}`}><span><span className="block text-xs font-bold text-slate-800">{["低風險換屋案", "中風險持分案", "高風險非自住案"][index] ?? item.case_id}</span><span className="mt-0.5 block text-[10px] text-slate-400">{item.case_id}</span></span><span className={`h-2 w-2 rounded-full ${index === 0 ? "bg-emerald-500" : index === 1 ? "bg-amber-500" : "bg-rose-500"}`} /></button>)}</div>
+        {loading ? <div className="mt-4"><LoadingState label="載入案例中..." /></div> : taxCase && <CasePreview taxCase={taxCase} />}
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row"><Button disabled={loading || analyzing || !taxCase} onClick={analyze} className="w-full flex-1 bg-cyan-700 hover:bg-cyan-800">{analyzing ? "分析中..." : "開始稅務快篩"}</Button><button onClick={reset} className="px-2 py-2 text-xs font-bold text-slate-400 hover:text-slate-700">重設</button></div>
+      </SectionCard>
+      <TaxSummary result={result} taxCase={taxCase} />
+    </div>
+    {result ? <TaxResultTabs result={result} tab={tab} setTab={setTab} /> : <EmptyState title="尚未產生結果" detail="選擇案例並執行分析，結果原因、規則追蹤與補件清單將顯示在這裡。" />}
+  </div>;
+}
+
+function CasePreview({ taxCase }: { taxCase: TaxCase }) {
+  const items = [["案件", taxCase.case_id], ["客戶", taxCase.client_name], ["出售自住", yesNo(taxCase.sold_self_occupied)], ["換購自住", yesNo(taxCase.purchased_self_occupied)], ["文件完整", yesNo(taxCase.required_docs_complete)], ["五年列管", yesNo(taxCase.enters_five_year_monitoring)]];
+  return <div className="mt-4 divide-y divide-slate-100 border-y border-slate-200">{items.map(([label, value]) => <div key={label} className="flex justify-between py-2.5 text-xs"><span className="text-slate-500">{label}</span><span className="font-bold text-slate-800">{value}</span></div>)}</div>;
+}
+const yesNo = (value: boolean) => value ? "是" : "否";
+
+function TaxSummary({ result, taxCase }: { result?: TaxResult; taxCase?: TaxCase }) {
+  const [downloading, setDownloading] = useState(false), [error, setError] = useState("");
+  async function download() { if (!taxCase) return; setDownloading(true); setError(""); try { await downloadTaxReport(taxCase); } catch (e) { setError((e as Error).message); } finally { setDownloading(false); } }
+  const statusLabel = result?.eligibility_status === "eligible" ? "可行" : result?.eligibility_status === "manual_review" ? "需複核" : "高風險";
+  const keyReasons = result?.rule_traces.filter((row) => row.outcome !== "passed").slice(0, 3) ?? [];
+  return <ResultSummaryPanel className="lg:sticky lg:top-16"><div className="flex items-center justify-between border-b border-stone-100 px-5 py-4"><div><p className="text-[10px] font-bold tracking-wider text-slate-400">DECISION SUMMARY</p><h2 className="mt-1 font-bold text-slate-950">案件決策摘要</h2></div>{result && <Badge value={result.signal_color} />}</div>{!result ? <div className="p-5"><EmptyState title="等待稅務快篩" detail="完成分析後，資格、風險原因與報告入口會集中顯示在這裡。" /></div> : <div className="p-5"><div className="grid gap-5 sm:grid-cols-[150px_1fr]"><RiskGauge score={result.risk_score} signal={result.signal_color} /><div><p className="text-[10px] font-bold text-slate-400">資格判斷</p><p className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{statusLabel}</p><p className="mt-2 text-sm leading-6 text-slate-600">{result.ai_explanation.headline}</p><div className="mt-3 flex gap-2"><Badge value={result.eligibility_status} /><Badge value={result.signal_color} /></div></div></div><div className="mt-5 rounded-xl bg-stone-50 p-3.5"><p className="text-xs font-bold text-slate-700">關鍵原因</p><ul className="mt-2 space-y-2">{keyReasons.length ? keyReasons.map((row) => <li key={row.code} className="flex gap-2 text-xs text-slate-600"><span className="font-bold text-cyan-700">{row.code}</span><span>{row.title}</span></li>) : <li className="text-xs text-emerald-700">主要資格條件皆已通過。</li>}</ul></div><Button onClick={download} disabled={downloading} className="mt-4 w-full bg-cyan-700 hover:bg-cyan-800">{downloading ? "產生報告中..." : "下載客戶溝通報告"}</Button><p className="mt-3 text-center text-[10px] text-slate-400">AI 僅做語言化說明，資格由規則引擎判斷。</p>{error && <div className="mt-3"><ErrorState message={error} /></div>}</div>}</ResultSummaryPanel>;
+}
+
+function RiskGauge({ score, signal }: { score: number; signal: string }) {
+  const color = signal === "green" ? "#10b981" : signal === "yellow" ? "#f59e0b" : "#f43f5e";
+  return <div className="grid place-items-center"><div className="grid h-32 w-32 place-items-center rounded-full" style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #e7e5e4 0deg)` }}><div className="grid h-24 w-24 place-items-center rounded-full bg-white text-center"><div><p className="text-3xl font-bold text-slate-950">{score}</p><p className="text-[9px] font-bold text-slate-400">風險分數 / 100</p></div></div></div></div>;
+}
+
+function TaxResultTabs({ result, tab, setTab }: { result: TaxResult; tab: ResultTab; setTab: (tab: ResultTab) => void }) {
+  const tabs: ResultTab[] = ["原因", "規則追蹤", "補件清單", "五年列管", "AI 說明"];
+  return <section className="border border-slate-200 bg-white"><div className="flex overflow-x-auto border-b border-slate-200">{tabs.map((item) => <button key={item} onClick={() => setTab(item)} className={`border-b-2 px-4 py-2.5 text-xs font-bold ${tab === item ? "border-cyan-700 text-cyan-800" : "border-transparent text-slate-500 hover:text-slate-800"}`}>{item}</button>)}</div><div className="p-4">{tab === "原因" && <p className="text-sm leading-7 text-slate-600">{result.ai_explanation.headline}</p>}{tab === "規則追蹤" && <RuleTable result={result} />}{tab === "補件清單" && <SimpleList items={result.missing_docs.length ? result.missing_docs : ["目前無補件項目"]} />}{tab === "五年列管" && <SimpleList items={result.reminder_timeline} numbered />}{tab === "AI 說明" && <div><p className="text-sm leading-7 text-slate-700">{result.ai_explanation.customer_script}</p><p className="mt-4 border-l-2 border-cyan-600 pl-3 text-xs font-bold text-cyan-800">AI 只做語言化說明，資格由規則引擎 TX001–TX009 判斷。</p></div>}</div><div className="border-t border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-5 text-amber-800">{result.disclaimer}</div></section>;
+}
+
+function RuleTable({ result }: { result: TaxResult }) {
+  return <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-[11px]"><thead className="bg-stone-50 text-slate-500"><tr><th className="px-3 py-2">規則</th><th className="px-3">檢查項目</th><th className="px-3">結果</th><th className="px-3">說明</th><th className="px-3 text-right">分數</th></tr></thead><tbody>{result.rule_traces.map((row) => <tr key={row.code} className="border-t border-stone-100"><td className="px-3 py-2.5 font-bold">{row.code}</td><td className="px-3 font-medium">{row.title}</td><td className="px-3"><Badge value={row.outcome} /></td><td className="max-w-md px-3 text-slate-500">{row.detail}</td><td className="px-3 text-right font-bold">{row.risk_points}</td></tr>)}</tbody></table></div>;
+}
+
+function SimpleList({ items, numbered = false }: { items: string[]; numbered?: boolean }) {
+  return <ul className={numbered ? "relative ml-2 border-l border-cyan-200" : "space-y-2"}>{items.map((item, index) => <li key={item} className={`flex gap-3 text-sm text-slate-600 ${numbered ? "relative pb-4 pl-5" : "rounded-lg bg-stone-50 px-3 py-2.5"}`}><span className={`${numbered ? "absolute -left-3 grid h-6 w-6 place-items-center rounded-full border border-cyan-200 bg-white text-[10px]" : "grid h-5 w-5 shrink-0 place-items-center rounded-md bg-emerald-100 text-[10px] text-emerald-700"} font-bold`}>{numbered ? index + 1 : "✓"}</span>{item}</li>)}</ul>;
+}
+
+function MapInsight() {
+  const [query, setQuery] = useState("台北市大安區和平東路二段"), [result, setResult] = useState<MapInsightResult>(), [active, setActive] = useState<string[]>(["transport", "school", "park", "medical", "commerce"]), [loading, setLoading] = useState(true), [error, setError] = useState("");
+  async function search(next = query) { setLoading(true); setError(""); try { const found = await api.mapSearch(next); if (!found.matched) throw new Error("找不到符合的展示地址，請改用範例地址或行政區。"); setResult(await api.mapInsight(next)); } catch (e) { setError((e as Error).message); } finally { setLoading(false); } }
+  useEffect(() => { search("台北市大安區和平東路二段"); }, []);
+  const layers = result?.poi_layers.filter((layer) => active.includes(layer.category)) ?? [];
+  return <div className="space-y-4"><PageHeader kicker="區域洞察" title="Map Insight 地圖洞察" description="從地址與生活機能，快速建立區域說明。" />
+    {error && <ErrorState message={error} />}{result ? <><div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(71,85,105,0.12)] xl:relative xl:min-h-[650px]"><div className="relative h-[420px] min-w-0 sm:h-[500px] xl:absolute xl:inset-0 xl:h-auto"><GeoMap center={result.center} zoom={result.zoom} layers={layers} />
+      <form onSubmit={(e) => { e.preventDefault(); search(); }} className="absolute left-2 right-2 top-2 z-[500] flex min-w-0 flex-col gap-2 rounded-xl border border-white/80 bg-white/92 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(560px,calc(100%-2rem))] sm:flex-row"><input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder="地址 / 行政區 / 路段" /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? "定位中..." : "搜尋區域"}</Button></form></div>
+      <aside className="min-w-0 border-t border-stone-200 bg-white p-4 xl:absolute xl:bottom-4 xl:right-4 xl:top-20 xl:z-[500] xl:w-[300px] xl:overflow-y-auto xl:rounded-xl xl:border xl:border-white/80 xl:bg-white/90 xl:shadow-lg xl:backdrop-blur-md"><div className="flex items-start justify-between"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">AREA INSIGHT</p><h2 className="mt-1 text-sm font-bold">區域決策摘要</h2></div><div className="text-right"><p className="text-3xl font-bold">{result.livability_score}</p><p className="text-[9px] text-slate-400">生活機能</p></div></div><div className="my-4 h-px bg-stone-200" /><p className="break-words text-xs leading-6 text-slate-600">{result.area_summary}</p><h3 className="mt-5 text-xs font-bold">地圖圖層</h3><div className="mt-2 flex flex-wrap gap-2">{result.poi_layers.map((layer) => <button key={layer.category} onClick={() => setActive((items) => items.includes(layer.category) ? items.filter((x) => x !== layer.category) : [...items, layer.category])} className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(layer.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}><span className={`h-1.5 w-1.5 rounded-full ${active.includes(layer.category) ? "bg-cyan-500" : "bg-stone-300"}`} />{layer.label}</button>)}</div><p className="mt-4 break-words text-[11px] leading-5 text-slate-500">{result.poi_summary}</p><p className="mt-4 break-words border-t border-stone-200 pt-3 text-[10px] leading-5 text-amber-700">{result.disclaimer}</p></aside>
+    </div><PoiList layers={layers} /></> : <LoadingState label="載入地圖洞察中..." />}</div>;
+}
+
+function PoiList({ layers }: { layers: MapPoiLayer[] }) {
+  return <section><SectionTitle title="地圖上的地點" note="目前圖層中的生活機能節點。" /><div className="mt-3 flex gap-2 overflow-x-auto pb-1">{layers.flatMap((layer) => layer.points.map((point) => <div key={`${layer.category}-${point.name}`} className="min-w-40 rounded-xl border border-stone-200 bg-white px-3 py-2.5"><div className="flex items-center gap-1.5"><span className="h-1.5 w-1.5 rounded-full bg-cyan-500" /><p className="text-[9px] font-bold text-cyan-700">{layer.label}</p></div><p className="mt-1.5 text-xs font-bold">{point.name}</p><p className="mt-1 text-[9px] text-slate-400">機能權重 {point.score_weight}</p></div>))}</div></section>;
+}
+
+function MarketInsight({ onMap }: { onMap: () => void }) {
+  const [regions, setRegions] = useState<{city:string;district:string}[]>([]), [selected, setSelected] = useState(""), [result, setResult] = useState<MarketResult>(), [loading, setLoading] = useState(true), [error, setError] = useState("");
   useEffect(() => { api.marketRegions().then(async (rows) => { setRegions(rows); const first = rows[0]; if (first) { setSelected(`${first.city}|${first.district}`); setResult(await api.marketInsight(first.city, first.district)); } }).catch((e) => setError(e.message)).finally(() => setLoading(false)); }, []);
-  async function change(value:string) { setSelected(value); setLoading(true); setError(""); const [city,district] = value.split("|"); try { setResult(await api.marketInsight(city,district)); } catch (e) { setError((e as Error).message); } finally { setLoading(false); } }
-  return <><Title title="Market Insight Lite" subtitle="延續 OmniUrbanAI v2 保留概念，只使用離線 mock data，不代表正式估價或投資建議。" />{error && <Notice tone="error">{error}</Notice>}<Card className="mt-4"><label className="text-sm font-bold">選擇區域<select disabled={loading} value={selected} onChange={(e) => change(e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-2 font-normal">{regions.map((r) => <option key={`${r.city}|${r.district}`} value={`${r.city}|${r.district}`}>{r.city} {r.district}</option>)}</select></label>{loading && <p className="mt-3 text-sm text-muted">載入區域洞察中...</p>}</Card>{result && <div className="mt-6 space-y-5"><div className="grid gap-4 md:grid-cols-4"><Metric label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} /><Metric label="交易量" value={result.transaction_volume} /><Metric label="生活機能" value={result.livability_score} /><Metric label="ESG Lite" value={result.esg_lite_score} /></div><Card><h3 className="font-bold">六期行情趨勢</h3><div className="mt-4 flex h-36 items-end gap-3">{result.trend.map((value,index) => <div key={index} className="flex flex-1 flex-col items-center gap-2"><span className="text-xs font-bold">{value}</span><div className="w-full rounded-t bg-blue-500" style={{height:`${value}%`}} /><span className="text-xs text-muted">第 {index+1} 期</span></div>)}</div></Card><Card><h3 className="font-bold">POI 生活機能分數</h3><div className="mt-4 grid gap-3 md:grid-cols-5">{Object.entries(result.poi_breakdown).map(([key,value]) => <div key={key} className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-muted">{key}</p><p className="mt-2 text-xl font-bold">{value}</p></div>)}</div></Card><Card><h3 className="font-bold">ESG / SDG 11 Lite</h3><p className="mt-2 text-sm text-muted">{result.sdg11_note}</p><p className="mt-4 text-xs font-bold text-amber-700">{result.disclaimer}</p></Card></div>}</>;
+  async function change(value:string) { setSelected(value); setLoading(true); try { const [city,district] = value.split("|"); setResult(await api.marketInsight(city,district)); } catch (e) { setError((e as Error).message); } finally { setLoading(false); } }
+  return <div className="space-y-6"><PageHeader kicker="區域洞察" title="Market Insight 區域行情" description="比較區域行情、交易量與生活機能。" action={<Button secondary onClick={onMap}>查看地圖洞察</Button>} />{error && <ErrorState message={error} />}<SectionCard><select disabled={loading} value={selected} onChange={(e) => change(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">{regions.map((r) => <option key={`${r.city}|${r.district}`} value={`${r.city}|${r.district}`}>{r.city} {r.district}</option>)}</select></SectionCard>{loading ? <LoadingState /> : result && <><div className="grid gap-3 md:grid-cols-4"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} /><MetricTile label="交易量" value={result.transaction_volume} /><MetricTile label="生活機能" value={result.livability_score} /><MetricTile label="ESG 輔助分數" value={result.esg_lite_score} /></div><SectionCard title="六期行情趨勢"><div className="flex h-36 items-end gap-3">{result.trend.map((value,index) => <div key={index} className="flex flex-1 flex-col items-center gap-1"><span className="text-[10px] font-bold">{value}</span><div className="w-full bg-cyan-600" style={{height:`${value}%`}} /><span className="text-[10px] text-slate-400">第 {index+1} 期</span></div>)}</div></SectionCard><Notice tone="warning">{result.disclaimer}</Notice></>}</div>;
 }
 
 function AegisCredit() {
-  const [result,setResult]=useState<{risk_score:number;signal_color:string;traces:string[]}>();
-  const [loading,setLoading]=useState(false); const [error,setError]=useState("");
-  async function run(){setLoading(true);setError("");try{setResult(await api.aegis({monthly_income:90000,monthly_debt:15000,cash:3500000,property_count:0,mortgage_count:0,property_price:22000000}));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
-  return <><Title title="Aegis-Credit Lite" subtitle="房貸風險展示型 heuristic，不代表銀行核貸。" />{error&&<Notice tone="error">{error}</Notice>}<Card className="mt-4"><p className="text-sm text-muted">第一階段使用預設買方情境，快速展示 heuristic 結果。</p><div className="mt-4"><Button disabled={loading} onClick={run}>{loading?"分析中...":"執行示範分析"}</Button></div></Card>{result&&<div className="mt-5 grid gap-4 md:grid-cols-2"><Metric label="風險分數" value={result.risk_score}/><Metric label="燈號" value={<Badge value={result.signal_color}/>} /></div>}</>;
+  const [result,setResult]=useState<{risk_score:number;signal_color:string;traces:string[]}>(), [loading,setLoading]=useState(false), [error,setError]=useState("");
+  async function run(){setLoading(true);try{setResult(await api.aegis({monthly_income:90000,monthly_debt:15000,cash:3500000,property_count:0,mortgage_count:0,property_price:22000000}));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
+  return <SupportPage kicker="風險模組" title="房貸風險展示" description="快速了解買方條件的風險輪廓，不代表銀行核貸。" error={error}><SectionCard><p className="text-sm text-slate-500">使用預設買方情境進行展示型評估。</p><Button onClick={run} disabled={loading} className="mt-4">{loading?"分析中...":"執行分析"}</Button></SectionCard>{result&&<div className="grid gap-3 md:grid-cols-2"><MetricTile label="風險分數" value={result.risk_score}/><MetricTile label="風險狀態" value={<Badge value={result.signal_color}/>} /></div>}</SupportPage>;
 }
-
 function LexProp() {
-  const [result,setResult]=useState<{risk_score:number;match_count:number;summary:string}>();
-  const [loading,setLoading]=useState(false); const [error,setError]=useState("");
-  async function run(){setLoading(true);setError("");try{setResult(await api.lexprop({city:"台北市",district:"信義區",road_masked:"松仁路***號",community:"信義首席"}));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
-  return <><Title title="LexProp Lite" subtitle="公開判決摘要模糊比對，不輸出完整門牌與個資。" />{error&&<Notice tone="error">{error}</Notice>}<Card className="mt-4"><p className="text-sm text-muted">第一階段使用匿名化預設案例，不代表正式法律判斷。</p><div className="mt-4"><Button disabled={loading} onClick={run}>{loading?"查詢中...":"查詢匿名化風險"}</Button></div></Card>{result&&<div className="mt-5 grid gap-4 md:grid-cols-2"><Metric label="比對筆數" value={result.match_count}/><Metric label="風險分數" value={result.risk_score}/><Card className="md:col-span-2"><p className="text-sm text-muted">{result.summary}</p></Card></div>}</>;
+  const [result,setResult]=useState<{risk_score:number;match_count:number;summary:string}>(), [loading,setLoading]=useState(false), [error,setError]=useState("");
+  async function run(){setLoading(true);try{setResult(await api.lexprop({city:"台北市",district:"信義區",road_masked:"松仁路***號",community:"信義首席"}));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
+  return <SupportPage kicker="風險模組" title="判決風險摘要" description="以匿名化條件比對公開判決摘要，不輸出完整門牌與個資。" error={error}><SectionCard><p className="text-sm text-slate-500">使用預設匿名化案例查詢潛在風險。</p><Button onClick={run} disabled={loading} className="mt-4">{loading?"查詢中...":"查詢摘要"}</Button></SectionCard>{result&&<><div className="grid gap-3 md:grid-cols-2"><MetricTile label="比對筆數" value={result.match_count}/><MetricTile label="風險分數" value={result.risk_score}/></div><SectionCard title="摘要"><p className="text-sm leading-7 text-slate-600">{result.summary}</p></SectionCard></>}</SupportPage>;
 }
+function SupportPage({ kicker, title, description, error, children }: { kicker: string; title: string; description: string; error: string; children: ReactNode }) { return <div className="space-y-6"><PageHeader kicker={kicker} title={title} description={description} />{error && <ErrorState message={error} />}{children}</div>; }
 
 function History() {
-  const [rows,setRows]=useState<Record<string,string|number>[]>([]); const [loading,setLoading]=useState(true); const [error,setError]=useState("");
+  const [rows,setRows]=useState<Record<string,string|number>[]>([]), [loading,setLoading]=useState(true), [error,setError]=useState("");
   useEffect(()=>{api.history().then(setRows).catch((e)=>setError(e.message)).finally(()=>setLoading(false));},[]);
-  return <><Title title="歷史案件" subtitle="SQLite 保存的 TaxOracle 分析結果。" />{error&&<Notice tone="error">{error}</Notice>}<Card className="mt-4">{loading?<p className="text-sm text-muted">載入歷史案件中...</p>:<div className="overflow-x-auto"><table className="w-full min-w-[720px] text-left text-sm"><thead className="border-b bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-3 py-3">案件</th><th className="px-3">客戶</th><th className="px-3">資格</th><th className="px-3">分數</th><th className="px-3">燈號</th><th className="px-3">建立時間</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id} className="border-b border-slate-100"><td className="px-3 py-3 font-bold">{row.case_id}</td><td className="px-3">{row.client_name}</td><td className="px-3"><Badge value={String(row.eligibility_status)}/></td><td className="px-3">{row.risk_score}</td><td className="px-3"><Badge value={String(row.signal_color)}/></td><td className="px-3 text-muted">{row.created_at}</td></tr>)}</tbody></table></div>}</Card></>;
+  return <div className="space-y-6"><PageHeader kicker="紀錄" title="歷史案件" description="查看已完成的 TaxOracle 分析結果。" />{error&&<ErrorState message={error}/>} {loading?<LoadingState/>:<section className="overflow-x-auto border border-slate-200 bg-white"><table className="w-full min-w-[720px] text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="px-4 py-3">案件</th><th>客戶</th><th>資格</th><th>分數</th><th>燈號</th><th>建立時間</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 font-bold">{row.case_id}</td><td>{row.client_name}</td><td><Badge value={String(row.eligibility_status)}/></td><td className="font-bold">{row.risk_score}</td><td><Badge value={String(row.signal_color)}/></td><td className="text-slate-500">{row.created_at}</td></tr>)}</tbody></table></section>}</div>;
 }

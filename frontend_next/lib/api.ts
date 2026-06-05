@@ -43,6 +43,29 @@ export type MarketResult = {
   disclaimer: string;
 };
 
+export type MapPoint = { name: string; lat: number; lng: number; score_weight: number };
+export type MapPoiLayer = { category: string; label: string; points: MapPoint[] };
+export type MapSearchResult = {
+  query: string;
+  matched: boolean;
+  center: { lat: number; lng: number } | null;
+  city: string;
+  district: string;
+  road: string;
+  source: string;
+  disclaimer: string;
+};
+export type MapInsightResult = {
+  center: { lat: number; lng: number };
+  zoom: number;
+  area_summary: string;
+  poi_layers: MapPoiLayer[];
+  livability_score: number;
+  poi_summary: string;
+  source: string;
+  disclaimer: string;
+};
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     const response = await fetch(`${API_BASE}${path}`, {
@@ -67,6 +90,10 @@ export const api = {
   marketRegions: () => request<{ city: string; district: string }[]>("/market-insights"),
   marketInsight: (city: string, district: string) =>
     request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ city, district }) }),
+  mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
+  mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
+  mapSearch: (query: string) => request<MapSearchResult>("/map/search", { method: "POST", body: JSON.stringify({ query }) }),
+  mapInsight: (query: string) => request<MapInsightResult>("/map/insight", { method: "POST", body: JSON.stringify({ query }) }),
   aegis: (payload: Record<string, number>) =>
     request<{ risk_score: number; signal_color: string; traces: string[] }>("/aegis-credit/analyze", { method: "POST", body: JSON.stringify(payload) }),
   lexprop: (payload: Record<string, string>) =>

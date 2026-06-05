@@ -7,6 +7,7 @@
 - 執行 `powershell -ExecutionPolicy Bypass -File .\scripts\check_demo.ps1`。
 - 預先跑過 TaxOracle 三個 demo case，確認燈號與說明文字。
 - 下載一次 HTML report，確認瀏覽器可正常開啟。
+- 開啟 Map Insight Lite，確認 mock 地址可定位並顯示 POI 圖層。
 - 關閉不必要的程式與通知，保留展示所需分頁。
 
 ## 後端啟動檢查
@@ -42,6 +43,13 @@
 - 在 TaxOracle 結果頁點擊下載 HTML report。
 - 確認報告包含案件摘要、資格結果、風險燈號、Rule Trace、補件清單、五年列管、中文說明與免責聲明。
 - 本 MVP 不提供 PDF。
+
+## Map Insight Lite 檢查
+
+- 搜尋 `台北市大安區和平東路二段`，確認地圖中心點與 POI markers 顯示。
+- 切換交通、學校、公園、醫療、商圈分類。
+- 確認畫面標示 Mock Data 與免責聲明。
+- 真實 Google、TGOS、TDX、PLVR adapter 尚未啟用；現場不需要 API key。
 
 ## 常見問題
 

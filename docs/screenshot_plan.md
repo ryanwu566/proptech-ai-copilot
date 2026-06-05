@@ -14,9 +14,11 @@
 | 8 | Market Insight Lite | 行情摘要、六期趨勢、POI 與 ESG / SDG 11 Lite |
 | 9 | Aegis-Credit Lite | heuristic 風險燈號與非正式核貸說明 |
 | 10 | LexProp Lite | 模糊地址比對摘要與個資保護說明 |
+| 11 | Map Insight Lite | 地址搜尋、區域中心點、800m 範圍與 POI 分類圖層 |
 
 ## 建議用途
 
 - 簡報主頁優先放編號 1、3、6、7。
 - 產品功能頁可補充編號 8、9、10。
+- 地圖功能介紹可使用編號 11，並清楚保留 Mock Data 免責聲明。
 - 中高風險案例適合用於回答「系統是否只會給出通過結果」。

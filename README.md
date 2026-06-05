@@ -48,6 +48,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\check_demo.ps1
 | --- | --- |
 | TaxOracle | 稅務資格快篩、風險燈號、Rule Trace、五年列管與 HTML report |
 | Market Insight Lite | mock 區域行情、六期趨勢、POI 與 ESG / SDG 11 Lite |
+| Map Insight Lite | mock 區域定位、POI 分類圖層與生活機能地圖 |
 | Aegis-Credit Lite | 展示型房貸風險 heuristic，不代表銀行核貸 |
 | LexProp Lite | 公開判決摘要模糊比對，不輸出完整門牌與個資 |
 | History | SQLite 保存並查看 TaxOracle 分析紀錄 |
@@ -100,6 +101,8 @@ streamlit run app.py
 ## 目前限制
 
 - 目前僅使用 mock CSV，不串接政府或外部即時 API。
+- Map Insight Lite 第一批使用 mock 地址、座標與 POI；Google、TGOS、TDX、PLVR adapter 尚未啟用。
+- 未來啟用地圖 adapter 時，API key 必須由 `.env` 或部署環境變數提供，不可寫入程式或 commit。
 - 不提供正式報稅、法律、估價、投資或銀行核貸判斷。
 - 不提供登入、PDF、RAG 或複雜地圖功能。
 - Lite 模組以概念展示為主，不代表正式產品承諾。

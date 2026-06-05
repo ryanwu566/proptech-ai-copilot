@@ -3,5 +3,10 @@
 @tailwind utilities;
 
 * { box-sizing: border-box; }
-body { margin: 0; background: #f6f8fc; color: #172033; }
+html { background: #f7f5f0; }
+body { margin: 0; overflow-x: hidden; background: #f7f5f0; color: #172033; font-family: Arial, "Noto Sans TC", sans-serif; }
+img, svg { max-width: 100%; }
 button, input, select { font: inherit; }
+button { cursor: pointer; }
+::selection { background: #dbeafe; color: #172033; }
+.leaflet-control-zoom, .leaflet-control-attribution { opacity: .82; }

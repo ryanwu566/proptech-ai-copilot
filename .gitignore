@@ -5,6 +5,8 @@
 venv/
 .env
 .env.local
+secrets.toml
+.streamlit/secrets.toml
 node_modules/
 .next/
 *.db

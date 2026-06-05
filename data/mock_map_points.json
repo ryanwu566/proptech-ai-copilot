@@ -1,0 +1,68 @@
+{
+  "categories": [
+    {"category": "transport", "label": "交通"},
+    {"category": "school", "label": "學校"},
+    {"category": "park", "label": "公園"},
+    {"category": "medical", "label": "醫療"},
+    {"category": "commerce", "label": "商圈"}
+  ],
+  "regions": [
+    {
+      "id": "taipei-daan-heping",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "aliases": ["臺北市大安區和平東路二段", "科技大樓"],
+      "center": {"lat": 25.0254, "lng": 121.5434},
+      "zoom": 15,
+      "area_summary": "大安區和平東路二段鄰近捷運科技大樓站，教育、醫療與生活採買機能集中。",
+      "livability_score": 89,
+      "poi_summary": "交通與學校資源密集，步行生活圈完整。",
+      "poi_layers": [
+        {"category": "transport", "label": "交通", "points": [{"name": "捷運科技大樓站", "lat": 25.0268, "lng": 121.5434, "score_weight": 24}, {"name": "和平東路公車站", "lat": 25.0251, "lng": 121.5418, "score_weight": 12}]},
+        {"category": "school", "label": "學校", "points": [{"name": "國立臺北教育大學", "lat": 25.0237, "lng": 121.5442, "score_weight": 20}]},
+        {"category": "park", "label": "公園", "points": [{"name": "龍門公園", "lat": 25.0241, "lng": 121.5466, "score_weight": 14}]},
+        {"category": "medical", "label": "醫療", "points": [{"name": "大安健康服務中心", "lat": 25.0262, "lng": 121.5454, "score_weight": 15}]},
+        {"category": "commerce", "label": "商圈", "points": [{"name": "科技大樓生活商圈", "lat": 25.0274, "lng": 121.5423, "score_weight": 16}]}
+      ]
+    },
+    {
+      "id": "newtaipei-banqiao-wenhua",
+      "city": "新北市",
+      "district": "板橋區",
+      "road": "文化路二段",
+      "aliases": ["新北市板橋區文化路二段", "江子翠"],
+      "center": {"lat": 25.0301, "lng": 121.4722},
+      "zoom": 15,
+      "area_summary": "板橋區文化路二段串聯江子翠捷運站與成熟住宅生活圈，交通及商業機能完整。",
+      "livability_score": 86,
+      "poi_summary": "大眾運輸便利，商圈與公園資源均衡。",
+      "poi_layers": [
+        {"category": "transport", "label": "交通", "points": [{"name": "捷運江子翠站", "lat": 25.0300, "lng": 121.4724, "score_weight": 25}]},
+        {"category": "school", "label": "學校", "points": [{"name": "江翠國中", "lat": 25.0279, "lng": 121.4707, "score_weight": 17}]},
+        {"category": "park", "label": "公園", "points": [{"name": "音樂公園", "lat": 25.0281, "lng": 121.4754, "score_weight": 17}]},
+        {"category": "medical", "label": "醫療", "points": [{"name": "板橋聯合診所", "lat": 25.0314, "lng": 121.4709, "score_weight": 13}]},
+        {"category": "commerce", "label": "商圈", "points": [{"name": "江子翠生活商圈", "lat": 25.0310, "lng": 121.4738, "score_weight": 17}]}
+      ]
+    },
+    {
+      "id": "taipei-xinyi-songren",
+      "city": "台北市",
+      "district": "信義區",
+      "road": "松仁路",
+      "aliases": ["臺北市信義區松仁路", "信義計畫區"],
+      "center": {"lat": 25.0330, "lng": 121.5654},
+      "zoom": 15,
+      "area_summary": "信義計畫區商業、交通與醫療資源密集，適合展示高機能都會生活圈。",
+      "livability_score": 90,
+      "poi_summary": "商圈與交通最突出，公園及醫療資源亦完整。",
+      "poi_layers": [
+        {"category": "transport", "label": "交通", "points": [{"name": "捷運台北101站", "lat": 25.0331, "lng": 121.5637, "score_weight": 25}]},
+        {"category": "school", "label": "學校", "points": [{"name": "信義國中", "lat": 25.0298, "lng": 121.5663, "score_weight": 14}]},
+        {"category": "park", "label": "公園", "points": [{"name": "信義廣場", "lat": 25.0345, "lng": 121.5657, "score_weight": 16}]},
+        {"category": "medical", "label": "醫療", "points": [{"name": "信義健康中心", "lat": 25.0320, "lng": 121.5680, "score_weight": 15}]},
+        {"category": "commerce", "label": "商圈", "points": [{"name": "信義商圈", "lat": 25.0351, "lng": 121.5668, "score_weight": 20}]}
+      ]
+    }
+  ]
+}

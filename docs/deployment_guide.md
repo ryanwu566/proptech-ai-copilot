@@ -1,0 +1,107 @@
+# Deployment Guide
+
+推薦部署架構：
+
+- FastAPI backend：Render
+- Next.js frontend：Vercel
+- Source：`https://github.com/ryanwu566/proptech-ai-copilot`
+
+目前系統使用 mock data；SQLite 在 Render 免費 Web Service 的檔案系統上不保證永久保存。重新部署或服務重建後，歷史案件可能重置。
+
+## A. Render 後端部署
+
+1. 在 Render 建立 **New Web Service**，連接 GitHub repo。
+2. Root Directory 保持 repo root，或留白。
+3. Build Command：
+
+   ```text
+   pip install -r requirements.txt
+   ```
+
+4. Start Command：
+
+   ```text
+   uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT
+   ```
+
+5. 設定環境變數：
+
+   ```text
+   CORS_ORIGINS=https://你的-vercel-domain.vercel.app
+   ```
+
+   以下真實 API adapter 尚未啟用，可留空或不設定：
+
+   ```text
+   GOOGLE_MAPS_API_KEY
+   TDX_CLIENT_ID
+   TDX_CLIENT_SECRET
+   TGOS_API_KEY
+   ```
+
+6. 部署完成後開啟：
+
+   ```text
+   https://你的-render-backend.onrender.com/health
+   ```
+
+   應回傳 `status: ok`。
+
+`CORS_ORIGINS` 支援逗號分隔多個來源。未設定時，backend 僅預設允許 `http://localhost:3000` 與 `http://127.0.0.1:3000`。
+
+## B. Vercel 前端部署
+
+1. 在 Vercel 選擇 **Import Git Repository**。
+2. 選擇 GitHub repo。
+3. Root Directory 設為：
+
+   ```text
+   frontend_next
+   ```
+
+4. Framework Preset 選擇 **Next.js**。
+5. Build Command：
+
+   ```text
+   npm run build
+   ```
+
+6. 設定環境變數：
+
+   ```text
+   NEXT_PUBLIC_API_BASE_URL=https://你的-render-backend.onrender.com
+   ```
+
+7. 部署後開啟首頁，測試 TaxOracle 三個案例、客戶溝通報告下載與 Map Insight mock 搜尋。
+
+## C. 常見錯誤
+
+### CORS blocked
+
+- 確認 Render 的 `CORS_ORIGINS` 完整包含 Vercel 網域，且沒有多餘路徑。
+- 修改環境變數後重新部署 Render。
+
+### Render backend sleeping / first request slow
+
+- Render 免費服務休眠後，第一次請求可能需要較長時間。
+- 先開啟 `/health` 喚醒服務，再操作前端。
+
+### NEXT_PUBLIC_API_BASE_URL 設錯
+
+- 必須是 Render backend 的公開 HTTPS 網址。
+- 修改後需重新部署 Vercel，因為 `NEXT_PUBLIC_` 變數會寫入 frontend build。
+
+### Data file not found
+
+- 確認 `data/mock_tax_cases.csv`、`data/mock_map_points.json` 與其他 mock CSV 已提交至 GitHub。
+- Render Root Directory 必須是 repo root 或留白。
+
+### npm build failed
+
+- 確認 Vercel Root Directory 是 `frontend_next`。
+- 本機先執行 `npm.cmd --prefix frontend_next run build`。
+
+### Python dependency missing
+
+- 確認套件已列在 repo root 的 `requirements.txt`。
+- Render Build Command 必須使用 `pip install -r requirements.txt`。
