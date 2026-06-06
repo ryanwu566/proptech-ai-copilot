@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from services.map_service import get_map_insight, list_poi_categories, list_regions, search_location
+from services.map_service import get_map_insight, get_nearby_places, list_poi_categories, list_regions, search_location
 
 
 router = APIRouter(prefix="/map", tags=["map-insight"])
@@ -17,6 +17,16 @@ class MapQuery(BaseModel):
     """Text query accepted by mock map search and insight endpoints."""
 
     query: str
+
+
+class NearbyQuery(BaseModel):
+    """Nearby POI query centered on a WGS84 coordinate."""
+
+    lat: float = Field(ge=-90, le=90)
+    lng: float = Field(ge=-180, le=180)
+    radius_m: int = Field(default=800, ge=100, le=5000)
+    categories: list[str] = Field(default_factory=lambda: ["transport", "school", "park", "medical", "shopping", "food"])
+    language_code: str = "zh-TW"
 
 
 @router.get("/regions")
@@ -48,3 +58,10 @@ def post_map_insight(request: MapQuery) -> dict[str, Any]:
     if result is None:
         raise HTTPException(status_code=404, detail="找不到符合的 Map Insight 展示資料。")
     return result
+
+
+@router.post("/nearby")
+def post_map_nearby(request: NearbyQuery) -> dict[str, Any]:
+    """Return normalized nearby amenities with automatic mock fallback."""
+
+    return get_nearby_places(request.lat, request.lng, request.radius_m, request.categories, request.language_code)

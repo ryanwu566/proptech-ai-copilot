@@ -369,4 +369,16 @@ Map Insight Lite 第一批 mock 版已完成：
 - Next.js React Leaflet 地圖、中心點、800m 範圍、POI 分類切換與 marker 清單
 - Mock 地址 / 路段搜尋：大安區和平東路二段、板橋區文化路二段、信義區松仁路
 
-真實 Google、TGOS、TDX、PLVR adapter 尚未啟用。地圖結果僅供展示，不代表正式定位、估價、投資或交通分析。
+## Google Places 周遭生活機能整合狀態
+
+正式專案已新增 backend-only Google Places (New) adapter 與 `POST /map/nearby`：
+
+- 類別：交通、學校、公園、醫療、商圈、餐飲。
+- 只由 Render backend 讀取 `GOOGLE_MAPS_API_KEY`，前端不接觸 key。
+- 使用 field mask 取得名稱、位置、地址、評分、評分數、營業狀態與類型。
+- backend 正規化資料、計算距離與生活機能分數後才回傳前端。
+- 同一查詢使用簡單 in-memory cache。
+- 缺 key、timeout、quota 或 Google 服務錯誤時自動回傳 mock fallback。
+- Google Geocoding adapter 已預留；mock 地址仍優先用於展示穩定性。
+
+TGOS、TDX、PLVR 真實 adapter 尚未啟用。地圖結果僅供展示，不代表正式定位、估價、投資或交通分析。

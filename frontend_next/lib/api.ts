@@ -79,6 +79,30 @@ export type MapInsightResult = {
   source: string;
   disclaimer: string;
 };
+export type NearbyPlace = {
+  place_id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  address: string;
+  rating: number | null;
+  user_rating_count: number;
+  business_status: string;
+  distance_m: number;
+  types: string[];
+  category: string;
+  source: "google_places" | "mock";
+};
+export type NearbyCategory = { category: string; label: string; count: number; places: NearbyPlace[] };
+export type MapNearbyResult = {
+  center: { lat: number; lng: number };
+  radius_m: number;
+  source: "google_places" | "mock";
+  categories: NearbyCategory[];
+  livability_score: number;
+  summary: string;
+  disclaimer: string;
+};
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
@@ -108,6 +132,8 @@ export const api = {
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
   mapSearch: (query: string) => request<MapSearchResult>("/map/search", { method: "POST", body: JSON.stringify({ query }) }),
   mapInsight: (query: string) => request<MapInsightResult>("/map/insight", { method: "POST", body: JSON.stringify({ query }) }),
+  mapNearby: (center: { lat: number; lng: number }, categories: string[], radius_m = 800) =>
+    request<MapNearbyResult>("/map/nearby", { method: "POST", body: JSON.stringify({ ...center, radius_m, categories, language_code: "zh-TW" }) }),
   aegis: (payload: Record<string, number>) =>
     request<{ risk_score: number; signal_color: string; traces: string[] }>("/aegis-credit/analyze", { method: "POST", body: JSON.stringify(payload) }),
   lexprop: (payload: Record<string, string>) =>

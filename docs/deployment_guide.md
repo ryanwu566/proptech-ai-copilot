@@ -30,10 +30,17 @@
    CORS_ORIGINS=https://你的-vercel-domain.vercel.app
    ```
 
-   以下真實 API adapter 尚未啟用，可留空或不設定：
+   如需啟用 Map Insight 的 Google Places 周遭生活機能查詢，在 Render backend 設定：
 
    ```text
    GOOGLE_MAPS_API_KEY
+   ```
+
+   未設定或 Google Places 發生 timeout、quota、服務錯誤時，backend 會自動使用 mock fallback。
+
+   以下真實 API adapter 尚未啟用，可留空或不設定：
+
+   ```text
    TDX_CLIENT_ID
    TDX_CLIENT_SECRET
    TGOS_API_KEY
@@ -72,7 +79,9 @@
    NEXT_PUBLIC_API_BASE_URL=https://你的-render-backend.onrender.com
    ```
 
-7. 部署後開啟首頁，測試 TaxOracle 三個案例、客戶溝通報告下載與 Map Insight mock 搜尋。
+   Vercel 不需要且不應設定 `GOOGLE_MAPS_API_KEY`；Google Places 只能由 Render backend 呼叫。
+
+7. 部署後開啟首頁，測試 TaxOracle 三個案例、客戶溝通報告下載與 Map Insight 周遭生活機能查詢。
 
 ## C. 常見錯誤
 

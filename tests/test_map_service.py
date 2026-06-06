@@ -1,11 +1,12 @@
 """Map Insight Lite mock service tests."""
 
-from services.map_service import get_map_insight, list_poi_categories, list_regions, search_location
+from services.adapters.google_places_adapter import GooglePlacesAdapter
+from services.map_service import get_map_insight, get_nearby_places, list_poi_categories, list_regions, search_location
 
 
 def test_map_regions_and_categories_load() -> None:
     assert len(list_regions()) >= 3
-    assert {item["category"] for item in list_poi_categories()} == {"transport", "school", "park", "medical", "commerce"}
+    assert {item["category"] for item in list_poi_categories()} == {"transport", "school", "park", "medical", "shopping", "food"}
 
 
 def test_mock_address_search_matches_road() -> None:
@@ -25,3 +26,30 @@ def test_map_insight_has_stable_layers_and_score() -> None:
 def test_unknown_map_query_is_friendly() -> None:
     assert search_location("不存在的地址")["matched"] is False
     assert get_map_insight("不存在的地址") is None
+
+
+def test_nearby_without_google_key_uses_mock_fallback() -> None:
+    result = get_nearby_places(
+        25.0254,
+        121.5434,
+        800,
+        ["transport", "food", "shopping"],
+        adapter=GooglePlacesAdapter(api_key=""),
+    )
+    assert result["source"] == "mock"
+    assert 0 <= result["livability_score"] <= 100
+    assert {row["category"] for row in result["categories"]} == {"transport", "food", "shopping"}
+    assert result["categories"][0]["places"][0]["source"] == "mock"
+
+
+def test_nearby_google_error_uses_mock_fallback() -> None:
+    class FailingGoogleAdapter:
+        available = True
+
+        def nearby(self, *args, **kwargs):
+            import httpx
+
+            raise httpx.TimeoutException("timeout")
+
+    result = get_nearby_places(25.0254, 121.5434, 800, ["transport"], adapter=FailingGoogleAdapter())
+    assert result["source"] == "mock"
