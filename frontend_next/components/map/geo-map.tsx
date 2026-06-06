@@ -25,7 +25,16 @@ function markerIcon(color: string, center = false, selected = false) {
 
 function Recenter({ center, zoom, selected }: { center: { lat: number; lng: number }; zoom: number; selected?: NearbyPlace }) {
   const map = useMap();
-  useEffect(() => { map.setView(selected ? [selected.lat, selected.lng] : [center.lat, center.lng], selected ? Math.max(zoom, 17) : zoom); }, [center, map, selected, zoom]);
+  useEffect(() => {
+    map.setView(selected ? [selected.lat, selected.lng] : [center.lat, center.lng], selected ? Math.max(zoom, 17) : zoom);
+    if (selected) {
+      const safe = (value: string) => value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character] ?? character);
+      L.popup()
+        .setLatLng([selected.lat, selected.lng])
+        .setContent(`<strong>${safe(selected.name)}</strong><br>${Math.round(selected.distance_m)} 公尺<br>${safe(selected.address)}`)
+        .openOn(map);
+    }
+  }, [center, map, selected, zoom]);
   return null;
 }
 

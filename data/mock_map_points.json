@@ -1,10 +1,25 @@
 {
   "categories": [
-    {"category": "transport", "label": "交通"},
-    {"category": "school", "label": "學校"},
-    {"category": "park", "label": "公園"},
-    {"category": "medical", "label": "醫療"},
-    {"category": "commerce", "label": "商圈"}
+    {
+      "category": "transport",
+      "label": "交通"
+    },
+    {
+      "category": "school",
+      "label": "學校"
+    },
+    {
+      "category": "park",
+      "label": "公園"
+    },
+    {
+      "category": "medical",
+      "label": "醫療"
+    },
+    {
+      "category": "commerce",
+      "label": "商圈"
+    }
   ],
   "regions": [
     {
@@ -12,18 +27,471 @@
       "city": "台北市",
       "district": "大安區",
       "road": "和平東路二段",
-      "aliases": ["臺北市大安區和平東路二段", "科技大樓"],
-      "center": {"lat": 25.0254, "lng": 121.5434},
+      "aliases": [
+        "臺北市大安區和平東路二段",
+        "科技大樓"
+      ],
+      "center": {
+        "lat": 25.0254,
+        "lng": 121.5434
+      },
       "zoom": 15,
       "area_summary": "大安區和平東路二段鄰近捷運科技大樓站，教育、醫療與生活採買機能集中。",
       "livability_score": 89,
       "poi_summary": "交通與學校資源密集，步行生活圈完整。",
       "poi_layers": [
-        {"category": "transport", "label": "交通", "points": [{"name": "捷運科技大樓站", "lat": 25.0268, "lng": 121.5434, "score_weight": 24}, {"name": "和平東路公車站", "lat": 25.0251, "lng": 121.5418, "score_weight": 12}]},
-        {"category": "school", "label": "學校", "points": [{"name": "國立臺北教育大學", "lat": 25.0237, "lng": 121.5442, "score_weight": 20}]},
-        {"category": "park", "label": "公園", "points": [{"name": "龍門公園", "lat": 25.0241, "lng": 121.5466, "score_weight": 14}]},
-        {"category": "medical", "label": "醫療", "points": [{"name": "大安健康服務中心", "lat": 25.0262, "lng": 121.5454, "score_weight": 15}]},
-        {"category": "commerce", "label": "商圈", "points": [{"name": "科技大樓生活商圈", "lat": 25.0274, "lng": 121.5423, "score_weight": 16}]}
+        {
+          "category": "transport",
+          "label": "交通",
+          "points": [
+            {
+              "name": "捷運科技大樓站",
+              "lat": 25.0268,
+              "lng": 121.5434,
+              "score_weight": 24
+            },
+            {
+              "name": "和平東路公車站",
+              "lat": 25.0251,
+              "lng": 121.5418,
+              "score_weight": 12
+            }
+          ]
+        },
+        {
+          "category": "school",
+          "label": "學校",
+          "points": [
+            {
+              "name": "國立臺北教育大學",
+              "lat": 25.0237,
+              "lng": 121.5442,
+              "score_weight": 20
+            }
+          ]
+        },
+        {
+          "category": "park",
+          "label": "公園",
+          "points": [
+            {
+              "name": "龍門公園",
+              "lat": 25.0241,
+              "lng": 121.5466,
+              "score_weight": 14
+            }
+          ]
+        },
+        {
+          "category": "medical",
+          "label": "醫療",
+          "points": [
+            {
+              "name": "大安健康服務中心",
+              "lat": 25.0262,
+              "lng": 121.5454,
+              "score_weight": 15
+            }
+          ]
+        },
+        {
+          "category": "commerce",
+          "label": "商圈",
+          "points": [
+            {
+              "name": "科技大樓生活商圈",
+              "lat": 25.0274,
+              "lng": 121.5423,
+              "score_weight": 16
+            }
+          ]
+        }
+      ],
+      "nearby_places": [
+        {
+          "place_id": "mock-taipei-daan-heping-transport-1",
+          "name": "???????",
+          "category": "transport",
+          "lat": 25.0266,
+          "lng": 121.5436,
+          "address": "台北市大安區和平東路二段?? 1 ?",
+          "rating": 4,
+          "user_rating_count": 45,
+          "business_status": "OPERATIONAL",
+          "distance_m": 135,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-transport-2",
+          "name": "???????",
+          "category": "transport",
+          "lat": 25.0239,
+          "lng": 121.5448,
+          "address": "台北市大安區和平東路二段?? 2 ?",
+          "rating": 4.1,
+          "user_rating_count": 76,
+          "business_status": "OPERATIONAL",
+          "distance_m": 218,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-transport-3",
+          "name": "???????",
+          "category": "transport",
+          "lat": 25.0282,
+          "lng": 121.5413,
+          "address": "台北市大安區和平東路二段?? 3 ?",
+          "rating": 4.2,
+          "user_rating_count": 107,
+          "business_status": "OPERATIONAL",
+          "distance_m": 376,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-transport-4",
+          "name": "???? YouBike ?",
+          "category": "transport",
+          "lat": 25.022,
+          "lng": 121.5407,
+          "address": "台北市大安區和平東路二段?? 4 ?",
+          "rating": 4.3,
+          "user_rating_count": 138,
+          "business_status": "OPERATIONAL",
+          "distance_m": 465,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-school-1",
+          "name": "????????",
+          "category": "school",
+          "lat": 25.02668,
+          "lng": 121.54354,
+          "address": "台北市大安區和平東路二段?? 1 ?",
+          "rating": 4.1,
+          "user_rating_count": 72,
+          "business_status": "OPERATIONAL",
+          "distance_m": 143,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-school-2",
+          "name": "??????",
+          "category": "school",
+          "lat": 25.02398,
+          "lng": 121.54474,
+          "address": "台北市大安區和平東路二段?? 2 ?",
+          "rating": 4.2,
+          "user_rating_count": 103,
+          "business_status": "OPERATIONAL",
+          "distance_m": 207,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-school-3",
+          "name": "????",
+          "category": "school",
+          "lat": 25.02828,
+          "lng": 121.54124,
+          "address": "台北市大安區和平東路二段?? 3 ?",
+          "rating": 4.3,
+          "user_rating_count": 134,
+          "business_status": "OPERATIONAL",
+          "distance_m": 387,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-school-4",
+          "name": "??????",
+          "category": "school",
+          "lat": 25.02208,
+          "lng": 121.54064,
+          "address": "台北市大安區和平東路二段?? 4 ?",
+          "rating": 4.4,
+          "user_rating_count": 165,
+          "business_status": "OPERATIONAL",
+          "distance_m": 461,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-park-1",
+          "name": "????",
+          "category": "park",
+          "lat": 25.02676,
+          "lng": 121.54348,
+          "address": "台北市大安區和平東路二段?? 1 ?",
+          "rating": 4.2,
+          "user_rating_count": 99,
+          "business_status": "OPERATIONAL",
+          "distance_m": 151,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-park-2",
+          "name": "????",
+          "category": "park",
+          "lat": 25.02406,
+          "lng": 121.54468,
+          "address": "台北市大安區和平東路二段?? 2 ?",
+          "rating": 4.3,
+          "user_rating_count": 130,
+          "business_status": "OPERATIONAL",
+          "distance_m": 197,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-park-3",
+          "name": "????",
+          "category": "park",
+          "lat": 25.02836,
+          "lng": 121.54118,
+          "address": "台北市大安區和平東路二段?? 3 ?",
+          "rating": 4.4,
+          "user_rating_count": 161,
+          "business_status": "OPERATIONAL",
+          "distance_m": 397,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-park-4",
+          "name": "????????",
+          "category": "park",
+          "lat": 25.02216,
+          "lng": 121.54058,
+          "address": "台北市大安區和平東路二段?? 4 ?",
+          "rating": 4.5,
+          "user_rating_count": 192,
+          "business_status": "OPERATIONAL",
+          "distance_m": 458,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-medical-1",
+          "name": "????????",
+          "category": "medical",
+          "lat": 25.02684,
+          "lng": 121.54342,
+          "address": "台北市大安區和平東路二段?? 1 ?",
+          "rating": 4.3,
+          "user_rating_count": 126,
+          "business_status": "OPERATIONAL",
+          "distance_m": 160,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-medical-2",
+          "name": "????????",
+          "category": "medical",
+          "lat": 25.02414,
+          "lng": 121.54462,
+          "address": "台北市大安區和平東路二段?? 2 ?",
+          "rating": 4.4,
+          "user_rating_count": 157,
+          "business_status": "OPERATIONAL",
+          "distance_m": 186,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-medical-3",
+          "name": "??????",
+          "category": "medical",
+          "lat": 25.02844,
+          "lng": 121.54112,
+          "address": "台北市大安區和平東路二段?? 3 ?",
+          "rating": 4.5,
+          "user_rating_count": 188,
+          "business_status": "OPERATIONAL",
+          "distance_m": 408,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-medical-4",
+          "name": "??????",
+          "category": "medical",
+          "lat": 25.02224,
+          "lng": 121.54052,
+          "address": "台北市大安區和平東路二段?? 4 ?",
+          "rating": 4,
+          "user_rating_count": 219,
+          "business_status": "OPERATIONAL",
+          "distance_m": 455,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-shopping-1",
+          "name": "????????",
+          "category": "shopping",
+          "lat": 25.02692,
+          "lng": 121.54336,
+          "address": "台北市大安區和平東路二段?? 1 ?",
+          "rating": 4.4,
+          "user_rating_count": 153,
+          "business_status": "OPERATIONAL",
+          "distance_m": 169,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-shopping-2",
+          "name": "????",
+          "category": "shopping",
+          "lat": 25.02422,
+          "lng": 121.54456,
+          "address": "台北市大安區和平東路二段?? 2 ?",
+          "rating": 4.5,
+          "user_rating_count": 184,
+          "business_status": "OPERATIONAL",
+          "distance_m": 175,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-shopping-3",
+          "name": "??????",
+          "category": "shopping",
+          "lat": 25.02852,
+          "lng": 121.54106,
+          "address": "台北市大安區和平東路二段?? 3 ?",
+          "rating": 4,
+          "user_rating_count": 215,
+          "business_status": "OPERATIONAL",
+          "distance_m": 419,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-shopping-4",
+          "name": "??????",
+          "category": "shopping",
+          "lat": 25.02232,
+          "lng": 121.54046,
+          "address": "台北市大安區和平東路二段?? 4 ?",
+          "rating": 4.1,
+          "user_rating_count": 246,
+          "business_status": "OPERATIONAL",
+          "distance_m": 452,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-food-1",
+          "name": "???????",
+          "category": "food",
+          "lat": 25.027,
+          "lng": 121.5433,
+          "address": "台北市大安區和平東路二段?? 1 ?",
+          "rating": 4.5,
+          "user_rating_count": 180,
+          "business_status": "OPERATIONAL",
+          "distance_m": 178,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-food-2",
+          "name": "???????",
+          "category": "food",
+          "lat": 25.0243,
+          "lng": 121.5445,
+          "address": "台北市大安區和平東路二段?? 2 ?",
+          "rating": 4,
+          "user_rating_count": 211,
+          "business_status": "OPERATIONAL",
+          "distance_m": 165,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-food-3",
+          "name": "?????",
+          "category": "food",
+          "lat": 25.0286,
+          "lng": 121.541,
+          "address": "台北市大安區和平東路二段?? 3 ?",
+          "rating": 4.1,
+          "user_rating_count": 242,
+          "business_status": "OPERATIONAL",
+          "distance_m": 429,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-daan-heping-food-4",
+          "name": "??????",
+          "category": "food",
+          "lat": 25.0224,
+          "lng": 121.5404,
+          "address": "台北市大安區和平東路二段?? 4 ?",
+          "rating": 4.2,
+          "user_rating_count": 273,
+          "business_status": "OPERATIONAL",
+          "distance_m": 449,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        }
       ]
     },
     {
@@ -31,18 +499,465 @@
       "city": "新北市",
       "district": "板橋區",
       "road": "文化路二段",
-      "aliases": ["新北市板橋區文化路二段", "江子翠"],
-      "center": {"lat": 25.0301, "lng": 121.4722},
+      "aliases": [
+        "新北市板橋區文化路二段",
+        "江子翠"
+      ],
+      "center": {
+        "lat": 25.0301,
+        "lng": 121.4722
+      },
       "zoom": 15,
       "area_summary": "板橋區文化路二段串聯江子翠捷運站與成熟住宅生活圈，交通及商業機能完整。",
       "livability_score": 86,
       "poi_summary": "大眾運輸便利，商圈與公園資源均衡。",
       "poi_layers": [
-        {"category": "transport", "label": "交通", "points": [{"name": "捷運江子翠站", "lat": 25.0300, "lng": 121.4724, "score_weight": 25}]},
-        {"category": "school", "label": "學校", "points": [{"name": "江翠國中", "lat": 25.0279, "lng": 121.4707, "score_weight": 17}]},
-        {"category": "park", "label": "公園", "points": [{"name": "音樂公園", "lat": 25.0281, "lng": 121.4754, "score_weight": 17}]},
-        {"category": "medical", "label": "醫療", "points": [{"name": "板橋聯合診所", "lat": 25.0314, "lng": 121.4709, "score_weight": 13}]},
-        {"category": "commerce", "label": "商圈", "points": [{"name": "江子翠生活商圈", "lat": 25.0310, "lng": 121.4738, "score_weight": 17}]}
+        {
+          "category": "transport",
+          "label": "交通",
+          "points": [
+            {
+              "name": "捷運江子翠站",
+              "lat": 25.03,
+              "lng": 121.4724,
+              "score_weight": 25
+            }
+          ]
+        },
+        {
+          "category": "school",
+          "label": "學校",
+          "points": [
+            {
+              "name": "江翠國中",
+              "lat": 25.0279,
+              "lng": 121.4707,
+              "score_weight": 17
+            }
+          ]
+        },
+        {
+          "category": "park",
+          "label": "公園",
+          "points": [
+            {
+              "name": "音樂公園",
+              "lat": 25.0281,
+              "lng": 121.4754,
+              "score_weight": 17
+            }
+          ]
+        },
+        {
+          "category": "medical",
+          "label": "醫療",
+          "points": [
+            {
+              "name": "板橋聯合診所",
+              "lat": 25.0314,
+              "lng": 121.4709,
+              "score_weight": 13
+            }
+          ]
+        },
+        {
+          "category": "commerce",
+          "label": "商圈",
+          "points": [
+            {
+              "name": "江子翠生活商圈",
+              "lat": 25.031,
+              "lng": 121.4738,
+              "score_weight": 17
+            }
+          ]
+        }
+      ],
+      "nearby_places": [
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-transport-1",
+          "name": "??????",
+          "category": "transport",
+          "lat": 25.0313,
+          "lng": 121.4724,
+          "address": "新北市板橋區文化路二段?? 1 ?",
+          "rating": 4,
+          "user_rating_count": 45,
+          "business_status": "OPERATIONAL",
+          "distance_m": 135,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-transport-2",
+          "name": "??????",
+          "category": "transport",
+          "lat": 25.0286,
+          "lng": 121.4736,
+          "address": "新北市板橋區文化路二段?? 2 ?",
+          "rating": 4.1,
+          "user_rating_count": 76,
+          "business_status": "OPERATIONAL",
+          "distance_m": 218,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-transport-3",
+          "name": "?? YouBike ?",
+          "category": "transport",
+          "lat": 25.0329,
+          "lng": 121.4701,
+          "address": "新北市板橋區文化路二段?? 3 ?",
+          "rating": 4.2,
+          "user_rating_count": 107,
+          "business_status": "OPERATIONAL",
+          "distance_m": 376,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-transport-4",
+          "name": "??????",
+          "category": "transport",
+          "lat": 25.0267,
+          "lng": 121.4695,
+          "address": "新北市板橋區文化路二段?? 4 ?",
+          "rating": 4.3,
+          "user_rating_count": 138,
+          "business_status": "OPERATIONAL",
+          "distance_m": 465,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-school-1",
+          "name": "????",
+          "category": "school",
+          "lat": 25.03138,
+          "lng": 121.47234,
+          "address": "新北市板橋區文化路二段?? 1 ?",
+          "rating": 4.1,
+          "user_rating_count": 72,
+          "business_status": "OPERATIONAL",
+          "distance_m": 143,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-school-2",
+          "name": "????",
+          "category": "school",
+          "lat": 25.02868,
+          "lng": 121.47354,
+          "address": "新北市板橋區文化路二段?? 2 ?",
+          "rating": 4.2,
+          "user_rating_count": 103,
+          "business_status": "OPERATIONAL",
+          "distance_m": 207,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-school-3",
+          "name": "??????",
+          "category": "school",
+          "lat": 25.03298,
+          "lng": 121.47004,
+          "address": "新北市板橋區文化路二段?? 3 ?",
+          "rating": 4.3,
+          "user_rating_count": 134,
+          "business_status": "OPERATIONAL",
+          "distance_m": 387,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-school-4",
+          "name": "?????",
+          "category": "school",
+          "lat": 25.02678,
+          "lng": 121.46944,
+          "address": "新北市板橋區文化路二段?? 4 ?",
+          "rating": 4.4,
+          "user_rating_count": 165,
+          "business_status": "OPERATIONAL",
+          "distance_m": 461,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-park-1",
+          "name": "????",
+          "category": "park",
+          "lat": 25.03146,
+          "lng": 121.47228,
+          "address": "新北市板橋區文化路二段?? 1 ?",
+          "rating": 4.2,
+          "user_rating_count": 99,
+          "business_status": "OPERATIONAL",
+          "distance_m": 151,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-park-2",
+          "name": "????",
+          "category": "park",
+          "lat": 25.02876,
+          "lng": 121.47348,
+          "address": "新北市板橋區文化路二段?? 2 ?",
+          "rating": 4.3,
+          "user_rating_count": 130,
+          "business_status": "OPERATIONAL",
+          "distance_m": 197,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-park-3",
+          "name": "?????????",
+          "category": "park",
+          "lat": 25.03306,
+          "lng": 121.46998,
+          "address": "新北市板橋區文化路二段?? 3 ?",
+          "rating": 4.4,
+          "user_rating_count": 161,
+          "business_status": "OPERATIONAL",
+          "distance_m": 397,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-park-4",
+          "name": "???????",
+          "category": "park",
+          "lat": 25.02686,
+          "lng": 121.46938,
+          "address": "新北市板橋區文化路二段?? 4 ?",
+          "rating": 4.5,
+          "user_rating_count": 192,
+          "business_status": "OPERATIONAL",
+          "distance_m": 458,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-medical-1",
+          "name": "??????",
+          "category": "medical",
+          "lat": 25.03154,
+          "lng": 121.47222,
+          "address": "新北市板橋區文化路二段?? 1 ?",
+          "rating": 4.3,
+          "user_rating_count": 126,
+          "business_status": "OPERATIONAL",
+          "distance_m": 160,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-medical-2",
+          "name": "??????",
+          "category": "medical",
+          "lat": 25.02884,
+          "lng": 121.47342,
+          "address": "新北市板橋區文化路二段?? 2 ?",
+          "rating": 4.4,
+          "user_rating_count": 157,
+          "business_status": "OPERATIONAL",
+          "distance_m": 186,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-medical-3",
+          "name": "?????",
+          "category": "medical",
+          "lat": 25.03314,
+          "lng": 121.46992,
+          "address": "新北市板橋區文化路二段?? 3 ?",
+          "rating": 4.5,
+          "user_rating_count": 188,
+          "business_status": "OPERATIONAL",
+          "distance_m": 408,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-medical-4",
+          "name": "??????",
+          "category": "medical",
+          "lat": 25.02694,
+          "lng": 121.46932,
+          "address": "新北市板橋區文化路二段?? 4 ?",
+          "rating": 4,
+          "user_rating_count": 219,
+          "business_status": "OPERATIONAL",
+          "distance_m": 455,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-shopping-1",
+          "name": "???????",
+          "category": "shopping",
+          "lat": 25.03162,
+          "lng": 121.47216,
+          "address": "新北市板橋區文化路二段?? 1 ?",
+          "rating": 4.4,
+          "user_rating_count": 153,
+          "business_status": "OPERATIONAL",
+          "distance_m": 169,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-shopping-2",
+          "name": "???????",
+          "category": "shopping",
+          "lat": 25.02892,
+          "lng": 121.47336,
+          "address": "新北市板橋區文化路二段?? 2 ?",
+          "rating": 4.5,
+          "user_rating_count": 184,
+          "business_status": "OPERATIONAL",
+          "distance_m": 175,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-shopping-3",
+          "name": "??????",
+          "category": "shopping",
+          "lat": 25.03322,
+          "lng": 121.46986,
+          "address": "新北市板橋區文化路二段?? 3 ?",
+          "rating": 4,
+          "user_rating_count": 215,
+          "business_status": "OPERATIONAL",
+          "distance_m": 419,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-shopping-4",
+          "name": "??????",
+          "category": "shopping",
+          "lat": 25.02702,
+          "lng": 121.46926,
+          "address": "新北市板橋區文化路二段?? 4 ?",
+          "rating": 4.1,
+          "user_rating_count": 246,
+          "business_status": "OPERATIONAL",
+          "distance_m": 452,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-food-1",
+          "name": "??????",
+          "category": "food",
+          "lat": 25.0317,
+          "lng": 121.4721,
+          "address": "新北市板橋區文化路二段?? 1 ?",
+          "rating": 4.5,
+          "user_rating_count": 180,
+          "business_status": "OPERATIONAL",
+          "distance_m": 178,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-food-2",
+          "name": "??????",
+          "category": "food",
+          "lat": 25.029,
+          "lng": 121.4733,
+          "address": "新北市板橋區文化路二段?? 2 ?",
+          "rating": 4,
+          "user_rating_count": 211,
+          "business_status": "OPERATIONAL",
+          "distance_m": 165,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-food-3",
+          "name": "?????",
+          "category": "food",
+          "lat": 25.0333,
+          "lng": 121.4698,
+          "address": "新北市板橋區文化路二段?? 3 ?",
+          "rating": 4.1,
+          "user_rating_count": 242,
+          "business_status": "OPERATIONAL",
+          "distance_m": 429,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-newtaipei-banqiao-wenhua-food-4",
+          "name": "???????",
+          "category": "food",
+          "lat": 25.0271,
+          "lng": 121.4692,
+          "address": "新北市板橋區文化路二段?? 4 ?",
+          "rating": 4.2,
+          "user_rating_count": 273,
+          "business_status": "OPERATIONAL",
+          "distance_m": 449,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        }
       ]
     },
     {
@@ -50,18 +965,465 @@
       "city": "台北市",
       "district": "信義區",
       "road": "松仁路",
-      "aliases": ["臺北市信義區松仁路", "信義計畫區"],
-      "center": {"lat": 25.0330, "lng": 121.5654},
+      "aliases": [
+        "臺北市信義區松仁路",
+        "信義計畫區"
+      ],
+      "center": {
+        "lat": 25.033,
+        "lng": 121.5654
+      },
       "zoom": 15,
       "area_summary": "信義計畫區商業、交通與醫療資源密集，適合展示高機能都會生活圈。",
       "livability_score": 90,
       "poi_summary": "商圈與交通最突出，公園及醫療資源亦完整。",
       "poi_layers": [
-        {"category": "transport", "label": "交通", "points": [{"name": "捷運台北101站", "lat": 25.0331, "lng": 121.5637, "score_weight": 25}]},
-        {"category": "school", "label": "學校", "points": [{"name": "信義國中", "lat": 25.0298, "lng": 121.5663, "score_weight": 14}]},
-        {"category": "park", "label": "公園", "points": [{"name": "信義廣場", "lat": 25.0345, "lng": 121.5657, "score_weight": 16}]},
-        {"category": "medical", "label": "醫療", "points": [{"name": "信義健康中心", "lat": 25.0320, "lng": 121.5680, "score_weight": 15}]},
-        {"category": "commerce", "label": "商圈", "points": [{"name": "信義商圈", "lat": 25.0351, "lng": 121.5668, "score_weight": 20}]}
+        {
+          "category": "transport",
+          "label": "交通",
+          "points": [
+            {
+              "name": "捷運台北101站",
+              "lat": 25.0331,
+              "lng": 121.5637,
+              "score_weight": 25
+            }
+          ]
+        },
+        {
+          "category": "school",
+          "label": "學校",
+          "points": [
+            {
+              "name": "信義國中",
+              "lat": 25.0298,
+              "lng": 121.5663,
+              "score_weight": 14
+            }
+          ]
+        },
+        {
+          "category": "park",
+          "label": "公園",
+          "points": [
+            {
+              "name": "信義廣場",
+              "lat": 25.0345,
+              "lng": 121.5657,
+              "score_weight": 16
+            }
+          ]
+        },
+        {
+          "category": "medical",
+          "label": "醫療",
+          "points": [
+            {
+              "name": "信義健康中心",
+              "lat": 25.032,
+              "lng": 121.568,
+              "score_weight": 15
+            }
+          ]
+        },
+        {
+          "category": "commerce",
+          "label": "商圈",
+          "points": [
+            {
+              "name": "信義商圈",
+              "lat": 25.0351,
+              "lng": 121.5668,
+              "score_weight": 20
+            }
+          ]
+        }
+      ],
+      "nearby_places": [
+        {
+          "place_id": "mock-taipei-xinyi-songren-transport-1",
+          "name": "????101?",
+          "category": "transport",
+          "lat": 25.0342,
+          "lng": 121.5656,
+          "address": "台北市信義區松仁路?? 1 ?",
+          "rating": 4,
+          "user_rating_count": 45,
+          "business_status": "OPERATIONAL",
+          "distance_m": 135,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-transport-2",
+          "name": "??????",
+          "category": "transport",
+          "lat": 25.0315,
+          "lng": 121.5668,
+          "address": "台北市信義區松仁路?? 2 ?",
+          "rating": 4.1,
+          "user_rating_count": 76,
+          "business_status": "OPERATIONAL",
+          "distance_m": 218,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-transport-3",
+          "name": "??????",
+          "category": "transport",
+          "lat": 25.0358,
+          "lng": 121.5633,
+          "address": "台北市信義區松仁路?? 3 ?",
+          "rating": 4.2,
+          "user_rating_count": 107,
+          "business_status": "OPERATIONAL",
+          "distance_m": 376,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-transport-4",
+          "name": "?? YouBike ?",
+          "category": "transport",
+          "lat": 25.0296,
+          "lng": 121.5627,
+          "address": "台北市信義區松仁路?? 4 ?",
+          "rating": 4.3,
+          "user_rating_count": 138,
+          "business_status": "OPERATIONAL",
+          "distance_m": 465,
+          "types": [
+            "transport"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-school-1",
+          "name": "????",
+          "category": "school",
+          "lat": 25.03428,
+          "lng": 121.56554,
+          "address": "台北市信義區松仁路?? 1 ?",
+          "rating": 4.1,
+          "user_rating_count": 72,
+          "business_status": "OPERATIONAL",
+          "distance_m": 143,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-school-2",
+          "name": "????",
+          "category": "school",
+          "lat": 25.03158,
+          "lng": 121.56674,
+          "address": "台北市信義區松仁路?? 2 ?",
+          "rating": 4.2,
+          "user_rating_count": 103,
+          "business_status": "OPERATIONAL",
+          "distance_m": 207,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-school-3",
+          "name": "??????",
+          "category": "school",
+          "lat": 25.03588,
+          "lng": 121.56324,
+          "address": "台北市信義區松仁路?? 3 ?",
+          "rating": 4.3,
+          "user_rating_count": 134,
+          "business_status": "OPERATIONAL",
+          "distance_m": 387,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-school-4",
+          "name": "?????",
+          "category": "school",
+          "lat": 25.02968,
+          "lng": 121.56264,
+          "address": "台北市信義區松仁路?? 4 ?",
+          "rating": 4.4,
+          "user_rating_count": 165,
+          "business_status": "OPERATIONAL",
+          "distance_m": 461,
+          "types": [
+            "school"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-park-1",
+          "name": "????",
+          "category": "park",
+          "lat": 25.03436,
+          "lng": 121.56548,
+          "address": "台北市信義區松仁路?? 1 ?",
+          "rating": 4.2,
+          "user_rating_count": 99,
+          "business_status": "OPERATIONAL",
+          "distance_m": 151,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-park-2",
+          "name": "????",
+          "category": "park",
+          "lat": 25.03166,
+          "lng": 121.56668,
+          "address": "台北市信義區松仁路?? 2 ?",
+          "rating": 4.3,
+          "user_rating_count": 130,
+          "business_status": "OPERATIONAL",
+          "distance_m": 197,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-park-3",
+          "name": "????",
+          "category": "park",
+          "lat": 25.03596,
+          "lng": 121.56318,
+          "address": "台北市信義區松仁路?? 3 ?",
+          "rating": 4.4,
+          "user_rating_count": 161,
+          "business_status": "OPERATIONAL",
+          "distance_m": 397,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-park-4",
+          "name": "???????",
+          "category": "park",
+          "lat": 25.02976,
+          "lng": 121.56258,
+          "address": "台北市信義區松仁路?? 4 ?",
+          "rating": 4.5,
+          "user_rating_count": 192,
+          "business_status": "OPERATIONAL",
+          "distance_m": 458,
+          "types": [
+            "park"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-medical-1",
+          "name": "??????",
+          "category": "medical",
+          "lat": 25.03444,
+          "lng": 121.56542,
+          "address": "台北市信義區松仁路?? 1 ?",
+          "rating": 4.3,
+          "user_rating_count": 126,
+          "business_status": "OPERATIONAL",
+          "distance_m": 160,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-medical-2",
+          "name": "??????????",
+          "category": "medical",
+          "lat": 25.03174,
+          "lng": 121.56662,
+          "address": "台北市信義區松仁路?? 2 ?",
+          "rating": 4.4,
+          "user_rating_count": 157,
+          "business_status": "OPERATIONAL",
+          "distance_m": 186,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-medical-3",
+          "name": "????",
+          "category": "medical",
+          "lat": 25.03604,
+          "lng": 121.56312,
+          "address": "台北市信義區松仁路?? 3 ?",
+          "rating": 4.5,
+          "user_rating_count": 188,
+          "business_status": "OPERATIONAL",
+          "distance_m": 408,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-medical-4",
+          "name": "??????",
+          "category": "medical",
+          "lat": 25.02984,
+          "lng": 121.56252,
+          "address": "台北市信義區松仁路?? 4 ?",
+          "rating": 4,
+          "user_rating_count": 219,
+          "business_status": "OPERATIONAL",
+          "distance_m": 455,
+          "types": [
+            "medical"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-shopping-1",
+          "name": "????",
+          "category": "shopping",
+          "lat": 25.03452,
+          "lng": 121.56536,
+          "address": "台北市信義區松仁路?? 1 ?",
+          "rating": 4.4,
+          "user_rating_count": 153,
+          "business_status": "OPERATIONAL",
+          "distance_m": 169,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-shopping-2",
+          "name": "????",
+          "category": "shopping",
+          "lat": 25.03182,
+          "lng": 121.56656,
+          "address": "台北市信義區松仁路?? 2 ?",
+          "rating": 4.5,
+          "user_rating_count": 184,
+          "business_status": "OPERATIONAL",
+          "distance_m": 175,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-shopping-3",
+          "name": "??????",
+          "category": "shopping",
+          "lat": 25.03612,
+          "lng": 121.56306,
+          "address": "台北市信義區松仁路?? 3 ?",
+          "rating": 4,
+          "user_rating_count": 215,
+          "business_status": "OPERATIONAL",
+          "distance_m": 419,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-shopping-4",
+          "name": "??????",
+          "category": "shopping",
+          "lat": 25.02992,
+          "lng": 121.56246,
+          "address": "台北市信義區松仁路?? 4 ?",
+          "rating": 4.1,
+          "user_rating_count": 246,
+          "business_status": "OPERATIONAL",
+          "distance_m": 452,
+          "types": [
+            "shopping"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-food-1",
+          "name": "?????",
+          "category": "food",
+          "lat": 25.0346,
+          "lng": 121.5653,
+          "address": "台北市信義區松仁路?? 1 ?",
+          "rating": 4.5,
+          "user_rating_count": 180,
+          "business_status": "OPERATIONAL",
+          "distance_m": 178,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-food-2",
+          "name": "??????",
+          "category": "food",
+          "lat": 25.0319,
+          "lng": 121.5665,
+          "address": "台北市信義區松仁路?? 2 ?",
+          "rating": 4,
+          "user_rating_count": 211,
+          "business_status": "OPERATIONAL",
+          "distance_m": 165,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-food-3",
+          "name": "?????",
+          "category": "food",
+          "lat": 25.0362,
+          "lng": 121.563,
+          "address": "台北市信義區松仁路?? 3 ?",
+          "rating": 4.1,
+          "user_rating_count": 242,
+          "business_status": "OPERATIONAL",
+          "distance_m": 429,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        },
+        {
+          "place_id": "mock-taipei-xinyi-songren-food-4",
+          "name": "??????",
+          "category": "food",
+          "lat": 25.03,
+          "lng": 121.5624,
+          "address": "台北市信義區松仁路?? 4 ?",
+          "rating": 4.2,
+          "user_rating_count": 273,
+          "business_status": "OPERATIONAL",
+          "distance_m": 449,
+          "types": [
+            "food"
+          ],
+          "source": "mock"
+        }
       ]
     }
   ]

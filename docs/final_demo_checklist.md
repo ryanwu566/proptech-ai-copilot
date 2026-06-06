@@ -47,6 +47,10 @@
 ## Map Insight Lite 檢查
 
 - 搜尋 `台北市大安區和平東路二段`，確認地圖中心點與 POI markers 顯示。
+- 確認分類 pills 顯示數量，切換後 marker 與右側清單同步過濾。
+- 確認右側顯示生活機能分數拆解、最近設施與客戶說明建議。
+- 點選一筆 POI 地點卡，確認地圖聚焦並開啟 marker popup。
+- 確認資料來源顯示 Google Places 或 Mock fallback；未設 key 時應正常使用展示資料。
 - 切換交通、學校、公園、醫療、商圈分類。
 - 確認畫面標示 Mock Data 與免責聲明。
 - 真實 Google、TGOS、TDX、PLVR adapter 尚未啟用；現場不需要 API key。

@@ -100,6 +100,10 @@ export type MapNearbyResult = {
   source: "google_places" | "mock";
   categories: NearbyCategory[];
   livability_score: number;
+  category_scores: Record<string, number>;
+  nearest_places: NearbyPlace[];
+  recommendation_text: string;
+  score_explanation: string;
   summary: string;
   disclaimer: string;
 };

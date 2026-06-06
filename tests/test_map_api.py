@@ -42,3 +42,6 @@ def test_map_search_can_feed_nearby_mock_fallback(monkeypatch) -> None:
     assert payload["source"] == "mock"
     assert len(payload["categories"]) == 6
     assert 0 <= payload["livability_score"] <= 100
+    assert all(0 <= score <= 100 for score in payload["category_scores"].values())
+    assert len(payload["nearest_places"]) == 3
+    assert payload["recommendation_text"]
