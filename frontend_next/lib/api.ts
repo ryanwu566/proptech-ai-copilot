@@ -116,6 +116,16 @@ export type CategoryScore = {
   nearest_distance_m: number | null;
   explanation: string;
 };
+export type MortgageRateReference = {
+  source: "central_bank_opendata" | "mock";
+  source_name: string;
+  period: string;
+  reference_rate: number;
+  rate_type: string;
+  available_fields: string[];
+  notes: string[];
+  fetched_at: string;
+};
 export type MapNearbyResult = {
   center: { lat: number; lng: number };
   radius_m: number;
@@ -175,6 +185,7 @@ export const api = {
     request<MapNearbyResult>("/map/nearby", { method: "POST", body: JSON.stringify({ ...center, radius_m, categories, language_code: "zh-TW" }) }),
   aegis: (payload: Record<string, number>) =>
     request<{ risk_score: number; signal_color: string; traces: string[] }>("/aegis-credit/analyze", { method: "POST", body: JSON.stringify(payload) }),
+  mortgageRate: () => request<MortgageRateReference>("/mortgage-rates/latest"),
   lexprop: (payload: Record<string, string>) =>
     request<{ risk_score: number; match_count: number; summary: string }>("/lexprop/query", { method: "POST", body: JSON.stringify(payload) }),
 };

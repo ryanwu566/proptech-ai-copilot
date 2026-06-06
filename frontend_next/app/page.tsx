@@ -9,7 +9,7 @@ import { AppPage } from "@/components/sidebar";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 import { Badge, Button, EmptyState, Notice } from "@/components/ui";
 import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
-import { API_BASE, api, downloadTaxReport, GoogleHealth, MapNearbyResult, MapSearchResult, MarketResult, NearbyCategory, NearbyPlace, TaxCase, TaxResult } from "@/lib/api";
+import { API_BASE, api, downloadTaxReport, GoogleHealth, MapNearbyResult, MapSearchResult, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, TaxCase, TaxResult } from "@/lib/api";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -180,9 +180,16 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
 }
 
 function AegisCredit() {
-  const [result,setResult]=useState<{risk_score:number;signal_color:string;traces:string[]}>(), [loading,setLoading]=useState(false), [error,setError]=useState("");
+  const [result,setResult]=useState<{risk_score:number;signal_color:string;traces:string[]}>(), [rate,setRate]=useState<MortgageRateReference>(), [loading,setLoading]=useState(false), [rateLoading,setRateLoading]=useState(true), [error,setError]=useState("");
+  useEffect(()=>{api.mortgageRate().then(setRate).catch(()=>setError("市場房貸利率參考暫時無法載入，風險分析仍可正常使用。")).finally(()=>setRateLoading(false));},[]);
   async function run(){setLoading(true);try{setResult(await api.aegis({monthly_income:90000,monthly_debt:15000,cash:3500000,property_count:0,mortgage_count:0,property_price:22000000}));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
-  return <SupportPage kicker="風險模組" title="房貸風險展示" description="快速了解買方條件的風險輪廓，不代表銀行核貸。" error={error} help="展示型風險摘要，不代表銀行核貸或正式授信結論。"><SectionCard><p className="text-sm text-slate-500">使用預設買方情境進行展示型評估。</p><Button onClick={run} disabled={loading} className="mt-4">{loading?"分析中...":"執行分析"}</Button></SectionCard>{result&&<div className="grid gap-3 md:grid-cols-2"><MetricTile label="風險分數" value={result.risk_score}/><MetricTile label="風險狀態" value={<Badge value={result.signal_color}/>} /></div>}</SupportPage>;
+  return <SupportPage kicker="風險模組" title="房貸風險展示" description="快速了解買方條件的風險輪廓，搭配市場月資料補充背景。" error={error} help="這是房貸風險展示型 heuristic，不代表銀行核貸；利率資料僅供市場背景參考。"><div className="grid items-start gap-4 lg:grid-cols-[1fr_360px]"><SectionCard title="買方情境評估"><p className="text-sm text-slate-500">使用預設買方收入、負債、現金與物件價格進行展示型評估。</p><Button onClick={run} disabled={loading} className="mt-4">{loading?"分析中...":"執行房貸風險分析"}</Button>{result&&<div className="mt-5 space-y-3"><div className="grid gap-3 sm:grid-cols-2"><MetricTile label="風險分數" value={result.risk_score}/><MetricTile label="風險狀態" value={<Badge value={result.signal_color}/>} /></div><div className="rounded-lg bg-stone-50 p-3"><p className="text-xs font-bold text-slate-800">風險提示</p><ul className="mt-2 space-y-1 text-xs text-slate-600">{result.traces.map((trace)=><li key={trace}>• {trace}</li>)}</ul></div><div className="border-l-2 border-cyan-600 pl-3"><p className="text-xs font-bold text-slate-800">對客戶說明建議</p><p className="mt-1 text-xs leading-5 text-slate-600">可先用此風險摘要整理收入、負債比與自備款條件，再向銀行確認實際方案與利率。</p></div></div>}</SectionCard><MortgageRatePanel rate={rate} loading={rateLoading}/></div></SupportPage>;
+}
+
+function MortgageRatePanel({ rate, loading }: { rate?: MortgageRateReference; loading: boolean }) {
+  if (loading) return <SectionCard title="市場房貸利率參考"><LoadingState label="載入五大銀行月資料..." /></SectionCard>;
+  if (!rate) return <SectionCard title="市場房貸利率參考"><p className="text-xs text-slate-500">目前無法取得市場參考資料，房貸風險分析仍可正常使用。</p></SectionCard>;
+  return <SectionCard title="市場房貸利率參考" description="中央銀行 OpenData · 五大銀行月資料"><div className="flex items-end justify-between border-b border-stone-100 pb-3"><div><p className="text-4xl font-bold text-slate-950">{rate.reference_rate.toFixed(3)}<span className="ml-1 text-sm text-slate-400">%</span></p><p className="mt-1 text-[10px] text-slate-500">{rate.rate_type}</p></div><span className={`rounded-full px-2 py-1 text-[9px] font-bold ${rate.source === "mock" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"}`}>{rate.source === "mock" ? "展示資料 fallback" : "中央銀行 OpenData"}</span></div><dl className="mt-3 grid gap-2 text-[10px]"><div className="flex justify-between"><dt className="text-slate-500">資料期間</dt><dd className="font-bold text-slate-800">{rate.period}</dd></div><div className="flex justify-between gap-4"><dt className="text-slate-500">更新時間</dt><dd className="text-right font-bold text-slate-800">{new Date(rate.fetched_at).toLocaleString("zh-TW")}</dd></div></dl><p className="mt-4 rounded-lg bg-amber-50 p-2.5 text-[10px] leading-5 text-amber-800">此利率僅作為市場參考，不代表銀行實際核貸利率。</p><ul className="mt-3 space-y-1 text-[9px] leading-4 text-slate-500">{rate.notes.map((note)=><li key={note}>• {note}</li>)}</ul></SectionCard>;
 }
 function LexProp() {
   const [result,setResult]=useState<{risk_score:number;match_count:number;summary:string}>(), [loading,setLoading]=useState(false), [error,setError]=useState("");

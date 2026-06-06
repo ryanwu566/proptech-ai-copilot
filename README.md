@@ -49,6 +49,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\check_demo.ps1
 | TaxOracle | 稅務資格快篩、風險燈號、Rule Trace、五年列管與 HTML report |
 | Market Insight Lite | mock 區域行情、六期趨勢、POI 與 ESG / SDG 11 Lite |
 | Map Insight v5 | 縣市／鄉鎮／路段快速選擇、手動地址搜尋、生活機能指標卡與三種底圖 |
+| Aegis-Credit Lite | 房貸風險展示型 heuristic，搭配中央銀行 OpenData 五大銀行月資料作市場背景參考 |
 | Aegis-Credit Lite | 展示型房貸風險 heuristic，不代表銀行核貸 |
 | LexProp Lite | 公開判決摘要模糊比對，不輸出完整門牌與個資 |
 | History | SQLite 保存並查看 TaxOracle 分析紀錄 |
@@ -109,6 +110,8 @@ streamlit run app.py
 - 評分準則固定顯示六類設施權重與距離級距，方便理解分數來源。
 - Map Insight v5 可透過正式專案內的台灣路名資料快速選擇縣市、鄉鎮市區與路段，也保留完整地址手動搜尋。
 - 生活機能總分分為極佳、良好、普通、偏弱、不足五級；六大指標各自顯示權重、分數、POI 數量、最近距離與文字說明。
+- Aegis-Credit 的市場房貸利率參考來自中央銀行 OpenData「五大銀行存放款利率歷史月資料」；資料為月資料，不代表銀行實際核貸利率。
+- 央行 OpenData 無法使用時會自動切換展示資料 fallback，不影響房貸風險分析。
 - TGOS、TDX、PLVR 真實 adapter 尚未啟用。
 - 未來啟用地圖 adapter 時，API key 必須由 `.env` 或部署環境變數提供，不可寫入程式或 commit。
 - 不提供正式報稅、法律、估價、投資或銀行核貸判斷。
