@@ -7,10 +7,6 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from services.data_service import MockDataError
-from services.market_insight_service import get_market_summary, load_market_insights
-
-
 router = APIRouter(tags=["market-insight"])
 
 
@@ -25,6 +21,9 @@ class MarketInsightQuery(BaseModel):
 def get_market_insights() -> list[dict[str, Any]]:
     """Return available mock regions for selector controls."""
 
+    from services.data_service import MockDataError
+    from services.market_insight_service import load_market_insights
+
     try:
         rows = load_market_insights()
     except MockDataError as exc:
@@ -35,6 +34,9 @@ def get_market_insights() -> list[dict[str, Any]]:
 @router.post("/market-insights/query")
 def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
     """Return one offline Market Insight Lite summary."""
+
+    from services.data_service import MockDataError
+    from services.market_insight_service import get_market_summary
 
     try:
         result = get_market_summary(request.city, request.district)

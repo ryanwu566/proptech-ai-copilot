@@ -29,8 +29,8 @@ def load_road_rows() -> tuple[tuple[str, str, str], ...]:
                 district = site_id.removeprefix(city).strip()
                 if city and district and road:
                     rows.append((city, district, road))
-    except OSError as exc:
-        raise ValueError("路名資料目前無法載入。") from exc
+    except OSError:
+        return DEMO_ROADS
     rows.extend(DEMO_ROADS)
     return tuple(rows)
 

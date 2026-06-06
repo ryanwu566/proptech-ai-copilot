@@ -9,9 +9,6 @@ from pydantic import BaseModel, Field
 
 from rules.legal_risk_rules import summarize_legal_risk
 from rules.mortgage_rules import evaluate_mortgage_risk
-from services.data_service import MockDataError, load_mock_csv
-
-
 router = APIRouter(tags=["lite-demos"])
 
 
@@ -45,6 +42,8 @@ def post_mortgage_risk(request: MortgageRiskRequest) -> dict[str, object]:
 @router.post("/lexprop/query")
 def post_legal_risk(request: LegalRiskRequest) -> dict[str, Any]:
     """Run the existing privacy-preserving mock judgment lookup."""
+
+    from services.data_service import MockDataError, load_mock_csv
 
     try:
         judgments = load_mock_csv("mock_judgments.csv")

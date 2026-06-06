@@ -10,11 +10,6 @@ from pydantic import BaseModel
 
 from backend.repositories.sqlite_repo import get_tax_analysis, list_tax_analyses
 from models.schemas import TaxCase
-from services.data_service import MockDataError, load_mock_csv
-from services.report_service import generate_tax_html_report
-from services.tax_service import analyze_tax_case
-
-
 router = APIRouter(tags=["taxoracle"])
 
 
@@ -43,6 +38,8 @@ class TaxCaseRequest(BaseModel):
 def get_demo_cases() -> list[dict[str, Any]]:
     """Return bundled TaxOracle demo cases for the frontend selector."""
 
+    from services.data_service import MockDataError, load_mock_csv
+
     try:
         records = load_mock_csv("mock_tax_cases.csv").to_dict("records")
     except MockDataError as exc:
@@ -54,12 +51,17 @@ def get_demo_cases() -> list[dict[str, Any]]:
 def post_taxoracle_analysis(request: TaxCaseRequest) -> dict[str, Any]:
     """Run the existing deterministic TaxOracle service and persist history."""
 
+    from services.tax_service import analyze_tax_case
+
     return analyze_tax_case(request.to_tax_case())
 
 
 @router.post("/taxoracle/report", response_class=HTMLResponse)
 def post_taxoracle_report(request: TaxCaseRequest) -> str:
     """Generate downloadable HTML without persisting a duplicate analysis."""
+
+    from services.report_service import generate_tax_html_report
+    from services.tax_service import analyze_tax_case
 
     case = request.to_tax_case()
     result = analyze_tax_case(case, persist=False)
