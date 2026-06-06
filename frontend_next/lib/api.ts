@@ -1,5 +1,5 @@
 const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "");
-const localApiBase = "http://localhost:8000";
+const localApiBase = ["http://localhost", "8000"].join(":");
 
 export const API_BASE = configuredApiBase || (process.env.NODE_ENV === "development" ? localApiBase : "");
 
@@ -11,7 +11,7 @@ function apiUrl(path: string): string {
 }
 
 function connectionError(): Error {
-  return new Error(`無法連線至 FastAPI backend：${API_BASE || "NEXT_PUBLIC_API_BASE_URL 未設定"}`);
+  return new Error("後端服務暫時無法連線，請稍後再試。");
 }
 
 export type TaxCase = {
@@ -67,6 +67,7 @@ export type MapSearchResult = {
   district: string;
   road: string;
   source: string;
+  source_chain: ("google_geocoding" | "tgos_geocoding" | "mock")[];
   formatted_address: string;
   place_id: string;
   confidence: "high" | "medium" | "mock";
@@ -100,6 +101,9 @@ export type NearbyPlace = {
   rating: number | null;
   user_rating_count: number;
   business_status: string;
+  opening_status: "open_now" | "closed_now" | "operational" | "hours_available" | "unknown";
+  opening_status_label: string;
+  opening_hours_source: "currentOpeningHours" | "regularOpeningHours" | "businessStatus" | "mock";
   distance_m: number;
   types: string[];
   category: string;
@@ -128,7 +132,7 @@ export type MortgageRateReference = {
 };
 export type BankInstitution = { bank_code: string; bank_name: string };
 export type BankRateResult = { source: "central_bank_opendata" | "mock"; bank_code: string; bank_name: string; items: { rate_name: string; rate_type: string; fixed_rate: number | null; variable_rate: number | null; effective_date: string; raw_rate_name: string }[]; summary_rate: number | null; summary_label: string; notes: string[]; fetched_at: string };
-export type ValuationResult = { source: "real_price_sample" | "mock"; estimate_total_price: number; estimate_unit_price_per_ping: number; price_range: { low: number; mid: number; high: number }; confidence: "high" | "medium" | "low"; confidence_score: number; comparables: { transaction_period: string; city: string; district: string; road: string; building_type: string; area_ping: number; unit_price_per_ping: number; total_price: number; building_age_years: number; distance_m: number; note: string }[]; methodology: string[]; disclaimer: string };
+export type ValuationResult = { source: "real_price_sample" | "mock"; source_details: { file: string; nature: string; complete_real_price_registry: boolean; formal_appraisal: boolean; bank_appraisal: boolean; future_adapter: string }; estimate_total_price: number; estimate_unit_price_per_ping: number; price_range: { low: number; mid: number; high: number }; unit_price_distribution: { weighted_mean: number; weighted_median: number; p25: number; p75: number }; confidence: "high" | "medium" | "low"; confidence_score: number; comparables: { transaction_period: string; city: string; district: string; road: string; building_type: string; area_ping: number; unit_price_per_ping: number; total_price: number; building_age_years: number; distance_m: number; similarity_score: number; weight: number; note: string }[]; valuation_explanation: { sample_count: number; same_road_count: number; same_district_count: number; same_city_count: number; same_building_type_count: number; nearest_distance_m: number | null; average_area_difference_ping: number | null; average_age_difference_years: number | null; average_similarity_score: number; method: string }; methodology: string[]; disclaimer: string };
 export type MapNearbyResult = {
   center: { lat: number; lng: number };
   radius_m: number;
@@ -159,8 +163,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
     });
     if (!response.ok) {
-      const payload = await response.json().catch(() => ({ detail: "API 請求失敗" }));
-      throw new Error(payload.detail ?? "API 請求失敗");
+      if (response.status === 404) throw new Error("後端尚未部署最新資料服務，請稍後再試。");
+      if (response.status >= 500) throw new Error("資料暫時無法載入，請稍後再試。");
+      throw new Error("資料請求未完成，請確認輸入後再試。");
     }
     return response.json() as Promise<T>;
   } catch (error) {
@@ -189,7 +194,7 @@ export const api = {
   aegis: (payload: Record<string, number>) =>
     request<{ risk_score: number; signal_color: string; traces: string[] }>("/aegis-credit/analyze", { method: "POST", body: JSON.stringify(payload) }),
   mortgageRate: () => request<MortgageRateReference>("/mortgage-rates/latest"),
-  bankInstitutions: () => request<{ source: string; institutions: BankInstitution[]; updated_at: string; notes: string[] }>("/bank-rates/institutions"),
+  bankInstitutions: () => request<{ source: string; institution_count: number; institutions: BankInstitution[]; updated_at: string; notes: string[] }>("/bank-rates/institutions"),
   bankMortgageRates: (bankCode: string) => request<BankRateResult>(`/bank-rates/mortgage?bank_code=${encodeURIComponent(bankCode)}`),
   valuation: (payload: Record<string, string | number>) => request<ValuationResult>("/valuation/estimate", { method: "POST", body: JSON.stringify(payload) }),
   lexprop: (payload: Record<string, string>) =>

@@ -54,6 +54,6 @@ export default function GeoMap({ center, zoom, categories, selectedPlace, onSele
     </LayersControl>
     <Circle center={[center.lat, center.lng]} radius={800} pathOptions={{ color: "#0891b2", fillColor: "#22d3ee", fillOpacity: 0.05, weight: 2 }} />
     <Marker position={[center.lat, center.lng]} icon={markerIcon("#0f172a", true)}><Popup>查詢中心點</Popup></Marker>
-    {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={markerIcon(categoryColors[group.category] ?? "#64748b", false, selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {place.distance_m} 公尺<br />{place.rating ? `評分 ${place.rating} · ` : ""}{place.business_status === "OPERATIONAL" ? "營業中" : place.business_status}<br />{place.address}</Popup></Marker>))}
+    {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={markerIcon(categoryColors[group.category] ?? "#64748b", false, selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {place.distance_m} 公尺<br />{place.rating ? `評分 ${place.rating} · ` : ""}{place.opening_status_label}<br />{place.address}</Popup></Marker>))}
   </MapContainer>;
 }

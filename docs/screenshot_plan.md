@@ -27,3 +27,8 @@
 - 產品功能頁可補充編號 8、9、10。
 - 地圖功能介紹可使用編號 11、12，並清楚保留 Google Places / Mock fallback 資料來源與免責聲明。
 - 中高風險案例適合用於回答「系統是否只會給出通過結果」。
+## 資料可信度畫面
+
+- Aegis-Credit：銀行下拉選單、中央銀行 OpenData／展示資料來源、機動與固定利率、生效日期。
+- 房價估算：展示樣本來源、估算依據、P25／加權中位／P75、可比成交相似度。
+- Map Insight：Google／TGOS／展示資料定位 badge、Google Places／展示資料 POI badge、保守的營業狀態文字。

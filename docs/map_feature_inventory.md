@@ -398,3 +398,10 @@ Map Insight Lite 第一批 mock 版已完成：
 - POI 清單依分類分組，優先依距離、評分與評論數排序，每類先顯示五筆。
 
 TGOS、TDX、PLVR 真實 adapter 尚未啟用。地圖結果僅供展示，不代表正式定位、估價、投資或交通分析。
+## 目前定位與資料來源鏈
+
+- 地址定位：Google Geocoding → TGOS Geocoding → 展示資料。
+- 周遭設施：Google Places → 展示資料。
+- TGOS 僅由 Render backend 的 `TGOS_APP_ID`、`TGOS_API_KEY` 啟用，Vercel 不應設定。
+- Google Places 的 `businessStatus=OPERATIONAL` 只表示店家正常營運；是否目前營業以 `currentOpeningHours.openNow` 為準。
+- Google／TGOS 失敗時前端顯示友善 fallback 訊息，不顯示 raw error、stack trace 或憑證內容。

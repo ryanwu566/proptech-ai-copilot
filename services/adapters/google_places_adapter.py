@@ -20,6 +20,8 @@ FIELD_MASK = ",".join(
         "places.rating",
         "places.userRatingCount",
         "places.businessStatus",
+        "places.currentOpeningHours.openNow",
+        "places.regularOpeningHours.periods",
         "places.types",
     ]
 )
@@ -105,6 +107,7 @@ class GooglePlacesAdapter:
         location = row.get("location", {})
         lat = float(location.get("latitude", center_lat))
         lng = float(location.get("longitude", center_lng))
+        opening = normalize_opening_status(row)
         return {
             "place_id": str(row.get("id", "")),
             "name": str(row.get("displayName", {}).get("text", "未命名地點")),
@@ -114,8 +117,40 @@ class GooglePlacesAdapter:
             "rating": float(row["rating"]) if row.get("rating") is not None else None,
             "user_rating_count": int(row.get("userRatingCount", 0)),
             "business_status": str(row.get("businessStatus", "UNKNOWN")),
+            **opening,
             "distance_m": distance_meters(center_lat, center_lng, lat, lng),
             "types": list(row.get("types", [])),
             "category": category,
             "source": "google_places",
         }
+
+
+def normalize_opening_status(row: dict[str, Any]) -> dict[str, str]:
+    """Describe opening-hour evidence without treating OPERATIONAL as open now."""
+
+    current = row.get("currentOpeningHours")
+    if isinstance(current, dict) and isinstance(current.get("openNow"), bool):
+        is_open = bool(current["openNow"])
+        return {
+            "opening_status": "open_now" if is_open else "closed_now",
+            "opening_status_label": "目前營業中" if is_open else "目前休息中",
+            "opening_hours_source": "currentOpeningHours",
+        }
+    regular = row.get("regularOpeningHours")
+    if isinstance(regular, dict) and regular.get("periods"):
+        return {
+            "opening_status": "hours_available",
+            "opening_status_label": "有營業時間資料",
+            "opening_hours_source": "regularOpeningHours",
+        }
+    if row.get("businessStatus") == "OPERATIONAL":
+        return {
+            "opening_status": "operational",
+            "opening_status_label": "店家正常營運",
+            "opening_hours_source": "businessStatus",
+        }
+    return {
+        "opening_status": "unknown",
+        "opening_status_label": "營業狀態未知",
+        "opening_hours_source": "businessStatus",
+    }

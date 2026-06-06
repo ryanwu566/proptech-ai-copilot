@@ -27,6 +27,7 @@ def test_map_search_and_insight_endpoints() -> None:
     insight = client.post("/map/insight", json=payload)
     assert search.status_code == 200
     assert search.json()["matched"] is True
+    assert search.json()["source_chain"] == ["google_geocoding", "tgos_geocoding", "mock"]
     assert insight.status_code == 200
     assert insight.json()["source"] == "mock"
 

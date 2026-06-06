@@ -105,3 +105,9 @@ npm.cmd install
 - 清楚說明 AI 只負責將結構化結果改寫成說明，資格由 deterministic rule engine 判斷。
 - 清楚說明目前使用 mock data，不是正式報稅、法律、估價或核貸系統。
 - Lite 模組快速帶過即可，不要花太多時間談尚未完成的擴充功能。
+## 資料可信度檢查
+
+- 銀行牌告利率區顯示中央銀行 OpenData 或「目前使用展示資料」，並可選擇至少 10 家銀行。
+- 房價估算區清楚顯示 `real_price_sample.csv` 展示樣本、可比筆數、同路段筆數與信心分數。
+- Map Insight 分別顯示定位來源與 POI 來源；若使用 TGOS 定位搭配 Google Places，兩者需分開標示。
+- POI 的 `OPERATIONAL` 不應顯示為「目前營業中」。

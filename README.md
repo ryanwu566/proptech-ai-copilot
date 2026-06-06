@@ -160,3 +160,10 @@ npm.cmd run build
 - [最終展示檢查清單](docs/final_demo_checklist.md)
 - [展示截圖清單](docs/screenshot_plan.md)
 - [Legacy 功能盤點](docs/legacy_feature_inventory.md)
+## 資料來源與可信度
+
+- 銀行牌告利率使用中央銀行 OpenData `set_id=9464`；服務失敗時切換 13 家金融機構展示資料。牌告資料不代表實際核貸利率。
+- 房價估算使用 `data/real_price_sample.csv` 的 72 筆展示型可比成交，採 IQR、相似度加權與 P25/P75；不是完整實價登錄、正式估價或銀行鑑價。
+- Map Insight 定位順序為 Google Geocoding、TGOS、展示資料；周遭設施使用 Google Places 或展示資料。
+- `OPERATIONAL` 僅表示店家正常營運，不代表目前正在營業；只有 Google 明確回傳 `openNow` 時才顯示目前營業或休息。
+- PLVR adapter 已預留但尚未啟用，不會在部署啟動時下載外部資料。

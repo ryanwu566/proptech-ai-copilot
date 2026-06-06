@@ -11,6 +11,7 @@ import httpx
 
 from services.adapters.geocoding_adapter import GeocodingAdapter, GoogleGeocodingAdapter, MockGeocodingAdapter
 from services.adapters.google_places_adapter import GooglePlacesAdapter, distance_meters
+from services.adapters.tgos_geocoding_adapter import TgosGeocodingAdapter
 from services.adapters.poi_adapter import MockPoiAdapter, PoiAdapter
 from services.adapters.traffic_adapter import MockTrafficAdapter, TrafficAdapter
 
@@ -61,20 +62,25 @@ def list_poi_categories() -> list[dict[str, str]]:
 
 
 def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict[str, Any]:
-    """Use Google Geocoding first when configured, then safely fall back to mock."""
+    """Use Google, TGOS, then bundled mock geocoding."""
 
     regions = load_map_data()["regions"]
+    source_chain = ["google_geocoding", "tgos_geocoding", "mock"]
     source = "mock"
     google = adapter if adapter is not None else GoogleGeocodingAdapter()
     region = google.search(query, regions)
     if region is not None and isinstance(google, GoogleGeocodingAdapter):
         source = "google_geocoding"
     if region is None and adapter is None:
+        region = TgosGeocodingAdapter().search(query, regions)
+        if region is not None:
+            source = "tgos_geocoding"
+    if region is None and adapter is None:
         region = MockGeocodingAdapter().search(query, regions)
     if region is None:
         return {
             "query": query, "matched": False, "center": None, "city": "", "district": "", "road": "",
-            "source": "mock", "formatted_address": "", "place_id": "", "confidence": "mock",
+            "source": "mock", "source_chain": source_chain, "formatted_address": "", "place_id": "", "confidence": "mock",
             "location_note": "找不到符合的展示資料定位。", "disclaimer": SEARCH_DISCLAIMER,
         }
     formatted_address = region.get("formatted_address") or f"{region.get('city', '')}{region.get('district', '')}{region.get('road', '')}"
@@ -86,10 +92,17 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
         "district": region["district"],
         "road": region["road"],
         "source": source,
+        "source_chain": source_chain,
         "formatted_address": formatted_address,
         "place_id": region.get("place_id", ""),
-        "confidence": "high" if source == "google_geocoding" else "mock",
-        "location_note": "Google Geocoding 定位結果。" if source == "google_geocoding" else "展示資料定位，座標僅供操作示範。",
+        "confidence": "high" if source == "google_geocoding" else "medium" if source == "tgos_geocoding" else "mock",
+        "location_note": (
+            "Google Geocoding 定位結果。"
+            if source == "google_geocoding"
+            else "TGOS 定位結果；周遭設施來源另行標示。"
+            if source == "tgos_geocoding"
+            else "展示資料定位，座標僅供操作示範。"
+        ),
         "disclaimer": SEARCH_DISCLAIMER,
     }
 
@@ -330,6 +343,9 @@ def _mock_places(lat: float, lng: float, radius_m: int, category: str) -> list[d
             "distance_m": distance_meters(lat, lng, place["lat"], place["lng"]),
             "types": place.get("types", [place["category"]]),
             "source": "mock",
+            "opening_status": "unknown",
+            "opening_status_label": "展示資料",
+            "opening_hours_source": "mock",
         }
         for place in region.get("nearby_places", [])
         if place["category"] == category and distance_meters(lat, lng, place["lat"], place["lng"]) <= radius_m
@@ -352,6 +368,9 @@ def _mock_places(lat: float, lng: float, radius_m: int, category: str) -> list[d
             "rating": 4.2 if category in {"food", "shopping"} else None,
             "user_rating_count": 80 if category in {"food", "shopping"} else 0,
             "business_status": "OPERATIONAL",
+            "opening_status": "unknown",
+            "opening_status_label": "展示資料",
+            "opening_hours_source": "mock",
             "distance_m": distance_meters(lat, lng, point["lat"], point["lng"]),
             "types": [source_category],
             "category": category,

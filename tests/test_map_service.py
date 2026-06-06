@@ -24,6 +24,7 @@ def test_mock_address_search_matches_road() -> None:
     assert result["matched"] is True
     assert result["district"] == "大安區"
     assert result["source"] == "mock"
+    assert result["source_chain"] == ["google_geocoding", "tgos_geocoding", "mock"]
     assert result["confidence"] == "mock"
     assert result["formatted_address"]
 
@@ -52,6 +53,7 @@ def test_nearby_without_google_key_uses_mock_fallback() -> None:
     assert 0 <= result["livability_score"] <= 100
     assert {row["category"] for row in result["categories"]} == {"transport", "food", "shopping"}
     assert result["categories"][0]["places"][0]["source"] == "mock"
+    assert result["categories"][0]["places"][0]["opening_status_label"] == "展示資料"
     assert {item["category"] for item in result["category_scores"]} == {"transport", "school", "park", "medical", "shopping", "food"}
     assert result["livability_level"] in {"極佳", "良好", "普通", "偏弱", "不足"}
     assert all({"level", "poi_count", "nearest_distance_m", "explanation"} <= set(item) for item in result["category_scores"])

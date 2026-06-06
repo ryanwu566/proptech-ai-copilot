@@ -120,3 +120,10 @@
 
 - 確認套件已列在 repo root 的 `requirements.txt`。
 - Render Build Command 必須使用 `pip install -r requirements.txt`。
+## 資料服務環境變數
+
+Render backend 可設定 `GOOGLE_MAPS_API_KEY`、`TGOS_APP_ID`、`TGOS_API_KEY`。三者都不可放在 Vercel 或 commit 到 repo。
+
+定位會依序嘗試 Google Geocoding、TGOS，最後使用展示資料。沒有 key 或外部服務失敗時，系統會安全 fallback，不影響 TaxOracle。
+
+銀行牌告利率使用中央銀行 OpenData `set_id=9464`，不需要 API key。房價估算目前使用 `real_price_sample.csv`，PLVR adapter 尚未啟用。
