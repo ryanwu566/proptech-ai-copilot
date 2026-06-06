@@ -1,4 +1,18 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "");
+const localApiBase = "http://localhost:8000";
+
+export const API_BASE = configuredApiBase || (process.env.NODE_ENV === "development" ? localApiBase : "");
+
+function apiUrl(path: string): string {
+  if (!API_BASE) {
+    throw new Error("未設定 NEXT_PUBLIC_API_BASE_URL，線上環境無法連線至 FastAPI backend。");
+  }
+  return `${API_BASE}${path}`;
+}
+
+function connectionError(): Error {
+  return new Error(`無法連線至 FastAPI backend：${API_BASE || "NEXT_PUBLIC_API_BASE_URL 未設定"}`);
+}
 
 export type TaxCase = {
   case_id: string;
@@ -68,7 +82,7 @@ export type MapInsightResult = {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
-    const response = await fetch(`${API_BASE}${path}`, {
+    const response = await fetch(apiUrl(path), {
       ...init,
       headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
     });
@@ -78,7 +92,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     }
     return response.json() as Promise<T>;
   } catch (error) {
-    if (error instanceof TypeError) throw new Error("無法連線至 FastAPI backend。請先啟動 http://localhost:8000。");
+    if (error instanceof TypeError) throw connectionError();
     throw error;
   }
 }
@@ -102,7 +116,7 @@ export const api = {
 
 export async function downloadTaxReport(taxCase: TaxCase) {
   try {
-    const response = await fetch(`${API_BASE}/taxoracle/report`, {
+    const response = await fetch(apiUrl("/taxoracle/report"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(taxCase),
@@ -115,7 +129,7 @@ export async function downloadTaxReport(taxCase: TaxCase) {
     link.click();
     URL.revokeObjectURL(url);
   } catch (error) {
-    if (error instanceof TypeError) throw new Error("無法連線至 FastAPI backend，請確認 backend 已啟動。");
+    if (error instanceof TypeError) throw connectionError();
     throw error;
   }
 }
