@@ -85,6 +85,7 @@
    Map Insight 的 OpenStreetMap、CartoDB Positron 與 Esri World Imagery 圖層不需要前端 Google key。
    `data/taiwan_roads.csv` 會隨專案部署，提供縣市／鄉鎮市區／路段快速選擇，不依賴 OneDrive 或外部路名 API。
    Aegis-Credit 的市場房貸利率參考會由 Render backend 呼叫中央銀行 OpenData，不需要 API key；若外部 API 暫時無法使用，會自動使用展示資料 fallback。
+   銀行牌告利率查詢使用中央銀行 OpenData `set_id=9464`，不需要 API key；房價估算使用隨專案部署的 `data/real_price_sample.csv`，不會在啟動時下載全台資料。
 
 7. 部署後開啟首頁，測試 TaxOracle 三個案例、客戶溝通報告下載與 Map Insight 周遭生活機能查詢。
 

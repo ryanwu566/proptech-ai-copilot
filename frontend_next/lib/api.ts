@@ -126,6 +126,9 @@ export type MortgageRateReference = {
   notes: string[];
   fetched_at: string;
 };
+export type BankInstitution = { bank_code: string; bank_name: string };
+export type BankRateResult = { source: "central_bank_opendata" | "mock"; bank_code: string; bank_name: string; items: { rate_name: string; rate_type: string; fixed_rate: number | null; variable_rate: number | null; effective_date: string; raw_rate_name: string }[]; summary_rate: number | null; summary_label: string; notes: string[]; fetched_at: string };
+export type ValuationResult = { source: "real_price_sample" | "mock"; estimate_total_price: number; estimate_unit_price_per_ping: number; price_range: { low: number; mid: number; high: number }; confidence: "high" | "medium" | "low"; confidence_score: number; comparables: { transaction_period: string; city: string; district: string; road: string; building_type: string; area_ping: number; unit_price_per_ping: number; total_price: number; building_age_years: number; distance_m: number; note: string }[]; methodology: string[]; disclaimer: string };
 export type MapNearbyResult = {
   center: { lat: number; lng: number };
   radius_m: number;
@@ -186,6 +189,9 @@ export const api = {
   aegis: (payload: Record<string, number>) =>
     request<{ risk_score: number; signal_color: string; traces: string[] }>("/aegis-credit/analyze", { method: "POST", body: JSON.stringify(payload) }),
   mortgageRate: () => request<MortgageRateReference>("/mortgage-rates/latest"),
+  bankInstitutions: () => request<{ source: string; institutions: BankInstitution[]; updated_at: string; notes: string[] }>("/bank-rates/institutions"),
+  bankMortgageRates: (bankCode: string) => request<BankRateResult>(`/bank-rates/mortgage?bank_code=${encodeURIComponent(bankCode)}`),
+  valuation: (payload: Record<string, string | number>) => request<ValuationResult>("/valuation/estimate", { method: "POST", body: JSON.stringify(payload) }),
   lexprop: (payload: Record<string, string>) =>
     request<{ risk_score: number; match_count: number; summary: string }>("/lexprop/query", { method: "POST", body: JSON.stringify(payload) }),
 };
