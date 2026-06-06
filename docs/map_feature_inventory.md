@@ -389,4 +389,12 @@ Map Insight Lite 第一批 mock 版已完成：
 - `/map/nearby` 回傳 `scoring_criteria`，公開交通 25%、餐飲 20%、商圈 20%、學校 15%、醫療 10%、公園 10% 的類別權重，以及 0–300m、300–800m、800m 外的距離級距。
 - Render backend 設定 `GOOGLE_MAPS_API_KEY` 才會啟用 Google；Vercel 不需要且不應設定此 key。
 
+## Map Insight v5 狀態
+
+- 從舊版 `opendata114road.csv` 整理出正式專案內的 `data/taiwan_roads.csv`，部署後不依賴 OneDrive。
+- 新增 `/roads/cities`、`/roads/districts`、`/roads/roads`，支援快速選擇縣市、鄉鎮市區與路段；找不到資料時回傳空陣列與友善訊息。
+- 前端預設使用快速選擇，也保留完整地址或路段手動輸入。
+- `/map/nearby` 新增生活機能五級總評，並將六類 `category_scores` 統一為指標陣列；每項包含權重、分數、等級、POI 數量、最近距離與解釋。
+- POI 清單依分類分組，優先依距離、評分與評論數排序，每類先顯示五筆。
+
 TGOS、TDX、PLVR 真實 adapter 尚未啟用。地圖結果僅供展示，不代表正式定位、估價、投資或交通分析。

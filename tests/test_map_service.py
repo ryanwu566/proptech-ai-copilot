@@ -52,7 +52,9 @@ def test_nearby_without_google_key_uses_mock_fallback() -> None:
     assert 0 <= result["livability_score"] <= 100
     assert {row["category"] for row in result["categories"]} == {"transport", "food", "shopping"}
     assert result["categories"][0]["places"][0]["source"] == "mock"
-    assert set(result["category_scores"]) == {"transport", "school", "park", "medical", "shopping", "food"}
+    assert {item["category"] for item in result["category_scores"]} == {"transport", "school", "park", "medical", "shopping", "food"}
+    assert result["livability_level"] in {"極佳", "良好", "普通", "偏弱", "不足"}
+    assert all({"level", "poi_count", "nearest_distance_m", "explanation"} <= set(item) for item in result["category_scores"])
     assert len(result["nearest_places"]) == 3
     assert result["recommendation_text"]
     assert result["score_explanation"]
@@ -94,7 +96,7 @@ def test_distance_tiers_affect_category_score() -> None:
         ],
         1000,
     )
-    assert scoring["category_scores"]["transport"] == 39
+    assert scoring["category_score_map"]["transport"] == 39
     assert scoring["nearest_places"][0]["name"] == "近站"
 
 

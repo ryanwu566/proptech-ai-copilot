@@ -48,7 +48,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\check_demo.ps1
 | --- | --- |
 | TaxOracle | 稅務資格快篩、風險燈號、Rule Trace、五年列管與 HTML report |
 | Market Insight Lite | mock 區域行情、六期趨勢、POI 與 ESG / SDG 11 Lite |
-| Map Insight v3 | Google API 健檢、Google-first 定位、三種底圖、透明評分準則與 mock fallback |
+| Map Insight v5 | 縣市／鄉鎮／路段快速選擇、手動地址搜尋、生活機能指標卡與三種底圖 |
 | Aegis-Credit Lite | 展示型房貸風險 heuristic，不代表銀行核貸 |
 | LexProp Lite | 公開判決摘要模糊比對，不輸出完整門牌與個資 |
 | History | SQLite 保存並查看 TaxOracle 分析紀錄 |
@@ -107,6 +107,8 @@ streamlit run app.py
 - Map Insight v3 透過 `GET /map/google-health` 安全顯示 Google Geocoding / Places 啟用狀態，不回傳 API key；有 key 時地址搜尋優先使用 Google Geocoding。
 - 前端底圖可切換 OpenStreetMap、CartoDB Positron 與 Esri World Imagery，皆不需要 Google Maps frontend key。
 - 評分準則固定顯示六類設施權重與距離級距，方便理解分數來源。
+- Map Insight v5 可透過正式專案內的台灣路名資料快速選擇縣市、鄉鎮市區與路段，也保留完整地址手動搜尋。
+- 生活機能總分分為極佳、良好、普通、偏弱、不足五級；六大指標各自顯示權重、分數、POI 數量、最近距離與文字說明。
 - TGOS、TDX、PLVR 真實 adapter 尚未啟用。
 - 未來啟用地圖 adapter 時，API key 必須由 `.env` 或部署環境變數提供，不可寫入程式或 commit。
 - 不提供正式報稅、法律、估價、投資或銀行核貸判斷。

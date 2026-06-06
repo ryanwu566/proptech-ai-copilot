@@ -194,7 +194,10 @@ def get_nearby_places(
         "source": source,
         "categories": grouped,
         "livability_score": scoring["livability_score"],
+        "livability_level": scoring["livability_level"],
+        "score_summary": scoring["score_summary"],
         "category_scores": scoring["category_scores"],
+        "category_score_map": scoring["category_score_map"],
         "nearest_places": scoring["nearest_places"],
         "recommendation_text": scoring["recommendation_text"],
         "score_explanation": scoring["score_explanation"],
@@ -223,7 +226,8 @@ def build_livability_scoring(categories: list[dict[str, Any]], radius_m: int) ->
     """Score category coverage using both POI count and tiered walking distance."""
 
     total = 0.0
-    category_scores: dict[str, int] = {}
+    category_score_map: dict[str, int] = {}
+    category_metrics: list[dict[str, Any]] = []
     all_places: list[dict[str, Any]] = []
     for group in categories:
         category = group["category"]
@@ -231,28 +235,74 @@ def build_livability_scoring(categories: list[dict[str, Any]], radius_m: int) ->
         all_places.extend({**place, "category": place.get("category", category)} for place in places)
         proximity_units = sum(_distance_weight(float(place["distance_m"])) for place in places)
         category_score = max(0, min(100, round(min(proximity_units / 4, 1) * 100)))
-        category_scores[category] = category_score
+        category_score_map[category] = category_score
+        nearest_distance = min((int(place["distance_m"]) for place in places), default=None)
+        level = _score_level(category_score)
+        category_metrics.append({
+            "category": category,
+            "label": CATEGORY_LABELS[category],
+            "weight": CATEGORY_WEIGHTS.get(category, 0),
+            "score": category_score,
+            "level": level,
+            "poi_count": len(places),
+            "nearest_distance_m": nearest_distance,
+            "explanation": _category_explanation(category, category_score, len(places), nearest_distance),
+        })
         total += CATEGORY_WEIGHTS.get(category, 0) * category_score / 100
 
     for category in CATEGORY_LABELS:
-        category_scores.setdefault(category, 0)
+        if category not in category_score_map:
+            category_score_map[category] = 0
+            category_metrics.append({
+                "category": category, "label": CATEGORY_LABELS[category], "weight": CATEGORY_WEIGHTS.get(category, 0),
+                "score": 0, "level": "不足", "poi_count": 0, "nearest_distance_m": None,
+                "explanation": "800m 內未找到足夠資料，建議搭配實地確認。",
+            })
     ordered = sorted(all_places, key=lambda place: float(place.get("distance_m", radius_m + 1)))
     nearest = ordered[:3]
-    ranked = sorted(category_scores, key=category_scores.get, reverse=True)
-    strongest = [CATEGORY_LABELS[key] for key in ranked[:2] if category_scores[key] > 0]
-    weakest = [CATEGORY_LABELS[key] for key in reversed(ranked) if category_scores[key] < 65][:2]
+    ranked = sorted(category_score_map, key=category_score_map.get, reverse=True)
+    strongest = [CATEGORY_LABELS[key] for key in ranked[:2] if category_score_map[key] > 0]
+    weakest = [CATEGORY_LABELS[key] for key in reversed(ranked) if category_score_map[key] < 65][:2]
     strength_text = "與".join(strongest) if strongest else "周遭設施"
     weak_text = "與".join(weakest) if weakest else "其他生活設施"
     summary = f"此區{strength_text}密度較高，適合展示生活便利性；{weak_text}資源可再搭配實地確認。"
     recommendation = f"若用於客戶溝通，可強調本區步行範圍內的{strength_text}機能，並將{weak_text}列為看屋時的補充確認項目。"
+    overall = max(0, min(100, round(total)))
+    level = _score_level(overall)
     return {
-        "livability_score": max(0, min(100, round(total))),
-        "category_scores": category_scores,
+        "livability_score": overall,
+        "livability_level": level,
+        "score_summary": f"生活機能總分 {overall}，整體屬於「{level}」；{summary}",
+        "category_scores": sorted(category_metrics, key=lambda item: item["weight"], reverse=True),
+        "category_score_map": category_score_map,
         "nearest_places": nearest,
         "summary": summary,
         "recommendation_text": recommendation,
         "score_explanation": "分數依設施類別權重、數量與距離估算；300 公尺內權重最高，300–800 公尺採中等權重，800 公尺外不計。",
     }
+
+
+def _score_level(score: int) -> str:
+    """Translate a score into the user-facing five-level scale."""
+
+    if score >= 90:
+        return "極佳"
+    if score >= 75:
+        return "良好"
+    if score >= 60:
+        return "普通"
+    if score >= 40:
+        return "偏弱"
+    return "不足"
+
+
+def _category_explanation(category: str, score: int, count: int, nearest_distance: int | None) -> str:
+    """Explain one category score using visible POI evidence."""
+
+    if not count or nearest_distance is None:
+        return "800m 內未找到足夠資料，建議搭配實地確認。"
+    subject = {"transport": "大眾運輸節點", "food": "餐飲選擇", "shopping": "採買與商圈", "school": "教育資源", "medical": "醫療資源", "park": "公園綠地"}[category]
+    return f"800m 內找到 {count} 個{subject}，最近約 {nearest_distance}m，指標等級為{_score_level(score)}。"
 
 
 def _distance_weight(distance_m: float) -> float:

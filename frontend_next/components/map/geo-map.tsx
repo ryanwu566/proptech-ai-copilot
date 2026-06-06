@@ -42,13 +42,13 @@ export default function GeoMap({ center, zoom, categories, selectedPlace, onSele
   return <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom className="h-full min-h-[360px] w-full sm:min-h-[500px] xl:min-h-[650px]">
     <Recenter center={center} zoom={zoom} selected={selectedPlace} />
     <LayersControl position="topright">
-      <LayersControl.BaseLayer checked name="標準地圖">
+      <LayersControl.BaseLayer checked name="標準">
         <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       </LayersControl.BaseLayer>
-      <LayersControl.BaseLayer name="淺色地圖">
+      <LayersControl.BaseLayer name="淺色">
         <TileLayer attribution='&copy; OpenStreetMap contributors &copy; CARTO' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
       </LayersControl.BaseLayer>
-      <LayersControl.BaseLayer name="衛星影像">
+      <LayersControl.BaseLayer name="衛星">
         <TileLayer attribution='Tiles &copy; Esri' url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
       </LayersControl.BaseLayer>
     </LayersControl>

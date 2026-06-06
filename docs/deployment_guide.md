@@ -83,6 +83,7 @@
    Vercel 不需要且不應設定 `GOOGLE_MAPS_API_KEY`；Google Places 只能由 Render backend 呼叫。
    請勿將 `GOOGLE_MAPS_API_KEY` 設在 Vercel 或任何 `NEXT_PUBLIC_` 變數中。
    Map Insight 的 OpenStreetMap、CartoDB Positron 與 Esri World Imagery 圖層不需要前端 Google key。
+   `data/taiwan_roads.csv` 會隨專案部署，提供縣市／鄉鎮市區／路段快速選擇，不依賴 OneDrive 或外部路名 API。
 
 7. 部署後開啟首頁，測試 TaxOracle 三個案例、客戶溝通報告下載與 Map Insight 周遭生活機能查詢。
 

@@ -106,13 +106,26 @@ export type NearbyPlace = {
   source: "google_places" | "mock";
 };
 export type NearbyCategory = { category: string; label: string; count: number; places: NearbyPlace[] };
+export type CategoryScore = {
+  category: string;
+  label: string;
+  weight: number;
+  score: number;
+  level: string;
+  poi_count: number;
+  nearest_distance_m: number | null;
+  explanation: string;
+};
 export type MapNearbyResult = {
   center: { lat: number; lng: number };
   radius_m: number;
   source: "google_places" | "mock";
   categories: NearbyCategory[];
   livability_score: number;
-  category_scores: Record<string, number>;
+  livability_level: string;
+  score_summary: string;
+  category_scores: CategoryScore[];
+  category_score_map: Record<string, number>;
   nearest_places: NearbyPlace[];
   recommendation_text: string;
   score_explanation: string;
@@ -153,6 +166,9 @@ export const api = {
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
   mapGoogleHealth: () => request<GoogleHealth>("/map/google-health"),
+  roadCities: () => request<{ cities: string[]; message: string }>("/roads/cities"),
+  roadDistricts: (city: string) => request<{ city: string; districts: string[]; message: string }>(`/roads/districts?city=${encodeURIComponent(city)}`),
+  roads: (city: string, district: string) => request<{ city: string; district: string; roads: string[]; message: string }>(`/roads/roads?city=${encodeURIComponent(city)}&district=${encodeURIComponent(district)}`),
   mapSearch: (query: string) => request<MapSearchResult>("/map/search", { method: "POST", body: JSON.stringify({ query }) }),
   mapInsight: (query: string) => request<MapInsightResult>("/map/insight", { method: "POST", body: JSON.stringify({ query }) }),
   mapNearby: (center: { lat: number; lng: number }, categories: string[], radius_m = 800) =>

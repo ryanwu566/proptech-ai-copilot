@@ -51,7 +51,9 @@ def test_map_search_can_feed_nearby_mock_fallback(monkeypatch) -> None:
     assert payload["source"] == "mock"
     assert len(payload["categories"]) == 6
     assert 0 <= payload["livability_score"] <= 100
-    assert all(0 <= score <= 100 for score in payload["category_scores"].values())
+    assert all(0 <= item["score"] <= 100 for item in payload["category_scores"])
+    assert payload["livability_level"] in {"極佳", "良好", "普通", "偏弱", "不足"}
+    assert all({"level", "poi_count", "nearest_distance_m", "explanation"} <= set(item) for item in payload["category_scores"])
     assert len(payload["nearest_places"]) == 3
     assert payload["recommendation_text"]
     assert payload["scoring_criteria"]["radius_m"] == 800

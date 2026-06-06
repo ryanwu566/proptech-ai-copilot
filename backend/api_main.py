@@ -11,6 +11,7 @@ from backend.api.routes_health import router as health_router
 from backend.api.routes_lite import router as lite_router
 from backend.api.routes_map import router as map_router
 from backend.api.routes_market import router as market_router
+from backend.api.routes_road import router as road_router
 from backend.api.routes_taxoracle import router as taxoracle_router
 
 
@@ -37,4 +38,5 @@ app.include_router(health_router)
 app.include_router(taxoracle_router)
 app.include_router(market_router)
 app.include_router(map_router)
+app.include_router(road_router)
 app.include_router(lite_router)
