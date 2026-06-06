@@ -10,3 +10,7 @@ button, input, select { font: inherit; }
 button { cursor: pointer; }
 ::selection { background: #dbeafe; color: #172033; }
 .leaflet-control-zoom, .leaflet-control-attribution { opacity: .82; }
+@keyframes onboarding-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes onboarding-step { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+.animate-onboarding-fade { animation: onboarding-fade .2s ease-out; }
+.animate-onboarding-step { animation: onboarding-step .24s ease-out; }
