@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import L from "leaflet";
-import { Circle, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import { Circle, LayersControl, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { NearbyCategory, NearbyPlace } from "@/lib/api";
 
 const categoryColors: Record<string, string> = {
@@ -41,7 +41,17 @@ function Recenter({ center, zoom, selected }: { center: { lat: number; lng: numb
 export default function GeoMap({ center, zoom, categories, selectedPlace, onSelectPlace }: { center: { lat: number; lng: number }; zoom: number; categories: NearbyCategory[]; selectedPlace?: NearbyPlace; onSelectPlace?: (place: NearbyPlace) => void }) {
   return <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom className="h-full min-h-[360px] w-full sm:min-h-[500px] xl:min-h-[650px]">
     <Recenter center={center} zoom={zoom} selected={selectedPlace} />
-    <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+    <LayersControl position="topright">
+      <LayersControl.BaseLayer checked name="標準地圖">
+        <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      </LayersControl.BaseLayer>
+      <LayersControl.BaseLayer name="淺色地圖">
+        <TileLayer attribution='&copy; OpenStreetMap contributors &copy; CARTO' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+      </LayersControl.BaseLayer>
+      <LayersControl.BaseLayer name="衛星影像">
+        <TileLayer attribution='Tiles &copy; Esri' url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
+      </LayersControl.BaseLayer>
+    </LayersControl>
     <Circle center={[center.lat, center.lng]} radius={800} pathOptions={{ color: "#0891b2", fillColor: "#22d3ee", fillOpacity: 0.05, weight: 2 }} />
     <Marker position={[center.lat, center.lng]} icon={markerIcon("#0f172a", true)}><Popup>查詢中心點</Popup></Marker>
     {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={markerIcon(categoryColors[group.category] ?? "#64748b", false, selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {place.distance_m} 公尺<br />{place.rating ? `評分 ${place.rating} · ` : ""}{place.business_status === "OPERATIONAL" ? "營業中" : place.business_status}<br />{place.address}</Popup></Marker>))}

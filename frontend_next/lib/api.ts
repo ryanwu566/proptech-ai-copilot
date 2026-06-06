@@ -67,7 +67,19 @@ export type MapSearchResult = {
   district: string;
   road: string;
   source: string;
+  formatted_address: string;
+  place_id: string;
+  confidence: "high" | "medium" | "mock";
+  location_note: string;
   disclaimer: string;
+};
+export type GoogleHealth = {
+  google_key_configured: boolean;
+  geocoding_enabled: boolean | null;
+  places_enabled: boolean | null;
+  last_error: string;
+  mode: "google" | "mock";
+  safe_message: string;
 };
 export type MapInsightResult = {
   center: { lat: number; lng: number };
@@ -104,6 +116,12 @@ export type MapNearbyResult = {
   nearest_places: NearbyPlace[];
   recommendation_text: string;
   score_explanation: string;
+  scoring_criteria: {
+    radius_m: number;
+    category_weights: Record<string, number>;
+    distance_bands: { range: string; weight: "high" | "medium" | "excluded" }[];
+    disclaimer: string;
+  };
   summary: string;
   disclaimer: string;
 };
@@ -134,6 +152,7 @@ export const api = {
     request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ city, district }) }),
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
+  mapGoogleHealth: () => request<GoogleHealth>("/map/google-health"),
   mapSearch: (query: string) => request<MapSearchResult>("/map/search", { method: "POST", body: JSON.stringify({ query }) }),
   mapInsight: (query: string) => request<MapInsightResult>("/map/insight", { method: "POST", body: JSON.stringify({ query }) }),
   mapNearby: (center: { lat: number; lng: number }, categories: string[], radius_m = 800) =>

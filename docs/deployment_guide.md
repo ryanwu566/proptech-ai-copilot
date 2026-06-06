@@ -36,7 +36,8 @@
    GOOGLE_MAPS_API_KEY
    ```
 
-   未設定或 Google Places 發生 timeout、quota、服務錯誤時，backend 會自動使用 mock fallback。Map Insight v2 仍可展示生活機能分數拆解、最近設施、POI 清單與客戶說明建議。
+   未設定或 Google Geocoding / Places 發生 timeout、quota、服務錯誤時，backend 會自動使用 mock fallback。Map Insight 仍可展示生活機能分數拆解、最近設施、POI 清單與客戶說明建議。
+   設定後可用 `GET /map/google-health` 確認 Google Geocoding 與 Places 是否真的啟用；回應不會包含 API key。
 
    以下真實 API adapter 尚未啟用，可留空或不設定：
 
@@ -81,6 +82,7 @@
 
    Vercel 不需要且不應設定 `GOOGLE_MAPS_API_KEY`；Google Places 只能由 Render backend 呼叫。
    請勿將 `GOOGLE_MAPS_API_KEY` 設在 Vercel 或任何 `NEXT_PUBLIC_` 變數中。
+   Map Insight 的 OpenStreetMap、CartoDB Positron 與 Esri World Imagery 圖層不需要前端 Google key。
 
 7. 部署後開啟首頁，測試 TaxOracle 三個案例、客戶溝通報告下載與 Map Insight 周遭生活機能查詢。
 

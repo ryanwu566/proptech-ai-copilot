@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from services.map_service import get_map_insight, get_nearby_places, list_poi_categories, list_regions, search_location
+from services.map_service import get_google_health, get_map_insight, get_nearby_places, list_poi_categories, list_regions, search_location
 
 
 router = APIRouter(prefix="/map", tags=["map-insight"])
@@ -41,6 +41,13 @@ def get_poi_categories() -> list[dict[str, str]]:
     """Return supported mock POI categories."""
 
     return list_poi_categories()
+
+
+@router.get("/google-health")
+def get_map_google_health() -> dict[str, Any]:
+    """Return a safe Google integration status without exposing credentials."""
+
+    return get_google_health()
 
 
 @router.post("/search")

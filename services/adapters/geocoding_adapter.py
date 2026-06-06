@@ -35,9 +35,16 @@ class GoogleGeocodingAdapter:
     def __init__(self, api_key: str | None = None, timeout_seconds: float = 5.0) -> None:
         self.api_key = (api_key if api_key is not None else os.getenv("GOOGLE_MAPS_API_KEY", "")).strip()
         self.timeout_seconds = timeout_seconds
+        self.last_error = ""
+
+    @property
+    def available(self) -> bool:
+        """Return whether a backend-only Google API key is configured."""
+
+        return bool(self.api_key)
 
     def search(self, query: str, regions: list[dict[str, Any]]) -> dict[str, Any] | None:
-        if not self.api_key or not query.strip():
+        if not self.available or not query.strip():
             return None
         try:
             response = httpx.get(
@@ -48,16 +55,26 @@ class GoogleGeocodingAdapter:
             response.raise_for_status()
             result = response.json().get("results", [])[0]
             location = result["geometry"]["location"]
+            self.last_error = ""
             return {
                 "id": f"google-{result.get('place_id', 'location')}",
                 "city": "",
                 "district": "",
                 "road": result.get("formatted_address", query),
+                "formatted_address": result.get("formatted_address", query),
+                "place_id": result.get("place_id", ""),
                 "center": {"lat": float(location["lat"]), "lng": float(location["lng"])},
                 "zoom": 15,
                 "area_summary": f"{result.get('formatted_address', query)} 周遭生活機能查詢。",
                 "poi_summary": "周遭設施將由 Google Places 或 mock fallback 提供。",
                 "poi_layers": [],
             }
+        except httpx.TimeoutException:
+            self.last_error = "Google Geocoding 回應逾時"
+            return None
+        except httpx.HTTPStatusError:
+            self.last_error = "Google Geocoding 目前無法使用"
+            return None
         except (httpx.HTTPError, IndexError, KeyError, TypeError, ValueError):
+            self.last_error = "Google Geocoding 未回傳可用定位"
             return None

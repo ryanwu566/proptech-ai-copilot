@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,8 @@ CATEGORY_LABELS = {
 }
 CATEGORY_WEIGHTS = {"transport": 25, "food": 20, "shopping": 20, "school": 15, "medical": 10, "park": 10}
 DEFAULT_GOOGLE_PLACES_ADAPTER = GooglePlacesAdapter()
+GOOGLE_HEALTH_CACHE: tuple[float, dict[str, Any]] | None = None
+GOOGLE_HEALTH_TTL_SECONDS = 300
 
 
 def load_map_data() -> dict[str, Any]:
@@ -58,16 +61,23 @@ def list_poi_categories() -> list[dict[str, str]]:
 
 
 def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict[str, Any]:
-    """Search bundled aliases first, then optionally use Google Geocoding."""
+    """Use Google Geocoding first when configured, then safely fall back to mock."""
 
     regions = load_map_data()["regions"]
     source = "mock"
-    region = (adapter or MockGeocodingAdapter()).search(query, regions)
-    if region is None and adapter is None:
-        region = GoogleGeocodingAdapter().search(query, regions)
+    google = adapter if adapter is not None else GoogleGeocodingAdapter()
+    region = google.search(query, regions)
+    if region is not None and isinstance(google, GoogleGeocodingAdapter):
         source = "google_geocoding"
+    if region is None and adapter is None:
+        region = MockGeocodingAdapter().search(query, regions)
     if region is None:
-        return {"query": query, "matched": False, "center": None, "city": "", "district": "", "road": "", "source": "mock", "disclaimer": SEARCH_DISCLAIMER}
+        return {
+            "query": query, "matched": False, "center": None, "city": "", "district": "", "road": "",
+            "source": "mock", "formatted_address": "", "place_id": "", "confidence": "mock",
+            "location_note": "找不到符合的展示資料定位。", "disclaimer": SEARCH_DISCLAIMER,
+        }
+    formatted_address = region.get("formatted_address") or f"{region.get('city', '')}{region.get('district', '')}{region.get('road', '')}"
     return {
         "query": query,
         "matched": True,
@@ -76,8 +86,56 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
         "district": region["district"],
         "road": region["road"],
         "source": source,
+        "formatted_address": formatted_address,
+        "place_id": region.get("place_id", ""),
+        "confidence": "high" if source == "google_geocoding" else "mock",
+        "location_note": "Google Geocoding 定位結果。" if source == "google_geocoding" else "展示資料定位，座標僅供操作示範。",
         "disclaimer": SEARCH_DISCLAIMER,
     }
+
+
+def get_google_health(force_refresh: bool = False) -> dict[str, Any]:
+    """Check backend-only Google integrations with a five-minute process cache."""
+
+    global GOOGLE_HEALTH_CACHE
+    now = time.monotonic()
+    if not force_refresh and GOOGLE_HEALTH_CACHE and now - GOOGLE_HEALTH_CACHE[0] < GOOGLE_HEALTH_TTL_SECONDS:
+        return GOOGLE_HEALTH_CACHE[1]
+
+    geocoding = GoogleGeocodingAdapter()
+    places = GooglePlacesAdapter()
+    if not geocoding.available:
+        result = {
+            "google_key_configured": False, "geocoding_enabled": False, "places_enabled": False,
+            "last_error": "", "mode": "mock", "safe_message": "目前使用展示資料",
+        }
+        GOOGLE_HEALTH_CACHE = (now, result)
+        return result
+
+    geocoding_enabled = geocoding.search("台北101", []) is not None
+    places_enabled = False
+    places_error = ""
+    try:
+        places.nearby(25.0330, 121.5654, 200, "transport", "zh-TW")
+        places_enabled = True
+    except httpx.TimeoutException:
+        places_error = "Google Places 回應逾時"
+    except httpx.HTTPStatusError:
+        places_error = "Google Places 目前無法使用"
+    except (httpx.HTTPError, KeyError, ValueError, TypeError):
+        places_error = "Google Places 未回傳可用資料"
+    enabled = geocoding_enabled and places_enabled
+    errors = [message for message in [geocoding.last_error, places_error] if message]
+    result = {
+        "google_key_configured": True,
+        "geocoding_enabled": geocoding_enabled,
+        "places_enabled": places_enabled,
+        "last_error": "；".join(errors),
+        "mode": "google" if enabled else "mock",
+        "safe_message": "目前使用 Google Places API" if enabled else "Google API 暫不可用，已切換展示資料",
+    }
+    GOOGLE_HEALTH_CACHE = (now, result)
+    return result
 
 
 def get_map_insight(query: str, geocoding: GeocodingAdapter | None = None, poi: PoiAdapter | None = None, traffic: TrafficAdapter | None = None) -> dict[str, Any] | None:
@@ -140,6 +198,16 @@ def get_nearby_places(
         "nearest_places": scoring["nearest_places"],
         "recommendation_text": scoring["recommendation_text"],
         "score_explanation": scoring["score_explanation"],
+        "scoring_criteria": {
+            "radius_m": 800,
+            "category_weights": CATEGORY_WEIGHTS,
+            "distance_bands": [
+                {"range": "0-300m", "weight": "high"},
+                {"range": "300-800m", "weight": "medium"},
+                {"range": "800m+", "weight": "excluded"},
+            ],
+            "disclaimer": NEARBY_DISCLAIMER,
+        },
         "summary": scoring["summary"] or f"{radius_m} 公尺生活圈共涵蓋 {counts}；分數僅用於比較周遭設施完整度。",
         "disclaimer": NEARBY_DISCLAIMER,
     }

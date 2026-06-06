@@ -9,7 +9,7 @@ import { AppPage } from "@/components/sidebar";
 import { WorkflowStepper } from "@/components/workflow-stepper";
 import { Badge, Button, EmptyState, Notice } from "@/components/ui";
 import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
-import { API_BASE, api, downloadTaxReport, MapNearbyResult, MapSearchResult, MarketResult, NearbyCategory, NearbyPlace, TaxCase, TaxResult } from "@/lib/api";
+import { API_BASE, api, downloadTaxReport, GoogleHealth, MapNearbyResult, MapSearchResult, MarketResult, NearbyCategory, NearbyPlace, TaxCase, TaxResult } from "@/lib/api";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -104,9 +104,9 @@ function SimpleList({ items, numbered = false }: { items: string[]; numbered?: b
 function MapInsight() {
   const categoryKeys = ["transport", "school", "park", "medical", "shopping", "food"];
   const categoryLabels: Record<string, string> = { transport: "交通", school: "學校", park: "公園", medical: "醫療", shopping: "商圈", food: "餐飲" };
-  const [query, setQuery] = useState("台北市大安區和平東路二段"), [location, setLocation] = useState<MapSearchResult>(), [result, setResult] = useState<MapNearbyResult>(), [active, setActive] = useState<string[]>(categoryKeys), [selectedPlace, setSelectedPlace] = useState<NearbyPlace>(), [loading, setLoading] = useState(true), [error, setError] = useState("");
+  const [query, setQuery] = useState("台北市大安區和平東路二段"), [location, setLocation] = useState<MapSearchResult>(), [result, setResult] = useState<MapNearbyResult>(), [health, setHealth] = useState<GoogleHealth>(), [active, setActive] = useState<string[]>(categoryKeys), [selectedPlace, setSelectedPlace] = useState<NearbyPlace>(), [loading, setLoading] = useState(true), [error, setError] = useState("");
   async function search(next = query) { setLoading(true); setError(""); setSelectedPlace(undefined); try { const found = await api.mapSearch(next); if (!found.matched || !found.center) throw new Error("找不到符合的地址，請改用範例地址或行政區。"); setLocation(found); setResult(await api.mapNearby(found.center, categoryKeys)); } catch (e) { setError((e as Error).message); } finally { setLoading(false); } }
-  useEffect(() => { search("台北市大安區和平東路二段"); }, []);
+  useEffect(() => { api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: "目前使用展示資料" })); search("台北市大安區和平東路二段"); }, []);
   const categories = result?.categories.filter((group) => active.includes(group.category)) ?? [];
   const allSelected = active.length === categoryKeys.length;
   const totalPlaces = result?.categories.reduce((sum, group) => sum + group.count, 0) ?? 0;
@@ -116,13 +116,14 @@ function MapInsight() {
     {result ? <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(71,85,105,0.12)] xl:grid xl:min-h-[720px] xl:grid-cols-[minmax(0,1fr)_380px]">
       <div className="relative h-[480px] min-w-0 sm:h-[560px] xl:h-auto"><GeoMap center={result.center} zoom={15} categories={categories} selectedPlace={selectedPlace} onSelectPlace={setSelectedPlace} />
         <form onSubmit={(e) => { e.preventDefault(); search(); }} className="absolute left-2 right-2 top-2 z-[500] flex min-w-0 flex-col gap-2 rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(650px,calc(100%-2rem))] sm:flex-row"><input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder="輸入地址、行政區或路段，例如：台北市大安區和平東路二段" /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? "定位中..." : "搜尋區域"}</Button></form>
-        <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-xl border border-white/80 bg-white/92 px-3 py-2 shadow-md backdrop-blur-md"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><strong className="text-slate-800">{location ? `${location.city}${location.district}${location.road}` : query}</strong><SourceBadge source={location?.source ?? result.source} /><span className="text-slate-500">半徑 {result.radius_m}m</span></div><MapLegend /></div>
+        <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-xl border border-white/80 bg-white/92 px-3 py-2 shadow-md backdrop-blur-md"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><strong className="text-slate-800">{location?.formatted_address || query}</strong><span className="text-slate-500">定位：</span><SourceBadge source={location?.source ?? "mock"} /><span className="text-slate-500">POI：</span><SourceBadge source={result.source} /><span className="text-slate-500">半徑 {result.radius_m}m</span></div><MapLegend /></div>
       </div>
       <aside className="min-w-0 border-t border-stone-200 bg-white p-4 xl:max-h-[720px] xl:overflow-y-auto xl:border-l xl:border-t-0">
-        <div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">區域總評</p><h2 className="mt-1 text-base font-bold text-slate-950">{location?.district || location?.road || "區域總覽"}</h2></div><div className="rounded-xl bg-cyan-50 px-3 py-2 text-right"><p className="text-3xl font-bold text-cyan-800">{result.livability_score}</p><p className="text-[9px] font-bold text-cyan-700">生活機能分數</p></div></div>
+        <div className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.safe_message ?? "檢查資料狀態中"}。{health?.mode === "google" ? "資料可能因 Google 更新而變動。" : "座標與 POI 僅供操作示範。"}</div>
+        <div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">區域總評</p><h2 className="mt-1 text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || "區域總覽"}</h2><p className="mt-1 text-[9px] text-slate-400">{location?.location_note}</p></div><div className="rounded-xl bg-cyan-50 px-3 py-2 text-right"><p className="text-3xl font-bold text-cyan-800">{result.livability_score}</p><p className="text-[9px] font-bold text-cyan-700">生活機能分數</p></div></div>
         <p className="mt-3 text-xs leading-5 text-slate-600">{result.summary}</p>
         <h3 className="mt-5 text-xs font-bold text-slate-900">設施分類</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>全部 {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{group.label} {group.count}</button>)}</div>
-        <h3 className="mt-5 text-xs font-bold text-slate-900">分數拆解</h3><div className="mt-2 space-y-2">{categoryKeys.map((key) => <ScoreBar key={key} label={categoryLabels[key]} score={result.category_scores?.[key] ?? 0} />)}</div><p className="mt-2 text-[9px] leading-4 text-slate-400">{result.score_explanation}</p>
+        <h3 className="mt-5 text-xs font-bold text-slate-900">分數拆解</h3><div className="mt-2 space-y-2">{categoryKeys.map((key) => <ScoreBar key={key} label={categoryLabels[key]} score={result.category_scores?.[key] ?? 0} />)}</div><p className="mt-2 text-[9px] leading-4 text-slate-400">{result.score_explanation}</p><ScoringCriteria criteria={result.scoring_criteria} labels={categoryLabels} />
         <h3 className="mt-5 text-xs font-bold text-slate-900">最近設施</h3><div className="mt-2 grid gap-2">{result.nearest_places?.slice(0, 3).map((place) => <button key={place.place_id} onClick={() => setSelectedPlace(place)} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-left hover:bg-cyan-50"><span className="min-w-0"><span className="block truncate text-[11px] font-bold text-slate-800">{place.name}</span><span className="text-[9px] text-slate-500">{categoryLabels[place.category]} · {place.rating ? `★ ${place.rating}` : "尚無評分"}</span></span><strong className="shrink-0 text-[10px] text-cyan-700">{Math.round(place.distance_m)}m</strong></button>)}</div>
         <div className="mt-5 border-l-2 border-cyan-500 pl-3"><h3 className="text-xs font-bold text-slate-900">客戶說明建議</h3><p className="mt-1 text-[11px] leading-5 text-slate-600">{result.recommendation_text}</p></div>
         <h3 className="mt-5 text-xs font-bold text-slate-900">附近地點</h3><PlaceList categories={categories} selected={selectedPlace} onSelect={setSelectedPlace} />
@@ -133,6 +134,10 @@ function MapInsight() {
 
 function ScoreBar({ label, score }: { label: string; score: number }) {
   return <div><div className="mb-1 flex justify-between text-[10px]"><span className="font-medium text-slate-600">{label}</span><strong className="text-slate-800">{score}</strong></div><div className="h-1.5 overflow-hidden rounded-full bg-stone-100"><div className="h-full rounded-full bg-cyan-600 transition-all" style={{ width: `${score}%` }} /></div></div>;
+}
+
+function ScoringCriteria({ criteria, labels }: { criteria: MapNearbyResult["scoring_criteria"]; labels: Record<string, string> }) {
+  return <details className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-2.5"><summary className="cursor-pointer text-[10px] font-bold text-slate-700">評分怎麼算？</summary><div className="mt-2 space-y-2 text-[9px] leading-4 text-slate-500"><p>生活機能分數為 0–100，依 {criteria.radius_m}m 內六類設施的數量、距離與類別權重加總。</p><div className="flex flex-wrap gap-1">{Object.entries(criteria.category_weights).map(([key, value]) => <span key={key} className="rounded-full bg-white px-2 py-1">{labels[key]} {value}%</span>)}</div><ul>{criteria.distance_bands.map((band) => <li key={band.range}>{band.range}：{band.weight === "high" ? "最高權重" : band.weight === "medium" ? "中等權重" : "不計入"}</li>)}</ul><p>{criteria.disclaimer}</p></div></details>;
 }
 
 function MapLegend() {
@@ -146,7 +151,8 @@ function MapLoadingSkeleton() {
 
 function SourceBadge({ source }: { source: string }) {
   const isGoogle = source.startsWith("google");
-  return <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${isGoogle ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>{isGoogle ? "Google" : "Mock fallback"}</span>;
+  const label = source === "google_geocoding" ? "Google Geocoding" : source === "google_places" ? "Google Places" : "展示資料";
+  return <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${isGoogle ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>{label}</span>;
 }
 
 function PlaceList({ categories, selected, onSelect }: { categories: NearbyCategory[]; selected?: NearbyPlace; onSelect: (place: NearbyPlace) => void }) {
