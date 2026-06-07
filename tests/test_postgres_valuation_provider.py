@@ -81,3 +81,19 @@ def test_postgres_provider_fetches_district_pool_for_service_grouping(monkeypatc
     assert "limit 200" in connection.cursor_instance.query
     assert provider.last_query_metadata["query_scope"] == "district_pool"
     assert provider.last_query_metadata["candidate_pool_size"] == 0
+
+
+def test_postgres_provider_disables_prepared_statements(monkeypatch) -> None:
+    import psycopg
+
+    captured = {}
+    sentinel = object()
+
+    def fake_connect(*_args, **kwargs):
+        captured.update(kwargs)
+        return sentinel
+
+    monkeypatch.setattr(psycopg, "connect", fake_connect)
+    connection = PostgresValuationProvider("postgresql://test")._connect()
+    assert connection is sentinel
+    assert captured["prepare_threshold"] is None

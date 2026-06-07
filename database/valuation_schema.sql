@@ -18,6 +18,7 @@ create table if not exists real_price_transactions (
     lat double precision,
     lng double precision,
     source text not null,
+    dedupe_key text,
     imported_at timestamptz not null default now(),
     raw_note text default ''
 );
@@ -27,6 +28,9 @@ create index if not exists idx_real_price_city_district on real_price_transactio
 create index if not exists idx_real_price_building_type on real_price_transactions (building_type);
 create index if not exists idx_real_price_transaction_period on real_price_transactions (transaction_period desc);
 create index if not exists idx_real_price_lat_lng on real_price_transactions (lat, lng);
+create unique index if not exists uq_real_price_source_dedupe_key
+    on real_price_transactions (source, dedupe_key)
+    where dedupe_key is not null;
 
 create table if not exists community_buildings (
     community_id text primary key,
@@ -54,6 +58,16 @@ create table if not exists valuation_import_runs (
     source_period text,
     imported_at timestamptz not null default now(),
     record_count integer not null default 0,
+    city_scope text default '',
+    district_scope text default '',
+    road_scope text default '',
+    input_file_count integer not null default 0,
+    read_rows integer not null default 0,
+    accepted_rows integer not null default 0,
+    inserted_rows integer not null default 0,
+    updated_rows integer not null default 0,
+    skipped_duplicate_rows integer not null default 0,
+    excluded_rows integer not null default 0,
     status text not null,
     note text default ''
 );

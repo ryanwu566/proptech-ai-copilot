@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import re
 from collections import Counter
 from datetime import date
@@ -18,6 +19,7 @@ SALE_MAIN_FILENAME = re.compile(r"^[a-z]_lvr_land_a\.csv$", re.IGNORECASE)
 FILE_CITY_MAP = {"a": "台北市", "f": "新北市"}
 
 FIELD_ALIASES: dict[str, tuple[str, ...]] = {
+    "transaction_id": ("編號", "移轉編號", "transaction_id"),
     "city": ("縣市", "city"),
     "district": ("鄉鎮市區", "district"),
     "transaction_target": ("交易標的", "transaction_target"),
@@ -81,14 +83,24 @@ def normalize_rows(
     *,
     city_hint: str = "",
     city_filter: str = "",
+    city_filters: Iterable[str] | None = None,
     district_filter: str = "",
+    district_filters: Iterable[str] | None = None,
     road_filter: str = "",
+    since: str = "",
+    until: str = "",
     limit: int | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Normalize rows and return accepted rows plus a transparent QC report."""
 
     accepted: list[dict[str, Any]] = []
     exclusions: Counter[str] = Counter()
+    allowed_cities = {item.strip().replace("臺", "台") for item in (city_filters or ()) if item.strip()}
+    if city_filter:
+        allowed_cities.add(city_filter.strip().replace("臺", "台"))
+    allowed_districts = {item.strip() for item in (district_filters or ()) if item.strip()}
+    if district_filter:
+        allowed_districts.add(district_filter.strip())
     total = 0
     for row in rows:
         total += 1
@@ -97,14 +109,20 @@ def normalize_rows(
             exclusions[reason] += 1
             continue
         assert normalized is not None
-        if city_filter and not same_city(normalized["city"], city_filter):
+        if allowed_cities and normalized["city"].replace("臺", "台") not in allowed_cities:
             exclusions["filtered_city"] += 1
             continue
-        if district_filter and normalized["district"] != district_filter:
+        if allowed_districts and normalized["district"] not in allowed_districts:
             exclusions["filtered_district"] += 1
             continue
         if road_filter and normalized["road"] != road_filter:
             exclusions["filtered_road"] += 1
+            continue
+        if since and normalized["transaction_period"] < since:
+            exclusions["filtered_before_since"] += 1
+            continue
+        if until and normalized["transaction_period"] > until:
+            exclusions["filtered_after_until"] += 1
             continue
         accepted.append(normalized)
         if limit is not None and len(accepted) >= limit:
@@ -119,6 +137,9 @@ def normalize_rows(
         "cities": sorted({row["city"] for row in accepted}),
         "districts": sorted({row["district"] for row in accepted}),
         "roads_count": len({(row["city"], row["district"], row["road"]) for row in accepted}),
+        "city_counts": dict(sorted(Counter(row["city"] for row in accepted).items())),
+        "district_counts": dict(sorted(Counter(row["district"] for row in accepted).items())),
+        "road_counts": dict(sorted(Counter(row["road"] for row in accepted).items())),
     }
 
 
@@ -152,7 +173,7 @@ def normalize_row(row: dict[str, Any], *, city_hint: str = "") -> tuple[dict[str
     completion_period = roc_date_to_period(_text(row, "completion_date"))
     completion_year = int(completion_period[:4]) if completion_period else 0
     building_type = _text(row, "building_type") or "未分類"
-    return {
+    normalized = {
         "transaction_period": period,
         "city": city,
         "district": district,
@@ -169,7 +190,31 @@ def normalize_row(row: dict[str, Any], *, city_hint: str = "") -> tuple[dict[str
         "lng": None,
         "source": OFFICIAL_SOURCE,
         "raw_note": "" if _text(row, "building_type") else "PLVR 原始資料未提供建物型態",
-    }, None
+    }
+    normalized["dedupe_key"] = build_dedupe_key(normalized, _text(row, "transaction_id"))
+    return normalized, None
+
+
+def build_dedupe_key(row: dict[str, Any], transaction_id: str = "") -> str:
+    """Build a stable transaction key from an official id or normalized fields."""
+
+    if transaction_id.strip():
+        seed = f"{row.get('source', OFFICIAL_SOURCE)}|id|{transaction_id.strip()}"
+    else:
+        seed = "|".join(
+            (
+                str(row.get("source", OFFICIAL_SOURCE)),
+                str(row.get("city", "")).replace("臺", "台").strip(),
+                str(row.get("district", "")).strip(),
+                str(row.get("address_text", "")).strip(),
+                str(row.get("transaction_period", "")).strip(),
+                str(row.get("building_type", "")).strip(),
+                f"{float(row.get('area_ping', 0) or 0):.2f}",
+                f"{float(row.get('total_price', 0) or 0):.2f}",
+                f"{float(row.get('unit_price_per_ping', 0) or 0):.2f}",
+            )
+        )
+    return hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
 
 def roc_date_to_period(value: str) -> str:

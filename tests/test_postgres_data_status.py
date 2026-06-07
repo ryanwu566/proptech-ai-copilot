@@ -20,7 +20,15 @@ class FakeCursor:
 
     def fetchone(self):
         if "from valuation_import_runs" in self.query:
-            return {"imported_at": datetime(2026, 6, 1, tzinfo=UTC)}
+            return {
+                "imported_at": datetime(2026, 6, 1, tzinfo=UTC),
+                "status": "completed",
+                "city_scope": "台北市,新北市",
+                "district_scope": "大安區,板橋區",
+                "road_scope": "",
+                "inserted_rows": 125,
+                "skipped_duplicate_rows": 5,
+            }
         return {
             "records_count": self.official + self.sample,
             "cities_count": 1,
@@ -28,6 +36,8 @@ class FakeCursor:
             "roads_count": 2,
             "official_records_count": self.official,
             "sample_records_count": self.sample,
+            "official_period_min": "2025-01",
+            "official_period_max": "2026-05",
         }
 
     def fetchall(self):
@@ -55,6 +65,11 @@ def test_postgres_status_identifies_official_data(monkeypatch) -> None:
     assert status["is_demo_data"] is False
     assert status["official_records_count"] == 12
     assert status["last_updated"].startswith("2026-06-01")
+    assert status["official_period_min"] == "2025-01"
+    assert status["official_period_max"] == "2026-05"
+    assert status["latest_import_inserted_rows"] == 125
+    assert status["latest_import_skipped_duplicates"] == 5
+    assert "台北市,新北市" in status["latest_import_scope"]
 
 
 def test_postgres_status_identifies_mixed_data(monkeypatch) -> None:

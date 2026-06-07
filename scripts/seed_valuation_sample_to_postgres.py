@@ -25,7 +25,7 @@ def seed(database_url: str | None = None) -> int:
 
         transactions = _read_csv(TRANSACTIONS_PATH)
         communities = _read_csv(COMMUNITIES_PATH)
-        with psycopg.connect(url, connect_timeout=5) as connection:
+        with psycopg.connect(url, connect_timeout=10, prepare_threshold=None) as connection:
             with connection.cursor() as cursor:
                 cursor.execute("delete from real_price_transactions where source = %s", ["real_price_sample"])
                 cursor.executemany(

@@ -118,7 +118,9 @@ class PostgresValuationProvider:
                                count(distinct district) as districts_count,
                                count(distinct (city, district, road)) as roads_count,
                                count(*) filter (where source = 'official_plvr_opendata') as official_records_count,
-                               count(*) filter (where source in ('sample', 'real_price_sample', 'community_building_sample')) as sample_records_count
+                               count(*) filter (where source in ('sample', 'real_price_sample', 'community_building_sample')) as sample_records_count,
+                               min(transaction_period) filter (where source = 'official_plvr_opendata') as official_period_min,
+                               max(transaction_period) filter (where source = 'official_plvr_opendata') as official_period_max
                         from real_price_transactions
                         """
                     )
@@ -129,7 +131,9 @@ class PostgresValuationProvider:
                     districts = [row["district"] for row in cursor.fetchall()]
                     cursor.execute(
                         """
-                        select imported_at from valuation_import_runs
+                        select imported_at, status, city_scope, district_scope, road_scope,
+                               inserted_rows, skipped_duplicate_rows
+                        from valuation_import_runs
                         where status = 'completed'
                         order by imported_at desc limit 1
                         """
@@ -149,6 +153,13 @@ class PostgresValuationProvider:
                 "data_composition": composition,
                 "official_records_count": official_count,
                 "sample_records_count": sample_count,
+                "official_period_min": summary.get("official_period_min"),
+                "official_period_max": summary.get("official_period_max"),
+                "official_coverage_note": _official_coverage_note(cities, districts),
+                "latest_import_status": last_run.get("status") if last_run else None,
+                "latest_import_scope": _latest_import_scope(last_run),
+                "latest_import_inserted_rows": int(last_run.get("inserted_rows") or 0) if last_run else 0,
+                "latest_import_skipped_duplicates": int(last_run.get("skipped_duplicate_rows") or 0) if last_run else 0,
                 "coverage": {
                     "cities": cities,
                     "districts": districts,
@@ -169,6 +180,13 @@ class PostgresValuationProvider:
                 "data_composition": "sample",
                 "official_records_count": 0,
                 "sample_records_count": 0,
+                "official_period_min": None,
+                "official_period_max": None,
+                "official_coverage_note": "目前無法讀取官方資料涵蓋範圍。",
+                "latest_import_status": None,
+                "latest_import_scope": "",
+                "latest_import_inserted_rows": 0,
+                "latest_import_skipped_duplicates": 0,
                 "coverage": {"cities": [], "districts": [], "roads_count": 0, "records_count": 0},
                 "last_updated": None,
                 "update_frequency_note": UPDATE_FREQUENCY_NOTE,
@@ -190,7 +208,12 @@ class PostgresValuationProvider:
         import psycopg
         from psycopg.rows import dict_row
 
-        return psycopg.connect(self.database_url, connect_timeout=self.connect_timeout, row_factory=dict_row)
+        return psycopg.connect(
+            self.database_url,
+            connect_timeout=self.connect_timeout,
+            prepare_threshold=None,
+            row_factory=dict_row,
+        )
 
 
 def _source_note(composition: str) -> str:
@@ -199,6 +222,20 @@ def _source_note(composition: str) -> str:
     if composition == "mixed":
         return "目前使用官方 PLVR OpenData 與展示樣本混合資料，尚非全台完整資料。"
     return "目前使用 Supabase/Postgres 展示樣本，尚非全台完整資料。"
+
+
+def _latest_import_scope(last_run: dict[str, Any] | None) -> str:
+    if not last_run:
+        return ""
+    return " / ".join(
+        value for value in (last_run.get("city_scope"), last_run.get("district_scope"), last_run.get("road_scope")) if value
+    )
+
+
+def _official_coverage_note(cities: list[str], districts: list[str]) -> str:
+    city_text = "、".join(cities) if cities else "尚無城市"
+    district_text = "、".join(districts) if districts else "尚無行政區"
+    return f"目前官方資料涵蓋 {city_text} 的部分區域（{district_text}），尚非完整雙北一年或全台資料。"
 
 
 def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:

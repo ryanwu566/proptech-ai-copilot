@@ -60,6 +60,13 @@ python scripts/seed_valuation_sample_to_postgres.py
 
 目前提供受控的手動匯入工具，不會自動下載資料：
 
+先在 SQL Editor 依序套用：
+
+```text
+database/migrations/001_add_dedupe_key_to_real_price_transactions.sql
+database/migrations/002_expand_valuation_import_runs.sql
+```
+
 ```powershell
 python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市 --dry-run
 python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市
@@ -73,7 +80,11 @@ python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北
 - 缺少每平方公尺單價時，使用總價與面積計算每坪單價。
 - 排除缺少地點、日期、面積、總價或異常單價的資料，並輸出品質檢查統計。
 - 正式匯入時寫入 `real_price_transactions` 與 `valuation_import_runs`。
+- 以 `source + dedupe_key` 避免相同官方交易重複插入，並安全回填既有官方資料的 dedupe key。
+- 支援資料夾、多城市／行政區、`--since`、`--until` 與大型匯入防呆。
 
 可使用 `--district`、`--road`、`--limit` 縮小範圍。`--replace-scope` 只允許搭配明確城市、行政區或路段使用。
 
 正式匯入必須在本機或受控 CI 設定 `VALUATION_DATABASE_URL`。Vercel 不需要此變數，Render runtime 也不會自動執行匯入。
+
+目前官方資料僅涵蓋台北市大安區與新北市板橋區部分期間，尚非完整雙北一年、雙北五年或全台資料。

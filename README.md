@@ -173,7 +173,7 @@ npm.cmd run build
 
 房價估算資料層採 provider 架構，依序嘗試 Supabase/Postgres、SQLite index、`real_price_sample.csv` 與展示資料 fallback。使用者只需輸入估價條件，不需要下載 CSV、ZIP 或執行 ETL。
 
-`GET /valuation/data-status` 會顯示目前資料來源、覆蓋範圍、筆數與更新時間。正式全台版本建議由 GitHub Actions 定期整理官方批次資料，再寫入 Supabase/Postgres；Render runtime 不負責下載或清洗大型資料。
+`GET /valuation/data-status` 會顯示目前資料來源、官方資料期間、最近匯入範圍、官方／展示筆數、覆蓋範圍與更新時間。正式全台版本建議由 GitHub Actions 定期整理官方批次資料，再寫入 Supabase/Postgres；Render runtime 不負責下載或清洗大型資料。
 
 詳見 [房價估算普及化架構](docs/valuation_public_service_architecture.md)。
 
@@ -181,10 +181,11 @@ Supabase/Postgres 建置方式請參考 [Supabase 估價資料庫設定](docs/su
 
 ### 手動匯入官方 PLVR OpenData
 
-先以 dry-run 檢查人工取得的買賣實價登錄 ZIP 或 CSV：
+先套用 `database/migrations/001_add_dedupe_key_to_real_price_transactions.sql` 與 `002_expand_valuation_import_runs.sql`，再以 dry-run 檢查人工取得的買賣實價登錄 ZIP、CSV 或資料夾：
 
 ```powershell
 python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市 --dry-run
+python scripts/import_plvr_to_postgres.py --input data/raw/plvr/history --cities 台北市,新北市 --since 2025-01 --until 2026-12 --dry-run
 ```
 
 確認品質檢查報告後，在本機或受控 CI 設定 `VALUATION_DATABASE_URL` 再執行正式匯入：
@@ -193,4 +194,6 @@ python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北
 python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市
 ```
 
-腳本只接受本機檔案，不會下載全台資料；原始 ZIP、完整 CSV 與資料庫連線字串都不可 commit。
+腳本以 `source + dedupe_key` 去重，重複執行不會再次插入相同交易；超過 10,000 筆需明確加入 `--confirm-large-import`。腳本只接受本機檔案，不會下載全台資料；原始 ZIP、完整 CSV 與資料庫連線字串都不可 commit。詳見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)。
+
+正式寫入使用 temporary staging table 分批 upsert，預設 `--chunk-size 200 --progress-every 100 --statement-timeout 30`；可用 `--max-write-rows 100` 先驗證小範圍寫入。

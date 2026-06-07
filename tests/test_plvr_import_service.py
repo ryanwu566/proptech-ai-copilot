@@ -1,4 +1,4 @@
-from services.plvr_import_service import city_from_filename, is_sale_transaction_csv, normalize_row, normalize_rows, parse_floor, parse_road, read_csv_rows, roc_date_to_period
+from services.plvr_import_service import build_dedupe_key, city_from_filename, is_sale_transaction_csv, normalize_row, normalize_rows, parse_floor, parse_road, read_csv_rows, roc_date_to_period
 
 
 VALID_ROW = {
@@ -38,6 +38,27 @@ def test_quality_control_reports_exclusions() -> None:
     rows, report = normalize_rows([VALID_ROW, {**VALID_ROW, "總價元": "0"}], city_hint="台北市")
     assert len(rows) == 1
     assert report["exclusion_reasons"]["invalid_total_price"] == 1
+
+
+def test_same_transaction_builds_same_dedupe_key() -> None:
+    first, reason = normalize_row(VALID_ROW, city_hint="台北市")
+    second, second_reason = normalize_row(dict(VALID_ROW), city_hint="台北市")
+    assert reason is None and second_reason is None
+    assert first is not None and second is not None
+    assert first["dedupe_key"] == second["dedupe_key"]
+    assert first["dedupe_key"] == build_dedupe_key(first)
+
+
+def test_official_transaction_id_is_preferred_for_dedupe_key() -> None:
+    row = {"source": "official_plvr_opendata", "city": "台北市"}
+    assert build_dedupe_key(row, "A-123") == build_dedupe_key({"source": "official_plvr_opendata"}, "A-123")
+    assert build_dedupe_key(row, "A-123") != build_dedupe_key(row, "A-456")
+
+
+def test_period_filters_are_applied() -> None:
+    rows, report = normalize_rows([VALID_ROW], city_hint="台北市", since="2025-02")
+    assert rows == []
+    assert report["exclusion_reasons"]["filtered_before_since"] == 1
 
 
 def test_land_only_transaction_is_excluded() -> None:
