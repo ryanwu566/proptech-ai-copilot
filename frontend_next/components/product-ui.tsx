@@ -17,10 +17,21 @@ export function DecisionHero({ onPrimary, onSecondary }: { onPrimary: () => void
         <button onClick={onPrimary} className="w-full rounded-lg bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto">開始稅務快篩 →</button>
         <button onClick={onSecondary} className="w-full rounded-lg border border-stone-300 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-cyan-300 hover:text-cyan-800 sm:w-auto">查看區域地圖</button>
       </div>
-      <div className="mt-5 flex flex-wrap gap-2"><HeroPill text="Mock Data" /><HeroPill text="TX001–TX009" /><HeroPill text="客戶溝通報告" /></div>
+      <div className="mt-5 flex flex-wrap gap-2"><HeroPill text="展示資料" /><HeroPill text="TX001–TX009" /><HeroPill text="客戶溝通報告" /></div>
+      <HeroDecisionFlow />
     </div>
     <CasePreviewVisual />
   </section>;
+}
+
+function HeroDecisionFlow() {
+  const nodes = [["案件", "選案"], ["稅務", "快篩"], ["地圖", "洞察"], ["估價", "估值"], ["房貸", "利率"], ["報告", "輸出"]];
+  return <div className="mt-5 rounded-xl border border-stone-200 bg-white/70 px-3 py-3 sm:px-4" aria-label="案件決策流程">
+    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-0">{nodes.map(([title, hint], index) => <div key={title} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-0">
+      <div className="hero-flow-node flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 sm:flex-col sm:gap-1 sm:text-center" style={{ animationDelay: `${index * 1.5}s` }}><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-cyan-200 bg-cyan-50 text-[9px] font-bold text-cyan-800">{index + 1}</span><span className="min-w-0"><strong className="block text-[10px] text-slate-700">{title}</strong><span className="block text-[8px] text-slate-400">{hint}</span></span></div>
+      {index < nodes.length - 1 && <span className="ml-3 h-3 w-px shrink-0 bg-gradient-to-b from-cyan-300 to-stone-200 sm:ml-0 sm:h-px sm:w-3 sm:bg-gradient-to-r" />}
+    </div>)}</div>
+  </div>;
 }
 
 function HeroPill({ text }: { text: string }) {

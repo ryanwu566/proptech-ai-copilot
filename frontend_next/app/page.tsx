@@ -18,7 +18,11 @@ export default function Home() {
   const [page, setPage] = useState<AppPage>("儀表板");
   const [requestedCase, setRequestedCase] = useState("");
   const openTax = (caseId = "") => { setRequestedCase(caseId); setPage("TaxOracle"); };
-  return <AppShell page={page} onNavigate={setPage}>{renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  const handleTourAction = (action: "tax-low" | "map" | "explore") => {
+    if (action === "tax-low") openTax("DEMO-LOW");
+    if (action === "map") setPage("Map Insight Lite");
+  };
+  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction}>{renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (caseId?: string) => void, requestedCase: string) {
