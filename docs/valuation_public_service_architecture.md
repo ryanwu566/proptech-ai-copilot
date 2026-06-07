@@ -21,12 +21,14 @@
 
 目前版本依序嘗試：
 
-1. `VALUATION_DATABASE_URL` 對應的 Postgres provider placeholder
+1. `VALUATION_DATABASE_URL` 對應的 Supabase/Postgres provider
 2. `data/processed/valuation_index.sqlite`
 3. `data/real_price_sample.csv`
 4. 記憶體展示資料 fallback
 
 Provider 在第一次呼叫估價或資料狀態 API 時才初始化。`/health` 不讀取估價資料。
+
+Postgres provider 先以地區條件縮小查詢，再依路段、建物類型、面積、屋齡、交易期間與經緯度排序，最多取 50 筆候選交由共用 Python 估價邏輯處理。連線失敗時會安全回退至下一個 provider。
 
 ## 為什麼不在 Render Runtime 下載
 

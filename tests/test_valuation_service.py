@@ -9,6 +9,7 @@ from services.valuation_service import (
     get_valuation_provider,
     load_transactions,
 )
+from services.valuation_providers.postgres_provider import PostgresValuationProvider
 
 
 PAYLOAD = {
@@ -34,6 +35,8 @@ def test_sample_provider_and_data_status() -> None:
 
 
 def test_postgres_placeholder_falls_back_without_crashing(monkeypatch) -> None:
+    PostgresValuationProvider._availability_cache.clear()
+    monkeypatch.setattr(PostgresValuationProvider, "_connect", lambda self: (_ for _ in ()).throw(ConnectionError("offline")))
     monkeypatch.setenv("VALUATION_DATABASE_URL", "postgresql://configured-but-not-enabled")
     provider = get_valuation_provider(sqlite_path=Path("missing.sqlite"))
     assert isinstance(provider, SampleValuationProvider)

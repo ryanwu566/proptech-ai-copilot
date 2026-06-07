@@ -170,8 +170,10 @@ npm.cmd run build
 
 ### 可普及化房價估算
 
-房價估算資料層採 provider 架構，依序嘗試 Postgres placeholder、SQLite index、`real_price_sample.csv` 與展示資料 fallback。使用者只需輸入估價條件，不需要下載 CSV、ZIP 或執行 ETL。
+房價估算資料層採 provider 架構，依序嘗試 Supabase/Postgres、SQLite index、`real_price_sample.csv` 與展示資料 fallback。使用者只需輸入估價條件，不需要下載 CSV、ZIP 或執行 ETL。
 
 `GET /valuation/data-status` 會顯示目前資料來源、覆蓋範圍、筆數與更新時間。正式全台版本建議由 GitHub Actions 定期整理官方批次資料，再寫入 Supabase/Postgres；Render runtime 不負責下載或清洗大型資料。
 
 詳見 [房價估算普及化架構](docs/valuation_public_service_architecture.md)。
+
+Supabase/Postgres 建置方式請參考 [Supabase 估價資料庫設定](docs/supabase_valuation_setup.md)。使用 `psycopg[binary]` 作為最小 Postgres driver，避免加入大型 ORM，也避免 Render 需要額外編譯系統套件。

@@ -30,3 +30,14 @@ jobs:
 ```
 
 原始 ZIP 應存放在 runner 暫存空間，不可 commit 到 GitHub。資料庫憑證只能由 GitHub Secrets 提供。
+
+正式流程應在每月 2、12、22 日後執行：下載官方實價登錄 OpenData、清洗為 `database/valuation_schema.sql` 的標準欄位，再 upsert 至 Supabase/Postgres。不可 commit raw ZIP，也不可在 Render runtime 執行 ETL。
+
+首次驗證資料庫 schema 時，可改用展示樣本 seed：
+
+```yaml
+- name: Seed bundled valuation sample
+  env:
+    VALUATION_DATABASE_URL: ${{ secrets.VALUATION_DATABASE_URL }}
+  run: python scripts/seed_valuation_sample_to_postgres.py
+```

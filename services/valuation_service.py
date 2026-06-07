@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from services.community_index_service import match_community
+from services.valuation_providers.postgres_provider import PostgresValuationProvider
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -90,26 +91,6 @@ class SQLiteValuationProvider:
         return _build_data_status(self, self.load_transactions(), self.path)
 
 
-class PostgresValuationProvider:
-    """Placeholder for a future Supabase/Postgres provider; never connects at import."""
-
-    source = "postgres"
-    is_demo_data = False
-    is_full_taiwan = False
-
-    def __init__(self, database_url: str) -> None:
-        self.database_url = database_url
-
-    def available(self) -> bool:
-        return False
-
-    def load_transactions(self) -> tuple[dict[str, Any], ...]:
-        return ()
-
-    def data_status(self) -> dict[str, Any]:
-        return _build_data_status(self, (), None)
-
-
 class MockFallbackProvider:
     """Last-resort in-memory provider that keeps the endpoint usable."""
 
@@ -176,13 +157,17 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     """Estimate a range using the best available provider and comparison level."""
 
     provider = get_valuation_provider()
-    all_rows = list(provider.load_transactions())
+    all_rows = list(provider.query_comparables(payload) if isinstance(provider, PostgresValuationProvider) else provider.load_transactions())
     data_status = provider.data_status()
-    community = match_community(
-        str(payload.get("city", "")),
-        str(payload.get("district", "")),
-        str(payload.get("road", "")),
-        str(payload.get("address_text", "")),
+    community = (
+        provider.match_community(payload)
+        if isinstance(provider, PostgresValuationProvider)
+        else match_community(
+            str(payload.get("city", "")),
+            str(payload.get("district", "")),
+            str(payload.get("road", "")),
+            str(payload.get("address_text", "")),
+        )
     )
     estimate_level, candidates = _select_estimate_level(all_rows, payload, community)
     if not candidates:
