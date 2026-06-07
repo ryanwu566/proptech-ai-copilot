@@ -34,7 +34,58 @@ insert into plvr_import_staging (
 """
 
 CHUNK_UPSERT_SQL = """
-with inserted as (
+with staged as materialized (
+    select staging.*,
+           row_number() over (
+               partition by
+                   source,
+                   replace(regexp_replace(coalesce(city, ''), '\\s+', '', 'g'), '臺', '台'),
+                   regexp_replace(coalesce(district, ''), '\\s+', '', 'g'),
+                   transaction_period,
+                   regexp_replace(coalesce(address_text, ''), '\\s+', '', 'g'),
+                   regexp_replace(coalesce(road, ''), '\\s+', '', 'g'),
+                   regexp_replace(coalesce(building_type, ''), '\\s+', '', 'g'),
+                   round(coalesce(area_ping, 0), 2),
+                   round(coalesce(total_price, 0), 2),
+                   round(coalesce(unit_price_per_ping, 0), 2)
+               order by dedupe_key
+           ) as natural_rank
+    from plvr_import_staging staging
+),
+classified as materialized (
+    select staged.*,
+           (
+               natural_rank > 1
+               or exists (
+                   select 1
+                   from real_price_transactions existing
+                   where existing.source = staged.source
+                     and replace(regexp_replace(coalesce(existing.city, ''), '\\s+', '', 'g'), '臺', '台')
+                         = replace(regexp_replace(coalesce(staged.city, ''), '\\s+', '', 'g'), '臺', '台')
+                     and regexp_replace(coalesce(existing.district, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.district, ''), '\\s+', '', 'g')
+                     and existing.transaction_period = staged.transaction_period
+                     and regexp_replace(coalesce(existing.address_text, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.address_text, ''), '\\s+', '', 'g')
+                     and regexp_replace(coalesce(existing.road, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.road, ''), '\\s+', '', 'g')
+                     and regexp_replace(coalesce(existing.building_type, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.building_type, ''), '\\s+', '', 'g')
+                     and round(coalesce(existing.area_ping, 0), 2) = round(coalesce(staged.area_ping, 0), 2)
+                     and round(coalesce(existing.total_price, 0), 2) = round(coalesce(staged.total_price, 0), 2)
+                     and round(coalesce(existing.unit_price_per_ping, 0), 2)
+                         = round(coalesce(staged.unit_price_per_ping, 0), 2)
+               )
+           ) as is_natural_duplicate,
+           exists (
+               select 1
+               from real_price_transactions existing
+               where existing.source = staged.source
+                 and existing.dedupe_key = staged.dedupe_key
+           ) as is_dedupe_key_duplicate
+    from staged
+),
+inserted as (
     insert into real_price_transactions (
         transaction_period, city, district, road, address_text, building_type,
         area_ping, building_age_years, floor, total_floor, unit_price_per_ping,
@@ -43,11 +94,80 @@ with inserted as (
     select transaction_period, city, district, road, address_text, building_type,
            area_ping, building_age_years, floor, total_floor, unit_price_per_ping,
            total_price, lat, lng, source, raw_note, dedupe_key
-    from plvr_import_staging
+    from classified
+    where not is_natural_duplicate and not is_dedupe_key_duplicate
     on conflict (source, dedupe_key) where dedupe_key is not null do nothing
     returning city
 )
-select city, count(*) as inserted_rows from inserted group by city order by city
+select cities.city,
+       (select count(*) from inserted where inserted.city = cities.city) as inserted_rows,
+       (select count(*) from classified where classified.city = cities.city and is_natural_duplicate)
+           as natural_duplicate_rows,
+       (select count(*) from classified
+        where classified.city = cities.city and not is_natural_duplicate and is_dedupe_key_duplicate)
+           as dedupe_key_duplicate_rows
+from (select distinct city from classified) cities
+order by cities.city
+"""
+
+CHUNK_DUPLICATE_INSPECTION_SQL = """
+with staged as materialized (
+    select staging.*,
+           row_number() over (
+               partition by
+                   source,
+                   replace(regexp_replace(coalesce(city, ''), '\\s+', '', 'g'), '臺', '台'),
+                   regexp_replace(coalesce(district, ''), '\\s+', '', 'g'),
+                   transaction_period,
+                   regexp_replace(coalesce(address_text, ''), '\\s+', '', 'g'),
+                   regexp_replace(coalesce(road, ''), '\\s+', '', 'g'),
+                   regexp_replace(coalesce(building_type, ''), '\\s+', '', 'g'),
+                   round(coalesce(area_ping, 0), 2),
+                   round(coalesce(total_price, 0), 2),
+                   round(coalesce(unit_price_per_ping, 0), 2)
+               order by dedupe_key
+           ) as natural_rank
+    from plvr_import_staging staging
+),
+classified as (
+    select staged.*,
+           (
+               natural_rank > 1
+               or exists (
+                   select 1
+                   from real_price_transactions existing
+                   where existing.source = staged.source
+                     and replace(regexp_replace(coalesce(existing.city, ''), '\\s+', '', 'g'), '臺', '台')
+                         = replace(regexp_replace(coalesce(staged.city, ''), '\\s+', '', 'g'), '臺', '台')
+                     and regexp_replace(coalesce(existing.district, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.district, ''), '\\s+', '', 'g')
+                     and existing.transaction_period = staged.transaction_period
+                     and regexp_replace(coalesce(existing.address_text, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.address_text, ''), '\\s+', '', 'g')
+                     and regexp_replace(coalesce(existing.road, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.road, ''), '\\s+', '', 'g')
+                     and regexp_replace(coalesce(existing.building_type, ''), '\\s+', '', 'g')
+                         = regexp_replace(coalesce(staged.building_type, ''), '\\s+', '', 'g')
+                     and round(coalesce(existing.area_ping, 0), 2) = round(coalesce(staged.area_ping, 0), 2)
+                     and round(coalesce(existing.total_price, 0), 2) = round(coalesce(staged.total_price, 0), 2)
+                     and round(coalesce(existing.unit_price_per_ping, 0), 2)
+                         = round(coalesce(staged.unit_price_per_ping, 0), 2)
+               )
+           ) as is_natural_duplicate,
+           exists (
+               select 1
+               from real_price_transactions existing
+               where existing.source = staged.source
+                 and existing.dedupe_key = staged.dedupe_key
+           ) as is_dedupe_key_duplicate
+    from staged
+)
+select city,
+       count(*) filter (where is_natural_duplicate) as natural_duplicate_rows,
+       count(*) filter (where not is_natural_duplicate and is_dedupe_key_duplicate) as dedupe_key_duplicate_rows
+from classified
+group by city
+order by city
 """
 
 
@@ -133,6 +253,10 @@ def main(argv: list[str] | None = None) -> int:
         report["accepted_rows_by_city"] = _city_counts(normalized)
         report["skipped_duplicate_rows"] = batch_duplicates
         report["skipped_duplicate_rows_by_city"] = batch_duplicates_by_city
+        report["skipped_natural_duplicate_rows"] = 0
+        report["skipped_natural_duplicate_rows_by_city"] = {}
+        report["skipped_dedupe_key_duplicate_rows"] = batch_duplicates
+        report["natural_duplicate_check"] = "db_required"
         report.update(
             {
                 "inserted_rows": 0,
@@ -158,6 +282,21 @@ def main(argv: list[str] | None = None) -> int:
             print("本次 accepted_rows 超過 10,000；請縮小範圍，或確認後加上 --confirm-large-import。")
             return 1
         if args.dry_run:
+            database_url = os.getenv("VALUATION_DATABASE_URL", "").strip()
+            if database_url:
+                inspection = _inspect_database_duplicates(database_url, normalized, args)
+                inspection["skipped_dedupe_key_duplicate_rows"] += batch_duplicates
+                inspection_dedupe_by_city = Counter(inspection.get("skipped_duplicate_rows_by_city", {}))
+                inspection_dedupe_by_city.update(batch_duplicates_by_city)
+                inspection["skipped_duplicate_rows"] += batch_duplicates
+                inspection["skipped_duplicate_rows_by_city"] = dict(sorted(inspection_dedupe_by_city.items()))
+                report.update(inspection)
+                report["estimated_growth"] = max(
+                    0,
+                    len(normalized)
+                    - int(report["skipped_natural_duplicate_rows"])
+                    - int(report["skipped_dedupe_key_duplicate_rows"]),
+                )
             print(json.dumps(report, ensure_ascii=False, indent=2))
             return 0
 
@@ -259,22 +398,13 @@ def _write_rows(
                 cursor.execute(f"delete from real_price_transactions where {' and '.join(clauses)}", params)
 
             backfilled = _backfill_scope_dedupe(cursor, city_filters, district_filters, args.road)
-            cursor.execute(
-                """
-                create temporary table if not exists plvr_import_staging (
-                    transaction_period varchar(7), city text, district text, road text,
-                    address_text text, building_type text, area_ping numeric(12, 2),
-                    building_age_years numeric(8, 2), floor integer, total_floor integer,
-                    unit_price_per_ping numeric(14, 2), total_price numeric(16, 2),
-                    lat double precision, lng double precision, source text, raw_note text,
-                    dedupe_key text
-                ) on commit preserve rows
-                """
-            )
+            _create_staging_table(cursor)
             connection.commit()
             inserted = 0
             inserted_by_city: Counter[str] = Counter()
-            skipped = int(report.get("skipped_duplicate_rows", 0))
+            natural_skipped = 0
+            natural_skipped_by_city: Counter[str] = Counter()
+            dedupe_skipped = int(report.get("skipped_dedupe_key_duplicate_rows", 0))
             skipped_by_city: Counter[str] = Counter(report.get("skipped_duplicate_rows_by_city", {}))
             processed = 0
             print(
@@ -290,20 +420,29 @@ def _write_rows(
                         cursor.execute("truncate table plvr_import_staging")
                         cursor.executemany(STAGING_INSERT_SQL, chunk)
                         cursor.execute(CHUNK_UPSERT_SQL)
-                        inserted_rows = cursor.fetchall()
+                        chunk_stats = cursor.fetchall()
                         chunk_inserted_by_city = Counter(
-                            {str(row["city"]): int(row["inserted_rows"]) for row in inserted_rows}
+                            {str(row["city"]): int(row["inserted_rows"]) for row in chunk_stats}
+                        )
+                        chunk_natural_by_city = Counter(
+                            {str(row["city"]): int(row.get("natural_duplicate_rows") or 0) for row in chunk_stats}
+                        )
+                        chunk_dedupe_by_city = Counter(
+                            {str(row["city"]): int(row.get("dedupe_key_duplicate_rows") or 0) for row in chunk_stats}
                         )
                         chunk_inserted = sum(chunk_inserted_by_city.values())
                     inserted += chunk_inserted
                     inserted_by_city.update(chunk_inserted_by_city)
-                    skipped += len(chunk) - chunk_inserted
-                    chunk_by_city = Counter(str(row.get("city", "")) for row in chunk)
-                    skipped_by_city.update(chunk_by_city - chunk_inserted_by_city)
+                    natural_skipped += sum(chunk_natural_by_city.values())
+                    natural_skipped_by_city.update(chunk_natural_by_city)
+                    dedupe_skipped += sum(chunk_dedupe_by_city.values())
+                    skipped_by_city.update(chunk_natural_by_city)
+                    skipped_by_city.update(chunk_dedupe_by_city)
                     processed = end
                     print(
                         f"Writing rows {start}-{end} / {len(rows)}... "
-                        f"inserted={inserted}, updated={backfilled}, skipped_duplicate={skipped}",
+                        f"inserted={inserted}, updated={backfilled}, "
+                        f"skipped_natural={natural_skipped}, skipped_dedupe_key={dedupe_skipped}",
                         flush=True,
                     )
                 except Exception as error:
@@ -327,7 +466,7 @@ def _write_rows(
                 "accepted_rows": report.get("accepted_rows", 0),
                 "inserted_rows": inserted,
                 "updated_rows": backfilled,
-                "skipped_duplicate_rows": skipped,
+                "skipped_duplicate_rows": natural_skipped + dedupe_skipped,
                 "excluded_rows": report.get("excluded_rows", 0),
                 "status": "completed",
                 "note": json.dumps({"files": report.get("files", []), "exclusions": report.get("exclusion_reasons", {})}, ensure_ascii=False),
@@ -350,14 +489,81 @@ def _write_rows(
         "inserted_rows": inserted,
         "inserted_rows_by_city": dict(sorted(inserted_by_city.items())),
         "updated_rows": backfilled,
-        "skipped_duplicate_rows": skipped,
-        "skipped_duplicate_rows_by_city": dict(sorted(skipped_by_city.items())),
+        "skipped_duplicate_rows": natural_skipped + dedupe_skipped,
+        "skipped_duplicate_rows_by_city": _positive_counts(skipped_by_city),
+        "skipped_natural_duplicate_rows": natural_skipped,
+        "skipped_natural_duplicate_rows_by_city": _positive_counts(natural_skipped_by_city),
+        "skipped_dedupe_key_duplicate_rows": dedupe_skipped,
+        "natural_duplicate_check": "completed",
         "current_db_records_before": before["records_count"],
         "current_db_records_after": after["records_count"],
         "current_db_official_before": before["official_records_count"],
         "current_db_official_after": after["official_records_count"],
         "estimated_growth": inserted,
     }
+
+
+def _inspect_database_duplicates(
+    database_url: str,
+    rows: list[dict[str, Any]],
+    args: argparse.Namespace,
+) -> dict[str, Any]:
+    """Estimate database duplicate skips without changing persistent data."""
+
+    import psycopg
+    from psycopg.rows import dict_row
+
+    natural_by_city: Counter[str] = Counter()
+    dedupe_by_city: Counter[str] = Counter()
+    with psycopg.connect(
+        database_url,
+        connect_timeout=10,
+        prepare_threshold=None,
+        row_factory=dict_row,
+    ) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(f"set statement_timeout = '{int(args.statement_timeout)}s'")
+            _create_staging_table(cursor)
+            for chunk in _chunks(rows, args.chunk_size):
+                with connection.transaction():
+                    cursor.execute("truncate table plvr_import_staging")
+                    cursor.executemany(STAGING_INSERT_SQL, chunk)
+                    cursor.execute(CHUNK_DUPLICATE_INSPECTION_SQL)
+                    for item in cursor.fetchall():
+                        city = str(item["city"])
+                        natural_by_city[city] += int(item["natural_duplicate_rows"])
+                        dedupe_by_city[city] += int(item["dedupe_key_duplicate_rows"])
+    return {
+        "skipped_natural_duplicate_rows": sum(natural_by_city.values()),
+        "skipped_natural_duplicate_rows_by_city": _positive_counts(natural_by_city),
+        "skipped_dedupe_key_duplicate_rows": sum(dedupe_by_city.values()),
+        "skipped_duplicate_rows": sum(natural_by_city.values()) + sum(dedupe_by_city.values()),
+        "skipped_duplicate_rows_by_city": _positive_counts(natural_by_city + dedupe_by_city),
+        "natural_duplicate_check": "completed",
+    }
+
+
+def _create_staging_table(cursor: Any) -> None:
+    """Create the temporary staging table used by write and inspection flows."""
+
+    cursor.execute(
+        """
+        create temporary table if not exists plvr_import_staging (
+            transaction_period varchar(7), city text, district text, road text,
+            address_text text, building_type text, area_ping numeric(12, 2),
+            building_age_years numeric(8, 2), floor integer, total_floor integer,
+            unit_price_per_ping numeric(14, 2), total_price numeric(16, 2),
+            lat double precision, lng double precision, source text, raw_note text,
+            dedupe_key text
+        ) on commit preserve rows
+        """
+    )
+
+
+def _positive_counts(counts: Counter[str]) -> dict[str, int]:
+    """Return stable report counts without noisy zero-value city entries."""
+
+    return dict(sorted((city, count) for city, count in counts.items() if count > 0))
 
 
 def _database_counts(cursor: Any) -> dict[str, int]:

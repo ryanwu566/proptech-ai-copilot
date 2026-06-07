@@ -15,7 +15,11 @@ def test_dry_run_does_not_require_database_url(tmp_path, monkeypatch, capsys) ->
     path.write_text(CSV_TEXT, encoding="utf-8-sig")
     monkeypatch.delenv("VALUATION_DATABASE_URL", raising=False)
     assert main(["--input", str(path), "--city", "台北市", "--dry-run"]) == 0
-    assert '"status": "dry_run"' in capsys.readouterr().out
+    report = json.loads(capsys.readouterr().out)
+    assert report["status"] == "dry_run"
+    assert report["natural_duplicate_check"] == "db_required"
+    assert report["skipped_natural_duplicate_rows"] == 0
+    assert report["skipped_dedupe_key_duplicate_rows"] == 0
 
 
 def test_missing_database_url_exits_friendly(tmp_path, monkeypatch, capsys) -> None:
@@ -183,8 +187,13 @@ class _BatchCursor:
         return None
 
     def fetchall(self):
-        if "select city, count(*) as inserted_rows from inserted" in self.query:
-            return [{"city": "台北市", "inserted_rows": self.batch_size}]
+        if "from (select distinct city from classified) cities" in self.query:
+            return [{
+                "city": "台北市",
+                "inserted_rows": self.batch_size,
+                "natural_duplicate_rows": 0,
+                "dedupe_key_duplicate_rows": 0,
+            }]
         return []
 
 
@@ -236,6 +245,9 @@ def test_write_rows_uses_staging_chunks_and_progress(monkeypatch, capsys) -> Non
     assert result["inserted_rows"] == 5
     assert result["inserted_rows_by_city"] == {"台北市": 5}
     assert result["skipped_duplicate_rows_by_city"] == {}
+    assert result["skipped_natural_duplicate_rows"] == 0
+    assert result["skipped_dedupe_key_duplicate_rows"] == 0
+    assert result["natural_duplicate_check"] == "completed"
     assert connect_kwargs["prepare_threshold"] is None
     assert connect_kwargs["connect_timeout"] == 10
     output = capsys.readouterr().out
