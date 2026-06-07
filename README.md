@@ -197,3 +197,7 @@ python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北
 腳本以 `source + dedupe_key` 去重，重複執行不會再次插入相同交易；超過 10,000 筆需明確加入 `--confirm-large-import`。腳本只接受本機檔案，不會下載全台資料；原始 ZIP、完整 CSV 與資料庫連線字串都不可 commit。詳見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)。
 
 正式寫入使用 temporary staging table 分批 upsert，預設 `--chunk-size 200 --progress-every 100 --statement-timeout 30`；可用 `--max-write-rows 100` 先驗證小範圍寫入。
+
+### 市場趨勢與未來情境
+
+`POST /valuation/trend` 僅使用最近五年內的官方 PLVR OpenData，排除展示樣本、未來月份與異常交易。系統依同路段、同區同型態、同行政區的順序選樣，顯示月／年中位單價、年化趨勢、波動度與 6、12、36 個月保守／中性／樂觀情境。情境年率限制於 -10% 至 +10%，僅供歷史趨勢理解，不代表成交保證、正式鑑價、銀行估價或投資建議。

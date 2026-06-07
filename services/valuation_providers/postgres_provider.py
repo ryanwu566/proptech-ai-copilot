@@ -76,6 +76,39 @@ class PostgresValuationProvider:
             }
             return []
 
+    def query_trend_rows(self, request: dict[str, Any], limit: int = 10_000) -> list[dict[str, Any]]:
+        """Return recent official district rows for transparent trend analysis."""
+
+        try:
+            with self._connect() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        select transaction_period, city, district, road, building_type,
+                               area_ping, building_age_years, unit_price_per_ping, total_price,
+                               source
+                        from real_price_transactions
+                        where source = 'official_plvr_opendata'
+                          and replace(trim(city), '臺', '台') = %s
+                          and trim(district) = %s
+                          and transaction_period between %s and %s
+                          and unit_price_per_ping > 0
+                          and area_ping > 0
+                        order by transaction_period desc
+                        limit %s
+                        """,
+                        [
+                            _normalize_city(str(request.get("city", ""))),
+                            str(request.get("district", "")).strip(),
+                            request["window_start"],
+                            request["current_period"],
+                            max(1, min(int(limit), 20_000)),
+                        ],
+                    )
+                    return [_normalize_row(dict(row)) for row in cursor.fetchall()]
+        except Exception:
+            return []
+
     def match_community(self, request: dict[str, Any]) -> dict[str, Any] | None:
         """Return a probable database community match when user input supports it."""
 
