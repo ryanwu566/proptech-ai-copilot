@@ -35,3 +35,4 @@ def test_postgres_query_scopes_relax_from_road_to_city() -> None:
     assert "road = %s" in road_sql
     assert "district = %s" in district_sql and "road = %s" not in district_sql.split("order by")[0]
     assert "city = %s" in city_sql and "district = %s" not in city_sql.split("order by")[0]
+    assert "transaction_period <= %s" in road_sql

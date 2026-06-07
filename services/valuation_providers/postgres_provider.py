@@ -192,14 +192,14 @@ def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:
     result = dict(row)
     for key in ("area_ping", "unit_price_per_ping", "total_price", "building_age_years", "floor"):
         result[key] = float(result.get(key) or 0)
-    result["lat"] = float(result["lat"]) if result.get("lat") is not None else 0.0
-    result["lng"] = float(result["lng"]) if result.get("lng") is not None else 0.0
+    result["lat"] = float(result["lat"]) if result.get("lat") is not None else None
+    result["lng"] = float(result["lng"]) if result.get("lng") is not None else None
     return result
 
 
 def _comparable_query(request: dict[str, Any], scope: str, limit: int) -> tuple[str, list[Any]]:
-    clauses: list[str] = []
-    scope_params: list[Any] = []
+    clauses: list[str] = ["(source <> 'official_plvr_opendata' or transaction_period <= %s)"]
+    scope_params: list[Any] = [datetime.now(UTC).strftime("%Y-%m")]
     for field in ("city", "district", "road"):
         if field == "district" and scope not in {"road", "district"}:
             continue

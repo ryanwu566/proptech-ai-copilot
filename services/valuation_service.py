@@ -103,9 +103,9 @@ class MockFallbackProvider:
 
     def load_transactions(self) -> tuple[dict[str, Any], ...]:
         return (
-            _normalize({"transaction_period": "2026-01", "city": "台北市", "district": "大安區", "road": "和平東路二段", "building_type": "住宅大樓", "area_ping": 30, "unit_price_per_ping": 75, "total_price": 2250, "building_age_years": 12, "floor": 8, "lat": 25.0254, "lng": 121.5434}),
-            _normalize({"transaction_period": "2026-01", "city": "台北市", "district": "信義區", "road": "松仁路", "building_type": "住宅大樓", "area_ping": 32, "unit_price_per_ping": 96, "total_price": 3072, "building_age_years": 10, "floor": 10, "lat": 25.0338, "lng": 121.5687}),
-            _normalize({"transaction_period": "2026-01", "city": "新北市", "district": "板橋區", "road": "文化路二段", "building_type": "華廈", "area_ping": 28, "unit_price_per_ping": 61, "total_price": 1708, "building_age_years": 16, "floor": 6, "lat": 25.0264, "lng": 121.4704}),
+            _normalize({"transaction_period": "2026-01", "city": "台北市", "district": "大安區", "road": "和平東路二段", "building_type": "住宅大樓", "area_ping": 30, "unit_price_per_ping": 75, "total_price": 2250, "building_age_years": 12, "floor": 8, "lat": 25.0254, "lng": 121.5434, "source": "mock_fallback"}),
+            _normalize({"transaction_period": "2026-01", "city": "台北市", "district": "信義區", "road": "松仁路", "building_type": "住宅大樓", "area_ping": 32, "unit_price_per_ping": 96, "total_price": 3072, "building_age_years": 10, "floor": 10, "lat": 25.0338, "lng": 121.5687, "source": "mock_fallback"}),
+            _normalize({"transaction_period": "2026-01", "city": "新北市", "district": "板橋區", "road": "文化路二段", "building_type": "華廈", "area_ping": 28, "unit_price_per_ping": 61, "total_price": 1708, "building_age_years": 16, "floor": 6, "lat": 25.0264, "lng": 121.4704, "source": "mock_fallback"}),
         )
 
     def data_status(self) -> dict[str, Any]:
@@ -158,6 +158,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
 
     provider = get_valuation_provider()
     all_rows = list(provider.query_comparables(payload) if isinstance(provider, PostgresValuationProvider) else provider.load_transactions())
+    all_rows = _prepare_candidate_pool(all_rows, payload)
     data_status = provider.data_status()
     community = (
         provider.match_community(payload)
@@ -175,9 +176,9 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
 
     scored = [{**row, **_score_comparable(row, payload, community)} for row in candidates]
     filtered = _filter_outliers(scored)
-    comparables = sorted(filtered, key=lambda row: (-row["similarity_score"], row["distance_m"]))[:10]
+    comparables = sorted(filtered, key=_comparable_sort_key)[:10]
     if len(comparables) < 3:
-        comparables = sorted(scored, key=lambda row: (-row["similarity_score"], row["distance_m"]))[:10]
+        comparables = sorted(scored, key=_comparable_sort_key)[:10]
     unit_prices = [row["unit_price_per_ping"] for row in comparables]
     ordered = sorted(unit_prices)
     weighted_mean = _weighted_mean(comparables)
@@ -185,14 +186,18 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     mid = round((weighted_mean + weighted_median) / 2, 1)
     p25, p75 = _percentile(ordered, 0.25), _percentile(ordered, 0.75)
     explanation = _build_explanation(comparables, payload)
-    confidence, confidence_score = _confidence(comparables, explanation, estimate_level)
+    estimate_composition = _estimate_composition(comparables)
+    confidence, confidence_score, confidence_caps = _confidence(comparables, explanation, estimate_level, community)
     area = float(payload["area_ping"])
     return {
         "source": provider.source,
         "data_status": data_status,
         "estimate_level": estimate_level,
         "matched_community": _public_community(community),
-        "confidence_reason": _confidence_reason(estimate_level, confidence, explanation, community),
+        "confidence_reason": _confidence_reason(estimate_level, confidence, explanation, community, estimate_composition, confidence_caps, data_status),
+        "estimate_data_composition": estimate_composition,
+        "data_composition": estimate_composition,
+        "estimate_source_label": _estimate_source_label(estimate_composition),
         "source_details": _source_details(provider),
         "estimate_total_price": round(mid * area, 1),
         "estimate_unit_price_per_ping": mid,
@@ -209,7 +214,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
 
 def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], community: dict[str, Any] | None) -> tuple[str, list[dict[str, Any]]]:
     if community:
-        community_rows = [row for row in rows if row["city"] == community["city"] and row["district"] == community["district"] and row["road"] == community["road"] and _distance(community, row) <= 600]
+        community_rows = [row for row in rows if row["city"] == community["city"] and row["district"] == community["district"] and row["road"] == community["road"] and _distance(community, row) is not None and _distance(community, row) <= 600]
         if len(community_rows) >= 3:
             return "community", community_rows
     hierarchy = [
@@ -221,6 +226,55 @@ def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], c
         if len(candidates) >= 3:
             return level, candidates
     return "fallback", rows
+
+
+def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any]) -> list[dict[str, Any]]:
+    """Prefer sufficient same-road official records and reject future official periods."""
+
+    prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if not _is_future_official(row)]
+    official_same_road = [
+        row for row in prepared
+        if row["source"] == "official_plvr_opendata"
+        and row.get("city") == target.get("city")
+        and row.get("district") == target.get("district")
+        and row.get("road") == target.get("road")
+    ]
+    return official_same_road if len(official_same_road) >= 5 else prepared
+
+
+def _is_future_official(row: dict[str, Any]) -> bool:
+    if row.get("source") != "official_plvr_opendata":
+        return False
+    try:
+        year, month = (int(part) for part in str(row.get("transaction_period", ""))[:7].split("-"))
+        return (year, month) > (date.today().year, date.today().month)
+    except (TypeError, ValueError):
+        return True
+
+
+def _comparable_sort_key(row: dict[str, Any]) -> tuple[float, float]:
+    distance = float(row["distance_m"]) if row.get("distance_m") is not None else float("inf")
+    return -float(row["similarity_score"]), distance
+
+
+def _estimate_composition(rows: list[dict[str, Any]]) -> str:
+    sources = {row.get("source") for row in rows}
+    has_official = "official_plvr_opendata" in sources
+    has_non_official = bool(sources - {"official_plvr_opendata"})
+    return "mixed" if has_official and has_non_official else "official" if has_official else "sample"
+
+
+def _estimate_source_label(composition: str) -> str:
+    return {"official": "官方 PLVR", "mixed": "官方 PLVR + 展示樣本", "sample": "展示樣本"}[composition]
+
+
+def _source_label(source: str) -> str:
+    return {
+        "official_plvr_opendata": "官方 PLVR",
+        "real_price_sample": "展示樣本",
+        "sample": "展示樣本",
+        "mock_fallback": "展示資料",
+    }.get(source, "其他資料")
 
 
 def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], ...], path: Path | None) -> dict[str, Any]:
@@ -269,6 +323,7 @@ def _normalize(row: dict[str, Any]) -> dict[str, Any]:
     result: dict[str, Any] = dict(row)
     for key in ("area_ping", "unit_price_per_ping", "total_price", "building_age_years", "floor", "lat", "lng"):
         result[key] = float(row[key])
+    result.setdefault("source", "real_price_sample")
     return result
 
 
@@ -277,18 +332,21 @@ def _score_comparable(row: dict[str, Any], target: dict[str, Any], community: di
     same_district = row["district"] == target["district"]
     same_city = row["city"] == target["city"]
     same_type = row["building_type"] == target["building_type"]
-    probable_community = bool(community and same_road and _distance(community, row) <= 600)
+    community_distance = _distance(community, row) if community else None
+    probable_community = bool(community and same_road and community_distance is not None and community_distance <= 600)
     area_diff = abs(row["area_ping"] - float(target["area_ping"]))
     age_diff = abs(row["building_age_years"] - float(target["building_age_years"]))
     distance = _distance(target, row)
-    score = (15 if probable_community else 0) + (35 if same_road else 0) + (20 if same_district else 0) + (10 if same_city else 0) + (15 if same_type else 0) + max(0, 10 - area_diff / max(float(target["area_ping"]), 1) * 20) + max(0, 8 - age_diff / 4) + max(0, 7 - distance / 800) + _recency_score(str(row.get("transaction_period", "")))
+    distance_bonus = max(0, 7 - distance / 800) if distance is not None else 0
+    score = (15 if probable_community else 0) + (35 if same_road else 0) + (20 if same_district else 0) + (10 if same_city else 0) + (15 if same_type else 0) + max(0, 10 - area_diff / max(float(target["area_ping"]), 1) * 20) + max(0, 8 - age_diff / 4) + distance_bonus + _recency_score(str(row.get("transaction_period", "")))
     reasons = ["可能同社區範圍"] if probable_community else []
     reasons.append("同路段" if same_road else "同行政區" if same_district else "同縣市" if same_city else "展示資料補充")
     if same_type:
         reasons.append("同建物類型")
     reasons.append(f"面積差 {area_diff:.1f} 坪")
     score = round(min(100, score), 1)
-    return {"distance_m": distance, "similarity_score": score, "weight": round(max(score / 100, 0.05), 3), "note": "、".join(reasons)}
+    source = str(row.get("source") or "mock_fallback")
+    return {"distance_m": distance, "similarity_score": score, "weight": round(max(score / 100, 0.05), 3), "note": "、".join(reasons), "source": source, "source_label": _source_label(source)}
 
 
 def _filter_outliers(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -323,7 +381,7 @@ def _build_explanation(rows: list[dict[str, Any]], target: dict[str, Any]) -> di
         "same_district_count": sum(row["district"] == target["district"] for row in rows),
         "same_city_count": sum(row["city"] == target["city"] for row in rows),
         "same_building_type_count": sum(row["building_type"] == target["building_type"] for row in rows),
-        "nearest_distance_m": min(row["distance_m"] for row in rows),
+        "nearest_distance_m": min((row["distance_m"] for row in rows if row["distance_m"] is not None), default=None),
         "average_area_difference_ping": round(statistics.mean(abs(row["area_ping"] - float(target["area_ping"])) for row in rows), 1),
         "average_age_difference_years": round(statistics.mean(abs(row["building_age_years"] - float(target["building_age_years"])) for row in rows), 1),
         "average_similarity_score": round(statistics.mean(row["similarity_score"] for row in rows), 1),
@@ -331,32 +389,57 @@ def _build_explanation(rows: list[dict[str, Any]], target: dict[str, Any]) -> di
     }
 
 
-def _confidence(rows: list[dict[str, Any]], explanation: dict[str, Any], level: str) -> tuple[str, int]:
+def _confidence(rows: list[dict[str, Any]], explanation: dict[str, Any], level: str, community: dict[str, Any] | None) -> tuple[str, int, list[str]]:
     level_bonus = {"community": 15, "road": 10, "district": 5, "city": 0, "fallback": -10}[level]
-    score = min(95, round(20 + len(rows) * 3 + explanation["same_road_count"] * 5 + explanation["same_building_type_count"] * 2 + explanation["average_similarity_score"] * 0.2 + level_bonus))
-    if level in {"community", "road"} and len(rows) >= 8 and explanation["average_similarity_score"] >= 70:
-        return "high", score
+    score = round(20 + len(rows) * 3 + explanation["same_road_count"] * 5 + explanation["same_building_type_count"] * 2 + explanation["average_similarity_score"] * 0.2 + level_bonus)
+    composition = _estimate_composition(rows)
+    caps: list[tuple[int, str]] = [(90, "官方同路段資料的最高信心上限為 90")]
+    if composition == "mixed":
+        caps.append((80, "本次混用官方與展示樣本"))
+    elif composition == "sample":
+        caps.append((70, "本次僅使用展示樣本"))
+    if not community:
+        caps.append((85, "尚未命中特定社區"))
+    if not any(row.get("distance_m") is not None for row in rows):
+        caps.append((85, "可比成交缺少定位距離資訊"))
+    if len(rows) < 5:
+        caps.append((65, "可比成交少於 5 筆"))
+    official_same_road = sum(row.get("source") == "official_plvr_opendata" for row in rows if "同路段" in row.get("note", ""))
+    majority_same_type = explanation["same_building_type_count"] >= max(1, len(rows) / 2)
+    high_eligible = composition == "official" and official_same_road >= 8 and majority_same_type
+    if not high_eligible:
+        caps.append((79, "尚未同時符合官方同路段至少 8 筆與建物型態多數一致"))
+    cap = min(value for value, _reason in caps)
+    score = min(score, cap)
+    cap_reasons = [reason for value, reason in caps if value == cap]
+    if high_eligible and score >= 80:
+        return "high", score, cap_reasons
     if level in {"community", "road", "district"} and len(rows) >= 4:
-        return "medium", min(score, 79)
-    return "low", min(score, 49)
+        return "medium", min(score, 79), cap_reasons
+    return "low", min(score, 49), cap_reasons
 
 
-def _confidence_reason(level: str, confidence: str, explanation: dict[str, Any], community: dict[str, Any] | None) -> str:
+def _confidence_reason(level: str, confidence: str, explanation: dict[str, Any], community: dict[str, Any] | None, composition: str, caps: list[str], data_status: dict[str, Any]) -> str:
     labels = {"community": "可能同社區", "road": "同路段", "district": "同行政區", "city": "同縣市", "fallback": "展示資料補充"}
     community_note = f"，社區索引信心為 {community['confidence']}" if community else ""
-    return f"本次以{labels[level]}可比成交估算，共採用 {explanation['sample_count']} 筆，信心為 {confidence}{community_note}。"
+    composition_note = {"official": "官方 PLVR", "mixed": "官方 PLVR 與展示樣本混合", "sample": "展示樣本"}[composition]
+    coverage_note = "；目前資料尚非全台完整" if not data_status.get("is_full_taiwan", False) else ""
+    cap_note = f"；保守上限原因：{'、'.join(caps)}" if caps else ""
+    return f"本次以{labels[level]}可比成交估算，共採用 {explanation['sample_count']} 筆 {composition_note} 資料，信心為 {confidence}{community_note}{coverage_note}{cap_note}。"
 
 
-def _distance(target: dict[str, Any], row: dict[str, Any]) -> int:
-    if target.get("lat") is None or target.get("lng") is None:
-        return 0
+def _distance(target: dict[str, Any] | None, row: dict[str, Any]) -> int | None:
+    if not target or target.get("lat") is None or target.get("lng") is None or row.get("lat") is None or row.get("lng") is None:
+        return None
     return round(111000 * math.sqrt((float(target["lat"]) - row["lat"]) ** 2 + ((float(target["lng"]) - row["lng"]) * 0.91) ** 2))
 
 
 def _recency_score(period: str) -> float:
     try:
         year, month = (int(part) for part in period[:7].split("-"))
-        months_old = max(0, (date.today().year - year) * 12 + date.today().month - month)
+        months_old = (date.today().year - year) * 12 + date.today().month - month
+        if months_old < 0:
+            return 0
         return max(0, 5 - months_old / 12)
     except (ValueError, TypeError):
         return 0
@@ -377,6 +460,9 @@ def _empty_result(data_status: dict[str, Any], community: dict[str, Any] | None)
         "estimate_level": "fallback",
         "matched_community": _public_community(community),
         "confidence_reason": "目前資料不足，無法形成可靠的可比成交估算。",
+        "estimate_data_composition": "sample",
+        "data_composition": "sample",
+        "estimate_source_label": "展示資料",
         "source_details": {"file": data_status["active_source"], "nature": "展示資料", "complete_real_price_registry": False, "formal_appraisal": False, "bank_appraisal": False, "future_adapter": "未來可切換 Supabase/Postgres 全台資料庫"},
         "estimate_total_price": 0,
         "estimate_unit_price_per_ping": 0,

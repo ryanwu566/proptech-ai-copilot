@@ -37,3 +37,11 @@ def test_daan_official_direct_csv_dry_run_is_recognized(tmp_path, capsys) -> Non
     output = capsys.readouterr().out
     assert "找不到可辨識" not in output
     assert '"accepted_rows": 1' in output
+
+
+def test_new_taipei_filename_city_hint_overrides_wrong_external_hint(tmp_path, capsys) -> None:
+    path = tmp_path / "f_lvr_land_a.csv"
+    path.write_text(CSV_TEXT.replace("大安區", "板橋區").replace("和平東路二段", "文化路二段"), encoding="utf-8-sig")
+    assert main(["--input", str(path), "--city", "台北市", "--dry-run"]) == 0
+    output = capsys.readouterr().out
+    assert '"city_hint": "新北市"' in output

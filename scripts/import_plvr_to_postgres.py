@@ -66,7 +66,7 @@ def main(argv: list[str] | None = None) -> int:
         file_report: list[dict[str, Any]] = []
         for path in candidates:
             rows, encoding = read_csv_rows(path)
-            inferred_city = args.city or city_from_filename(path)
+            inferred_city = city_from_filename(path) or args.city
             for row in rows:
                 row["__plvr_city_hint"] = inferred_city
             all_rows.extend(rows)
