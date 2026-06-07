@@ -13,4 +13,9 @@ node_modules/
 *.sqlite
 *.sqlite3
 reports/output/
+data/raw/
+data/processed/
+*.zip
+*plvr*.csv
+*real_price_full*.csv
 .DS_Store

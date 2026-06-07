@@ -164,6 +164,7 @@ npm.cmd run build
 
 - 銀行牌告利率使用中央銀行 OpenData `set_id=9464`；服務失敗時切換 13 家金融機構展示資料。牌告資料不代表實際核貸利率。
 - 房價估算使用 `data/real_price_sample.csv` 的 72 筆展示型可比成交，採 IQR、相似度加權與 P25/P75；不是完整實價登錄、正式估價或銀行鑑價。
+- 房價估算可由後台將人工取得的官方 PLVR OpenData ZIP/CSV 清洗後匯入 Supabase/Postgres；系統不會在 Render runtime 自動下載或執行 ETL。
 - Map Insight 定位順序為 Google Geocoding、TGOS、展示資料；周遭設施使用 Google Places 或展示資料。
 - `OPERATIONAL` 僅表示店家正常營運，不代表目前正在營業；只有 Google 明確回傳 `openNow` 時才顯示目前營業或休息。
 - PLVR adapter 已預留但尚未啟用，不會在部署啟動時下載外部資料。
@@ -177,3 +178,19 @@ npm.cmd run build
 詳見 [房價估算普及化架構](docs/valuation_public_service_architecture.md)。
 
 Supabase/Postgres 建置方式請參考 [Supabase 估價資料庫設定](docs/supabase_valuation_setup.md)。使用 `psycopg[binary]` 作為最小 Postgres driver，避免加入大型 ORM，也避免 Render 需要額外編譯系統套件。
+
+### 手動匯入官方 PLVR OpenData
+
+先以 dry-run 檢查人工取得的買賣實價登錄 ZIP 或 CSV：
+
+```powershell
+python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市 --dry-run
+```
+
+確認品質檢查報告後，在本機或受控 CI 設定 `VALUATION_DATABASE_URL` 再執行正式匯入：
+
+```powershell
+python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市
+```
+
+腳本只接受本機檔案，不會下載全台資料；原始 ZIP、完整 CSV 與資料庫連線字串都不可 commit。

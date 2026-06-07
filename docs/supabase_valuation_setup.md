@@ -55,3 +55,25 @@ python scripts/seed_valuation_sample_to_postgres.py
 ## 6. 未來正式更新
 
 正式資料應由 GitHub Actions 或獨立後台排程下載官方實價登錄 OpenData、清洗成標準欄位並 upsert 至 Supabase/Postgres。不可在 Render runtime 執行下載或 ETL，也不可 commit raw ZIP。
+
+## 7. 手動匯入官方 PLVR OpenData
+
+目前提供受控的手動匯入工具，不會自動下載資料：
+
+```powershell
+python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市 --dry-run
+python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市
+```
+
+工具會：
+
+- 從 ZIP 或 CSV 辨識買賣實價登錄主檔，排除 schema、manifest、預售與租賃資料。
+- 依序嘗試 `utf-8-sig`、`utf-8`、`cp950`、`big5`。
+- 將民國交易年月轉為 `YYYY-MM`，平方公尺轉為坪，元轉為萬元。
+- 缺少每平方公尺單價時，使用總價與面積計算每坪單價。
+- 排除缺少地點、日期、面積、總價或異常單價的資料，並輸出品質檢查統計。
+- 正式匯入時寫入 `real_price_transactions` 與 `valuation_import_runs`。
+
+可使用 `--district`、`--road`、`--limit` 縮小範圍。`--replace-scope` 只允許搭配明確城市、行政區或路段使用。
+
+正式匯入必須在本機或受控 CI 設定 `VALUATION_DATABASE_URL`。Vercel 不需要此變數，Render runtime 也不會自動執行匯入。

@@ -7,8 +7,8 @@ from datetime import UTC, datetime
 from typing import Any
 
 
-UPDATE_FREQUENCY_NOTE = "實價登錄官方資料約每月 1、11、21 日定期更新，系統資料需由後台排程同步。"
-USER_MESSAGE = "使用者不需要下載資料；估價資料由後台資料庫維護。"
+UPDATE_FREQUENCY_NOTE = "正式實價登錄資料應由後台排程維護，不在 Render runtime 執行下載或 ETL。"
+USER_MESSAGE = "使用者不需要下載資料；估價資料由系統後台資料庫維護。"
 
 
 class PostgresValuationProvider:
@@ -91,7 +91,7 @@ class PostgresValuationProvider:
             return None
 
     def data_status(self) -> dict[str, Any]:
-        """Summarize indexed coverage without exposing connection details."""
+        """Summarize indexed coverage and official/sample composition."""
 
         if self._last_status:
             return self._last_status
@@ -104,8 +104,8 @@ class PostgresValuationProvider:
                                count(distinct city) as cities_count,
                                count(distinct district) as districts_count,
                                count(distinct (city, district, road)) as roads_count,
-                               max(imported_at) as last_updated,
-                               bool_and(source in ('sample', 'real_price_sample', 'community_building_sample')) as all_demo
+                               count(*) filter (where source = 'official_plvr_opendata') as official_records_count,
+                               count(*) filter (where source in ('sample', 'real_price_sample', 'community_building_sample')) as sample_records_count
                         from real_price_transactions
                         """
                     )
@@ -114,14 +114,28 @@ class PostgresValuationProvider:
                     cities = [row["city"] for row in cursor.fetchall()]
                     cursor.execute("select distinct district from real_price_transactions order by district")
                     districts = [row["district"] for row in cursor.fetchall()]
-            self.is_demo_data = bool(summary.get("all_demo", True))
-            last_updated = summary.get("last_updated")
+                    cursor.execute(
+                        """
+                        select imported_at from valuation_import_runs
+                        where status = 'completed'
+                        order by imported_at desc limit 1
+                        """
+                    )
+                    last_run = cursor.fetchone()
+            official_count = int(summary.get("official_records_count") or 0)
+            sample_count = int(summary.get("sample_records_count") or 0)
+            self.is_demo_data = official_count == 0
+            composition = "mixed" if official_count and sample_count else "official" if official_count else "sample"
+            last_updated = last_run.get("imported_at") if last_run else None
             if isinstance(last_updated, datetime):
                 last_updated = last_updated.astimezone(UTC).isoformat()
             self._last_status = {
                 "active_source": self.source,
                 "is_demo_data": self.is_demo_data,
                 "is_full_taiwan": False,
+                "data_composition": composition,
+                "official_records_count": official_count,
+                "sample_records_count": sample_count,
                 "coverage": {
                     "cities": cities,
                     "districts": districts,
@@ -130,11 +144,7 @@ class PostgresValuationProvider:
                 },
                 "last_updated": last_updated,
                 "update_frequency_note": UPDATE_FREQUENCY_NOTE,
-                "source_note": (
-                    "目前使用 Supabase/Postgres 估價資料庫，但資料仍為展示樣本，尚非全台完整資料。"
-                    if self.is_demo_data
-                    else "目前使用 Supabase/Postgres 估價資料庫。"
-                ),
+                "source_note": _source_note(composition),
                 "user_message": USER_MESSAGE,
             }
             return self._last_status
@@ -143,10 +153,13 @@ class PostgresValuationProvider:
                 "active_source": self.source,
                 "is_demo_data": True,
                 "is_full_taiwan": False,
+                "data_composition": "sample",
+                "official_records_count": 0,
+                "sample_records_count": 0,
                 "coverage": {"cities": [], "districts": [], "roads_count": 0, "records_count": 0},
                 "last_updated": None,
                 "update_frequency_note": UPDATE_FREQUENCY_NOTE,
-                "source_note": "Supabase/Postgres 暫時無法連線，系統將使用其他可用估價資料來源。",
+                "source_note": "Supabase/Postgres 暫時無法使用，系統會安全切換至下一個估價資料來源。",
                 "user_message": USER_MESSAGE,
             }
 
@@ -165,6 +178,14 @@ class PostgresValuationProvider:
         from psycopg.rows import dict_row
 
         return psycopg.connect(self.database_url, connect_timeout=self.connect_timeout, row_factory=dict_row)
+
+
+def _source_note(composition: str) -> str:
+    if composition == "official":
+        return "目前使用官方 PLVR OpenData 匯入資料，尚非全台完整資料。"
+    if composition == "mixed":
+        return "目前使用官方 PLVR OpenData 與展示樣本混合資料，尚非全台完整資料。"
+    return "目前使用 Supabase/Postgres 展示樣本，尚非全台完整資料。"
 
 
 def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:

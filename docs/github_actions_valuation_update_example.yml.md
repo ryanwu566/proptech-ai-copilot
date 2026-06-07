@@ -26,12 +26,18 @@ jobs:
       - name: Normalize and upsert external database
         env:
           VALUATION_DATABASE_URL: ${{ secrets.VALUATION_DATABASE_URL }}
-        run: python scripts/update_valuation_data.py --local-zip /tmp/official-data.zip --database-url "$VALUATION_DATABASE_URL"
+        run: python scripts/import_plvr_to_postgres.py --input /tmp/official-data.zip --dry-run
+      - name: Import reviewed official PLVR data
+        env:
+          VALUATION_DATABASE_URL: ${{ secrets.VALUATION_DATABASE_URL }}
+        run: python scripts/import_plvr_to_postgres.py --input /tmp/official-data.zip
 ```
 
 原始 ZIP 應存放在 runner 暫存空間，不可 commit 到 GitHub。資料庫憑證只能由 GitHub Secrets 提供。
 
 正式流程應在每月 2、12、22 日後執行：下載官方實價登錄 OpenData、清洗為 `database/valuation_schema.sql` 的標準欄位，再 upsert 至 Supabase/Postgres。不可 commit raw ZIP，也不可在 Render runtime 執行 ETL。
+
+下載步驟必須由團隊審查並鎖定官方來源；目前 repo 不提供自動下載命令，也不會建立可自動執行的 workflow。建議先跑 `--dry-run`，審查接受筆數與排除原因後才執行正式匯入。
 
 首次驗證資料庫 schema 時，可改用展示樣本 seed：
 

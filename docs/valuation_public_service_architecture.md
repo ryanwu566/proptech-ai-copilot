@@ -30,6 +30,21 @@ Provider 在第一次呼叫估價或資料狀態 API 時才初始化。`/health`
 
 Postgres provider 先以地區條件縮小查詢，再依路段、建物類型、面積、屋齡、交易期間與經緯度排序，最多取 50 筆候選交由共用 Python 估價邏輯處理。連線失敗時會安全回退至下一個 provider。
 
+## 官方 PLVR OpenData 手動匯入
+
+`scripts/import_plvr_to_postgres.py` 提供第一版受控匯入流程，只處理維護者明確提供的 ZIP 或 CSV，不會自動下載全台資料。
+
+```text
+本機官方 ZIP / CSV
+→ 辨識買賣主檔
+→ 欄位正規化與品質檢查
+→ dry-run 審查
+→ 寫入 real_price_transactions
+→ 記錄 valuation_import_runs
+```
+
+正規化包含民國年月、坪數、萬元單價、樓層與路段；品質檢查會排除缺少必要欄位及異常單價。`/valuation/data-status` 依資料表實際覆蓋與最近成功匯入紀錄，區分展示樣本、官方資料或混合資料。即使已匯入官方資料，只要覆蓋未達全台，仍會明確顯示「尚非全台完整資料」。
+
 ## 為什麼不在 Render Runtime 下載
 
 - Render Free 啟動時間有限，大型下載會延後 port 綁定。
