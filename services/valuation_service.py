@@ -160,6 +160,16 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     all_rows = list(provider.query_comparables(payload) if isinstance(provider, PostgresValuationProvider) else provider.load_transactions())
     all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider))
     data_status = provider.data_status()
+    query_metadata = provider.last_query_metadata if isinstance(provider, PostgresValuationProvider) else {
+        "provider_active": provider.source,
+        "candidate_pool_size": len(all_rows),
+        "query_scope": "local_provider",
+        "requested_city": payload.get("city", ""),
+        "requested_district": payload.get("district", ""),
+        "requested_road": payload.get("road", ""),
+        "db_rows_returned": len(all_rows),
+        "query_status": "ok",
+    }
     community = (
         provider.match_community(payload)
         if isinstance(provider, PostgresValuationProvider)
@@ -176,7 +186,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         else _select_estimate_level(all_rows, payload, community)
     )
     if not candidates:
-        return _empty_result(data_status, community)
+        return _empty_result(data_status, community, query_metadata)
 
     scored = [{**row, **_score_comparable(row, payload, community)} for row in candidates]
     filtered = _filter_outliers(scored, preserve_official=any(row.get("_official_limited") for row in scored))
@@ -202,11 +212,12 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         "estimate_data_composition": estimate_composition,
         "data_composition": estimate_composition,
         "estimate_source_label": _estimate_source_label(estimate_composition),
+        "candidate_pool_size": query_metadata.get("candidate_pool_size", len(all_rows)),
         "official_same_road_count": selection["official_same_road_count"],
         "official_same_district_count": selection["official_same_district_count"],
         "sample_same_road_count": selection["sample_same_road_count"],
         "sample_same_district_count": selection["sample_same_district_count"],
-        "source_details": _source_details(provider),
+        "source_details": {**_source_details(provider), **query_metadata},
         "estimate_total_price": round(mid * area, 1),
         "estimate_unit_price_per_ping": mid,
         "price_range": {"low": round(p25 * area, 1), "mid": round(mid * area, 1), "high": round(p75 * area, 1)},
@@ -241,7 +252,11 @@ def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], 
 
     prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if not _is_future_official(row)]
     target_road = normalize_road(str(target.get("road", "")))
-    same_district = [row for row in prepared if row.get("city") == target.get("city") and row.get("district") == target.get("district")]
+    same_district = [
+        row for row in prepared
+        if normalize_city(str(row.get("city", ""))) == normalize_city(str(target.get("city", "")))
+        and str(row.get("district", "")).strip() == str(target.get("district", "")).strip()
+    ]
     official_same_road = [row for row in same_district if row["source"] == "official_plvr_opendata" and normalize_road(str(row.get("road", ""))) == target_road]
     official_same_district = [row for row in same_district if row["source"] == "official_plvr_opendata" and normalize_road(str(row.get("road", ""))) != target_road]
     sample_same_road = [row for row in same_district if row["source"] != "official_plvr_opendata" and normalize_road(str(row.get("road", ""))) == target_road]
@@ -548,6 +563,12 @@ def normalize_road(value: str) -> str:
     return normalized
 
 
+def normalize_city(value: str) -> str:
+    """Normalize Taiwan city character variants for grouping."""
+
+    return value.strip().replace("臺", "台")
+
+
 def _percentile(values: list[float], fraction: float) -> float:
     if len(values) == 1:
         return values[0]
@@ -556,21 +577,22 @@ def _percentile(values: list[float], fraction: float) -> float:
     return values[lower] + (values[upper] - values[lower]) * (position - lower)
 
 
-def _empty_result(data_status: dict[str, Any], community: dict[str, Any] | None) -> dict[str, Any]:
+def _empty_result(data_status: dict[str, Any], community: dict[str, Any] | None, query_metadata: dict[str, Any] | None = None) -> dict[str, Any]:
     return {
         "source": data_status["active_source"],
         "data_status": data_status,
         "estimate_level": "fallback",
         "matched_community": _public_community(community),
-        "confidence_reason": "目前資料不足，無法形成可靠的可比成交估算。",
+        "confidence_reason": "目前查詢範圍內沒有可用的可比成交資料，請確認城市、行政區與路段資料覆蓋。",
         "estimate_data_composition": "sample",
         "data_composition": "sample",
         "estimate_source_label": "展示資料",
+        "candidate_pool_size": (query_metadata or {}).get("candidate_pool_size", 0),
         "official_same_road_count": 0,
         "official_same_district_count": 0,
         "sample_same_road_count": 0,
         "sample_same_district_count": 0,
-        "source_details": {"file": data_status["active_source"], "nature": "展示資料", "complete_real_price_registry": False, "formal_appraisal": False, "bank_appraisal": False, "future_adapter": "未來可切換 Supabase/Postgres 全台資料庫"},
+        "source_details": {"file": data_status["active_source"], "nature": "展示資料", "complete_real_price_registry": False, "formal_appraisal": False, "bank_appraisal": False, "future_adapter": "未來可切換 Supabase/Postgres 全台資料庫", **(query_metadata or {})},
         "estimate_total_price": 0,
         "estimate_unit_price_per_ping": 0,
         "price_range": {"low": 0, "mid": 0, "high": 0},

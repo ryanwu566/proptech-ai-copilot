@@ -1,5 +1,5 @@
 from services.valuation_providers.postgres_provider import PostgresValuationProvider, _normalize_row
-from services.valuation_service import estimate_property, normalize_building_type, normalize_road
+from services.valuation_service import estimate_property, normalize_building_type, normalize_city, normalize_road
 
 
 PAYLOAD = {
@@ -159,3 +159,7 @@ def test_normalized_building_type_matches_official_label(monkeypatch) -> None:
 
 def test_normalize_road_matches_numeric_segment_variant() -> None:
     assert normalize_road("和平東路2段") == normalize_road("和平東路二段")
+
+
+def test_normalize_city_matches_taipei_variants() -> None:
+    assert normalize_city("台北市") == normalize_city("臺北市")

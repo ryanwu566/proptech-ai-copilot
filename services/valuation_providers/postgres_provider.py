@@ -24,6 +24,7 @@ class PostgresValuationProvider:
         self.connect_timeout = connect_timeout
         self.is_demo_data = True
         self._last_status: dict[str, Any] | None = None
+        self.last_query_metadata: dict[str, Any] = {}
 
     def available(self) -> bool:
         """Test connectivity only when provider selection is first requested."""
@@ -56,15 +57,23 @@ class PostgresValuationProvider:
                     if request.get("city") and request.get("district"):
                         sql, params = _comparable_query(request, "district", max(limit, 200))
                         cursor.execute(sql, params)
-                        return [_normalize_row(dict(row)) for row in cursor.fetchall()]
+                        rows = cursor.fetchall()
+                        self.last_query_metadata = _query_metadata(request, "district_pool", len(rows))
+                        return [_normalize_row(dict(row)) for row in rows]
                     for scope in ("road", "district", "city", "all"):
                         sql, params = _comparable_query(request, scope, limit)
                         cursor.execute(sql, params)
                         rows = cursor.fetchall()
                         if len(rows) >= 3 or scope == "all":
+                            self.last_query_metadata = _query_metadata(request, scope, len(rows))
                             return [_normalize_row(dict(row)) for row in rows]
             return []
-        except Exception:
+        except Exception as error:
+            self.last_query_metadata = {
+                **_query_metadata(request, "district_pool" if request.get("district") else "fallback", 0),
+                "query_status": "failed",
+                "safe_error": type(error).__name__,
+            }
             return []
 
     def match_community(self, request: dict[str, Any]) -> dict[str, Any] | None:
@@ -212,8 +221,15 @@ def _comparable_query(request: dict[str, Any], scope: str, limit: int) -> tuple[
         if field == "city" and scope == "all":
             continue
         if request.get(field):
-            clauses.append(f"{field} = %s")
-            scope_params.append(request[field])
+            if field == "city":
+                clauses.append("replace(trim(city), '臺', '台') = %s")
+                scope_params.append(_normalize_city(str(request[field])))
+            elif field == "district":
+                clauses.append("trim(district) = %s")
+                scope_params.append(str(request[field]).strip())
+            else:
+                clauses.append(f"{field} = %s")
+                scope_params.append(request[field])
     where = f"where {' and '.join(clauses)}" if clauses else ""
     sql = f"""
         select id, transaction_period, city, district, road, address_text,
@@ -247,3 +263,22 @@ def _comparable_query(request: dict[str, Any], scope: str, limit: int) -> tuple[
         request.get("lng"),
     ]
     return sql, [*scope_params, *ranking_params]
+
+
+def _normalize_city(value: str) -> str:
+    return value.strip().replace("臺", "台")
+
+
+def _query_metadata(request: dict[str, Any], scope: str, rows: int) -> dict[str, Any]:
+    """Return safe query diagnostics without connection details."""
+
+    return {
+        "provider_active": "postgres",
+        "candidate_pool_size": rows,
+        "query_scope": scope,
+        "requested_city": request.get("city", ""),
+        "requested_district": request.get("district", ""),
+        "requested_road": request.get("road", ""),
+        "db_rows_returned": rows,
+        "query_status": "ok",
+    }

@@ -47,6 +47,16 @@ def test_estimate_endpoint_exposes_real_road_scope_selection(monkeypatch) -> Non
     rows += [make_row(index, "official_plvr_opendata", "建國南路一段") for index in range(10)]
     provider = PostgresValuationProvider("postgresql://test")
     monkeypatch.setattr(provider, "query_comparables", lambda _payload: rows)
+    provider.last_query_metadata = {
+        "provider_active": "postgres",
+        "candidate_pool_size": len(rows),
+        "query_scope": "district_pool",
+        "requested_city": "台北市",
+        "requested_district": "大安區",
+        "requested_road": "和平東路二段",
+        "db_rows_returned": len(rows),
+        "query_status": "ok",
+    }
     monkeypatch.setattr(provider, "match_community", lambda _payload: None)
     monkeypatch.setattr(provider, "data_status", lambda: {"active_source": "postgres", "is_demo_data": False, "is_full_taiwan": False, "data_composition": "mixed", "coverage": {"cities": ["台北市"], "districts": ["大安區"], "roads_count": 2, "records_count": 18}, "last_updated": None, "update_frequency_note": "", "source_note": "", "user_message": ""})
     monkeypatch.setattr("services.valuation_service.get_valuation_provider", lambda: provider)
@@ -59,5 +69,10 @@ def test_estimate_endpoint_exposes_real_road_scope_selection(monkeypatch) -> Non
     assert payload["official_same_district_count"] == 10
     assert payload["sample_same_road_count"] == 4
     assert payload["sample_same_district_count"] == 0
+    assert payload["candidate_pool_size"] == 18
+    assert payload["source_details"]["candidate_pool_size"] == 18
+    assert payload["source_details"]["query_scope"] == "district_pool"
+    assert payload["comparables"]
     assert [item["source"] for item in payload["comparables"][:4]] == ["official_plvr_opendata"] * 4
+    assert all(normalize_road(item["road"]) == "和平東路二段" for item in payload["comparables"][:4])
     assert all(normalize_road(item["road"]) == "和平東路二段" for item in payload["comparables"])

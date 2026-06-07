@@ -33,8 +33,8 @@ def test_postgres_query_scopes_relax_from_road_to_city() -> None:
     district_sql, _ = _comparable_query(request, "district", 50)
     city_sql, _ = _comparable_query(request, "city", 50)
     assert "road = %s" in road_sql
-    assert "district = %s" in district_sql and "road = %s" not in district_sql.split("order by")[0]
-    assert "city = %s" in city_sql and "district = %s" not in city_sql.split("order by")[0]
+    assert "trim(district) = %s" in district_sql and "road = %s" not in district_sql.split("order by")[0]
+    assert "replace(trim(city), '臺', '台') = %s" in city_sql and "trim(district) = %s" not in city_sql.split("order by")[0]
     assert "transaction_period <= %s" in road_sql
 
 
@@ -75,6 +75,9 @@ def test_postgres_provider_fetches_district_pool_for_service_grouping(monkeypatc
     provider = PostgresValuationProvider("postgresql://test")
     assert provider.query_comparables({"city": "台北市", "district": "大安區", "road": "和平東路二段"}) == []
     where_clause = connection.cursor_instance.query.split("order by")[0]
-    assert "district = %s" in where_clause
+    assert "replace(trim(city), '臺', '台') = %s" in where_clause
+    assert "trim(district) = %s" in where_clause
     assert "road = %s" not in where_clause
     assert "limit 200" in connection.cursor_instance.query
+    assert provider.last_query_metadata["query_scope"] == "district_pool"
+    assert provider.last_query_metadata["candidate_pool_size"] == 0
