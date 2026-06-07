@@ -1,5 +1,5 @@
 from services.valuation_providers.postgres_provider import PostgresValuationProvider, _normalize_row
-from services.valuation_service import estimate_property
+from services.valuation_service import estimate_property, normalize_building_type
 
 
 PAYLOAD = {
@@ -71,8 +71,21 @@ def test_sample_only_confidence_is_capped(monkeypatch) -> None:
     assert result["confidence_score"] <= 70
 
 
-def test_mixed_confidence_is_capped(monkeypatch) -> None:
+def test_limited_official_records_are_kept_and_capped(monkeypatch) -> None:
     rows = [row(index, "official_plvr_opendata") for index in range(4)] + [row(index + 10, "real_price_sample") for index in range(4)]
+    fake_postgres(monkeypatch, rows)
+    result = estimate_property(PAYLOAD)
+    assert result["estimate_data_composition"] == "official_limited"
+    assert result["estimate_source_label"] == "官方 PLVR（樣本較少）+ 展示樣本補充"
+    assert result["confidence_score"] <= 70
+    assert [item["source"] for item in result["comparables"][:4]] == ["official_plvr_opendata"] * 4
+    assert all(item["source_label"] for item in result["comparables"])
+    assert "官方可比成交筆數較少" in result["confidence_reason"]
+
+
+def test_mixed_non_road_data_confidence_is_capped(monkeypatch) -> None:
+    rows = [row(index, "official_plvr_opendata", road="復興南路二段") for index in range(4)]
+    rows += [row(index + 10, "real_price_sample", road="新生南路二段") for index in range(4)]
     fake_postgres(monkeypatch, rows)
     result = estimate_property(PAYLOAD)
     assert result["estimate_data_composition"] == "mixed"
@@ -98,3 +111,15 @@ def test_postgres_missing_coordinates_stay_null() -> None:
     normalized = _normalize_row({"area_ping": 30, "unit_price_per_ping": 70, "total_price": 2100, "building_age_years": 10, "floor": 8, "lat": None, "lng": None})
     assert normalized["lat"] is None
     assert normalized["lng"] is None
+
+
+def test_normalized_building_type_matches_official_label(monkeypatch) -> None:
+    rows = [row(index, "official_plvr_opendata") for index in range(4)]
+    rows[0]["building_type"] = "住宅大樓(11層含以上有電梯)"
+    rows += [row(index + 10, "real_price_sample") for index in range(4)]
+    fake_postgres(monkeypatch, rows)
+    result = estimate_property(PAYLOAD)
+    official = next(item for item in result["comparables"] if item["building_type"].startswith("住宅大樓("))
+    assert official["normalized_building_type"] == "住宅大樓"
+    assert "同建物類型" in official["note"]
+    assert normalize_building_type("華廈(10層含以下有電梯)") == "華廈"

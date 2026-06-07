@@ -175,7 +175,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         return _empty_result(data_status, community)
 
     scored = [{**row, **_score_comparable(row, payload, community)} for row in candidates]
-    filtered = _filter_outliers(scored)
+    filtered = _filter_outliers(scored, preserve_official=any(row.get("_official_limited") for row in scored))
     comparables = sorted(filtered, key=_comparable_sort_key)[:10]
     if len(comparables) < 3:
         comparables = sorted(scored, key=_comparable_sort_key)[:10]
@@ -229,7 +229,7 @@ def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], c
 
 
 def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any]) -> list[dict[str, Any]]:
-    """Prefer sufficient same-road official records and reject future official periods."""
+    """Keep official same-road records visible and use samples only as fallback."""
 
     prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if not _is_future_official(row)]
     official_same_road = [
@@ -239,7 +239,14 @@ def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any]) 
         and row.get("district") == target.get("district")
         and row.get("road") == target.get("road")
     ]
-    return official_same_road if len(official_same_road) >= 5 else prepared
+    if len(official_same_road) >= 5:
+        return official_same_road
+    if official_same_road:
+        official_ids = {id(row) for row in official_same_road}
+        official_first = [{**row, "_official_limited": True} for row in official_same_road]
+        supplements = [{**row, "_official_limited": True} for row in prepared if id(row) not in official_ids]
+        return [*official_first, *supplements]
+    return prepared
 
 
 def _is_future_official(row: dict[str, Any]) -> bool:
@@ -252,12 +259,20 @@ def _is_future_official(row: dict[str, Any]) -> bool:
         return True
 
 
-def _comparable_sort_key(row: dict[str, Any]) -> tuple[float, float]:
-    distance = float(row["distance_m"]) if row.get("distance_m") is not None else float("inf")
-    return -float(row["similarity_score"]), distance
+def _comparable_sort_key(row: dict[str, Any]) -> tuple[int, int, int, float, int, float]:
+    """Sort by official source, road, normalized type, area, recency, then similarity."""
+
+    source_rank = 0 if row.get("source") == "official_plvr_opendata" else 1
+    road_rank = 0 if row.get("_same_road") else 1
+    type_rank = 0 if row.get("_same_building_type") else 1
+    area_difference = float(row.get("_area_difference_ping") or 0)
+    period_rank = -_period_number(str(row.get("transaction_period", "")))
+    return source_rank, road_rank, type_rank, area_difference, period_rank, -float(row["similarity_score"])
 
 
 def _estimate_composition(rows: list[dict[str, Any]]) -> str:
+    if any(row.get("_official_limited") for row in rows):
+        return "official_limited"
     sources = {row.get("source") for row in rows}
     has_official = "official_plvr_opendata" in sources
     has_non_official = bool(sources - {"official_plvr_opendata"})
@@ -265,7 +280,12 @@ def _estimate_composition(rows: list[dict[str, Any]]) -> str:
 
 
 def _estimate_source_label(composition: str) -> str:
-    return {"official": "官方 PLVR", "mixed": "官方 PLVR + 展示樣本", "sample": "展示樣本"}[composition]
+    return {
+        "official": "官方 PLVR",
+        "official_limited": "官方 PLVR（樣本較少）+ 展示樣本補充",
+        "mixed": "官方 PLVR + 展示樣本",
+        "sample": "展示樣本",
+    }[composition]
 
 
 def _source_label(source: str) -> str:
@@ -331,7 +351,9 @@ def _score_comparable(row: dict[str, Any], target: dict[str, Any], community: di
     same_road = row["road"] == target["road"] and row["district"] == target["district"]
     same_district = row["district"] == target["district"]
     same_city = row["city"] == target["city"]
-    same_type = row["building_type"] == target["building_type"]
+    normalized_type = normalize_building_type(str(row["building_type"]))
+    target_type = normalize_building_type(str(target["building_type"]))
+    same_type = normalized_type == target_type
     community_distance = _distance(community, row) if community else None
     probable_community = bool(community and same_road and community_distance is not None and community_distance <= 600)
     area_diff = abs(row["area_ping"] - float(target["area_ping"]))
@@ -346,16 +368,31 @@ def _score_comparable(row: dict[str, Any], target: dict[str, Any], community: di
     reasons.append(f"面積差 {area_diff:.1f} 坪")
     score = round(min(100, score), 1)
     source = str(row.get("source") or "mock_fallback")
-    return {"distance_m": distance, "similarity_score": score, "weight": round(max(score / 100, 0.05), 3), "note": "、".join(reasons), "source": source, "source_label": _source_label(source)}
+    return {
+        "distance_m": distance,
+        "similarity_score": score,
+        "weight": round(max(score / 100, 0.05), 3),
+        "note": "、".join(reasons),
+        "source": source,
+        "source_label": _source_label(source),
+        "normalized_building_type": normalized_type,
+        "_same_road": same_road,
+        "_same_building_type": same_type,
+        "_area_difference_ping": area_diff,
+    }
 
 
-def _filter_outliers(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _filter_outliers(rows: list[dict[str, Any]], preserve_official: bool = False) -> list[dict[str, Any]]:
     if len(rows) < 4:
         return rows
     prices = sorted(row["unit_price_per_ping"] for row in rows)
     q1, q3 = _percentile(prices, 0.25), _percentile(prices, 0.75)
     iqr = q3 - q1
-    filtered = [row for row in rows if q1 - 1.5 * iqr <= row["unit_price_per_ping"] <= q3 + 1.5 * iqr]
+    filtered = [
+        row for row in rows
+        if q1 - 1.5 * iqr <= row["unit_price_per_ping"] <= q3 + 1.5 * iqr
+        or preserve_official and row.get("source") == "official_plvr_opendata"
+    ]
     return filtered or rows
 
 
@@ -380,7 +417,7 @@ def _build_explanation(rows: list[dict[str, Any]], target: dict[str, Any]) -> di
         "same_road_count": sum(row["road"] == target["road"] and row["district"] == target["district"] for row in rows),
         "same_district_count": sum(row["district"] == target["district"] for row in rows),
         "same_city_count": sum(row["city"] == target["city"] for row in rows),
-        "same_building_type_count": sum(row["building_type"] == target["building_type"] for row in rows),
+        "same_building_type_count": sum(normalize_building_type(str(row["building_type"])) == normalize_building_type(str(target["building_type"])) for row in rows),
         "nearest_distance_m": min((row["distance_m"] for row in rows if row["distance_m"] is not None), default=None),
         "average_area_difference_ping": round(statistics.mean(abs(row["area_ping"] - float(target["area_ping"])) for row in rows), 1),
         "average_age_difference_years": round(statistics.mean(abs(row["building_age_years"] - float(target["building_age_years"])) for row in rows), 1),
@@ -396,6 +433,8 @@ def _confidence(rows: list[dict[str, Any]], explanation: dict[str, Any], level: 
     caps: list[tuple[int, str]] = [(90, "官方同路段資料的最高信心上限為 90")]
     if composition == "mixed":
         caps.append((80, "本次混用官方與展示樣本"))
+    elif composition == "official_limited":
+        caps.append((70, "官方同路段可比成交筆數較少，已補充展示樣本"))
     elif composition == "sample":
         caps.append((70, "本次僅使用展示樣本"))
     if not community:
@@ -422,10 +461,11 @@ def _confidence(rows: list[dict[str, Any]], explanation: dict[str, Any], level: 
 def _confidence_reason(level: str, confidence: str, explanation: dict[str, Any], community: dict[str, Any] | None, composition: str, caps: list[str], data_status: dict[str, Any]) -> str:
     labels = {"community": "可能同社區", "road": "同路段", "district": "同行政區", "city": "同縣市", "fallback": "展示資料補充"}
     community_note = f"，社區索引信心為 {community['confidence']}" if community else ""
-    composition_note = {"official": "官方 PLVR", "mixed": "官方 PLVR 與展示樣本混合", "sample": "展示樣本"}[composition]
+    composition_note = {"official": "官方 PLVR", "official_limited": "官方 PLVR 同路段資料與展示樣本補充", "mixed": "官方 PLVR 與展示樣本混合", "sample": "展示樣本"}[composition]
+    limited_note = "；本次已使用官方 PLVR 同路段資料，但官方可比成交筆數較少，因此補充展示樣本並降低信心分數" if composition == "official_limited" else ""
     coverage_note = "；目前資料尚非全台完整" if not data_status.get("is_full_taiwan", False) else ""
     cap_note = f"；保守上限原因：{'、'.join(caps)}" if caps else ""
-    return f"本次以{labels[level]}可比成交估算，共採用 {explanation['sample_count']} 筆 {composition_note} 資料，信心為 {confidence}{community_note}{coverage_note}{cap_note}。"
+    return f"本次以{labels[level]}可比成交估算，共採用 {explanation['sample_count']} 筆 {composition_note} 資料，信心為 {confidence}{community_note}{limited_note}{coverage_note}{cap_note}。"
 
 
 def _distance(target: dict[str, Any] | None, row: dict[str, Any]) -> int | None:
@@ -443,6 +483,28 @@ def _recency_score(period: str) -> float:
         return max(0, 5 - months_old / 12)
     except (ValueError, TypeError):
         return 0
+
+
+def _period_number(period: str) -> int:
+    try:
+        year, month = (int(part) for part in period[:7].split("-"))
+        return year * 12 + month
+    except (TypeError, ValueError):
+        return 0
+
+
+def normalize_building_type(value: str) -> str:
+    """Normalize official PLVR building labels for comparable matching."""
+
+    normalized = value.strip()
+    mappings = {
+        "住宅大樓(11層含以上有電梯)": "住宅大樓",
+        "住宅大樓(11層含以上)": "住宅大樓",
+        "華廈(10層含以下有電梯)": "華廈",
+        "公寓(5樓含以下無電梯)": "公寓",
+        "套房(1房1廳1衛)": "套房",
+    }
+    return mappings.get(normalized, normalized)
 
 
 def _percentile(values: list[float], fraction: float) -> float:
