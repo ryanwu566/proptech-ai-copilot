@@ -158,7 +158,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
 
     provider = get_valuation_provider()
     all_rows = list(provider.query_comparables(payload) if isinstance(provider, PostgresValuationProvider) else provider.load_transactions())
-    all_rows = _prepare_candidate_pool(all_rows, payload)
+    all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider))
     data_status = provider.data_status()
     community = (
         provider.match_community(payload)
@@ -170,7 +170,11 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
             str(payload.get("address_text", "")),
         )
     )
-    estimate_level, candidates = _select_estimate_level(all_rows, payload, community)
+    estimate_level, candidates = (
+        (selection["estimate_level"], all_rows)
+        if selection["estimate_level"]
+        else _select_estimate_level(all_rows, payload, community)
+    )
     if not candidates:
         return _empty_result(data_status, community)
 
@@ -186,7 +190,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     mid = round((weighted_mean + weighted_median) / 2, 1)
     p25, p75 = _percentile(ordered, 0.25), _percentile(ordered, 0.75)
     explanation = _build_explanation(comparables, payload)
-    estimate_composition = _estimate_composition(comparables)
+    estimate_composition = selection["estimate_data_composition"] or _estimate_composition(comparables)
     confidence, confidence_score, confidence_caps = _confidence(comparables, explanation, estimate_level, community)
     area = float(payload["area_ping"])
     return {
@@ -198,6 +202,9 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         "estimate_data_composition": estimate_composition,
         "data_composition": estimate_composition,
         "estimate_source_label": _estimate_source_label(estimate_composition),
+        "official_same_road_count": selection["official_same_road_count"],
+        "official_same_district_count": selection["official_same_district_count"],
+        "sample_same_road_count": selection["sample_same_road_count"],
         "source_details": _source_details(provider),
         "estimate_total_price": round(mid * area, 1),
         "estimate_unit_price_per_ping": mid,
@@ -228,25 +235,37 @@ def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], c
     return "fallback", rows
 
 
-def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any]) -> list[dict[str, Any]]:
-    """Keep official same-road records visible and use samples only as fallback."""
+def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], enforce_scope: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Choose an explicit road-first valuation scope before scoring."""
 
     prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if not _is_future_official(row)]
-    official_same_road = [
-        row for row in prepared
-        if row["source"] == "official_plvr_opendata"
-        and row.get("city") == target.get("city")
-        and row.get("district") == target.get("district")
-        and row.get("road") == target.get("road")
-    ]
+    same_district = [row for row in prepared if row.get("city") == target.get("city") and row.get("district") == target.get("district")]
+    official_same_district = [row for row in same_district if row["source"] == "official_plvr_opendata"]
+    official_same_road = [row for row in official_same_district if row.get("road") == target.get("road")]
+    sample_same_road = [row for row in same_district if row["source"] != "official_plvr_opendata" and row.get("road") == target.get("road")]
+    selection = {
+        "official_same_road_count": len(official_same_road),
+        "official_same_district_count": len(official_same_district),
+        "sample_same_road_count": len(sample_same_road),
+        "estimate_level": None,
+        "estimate_data_composition": None,
+    }
+    if not enforce_scope:
+        return prepared, selection
     if len(official_same_road) >= 5:
-        return official_same_road
+        selection.update({"estimate_level": "road", "estimate_data_composition": "official"})
+        return official_same_road, selection
     if official_same_road:
-        official_ids = {id(row) for row in official_same_road}
-        official_first = [{**row, "_official_limited": True} for row in official_same_road]
-        supplements = [{**row, "_official_limited": True} for row in prepared if id(row) not in official_ids]
-        return [*official_first, *supplements]
-    return prepared
+        selection.update({"estimate_level": "road", "estimate_data_composition": "official_limited"})
+        candidates = [{**row, "_official_limited": True} for row in [*official_same_road, *sample_same_road]]
+        return candidates[:10], selection
+    if len(official_same_district) >= 5:
+        selection.update({"estimate_level": "district", "estimate_data_composition": "official_district"})
+        return [{**row, "_official_district": True} for row in official_same_district], selection
+    if sample_same_road:
+        selection.update({"estimate_level": "road", "estimate_data_composition": "sample"})
+        return sample_same_road, selection
+    return prepared, selection
 
 
 def _is_future_official(row: dict[str, Any]) -> bool:
@@ -259,18 +278,22 @@ def _is_future_official(row: dict[str, Any]) -> bool:
         return True
 
 
-def _comparable_sort_key(row: dict[str, Any]) -> tuple[int, int, int, float, int, float]:
-    """Sort by official source, road, normalized type, area, recency, then similarity."""
+def _comparable_sort_key(row: dict[str, Any]) -> tuple[int, int, float, int, float]:
+    """Sort by road scope, normalized type, area, recency, then similarity."""
 
-    source_rank = 0 if row.get("source") == "official_plvr_opendata" else 1
-    road_rank = 0 if row.get("_same_road") else 1
+    if row.get("_same_road"):
+        scope_rank = 0 if row.get("source") == "official_plvr_opendata" else 1
+    else:
+        scope_rank = 2 if row.get("source") == "official_plvr_opendata" else 3
     type_rank = 0 if row.get("_same_building_type") else 1
     area_difference = float(row.get("_area_difference_ping") or 0)
     period_rank = -_period_number(str(row.get("transaction_period", "")))
-    return source_rank, road_rank, type_rank, area_difference, period_rank, -float(row["similarity_score"])
+    return scope_rank, type_rank, area_difference, period_rank, -float(row["similarity_score"])
 
 
 def _estimate_composition(rows: list[dict[str, Any]]) -> str:
+    if any(row.get("_official_district") for row in rows):
+        return "official_district"
     if any(row.get("_official_limited") for row in rows):
         return "official_limited"
     sources = {row.get("source") for row in rows}
@@ -283,6 +306,7 @@ def _estimate_source_label(composition: str) -> str:
     return {
         "official": "官方 PLVR",
         "official_limited": "官方 PLVR（樣本較少）+ 展示樣本補充",
+        "official_district": "同行政區官方 PLVR 參考",
         "mixed": "官方 PLVR + 展示樣本",
         "sample": "展示樣本",
     }[composition]
@@ -435,6 +459,8 @@ def _confidence(rows: list[dict[str, Any]], explanation: dict[str, Any], level: 
         caps.append((80, "本次混用官方與展示樣本"))
     elif composition == "official_limited":
         caps.append((70, "官方同路段可比成交筆數較少，已補充展示樣本"))
+    elif composition == "official_district":
+        caps.append((60, "指定路段官方資料不足，改以同行政區官方資料參考"))
     elif composition == "sample":
         caps.append((70, "本次僅使用展示樣本"))
     if not community:
@@ -461,11 +487,12 @@ def _confidence(rows: list[dict[str, Any]], explanation: dict[str, Any], level: 
 def _confidence_reason(level: str, confidence: str, explanation: dict[str, Any], community: dict[str, Any] | None, composition: str, caps: list[str], data_status: dict[str, Any]) -> str:
     labels = {"community": "可能同社區", "road": "同路段", "district": "同行政區", "city": "同縣市", "fallback": "展示資料補充"}
     community_note = f"，社區索引信心為 {community['confidence']}" if community else ""
-    composition_note = {"official": "官方 PLVR", "official_limited": "官方 PLVR 同路段資料與展示樣本補充", "mixed": "官方 PLVR 與展示樣本混合", "sample": "展示樣本"}[composition]
-    limited_note = "；本次已使用官方 PLVR 同路段資料，但官方可比成交筆數較少，因此補充展示樣本並降低信心分數" if composition == "official_limited" else ""
+    composition_note = {"official": "官方 PLVR", "official_limited": "官方 PLVR 同路段資料與展示樣本補充", "official_district": "同行政區官方 PLVR 參考", "mixed": "官方 PLVR 與展示樣本混合", "sample": "展示樣本"}[composition]
+    limited_note = "；官方同路段資料較少，本次以官方 PLVR 為主，並補充展示樣本" if composition == "official_limited" else ""
+    district_note = "；指定路段官方資料不足，本次改以同行政區官方資料參考，信心較低" if composition == "official_district" else ""
     coverage_note = "；目前資料尚非全台完整" if not data_status.get("is_full_taiwan", False) else ""
     cap_note = f"；保守上限原因：{'、'.join(caps)}" if caps else ""
-    return f"本次以{labels[level]}可比成交估算，共採用 {explanation['sample_count']} 筆 {composition_note} 資料，信心為 {confidence}{community_note}{limited_note}{coverage_note}{cap_note}。"
+    return f"本次以{labels[level]}可比成交估算，共採用 {explanation['sample_count']} 筆 {composition_note} 資料，信心為 {confidence}{community_note}{limited_note}{district_note}{coverage_note}{cap_note}。"
 
 
 def _distance(target: dict[str, Any] | None, row: dict[str, Any]) -> int | None:
@@ -525,6 +552,9 @@ def _empty_result(data_status: dict[str, Any], community: dict[str, Any] | None)
         "estimate_data_composition": "sample",
         "data_composition": "sample",
         "estimate_source_label": "展示資料",
+        "official_same_road_count": 0,
+        "official_same_district_count": 0,
+        "sample_same_road_count": 0,
         "source_details": {"file": data_status["active_source"], "nature": "展示資料", "complete_real_price_registry": False, "formal_appraisal": False, "bank_appraisal": False, "future_adapter": "未來可切換 Supabase/Postgres 全台資料庫"},
         "estimate_total_price": 0,
         "estimate_unit_price_per_ping": 0,

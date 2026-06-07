@@ -72,15 +72,22 @@ def test_sample_only_confidence_is_capped(monkeypatch) -> None:
 
 
 def test_limited_official_records_are_kept_and_capped(monkeypatch) -> None:
-    rows = [row(index, "official_plvr_opendata") for index in range(4)] + [row(index + 10, "real_price_sample") for index in range(4)]
+    rows = [row(index, "official_plvr_opendata") for index in range(4)]
+    rows += [row(index + 10, "real_price_sample") for index in range(4)]
+    rows += [row(index + 20, "official_plvr_opendata", road="建國南路一段") for index in range(6)]
     fake_postgres(monkeypatch, rows)
     result = estimate_property(PAYLOAD)
     assert result["estimate_data_composition"] == "official_limited"
     assert result["estimate_source_label"] == "官方 PLVR（樣本較少）+ 展示樣本補充"
+    assert result["estimate_level"] == "road"
+    assert result["official_same_road_count"] == 4
+    assert result["official_same_district_count"] == 10
+    assert result["sample_same_road_count"] == 4
     assert result["confidence_score"] <= 70
     assert [item["source"] for item in result["comparables"][:4]] == ["official_plvr_opendata"] * 4
+    assert all(item["road"] == "和平東路二段" for item in result["comparables"])
     assert all(item["source_label"] for item in result["comparables"])
-    assert "官方可比成交筆數較少" in result["confidence_reason"]
+    assert "官方同路段資料較少" in result["confidence_reason"]
 
 
 def test_mixed_non_road_data_confidence_is_capped(monkeypatch) -> None:
@@ -90,6 +97,30 @@ def test_mixed_non_road_data_confidence_is_capped(monkeypatch) -> None:
     result = estimate_property(PAYLOAD)
     assert result["estimate_data_composition"] == "mixed"
     assert result["confidence_score"] <= 80
+
+
+def test_official_district_used_only_without_same_road_official_or_sample(monkeypatch) -> None:
+    rows = [row(index, "official_plvr_opendata", road="建國南路一段") for index in range(6)]
+    fake_postgres(monkeypatch, rows)
+    result = estimate_property(PAYLOAD)
+    assert result["estimate_data_composition"] == "official_district"
+    assert result["estimate_level"] == "district"
+    assert result["official_same_road_count"] == 0
+    assert result["official_same_district_count"] == 6
+    assert result["sample_same_road_count"] == 0
+    assert result["confidence_score"] <= 60
+    assert "指定路段官方資料不足" in result["confidence_reason"]
+
+
+def test_same_road_sample_beats_district_official_when_no_same_road_official(monkeypatch) -> None:
+    rows = [row(index, "official_plvr_opendata", road="建國南路一段") for index in range(4)]
+    rows += [row(index + 10, "real_price_sample") for index in range(4)]
+    fake_postgres(monkeypatch, rows)
+    result = estimate_property(PAYLOAD)
+    assert result["estimate_data_composition"] == "sample"
+    assert result["estimate_level"] == "road"
+    assert all(item["road"] == "和平東路二段" for item in result["comparables"])
+    assert all(item["source"] == "real_price_sample" for item in result["comparables"])
 
 
 def test_missing_coordinates_return_null_distance(monkeypatch) -> None:
