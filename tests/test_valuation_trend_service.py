@@ -33,7 +33,7 @@ def row(index: int, *, source: str = "official_plvr_opendata", road: str = "å’Œå
 def test_trend_uses_only_official_and_excludes_future() -> None:
     current = datetime.now(UTC).strftime("%Y-%m")
     future = _shift_month(current, 1)
-    too_old = _shift_month(current, -70)
+    too_old = _shift_month(current, -40)
     rows = [row(index) for index in range(35)]
     rows += [row(50, source="real_price_sample"), row(51, source="mock_fallback"), row(52, period=future), row(53, period=too_old)]
     result = analyze_valuation_trend(PAYLOAD, rows)

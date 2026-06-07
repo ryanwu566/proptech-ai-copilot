@@ -16,7 +16,15 @@ OFFICIAL_SOURCE = "official_plvr_opendata"
 ENCODINGS = ("utf-8-sig", "utf-8", "cp950", "big5")
 EXCLUDED_NAME_HINTS = ("schema", "manifest", "presale", "rent", "預售", "租賃", "租屋", "欄位")
 SALE_MAIN_FILENAME = re.compile(r"^[a-z]_lvr_land_a\.csv$", re.IGNORECASE)
-FILE_CITY_MAP = {"a": "台北市", "f": "新北市"}
+NON_MAIN_FILENAME = re.compile(r".*_(?:park|land|build)\.csv$", re.IGNORECASE)
+FILE_CITY_MAP = {
+    "a": "台北市",
+    "f": "新北市",
+    "h": "桃園市",
+    "b": "台中市",
+    "d": "台南市",
+    "e": "高雄市",
+}
 
 FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "transaction_id": ("編號", "移轉編號", "transaction_id"),
@@ -68,6 +76,8 @@ def is_sale_transaction_csv(path: Path) -> bool:
         return False
     if SALE_MAIN_FILENAME.fullmatch(path.name):
         return True
+    if NON_MAIN_FILENAME.fullmatch(path.name):
+        return False
     try:
         rows, _ = read_csv_rows(path)
     except (OSError, ValueError, csv.Error):
@@ -128,6 +138,7 @@ def normalize_rows(
         if limit is not None and len(accepted) >= limit:
             break
     periods = sorted({row["transaction_period"] for row in accepted})
+    limit_reached = limit is not None and len(accepted) >= limit
     return accepted, {
         "read_rows": total,
         "accepted_rows": len(accepted),
@@ -140,6 +151,8 @@ def normalize_rows(
         "city_counts": dict(sorted(Counter(row["city"] for row in accepted).items())),
         "district_counts": dict(sorted(Counter(row["district"] for row in accepted).items())),
         "road_counts": dict(sorted(Counter(row["road"] for row in accepted).items())),
+        "limit_reached": limit_reached,
+        "limit_warning": "可能因 --limit 截斷，建議提高 limit 或分區匯入。" if limit_reached else "",
     }
 
 
@@ -196,24 +209,24 @@ def normalize_row(row: dict[str, Any], *, city_hint: str = "") -> tuple[dict[str
 
 
 def build_dedupe_key(row: dict[str, Any], transaction_id: str = "") -> str:
-    """Build a stable transaction key from an official id or normalized fields."""
+    """Build a cross-city-safe v2 key from the official id and transaction facts."""
 
-    if transaction_id.strip():
-        seed = f"{row.get('source', OFFICIAL_SOURCE)}|id|{transaction_id.strip()}"
-    else:
-        seed = "|".join(
-            (
-                str(row.get("source", OFFICIAL_SOURCE)),
-                str(row.get("city", "")).replace("臺", "台").strip(),
-                str(row.get("district", "")).strip(),
-                str(row.get("address_text", "")).strip(),
-                str(row.get("transaction_period", "")).strip(),
-                str(row.get("building_type", "")).strip(),
-                f"{float(row.get('area_ping', 0) or 0):.2f}",
-                f"{float(row.get('total_price', 0) or 0):.2f}",
-                f"{float(row.get('unit_price_per_ping', 0) or 0):.2f}",
-            )
+    official_serial = transaction_id.strip() or str(row.get("transaction_id", "")).strip()
+    seed = "|".join(
+        (
+            "v2",
+            str(row.get("source", OFFICIAL_SOURCE)),
+            str(row.get("city", "")).replace("臺", "台").strip(),
+            str(row.get("district", "")).strip(),
+            str(row.get("transaction_period", "")).strip(),
+            official_serial,
+            str(row.get("address_text", "")).strip(),
+            str(row.get("building_type", "")).strip(),
+            f"{float(row.get('area_ping', 0) or 0):.2f}",
+            f"{float(row.get('total_price', 0) or 0):.2f}",
+            f"{float(row.get('unit_price_per_ping', 0) or 0):.2f}",
         )
+    )
     return hashlib.sha256(seed.encode("utf-8")).hexdigest()
 
 

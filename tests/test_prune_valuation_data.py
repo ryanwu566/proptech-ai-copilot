@@ -1,9 +1,10 @@
 from scripts import prune_valuation_data as prune
 
 
-def test_retention_cutoff_is_rolling_five_year_window() -> None:
+def test_retention_cutoff_is_configurable_and_defaults_to_three_years() -> None:
     assert prune.retention_cutoff_period(5, "2026-06") == "2021-07"
     assert prune.retention_cutoff_period(3, "2026-06") == "2023-07"
+    assert prune.build_parser().parse_args([]).keep_years == 3
 
 
 def test_city_normalization_supports_taiwan_variants() -> None:
@@ -21,8 +22,8 @@ def test_prune_defaults_to_dry_run_without_confirm(monkeypatch, capsys) -> None:
         )
         or {"status": "dry_run", "will_delete": False},
     )
-    assert prune.main(["--before", "2021-01", "--cities", "臺北市,新北市"]) == 0
-    assert captured == {"cutoff": "2021-01", "cities": ["台北市", "新北市"], "will_delete": False}
+    assert prune.main(["--before", "2023-01", "--cities", "臺北市,新北市"]) == 0
+    assert captured == {"cutoff": "2023-01", "cities": ["台北市", "新北市"], "will_delete": False}
     assert '"status": "dry_run"' in capsys.readouterr().out
 
 

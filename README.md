@@ -198,18 +198,18 @@ python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北
 
 正式寫入使用 temporary staging table 分批 upsert，預設 `--chunk-size 200 --progress-every 100 --statement-timeout 30`；可用 `--max-write-rows 100` 先驗證小範圍寫入。
 
-### Rolling 5 年保留與六都擴充
+### Rolling 3 年保留與六都擴充
 
-官方 PLVR 採 rolling 5 年保留策略。每季先匯入新資料、檢查 data-status，再以 dry-run 盤點超出保留期間的官方資料；只有維護者明確加入 `--confirm-delete` 才會刪除，展示樣本、社區資料與匯入紀錄不受影響。
+官方 PLVR 採 rolling 3 年保留策略。每季先匯入新資料、檢查 data-status，再以 dry-run 盤點超出保留期間的官方資料；只有維護者明確加入 `--confirm-delete` 才會刪除，展示樣本、社區資料與匯入紀錄不受影響。三年以前若需要長期趨勢，未來將另建統計摘要表。
 
 ```powershell
-python scripts/prune_valuation_data.py --keep-years 5 --dry-run
+python scripts/prune_valuation_data.py --keep-years 3 --dry-run
 ```
 
 六都近三年資料建議先對 `data/raw/plvr/pending_liudu/` 執行整體 dry-run，再分桃園、台中、台南、高雄逐城匯入。城市比對支援 `臺／台` 正規化。本階段不在 Render runtime 執行 ETL，也不將 raw ZIP、CSV 或資料庫連線字串 commit。
 
-詳見 [PLVR Rolling 5 年資料保留策略](docs/plvr_retention_policy.md) 與 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)。
+詳見 [PLVR Rolling 3 年資料保留策略](docs/plvr_retention_policy.md) 與 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)。
 
 ### 市場趨勢與未來情境
 
-`POST /valuation/trend` 僅使用最近五年內的官方 PLVR OpenData，排除展示樣本、未來月份與異常交易。系統依同路段、同區同型態、同行政區的順序選樣，顯示月／年中位單價、年化趨勢、波動度與 6、12、36 個月保守／中性／樂觀情境。情境年率限制於 -10% 至 +10%，僅供歷史趨勢理解，不代表成交保證、正式鑑價、銀行估價或投資建議。
+`POST /valuation/trend` 僅使用最近三年內的官方 PLVR OpenData，排除展示樣本、未來月份與異常交易。系統依同路段、同區同型態、同行政區的順序選樣，顯示月／年中位單價、年化趨勢、波動度與 6、12、36 個月保守／中性／樂觀情境。情境年率限制於 -10% 至 +10%，僅供歷史趨勢理解，不代表成交保證、正式鑑價、銀行估價或投資建議。

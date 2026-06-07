@@ -77,11 +77,11 @@ def test_postgres_status_identifies_official_data(monkeypatch) -> None:
     assert status["effective_trend_period_max"] == "2026-05"
     assert status["excluded_future_period_count"] == 4
     assert status["excluded_too_old_period_count"] == 8
-    assert status["retention_policy_years"] == 5
+    assert status["retention_policy_years"] == 3
     assert status["records_outside_retention_count"] == 8
     assert status["oldest_effective_period"] == "2025-01"
     assert status["newest_effective_period"] == "2026-05"
-    assert "rolling 5 年" in status["retention_note"]
+    assert "rolling 3 年" in status["retention_note"]
     assert "自動排除" in status["data_quality_note"]
     assert status["latest_import_inserted_rows"] == 125
     assert status["latest_import_skipped_duplicates"] == 5

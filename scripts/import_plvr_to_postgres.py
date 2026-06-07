@@ -9,6 +9,7 @@ import re
 import sys
 import tempfile
 import zipfile
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -44,9 +45,9 @@ with inserted as (
            total_price, lat, lng, source, raw_note, dedupe_key
     from plvr_import_staging
     on conflict (source, dedupe_key) where dedupe_key is not null do nothing
-    returning id
+    returning city
 )
-select count(*) as inserted_rows from inserted
+select city, count(*) as inserted_rows from inserted group by city order by city
 """
 
 
@@ -127,12 +128,15 @@ def main(argv: list[str] | None = None) -> int:
             until=args.until,
             limit=args.limit,
         )
-        normalized, batch_duplicates = _dedupe_batch(normalized)
+        normalized, batch_duplicates, batch_duplicates_by_city = _dedupe_batch(normalized)
         report["accepted_rows"] = len(normalized)
+        report["accepted_rows_by_city"] = _city_counts(normalized)
         report["skipped_duplicate_rows"] = batch_duplicates
+        report["skipped_duplicate_rows_by_city"] = batch_duplicates_by_city
         report.update(
             {
                 "inserted_rows": 0,
+                "inserted_rows_by_city": {},
                 "updated_rows": 0,
                 "source_periods": report.pop("periods", []),
                 "source": OFFICIAL_SOURCE,
@@ -201,16 +205,24 @@ def _candidate_files(input_path: Path) -> tuple[list[Path], list[tempfile.Tempor
     return files, temporary_dirs
 
 
-def _dedupe_batch(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int]:
+def _dedupe_batch(rows: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int, dict[str, int]]:
     unique: list[dict[str, Any]] = []
     seen: set[str] = set()
+    duplicates_by_city: Counter[str] = Counter()
     for row in rows:
         key = str(row["dedupe_key"])
         if key in seen:
+            duplicates_by_city[str(row.get("city", ""))] += 1
             continue
         seen.add(key)
         unique.append(row)
-    return unique, len(rows) - len(unique)
+    return unique, len(rows) - len(unique), dict(sorted(duplicates_by_city.items()))
+
+
+def _city_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
+    """Count normalized rows per city for transparent import reports."""
+
+    return dict(sorted(Counter(str(row.get("city", "")) for row in rows).items()))
 
 
 def _write_rows(
@@ -220,7 +232,7 @@ def _write_rows(
     args: argparse.Namespace,
     city_filters: list[str],
     district_filters: list[str],
-) -> dict[str, int]:
+) -> dict[str, Any]:
     import psycopg
     from psycopg.rows import dict_row
 
@@ -261,7 +273,9 @@ def _write_rows(
             )
             connection.commit()
             inserted = 0
+            inserted_by_city: Counter[str] = Counter()
             skipped = int(report.get("skipped_duplicate_rows", 0))
+            skipped_by_city: Counter[str] = Counter(report.get("skipped_duplicate_rows_by_city", {}))
             processed = 0
             print(
                 f"Starting batch write: total={len(rows)}, chunk_size={args.chunk_size}, "
@@ -276,9 +290,16 @@ def _write_rows(
                         cursor.execute("truncate table plvr_import_staging")
                         cursor.executemany(STAGING_INSERT_SQL, chunk)
                         cursor.execute(CHUNK_UPSERT_SQL)
-                        chunk_inserted = int(cursor.fetchone()["inserted_rows"])
+                        inserted_rows = cursor.fetchall()
+                        chunk_inserted_by_city = Counter(
+                            {str(row["city"]): int(row["inserted_rows"]) for row in inserted_rows}
+                        )
+                        chunk_inserted = sum(chunk_inserted_by_city.values())
                     inserted += chunk_inserted
+                    inserted_by_city.update(chunk_inserted_by_city)
                     skipped += len(chunk) - chunk_inserted
+                    chunk_by_city = Counter(str(row.get("city", "")) for row in chunk)
+                    skipped_by_city.update(chunk_by_city - chunk_inserted_by_city)
                     processed = end
                     print(
                         f"Writing rows {start}-{end} / {len(rows)}... "
@@ -327,8 +348,10 @@ def _write_rows(
             )
     return {
         "inserted_rows": inserted,
+        "inserted_rows_by_city": dict(sorted(inserted_by_city.items())),
         "updated_rows": backfilled,
         "skipped_duplicate_rows": skipped,
+        "skipped_duplicate_rows_by_city": dict(sorted(skipped_by_city.items())),
         "current_db_records_before": before["records_count"],
         "current_db_records_after": after["records_count"],
         "current_db_official_before": before["official_records_count"],

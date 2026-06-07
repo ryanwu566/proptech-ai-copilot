@@ -343,7 +343,7 @@ def _source_label(source: str) -> str:
 def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], ...], path: Path | None) -> dict[str, Any]:
     last_updated = None
     current_period = datetime.now(UTC).strftime("%Y-%m")
-    retention_cutoff = _shift_month(current_period, -59)
+    retention_cutoff = _shift_month(current_period, -35)
     if path and path.exists():
         last_updated = datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat()
     return {
@@ -357,12 +357,12 @@ def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], 
             "records_count": len(rows),
         },
         "last_updated": last_updated,
-        "retention_policy_years": 5,
+        "retention_policy_years": 3,
         "retention_cutoff_period": retention_cutoff,
         "records_outside_retention_count": 0,
         "oldest_effective_period": None,
         "newest_effective_period": None,
-        "retention_note": "本系統採 rolling 5 年官方實價登錄資料策略；展示資料不會由清理工具刪除。",
+        "retention_note": "本系統採 rolling 3 年官方實價登錄資料策略；展示資料不會由清理工具刪除。",
         "update_frequency_note": UPDATE_FREQUENCY_NOTE,
         "source_note": (
             "目前使用展示用可比成交樣本，未來可切換至 Supabase/Postgres 全台資料庫。"

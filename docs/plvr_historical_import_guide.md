@@ -40,7 +40,7 @@ python scripts/import_plvr_to_postgres.py --input data/raw/plvr/history --cities
 
 Report 包含讀取、接受、插入、更新、重複跳過、排除、檔案數、範圍、資料庫匯入前後筆數與估計成長。`valuation_import_runs` 保存最近匯入範圍與結果。
 
-目前只逐步擴充雙北近一年。不要一次灌入全台近五年，避免 Supabase Free 容量、索引與查詢效能失控。未來經容量評估後，才擴充雙北近五年與 GitHub Actions 自動更新。
+目前逐步擴充六都近三年資料。不要一次灌入全台多年逐筆資料，避免 Supabase 容量、索引與查詢效能失控。三年以前若需要長期觀察，未來應建立統計摘要表。
 
 ## 六都近三年匯入準備
 
@@ -61,4 +61,4 @@ python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --
 python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --cities "高雄市" --since 2024-01 --until 2026-12 --limit 100000 --chunk-size 300 --progress-every 300 --statement-timeout 30 --confirm-large-import
 ```
 
-城市比較會正規化 `臺北市／台北市`、`臺中市／台中市`、`臺南市／台南市`。每次正式匯入後，先檢查 data-status，再依 [PLVR Rolling 5 年資料保留策略](plvr_retention_policy.md) 執行 prune dry-run。
+城市比較會正規化 `臺北市／台北市`、`臺中市／台中市`、`臺南市／台南市`。每次正式匯入後，先檢查 data-status，再依 [PLVR Rolling 3 年資料保留策略](plvr_retention_policy.md) 執行 prune dry-run。

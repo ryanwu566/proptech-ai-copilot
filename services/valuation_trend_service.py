@@ -14,7 +14,7 @@ from services.valuation_providers.postgres_provider import PostgresValuationProv
 
 DISCLAIMER = "此為依官方實價登錄歷史資料推估之情境參考，不代表成交保證、正式鑑價、銀行估價或投資建議。"
 METHODOLOGY = [
-    "僅使用官方 PLVR OpenData，排除展示樣本、未來月份與最近五年分析窗口外資料。",
+    "僅使用官方 PLVR OpenData，排除展示樣本、未來月份與有效分析窗口外資料。",
     "依同路段、同行政區同建物型態、同行政區的順序選擇趨勢樣本。",
     "以每月中位數、IQR 控制極端值，使用簡單線性趨勢與月變動波動度建立保守、中性、樂觀情境。",
 ]
@@ -24,7 +24,7 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
     """Build a conservative market-trend result from official transaction rows."""
 
     current = datetime.now(UTC).strftime("%Y-%m")
-    window_start = _shift_month(current, -59)
+    window_start = _shift_month(current, -35)
     request = {**payload, "current_period": current, "window_start": window_start}
     provider = get_valuation_provider()
     if rows is None:
@@ -194,8 +194,8 @@ def _confidence(rows: list[dict[str, Any]], monthly: list[dict[str, Any]], scope
     if len(rows) < 30:
         return "low", "官方樣本少於 30 筆，僅提供低信心參考趨勢。"
     coverage_months = _month_distance(monthly[0]["period"], monthly[-1]["period"]) + 1 if monthly else 0
-    if coverage_months < 48:
-        return ("medium" if scope != "district" else "low"), "目前資料期間不足五年，情境估價採保守方式呈現。"
+    if coverage_months < 30:
+        return ("medium" if scope != "district" else "low"), "目前資料期間不足三年，情境估價採保守方式呈現。"
     return ("high" if scope == "road" else "medium"), "官方資料期間與樣本量足以形成歷史趨勢，但仍不代表未來成交結果。"
 
 

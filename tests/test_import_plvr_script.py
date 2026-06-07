@@ -50,6 +50,27 @@ def test_new_taipei_filename_city_hint_overrides_wrong_external_hint(tmp_path, c
     assert '"city_hint": "新北市"' in output
 
 
+def test_taichung_main_file_dry_run_has_city_diagnostics(tmp_path, capsys) -> None:
+    path = tmp_path / "B_lvr_land_A.csv"
+    path.write_text(CSV_TEXT.replace("大安區", "西屯區").replace("和平東路二段", "台灣大道三段"), encoding="utf-8-sig")
+    assert main(["--input", str(path), "--city", "台中市", "--dry-run"]) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["files"][0]["city_hint"] == "台中市"
+    assert report["accepted_rows"] == 1
+    assert report["accepted_rows_by_city"] == {"台中市": 1}
+    assert report["estimated_growth"] == 1
+    assert report["inserted_rows_by_city"] == {}
+
+
+def test_limit_reached_adds_warning(tmp_path, capsys) -> None:
+    path = tmp_path / "b_lvr_land_a.csv"
+    path.write_text(CSV_TEXT.replace("大安區", "西屯區").replace("和平東路二段", "台灣大道三段"), encoding="utf-8-sig")
+    assert main(["--input", str(path), "--city", "臺中市", "--limit", "1", "--dry-run"]) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["limit_reached"] is True
+    assert "可能因 --limit 截斷" in report["limit_warning"]
+
+
 def test_folder_input_reads_multiple_csv_and_dedupes_batch(tmp_path, capsys) -> None:
     history = tmp_path / "history"
     history.mkdir()
@@ -162,6 +183,8 @@ class _BatchCursor:
         return None
 
     def fetchall(self):
+        if "select city, count(*) as inserted_rows from inserted" in self.query:
+            return [{"city": "台北市", "inserted_rows": self.batch_size}]
         return []
 
 
@@ -211,6 +234,8 @@ def test_write_rows_uses_staging_chunks_and_progress(monkeypatch, capsys) -> Non
     result = _write_rows("postgresql://test", rows, report, args, ["台北市"], ["大安區"])
     assert connection.cursor_instance.executemany_sizes == [2, 2, 1]
     assert result["inserted_rows"] == 5
+    assert result["inserted_rows_by_city"] == {"台北市": 5}
+    assert result["skipped_duplicate_rows_by_city"] == {}
     assert connect_kwargs["prepare_threshold"] is None
     assert connect_kwargs["connect_timeout"] == 10
     output = capsys.readouterr().out

@@ -11,16 +11,16 @@ from datetime import UTC, datetime
 from typing import Any
 
 OFFICIAL_SOURCE = "official_plvr_opendata"
-DEFAULT_KEEP_YEARS = 5
+DEFAULT_KEEP_YEARS = 3
 WARNING = "只處理超出保留期間的官方 PLVR；不會刪除展示樣本、社區資料或匯入紀錄。"
 
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the guarded retention command interface."""
 
-    parser = argparse.ArgumentParser(description="安全盤點或清理 rolling 5 年外的官方 PLVR 資料")
+    parser = argparse.ArgumentParser(description="安全盤點或清理 rolling 3 年外的官方 PLVR 資料")
     parser.add_argument("--before", default="", help="刪除早於此 YYYY-MM 的官方資料")
-    parser.add_argument("--keep-years", type=int, default=DEFAULT_KEEP_YEARS, help="保留年數，預設 5")
+    parser.add_argument("--keep-years", type=int, default=DEFAULT_KEEP_YEARS, help="保留年數，預設 3")
     parser.add_argument("--cities", default="", help="限定城市，以逗號分隔")
     parser.add_argument("--source", default=OFFICIAL_SOURCE, help="固定為 official_plvr_opendata")
     parser.add_argument("--dry-run", action="store_true", help="只盤點，不刪除；未確認刪除時亦為預設模式")

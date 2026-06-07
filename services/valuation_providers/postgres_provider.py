@@ -11,9 +11,9 @@ DATA_QUALITY_NOTE = (
     "資料庫可能含歷史或未來期別，但估價與趨勢分析會自動排除超出分析窗口、"
     "晚於目前月份或異常的交易期間。"
 )
-RETENTION_POLICY_YEARS = 5
+RETENTION_POLICY_YEARS = 3
 RETENTION_NOTE = (
-    "本系統採 rolling 5 年官方實價登錄資料策略；每季更新後可先 dry-run 盤點，"
+    "本系統採 rolling 3 年官方實價登錄資料策略；每季更新後可先 dry-run 盤點，"
     "再由維護者確認清理超出保留期間的官方資料。"
 )
 UPDATE_FREQUENCY_NOTE = "正式實價登錄資料應由後台排程維護，不在 Render runtime 執行下載或 ETL。"
@@ -149,7 +149,7 @@ class PostgresValuationProvider:
             return self._last_status
         try:
             current_period = datetime.now(UTC).strftime("%Y-%m")
-            trend_window_start = _shift_month(current_period, -59)
+            trend_window_start = _shift_month(current_period, -35)
             with self._connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -265,7 +265,7 @@ class PostgresValuationProvider:
                 "excluded_too_old_period_count": 0,
                 "data_quality_note": DATA_QUALITY_NOTE,
                 "retention_policy_years": RETENTION_POLICY_YEARS,
-                "retention_cutoff_period": _shift_month(datetime.now(UTC).strftime("%Y-%m"), -59),
+                "retention_cutoff_period": _shift_month(datetime.now(UTC).strftime("%Y-%m"), -35),
                 "records_outside_retention_count": 0,
                 "oldest_effective_period": None,
                 "newest_effective_period": None,

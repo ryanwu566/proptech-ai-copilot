@@ -18,10 +18,10 @@ def test_valuation_data_status_api() -> None:
     payload = response.json()
     assert payload["coverage"]["records_count"] >= 60
     assert payload["active_source"] == "real_price_sample"
-    assert payload["retention_policy_years"] == 5
+    assert payload["retention_policy_years"] == 3
     assert payload["retention_cutoff_period"]
     assert payload["records_outside_retention_count"] == 0
-    assert "rolling 5 年" in payload["retention_note"]
+    assert "rolling 3 年" in payload["retention_note"]
 
 
 def test_health_does_not_depend_on_valuation_provider(monkeypatch) -> None:

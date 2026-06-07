@@ -49,10 +49,17 @@ def test_same_transaction_builds_same_dedupe_key() -> None:
     assert first["dedupe_key"] == build_dedupe_key(first)
 
 
-def test_official_transaction_id_is_preferred_for_dedupe_key() -> None:
-    row = {"source": "official_plvr_opendata", "city": "台北市"}
-    assert build_dedupe_key(row, "A-123") == build_dedupe_key({"source": "official_plvr_opendata"}, "A-123")
+def test_dedupe_key_v2_uses_official_id_and_transaction_facts() -> None:
+    row = {
+        "source": "official_plvr_opendata", "city": "台北市", "district": "大安區",
+        "transaction_period": "2025-01", "address_text": "和平東路二段100號",
+        "building_type": "住宅大樓", "area_ping": 30, "total_price": 2400, "unit_price_per_ping": 80,
+    }
+    assert build_dedupe_key(row, "A-123") == build_dedupe_key(dict(row), "A-123")
+    assert build_dedupe_key(row, "A-123") != build_dedupe_key({**row, "city": "台中市"}, "A-123")
     assert build_dedupe_key(row, "A-123") != build_dedupe_key(row, "A-456")
+    assert build_dedupe_key({**row, "city": "臺中市"}, "A-123") == build_dedupe_key({**row, "city": "台中市"}, "A-123")
+    assert build_dedupe_key({**row, "city": "臺南市"}, "A-123") == build_dedupe_key({**row, "city": "台南市"}, "A-123")
 
 
 def test_period_filters_are_applied() -> None:
@@ -109,3 +116,14 @@ def test_official_sale_filename_is_directly_recognized_and_maps_city(tmp_path) -
     assert is_sale_transaction_csv(path) is True
     assert city_from_filename(path) == "台北市"
     assert city_from_filename(tmp_path / "f_lvr_land_a.csv") == "新北市"
+    expected = {"a": "台北市", "f": "新北市", "h": "桃園市", "b": "台中市", "d": "台南市", "e": "高雄市"}
+    for code, city in expected.items():
+        assert city_from_filename(tmp_path / f"{code}_lvr_land_A.csv") == city
+        assert city_from_filename(tmp_path / f"{code.upper()}_lvr_land_a.csv") == city
+
+
+def test_non_main_detail_filenames_are_excluded(tmp_path) -> None:
+    for name in ("B_lvr_land_park.csv", "B_lvr_land_land.csv", "B_lvr_land_build.csv"):
+        path = tmp_path / name
+        path.write_text(",".join(VALID_ROW) + "\n" + ",".join(VALID_ROW.values()), encoding="utf-8-sig")
+        assert is_sale_transaction_csv(path) is False
