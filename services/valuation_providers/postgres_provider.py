@@ -48,11 +48,15 @@ class PostgresValuationProvider:
         return tuple(self.query_comparables({}))
 
     def query_comparables(self, request: dict[str, Any], limit: int = 50) -> list[dict[str, Any]]:
-        """Return at most 50 likely comparables for Python-side scoring."""
+        """Return a district candidate pool so the service can enforce road scope."""
 
         try:
             with self._connect() as connection:
                 with connection.cursor() as cursor:
+                    if request.get("city") and request.get("district"):
+                        sql, params = _comparable_query(request, "district", max(limit, 200))
+                        cursor.execute(sql, params)
+                        return [_normalize_row(dict(row)) for row in cursor.fetchall()]
                     for scope in ("road", "district", "city", "all"):
                         sql, params = _comparable_query(request, scope, limit)
                         cursor.execute(sql, params)
@@ -227,7 +231,7 @@ def _comparable_query(request: dict[str, Any], scope: str, limit: int) -> tuple[
                  then power(coalesce(lat, %s) - %s, 2) + power(coalesce(lng, %s) - %s, 2)
                  else 0 end,
             transaction_period desc
-        limit {max(1, min(int(limit), 50))}
+        limit {max(1, min(int(limit), 200))}
     """
     ranking_params = [
         request.get("road", ""),

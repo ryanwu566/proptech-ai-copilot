@@ -205,6 +205,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         "official_same_road_count": selection["official_same_road_count"],
         "official_same_district_count": selection["official_same_district_count"],
         "sample_same_road_count": selection["sample_same_road_count"],
+        "sample_same_district_count": selection["sample_same_district_count"],
         "source_details": _source_details(provider),
         "estimate_total_price": round(mid * area, 1),
         "estimate_unit_price_per_ping": mid,
@@ -239,14 +240,17 @@ def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], 
     """Choose an explicit road-first valuation scope before scoring."""
 
     prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if not _is_future_official(row)]
+    target_road = normalize_road(str(target.get("road", "")))
     same_district = [row for row in prepared if row.get("city") == target.get("city") and row.get("district") == target.get("district")]
-    official_same_district = [row for row in same_district if row["source"] == "official_plvr_opendata"]
-    official_same_road = [row for row in official_same_district if row.get("road") == target.get("road")]
-    sample_same_road = [row for row in same_district if row["source"] != "official_plvr_opendata" and row.get("road") == target.get("road")]
+    official_same_road = [row for row in same_district if row["source"] == "official_plvr_opendata" and normalize_road(str(row.get("road", ""))) == target_road]
+    official_same_district = [row for row in same_district if row["source"] == "official_plvr_opendata" and normalize_road(str(row.get("road", ""))) != target_road]
+    sample_same_road = [row for row in same_district if row["source"] != "official_plvr_opendata" and normalize_road(str(row.get("road", ""))) == target_road]
+    sample_same_district = [row for row in same_district if row["source"] != "official_plvr_opendata" and normalize_road(str(row.get("road", ""))) != target_road]
     selection = {
         "official_same_road_count": len(official_same_road),
         "official_same_district_count": len(official_same_district),
         "sample_same_road_count": len(sample_same_road),
+        "sample_same_district_count": len(sample_same_district),
         "estimate_level": None,
         "estimate_data_composition": None,
     }
@@ -372,7 +376,7 @@ def _normalize(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _score_comparable(row: dict[str, Any], target: dict[str, Any], community: dict[str, Any] | None = None) -> dict[str, Any]:
-    same_road = row["road"] == target["road"] and row["district"] == target["district"]
+    same_road = normalize_road(str(row["road"])) == normalize_road(str(target["road"])) and row["district"] == target["district"]
     same_district = row["district"] == target["district"]
     same_city = row["city"] == target["city"]
     normalized_type = normalize_building_type(str(row["building_type"]))
@@ -438,7 +442,7 @@ def _weighted_median(rows: list[dict[str, Any]]) -> float:
 def _build_explanation(rows: list[dict[str, Any]], target: dict[str, Any]) -> dict[str, Any]:
     return {
         "sample_count": len(rows),
-        "same_road_count": sum(row["road"] == target["road"] and row["district"] == target["district"] for row in rows),
+        "same_road_count": sum(normalize_road(str(row["road"])) == normalize_road(str(target["road"])) and row["district"] == target["district"] for row in rows),
         "same_district_count": sum(row["district"] == target["district"] for row in rows),
         "same_city_count": sum(row["city"] == target["city"] for row in rows),
         "same_building_type_count": sum(normalize_building_type(str(row["building_type"])) == normalize_building_type(str(target["building_type"])) for row in rows),
@@ -534,6 +538,16 @@ def normalize_building_type(value: str) -> str:
     return mappings.get(normalized, normalized)
 
 
+def normalize_road(value: str) -> str:
+    """Normalize common road spelling variants before scope comparison."""
+
+    normalized = value.strip().replace("臺", "台").replace(" ", "")
+    segment_numbers = {"1": "一", "2": "二", "3": "三", "4": "四", "5": "五", "6": "六", "7": "七", "8": "八", "9": "九", "10": "十"}
+    for number, chinese in sorted(segment_numbers.items(), key=lambda item: len(item[0]), reverse=True):
+        normalized = normalized.replace(f"{number}段", f"{chinese}段")
+    return normalized
+
+
 def _percentile(values: list[float], fraction: float) -> float:
     if len(values) == 1:
         return values[0]
@@ -555,6 +569,7 @@ def _empty_result(data_status: dict[str, Any], community: dict[str, Any] | None)
         "official_same_road_count": 0,
         "official_same_district_count": 0,
         "sample_same_road_count": 0,
+        "sample_same_district_count": 0,
         "source_details": {"file": data_status["active_source"], "nature": "展示資料", "complete_real_price_registry": False, "formal_appraisal": False, "bank_appraisal": False, "future_adapter": "未來可切換 Supabase/Postgres 全台資料庫"},
         "estimate_total_price": 0,
         "estimate_unit_price_per_ping": 0,

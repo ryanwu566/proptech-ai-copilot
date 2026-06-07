@@ -1,5 +1,5 @@
 from services.valuation_providers.postgres_provider import PostgresValuationProvider, _normalize_row
-from services.valuation_service import estimate_property, normalize_building_type
+from services.valuation_service import estimate_property, normalize_building_type, normalize_road
 
 
 PAYLOAD = {
@@ -81,8 +81,9 @@ def test_limited_official_records_are_kept_and_capped(monkeypatch) -> None:
     assert result["estimate_source_label"] == "官方 PLVR（樣本較少）+ 展示樣本補充"
     assert result["estimate_level"] == "road"
     assert result["official_same_road_count"] == 4
-    assert result["official_same_district_count"] == 10
+    assert result["official_same_district_count"] == 6
     assert result["sample_same_road_count"] == 4
+    assert result["sample_same_district_count"] == 0
     assert result["confidence_score"] <= 70
     assert [item["source"] for item in result["comparables"][:4]] == ["official_plvr_opendata"] * 4
     assert all(item["road"] == "和平東路二段" for item in result["comparables"])
@@ -154,3 +155,7 @@ def test_normalized_building_type_matches_official_label(monkeypatch) -> None:
     assert official["normalized_building_type"] == "住宅大樓"
     assert "同建物類型" in official["note"]
     assert normalize_building_type("華廈(10層含以下有電梯)") == "華廈"
+
+
+def test_normalize_road_matches_numeric_segment_variant() -> None:
+    assert normalize_road("和平東路2段") == normalize_road("和平東路二段")

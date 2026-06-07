@@ -36,3 +36,45 @@ def test_postgres_query_scopes_relax_from_road_to_city() -> None:
     assert "district = %s" in district_sql and "road = %s" not in district_sql.split("order by")[0]
     assert "city = %s" in city_sql and "district = %s" not in city_sql.split("order by")[0]
     assert "transaction_period <= %s" in road_sql
+
+
+class _ScopeCursor:
+    def __init__(self) -> None:
+        self.query = ""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        return None
+
+    def execute(self, query, _params=None) -> None:
+        self.query = " ".join(query.split())
+
+    def fetchall(self):
+        return []
+
+
+class _ScopeConnection:
+    def __init__(self) -> None:
+        self.cursor_instance = _ScopeCursor()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        return None
+
+    def cursor(self):
+        return self.cursor_instance
+
+
+def test_postgres_provider_fetches_district_pool_for_service_grouping(monkeypatch) -> None:
+    connection = _ScopeConnection()
+    monkeypatch.setattr(PostgresValuationProvider, "_connect", lambda self: connection)
+    provider = PostgresValuationProvider("postgresql://test")
+    assert provider.query_comparables({"city": "台北市", "district": "大安區", "road": "和平東路二段"}) == []
+    where_clause = connection.cursor_instance.query.split("order by")[0]
+    assert "district = %s" in where_clause
+    assert "road = %s" not in where_clause
+    assert "limit 200" in connection.cursor_instance.query
