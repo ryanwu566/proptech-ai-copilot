@@ -18,6 +18,15 @@ class ValuationRequest(BaseModel):
     floor: int = Field(ge=0)
     lat: float | None = None
     lng: float | None = None
+    address_text: str = ""
+
+
+@router.get("/data-status")
+def data_status() -> dict[str, Any]:
+    """Return the active valuation provider and coverage summary."""
+
+    from services.valuation_service import get_valuation_data_status
+    return get_valuation_data_status()
 
 
 @router.post("/estimate")

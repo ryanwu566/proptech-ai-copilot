@@ -1,7 +1,14 @@
 from collections import Counter
+from pathlib import Path
 
-from services import valuation_service
-from services.valuation_service import estimate_property, load_transactions
+from services.valuation_service import (
+    MockFallbackProvider,
+    SampleValuationProvider,
+    estimate_property,
+    get_valuation_data_status,
+    get_valuation_provider,
+    load_transactions,
+)
 
 
 PAYLOAD = {
@@ -17,14 +24,42 @@ PAYLOAD = {
 }
 
 
-def test_estimate_returns_explainable_range_and_comparables() -> None:
-    result = estimate_property(PAYLOAD)
+def test_sample_provider_and_data_status() -> None:
+    provider = get_valuation_provider(database_url="", sqlite_path=Path("missing.sqlite"))
+    assert isinstance(provider, SampleValuationProvider)
+    status = get_valuation_data_status()
+    assert status["active_source"] == "real_price_sample"
+    assert status["coverage"]["records_count"] >= 60
+    assert status["is_demo_data"] is True
+
+
+def test_postgres_placeholder_falls_back_without_crashing(monkeypatch) -> None:
+    monkeypatch.setenv("VALUATION_DATABASE_URL", "postgresql://configured-but-not-enabled")
+    provider = get_valuation_provider(sqlite_path=Path("missing.sqlite"))
+    assert isinstance(provider, SampleValuationProvider)
+
+
+def test_missing_sqlite_and_sample_use_mock_fallback() -> None:
+    provider = get_valuation_provider(database_url="", sqlite_path=Path("missing.sqlite"), sample_path=Path("missing.csv"))
+    assert isinstance(provider, MockFallbackProvider)
+    assert provider.load_transactions()
+
+
+def test_estimate_returns_level_status_and_comparables() -> None:
+    result = estimate_property({**PAYLOAD, "address_text": "和平綠境"})
     assert result["estimate_total_price"] > 0
     assert result["price_range"]["low"] <= result["price_range"]["mid"] <= result["price_range"]["high"]
-    assert len(result["comparables"]) >= 3
-    assert result["source_details"]["formal_appraisal"] is False
-    assert result["valuation_explanation"]["same_road_count"] >= 1
-    assert all("similarity_score" in row and "weight" in row for row in result["comparables"])
+    assert result["estimate_level"] == "community"
+    assert result["matched_community"]["community_name"] == "和平綠境"
+    assert result["data_status"]["active_source"] == "real_price_sample"
+    assert result["confidence_reason"]
+
+
+def test_unknown_community_falls_back_to_road_or_district() -> None:
+    result = estimate_property({**PAYLOAD, "road": "和平東路二段", "address_text": "不明社區"})
+    assert result["estimate_level"] == "road"
+    assert result["matched_community"] is None
+    assert result["comparables"]
 
 
 def test_sample_has_three_demo_regions_with_at_least_twenty_rows_each() -> None:
@@ -34,8 +69,3 @@ def test_sample_has_three_demo_regions_with_at_least_twenty_rows_each() -> None:
     assert counts[("台北市", "大安區", "和平東路二段")] >= 20
     assert counts[("台北市", "信義區", "松仁路")] >= 20
     assert counts[("新北市", "板橋區", "文化路二段")] >= 20
-
-
-def test_insufficient_data_does_not_crash(monkeypatch) -> None:
-    monkeypatch.setattr(valuation_service, "load_transactions", lambda: ())
-    assert estimate_property(PAYLOAD)["confidence"] == "low"

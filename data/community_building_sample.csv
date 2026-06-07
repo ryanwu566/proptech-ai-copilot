@@ -1,0 +1,4 @@
+community_id,community_name,city,district,road,address_pattern,lat,lng,building_type,completed_year,total_floors,source,confidence
+COM-DAAN-001,和平綠境,台北市,大安區,和平東路二段,和平東路二段,25.0254,121.5434,住宅大樓,2011,15,community_building_sample,medium
+COM-XINYI-001,松仁首席,台北市,信義區,松仁路,松仁路,25.0338,121.5687,住宅大樓,2015,22,community_building_sample,medium
+COM-BANQIAO-001,文化新苑,新北市,板橋區,文化路二段,文化路二段,25.0264,121.4704,華廈,2008,12,community_building_sample,medium

@@ -167,3 +167,11 @@ npm.cmd run build
 - Map Insight 定位順序為 Google Geocoding、TGOS、展示資料；周遭設施使用 Google Places 或展示資料。
 - `OPERATIONAL` 僅表示店家正常營運，不代表目前正在營業；只有 Google 明確回傳 `openNow` 時才顯示目前營業或休息。
 - PLVR adapter 已預留但尚未啟用，不會在部署啟動時下載外部資料。
+
+### 可普及化房價估算
+
+房價估算資料層採 provider 架構，依序嘗試 Postgres placeholder、SQLite index、`real_price_sample.csv` 與展示資料 fallback。使用者只需輸入估價條件，不需要下載 CSV、ZIP 或執行 ETL。
+
+`GET /valuation/data-status` 會顯示目前資料來源、覆蓋範圍、筆數與更新時間。正式全台版本建議由 GitHub Actions 定期整理官方批次資料，再寫入 Supabase/Postgres；Render runtime 不負責下載或清洗大型資料。
+
+詳見 [房價估算普及化架構](docs/valuation_public_service_architecture.md)。
