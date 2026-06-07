@@ -14,11 +14,14 @@ PING_PER_SQM = 0.3025
 OFFICIAL_SOURCE = "official_plvr_opendata"
 ENCODINGS = ("utf-8-sig", "utf-8", "cp950", "big5")
 EXCLUDED_NAME_HINTS = ("schema", "manifest", "presale", "rent", "預售", "租賃", "租屋", "欄位")
+SALE_MAIN_FILENAME = re.compile(r"^[a-z]_lvr_land_a\.csv$", re.IGNORECASE)
+FILE_CITY_MAP = {"a": "台北市", "f": "新北市"}
 
 FIELD_ALIASES: dict[str, tuple[str, ...]] = {
     "city": ("縣市", "city"),
     "district": ("鄉鎮市區", "district"),
-    "address_text": ("土地區段位置建物區段門牌", "rps02", "address_text"),
+    "transaction_target": ("交易標的", "transaction_target"),
+    "address_text": ("土地位置建物門牌", "土地區段位置建物區段門牌", "rps02", "address_text"),
     "transaction_date": ("交易年月日", "rps07", "transaction_date"),
     "floor": ("移轉層次", "rps09", "floor"),
     "total_floor": ("總樓層數", "rps10", "total_floor"),
@@ -41,13 +44,16 @@ FLOOR_NUMBERS = {
 
 
 def read_csv_rows(path: Path) -> tuple[list[dict[str, str]], str]:
-    """Read a CSV with the common encodings used by PLVR downloads."""
+    """Read a CSV and skip the official second-row English field descriptions."""
 
     last_error: UnicodeError | None = None
     for encoding in ENCODINGS:
         try:
             with path.open("r", encoding=encoding, newline="") as handle:
-                return list(csv.DictReader(handle)), encoding
+                rows = list(csv.DictReader(handle))
+                if rows and _is_english_description_row(rows[0]):
+                    rows = rows[1:]
+                return rows, encoding
         except UnicodeError as error:
             last_error = error
     raise ValueError(f"無法辨識 CSV 編碼：{path.name}") from last_error
@@ -58,6 +64,8 @@ def is_sale_transaction_csv(path: Path) -> bool:
 
     if any(hint.lower() in path.name.lower() for hint in EXCLUDED_NAME_HINTS):
         return False
+    if SALE_MAIN_FILENAME.fullmatch(path.name):
+        return True
     try:
         rows, _ = read_csv_rows(path)
     except (OSError, ValueError, csv.Error):
@@ -84,12 +92,12 @@ def normalize_rows(
     total = 0
     for row in rows:
         total += 1
-        normalized, reason = normalize_row(row, city_hint=city_hint)
+        normalized, reason = normalize_row(row, city_hint=str(row.get("__plvr_city_hint") or city_hint))
         if reason:
             exclusions[reason] += 1
             continue
         assert normalized is not None
-        if city_filter and normalized["city"] != city_filter:
+        if city_filter and not same_city(normalized["city"], city_filter):
             exclusions["filtered_city"] += 1
             continue
         if district_filter and normalized["district"] != district_filter:
@@ -125,6 +133,9 @@ def normalize_row(row: dict[str, Any], *, city_hint: str = "") -> tuple[dict[str
     area_sqm = _number(row, "area_sqm")
     total_price_ntd = _number(row, "total_price_ntd")
     unit_price_sqm = _number(row, "unit_price_sqm")
+    transaction_target = _text(row, "transaction_target")
+    if transaction_target and "建物" not in transaction_target:
+        return None, "non_building_transaction"
     if not city or not district or not road:
         return None, "missing_location"
     if not period:
@@ -198,6 +209,19 @@ def parse_floor(value: str) -> int:
     return 0
 
 
+def city_from_filename(path: Path) -> str:
+    """Infer the city represented by known official PLVR sale filenames."""
+
+    match = SALE_MAIN_FILENAME.fullmatch(path.name)
+    return FILE_CITY_MAP.get(path.name[0].lower(), "") if match else ""
+
+
+def same_city(left: str, right: str) -> bool:
+    """Treat 台 and 臺 spellings as equivalent for city filters."""
+
+    return left.replace("臺", "台") == right.replace("臺", "台")
+
+
 def _text(row: dict[str, Any], field: str) -> str:
     for alias in FIELD_ALIASES[field]:
         value = row.get(alias)
@@ -217,3 +241,10 @@ def _number(row: dict[str, Any], field: str) -> float:
 def _city_from_address(address: str) -> str:
     match = re.match(r"(.{2,3}[市縣])", address or "")
     return match.group(1) if match else ""
+
+
+def _is_english_description_row(row: dict[str, Any]) -> bool:
+    values = [str(value or "").strip() for value in row.values()]
+    english_values = sum(bool(re.search(r"[A-Za-z]{3,}", value)) for value in values)
+    chinese_values = sum(bool(re.search(r"[\u4e00-\u9fff]", value)) for value in values)
+    return english_values >= 3 and english_values > chinese_values

@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from services.plvr_import_service import OFFICIAL_SOURCE, is_sale_transaction_csv, normalize_rows, read_csv_rows
+from services.plvr_import_service import OFFICIAL_SOURCE, city_from_filename, is_sale_transaction_csv, normalize_rows, read_csv_rows
 
 
 INSERT_SQL = """
@@ -66,8 +66,11 @@ def main(argv: list[str] | None = None) -> int:
         file_report: list[dict[str, Any]] = []
         for path in candidates:
             rows, encoding = read_csv_rows(path)
+            inferred_city = args.city or city_from_filename(path)
+            for row in rows:
+                row["__plvr_city_hint"] = inferred_city
             all_rows.extend(rows)
-            file_report.append({"file": path.name, "encoding": encoding, "rows": len(rows)})
+            file_report.append({"file": path.name, "encoding": encoding, "rows": len(rows), "city_hint": inferred_city})
         normalized, report = normalize_rows(
             all_rows,
             city_hint=args.city,
