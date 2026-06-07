@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 import statistics
 from collections import defaultdict
 from datetime import UTC, datetime
@@ -28,7 +29,7 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
     provider = get_valuation_provider()
     if rows is None:
         rows = provider.query_trend_rows(request) if isinstance(provider, PostgresValuationProvider) else list(provider.load_transactions())
-    official = _valid_official_rows(rows, window_start, current)
+    official, quality = _valid_official_rows(rows, window_start, current)
     road_rows = [row for row in official if normalize_road(str(row.get("road", ""))) == normalize_road(str(payload.get("road", "")))]
     district_type_rows = [
         row for row in official
@@ -58,6 +59,12 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
     return {
         "source": "official_plvr_opendata",
         "data_scope": scope,
+        "raw_period_min": quality["raw_period_min"],
+        "raw_period_max": quality["raw_period_max"],
+        "effective_period_min": monthly[0]["period"] if monthly else None,
+        "effective_period_max": monthly[-1]["period"] if monthly else None,
+        "excluded_future_period_count": quality["excluded_future_period_count"],
+        "excluded_out_of_window_count": quality["excluded_out_of_window_count"],
         "period_min": monthly[0]["period"] if monthly else None,
         "period_max": monthly[-1]["period"] if monthly else None,
         "sample_count": len(selected),
@@ -76,16 +83,41 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
     }
 
 
-def _valid_official_rows(rows: list[dict[str, Any]], start: str, current: str) -> list[dict[str, Any]]:
+def _valid_official_rows(
+    rows: list[dict[str, Any]], start: str, current: str
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     valid = []
+    raw_periods: list[str] = []
+    excluded_future = 0
+    excluded_out_of_window = 0
     for row in rows:
         period = str(row.get("transaction_period", ""))
+        if row.get("source") != "official_plvr_opendata" or not _valid_period(period):
+            continue
+        raw_periods.append(period)
+        if period > current:
+            excluded_future += 1
+            continue
+        if period < start:
+            excluded_out_of_window += 1
+            continue
         price = float(row.get("unit_price_per_ping", 0) or 0)
         area = float(row.get("area_ping", 0) or 0)
-        if row.get("source") != "official_plvr_opendata" or not (start <= period <= current) or price <= 0 or area <= 0 or price > 500:
+        if price <= 0 or area <= 0 or price > 500:
             continue
         valid.append({**row, "unit_price_per_ping": price, "area_ping": area})
-    return valid
+    return valid, {
+        "raw_period_min": min(raw_periods) if raw_periods else None,
+        "raw_period_max": max(raw_periods) if raw_periods else None,
+        "excluded_future_period_count": excluded_future,
+        "excluded_out_of_window_count": excluded_out_of_window,
+    }
+
+
+def _valid_period(period: str) -> bool:
+    """Accept normalized calendar months only."""
+
+    return re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", period) is not None
 
 
 def _monthly_series(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:

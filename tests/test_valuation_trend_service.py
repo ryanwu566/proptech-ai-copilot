@@ -31,13 +31,21 @@ def row(index: int, *, source: str = "official_plvr_opendata", road: str = "å’Œå
 
 
 def test_trend_uses_only_official_and_excludes_future() -> None:
-    future = _shift_month(datetime.now(UTC).strftime("%Y-%m"), 1)
+    current = datetime.now(UTC).strftime("%Y-%m")
+    future = _shift_month(current, 1)
+    too_old = _shift_month(current, -70)
     rows = [row(index) for index in range(35)]
-    rows += [row(50, source="real_price_sample"), row(51, source="mock_fallback"), row(52, period=future)]
+    rows += [row(50, source="real_price_sample"), row(51, source="mock_fallback"), row(52, period=future), row(53, period=too_old)]
     result = analyze_valuation_trend(PAYLOAD, rows)
     assert result["data_scope"] == "road"
     assert result["sample_count"] == 35
     assert result["period_max"] < future
+    assert result["raw_period_min"] == too_old
+    assert result["raw_period_max"] == future
+    assert result["effective_period_min"] == result["period_min"]
+    assert result["effective_period_max"] == result["period_max"]
+    assert result["excluded_future_period_count"] == 1
+    assert result["excluded_out_of_window_count"] == 1
     assert result["source"] == "official_plvr_opendata"
 
 

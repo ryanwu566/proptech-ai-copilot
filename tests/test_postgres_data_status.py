@@ -36,8 +36,12 @@ class FakeCursor:
             "roads_count": 2,
             "official_records_count": self.official,
             "sample_records_count": self.sample,
-            "official_period_min": "2025-01",
-            "official_period_max": "2026-05",
+            "raw_official_period_min": "2016-09",
+            "raw_official_period_max": "2026-10",
+            "effective_trend_period_min": "2025-01",
+            "effective_trend_period_max": "2026-05",
+            "excluded_future_period_count": 4,
+            "excluded_too_old_period_count": 8,
         }
 
     def fetchall(self):
@@ -65,8 +69,15 @@ def test_postgres_status_identifies_official_data(monkeypatch) -> None:
     assert status["is_demo_data"] is False
     assert status["official_records_count"] == 12
     assert status["last_updated"].startswith("2026-06-01")
-    assert status["official_period_min"] == "2025-01"
-    assert status["official_period_max"] == "2026-05"
+    assert status["official_period_min"] == "2016-09"
+    assert status["official_period_max"] == "2026-10"
+    assert status["raw_official_period_min"] == "2016-09"
+    assert status["raw_official_period_max"] == "2026-10"
+    assert status["effective_trend_period_min"] == "2025-01"
+    assert status["effective_trend_period_max"] == "2026-05"
+    assert status["excluded_future_period_count"] == 4
+    assert status["excluded_too_old_period_count"] == 8
+    assert "自動排除" in status["data_quality_note"]
     assert status["latest_import_inserted_rows"] == 125
     assert status["latest_import_skipped_duplicates"] == 5
     assert "台北市,新北市" in status["latest_import_scope"]

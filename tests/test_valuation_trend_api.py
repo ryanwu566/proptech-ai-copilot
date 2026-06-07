@@ -40,3 +40,9 @@ def test_valuation_trend_api_contract(monkeypatch) -> None:
     assert payload["road_sample_count"] == 35
     assert payload["monthly_series"]
     assert payload["scenario_forecast"]["base"]
+    assert payload["raw_period_min"]
+    assert payload["raw_period_max"]
+    assert payload["effective_period_min"] == payload["period_min"]
+    assert payload["effective_period_max"] == payload["period_max"]
+    assert payload["excluded_future_period_count"] == 0
+    assert payload["excluded_out_of_window_count"] == 0

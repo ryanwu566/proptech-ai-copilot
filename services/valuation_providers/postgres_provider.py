@@ -7,6 +7,10 @@ from datetime import UTC, datetime
 from typing import Any
 
 
+DATA_QUALITY_NOTE = (
+    "資料庫可能含歷史或未來期別，但估價與趨勢分析會自動排除超出分析窗口、"
+    "晚於目前月份或異常的交易期間。"
+)
 UPDATE_FREQUENCY_NOTE = "正式實價登錄資料應由後台排程維護，不在 Render runtime 執行下載或 ETL。"
 USER_MESSAGE = "使用者不需要下載資料；估價資料由系統後台資料庫維護。"
 
@@ -77,13 +81,13 @@ class PostgresValuationProvider:
             return []
 
     def query_trend_rows(self, request: dict[str, Any], limit: int = 10_000) -> list[dict[str, Any]]:
-        """Return recent official district rows for transparent trend analysis."""
+        """Return an official district pool; the trend service applies period quality rules."""
 
         try:
             with self._connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        """
+                        r"""
                         select transaction_period, city, district, road, building_type,
                                area_ping, building_age_years, unit_price_per_ping, total_price,
                                source
@@ -91,7 +95,6 @@ class PostgresValuationProvider:
                         where source = 'official_plvr_opendata'
                           and replace(trim(city), '臺', '台') = %s
                           and trim(district) = %s
-                          and transaction_period between %s and %s
                           and unit_price_per_ping > 0
                           and area_ping > 0
                         order by transaction_period desc
@@ -100,8 +103,6 @@ class PostgresValuationProvider:
                         [
                             _normalize_city(str(request.get("city", ""))),
                             str(request.get("district", "")).strip(),
-                            request["window_start"],
-                            request["current_period"],
                             max(1, min(int(limit), 20_000)),
                         ],
                     )
@@ -142,20 +143,43 @@ class PostgresValuationProvider:
         if self._last_status:
             return self._last_status
         try:
+            current_period = datetime.now(UTC).strftime("%Y-%m")
+            trend_window_start = _shift_month(current_period, -59)
             with self._connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        """
+                        r"""
                         select count(*) as records_count,
                                count(distinct city) as cities_count,
                                count(distinct district) as districts_count,
                                count(distinct (city, district, road)) as roads_count,
                                count(*) filter (where source = 'official_plvr_opendata') as official_records_count,
                                count(*) filter (where source in ('sample', 'real_price_sample', 'community_building_sample')) as sample_records_count,
-                               min(transaction_period) filter (where source = 'official_plvr_opendata') as official_period_min,
-                               max(transaction_period) filter (where source = 'official_plvr_opendata') as official_period_max
+                               min(transaction_period) filter (where source = 'official_plvr_opendata') as raw_official_period_min,
+                               max(transaction_period) filter (where source = 'official_plvr_opendata') as raw_official_period_max,
+                               min(transaction_period) filter (
+                                   where source = 'official_plvr_opendata'
+                                     and transaction_period ~ '^\d{4}-(0[1-9]|1[0-2])$'
+                                     and transaction_period between %s and %s
+                               ) as effective_trend_period_min,
+                               max(transaction_period) filter (
+                                   where source = 'official_plvr_opendata'
+                                     and transaction_period ~ '^\d{4}-(0[1-9]|1[0-2])$'
+                                     and transaction_period between %s and %s
+                               ) as effective_trend_period_max,
+                               count(*) filter (
+                                   where source = 'official_plvr_opendata'
+                                     and transaction_period ~ '^\d{4}-(0[1-9]|1[0-2])$'
+                                     and transaction_period > %s
+                               ) as excluded_future_period_count,
+                               count(*) filter (
+                                   where source = 'official_plvr_opendata'
+                                     and transaction_period ~ '^\d{4}-(0[1-9]|1[0-2])$'
+                                     and transaction_period < %s
+                               ) as excluded_too_old_period_count
                         from real_price_transactions
-                        """
+                        """,
+                        [trend_window_start, current_period, trend_window_start, current_period, current_period, trend_window_start],
                     )
                     summary = dict(cursor.fetchone())
                     cursor.execute("select distinct city from real_price_transactions order by city")
@@ -186,8 +210,15 @@ class PostgresValuationProvider:
                 "data_composition": composition,
                 "official_records_count": official_count,
                 "sample_records_count": sample_count,
-                "official_period_min": summary.get("official_period_min"),
-                "official_period_max": summary.get("official_period_max"),
+                "official_period_min": summary.get("raw_official_period_min"),
+                "official_period_max": summary.get("raw_official_period_max"),
+                "raw_official_period_min": summary.get("raw_official_period_min"),
+                "raw_official_period_max": summary.get("raw_official_period_max"),
+                "effective_trend_period_min": summary.get("effective_trend_period_min"),
+                "effective_trend_period_max": summary.get("effective_trend_period_max"),
+                "excluded_future_period_count": int(summary.get("excluded_future_period_count") or 0),
+                "excluded_too_old_period_count": int(summary.get("excluded_too_old_period_count") or 0),
+                "data_quality_note": DATA_QUALITY_NOTE,
                 "official_coverage_note": _official_coverage_note(cities, districts),
                 "latest_import_status": last_run.get("status") if last_run else None,
                 "latest_import_scope": _latest_import_scope(last_run),
@@ -215,6 +246,13 @@ class PostgresValuationProvider:
                 "sample_records_count": 0,
                 "official_period_min": None,
                 "official_period_max": None,
+                "raw_official_period_min": None,
+                "raw_official_period_max": None,
+                "effective_trend_period_min": None,
+                "effective_trend_period_max": None,
+                "excluded_future_period_count": 0,
+                "excluded_too_old_period_count": 0,
+                "data_quality_note": DATA_QUALITY_NOTE,
                 "official_coverage_note": "目前無法讀取官方資料涵蓋範圍。",
                 "latest_import_status": None,
                 "latest_import_scope": "",
@@ -352,3 +390,11 @@ def _query_metadata(request: dict[str, Any], scope: str, rows: int) -> dict[str,
         "db_rows_returned": rows,
         "query_status": "ok",
     }
+
+
+def _shift_month(period: str, offset: int) -> str:
+    """Return a YYYY-MM period shifted by a number of months."""
+
+    year, month = map(int, period.split("-"))
+    total = year * 12 + month - 1 + offset
+    return f"{total // 12:04d}-{total % 12 + 1:02d}"
