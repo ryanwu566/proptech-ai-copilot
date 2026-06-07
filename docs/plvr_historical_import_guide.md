@@ -41,3 +41,24 @@ python scripts/import_plvr_to_postgres.py --input data/raw/plvr/history --cities
 Report 包含讀取、接受、插入、更新、重複跳過、排除、檔案數、範圍、資料庫匯入前後筆數與估計成長。`valuation_import_runs` 保存最近匯入範圍與結果。
 
 目前只逐步擴充雙北近一年。不要一次灌入全台近五年，避免 Supabase Free 容量、索引與查詢效能失控。未來經容量評估後，才擴充雙北近五年與 GitHub Actions 自動更新。
+
+## 六都近三年匯入準備
+
+`data/raw/plvr/pending_liudu/` 僅作為本機或受控 CI 的 pending folder，不可 commit。本階段只準備指令，不直接執行匯入。
+
+先做整體 dry-run：
+
+```powershell
+python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --cities "桃園市,台中市,台南市,高雄市" --since 2024-01 --until 2026-12 --limit 250000 --dry-run
+```
+
+確認報告後，建議分城市正式執行：
+
+```powershell
+python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --cities "桃園市" --since 2024-01 --until 2026-12 --limit 80000 --chunk-size 300 --progress-every 300 --statement-timeout 30 --confirm-large-import
+python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --cities "台中市" --since 2024-01 --until 2026-12 --limit 100000 --chunk-size 300 --progress-every 300 --statement-timeout 30 --confirm-large-import
+python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --cities "台南市" --since 2024-01 --until 2026-12 --limit 80000 --chunk-size 300 --progress-every 300 --statement-timeout 30 --confirm-large-import
+python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --cities "高雄市" --since 2024-01 --until 2026-12 --limit 100000 --chunk-size 300 --progress-every 300 --statement-timeout 30 --confirm-large-import
+```
+
+城市比較會正規化 `臺北市／台北市`、`臺中市／台中市`、`臺南市／台南市`。每次正式匯入後，先檢查 data-status，再依 [PLVR Rolling 5 年資料保留策略](plvr_retention_policy.md) 執行 prune dry-run。

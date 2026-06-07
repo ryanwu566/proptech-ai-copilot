@@ -342,6 +342,8 @@ def _source_label(source: str) -> str:
 
 def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], ...], path: Path | None) -> dict[str, Any]:
     last_updated = None
+    current_period = datetime.now(UTC).strftime("%Y-%m")
+    retention_cutoff = _shift_month(current_period, -59)
     if path and path.exists():
         last_updated = datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat()
     return {
@@ -355,6 +357,12 @@ def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], 
             "records_count": len(rows),
         },
         "last_updated": last_updated,
+        "retention_policy_years": 5,
+        "retention_cutoff_period": retention_cutoff,
+        "records_outside_retention_count": 0,
+        "oldest_effective_period": None,
+        "newest_effective_period": None,
+        "retention_note": "本系統採 rolling 5 年官方實價登錄資料策略；展示資料不會由清理工具刪除。",
         "update_frequency_note": UPDATE_FREQUENCY_NOTE,
         "source_note": (
             "目前使用展示用可比成交樣本，未來可切換至 Supabase/Postgres 全台資料庫。"
@@ -363,6 +371,14 @@ def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], 
         ),
         "user_message": USER_MESSAGE,
     }
+
+
+def _shift_month(period: str, offset: int) -> str:
+    """Return a YYYY-MM period shifted by a number of months."""
+
+    year, month = map(int, period.split("-"))
+    total = year * 12 + month - 1 + offset
+    return f"{total // 12:04d}-{total % 12 + 1:02d}"
 
 
 def _source_details(provider: ValuationProvider) -> dict[str, Any]:

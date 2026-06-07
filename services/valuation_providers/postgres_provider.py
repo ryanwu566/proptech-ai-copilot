@@ -11,6 +11,11 @@ DATA_QUALITY_NOTE = (
     "資料庫可能含歷史或未來期別，但估價與趨勢分析會自動排除超出分析窗口、"
     "晚於目前月份或異常的交易期間。"
 )
+RETENTION_POLICY_YEARS = 5
+RETENTION_NOTE = (
+    "本系統採 rolling 5 年官方實價登錄資料策略；每季更新後可先 dry-run 盤點，"
+    "再由維護者確認清理超出保留期間的官方資料。"
+)
 UPDATE_FREQUENCY_NOTE = "正式實價登錄資料應由後台排程維護，不在 Render runtime 執行下載或 ETL。"
 USER_MESSAGE = "使用者不需要下載資料；估價資料由系統後台資料庫維護。"
 
@@ -219,6 +224,12 @@ class PostgresValuationProvider:
                 "excluded_future_period_count": int(summary.get("excluded_future_period_count") or 0),
                 "excluded_too_old_period_count": int(summary.get("excluded_too_old_period_count") or 0),
                 "data_quality_note": DATA_QUALITY_NOTE,
+                "retention_policy_years": RETENTION_POLICY_YEARS,
+                "retention_cutoff_period": trend_window_start,
+                "records_outside_retention_count": int(summary.get("excluded_too_old_period_count") or 0),
+                "oldest_effective_period": summary.get("effective_trend_period_min"),
+                "newest_effective_period": summary.get("effective_trend_period_max"),
+                "retention_note": RETENTION_NOTE,
                 "official_coverage_note": _official_coverage_note(cities, districts),
                 "latest_import_status": last_run.get("status") if last_run else None,
                 "latest_import_scope": _latest_import_scope(last_run),
@@ -253,6 +264,12 @@ class PostgresValuationProvider:
                 "excluded_future_period_count": 0,
                 "excluded_too_old_period_count": 0,
                 "data_quality_note": DATA_QUALITY_NOTE,
+                "retention_policy_years": RETENTION_POLICY_YEARS,
+                "retention_cutoff_period": _shift_month(datetime.now(UTC).strftime("%Y-%m"), -59),
+                "records_outside_retention_count": 0,
+                "oldest_effective_period": None,
+                "newest_effective_period": None,
+                "retention_note": RETENTION_NOTE,
                 "official_coverage_note": "目前無法讀取官方資料涵蓋範圍。",
                 "latest_import_status": None,
                 "latest_import_scope": "",
