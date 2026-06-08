@@ -62,3 +62,40 @@ python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_liudu --
 ```
 
 城市比較會正規化 `臺北市／台北市`、`臺中市／台中市`、`臺南市／台南市`。每次正式匯入後，先檢查 data-status，再依 [PLVR Rolling 3 年資料保留策略](plvr_retention_policy.md) 執行 prune dry-run。
+## 其他縣市 rolling 3 年匯入準備
+
+其他縣市沿用六都相同的 importer、`dedupe_key v2`、natural-key duplicate guard 與 large-import 防呆。逐筆官方 PLVR 僅規劃保留 rolling 3 年，本階段只準備與測試流程，不直接匯入。
+
+### 縣市代碼與分組
+
+| Group | 縣市與代碼 |
+| --- | --- |
+| group01 | 基隆市 C、新竹市 O、新竹縣 J |
+| group02 | 苗栗縣 K、彰化縣 N、南投縣 M |
+| group03 | 雲林縣 P、嘉義市 I、嘉義縣 Q |
+| group04 | 屏東縣 T、宜蘭縣 G、花蓮縣 U |
+| group05 | 台東縣 V、澎湖縣 X、金門縣 W |
+| group06 | 連江縣 Z |
+
+大小寫檔名皆支援。Importer 只處理 `*_lvr_land_A.csv`／`*_lvr_land_a.csv` 買賣主檔，排除 `*_park.csv`、`*_land.csv`、`*_build.csv`、預售屋與租賃資料。
+
+建議將檔案命名為 `plvr_2024_Q1_other_group01_buy.zip` 至 `plvr_2026_Q2_other_group06_buy.zip`，並放在本機或受控 CI 的 `data/raw/plvr/pending_other_counties/`。`data/raw/` 與 ZIP 已被 `.gitignore` 排除，不可 commit。
+
+### 整體 dry-run
+
+```powershell
+python scripts/import_plvr_to_postgres.py --input data/raw/plvr/pending_other_counties --cities "基隆市,新竹市,新竹縣,苗栗縣,彰化縣,南投縣,雲林縣,嘉義市,嘉義縣,屏東縣,宜蘭縣,花蓮縣,台東縣,澎湖縣,金門縣,連江縣" --since 2024-01 --until 2026-12 --limit 250000 --dry-run --confirm-large-import
+```
+
+檢查 `accepted_rows_by_city`、`files[].city_hint`、`source_periods`、`limit_reached` 與 `limit_warning`。若有資料庫連線，另檢查 `natural_duplicate_check=completed`、`skipped_natural_duplicate_rows_by_city` 與預估新增筆數；沒有資料庫連線時會顯示 `natural_duplicate_check=db_required`。
+
+### 正式匯入建議順序
+
+1. 依 group01 至 group06 分組處理，每一組先 dry-run。
+2. 若 group 仍過大，再拆成單一縣市或年度。
+3. 先用 `--max-write-rows 100` 驗證小批寫入。
+4. 正式匯入使用 `--chunk-size 100` 或 `--chunk-size 200`，並加上 `--confirm-large-import`。
+5. 匯入後檢查 `/valuation/data-status`，再執行 rolling 3 年 prune dry-run。
+6. 網路中斷可重跑相同指令；`dedupe_key v2` 與 natural-key guard 會跳過既有交易。
+
+不要在 Render runtime 執行 ETL，不要 commit raw ZIP，也不要把 `VALUATION_DATABASE_URL` 寫入 repo。

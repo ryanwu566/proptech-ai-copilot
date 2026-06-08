@@ -213,3 +213,8 @@ python scripts/prune_valuation_data.py --keep-years 3 --dry-run
 ### 市場趨勢與未來情境
 
 `POST /valuation/trend` 僅使用最近三年內的官方 PLVR OpenData，排除展示樣本、未來月份與異常交易。系統依同路段、同區同型態、同行政區的順序選樣，顯示月／年中位單價、年化趨勢、波動度與 6、12、36 個月保守／中性／樂觀情境。情境年率限制於 -10% 至 +10%，僅供歷史趨勢理解，不代表成交保證、正式鑑價、銀行估價或投資建議。
+### 其他縣市 rolling 3 年準備
+
+六都已建立穩定的 rolling 3 年官方 PLVR 流程；其他縣市可沿用同一套 ETL，依基隆／新竹、苗彰投、雲嘉、屏宜花、東部離島與連江等分組先 dry-run，再分批匯入。Importer 僅辨識買賣主檔，並使用 `dedupe_key v2` 與 natural-key duplicate guard 避免重複交易。
+
+Render runtime 不執行 ETL，raw ZIP／CSV 不 commit，DB URL 與任何 secrets 不寫入 repo。完整流程請見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)，後續功能切分請見 [Product Roadmap](docs/product_roadmap.md)。

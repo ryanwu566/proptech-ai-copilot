@@ -19,11 +19,27 @@ SALE_MAIN_FILENAME = re.compile(r"^[a-z]_lvr_land_a\.csv$", re.IGNORECASE)
 NON_MAIN_FILENAME = re.compile(r".*_(?:park|land|build)\.csv$", re.IGNORECASE)
 FILE_CITY_MAP = {
     "a": "台北市",
-    "f": "新北市",
-    "h": "桃園市",
     "b": "台中市",
+    "c": "基隆市",
     "d": "台南市",
     "e": "高雄市",
+    "f": "新北市",
+    "g": "宜蘭縣",
+    "h": "桃園市",
+    "i": "嘉義市",
+    "j": "新竹縣",
+    "k": "苗栗縣",
+    "m": "南投縣",
+    "n": "彰化縣",
+    "o": "新竹市",
+    "p": "雲林縣",
+    "q": "嘉義縣",
+    "t": "屏東縣",
+    "u": "花蓮縣",
+    "v": "台東縣",
+    "w": "金門縣",
+    "x": "澎湖縣",
+    "z": "連江縣",
 }
 
 FIELD_ALIASES: dict[str, tuple[str, ...]] = {

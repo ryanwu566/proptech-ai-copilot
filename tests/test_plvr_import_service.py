@@ -116,7 +116,30 @@ def test_official_sale_filename_is_directly_recognized_and_maps_city(tmp_path) -
     assert is_sale_transaction_csv(path) is True
     assert city_from_filename(path) == "台北市"
     assert city_from_filename(tmp_path / "f_lvr_land_a.csv") == "新北市"
-    expected = {"a": "台北市", "f": "新北市", "h": "桃園市", "b": "台中市", "d": "台南市", "e": "高雄市"}
+    expected = {
+        "a": "台北市",
+        "b": "台中市",
+        "c": "基隆市",
+        "d": "台南市",
+        "e": "高雄市",
+        "f": "新北市",
+        "g": "宜蘭縣",
+        "h": "桃園市",
+        "i": "嘉義市",
+        "j": "新竹縣",
+        "k": "苗栗縣",
+        "m": "南投縣",
+        "n": "彰化縣",
+        "o": "新竹市",
+        "p": "雲林縣",
+        "q": "嘉義縣",
+        "t": "屏東縣",
+        "u": "花蓮縣",
+        "v": "台東縣",
+        "w": "金門縣",
+        "x": "澎湖縣",
+        "z": "連江縣",
+    }
     for code, city in expected.items():
         assert city_from_filename(tmp_path / f"{code}_lvr_land_A.csv") == city
         assert city_from_filename(tmp_path / f"{code.upper()}_lvr_land_a.csv") == city
