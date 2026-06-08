@@ -1,4 +1,4 @@
-import type { ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { PropertySearchResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 
 export type ValuationInputs = {
   city: string;
@@ -44,6 +44,7 @@ export function buildValuationSummaryHtml(
   inputs: ValuationInputs,
   result: ValuationResult,
   trend?: ValuationTrendResult,
+  propertySearch?: PropertySearchResult,
 ): string {
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
@@ -55,6 +56,13 @@ export function buildValuationSummaryHtml(
       <td>${item.horizon_months} 個月</td><td>${item.projected_unit_price_per_ping} 萬</td>
       <td>${item.projected_total_price.toLocaleString()} 萬</td><td>${(item.growth_rate_used * 100).toFixed(1)}%</td></tr>`),
   ).join("") : "";
+  const propertyRows = propertySearch?.road_suggestions.slice(0, 5).map((item) => `
+    <tr><td>${escapeHtml(item.city)}</td><td>${escapeHtml(item.district)}</td><td>${escapeHtml(item.road ?? "")}</td>
+    <td>${item.sample_count}</td><td>${item.median_total_price.toLocaleString()} 萬</td>
+    <td>${item.median_area_ping} 坪</td><td>${escapeHtml(item.reason)}</td></tr>`).join("") ?? "";
+  const propertySection = propertySearch ? `<h2>找房雷達摘要</h2>
+    <p>本次由官方 PLVR 歷史成交篩選出 ${propertySearch.summary.matched_count.toLocaleString()} 筆符合條件的交易；不代表目前有待售物件。</p>
+    <div class="scroll"><table><thead><tr><th>縣市</th><th>行政區</th><th>路段</th><th>成交筆數</th><th>中位總價</th><th>中位坪數</th><th>推薦原因</th></tr></thead><tbody>${propertyRows}</tbody></table></div>` : "";
   const disclaimer = "本結果為資料模型推估參考，非正式鑑價、非銀行估價、非投資保證。";
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PropTech AI Copilot 估價摘要</title><style>
@@ -75,7 +83,7 @@ export function buildValuationSummaryHtml(
   ${summaryItem("本次估算使用", result.estimate_source_label)}${summaryItem("官方／樣本資料數量", `${result.data_status.official_records_count ?? 0}／${result.data_status.sample_records_count ?? 0}`)}</dl>
   <h2>可比成交前 5 筆</h2><div class="scroll"><table><thead><tr><th>期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th></tr></thead><tbody>${comparableRows}</tbody></table></div>
   ${trend ? `<h2>市場趨勢情境</h2><p>${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div>` : ""}
-  <p class="notice">${disclaimer}</p></main></body></html>`;
+  ${propertySection}<p class="notice">${disclaimer}</p></main></body></html>`;
 }
 
 export function valuationSummaryFilename(now = new Date()): string {

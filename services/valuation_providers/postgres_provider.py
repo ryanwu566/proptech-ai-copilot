@@ -115,6 +115,54 @@ class PostgresValuationProvider:
         except Exception:
             return []
 
+    def query_property_search_rows(self, request: dict[str, Any], limit: int = 5_000) -> list[dict[str, Any]]:
+        """Return official rolling-window transactions for Property Finder."""
+
+        current_period = datetime.now(UTC).strftime("%Y-%m")
+        clauses = [
+            "source = 'official_plvr_opendata'",
+            "transaction_period ~ '^\\d{4}-(0[1-9]|1[0-2])$'",
+            "transaction_period between %s and %s",
+            "unit_price_per_ping > 0 and unit_price_per_ping <= 500",
+            "total_price > 0",
+            "area_ping > 0",
+        ]
+        params: list[Any] = [str(request.get("period_since") or _shift_month(current_period, -35)), current_period]
+        if request.get("city"):
+            clauses.append("replace(trim(city), '臺', '台') = %s")
+            params.append(_normalize_city(str(request["city"])))
+        if request.get("districts"):
+            clauses.append("trim(district) = any(%s)")
+            params.append([str(item).strip() for item in request["districts"] if str(item).strip()])
+        columns = {
+            "budget_min": ("total_price", ">="), "budget_max": ("total_price", "<="),
+            "area_ping_min": ("area_ping", ">="), "area_ping_max": ("area_ping", "<="),
+            "building_age_max": ("building_age_years", "<="), "floor_min": ("floor", ">="),
+        }
+        for key, (column, operator) in columns.items():
+            if request.get(key) is not None:
+                clauses.append(f"{column} {operator} %s")
+                params.append(float(request[key]))
+        params.append(max(100, min(int(limit), 10_000)))
+        try:
+            with self._connect() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        f"""
+                        select transaction_period, city, district, road, building_type,
+                               area_ping, building_age_years, floor, unit_price_per_ping,
+                               total_price, source
+                        from real_price_transactions
+                        where {' and '.join(clauses)}
+                        order by transaction_period desc
+                        limit %s
+                        """,
+                        params,
+                    )
+                    return [_normalize_row(dict(row)) for row in cursor.fetchall()]
+        except Exception:
+            return []
+
     def match_community(self, request: dict[str, Any]) -> dict[str, Any] | None:
         """Return a probable database community match when user input supports it."""
 
@@ -231,6 +279,12 @@ class PostgresValuationProvider:
                 "newest_effective_period": summary.get("effective_trend_period_max"),
                 "retention_note": RETENTION_NOTE,
                 "official_coverage_note": _official_coverage_note(cities, districts),
+                "coverage_city_count": int(summary.get("cities_count") or 0),
+                "coverage_district_count": int(summary.get("districts_count") or 0),
+                "coverage_road_count": int(summary.get("roads_count") or 0),
+                "coverage_cities": cities,
+                "coverage_summary": _coverage_summary(summary),
+                "coverage_note_short": "資料採 rolling 3 年策略；詳細行政區覆蓋由系統維護，不在前端完整列出。",
                 "latest_import_status": last_run.get("status") if last_run else None,
                 "latest_import_scope": _latest_import_scope(last_run),
                 "latest_import_inserted_rows": int(last_run.get("inserted_rows") or 0) if last_run else 0,
@@ -320,10 +374,21 @@ def _latest_import_scope(last_run: dict[str, Any] | None) -> str:
     )
 
 
+
 def _official_coverage_note(cities: list[str], districts: list[str]) -> str:
-    city_text = "、".join(cities) if cities else "尚無城市"
-    district_text = "、".join(districts) if districts else "尚無行政區"
-    return f"目前官方資料涵蓋 {city_text} 的部分區域（{district_text}），尚非完整雙北一年或全台資料。"
+    """Keep the backward-compatible field compact."""
+
+    return f"目前官方資料涵蓋 {len(cities)} 縣市、{len(districts)} 行政區；詳細覆蓋由系統維護。"
+
+
+def _coverage_summary(summary: dict[str, Any]) -> str:
+    """Return a compact user-facing coverage sentence."""
+
+    return (
+        f"目前官方資料涵蓋 {int(summary.get('cities_count') or 0)} 縣市、"
+        f"{int(summary.get('districts_count') or 0)} 行政區、"
+        f"{int(summary.get('roads_count') or 0):,} 路段。"
+    )
 
 
 def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:

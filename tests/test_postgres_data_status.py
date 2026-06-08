@@ -86,6 +86,11 @@ def test_postgres_status_identifies_official_data(monkeypatch) -> None:
     assert status["latest_import_inserted_rows"] == 125
     assert status["latest_import_skipped_duplicates"] == 5
     assert "台北市,新北市" in status["latest_import_scope"]
+    assert status["coverage_city_count"] == 1
+    assert status["coverage_district_count"] == 1
+    assert status["coverage_road_count"] == 2
+    assert status["coverage_summary"] == "目前官方資料涵蓋 1 縣市、1 行政區、2 路段。"
+    assert len(status["official_coverage_note"]) < 80
 
 
 def test_postgres_status_identifies_mixed_data(monkeypatch) -> None:

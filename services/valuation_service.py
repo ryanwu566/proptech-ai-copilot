@@ -344,6 +344,9 @@ def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], 
     last_updated = None
     current_period = datetime.now(UTC).strftime("%Y-%m")
     retention_cutoff = _shift_month(current_period, -35)
+    cities = sorted({row["city"] for row in rows})
+    districts = sorted({row["district"] for row in rows})
+    roads_count = len({(row["city"], row["district"], row["road"]) for row in rows})
     if path and path.exists():
         last_updated = datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat()
     return {
@@ -351,11 +354,17 @@ def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], 
         "is_demo_data": provider.is_demo_data,
         "is_full_taiwan": provider.is_full_taiwan,
         "coverage": {
-            "cities": sorted({row["city"] for row in rows}),
-            "districts": sorted({row["district"] for row in rows}),
-            "roads_count": len({(row["city"], row["district"], row["road"]) for row in rows}),
+            "cities": cities,
+            "districts": districts,
+            "roads_count": roads_count,
             "records_count": len(rows),
         },
+        "coverage_city_count": len(cities),
+        "coverage_district_count": len(districts),
+        "coverage_road_count": roads_count,
+        "coverage_cities": cities,
+        "coverage_summary": f"目前資料涵蓋 {len(cities)} 縣市、{len(districts)} 行政區、{roads_count:,} 路段。",
+        "coverage_note_short": "詳細行政區覆蓋由系統維護，不在前端完整列出。",
         "last_updated": last_updated,
         "retention_policy_years": 3,
         "retention_cutoff_period": retention_cutoff,
