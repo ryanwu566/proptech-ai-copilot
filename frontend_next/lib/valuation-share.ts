@@ -1,4 +1,5 @@
-import type { LoanCalculationResult, PropertySearchResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { HoldingCostResult, LoanCalculationResult, PropertySearchResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import { HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
 
 export type ValuationInputs = {
   city: string;
@@ -46,7 +47,9 @@ export function buildValuationSummaryHtml(
   trend?: ValuationTrendResult,
   propertySearch?: PropertySearchResult,
   loan?: LoanCalculationResult,
+  holdingCost?: HoldingCostResult,
 ): string {
+  const holding = holdingCost ?? readHoldingCostResult();
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
     <td>${escapeHtml(row.road)}</td><td>${escapeHtml(row.building_type)}</td><td>${row.area_ping}</td>
@@ -75,6 +78,16 @@ export function buildValuationSummaryHtml(
     ${summaryItem("負擔等級", loan.affordability_level)}
     </dl><h3>利率敏感度</h3><div class="scroll"><table><thead><tr><th>年利率</th><th>月付</th><th>總利息</th><th>相對基準月付差</th></tr></thead><tbody>${loanRows}</tbody></table></div>
     <p class="notice">${escapeHtml(loan.disclaimer)}</p>` : "";
+  const holdingSection = holding ? `<h2>每月持有成本</h2><dl>
+    ${summaryItem("每月總持有成本", `${holding.monthly_total_holding_cost.toLocaleString()} 元`)}
+    ${summaryItem("房貸月付", `${holding.loan_monthly_payment.toLocaleString()} 元`)}
+    ${summaryItem("管理費", `${holding.monthly_management_fee.toLocaleString()} 元`)}
+    ${summaryItem("修繕預備金", `${holding.monthly_repair_reserve.toLocaleString()} 元`)}
+    ${summaryItem("每月稅費簡化估算", `${holding.monthly_tax_estimate.toLocaleString()} 元`)}
+    ${summaryItem("每月保險", `${holding.monthly_insurance.toLocaleString()} 元`)}
+    ${summaryItem("負擔率", holding.income_burden_ratio === null ? "未輸入月收入" : `${(holding.income_burden_ratio * 100).toFixed(1)}%`)}
+    ${summaryItem("負擔等級", holding.affordability_level)}</dl>
+    <p class="notice">${escapeHtml(holding.disclaimer)}</p>` : "";
   const disclaimer = "本結果為資料模型推估參考，非正式鑑價、非銀行估價、非投資保證。";
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PropTech AI Copilot 估價摘要</title><style>
@@ -95,7 +108,17 @@ export function buildValuationSummaryHtml(
   ${summaryItem("本次估算使用", result.estimate_source_label)}${summaryItem("官方／樣本資料數量", `${result.data_status.official_records_count ?? 0}／${result.data_status.sample_records_count ?? 0}`)}</dl>
   <h2>可比成交前 5 筆</h2><div class="scroll"><table><thead><tr><th>期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th></tr></thead><tbody>${comparableRows}</tbody></table></div>
   ${trend ? `<h2>市場趨勢情境</h2><p>${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div>` : ""}
-  ${propertySection}${loanSection}<p class="notice">${disclaimer}</p></main></body></html>`;
+  ${propertySection}${loanSection}${holdingSection}<p class="notice">${disclaimer}</p></main></body></html>`;
+}
+
+function readHoldingCostResult(): HoldingCostResult | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const value = window.sessionStorage.getItem(HOLDING_COST_SESSION_KEY);
+    return value ? JSON.parse(value) as HoldingCostResult : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export function valuationSummaryFilename(now = new Date()): string {

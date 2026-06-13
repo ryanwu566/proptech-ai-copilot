@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HoldingCostCalculator, HoldingCostPrefill } from "@/components/holding-cost-calculator";
 import { api, LoanCalculationResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
@@ -9,9 +10,11 @@ import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 export function LoanCalculator({
   propertyPriceWan,
   onResult,
+  onHoldingCost,
 }: {
   propertyPriceWan?: number;
   onResult?: (result: LoanCalculationResult) => void;
+  onHoldingCost?: (result: LoanCalculationResult) => void;
 }) {
   const [propertyPrice, setPropertyPrice] = useState(propertyPriceWan ?? 2000);
   const [downPaymentRatio, setDownPaymentRatio] = useState(0.2);
@@ -22,10 +25,12 @@ export function LoanCalculator({
   const [result, setResult] = useState<LoanCalculationResult>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [holdingPrefill, setHoldingPrefill] = useState<HoldingCostPrefill>(propertyPriceWan ? { property_price: propertyPriceWan } : { property_price: 2000 });
 
   useEffect(() => {
     if (propertyPriceWan && propertyPriceWan > 0) {
       setPropertyPrice(propertyPriceWan);
+      setHoldingPrefill({ property_price: propertyPriceWan });
       setResult(undefined);
     }
   }, [propertyPriceWan]);
@@ -52,7 +57,12 @@ export function LoanCalculator({
     }
   }
 
-  return <SectionCard title="貸款月付試算" description="用透明公式估算頭期款、月付、總利息與利率變動影響；帶入總價後不會自動送出。">
+  function sendToHoldingCost(loan: LoanCalculationResult) {
+    setHoldingPrefill({ property_price: loan.property_price_wan, loan_monthly_payment: loan.monthly_payment, monthly_income: loan.monthly_income_wan });
+    onHoldingCost?.(loan);
+  }
+
+  return <div className="min-w-0 space-y-5"><SectionCard title="貸款月付試算" description="用透明公式估算頭期款、月付、總利息與利率變動影響；帶入總價後不會自動送出。">
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
         <LoanNumberField label="房屋總價（萬元）" value={propertyPrice} onChange={setPropertyPrice} min={0.01} />
@@ -67,13 +77,13 @@ export function LoanCalculator({
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
-        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">填入貸款條件後，查看月付、總利息、負擔率與利率敏感度。</div> : <LoanResults result={result} />}
+        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">填入貸款條件後，查看月付、總利息、負擔率與利率敏感度。</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
       </div>
     </div>
-  </SectionCard>;
+  </SectionCard>{!onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>}</div>;
 }
 
-function LoanResults({ result }: { result: LoanCalculationResult }) {
+function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult; onHoldingCost?: (result: LoanCalculationResult) => void }) {
   const levelLabels: Record<string, string> = { comfortable: "舒適", manageable: "可管理", tight: "偏緊", risky: "風險偏高", unknown: "未評估" };
   return <div className="min-w-0 space-y-4">
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -86,6 +96,7 @@ function LoanResults({ result }: { result: LoanCalculationResult }) {
     </div>
     {result.grace_period_years > 0 && <div className="grid gap-3 sm:grid-cols-2"><MetricTile label="寬限期內月付" value={`${(result.grace_period_monthly_payment ?? 0).toLocaleString()} 元`} note="僅繳利息" /><MetricTile label="寬限期後月付" value={`${(result.post_grace_monthly_payment ?? 0).toLocaleString()} 元`} note="剩餘期間本息攤還" /></div>}
     <Notice>{result.affordability_message}</Notice>
+    {onHoldingCost && <Button secondary className="w-full sm:w-auto" onClick={() => onHoldingCost(result)}>帶入持有成本</Button>}
     <div>
       <p className="mb-2 text-xs font-bold text-slate-800">利率敏感度</p>
       <p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p>
