@@ -14,7 +14,7 @@ export type PropertyFinderSelection = {
   area_ping: number;
 };
 
-export function PropertyFinder({ onUse, onResult }: { onUse: (selection: PropertyFinderSelection) => void; onResult?: (result: PropertySearchResult) => void }) {
+export function PropertyFinder({ onUse, onLoanPrice, onResult }: { onUse: (selection: PropertyFinderSelection) => void; onLoanPrice: (priceWan: number) => void; onResult?: (result: PropertySearchResult) => void }) {
   const [city, setCity] = useState("");
   const [districtText, setDistrictText] = useState("");
   const [budgetMin, setBudgetMin] = useState<number | "">("");
@@ -70,11 +70,11 @@ export function PropertyFinder({ onUse, onResult }: { onUse: (selection: Propert
     </div>
     {error && <div className="mt-4"><ErrorState message={error} /></div>}
     {loading && <div className="mt-4"><LoadingState label="整理符合條件的區域與路段..." /></div>}
-    {result && !loading && <PropertyFinderResults result={result} onUse={onUse} />}
+    {result && !loading && <PropertyFinderResults result={result} onUse={onUse} onLoanPrice={onLoanPrice} />}
   </SectionCard>;
 }
 
-function PropertyFinderResults({ result, onUse }: { result: PropertySearchResult; onUse: (selection: PropertyFinderSelection) => void }) {
+function PropertyFinderResults({ result, onUse, onLoanPrice }: { result: PropertySearchResult; onUse: (selection: PropertyFinderSelection) => void; onLoanPrice: (priceWan: number) => void }) {
   if (!result.summary.matched_count) return <div className="mt-5"><EmptyState title="尚未找到符合條件的歷史成交" detail={result.summary.message} /></div>;
   return <div className="mt-6 space-y-5 border-t border-stone-200 pt-5">
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -88,10 +88,10 @@ function PropertyFinderResults({ result, onUse }: { result: PropertySearchResult
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{result.district_suggestions.map((item) => <article key={`${item.city}-${item.district}`} className="rounded-xl border border-stone-200 bg-stone-50/70 p-3"><div className="flex items-start justify-between gap-3"><div><p className="font-bold text-slate-900">{item.city} {item.district}</p><p className="mt-1 text-[10px] text-slate-500">{item.sample_count} 筆成交 · 中位總價 {item.median_total_price.toLocaleString()} 萬</p></div><span className="rounded-full bg-cyan-100 px-2 py-1 text-[10px] font-bold text-cyan-800">{item.score}</span></div><p className="mt-3 text-xs leading-5 text-slate-600">{item.reason}</p></article>)}</div>
     </div>
     <FinderTable title="推薦路段" minWidth="min-w-[820px]" headers={["區域", "路段", "成交筆數", "中位總價", "中位坪數", "常見型態", "操作"]}>
-      {result.road_suggestions.map((item) => <tr key={`${item.city}-${item.district}-${item.road}`} className="border-t border-stone-100"><td className="p-2">{item.city} {item.district}</td><td>{item.road}</td><td>{item.sample_count}</td><td>{item.median_total_price.toLocaleString()} 萬</td><td>{item.median_area_ping} 坪</td><td>{item.common_building_type}</td><td><UseButton onClick={() => onUse(suggestionSelection(item))} /></td></tr>)}
+      {result.road_suggestions.map((item) => <tr key={`${item.city}-${item.district}-${item.road}`} className="border-t border-stone-100"><td className="p-2">{item.city} {item.district}</td><td>{item.road}</td><td>{item.sample_count}</td><td>{item.median_total_price.toLocaleString()} 萬</td><td>{item.median_area_ping} 坪</td><td>{item.common_building_type}</td><td><FinderActions onValuation={() => onUse(suggestionSelection(item))} onLoan={() => onLoanPrice(item.median_total_price)} /></td></tr>)}
     </FinderTable>
     <FinderTable title="符合條件的成交樣本" minWidth="min-w-[980px]" headers={["期間", "區域", "路段", "型態", "坪數", "總價", "每坪單價", "來源", "操作"]}>
-      {result.matched_transactions.map((item, index) => <tr key={`${item.transaction_period}-${item.road}-${index}`} className="border-t border-stone-100"><td className="whitespace-nowrap p-2">{item.transaction_period}</td><td>{item.city} {item.district}</td><td>{item.road}</td><td>{item.building_type}</td><td>{item.area_ping}</td><td>{item.total_price.toLocaleString()} 萬</td><td>{item.unit_price_per_ping} 萬</td><td><span className="whitespace-nowrap rounded-full bg-cyan-50 px-2 py-1 font-bold text-cyan-800">{item.source_label}</span></td><td><UseButton onClick={() => onUse(transactionSelection(item))} /></td></tr>)}
+      {result.matched_transactions.map((item, index) => <tr key={`${item.transaction_period}-${item.road}-${index}`} className="border-t border-stone-100"><td className="whitespace-nowrap p-2">{item.transaction_period}</td><td>{item.city} {item.district}</td><td>{item.road}</td><td>{item.building_type}</td><td>{item.area_ping}</td><td>{item.total_price.toLocaleString()} 萬</td><td>{item.unit_price_per_ping} 萬</td><td><span className="whitespace-nowrap rounded-full bg-cyan-50 px-2 py-1 font-bold text-cyan-800">{item.source_label}</span></td><td><FinderActions onValuation={() => onUse(transactionSelection(item))} onLoan={() => onLoanPrice(item.total_price)} /></td></tr>)}
     </FinderTable>
     <Notice tone="warning">{result.disclaimer}</Notice>
   </div>;
@@ -101,8 +101,8 @@ function FinderTable({ title, headers, minWidth, children }: { title: string; he
   return <div><h3 className="text-sm font-bold text-slate-900">{title}</h3><p className="mb-2 mt-1 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p><div className="max-w-full touch-pan-x overflow-x-auto"><table className={`w-full ${minWidth} text-left text-[10px]`}><thead><tr className="bg-stone-50">{headers.map((header, index) => <th key={header} className={index === 0 ? "p-2" : ""}>{header}</th>)}</tr></thead><tbody>{children}</tbody></table></div></div>;
 }
 
-function UseButton({ onClick }: { onClick: () => void }) {
-  return <button type="button" onClick={onClick} className="whitespace-nowrap rounded-lg border border-cyan-200 px-2 py-1 font-bold text-cyan-800 transition hover:bg-cyan-50">帶入估價</button>;
+function FinderActions({ onValuation, onLoan }: { onValuation: () => void; onLoan: () => void }) {
+  return <div className="flex gap-1"><button type="button" onClick={onValuation} className="whitespace-nowrap rounded-lg border border-cyan-200 px-2 py-1 font-bold text-cyan-800 transition hover:bg-cyan-50">帶入估價</button><button type="button" onClick={onLoan} className="whitespace-nowrap rounded-lg border border-violet-200 px-2 py-1 font-bold text-violet-800 transition hover:bg-violet-50">帶入貸款</button></div>;
 }
 
 function NumberInput({ label, value, onChange }: { label: string; value: number | ""; onChange: (value: number | "") => void }) {
