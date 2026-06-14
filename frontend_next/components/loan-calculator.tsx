@@ -63,7 +63,7 @@ export function LoanCalculator({
     onHoldingCost?.(loan);
   }
 
-  return <div id="loan-calculator" className="min-w-0 scroll-mt-20 space-y-5"><SectionCard title="貸款月付試算" description="用透明公式估算頭期款、月付、總利息與利率變動影響；帶入總價後不會自動送出。">
+  return <div id="loan-calculator" className="min-w-0 scroll-mt-20 space-y-5"><span id="loan" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title="貸款月付試算" description="用透明公式估算頭期款、月付、總利息與利率變動影響；帶入總價後不會自動送出。">
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
         <LoanNumberField label="房屋總價（萬元）" value={propertyPrice} onChange={setPropertyPrice} min={0.01} />

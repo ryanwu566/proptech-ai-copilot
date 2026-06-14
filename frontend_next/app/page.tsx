@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { HelpCallout } from "@/components/help-callout";
+import { HeroIntro } from "@/components/hero-intro";
 import { HoldingCostCalculator, HoldingCostPrefill, prefillHoldingCost } from "@/components/holding-cost-calculator";
 import { LoanCalculator } from "@/components/loan-calculator";
 import { prefillLocationInsight } from "@/components/location-insight";
@@ -45,7 +46,11 @@ function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (c
 
 function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; openTax: (caseId?: string) => void }) {
   const [selectedCase, setSelectedCase] = useState("DEMO-LOW");
+  const [reportReady, setReportReady] = useState(false);
+  useEffect(()=>{try{const stored=window.sessionStorage.getItem("proptech:viewing-workspace-context");setReportReady(Boolean(stored&&JSON.parse(stored).valuation));}catch{setReportReady(false);}},[]);
+  function openViewingFlow(target: string) { window.sessionStorage.setItem("proptech:pending-section", target); setPage("房價估算"); }
   return <div className="space-y-6">
+    <HeroIntro onStart={() => openViewingFlow("property-finder")} onWorkspace={() => openViewingFlow("immersive-workspace")} reportReady={reportReady} onReport={() => openViewingFlow("decision-report")} />
     <DecisionHero onPrimary={() => openTax(selectedCase)} onSecondary={() => setPage("Map Insight Lite")} />
     <HelpCallout>第一次使用建議先選一筆展示案件，進入 TaxOracle 快篩。</HelpCallout>
     <section><SectionTitle title="選一筆案件開始" note="先選擇決策情境，再進入稅務快篩。" /><div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3"><CaseCard title="低風險換屋案" status="eligible" signal="green" description="展示完整可行流程與報告輸出" selected={selectedCase === "DEMO-LOW"} onSelect={() => setSelectedCase("DEMO-LOW")} onOpen={() => openTax("DEMO-LOW")} /><CaseCard title="中風險持分案" status="manual_review" signal="yellow" description="展示人工補件與資格複核" selected={selectedCase === "DEMO-MEDIUM"} onSelect={() => setSelectedCase("DEMO-MEDIUM")} onOpen={() => openTax("DEMO-MEDIUM")} /><CaseCard title="高風險非自住案" status="not_eligible" signal="red" description="展示規則阻擋與關鍵風險" selected={selectedCase === "DEMO-HIGH"} onSelect={() => setSelectedCase("DEMO-HIGH")} onOpen={() => openTax("DEMO-HIGH")} /></div></section>
@@ -126,7 +131,7 @@ function MapInsight() {
   const categories = result?.categories.filter((group) => active.includes(group.category)) ?? [];
   const allSelected = active.length === categoryKeys.length;
   const totalPlaces = result?.categories.reduce((sum, group) => sum + group.count, 0) ?? 0;
-  return <div className="space-y-4"><PageHeader kicker="區域洞察" title="Map Insight 周遭生活機能" description="搜尋地址，查看 800 公尺生活圈的交通、採買、餐飲與公共設施。" />
+  return <div id="map-insight" className="scroll-mt-20 space-y-4"><PageHeader kicker="區域洞察" title="Map Insight 周遭生活機能" description="搜尋地址，查看 800 公尺生活圈的交通、採買、餐飲與公共設施。" />
     <HelpCallout>輸入地址或路段，系統會顯示周遭設施與生活機能摘要。</HelpCallout>
     {error && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><ErrorState message={error} /><p className="mt-2 break-all text-[10px] text-amber-700">目前連線來源：{API_BASE || "尚未設定"}</p></div>}
     {result ? <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(71,85,105,0.12)] xl:grid xl:min-h-[720px] xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -221,6 +226,7 @@ function ValuationPage() {
   useEffect(()=>{publishWorkspaceContext({inputs:{city,district,road,building_type:type,area_ping:area,building_age_years:age,floor},propertySearch:propertySearchResult,valuation:result,trend,loan:loanResult,holding:holdingResult});},[city,district,road,type,area,age,floor,propertySearchResult,result,trend,loanResult,holdingResult]);
   useEffect(()=>{prefillLocationInsight({city,district,road,area_ping:area,building_type:type,property_price:result?.price_range.mid});},[city,district,road,area,type,result]);
   useEffect(()=>{const shared=parseValuationShareParams(window.location.search);const initialCity=shared?.city??"台北市",initialDistrict=shared?.district??"大安區";api.roadCities().then(x=>setCities(x.cities));api.roadDistricts(initialCity).then(x=>setDistricts(x.districts));api.roads(initialCity,initialDistrict).then(x=>setRoads(x.roads));api.valuationDataStatus().then(setDataStatus).catch(()=>setError("估價資料狀態暫時無法載入，仍可嘗試估算。"));if(shared){setCity(shared.city);setDistrict(shared.district);setRoad(shared.road);setType(shared.building_type);setArea(shared.area_ping);setAge(shared.building_age_years);setFloor(shared.floor);setShareNotice("已載入分享條件，可按下估價重新查詢");}},[]);
+  useEffect(()=>{const target=window.sessionStorage.getItem("proptech:pending-section");if(!target)return;window.sessionStorage.removeItem("proptech:pending-section");window.setTimeout(()=>document.getElementById(target)?.scrollIntoView({behavior:"smooth",block:"start"}),120);},[]);
   async function changeCity(value:string){setCity(value);setDistrict("");setRoad("");setDistricts((await api.roadDistricts(value)).districts);}
   async function changeDistrict(value:string){setDistrict(value);setRoad("");setRoads((await api.roads(city,value)).roads);}
   function scrollToWorkflow(id:string){window.setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}),50);}

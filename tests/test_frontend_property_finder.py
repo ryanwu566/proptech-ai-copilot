@@ -17,6 +17,7 @@ def test_property_finder_api_and_form_contracts() -> None:
     assert "推薦行政區" in COMPONENT
     assert "推薦路段" in COMPONENT
     assert "符合條件的成交樣本" in COMPONENT
+    assert 'id="property-finder"' in COMPONENT
 
 
 def test_property_finder_can_fill_valuation_without_auto_estimate() -> None:
@@ -48,6 +49,7 @@ def test_property_finder_mobile_tables_are_scoped_scroll_areas() -> None:
     assert "w-full sm:w-auto" in COMPONENT
     assert "grid-cols-2" in COMPONENT
     assert "sm:flex-wrap" in COMPONENT
+    assert "min-w-[190px]" in COMPONENT
 
 
 def test_data_status_does_not_render_long_coverage_note() -> None:

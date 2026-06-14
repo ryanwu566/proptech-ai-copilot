@@ -11,7 +11,7 @@ export function DecisionReport({
 }) {
   const summary = buildDecisionSummary(propertySearch, valuation, loan, holding, location);
   const tone = summary.recommendation === "值得進一步看屋" ? "text-emerald-800 bg-emerald-50 border-emerald-200" : summary.recommendation === "暫不建議" ? "text-rose-800 bg-rose-50 border-rose-200" : "text-amber-800 bg-amber-50 border-amber-200";
-  return <section className="rounded-xl border border-stone-200 bg-white p-4">
+  return <section id="decision-report" className="scroll-mt-20 rounded-xl border border-stone-200 bg-white p-4">
     <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">RULE-BASED DECISION SUMMARY</p><h2 className="mt-1 font-bold text-slate-950">看屋決策摘要</h2></div><span className={`rounded-full border px-3 py-1 text-xs font-bold ${tone}`}>{summary.recommendation}</span></div>
     <div className="mt-4 grid gap-3 md:grid-cols-2"><SummaryList title="主要理由" items={summary.reasons} /><SummaryList title="主要風險" items={summary.risks} /></div>
     <p className="mt-3 text-xs font-bold text-slate-600">資料信心：{summary.dataConfidence}</p>

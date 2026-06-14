@@ -54,7 +54,7 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
   }
 
   const inputClass = "w-full min-w-0 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
-  return <div className="min-w-0 space-y-5"><ImmersiveViewingWorkspace propertySearch={result}/><SectionCard title="找房雷達" description="依預算與條件，從官方實價登錄成交資料找出較符合的區域與路段，作為看屋方向參考。">
+  return <div className="min-w-0 space-y-8"><ImmersiveViewingWorkspace propertySearch={result}/><div id="property-finder" className="scroll-mt-20"><SectionCard title="找房雷達" description="依預算與條件，從官方實價登錄成交資料找出較符合的區域與路段，作為看屋方向參考。">
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <label className="text-xs text-slate-500">縣市（可留空）<input className={`${inputClass} mt-1`} value={city} onChange={(event) => setCity(event.target.value)} placeholder="例如：台北市" /></label>
       <label className="text-xs text-slate-500">行政區（可用逗號分隔）<input className={`${inputClass} mt-1`} value={districtText} onChange={(event) => setDistrictText(event.target.value)} placeholder="例如：大安區、信義區" /></label>
@@ -72,7 +72,7 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
     {error && <div className="mt-4"><ErrorState message={error} /></div>}
     {loading && <div className="mt-4"><LoadingState label="整理符合條件的區域與路段..." /></div>}
     {result && !loading && <PropertyFinderResults result={result} onUseForValuation={onUseForValuation} onUseForLoan={onUseForLoan} onUseForHoldingCost={onUseForHoldingCost} onUseForLocationInsight={onUseForLocationInsight} />}
-  </SectionCard></div>;
+  </SectionCard></div></div>;
 }
 
 function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight }: { result: PropertySearchResult; onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void }) {
@@ -103,7 +103,7 @@ function FinderTable({ title, headers, minWidth, children }: { title: string; he
 }
 
 function FinderActions({ onValuation, onLoan, onHoldingCost, onLocation }: { onValuation: () => void; onLoan: () => void; onHoldingCost: () => void; onLocation?: () => void }) {
-  return <div className="grid grid-cols-2 gap-1 sm:flex sm:flex-wrap"><button type="button" onClick={onValuation} className="whitespace-nowrap rounded-lg border border-cyan-200 px-2 py-1 font-bold text-cyan-800 transition hover:bg-cyan-50">帶入估價</button><button type="button" onClick={onLoan} className="whitespace-nowrap rounded-lg border border-violet-200 px-2 py-1 font-bold text-violet-800 transition hover:bg-violet-50">帶入貸款</button><button type="button" onClick={onHoldingCost} className="whitespace-nowrap rounded-lg border border-amber-200 px-2 py-1 font-bold text-amber-800 transition hover:bg-amber-50">帶入持有成本</button><button type="button" onClick={onLocation} className="whitespace-nowrap rounded-lg border border-emerald-200 px-2 py-1 font-bold text-emerald-800 transition hover:bg-emerald-50">分析區位</button></div>;
+  return <div className="grid min-w-[190px] grid-cols-2 gap-1.5 sm:flex sm:flex-wrap"><button type="button" onClick={onValuation} className="whitespace-nowrap rounded-md border border-cyan-200 bg-white px-2.5 py-1.5 font-bold text-cyan-800 transition hover:bg-cyan-50">帶入估價</button><button type="button" onClick={onLoan} className="whitespace-nowrap rounded-md border border-violet-200 bg-white px-2.5 py-1.5 font-bold text-violet-800 transition hover:bg-violet-50">帶入貸款</button><button type="button" onClick={onHoldingCost} className="whitespace-nowrap rounded-md border border-amber-200 bg-white px-2.5 py-1.5 font-bold text-amber-800 transition hover:bg-amber-50">帶入持有成本</button><button type="button" onClick={onLocation} className="whitespace-nowrap rounded-md border border-emerald-200 bg-white px-2.5 py-1.5 font-bold text-emerald-800 transition hover:bg-emerald-50">分析區位</button></div>;
 }
 
 function NumberInput({ label, value, onChange }: { label: string; value: number | ""; onChange: (value: number | "") => void }) {

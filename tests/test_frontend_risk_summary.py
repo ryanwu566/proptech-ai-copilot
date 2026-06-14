@@ -35,6 +35,7 @@ def test_risk_panel_and_workspace_integration_exist() -> None:
     assert "buildRiskSummary" in WORKSPACE
     assert "min-w-0" in PANEL
     assert "overflow-hidden" in PANEL
+    assert 'id="risk-summary"' in PANEL
 
 
 def test_html_summary_contains_risk_summary_and_disclaimer() -> None:

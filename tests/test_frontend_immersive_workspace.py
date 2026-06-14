@@ -14,6 +14,8 @@ def test_workspace_exists_and_preserves_original_map_insight() -> None:
     assert "ImmersiveViewingWorkspace" in FINDER
     assert "function MapInsight()" in PAGE
     assert "GeoMap" in PAGE
+    assert 'id="immersive-workspace"' in WORKSPACE
+    assert 'id="map-insight"' in PAGE
 
 
 def test_workspace_has_flow_summary_and_sticky_location_panel() -> None:

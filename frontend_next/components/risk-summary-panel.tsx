@@ -12,7 +12,7 @@ const tones = {
 const lights = { green: "bg-emerald-500", yellow: "bg-amber-400", red: "bg-rose-500", unknown: "bg-slate-400" };
 
 export function RiskSummaryPanel({ summary }: { summary: RiskSummary }) {
-  return <section className="min-w-0 overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="風險總評">
+  return <section id="risk-summary" className="min-w-0 scroll-mt-20 overflow-hidden rounded-xl border border-stone-200 bg-white" aria-label="風險總評">
     <div className={`border-b p-4 ${tones[summary.overallSignal]}`}>
       <div className="flex flex-wrap items-center gap-3"><span className={`h-12 w-12 shrink-0 rounded-full border-4 border-white shadow-md ${lights[summary.overallSignal]}`} /><div className="min-w-0 flex-1"><p className="text-[10px] font-bold tracking-wider">RULE-BASED RISK SUMMARY</p><h2 className="mt-1 text-lg font-extrabold">風險總評：{summary.overallLabel}</h2><p className="mt-1 text-xs leading-5">{summary.decisionSuggestion}</p></div><div className="rounded-lg bg-white/75 px-3 py-2 text-center"><p className="text-[10px]">總分</p><p className="text-xl font-black">{summary.overallScore ?? "—"}</p></div></div>
     </div>

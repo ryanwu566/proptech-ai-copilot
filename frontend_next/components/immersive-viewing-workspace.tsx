@@ -54,7 +54,7 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
   }
-  return <section className="min-w-0 overflow-hidden rounded-2xl border border-stone-200 bg-[#f5f2ea]">
+  return <section id="immersive-workspace" className="min-w-0 scroll-mt-20 overflow-hidden rounded-2xl border border-stone-200 bg-gradient-to-br from-[#f8f6f0] to-[#eef7f7] shadow-sm">
     <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-5"><div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">IMMERSIVE VIEWING WORKSPACE</p><h2 className="mt-1 text-xl font-bold text-slate-950">沉浸式看房工作台</h2><p className="mt-1 text-xs text-slate-500">一邊整理找房、估價與成本結果，一邊查看地點與區位摘要。</p></div><PropertyGuideMascot stage={stage} riskSignal={riskSummary.overallSignal} /></div></div>
     <div className="grid min-w-0 gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:p-5">
       <div className="min-w-0 space-y-4"><RiskSummaryPanel summary={riskSummary} /><FlowCards propertySearch={search} valuation={valuation} trend={trend} loan={loan} holding={holdingResult} location={location} /><DecisionReport propertySearch={search} valuation={valuation} loan={loan} holding={holdingResult} location={location} riskSummary={riskSummary} /></div>
