@@ -3,7 +3,7 @@
 import type { WorkflowStatus } from "@/lib/workflow-status";
 import { BUYING_WIZARD_STEPS, getActiveWizardStep, type BuyingWizardStep } from "@/lib/buying-wizard-status";
 
-export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowStatus, activeWizardStep }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown"; workflowStatus?: WorkflowStatus; activeWizardStep?: BuyingWizardStep }) {
+export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowStatus, activeWizardStep, caseMessage }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown"; workflowStatus?: WorkflowStatus; activeWizardStep?: BuyingWizardStep; caseMessage?: string }) {
   const messages = {
     start: "先用預算和地區找可負擔路段。",
     finder: "可以把推薦路段帶入估價，確認合理價格。",
@@ -27,6 +27,6 @@ export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowSta
       <span className="mt-4 h-1.5 w-5 rounded-full bg-amber-700" />
       <span className="absolute -bottom-1 left-2 h-3 w-2 rounded-full bg-yellow-400" /><span className="absolute -bottom-1 right-2 h-3 w-2 rounded-full bg-yellow-400" />
     </div>
-    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{wizardStep ? wizardStep.guide : riskMessages[riskSignal]}</p></div>
+    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{caseMessage || (wizardStep ? wizardStep.guide : riskMessages[riskSignal])}</p></div>
   </div>;
 }

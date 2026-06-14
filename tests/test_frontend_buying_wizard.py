@@ -34,6 +34,7 @@ def test_completed_steps_use_summary_cards_and_return_to_edit() -> None:
     assert "返回修改" in WIZARD
     assert "wizardSummaries" in WORKSPACE
     assert "open={activeWizardStep.id" in WORKSPACE
+    assert "<CaseManager current={currentCase}" in WORKSPACE
 
 
 def test_advanced_tools_retain_map_insight_and_geomap() -> None:

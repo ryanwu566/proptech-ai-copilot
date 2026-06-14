@@ -41,3 +41,4 @@ def test_report_and_taxoracle_completion_feed_back_into_workflow() -> None:
 def test_workspace_reduces_duplicate_information() -> None:
     assert "<details" in WORKSPACE
     assert "查看各模組完成摘要" in WORKSPACE
+    assert "案件保存 / 最近分析紀錄" in (ROOT / "frontend_next" / "components" / "case-manager.tsx").read_text(encoding="utf-8")
