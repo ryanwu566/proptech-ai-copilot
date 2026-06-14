@@ -24,6 +24,8 @@ def test_original_yellow_assistant_is_present_and_flow_aware() -> None:
         assert text in WIZARD_STATUS
     for text in ("實地確認屋況", "保留議價空間", "先比較其他路段"):
         assert text in MASCOT
+    for text in ("保存兩個以上案件", "第 1 名不代表一定要買", "若資料不足"):
+        assert text in MASCOT
 
 
 def test_assistant_uses_only_local_css_shapes() -> None:

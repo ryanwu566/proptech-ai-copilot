@@ -10,7 +10,7 @@ PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 
 
 def test_case_manager_has_save_recent_load_and_clear_controls() -> None:
-    for text in ("保存案件", "最近案件", "清除目前案件", "載入", "刪除", "清空全部案件"):
+    for text in ("保存案件", "最近案件", "清除目前案件", "載入", "刪除", "清空全部案件", "比較案件"):
         assert text in MANAGER
     assert "再次點擊確認刪除" in MANAGER
     assert "再次點擊確認清空全部案件" in MANAGER

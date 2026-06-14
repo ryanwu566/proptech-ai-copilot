@@ -18,6 +18,7 @@ export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowSta
     red: "目前價格或負擔風險偏高，建議先比較其他路段。",
     unknown: messages[stage],
   };
+  const comparisonTips = ["保存兩個以上案件後，就可以比較哪個更值得看。", "第 1 名不代表一定要買，仍要確認屋況與議價空間。", "若資料不足，建議先補估價、月付與區位分析。"];
   const wizardStep = activeWizardStep
     ? BUYING_WIZARD_STEPS.find((step) => step.id === activeWizardStep)
     : workflowStatus ? getActiveWizardStep(workflowStatus) : undefined;
