@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { HoldingCostCalculator, HoldingCostPrefill } from "@/components/holding-cost-calculator";
+import { LocationInsight } from "@/components/location-insight";
 import { api, LoanCalculationResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
@@ -80,7 +81,7 @@ export function LoanCalculator({
         {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">填入貸款條件後，查看月付、總利息、負擔率與利率敏感度。</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
       </div>
     </div>
-  </SectionCard>{!onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>}</div>;
+  </SectionCard>{!onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>}<LocationInsight /></div>;
 }
 
 function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult; onHoldingCost?: (result: LoanCalculationResult) => void }) {

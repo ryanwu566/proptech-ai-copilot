@@ -1,5 +1,7 @@
 import type { HoldingCostResult, LoanCalculationResult, PropertySearchResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
+import { LOCATION_INSIGHT_SESSION_KEY } from "@/components/location-insight";
+import type { LocationInsightResult } from "@/lib/api";
 
 export type ValuationInputs = {
   city: string;
@@ -48,8 +50,10 @@ export function buildValuationSummaryHtml(
   propertySearch?: PropertySearchResult,
   loan?: LoanCalculationResult,
   holdingCost?: HoldingCostResult,
+  locationInsight?: LocationInsightResult,
 ): string {
   const holding = holdingCost ?? readHoldingCostResult();
+  const location = locationInsight ?? readLocationInsightResult();
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
     <td>${escapeHtml(row.road)}</td><td>${escapeHtml(row.building_type)}</td><td>${row.area_ping}</td>
@@ -88,6 +92,15 @@ export function buildValuationSummaryHtml(
     ${summaryItem("負擔率", holding.income_burden_ratio === null ? "未輸入月收入" : `${(holding.income_burden_ratio * 100).toFixed(1)}%`)}
     ${summaryItem("負擔等級", holding.affordability_level)}</dl>
     <p class="notice">${escapeHtml(holding.disclaimer)}</p>` : "";
+  const locationSection = location ? `<h2>區位分析</h2><dl>
+    ${summaryItem("區位總分", location.location_score === null ? "資料不足" : String(location.location_score))}
+    ${summaryItem("交通／生活機能", `${location.category_scores.transit_score}／${location.category_scores.convenience_score}`)}
+    ${summaryItem("教育／公園／醫療", `${location.category_scores.education_score}／${location.category_scores.green_space_score}／${location.category_scores.medical_score}`)}
+    ${summaryItem("POI 摘要", `交通 ${location.poi_summary.transit_count}、便利 ${location.poi_summary.convenience_count}、學校 ${location.poi_summary.school_count}、公園 ${location.poi_summary.park_count}、醫療 ${location.poi_summary.medical_count}`)}
+    ${summaryItem("資料品質", location.data_quality.status)}</dl>
+    <h3>區位優點</h3><ul>${location.strengths.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    <h3>區位缺點</h3><ul>${location.weaknesses.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    <p class="notice">${escapeHtml(location.data_quality.warnings.join("；"))}<br>${escapeHtml(location.disclaimer)}</p>` : "";
   const disclaimer = "本結果為資料模型推估參考，非正式鑑價、非銀行估價、非投資保證。";
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>PropTech AI Copilot 估價摘要</title><style>
@@ -108,7 +121,7 @@ export function buildValuationSummaryHtml(
   ${summaryItem("本次估算使用", result.estimate_source_label)}${summaryItem("官方／樣本資料數量", `${result.data_status.official_records_count ?? 0}／${result.data_status.sample_records_count ?? 0}`)}</dl>
   <h2>可比成交前 5 筆</h2><div class="scroll"><table><thead><tr><th>期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th></tr></thead><tbody>${comparableRows}</tbody></table></div>
   ${trend ? `<h2>市場趨勢情境</h2><p>${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div>` : ""}
-  ${propertySection}${loanSection}${holdingSection}<p class="notice">${disclaimer}</p></main></body></html>`;
+  ${propertySection}${loanSection}${holdingSection}${locationSection}<p class="notice">${disclaimer}</p></main></body></html>`;
 }
 
 function readHoldingCostResult(): HoldingCostResult | undefined {
@@ -116,6 +129,16 @@ function readHoldingCostResult(): HoldingCostResult | undefined {
   try {
     const value = window.sessionStorage.getItem(HOLDING_COST_SESSION_KEY);
     return value ? JSON.parse(value) as HoldingCostResult : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function readLocationInsightResult(): LocationInsightResult | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const value = window.sessionStorage.getItem(LOCATION_INSIGHT_SESSION_KEY);
+    return value ? JSON.parse(value) as LocationInsightResult : undefined;
   } catch {
     return undefined;
   }
