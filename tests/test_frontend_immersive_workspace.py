@@ -22,6 +22,8 @@ def test_workspace_has_flow_summary_and_sticky_location_panel() -> None:
     assert "lg:sticky" in WORKSPACE
     assert "lg:grid-cols-[minmax(0,1fr)_340px]" in WORKSPACE
     assert "min-w-0" in WORKSPACE
+    assert "sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)]" in WORKSPACE
+    assert "<PropertyGuideMascot stage={stage} />" in WORKSPACE
 
 
 def test_workspace_uses_existing_results_without_api_calls() -> None:

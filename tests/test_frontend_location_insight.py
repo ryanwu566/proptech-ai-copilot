@@ -28,7 +28,7 @@ def test_location_results_and_unavailable_state_are_visible() -> None:
 
 def test_property_finder_and_valuation_can_prefill_location() -> None:
     assert "分析區位" in FINDER
-    assert "prefillLocationInsight" in FINDER
+    assert "onUseForLocationInsight" in FINDER
     assert "item.median_total_price" in FINDER
     assert "item.total_price" in FINDER
     assert "prefillLocationInsight({city,district,road" in PAGE

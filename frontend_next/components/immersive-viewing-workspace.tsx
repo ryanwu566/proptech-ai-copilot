@@ -52,9 +52,9 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
   }
   return <section className="min-w-0 overflow-hidden rounded-2xl border border-stone-200 bg-[#f5f2ea]">
-    <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-5"><p className="text-[10px] font-bold tracking-wider text-cyan-700">IMMERSIVE VIEWING WORKSPACE</p><h2 className="mt-1 text-xl font-bold text-slate-950">沉浸式看房工作台</h2><p className="mt-1 text-xs text-slate-500">一邊整理找房、估價與成本結果，一邊查看地點與區位摘要。</p></div>
+    <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-5"><div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">IMMERSIVE VIEWING WORKSPACE</p><h2 className="mt-1 text-xl font-bold text-slate-950">沉浸式看房工作台</h2><p className="mt-1 text-xs text-slate-500">一邊整理找房、估價與成本結果，一邊查看地點與區位摘要。</p></div><PropertyGuideMascot stage={stage} /></div></div>
     <div className="grid min-w-0 gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:p-5">
-      <div className="min-w-0 space-y-4"><PropertyGuideMascot stage={stage} /><FlowCards propertySearch={search} valuation={valuation} trend={trend} loan={loan} holding={holdingResult} location={location} /><DecisionReport propertySearch={search} valuation={valuation} loan={loan} holding={holdingResult} location={location} /></div>
+      <div className="min-w-0 space-y-4"><FlowCards propertySearch={search} valuation={valuation} trend={trend} loan={loan} holding={holdingResult} location={location} /><DecisionReport propertySearch={search} valuation={valuation} loan={loan} holding={holdingResult} location={location} /></div>
       <aside className="min-w-0 lg:sticky lg:top-16 lg:self-start"><MapSummary city={inputs.city} district={inputs.district} road={inputs.road} areaPing={inputs.area_ping} buildingType={inputs.building_type} valuation={valuation} location={location} onExport={exportReport} /></aside>
     </div>
   </section>;

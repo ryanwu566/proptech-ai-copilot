@@ -13,6 +13,9 @@ def test_original_yellow_assistant_is_present_and_flow_aware() -> None:
     assert "黃色看房助手" in MASCOT
     for text in ("先用預算和地區找可負擔路段", "推薦路段帶入估價", "試算月付", "管理費、稅費與修繕", "實地確認交通噪音與環境", "匯出報告"):
         assert text in MASCOT
+    assert 'role="status"' in MASCOT
+    assert "shadow-md" in MASCOT
+    assert "ring-yellow-200" in MASCOT
 
 
 def test_assistant_uses_only_local_css_shapes() -> None:

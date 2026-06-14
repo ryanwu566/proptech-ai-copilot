@@ -83,7 +83,7 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
     }
   }
 
-  return <SectionCard title="每月持有成本" description="把房貸、管理費、修繕、簡化稅費與保險合併成買房後的每月成本壓力估算。">
+  return <div id="holding-cost-calculator" className="scroll-mt-20"><SectionCard title="每月持有成本" description="把房貸、管理費、修繕、簡化稅費與保險合併成買房後的每月成本壓力估算。">
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
         <CostField label="房屋總價（萬元）" value={propertyPrice} onChange={setPropertyPrice} min={0.01} />
@@ -102,7 +102,7 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
         {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">帶入貸款、估價或成交樣本後，確認條件並計算每月真實持有成本。</div> : <HoldingCostResults result={result} />}
       </div>
     </div>
-  </SectionCard>;
+  </SectionCard></div>;
 }
 
 export function prefillHoldingCost(prefill: HoldingCostPrefill) {
