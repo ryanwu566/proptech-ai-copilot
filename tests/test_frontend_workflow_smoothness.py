@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 STATUS = (ROOT / "frontend_next" / "lib" / "workflow-status.ts").read_text(encoding="utf-8")
 CENTER = (ROOT / "frontend_next" / "components" / "workflow-command-center.tsx").read_text(encoding="utf-8")
+WIZARD = (ROOT / "frontend_next" / "components" / "buying-wizard.tsx").read_text(encoding="utf-8")
 WORKSPACE = (ROOT / "frontend_next" / "components" / "immersive-viewing-workspace.tsx").read_text(encoding="utf-8")
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 SHARE = (ROOT / "frontend_next" / "lib" / "valuation-share.ts").read_text(encoding="utf-8")
@@ -20,11 +21,11 @@ def test_workflow_status_derives_seven_step_progress_without_api_calls() -> None
 
 
 def test_command_center_has_real_next_action_and_progress() -> None:
-    assert "流程指揮中心" in CENTER
-    assert "status.overallProgress" in CENTER
-    assert "status.nextActionLabel" in CENTER
-    assert "scrollIntoView" in CENTER
-    assert "OPEN_TAXORACLE_EVENT" in CENTER
+    assert "BuyingWizard" in CENTER
+    assert "status.overallProgress" in WIZARD
+    assert "status.nextActionLabel" in WIZARD
+    assert "scrollIntoView" in WIZARD
+    assert "OPEN_TAXORACLE_EVENT" in WIZARD
     assert "WorkflowCommandCenter" in WORKSPACE
 
 

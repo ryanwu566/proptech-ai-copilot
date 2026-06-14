@@ -11,6 +11,8 @@ import { Button } from "@/components/ui";
 import { buildValuationSummaryHtml, valuationSummaryFilename, type ValuationInputs } from "@/lib/valuation-share";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { WorkflowCommandCenter } from "@/components/workflow-command-center";
+import type { WizardStepSummary } from "@/components/buying-wizard";
+import { getActiveWizardStep } from "@/lib/buying-wizard-status";
 import { buildWorkflowStatus, markWorkflowReportCompleted, readWorkflowSession, WORKFLOW_STATUS_EVENT } from "@/lib/workflow-status";
 
 export type WorkspaceContext = {
@@ -54,6 +56,16 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   const { inputs, valuation, trend, loan } = context;
   const riskSummary = buildRiskSummary({ propertySearch: search, valuation, trend, loan, holding: holdingResult, location });
   const workflowStatus = buildWorkflowStatus({ propertySearch: search, valuation, loan, holding: holdingResult, location, riskSummary, reportCompleted: workflowSession.reportCompleted, taxOracleResult: workflowSession.taxOracleResult });
+  const activeWizardStep = getActiveWizardStep(workflowStatus);
+  const wizardSummaries: WizardStepSummary = {
+    property_search: search ? [`符合預算成交 ${search.summary.matched_count} 筆`, `推薦路段 ${search.road_suggestions.length} 條`] : undefined,
+    valuation: valuation ? [`中位估價 ${valuation.price_range.mid.toLocaleString()} 萬`, `估價區間 ${valuation.price_range.low.toLocaleString()}–${valuation.price_range.high.toLocaleString()} 萬`, `信心分數 ${valuation.confidence_score}`] : undefined,
+    affordability: loan && holdingResult ? [`房貸月付 ${loan.monthly_payment.toLocaleString()} 元`, `每月持有成本 ${holdingResult.monthly_total_holding_cost.toLocaleString()} 元`] : undefined,
+    location: location ? [`區位總分 ${location.location_score ?? "資料不足"}`, `資料品質 ${location.data_quality.status}`] : undefined,
+    risk: riskSummary.overallSignal !== "unknown" ? [`${riskSummary.overallLabel}`, `總分 ${riskSummary.overallScore ?? "資料不足"}`] : undefined,
+    report: workflowSession.reportCompleted ? ["看屋決策報告已產生"] : undefined,
+    tax: workflowSession.taxOracleResult ? ["TaxOracle 稅務快篩已完成"] : undefined,
+  };
   const stage = location && holdingResult && loan && valuation ? "complete" : location || holdingResult ? "location" : loan ? "loan" : valuation ? "valuation" : search ? "finder" : "start";
   function exportReport() {
     if (!valuation) return;
@@ -63,9 +75,9 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     markWorkflowReportCompleted();
   }
   return <section id="immersive-workspace" className="min-w-0 scroll-mt-20 overflow-hidden rounded-2xl border border-stone-200 bg-gradient-to-br from-[#f8f6f0] to-[#eef7f7] shadow-sm">
-    <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-5"><div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">IMMERSIVE VIEWING WORKSPACE</p><h2 className="mt-1 text-xl font-bold text-slate-950">沉浸式看房工作台</h2><p className="mt-1 text-xs text-slate-500">一邊整理找房、估價與成本結果，一邊查看地點與區位摘要。</p></div><PropertyGuideMascot stage={stage} riskSignal={riskSummary.overallSignal} workflowStatus={workflowStatus} /></div></div>
+    <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-5"><div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">IMMERSIVE VIEWING WORKSPACE</p><h2 className="mt-1 text-xl font-bold text-slate-950">沉浸式看房工作台</h2><p className="mt-1 text-xs text-slate-500">導覽式看房流程：每次專注完成一個主要步驟，已完成內容收進摘要卡。</p></div><PropertyGuideMascot stage={stage} riskSignal={riskSummary.overallSignal} workflowStatus={workflowStatus} activeWizardStep={activeWizardStep.id} /></div></div>
     <div className="grid min-w-0 gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:p-5">
-      <div className="min-w-0 space-y-4"><WorkflowCommandCenter status={workflowStatus} /><RiskSummaryPanel summary={riskSummary} /><details className="rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">查看各模組完成摘要</summary><div className="border-t border-stone-100 p-4"><FlowCards propertySearch={search} valuation={valuation} trend={trend} loan={loan} holding={holdingResult} location={location} /></div></details><DecisionReport propertySearch={search} valuation={valuation} loan={loan} holding={holdingResult} location={location} riskSummary={riskSummary} taxOracleResult={workflowSession.taxOracleResult} /></div>
+      <div className="min-w-0 space-y-4"><WorkflowCommandCenter status={workflowStatus} summaries={wizardSummaries} /><details className="rounded-xl border border-stone-200 bg-white" open={activeWizardStep.id === "risk"}><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">Step 5 風險總評</summary><div className="border-t border-stone-100 p-4"><RiskSummaryPanel summary={riskSummary} /></div></details><details className="rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">查看各模組完成摘要</summary><div className="border-t border-stone-100 p-4"><FlowCards propertySearch={search} valuation={valuation} trend={trend} loan={loan} holding={holdingResult} location={location} /></div></details><details className="rounded-xl border border-stone-200 bg-white" open={activeWizardStep.id === "report"}><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">Step 6 看屋決策報告</summary><div className="border-t border-stone-100 p-4"><DecisionReport propertySearch={search} valuation={valuation} loan={loan} holding={holdingResult} location={location} riskSummary={riskSummary} taxOracleResult={workflowSession.taxOracleResult} /></div></details></div>
       <aside className="min-w-0 lg:sticky lg:top-16 lg:self-start"><MapSummary city={inputs.city} district={inputs.district} road={inputs.road} areaPing={inputs.area_ping} buildingType={inputs.building_type} valuation={valuation} location={location} onExport={exportReport} /></aside>
     </div>
   </section>;

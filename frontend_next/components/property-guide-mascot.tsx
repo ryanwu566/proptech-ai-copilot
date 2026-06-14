@@ -1,8 +1,9 @@
 "use client";
 
 import type { WorkflowStatus } from "@/lib/workflow-status";
+import { BUYING_WIZARD_STEPS, getActiveWizardStep, type BuyingWizardStep } from "@/lib/buying-wizard-status";
 
-export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowStatus }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown"; workflowStatus?: WorkflowStatus }) {
+export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowStatus, activeWizardStep }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown"; workflowStatus?: WorkflowStatus; activeWizardStep?: BuyingWizardStep }) {
   const messages = {
     start: "先用預算和地區找可負擔路段。",
     finder: "可以把推薦路段帶入估價，確認合理價格。",
@@ -17,12 +18,15 @@ export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowSta
     red: "目前價格或負擔風險偏高，建議先比較其他路段。",
     unknown: messages[stage],
   };
+  const wizardStep = activeWizardStep
+    ? BUYING_WIZARD_STEPS.find((step) => step.id === activeWizardStep)
+    : workflowStatus ? getActiveWizardStep(workflowStatus) : undefined;
   return <div className="flex min-w-0 items-center gap-3 rounded-xl border border-amber-300 bg-gradient-to-br from-yellow-50 to-amber-100 p-3 shadow-md ring-2 ring-yellow-200/70" aria-label="黃色看房助手" role="status">
     <div className="relative grid h-12 w-12 shrink-0 place-items-center rounded-[18px] bg-yellow-300 shadow-sm">
       <span className="absolute left-3 top-4 h-2 w-2 rounded-full bg-slate-800" /><span className="absolute right-3 top-4 h-2 w-2 rounded-full bg-slate-800" />
       <span className="mt-4 h-1.5 w-5 rounded-full bg-amber-700" />
       <span className="absolute -bottom-1 left-2 h-3 w-2 rounded-full bg-yellow-400" /><span className="absolute -bottom-1 right-2 h-3 w-2 rounded-full bg-yellow-400" />
     </div>
-    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{workflowStatus ? `下一步建議：${workflowStatus.nextActionLabel}。` : riskMessages[riskSignal]}</p></div>
+    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{wizardStep ? wizardStep.guide : riskMessages[riskSignal]}</p></div>
   </div>;
 }

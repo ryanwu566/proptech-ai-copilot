@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MASCOT = (ROOT / "frontend_next" / "components" / "property-guide-mascot.tsx").read_text(encoding="utf-8")
 WORKSPACE = (ROOT / "frontend_next" / "components" / "immersive-viewing-workspace.tsx").read_text(encoding="utf-8")
+WIZARD_STATUS = (ROOT / "frontend_next" / "lib" / "buying-wizard-status.ts").read_text(encoding="utf-8")
 
 
 def test_original_yellow_assistant_is_present_and_flow_aware() -> None:
@@ -18,7 +19,9 @@ def test_original_yellow_assistant_is_present_and_flow_aware() -> None:
     assert "ring-yellow-200" in MASCOT
     assert "riskSignal" in MASCOT
     assert "workflowStatus" in MASCOT
-    assert "nextActionLabel" in MASCOT
+    assert "getActiveWizardStep" in MASCOT
+    for text in ("確認這個路段的合理價格", "不要只看單一分數", "最後補做稅務快篩"):
+        assert text in WIZARD_STATUS
     for text in ("實地確認屋況", "保留議價空間", "先比較其他路段"):
         assert text in MASCOT
 
