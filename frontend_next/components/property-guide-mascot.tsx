@@ -1,6 +1,6 @@
 "use client";
 
-export function PropertyGuideMascot({ stage }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete" }) {
+export function PropertyGuideMascot({ stage, riskSignal = "unknown" }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown" }) {
   const messages = {
     start: "先用預算和地區找可負擔路段。",
     finder: "可以把推薦路段帶入估價，確認合理價格。",
@@ -9,12 +9,18 @@ export function PropertyGuideMascot({ stage }: { stage: "start" | "finder" | "va
     location: "區位分數高也要實地確認交通噪音與環境。",
     complete: "可以匯出報告給家人或客戶討論。",
   };
+  const riskMessages = {
+    green: "條件相對健康，安排看屋時仍要實地確認屋況與環境。",
+    yellow: "目前需謹慎評估，建議補查風險並保留議價空間。",
+    red: "目前價格或負擔風險偏高，建議先比較其他路段。",
+    unknown: messages[stage],
+  };
   return <div className="flex min-w-0 items-center gap-3 rounded-xl border border-amber-300 bg-gradient-to-br from-yellow-50 to-amber-100 p-3 shadow-md ring-2 ring-yellow-200/70" aria-label="黃色看房助手" role="status">
     <div className="relative grid h-12 w-12 shrink-0 place-items-center rounded-[18px] bg-yellow-300 shadow-sm">
       <span className="absolute left-3 top-4 h-2 w-2 rounded-full bg-slate-800" /><span className="absolute right-3 top-4 h-2 w-2 rounded-full bg-slate-800" />
       <span className="mt-4 h-1.5 w-5 rounded-full bg-amber-700" />
       <span className="absolute -bottom-1 left-2 h-3 w-2 rounded-full bg-yellow-400" /><span className="absolute -bottom-1 right-2 h-3 w-2 rounded-full bg-yellow-400" />
     </div>
-    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{messages[stage]}</p></div>
+    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{riskMessages[riskSignal]}</p></div>
   </div>;
 }

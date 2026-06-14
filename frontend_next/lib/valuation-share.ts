@@ -3,6 +3,7 @@ import { HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
 import { LOCATION_INSIGHT_SESSION_KEY } from "@/components/location-insight";
 import type { LocationInsightResult } from "@/lib/api";
 import { buildDecisionSummary } from "@/lib/decision-summary";
+import { buildRiskSummary } from "@/lib/risk-summary";
 
 export type ValuationInputs = {
   city: string;
@@ -56,6 +57,7 @@ export function buildValuationSummaryHtml(
   const holding = holdingCost ?? readHoldingCostResult();
   const location = locationInsight ?? readLocationInsightResult();
   const decision = buildDecisionSummary(propertySearch, result, loan, holding, location);
+  const risk = buildRiskSummary({ propertySearch, valuation: result, trend, loan, holding, location });
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
     <td>${escapeHtml(row.road)}</td><td>${escapeHtml(row.building_type)}</td><td>${row.area_ping}</td>
@@ -108,6 +110,16 @@ export function buildValuationSummaryHtml(
     <div class="columns"><div><h3>主要理由</h3><ol>${decision.reasons.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div>
     <div><h3>主要風險</h3><ol>${decision.risks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div></div>
     <p><strong>資料信心：</strong>${decision.dataConfidence}</p></section>`;
+  const riskSection = `<section class="risk ${risk.overallSignal}"><h2>風險總評 / 開價合理性</h2>
+    <div class="verdict">${escapeHtml(risk.overallLabel)} · ${risk.overallScore === null ? "資料不足" : `${risk.overallScore} 分`}</div>
+    <p>${escapeHtml(risk.decisionSuggestion)}</p><dl>
+    ${summaryItem("開價合理性", risk.priceReasonableness.label)}
+    ${summaryItem("資料信心", risk.dataConfidence)}</dl>
+    <div class="columns"><div><h3>主要加分</h3><ul>${risk.positiveFactors.map((item) => `<li>${escapeHtml(`${item.title}：${item.message}`)}</li>`).join("") || "<li>尚無明確加分因素</li>"}</ul></div>
+    <div><h3>主要風險</h3><ul>${risk.riskFactors.map((item) => `<li>${escapeHtml(`${item.title}：${item.message}`)}</li>`).join("") || "<li>尚無明確高風險訊號</li>"}</ul></div></div>
+    <div class="columns"><div><h3>補查清單</h3><ul>${risk.missingChecks.map((item) => `<li>${escapeHtml(item)}</li>`).join("") || "<li>核心分析已完成，仍建議實地確認</li>"}</ul></div>
+    <div><h3>下一步建議</h3><ul>${risk.nextActions.map((item) => `<li>${escapeHtml(item)}</li>`).join("") || "<li>完成更多分析後再判斷</li>"}</ul></div></div>
+    <p class="notice">本總評為規則式買房決策提醒，不代表正式鑑價、銀行核貸或投資建議。</p></section>`;
   const checklistRows = decision.checklist.map((item) => `<tr><td>${escapeHtml(item.label)}</td><td>${item.status}</td><td>${escapeHtml(item.detail)}</td></tr>`).join("");
   const checklistSection = `<h2>決策 checklist</h2><div class="scroll"><table><thead><tr><th>檢查項目</th><th>狀態</th><th>提醒</th></tr></thead><tbody>${checklistRows}</tbody></table></div>`;
   const disclaimer = "固定免責聲明：本報告不代表銀行核貸、不代表正式鑑價、不代表正式稅務申報、不代表即時待售物件；區位資料與實際屋況需實地確認。本結果為非正式鑑價、非銀行估價、非投資保證。";
@@ -117,12 +129,12 @@ export function buildValuationSummaryHtml(
   main{max-width:960px;margin:auto;background:#fff;padding:32px;border:1px solid #e2e8f0;border-radius:12px}
   h1{margin-top:0}h2{margin-top:28px;font-size:18px}dl{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   dt{color:#64748b;font-size:12px}dd{margin:2px 0 0;font-weight:700}table{width:100%;border-collapse:collapse;font-size:12px}
-  th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left}.notice{margin-top:28px;padding:14px;background:#fffbeb;color:#92400e}.cover{padding:28px;background:#0f172a;color:#fff;border-radius:12px}.cover p{color:#cbd5e1}.decision{margin-top:24px;padding:18px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:10px}.verdict{display:inline-block;padding:7px 12px;background:#fff;border-radius:999px;font-weight:700}.columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left}.notice{margin-top:28px;padding:14px;background:#fffbeb;color:#92400e}.cover{padding:28px;background:#0f172a;color:#fff;border-radius:12px}.cover p{color:#cbd5e1}.decision,.risk{margin-top:24px;padding:18px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:10px}.risk.green{border-color:#86efac;background:#f0fdf4}.risk.yellow{border-color:#fde047;background:#fffbeb}.risk.red{border-color:#fda4af;background:#fff1f2}.risk.unknown{border-color:#cbd5e1;background:#f8fafc}.verdict{display:inline-block;padding:7px 12px;background:#fff;border-radius:999px;font-weight:700}.columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:640px){body{padding:12px}main{padding:18px}dl,.columns{grid-template-columns:1fr}.scroll{overflow-x:auto}table{min-width:680px}}
   </style></head><body><main><section class="cover"><p>PropTech AI Copilot 估價摘要升級版</p><h1>看屋決策報告 v2</h1>
   <p>${escapeHtml(`${inputs.city}${inputs.district}${inputs.road}`)} · ${result.price_range.mid.toLocaleString()} 萬 · ${inputs.area_ping} 坪 · ${escapeHtml(inputs.building_type)}</p>
   <p>產生時間：${escapeHtml(new Date().toLocaleString("zh-TW"))}</p><p>資料來源：估價可比成交、找房雷達、趨勢、貸款、持有成本與區位分析之既有結果。</p></section>
-  ${decisionSection}
+  ${riskSection}${decisionSection}
   <h2>查詢條件</h2><dl>${summaryItem("縣市", inputs.city)}${summaryItem("行政區", inputs.district)}
   ${summaryItem("路段", inputs.road)}${summaryItem("建物型態", inputs.building_type)}
   ${summaryItem("坪數", `${inputs.area_ping} 坪`)}${summaryItem("屋齡／樓層", `${inputs.building_age_years} 年／${inputs.floor} 樓`)}</dl>

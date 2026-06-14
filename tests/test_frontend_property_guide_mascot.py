@@ -16,6 +16,9 @@ def test_original_yellow_assistant_is_present_and_flow_aware() -> None:
     assert 'role="status"' in MASCOT
     assert "shadow-md" in MASCOT
     assert "ring-yellow-200" in MASCOT
+    assert "riskSignal" in MASCOT
+    for text in ("實地確認屋況", "保留議價空間", "先比較其他路段"):
+        assert text in MASCOT
 
 
 def test_assistant_uses_only_local_css_shapes() -> None:
