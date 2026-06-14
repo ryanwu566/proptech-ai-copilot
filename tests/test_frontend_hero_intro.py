@@ -29,6 +29,7 @@ def test_hero_ctas_have_real_navigation_handlers() -> None:
     assert "disabled={!reportReady}" in HERO
     assert "workflowStatus" in HERO
     assert "繼續分析" in HERO
+    assert "完成估價與分析後即可查看報告" in HERO
 
 
 def test_hero_animation_is_local_and_reduced_motion_safe() -> None:

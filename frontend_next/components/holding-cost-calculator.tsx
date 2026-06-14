@@ -96,10 +96,11 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
         <CostField label="地價稅簡化估算率" value={landTaxRate} onChange={setLandTaxRate} min={0} step={0.0001} />
         <CostField label="年保險費（元）" value={annualInsurance} onChange={setAnnualInsurance} min={0} />
         <Button className="w-full" disabled={loading || propertyPrice <= 0} onClick={calculate}>{loading ? "試算中..." : "計算每月持有成本"}</Button>
+        {propertyPrice <= 0 && <p className="text-[10px] leading-5 text-amber-700">請先完成貸款帶入，或輸入有效房屋總價與月付。</p>}
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
-        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">帶入貸款、估價或成交樣本後，確認條件並計算每月真實持有成本。</div> : <HoldingCostResults result={result} />}
+        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先完成貸款或輸入月付，再確認管理費、稅費與修繕假設。</div> : <HoldingCostResults result={result} />}
       </div>
     </div>
   </SectionCard></div>;

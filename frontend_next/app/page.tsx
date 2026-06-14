@@ -130,7 +130,7 @@ function TaxResultTabs({ result, tab, setTab }: { result: TaxResult; tab: Result
 }
 
 function RuleTable({ result }: { result: TaxResult }) {
-  return <div className="space-y-2">{result.rule_traces.map((row)=><details key={row.code} className="rounded-lg border border-stone-200 bg-white" open={row.outcome!=="passed"}><summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-xs"><span><strong className="text-cyan-800">{row.code}</strong> · {row.title}</span><span className="flex items-center gap-2"><Badge value={row.outcome}/><strong>{row.risk_points} 分</strong></span></summary><div className="border-t border-stone-100 bg-stone-50 px-3 py-2.5 text-xs leading-5 text-slate-600">原因：{row.detail}</div></details>)}</div>;
+  return <div className="max-h-[65vh] space-y-2 overflow-y-auto overscroll-contain pr-1">{result.rule_traces.map((row)=><details key={row.code} className="rounded-lg border border-stone-200 bg-white" open={row.outcome!=="passed"}><summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-xs"><span><strong className="text-cyan-800">{row.code}</strong> · {row.title}</span><span className="flex items-center gap-2"><Badge value={row.outcome}/><strong>{row.risk_points} 分</strong></span></summary><div className="border-t border-stone-100 bg-stone-50 px-3 py-2.5 text-xs leading-5 text-slate-600">原因：{row.detail}</div></details>)}</div>;
 }
 
 function SimpleList({ items, numbered = false }: { items: string[]; numbered?: boolean }) {

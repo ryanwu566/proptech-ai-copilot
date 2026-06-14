@@ -27,6 +27,7 @@ def test_buying_wizard_has_seven_steps_and_locked_future_steps() -> None:
     assert "disabled={!enabled}" in WIZARD
     assert "isWizardStepCompleted" in WIZARD
     assert "status.nextActionLabel" in WIZARD
+    assert "請先完成目前步驟" in WIZARD
 
 
 def test_completed_steps_use_summary_cards_and_return_to_edit() -> None:

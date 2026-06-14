@@ -39,5 +39,5 @@ def test_case_manager_supports_two_to_four_case_selection() -> None:
     assert "CaseComparisonPanel" in MANAGER
     assert "比較案件" in MANAGER
     assert 'type="checkbox"' in MANAGER
-    assert "rows.length>=4" in MANAGER
+    assert "rows.length >= 4" in MANAGER
     assert "最多只能選擇四個案件" in MANAGER

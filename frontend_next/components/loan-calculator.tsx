@@ -75,10 +75,11 @@ export function LoanCalculator({
           <input type="number" min="0.01" step="0.1" value={monthlyIncome} onChange={(event) => setMonthlyIncome(event.target.value === "" ? "" : Number(event.target.value))} className="mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm" />
         </label>
         <Button className="w-full" disabled={loading || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears} onClick={calculate}>{loading ? "試算中..." : "計算貸款月付"}</Button>
+        {(propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears) && <p className="text-[10px] leading-5 text-amber-700">請先輸入有效總價與貸款年限；寬限期必須小於貸款年限。</p>}
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
-        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">填入貸款條件後，查看月付、總利息、負擔率與利率敏感度。</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
+        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入總價、利率與貸款年限，再計算月付、總利息與負擔率。</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
       </div>
     </div>
   </SectionCard>{!onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>}<LocationInsight /></div>;

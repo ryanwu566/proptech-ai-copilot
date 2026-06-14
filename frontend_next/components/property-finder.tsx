@@ -27,6 +27,13 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
   const [result, setResult] = useState<PropertySearchResult>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [feedback, setFeedback] = useState("");
+
+  function loadDemoConditions() {
+    setCity("台北市"); setDistrictText("大安區"); setBudgetMin(1500); setBudgetMax(2500);
+    setAreaMin(25); setAreaMax(35); setBuildingType("住宅大樓"); setAgeMax(""); setResult(undefined);
+    setFeedback("已載入示範條件，請按開始找房");
+  }
 
   async function search() {
     if (!budgetMax) return;
@@ -65,12 +72,16 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
       <label className="text-xs text-slate-500">建物型態<select className={`${inputClass} mt-1`} value={buildingType} onChange={(event) => setBuildingType(event.target.value)}><option value="">不限</option><option>住宅大樓</option><option>華廈</option><option>公寓</option><option>套房</option></select></label>
       <NumberInput label="屋齡上限" value={ageMax} onChange={setAgeMax} />
     </div>
-    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
       <Button className="w-full sm:w-auto" disabled={loading || !budgetMax} onClick={search}>{loading ? "搜尋中..." : "搜尋看屋方向"}</Button>
+      <Button secondary className="w-full sm:w-auto" disabled={loading} onClick={loadDemoConditions}>載入示範條件</Button>
       <p className="text-[10px] leading-5 text-slate-500">僅使用 rolling 3 年官方 PLVR 歷史成交，不代表目前有待售物件。</p>
     </div>
+    {!budgetMax && <p className="mt-2 text-[10px] text-amber-700">請先輸入預算上限，才能開始找房。</p>}
+    {feedback && <div className="mt-3"><Notice>{feedback}</Notice></div>}
     {error && <div className="mt-4"><ErrorState message={error} /></div>}
     {loading && <div className="mt-4"><LoadingState label="整理符合條件的區域與路段..." /></div>}
+    {!result && !loading && <div className="mt-4"><EmptyState title="尚未開始找房" detail="請先輸入預算與地點，或載入示範條件後按搜尋看屋方向。" /></div>}
     {result && !loading && <PropertyFinderResults result={result} onUseForValuation={onUseForValuation} onUseForLoan={onUseForLoan} onUseForHoldingCost={onUseForHoldingCost} onUseForLocationInsight={onUseForLocationInsight} />}
   </SectionCard></div></div>;
 }

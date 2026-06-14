@@ -87,10 +87,11 @@ export function LocationInsight() {
         <label className="text-xs text-slate-500">房屋總價（萬元，可選）<input type="number" min="0" className={inputClass} value={propertyPrice} onChange={(event) => setPropertyPrice(event.target.value === "" ? "" : Number(event.target.value))} /></label>
         <label className="text-xs text-slate-500">坪數（可選）<input type="number" min="0" className={inputClass} value={areaPing} onChange={(event) => setAreaPing(event.target.value === "" ? "" : Number(event.target.value))} /></label>
         <Button className="w-full" disabled={loading || (!address.trim() && !road.trim())} onClick={analyze}>{loading ? "分析中..." : "分析區位"}</Button>
+        {!address.trim() && !road.trim() && <p className="text-[10px] leading-5 text-amber-700">請先輸入完整地址或路段，才能分析區位。</p>}
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
-        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">輸入地點，或從找房雷達／估價條件帶入後分析區位。</div> : <LocationResults result={result} />}
+        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入地址或路段，或從找房雷達／估價條件帶入後分析區位。</div> : <LocationResults result={result} />}
       </div>
     </div>
   </SectionCard></div>;

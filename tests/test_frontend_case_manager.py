@@ -18,7 +18,7 @@ def test_case_manager_has_save_recent_load_and_clear_controls() -> None:
 
 
 def test_case_manager_has_empty_feedback_and_optional_html_export() -> None:
-    assert "尚未保存案件，完成任一步後可按保存案件" in MANAGER
+    assert "尚未保存案件，請先完成任一步並保存至少一筆案件" in MANAGER
     assert "案件已保存，可稍後繼續分析" in MANAGER
     assert "已載入案件，可繼續分析" in MANAGER
     assert "匯出 HTML 報告" in MANAGER

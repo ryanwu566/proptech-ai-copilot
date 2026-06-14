@@ -9,6 +9,7 @@ export function DecisionReport({
 }: {
   propertySearch?: PropertySearchResult; valuation?: ValuationResult; loan?: LoanCalculationResult; holding?: HoldingCostResult; location?: LocationInsightResult; riskSummary?: RiskSummary; taxOracleResult?: TaxResult;
 }) {
+  if (!valuation) return <section id="decision-report" className="scroll-mt-20 rounded-xl border border-dashed border-stone-300 bg-white p-5 text-center"><h2 className="font-bold text-slate-900">看屋決策報告尚未完成</h2><p className="mt-2 text-xs leading-5 text-slate-500">請先完成估價與至少兩項主要分析，再查看或匯出決策報告。</p></section>;
   const summary = buildDecisionSummary(propertySearch, valuation, loan, holding, location);
   const tone = summary.recommendation === "值得進一步看屋" ? "text-emerald-800 bg-emerald-50 border-emerald-200" : summary.recommendation === "暫不建議" ? "text-rose-800 bg-rose-50 border-rose-200" : "text-amber-800 bg-amber-50 border-amber-200";
   return <section id="decision-report" className="scroll-mt-20 rounded-xl border border-stone-200 bg-white p-4">
