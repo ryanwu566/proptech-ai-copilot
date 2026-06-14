@@ -7,6 +7,7 @@ import { Button, EmptyState, Notice } from "@/components/ui";
 import { ErrorState, LoadingState, MetricTile, SectionCard } from "@/components/product-ui";
 import { prefillHoldingCost } from "@/components/holding-cost-calculator";
 import { prefillLocationInsight } from "@/components/location-insight";
+import { ImmersiveViewingWorkspace } from "@/components/immersive-viewing-workspace";
 
 export type PropertyFinderSelection = {
   city: string;
@@ -55,7 +56,7 @@ export function PropertyFinder({ onUse, onLoanPrice, onHoldingCost = (priceWan, 
   }
 
   const inputClass = "w-full min-w-0 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
-  return <SectionCard title="找房雷達" description="依預算與條件，從官方實價登錄成交資料找出較符合的區域與路段，作為看屋方向參考。">
+  return <div className="min-w-0 space-y-5"><ImmersiveViewingWorkspace propertySearch={result}/><SectionCard title="找房雷達" description="依預算與條件，從官方實價登錄成交資料找出較符合的區域與路段，作為看屋方向參考。">
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <label className="text-xs text-slate-500">縣市（可留空）<input className={`${inputClass} mt-1`} value={city} onChange={(event) => setCity(event.target.value)} placeholder="例如：台北市" /></label>
       <label className="text-xs text-slate-500">行政區（可用逗號分隔）<input className={`${inputClass} mt-1`} value={districtText} onChange={(event) => setDistrictText(event.target.value)} placeholder="例如：大安區、信義區" /></label>
@@ -73,7 +74,7 @@ export function PropertyFinder({ onUse, onLoanPrice, onHoldingCost = (priceWan, 
     {error && <div className="mt-4"><ErrorState message={error} /></div>}
     {loading && <div className="mt-4"><LoadingState label="整理符合條件的區域與路段..." /></div>}
     {result && !loading && <PropertyFinderResults result={result} onUse={onUse} onLoanPrice={onLoanPrice} onHoldingCost={onHoldingCost} />}
-  </SectionCard>;
+  </SectionCard></div>;
 }
 
 function PropertyFinderResults({ result, onUse, onLoanPrice, onHoldingCost }: { result: PropertySearchResult; onUse: (selection: PropertyFinderSelection) => void; onLoanPrice: (priceWan: number) => void; onHoldingCost: (priceWan: number, areaPing: number) => void }) {

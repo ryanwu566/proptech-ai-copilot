@@ -15,6 +15,7 @@ export type HoldingCostPrefill = {
 
 export const HOLDING_COST_PREFILL_EVENT = "proptech:holding-cost-prefill";
 export const HOLDING_COST_SESSION_KEY = "proptech:holding-cost-result";
+export const HOLDING_COST_RESULT_EVENT = "proptech:holding-cost-result-ready";
 
 export function HoldingCostCalculator({ prefill, onResult }: { prefill?: HoldingCostPrefill; onResult?: (result: HoldingCostResult) => void }) {
   const [propertyPrice, setPropertyPrice] = useState(prefill?.property_price ?? 2000);
@@ -73,6 +74,7 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
       });
       setResult(next);
       window.sessionStorage.setItem(HOLDING_COST_SESSION_KEY, JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent<HoldingCostResult>(HOLDING_COST_RESULT_EVENT, { detail: next }));
       onResult?.(next);
     } catch (caught) {
       setError((caught as Error).message);

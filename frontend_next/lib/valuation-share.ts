@@ -2,6 +2,7 @@ import type { HoldingCostResult, LoanCalculationResult, PropertySearchResult, Va
 import { HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
 import { LOCATION_INSIGHT_SESSION_KEY } from "@/components/location-insight";
 import type { LocationInsightResult } from "@/lib/api";
+import { buildDecisionSummary } from "@/lib/decision-summary";
 
 export type ValuationInputs = {
   city: string;
@@ -54,6 +55,7 @@ export function buildValuationSummaryHtml(
 ): string {
   const holding = holdingCost ?? readHoldingCostResult();
   const location = locationInsight ?? readLocationInsightResult();
+  const decision = buildDecisionSummary(propertySearch, result, loan, holding, location);
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
     <td>${escapeHtml(row.road)}</td><td>${escapeHtml(row.building_type)}</td><td>${row.area_ping}</td>
@@ -84,6 +86,7 @@ export function buildValuationSummaryHtml(
     <p class="notice">${escapeHtml(loan.disclaimer)}</p>` : "";
   const holdingSection = holding ? `<h2>每月持有成本</h2><dl>
     ${summaryItem("每月總持有成本", `${holding.monthly_total_holding_cost.toLocaleString()} 元`)}
+    ${summaryItem("年持有成本", `${holding.annual_total_holding_cost.toLocaleString()} 元`)}
     ${summaryItem("房貸月付", `${holding.loan_monthly_payment.toLocaleString()} 元`)}
     ${summaryItem("管理費", `${holding.monthly_management_fee.toLocaleString()} 元`)}
     ${summaryItem("修繕預備金", `${holding.monthly_repair_reserve.toLocaleString()} 元`)}
@@ -101,17 +104,25 @@ export function buildValuationSummaryHtml(
     <h3>區位優點</h3><ul>${location.strengths.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
     <h3>區位缺點</h3><ul>${location.weaknesses.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
     <p class="notice">${escapeHtml(location.data_quality.warnings.join("；"))}<br>${escapeHtml(location.disclaimer)}</p>` : "";
-  const disclaimer = "本結果為資料模型推估參考，非正式鑑價、非銀行估價、非投資保證。";
+  const decisionSection = `<section class="decision"><h2>快速結論</h2><div class="verdict">${escapeHtml(decision.recommendation)}</div>
+    <div class="columns"><div><h3>主要理由</h3><ol>${decision.reasons.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div>
+    <div><h3>主要風險</h3><ol>${decision.risks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div></div>
+    <p><strong>資料信心：</strong>${decision.dataConfidence}</p></section>`;
+  const checklistRows = decision.checklist.map((item) => `<tr><td>${escapeHtml(item.label)}</td><td>${item.status}</td><td>${escapeHtml(item.detail)}</td></tr>`).join("");
+  const checklistSection = `<h2>決策 checklist</h2><div class="scroll"><table><thead><tr><th>檢查項目</th><th>狀態</th><th>提醒</th></tr></thead><tbody>${checklistRows}</tbody></table></div>`;
+  const disclaimer = "固定免責聲明：本報告不代表銀行核貸、不代表正式鑑價、不代表正式稅務申報、不代表即時待售物件；區位資料與實際屋況需實地確認。本結果為非正式鑑價、非銀行估價、非投資保證。";
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>PropTech AI Copilot 估價摘要</title><style>
+  <title>看屋決策報告 v2</title><style>
   body{font-family:Arial,"Noto Sans TC",sans-serif;color:#172033;background:#f7f5f0;margin:0;padding:32px}
   main{max-width:960px;margin:auto;background:#fff;padding:32px;border:1px solid #e2e8f0;border-radius:12px}
   h1{margin-top:0}h2{margin-top:28px;font-size:18px}dl{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
   dt{color:#64748b;font-size:12px}dd{margin:2px 0 0;font-weight:700}table{width:100%;border-collapse:collapse;font-size:12px}
-  th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left}.notice{margin-top:28px;padding:14px;background:#fffbeb;color:#92400e}
-  @media(max-width:640px){body{padding:12px}main{padding:18px}dl{grid-template-columns:1fr}.scroll{overflow-x:auto}table{min-width:680px}}
-  </style></head><body><main><h1>PropTech AI Copilot 估價摘要</h1>
-  <p>產生時間：${escapeHtml(new Date().toLocaleString("zh-TW"))}</p>
+  th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left}.notice{margin-top:28px;padding:14px;background:#fffbeb;color:#92400e}.cover{padding:28px;background:#0f172a;color:#fff;border-radius:12px}.cover p{color:#cbd5e1}.decision{margin-top:24px;padding:18px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:10px}.verdict{display:inline-block;padding:7px 12px;background:#fff;border-radius:999px;font-weight:700}.columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:640px){body{padding:12px}main{padding:18px}dl,.columns{grid-template-columns:1fr}.scroll{overflow-x:auto}table{min-width:680px}}
+  </style></head><body><main><section class="cover"><p>PropTech AI Copilot 估價摘要升級版</p><h1>看屋決策報告 v2</h1>
+  <p>${escapeHtml(`${inputs.city}${inputs.district}${inputs.road}`)} · ${result.price_range.mid.toLocaleString()} 萬 · ${inputs.area_ping} 坪 · ${escapeHtml(inputs.building_type)}</p>
+  <p>產生時間：${escapeHtml(new Date().toLocaleString("zh-TW"))}</p><p>資料來源：估價可比成交、找房雷達、趨勢、貸款、持有成本與區位分析之既有結果。</p></section>
+  ${decisionSection}
   <h2>查詢條件</h2><dl>${summaryItem("縣市", inputs.city)}${summaryItem("行政區", inputs.district)}
   ${summaryItem("路段", inputs.road)}${summaryItem("建物型態", inputs.building_type)}
   ${summaryItem("坪數", `${inputs.area_ping} 坪`)}${summaryItem("屋齡／樓層", `${inputs.building_age_years} 年／${inputs.floor} 樓`)}</dl>
@@ -120,8 +131,8 @@ export function buildValuationSummaryHtml(
   ${summaryItem("信心原因", result.confidence_reason)}${summaryItem("估價資料組成", result.estimate_data_composition)}
   ${summaryItem("本次估算使用", result.estimate_source_label)}${summaryItem("官方／樣本資料數量", `${result.data_status.official_records_count ?? 0}／${result.data_status.sample_records_count ?? 0}`)}</dl>
   <h2>可比成交前 5 筆</h2><div class="scroll"><table><thead><tr><th>期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th></tr></thead><tbody>${comparableRows}</tbody></table></div>
-  ${trend ? `<h2>市場趨勢情境</h2><p>${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div>` : ""}
-  ${propertySection}${loanSection}${holdingSection}${locationSection}<p class="notice">${disclaimer}</p></main></body></html>`;
+  ${trend ? `<h2>市場趨勢摘要／市場趨勢情境</h2><p>資料期間：${escapeHtml(trend.effective_period_min ?? "資料不足")} ～ ${escapeHtml(trend.effective_period_max ?? "資料不足")}；${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div><p class="notice">${escapeHtml(trend.disclaimer)}</p>` : ""}
+  ${propertySection}${loanSection}${holdingSection}${locationSection}${checklistSection}<p class="notice">${disclaimer}</p></main></body></html>`;
 }
 
 function readHoldingCostResult(): HoldingCostResult | undefined {

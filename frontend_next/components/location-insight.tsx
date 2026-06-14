@@ -18,6 +18,7 @@ export type LocationInsightPrefill = {
 
 export const LOCATION_INSIGHT_PREFILL_EVENT = "proptech:location-insight-prefill";
 export const LOCATION_INSIGHT_SESSION_KEY = "proptech:location-insight-result";
+export const LOCATION_INSIGHT_RESULT_EVENT = "proptech:location-insight-result-ready";
 
 export function prefillLocationInsight(prefill: LocationInsightPrefill) {
   window.dispatchEvent(new CustomEvent<LocationInsightPrefill>(LOCATION_INSIGHT_PREFILL_EVENT, { detail: prefill }));
@@ -66,6 +67,7 @@ export function LocationInsight() {
       });
       setResult(next);
       window.sessionStorage.setItem(LOCATION_INSIGHT_SESSION_KEY, JSON.stringify(next));
+      window.dispatchEvent(new CustomEvent<LocationInsightResult>(LOCATION_INSIGHT_RESULT_EVENT, { detail: next }));
     } catch (caught) {
       setError((caught as Error).message);
     } finally {

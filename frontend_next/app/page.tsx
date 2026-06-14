@@ -8,6 +8,7 @@ import { HelpCallout } from "@/components/help-callout";
 import { HoldingCostCalculator, HoldingCostPrefill } from "@/components/holding-cost-calculator";
 import { LoanCalculator } from "@/components/loan-calculator";
 import { prefillLocationInsight } from "@/components/location-insight";
+import { publishWorkspaceContext } from "@/components/immersive-viewing-workspace";
 import { PropertyFinder, PropertyFinderSelection } from "@/components/property-finder";
 import { AppPage } from "@/components/sidebar";
 import { WorkflowStepper } from "@/components/workflow-stepper";
@@ -217,6 +218,7 @@ function ValuationPage() {
   const [loanResult,setLoanResult]=useState<LoanCalculationResult>();
   const [holdingPrefill,setHoldingPrefill]=useState<HoldingCostPrefill>();
   const [holdingResult,setHoldingResult]=useState<HoldingCostResult>();
+  useEffect(()=>{publishWorkspaceContext({inputs:{city,district,road,building_type:type,area_ping:area,building_age_years:age,floor},propertySearch:propertySearchResult,valuation:result,trend,loan:loanResult,holding:holdingResult});},[city,district,road,type,area,age,floor,propertySearchResult,result,trend,loanResult,holdingResult]);
   useEffect(()=>{prefillLocationInsight({city,district,road,area_ping:area,building_type:type,property_price:result?.price_range.mid});},[city,district,road,area,type,result]);
   useEffect(()=>{const shared=parseValuationShareParams(window.location.search);const initialCity=shared?.city??"台北市",initialDistrict=shared?.district??"大安區";api.roadCities().then(x=>setCities(x.cities));api.roadDistricts(initialCity).then(x=>setDistricts(x.districts));api.roads(initialCity,initialDistrict).then(x=>setRoads(x.roads));api.valuationDataStatus().then(setDataStatus).catch(()=>setError("估價資料狀態暫時無法載入，仍可嘗試估算。"));if(shared){setCity(shared.city);setDistrict(shared.district);setRoad(shared.road);setType(shared.building_type);setArea(shared.area_ping);setAge(shared.building_age_years);setFloor(shared.floor);setShareNotice("已載入分享條件，可按下估價重新查詢");}},[]);
   async function changeCity(value:string){setCity(value);setDistrict("");setRoad("");setDistricts((await api.roadDistricts(value)).districts);}
