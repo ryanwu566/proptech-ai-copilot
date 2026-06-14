@@ -46,3 +46,5 @@ def test_taxoracle_rule_trace_and_step_status_are_interactive() -> None:
     assert "setTab(\"規則追蹤\")" in PAGE
     assert "activeStep" in PAGE
     assert "activeStep?: number" in STEPPER
+    assert "markTaxOracleCompleted(next)" in PAGE
+    assert 'id="taxoracle"' in PAGE

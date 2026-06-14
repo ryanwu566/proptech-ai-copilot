@@ -17,6 +17,8 @@ def test_original_yellow_assistant_is_present_and_flow_aware() -> None:
     assert "shadow-md" in MASCOT
     assert "ring-yellow-200" in MASCOT
     assert "riskSignal" in MASCOT
+    assert "workflowStatus" in MASCOT
+    assert "nextActionLabel" in MASCOT
     for text in ("實地確認屋況", "保留議價空間", "先比較其他路段"):
         assert text in MASCOT
 

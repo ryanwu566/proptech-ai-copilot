@@ -20,12 +20,15 @@ def test_hero_intro_and_product_message_exist() -> None:
 def test_hero_ctas_have_real_navigation_handlers() -> None:
     for handler in ("onStart", "onWorkspace", "onReport"):
         assert f"onClick={{{handler}}}" in HERO
-    assert 'openViewingFlow("property-finder")' in PAGE
+    assert "continueWorkflow" in PAGE
+    assert "workflowStatus.nextActionTargetId" in PAGE
     assert 'openViewingFlow("immersive-workspace")' in PAGE
     assert 'openViewingFlow("decision-report")' in PAGE
     assert "proptech:pending-section" in PAGE
     assert "scrollIntoView" in PAGE
     assert "disabled={!reportReady}" in HERO
+    assert "workflowStatus" in HERO
+    assert "繼續分析" in HERO
 
 
 def test_hero_animation_is_local_and_reduced_motion_safe() -> None:

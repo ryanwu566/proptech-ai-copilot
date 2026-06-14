@@ -1,8 +1,10 @@
 "use client";
 
+import type { WorkflowStatus } from "@/lib/workflow-status";
+
 const flowNodes = ["找房雷達", "實價估價", "貸款月付", "持有成本", "區位分析", "風險總評", "看屋報告"];
 
-export function HeroIntro({ onStart, onWorkspace, reportReady = false, onReport }: { onStart: () => void; onWorkspace: () => void; reportReady?: boolean; onReport: () => void }) {
+export function HeroIntro({ onStart, onWorkspace, reportReady = false, onReport, workflowStatus }: { onStart: () => void; onWorkspace: () => void; reportReady?: boolean; onReport: () => void; workflowStatus?: WorkflowStatus }) {
   return <section id="hero" className="relative min-w-0 overflow-hidden rounded-3xl border border-cyan-200/70 bg-slate-950 px-4 py-6 text-white shadow-xl sm:px-7 sm:py-8 lg:px-10 lg:py-10">
     <div className="hero-grid pointer-events-none absolute inset-0 opacity-35" />
     <div className="hero-orb pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cyan-400/25 blur-3xl motion-reduce:animate-none" />
@@ -12,11 +14,11 @@ export function HeroIntro({ onStart, onWorkspace, reportReady = false, onReport 
         <h1 className="mt-4 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">從找房到決策，一次完成</h1>
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">整合實價登錄、估價、貸款、持有成本、區位與風險燈號，快速產出看屋決策報告。</p>
         <div className="mt-6 grid gap-2 sm:flex sm:flex-wrap">
-          <button type="button" onClick={onStart} className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 motion-reduce:transition-none">開始找房</button>
+          <button type="button" onClick={onStart} className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-extrabold text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-200 motion-reduce:transition-none">{workflowStatus?.completedSteps.length ? `繼續分析：${workflowStatus.nextActionLabel}` : "開始找房"}</button>
           <button type="button" onClick={onWorkspace} className="rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/15 focus:outline-none focus:ring-2 focus:ring-white/40 motion-reduce:transition-none">查看看房工作台</button>
           <button type="button" disabled={!reportReady} onClick={onReport} title={reportReady ? "查看決策報告" : "完成估價與分析後即可查看報告"} className="rounded-xl border border-white/15 px-5 py-3 text-sm font-bold text-slate-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none">查看報告</button>
         </div>
-        <p className="mt-3 text-[10px] text-slate-400">從預算與地區開始，最後得到可與家人或客戶討論的決策摘要。</p>
+        <p className="mt-3 text-[10px] text-slate-400">{workflowStatus ? `目前進度 ${workflowStatus.overallProgress}% · 下一步 ${workflowStatus.nextStep}` : "從預算與地區開始，最後得到可與家人或客戶討論的決策摘要。"}</p>
       </div>
       <div className="relative min-w-0 rounded-2xl border border-white/10 bg-white/[0.06] p-4 backdrop-blur-sm">
         <div className="mb-4 flex items-center justify-between gap-3"><div><p className="text-[10px] font-bold tracking-wider text-cyan-200">DECISION FLOW</p><p className="mt-1 text-sm font-bold">五步完成看屋判斷</p></div><GuideMark /></div>

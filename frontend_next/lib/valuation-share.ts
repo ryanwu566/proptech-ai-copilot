@@ -4,6 +4,7 @@ import { LOCATION_INSIGHT_SESSION_KEY } from "@/components/location-insight";
 import type { LocationInsightResult } from "@/lib/api";
 import { buildDecisionSummary } from "@/lib/decision-summary";
 import { buildRiskSummary } from "@/lib/risk-summary";
+import { readWorkflowSession } from "@/lib/workflow-status";
 
 export type ValuationInputs = {
   city: string;
@@ -58,6 +59,7 @@ export function buildValuationSummaryHtml(
   const location = locationInsight ?? readLocationInsightResult();
   const decision = buildDecisionSummary(propertySearch, result, loan, holding, location);
   const risk = buildRiskSummary({ propertySearch, valuation: result, trend, loan, holding, location });
+  const taxOracle = readWorkflowSession().taxOracleResult;
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
     <td>${escapeHtml(row.road)}</td><td>${escapeHtml(row.building_type)}</td><td>${row.area_ping}</td>
@@ -120,6 +122,11 @@ export function buildValuationSummaryHtml(
     <div class="columns"><div><h3>補查清單</h3><ul>${risk.missingChecks.map((item) => `<li>${escapeHtml(item)}</li>`).join("") || "<li>核心分析已完成，仍建議實地確認</li>"}</ul></div>
     <div><h3>下一步建議</h3><ul>${risk.nextActions.map((item) => `<li>${escapeHtml(item)}</li>`).join("") || "<li>完成更多分析後再判斷</li>"}</ul></div></div>
     <p class="notice">本總評為規則式買房決策提醒，不代表正式鑑價、銀行核貸或投資建議。</p></section>`;
+  const taxSection = `<h2>TaxOracle 稅務補充檢查</h2>${taxOracle ? `<dl>
+    ${summaryItem("稅務風險燈號", taxOracle.signal_color)}
+    ${summaryItem("資格結果", taxOracle.eligibility_status)}
+    ${summaryItem("風險分數", String(taxOracle.risk_score))}
+    ${summaryItem("需複核規則", taxOracle.manual_review_rules.join("、") || "無")}</dl>` : "<p>稅務快篩尚未完成，建議完成看屋決策後再進行 TaxOracle 補充檢查。</p>"}`;
   const checklistRows = decision.checklist.map((item) => `<tr><td>${escapeHtml(item.label)}</td><td>${item.status}</td><td>${escapeHtml(item.detail)}</td></tr>`).join("");
   const checklistSection = `<h2>決策 checklist</h2><div class="scroll"><table><thead><tr><th>檢查項目</th><th>狀態</th><th>提醒</th></tr></thead><tbody>${checklistRows}</tbody></table></div>`;
   const disclaimer = "固定免責聲明：本報告不代表銀行核貸、不代表正式鑑價、不代表正式稅務申報、不代表即時待售物件；區位資料與實際屋況需實地確認。本結果為非正式鑑價、非銀行估價、非投資保證。";
@@ -144,7 +151,7 @@ export function buildValuationSummaryHtml(
   ${summaryItem("本次估算使用", result.estimate_source_label)}${summaryItem("官方／樣本資料數量", `${result.data_status.official_records_count ?? 0}／${result.data_status.sample_records_count ?? 0}`)}</dl>
   <h2>可比成交前 5 筆</h2><div class="scroll"><table><thead><tr><th>期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th></tr></thead><tbody>${comparableRows}</tbody></table></div>
   ${trend ? `<h2>市場趨勢摘要／市場趨勢情境</h2><p>資料期間：${escapeHtml(trend.effective_period_min ?? "資料不足")} ～ ${escapeHtml(trend.effective_period_max ?? "資料不足")}；${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div><p class="notice">${escapeHtml(trend.disclaimer)}</p>` : ""}
-  ${propertySection}${loanSection}${holdingSection}${locationSection}${checklistSection}<p class="notice">${disclaimer}</p></main></body></html>`;
+  ${propertySection}${loanSection}${holdingSection}${locationSection}${checklistSection}${taxSection}<p class="notice">${disclaimer}</p></main></body></html>`;
 }
 
 function readHoldingCostResult(): HoldingCostResult | undefined {

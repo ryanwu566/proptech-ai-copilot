@@ -1,6 +1,8 @@
 "use client";
 
-export function PropertyGuideMascot({ stage, riskSignal = "unknown" }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown" }) {
+import type { WorkflowStatus } from "@/lib/workflow-status";
+
+export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowStatus }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown"; workflowStatus?: WorkflowStatus }) {
   const messages = {
     start: "先用預算和地區找可負擔路段。",
     finder: "可以把推薦路段帶入估價，確認合理價格。",
@@ -21,6 +23,6 @@ export function PropertyGuideMascot({ stage, riskSignal = "unknown" }: { stage: 
       <span className="mt-4 h-1.5 w-5 rounded-full bg-amber-700" />
       <span className="absolute -bottom-1 left-2 h-3 w-2 rounded-full bg-yellow-400" /><span className="absolute -bottom-1 right-2 h-3 w-2 rounded-full bg-yellow-400" />
     </div>
-    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{riskMessages[riskSignal]}</p></div>
+    <div className="min-w-0"><p className="text-xs font-extrabold tracking-wider text-amber-800">黃色看房助手</p><p className="mt-1 text-xs font-medium leading-5 text-slate-700">{workflowStatus ? `下一步建議：${workflowStatus.nextActionLabel}。` : riskMessages[riskSignal]}</p></div>
   </div>;
 }
