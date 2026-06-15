@@ -14,7 +14,8 @@ def test_original_yellow_assistant_is_present_and_uses_plain_language() -> None:
     assert "PropertyGuideMascot" in WORKSPACE
     assert "黃色看房助手" in MASCOT
     for text in (
-        "你可以先跑示範，或直接輸入想看的區域",
+        "第一次用可以先看動畫",
+        "看到 ? 可以點開",
         "先不用想太多，填預算和地點就好",
         "這一步是看價格合不合理",
         "買得起不只看總價，還要看月付和持有成本",

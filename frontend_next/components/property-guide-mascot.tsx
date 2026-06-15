@@ -5,7 +5,7 @@ import { BUYING_WIZARD_STEPS, getActiveWizardStep, type BuyingWizardStep } from 
 
 export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowStatus, activeWizardStep, caseMessage }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown"; workflowStatus?: WorkflowStatus; activeWizardStep?: BuyingWizardStep; caseMessage?: string }) {
   const messages = {
-    start: "你可以先跑示範，或直接輸入想看的區域。我會一步一步帶你產生看屋報告。",
+    start: "第一次用可以先看動畫，或直接跑一次示範。看到 ? 可以點開，我會用白話解釋每個功能。",
     finder: "先不用想太多，填預算和地點就好。",
     valuation: "這一步是看價格合不合理。",
     loan: "買得起不只看總價，還要看月付和持有成本。",

@@ -1,4 +1,6 @@
 "use client";
+import { HelpTooltip } from "@/components/help-tooltip";
+import { HELP_CONTENT } from "@/lib/help-content";
 
 type WorkflowEntryCardsProps = {
   onStartBuying: () => void;
@@ -21,7 +23,7 @@ export function WorkflowEntryCards({ onStartBuying, onOpenTax, onOpenAdvanced, o
     <div className="grid gap-4 lg:grid-cols-3">
       {entries.map((entry) => <article key={entry.key} className={`flex min-w-0 flex-col rounded-2xl border p-5 shadow-sm ${entry.primary ? "border-cyan-300 bg-gradient-to-br from-cyan-950 to-slate-900 text-white" : "border-stone-200 bg-white text-slate-950"}`}>
         <p className={`text-[10px] font-bold tracking-[0.18em] ${entry.primary ? "text-cyan-200" : "text-cyan-700"}`}>{entry.eyebrow}</p>
-        <h3 className="mt-2 text-lg font-extrabold">{entry.title}</h3>
+        <div className="mt-2 flex items-center gap-2"><h3 className="text-lg font-extrabold">{entry.title}</h3>{entry.key === "demo" && <HelpTooltip title={HELP_CONTENT.guidedDemo.title}>{HELP_CONTENT.guidedDemo.body}</HelpTooltip>}{entry.key === "compare" && <HelpTooltip title={HELP_CONTENT.caseComparison.title}>{HELP_CONTENT.caseComparison.body}</HelpTooltip>}</div>
         <p className={`mt-2 flex-1 text-sm leading-6 ${entry.primary ? "text-slate-200" : "text-slate-600"}`}>{entry.description}</p>
         <button type="button" onClick={actions[entry.key]} className={`mt-5 w-full rounded-xl px-4 py-3 text-sm font-bold transition ${entry.primary ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300" : "border border-stone-200 bg-stone-50 text-slate-800 hover:border-cyan-300 hover:bg-cyan-50"}`}>{entry.action}</button>
       </article>)}
@@ -31,6 +33,7 @@ export function WorkflowEntryCards({ onStartBuying, onOpenTax, onOpenAdvanced, o
       <div className="flex flex-col gap-2 sm:flex-row">
         <button type="button" onClick={onOpenTax} className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-bold text-slate-700">我要做稅務快篩</button>
         <button type="button" onClick={onOpenAdvanced} className="rounded-lg border border-stone-300 bg-white px-3 py-2 text-xs font-bold text-slate-700">我要看更多工具</button>
+        <span className="flex items-center gap-1"><HelpTooltip title={HELP_CONTENT.taxOracle.title}>{HELP_CONTENT.taxOracle.body}</HelpTooltip><HelpTooltip title={HELP_CONTENT.mapInsight.title}>{HELP_CONTENT.mapInsight.body}</HelpTooltip><HelpTooltip title={HELP_CONTENT.geoMap.title}>{HELP_CONTENT.geoMap.body}</HelpTooltip><HelpTooltip title={HELP_CONTENT.dataStatus.title}>{HELP_CONTENT.dataStatus.body}</HelpTooltip></span>
       </div>
     </div>
   </section>;

@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
 import { Badge, Button } from "@/components/ui";
+import { HelpTooltip } from "@/components/help-tooltip";
+import { HELP_CONTENT, type HelpKey } from "@/lib/help-content";
 
-export function PageHeader({ kicker, title, description, action }: { kicker?: string; title: string; description: string; action?: ReactNode }) {
+export function PageHeader({ kicker, title, description, action, helpKey }: { kicker?: string; title: string; description: string; action?: ReactNode; helpKey?: HelpKey }) {
+  const resolvedHelpKey = helpKey ?? inferHelpKey(title);
   return <div className="flex flex-wrap items-end justify-between gap-4">
-    <div>{kicker && <p className="text-[10px] font-bold tracking-[0.14em] text-cyan-700">{kicker}</p>}<h1 className="mt-1 text-[28px] font-bold tracking-[-0.025em] text-slate-950">{title}</h1><p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate-500">{description}</p></div>{action}
+    <div>{kicker && <p className="text-[10px] font-bold tracking-[0.14em] text-cyan-700">{kicker}</p>}<div className="mt-1 flex items-center gap-2"><h1 className="text-[28px] font-bold tracking-[-0.025em] text-slate-950">{title}</h1>{resolvedHelpKey && <HelpTooltip title={HELP_CONTENT[resolvedHelpKey].title}>{HELP_CONTENT[resolvedHelpKey].body}</HelpTooltip>}</div><p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate-500">{description}</p></div>{action}
   </div>;
 }
 
@@ -87,8 +90,19 @@ export function MetricTile({ label, value, note }: { label: string; value: React
   return <div className="rounded-xl border border-stone-200 bg-white px-4 py-3"><p className="text-xs font-semibold text-slate-500">{label}</p><div className="mt-1 text-2xl font-bold text-slate-950">{value}</div>{note && <p className="mt-1 text-xs text-slate-400">{note}</p>}</div>;
 }
 
-export function SectionCard({ title, description, children, className = "" }: { title?: string; description?: string; children: ReactNode; className?: string }) {
-  return <section className={`rounded-xl border border-stone-200 bg-white ${className}`}>{title && <div className="border-b border-stone-100 px-4 py-3.5"><h2 className="font-bold text-slate-950">{title}</h2>{description && <p className="mt-1 text-xs text-slate-500">{description}</p>}</div>}<div className="p-4">{children}</div></section>;
+export function SectionCard({ title, description, children, className = "", helpKey }: { title?: string; description?: string; children: ReactNode; className?: string; helpKey?: HelpKey }) {
+  const resolvedHelpKey = helpKey ?? (title ? inferHelpKey(title) : undefined);
+  return <section className={`rounded-xl border border-stone-200 bg-white ${className}`}>{title && <div className="border-b border-stone-100 px-4 py-3.5"><div className="flex items-center gap-2"><h2 className="font-bold text-slate-950">{title}</h2>{resolvedHelpKey && <HelpTooltip title={HELP_CONTENT[resolvedHelpKey].title}>{HELP_CONTENT[resolvedHelpKey].body}</HelpTooltip>}</div>{description && <p className="mt-1 text-xs text-slate-500">{description}</p>}</div>}<div className="p-4">{children}</div></section>;
+}
+
+function inferHelpKey(title: string): HelpKey | undefined {
+  const matches: Array<[string, HelpKey]> = [
+    ["找房雷達", "propertyFinder"], ["實價登錄", "valuation"], ["估價", "valuation"], ["估值區間", "valuation"],
+    ["市場趨勢", "trend"], ["貸款月付", "loan"], ["持有成本", "holdingCost"], ["區位分析", "location"],
+    ["風險總評", "risk"], ["看屋決策報告", "decisionReport"], ["TaxOracle", "taxOracle"], ["稅務", "taxOracle"],
+    ["Map Insight", "mapInsight"], ["GeoMap", "geoMap"], ["資料狀態", "dataStatus"], ["分享與匯出", "htmlExport"],
+  ];
+  return matches.find(([keyword]) => title.includes(keyword))?.[1];
 }
 
 export function ResultSummaryPanel({ children, className = "" }: { children: ReactNode; className?: string }) {

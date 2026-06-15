@@ -5,6 +5,8 @@ import { HOLDING_COST_RESULT_EVENT, HOLDING_COST_SESSION_KEY } from "@/component
 import { LOCATION_INSIGHT_RESULT_EVENT, LOCATION_INSIGHT_SESSION_KEY } from "@/components/location-insight";
 import { DEMO_STEPS, DemoRunError, GUIDED_DEMO_PENDING_KEY, GUIDED_DEMO_RESULT_EVENT, runDemoPreflight, runGuidedDemo, runOptionalTaxOracleDemo, START_GUIDED_DEMO_EVENT, type DemoPreflightStatus, type DemoResults, type DemoStepState } from "@/lib/demo-runner";
 import { markTaxOracleCompleted, WORKFLOW_STATUS_EVENT } from "@/lib/workflow-status";
+import { HelpTooltip } from "@/components/help-tooltip";
+import { HELP_CONTENT } from "@/lib/help-content";
 
 type Props = {
   onMessage?: (message: string) => void;
@@ -124,7 +126,7 @@ export function GuidedDemoRunner({ onMessage, onSave, onExport, canExport = fals
   const hasProgress = steps.some((step) => step.status === "done");
   return <section className="min-w-0 rounded-2xl border border-violet-200 bg-violet-50/60 p-4 shadow-sm" aria-label="一鍵 Demo 流程">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div><p className="text-[10px] font-bold tracking-wider text-violet-700">GUIDED DEMO RUN</p><h2 className="mt-1 font-bold text-slate-950">一鍵 Demo 流程</h2><p className="mt-1 text-xs text-slate-600">依序實際呼叫既有 API；失敗時保留已完成結果，可重試或改手動流程。</p></div>
+      <div><p className="text-[10px] font-bold tracking-wider text-violet-700">GUIDED DEMO RUN</p><div className="mt-1 flex items-center gap-2"><h2 className="font-bold text-slate-950">一鍵 Demo 流程</h2><HelpTooltip title={HELP_CONTENT.guidedDemo.title}>{HELP_CONTENT.guidedDemo.body}</HelpTooltip></div><p className="mt-1 text-xs text-slate-600">依序實際呼叫既有 API；失敗時保留已完成結果，可重試或改手動流程。</p></div>
       <div className="flex flex-wrap gap-2">
         {!running && preflight.status === "failed" && <button type="button" onClick={continueFromProgress} className="rounded-lg bg-amber-600 px-3 py-2 text-xs font-bold text-white">重試 API 預檢</button>}
         {!running && failedIndex !== undefined && <button type="button" onClick={retryFailed} className="rounded-lg bg-violet-700 px-3 py-2 text-xs font-bold text-white">重試失敗步驟</button>}
