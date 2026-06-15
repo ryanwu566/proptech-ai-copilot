@@ -9,6 +9,7 @@ ENTRIES = (ROOT / "frontend_next" / "components" / "workflow-entry-cards.tsx").r
 WIZARD = (ROOT / "frontend_next" / "components" / "buying-wizard.tsx").read_text(encoding="utf-8")
 STATUS = (ROOT / "frontend_next" / "lib" / "buying-wizard-status.ts").read_text(encoding="utf-8")
 WORKSPACE = (ROOT / "frontend_next" / "components" / "immersive-viewing-workspace.tsx").read_text(encoding="utf-8")
+DEMO = (ROOT / "frontend_next" / "components" / "guided-demo-runner.tsx").read_text(encoding="utf-8")
 
 
 def test_home_has_three_clear_entry_cards() -> None:
@@ -41,3 +42,8 @@ def test_completed_steps_use_summary_cards_and_return_to_edit() -> None:
 def test_advanced_tools_retain_map_insight_and_geomap() -> None:
     assert "Map Insight / GeoMap" in PAGE
     assert 'setPage("Map Insight Lite")' in PAGE
+
+
+def test_guided_demo_is_available_inside_buying_workspace() -> None:
+    assert "GuidedDemoRunner" in WORKSPACE
+    assert "一鍵 Demo 流程" in DEMO

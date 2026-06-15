@@ -6,14 +6,17 @@ import { LocationInsight } from "@/components/location-insight";
 import { api, LoanCalculationResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
+import { GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
 
 
 export function LoanCalculator({
   propertyPriceWan,
+  initialResult,
   onResult,
   onHoldingCost,
 }: {
   propertyPriceWan?: number;
+  initialResult?: LoanCalculationResult;
   onResult?: (result: LoanCalculationResult) => void;
   onHoldingCost?: (result: LoanCalculationResult) => void;
 }) {
@@ -35,6 +38,22 @@ export function LoanCalculator({
       setResult(undefined);
     }
   }, [propertyPriceWan]);
+
+  useEffect(() => {
+    if (initialResult) setResult(initialResult);
+  }, [initialResult]);
+
+  useEffect(() => {
+    function applyDemoResult(event: Event) {
+      const next = (event as CustomEvent<DemoResults>).detail.loan;
+      if (next) {
+        setPropertyPrice(next.property_price_wan);
+        setResult(next);
+      }
+    }
+    window.addEventListener(GUIDED_DEMO_RESULT_EVENT, applyDemoResult);
+    return () => window.removeEventListener(GUIDED_DEMO_RESULT_EVENT, applyDemoResult);
+  }, []);
 
   async function calculate() {
     setLoading(true);

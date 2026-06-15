@@ -56,6 +56,14 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
     return () => window.removeEventListener(HOLDING_COST_PREFILL_EVENT, applyEvent);
   }, []);
 
+  useEffect(() => {
+    function applyResult(event: Event) {
+      setResult((event as CustomEvent<HoldingCostResult>).detail);
+    }
+    window.addEventListener(HOLDING_COST_RESULT_EVENT, applyResult);
+    return () => window.removeEventListener(HOLDING_COST_RESULT_EVENT, applyResult);
+  }, []);
+
   async function calculate() {
     setLoading(true);
     setError("");

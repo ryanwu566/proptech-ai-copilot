@@ -54,6 +54,14 @@ export function LocationInsight() {
     return () => window.removeEventListener(LOCATION_INSIGHT_PREFILL_EVENT, applyPrefill);
   }, []);
 
+  useEffect(() => {
+    function applyResult(event: Event) {
+      setResult((event as CustomEvent<LocationInsightResult>).detail);
+    }
+    window.addEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
+    return () => window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
+  }, []);
+
   async function analyze() {
     setLoading(true);
     setError("");

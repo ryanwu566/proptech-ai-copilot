@@ -33,6 +33,7 @@ def test_demo_quick_start_only_prefills_property_finder() -> None:
     demo_body = FINDER.split("function loadDemoConditions", 1)[1].split("async function search", 1)[0]
     assert "api." not in demo_body
     assert "已載入示範條件，請按開始找房" in FINDER
+    assert "快速 Demo：一鍵跑完整流程" in (FRONTEND / "components" / "workflow-entry-cards.tsx").read_text(encoding="utf-8")
 
 
 def test_major_empty_states_explain_the_next_action() -> None:
@@ -62,3 +63,11 @@ def test_disabled_actions_explain_why_and_tables_stay_contained() -> None:
     assert "max-h-[65vh]" in PAGE
     for source in (COMPARE, PAGE, FINDER, LOAN, HOLDING, LOCATION):
         assert "overflow-x-auto" in source
+
+
+def test_guided_demo_has_product_recovery_actions() -> None:
+    guided_demo = (FRONTEND / "components" / "guided-demo-runner.tsx").read_text(encoding="utf-8")
+    for action in ("重試 API 預檢", "重試失敗步驟", "從目前進度繼續", "重新開始 Demo", "取消 Demo"):
+        assert action in guided_demo
+    assert "href=\"#\"" not in guided_demo
+    assert "alert(" not in guided_demo

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { api, PropertySearchResult, PropertySearchSuggestion, PropertySearchTransaction } from "@/lib/api";
 import { Button, EmptyState, Notice } from "@/components/ui";
 import { ErrorState, LoadingState, MetricTile, SectionCard } from "@/components/product-ui";
 import { ImmersiveViewingWorkspace } from "@/components/immersive-viewing-workspace";
+import { GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
 
 export type PropertyFinderSelection = {
   city: string;
@@ -15,7 +16,7 @@ export type PropertyFinderSelection = {
   area_ping: number;
 };
 
-export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void }) {
+export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void; initialResult?: PropertySearchResult }) {
   const [city, setCity] = useState("");
   const [districtText, setDistrictText] = useState("");
   const [budgetMin, setBudgetMin] = useState<number | "">("");
@@ -28,6 +29,19 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    if (initialResult) setResult(initialResult);
+  }, [initialResult]);
+
+  useEffect(() => {
+    function applyDemoResult(event: Event) {
+      const next = (event as CustomEvent<DemoResults>).detail.propertySearch;
+      if (next) setResult(next);
+    }
+    window.addEventListener(GUIDED_DEMO_RESULT_EVENT, applyDemoResult);
+    return () => window.removeEventListener(GUIDED_DEMO_RESULT_EVENT, applyDemoResult);
+  }, []);
 
   function loadDemoConditions() {
     setCity("台北市"); setDistrictText("大安區"); setBudgetMin(1500); setBudgetMax(2500);

@@ -26,6 +26,7 @@ def test_original_yellow_assistant_is_present_and_flow_aware() -> None:
         assert text in MASCOT
     for text in ("保存兩個以上案件", "第 1 名不代表一定要買", "若資料不足"):
         assert text in MASCOT
+    assert "caseMessage" in MASCOT
 
 
 def test_assistant_uses_only_local_css_shapes() -> None:
@@ -33,3 +34,11 @@ def test_assistant_uses_only_local_css_shapes() -> None:
     forbidden = ["min" + "ion", "小" + "黃人", "http" + "://", "https" + "://", "<im" + "g"]
     assert all(term not in lowered for term in forbidden)
     assert "bg-yellow-300" in MASCOT
+
+
+def test_assistant_receives_guided_demo_recovery_messages() -> None:
+    guided_demo = (ROOT / "frontend_next" / "components" / "guided-demo-runner.tsx").read_text(encoding="utf-8")
+    for message in ("先確認後端服務是否醒著", "Demo 正在跑，請等目前步驟完成", "目前卡在這一步，可以重試或改手動操作"):
+        assert message in guided_demo
+    assert "onMessage?." in guided_demo
+    assert "onMessage={setCaseMessage}" in WORKSPACE
