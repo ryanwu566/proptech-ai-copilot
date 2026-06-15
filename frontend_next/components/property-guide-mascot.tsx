@@ -5,20 +5,19 @@ import { BUYING_WIZARD_STEPS, getActiveWizardStep, type BuyingWizardStep } from 
 
 export function PropertyGuideMascot({ stage, riskSignal = "unknown", workflowStatus, activeWizardStep, caseMessage }: { stage: "start" | "finder" | "valuation" | "loan" | "location" | "complete"; riskSignal?: "green" | "yellow" | "red" | "unknown"; workflowStatus?: WorkflowStatus; activeWizardStep?: BuyingWizardStep; caseMessage?: string }) {
   const messages = {
-    start: "先用預算和地區找可負擔路段。",
-    finder: "可以把推薦路段帶入估價，確認合理價格。",
-    valuation: "下一步建議試算月付，看是否符合收入。",
-    loan: "月付之外，還要加管理費、稅費與修繕。",
-    location: "區位分數高也要實地確認交通噪音與環境。",
-    complete: "可以匯出報告給家人或客戶討論。",
+    start: "你可以先跑示範，或直接輸入想看的區域。我會一步一步帶你產生看屋報告。",
+    finder: "先不用想太多，填預算和地點就好。",
+    valuation: "這一步是看價格合不合理。",
+    loan: "買得起不只看總價，還要看月付和持有成本。",
+    location: "區位分數高也要實地確認交通、噪音與環境。",
+    complete: "分析完成後，可以保存案件或匯出報告和家人討論。",
   };
   const riskMessages = {
-    green: "條件相對健康，安排看屋時仍要實地確認屋況與環境。",
-    yellow: "目前需謹慎評估，建議補查風險並保留議價空間。",
-    red: "目前價格或負擔風險偏高，建議先比較其他路段。",
+    green: "目前條件相對健康，但仍要實地確認屋況與議價空間。",
+    yellow: "可以繼續看，但建議先補查風險並保留議價空間。",
+    red: "目前風險偏高，建議先比較其他路段或物件。",
     unknown: messages[stage],
   };
-  const comparisonTips = ["保存兩個以上案件後，就可以比較哪個更值得看。", "第 1 名不代表一定要買，仍要確認屋況與議價空間。", "若資料不足，建議先補估價、月付與區位分析。"];
   const wizardStep = activeWizardStep
     ? BUYING_WIZARD_STEPS.find((step) => step.id === activeWizardStep)
     : workflowStatus ? getActiveWizardStep(workflowStatus) : undefined;

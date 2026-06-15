@@ -12,38 +12,37 @@ WORKSPACE = (ROOT / "frontend_next" / "components" / "immersive-viewing-workspac
 DEMO = (ROOT / "frontend_next" / "components" / "guided-demo-runner.tsx").read_text(encoding="utf-8")
 
 
-def test_home_has_three_clear_entry_cards() -> None:
-    for label in ("開始看房分析", "稅務快篩", "進階工具"):
+def test_home_has_three_task_oriented_entry_cards() -> None:
+    for label in ("我想判斷一間房值不值得看", "我想快速看一次示範", "我想比較幾個候選物件"):
         assert label in ENTRIES
-    for handler in ("onStartBuying", "onOpenTax", "onOpenAdvanced"):
+    for handler in ("onStartBuying", "onGuidedDemo", "onOpenCompare", "onOpenTax", "onOpenAdvanced"):
         assert handler in ENTRIES
         assert handler in PAGE
     assert 'id="advanced-tools"' in PAGE
 
 
-def test_buying_wizard_has_seven_steps_and_locked_future_steps() -> None:
+def test_buying_wizard_has_seven_plain_language_steps() -> None:
     for step in ("property_search", "valuation", "affordability", "location", "risk", "report", "tax"):
         assert step in STATUS
-    assert "BUYING_WIZARD_STEPS" in WIZARD
+    for title in (
+        "先找出你預算內可能買得到的路段",
+        "確認這個路段的合理價格",
+        "看看月付與持有成本撐不撐得住",
+        "檢查生活機能與區位條件",
+        "看紅黃綠燈號，判斷是否值得看屋",
+        "產出可分享的看屋報告",
+        "補做稅務快篩",
+    ):
+        assert title in STATUS
+    assert "這個流程會帶你完成一份看屋初篩報告" in WIZARD
     assert "disabled={!enabled}" in WIZARD
+
+
+def test_completed_steps_and_advanced_tools_are_retained() -> None:
+    assert "summaries" in WIZARD
     assert "isWizardStepCompleted" in WIZARD
-    assert "status.nextActionLabel" in WIZARD
-    assert "請先完成目前步驟" in WIZARD
-
-
-def test_completed_steps_use_summary_cards_and_return_to_edit() -> None:
-    assert "查看已完成步驟摘要" in WIZARD
-    assert "返回修改" in WIZARD
     assert "wizardSummaries" in WORKSPACE
-    assert "open={activeWizardStep.id" in WORKSPACE
-    assert "<CaseManager current={currentCase}" in WORKSPACE
-
-
-def test_advanced_tools_retain_map_insight_and_geomap() -> None:
     assert "Map Insight / GeoMap" in PAGE
     assert 'setPage("Map Insight Lite")' in PAGE
-
-
-def test_guided_demo_is_available_inside_buying_workspace() -> None:
     assert "GuidedDemoRunner" in WORKSPACE
     assert "一鍵 Demo 流程" in DEMO

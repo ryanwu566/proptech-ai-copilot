@@ -78,7 +78,7 @@ def test_completion_actions_and_optional_taxoracle_are_integrated() -> None:
     assert "onExport={exportReport}" in WORKSPACE
     assert "runOptionalTaxOracleDemo" in RUNNER
     assert "optional" in COMPONENT
-    assert "快速 Demo" in ENTRIES
+    assert "我想快速看一次示範" in ENTRIES
 
 
 def test_runner_updates_the_yellow_assistant_for_each_demo_state() -> None:

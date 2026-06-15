@@ -33,7 +33,7 @@ def test_demo_quick_start_only_prefills_property_finder() -> None:
     demo_body = FINDER.split("function loadDemoConditions", 1)[1].split("async function search", 1)[0]
     assert "api." not in demo_body
     assert "已載入示範條件，請按開始找房" in FINDER
-    assert "快速 Demo：一鍵跑完整流程" in (FRONTEND / "components" / "workflow-entry-cards.tsx").read_text(encoding="utf-8")
+    assert "我想快速看一次示範" in (FRONTEND / "components" / "workflow-entry-cards.tsx").read_text(encoding="utf-8")
 
 
 def test_major_empty_states_explain_the_next_action() -> None:
