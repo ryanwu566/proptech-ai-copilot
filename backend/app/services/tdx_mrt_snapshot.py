@@ -18,12 +18,12 @@ def build_tdx_mrt_snapshot(
 ) -> CommuteSnapshot:
     station_list = list(station_records)
     line_list = list(line_records or [])
-    line_ids_by_station = _build_line_index(line_list)
+    line_ids_by_station_identifier = _build_line_index(line_list)
     snapshots: dict[str, CommuteStationSnapshot] = {}
     skipped_count = 0
 
     for record in station_list:
-        parsed = _parse_station_record(record, line_ids_by_station)
+        parsed = _parse_station_record(record, line_ids_by_station_identifier)
         if parsed is None:
             skipped_count += 1
             continue
@@ -48,15 +48,16 @@ def build_tdx_mrt_snapshot(
         source_station_count=len(station_list),
         included_station_count=len(stations),
         skipped_station_count=skipped_count,
-        line_relation_available=bool(line_list),
+        line_relation_available=any(station.line_ids for station in stations),
     )
 
 
 def _parse_station_record(
     record: dict[str, Any],
-    line_ids_by_station: dict[str, set[str]],
+    line_ids_by_station_identifier: dict[str, set[str]],
 ) -> CommuteStationSnapshot | None:
     station_uid = _clean_string(record.get("StationUID"))
+    station_id = _clean_string(record.get("StationID"))
     station_name = _extract_station_name(record.get("StationName"))
     position = record.get("StationPosition")
     source_updated_at = _parse_datetime(record.get("SrcUpdateTime"))
@@ -69,7 +70,15 @@ def _parse_station_record(
     if latitude is None or longitude is None:
         return None
 
-    line_ids = sorted(line_id for line_id in line_ids_by_station.get(station_uid, set()) if line_id)
+    station_identifiers = {station_uid}
+    if station_id:
+        station_identifiers.add(station_id)
+    line_ids = sorted({
+        line_id
+        for station_identifier in station_identifiers
+        for line_id in line_ids_by_station_identifier.get(station_identifier, set())
+        if line_id
+    })
     return CommuteStationSnapshot(
         station_uid=station_uid,
         station_name=station_name,
@@ -81,7 +90,7 @@ def _parse_station_record(
 
 
 def _build_line_index(line_records: list[dict[str, Any]]) -> dict[str, set[str]]:
-    line_ids_by_station: dict[str, set[str]] = {}
+    line_ids_by_station_identifier: dict[str, set[str]] = {}
     for record in line_records:
         line_id = _clean_string(record.get("LineID"))
         stations = record.get("Stations")
@@ -91,10 +100,21 @@ def _build_line_index(line_records: list[dict[str, Any]]) -> dict[str, set[str]]
         for station in stations:
             if not isinstance(station, dict):
                 continue
-            station_uid = _clean_string(station.get("StationUID") or station.get("StationID"))
-            if station_uid:
-                line_ids_by_station.setdefault(station_uid, set()).add(line_id)
-    return line_ids_by_station
+            station_identifier = _extract_line_station_identifier(station)
+            if station_identifier:
+                line_ids_by_station_identifier.setdefault(station_identifier, set()).add(line_id)
+    return line_ids_by_station_identifier
+
+
+def _extract_line_station_identifier(station: dict[str, Any]) -> str | None:
+    direct_identifier = _clean_string(station.get("StationUID")) or _clean_string(station.get("StationID"))
+    if direct_identifier:
+        return direct_identifier
+
+    nested_station = station.get("Station")
+    if isinstance(nested_station, dict):
+        return _clean_string(nested_station.get("StationUID")) or _clean_string(nested_station.get("StationID"))
+    return None
 
 
 def _extract_station_name(value: Any) -> str | None:

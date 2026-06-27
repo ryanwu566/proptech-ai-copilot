@@ -103,7 +103,7 @@ def lookup_commute_station_by_address(
         distance_meters=nearest.distance_meters,
         source_updated_at=nearest.source_updated_at,
         snapshot_generated_at=nearest.snapshot_generated_at,
-        message=f"{nearest.message} {COMMUTE_ADDRESS_LOOKUP_DISCLAIMER}",
+        message=f"已取得最近捷運站資訊。{COMMUTE_ADDRESS_LOOKUP_DISCLAIMER}",
     )
 
 

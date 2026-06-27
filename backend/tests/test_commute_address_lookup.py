@@ -13,6 +13,7 @@ from app.services.location_resolver import build_location_resolver
 
 GENERATED_AT = datetime(2026, 1, 1, tzinfo=timezone.utc)
 SOURCE_UPDATED_AT = datetime(2026, 1, 2, tzinfo=timezone.utc)
+ADDRESS_LOOKUP_DISCLAIMER = "僅供通勤與生活機能參考，不影響地勢災害、貸款、法律或看房結論。"
 
 
 class FakeResolvedResolver:
@@ -135,7 +136,7 @@ def test_address_lookup_with_snapshot_and_resolved_location_returns_minimized_co
     assert payload["distance_meters"] == 42.5
     assert payload["source_updated_at"]
     assert payload["snapshot_generated_at"]
-    assert "僅供通勤與生活機能參考" in payload["message"]
+    assert ADDRESS_LOOKUP_DISCLAIMER in payload["message"]
 
 
 def test_success_response_excludes_address_coordinates_provider_station_uid_token_and_raw_payload() -> None:
@@ -163,6 +164,61 @@ def test_success_response_excludes_address_coordinates_provider_station_uid_toke
     assert "Fictional Address" not in text
     assert "hidden formatted address" not in text
     assert "hidden provider message" not in text
+
+
+def test_unresolved_response_excludes_restricted_fields() -> None:
+    response = run_with_overrides(
+        FakeCommuteService(),
+        FakeUnresolvedResolver(),
+        {"address": "Fictional Address"},
+    )
+
+    payload = response.json()
+    text = str(payload)
+    assert response.status_code == 200
+    assert payload["status"] == "unresolved"
+    assert payload["line_ids"] == []
+    for forbidden in [
+        "address",
+        "latitude",
+        "longitude",
+        "formatted_address",
+        "station_uid",
+        "station_position",
+        "raw",
+        "payload",
+        "token",
+        "provider",
+        "Fictional Address",
+        "hidden unresolved message",
+    ]:
+        assert forbidden not in text
+
+
+def test_unavailable_error_response_excludes_restricted_fields() -> None:
+    response = run_with_overrides(
+        FakeCommuteService(),
+        FakeUnavailableResolver(),
+        {"address": "Fictional Address"},
+    )
+
+    text = response.text
+    assert response.status_code == 503
+    for forbidden in [
+        "address",
+        "latitude",
+        "longitude",
+        "formatted_address",
+        "station_uid",
+        "station_position",
+        "raw",
+        "payload",
+        "token",
+        "provider",
+        "Fictional Address",
+        "hidden unavailable message",
+    ]:
+        assert forbidden not in text
 
 
 def test_missing_snapshot_returns_503_without_calling_location_resolver() -> None:
@@ -244,6 +300,6 @@ def test_disclaimer_is_conservative_and_avoids_overclaims() -> None:
     )
 
     message = response.json()["message"]
-    assert "不影響地勢災害、貸款、法律或看房結論" in message
+    assert ADDRESS_LOOKUP_DISCLAIMER in message
     for overclaim in ["值得買", "值得看房", "安全", "保證", "最佳"]:
         assert overclaim not in message

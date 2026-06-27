@@ -13,6 +13,7 @@ SOURCE_UPDATED_AT = "2026-01-02T00:00:00+00:00"
 
 def station_record(
     uid: str = "S001",
+    station_id: object = "SID001",
     name: object | None = None,
     lat: object = 10.5,
     lon: object = 20.5,
@@ -21,6 +22,7 @@ def station_record(
 ) -> dict[str, object]:
     record: dict[str, object] = {
         "StationUID": uid,
+        "StationID": station_id,
         "StationName": {"Zh_tw": "Test Station"} if name is None else name,
         "StationPosition": {"PositionLat": lat, "PositionLon": lon},
         "SrcUpdateTime": source_updated_at,
@@ -154,6 +156,42 @@ def test_line_ids_drop_empty_values_and_sort_unique_values() -> None:
     )
 
     assert snapshot.stations[0].line_ids == ["L1", "L9"]
+
+
+def test_line_relation_matches_station_records_by_station_id() -> None:
+    snapshot = build_tdx_mrt_snapshot(
+        [station_record(uid="S001", station_id="SID001")],
+        [line_record("L1", stations=[{"StationUID": "S001"}, {"StationID": "SID001"}])],
+        GENERATED_AT,
+    )
+
+    assert snapshot.line_relation_available is True
+    assert snapshot.stations[0].line_ids == ["L1"]
+
+
+def test_line_relation_matches_official_nested_station_identifier_shape() -> None:
+    snapshot = build_tdx_mrt_snapshot(
+        [station_record(uid="S001", station_id="SID001")],
+        [line_record("L1", stations=[{"Station": {"StationID": "SID001"}}])],
+        GENERATED_AT,
+    )
+
+    assert snapshot.line_relation_available is True
+    assert snapshot.stations[0].line_ids == ["L1"]
+
+
+def test_unrecognized_line_relation_is_skipped_and_marked_unavailable() -> None:
+    snapshot = build_tdx_mrt_snapshot(
+        [station_record(uid="S001", station_id="SID001")],
+        [
+            line_record("L1", stations=[{"StationName": {"Zh_tw": "No Identifier"}}]),
+            line_record("L2", stations=[{"StationID": "UNKNOWN"}]),
+        ],
+        GENERATED_AT,
+    )
+
+    assert snapshot.line_relation_available is False
+    assert snapshot.stations[0].line_ids == []
 
 
 def test_station_name_can_be_plain_string() -> None:
