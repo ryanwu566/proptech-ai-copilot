@@ -21,8 +21,9 @@ def test_help_tooltip_is_click_and_keyboard_accessible() -> None:
 
 
 def test_help_content_is_centralized_and_has_required_limits() -> None:
-    for key in ("propertyFinder", "valuation", "trend", "loan", "holdingCost", "location", "risk", "decisionReport", "taxOracle", "caseSave", "caseComparison", "guidedDemo", "mapInsight", "geoMap", "dataStatus"):
+    for key in ("propertyFinder", "valuation", "trend", "loan", "holdingCost", "location", "terrainRisk", "risk", "decisionReport", "taxOracle", "caseSave", "caseComparison", "guidedDemo", "mapInsight", "geoMap", "dataStatus"):
         assert key in CONTENT
+    assert "不代表建築結構鑑定" in CONTENT
     for limit in ("不是即時待售物件清單", "不代表正式鑑價", "不代表正式稅務申報建議"):
         assert limit in CONTENT
 
