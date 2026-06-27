@@ -1,7 +1,7 @@
 import type { AppPage } from "@/components/sidebar";
 
 const labels: Record<AppPage, string> = {
-  儀表板: "任務首頁", TaxOracle: "TaxOracle 稅務先知", "Market Insight Lite": "Market Insight 區域行情", "Map Insight Lite": "Map Insight 地圖洞察", 房價估算: "實價登錄可比成交估算", "Aegis-Credit Lite": "房貸風險展示", "LexProp Lite": "判決風險摘要", 歷史案件: "歷史案件",
+  儀表板: "任務首頁", TaxOracle: "TaxOracle 稅務先知", "Market Insight Lite": "Market Insight 區域行情", "Map Insight Lite": "Map Insight 地圖洞察", 房價估算: "實價登錄可比成交估算", "Aegis-Credit Lite": "房貸風險展示", "Terrain Risk": "地勢與災害風險分析", 歷史案件: "歷史案件",
 };
 
 export function Topbar({ page, onMenu, onTour }: { page: AppPage; onMenu: () => void; onTour: () => void }) {
