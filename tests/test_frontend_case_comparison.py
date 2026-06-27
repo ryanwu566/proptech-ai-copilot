@@ -33,6 +33,10 @@ def test_comparison_panel_has_ranking_table_and_html_export() -> None:
     assert "buildCaseComparisonHtml" in PANEL
     assert "overflow-x-auto" in PANEL
     assert "min-w-[920px]" in PANEL
+    assert "地勢風險" in PANEL
+    assert "地勢與災害風險" in PANEL
+    assert "terrainRiskLevel" in PANEL
+    assert "terrainRiskStatus" in PANEL
 
 
 def test_case_manager_supports_two_to_four_case_selection() -> None:
