@@ -20,43 +20,7 @@ from app.services.tdx_mrt_snapshot import TdxMrtSnapshotContractError
 
 router = APIRouter(prefix="/commute", tags=["commute"])
 
-COMMUTE_ADDRESS_LOOKUP_DISCLAIMER = "".join(
-    chr(codepoint)
-    for codepoint in [
-        0x50C5,
-        0x4F9B,
-        0x901A,
-        0x52E4,
-        0x8207,
-        0x751F,
-        0x6D3B,
-        0x6A5F,
-        0x80FD,
-        0x53C3,
-        0x8003,
-        0xFF0C,
-        0x4E0D,
-        0x5F71,
-        0x97FF,
-        0x5730,
-        0x52E2,
-        0x707D,
-        0x5BB3,
-        0x3001,
-        0x8CB8,
-        0x6B3E,
-        0x3001,
-        0x6CD5,
-        0x5F8B,
-        0x6216,
-        0x770B,
-        0x623F,
-        0x7D50,
-        0x8AD6,
-        0x3002,
-    ]
-)
-COMMUTE_ADDRESS_LOOKUP_SUCCESS_MESSAGE = f"已取得最近捷運站資訊。{COMMUTE_ADDRESS_LOOKUP_DISCLAIMER}"
+ADDRESS_LOOKUP_SUCCESS_NOTICE = "僅供通勤與生活機能參考，不影響地勢災害、貸款、法律或看房結論。"
 
 
 @router.post("/refresh", response_model=CommuteRefreshResponse)
@@ -139,7 +103,7 @@ def lookup_commute_station_by_address(
         distance_meters=nearest.distance_meters,
         source_updated_at=nearest.source_updated_at,
         snapshot_generated_at=nearest.snapshot_generated_at,
-        message=COMMUTE_ADDRESS_LOOKUP_SUCCESS_MESSAGE,
+        message=ADDRESS_LOOKUP_SUCCESS_NOTICE,
     )
 
 
