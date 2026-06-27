@@ -44,7 +44,7 @@ class LocationResolver:
         if google_result.status == "resolved":
             return self._to_response(google_result, confidence="medium")
 
-        if tgos_result.status == "no_result" or google_result.status == "no_result":
+        if tgos_result.status == "no_result" and google_result.status == "no_result":
             return self._unresolved("TGOS 與 Google 都未回傳可信定位結果，請檢查地址是否完整或稍後再試。")
 
         return self._unavailable("目前定位服務暫時不可用，請稍後再試。")
@@ -112,13 +112,23 @@ class LocationResolver:
             response = httpx.get(GOOGLE_GEOCODE_URL, params=params, timeout=self.timeout_seconds)
             response.raise_for_status()
             payload = response.json()
-            if payload.get("status") not in {"OK", "ZERO_RESULTS"}:
-                return ProviderOutcome(status="unavailable", source="google")
-            results = payload.get("results") or []
-            if not results:
+            status = str(payload.get("status", ""))
+            if status == "ZERO_RESULTS":
                 return ProviderOutcome(status="no_result", source="google")
+            if status != "OK":
+                return ProviderOutcome(status="unavailable", source="google")
+            results = payload.get("results")
+            if not isinstance(results, list) or not results:
+                return ProviderOutcome(status="unavailable", source="google")
             result = results[0]
-            location = result.get("geometry", {}).get("location", {})
+            if not isinstance(result, dict):
+                return ProviderOutcome(status="unavailable", source="google")
+            geometry = result.get("geometry")
+            if not isinstance(geometry, dict):
+                return ProviderOutcome(status="unavailable", source="google")
+            location = geometry.get("location")
+            if not isinstance(location, dict):
+                return ProviderOutcome(status="unavailable", source="google")
             latitude = self._coerce_float(location.get("lat"))
             longitude = self._coerce_float(location.get("lng"))
             if latitude is None or longitude is None:

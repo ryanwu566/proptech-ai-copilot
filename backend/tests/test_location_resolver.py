@@ -166,6 +166,109 @@ def test_google_success_after_tgos_no_result(monkeypatch) -> None:
     assert result.confidence == "medium"
 
 
+def test_google_zero_results_returns_unresolved(monkeypatch) -> None:
+    resolver = LocationResolver(
+        google_maps_api_key="google-key",
+        tgos_app_id="app-id",
+        tgos_api_key="api-key",
+    )
+
+    def fake_get(url: str, params=None, timeout=None):  # noqa: ANN001
+        if "tgos" in url.lower():
+            return MockHTTPResponse({"AddressList": []})
+        return MockHTTPResponse({"status": "ZERO_RESULTS", "results": []})
+
+    monkeypatch.setattr(location_resolver.httpx, "get", fake_get)
+
+    result = resolver.resolve("臺北市信義區市府路1號")
+
+    assert result.status == "unresolved"
+    assert result.source == "none"
+    assert result.latitude is None
+    assert result.longitude is None
+    assert result.confidence == "unknown"
+
+
+def test_google_request_denied_returns_unavailable_not_unresolved(monkeypatch) -> None:
+    resolver = LocationResolver(
+        google_maps_api_key="google-key",
+        tgos_app_id="app-id",
+        tgos_api_key="api-key",
+    )
+
+    def fake_get(url: str, params=None, timeout=None):  # noqa: ANN001
+        if "tgos" in url.lower():
+            return MockHTTPResponse({"AddressList": []})
+        return MockHTTPResponse({"status": "REQUEST_DENIED", "results": []})
+
+    monkeypatch.setattr(location_resolver.httpx, "get", fake_get)
+
+    result = resolver.resolve("臺北市信義區市府路1號")
+
+    assert result.status == "unavailable"
+    assert result.source == "none"
+    assert result.latitude is None
+    assert result.longitude is None
+    assert result.confidence == "unknown"
+    assert "REQUEST_DENIED" not in result.message
+
+
+def test_google_over_daily_limit_returns_unavailable(monkeypatch) -> None:
+    resolver = LocationResolver(
+        google_maps_api_key="google-key",
+        tgos_app_id="app-id",
+        tgos_api_key="api-key",
+    )
+
+    def fake_get(url: str, params=None, timeout=None):  # noqa: ANN001
+        if "tgos" in url.lower():
+            return MockHTTPResponse({"AddressList": []})
+        return MockHTTPResponse({"status": "OVER_DAILY_LIMIT", "results": []})
+
+    monkeypatch.setattr(location_resolver.httpx, "get", fake_get)
+
+    result = resolver.resolve("臺北市信義區市府路1號")
+
+    assert result.status == "unavailable"
+    assert result.source == "none"
+    assert result.latitude is None
+    assert result.longitude is None
+    assert result.confidence == "unknown"
+
+
+def test_google_ok_missing_lat_or_lng_returns_unavailable(monkeypatch) -> None:
+    resolver = LocationResolver(
+        google_maps_api_key="google-key",
+        tgos_app_id="app-id",
+        tgos_api_key="api-key",
+    )
+
+    def fake_get(url: str, params=None, timeout=None):  # noqa: ANN001
+        if "tgos" in url.lower():
+            return MockHTTPResponse({"AddressList": []})
+        return MockHTTPResponse(
+            {
+                "status": "OK",
+                "results": [
+                    {
+                        "formatted_address": "臺北市信義區市府路1號",
+                        "geometry": {"location": {"lat": 25.0329}},
+                    }
+                ],
+            }
+        )
+
+    monkeypatch.setattr(location_resolver.httpx, "get", fake_get)
+
+    result = resolver.resolve("臺北市信義區市府路1號")
+
+    assert result.status == "unavailable"
+    assert result.source == "none"
+    assert result.latitude is None
+    assert result.longitude is None
+    assert result.confidence == "unknown"
+
+
 def test_unresolved_when_both_providers_return_no_result(monkeypatch) -> None:
     resolver = LocationResolver(
         google_maps_api_key="google-key",
@@ -185,6 +288,30 @@ def test_unresolved_when_both_providers_return_no_result(monkeypatch) -> None:
     assert result.status == "unresolved"
     assert result.source == "none"
     assert result.formatted_address is None
+    assert result.latitude is None
+    assert result.longitude is None
+    assert result.confidence == "unknown"
+
+
+def test_tgos_http_500_and_google_request_denied_return_unavailable(monkeypatch) -> None:
+    resolver = LocationResolver(
+        google_maps_api_key="google-key",
+        tgos_app_id="app-id",
+        tgos_api_key="api-key",
+    )
+    request = httpx.Request("GET", "https://example.com")
+
+    def fake_get(url: str, params=None, timeout=None):  # noqa: ANN001
+        if "tgos" in url.lower():
+            raise httpx.HTTPStatusError("bad status", request=request, response=httpx.Response(500, request=request))
+        return MockHTTPResponse({"status": "REQUEST_DENIED", "results": []})
+
+    monkeypatch.setattr(location_resolver.httpx, "get", fake_get)
+
+    result = resolver.resolve("臺北市信義區市府路1號")
+
+    assert result.status == "unavailable"
+    assert result.source == "none"
     assert result.latitude is None
     assert result.longitude is None
     assert result.confidence == "unknown"
