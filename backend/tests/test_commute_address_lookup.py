@@ -13,7 +13,42 @@ from app.services.location_resolver import build_location_resolver
 
 GENERATED_AT = datetime(2026, 1, 1, tzinfo=timezone.utc)
 SOURCE_UPDATED_AT = datetime(2026, 1, 2, tzinfo=timezone.utc)
-ADDRESS_LOOKUP_DISCLAIMER = "僅供通勤與生活機能參考，不影響地勢災害、貸款、法律或看房結論。"
+ADDRESS_LOOKUP_DISCLAIMER = "".join(
+    chr(codepoint)
+    for codepoint in [
+        0x50C5,
+        0x4F9B,
+        0x901A,
+        0x52E4,
+        0x8207,
+        0x751F,
+        0x6D3B,
+        0x6A5F,
+        0x80FD,
+        0x53C3,
+        0x8003,
+        0xFF0C,
+        0x4E0D,
+        0x5F71,
+        0x97FF,
+        0x5730,
+        0x52E2,
+        0x707D,
+        0x5BB3,
+        0x3001,
+        0x8CB8,
+        0x6B3E,
+        0x3001,
+        0x6CD5,
+        0x5F8B,
+        0x6216,
+        0x770B,
+        0x623F,
+        0x7D50,
+        0x8AD6,
+        0x3002,
+    ]
+)
 
 
 class FakeResolvedResolver:
@@ -137,6 +172,7 @@ def test_address_lookup_with_snapshot_and_resolved_location_returns_minimized_co
     assert payload["source_updated_at"]
     assert payload["snapshot_generated_at"]
     assert ADDRESS_LOOKUP_DISCLAIMER in payload["message"]
+    assert payload["message"].endswith(ADDRESS_LOOKUP_DISCLAIMER)
 
 
 def test_success_response_excludes_address_coordinates_provider_station_uid_token_and_raw_payload() -> None:
@@ -268,6 +304,7 @@ def test_unresolved_location_returns_200_unresolved_without_nearest_lookup() -> 
     assert payload["station_name"] is None
     assert service.nearest_calls == 0
     assert "找不到可信位置" in payload["message"]
+    assert ADDRESS_LOOKUP_DISCLAIMER not in payload["message"]
 
 
 def test_unavailable_location_returns_503_without_nearest_lookup() -> None:
@@ -279,6 +316,7 @@ def test_unavailable_location_returns_503_without_nearest_lookup() -> None:
     assert response.status_code == 503
     assert resolver.calls == 1
     assert service.nearest_calls == 0
+    assert ADDRESS_LOOKUP_DISCLAIMER not in response.text
 
 
 def test_unavailable_nearest_result_returns_503_without_refresh() -> None:
@@ -290,6 +328,7 @@ def test_unavailable_nearest_result_returns_503_without_refresh() -> None:
     assert response.status_code == 503
     assert service.nearest_calls == 1
     assert service.refresh_calls == 0
+    assert ADDRESS_LOOKUP_DISCLAIMER not in response.text
 
 
 def test_disclaimer_is_conservative_and_avoids_overclaims() -> None:
