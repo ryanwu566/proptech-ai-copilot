@@ -50,6 +50,7 @@ export default function TaxOraclePage() {
         description="Stores a local tax scenario and returns a deterministic repurchase refund result."
         endpoint="/api/tax-oracle/assessments"
         fields={[...fields]}
+        moduleSlug="tax-oracle"
         reportBasePath="/tax-oracle/reports"
       />
     </main>

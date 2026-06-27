@@ -8,12 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ViewingDecisionReportCard } from "@/components/viewing-decision-report-card";
+import type { ModuleSlug } from "@/lib/viewing-decision";
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
 type ReportPageProps = {
   moduleName: string;
-  moduleSlug: string;
+  moduleSlug: ModuleSlug;
   assessmentId: string;
   backHref: string;
 };
@@ -45,6 +47,12 @@ export function ReportPage({
           </Button>
         </div>
       </div>
+
+      <ViewingDecisionReportCard
+        assessmentId={assessmentId}
+        moduleName={moduleName}
+        moduleSlug={moduleSlug}
+      />
 
       <Card>
         <CardHeader>

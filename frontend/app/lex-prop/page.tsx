@@ -36,6 +36,7 @@ export default function LexPropPage() {
         description="Stores a local title risk record and returns a deterministic title risk result."
         endpoint="/api/lex-prop/assessments"
         fields={[...fields]}
+        moduleSlug="lex-prop"
         reportBasePath="/lex-prop/reports"
       />
     </main>

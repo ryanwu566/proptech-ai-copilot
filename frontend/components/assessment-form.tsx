@@ -11,6 +11,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ViewingDecisionCard } from "@/components/viewing-decision-card";
+import {
+  MODULE_LABELS,
+  readStoredViewingAssessments,
+  toViewingDecisionResult,
+  writeStoredViewingAssessment,
+  type ModuleSlug,
+} from "@/lib/viewing-decision";
 
 type Field =
   | {
@@ -50,6 +58,7 @@ type AssessmentFormProps = {
   description: string;
   endpoint: string;
   fields: Field[];
+  moduleSlug: ModuleSlug;
   reportBasePath: string;
 };
 
@@ -60,6 +69,7 @@ export function AssessmentForm({
   description,
   endpoint,
   fields,
+  moduleSlug,
   reportBasePath,
 }: AssessmentFormProps) {
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -105,7 +115,15 @@ export function AssessmentForm({
         throw new Error(`Request failed with status ${response.status}`);
       }
 
-      setResult((await response.json()) as AnalysisResult);
+      const savedResult = (await response.json()) as AnalysisResult;
+      const viewingResult = toViewingDecisionResult(savedResult.result);
+      setResult(savedResult);
+      writeStoredViewingAssessment({
+        assessmentId: savedResult.id,
+        moduleName: savedResult.module,
+        moduleSlug,
+        result: viewingResult,
+      });
       event.currentTarget.reset();
     } catch (requestError) {
       setError(
@@ -200,6 +218,19 @@ export function AssessmentForm({
               <pre className="max-h-72 max-w-full overflow-auto rounded-md border bg-muted/40 p-3 text-xs">
                 {JSON.stringify(result.result.details, null, 2)}
               </pre>
+              <ViewingDecisionCard
+                assessments={readStoredViewingAssessments().length ? readStoredViewingAssessments() : [{
+                  assessmentId: result.id,
+                  moduleName: result.module,
+                  moduleSlug,
+                  result: toViewingDecisionResult(result.result),
+                }]}
+              />
+            </div>
+          ) : null}
+          {!result ? (
+            <div className="mt-4 rounded-md border bg-muted/30 p-3 text-sm text-muted-foreground">
+              完成{MODULE_LABELS[moduleSlug]}後，這裡會整理目前已知提醒與下一步。
             </div>
           ) : null}
         </CardContent>

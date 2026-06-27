@@ -32,6 +32,7 @@ export default function AegisCreditPage() {
         description="Stores a local assessment record and returns a deterministic mortgage risk result."
         endpoint="/api/aegis-credit/assessments"
         fields={[...fields]}
+        moduleSlug="aegis-credit"
         reportBasePath="/aegis-credit/reports"
       />
     </main>
