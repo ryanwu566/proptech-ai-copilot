@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { HOLDING_COST_RESULT_EVENT, HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
 import { LOCATION_INSIGHT_RESULT_EVENT, LOCATION_INSIGHT_SESSION_KEY, prefillLocationInsight } from "@/components/location-insight";
+import { TERRAIN_RISK_RESULT_EVENT, TERRAIN_RISK_SESSION_KEY } from "@/components/terrain-risk-analysis";
 import { DecisionReport } from "@/components/decision-report";
 import { PropertyGuideMascot } from "@/components/property-guide-mascot";
 import { RiskSummaryPanel } from "@/components/risk-summary-panel";
@@ -40,6 +41,7 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   const [context, setContext] = useState<WorkspaceContext>(() => ({ inputs: { city: "", district: "", road: "", building_type: "", area_ping: 0, building_age_years: 0, floor: 0 }, propertySearch }));
   const [holdingResult, setHoldingResult] = useState<HoldingCostResult>();
   const [location, setLocation] = useState<LocationInsightResult>();
+  const [terrainRisk, setTerrainRisk] = useState<TerrainRiskResult>();
   const [workflowSession, setWorkflowSession] = useState<{ reportCompleted: boolean; taxOracleResult?: TaxResult }>(() => ({ reportCompleted: false }));
   const [caseMessage, setCaseMessage] = useState("保存兩個以上案件後，就可以比較哪個更值得看。");
   useEffect(() => {
@@ -47,24 +49,27 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     if (stored) setContext({ ...stored, propertySearch: propertySearch ?? stored.propertySearch });
     setHoldingResult(stored?.holding ?? readSession<HoldingCostResult>(HOLDING_COST_SESSION_KEY));
     setLocation(readSession<LocationInsightResult>(LOCATION_INSIGHT_SESSION_KEY));
+    setTerrainRisk(readSession<TerrainRiskResult>(TERRAIN_RISK_SESSION_KEY));
     const contextListener = (event: Event) => setContext((event as CustomEvent<WorkspaceContext>).detail);
     const holdingListener = (event: Event) => setHoldingResult((event as CustomEvent<HoldingCostResult>).detail);
     const locationListener = (event: Event) => setLocation((event as CustomEvent<LocationInsightResult>).detail);
+    const terrainRiskListener = (event: Event) => setTerrainRisk((event as CustomEvent<TerrainRiskResult>).detail);
     const workflowListener = () => setWorkflowSession(readWorkflowSession());
     const loadedListener = () => setCaseMessage("已回到上次進度。");
-    const clearedListener = () => { setContext({ inputs: { city: "", district: "", road: "", building_type: "", area_ping: 0, building_age_years: 0, floor: 0 } }); setHoldingResult(undefined); setLocation(undefined); setWorkflowSession({ reportCompleted: false }); setCaseMessage("保存兩個以上案件後，就可以比較哪個更值得看。"); };
+    const clearedListener = () => { setContext({ inputs: { city: "", district: "", road: "", building_type: "", area_ping: 0, building_age_years: 0, floor: 0 } }); setHoldingResult(undefined); setLocation(undefined); setTerrainRisk(undefined); setWorkflowSession({ reportCompleted: false }); setCaseMessage("保存兩個以上案件後，就可以比較哪個更值得看。"); };
     window.addEventListener(WORKSPACE_CONTEXT_EVENT, contextListener);
     window.addEventListener(HOLDING_COST_RESULT_EVENT, holdingListener);
     window.addEventListener(LOCATION_INSIGHT_RESULT_EVENT, locationListener);
+    window.addEventListener(TERRAIN_RISK_RESULT_EVENT, terrainRiskListener);
     window.addEventListener(WORKFLOW_STATUS_EVENT, workflowListener);
     window.addEventListener(CASE_LOADED_EVENT, loadedListener);
     window.addEventListener(CASE_CLEARED_EVENT, clearedListener);
     workflowListener();
-    return () => { window.removeEventListener(WORKSPACE_CONTEXT_EVENT, contextListener); window.removeEventListener(HOLDING_COST_RESULT_EVENT, holdingListener); window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, locationListener); window.removeEventListener(WORKFLOW_STATUS_EVENT, workflowListener); window.removeEventListener(CASE_LOADED_EVENT, loadedListener); window.removeEventListener(CASE_CLEARED_EVENT, clearedListener); };
+    return () => { window.removeEventListener(WORKSPACE_CONTEXT_EVENT, contextListener); window.removeEventListener(HOLDING_COST_RESULT_EVENT, holdingListener); window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, locationListener); window.removeEventListener(TERRAIN_RISK_RESULT_EVENT, terrainRiskListener); window.removeEventListener(WORKFLOW_STATUS_EVENT, workflowListener); window.removeEventListener(CASE_LOADED_EVENT, loadedListener); window.removeEventListener(CASE_CLEARED_EVENT, clearedListener); };
   }, [propertySearch]);
   const search = propertySearch ?? context.propertySearch;
   const { inputs, valuation, trend, loan } = context;
-  const riskSummary = buildRiskSummary({ propertySearch: search, valuation, trend, loan, holding: holdingResult, location });
+  const riskSummary = buildRiskSummary({ propertySearch: search, valuation, trend, loan, holding: holdingResult, location, terrainRisk });
   const workflowStatus = buildWorkflowStatus({ propertySearch: search, valuation, loan, holding: holdingResult, location, riskSummary, reportCompleted: workflowSession.reportCompleted, taxOracleResult: workflowSession.taxOracleResult });
   const activeWizardStep = getActiveWizardStep(workflowStatus);
   const wizardSummaries: WizardStepSummary = {
@@ -79,14 +84,14 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   const stage = location && holdingResult && loan && valuation ? "complete" : location || holdingResult ? "location" : loan ? "loan" : valuation ? "valuation" : search ? "finder" : "start";
   function exportReport() {
     if (!valuation) return;
-    const html = buildValuationSummaryHtml(inputs, valuation, trend, search, loan, holdingResult, location);
+    const html = buildValuationSummaryHtml(inputs, valuation, trend, search, loan, holdingResult, location, terrainRisk);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
     markWorkflowReportCompleted();
   }
   function exportSavedCase(saved: SavedCase) {
     if (!saved.data.valuation) return;
-    const html = buildValuationSummaryHtml(saved.data.inputs, saved.data.valuation, saved.data.trend, saved.data.propertySearch, saved.data.loan, saved.data.holdingCost, saved.data.locationInsight);
+    const html = buildValuationSummaryHtml(saved.data.inputs, saved.data.valuation, saved.data.trend, saved.data.propertySearch, saved.data.loan, saved.data.holdingCost, saved.data.locationInsight, saved.data.terrainRisk);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
   }
@@ -94,7 +99,7 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     activeWizardStep: activeWizardStep.id,
     progress: workflowStatus.overallProgress,
     inputSummary: { city: inputs.city, district: inputs.district, road: inputs.road, budgetMin: search?.summary.budget_min, budgetMax: search?.summary.budget_max, propertyPrice: valuation?.price_range.mid ?? loan?.property_price_wan, areaPing: inputs.area_ping },
-    data: { inputs, propertySearch: search, valuation, trend, loan, holdingCost: holdingResult, locationInsight: location, riskSummary, taxOracle: workflowSession.taxOracleResult, reportCompleted: workflowSession.reportCompleted },
+    data: { inputs, propertySearch: search, valuation, trend, loan, holdingCost: holdingResult, locationInsight: location, terrainRisk, riskSummary, taxOracle: workflowSession.taxOracleResult, reportCompleted: workflowSession.reportCompleted },
   };
   function saveCurrentCase() {
     saveCase(currentCase);

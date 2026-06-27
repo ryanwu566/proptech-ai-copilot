@@ -9,6 +9,7 @@ import { HeroIntro } from "@/components/hero-intro";
 import { HoldingCostCalculator, HoldingCostPrefill, HOLDING_COST_SESSION_KEY, prefillHoldingCost } from "@/components/holding-cost-calculator";
 import { LoanCalculator } from "@/components/loan-calculator";
 import { LOCATION_INSIGHT_SESSION_KEY, prefillLocationInsight } from "@/components/location-insight";
+import { TerrainRiskAnalysis, TERRAIN_RISK_SESSION_KEY } from "@/components/terrain-risk-analysis";
 import { publishWorkspaceContext, WORKSPACE_CONTEXT_SESSION_KEY, type WorkspaceContext } from "@/components/immersive-viewing-workspace";
 import { PropertyFinder, PropertyFinderSelection } from "@/components/property-finder";
 import { AppPage } from "@/components/sidebar";
@@ -18,7 +19,7 @@ import { CaseManager } from "@/components/case-manager";
 import { CASE_CLEARED_EVENT, CASE_LOADED_EVENT, type SavedCase } from "@/lib/case-storage";
 import { Badge, Button, EmptyState, Notice } from "@/components/ui";
 import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
-import { API_BASE, api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import { API_BASE, api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, TerrainRiskResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { buildValuationShareUrl, buildValuationSummaryHtml, parseValuationShareParams, valuationSummaryFilename, ValuationInputs } from "@/lib/valuation-share";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { buildWorkflowStatus, markTaxOracleCompleted, markWorkflowReportCompleted, OPEN_TAXORACLE_EVENT, readWorkflowSession, type WorkflowStatus } from "@/lib/workflow-status";
@@ -46,7 +47,7 @@ function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (c
   if (page === "Map Insight Lite") return <MapInsight />;
   if (page === "房價估算") return <ValuationPage />;
   if (page === "Aegis-Credit Lite") return <AegisCredit />;
-  if (page === "LexProp Lite") return <LexProp />;
+  if (page === "Terrain Risk") return <TerrainRiskPage />;
   if (page === "歷史案件") return <History />;
   return <Dashboard setPage={setPage} openTax={openTax} />;
 }
@@ -55,13 +56,13 @@ function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; ope
   const [selectedCase, setSelectedCase] = useState("DEMO-LOW");
   const [reportReady, setReportReady] = useState(false);
   const [workflowStatus,setWorkflowStatus]=useState<WorkflowStatus>(()=>buildWorkflowStatus({}));
-  useEffect(()=>{try{const stored=window.sessionStorage.getItem(WORKSPACE_CONTEXT_SESSION_KEY),context=stored?JSON.parse(stored) as WorkspaceContext:undefined;const holdingValue=window.sessionStorage.getItem(HOLDING_COST_SESSION_KEY),locationValue=window.sessionStorage.getItem(LOCATION_INSIGHT_SESSION_KEY),holding=holdingValue?JSON.parse(holdingValue) as HoldingCostResult:undefined,location=locationValue?JSON.parse(locationValue):undefined,riskSummary=buildRiskSummary({propertySearch:context?.propertySearch,valuation:context?.valuation,trend:context?.trend,loan:context?.loan,holding,location}),session=readWorkflowSession();setReportReady(Boolean(context?.valuation));setWorkflowStatus(buildWorkflowStatus({propertySearch:context?.propertySearch,valuation:context?.valuation,loan:context?.loan,holding,location,riskSummary,...session}));}catch{setReportReady(false);}},[]);
+  useEffect(()=>{try{const stored=window.sessionStorage.getItem(WORKSPACE_CONTEXT_SESSION_KEY),context=stored?JSON.parse(stored) as WorkspaceContext:undefined;const holdingValue=window.sessionStorage.getItem(HOLDING_COST_SESSION_KEY),locationValue=window.sessionStorage.getItem(LOCATION_INSIGHT_SESSION_KEY),terrainRiskValue=window.sessionStorage.getItem(TERRAIN_RISK_SESSION_KEY),holding=holdingValue?JSON.parse(holdingValue) as HoldingCostResult:undefined,location=locationValue?JSON.parse(locationValue):undefined,terrainRisk=terrainRiskValue?JSON.parse(terrainRiskValue) as TerrainRiskResult:undefined,riskSummary=buildRiskSummary({propertySearch:context?.propertySearch,valuation:context?.valuation,trend:context?.trend,loan:context?.loan,holding,location,terrainRisk}),session=readWorkflowSession();setReportReady(Boolean(context?.valuation));setWorkflowStatus(buildWorkflowStatus({propertySearch:context?.propertySearch,valuation:context?.valuation,loan:context?.loan,holding,location,riskSummary,...session}));}catch{setReportReady(false);}},[]);
   function openViewingFlow(target: string) { window.sessionStorage.setItem("proptech:pending-section", target); setPage("房價估算"); }
   function continueWorkflow(){if(workflowStatus.nextActionTargetId==="taxoracle"){setPage("TaxOracle");return;}openViewingFlow(workflowStatus.nextActionTargetId);}
   function openAdvanced(){const advanced=document.getElementById("advanced-tools") as HTMLDetailsElement|null;if(advanced){advanced.open=true;advanced.scrollIntoView({behavior:"smooth",block:"start"});}}
   function openCaseComparison(){document.getElementById("recent-cases")?.scrollIntoView({behavior:"smooth",block:"start"});}
   function startGuidedDemo(){window.sessionStorage.setItem(GUIDED_DEMO_PENDING_KEY,"true");openViewingFlow("immersive-workspace");}
-  function exportSavedCase(saved:SavedCase){if(!saved.data.valuation)return;const html=buildValuationSummaryHtml(saved.data.inputs,saved.data.valuation,saved.data.trend,saved.data.propertySearch,saved.data.loan,saved.data.holdingCost,saved.data.locationInsight);const url=URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"})),link=document.createElement("a");link.href=url;link.download=valuationSummaryFilename();link.click();URL.revokeObjectURL(url);}
+  function exportSavedCase(saved:SavedCase){if(!saved.data.valuation)return;const html=buildValuationSummaryHtml(saved.data.inputs,saved.data.valuation,saved.data.trend,saved.data.propertySearch,saved.data.loan,saved.data.holdingCost,saved.data.locationInsight,saved.data.terrainRisk);const url=URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"})),link=document.createElement("a");link.href=url;link.download=valuationSummaryFilename();link.click();URL.revokeObjectURL(url);}
   return <div className="space-y-6">
     <HeroIntro onStart={continueWorkflow} onWorkspace={() => openViewingFlow("immersive-workspace")} reportReady={reportReady} onReport={() => openViewingFlow("decision-report")} workflowStatus={workflowStatus} />
     <WorkflowEntryCards onStartBuying={continueWorkflow} onOpenTax={() => openTax(selectedCase)} onOpenAdvanced={openAdvanced} onGuidedDemo={startGuidedDemo} onOpenCompare={openCaseComparison} />
@@ -276,10 +277,8 @@ function valuationCompositionLabel(composition?:ValuationDataStatus["data_compos
 function formatComparableDistance(row:ValuationResult["comparables"][number]){return row.distance_m!==null?`${row.distance_m}m`:row.note.includes("同路段")?"同路段":"未定位";}
 
 function NumberField({label,value,setValue}:{label:string;value:number;setValue:(value:number)=>void}){return <label className="text-[10px] text-slate-500">{label}<input type="number" value={value} onChange={(e)=>setValue(Number(e.target.value))} className="mt-1 w-full rounded-lg border border-stone-300 px-2 py-2 text-sm"/></label>;}
-function LexProp() {
-  const [result,setResult]=useState<{risk_score:number;match_count:number;summary:string}>(), [loading,setLoading]=useState(false), [error,setError]=useState("");
-  async function run(){setLoading(true);try{setResult(await api.lexprop({city:"台北市",district:"信義區",road_masked:"松仁路***號",community:"信義首席"}));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
-  return <SupportPage kicker="風險模組" title="判決風險摘要" description="以匿名化條件比對公開判決摘要，不輸出完整門牌與個資。" error={error} help="展示型風險摘要，不代表正式法律結論。"><SectionCard><p className="text-sm text-slate-500">使用預設匿名化案例查詢潛在風險。</p><Button onClick={run} disabled={loading} className="mt-4">{loading?"查詢中...":"查詢摘要"}</Button></SectionCard>{result&&<><div className="grid gap-3 md:grid-cols-2"><MetricTile label="比對筆數" value={result.match_count}/><MetricTile label="風險分數" value={result.risk_score}/></div><SectionCard title="摘要"><p className="text-sm leading-7 text-slate-600">{result.summary}</p></SectionCard></>}</SupportPage>;
+function TerrainRiskPage() {
+  return <SupportPage kicker="風險模組" title="地勢與災害風險分析" description="用官方公開圖資，初步檢查坡度、淹水、坡地災害與地質敏感風險。" error="" help="這不是正式地質調查或建築結構鑑定，只是買房前的公開資料初步檢查。"><TerrainRiskAnalysis /></SupportPage>;
 }
 function SupportPage({ kicker, title, description, error, help, children }: { kicker: string; title: string; description: string; error: string; help: string; children: ReactNode }) { return <div className="space-y-6"><PageHeader kicker={kicker} title={title} description={description} /><HelpCallout>{help}</HelpCallout>{error && <ErrorState message={error} />}{children}</div>; }
 

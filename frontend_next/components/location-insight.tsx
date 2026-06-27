@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, LocationInsightResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
+import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
 
 
 export type LocationInsightPrefill = {
@@ -84,7 +85,7 @@ export function LocationInsight() {
   }
 
   const inputClass = "mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm";
-  return <div id="location-insight-calculator" className="scroll-mt-20"><span id="location-insight" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title="區位分析" description="沿用既有定位與 800m POI 生活圈資料，用可解釋規則整理買房前的區位優缺點。">
+  return <div id="location-insight-calculator" className="scroll-mt-20 space-y-5"><span id="location-insight" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title="區位分析" description="沿用既有定位與 800m POI 生活圈資料，用可解釋規則整理買房前的區位優缺點。">
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
         <label className="text-xs text-slate-500">縣市<input className={inputClass} value={city} onChange={(event) => setCity(event.target.value)} /></label>
@@ -102,7 +103,7 @@ export function LocationInsight() {
         {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入地址或路段，或從找房雷達／估價條件帶入後分析區位。</div> : <LocationResults result={result} />}
       </div>
     </div>
-  </SectionCard></div>;
+  </SectionCard><TerrainRiskAnalysis location={result} /></div>;
 }
 
 function LocationResults({ result }: { result: LocationInsightResult }) {

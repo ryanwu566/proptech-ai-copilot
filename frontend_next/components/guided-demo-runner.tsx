@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HOLDING_COST_RESULT_EVENT, HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
 import { LOCATION_INSIGHT_RESULT_EVENT, LOCATION_INSIGHT_SESSION_KEY } from "@/components/location-insight";
+import { TERRAIN_RISK_RESULT_EVENT, TERRAIN_RISK_SESSION_KEY } from "@/components/terrain-risk-analysis";
 import { DEMO_STEPS, DemoRunError, GUIDED_DEMO_PENDING_KEY, GUIDED_DEMO_RESULT_EVENT, runDemoPreflight, runGuidedDemo, runOptionalTaxOracleDemo, START_GUIDED_DEMO_EVENT, type DemoPreflightStatus, type DemoResults, type DemoStepState } from "@/lib/demo-runner";
 import { markTaxOracleCompleted, WORKFLOW_STATUS_EVENT } from "@/lib/workflow-status";
 import { HelpTooltip } from "@/components/help-tooltip";
@@ -79,6 +80,7 @@ export function GuidedDemoRunner({ onMessage, onSave, onExport, canExport = fals
     window.dispatchEvent(new CustomEvent("proptech:viewing-workspace-context", { detail: context }));
     if (next.holdingCost) { window.sessionStorage.setItem(HOLDING_COST_SESSION_KEY, JSON.stringify(next.holdingCost)); window.dispatchEvent(new CustomEvent(HOLDING_COST_RESULT_EVENT, { detail: next.holdingCost })); }
     if (next.locationInsight) { window.sessionStorage.setItem(LOCATION_INSIGHT_SESSION_KEY, JSON.stringify(next.locationInsight)); window.dispatchEvent(new CustomEvent(LOCATION_INSIGHT_RESULT_EVENT, { detail: next.locationInsight })); }
+    if (next.terrainRisk) { window.sessionStorage.setItem(TERRAIN_RISK_SESSION_KEY, JSON.stringify(next.terrainRisk)); window.dispatchEvent(new CustomEvent(TERRAIN_RISK_RESULT_EVENT, { detail: next.terrainRisk })); }
     window.dispatchEvent(new CustomEvent(GUIDED_DEMO_RESULT_EVENT, { detail: next }));
     window.dispatchEvent(new Event(WORKFLOW_STATUS_EVENT));
   }

@@ -23,6 +23,8 @@ export type ComparedCase = {
   educationScore: number | null;
   medicalScore: number | null;
   locationRiskGap: string;
+  terrainRiskLevel: string;
+  terrainRiskStatus: string;
   riskSignal: string;
   riskScore: number | null;
   mainRisks: string[];
@@ -62,7 +64,7 @@ export function buildCaseComparisonHtml(result: CaseComparisonResult): string {
 }
 
 function toComparedCase(saved: SavedCase): ComparedCase {
-  const { valuation, loan, holdingCost, locationInsight, riskSummary, taxOracle, inputs } = saved.data;
+  const { valuation, loan, holdingCost, locationInsight, terrainRisk, riskSummary, taxOracle, inputs } = saved.data;
   return {
     caseId: saved.id, title: saved.title, location: `${inputs.city}${inputs.district}${inputs.road}`, propertyPrice: saved.inputSummary.propertyPrice ?? loan?.property_price_wan ?? null,
     areaPing: saved.inputSummary.areaPing ?? inputs.area_ping ?? null, buildingType: inputs.building_type || "尚未完成", completionRate: saved.progress,
@@ -73,6 +75,8 @@ function toComparedCase(saved: SavedCase): ComparedCase {
     locationScore: locationInsight?.location_score ?? null, transitScore: locationInsight?.category_scores.transit_score ?? null, convenienceScore: locationInsight?.category_scores.convenience_score ?? null,
     educationScore: locationInsight?.category_scores.education_score ?? null, medicalScore: locationInsight?.category_scores.medical_score ?? null,
     locationRiskGap: !locationInsight ? "尚未完成" : locationInsight.data_quality.missing_sources.join("、") || (locationInsight.poi_summary.risk_facility_count ? `風險設施 ${locationInsight.poi_summary.risk_facility_count} 處` : "無明顯缺口"),
+    terrainRiskLevel: terrainRisk?.overall.label ?? "尚未完成",
+    terrainRiskStatus: terrainRisk ? `${terrainRisk.overall.level} / ${terrainRisk.data_quality.status}` : "尚未完成",
     riskSignal: riskSummary?.overallSignal ?? "unknown", riskScore: riskSummary?.overallScore ?? null, mainRisks: riskSummary?.riskFactors.slice(0, 3).map((item) => item.title) ?? [],
     positives: riskSummary?.positiveFactors.slice(0, 3).map((item) => item.title) ?? [], taxStatus: taxOracle ? "已完成" : "尚未快篩", taxSignal: taxOracle?.signal_color ?? "unknown", taxRiskScore: taxOracle?.risk_score ?? null,
   };
@@ -104,7 +108,7 @@ function valuationScore(confidence: number | null, price: string) {
 }
 
 function missingWarnings(item: ComparedCase) {
-  return [["估價", item.valuationMid], ["貸款", item.monthlyPayment], ["持有成本", item.monthlyHoldingCost], ["區位", item.locationScore], ["風險總評", item.riskScore], ["稅務快篩", item.taxRiskScore]].filter(([, value]) => value === null).map(([label]) => `${item.title}：${label}尚未完成`);
+  return [["估價", item.valuationMid], ["貸款", item.monthlyPayment], ["持有成本", item.monthlyHoldingCost], ["區位", item.locationScore], ["風險總評", item.riskScore], ["稅務快篩", item.taxRiskScore]].filter(([, value]) => value === null).map(([label]) => `${item.title}：${label}尚未完成`).concat(item.terrainRiskStatus === "尚未完成" ? [`${item.title}：地勢與災害風險尚未完成`] : []);
 }
 
 const comparisonFields: Array<[string, keyof ComparedCase, (value: never) => string]> = [
@@ -112,6 +116,7 @@ const comparisonFields: Array<[string, keyof ComparedCase, (value: never) => str
   ["估價中位數", "valuationMid", wan], ["估價區間", "valuationRange", text], ["估價信心", "valuationConfidence", scoreText], ["開價合理性", "priceReasonableness", text],
   ["頭期款", "downPaymentWan", wan], ["月付", "monthlyPayment", yuan], ["月付負擔率", "loanBurdenRatio", ratio], ["每月持有成本", "monthlyHoldingCost", yuan], ["持有成本負擔率", "holdingBurdenRatio", ratio],
   ["區位總分", "locationScore", scoreText], ["交通", "transitScore", scoreText], ["生活便利", "convenienceScore", scoreText], ["教育", "educationScore", scoreText], ["醫療", "medicalScore", scoreText], ["風險資料缺口", "locationRiskGap", text],
+  ["地勢風險", "terrainRiskLevel", text], ["地勢資料狀態", "terrainRiskStatus", text],
   ["風險燈號", "riskSignal", text], ["風險總分", "riskScore", scoreText], ["TaxOracle", "taxStatus", text], ["稅務燈號", "taxSignal", text],
 ];
 function text(value: unknown) { return value === null || value === "" ? "尚未完成" : String(value); }

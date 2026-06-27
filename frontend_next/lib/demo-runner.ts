@@ -1,4 +1,4 @@
-import { API_BASE, api, type HoldingCostResult, type LoanCalculationResult, type LocationInsightResult, type PropertySearchResult, type TaxResult, type ValuationResult, type ValuationTrendResult } from "@/lib/api";
+import { API_BASE, api, type HoldingCostResult, type LoanCalculationResult, type LocationInsightResult, type PropertySearchResult, type TaxResult, type TerrainRiskResult, type ValuationResult, type ValuationTrendResult } from "@/lib/api";
 import { buildRiskSummary, type RiskSummary } from "@/lib/risk-summary";
 import type { ValuationInputs } from "@/lib/valuation-share";
 
@@ -14,7 +14,7 @@ export const DEMO_INPUT = {
 } as const;
 
 export type DemoPreflightStatus = "checking" | "ready" | "waking" | "failed";
-export type DemoStepId = "propertySearch" | "valuation" | "trend" | "loan" | "holdingCost" | "locationInsight" | "riskSummary";
+export type DemoStepId = "propertySearch" | "valuation" | "trend" | "loan" | "holdingCost" | "locationInsight" | "terrainRisk" | "riskSummary";
 export type DemoStepStatus = "queued" | "running" | "done" | "failed" | "skipped";
 export type DemoStepState = { id: DemoStepId; label: string; endpoint: string; status: DemoStepStatus; summary?: string; error?: string; recovery?: string };
 export type DemoResults = {
@@ -25,6 +25,7 @@ export type DemoResults = {
   loan?: LoanCalculationResult;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
+  terrainRisk?: TerrainRiskResult;
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
 };
@@ -36,6 +37,7 @@ export const DEMO_STEPS: Array<Pick<DemoStepState, "id" | "label" | "endpoint">>
   { id: "loan", label: "貸款月付", endpoint: "POST /loan/calculate" },
   { id: "holdingCost", label: "持有成本", endpoint: "POST /holding-cost/calculate" },
   { id: "locationInsight", label: "區位分析", endpoint: "POST /location/insight" },
+  { id: "terrainRisk", label: "地勢與災害風險", endpoint: "POST /terrain-risk/analyze（optional）" },
   { id: "riskSummary", label: "風險總評", endpoint: "前端 rule-based" },
 ];
 
@@ -128,7 +130,15 @@ async function runStep(step: DemoStepId, results: DemoResults): Promise<string> 
     if (results.locationInsight.data_quality.status === "unavailable") throw new Error("LOCATION_UNAVAILABLE");
     return `區位分數 ${results.locationInsight.location_score ?? "資料不足"}`;
   }
-  results.riskSummary = buildRiskSummary({ propertySearch: results.propertySearch, valuation: results.valuation, trend: results.trend, loan: results.loan, holding: results.holdingCost, location: results.locationInsight });
+  if (step === "terrainRisk") {
+    try {
+      results.terrainRisk = await api.terrainRiskAnalyze({ city: DEMO_INPUT.city, district: DEMO_INPUT.district, road: DEMO_INPUT.road, radius_m: 500 });
+      return `地勢風險：${results.terrainRisk.overall.label}`;
+    } catch {
+      return "地勢風險資料暫時無法自動比對，已略過並保留手動分析入口";
+    }
+  }
+  results.riskSummary = buildRiskSummary({ propertySearch: results.propertySearch, valuation: results.valuation, trend: results.trend, loan: results.loan, holding: results.holdingCost, location: results.locationInsight, terrainRisk: results.terrainRisk });
   return `${results.riskSummary.overallLabel}，總分 ${results.riskSummary.overallScore ?? "資料不足"}`;
 }
 

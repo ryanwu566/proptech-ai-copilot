@@ -6,7 +6,7 @@
 
 - TaxOracle 是主要任務；Dashboard 引導使用者立即選案例並分析。
 - Map Insight 是主要視覺亮點；地圖佔據畫面主體。
-- Market Insight、房貸風險展示、判決風險摘要與歷史案件為輔助工具。
+- Market Insight、房貸風險展示、地勢與災害風險分析與歷史案件為輔助工具。
 - 中文為主要操作語言；英文只保留品牌、TaxOracle、Map Insight 等短標籤。
 - 減少裝飾、卡片與工程術語，以清楚的分區、線條與狀態呈現資訊。
 

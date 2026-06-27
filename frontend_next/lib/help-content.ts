@@ -16,6 +16,7 @@ export const HELP_CONTENT = {
   mapInsight: { title: "Map Insight", body: "搜尋地址並整理附近 POI 與生活圈資訊；資料仍需搭配實地確認。" },
   geoMap: { title: "GeoMap", body: "在地圖上查看附近設施位置與距離，方便快速理解生活圈分布。" },
   dataStatus: { title: "Data Status", body: "顯示估價資料來源、期間與覆蓋範圍，幫你判斷目前分析資料是否足夠。" },
+  terrainRisk: { title: "地勢與災害風險分析", body: "這是公開圖資的初步比對，不代表建築結構鑑定、土地使用限制、地質調查或正式防災結論。實際風險仍需以現場、主管機關與專業人員判定為準。" },
 } as const;
 
 export type HelpKey = keyof typeof HELP_CONTENT;

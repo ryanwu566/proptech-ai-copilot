@@ -19,6 +19,7 @@ def test_guided_demo_has_real_api_backed_sequential_steps() -> None:
         "api.loanCalculate",
         "api.holdingCostCalculate",
         "api.locationInsight",
+        "api.terrainRiskAnalyze",
     ):
         assert call in RUNNER
     for step in ("搜尋找房", "實價估價", "市場趨勢", "貸款月付", "持有成本", "區位分析", "風險總評"):
@@ -41,6 +42,7 @@ def test_runner_has_api_preflight_and_endpoint_details() -> None:
         "/loan/calculate",
         "/holding-cost/calculate",
         "/location/insight",
+        "/terrain-risk/analyze",
     ):
         assert endpoint in RUNNER
     assert "後端服務可能正在喚醒" in RUNNER

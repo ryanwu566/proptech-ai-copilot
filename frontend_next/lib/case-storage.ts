@@ -1,4 +1,4 @@
-import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { BuyingWizardStep } from "@/lib/buying-wizard-status";
 import type { ValuationInputs } from "@/lib/valuation-share";
@@ -16,6 +16,7 @@ export type SavedCaseData = {
   loan?: LoanCalculationResult;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
+  terrainRisk?: TerrainRiskResult;
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
   reportCompleted?: boolean;
@@ -91,6 +92,7 @@ export function loadSavedCase(saved: SavedCase) {
   setSession("proptech:viewing-workspace-context", context);
   setSession("proptech:holding-cost-result", saved.data.holdingCost);
   setSession("proptech:location-insight-result", saved.data.locationInsight);
+  setSession("proptech:terrain-risk-result", saved.data.terrainRisk);
   setSession("proptech:taxoracle-result", saved.data.taxOracle);
   if (saved.data.reportCompleted) window.sessionStorage.setItem("proptech:workflow-report-completed", "true");
   else window.sessionStorage.removeItem("proptech:workflow-report-completed");
@@ -99,11 +101,12 @@ export function loadSavedCase(saved: SavedCase) {
   window.dispatchEvent(new CustomEvent("proptech:viewing-workspace-context", { detail: context }));
   if (saved.data.holdingCost) window.dispatchEvent(new CustomEvent("proptech:holding-cost-result-ready", { detail: saved.data.holdingCost }));
   if (saved.data.locationInsight) window.dispatchEvent(new CustomEvent("proptech:location-insight-result-ready", { detail: saved.data.locationInsight }));
+  if (saved.data.terrainRisk) window.dispatchEvent(new CustomEvent("proptech:terrain-risk-result-ready", { detail: saved.data.terrainRisk }));
   window.dispatchEvent(new Event("proptech:workflow-status-updated"));
 }
 
 export function clearCurrentCase() {
-  for (const key of ["proptech:viewing-workspace-context", "proptech:holding-cost-result", "proptech:location-insight-result", "proptech:taxoracle-result", "proptech:workflow-report-completed", "proptech:pending-section"]) {
+  for (const key of ["proptech:viewing-workspace-context", "proptech:holding-cost-result", "proptech:location-insight-result", "proptech:terrain-risk-result", "proptech:taxoracle-result", "proptech:workflow-report-completed", "proptech:pending-section"]) {
     window.sessionStorage.removeItem(key);
   }
   window.dispatchEvent(new Event(CASE_CLEARED_EVENT));
@@ -116,6 +119,7 @@ function compactCaseData(data: SavedCaseData): SavedCaseData {
     propertySearch: data.propertySearch ? { ...data.propertySearch, matched_transactions: data.propertySearch.matched_transactions.slice(0, 20) } : undefined,
     valuation: data.valuation ? { ...data.valuation, comparables: data.valuation.comparables.slice(0, 20) } : undefined,
     locationInsight: data.locationInsight ? { ...data.locationInsight, nearest_pois: data.locationInsight.nearest_pois.slice(0, 20) } : undefined,
+    terrainRisk: data.terrainRisk ? { ...data.terrainRisk, risk_factors: data.terrainRisk.risk_factors.slice(0, 10), map_layers: data.terrainRisk.map_layers.slice(0, 10) } : undefined,
   };
 }
 

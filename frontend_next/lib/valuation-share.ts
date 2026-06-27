@@ -1,6 +1,7 @@
-import type { HoldingCostResult, LoanCalculationResult, PropertySearchResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { HoldingCostResult, LoanCalculationResult, PropertySearchResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
 import { LOCATION_INSIGHT_SESSION_KEY } from "@/components/location-insight";
+import { TERRAIN_RISK_SESSION_KEY } from "@/components/terrain-risk-analysis";
 import type { LocationInsightResult } from "@/lib/api";
 import { buildDecisionSummary } from "@/lib/decision-summary";
 import { buildRiskSummary } from "@/lib/risk-summary";
@@ -54,11 +55,13 @@ export function buildValuationSummaryHtml(
   loan?: LoanCalculationResult,
   holdingCost?: HoldingCostResult,
   locationInsight?: LocationInsightResult,
+  terrainRiskResult?: TerrainRiskResult,
 ): string {
   const holding = holdingCost ?? readHoldingCostResult();
   const location = locationInsight ?? readLocationInsightResult();
+  const terrainRisk = terrainRiskResult ?? readTerrainRiskResult();
   const decision = buildDecisionSummary(propertySearch, result, loan, holding, location);
-  const risk = buildRiskSummary({ propertySearch, valuation: result, trend, loan, holding, location });
+  const risk = buildRiskSummary({ propertySearch, valuation: result, trend, loan, holding, location, terrainRisk });
   const taxOracle = readWorkflowSession().taxOracleResult;
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
@@ -108,6 +111,15 @@ export function buildValuationSummaryHtml(
     <h3>區位優點</h3><ul>${location.strengths.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
     <h3>區位缺點</h3><ul>${location.weaknesses.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
     <p class="notice">${escapeHtml(location.data_quality.warnings.join("；"))}<br>${escapeHtml(location.disclaimer)}</p>` : "";
+  const terrainSection = terrainRisk ? `<h2>地勢與災害風險</h2><dl>
+    ${summaryItem("總評", terrainRisk.overall.label)}
+    ${summaryItem("風險等級", terrainRisk.overall.level)}
+    ${summaryItem("資料品質", terrainRisk.data_quality.status)}
+    ${summaryItem("資料缺口", terrainRisk.missing_sources.join("、") || "目前無明顯缺口")}</dl>
+    <h3>主要提醒</h3><ul>${terrainRisk.risk_factors.map((item) => `<li>${escapeHtml(`${item.title}：${item.message}`)}</li>`).join("") || "<li>目前未比對到明確風險；若來源不足，仍需官方圖台確認。</li>"}</ul>
+    <h3>建議補查</h3><ul>${terrainRisk.recommended_checks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+    <h3>官方來源</h3><ul>${terrainRisk.map_layers.map((item) => `<li>${escapeHtml(`${item.label}：${item.status} ${item.source_url || ""}`)}</li>`).join("")}</ul>
+    <p class="notice">${escapeHtml(terrainRisk.disclaimer)}</p>` : "";
   const decisionSection = `<section class="decision"><h2>快速結論</h2><div class="verdict">${escapeHtml(decision.recommendation)}</div>
     <div class="columns"><div><h3>主要理由</h3><ol>${decision.reasons.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div>
     <div><h3>主要風險</h3><ol>${decision.risks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol></div></div>
@@ -151,7 +163,7 @@ export function buildValuationSummaryHtml(
   ${summaryItem("本次估算使用", result.estimate_source_label)}${summaryItem("官方／樣本資料數量", `${result.data_status.official_records_count ?? 0}／${result.data_status.sample_records_count ?? 0}`)}</dl>
   <h2>可比成交前 5 筆</h2><div class="scroll"><table><thead><tr><th>期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th></tr></thead><tbody>${comparableRows}</tbody></table></div>
   ${trend ? `<h2>市場趨勢摘要／市場趨勢情境</h2><p>資料期間：${escapeHtml(trend.effective_period_min ?? "資料不足")} ～ ${escapeHtml(trend.effective_period_max ?? "資料不足")}；${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div><p class="notice">${escapeHtml(trend.disclaimer)}</p>` : ""}
-  ${propertySection}${loanSection}${holdingSection}${locationSection}${checklistSection}${taxSection}<p class="notice">${disclaimer}</p></main></body></html>`;
+  ${propertySection}${loanSection}${holdingSection}${locationSection}${terrainSection}${checklistSection}${taxSection}<p class="notice">${disclaimer}</p></main></body></html>`;
 }
 
 function readHoldingCostResult(): HoldingCostResult | undefined {
@@ -169,6 +181,16 @@ function readLocationInsightResult(): LocationInsightResult | undefined {
   try {
     const value = window.sessionStorage.getItem(LOCATION_INSIGHT_SESSION_KEY);
     return value ? JSON.parse(value) as LocationInsightResult : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function readTerrainRiskResult(): TerrainRiskResult | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const value = window.sessionStorage.getItem(TERRAIN_RISK_SESSION_KEY);
+    return value ? JSON.parse(value) as TerrainRiskResult : undefined;
   } catch {
     return undefined;
   }

@@ -1,4 +1,4 @@
-import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 
 export type RiskSummary = {
   overallSignal: "green" | "yellow" | "red" | "unknown";
@@ -24,10 +24,11 @@ export type RiskSummaryInputs = {
   loan?: LoanCalculationResult;
   holding?: HoldingCostResult;
   location?: LocationInsightResult;
+  terrainRisk?: TerrainRiskResult;
 };
 
 export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
-  const { propertySearch, valuation, trend, loan, holding, location } = inputs;
+  const { propertySearch, valuation, trend, loan, holding, location, terrainRisk } = inputs;
   const comparisonPrice = loan?.property_price_wan ?? holding?.property_price_wan;
   const priceReasonableness = assessPrice(comparisonPrice, valuation);
   const dataConfidence = assessDataConfidence(valuation);
@@ -42,6 +43,7 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   const holdingScore = assessBurden("holding", holding?.income_burden_ratio, riskFactors, positiveFactors);
   const locationScore = assessLocation(location, riskFactors, positiveFactors);
   addLocationPriceSupport(location, riskFactors, positiveFactors, missingChecks);
+  addTerrainRisk(terrainRisk, riskFactors, positiveFactors, missingChecks);
 
   if (!valuation) missingChecks.push("完成估價，確認估價區間與資料信心");
   if (comparisonPrice === undefined) missingChecks.push("帶入物件開價或成交樣本總價");
@@ -164,6 +166,24 @@ function addLocationPriceSupport(location: LocationInsightResult | undefined, ri
     positives.push({ key: "location-price", title: "區位支持價格", message: location.valuation_context.explanation });
   } else {
     risks.push({ key: "location-price", level: "medium", title: "區位未支持價格", message: location.valuation_context.explanation });
+  }
+}
+
+function addTerrainRisk(terrainRisk: TerrainRiskResult | undefined, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"], missing: string[]) {
+  if (!terrainRisk) {
+    missing.push("尚未完成地勢與災害風險分析");
+    return;
+  }
+  if (terrainRisk.overall.level === "unknown" || terrainRisk.data_quality.status === "unavailable") {
+    missing.push("地勢與災害風險資料不足，需至官方圖台確認");
+    return;
+  }
+  if (terrainRisk.overall.level === "high") {
+    risks.push({ key: "terrain-risk", level: "high", title: "地勢與災害風險", message: terrainRisk.overall.summary });
+  } else if (terrainRisk.overall.level === "medium") {
+    risks.push({ key: "terrain-risk", level: "medium", title: "地勢與災害風險", message: terrainRisk.overall.summary });
+  } else {
+    positives.push({ key: "terrain-risk", title: "地勢與災害風險", message: "可用官方圖資目前未比對到明確風險，仍需實地確認。" });
   }
 }
 
