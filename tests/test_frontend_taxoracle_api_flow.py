@@ -49,3 +49,5 @@ def test_taxoracle_rule_trace_and_step_status_are_interactive() -> None:
     assert "markTaxOracleCompleted(next)" in PAGE
     assert 'id="taxoracle"' in PAGE
     assert "max-h-[65vh]" in PAGE
+    assert "查看 TX001–TX009 完整規則追蹤" in PAGE
+    assert "DetailDisclosure" in PAGE

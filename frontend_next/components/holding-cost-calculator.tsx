@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, HoldingCostResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
+import { DetailDisclosure } from "@/components/detail-disclosure";
 
 
 export type HoldingCostPrefill = {
@@ -127,13 +128,13 @@ function HoldingCostResults({ result }: { result: HoldingCostResult }) {
       <MetricTile label="月收入負擔率" value={result.income_burden_ratio === null ? "未輸入收入" : `${(result.income_burden_ratio * 100).toFixed(1)}%`} note={levels[result.affordability_level]} />
     </div>
     <Notice>{result.affordability_message}</Notice>
-    <div>
+    <DetailDisclosure title="查看每月成本明細">
       <p className="mb-2 text-xs font-bold text-slate-800">每月成本 breakdown</p>
       <p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p>
       <div className="max-w-full touch-pan-x overflow-x-auto">
         <table className="w-full min-w-[520px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">項目</th><th>每月金額</th><th>占總成本</th></tr></thead><tbody>{result.cost_breakdown.map((item) => <tr key={item.key} className="border-t border-stone-100"><td className="p-2">{item.label}</td><td>{item.monthly_amount.toLocaleString()} 元</td><td>{result.monthly_total_holding_cost ? `${(item.monthly_amount / result.monthly_total_holding_cost * 100).toFixed(1)}%` : "0%"}</td></tr>)}</tbody></table>
       </div>
-    </div>
+    </DetailDisclosure>
     <div className="grid gap-3 sm:grid-cols-2"><MetricTile label="房屋稅簡化估算／年" value={`${result.annual_home_tax_estimate.toLocaleString()} 元`} /><MetricTile label="地價稅簡化估算／年" value={`${result.annual_land_tax_estimate.toLocaleString()} 元`} /></div>
     <p className="text-[10px] leading-5 text-amber-700">{result.disclaimer}</p>
   </div>;

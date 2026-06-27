@@ -4,6 +4,7 @@ import { BUYING_WIZARD_STEPS, getActiveWizardStep, isWizardStepCompleted, type B
 import { OPEN_TAXORACLE_EVENT, type WorkflowStatus } from "@/lib/workflow-status";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { HELP_CONTENT, type HelpKey } from "@/lib/help-content";
+import { ViewModeToggle } from "@/components/view-mode-toggle";
 
 export type WizardStepSummary = Partial<Record<BuyingWizardStep, string[]>>;
 
@@ -14,7 +15,7 @@ export function BuyingWizard({ status, summaries = {} }: { status: WorkflowStatu
     document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
   return <section className="min-w-0 rounded-2xl border border-cyan-200 bg-white p-4 shadow-sm" aria-label="看房分析 Wizard">
-    <div className="mb-4 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">這個流程會帶你完成一份看屋初篩報告。你不需要一次填完，先從預算與地點開始。</div>
+    <div className="mb-4 flex flex-col gap-2 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900 sm:flex-row sm:items-center sm:justify-between"><span>這個流程會帶你完成一份看屋初篩報告。你不需要一次填完，先從預算與地點開始。</span><ViewModeToggle /></div>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-bold tracking-[0.18em] text-cyan-700">BUYING WIZARD · {active.label}</p><h2 className="mt-1 text-lg font-extrabold text-slate-950">第 {BUYING_WIZARD_STEPS.indexOf(active) + 1} 步：{active.title}</h2><p className="mt-1 text-xs leading-5 text-slate-600">{active.guide}</p></div><div className="shrink-0 text-left sm:text-right"><strong className="text-2xl text-cyan-800">{status.overallProgress}%</strong><p className="text-[10px] text-slate-500">分析進度</p></div></div>
     <ol className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-7">{BUYING_WIZARD_STEPS.map((step, index) => {
       const completed = isWizardStepCompleted(status, step); const current = step.id === active.id; const enabled = completed || current;

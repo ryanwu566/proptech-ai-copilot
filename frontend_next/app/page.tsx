@@ -24,6 +24,7 @@ import { buildValuationShareUrl, buildValuationSummaryHtml, parseValuationShareP
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { buildWorkflowStatus, markTaxOracleCompleted, markWorkflowReportCompleted, OPEN_TAXORACLE_EVENT, readWorkflowSession, type WorkflowStatus } from "@/lib/workflow-status";
 import { GUIDED_DEMO_PENDING_KEY, GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
+import { DetailDisclosure } from "@/components/detail-disclosure";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -134,7 +135,7 @@ function TaxResultTabs({ result, tab, setTab }: { result: TaxResult; tab: Result
 }
 
 function RuleTable({ result }: { result: TaxResult }) {
-  return <div className="max-h-[65vh] space-y-2 overflow-y-auto overscroll-contain pr-1">{result.rule_traces.map((row)=><details key={row.code} className="rounded-lg border border-stone-200 bg-white" open={row.outcome!=="passed"}><summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-xs"><span><strong className="text-cyan-800">{row.code}</strong> · {row.title}</span><span className="flex items-center gap-2"><Badge value={row.outcome}/><strong>{row.risk_points} 分</strong></span></summary><div className="border-t border-stone-100 bg-stone-50 px-3 py-2.5 text-xs leading-5 text-slate-600">原因：{row.detail}</div></details>)}</div>;
+  return <DetailDisclosure title="查看 TX001–TX009 完整規則追蹤"><div className="max-h-[65vh] space-y-2 overflow-y-auto overscroll-contain pr-1">{result.rule_traces.map((row)=><details key={row.code} className="rounded-lg border border-stone-200 bg-white" open={row.outcome!=="passed"}><summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 px-3 py-2.5 text-xs"><span><strong className="text-cyan-800">{row.code}</strong> · {row.title}</span><span className="flex items-center gap-2"><Badge value={row.outcome}/><strong>{row.risk_points} 分</strong></span></summary><div className="border-t border-stone-100 bg-stone-50 px-3 py-2.5 text-xs leading-5 text-slate-600">原因：{row.detail}</div></details>)}</div></DetailDisclosure>;
 }
 
 function SimpleList({ items, numbered = false }: { items: string[]; numbered?: boolean }) {

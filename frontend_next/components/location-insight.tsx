@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { api, LocationInsightResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
+import { DetailDisclosure } from "@/components/detail-disclosure";
 import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
 
 
@@ -115,7 +116,7 @@ function LocationResults({ result }: { result: LocationInsightResult }) {
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><MetricTile label="區位總分" value={result.location_score ?? "資料不足"} note={result.resolved_location?.address_label} />{scoreLabels.map(([key, label]) => <MetricTile key={key} label={`${label}分數`} value={result.category_scores[key]} />)}</div>
     <div className="grid gap-3 sm:grid-cols-2"><ListCard title="區位優點" items={result.strengths} /><ListCard title="區位缺點" items={result.weaknesses} /></div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{Object.entries(result.poi_summary).map(([key, value]) => <MetricTile key={key} label={poiLabel(key)} value={`${value} 處`} />)}</div>
-    <div><p className="mb-2 text-xs font-bold text-slate-800">最近 POI</p><p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[560px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">類別</th><th>名稱</th><th>距離</th><th>來源</th></tr></thead><tbody>{result.nearest_pois.map((item, index) => <tr key={`${item.name}-${index}`} className="border-t border-stone-100"><td className="p-2">{item.category}</td><td>{item.name}</td><td>{item.distance_m}m</td><td>{item.source}</td></tr>)}</tbody></table></div></div>
+    <DetailDisclosure title="查看最近 POI 詳細表"><p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[560px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">類別</th><th>名稱</th><th>距離</th><th>來源</th></tr></thead><tbody>{result.nearest_pois.map((item, index) => <tr key={`${item.name}-${index}`} className="border-t border-stone-100"><td className="p-2">{item.category}</td><td>{item.name}</td><td>{item.distance_m}m</td><td>{item.source}</td></tr>)}</tbody></table></div></DetailDisclosure>
     <ListCard title="適合族群" items={Object.entries(result.buyer_fit).map(([key, value]) => `${buyerLabel(key)}：${value}`)} />
     <Notice>{result.valuation_context.explanation}</Notice>
     <DataQuality result={result} />
@@ -128,7 +129,7 @@ function ListCard({ title, items }: { title: string; items: string[] }) {
 }
 
 function DataQuality({ result }: { result: LocationInsightResult }) {
-  return <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"><strong>資料品質：{result.data_quality.status}</strong><ul className="mt-1 space-y-1">{result.data_quality.warnings.map((item) => <li key={item}>• {item}</li>)}</ul></div>;
+  return <DetailDisclosure title="查看資料品質與限制"><div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"><strong>資料品質：{result.data_quality.status}</strong><ul className="mt-1 space-y-1">{result.data_quality.warnings.map((item) => <li key={item}>• {item}</li>)}</ul></div></DetailDisclosure>;
 }
 
 function poiLabel(key: string) {

@@ -7,6 +7,7 @@ import { Button, EmptyState, Notice } from "@/components/ui";
 import { ErrorState, LoadingState, MetricTile, SectionCard } from "@/components/product-ui";
 import { ImmersiveViewingWorkspace } from "@/components/immersive-viewing-workspace";
 import { GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
+import { DetailDisclosure } from "@/components/detail-disclosure";
 
 export type PropertyFinderSelection = {
   city: string;
@@ -124,7 +125,8 @@ function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseF
 }
 
 function FinderTable({ title, headers, minWidth, children }: { title: string; headers: string[]; minWidth: string; children: ReactNode }) {
-  return <div><h3 className="text-sm font-bold text-slate-900">{title}</h3><p className="mb-2 mt-1 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p><div className="max-w-full touch-pan-x overflow-x-auto"><table className={`w-full ${minWidth} text-left text-[10px]`}><thead><tr className="bg-stone-50">{headers.map((header, index) => <th key={header} className={index === 0 ? "p-2" : ""}>{header}</th>)}</tr></thead><tbody>{children}</tbody></table></div></div>;
+  const table = <><p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p><div className="max-w-full touch-pan-x overflow-x-auto"><table className={`w-full ${minWidth} text-left text-[10px]`}><thead><tr className="bg-stone-50">{headers.map((header, index) => <th key={header} className={index === 0 ? "p-2" : ""}>{header}</th>)}</tr></thead><tbody>{children}</tbody></table></div></>;
+  return title.includes("成交樣本") ? <DetailDisclosure title="查看完整成交樣本">{table}</DetailDisclosure> : <div><h3 className="mb-2 text-sm font-bold text-slate-900">{title}</h3>{table}</div>;
 }
 
 function FinderActions({ onValuation, onLoan, onHoldingCost, onLocation }: { onValuation: () => void; onLoan: () => void; onHoldingCost: () => void; onLocation?: () => void }) {

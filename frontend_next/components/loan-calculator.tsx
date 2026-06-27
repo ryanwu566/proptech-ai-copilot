@@ -7,6 +7,7 @@ import { api, LoanCalculationResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 import { GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
+import { DetailDisclosure } from "@/components/detail-disclosure";
 
 
 export function LoanCalculator({
@@ -118,13 +119,13 @@ function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult;
     {result.grace_period_years > 0 && <div className="grid gap-3 sm:grid-cols-2"><MetricTile label="寬限期內月付" value={`${(result.grace_period_monthly_payment ?? 0).toLocaleString()} 元`} note="僅繳利息" /><MetricTile label="寬限期後月付" value={`${(result.post_grace_monthly_payment ?? 0).toLocaleString()} 元`} note="剩餘期間本息攤還" /></div>}
     <Notice>{result.affordability_message}</Notice>
     {onHoldingCost && <Button secondary className="w-full sm:w-auto" onClick={() => onHoldingCost(result)}>帶入持有成本</Button>}
-    <div>
+    <DetailDisclosure title="查看利率敏感度詳細表">
       <p className="mb-2 text-xs font-bold text-slate-800">利率敏感度</p>
       <p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p>
       <div className="max-w-full touch-pan-x overflow-x-auto">
         <table className="w-full min-w-[620px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">年利率</th><th>月付</th><th>總利息</th><th>相對基準月付差</th></tr></thead><tbody>{result.sensitivity.map((item) => <tr key={item.annual_interest_rate} className="border-t border-stone-100"><td className="p-2">{item.annual_interest_rate.toFixed(2)}%</td><td>{item.monthly_payment.toLocaleString()} 元</td><td>{item.total_interest.toLocaleString()} 元</td><td>{formatDifference(item.difference_from_base)}</td></tr>)}</tbody></table>
       </div>
-    </div>
+    </DetailDisclosure>
     <p className="text-[10px] leading-5 text-amber-700">{result.disclaimer}</p>
   </div>;
 }
