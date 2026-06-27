@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { ChangeEvent, FormEvent, useRef, useState } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,14 @@ import {
   writeStoredViewingAssessment,
   type ModuleSlug,
 } from "@/lib/viewing-decision";
+import {
+  blankAddressLocationResolveState,
+  initialLocationResolveState,
+  isBlankAddress,
+  networkErrorLocationResolveState,
+  toLocationResolveUiState,
+  type LocationResolveUiState,
+} from "@/lib/location-resolve-ui";
 
 type Field =
   | {
@@ -72,9 +80,71 @@ export function AssessmentForm({
   moduleSlug,
   reportBasePath,
 }: AssessmentFormProps) {
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [locationState, setLocationState] = useState<LocationResolveUiState>(
+    initialLocationResolveState,
+  );
+  const [isResolvingLocation, setIsResolvingLocation] = useState(false);
+
+  function handleFormChange(event: ChangeEvent<HTMLFormElement>) {
+    if (event.target instanceof HTMLInputElement && event.target.name === "property_address") {
+      setLocationState(initialLocationResolveState);
+    }
+  }
+
+  async function handleResolveAddress() {
+    const currentForm = formRef.current;
+    if (!currentForm) {
+      return;
+    }
+
+    const formData = new FormData(currentForm);
+    const address = formData.get("property_address");
+
+    if (isBlankAddress(address)) {
+      setLocationState(blankAddressLocationResolveState);
+      return;
+    }
+
+    const addressValue = typeof address === "string" ? address : "";
+    setIsResolvingLocation(true);
+    const requestedAddress = addressValue.trim();
+    setLocationState({
+      status: "idle",
+      source: "none",
+      message: "正在確認地址定位⋯",
+    });
+
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/location/resolve`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address: addressValue }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Location resolve request failed");
+      }
+
+      const payload: unknown = await response.json();
+      const currentAddress = new FormData(currentForm).get("property_address");
+      if (typeof currentAddress !== "string" || currentAddress.trim() !== requestedAddress) {
+        setLocationState(initialLocationResolveState);
+        return;
+      }
+
+      setLocationState(toLocationResolveUiState(payload));
+    } catch {
+      setLocationState(networkErrorLocationResolveState);
+    } finally {
+      setIsResolvingLocation(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -125,6 +195,7 @@ export function AssessmentForm({
         result: viewingResult,
       });
       event.currentTarget.reset();
+      setLocationState(initialLocationResolveState);
     } catch (requestError) {
       setError(
         requestError instanceof Error ? requestError.message : "Unable to submit assessment",
@@ -142,7 +213,12 @@ export function AssessmentForm({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
+          <form
+            ref={formRef}
+            className="grid gap-4 sm:grid-cols-2"
+            onChange={handleFormChange}
+            onSubmit={handleSubmit}
+          >
             {fields.map((field) => (
               <div
                 key={field.name}
@@ -161,6 +237,26 @@ export function AssessmentForm({
                     {renderField(field)}
                   </label>
                 )}
+                {field.name === "property_address" ? (
+                  <div className="grid gap-2 rounded-md border bg-muted/30 p-3 text-sm font-normal">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isResolvingLocation}
+                        onClick={() => {
+                          void handleResolveAddress();
+                        }}
+                      >
+                        {isResolvingLocation ? "正在確認地址定位⋯" : "確認地址定位"}
+                      </Button>
+                      <span className="text-sm text-muted-foreground">{locationState.message}</span>
+                    </div>
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      地址定位只用於後續地勢與災害資料比對，目前不會改變稅費、貸款或文件評估結論。
+                    </p>
+                  </div>
+                ) : null}
               </div>
             ))}
             <Button className="w-full sm:col-span-2 sm:w-auto" type="submit" disabled={isSubmitting}>
