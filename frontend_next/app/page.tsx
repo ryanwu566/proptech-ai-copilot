@@ -25,6 +25,8 @@ import { buildRiskSummary } from "@/lib/risk-summary";
 import { buildWorkflowStatus, markTaxOracleCompleted, markWorkflowReportCompleted, OPEN_TAXORACLE_EVENT, readWorkflowSession, type WorkflowStatus } from "@/lib/workflow-status";
 import { GUIDED_DEMO_PENDING_KEY, GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
 import { DetailDisclosure } from "@/components/detail-disclosure";
+import { ViewingDecisionPanel } from "@/components/viewing-decision-panel";
+import { buildViewingDecision, type ViewingDecision } from "@/lib/viewing-decision";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -57,8 +59,10 @@ function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; ope
   const [selectedCase, setSelectedCase] = useState("DEMO-LOW");
   const [reportReady, setReportReady] = useState(false);
   const [workflowStatus,setWorkflowStatus]=useState<WorkflowStatus>(()=>buildWorkflowStatus({}));
-  useEffect(()=>{try{const stored=window.sessionStorage.getItem(WORKSPACE_CONTEXT_SESSION_KEY),context=stored?JSON.parse(stored) as WorkspaceContext:undefined;const holdingValue=window.sessionStorage.getItem(HOLDING_COST_SESSION_KEY),locationValue=window.sessionStorage.getItem(LOCATION_INSIGHT_SESSION_KEY),terrainRiskValue=window.sessionStorage.getItem(TERRAIN_RISK_SESSION_KEY),holding=holdingValue?JSON.parse(holdingValue) as HoldingCostResult:undefined,location=locationValue?JSON.parse(locationValue):undefined,terrainRisk=terrainRiskValue?JSON.parse(terrainRiskValue) as TerrainRiskResult:undefined,riskSummary=buildRiskSummary({propertySearch:context?.propertySearch,valuation:context?.valuation,trend:context?.trend,loan:context?.loan,holding,location,terrainRisk}),session=readWorkflowSession();setReportReady(Boolean(context?.valuation));setWorkflowStatus(buildWorkflowStatus({propertySearch:context?.propertySearch,valuation:context?.valuation,loan:context?.loan,holding,location,riskSummary,...session}));}catch{setReportReady(false);}},[]);
+  const [viewingDecision,setViewingDecision]=useState<ViewingDecision>(()=>buildViewingDecision({}));
+  useEffect(()=>{try{const stored=window.sessionStorage.getItem(WORKSPACE_CONTEXT_SESSION_KEY),context=stored?JSON.parse(stored) as WorkspaceContext:undefined;const holdingValue=window.sessionStorage.getItem(HOLDING_COST_SESSION_KEY),locationValue=window.sessionStorage.getItem(LOCATION_INSIGHT_SESSION_KEY),terrainRiskValue=window.sessionStorage.getItem(TERRAIN_RISK_SESSION_KEY),holding=holdingValue?JSON.parse(holdingValue) as HoldingCostResult:undefined,location=locationValue?JSON.parse(locationValue):undefined,terrainRisk=terrainRiskValue?JSON.parse(terrainRiskValue) as TerrainRiskResult:undefined,riskSummary=buildRiskSummary({propertySearch:context?.propertySearch,valuation:context?.valuation,trend:context?.trend,loan:context?.loan,holding,location,terrainRisk}),session=readWorkflowSession();setReportReady(Boolean(context?.valuation));setWorkflowStatus(buildWorkflowStatus({propertySearch:context?.propertySearch,valuation:context?.valuation,loan:context?.loan,holding,location,riskSummary,...session}));setViewingDecision(buildViewingDecision({valuation:context?.valuation,loan:context?.loan,holding,location,terrainRisk,riskSummary,taxOracleResult:session.taxOracleResult}));}catch{setReportReady(false);setViewingDecision(buildViewingDecision({}));}},[]);
   function openViewingFlow(target: string) { window.sessionStorage.setItem("proptech:pending-section", target); setPage("房價估算"); }
+  function openViewingDecisionTarget(target: string) { if (target === "taxoracle") { setPage("TaxOracle"); return; } if (target === "terrain-risk-analysis") { setPage("Terrain Risk"); return; } openViewingFlow(target); }
   function continueWorkflow(){if(workflowStatus.nextActionTargetId==="taxoracle"){setPage("TaxOracle");return;}openViewingFlow(workflowStatus.nextActionTargetId);}
   function openAdvanced(){const advanced=document.getElementById("advanced-tools") as HTMLDetailsElement|null;if(advanced){advanced.open=true;advanced.scrollIntoView({behavior:"smooth",block:"start"});}}
   function openCaseComparison(){document.getElementById("recent-cases")?.scrollIntoView({behavior:"smooth",block:"start"});}
@@ -66,6 +70,7 @@ function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; ope
   function exportSavedCase(saved:SavedCase){if(!saved.data.valuation)return;const html=buildValuationSummaryHtml(saved.data.inputs,saved.data.valuation,saved.data.trend,saved.data.propertySearch,saved.data.loan,saved.data.holdingCost,saved.data.locationInsight,saved.data.terrainRisk);const url=URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"})),link=document.createElement("a");link.href=url;link.download=valuationSummaryFilename();link.click();URL.revokeObjectURL(url);}
   return <div className="space-y-6">
     <HeroIntro onStart={continueWorkflow} onWorkspace={() => openViewingFlow("immersive-workspace")} reportReady={reportReady} onReport={() => openViewingFlow("decision-report")} workflowStatus={workflowStatus} />
+    <ViewingDecisionPanel decision={viewingDecision} onNext={openViewingDecisionTarget} />
     <WorkflowEntryCards onStartBuying={continueWorkflow} onOpenTax={() => openTax(selectedCase)} onOpenAdvanced={openAdvanced} onGuidedDemo={startGuidedDemo} onOpenCompare={openCaseComparison} />
     <div id="recent-cases" className="scroll-mt-20"><CaseManager listOnly onLoaded={(saved) => saved.activeWizardStep === "tax" ? openTax() : setPage("房價估算")} onExport={exportSavedCase} /></div>
     <HelpCallout>主流程會從找房一路帶到看屋報告；完成報告後，可再進行 TaxOracle 稅務補充檢查。</HelpCallout>
