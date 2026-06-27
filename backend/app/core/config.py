@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     google_maps_api_key: str | None = None
     tgos_app_id: str | None = None
     tgos_api_key: str | None = None
+    tdx_client_id: str | None = None
+    tdx_client_secret: str | None = None
+    commute_refresh_token: str | None = None
 
 
 settings = Settings()
