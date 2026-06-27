@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CommuteStationSnapshot(BaseModel):
@@ -42,6 +42,30 @@ class CommuteNearestStationRequest(BaseModel):
 
 class CommuteNearestStationResponse(BaseModel):
     status: Literal["resolved", "unavailable"]
+    source: Literal["tdx", "none"]
+    station_name: str | None = None
+    line_ids: list[str] = Field(default_factory=list)
+    distance_meters: float | None = None
+    source_updated_at: datetime | None = None
+    snapshot_generated_at: datetime | None = None
+    message: str
+
+
+class CommuteAddressLookupRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    address: str
+
+    @field_validator("address")
+    @classmethod
+    def address_must_not_be_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("address is required")
+        return value
+
+
+class CommuteAddressLookupResponse(BaseModel):
+    status: Literal["resolved", "unresolved", "unavailable"]
     source: Literal["tdx", "none"]
     station_name: str | None = None
     line_ids: list[str] = Field(default_factory=list)

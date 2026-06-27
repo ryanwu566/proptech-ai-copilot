@@ -212,3 +212,18 @@ def test_status_returns_metadata_without_station_records() -> None:
     assert payload["source"] == "tdx"
     assert payload["included_station_count"] == 2
     assert "stations" not in payload
+
+
+def test_existing_nearest_endpoint_still_rejects_address_only_payload() -> None:
+    service = FakeCommuteService()
+    app.dependency_overrides[get_commute_service] = lambda: service
+    client = TestClient(app)
+
+    try:
+        response = client.post("/api/commute/nearest", json={"address": "Fictional Address"})
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 422
+    assert service.nearest_calls == 0
+    assert service.refresh_calls == 0
