@@ -6,6 +6,7 @@ import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 import { DetailDisclosure } from "@/components/detail-disclosure";
 import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
+import { CommuteLivabilityCard } from "@/components/commute-livability-card";
 
 
 export type LocationInsightPrefill = {
@@ -93,6 +94,7 @@ export function LocationInsight() {
         <label className="text-xs text-slate-500">行政區<input className={inputClass} value={district} onChange={(event) => setDistrict(event.target.value)} /></label>
         <label className="text-xs text-slate-500">路段<input className={inputClass} value={road} onChange={(event) => setRoad(event.target.value)} /></label>
         <label className="text-xs text-slate-500">完整地址（可選）<input className={inputClass} value={address} onChange={(event) => setAddress(event.target.value)} /></label>
+        <CommuteLivabilityCard address={address} />
         <label className="text-xs text-slate-500">分析半徑（公尺）<input type="number" min="100" max="1500" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
         <label className="text-xs text-slate-500">房屋總價（萬元，可選）<input type="number" min="0" className={inputClass} value={propertyPrice} onChange={(event) => setPropertyPrice(event.target.value === "" ? "" : Number(event.target.value))} /></label>
         <label className="text-xs text-slate-500">坪數（可選）<input type="number" min="0" className={inputClass} value={areaPing} onChange={(event) => setAreaPing(event.target.value === "" ? "" : Number(event.target.value))} /></label>
