@@ -34,6 +34,7 @@ LAYER_LABELS = {
     "liquefaction": "土壤液化潛勢",
     "active_fault": "活動斷層",
 }
+TRANSPARENCY_NOTICE = "地勢與災害資料僅供看房風險參考，資料不足或暫時不可用不代表沒有風險。"
 
 
 class TerrainRiskLocationError(ValueError):
@@ -97,6 +98,7 @@ def analyze_terrain_risk(
         "missing_sources": missing_sources,
         "recommended_checks": _recommended_checks(overall, missing_sources),
         "map_layers": _map_layers(terrain, hazards, layers),
+        "source_transparency": _source_transparency(terrain, hazards, layers),
         "data_quality": data_quality,
         "disclaimer": DISCLAIMER,
     }
@@ -291,6 +293,68 @@ def _map_layers(terrain: dict[str, Any], hazards: dict[str, dict[str, Any]], lay
         rows.append(_layer_row("terrain", "地形／坡度", terrain))
     rows.extend(_layer_row(key, LAYER_LABELS[key], value) for key, value in hazards.items() if key in layers)
     return rows
+
+
+def _source_transparency(terrain: dict[str, Any], hazards: dict[str, dict[str, Any]], layers: list[str]) -> dict[str, Any]:
+    rows = []
+    if "terrain" in layers:
+        rows.append(_source_layer_row("terrain", "地形／坡度", terrain))
+    rows.extend(_source_layer_row(key, LAYER_LABELS[key], value) for key, value in hazards.items() if key in layers)
+    return {"notice": TRANSPARENCY_NOTICE, "layers": rows}
+
+
+def _source_layer_row(key: str, label: str, payload: dict[str, Any]) -> dict[str, str]:
+    status = str(payload.get("status") or "unavailable")
+    matched = bool(payload.get("matched"))
+    source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+    assessment_status = _assessment_status(status, matched)
+    coverage_status = _coverage_status(status, assessment_status)
+    return {
+        "layer_id": key,
+        "display_name": label,
+        "source_name": _safe_source_text(source.get("name"), label),
+        "source_kind": _safe_source_text(source.get("agency"), "unknown"),
+        "assessment_status": assessment_status,
+        "coverage_status": coverage_status,
+        "data_updated_at": _safe_source_text(source.get("data_updated_at") or source.get("data_vintage"), "unknown"),
+        "caveat": _source_caveat(assessment_status),
+    }
+
+
+def _assessment_status(status: str, matched: bool) -> str:
+    if status == "skipped":
+        return "not_assessed"
+    if status in {"unavailable", "error", "limited"}:
+        return "unavailable"
+    if status == "available" and matched:
+        return "matched"
+    if status == "available":
+        return "not_matched"
+    return "unavailable"
+
+
+def _coverage_status(status: str, assessment_status: str) -> str:
+    if assessment_status in {"unavailable", "not_assessed"}:
+        return "unknown"
+    if status == "available":
+        return "covered"
+    return "unknown"
+
+
+def _safe_source_text(value: Any, fallback: str) -> str:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    return fallback
+
+
+def _source_caveat(assessment_status: str) -> str:
+    if assessment_status == "matched":
+        return "已比對到需補查的風險訊號，建議實地與官方資料複核。"
+    if assessment_status == "not_matched":
+        return "目前可用資料未比對到明確風險，仍需實地確認。"
+    if assessment_status == "not_assessed":
+        return "此圖層本次未評估，不能解讀為低風險。"
+    return "資料暫時不可用或來源狀態不明，不能解讀為低風險。"
 
 
 def _layer_row(key: str, label: str, payload: dict[str, Any]) -> dict[str, Any]:
