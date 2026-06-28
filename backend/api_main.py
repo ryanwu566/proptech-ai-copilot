@@ -23,21 +23,38 @@ from backend.api.routes_terrain_risk import router as terrain_risk_router
 from backend.api.routes_valuation import router as valuation_router
 
 
+DEFAULT_DEV_CORS_ORIGINS = ("http://localhost:3000", "http://127.0.0.1:3000")
+CORS_ALLOWED_ORIGINS_ENV = "CORS_ALLOWED_ORIGINS"
+LEGACY_CORS_ORIGINS_ENV = "CORS_ORIGINS"
+
+
+def parse_cors_allowed_origins(raw: str) -> list[str]:
+    """Parse a comma-separated CORS allowlist without enabling wildcard credentials."""
+
+    origins = []
+    for item in raw.split(","):
+        origin = item.strip().rstrip("/")
+        if origin and origin != "*" and origin not in origins:
+            origins.append(origin)
+    return origins
+
+
+def configured_cors_origins() -> list[str]:
+    configured = os.getenv(CORS_ALLOWED_ORIGINS_ENV, "").strip()
+    legacy = os.getenv(LEGACY_CORS_ORIGINS_ENV, "").strip()
+    parsed = parse_cors_allowed_origins(configured or legacy)
+    return parsed or list(DEFAULT_DEV_CORS_ORIGINS)
+
+
 app = FastAPI(
     title="PropTech AI Copilot API",
     description="Productized demo API using deterministic TaxOracle rules and offline mock data.",
     version="0.1.0",
 )
 
-default_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
-configured_origins = [
-    origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", "").split(",")
-    if origin.strip()
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=configured_origins or default_origins,
+    allow_origins=configured_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
