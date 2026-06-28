@@ -37,7 +37,7 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
   function clearCurrent() { clearCurrentCase(); setFeedback("目前案件已清除"); onCleared?.(); }
   function toggleCompare(id: string) {
     setFeedback("");
-    setSelectedIds((rows) => rows.includes(id) ? rows.filter((row) => row !== id) : rows.length >= 4 ? (setFeedback("最多只能選擇四個案件"), rows) : [...rows, id]);
+    setSelectedIds((rows) => rows.includes(id) ? rows.filter((row) => row !== id) : rows.length >= 3 ? (setFeedback("最多只能選擇三個案件"), rows) : [...rows, id]);
   }
 
   return <section className="min-w-0 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm" aria-label="案件保存與最近分析紀錄">
