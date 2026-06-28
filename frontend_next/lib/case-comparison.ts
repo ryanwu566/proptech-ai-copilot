@@ -43,7 +43,7 @@ export type CaseComparisonResult = {
 };
 
 export function compareSavedCases(savedCases: SavedCase[]): CaseComparisonResult {
-  const selected = savedCases.slice(0, 4);
+  const selected = savedCases.slice(0, 3);
   if (selected.length < 2) return { cases: selected.map(toComparedCase), ranking: [], summary: "請至少選擇兩個案件", missingDataWarnings: ["至少需要 2 筆已保存案件才能比較"] };
   const cases = selected.map(toComparedCase);
   const missingDataWarnings = cases.flatMap(missingWarnings);
