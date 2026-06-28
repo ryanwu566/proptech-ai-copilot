@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, type LocationInsightResult, type TerrainHazardLayer, type TerrainRiskResult } from "@/lib/api";
+import { api, type LocationInsightResult, type TerrainHazardLayer, type TerrainRiskResult, type TerrainRiskSourceTransparencyLayer } from "@/lib/api";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
@@ -147,6 +147,7 @@ function TerrainRiskResults({ result }: { result: TerrainRiskResult }) {
     </div>
     {result.risk_factors.length > 0 ? <ListCard title="命中或需注意項目" items={result.risk_factors.map((item) => `${item.title}：${item.message}`)} /> : <Notice>目前沒有可用來源命中明確風險；若資料來源不足，不能解讀為低風險。</Notice>}
     <ListCard title="建議補查" items={result.recommended_checks} />
+    <RiskSourceTransparency result={result} />
     <details className="min-w-0 rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-slate-700">查看官方來源與地圖圖層摘要</summary>
       <div className="max-w-full touch-pan-x overflow-x-auto">
         <table className="w-full min-w-[680px] text-left text-xs">
@@ -160,6 +161,31 @@ function TerrainRiskResults({ result }: { result: TerrainRiskResult }) {
   </div>;
 }
 
+function RiskSourceTransparency({ result }: { result: TerrainRiskResult }) {
+  const transparency = result.source_transparency;
+  const layers = transparency?.layers ?? [];
+  return <details className="min-w-0 rounded-xl border border-amber-200 bg-amber-50/60">
+    <summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-amber-900">風險資料來源與限制</summary>
+    <div className="space-y-3 px-3 pb-3 text-xs leading-6 text-amber-950">
+      <p>{transparency?.notice ?? "地勢與災害資料僅供看房風險參考，資料不足或暫時不可用不代表沒有風險。"}</p>
+      {layers.length > 0 ? <div className="grid gap-2 md:grid-cols-2">
+        {layers.map((layer) => <SourceLayerCard key={layer.layer_id} layer={layer} />)}
+      </div> : <Notice tone="warning">目前尚未取得可呈現的來源狀態；請以官方圖台與現場確認補查。</Notice>}
+    </div>
+  </details>;
+}
+
+function SourceLayerCard({ layer }: { layer: TerrainRiskSourceTransparencyLayer }) {
+  return <div className="rounded-lg border border-amber-100 bg-white p-3">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <p className="font-bold text-slate-900">{layer.display_name}</p>
+      <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">{assessmentLabel(layer.assessment_status)}</span>
+    </div>
+    <p className="mt-1 text-[11px] text-slate-600">來源：{layer.source_name} · {layer.source_kind}</p>
+    <p className="mt-1 text-[11px] text-slate-600">涵蓋狀態：{coverageLabel(layer.coverage_status)} · 資料日期：{layer.data_updated_at || "unknown"}</p>
+    <p className="mt-2 text-[11px] leading-5 text-amber-800">{layer.caveat}</p>
+  </div>;
+}
 function HazardCard({ hazard }: { hazard: TerrainHazardLayer }) {
   return <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
     <p className="text-xs font-bold text-slate-800">{hazard.label}</p>
@@ -181,6 +207,13 @@ function statusLabel(status: string) {
   return ({ available: "已比對", limited: "有限資料", unavailable: "資料不足", error: "查詢失敗", skipped: "本次略過" } as Record<string, string>)[status] ?? status;
 }
 
+function assessmentLabel(status: TerrainRiskSourceTransparencyLayer["assessment_status"]) {
+  return ({ matched: "比對到提醒", not_matched: "已檢查未命中", unavailable: "暫時不可用", not_assessed: "未評估" } as Record<TerrainRiskSourceTransparencyLayer["assessment_status"], string>)[status];
+}
+
+function coverageLabel(status: TerrainRiskSourceTransparencyLayer["coverage_status"]) {
+  return ({ covered: "已涵蓋", not_covered: "未涵蓋", unknown: "不明" } as Record<TerrainRiskSourceTransparencyLayer["coverage_status"], string>)[status];
+}
 function riskLabel(level: string) {
   return ({ high: "需要優先確認", medium: "有項目需注意", low: "未比對到明確風險", unknown: "資料不足" } as Record<string, string>)[level] ?? level;
 }

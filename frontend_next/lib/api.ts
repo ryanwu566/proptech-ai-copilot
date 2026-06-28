@@ -139,6 +139,16 @@ export type CommuteAddressLookupResult = { status: "resolved" | "unresolved" | "
 export type TerrainRiskLayerStatus = "available" | "limited" | "unavailable" | "error" | "skipped";
 export type TerrainRiskLevel = "low" | "medium" | "high" | "unknown";
 export type TerrainRiskSource = { name: string; agency: string; source_url?: string; fetched_at?: string; data_updated_at?: string; status: string; data_vintage?: string; data_quality?: string; limitation?: string };
+export type TerrainRiskSourceTransparencyLayer = {
+  layer_id: string;
+  display_name: string;
+  source_name: string;
+  source_kind: string;
+  assessment_status: "matched" | "not_matched" | "unavailable" | "not_assessed";
+  coverage_status: "covered" | "not_covered" | "unknown";
+  data_updated_at: string;
+  caveat: string;
+};
 export type TerrainHazardLayer = { key: string; label: string; status: TerrainRiskLayerStatus; level: TerrainRiskLevel; matched: boolean; distance_m: number | null; value: string | number | null; explanation: string; source?: TerrainRiskSource };
 export type TerrainRiskResult = {
   input: Record<string, string | number | string[] | null | undefined>;
@@ -150,6 +160,7 @@ export type TerrainRiskResult = {
   missing_sources: string[];
   recommended_checks: string[];
   map_layers: { key: string; label: string; status: string; source_url?: string; external_view_url?: string; data_vintage?: string; data_quality?: string; limitation?: string }[];
+  source_transparency?: { notice: string; layers: TerrainRiskSourceTransparencyLayer[] };
   data_quality: { status: "good" | "limited" | "unavailable"; warnings: string[]; checked_at: string };
   disclaimer: string;
 };
