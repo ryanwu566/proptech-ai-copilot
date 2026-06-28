@@ -1,7 +1,11 @@
 const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "");
+const isDevelopment = process.env.NODE_ENV === "development";
+const productionLocalhostConfigured = Boolean(
+  configuredApiBase && !isDevelopment && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configuredApiBase),
+);
 const localApiBase = ["http://localhost", "8000"].join(":");
 
-export const API_BASE = configuredApiBase || (process.env.NODE_ENV === "development" ? localApiBase : "");
+export const API_BASE = productionLocalhostConfigured ? "" : configuredApiBase || (isDevelopment ? localApiBase : "");
 
 function apiUrl(path: string): string {
   if (!API_BASE) {

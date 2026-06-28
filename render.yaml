@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: proptech-ai-copilot-api
+    runtime: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: VALUATION_DATABASE_URL
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: TGOS_APP_ID
+        sync: false
+      - key: TGOS_API_KEY
+        sync: false
+      - key: TDX_CLIENT_ID
+        sync: false
+      - key: TDX_CLIENT_SECRET
+        sync: false
+      - key: COMMUTE_REFRESH_TOKEN
+        sync: false
