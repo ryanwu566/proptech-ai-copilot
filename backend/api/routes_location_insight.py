@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
+from services import location_resolver
 from services.location_insight_service import analyze_location
 
 
@@ -33,6 +34,33 @@ class LocationInsightRequest(BaseModel):
         return self
 
 
+class LocationResolveRequest(BaseModel):
+    address: str
+
+    @field_validator("address")
+    @classmethod
+    def address_must_not_be_blank(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("address is required")
+        return normalized
+
+
+class LocationResolveResponse(BaseModel):
+    status: Literal["resolved", "unresolved", "unavailable"]
+    source: Literal["tgos", "google", "none"]
+    formatted_address: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    confidence: Literal["high", "unknown"]
+    message: str
+
+
 @router.post("/insight")
 def post_location_insight(request: LocationInsightRequest) -> dict[str, Any]:
     return analyze_location(**request.model_dump())
+
+
+@router.post("/resolve", response_model=LocationResolveResponse)
+def post_location_resolve(request: LocationResolveRequest) -> dict[str, Any]:
+    return location_resolver.resolve_address(request.address)
