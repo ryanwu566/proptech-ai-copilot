@@ -11,6 +11,7 @@ from backend.api.routes_health import router as health_router
 from backend.api.routes_holding_cost import router as holding_cost_router
 from backend.api.routes_location_insight import router as location_insight_router
 from backend.api.routes_bank_rates import router as bank_rates_router
+from backend.api.routes_commute import router as commute_router
 from backend.api.routes_loan_calculator import router as loan_calculator_router
 from backend.api.routes_lite import router as lite_router
 from backend.api.routes_map import router as map_router
@@ -45,6 +46,7 @@ app.include_router(health_router)
 app.include_router(holding_cost_router)
 app.include_router(location_insight_router)
 app.include_router(bank_rates_router)
+app.include_router(commute_router)
 app.include_router(loan_calculator_router)
 app.include_router(taxoracle_router)
 app.include_router(terrain_risk_router)
