@@ -3,10 +3,16 @@
 export type AppPage = "儀表板" | "TaxOracle" | "Market Insight Lite" | "Map Insight Lite" | "房價估算" | "Aegis-Credit Lite" | "Terrain Risk" | "歷史案件";
 
 const groups: { label: string; items: { page: AppPage; label: string }[] }[] = [
-  { label: "案件決策", items: [{ page: "儀表板", label: "任務首頁" }, { page: "TaxOracle", label: "TaxOracle 稅務快篩" }] },
-  { label: "區域洞察", items: [{ page: "Market Insight Lite", label: "Market Insight" }, { page: "Map Insight Lite", label: "Map Insight" }, { page: "房價估算", label: "房價估算" }] },
-  { label: "風險模組", items: [{ page: "Aegis-Credit Lite", label: "房貸風險展示" }, { page: "Terrain Risk", label: "地勢與災害風險分析" }] },
-  { label: "紀錄", items: [{ page: "歷史案件", label: "History" }] },
+  { label: "工作台", items: [{ page: "儀表板", label: "物件決策工作台" }] },
+  { label: "地圖", items: [{ page: "Map Insight Lite", label: "地圖洞察" }] },
+  { label: "案件", items: [{ page: "歷史案件", label: "案件保存與比較" }] },
+  { label: "更多工具", items: [
+    { page: "房價估算", label: "估價與資金試算" },
+    { page: "Terrain Risk", label: "地勢與災害風險" },
+    { page: "TaxOracle", label: "TaxOracle 稅務快篩" },
+    { page: "Aegis-Credit Lite", label: "房貸與持有成本" },
+    { page: "Market Insight Lite", label: "區域行情背景" },
+  ] },
 ];
 
 export function Sidebar({ page, onNavigate, open = false, onClose }: { page: AppPage; onNavigate: (page: AppPage) => void; open?: boolean; onClose?: () => void }) {
