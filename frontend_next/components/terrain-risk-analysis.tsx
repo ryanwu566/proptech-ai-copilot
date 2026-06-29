@@ -27,7 +27,7 @@ export function prefillTerrainRisk(prefill: TerrainRiskPrefill) {
   window.dispatchEvent(new CustomEvent<TerrainRiskPrefill>(TERRAIN_RISK_PREFILL_EVENT, { detail: prefill }));
 }
 
-export function TerrainRiskAnalysis({ location }: { location?: LocationInsightResult }) {
+export function TerrainRiskAnalysis({ location, compactFromLocation = false, resetKey }: { location?: LocationInsightResult; compactFromLocation?: boolean; resetKey?: string }) {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("台北市");
   const [district, setDistrict] = useState("大安區");
@@ -39,6 +39,12 @@ export function TerrainRiskAnalysis({ location }: { location?: LocationInsightRe
   const [result, setResult] = useState<TerrainRiskResult>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setResult(undefined);
+    setError("");
+    window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY);
+  }, [resetKey]);
 
   useEffect(() => {
     function applyPrefill(event: Event) {
@@ -76,10 +82,12 @@ export function TerrainRiskAnalysis({ location }: { location?: LocationInsightRe
     setLoading(true);
     setError("");
     try {
+      const resolved = location?.resolved_location;
       const next = await api.terrainRiskAnalyze({
-        address, city, district, road, radius_m: radius,
-        latitude: latitude === "" ? undefined : latitude,
-        longitude: longitude === "" ? undefined : longitude,
+        address: compactFromLocation ? resolved?.address_label ?? address : address,
+        city, district, road, radius_m: radius,
+        latitude: compactFromLocation ? resolved?.latitude : latitude === "" ? undefined : latitude,
+        longitude: compactFromLocation ? resolved?.longitude : longitude === "" ? undefined : longitude,
         include_layers: layers,
       });
       setResult(next);
@@ -93,7 +101,7 @@ export function TerrainRiskAnalysis({ location }: { location?: LocationInsightRe
     }
   }
 
-  const canAnalyze = Boolean(address.trim() || road.trim() || (latitude !== "" && longitude !== ""));
+  const canAnalyze = compactFromLocation ? Boolean(location?.resolved_location) : Boolean(address.trim() || road.trim() || (latitude !== "" && longitude !== ""));
   const inputClass = "mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm";
   return <section id="terrain-risk-analysis" className="scroll-mt-20">
     <SectionCard title="地勢與災害風險分析" description="用官方公開圖資，初步檢查坡度、淹水、坡地災害與地質敏感風險。">
@@ -103,6 +111,8 @@ export function TerrainRiskAnalysis({ location }: { location?: LocationInsightRe
       </div>
       <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         <div className="grid min-w-0 gap-3">
+          {compactFromLocation && <div className="rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">使用上方位置洞察的可信位置脈絡進行檢查；地址或位置結果變更後，請重新分析地勢與災害風險。</div>}
+          {!compactFromLocation && <>
           <label className="text-xs text-slate-500">地址<input className={inputClass} value={address} onChange={(event) => setAddress(event.target.value)} placeholder="例：台北市大安區和平東路二段" /></label>
           <div className="grid gap-2 sm:grid-cols-3">
             <label className="text-xs text-slate-500">縣市<input className={inputClass} value={city} onChange={(event) => setCity(event.target.value)} /></label>
@@ -114,14 +124,15 @@ export function TerrainRiskAnalysis({ location }: { location?: LocationInsightRe
             <label className="text-xs text-slate-500">經度（選填）<input type="number" step="0.000001" className={inputClass} value={longitude} onChange={(event) => setLongitude(event.target.value === "" ? "" : Number(event.target.value))} /></label>
             <label className="text-xs text-slate-500">半徑（100–2000m）<input type="number" min="100" max="2000" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
           </div>
+          </>}
           <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
             {DEFAULT_LAYERS.map((layer) => <label key={layer} className="flex items-center gap-2 rounded-lg border border-stone-200 px-2 py-1"><input type="checkbox" checked={layers.includes(layer)} onChange={() => setLayers((rows) => rows.includes(layer) ? rows.filter((item) => item !== layer) : [...rows, layer])} />{layerLabel(layer)}</label>)}
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Button secondary disabled={!location?.resolved_location} onClick={useLocationPosition}>使用目前區位分析位置</Button>
-            <Button className="w-full" disabled={loading || !canAnalyze} onClick={analyze}>{loading ? "分析中..." : "開始分析地勢風險"}</Button>
+            {!compactFromLocation && <Button secondary disabled={!location?.resolved_location} onClick={useLocationPosition}>使用目前區位分析位置</Button>}
+            <Button className="w-full" disabled={loading || !canAnalyze} onClick={analyze}>{loading ? "分析中..." : compactFromLocation ? "查看地勢與災害" : "開始分析地勢風險"}</Button>
           </div>
-          {!canAnalyze && <p className="text-[10px] leading-5 text-amber-700">請先輸入地址、路段或座標，再開始分析地勢風險。</p>}
+          {!canAnalyze && <p className="text-[10px] leading-5 text-amber-700">{compactFromLocation ? "請先完成位置洞察，取得可信位置後再查看地勢與災害。" : "請先輸入地址、路段或座標，再開始分析地勢風險。"}</p>}
           {error && <ErrorState message={error} />}
         </div>
         <div className="min-w-0">

@@ -15,11 +15,13 @@ export function LoanCalculator({
   initialResult,
   onResult,
   onHoldingCost,
+  onLocationMap,
 }: {
   propertyPriceWan?: number;
   initialResult?: LoanCalculationResult;
   onResult?: (result: LoanCalculationResult) => void;
   onHoldingCost?: (result: LoanCalculationResult) => void;
+  onLocationMap?: () => void;
 }) {
   const [propertyPrice, setPropertyPrice] = useState(propertyPriceWan ?? 2000);
   const [downPaymentRatio, setDownPaymentRatio] = useState(0.2);
@@ -102,7 +104,7 @@ export function LoanCalculator({
         {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入總價、利率與貸款年限，再計算月付、總利息與負擔率。</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
       </div>
     </div>
-  </SectionCard>{!onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>}<LocationInsight /></div>;
+  </SectionCard>{!onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>}<LocationInsight onMap={onLocationMap} /></div>;
 }
 
 function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult; onHoldingCost?: (result: LoanCalculationResult) => void }) {

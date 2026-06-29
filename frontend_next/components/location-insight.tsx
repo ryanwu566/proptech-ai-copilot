@@ -5,7 +5,7 @@ import { api, LocationInsightResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 import { DetailDisclosure } from "@/components/detail-disclosure";
-import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
+import { TerrainRiskAnalysis, TERRAIN_RISK_SESSION_KEY } from "@/components/terrain-risk-analysis";
 import { CommuteLivabilityCard } from "@/components/commute-livability-card";
 
 
@@ -27,7 +27,7 @@ export function prefillLocationInsight(prefill: LocationInsightPrefill) {
   window.dispatchEvent(new CustomEvent<LocationInsightPrefill>(LOCATION_INSIGHT_PREFILL_EVENT, { detail: prefill }));
 }
 
-export function LocationInsight() {
+export function LocationInsight({ onMap }: { onMap?: () => void }) {
   const [city, setCity] = useState("台北市");
   const [district, setDistrict] = useState("大安區");
   const [road, setRoad] = useState("和平東路二段");
@@ -40,18 +40,24 @@ export function LocationInsight() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  function invalidateLocationFlow() {
+    setResult(undefined);
+    setError("");
+    window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
+    window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY);
+  }
+
   useEffect(() => {
     function applyPrefill(event: Event) {
       const detail = (event as CustomEvent<LocationInsightPrefill>).detail;
       setCity(detail.city ?? "");
       setDistrict(detail.district ?? "");
       setRoad(detail.road ?? "");
-      setAddress(detail.address ?? "");
+      setAddress(detail.address ?? `${detail.city ?? ""}${detail.district ?? ""}${detail.road ?? ""}`);
       setPropertyPrice(detail.property_price ?? "");
       setAreaPing(detail.area_ping ?? "");
       setBuildingType(detail.building_type ?? "");
-      setResult(undefined);
-      window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
+      invalidateLocationFlow();
     }
     window.addEventListener(LOCATION_INSIGHT_PREFILL_EVENT, applyPrefill);
     return () => window.removeEventListener(LOCATION_INSIGHT_PREFILL_EVENT, applyPrefill);
@@ -66,6 +72,10 @@ export function LocationInsight() {
   }, []);
 
   async function analyze() {
+    if (!address.trim()) {
+      setError("請先輸入完整物件地址。");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -87,26 +97,48 @@ export function LocationInsight() {
   }
 
   const inputClass = "mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm";
-  return <div id="location-insight-calculator" className="scroll-mt-20 space-y-5"><span id="location-insight" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title="區位分析" description="沿用既有定位與 800m POI 生活圈資料，用可解釋規則整理買房前的區位優缺點。">
+  return <div id="location-insight-calculator" className="scroll-mt-20 space-y-5"><span id="location-insight" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title="看位置" description="用同一個物件地址，依序完成位置洞察、地勢／災害風險、通勤與生活機能，再前往地圖查看。">
+    <div className="mb-4 grid gap-2 rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs text-slate-600 sm:grid-cols-4">
+      <FlowBadge label="1. 位置洞察" active />
+      <FlowBadge label="2. 地勢／災害風險" active={Boolean(result?.resolved_location)} />
+      <FlowBadge label="3. 通勤與生活機能" active />
+      <FlowBadge label="4. 在地圖查看" active />
+    </div>
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
-        <label className="text-xs text-slate-500">縣市<input className={inputClass} value={city} onChange={(event) => setCity(event.target.value)} /></label>
-        <label className="text-xs text-slate-500">行政區<input className={inputClass} value={district} onChange={(event) => setDistrict(event.target.value)} /></label>
-        <label className="text-xs text-slate-500">路段<input className={inputClass} value={road} onChange={(event) => setRoad(event.target.value)} /></label>
-        <label className="text-xs text-slate-500">完整地址（可選）<input className={inputClass} value={address} onChange={(event) => setAddress(event.target.value)} /></label>
-        <CommuteLivabilityCard address={address} />
+        <label className="text-xs text-slate-500">物件地址<input className={inputClass} value={address} onChange={(event) => { setAddress(event.target.value); invalidateLocationFlow(); }} placeholder="請輸入完整物件地址" /></label>
         <label className="text-xs text-slate-500">分析半徑（公尺）<input type="number" min="100" max="1500" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
         <label className="text-xs text-slate-500">房屋總價（萬元，可選）<input type="number" min="0" className={inputClass} value={propertyPrice} onChange={(event) => setPropertyPrice(event.target.value === "" ? "" : Number(event.target.value))} /></label>
         <label className="text-xs text-slate-500">坪數（可選）<input type="number" min="0" className={inputClass} value={areaPing} onChange={(event) => setAreaPing(event.target.value === "" ? "" : Number(event.target.value))} /></label>
-        <Button className="w-full" disabled={loading || (!address.trim() && !road.trim())} onClick={analyze}>{loading ? "分析中..." : "分析區位"}</Button>
-        {!address.trim() && !road.trim() && <p className="text-[10px] leading-5 text-amber-700">請先輸入完整地址或路段，才能分析區位。</p>}
+        <Button className="w-full" disabled={loading || !address.trim()} onClick={analyze}>{loading ? "分析中..." : "開始位置分析"}</Button>
+        {!address.trim() && <p className="text-[10px] leading-5 text-amber-700">請先輸入完整物件地址。</p>}
+        {address.trim() && !result && !loading && <p className="text-[10px] leading-5 text-slate-500">地址變更後，舊的位置洞察、地勢與通勤結果會失效；請重新按下開始位置分析。</p>}
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
-        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入地址或路段，或從找房雷達／估價條件帶入後分析區位。</div> : <LocationResults result={result} />}
+        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入完整物件地址，按下「開始位置分析」後才會呼叫位置洞察 API。</div> : <LocationResults result={result} />}
       </div>
     </div>
-  </SectionCard><TerrainRiskAnalysis location={result} /></div>;
+  </SectionCard>
+    <details className="rounded-xl border border-stone-200 bg-white" open={Boolean(result?.resolved_location)}>
+      <summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">地勢／災害風險</summary>
+      <div className="border-t border-stone-100 p-4"><TerrainRiskAnalysis location={result} compactFromLocation resetKey={address} /></div>
+    </details>
+    <details className="rounded-xl border border-stone-200 bg-white">
+      <summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">通勤與生活機能</summary>
+      <div className="border-t border-stone-100 p-4"><CommuteLivabilityCard address={address} /></div>
+    </details>
+    <div className="rounded-xl border border-stone-200 bg-white p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div><p className="text-xs font-bold text-slate-900">在地圖查看</p><p className="mt-1 text-[11px] leading-5 text-slate-500">前往既有地圖洞察頁；目前不在工作台預先載入大型地圖，也不偽造地址同步。</p></div>
+        <Button secondary className="w-full sm:w-auto" onClick={onMap}>在地圖查看</Button>
+      </div>
+    </div>
+  </div>;
+}
+
+function FlowBadge({ label, active }: { label: string; active?: boolean }) {
+  return <span className={`rounded-lg px-2.5 py-2 font-bold ${active ? "bg-cyan-50 text-cyan-800" : "bg-white text-slate-400"}`}>{label}</span>;
 }
 
 function LocationResults({ result }: { result: LocationInsightResult }) {
