@@ -13,31 +13,47 @@ router = APIRouter(tags=["market-insight"])
 class MarketInsightQuery(BaseModel):
     """Region selector for Market Insight."""
 
-    city: str
+    county: str | None = None
+    city: str | None = None
     district: str
+    period: str | None = None
+
+
+@router.get("/market-insights/status")
+def get_market_insight_status() -> dict[str, Any]:
+    """Return safe PLVR market aggregate status metadata."""
+
+    from services.market_insight_service import get_market_status
+
+    return get_market_status()
+
+
+@router.get("/market-insights/regions")
+def get_market_insight_regions(county: str = "") -> dict[str, Any]:
+    """Return available PLVR aggregate regions, optionally filtered by county."""
+
+    from services.market_insight_service import list_market_regions
+
+    return list_market_regions(county=county)
 
 
 @router.get("/market-insights")
 def get_market_insights() -> dict[str, Any]:
     """Return available aggregate regions for selector controls."""
 
-    from services.market_data_foundation import MarketDataContractError, market_catalog_unavailable
     from services.market_insight_service import list_market_regions
 
-    try:
-        return list_market_regions()
-    except MarketDataContractError:
-        return market_catalog_unavailable()
+    return list_market_regions()
 
 
 @router.post("/market-insights/query")
 def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
     """Return one traceable Market Insight summary, or unavailable."""
 
-    from services.market_data_foundation import MarketDataContractError, market_unavailable_response
+    from services.market_data_foundation import market_unavailable_response
     from services.market_insight_service import get_market_summary
 
-    try:
-        return get_market_summary(request.city, request.district)
-    except MarketDataContractError:
-        return market_unavailable_response(city=request.city, district=request.district)
+    county = request.county or request.city or ""
+    if not county.strip() or not request.district.strip():
+        return market_unavailable_response(city=county, district=request.district)
+    return get_market_summary(county, request.district, request.period)

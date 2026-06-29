@@ -1,4 +1,4 @@
-"""Static checks for Market Insight unavailable-first UI."""
+"""Static checks for Market Insight PLVR bridge UI."""
 
 from __future__ import annotations
 
@@ -16,20 +16,31 @@ def _market_insight_component() -> str:
     return PAGE[start:end]
 
 
-def test_market_insight_does_not_auto_query_first_region() -> None:
+def test_market_insight_uses_manual_load_only() -> None:
     component = _market_insight_component()
 
-    assert "api.marketRegions()" in component
+    assert "api.marketStatus()" in component
+    assert "api.marketRegions(selectedCounty)" in component
+    assert "載入可用市場資料" in component
+    assert "useEffect" not in component
     assert "api.marketInsight(first.city" not in component
-    assert "查詢區域行情" in component
+
+
+def test_market_insight_has_county_selector_and_district_search() -> None:
+    component = _market_insight_component()
+
+    assert "選擇縣市" in component
+    assert "搜尋行政區" in component
+    assert "選擇行政區" in component
+    assert "查詢市場資料" in component
 
 
 def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
     component = _market_insight_component()
 
-    assert 'catalog.data_status !== "available"' in component
-    assert "目前尚未接上可追溯的全台市場資料" in component
-    assert "不顯示平均單價、交易量、趨勢、生活機能或 ESG" in component
+    assert 'catalog.data_status!=="available"' in component
+    assert "目前尚未取得可用的官方 PLVR 行政區聚合資料" in component
+    assert "不會顯示 mock 平均單價、交易量、趨勢、生活機能或 ESG" in component
 
 
 def test_market_insight_adds_no_browser_storage() -> None:
@@ -41,8 +52,9 @@ def test_market_insight_adds_no_browser_storage() -> None:
     assert "URLSearchParams" not in component
 
 
-def test_market_api_contract_has_foundation_metadata() -> None:
-    assert "data_status" in API
+def test_market_api_contract_has_bridge_endpoints() -> None:
+    assert "marketStatus" in API
+    assert "/market-insights/status" in API
+    assert "/market-insights/regions" in API
     assert "coverage_status" in API
     assert "source_updated_at" in API
-    assert "MarketRegionCatalog" in API
