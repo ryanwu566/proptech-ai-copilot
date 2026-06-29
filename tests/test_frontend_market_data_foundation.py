@@ -1,4 +1,4 @@
-"""Static checks for Market Insight PLVR bridge UI."""
+"""Static checks for the Market Insight read model explorer UI."""
 
 from __future__ import annotations
 
@@ -12,38 +12,41 @@ API = (ROOT / "frontend_next/lib/api.ts").read_text(encoding="utf-8")
 
 def _market_insight_component() -> str:
     start = PAGE.index("function MarketInsight")
-    end = PAGE.index("function AegisCredit", start)
+    end = PAGE.index("function LegacyMarketInsight", start)
     return PAGE[start:end]
 
 
-def test_market_insight_uses_manual_load_only() -> None:
+def test_market_insight_loads_catalog_only_on_button_click() -> None:
     component = _market_insight_component()
 
-    assert "api.marketStatus()" in component
-    assert "api.marketRegions(selectedCounty)" in component
-    assert "載入可用市場資料" in component
+    assert "api.marketCatalog()" in component
+    assert "onClick={loadCatalog}" in component
     assert "useEffect" not in component
     assert "api.marketInsight(first.city" not in component
+    assert "api.marketInsight(county,district)" in component
 
 
-def test_market_insight_has_county_selector_and_district_search() -> None:
+def test_market_insight_has_county_selector_district_search_and_manual_query() -> None:
     component = _market_insight_component()
 
-    assert "選擇縣市" in component
+    assert "available_counties" in component
+    assert "changeCounty(e.target.value)" in component
+    assert "api.marketRegions(value)" in component
     assert "搜尋行政區" in component
-    assert "選擇行政區" in component
-    assert "查詢市場資料" in component
+    assert "查詢行政區行情" in component
 
 
 def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
     component = _market_insight_component()
 
-    assert 'catalog.data_status!=="available"' in component
-    assert "目前尚未取得可用的官方 PLVR 行政區聚合資料" in component
-    assert "不會顯示 mock 平均單價、交易量、趨勢、生活機能或 ESG" in component
+    assert 'catalog.read_model_status!=="ready"' in component
+    assert "不會以展示數字、生活機能分數、ESG 分數或假趨勢替代" in component
+    assert "livability_score" not in component
+    assert "esg_lite_score" not in component
+    assert "trend" not in component
 
 
-def test_market_insight_adds_no_browser_storage() -> None:
+def test_market_insight_adds_no_browser_storage_or_url_state() -> None:
     component = _market_insight_component()
 
     assert "localStorage" not in component
@@ -52,9 +55,12 @@ def test_market_insight_adds_no_browser_storage() -> None:
     assert "URLSearchParams" not in component
 
 
-def test_market_api_contract_has_bridge_endpoints() -> None:
-    assert "marketStatus" in API
-    assert "/market-insights/status" in API
+def test_market_api_contract_has_read_model_endpoints_and_history() -> None:
+    assert "marketCatalog" in API
+    assert "/market-insights/catalog" in API
     assert "/market-insights/regions" in API
-    assert "coverage_status" in API
-    assert "source_updated_at" in API
+    assert "/market-insights/query" in API
+    assert "read_model_status" in API
+    assert "history:" in API
+    assert "livability_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]
+    assert "esg_lite_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]

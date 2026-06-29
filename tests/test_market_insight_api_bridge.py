@@ -1,4 +1,4 @@
-"""API tests for the PLVR Market Insight bridge."""
+"""API tests for the Market Insight read model bridge."""
 
 from __future__ import annotations
 
@@ -10,13 +10,14 @@ from backend.api_main import app
 client = TestClient(app)
 
 
-def test_market_status_endpoint_uses_safe_metadata(monkeypatch) -> None:
+def test_market_status_endpoint_uses_safe_read_model_metadata(monkeypatch) -> None:
     from services import market_insight_service
 
     monkeypatch.setattr(
         market_insight_service,
         "get_market_status",
         lambda: {
+            "read_model_status": "ready",
             "data_status": "available",
             "coverage_status": "partial",
             "source_name": "Official PLVR OpenData aggregate",
@@ -25,6 +26,7 @@ def test_market_status_endpoint_uses_safe_metadata(monkeypatch) -> None:
             "available_district_count": 2,
             "earliest_period": "2025-01",
             "latest_period": "2025-02",
+            "built_at": "2025-03-06T00:00:00+00:00",
             "caveat": "market caveat",
         },
     )
@@ -33,10 +35,40 @@ def test_market_status_endpoint_uses_safe_metadata(monkeypatch) -> None:
 
     assert response.status_code == 200
     payload = response.json()
+    assert payload["read_model_status"] == "ready"
     assert payload["data_status"] == "available"
-    assert payload["available_district_count"] == 2
     assert "database_url" not in payload
     assert "raw_payload" not in payload
+
+
+def test_market_catalog_endpoint_returns_available_counties(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_catalog",
+        lambda: {
+            "read_model_status": "ready",
+            "data_status": "available",
+            "coverage_status": "partial",
+            "source_name": "Official PLVR OpenData aggregate",
+            "source_updated_at": "2025-03-05",
+            "available_counties": ["Demo County"],
+            "available_county_count": 1,
+            "available_district_count": 2,
+            "earliest_period": "2025-01",
+            "latest_period": "2025-02",
+            "built_at": "2025-03-06T00:00:00+00:00",
+            "caveat": "market caveat",
+        },
+    )
+
+    response = client.get("/market-insights/catalog")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["available_counties"] == ["Demo County"]
+    assert "regions" not in payload
 
 
 def test_market_regions_endpoint_filters_by_county(monkeypatch) -> None:
@@ -47,6 +79,7 @@ def test_market_regions_endpoint_filters_by_county(monkeypatch) -> None:
     def fake_regions(county: str = ""):
         seen["county"] = county
         return {
+            "read_model_status": "ready",
             "regions": [{"city": "Demo County", "county": "Demo County", "district": "North", "period": "2025-02"}],
             "data_status": "available",
             "coverage_status": "partial",
@@ -56,6 +89,7 @@ def test_market_regions_endpoint_filters_by_county(monkeypatch) -> None:
             "available_district_count": 1,
             "earliest_period": "2025-02",
             "latest_period": "2025-02",
+            "built_at": "2025-03-06T00:00:00+00:00",
             "caveat": "market caveat",
         }
 
@@ -68,7 +102,7 @@ def test_market_regions_endpoint_filters_by_county(monkeypatch) -> None:
     assert response.json()["regions"][0]["district"] == "North"
 
 
-def test_market_query_accepts_county_alias_and_period(monkeypatch) -> None:
+def test_market_query_accepts_county_alias_and_returns_history(monkeypatch) -> None:
     from services import market_insight_service
 
     seen: dict[str, str | None] = {}
@@ -84,11 +118,8 @@ def test_market_query_accepts_county_alias_and_period(monkeypatch) -> None:
             "avg_price_per_ping": 72.5,
             "transaction_count": 3,
             "transaction_volume": 3,
-            "trend": [],
-            "livability_score": None,
-            "esg_lite_score": None,
-            "poi_breakdown": {},
-            "sdg11_note": "",
+            "record_count": 3,
+            "history": [{"period": "2025-02", "average_unit_price": 72.5, "transaction_count": 3}],
             "summary": "aggregate ready",
             "source_name": "Official PLVR OpenData aggregate",
             "source_updated_at": "2025-03-05",
@@ -96,7 +127,6 @@ def test_market_query_accepts_county_alias_and_period(monkeypatch) -> None:
             "data_status": "available",
             "caveat": "market caveat",
             "disclaimer": "market caveat",
-            "record_count": 3,
         }
 
     monkeypatch.setattr(market_insight_service, "get_market_summary", fake_summary)
@@ -110,6 +140,65 @@ def test_market_query_accepts_county_alias_and_period(monkeypatch) -> None:
     assert seen == {"city": "Demo County", "district": "North", "period": "2025-02"}
     payload = response.json()
     assert payload["data_status"] == "available"
-    assert payload["average_unit_price"] == 72.5
+    assert payload["history"][0]["period"] == "2025-02"
     assert "address_text" not in payload
     assert "raw_error" not in payload
+
+
+def test_refresh_requires_configured_token_before_db_work(monkeypatch) -> None:
+    from services import market_insight_service
+
+    called = {"refresh": False}
+    monkeypatch.delenv("MARKET_READ_MODEL_REFRESH_TOKEN", raising=False)
+    monkeypatch.setattr(
+        market_insight_service,
+        "refresh_market_read_model",
+        lambda: called.update(refresh=True),
+    )
+
+    response = client.post("/market-insights/refresh")
+
+    assert response.status_code == 503
+    assert called == {"refresh": False}
+
+
+def test_refresh_rejects_wrong_token_before_db_work(monkeypatch) -> None:
+    from services import market_insight_service
+
+    called = {"refresh": False}
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        market_insight_service,
+        "refresh_market_read_model",
+        lambda: called.update(refresh=True),
+    )
+
+    response = client.post("/market-insights/refresh", headers={"X-Market-Read-Model-Refresh-Token": "wrong"})
+
+    assert response.status_code == 403
+    assert called == {"refresh": False}
+
+
+def test_refresh_success_response_is_safe(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        market_insight_service,
+        "refresh_market_read_model",
+        lambda: {
+            "status": "resolved",
+            "data_status": "available",
+            "coverage_status": "partial",
+            "built_at": "2025-03-06T00:00:00+00:00",
+            "message": "市場 read model 已完成刷新。",
+        },
+    )
+
+    response = client.post("/market-insights/refresh", headers={"X-Market-Read-Model-Refresh-Token": "expected"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "resolved"
+    assert "available_county_count" not in payload
+    assert "real_price_transactions" not in str(payload)
