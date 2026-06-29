@@ -1,0 +1,53 @@
+name: Refresh Market Read Model
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  refresh-market-read-model:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Refresh market read model
+        shell: bash
+        env:
+          RENDER_API_BASE_URL: ${{ secrets.RENDER_API_BASE_URL }}
+          MARKET_READ_MODEL_REFRESH_TOKEN: ${{ secrets.MARKET_READ_MODEL_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          base_url="${RENDER_API_BASE_URL%/}"
+          status_file="$(mktemp)"
+          body_file="$(mktemp)"
+          trap 'rm -f "$status_file" "$body_file"' EXIT
+
+          set +e
+          curl \
+            --silent \
+            --output "$body_file" \
+            --write-out "%{http_code}" \
+            --connect-timeout 20 \
+            --max-time 180 \
+            --request POST \
+            --header "X-Market-Read-Model-Refresh-Token: ${MARKET_READ_MODEL_REFRESH_TOKEN}" \
+            "${base_url}/market-insights/refresh" \
+            > "$status_file"
+          curl_exit=$?
+          set -e
+
+          if [ "$curl_exit" -eq 0 ]; then
+            http_status="$(cat "$status_file")"
+          else
+            http_status="0"
+          fi
+
+          if [ "$http_status" = "200" ]; then
+            echo "MARKET_READ_MODEL_REFRESH=success"
+            echo "MARKET_READ_MODEL_HTTP_STATUS=200"
+            exit 0
+          fi
+
+          echo "MARKET_READ_MODEL_REFRESH=failed"
+          echo "MARKET_READ_MODEL_HTTP_STATUS=${http_status:-0}"
+          exit 1

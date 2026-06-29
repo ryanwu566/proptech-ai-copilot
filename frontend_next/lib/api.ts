@@ -54,13 +54,9 @@ export type MarketResult = {
   period: string | null;
   average_unit_price: number | null;
   avg_price_per_ping: number | null;
-  trend: number[];
   transaction_count: number | null;
   transaction_volume: number | null;
-  livability_score: number | null;
-  esg_lite_score: number | null;
-  poi_breakdown: Record<string, number>;
-  sdg11_note: string;
+  record_count?: number | null;
   summary: string;
   source_name: string | null;
   source_updated_at: string | null;
@@ -70,11 +66,13 @@ export type MarketResult = {
   disclaimer: string;
   source_file_hash?: string | null;
   aggregation_method?: string | null;
-  record_count?: number;
+  history: { period: string | null; average_unit_price: number | null; transaction_count: number }[];
 };
 export type MarketRegion = { city: string; county?: string; district: string; period?: string | null; data_status?: MarketResult["data_status"] };
 export type MarketRegionCatalog = {
+  read_model_status: "ready" | "missing" | "stale" | "unavailable";
   regions: MarketRegion[];
+  available_counties?: string[];
   data_status: MarketResult["data_status"];
   coverage_status: MarketResult["coverage_status"];
   source_name: string | null;
@@ -83,6 +81,7 @@ export type MarketRegionCatalog = {
   available_district_count?: number;
   earliest_period?: string | null;
   latest_period?: string | null;
+  built_at?: string | null;
   caveat: string;
 };
 
@@ -246,6 +245,7 @@ export const api = {
   analyzeTax: (taxCase: TaxCase) => request<TaxResult>("/taxoracle/analyze", { method: "POST", body: JSON.stringify(taxCase) }),
   history: () => request<Record<string, string | number>[]>("/history"),
   marketStatus: () => request<MarketRegionCatalog>("/market-insights/status"),
+  marketCatalog: () => request<MarketRegionCatalog>("/market-insights/catalog"),
   marketRegions: (county?: string) =>
     request<MarketRegionCatalog>(`/market-insights/regions${county ? `?county=${encodeURIComponent(county)}` : ""}`),
   marketInsight: (county: string, district: string, period?: string | null) =>

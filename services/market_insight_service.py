@@ -10,9 +10,11 @@ from __future__ import annotations
 from typing import Any
 
 from services.plvr_market_aggregate_service import (
+    get_market_catalog as _get_market_catalog,
     get_market_status as _get_market_status,
     get_market_summary as _get_market_summary,
     list_market_regions as _list_market_regions,
+    refresh_market_read_model as _refresh_market_read_model,
 )
 
 
@@ -20,6 +22,12 @@ def get_market_status() -> dict[str, Any]:
     """Return safe aggregate status metadata."""
 
     return _get_market_status()
+
+
+def get_market_catalog() -> dict[str, Any]:
+    """Return safe read model catalog metadata."""
+
+    return _get_market_catalog()
 
 
 def list_market_regions(county: str = "") -> dict[str, Any]:
@@ -32,3 +40,9 @@ def get_market_summary(city: str, district: str, period: str | None = None) -> d
     """Return a market summary or a safe unavailable response."""
 
     return _get_market_summary(county=city, district=district, period=period)
+
+
+def refresh_market_read_model() -> dict[str, Any]:
+    """Refresh protected market read model aggregates."""
+
+    return _refresh_market_read_model()
