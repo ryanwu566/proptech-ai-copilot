@@ -42,7 +42,7 @@ def test_major_empty_states_explain_the_next_action() -> None:
         (PAGE, "選擇區域與物件條件後"),
         (LOAN, "請先輸入總價、利率與貸款年限"),
         (HOLDING, "請先完成貸款或輸入月付"),
-        (LOCATION, "請先輸入地址或路段"),
+        (LOCATION, "請先輸入完整物件地址"),
         (RISK, "尚需補查"),
         (REPORT, "請先完成估價與至少兩項主要分析"),
         (CASES, "尚未保存案件"),
@@ -58,7 +58,7 @@ def test_disabled_actions_explain_why_and_tables_stay_contained() -> None:
     assert "請先輸入預算上限" in FINDER
     assert "寬限期必須小於貸款年限" in LOAN
     assert "請先完成貸款帶入" in HOLDING
-    assert "請先輸入完整地址或路段" in LOCATION
+    assert "請先輸入完整物件地址" in LOCATION
     assert "請先完成稅務快篩才能輸出報告" in PAGE
     assert "max-h-[65vh]" in PAGE
     for source in (COMPARE, PAGE, FINDER, LOAN, HOLDING, LOCATION):

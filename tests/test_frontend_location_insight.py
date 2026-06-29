@@ -14,8 +14,9 @@ SHARE = (ROOT / "frontend_next" / "lib" / "valuation-share.ts").read_text(encodi
 def test_location_insight_form_and_api_client_exist() -> None:
     assert '"/location/insight"' in API
     assert "locationInsight" in API
-    for text in ("區位分析", "縣市", "行政區", "路段", "完整地址（可選）", "分析半徑（公尺）"):
+    for text in ("看位置", "物件地址", "開始位置分析", "分析半徑（公尺）"):
         assert text in COMPONENT
+    assert "完整地址（可選）" not in COMPONENT
 
 
 def test_location_results_and_unavailable_state_are_visible() -> None:
