@@ -79,6 +79,10 @@ export type MarketRegionCatalog = {
   coverage_status: MarketResult["coverage_status"];
   source_name: string | null;
   source_updated_at: string | null;
+  available_county_count?: number;
+  available_district_count?: number;
+  earliest_period?: string | null;
+  latest_period?: string | null;
   caveat: string;
 };
 
@@ -241,9 +245,11 @@ export const api = {
   runTaxOracleCase: (taxCase: TaxCase) => request<TaxResult>("/taxoracle/analyze", { method: "POST", body: JSON.stringify(taxCase) }),
   analyzeTax: (taxCase: TaxCase) => request<TaxResult>("/taxoracle/analyze", { method: "POST", body: JSON.stringify(taxCase) }),
   history: () => request<Record<string, string | number>[]>("/history"),
-  marketRegions: () => request<MarketRegionCatalog>("/market-insights"),
-  marketInsight: (city: string, district: string) =>
-    request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ city, district }) }),
+  marketStatus: () => request<MarketRegionCatalog>("/market-insights/status"),
+  marketRegions: (county?: string) =>
+    request<MarketRegionCatalog>(`/market-insights/regions${county ? `?county=${encodeURIComponent(county)}` : ""}`),
+  marketInsight: (county: string, district: string, period?: string | null) =>
+    request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ county, district, period }) }),
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
   mapGoogleHealth: () => request<GoogleHealth>("/map/google-health"),
