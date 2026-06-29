@@ -1,0 +1,49 @@
+name: Refresh Commute Snapshot
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  refresh:
+    name: Refresh commute snapshot
+    runs-on: ubuntu-latest
+    env:
+      RENDER_API_BASE_URL: ${{ secrets.RENDER_API_BASE_URL }}
+      COMMUTE_REFRESH_TOKEN: ${{ secrets.COMMUTE_REFRESH_TOKEN }}
+    steps:
+      - name: Call protected commute refresh endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${RENDER_API_BASE_URL}" || -z "${COMMUTE_REFRESH_TOKEN}" ]]; then
+            echo "REFRESH_RESULT=failed"
+            echo "REFRESH_HTTP_STATUS=0"
+            exit 1
+          fi
+
+          base_url="${RENDER_API_BASE_URL%/}"
+          refresh_url="${base_url}/commute/refresh"
+          http_status="$(
+            curl \
+              --silent \
+              --output /dev/null \
+              --write-out "%{http_code}" \
+              --connect-timeout 20 \
+              --max-time 120 \
+              --request POST \
+              --header "X-Commute-Refresh-Token: ${COMMUTE_REFRESH_TOKEN}" \
+              "${refresh_url}" || true
+          )"
+
+          if [[ "${http_status}" == "200" ]]; then
+            echo "REFRESH_RESULT=success"
+            echo "REFRESH_HTTP_STATUS=${http_status}"
+            exit 0
+          fi
+
+          echo "REFRESH_RESULT=failed"
+          echo "REFRESH_HTTP_STATUS=${http_status:-0}"
+          exit 1
