@@ -27,6 +27,9 @@ def test_demo_case_can_be_analyzed_and_reported() -> None:
 
 
 def test_market_insight_query() -> None:
-    response = client.post("/market-insights/query", json={"city": "台北市", "district": "信義區"})
+    response = client.post("/market-insights/query", json={"city": "Demo County", "district": "Demo District"})
     assert response.status_code == 200
-    assert len(response.json()["trend"]) == 6
+    payload = response.json()
+    assert payload["data_status"] == "unavailable"
+    assert payload["avg_price_per_ping"] is None
+    assert payload["transaction_volume"] is None

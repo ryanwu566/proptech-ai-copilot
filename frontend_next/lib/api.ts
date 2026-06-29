@@ -49,16 +49,37 @@ export type TaxResult = {
 
 export type MarketResult = {
   city: string;
+  county?: string;
   district: string;
-  avg_price_per_ping: number;
+  period: string | null;
+  average_unit_price: number | null;
+  avg_price_per_ping: number | null;
   trend: number[];
-  transaction_volume: number;
-  livability_score: number;
-  esg_lite_score: number;
+  transaction_count: number | null;
+  transaction_volume: number | null;
+  livability_score: number | null;
+  esg_lite_score: number | null;
   poi_breakdown: Record<string, number>;
   sdg11_note: string;
   summary: string;
+  source_name: string | null;
+  source_updated_at: string | null;
+  coverage_status: "nationwide" | "partial" | "unknown";
+  data_status: "available" | "unavailable" | "incomplete" | "invalid";
+  caveat: string;
   disclaimer: string;
+  source_file_hash?: string | null;
+  aggregation_method?: string | null;
+  record_count?: number;
+};
+export type MarketRegion = { city: string; county?: string; district: string; period?: string | null; data_status?: MarketResult["data_status"] };
+export type MarketRegionCatalog = {
+  regions: MarketRegion[];
+  data_status: MarketResult["data_status"];
+  coverage_status: MarketResult["coverage_status"];
+  source_name: string | null;
+  source_updated_at: string | null;
+  caveat: string;
 };
 
 export type MapPoint = { name: string; lat: number; lng: number; score_weight: number };
@@ -220,7 +241,7 @@ export const api = {
   runTaxOracleCase: (taxCase: TaxCase) => request<TaxResult>("/taxoracle/analyze", { method: "POST", body: JSON.stringify(taxCase) }),
   analyzeTax: (taxCase: TaxCase) => request<TaxResult>("/taxoracle/analyze", { method: "POST", body: JSON.stringify(taxCase) }),
   history: () => request<Record<string, string | number>[]>("/history"),
-  marketRegions: () => request<{ city: string; district: string }[]>("/market-insights"),
+  marketRegions: () => request<MarketRegionCatalog>("/market-insights"),
   marketInsight: (city: string, district: string) =>
     request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ city, district }) }),
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
