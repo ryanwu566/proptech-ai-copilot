@@ -71,7 +71,7 @@ function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; ope
   return <div className="space-y-6">
     <HeroIntro onStart={continueWorkflow} onWorkspace={() => openViewingFlow("immersive-workspace")} reportReady={reportReady} onReport={() => openViewingFlow("decision-report")} workflowStatus={workflowStatus} />
     <DecisionFlowEntry onStart={() => openViewingFlow("property-finder")} onDemo={startGuidedDemo} />
-    <DecisionFlowGroups onLocation={() => openViewingFlow("location-insight-calculator")} onValuation={() => setPage("房價估算")} onDecision={() => openViewingFlow("decision-report")} onTax={() => openTax(selectedCase)} onCases={openCaseComparison} />
+    <DecisionWorkspaceSteps onFinder={() => openViewingFlow("property-finder")} onLocation={() => openViewingFlow("location-insight-calculator")} onMap={() => setPage("Map Insight Lite")} onValuation={() => setPage("房價估算")} onDecision={() => openViewingFlow("decision-report")} onTax={() => openTax(selectedCase)} onCases={openCaseComparison} />
     <section className="rounded-2xl border border-stone-200 bg-white p-4 shadow-sm sm:p-5"><div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">STEP 4</p><h2 className="text-base font-bold text-slate-950">看房決策</h2></div><p className="text-xs leading-5 text-slate-500">此摘要只整理既有分析結果，不新增黑箱分數，也不取代貸款、法律、稅務或地勢災害判斷。</p></div><ViewingDecisionPanel decision={viewingDecision} onNext={openViewingDecisionTarget} /></section>
     <details id="decision-next-actions" className="rounded-2xl border border-stone-200 bg-white shadow-sm"><summary className="cursor-pointer px-5 py-4 text-sm font-bold text-slate-800">保存、比較、匯出與其他下一步</summary><div className="space-y-4 border-t border-stone-100 p-4 sm:p-5"><WorkflowEntryCards onStartBuying={continueWorkflow} onOpenTax={() => openTax(selectedCase)} onOpenAdvanced={openAdvanced} onGuidedDemo={startGuidedDemo} onOpenCompare={openCaseComparison} /><div id="recent-cases" className="scroll-mt-20"><CaseManager listOnly onLoaded={(saved) => saved.activeWizardStep === "tax" ? openTax() : setPage("房價估算")} onExport={exportSavedCase} /></div></div></details>
     <HelpCallout>主流程會從找房一路帶到位置、風險、估價、資金與看屋報告；通勤資訊只作生活機能參考，不影響看房決策結論。</HelpCallout>
@@ -80,19 +80,40 @@ function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; ope
 }
 
 function DecisionFlowEntry({ onStart, onDemo }: { onStart: () => void; onDemo: () => void }) {
-  return <section className="rounded-2xl border border-cyan-100 bg-gradient-to-br from-white to-cyan-50 p-4 shadow-sm sm:p-5"><div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">主要入口</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">輸入物件資訊，開始看房決策</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">先用預算與地點找出可能的路段，再把位置、地勢風險、估價、貸款、持有成本與稅費串成一份保守的看房摘要。</p><div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap"><Button className="w-full sm:w-auto" onClick={onStart}>開始找物件</Button><Button secondary className="w-full sm:w-auto" onClick={onDemo}>先跑示範流程</Button></div></div><div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2 lg:grid-cols-1"><FlowStep number="1" title="找物件" note="輸入預算、地點與坪數" /><FlowStep number="2" title="位置與風險" note="生活機能、通勤、地勢災害" /><FlowStep number="3" title="價格與資金" note="估價、貸款、持有成本、稅費" /><FlowStep number="4" title="看房決策" note="整理已知提醒與下一步" /></div></div></section>;
+  return <section className="rounded-2xl border border-cyan-100 bg-white p-4 shadow-sm sm:p-5"><div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-center"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">物件決策工作台</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">輸入物件資訊，開始看房決策</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">先找物件，再依序檢查位置、地勢、通勤、價格與資金，最後彙整成「這間房值得去看嗎」的保守摘要。</p><div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap"><Button className="w-full sm:w-auto" onClick={onStart}>開始找物件</Button><Button secondary className="w-full sm:w-auto" onClick={onDemo}>先跑示範流程</Button></div></div><div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2 lg:grid-cols-1"><FlowStep number="1" title="找物件" note="輸入預算、地點與坪數" /><FlowStep number="2" title="看位置" note="位置洞察、地勢風險、通勤" /><FlowStep number="3" title="算價格與資金" note="估價、貸款、持有成本、稅費" /><FlowStep number="4" title="比較與做決策" note="保存、比較、報告與列印" /></div></div></section>;
 }
 
-function DecisionFlowGroups({ onLocation, onValuation, onDecision, onTax, onCases }: { onLocation: () => void; onValuation: () => void; onDecision: () => void; onTax: () => void; onCases: () => void }) {
-  return <section className="grid gap-3 lg:grid-cols-3"><FlowGroup title="位置與風險" items={["Location Insight", "Terrain Risk", "通勤與生活機能"]} actionLabel="檢查位置與風險" onAction={onLocation} /><FlowGroup title="價格與資金" items={["Valuation 價格合理性", "Aegis Credit／貸款", "Holding Cost", "TaxOracle 稅務快篩"]} actionLabel="估價與資金試算" onAction={onValuation} secondaryLabel="稅務快篩" onSecondary={onTax} /><FlowGroup title="決策與下一步" items={["Viewing Decision Panel", "Decision Report", "案例保存／比較／匯出"]} actionLabel="查看看房決策" onAction={onDecision} secondaryLabel="比較案例" onSecondary={onCases} /></section>;
+function DecisionWorkspaceSteps({ onFinder, onLocation, onMap, onValuation, onDecision, onTax, onCases }: { onFinder: () => void; onLocation: () => void; onMap: () => void; onValuation: () => void; onDecision: () => void; onTax: () => void; onCases: () => void }) {
+  return <section aria-label="物件決策工作台四步驟" className="space-y-3">
+    <WorkspaceStep number="1" title="找物件" summary="用 Property Finder 找出符合預算與坪數的候選路段。" actionLabel="開始找物件" onAction={onFinder} defaultOpen>
+      <CapabilityPills items={["Property Finder", "實價登錄候選路段", "帶入估價／貸款／區位"]} />
+      <p className="text-xs leading-5 text-slate-500">沒有輸入資料時，這裡就是第一步；不會自動查詢，也不會新增第二套地址狀態。</p>
+    </WorkspaceStep>
+    <WorkspaceStep number="2" title="看位置" summary="檢查位置洞察、地勢／災害風險、通勤與生活機能。" actionLabel="檢查位置" onAction={onLocation} secondaryLabel="在地圖查看" onSecondary={onMap}>
+      <CapabilityPills items={["Location Insight", "Terrain Risk", "風險資料來源與限制", "Commute Livability Card"]} />
+      <p className="text-xs leading-5 text-amber-700">通勤資訊仍需手動點擊查詢，且只供生活機能參考，不影響地勢、貸款、稅務、估價或看房決策。</p>
+    </WorkspaceStep>
+    <WorkspaceStep number="3" title="算價格與資金" summary="把估價、貸款、持有成本、稅費與市場背景集中在一處操作。" actionLabel="估價與資金試算" onAction={onValuation} secondaryLabel="稅務快篩" onSecondary={onTax}>
+      <CapabilityPills items={["Valuation 價格合理性", "Aegis Credit／貸款", "Holding Cost", "TaxOracle 稅務快篩", "Market Insight"]} />
+      <p className="text-xs leading-5 text-slate-500">每個工具仍由使用者手動按下才會呼叫 API；資料不足時只顯示未完成，不猜測結論。</p>
+    </WorkspaceStep>
+    <WorkspaceStep number="4" title="比較與做決策" summary="整理 Viewing Decision、Decision Report、案例保存、比較與列印／另存 PDF。" actionLabel="查看看房決策" onAction={onDecision} secondaryLabel="管理案件" onSecondary={onCases}>
+      <CapabilityPills items={["Viewing Decision Panel", "Decision Report", "Case Manager", "Case Comparison", "列印／另存 PDF"]} />
+      <p className="text-xs leading-5 text-slate-500">比較報告只彙整既有結果；通勤資料不納入分數或排名，地勢資料未知也不會被視為低風險。</p>
+    </WorkspaceStep>
+  </section>;
 }
 
 function FlowStep({ number, title, note }: { number: string; title: string; note: string }) {
   return <div className="rounded-xl border border-cyan-100 bg-white/80 p-3"><div className="flex items-start gap-3"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-cyan-700 text-xs font-black text-white">{number}</span><span><strong className="block text-slate-900">{title}</strong><span className="text-[11px] leading-5 text-slate-500">{note}</span></span></div></div>;
 }
 
-function FlowGroup({ title, items, actionLabel, onAction, secondaryLabel, onSecondary }: { title: string; items: string[]; actionLabel: string; onAction: () => void; secondaryLabel?: string; onSecondary?: () => void }) {
-  return <details className="rounded-2xl border border-stone-200 bg-white shadow-sm" open={title === "位置與風險"}><summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-900">{title}</summary><div className="space-y-3 border-t border-stone-100 p-4"><ul className="space-y-1 text-xs leading-5 text-slate-600">{items.map((item) => <li key={item}>• {item}</li>)}</ul><div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"><Button secondary className="w-full sm:w-auto" onClick={onAction}>{actionLabel}</Button>{secondaryLabel && onSecondary && <Button secondary className="w-full sm:w-auto" onClick={onSecondary}>{secondaryLabel}</Button>}</div></div></details>;
+function WorkspaceStep({ number, title, summary, actionLabel, onAction, secondaryLabel, onSecondary, defaultOpen, children }: { number: string; title: string; summary: string; actionLabel: string; onAction: () => void; secondaryLabel?: string; onSecondary?: () => void; defaultOpen?: boolean; children: ReactNode }) {
+  return <details className="rounded-2xl border border-stone-200 bg-white shadow-sm" open={defaultOpen}><summary className="cursor-pointer px-4 py-3"><span className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between"><span className="flex items-center gap-3"><span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-black text-white">{number}</span><span><span className="block text-sm font-bold text-slate-950">{title}</span><span className="block text-xs font-normal leading-5 text-slate-500">{summary}</span></span></span><span className="text-[10px] font-bold text-cyan-700">展開</span></span></summary><div className="space-y-3 border-t border-stone-100 p-4">{children}<div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap"><Button className="w-full sm:w-auto" onClick={onAction}>{actionLabel}</Button>{secondaryLabel && onSecondary && <Button secondary className="w-full sm:w-auto" onClick={onSecondary}>{secondaryLabel}</Button>}</div></div></details>;
+}
+
+function CapabilityPills({ items }: { items: string[] }) {
+  return <div className="flex flex-wrap gap-1.5">{items.map((item) => <span key={item} className="rounded-full bg-stone-100 px-2.5 py-1 text-[10px] font-bold text-slate-600">{item}</span>)}</div>;
 }
 
 function SectionTitle({ title, note }: { title: string; note: string }) {

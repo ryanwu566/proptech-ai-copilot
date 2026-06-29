@@ -17,11 +17,11 @@ def test_home_has_single_primary_property_finder_entry() -> None:
     assert "輸入物件資訊，開始看房決策" in PAGE
     assert "開始找物件" in PAGE
     assert 'openViewingFlow("property-finder")' in PAGE
-    assert "主要入口" in PAGE
+    assert "物件決策工作台" in PAGE
 
 
 def test_decision_flow_steps_are_visible_without_enforced_wizard() -> None:
-    for text in ("找物件", "位置與風險", "價格與資金", "看房決策"):
+    for text in ("找物件", "看位置", "算價格與資金", "比較與做決策"):
         assert text in PAGE
     assert "不強迫" not in PAGE
     assert "api." not in PAGE.split("function DecisionFlowEntry", 1)[1].split("function SectionTitle", 1)[0]
@@ -38,7 +38,9 @@ def test_existing_capabilities_are_grouped_progressively() -> None:
         "TaxOracle 稅務快篩",
         "Viewing Decision Panel",
         "Decision Report",
-        "案例保存／比較／匯出",
+        "Case Manager",
+        "Case Comparison",
+        "列印／另存 PDF",
     ):
         assert text in PAGE
     assert "保存、比較、匯出與其他下一步" in PAGE
