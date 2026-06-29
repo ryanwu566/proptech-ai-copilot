@@ -1,4 +1,5 @@
 import type { PropertyCaseDraft, PropertyCaseStatus } from "@/lib/property-case";
+import { PARTIAL_CASE_PRINT_NOTICE } from "@/lib/property-case";
 
 export type PropertyCaseReadinessState = "ready" | "needs_data" | "unavailable";
 
@@ -13,34 +14,55 @@ export type PropertyCaseReadiness = {
 
 export function buildPropertyCaseReadiness(draft: PropertyCaseDraft): PropertyCaseReadiness {
   const safeWarnings = [
-    ...draft.readiness.unavailable_or_incomplete.map((key) => `${moduleLabel(key)} 資料不足或暫時不可用，不代表沒有風險。`),
+    ...draft.readiness.unavailable_or_incomplete.map(
+      (key) => `${moduleLabel(key)} 資料暫時不可用或不完整，不能推論為低風險或已完成。`,
+    ),
   ];
-  if (draft.readiness.missing_required.length > 0) {
+
+  if (!draft.readiness.draft_ready) {
     return {
       state: "needs_data",
-      label: "補資料後再判斷",
-      primaryMessage: "目前案件可建立草稿，但還不適合直接比較或輸出完整報告。",
-      nextSteps: draft.readiness.missing_required.slice(0, 4).map((key) => `補齊 ${moduleLabel(key)}`),
+      label: "待補案件基本資料",
+      primaryMessage: "請先補齊案件名稱與物件地址／識別，才可儲存草稿案件。",
+      nextSteps: draft.readiness.missing_required
+        .filter((key) => key === "case_name" || key === "address")
+        .map((key) => `補齊 ${moduleLabel(key)}`),
       safeWarnings,
       statusLabels,
     };
   }
+
+  if (!draft.readiness.compare_ready) {
+    return {
+      state: "needs_data",
+      label: "待補比較資料",
+      primaryMessage: "此案件可保留目前摘要，但仍需可比較價格資料才會進入比較候選。",
+      nextSteps: draft.readiness.missing_required.map((key) => `補齊 ${moduleLabel(key)}`),
+      safeWarnings: [...safeWarnings, "缺少價格資料時，不會顯示為低價、0 元或比較完成。"],
+      statusLabels,
+    };
+  }
+
   if (draft.readiness.unavailable_or_incomplete.length > 0) {
     return {
       state: "unavailable",
-      label: "先確認資料可用性",
-      primaryMessage: "部分分析資料不足或暫時不可用，請先確認再用於比較。",
-      nextSteps: draft.readiness.unavailable_or_incomplete.slice(0, 4).map((key) => `重新檢查 ${moduleLabel(key)}`),
-      safeWarnings,
+      label: "部分資料待確認",
+      primaryMessage: "此案件已有比較基礎，但部分分析仍需補齊或重新確認。",
+      nextSteps: [
+        "可先列印目前摘要",
+        ...draft.readiness.unavailable_or_incomplete.slice(0, 3).map((key) => `確認 ${moduleLabel(key)}`),
+      ],
+      safeWarnings: [PARTIAL_CASE_PRINT_NOTICE, ...safeWarnings],
       statusLabels,
     };
   }
+
   return {
     state: "ready",
-    label: "可保存並比較",
-    primaryMessage: "案件已具備基本物件、位置、資金與風險摘要，可進一步保存、比較或列印報告。",
-    nextSteps: ["保存目前案件", "選擇 2 到 3 個案件比較", "列印或另存決策報告"],
-    safeWarnings,
+    label: "可比較與列印",
+    primaryMessage: "案件具備名稱、物件地址與可比較價格，可進入最多三件案件比較；完整度不是投資評分或買賣建議。",
+    nextSteps: ["列印目前摘要", "與 2 至 3 件案件比較", "繼續補齊缺少的分析"],
+    safeWarnings: [PARTIAL_CASE_PRINT_NOTICE, ...safeWarnings],
     statusLabels,
   };
 }
@@ -48,8 +70,8 @@ export function buildPropertyCaseReadiness(draft: PropertyCaseDraft): PropertyCa
 export function moduleLabel(key: string): string {
   return {
     case_name: "案件名稱",
-    address: "物件地址",
-    listing_price: "價格資訊",
+    address: "物件地址／識別",
+    listing_price: "可比較價格資料",
     property: "Property Finder",
     location: "Location Insight",
     terrain: "Terrain Risk",
@@ -58,13 +80,13 @@ export function moduleLabel(key: string): string {
     loan: "貸款試算",
     holding: "持有成本",
     tax: "TaxOracle",
-    decision: "風險摘要",
+    decision: "看房決策摘要",
   }[key] ?? key;
 }
 
 const statusLabels: Record<PropertyCaseStatus, string> = {
   completed: "已完成",
-  missing: "尚未完成",
-  incomplete: "資料不足",
-  unavailable: "暫時不可用",
+  missing: "尚未分析",
+  incomplete: "資料不完整",
+  unavailable: "暫不可用",
 };

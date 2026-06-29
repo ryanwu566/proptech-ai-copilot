@@ -74,12 +74,28 @@ market data behavior.
 
 Draft readiness:
 
-- A draft can be shown when there is a case name or address.
-- A case is comparison-ready only when it has a case name, address, and
-  reference price.
-- A print/report-ready case requires valuation and a risk summary.
+- A draft case requires a non-blank case name and a non-blank property
+  address or explicit property identifier. The current v1 model does not have
+  a separate safe property identifier field, so the minimum requirement is
+  case name plus address.
+- A case cannot be saved as a draft with only an address, and it cannot be
+  saved with only a case name.
+- A case is comparison-ready only when it has a case name, address or explicit
+  property identifier, and comparable price data.
+- Cases missing any comparison requirement are shown as pending data. Missing
+  price, risk, commute, valuation, or finance data is not converted into a
+  lower price, lower risk, zero value, no transactions, or completed status.
+- A print/report summary can be generated before the case is complete when the
+  case has basic case information plus either available analysis results or
+  explicit pending, unavailable, or not-yet-analyzed statuses for location/risk
+  and price/finance sections.
+- Incomplete printed summaries must include this notice:
+  `本案件資料尚未完整，報告僅彙整目前可用資訊。`
+- Print readiness does not require valuation and risk summary to both exist.
 - Missing, unavailable, or incomplete data is listed as a limitation and never
   converted into zero, safe, or complete.
+- Case completeness is not an investment score, purchase recommendation, loan
+  approval probability, legal conclusion, or expected return forecast.
 
 ## UI Flow
 

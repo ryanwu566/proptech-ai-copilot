@@ -13,6 +13,8 @@ import type { ValuationInputs } from "@/lib/valuation-share";
 
 export type PropertyCaseStatus = "completed" | "missing" | "unavailable" | "incomplete";
 
+export const PARTIAL_CASE_PRINT_NOTICE = "本案件資料尚未完整，報告僅彙整目前可用資訊。";
+
 export type PropertyCaseDraftInput = {
   caseName?: string;
   inputs: ValuationInputs;
@@ -67,6 +69,7 @@ export type PropertyCaseDraft = {
     draft_ready: boolean;
     compare_ready: boolean;
     print_ready: boolean;
+    print_notice: string | null;
     missing_required: string[];
     unavailable_or_incomplete: string[];
   };
@@ -74,7 +77,7 @@ export type PropertyCaseDraft = {
 
 export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new Date().toISOString()): PropertyCaseDraft {
   const address = buildAddress(input.inputs);
-  const caseName = input.caseName?.trim() || address || "未命名物件";
+  const caseName = input.caseName?.trim() || "";
   const listingPrice = input.valuation?.price_range.mid ?? input.loan?.property_price_wan ?? input.holding?.property_price_wan ?? null;
   const locationStatus = input.location ? dataQualityToStatus(input.location.data_quality.status) : "missing";
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
@@ -94,6 +97,20 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
   const unavailableOrIncomplete = Object.entries(analysisStatus)
     .filter(([, status]) => status === "unavailable" || status === "incomplete")
     .map(([key]) => key);
+  const hasBasicCaseInfo = Boolean(caseName && address);
+  const hasLocationOrRiskResultOrStatus = Boolean(input.location || input.terrainRisk || analysisStatus.location || analysisStatus.terrain);
+  const hasPriceOrFinanceResultOrStatus = Boolean(
+    listingPrice ||
+    input.valuation ||
+    input.loan ||
+    input.holding ||
+    input.taxOracle ||
+    analysisStatus.valuation ||
+    analysisStatus.loan ||
+    analysisStatus.holding ||
+    analysisStatus.tax,
+  );
+  const printReady = hasBasicCaseInfo && hasLocationOrRiskResultOrStatus && hasPriceOrFinanceResultOrStatus;
 
   return {
     case_id: stableCaseId(caseName, address),
@@ -132,9 +149,10 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     analysis_status: analysisStatus,
     analysis_summary: buildAnalysisSummary(input, analysisStatus),
     readiness: {
-      draft_ready: Boolean(caseName || address),
-      compare_ready: Boolean(caseName && address && listingPrice),
-      print_ready: Boolean(input.valuation && input.riskSummary),
+      draft_ready: hasBasicCaseInfo,
+      compare_ready: Boolean(hasBasicCaseInfo && listingPrice),
+      print_ready: printReady,
+      print_notice: printReady ? PARTIAL_CASE_PRINT_NOTICE : null,
       missing_required: missingRequired,
       unavailable_or_incomplete: unavailableOrIncomplete,
     },
@@ -174,15 +192,12 @@ function requiredMissing(
   caseName: string,
   address: string,
   listingPrice: number | null,
-  status: PropertyCaseDraft["analysis_status"],
+  _status: PropertyCaseDraft["analysis_status"],
 ): string[] {
   const missing: string[] = [];
   if (!caseName) missing.push("case_name");
   if (!address) missing.push("address");
   if (!listingPrice) missing.push("listing_price");
-  for (const [key, value] of Object.entries(status)) {
-    if (value === "missing") missing.push(key);
-  }
   return missing;
 }
 
