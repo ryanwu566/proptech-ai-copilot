@@ -27,6 +27,7 @@ import { GUIDED_DEMO_PENDING_KEY, GUIDED_DEMO_RESULT_EVENT, type DemoResults } f
 import { DetailDisclosure } from "@/components/detail-disclosure";
 import { ViewingDecisionPanel } from "@/components/viewing-decision-panel";
 import { buildViewingDecision, type ViewingDecision } from "@/lib/viewing-decision";
+import { TAIWAN_COUNTIES, getDistrictsForCounty, normalizeTaiwanCounty, normalizeTaiwanDistrict } from "@/lib/taiwan-admin-areas";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -258,6 +259,75 @@ function PlaceCard({ place, label, selected, onSelect }: { place: NearbyPlace; l
 }
 
 function MarketInsight({ onMap }: { onMap: () => void }) {
+  const [county, setCounty] = useState("");
+  const [district, setDistrict] = useState("");
+  const [result, setResult] = useState<MarketResult>();
+  const [querying, setQuerying] = useState(false);
+  const [error, setError] = useState("");
+  const canonicalCounty = normalizeTaiwanCounty(county);
+  const districtOptions = getDistrictsForCounty(canonicalCounty);
+  const canonicalDistrict = normalizeTaiwanDistrict(canonicalCounty, district);
+  const availableResult = result?.data_status === "available";
+
+  async function query() {
+    if (!canonicalCounty) {
+      setError("請先選擇縣市，再查詢市場資料。");
+      setResult(undefined);
+      return;
+    }
+    setQuerying(true);
+    setError("");
+    setResult(undefined);
+    try {
+      setResult(await api.marketInsight(canonicalCounty, canonicalDistrict || undefined));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setQuerying(false);
+    }
+  }
+
+  function updateCounty(value: string) {
+    setCounty(normalizeTaiwanCounty(value));
+    setDistrict("");
+    setResult(undefined);
+    setError("");
+  }
+
+  function updateDistrict(value: string) {
+    setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
+    setResult(undefined);
+    setError("");
+  }
+
+  return <div className="space-y-6">
+    <PageHeader kicker="市場資料" title="Market Insight 區域行情" description="以官方 PLVR 聚合資料做保守查詢；不依賴 read model refresh workflow，也不以展示數字替代真實資料。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
+    <HelpCallout>Market Insight 只作市場背景參考，不會自動影響估價、貸款、稅費、案件比較或看房決策。</HelpCallout>
+    {error && <ErrorState message={error} />}
+    <SectionCard title="查詢市場資料" description="請先選擇縣市，再視需要選擇行政區；查詢只會在按下按鈕後進行。">
+      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+        <label className="text-xs text-slate-500">縣市（必填）
+          <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+            <option value="">請選擇縣市</option>
+            {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </label>
+        <label className="text-xs text-slate-500">行政區（可留空）
+          <select value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
+            <option value="">{canonicalCounty ? "全部行政區" : "請先選擇縣市"}</option>
+            {districtOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </label>
+        <div className="flex items-end"><Button onClick={query} disabled={querying || !canonicalCounty}>{querying ? "正在查詢市場資料..." : "查詢市場資料"}</Button></div>
+      </div>
+      <p className="mt-3 text-xs leading-5 text-slate-500">若未選行政區，系統會查詢該縣市可用的整體市場資料。資料不足時會顯示 unavailable，不會顯示 0 元、低風險或展示成功狀態。</p>
+    </SectionCard>
+    {result && !availableResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
+    {availableResult && result && <><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period ?? undefined} /><MetricTile label="交易量" value={result.transaction_volume} /><MetricTile label="有效紀錄數" value={result.record_count ?? result.transaction_count ?? 0} /></div><SectionCard title="資料來源與狀態"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{result.history.length > 0 && <SectionCard title="近期趨勢"><SwipeHint /><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期間</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{result.history.map((item) => <tr key={item.period ?? "unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬 / 坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}
+  </div>;
+}
+
+function LegacyTextMarketInsight({ onMap }: { onMap: () => void }) {
   const [county,setCounty]=useState(""),[district,setDistrict]=useState(""),[result,setResult]=useState<MarketResult>(),[querying,setQuerying]=useState(false),[error,setError]=useState("");
   async function query(){if(!county.trim()){setError("請先輸入縣市。");setResult(undefined);return;}setQuerying(true);setError("");setResult(undefined);try{setResult(await api.marketInsight(county.trim(),district.trim()||undefined));}catch(e){setError((e as Error).message);}finally{setQuerying(false);}}
   function updateCounty(value:string){setCounty(value);setResult(undefined);setError("");}
