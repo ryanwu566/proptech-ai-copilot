@@ -43,6 +43,7 @@ def test_case_command_center_has_required_workbench_sections() -> None:
     for label in (
         "基本案件資料",
         "資金與貸款參考",
+        "財務資料與決策試算",
         "估價、成本與稅費手動欄位",
         "位置、通勤、地勢與市場資料",
     ):

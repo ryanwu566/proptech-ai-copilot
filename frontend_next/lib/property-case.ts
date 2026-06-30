@@ -28,6 +28,14 @@ export type PropertyCaseDraftInput = {
   loanAmount?: number | null;
   loanYears?: number | null;
   loanRate?: number | null;
+  fundingMode?: "loan_amount" | "down_payment";
+  fundingValue?: number | null;
+  estimatedBuyerCosts?: number | null;
+  renovationReserve?: number | null;
+  availableLiquidCash?: number | null;
+  monthlyHouseholdIncome?: number | null;
+  monthlyFixedObligations?: number | null;
+  monthlyOwnershipReserve?: number | null;
   estimatedMonthlyPayment?: number | null;
   userEstimatedValue?: number | null;
   userEstimatedTaxCost?: number | null;
@@ -79,9 +87,15 @@ export type PropertyCaseDraft = {
     loan_amount: number | null;
     loan_years: number | null;
     interest_rate: number | null;
+    funding_mode: "loan_amount" | "down_payment" | null;
+    funding_value: number | null;
+    estimated_buyer_costs: number | null;
+    renovation_reserve: number | null;
+    available_liquid_cash: number | null;
     grace_period_months: number | null;
     monthly_income: number | null;
     other_monthly_debt: number | null;
+    monthly_ownership_reserve: number | null;
     estimated_holding_cost: number | null;
   };
   valuation_tax_input: {
@@ -176,9 +190,15 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       loan_amount: finiteNumber(input.loanAmount) ?? input.loan?.loan_amount_wan ?? null,
       loan_years: finiteNumber(input.loanYears) ?? input.loan?.loan_years ?? null,
       interest_rate: finiteNumber(input.loanRate) ?? input.loan?.annual_interest_rate ?? null,
+      funding_mode: input.fundingMode ?? null,
+      funding_value: finiteNumber(input.fundingValue),
+      estimated_buyer_costs: finiteNumberOrZero(input.estimatedBuyerCosts),
+      renovation_reserve: finiteNumberOrZero(input.renovationReserve),
+      available_liquid_cash: finiteNumberOrZero(input.availableLiquidCash),
       grace_period_months: input.loan?.grace_period_years ? input.loan.grace_period_years * 12 : null,
-      monthly_income: input.loan?.monthly_income_wan ?? input.holding?.input.monthly_income_wan ?? null,
-      other_monthly_debt: null,
+      monthly_income: finiteNumberOrZero(input.monthlyHouseholdIncome) ?? input.loan?.monthly_income_wan ?? input.holding?.input.monthly_income_wan ?? null,
+      other_monthly_debt: finiteNumberOrZero(input.monthlyFixedObligations),
+      monthly_ownership_reserve: finiteNumberOrZero(input.monthlyOwnershipReserve),
       estimated_holding_cost: finiteNumber(input.estimatedMonthlyPayment) ?? input.holding?.monthly_total_holding_cost ?? null,
     },
     valuation_tax_input: {
@@ -214,6 +234,11 @@ function stableCaseId(caseName: string, address: string): string {
 function finiteNumber(value: unknown): number | null {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function finiteNumberOrZero(value: unknown): number | null {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
 function dataQualityToStatus(status?: string): PropertyCaseStatus {

@@ -2,6 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { PARTIAL_CASE_PRINT_NOTICE, buildPropertyCaseDraft, type PropertyDecisionStatus } from "@/lib/property-case";
+import {
+  buildPropertyCaseFinancialAnalysis,
+  buildPropertyCaseFinancialScenarios,
+  type FundingMode,
+  type FinancialMetric,
+  type PropertyCaseFinancialScenarioInput,
+} from "@/lib/property-case-financials";
 import { buildPropertyCaseReadiness } from "@/lib/property-case-readiness";
 import type { ValuationInputs } from "@/lib/valuation-share";
 
@@ -25,6 +32,15 @@ type CommandCenterState = {
   loanAmount: string;
   loanYears: string;
   loanRate: string;
+  fundingMode: FundingMode;
+  fundingValue: string;
+  estimatedBuyerCosts: string;
+  renovationReserve: string;
+  availableLiquidCash: string;
+  monthlyHouseholdIncome: string;
+  monthlyFixedObligations: string;
+  monthlyOwnershipReserve: string;
+  scenarios: FinancialScenarioState[];
   userEstimatedValue: string;
   userEstimatedTaxCost: string;
   valuationNote: string;
@@ -32,6 +48,18 @@ type CommandCenterState = {
   decisionStatus: PropertyDecisionStatus;
   decisionNote: string;
   locationMarketNote: string;
+};
+
+type FinancialScenarioState = {
+  id: string;
+  scenarioName: string;
+  optionalListingPrice: string;
+  optionalAnnualInterestRate: string;
+  optionalEstimatedBuyerCosts: string;
+  optionalRenovationReserve: string;
+  optionalMonthlyHouseholdIncome: string;
+  optionalMonthlyFixedObligations: string;
+  optionalMonthlyOwnershipReserve: string;
 };
 
 const emptyInputs: ValuationInputs = {
@@ -56,6 +84,18 @@ const initialState: CommandCenterState = {
   loanAmount: "",
   loanYears: "",
   loanRate: "",
+  fundingMode: "loan_amount",
+  fundingValue: "",
+  estimatedBuyerCosts: "",
+  renovationReserve: "",
+  availableLiquidCash: "",
+  monthlyHouseholdIncome: "",
+  monthlyFixedObligations: "",
+  monthlyOwnershipReserve: "",
+  scenarios: [
+    emptyScenario("scenario-a", "Scenario A"),
+    emptyScenario("scenario-b", "Scenario B"),
+  ],
   userEstimatedValue: "",
   userEstimatedTaxCost: "",
   valuationNote: "",
@@ -74,11 +114,39 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
     downPayment: parsePositiveNumber(state.downPayment),
     loanAmount: parsePositiveNumber(state.loanAmount),
     loanYears: parsePositiveNumber(state.loanYears),
-    loanRate: parsePositiveNumber(state.loanRate),
+    loanRate: parseNonNegativeNumber(state.loanRate),
+    fundingValue: parsePositiveNumber(state.fundingValue),
+    estimatedBuyerCosts: parseNonNegativeNumber(state.estimatedBuyerCosts),
+    renovationReserve: parseNonNegativeNumber(state.renovationReserve),
+    availableLiquidCash: parseNonNegativeNumber(state.availableLiquidCash),
+    monthlyHouseholdIncome: parseNonNegativeNumber(state.monthlyHouseholdIncome),
+    monthlyFixedObligations: parseNonNegativeNumber(state.monthlyFixedObligations),
+    monthlyOwnershipReserve: parseNonNegativeNumber(state.monthlyOwnershipReserve),
     userEstimatedValue: parsePositiveNumber(state.userEstimatedValue),
     userEstimatedTaxCost: parsePositiveNumber(state.userEstimatedTaxCost),
   };
-  const estimatedMonthlyPayment = estimateMonthlyPayment(numeric.loanAmount, numeric.loanYears, numeric.loanRate);
+  const financialInputs = useMemo(() => ({
+    listingPrice: numeric.listingPrice,
+    userEstimatedValue: numeric.userEstimatedValue,
+    fundingMode: state.fundingMode,
+    fundingValue: numeric.fundingValue,
+    annualInterestRate: numeric.loanRate,
+    loanYears: numeric.loanYears,
+    estimatedBuyerCosts: numeric.estimatedBuyerCosts,
+    renovationReserve: numeric.renovationReserve,
+    availableLiquidCash: numeric.availableLiquidCash,
+    monthlyHouseholdIncome: numeric.monthlyHouseholdIncome,
+    monthlyFixedObligations: numeric.monthlyFixedObligations,
+    monthlyOwnershipReserve: numeric.monthlyOwnershipReserve,
+  }), [numeric.availableLiquidCash, numeric.estimatedBuyerCosts, numeric.fundingValue, numeric.listingPrice, numeric.loanRate, numeric.loanYears, numeric.monthlyFixedObligations, numeric.monthlyHouseholdIncome, numeric.monthlyOwnershipReserve, numeric.renovationReserve, numeric.userEstimatedValue, state.fundingMode]);
+  const financialAnalysis = useMemo(() => buildPropertyCaseFinancialAnalysis(financialInputs), [financialInputs]);
+  const financialScenarios = useMemo(
+    () => buildPropertyCaseFinancialScenarios(financialInputs, state.scenarios.map(toScenarioInput)),
+    [financialInputs, state.scenarios],
+  );
+  const estimatedMonthlyPayment = financialAnalysis.monthlyPayment.value;
+  const derivedLoanAmount = financialAnalysis.loanAmount.value;
+  const derivedDownPayment = financialAnalysis.downPayment.value;
   const draft = useMemo(
     () => buildPropertyCaseDraft({
       caseName: state.caseName,
@@ -88,10 +156,18 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
       floorAreaPing: numeric.floorAreaPing,
       buildingAgeYears: numeric.buildingAgeYears,
       notes: state.notes,
-      downPayment: numeric.downPayment,
-      loanAmount: numeric.loanAmount,
+      downPayment: derivedDownPayment,
+      loanAmount: derivedLoanAmount,
       loanYears: numeric.loanYears,
       loanRate: numeric.loanRate,
+      fundingMode: state.fundingMode,
+      fundingValue: numeric.fundingValue,
+      estimatedBuyerCosts: numeric.estimatedBuyerCosts,
+      renovationReserve: numeric.renovationReserve,
+      availableLiquidCash: numeric.availableLiquidCash,
+      monthlyHouseholdIncome: numeric.monthlyHouseholdIncome,
+      monthlyFixedObligations: numeric.monthlyFixedObligations,
+      monthlyOwnershipReserve: numeric.monthlyOwnershipReserve,
       estimatedMonthlyPayment,
       userEstimatedValue: numeric.userEstimatedValue,
       userEstimatedTaxCost: numeric.userEstimatedTaxCost,
@@ -101,12 +177,30 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
       decisionNote: state.decisionNote,
       inputs: emptyInputs,
     }),
-    [estimatedMonthlyPayment, numeric.buildingAgeYears, numeric.downPayment, numeric.floorAreaPing, numeric.listingPrice, numeric.loanAmount, numeric.loanRate, numeric.loanYears, numeric.userEstimatedTaxCost, numeric.userEstimatedValue, state],
+    [derivedDownPayment, derivedLoanAmount, estimatedMonthlyPayment, numeric.availableLiquidCash, numeric.buildingAgeYears, numeric.estimatedBuyerCosts, numeric.floorAreaPing, numeric.fundingValue, numeric.listingPrice, numeric.loanRate, numeric.loanYears, numeric.monthlyFixedObligations, numeric.monthlyHouseholdIncome, numeric.monthlyOwnershipReserve, numeric.renovationReserve, numeric.userEstimatedTaxCost, numeric.userEstimatedValue, state],
   );
   const readiness = buildPropertyCaseReadiness(draft);
 
   function update<K extends keyof CommandCenterState>(key: K, value: CommandCenterState[K]) {
     setState((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateScenario(id: string, patch: Partial<FinancialScenarioState>) {
+    setState((current) => ({
+      ...current,
+      scenarios: current.scenarios.map((scenario) => scenario.id === id ? { ...scenario, ...patch } : scenario),
+    }));
+  }
+
+  function addScenario() {
+    setState((current) => ({
+      ...current,
+      scenarios: [...current.scenarios, emptyScenario(`scenario-${Date.now()}`, `Scenario ${current.scenarios.length + 1}`)],
+    }));
+  }
+
+  function removeScenario(id: string) {
+    setState((current) => ({ ...current, scenarios: current.scenarios.filter((scenario) => scenario.id !== id) }));
   }
 
   return <main className="min-h-screen bg-stone-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
@@ -145,15 +239,89 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
 
           <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="B. FINANCING" title="資金與貸款參考" />
+            <div className="mt-4 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+              <div className="grid gap-3 md:grid-cols-4">
+                <MetricCard label="總承諾金額" metric={financialAnalysis.totalCommitment} formatter={formatWanMetric} />
+                <MetricCard label="每月房貸" metric={financialAnalysis.monthlyPayment} formatter={formatYuanMetric} />
+                <MetricCard label="每月總負擔" metric={financialAnalysis.monthlyBurden} formatter={formatYuanMetric} />
+                <MetricCard label="購屋後現金" metric={financialAnalysis.postPurchaseCash} formatter={formatWanMetric} />
+              </div>
+              <p className="mt-3 text-xs leading-5 text-cyan-900">
+                財務資料與決策試算僅根據使用者輸入計算，不代表核貸、估價、稅務、法律、投資或購買建議。
+              </p>
+            </div>
+
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <TextField label="自備款（萬元）" value={state.downPayment} onChange={(value) => update("downPayment", value)} inputMode="decimal" />
-              <TextField label="貸款金額（萬元）" value={state.loanAmount} onChange={(value) => update("loanAmount", value)} inputMode="decimal" />
+              <label className="block text-xs font-bold text-slate-500">資金模式
+                <select value={state.fundingMode} onChange={(event) => update("fundingMode", event.target.value as FundingMode)} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                  <option value="loan_amount">以貸款金額推算自備款</option>
+                  <option value="down_payment">以自備款推算貸款金額</option>
+                </select>
+              </label>
+              <TextField label={state.fundingMode === "loan_amount" ? "貸款金額（萬元）" : "自備款（萬元）"} value={state.fundingValue} onChange={(value) => update("fundingValue", value)} inputMode="decimal" />
               <TextField label="貸款年限" value={state.loanYears} onChange={(value) => update("loanYears", value)} inputMode="decimal" />
               <TextField label="利率（%）" value={state.loanRate} onChange={(value) => update("loanRate", value)} inputMode="decimal" />
+              <TextField label="買方交易成本（萬元）" value={state.estimatedBuyerCosts} onChange={(value) => update("estimatedBuyerCosts", value)} inputMode="decimal" />
+              <TextField label="裝修預備金（萬元）" value={state.renovationReserve} onChange={(value) => update("renovationReserve", value)} inputMode="decimal" />
+              <TextField label="可動用現金（萬元）" value={state.availableLiquidCash} onChange={(value) => update("availableLiquidCash", value)} inputMode="decimal" />
+              <TextField label="家庭月收入（元）" value={state.monthlyHouseholdIncome} onChange={(value) => update("monthlyHouseholdIncome", value)} inputMode="decimal" />
+              <TextField label="每月固定支出（元）" value={state.monthlyFixedObligations} onChange={(value) => update("monthlyFixedObligations", value)} inputMode="decimal" />
+              <TextField label="每月持有預備金（元）" value={state.monthlyOwnershipReserve} onChange={(value) => update("monthlyOwnershipReserve", value)} inputMode="decimal" />
             </div>
-            <div className="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 px-4 py-3 text-sm text-cyan-900">
-              估算月付：<strong>{estimatedMonthlyPayment ? `${estimatedMonthlyPayment.toLocaleString()} 元` : "待補貸款金額、年限與利率"}</strong>
-              <p className="mt-1 text-xs leading-5">此為前端等額本息粗估，不取代銀行核貸、授信或正式貸款試算。</p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              <MetricCard label="推算貸款金額" metric={financialAnalysis.loanAmount} formatter={formatWanMetric} />
+              <MetricCard label="推算自備款" metric={financialAnalysis.downPayment} formatter={formatWanMetric} />
+              <MetricCard label="購屋所需現金" metric={financialAnalysis.cashNeeded} formatter={formatWanMetric} />
+              <MetricCard label="每月結餘" metric={financialAnalysis.monthlyResidual} formatter={formatYuanMetric} />
+              <MetricCard label="LTV 參考" metric={financialAnalysis.ltvRatio} formatter={formatPercentMetric} />
+              <MetricCard label="開價與自估差距" metric={financialAnalysis.userValueGap} formatter={formatWanMetric} />
+            </div>
+
+            {financialAnalysis.warnings.length > 0 && <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
+              {financialAnalysis.warnings.map((warning) => <p key={warning}>{warning}</p>)}
+            </div>}
+
+            <div className="mt-5 rounded-2xl border border-stone-200 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">情境比較</h3>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">可新增或刪除情境；空白欄位會沿用上方基礎財務輸入。</p>
+                </div>
+                <button type="button" onClick={addScenario} className="rounded-xl border border-cyan-200 px-3 py-2 text-xs font-bold text-cyan-800">新增情境</button>
+              </div>
+              <div className="mt-4 space-y-3">
+                {state.scenarios.map((scenario) => <div key={scenario.id} className="rounded-xl bg-stone-50 p-3">
+                  <div className="grid gap-2 md:grid-cols-4">
+                    <TextField label="情境名稱" value={scenario.scenarioName} onChange={(value) => updateScenario(scenario.id, { scenarioName: value })} />
+                    <TextField label="開價覆寫（萬元）" value={scenario.optionalListingPrice} onChange={(value) => updateScenario(scenario.id, { optionalListingPrice: value })} inputMode="decimal" />
+                    <TextField label="利率覆寫（%）" value={scenario.optionalAnnualInterestRate} onChange={(value) => updateScenario(scenario.id, { optionalAnnualInterestRate: value })} inputMode="decimal" />
+                    <TextField label="買方成本覆寫（萬元）" value={scenario.optionalEstimatedBuyerCosts} onChange={(value) => updateScenario(scenario.id, { optionalEstimatedBuyerCosts: value })} inputMode="decimal" />
+                    <TextField label="裝修預備覆寫（萬元）" value={scenario.optionalRenovationReserve} onChange={(value) => updateScenario(scenario.id, { optionalRenovationReserve: value })} inputMode="decimal" />
+                    <TextField label="月收入覆寫（元）" value={scenario.optionalMonthlyHouseholdIncome} onChange={(value) => updateScenario(scenario.id, { optionalMonthlyHouseholdIncome: value })} inputMode="decimal" />
+                    <TextField label="固定支出覆寫（元）" value={scenario.optionalMonthlyFixedObligations} onChange={(value) => updateScenario(scenario.id, { optionalMonthlyFixedObligations: value })} inputMode="decimal" />
+                    <TextField label="持有預備覆寫（元）" value={scenario.optionalMonthlyOwnershipReserve} onChange={(value) => updateScenario(scenario.id, { optionalMonthlyOwnershipReserve: value })} inputMode="decimal" />
+                  </div>
+                  <button type="button" onClick={() => removeScenario(scenario.id)} className="mt-3 text-xs font-bold text-slate-500">刪除此情境</button>
+                </div>)}
+                {state.scenarios.length === 0 && <p className="rounded-xl bg-stone-50 px-3 py-2 text-xs text-slate-500">尚未建立情境；可只保留基礎試算。</p>}
+              </div>
+              {financialScenarios.length > 0 && <div className="mt-4 overflow-x-auto">
+                <table className="min-w-[760px] text-left text-xs">
+                  <thead className="text-slate-500"><tr><th className="py-2">情境</th><th>所需現金</th><th>月付</th><th>月負擔</th><th>月結餘</th><th>購屋後現金</th><th>LTV</th></tr></thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {financialScenarios.map((scenario) => <tr key={scenario.scenarioName}>
+                      <td className="py-2 font-bold text-slate-700">{scenario.scenarioName}</td>
+                      <td>{formatWanMetric(scenario.cashNeeded)}</td>
+                      <td>{formatYuanMetric(scenario.monthlyPayment)}</td>
+                      <td>{formatYuanMetric(scenario.monthlyBurden)}</td>
+                      <td>{formatYuanMetric(scenario.monthlyResidual)}</td>
+                      <td>{formatWanMetric(scenario.postPurchaseCash)}</td>
+                      <td>{formatPercentMetric(scenario.ltvRatio)}</td>
+                    </tr>)}
+                  </tbody>
+                </table>
+              </div>}
             </div>
           </section>
 
@@ -185,7 +353,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
             <SectionHeading eyebrow="READINESS" title="案件完整度" />
             <dl className="mt-4 space-y-2 text-sm">
               <ReadinessRow label="基本資料" ready={draft.readiness.draft_ready} />
-              <ReadinessRow label="資金資料" ready={Boolean(draft.financial_input.estimated_holding_cost || draft.financial_input.loan_amount || draft.financial_input.down_payment)} />
+              <ReadinessRow label="資金資料" ready={financialAnalysis.isReadyForScenarioComparison} />
               <ReadinessRow label="估價／稅費" ready={Boolean(draft.valuation_tax_input.user_estimated_value || draft.valuation_tax_input.user_estimated_tax_cost || draft.valuation_tax_input.valuation_note || draft.valuation_tax_input.tax_note)} />
               <ReadinessRow label="位置／市場" ready={Boolean(state.locationMarketNote.trim())} />
             </dl>
@@ -213,6 +381,8 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <li>案件：{draft.case_name || "待補案件名稱"}</li>
               <li>地址／識別：{draft.property_input.address || "待補物件地址／識別"}</li>
               <li>開價或估計價值：{draft.property_input.listing_price ? `${draft.property_input.listing_price.toLocaleString()} 萬元` : "待補"}</li>
+              <li>財務試算：月付 {formatYuanMetric(financialAnalysis.monthlyPayment)}；所需現金 {formatWanMetric(financialAnalysis.cashNeeded)}</li>
+              <li>情境比較：{financialScenarios.length > 0 ? `${financialScenarios.length} 組` : "未建立情境"}</li>
               <li>決策狀態：{state.decisionStatus}</li>
               <li>可比較：{draft.readiness.compare_ready ? "yes" : "no"}</li>
               <li>可列印目前摘要：{draft.readiness.print_ready ? "yes" : "no"}</li>
@@ -240,16 +410,60 @@ function ReadinessRow({ label, ready }: { label: string; ready: boolean }) {
   return <div className="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2"><dt className="font-bold text-slate-700">{label}</dt><dd className={ready ? "font-bold text-emerald-700" : "font-bold text-amber-700"}>{ready ? "ready" : "pending"}</dd></div>;
 }
 
+function MetricCard({ label, metric, formatter }: { label: string; metric: FinancialMetric; formatter: (metric: FinancialMetric) => string }) {
+  return <div className="rounded-xl border border-white/70 bg-white px-3 py-3 shadow-sm">
+    <p className="text-[10px] font-bold tracking-[0.12em] text-slate-500">{label}</p>
+    <p className="mt-1 text-sm font-black text-slate-950">{formatter(metric)}</p>
+    {metric.status !== "available" && <p className="mt-1 text-[10px] leading-4 text-amber-700">{metric.message}</p>}
+  </div>;
+}
+
+function emptyScenario(id: string, scenarioName: string): FinancialScenarioState {
+  return {
+    id,
+    scenarioName,
+    optionalListingPrice: "",
+    optionalAnnualInterestRate: "",
+    optionalEstimatedBuyerCosts: "",
+    optionalRenovationReserve: "",
+    optionalMonthlyHouseholdIncome: "",
+    optionalMonthlyFixedObligations: "",
+    optionalMonthlyOwnershipReserve: "",
+  };
+}
+
+function toScenarioInput(scenario: FinancialScenarioState): PropertyCaseFinancialScenarioInput {
+  return {
+    scenarioName: scenario.scenarioName,
+    optionalListingPrice: parsePositiveNumber(scenario.optionalListingPrice),
+    optionalAnnualInterestRate: parseNonNegativeNumber(scenario.optionalAnnualInterestRate),
+    optionalEstimatedBuyerCosts: parseNonNegativeNumber(scenario.optionalEstimatedBuyerCosts),
+    optionalRenovationReserve: parseNonNegativeNumber(scenario.optionalRenovationReserve),
+    optionalMonthlyHouseholdIncome: parseNonNegativeNumber(scenario.optionalMonthlyHouseholdIncome),
+    optionalMonthlyFixedObligations: parseNonNegativeNumber(scenario.optionalMonthlyFixedObligations),
+    optionalMonthlyOwnershipReserve: parseNonNegativeNumber(scenario.optionalMonthlyOwnershipReserve),
+  };
+}
+
 function parsePositiveNumber(value: string): number | null {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? number : null;
 }
 
-function estimateMonthlyPayment(loanAmountWan: number | null, years: number | null, annualRatePercent: number | null): number | null {
-  if (!loanAmountWan || !years || !annualRatePercent) return null;
-  const principal = loanAmountWan * 10000;
-  const months = Math.round(years * 12);
-  const monthlyRate = annualRatePercent / 100 / 12;
-  if (months <= 0 || monthlyRate <= 0) return null;
-  return Math.round(principal * monthlyRate * (1 + monthlyRate) ** months / ((1 + monthlyRate) ** months - 1));
+function parseNonNegativeNumber(value: string): number | null {
+  if (!value.trim()) return null;
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function formatWanMetric(metric: FinancialMetric): string {
+  return metric.value === null ? "待補" : `${metric.value.toLocaleString()} 萬元`;
+}
+
+function formatYuanMetric(metric: FinancialMetric): string {
+  return metric.value === null ? "待補" : `${metric.value.toLocaleString()} 元`;
+}
+
+function formatPercentMetric(metric: FinancialMetric): string {
+  return metric.value === null ? "待補" : `${(metric.value * 100).toFixed(1)}%`;
 }
