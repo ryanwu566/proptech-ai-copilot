@@ -49,27 +49,27 @@ jobs:
           fi
 
           reason_code="$(python - "$body_file" <<'PY'
-import json
-import sys
+          import json
+          import sys
 
-allowed = {
-    "refresh_runtime_not_configured",
-    "valuation_database_unavailable",
-    "read_model_initialization_unavailable",
-    "read_model_refresh_unavailable",
-    "unknown_safe_failure",
-}
+          allowed = {
+              "refresh_runtime_not_configured",
+              "valuation_database_unavailable",
+              "read_model_initialization_unavailable",
+              "read_model_refresh_unavailable",
+              "unknown_safe_failure",
+          }
 
-try:
-    with open(sys.argv[1], "r", encoding="utf-8") as handle:
-        payload = json.load(handle)
-except Exception:
-    print("unknown_safe_failure")
-    raise SystemExit(0)
+          try:
+              with open(sys.argv[1], "r", encoding="utf-8") as handle:
+                  payload = json.load(handle)
+          except Exception:
+              print("unknown_safe_failure")
+              raise SystemExit(0)
 
-reason = payload.get("reason_code") if isinstance(payload, dict) else None
-print(reason if reason in allowed else "unknown_safe_failure")
-PY
+          reason = payload.get("reason_code") if isinstance(payload, dict) else None
+          print(reason if reason in allowed else "unknown_safe_failure")
+          PY
           )"
           rm -f "$body_file"
 
