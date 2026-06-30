@@ -59,6 +59,10 @@ def test_market_read_model_workflow_outputs_only_allowlisted_failure_reason() ->
         "refresh_runtime_not_configured",
         "valuation_database_unavailable",
         "read_model_initialization_unavailable",
+        "read_model_source_aggregate_unavailable",
+        "read_model_write_unavailable",
+        "read_model_metadata_unavailable",
+        "read_model_no_eligible_source_records",
         "read_model_refresh_unavailable",
         "unknown_safe_failure",
     ):

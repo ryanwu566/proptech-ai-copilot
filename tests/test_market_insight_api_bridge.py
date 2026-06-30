@@ -220,7 +220,7 @@ def test_refresh_service_503_uses_allowlisted_reason(monkeypatch) -> None:
             "coverage_status": "unknown",
             "built_at": None,
             "message": "internal details must be replaced",
-            "reason_code": "valuation_database_unavailable",
+            "reason_code": "read_model_no_eligible_source_records",
             "database_url": "must not leak",
         },
     )
@@ -229,7 +229,7 @@ def test_refresh_service_503_uses_allowlisted_reason(monkeypatch) -> None:
 
     assert response.status_code == 503
     payload = response.json()
-    assert payload["reason_code"] == "valuation_database_unavailable"
+    assert payload["reason_code"] == "read_model_no_eligible_source_records"
     assert set(payload) == {"status", "data_status", "coverage_status", "built_at", "message", "reason_code"}
     assert "database_url" not in payload
     assert "internal details" not in str(payload)

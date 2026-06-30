@@ -8,13 +8,19 @@ from typing import Any
 from services.plvr_market_aggregate_service import (
     MARKET_REFRESH_REASON_CODES,
     MarketReadModelRefreshError,
+    PostgresMarketReadModelRepository,
     READ_MODEL_CATALOG_SQL,
     READ_MODEL_HISTORY_SQL,
+    READ_MODEL_NEXT_AGGREGATE_COUNT_SQL,
     READ_MODEL_REGIONS_SQL,
+    READ_MODEL_SCHEMA_SQL,
     READ_MODEL_STATUS_SQL,
     READ_MODEL_SUMMARY_FOR_PERIOD_SQL,
     READ_MODEL_SUMMARY_LATEST_SQL,
+    REFRESH_INSERT_AGGREGATES_SQL,
+    REFRESH_INSERT_METADATA_SQL,
     REFRESH_TEMP_AGGREGATES_SQL,
+    REFRESH_TEMP_METADATA_SQL,
     get_market_catalog,
     get_market_status,
     get_market_summary,
@@ -104,6 +110,70 @@ class RefreshFailureRepository(FakeReadModelRepository):
     def refresh(self) -> dict[str, Any]:
         self.calls.append("refresh")
         raise MarketReadModelRefreshError("read_model_refresh_unavailable")
+
+
+class PhaseRefreshCursor:
+    def __init__(self, *, failure: str | None = None, aggregate_count: int = 1) -> None:
+        self.failure = failure
+        self.aggregate_count = aggregate_count
+        self.row: dict[str, Any] | None = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def execute(self, sql: str, _params: list[Any] | None = None) -> None:
+        if sql == READ_MODEL_SCHEMA_SQL and self.failure == "schema":
+            raise RuntimeError("schema detail must not leak")
+        if sql == REFRESH_TEMP_AGGREGATES_SQL and self.failure == "source":
+            raise RuntimeError("source detail must not leak")
+        if sql == READ_MODEL_NEXT_AGGREGATE_COUNT_SQL:
+            self.row = {"aggregate_count": self.aggregate_count}
+            return
+        if sql == REFRESH_TEMP_METADATA_SQL and self.failure == "metadata":
+            raise RuntimeError("metadata detail must not leak")
+        if sql in {"delete from market_district_period_aggregates", REFRESH_INSERT_AGGREGATES_SQL} and self.failure == "write":
+            raise RuntimeError("write detail must not leak")
+        if sql in {"delete from market_read_model_metadata", REFRESH_INSERT_METADATA_SQL} and self.failure == "metadata_write":
+            raise RuntimeError("metadata write detail must not leak")
+        if sql == READ_MODEL_STATUS_SQL:
+            self.row = FakeReadModelRepository().status()
+
+    def fetchone(self) -> dict[str, Any] | None:
+        return self.row
+
+
+class PhaseRefreshConnection:
+    def __init__(self, *, failure: str | None = None, aggregate_count: int = 1) -> None:
+        self.failure = failure
+        self.aggregate_count = aggregate_count
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def cursor(self) -> PhaseRefreshCursor:
+        return PhaseRefreshCursor(failure=self.failure, aggregate_count=self.aggregate_count)
+
+    def commit(self) -> None:
+        if self.failure == "commit":
+            raise RuntimeError("commit detail must not leak")
+
+
+class PhaseRefreshRepository(PostgresMarketReadModelRepository):
+    def __init__(self, *, failure: str | None = None, aggregate_count: int = 1) -> None:
+        super().__init__("unused")
+        object.__setattr__(self, "failure", failure)
+        object.__setattr__(self, "aggregate_count", aggregate_count)
+
+    def _connect(self):
+        if self.failure == "connect":
+            raise RuntimeError("connection detail must not leak")
+        return PhaseRefreshConnection(failure=self.failure, aggregate_count=self.aggregate_count)
 
 
 def test_read_only_sql_uses_read_model_tables_only() -> None:
@@ -234,8 +304,38 @@ def test_refresh_service_failure_has_safe_reason() -> None:
     assert "database details" not in str(result)
 
 
+def test_postgres_refresh_phase_failures_have_safe_reason_codes() -> None:
+    cases = {
+        "connect": "valuation_database_unavailable",
+        "schema": "read_model_initialization_unavailable",
+        "source": "read_model_source_aggregate_unavailable",
+        "metadata": "read_model_metadata_unavailable",
+        "write": "read_model_write_unavailable",
+        "metadata_write": "read_model_metadata_unavailable",
+        "commit": "read_model_write_unavailable",
+    }
+
+    for failure, reason in cases.items():
+        result = refresh_market_read_model(PhaseRefreshRepository(failure=failure))
+        assert result["status"] == "unavailable"
+        assert result["reason_code"] == reason
+        assert "detail must not leak" not in str(result)
+
+
+def test_postgres_refresh_no_eligible_source_records_is_explicit() -> None:
+    result = refresh_market_read_model(PhaseRefreshRepository(aggregate_count=0))
+
+    assert result["status"] == "unavailable"
+    assert result["reason_code"] == "read_model_no_eligible_source_records"
+    assert "Demo County" not in str(result)
+
+
 def test_refresh_reason_code_allowlist_normalizes_unknown_values() -> None:
     assert safe_market_refresh_reason_code("valuation_database_unavailable") == "valuation_database_unavailable"
+    assert safe_market_refresh_reason_code("read_model_source_aggregate_unavailable") == "read_model_source_aggregate_unavailable"
+    assert safe_market_refresh_reason_code("read_model_write_unavailable") == "read_model_write_unavailable"
+    assert safe_market_refresh_reason_code("read_model_metadata_unavailable") == "read_model_metadata_unavailable"
+    assert safe_market_refresh_reason_code("read_model_no_eligible_source_records") == "read_model_no_eligible_source_records"
     assert safe_market_refresh_reason_code("raw_exception") == "unknown_safe_failure"
     assert "unknown_safe_failure" in MARKET_REFRESH_REASON_CODES
 
