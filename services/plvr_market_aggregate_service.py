@@ -30,6 +30,10 @@ MARKET_REFRESH_REASON_CODES = {
     "refresh_runtime_not_configured",
     "valuation_database_unavailable",
     "read_model_initialization_unavailable",
+    "read_model_source_aggregate_unavailable",
+    "read_model_write_unavailable",
+    "read_model_metadata_unavailable",
+    "read_model_no_eligible_source_records",
     "read_model_refresh_unavailable",
     "unknown_safe_failure",
 }
@@ -132,14 +136,32 @@ class PostgresMarketReadModelRepository:
                     raise MarketReadModelRefreshError("read_model_initialization_unavailable") from exc
                 try:
                     cursor.execute(REFRESH_TEMP_AGGREGATES_SQL, [built_at])
+                    cursor.execute(READ_MODEL_NEXT_AGGREGATE_COUNT_SQL)
+                    aggregate_count = _int_value((cursor.fetchone() or {}).get("aggregate_count"))
+                    if aggregate_count <= 0:
+                        raise MarketReadModelRefreshError("read_model_no_eligible_source_records")
+                except MarketReadModelRefreshError:
+                    raise
+                except Exception as exc:
+                    raise MarketReadModelRefreshError("read_model_source_aggregate_unavailable") from exc
+                try:
                     cursor.execute(REFRESH_TEMP_METADATA_SQL, [built_at])
+                except Exception as exc:
+                    raise MarketReadModelRefreshError("read_model_metadata_unavailable") from exc
+                try:
                     cursor.execute("delete from market_district_period_aggregates")
                     cursor.execute(REFRESH_INSERT_AGGREGATES_SQL)
+                except Exception as exc:
+                    raise MarketReadModelRefreshError("read_model_write_unavailable") from exc
+                try:
                     cursor.execute("delete from market_read_model_metadata")
                     cursor.execute(REFRESH_INSERT_METADATA_SQL)
                 except Exception as exc:
-                    raise MarketReadModelRefreshError("read_model_refresh_unavailable") from exc
-            connection.commit()
+                    raise MarketReadModelRefreshError("read_model_metadata_unavailable") from exc
+            try:
+                connection.commit()
+            except Exception as exc:
+                raise MarketReadModelRefreshError("read_model_write_unavailable") from exc
         return self.status()
 
     def _connect(self):
@@ -580,6 +602,11 @@ select
   count(*)::integer as aggregate_region_count,
   %s::timestamptz as built_at,
   '{PLVR_MARKET_CAVEAT}'::text as caveat
+from market_read_model_next_aggregates
+"""
+
+READ_MODEL_NEXT_AGGREGATE_COUNT_SQL = """
+select count(*)::integer as aggregate_count
 from market_read_model_next_aggregates
 """
 
