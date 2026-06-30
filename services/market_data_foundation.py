@@ -15,9 +15,9 @@ from typing import Any, Literal
 BASE_DIR = Path(__file__).resolve().parents[1]
 MARKET_AGGREGATE_PATH = BASE_DIR / "data" / "market" / "market_insight_aggregate.json"
 
-DATA_STATUS_VALUES = ("available", "unavailable", "incomplete", "invalid")
+DATA_STATUS_VALUES = ("available", "no_data", "unavailable", "incomplete", "invalid")
 COVERAGE_STATUS_VALUES = ("nationwide", "partial", "unknown")
-MarketDataStatus = Literal["available", "unavailable", "incomplete", "invalid"]
+MarketDataStatus = Literal["available", "no_data", "unavailable", "incomplete", "invalid"]
 MarketCoverageStatus = Literal["nationwide", "partial", "unknown"]
 
 MARKET_DATA_CAVEAT = (

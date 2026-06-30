@@ -268,6 +268,7 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   const districtOptions = getDistrictsForCounty(canonicalCounty);
   const canonicalDistrict = normalizeTaiwanDistrict(canonicalCounty, district);
   const availableResult = result?.data_status === "available";
+  const noDataResult = result?.data_status === "no_data";
 
   async function query() {
     if (!canonicalCounty) {
@@ -322,7 +323,8 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
       </div>
       <p className="mt-3 text-xs leading-5 text-slate-500">若未選行政區，系統會查詢該縣市可用的整體市場資料。資料不足時會顯示 unavailable，不會顯示 0 元、低風險或展示成功狀態。</p>
     </SectionCard>
-    {result && !availableResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
+    {result && noDataResult && <SectionCard title="目前此區域尚無市場資料"><p className="text-sm leading-6 text-slate-600">目前尚未找到足夠的官方 PLVR 市場資料。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
+    {result && !availableResult && !noDataResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
     {availableResult && result && <><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period ?? undefined} /><MetricTile label="交易量" value={result.transaction_volume} /><MetricTile label="有效紀錄數" value={result.record_count ?? result.transaction_count ?? 0} /></div><SectionCard title="資料來源與狀態"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{result.history.length > 0 && <SectionCard title="近期趨勢"><SwipeHint /><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期間</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{result.history.map((item) => <tr key={item.period ?? "unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬 / 坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}
   </div>;
 }

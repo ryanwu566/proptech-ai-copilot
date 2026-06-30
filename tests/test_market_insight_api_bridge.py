@@ -204,6 +204,78 @@ def test_market_query_blank_county_returns_safe_unavailable(monkeypatch) -> None
     assert "raw_error" not in payload
 
 
+def test_market_query_preserves_no_data_state(monkeypatch) -> None:
+    from services import market_insight_service
+
+    def fake_summary(city: str, district: str = "", period: str | None = None):
+        return {
+            "city": city,
+            "county": city,
+            "district": district,
+            "period": None,
+            "average_unit_price": None,
+            "avg_price_per_ping": None,
+            "transaction_count": None,
+            "transaction_volume": None,
+            "record_count": None,
+            "history": [],
+            "summary": "no data",
+            "source_name": "Official PLVR OpenData aggregate",
+            "source_updated_at": None,
+            "coverage_status": "partial",
+            "data_status": "no_data",
+            "caveat": "market caveat",
+            "disclaimer": "market caveat",
+        }
+
+    monkeypatch.setattr(market_insight_service, "get_market_summary", fake_summary)
+
+    response = client.post("/market-insights/query", json={"county": "Demo County", "district": "Missing"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["data_status"] == "no_data"
+    assert payload["average_unit_price"] is None
+    assert payload["history"] == []
+    assert "raw_error" not in payload
+
+
+def test_market_query_preserves_unavailable_state(monkeypatch) -> None:
+    from services import market_insight_service
+
+    def fake_summary(city: str, district: str = "", period: str | None = None):
+        return {
+            "city": city,
+            "county": city,
+            "district": district,
+            "period": None,
+            "average_unit_price": None,
+            "avg_price_per_ping": None,
+            "transaction_count": None,
+            "transaction_volume": None,
+            "record_count": None,
+            "history": [],
+            "summary": "unavailable",
+            "source_name": None,
+            "source_updated_at": None,
+            "coverage_status": "unknown",
+            "data_status": "unavailable",
+            "caveat": "market caveat",
+            "disclaimer": "market caveat",
+        }
+
+    monkeypatch.setattr(market_insight_service, "get_market_summary", fake_summary)
+
+    response = client.post("/market-insights/query", json={"county": "Demo County"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["data_status"] == "unavailable"
+    assert payload["data_status"] != "no_data"
+    assert payload["average_unit_price"] is None
+    assert payload["history"] == []
+
+
 def test_refresh_requires_configured_token_before_db_work(monkeypatch) -> None:
     from services import market_insight_service
 

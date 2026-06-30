@@ -61,7 +61,7 @@ export type MarketResult = {
   source_name: string | null;
   source_updated_at: string | null;
   coverage_status: "nationwide" | "partial" | "unknown";
-  data_status: "available" | "unavailable" | "incomplete" | "invalid";
+  data_status: "available" | "no_data" | "unavailable" | "incomplete" | "invalid";
   caveat: string;
   disclaimer: string;
   source_file_hash?: string | null;
