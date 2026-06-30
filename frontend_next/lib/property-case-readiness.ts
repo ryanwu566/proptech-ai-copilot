@@ -81,6 +81,7 @@ export function moduleLabel(key: string): string {
     holding: "持有成本",
     tax: "TaxOracle",
     decision: "看房決策摘要",
+    due_diligence: "Due Diligence Review Board",
   }[key] ?? key;
 }
 

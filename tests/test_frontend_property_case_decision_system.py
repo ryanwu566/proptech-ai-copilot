@@ -98,9 +98,14 @@ def test_property_case_helper_runtime_rules_with_node() -> None:
 const vm = require('vm');
 const fs = require('fs');
 const ts = require('./frontend_next/node_modules/typescript');
+const dueSource = fs.readFileSync('frontend_next/lib/property-case-due-diligence.ts', 'utf8');
+const dueJs = ts.transpileModule(dueSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const dueSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require }};
+vm.createContext(dueSandbox);
+vm.runInContext(dueJs, dueSandbox);
 const source = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8');
 const js = ts.transpileModule(source, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
-const sandbox = {{ console, Date, Number, Object, String, Map, Set, exports: {{}}, require }};
+const sandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require: (name) => name === '@/lib/property-case-due-diligence' ? dueSandbox.exports : require(name) }};
 vm.createContext(sandbox);
 vm.runInContext(js, sandbox);
 const buildPropertyCaseDraft = sandbox.exports.buildPropertyCaseDraft;

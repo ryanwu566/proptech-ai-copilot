@@ -10,6 +10,12 @@ import type {
 } from "@/lib/api";
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { ValuationInputs } from "@/lib/valuation-share";
+import {
+  buildDueDiligenceReadiness,
+  normalizeDueDiligenceItems,
+  type DueDiligenceItem,
+  type DueDiligenceReadiness,
+} from "@/lib/property-case-due-diligence";
 
 export type PropertyCaseStatus = "completed" | "missing" | "unavailable" | "incomplete";
 export type PropertyDecisionStatus = "draft" | "reviewing" | "shortlisted" | "rejected" | "purchased";
@@ -43,6 +49,10 @@ export type PropertyCaseDraftInput = {
   taxNote?: string;
   decisionStatus?: PropertyDecisionStatus;
   decisionNote?: string;
+  dueDiligenceItems?: Partial<DueDiligenceItem>[];
+  decisionReviewSummary?: string;
+  decisionOpenQuestions?: string;
+  decisionNextStep?: string;
   inputs: ValuationInputs;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
@@ -60,6 +70,9 @@ export type PropertyCaseDraft = {
   case_name: string;
   decision_status: PropertyDecisionStatus;
   decision_note: string;
+  decision_review_summary: string;
+  decision_open_questions: string;
+  decision_next_step: string;
   last_reviewed_at: string;
   created_at: string;
   updated_at: string;
@@ -104,6 +117,7 @@ export type PropertyCaseDraft = {
     valuation_note: string;
     tax_note: string;
   };
+  due_diligence_items: DueDiligenceItem[];
   analysis_status: Record<"property" | "location" | "terrain" | "commute" | "valuation" | "loan" | "holding" | "tax" | "decision", PropertyCaseStatus>;
   analysis_summary: string[];
   readiness: {
@@ -111,6 +125,7 @@ export type PropertyCaseDraft = {
     compare_ready: boolean;
     print_ready: boolean;
     print_notice: string | null;
+    due_diligence: DueDiligenceReadiness;
     missing_required: string[];
     unavailable_or_incomplete: string[];
   };
@@ -128,6 +143,12 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
   const locationStatus = input.location ? dataQualityToStatus(input.location.data_quality.status) : "missing";
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
   const commuteStatus: PropertyCaseStatus = "missing";
+  const dueDiligenceItems = normalizeDueDiligenceItems(input.dueDiligenceItems);
+  const dueDiligenceReadiness = buildDueDiligenceReadiness(dueDiligenceItems, {
+    decision_review_summary: input.decisionReviewSummary,
+    decision_open_questions: input.decisionOpenQuestions,
+    decision_next_step: input.decisionNextStep,
+  });
   const analysisStatus = {
     property: input.propertySearch ? "completed" : "missing",
     location: locationStatus,
@@ -163,6 +184,9 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     case_name: caseName,
     decision_status: input.decisionStatus ?? "draft",
     decision_note: input.decisionNote?.trim() || "",
+    decision_review_summary: safeText(input.decisionReviewSummary),
+    decision_open_questions: safeText(input.decisionOpenQuestions),
+    decision_next_step: safeText(input.decisionNextStep),
     last_reviewed_at: now,
     created_at: now,
     updated_at: now,
@@ -207,6 +231,7 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       valuation_note: input.valuationNote?.trim() || "",
       tax_note: input.taxNote?.trim() || "",
     },
+    due_diligence_items: dueDiligenceItems,
     analysis_status: analysisStatus,
     analysis_summary: buildAnalysisSummary(input, analysisStatus),
     readiness: {
@@ -214,6 +239,7 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       compare_ready: Boolean(hasBasicCaseInfo && listingPrice),
       print_ready: printReady,
       print_notice: printReady ? PARTIAL_CASE_PRINT_NOTICE : null,
+      due_diligence: dueDiligenceReadiness.readiness,
       missing_required: missingRequired,
       unavailable_or_incomplete: unavailableOrIncomplete,
     },
@@ -274,6 +300,11 @@ function buildAnalysisSummary(input: PropertyCaseDraftInput, status: PropertyCas
   if (input.holding) rows.push(`持有成本 ${input.holding.monthly_total_holding_cost.toLocaleString()} 元/月`);
   if (input.location) rows.push(`位置分析 ${status.location}`);
   if (input.terrainRisk) rows.push(`地勢風險 ${input.terrainRisk.overall.label}`);
+  if (input.dueDiligenceItems?.some((item) => item.status && item.status !== "not_started")) rows.push("Due diligence review board has user-entered checklist progress.");
   if (!rows.length) rows.push("尚未完成可比較的分析");
   return rows;
+}
+
+function safeText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }

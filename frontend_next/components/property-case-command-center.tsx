@@ -9,6 +9,15 @@ import {
   type FinancialMetric,
   type PropertyCaseFinancialScenarioInput,
 } from "@/lib/property-case-financials";
+import {
+  DUE_DILIGENCE_STATUS_LABELS,
+  DUE_DILIGENCE_STATUS_OPTIONS,
+  buildDefaultDueDiligenceItems,
+  buildDueDiligenceReadiness,
+  groupDueDiligenceItems,
+  type DueDiligenceItem,
+  type DueDiligenceStatus,
+} from "@/lib/property-case-due-diligence";
 import { buildPropertyCaseReadiness } from "@/lib/property-case-readiness";
 import type { ValuationInputs } from "@/lib/valuation-share";
 
@@ -48,6 +57,10 @@ type CommandCenterState = {
   decisionStatus: PropertyDecisionStatus;
   decisionNote: string;
   locationMarketNote: string;
+  dueDiligenceItems: DueDiligenceItem[];
+  decisionReviewSummary: string;
+  decisionOpenQuestions: string;
+  decisionNextStep: string;
 };
 
 type FinancialScenarioState = {
@@ -103,6 +116,10 @@ const initialState: CommandCenterState = {
   decisionStatus: "draft",
   decisionNote: "",
   locationMarketNote: "",
+  dueDiligenceItems: buildDefaultDueDiligenceItems(),
+  decisionReviewSummary: "",
+  decisionOpenQuestions: "",
+  decisionNextStep: "",
 };
 
 export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
@@ -144,6 +161,15 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
     () => buildPropertyCaseFinancialScenarios(financialInputs, state.scenarios.map(toScenarioInput)),
     [financialInputs, state.scenarios],
   );
+  const dueDiligenceReadiness = useMemo(
+    () => buildDueDiligenceReadiness(state.dueDiligenceItems, {
+      decision_review_summary: state.decisionReviewSummary,
+      decision_open_questions: state.decisionOpenQuestions,
+      decision_next_step: state.decisionNextStep,
+    }),
+    [state.decisionNextStep, state.decisionOpenQuestions, state.decisionReviewSummary, state.dueDiligenceItems],
+  );
+  const dueDiligenceGroups = useMemo(() => groupDueDiligenceItems(state.dueDiligenceItems), [state.dueDiligenceItems]);
   const estimatedMonthlyPayment = financialAnalysis.monthlyPayment.value;
   const derivedLoanAmount = financialAnalysis.loanAmount.value;
   const derivedDownPayment = financialAnalysis.downPayment.value;
@@ -175,6 +201,10 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
       taxNote: state.taxNote,
       decisionStatus: state.decisionStatus,
       decisionNote: state.decisionNote,
+      dueDiligenceItems: state.dueDiligenceItems,
+      decisionReviewSummary: state.decisionReviewSummary,
+      decisionOpenQuestions: state.decisionOpenQuestions,
+      decisionNextStep: state.decisionNextStep,
       inputs: emptyInputs,
     }),
     [derivedDownPayment, derivedLoanAmount, estimatedMonthlyPayment, numeric.availableLiquidCash, numeric.buildingAgeYears, numeric.estimatedBuyerCosts, numeric.floorAreaPing, numeric.fundingValue, numeric.listingPrice, numeric.loanRate, numeric.loanYears, numeric.monthlyFixedObligations, numeric.monthlyHouseholdIncome, numeric.monthlyOwnershipReserve, numeric.renovationReserve, numeric.userEstimatedTaxCost, numeric.userEstimatedValue, state],
@@ -201,6 +231,13 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
 
   function removeScenario(id: string) {
     setState((current) => ({ ...current, scenarios: current.scenarios.filter((scenario) => scenario.id !== id) }));
+  }
+
+  function updateDueDiligenceItem(itemId: string, patch: Partial<DueDiligenceItem>) {
+    setState((current) => ({
+      ...current,
+      dueDiligenceItems: current.dueDiligenceItems.map((item) => item.item_id === itemId ? { ...item, ...patch } : item),
+    }));
   }
 
   return <main className="min-h-screen bg-stone-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
@@ -346,6 +383,59 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               市場、通勤與地勢資料僅供看房風險參考；unavailable、unknown、not assessed 或資料不足不代表低風險、低價格或適合購買。
             </div>
           </section>
+
+          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+            <SectionHeading eyebrow="E. DUE DILIGENCE" title="盡職調查與決策審查板" />
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              這個區塊只整理使用者確認進度、待補資料、卡關原因與下一步；不會自動查詢市場、通勤、地勢、地圖或任何外部服務，也不會改變案件決策狀態。
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-5">
+              <ReviewStat label="已確認" value={dueDiligenceReadiness.confirmed_count} />
+              <ReviewStat label="檢查中" value={dueDiligenceReadiness.reviewing_count} />
+              <ReviewStat label="卡關" value={dueDiligenceReadiness.blocked_count} />
+              <ReviewStat label="不適用" value={dueDiligenceReadiness.not_applicable_count} />
+              <ReviewStat label="下一步" value={dueDiligenceReadiness.open_next_action_count} />
+            </div>
+            <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
+              狀態代表使用者的檢查進度，不是安全、通過、核准、推薦或購買結論。卡關項目只代表仍需補資料或專業確認。
+            </div>
+            <div className="mt-5 space-y-4">
+              {dueDiligenceGroups.map((group) => <details key={group.category_id} className="rounded-2xl border border-stone-200 bg-stone-50" open={group.category_id === "basic_property"}>
+                <summary className="cursor-pointer px-4 py-3 text-sm font-black text-slate-800">{group.category_label}</summary>
+                <div className="space-y-3 border-t border-stone-200 p-4">
+                  {group.items.map((item) => <div key={item.item_id} className="rounded-xl bg-white p-3 shadow-sm">
+                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_180px]">
+                      <div>
+                        <p className="text-sm font-black text-slate-900">{item.label}</p>
+                        <p className="mt-1 text-xs leading-5 text-slate-500">{item.prompt}</p>
+                      </div>
+                      <label className="block text-xs font-bold text-slate-500">檢查狀態
+                        <select value={item.status} onChange={(event) => updateDueDiligenceItem(item.item_id, { status: event.target.value as DueDiligenceStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                          {DUE_DILIGENCE_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{DUE_DILIGENCE_STATUS_LABELS[status]}</option>)}
+                        </select>
+                      </label>
+                    </div>
+                    <div className="mt-3 grid gap-3 md:grid-cols-2">
+                      <TextArea label="使用者確認備註" value={item.note} onChange={(value) => updateDueDiligenceItem(item.item_id, { note: value })} placeholder="只記錄使用者確認內容，不放外部 provider raw data。" />
+                      <TextArea label="參考依據備註" value={item.reference_note} onChange={(value) => updateDueDiligenceItem(item.item_id, { reference_note: value })} placeholder="例如：待看文件、待詢問仲介、待專業確認；不要貼 URL、token 或原始資料。" />
+                      <TextArea label="下一步行動" value={item.next_action} onChange={(value) => updateDueDiligenceItem(item.item_id, { next_action: value })} placeholder="例如：請賣方補文件、請銀行確認、下次看屋確認。" />
+                      <TextField label="目標日期（YYYY-MM-DD）" value={item.target_date} onChange={(value) => updateDueDiligenceItem(item.item_id, { target_date: value })} placeholder="YYYY-MM-DD" />
+                    </div>
+                    {item.status === "blocked" && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">此項目暫時卡關，代表仍需補資料或專業確認；不代表案件自動被拒絕或風險變低。</p>}
+                  </div>)}
+                </div>
+              </details>)}
+            </div>
+            <div className="mt-5 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+              <h3 className="text-sm font-black text-cyan-950">決策審查摘要</h3>
+              <TextArea label="目前審查摘要" value={state.decisionReviewSummary} onChange={(value) => update("decisionReviewSummary", value)} placeholder="彙整已確認與仍待確認的重點，不產生買賣建議。" />
+              <TextArea label="未解問題" value={state.decisionOpenQuestions} onChange={(value) => update("decisionOpenQuestions", value)} placeholder="列出仍待補資料、待查證或待專業確認的問題。" />
+              <TextArea label="下一步" value={state.decisionNextStep} onChange={(value) => update("decisionNextStep", value)} placeholder="例如：補文件、安排再次看屋、請銀行或專業人士確認。" />
+              <p className="mt-3 text-xs leading-5 text-cyan-900">
+                審查摘要不會自動修改 draft/reviewing/shortlisted/rejected/purchased，也不會使用市場、通勤、地勢或位置資料改變案件結論。
+              </p>
+            </div>
+          </section>
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
@@ -356,7 +446,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <ReadinessRow label="資金資料" ready={financialAnalysis.isReadyForScenarioComparison} />
               <ReadinessRow label="估價／稅費" ready={Boolean(draft.valuation_tax_input.user_estimated_value || draft.valuation_tax_input.user_estimated_tax_cost || draft.valuation_tax_input.valuation_note || draft.valuation_tax_input.tax_note)} />
               <ReadinessRow label="位置／市場" ready={Boolean(state.locationMarketNote.trim())} />
+              <ReadinessRow label="盡職調查" ready={draft.readiness.due_diligence === "completed"} />
             </dl>
+            <p className="mt-2 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">Due diligence readiness: {draft.readiness.due_diligence}</p>
             <p className="mt-4 rounded-xl bg-stone-50 px-3 py-2 text-xs leading-5 text-slate-600">{readiness.primaryMessage}</p>
             {draft.readiness.missing_required.length > 0 && <p className="mt-2 text-xs text-amber-700">待補：{draft.readiness.missing_required.join(", ")}</p>}
           </section>
@@ -369,6 +461,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               </select>
             </label>
             <TextArea label="決策備註" value={state.decisionNote} onChange={(value) => update("decisionNote", value)} placeholder="手動記錄下一步，不自動產生買賣建議。" />
+            <div className="mt-3 rounded-xl bg-stone-50 px-3 py-2 text-xs leading-5 text-slate-600">
+              審查摘要：{state.decisionReviewSummary.trim() || "尚未填寫"}；下一步：{state.decisionNextStep.trim() || "尚未填寫"}
+            </div>
             <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
               案件完整度不是投資評分、購買建議、核貸機率或預測報酬率。
             </div>
@@ -383,6 +478,8 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <li>開價或估計價值：{draft.property_input.listing_price ? `${draft.property_input.listing_price.toLocaleString()} 萬元` : "待補"}</li>
               <li>財務試算：月付 {formatYuanMetric(financialAnalysis.monthlyPayment)}；所需現金 {formatWanMetric(financialAnalysis.cashNeeded)}</li>
               <li>情境比較：{financialScenarios.length > 0 ? `${financialScenarios.length} 組` : "未建立情境"}</li>
+              <li>盡職調查：{dueDiligenceReadiness.confirmed_count} 項已確認、{dueDiligenceReadiness.reviewing_count} 項檢查中、{dueDiligenceReadiness.blocked_count} 項卡關</li>
+              <li>審查下一步：{state.decisionNextStep.trim() || "待補"}</li>
               <li>決策狀態：{state.decisionStatus}</li>
               <li>可比較：{draft.readiness.compare_ready ? "yes" : "no"}</li>
               <li>可列印目前摘要：{draft.readiness.print_ready ? "yes" : "no"}</li>
@@ -408,6 +505,13 @@ function TextArea({ label, value, onChange, placeholder = "" }: { label: string;
 
 function ReadinessRow({ label, ready }: { label: string; ready: boolean }) {
   return <div className="flex items-center justify-between rounded-xl bg-stone-50 px-3 py-2"><dt className="font-bold text-slate-700">{label}</dt><dd className={ready ? "font-bold text-emerald-700" : "font-bold text-amber-700"}>{ready ? "ready" : "pending"}</dd></div>;
+}
+
+function ReviewStat({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-xl bg-stone-50 px-3 py-3">
+    <p className="text-[10px] font-bold tracking-[0.12em] text-slate-500">{label}</p>
+    <p className="mt-1 text-lg font-black text-slate-950">{value}</p>
+  </div>;
 }
 
 function MetricCard({ label, metric, formatter }: { label: string; metric: FinancialMetric; formatter: (metric: FinancialMetric) => string }) {
