@@ -119,6 +119,16 @@ class RefreshFailureRepository(FakeReadModelRepository):
         raise MarketReadModelRefreshError("read_model_refresh_unavailable")
 
 
+class SummaryFailureRepository(FakeReadModelRepository):
+    def summary(self, county: str, district: str, period: str | None = None) -> dict[str, Any] | None:
+        self.calls.append("summary:failure")
+        raise RuntimeError("database table sql detail must not leak")
+
+    def history(self, county: str, district: str, limit: int = 6) -> list[dict[str, Any]]:
+        self.calls.append("history:unexpected")
+        raise RuntimeError("history should not be called after summary failure")
+
+
 class PhaseRefreshCursor:
     def __init__(self, *, failure: str | None = None, aggregate_count: int = 1) -> None:
         self.failure = failure
@@ -285,10 +295,28 @@ def test_missing_and_invalid_summary_returns_no_metrics_or_history() -> None:
     invalid = get_market_summary("Demo County", "North", repository=FakeReadModelRepository(invalid_summary=True))
 
     for result in (missing, invalid):
-        assert result["data_status"] in {"unavailable", "invalid"}
+        assert result["data_status"] == "no_data"
         assert result["average_unit_price"] is None
         assert result["transaction_count"] is None
         assert result["history"] == []
+        assert "0" not in result["summary"]
+
+
+def test_direct_query_source_exception_is_unavailable_not_no_data() -> None:
+    repo = SummaryFailureRepository()
+
+    result = get_market_summary("Demo County", "North", repository=repo)
+
+    assert result["data_status"] == "unavailable"
+    assert result["data_status"] != "no_data"
+    assert result["average_unit_price"] is None
+    assert result["transaction_count"] is None
+    assert result["history"] == []
+    assert "database table sql detail" not in str(result)
+    assert "summary:failure" in repo.calls
+    assert "history:unexpected" not in repo.calls
+    assert "status" not in repo.calls
+    assert "refresh" not in repo.calls
 
 
 def test_empty_repository_is_missing_not_nationwide() -> None:

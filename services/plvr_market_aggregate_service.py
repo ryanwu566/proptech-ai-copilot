@@ -248,7 +248,7 @@ def get_market_summary(
     except Exception:
         return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable"))
     if not row:
-        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable"))
+        return _no_data_summary(county, district, _direct_query_status(data_status="no_data"))
     return _summary_from_row(row, history, _direct_query_status())
 
 
@@ -314,12 +314,14 @@ def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], s
     county = _optional_text(row.get("county")) or ""
     district = _optional_text(row.get("district")) or ""
     if data_status != "available":
+        if data_status == "no_data":
+            return _no_data_summary(county, district, {**status, "data_status": "no_data"})
         return _unavailable_summary(county, district, {**status, "data_status": data_status})
     average_unit_price = _float_value(row.get("average_unit_price"))
     transaction_count = _int_value(row.get("transaction_count"))
     record_count = _int_value(row.get("record_count"))
     if average_unit_price is None or average_unit_price <= 0 or transaction_count <= 0 or record_count <= 0:
-        return _unavailable_summary(county, district, {**status, "data_status": "invalid"})
+        return _no_data_summary(county, district, {**status, "data_status": "no_data"})
     history = [_history_item(item) for item in history_rows[:6]]
     return {
         "city": county,
@@ -367,6 +369,22 @@ def _unavailable_summary(county: str, district: str, status: dict[str, Any]) -> 
         "source_updated_at": status.get("source_updated_at"),
         "caveat": status.get("caveat") or MARKET_DATA_CAVEAT,
         "disclaimer": status.get("caveat") or MARKET_DATA_CAVEAT,
+        "history": [],
+        "record_count": None,
+    }
+
+
+def _no_data_summary(county: str, district: str, status: dict[str, Any]) -> dict[str, Any]:
+    result = market_unavailable_response(county, district)
+    return {
+        **result,
+        "data_status": "no_data",
+        "coverage_status": status.get("coverage_status", "partial"),
+        "source_name": status.get("source_name"),
+        "source_updated_at": status.get("source_updated_at"),
+        "caveat": status.get("caveat") or MARKET_DATA_CAVEAT,
+        "disclaimer": status.get("caveat") or MARKET_DATA_CAVEAT,
+        "summary": "目前此區域尚無足夠的官方 PLVR 市場資料可供查詢。",
         "history": [],
         "record_count": None,
     }
@@ -475,7 +493,7 @@ def _float_value(value: Any) -> float | None:
 
 def _data_status(value: Any) -> str:
     text = str(value or "").strip()
-    return text if text in {"available", "unavailable", "incomplete", "invalid"} else "unavailable"
+    return text if text in {"available", "no_data", "unavailable", "incomplete", "invalid"} else "unavailable"
 
 
 def _coverage_status(value: Any) -> str:

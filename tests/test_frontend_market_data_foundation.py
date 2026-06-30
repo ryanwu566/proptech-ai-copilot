@@ -46,9 +46,11 @@ def test_market_insight_has_canonical_county_and_dependent_district_selectors() 
 def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
     component = _market_insight_component()
 
-    assert "目前沒有可用市場資料" in component
-    assert "市場資料目前無法使用，請稍後再試。" in component
+    assert 'result?.data_status === "no_data"' in component
+    assert "目前此區域尚無市場資料" in component
+    assert "目前尚未找到足夠的官方 PLVR 市場資料。" in component
     assert "不會顯示 0 元、低風險或展示成功狀態" in component
+    assert "!availableResult && !noDataResult" in component
     assert "livability_score" not in component
     assert "esg_lite_score" not in component
     assert "trend" not in component
