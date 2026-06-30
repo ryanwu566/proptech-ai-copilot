@@ -11,6 +11,27 @@ DOCS = (ROOT / "docs/nationwide-market-read-model-v1.md").read_text(encoding="ut
 SCHEMA = (ROOT / "database/market_read_model_schema.sql").read_text(encoding="utf-8")
 
 
+def test_market_read_model_workflow_yaml_is_parseable_when_parser_available() -> None:
+    try:
+        import yaml  # type: ignore[import-not-found]
+    except Exception:
+        yaml = None
+
+    if yaml is not None:
+        parsed = yaml.safe_load(WORKFLOW)
+        assert parsed["name"] == "Refresh Market Read Model"
+        trigger = parsed.get("on", parsed.get(True))
+        assert trigger == {"workflow_dispatch": None}
+        assert parsed["permissions"] == {}
+
+    lines = WORKFLOW.splitlines()
+    assert lines[0] == "name: Refresh Market Read Model"
+    assert lines[2] == "on:"
+    assert lines[3] == "  workflow_dispatch:"
+    assert "          import json" in lines
+    assert "          PY" in lines
+
+
 def test_market_read_model_workflow_is_manual_only_and_secret_backed() -> None:
     assert "workflow_dispatch" in WORKFLOW
     assert "schedule" not in WORKFLOW
