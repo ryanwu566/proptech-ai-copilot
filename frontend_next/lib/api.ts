@@ -248,7 +248,7 @@ export const api = {
   marketCatalog: () => request<MarketRegionCatalog>("/market-insights/catalog"),
   marketRegions: (county?: string) =>
     request<MarketRegionCatalog>(`/market-insights/regions${county ? `?county=${encodeURIComponent(county)}` : ""}`),
-  marketInsight: (county: string, district: string, period?: string | null) =>
+  marketInsight: (county: string, district?: string, period?: string | null) =>
     request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ county, district, period }) }),
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),

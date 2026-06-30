@@ -23,7 +23,7 @@ class MarketInsightQuery(BaseModel):
 
     county: str | None = None
     city: str | None = None
-    district: str
+    district: str = ""
     period: str | None = None
 
 
@@ -71,7 +71,7 @@ def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
     from services.market_insight_service import get_market_summary
 
     county = request.county or request.city or ""
-    if not county.strip() or not request.district.strip():
+    if not county.strip():
         return market_unavailable_response(city=county, district=request.district)
     return get_market_summary(county, request.district, request.period)
 

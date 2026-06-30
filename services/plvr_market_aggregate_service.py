@@ -1,8 +1,9 @@
-"""Read-model backed PLVR market aggregates for Market Insight.
+"""PLVR market aggregates for Market Insight.
 
-Read APIs only query the prepared market read model. The raw PLVR transaction
-table is used exclusively by the protected refresh path that rebuilds the
-aggregate tables.
+Interactive Market Insight queries read official PLVR transaction rows through
+safe district/county aggregates. The protected read model refresh path remains
+available for operator diagnostics, but user queries do not depend on refresh
+or prepared read model tables.
 """
 
 from __future__ import annotations
@@ -104,13 +105,17 @@ class PostgresMarketReadModelRepository:
         with self._connect() as connection:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
-                if period and period.strip():
-                    cursor.execute(
-                        READ_MODEL_SUMMARY_FOR_PERIOD_SQL,
-                        [_normalize_county(county), district.strip(), period.strip()],
-                    )
+                normalized_county = _normalize_county(county)
+                clean_district = district.strip()
+                clean_period = (period or "").strip()
+                if clean_district and clean_period:
+                    cursor.execute(DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL, [normalized_county, clean_district, clean_period])
+                elif clean_district:
+                    cursor.execute(DIRECT_SUMMARY_DISTRICT_LATEST_SQL, [normalized_county, clean_district])
+                elif clean_period:
+                    cursor.execute(DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL, [normalized_county, clean_period])
                 else:
-                    cursor.execute(READ_MODEL_SUMMARY_LATEST_SQL, [_normalize_county(county), district.strip()])
+                    cursor.execute(DIRECT_SUMMARY_COUNTY_LATEST_SQL, [normalized_county])
                 row = cursor.fetchone()
                 return dict(row) if row else None
 
@@ -118,10 +123,13 @@ class PostgresMarketReadModelRepository:
         with self._connect() as connection:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
-                cursor.execute(
-                    READ_MODEL_HISTORY_SQL,
-                    [_normalize_county(county), district.strip(), max(1, min(int(limit), 6))],
-                )
+                normalized_county = _normalize_county(county)
+                clean_district = district.strip()
+                clean_limit = max(1, min(int(limit), 6))
+                if clean_district:
+                    cursor.execute(DIRECT_HISTORY_DISTRICT_SQL, [normalized_county, clean_district, clean_limit])
+                else:
+                    cursor.execute(DIRECT_HISTORY_COUNTY_SQL, [normalized_county, clean_limit])
                 return [dict(row) for row in cursor.fetchall()]
 
     def refresh(self) -> dict[str, Any]:
@@ -223,26 +231,25 @@ def list_market_regions(county: str = "", repository: MarketReadModelRepository 
 
 def get_market_summary(
     county: str,
-    district: str,
+    district: str = "",
     period: str | None = None,
     repository: MarketReadModelRepository | None = None,
 ) -> dict[str, Any]:
-    """Return one district-period aggregate and recent real history."""
+    """Return one direct county/district aggregate and recent real history."""
 
     repo = repository or _repository_from_env()
-    status = get_market_status(repo)
     county = county.strip()
     district = district.strip()
-    if repo is None or status["read_model_status"] != "ready" or not county or not district:
-        return _unavailable_summary(county, district, status)
+    if repo is None or not county:
+        return _unavailable_summary(county, district, _direct_query_status())
     try:
         row = repo.summary(county, district, period)
         history = repo.history(county, district, limit=6) if row else []
     except Exception:
-        return _unavailable_summary(county, district, _unavailable_status())
+        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable"))
     if not row:
-        return _unavailable_summary(county, district, {**status, "data_status": "unavailable"})
-    return _summary_from_row(row, history, status)
+        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable"))
+    return _summary_from_row(row, history, _direct_query_status())
 
 
 def refresh_market_read_model(repository: MarketReadModelRepository | None = None) -> dict[str, Any]:
@@ -383,6 +390,16 @@ def _missing_status() -> dict[str, Any]:
 
 def _unavailable_status() -> dict[str, Any]:
     return {**_missing_status(), "read_model_status": "unavailable"}
+
+
+def _direct_query_status(data_status: str = "available") -> dict[str, Any]:
+    return {
+        "data_status": _data_status(data_status),
+        "coverage_status": "partial",
+        "source_name": PLVR_MARKET_SOURCE_NAME,
+        "source_updated_at": None,
+        "caveat": PLVR_MARKET_CAVEAT,
+    }
 
 
 def safe_market_refresh_reason_code(reason_code: Any) -> str:
@@ -567,6 +584,81 @@ and unit_price_per_ping <= 500
 and total_price > 0
 and area_ping > 0
 """
+_VALID_PLVR_WHERE_FORMAT = _VALID_PLVR_WHERE.replace("{", "{{").replace("}", "}}")
+
+_DIRECT_SUMMARY_SELECT = f"""
+select
+  replace(trim(city), '??, '??) as county,
+  {{district_expression}} as district,
+  transaction_period as period,
+  round(avg(unit_price_per_ping)::numeric, 2) as average_unit_price,
+  count(*)::integer as transaction_count,
+  count(*)::integer as record_count,
+  '{PLVR_MARKET_SOURCE_NAME}'::text as source_name,
+  max(imported_at)::date as source_updated_at,
+  'partial'::text as coverage_status,
+  'available'::text as data_status,
+  '{PLVR_AGGREGATION_METHOD}'::text as aggregation_method
+from real_price_transactions
+where {_VALID_PLVR_WHERE_FORMAT}
+  and replace(trim(city), '??, '??) = %s
+  {{district_filter}}
+  {{period_filter}}
+group by replace(trim(city), '??, '??), {{district_group}}, transaction_period
+order by transaction_period desc
+limit 1
+"""
+
+DIRECT_SUMMARY_DISTRICT_LATEST_SQL = _DIRECT_SUMMARY_SELECT.format(
+    district_expression="trim(district)",
+    district_filter="and trim(district) = %s",
+    period_filter="",
+    district_group="trim(district)",
+)
+
+DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL = _DIRECT_SUMMARY_SELECT.format(
+    district_expression="trim(district)",
+    district_filter="and trim(district) = %s",
+    period_filter="and transaction_period = %s",
+    district_group="trim(district)",
+)
+
+DIRECT_SUMMARY_COUNTY_LATEST_SQL = _DIRECT_SUMMARY_SELECT.format(
+    district_expression="''::text",
+    district_filter="",
+    period_filter="",
+    district_group="''::text",
+)
+
+DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL = _DIRECT_SUMMARY_SELECT.format(
+    district_expression="''::text",
+    district_filter="",
+    period_filter="and transaction_period = %s",
+    district_group="''::text",
+)
+
+_DIRECT_HISTORY_SELECT = """
+select transaction_period as period,
+       round(avg(unit_price_per_ping)::numeric, 2) as average_unit_price,
+       count(*)::integer as transaction_count
+from real_price_transactions
+where {valid_where}
+  and replace(trim(city), '??, '??) = %s
+  {district_filter}
+group by transaction_period
+order by transaction_period desc
+limit %s
+"""
+
+DIRECT_HISTORY_DISTRICT_SQL = _DIRECT_HISTORY_SELECT.format(
+    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    district_filter="and trim(district) = %s",
+)
+
+DIRECT_HISTORY_COUNTY_SQL = _DIRECT_HISTORY_SELECT.format(
+    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    district_filter="",
+)
 
 REFRESH_TEMP_AGGREGATES_SQL = f"""
 create temporary table market_read_model_next_aggregates on commit drop as
