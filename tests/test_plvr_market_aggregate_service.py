@@ -6,6 +6,8 @@ from datetime import datetime
 from typing import Any
 
 from services.plvr_market_aggregate_service import (
+    MARKET_REFRESH_REASON_CODES,
+    MarketReadModelRefreshError,
     READ_MODEL_CATALOG_SQL,
     READ_MODEL_HISTORY_SQL,
     READ_MODEL_REGIONS_SQL,
@@ -18,6 +20,7 @@ from services.plvr_market_aggregate_service import (
     get_market_summary,
     list_market_regions,
     refresh_market_read_model,
+    safe_market_refresh_reason_code,
 )
 
 
@@ -89,6 +92,18 @@ class FakeReadModelRepository:
     def refresh(self) -> dict[str, Any]:
         self.calls.append("refresh")
         return self.status()
+
+
+class InitFailureRepository(FakeReadModelRepository):
+    def refresh(self) -> dict[str, Any]:
+        self.calls.append("refresh")
+        raise MarketReadModelRefreshError("read_model_initialization_unavailable")
+
+
+class RefreshFailureRepository(FakeReadModelRepository):
+    def refresh(self) -> dict[str, Any]:
+        self.calls.append("refresh")
+        raise MarketReadModelRefreshError("read_model_refresh_unavailable")
 
 
 def test_read_only_sql_uses_read_model_tables_only() -> None:
@@ -190,7 +205,39 @@ def test_refresh_failure_is_safely_unavailable() -> None:
 
     assert result["status"] == "unavailable"
     assert result["built_at"] is None
+    assert result["reason_code"] == "read_model_refresh_unavailable"
     assert "database details" not in str(result)
+
+
+def test_refresh_without_repository_reports_database_unavailable(monkeypatch) -> None:
+    monkeypatch.delenv("VALUATION_DATABASE_URL", raising=False)
+
+    result = refresh_market_read_model(repository=None)
+
+    assert result["status"] == "unavailable"
+    assert result["reason_code"] == "valuation_database_unavailable"
+
+
+def test_refresh_initialization_failure_has_safe_reason() -> None:
+    result = refresh_market_read_model(InitFailureRepository())
+
+    assert result["status"] == "unavailable"
+    assert result["reason_code"] == "read_model_initialization_unavailable"
+    assert "database details" not in str(result)
+
+
+def test_refresh_service_failure_has_safe_reason() -> None:
+    result = refresh_market_read_model(RefreshFailureRepository())
+
+    assert result["status"] == "unavailable"
+    assert result["reason_code"] == "read_model_refresh_unavailable"
+    assert "database details" not in str(result)
+
+
+def test_refresh_reason_code_allowlist_normalizes_unknown_values() -> None:
+    assert safe_market_refresh_reason_code("valuation_database_unavailable") == "valuation_database_unavailable"
+    assert safe_market_refresh_reason_code("raw_exception") == "unknown_safe_failure"
+    assert "unknown_safe_failure" in MARKET_REFRESH_REASON_CODES
 
 
 def test_datetime_status_is_serialized_safely() -> None:

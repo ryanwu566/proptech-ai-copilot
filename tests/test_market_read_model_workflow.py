@@ -30,6 +30,30 @@ def test_market_read_model_workflow_calls_refresh_once_safely() -> None:
     assert "cat \"$body_file\"" not in WORKFLOW
     assert "MARKET_READ_MODEL_REFRESH=success" in WORKFLOW
     assert "MARKET_READ_MODEL_HTTP_STATUS=200" in WORKFLOW
+    assert "MARKET_READ_MODEL_REASON=" in WORKFLOW
+
+
+def test_market_read_model_workflow_outputs_only_allowlisted_failure_reason() -> None:
+    for reason in (
+        "refresh_runtime_not_configured",
+        "valuation_database_unavailable",
+        "read_model_initialization_unavailable",
+        "read_model_refresh_unavailable",
+        "unknown_safe_failure",
+    ):
+        assert reason in WORKFLOW
+    assert "json.load" in WORKFLOW
+    assert "payload.get(\"reason_code\")" in WORKFLOW
+    assert "rm -f \"$body_file\"" in WORKFLOW
+    assert "cat \"$body_file\"" not in WORKFLOW
+    assert "echo \"$body_file\"" not in WORKFLOW
+    assert "echo \"${base_url}" not in WORKFLOW
+    assert "echo \"${MARKET_READ_MODEL_REFRESH_TOKEN}" not in WORKFLOW
+    assert "--verbose" not in WORKFLOW
+    assert "--retry" not in WORKFLOW
+    assert "set -x" not in WORKFLOW
+    for forbidden in ("database_url", "SQL", "raw exception", "response body", "address", "latitude", "longitude"):
+        assert forbidden not in WORKFLOW
 
 
 def test_market_read_model_schema_contains_indexed_aggregate_tables() -> None:

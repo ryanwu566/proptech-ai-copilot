@@ -160,6 +160,8 @@ def test_refresh_requires_configured_token_before_db_work(monkeypatch) -> None:
 
     assert response.status_code == 503
     assert called == {"refresh": False}
+    assert response.json()["reason_code"] == "refresh_runtime_not_configured"
+    assert set(response.json()) == {"status", "data_status", "coverage_status", "built_at", "message", "reason_code"}
 
 
 def test_refresh_rejects_wrong_token_before_db_work(monkeypatch) -> None:
@@ -177,6 +179,7 @@ def test_refresh_rejects_wrong_token_before_db_work(monkeypatch) -> None:
 
     assert response.status_code == 403
     assert called == {"refresh": False}
+    assert "reason_code" not in response.json()
 
 
 def test_refresh_success_response_is_safe(monkeypatch) -> None:
@@ -202,3 +205,68 @@ def test_refresh_success_response_is_safe(monkeypatch) -> None:
     assert payload["status"] == "resolved"
     assert "available_county_count" not in payload
     assert "real_price_transactions" not in str(payload)
+
+
+def test_refresh_service_503_uses_allowlisted_reason(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        market_insight_service,
+        "refresh_market_read_model",
+        lambda: {
+            "status": "unavailable",
+            "data_status": "unavailable",
+            "coverage_status": "unknown",
+            "built_at": None,
+            "message": "internal details must be replaced",
+            "reason_code": "valuation_database_unavailable",
+            "database_url": "must not leak",
+        },
+    )
+
+    response = client.post("/market-insights/refresh", headers={"X-Market-Read-Model-Refresh-Token": "expected"})
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["reason_code"] == "valuation_database_unavailable"
+    assert set(payload) == {"status", "data_status", "coverage_status", "built_at", "message", "reason_code"}
+    assert "database_url" not in payload
+    assert "internal details" not in str(payload)
+
+
+def test_refresh_service_unknown_reason_is_safely_normalized(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        market_insight_service,
+        "refresh_market_read_model",
+        lambda: {
+            "status": "unavailable",
+            "reason_code": "raw_database_exception",
+        },
+    )
+
+    response = client.post("/market-insights/refresh", headers={"X-Market-Read-Model-Refresh-Token": "expected"})
+
+    assert response.status_code == 503
+    assert response.json()["reason_code"] == "unknown_safe_failure"
+
+
+def test_refresh_unclassified_exception_is_safe_failure(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+
+    def fail_refresh():
+        raise RuntimeError("raw exception must not leak")
+
+    monkeypatch.setattr(market_insight_service, "refresh_market_read_model", fail_refresh)
+
+    response = client.post("/market-insights/refresh", headers={"X-Market-Read-Model-Refresh-Token": "expected"})
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["reason_code"] == "unknown_safe_failure"
+    assert "raw exception" not in str(payload)
