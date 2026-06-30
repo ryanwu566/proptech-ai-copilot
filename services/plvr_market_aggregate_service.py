@@ -39,12 +39,15 @@ MARKET_REFRESH_REASON_CODES = {
 }
 
 
-class MarketReadModelRefreshError(RuntimeError):
+class MarketReadModelRefreshFailure(RuntimeError):
     """Internal refresh failure with a safe public reason code."""
 
     def __init__(self, reason_code: str) -> None:
         self.reason_code = safe_market_refresh_reason_code(reason_code)
         super().__init__(self.reason_code)
+
+
+MarketReadModelRefreshError = MarketReadModelRefreshFailure
 
 
 class MarketReadModelRepository(Protocol):
@@ -123,49 +126,35 @@ class PostgresMarketReadModelRepository:
 
     def refresh(self) -> dict[str, Any]:
         built_at = datetime.now(timezone.utc)
-        try:
-            connection_context = self._connect()
-        except Exception as exc:
-            raise MarketReadModelRefreshError("valuation_database_unavailable") from exc
+        connection_context = _run_refresh_phase("valuation_database_unavailable", self._connect)
         with connection_context as connection:
             with connection.cursor() as cursor:
                 cursor.execute("set local statement_timeout = '120s'")
-                try:
-                    cursor.execute(READ_MODEL_SCHEMA_SQL)
-                except Exception as exc:
-                    raise MarketReadModelRefreshError("read_model_initialization_unavailable") from exc
-                try:
+                _run_refresh_phase("read_model_initialization_unavailable", lambda: cursor.execute(READ_MODEL_SCHEMA_SQL))
+
+                def build_source_aggregates() -> None:
                     cursor.execute(REFRESH_TEMP_AGGREGATES_SQL, [built_at])
                     cursor.execute(READ_MODEL_NEXT_AGGREGATE_COUNT_SQL)
                     aggregate_count = _int_value((cursor.fetchone() or {}).get("aggregate_count"))
                     if aggregate_count <= 0:
-                        raise MarketReadModelRefreshError("read_model_no_eligible_source_records")
-                except MarketReadModelRefreshError:
-                    raise
-                except Exception as exc:
-                    raise MarketReadModelRefreshError("read_model_source_aggregate_unavailable") from exc
-                try:
-                    cursor.execute(REFRESH_TEMP_METADATA_SQL, [built_at])
-                except Exception as exc:
-                    raise MarketReadModelRefreshError("read_model_metadata_unavailable") from exc
-                try:
+                        raise MarketReadModelRefreshFailure("read_model_no_eligible_source_records")
+
+                _run_refresh_phase("read_model_source_aggregate_unavailable", build_source_aggregates)
+                _run_refresh_phase("read_model_metadata_unavailable", lambda: cursor.execute(REFRESH_TEMP_METADATA_SQL, [built_at]))
+
+                def replace_aggregates() -> None:
                     cursor.execute("delete from market_district_period_aggregates")
                     cursor.execute(REFRESH_INSERT_AGGREGATES_SQL)
-                except Exception as exc:
-                    raise MarketReadModelRefreshError("read_model_write_unavailable") from exc
-                try:
+
+                _run_refresh_phase("read_model_write_unavailable", replace_aggregates)
+
+                def replace_metadata() -> None:
                     cursor.execute("delete from market_read_model_metadata")
                     cursor.execute(REFRESH_INSERT_METADATA_SQL)
-                except Exception as exc:
-                    raise MarketReadModelRefreshError("read_model_metadata_unavailable") from exc
-            try:
-                connection.commit()
-            except Exception as exc:
-                raise MarketReadModelRefreshError("read_model_write_unavailable") from exc
-        try:
-            return self.status()
-        except Exception as exc:
-            raise MarketReadModelRefreshError("read_model_refresh_unavailable") from exc
+
+                _run_refresh_phase("read_model_metadata_unavailable", replace_metadata)
+            _run_refresh_phase("read_model_write_unavailable", connection.commit)
+        return _run_refresh_phase("read_model_refresh_unavailable", self.status)
 
     def _connect(self):
         import psycopg
@@ -401,6 +390,15 @@ def safe_market_refresh_reason_code(reason_code: Any) -> str:
 
     text = str(reason_code or "").strip()
     return text if text in MARKET_REFRESH_REASON_CODES else "unknown_safe_failure"
+
+
+def _run_refresh_phase(reason_code: str, operation: Any) -> Any:
+    try:
+        return operation()
+    except MarketReadModelRefreshFailure:
+        raise
+    except Exception as exc:
+        raise MarketReadModelRefreshFailure(reason_code) from exc
 
 
 def _refresh_unavailable(status: dict[str, Any], reason_code: str = "unknown_safe_failure") -> dict[str, Any]:
