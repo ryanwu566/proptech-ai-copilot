@@ -10,6 +10,10 @@ from pydantic import BaseModel, ConfigDict
 
 router = APIRouter(tags=["market-insight"])
 MARKET_READ_MODEL_REFRESH_TOKEN_ENV = "MARKET_READ_MODEL_REFRESH_TOKEN"
+MARKET_REFRESH_503_FIELDS = ("status", "data_status", "coverage_status", "built_at", "message", "reason_code")
+MARKET_REFRESH_UNAVAILABLE_MESSAGE = "市場讀取模型暫時無法刷新，請稍後再試。"
+MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE = "市場讀取模型刷新設定尚未完成。"
+MARKET_REFRESH_FORBIDDEN_MESSAGE = "沒有權限刷新市場讀取模型。"
 
 
 class MarketInsightQuery(BaseModel):
@@ -82,13 +86,7 @@ def post_market_read_model_refresh(
     configured_token = os.getenv(MARKET_READ_MODEL_REFRESH_TOKEN_ENV, "").strip()
     if not configured_token:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-        return {
-            "status": "unavailable",
-            "data_status": "unavailable",
-            "coverage_status": "unknown",
-            "built_at": None,
-            "message": "市場 read model refresh token 尚未設定。",
-        }
+        return _safe_refresh_unavailable("refresh_runtime_not_configured", MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE)
     if x_market_read_model_refresh_token != configured_token:
         response.status_code = status.HTTP_403_FORBIDDEN
         return {
@@ -96,12 +94,40 @@ def post_market_read_model_refresh(
             "data_status": "unavailable",
             "coverage_status": "unknown",
             "built_at": None,
-            "message": "沒有權限刷新市場 read model。",
+            "message": MARKET_REFRESH_FORBIDDEN_MESSAGE,
         }
 
     from services.market_insight_service import refresh_market_read_model
+    from services.plvr_market_aggregate_service import safe_market_refresh_reason_code
 
-    result = refresh_market_read_model()
+    try:
+        result = refresh_market_read_model()
+    except Exception:
+        result = _safe_refresh_unavailable("unknown_safe_failure", MARKET_REFRESH_UNAVAILABLE_MESSAGE)
+
     if result.get("status") != "resolved":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
-    return result
+        reason_code = safe_market_refresh_reason_code(result.get("reason_code"))
+        safe_result = {key: result.get(key) for key in MARKET_REFRESH_503_FIELDS}
+        safe_result["status"] = safe_result.get("status") or "unavailable"
+        safe_result["data_status"] = safe_result.get("data_status") or "unavailable"
+        safe_result["coverage_status"] = safe_result.get("coverage_status") or "unknown"
+        safe_result["built_at"] = safe_result.get("built_at")
+        safe_result["message"] = MARKET_REFRESH_UNAVAILABLE_MESSAGE
+        safe_result["reason_code"] = reason_code
+        return safe_result
+
+    return {key: result.get(key) for key in ("status", "data_status", "coverage_status", "built_at", "message")}
+
+
+def _safe_refresh_unavailable(reason_code: str, message: str) -> dict[str, Any]:
+    from services.plvr_market_aggregate_service import safe_market_refresh_reason_code
+
+    return {
+        "status": "unavailable",
+        "data_status": "unavailable",
+        "coverage_status": "unknown",
+        "built_at": None,
+        "message": message,
+        "reason_code": safe_market_refresh_reason_code(reason_code),
+    }

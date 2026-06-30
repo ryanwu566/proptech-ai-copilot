@@ -26,6 +26,23 @@ REFRESH_SUCCESS_MESSAGE = "市場 read model 已完成刷新。"
 REFRESH_UNAVAILABLE_MESSAGE = "市場 read model 暫時無法刷新。"
 
 
+MARKET_REFRESH_REASON_CODES = {
+    "refresh_runtime_not_configured",
+    "valuation_database_unavailable",
+    "read_model_initialization_unavailable",
+    "read_model_refresh_unavailable",
+    "unknown_safe_failure",
+}
+
+
+class MarketReadModelRefreshError(RuntimeError):
+    """Internal refresh failure with a safe public reason code."""
+
+    def __init__(self, reason_code: str) -> None:
+        self.reason_code = safe_market_refresh_reason_code(reason_code)
+        super().__init__(self.reason_code)
+
+
 class MarketReadModelRepository(Protocol):
     """Repository contract for market read model operations."""
 
@@ -102,16 +119,26 @@ class PostgresMarketReadModelRepository:
 
     def refresh(self) -> dict[str, Any]:
         built_at = datetime.now(timezone.utc)
-        with self._connect() as connection:
+        try:
+            connection_context = self._connect()
+        except Exception as exc:
+            raise MarketReadModelRefreshError("valuation_database_unavailable") from exc
+        with connection_context as connection:
             with connection.cursor() as cursor:
                 cursor.execute("set local statement_timeout = '120s'")
-                cursor.execute(READ_MODEL_SCHEMA_SQL)
-                cursor.execute(REFRESH_TEMP_AGGREGATES_SQL, [built_at])
-                cursor.execute(REFRESH_TEMP_METADATA_SQL, [built_at])
-                cursor.execute("delete from market_district_period_aggregates")
-                cursor.execute(REFRESH_INSERT_AGGREGATES_SQL)
-                cursor.execute("delete from market_read_model_metadata")
-                cursor.execute(REFRESH_INSERT_METADATA_SQL)
+                try:
+                    cursor.execute(READ_MODEL_SCHEMA_SQL)
+                except Exception as exc:
+                    raise MarketReadModelRefreshError("read_model_initialization_unavailable") from exc
+                try:
+                    cursor.execute(REFRESH_TEMP_AGGREGATES_SQL, [built_at])
+                    cursor.execute(REFRESH_TEMP_METADATA_SQL, [built_at])
+                    cursor.execute("delete from market_district_period_aggregates")
+                    cursor.execute(REFRESH_INSERT_AGGREGATES_SQL)
+                    cursor.execute("delete from market_read_model_metadata")
+                    cursor.execute(REFRESH_INSERT_METADATA_SQL)
+                except Exception as exc:
+                    raise MarketReadModelRefreshError("read_model_refresh_unavailable") from exc
             connection.commit()
         return self.status()
 
@@ -209,11 +236,13 @@ def refresh_market_read_model(repository: MarketReadModelRepository | None = Non
 
     repo = repository or _repository_from_env()
     if repo is None:
-        return _refresh_unavailable(_missing_status())
+        return _refresh_unavailable(_missing_status(), "valuation_database_unavailable")
     try:
         status = _status_from_raw(repo.refresh())
+    except MarketReadModelRefreshError as exc:
+        return _refresh_unavailable(_unavailable_status(), exc.reason_code)
     except Exception:
-        return _refresh_unavailable(_unavailable_status())
+        return _refresh_unavailable(_unavailable_status(), "read_model_refresh_unavailable")
     if status["read_model_status"] == "ready":
         return {
             "status": "resolved",
@@ -222,7 +251,7 @@ def refresh_market_read_model(repository: MarketReadModelRepository | None = Non
             "built_at": status["built_at"],
             "message": REFRESH_SUCCESS_MESSAGE,
         }
-    return _refresh_unavailable(status)
+    return _refresh_unavailable(status, "read_model_refresh_unavailable")
 
 
 def _repository_from_env() -> MarketReadModelRepository | None:
@@ -342,13 +371,21 @@ def _unavailable_status() -> dict[str, Any]:
     return {**_missing_status(), "read_model_status": "unavailable"}
 
 
-def _refresh_unavailable(status: dict[str, Any]) -> dict[str, Any]:
+def safe_market_refresh_reason_code(reason_code: Any) -> str:
+    """Return an allowlisted public reason code for refresh failures."""
+
+    text = str(reason_code or "").strip()
+    return text if text in MARKET_REFRESH_REASON_CODES else "unknown_safe_failure"
+
+
+def _refresh_unavailable(status: dict[str, Any], reason_code: str = "unknown_safe_failure") -> dict[str, Any]:
     return {
         "status": "unavailable",
         "data_status": status.get("data_status", "unavailable"),
         "coverage_status": status.get("coverage_status", "unknown"),
         "built_at": status.get("built_at"),
         "message": REFRESH_UNAVAILABLE_MESSAGE,
+        "reason_code": safe_market_refresh_reason_code(reason_code),
     }
 
 
