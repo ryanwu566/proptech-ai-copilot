@@ -12,11 +12,29 @@ import type { RiskSummary } from "@/lib/risk-summary";
 import type { ValuationInputs } from "@/lib/valuation-share";
 
 export type PropertyCaseStatus = "completed" | "missing" | "unavailable" | "incomplete";
+export type PropertyDecisionStatus = "draft" | "reviewing" | "shortlisted" | "rejected" | "purchased";
 
 export const PARTIAL_CASE_PRINT_NOTICE = "本案件資料尚未完整，報告僅彙整目前可用資訊。";
 
 export type PropertyCaseDraftInput = {
   caseName?: string;
+  address?: string;
+  propertyType?: string;
+  listingPrice?: number | null;
+  floorAreaPing?: number | null;
+  buildingAgeYears?: number | null;
+  notes?: string;
+  downPayment?: number | null;
+  loanAmount?: number | null;
+  loanYears?: number | null;
+  loanRate?: number | null;
+  estimatedMonthlyPayment?: number | null;
+  userEstimatedValue?: number | null;
+  userEstimatedTaxCost?: number | null;
+  valuationNote?: string;
+  taxNote?: string;
+  decisionStatus?: PropertyDecisionStatus;
+  decisionNote?: string;
   inputs: ValuationInputs;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
@@ -32,6 +50,9 @@ export type PropertyCaseDraftInput = {
 export type PropertyCaseDraft = {
   case_id: string;
   case_name: string;
+  decision_status: PropertyDecisionStatus;
+  decision_note: string;
+  last_reviewed_at: string;
   created_at: string;
   updated_at: string;
   property_input: {
@@ -63,6 +84,12 @@ export type PropertyCaseDraft = {
     other_monthly_debt: number | null;
     estimated_holding_cost: number | null;
   };
+  valuation_tax_input: {
+    user_estimated_value: number | null;
+    user_estimated_tax_cost: number | null;
+    valuation_note: string;
+    tax_note: string;
+  };
   analysis_status: Record<"property" | "location" | "terrain" | "commute" | "valuation" | "loan" | "holding" | "tax" | "decision", PropertyCaseStatus>;
   analysis_summary: string[];
   readiness: {
@@ -76,9 +103,14 @@ export type PropertyCaseDraft = {
 };
 
 export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new Date().toISOString()): PropertyCaseDraft {
-  const address = buildAddress(input.inputs);
+  const address = input.address?.trim() || buildAddress(input.inputs);
   const caseName = input.caseName?.trim() || "";
-  const listingPrice = input.valuation?.price_range.mid ?? input.loan?.property_price_wan ?? input.holding?.property_price_wan ?? null;
+  const listingPrice = finiteNumber(input.listingPrice)
+    ?? finiteNumber(input.userEstimatedValue)
+    ?? input.valuation?.price_range.mid
+    ?? input.loan?.property_price_wan
+    ?? input.holding?.property_price_wan
+    ?? null;
   const locationStatus = input.location ? dataQualityToStatus(input.location.data_quality.status) : "missing";
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
   const commuteStatus: PropertyCaseStatus = "missing";
@@ -115,19 +147,22 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
   return {
     case_id: stableCaseId(caseName, address),
     case_name: caseName,
+    decision_status: input.decisionStatus ?? "draft",
+    decision_note: input.decisionNote?.trim() || "",
+    last_reviewed_at: now,
     created_at: now,
     updated_at: now,
     property_input: {
       address,
       listing_price: listingPrice,
-      building_area: finiteNumber(input.inputs.area_ping),
-      property_type: input.inputs.building_type || "",
-      building_age: finiteNumber(input.inputs.building_age_years),
+      building_area: finiteNumber(input.floorAreaPing) ?? finiteNumber(input.inputs.area_ping),
+      property_type: input.propertyType?.trim() || input.inputs.building_type || "",
+      building_age: finiteNumber(input.buildingAgeYears) ?? finiteNumber(input.inputs.building_age_years),
       floor: finiteNumber(input.inputs.floor),
       total_floors: null,
       parking_type: "",
       parking_price: null,
-      notes: "",
+      notes: input.notes?.trim() || "",
     },
     location_input: {
       address_status: address ? "completed" : "missing",
@@ -137,14 +172,20 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       map_available: Boolean(input.location?.resolved_location),
     },
     financial_input: {
-      down_payment: input.loan?.down_payment_wan ?? null,
-      loan_amount: input.loan?.loan_amount_wan ?? null,
-      loan_years: input.loan?.loan_years ?? null,
-      interest_rate: input.loan?.annual_interest_rate ?? null,
+      down_payment: finiteNumber(input.downPayment) ?? input.loan?.down_payment_wan ?? null,
+      loan_amount: finiteNumber(input.loanAmount) ?? input.loan?.loan_amount_wan ?? null,
+      loan_years: finiteNumber(input.loanYears) ?? input.loan?.loan_years ?? null,
+      interest_rate: finiteNumber(input.loanRate) ?? input.loan?.annual_interest_rate ?? null,
       grace_period_months: input.loan?.grace_period_years ? input.loan.grace_period_years * 12 : null,
       monthly_income: input.loan?.monthly_income_wan ?? input.holding?.input.monthly_income_wan ?? null,
       other_monthly_debt: null,
-      estimated_holding_cost: input.holding?.monthly_total_holding_cost ?? null,
+      estimated_holding_cost: finiteNumber(input.estimatedMonthlyPayment) ?? input.holding?.monthly_total_holding_cost ?? null,
+    },
+    valuation_tax_input: {
+      user_estimated_value: finiteNumber(input.userEstimatedValue),
+      user_estimated_tax_cost: finiteNumber(input.userEstimatedTaxCost),
+      valuation_note: input.valuationNote?.trim() || "",
+      tax_note: input.taxNote?.trim() || "",
     },
     analysis_status: analysisStatus,
     analysis_summary: buildAnalysisSummary(input, analysisStatus),
