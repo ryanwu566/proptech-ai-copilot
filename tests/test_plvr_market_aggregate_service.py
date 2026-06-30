@@ -8,6 +8,7 @@ from typing import Any
 from services.plvr_market_aggregate_service import (
     MARKET_REFRESH_REASON_CODES,
     MarketReadModelRefreshError,
+    MarketReadModelRefreshFailure,
     PostgresMarketReadModelRepository,
     READ_MODEL_CATALOG_SQL,
     READ_MODEL_HISTORY_SQL,
@@ -341,6 +342,18 @@ def test_refresh_reason_code_allowlist_normalizes_unknown_values() -> None:
     assert safe_market_refresh_reason_code("read_model_no_eligible_source_records") == "read_model_no_eligible_source_records"
     assert safe_market_refresh_reason_code("raw_exception") == "unknown_safe_failure"
     assert "unknown_safe_failure" in MARKET_REFRESH_REASON_CODES
+
+
+def test_typed_refresh_failure_is_not_downgraded_to_generic_refresh_failure() -> None:
+    class TypedFailureRepository(FakeReadModelRepository):
+        def refresh(self) -> dict[str, Any]:
+            raise MarketReadModelRefreshFailure("read_model_source_aggregate_unavailable")
+
+    result = refresh_market_read_model(TypedFailureRepository())
+
+    assert result["status"] == "unavailable"
+    assert result["reason_code"] == "read_model_source_aggregate_unavailable"
+    assert result["reason_code"] != "read_model_refresh_unavailable"
 
 
 def test_datetime_status_is_serialized_safely() -> None:
