@@ -145,6 +145,65 @@ def test_market_query_accepts_county_alias_and_returns_history(monkeypatch) -> N
     assert "raw_error" not in payload
 
 
+def test_market_query_allows_county_only_direct_query(monkeypatch) -> None:
+    from services import market_insight_service
+
+    seen: dict[str, str | None] = {}
+
+    def fake_summary(city: str, district: str = "", period: str | None = None):
+        seen.update({"city": city, "district": district, "period": period})
+        return {
+            "city": city,
+            "county": city,
+            "district": district,
+            "period": "2025-02",
+            "average_unit_price": 70.0,
+            "avg_price_per_ping": 70.0,
+            "transaction_count": 5,
+            "transaction_volume": 5,
+            "record_count": 5,
+            "history": [{"period": "2025-02", "average_unit_price": 70.0, "transaction_count": 5}],
+            "summary": "direct aggregate ready",
+            "source_name": "Official PLVR OpenData aggregate",
+            "source_updated_at": "2025-03-05",
+            "coverage_status": "partial",
+            "data_status": "available",
+            "caveat": "market caveat",
+            "disclaimer": "market caveat",
+        }
+
+    monkeypatch.setattr(market_insight_service, "get_market_summary", fake_summary)
+
+    response = client.post("/market-insights/query", json={"county": "Demo County"})
+
+    assert response.status_code == 200
+    assert seen == {"city": "Demo County", "district": "", "period": None}
+    payload = response.json()
+    assert payload["data_status"] == "available"
+    assert payload["district"] == ""
+    assert "real_price_transactions" not in str(payload)
+
+
+def test_market_query_blank_county_returns_safe_unavailable(monkeypatch) -> None:
+    from services import market_insight_service
+
+    called = {"summary": False}
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_summary",
+        lambda *_args, **_kwargs: called.update(summary=True),
+    )
+
+    response = client.post("/market-insights/query", json={"county": "   ", "district": "North"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert called == {"summary": False}
+    assert payload["data_status"] == "unavailable"
+    assert payload["average_unit_price"] is None
+    assert "raw_error" not in payload
+
+
 def test_refresh_requires_configured_token_before_db_work(monkeypatch) -> None:
     from services import market_insight_service
 

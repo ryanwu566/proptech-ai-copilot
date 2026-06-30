@@ -7,6 +7,12 @@ from typing import Any
 
 from services.plvr_market_aggregate_service import (
     MARKET_REFRESH_REASON_CODES,
+    DIRECT_HISTORY_COUNTY_SQL,
+    DIRECT_HISTORY_DISTRICT_SQL,
+    DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL,
+    DIRECT_SUMMARY_COUNTY_LATEST_SQL,
+    DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL,
+    DIRECT_SUMMARY_DISTRICT_LATEST_SQL,
     MarketReadModelRefreshError,
     MarketReadModelRefreshFailure,
     PostgresMarketReadModelRepository,
@@ -179,8 +185,18 @@ class PhaseRefreshRepository(PostgresMarketReadModelRepository):
         return PhaseRefreshConnection(failure=self.failure, aggregate_count=self.aggregate_count)
 
 
-def test_read_only_sql_uses_read_model_tables_only() -> None:
-    read_sql = "\n".join(
+def test_direct_query_sql_uses_only_plvr_transaction_table() -> None:
+    direct_query_sql = "\n".join(
+        [
+            DIRECT_SUMMARY_COUNTY_LATEST_SQL,
+            DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL,
+            DIRECT_SUMMARY_DISTRICT_LATEST_SQL,
+            DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL,
+            DIRECT_HISTORY_COUNTY_SQL,
+            DIRECT_HISTORY_DISTRICT_SQL,
+        ]
+    )
+    read_model_sql = "\n".join(
         [
             READ_MODEL_STATUS_SQL,
             READ_MODEL_CATALOG_SQL,
@@ -191,9 +207,11 @@ def test_read_only_sql_uses_read_model_tables_only() -> None:
         ]
     )
 
-    assert "market_district_period_aggregates" in read_sql
-    assert "market_read_model_metadata" in read_sql
-    assert "real_price_transactions" not in read_sql
+    assert "real_price_transactions" in direct_query_sql
+    assert "market_district_period_aggregates" not in direct_query_sql
+    assert "market_read_model_metadata" not in direct_query_sql
+    assert "market_district_period_aggregates" in read_model_sql
+    assert "market_read_model_metadata" in read_model_sql
     assert "real_price_transactions" in REFRESH_TEMP_AGGREGATES_SQL
 
 
@@ -220,7 +238,9 @@ def test_regions_filter_by_county() -> None:
 
 
 def test_query_without_period_uses_latest_and_returns_history_without_interpolation() -> None:
-    result = get_market_summary("Demo County", "North", repository=FakeReadModelRepository())
+    repo = FakeReadModelRepository()
+
+    result = get_market_summary("Demo County", "North", repository=repo)
 
     assert result["data_status"] == "available"
     assert result["period"] == "2025-07"
@@ -234,6 +254,21 @@ def test_query_without_period_uses_latest_and_returns_history_without_interpolat
         "2025-01",
         "2024-12",
     ]
+    assert "status" not in repo.calls
+    assert "refresh" not in repo.calls
+
+
+def test_county_only_query_uses_direct_aggregate_without_district() -> None:
+    repo = FakeReadModelRepository()
+
+    result = get_market_summary("Demo County", repository=repo)
+
+    assert result["data_status"] == "available"
+    assert result["city"] == "Demo County"
+    assert result["district"] == ""
+    assert "summary:latest" in repo.calls
+    assert "history:6" in repo.calls
+    assert "status" not in repo.calls
 
 
 def test_query_for_period_passes_requested_period() -> None:

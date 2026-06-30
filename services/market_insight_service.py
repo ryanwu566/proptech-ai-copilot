@@ -1,7 +1,7 @@
 """Market Insight service backed by traceable PLVR aggregate queries.
 
 Bundled mock CSV data is not used by the production Market Insight API.
-When no read-only PLVR aggregate is available, the service returns conservative
+When no read-only PLVR direct aggregate is available, the service returns conservative
 ``unavailable`` responses instead of demo metrics.
 """
 
@@ -36,8 +36,8 @@ def list_market_regions(county: str = "") -> dict[str, Any]:
     return _list_market_regions(county=county)
 
 
-def get_market_summary(city: str, district: str, period: str | None = None) -> dict[str, Any]:
-    """Return a market summary or a safe unavailable response."""
+def get_market_summary(city: str, district: str = "", period: str | None = None) -> dict[str, Any]:
+    """Return a direct market summary or a safe unavailable response."""
 
     return _get_market_summary(county=city, district=district, period=period)
 
