@@ -162,7 +162,10 @@ class PostgresMarketReadModelRepository:
                 connection.commit()
             except Exception as exc:
                 raise MarketReadModelRefreshError("read_model_write_unavailable") from exc
-        return self.status()
+        try:
+            return self.status()
+        except Exception as exc:
+            raise MarketReadModelRefreshError("read_model_refresh_unavailable") from exc
 
     def _connect(self):
         import psycopg

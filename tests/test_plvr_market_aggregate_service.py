@@ -139,6 +139,8 @@ class PhaseRefreshCursor:
         if sql in {"delete from market_read_model_metadata", REFRESH_INSERT_METADATA_SQL} and self.failure == "metadata_write":
             raise RuntimeError("metadata write detail must not leak")
         if sql == READ_MODEL_STATUS_SQL:
+            if self.failure == "finalization":
+                raise RuntimeError("finalization detail must not leak")
             self.row = FakeReadModelRepository().status()
 
     def fetchone(self) -> dict[str, Any] | None:
@@ -313,6 +315,7 @@ def test_postgres_refresh_phase_failures_have_safe_reason_codes() -> None:
         "write": "read_model_write_unavailable",
         "metadata_write": "read_model_metadata_unavailable",
         "commit": "read_model_write_unavailable",
+        "finalization": "read_model_refresh_unavailable",
     }
 
     for failure, reason in cases.items():
