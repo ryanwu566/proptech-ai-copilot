@@ -16,9 +16,9 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 MARKET_AGGREGATE_PATH = BASE_DIR / "data" / "market" / "market_insight_aggregate.json"
 
 DATA_STATUS_VALUES = ("available", "no_data", "unavailable", "incomplete", "invalid")
-COVERAGE_STATUS_VALUES = ("nationwide", "partial", "unknown")
+COVERAGE_STATUS_VALUES = ("covered", "not_covered", "coverage_unknown", "nationwide", "partial", "unknown")
 MarketDataStatus = Literal["available", "no_data", "unavailable", "incomplete", "invalid"]
-MarketCoverageStatus = Literal["nationwide", "partial", "unknown"]
+MarketCoverageStatus = Literal["covered", "not_covered", "coverage_unknown", "nationwide", "partial", "unknown"]
 
 MARKET_DATA_CAVEAT = (
     "市場資料僅供區域行情背景參考；資料不足、尚未匯入或暫時不可用時，不代表價格較低、"
@@ -51,7 +51,7 @@ def market_unavailable_response(city: str = "", district: str = "") -> dict[str,
         "summary": UNAVAILABLE_SUMMARY,
         "source_name": None,
         "source_updated_at": None,
-        "coverage_status": "unknown",
+        "coverage_status": "coverage_unknown",
         "data_status": "unavailable",
         "caveat": MARKET_DATA_CAVEAT,
         "disclaimer": MARKET_DATA_CAVEAT,
@@ -67,7 +67,7 @@ def market_catalog_unavailable() -> dict[str, Any]:
     return {
         "regions": [],
         "data_status": "unavailable",
-        "coverage_status": "unknown",
+        "coverage_status": "coverage_unknown",
         "source_name": None,
         "source_updated_at": None,
         "caveat": MARKET_DATA_CAVEAT,

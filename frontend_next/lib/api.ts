@@ -60,7 +60,7 @@ export type MarketResult = {
   summary: string;
   source_name: string | null;
   source_updated_at: string | null;
-  coverage_status: "nationwide" | "partial" | "unknown";
+  coverage_status: "covered" | "not_covered" | "coverage_unknown" | "nationwide" | "partial" | "unknown";
   data_status: "available" | "no_data" | "unavailable" | "incomplete" | "invalid";
   caveat: string;
   disclaimer: string;
@@ -248,8 +248,8 @@ export const api = {
   marketCatalog: () => request<MarketRegionCatalog>("/market-insights/catalog"),
   marketRegions: (county?: string) =>
     request<MarketRegionCatalog>(`/market-insights/regions${county ? `?county=${encodeURIComponent(county)}` : ""}`),
-  marketInsight: (county: string, district?: string, period?: string | null) =>
-    request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ county, district, period }) }),
+  marketInsight: (county: string, district?: string, period?: string | null, signal?: AbortSignal) =>
+    request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ county, district, period }), signal }),
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
   mapGoogleHealth: () => request<GoogleHealth>("/map/google-health"),

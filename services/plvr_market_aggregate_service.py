@@ -14,6 +14,7 @@ from datetime import date, datetime, timezone
 from typing import Any, Protocol
 
 from services.market_data_foundation import MARKET_DATA_CAVEAT, market_unavailable_response
+from services.taiwan_admin_registry import normalize_market_region
 
 
 OFFICIAL_PLVR_SOURCE = "official_plvr_opendata"
@@ -68,6 +69,9 @@ class MarketReadModelRepository(Protocol):
 
     def history(self, county: str, district: str, limit: int = 6) -> list[dict[str, Any]]:
         """Return recent real aggregate periods for chart/table display."""
+
+    def coverage(self, county: str, district: str) -> dict[str, Any]:
+        """Return bounded region coverage metadata for direct queries."""
 
     def refresh(self) -> dict[str, Any]:
         """Rebuild read model tables from official PLVR transaction rows."""
@@ -131,6 +135,24 @@ class PostgresMarketReadModelRepository:
                 else:
                     cursor.execute(DIRECT_HISTORY_COUNTY_SQL, [normalized_county, clean_limit])
                 return [dict(row) for row in cursor.fetchall()]
+
+    def coverage(self, county: str, district: str) -> dict[str, Any]:
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                _set_read_only(cursor)
+                normalized_county = _normalize_county(county)
+                clean_district = district.strip()
+                if clean_district:
+                    cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [normalized_county, clean_district])
+                else:
+                    cursor.execute(DIRECT_COVERAGE_COUNTY_SQL, [normalized_county])
+                row = dict(cursor.fetchone() or {})
+                valid_count = _int_value(row.get("valid_market_candidate_count"))
+                return {
+                    "coverage_status": "covered" if valid_count > 0 else "coverage_unknown",
+                    "valid_market_candidate_count": valid_count,
+                    "source_updated_at": _date_text(row.get("source_updated_at")),
+                }
 
     def refresh(self) -> dict[str, Any]:
         built_at = datetime.now(timezone.utc)
@@ -238,18 +260,22 @@ def get_market_summary(
     """Return one direct county/district aggregate and recent real history."""
 
     repo = repository or _repository_from_env()
-    county = county.strip()
-    district = district.strip()
-    if repo is None or not county:
-        return _unavailable_summary(county, district, _direct_query_status())
+    normalized = normalize_market_region(county, district)
+    county = normalized.county
+    district = normalized.district
+    if repo is None or not normalized.valid:
+        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
     try:
+        coverage = _coverage_for_region(repo, county, district)
+        if coverage["coverage_status"] != "covered":
+            return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status=coverage["coverage_status"], source_updated_at=coverage.get("source_updated_at")))
         row = repo.summary(county, district, period)
         history = repo.history(county, district, limit=6) if row else []
     except Exception:
-        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable"))
+        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
     if not row:
-        return _no_data_summary(county, district, _direct_query_status(data_status="no_data"))
-    return _summary_from_row(row, history, _direct_query_status())
+        return _no_data_summary(county, district, _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
+    return _summary_from_row(row, history, _direct_query_status(coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
 
 
 def refresh_market_read_model(repository: MarketReadModelRepository | None = None) -> dict[str, Any]:
@@ -310,7 +336,7 @@ def _status_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
 
 def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], status: dict[str, Any]) -> dict[str, Any]:
     data_status = _data_status(row.get("data_status"))
-    coverage_status = _coverage_status(row.get("coverage_status") or status.get("coverage_status"))
+    coverage_status = _direct_coverage_status(row.get("coverage_status") or status.get("coverage_status"))
     county = _optional_text(row.get("county")) or ""
     district = _optional_text(row.get("district")) or ""
     if data_status != "available":
@@ -410,12 +436,27 @@ def _unavailable_status() -> dict[str, Any]:
     return {**_missing_status(), "read_model_status": "unavailable"}
 
 
-def _direct_query_status(data_status: str = "available") -> dict[str, Any]:
+def _coverage_for_region(repo: MarketReadModelRepository, county: str, district: str) -> dict[str, Any]:
+    raw = repo.coverage(county, district)
+    coverage_status = _direct_coverage_status(raw.get("coverage_status"))
+    return {
+        "coverage_status": coverage_status,
+        "source_updated_at": _date_text(raw.get("source_updated_at")),
+        "valid_market_candidate_count": _int_value(raw.get("valid_market_candidate_count")),
+    }
+
+
+def _direct_query_status(
+    data_status: str = "available",
+    *,
+    coverage_status: str = "covered",
+    source_updated_at: str | None = None,
+) -> dict[str, Any]:
     return {
         "data_status": _data_status(data_status),
-        "coverage_status": "partial",
+        "coverage_status": _direct_coverage_status(coverage_status),
         "source_name": PLVR_MARKET_SOURCE_NAME,
-        "source_updated_at": None,
+        "source_updated_at": source_updated_at,
         "caveat": PLVR_MARKET_CAVEAT,
     }
 
@@ -498,7 +539,16 @@ def _data_status(value: Any) -> str:
 
 def _coverage_status(value: Any) -> str:
     text = str(value or "").strip()
-    return text if text in {"nationwide", "partial", "unknown"} else "unknown"
+    return text if text in {"covered", "not_covered", "coverage_unknown", "nationwide", "partial", "unknown"} else "coverage_unknown"
+
+
+def _direct_coverage_status(value: Any) -> str:
+    text = str(value or "").strip()
+    if text in {"covered", "not_covered", "coverage_unknown"}:
+        return text
+    if text in {"nationwide", "partial"}:
+        return "covered"
+    return "coverage_unknown"
 
 
 READ_MODEL_SCHEMA_SQL = """
@@ -674,6 +724,25 @@ DIRECT_HISTORY_DISTRICT_SQL = _DIRECT_HISTORY_SELECT.format(
 )
 
 DIRECT_HISTORY_COUNTY_SQL = _DIRECT_HISTORY_SELECT.format(
+    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    district_filter="",
+)
+
+_DIRECT_COVERAGE_SELECT = """
+select count(*)::integer as valid_market_candidate_count,
+       max(transaction_date)::date as source_updated_at
+from real_price_transactions
+where {valid_where}
+  and replace(trim(city), '臺', '台') = %s
+  {district_filter}
+"""
+
+DIRECT_COVERAGE_DISTRICT_SQL = _DIRECT_COVERAGE_SELECT.format(
+    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    district_filter="and trim(district) = %s",
+)
+
+DIRECT_COVERAGE_COUNTY_SQL = _DIRECT_COVERAGE_SELECT.format(
     valid_where=_VALID_PLVR_WHERE_FORMAT,
     district_filter="",
 )

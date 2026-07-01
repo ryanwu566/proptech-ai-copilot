@@ -27,7 +27,11 @@ def test_market_insight_queries_only_on_button_click_without_catalog_scan() -> N
     assert "onClick={query}" in component
     assert "useEffect" not in component
     assert "api.marketInsight(first.city" not in component
-    assert "api.marketInsight(canonicalCounty, canonicalDistrict || undefined)" in component
+    assert "api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal)" in component
+    assert "AbortController" in component
+    assert "marketQuerySeq.current === queryId" in component
+    assert "if (querying) return" in component
+    assert "setTimeout(() => controller.abort(), 12000)" in component
 
 
 def test_market_insight_has_canonical_county_and_dependent_district_selectors() -> None:
@@ -40,6 +44,7 @@ def test_market_insight_has_canonical_county_and_dependent_district_selectors() 
     assert "<select value={canonicalDistrict}" in component
     assert "disabled={!canonicalCounty}" in component
     assert "setDistrict(\"\")" in component
+    assert "marketQuerySeq.current += 1" in component
     assert 'setError("請先選擇縣市，再查詢市場資料。")' in component
 
 
@@ -70,6 +75,7 @@ def test_market_insight_adds_no_browser_storage_or_url_state() -> None:
 def test_market_api_contract_has_direct_query_endpoint_and_history() -> None:
     assert "/market-insights/query" in API
     assert "marketInsight: (county: string, district?: string" in API
+    assert "signal?: AbortSignal" in API
     assert "history:" in API
     assert "livability_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]
     assert "esg_lite_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]

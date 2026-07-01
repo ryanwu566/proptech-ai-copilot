@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { HelpCallout } from "@/components/help-callout";
@@ -264,6 +264,7 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   const [result, setResult] = useState<MarketResult>();
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState("");
+  const marketQuerySeq = useRef(0);
   const canonicalCounty = normalizeTaiwanCounty(county);
   const districtOptions = getDistrictsForCounty(canonicalCounty);
   const canonicalDistrict = normalizeTaiwanDistrict(canonicalCounty, district);
@@ -271,24 +272,53 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   const noDataResult = result?.data_status === "no_data";
 
   async function query() {
+    if (querying) return;
     if (!canonicalCounty) {
       setError("請先選擇縣市，再查詢市場資料。");
       setResult(undefined);
       return;
     }
+    const queryId = marketQuerySeq.current + 1;
+    marketQuerySeq.current = queryId;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12000);
     setQuerying(true);
     setError("");
     setResult(undefined);
     try {
-      setResult(await api.marketInsight(canonicalCounty, canonicalDistrict || undefined));
+      const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal);
+      if (marketQuerySeq.current === queryId) setResult(nextResult);
     } catch (e) {
-      setError((e as Error).message);
+      if (marketQuerySeq.current === queryId) {
+        setResult({
+          city: canonicalCounty,
+          county: canonicalCounty,
+          district: canonicalDistrict,
+          period: null,
+          average_unit_price: null,
+          avg_price_per_ping: null,
+          transaction_count: null,
+          transaction_volume: null,
+          record_count: null,
+          summary: "市場資料目前無法判定，請稍後再試。",
+          source_name: null,
+          source_updated_at: null,
+          coverage_status: "coverage_unknown",
+          data_status: "unavailable",
+          caveat: "市場資料目前無法判定，請稍後再試。",
+          disclaimer: "市場資料目前無法判定，請稍後再試。",
+          history: [],
+        });
+        setError((e as Error).name === "AbortError" ? "" : (e as Error).message);
+      }
     } finally {
-      setQuerying(false);
+      window.clearTimeout(timeout);
+      if (marketQuerySeq.current === queryId) setQuerying(false);
     }
   }
 
   function updateCounty(value: string) {
+    marketQuerySeq.current += 1;
     setCounty(normalizeTaiwanCounty(value));
     setDistrict("");
     setResult(undefined);
@@ -296,6 +326,7 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   }
 
   function updateDistrict(value: string) {
+    marketQuerySeq.current += 1;
     setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
     setResult(undefined);
     setError("");

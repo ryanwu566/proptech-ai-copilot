@@ -24,6 +24,7 @@ REQUIRED_COLUMNS = {
     "unit_price_per_ping",
 }
 DEFAULT_OUTPUT = Path("data/market/market_insight_aggregate.json")
+VALID_COVERAGE_STATUSES = {"covered", "not_covered", "coverage_unknown", "partial", "nationwide", "unknown"}
 
 
 def build_market_aggregate(
@@ -32,9 +33,12 @@ def build_market_aggregate(
     source_name: str,
     source_updated_at: str,
     coverage_status: str,
+    coverage_manifest: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Aggregate local transaction rows into the Market Insight contract."""
 
+    if coverage_status not in VALID_COVERAGE_STATUSES:
+        raise ValueError("Invalid coverage_status.")
     rows = _read_rows(input_path)
     grouped: dict[tuple[str, str, str], list[float]] = defaultdict(list)
     for row in rows:
@@ -79,6 +83,7 @@ def build_market_aggregate(
         "aggregation_method": "mean_unit_price_per_ping_by_county_district_period",
         "record_count": len(rows),
         "generated_at": datetime.now(UTC).isoformat(),
+        "coverage_manifest": _safe_coverage_manifest(coverage_manifest),
         "regions": regions,
     }
 
@@ -89,15 +94,18 @@ def main() -> int:
     parser.add_argument("--output", default=DEFAULT_OUTPUT, type=Path)
     parser.add_argument("--source-name", required=True)
     parser.add_argument("--source-updated-at", required=True)
-    parser.add_argument("--coverage-status", choices=["nationwide", "partial", "unknown"], default="unknown")
+    parser.add_argument("--coverage-status", choices=sorted(VALID_COVERAGE_STATUSES), default="coverage_unknown")
+    parser.add_argument("--coverage-manifest", type=Path)
     parser.add_argument("--write", action="store_true", help="Write the aggregate artifact. Omit for dry-run.")
     args = parser.parse_args()
 
+    coverage_manifest = _read_coverage_manifest(args.coverage_manifest) if args.coverage_manifest else None
     aggregate = build_market_aggregate(
         args.input,
         source_name=args.source_name,
         source_updated_at=args.source_updated_at,
         coverage_status=args.coverage_status,
+        coverage_manifest=coverage_manifest,
     )
     result = "success" if aggregate["regions"] else "failed"
     print(f"IMPORT_RESULT={result}")
@@ -134,6 +142,28 @@ def _sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _read_coverage_manifest(path: Path) -> dict[str, Any]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("Coverage manifest must be a JSON object.")
+    return payload
+
+
+def _safe_coverage_manifest(payload: dict[str, Any] | None) -> dict[str, int | str] | None:
+    if not payload:
+        return None
+    status = str(payload.get("coverage_status") or payload.get("status") or "coverage_unknown").strip()
+    if status not in VALID_COVERAGE_STATUSES:
+        status = "coverage_unknown"
+    covered = payload.get("covered_regions")
+    unknown = payload.get("unknown_regions")
+    return {
+        "coverage_status": status,
+        "covered_region_count": len(covered) if isinstance(covered, list) else 0,
+        "unknown_region_count": len(unknown) if isinstance(unknown, list) else 0,
+    }
 
 
 if __name__ == "__main__":
