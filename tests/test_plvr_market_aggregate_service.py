@@ -38,6 +38,7 @@ from services.plvr_market_aggregate_service import (
     audit_market_coverage,
     bootstrap_market_coverage_metadata,
     reconcile_market_coverage,
+    safe_market_coverage_bootstrap_reason_code,
     safe_market_refresh_reason_code,
 )
 
@@ -552,7 +553,10 @@ def test_coverage_reconcile_preserves_safe_counts_and_status() -> None:
 
 
 def test_coverage_operations_fail_safely_without_raw_details() -> None:
-    assert bootstrap_market_coverage_metadata(CoverageOperationsRepository(fail="bootstrap"))["status"] == "unavailable"
+    bootstrap = bootstrap_market_coverage_metadata(CoverageOperationsRepository(fail="bootstrap"))
+    assert bootstrap["status"] == "unavailable"
+    assert bootstrap["reason_code"] == "coverage_bootstrap_unknown_safe_failure"
+    assert "schema detail" not in str(bootstrap)
 
     reconcile = reconcile_market_coverage("Demo County", CoverageOperationsRepository(fail="reconcile"))
     assert reconcile["status"] == "unavailable"
@@ -573,3 +577,15 @@ def test_coverage_audit_returns_only_canonical_aggregate_counts() -> None:
     assert result["covered_region_count"] == 2
     assert "database_url" not in str(result)
     assert "real_price_transactions" not in str(result)
+
+
+def test_coverage_bootstrap_reason_code_allowlist_normalizes_unknown_values() -> None:
+    assert (
+        safe_market_coverage_bootstrap_reason_code("coverage_bootstrap_migration_unavailable")
+        == "coverage_bootstrap_migration_unavailable"
+    )
+    assert (
+        safe_market_coverage_bootstrap_reason_code("coverage_bootstrap_runtime_unavailable")
+        == "coverage_bootstrap_runtime_unavailable"
+    )
+    assert safe_market_coverage_bootstrap_reason_code("raw_exception") == "coverage_bootstrap_unknown_safe_failure"

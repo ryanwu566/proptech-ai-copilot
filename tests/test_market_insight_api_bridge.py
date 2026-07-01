@@ -424,6 +424,14 @@ def test_market_coverage_operator_routes_require_existing_token(monkeypatch) -> 
     assert "reason_code" not in response.json()
 
 
+def test_market_coverage_operator_routes_are_mounted() -> None:
+    route_paths = {getattr(route, "path", "") for route in app.routes}
+
+    assert "/market-insights/coverage/bootstrap" in route_paths
+    assert "/market-insights/coverage/reconcile" in route_paths
+    assert "/market-insights/coverage/audit" in route_paths
+
+
 def test_market_coverage_bootstrap_returns_safe_fields(monkeypatch) -> None:
     from services import plvr_market_aggregate_service
 
@@ -453,6 +461,36 @@ def test_market_coverage_bootstrap_returns_safe_fields(monkeypatch) -> None:
         "migration_status": "applied_or_already_present",
         "message": "Market coverage metadata is ready.",
     }
+    assert "must not leak" not in str(payload)
+
+
+def test_market_coverage_bootstrap_failure_returns_safe_reason(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "bootstrap_market_coverage_metadata",
+        lambda: {
+            "status": "unavailable",
+            "operation": "bootstrap",
+            "migration_status": "unavailable",
+            "message": "safe unavailable",
+            "reason_code": "coverage_bootstrap_migration_unavailable",
+            "database_url": "must not leak",
+        },
+    )
+
+    response = client.post(
+        "/market-insights/coverage/bootstrap",
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload["reason_code"] == "coverage_bootstrap_migration_unavailable"
+    assert set(payload) == {"status", "operation", "migration_status", "message", "reason_code"}
+    assert "database_url" not in payload
     assert "must not leak" not in str(payload)
 
 

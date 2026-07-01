@@ -40,6 +40,13 @@ MARKET_REFRESH_REASON_CODES = {
     "unknown_safe_failure",
 }
 
+COVERAGE_BOOTSTRAP_REASON_CODES = {
+    "coverage_bootstrap_route_unavailable",
+    "coverage_bootstrap_migration_unavailable",
+    "coverage_bootstrap_runtime_unavailable",
+    "coverage_bootstrap_unknown_safe_failure",
+}
+
 
 class MarketReadModelRefreshFailure(RuntimeError):
     """Internal refresh failure with a safe public reason code."""
@@ -50,6 +57,14 @@ class MarketReadModelRefreshFailure(RuntimeError):
 
 
 MarketReadModelRefreshError = MarketReadModelRefreshFailure
+
+
+class MarketCoverageBootstrapFailure(RuntimeError):
+    """Internal bootstrap failure with a safe public reason code."""
+
+    def __init__(self, reason_code: str) -> None:
+        self.reason_code = safe_market_coverage_bootstrap_reason_code(reason_code)
+        super().__init__(self.reason_code)
 
 
 class MarketReadModelRepository(Protocol):
@@ -198,11 +213,22 @@ class PostgresMarketReadModelRepository:
         return _run_refresh_phase("read_model_refresh_unavailable", self.status)
 
     def bootstrap_coverage_metadata(self) -> dict[str, Any]:
-        with self._connect() as connection:
+        connection_context = _run_bootstrap_phase("coverage_bootstrap_runtime_unavailable", self._connect)
+        with connection_context as connection:
             with connection.cursor() as cursor:
-                cursor.execute("set local statement_timeout = '60s'")
-                cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL)
-            connection.commit()
+                _run_bootstrap_phase(
+                    "coverage_bootstrap_migration_unavailable",
+                    lambda: cursor.execute("set local statement_timeout = '60s'"),
+                )
+                _run_bootstrap_phase(
+                    "coverage_bootstrap_migration_unavailable",
+                    lambda: cursor.execute(MARKET_DIRECT_QUERY_INDEX_SCHEMA_SQL),
+                )
+                _run_bootstrap_phase(
+                    "coverage_bootstrap_migration_unavailable",
+                    lambda: cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL),
+                )
+            _run_bootstrap_phase("coverage_bootstrap_migration_unavailable", connection.commit)
         return {"migration_status": "applied_or_already_present"}
 
     def reconcile_coverage(self, county: str) -> dict[str, Any]:
@@ -381,15 +407,25 @@ def bootstrap_market_coverage_metadata(repository: Any | None = None) -> dict[st
             "operation": "bootstrap",
             "migration_status": "unavailable",
             "message": "Market coverage metadata is temporarily unavailable.",
+            "reason_code": "coverage_bootstrap_runtime_unavailable",
         }
     try:
         raw = repo.bootstrap_coverage_metadata()
+    except MarketCoverageBootstrapFailure as exc:
+        return {
+            "status": "unavailable",
+            "operation": "bootstrap",
+            "migration_status": "unavailable",
+            "message": "Market coverage metadata is temporarily unavailable.",
+            "reason_code": exc.reason_code,
+        }
     except Exception:
         return {
             "status": "unavailable",
             "operation": "bootstrap",
             "migration_status": "unavailable",
             "message": "Market coverage metadata is temporarily unavailable.",
+            "reason_code": "coverage_bootstrap_unknown_safe_failure",
         }
     migration_status = _optional_text(raw.get("migration_status")) or "applied_or_already_present"
     return {
@@ -683,6 +719,13 @@ def safe_market_refresh_reason_code(reason_code: Any) -> str:
     return text if text in MARKET_REFRESH_REASON_CODES else "unknown_safe_failure"
 
 
+def safe_market_coverage_bootstrap_reason_code(reason_code: Any) -> str:
+    """Return an allowlisted public reason code for bootstrap failures."""
+
+    text = str(reason_code or "").strip()
+    return text if text in COVERAGE_BOOTSTRAP_REASON_CODES else "coverage_bootstrap_unknown_safe_failure"
+
+
 def _run_refresh_phase(reason_code: str, operation: Any) -> Any:
     try:
         return operation()
@@ -690,6 +733,15 @@ def _run_refresh_phase(reason_code: str, operation: Any) -> Any:
         raise
     except Exception as exc:
         raise MarketReadModelRefreshFailure(reason_code) from exc
+
+
+def _run_bootstrap_phase(reason_code: str, operation: Any) -> Any:
+    try:
+        return operation()
+    except MarketCoverageBootstrapFailure:
+        raise
+    except Exception as exc:
+        raise MarketCoverageBootstrapFailure(reason_code) from exc
 
 
 def _refresh_unavailable(status: dict[str, Any], reason_code: str = "unknown_safe_failure") -> dict[str, Any]:
@@ -818,6 +870,19 @@ where replace(trim(county), '臺', '台') = %s
 MARKET_COVERAGE_METADATA_AUDIT_SQL = """
 select county, district, coverage_status
 from market_region_coverage
+"""
+
+MARKET_DIRECT_QUERY_INDEX_SCHEMA_SQL = """
+create index if not exists idx_market_direct_query_county_period
+    on real_price_transactions (city, transaction_period desc)
+    where source = 'official_plvr_opendata'
+      and unit_price_per_ping > 0
+      and area_ping > 0;
+create index if not exists idx_market_direct_query_county_district_period
+    on real_price_transactions (city, district, transaction_period desc)
+    where source = 'official_plvr_opendata'
+      and unit_price_per_ping > 0
+      and area_ping > 0;
 """
 
 

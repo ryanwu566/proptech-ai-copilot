@@ -149,6 +149,9 @@ def post_market_coverage_bootstrap(
     }
     if safe_result["status"] != "resolved":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        from services.plvr_market_aggregate_service import safe_market_coverage_bootstrap_reason_code
+
+        safe_result["reason_code"] = safe_market_coverage_bootstrap_reason_code(result.get("reason_code"))
     return safe_result
 
 
