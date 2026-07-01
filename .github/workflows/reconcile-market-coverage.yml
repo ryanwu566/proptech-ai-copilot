@@ -87,7 +87,33 @@ jobs:
           echo "MARKET_COVERAGE_BOOTSTRAP_REASON=none"
 
           counties_file="$temp_dir/counties.txt"
-          python -c "import json; data=json.load(open('data/taiwan-admin-areas.json', encoding='utf-8')); [print(str(area.get('county') or '').strip()) for area in data.get('areas', []) if str(area.get('county') or '').strip()]" > "$counties_file"
+          registry_helper="$GITHUB_WORKSPACE/scripts/list_market_coverage_counties.py"
+          if [ ! -f "$registry_helper" ]; then
+            echo "MARKET_COVERAGE_REGISTRY=failed"
+            echo "MARKET_COVERAGE_REGISTRY_REASON=canonical_registry_unavailable"
+            echo "MARKET_COVERAGE_RECONCILE_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
+            echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
+            echo "EXPECTED_REGION_COUNT=not_run"
+            echo "COVERED_REGION_COUNT=not_run"
+            echo "MISSING_REGION_COUNT=not_run"
+            echo "UNKNOWN_REGION_COUNT=not_run"
+            exit 1
+          fi
+          if ! python "$registry_helper" > "$counties_file" 2> "$temp_dir/registry.err"; then
+            echo "MARKET_COVERAGE_REGISTRY=failed"
+            echo "MARKET_COVERAGE_REGISTRY_REASON=canonical_registry_unavailable"
+            echo "MARKET_COVERAGE_RECONCILE_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
+            echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
+            echo "EXPECTED_REGION_COUNT=not_run"
+            echo "COVERED_REGION_COUNT=not_run"
+            echo "MISSING_REGION_COUNT=not_run"
+            echo "UNKNOWN_REGION_COUNT=not_run"
+            exit 1
+          fi
+          echo "MARKET_COVERAGE_REGISTRY=success"
+          echo "MARKET_COVERAGE_REGISTRY_REASON=none"
 
           reconciled_count=0
           while IFS= read -r county; do
