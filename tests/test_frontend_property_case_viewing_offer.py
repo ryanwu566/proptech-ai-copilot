@@ -178,6 +178,7 @@ function load(path, extraRequire = {}) {
 const due = load('frontend_next/lib/property-case-due-diligence.ts');
 const financials = load('frontend_next/lib/property-case-financials.ts');
 const viewingOffer = load('frontend_next/lib/property-case-viewing-offer.ts', { '@/lib/property-case-financials': financials });
+const timeline = load('frontend_next/lib/property-case-timeline.ts');
 const caseSource = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8');
 const caseJs = ts.transpileModule(caseSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
 const sandbox = {
@@ -185,6 +186,7 @@ const sandbox = {
   require: (name) => {
     if (name === '@/lib/property-case-due-diligence') return due;
     if (name === '@/lib/property-case-viewing-offer') return viewingOffer;
+    if (name === '@/lib/property-case-timeline') return timeline;
     return require(name);
   }
 };

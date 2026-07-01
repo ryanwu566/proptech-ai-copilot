@@ -150,14 +150,21 @@ const viewingJs = ts.transpileModule(viewingSource, { compilerOptions: { module:
 const viewingSandbox = { console, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {}, require: (name) => name === '@/lib/property-case-financials' ? financialSandbox.exports : require(name) };
 vm.createContext(viewingSandbox);
 vm.runInContext(viewingJs, viewingSandbox);
+const timelineSource = fs.readFileSync('frontend_next/lib/property-case-timeline.ts', 'utf8')
+  .replace(/import type[\s\S]*?from "@\/lib\/property-case";/, '');
+const timelineJs = ts.transpileModule(timelineSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+const timelineSandbox = { console, Number, Object, String, Map, Set, Array, RegExp, Math, Date, exports: {}, require };
+vm.createContext(timelineSandbox);
+vm.runInContext(timelineJs, timelineSandbox);
 const caseSource = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8')
   .replace(/import \{[\s\S]*?\} from "@\/lib\/property-case-due-diligence";/, '')
   .replace(/import \{[\s\S]*?\} from "@\/lib\/property-case-viewing-offer";/, '')
+  .replace(/import \{[\s\S]*?\} from "@\/lib\/property-case-timeline";/, '')
   .replace(/import type[\s\S]*?from "@\/lib\/api";/, '')
   .replace(/import type[\s\S]*?from "@\/lib\/risk-summary";/, '')
   .replace(/import type[\s\S]*?from "@\/lib\/valuation-share";/, '');
 const caseJs = ts.transpileModule(caseSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
-const sandbox = { console, Number, Object, String, Map, Set, Date, exports: {}, require, ...dueSandbox.exports, ...viewingSandbox.exports };
+const sandbox = { console, Number, Object, String, Map, Set, Date, exports: {}, require, ...dueSandbox.exports, ...viewingSandbox.exports, ...timelineSandbox.exports };
 vm.createContext(sandbox);
 vm.runInContext(caseJs, sandbox);
 const buildPropertyCaseDraft = sandbox.exports.buildPropertyCaseDraft;

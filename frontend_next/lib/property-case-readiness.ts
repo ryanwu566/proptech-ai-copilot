@@ -82,6 +82,7 @@ export function moduleLabel(key: string): string {
     tax: "TaxOracle",
     decision: "看房決策摘要",
     due_diligence: "Due Diligence Review Board",
+    timeline_summary: "Executive Decision Pack",
   }[key] ?? key;
 }
 

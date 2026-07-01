@@ -38,6 +38,19 @@ import {
   type ViewingQuestionCategory,
   type ViewingQuestionStatus,
 } from "@/lib/property-case-viewing-offer";
+import {
+  CASE_MILESTONE_TEMPLATE,
+  TIMELINE_EVENT_TYPE_OPTIONS,
+  TIMELINE_RELATED_SECTION_OPTIONS,
+  buildDefaultMilestones,
+  buildExecutiveDecisionSummary,
+  buildTimelineReadiness,
+  type CaseMilestone,
+  type CaseMilestoneId,
+  type TimelineEvent,
+  type TimelineEventType,
+  type TimelineRelatedSection,
+} from "@/lib/property-case-timeline";
 import { buildPropertyCaseReadiness } from "@/lib/property-case-readiness";
 import type { ValuationInputs } from "@/lib/valuation-share";
 
@@ -81,9 +94,13 @@ type CommandCenterState = {
   viewingLogs: ViewingLog[];
   viewingQuestions: ViewingQuestion[];
   offerPlans: OfferPlan[];
+  timelineEvents: TimelineEvent[];
+  caseMilestones: CaseMilestone[];
   decisionReviewSummary: string;
   decisionOpenQuestions: string;
   decisionNextStep: string;
+  executiveSummaryNote: string;
+  finalReviewNote: string;
 };
 
 type FinancialScenarioState = {
@@ -143,9 +160,13 @@ const initialState: CommandCenterState = {
   viewingLogs: [],
   viewingQuestions: [],
   offerPlans: [],
+  timelineEvents: [],
+  caseMilestones: buildDefaultMilestones(),
   decisionReviewSummary: "",
   decisionOpenQuestions: "",
   decisionNextStep: "",
+  executiveSummaryNote: "",
+  finalReviewNote: "",
 };
 
 export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
@@ -204,6 +225,10 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
     () => buildOfferPlanFinancialPreviews(financialInputs, state.offerPlans),
     [financialInputs, state.offerPlans],
   );
+  const timelineReadiness = useMemo(
+    () => buildTimelineReadiness(state.timelineEvents, state.caseMilestones, state.executiveSummaryNote, state.finalReviewNote),
+    [state.caseMilestones, state.executiveSummaryNote, state.finalReviewNote, state.timelineEvents],
+  );
   const estimatedMonthlyPayment = financialAnalysis.monthlyPayment.value;
   const derivedLoanAmount = financialAnalysis.loanAmount.value;
   const derivedDownPayment = financialAnalysis.downPayment.value;
@@ -239,14 +264,19 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
       viewingLogs: state.viewingLogs,
       viewingQuestions: state.viewingQuestions,
       offerPlans: state.offerPlans,
+      timelineEvents: state.timelineEvents,
+      caseMilestones: state.caseMilestones,
       decisionReviewSummary: state.decisionReviewSummary,
       decisionOpenQuestions: state.decisionOpenQuestions,
       decisionNextStep: state.decisionNextStep,
+      executiveSummaryNote: state.executiveSummaryNote,
+      finalReviewNote: state.finalReviewNote,
       inputs: emptyInputs,
     }),
     [derivedDownPayment, derivedLoanAmount, estimatedMonthlyPayment, numeric.availableLiquidCash, numeric.buildingAgeYears, numeric.estimatedBuyerCosts, numeric.floorAreaPing, numeric.fundingValue, numeric.listingPrice, numeric.loanRate, numeric.loanYears, numeric.monthlyFixedObligations, numeric.monthlyHouseholdIncome, numeric.monthlyOwnershipReserve, numeric.renovationReserve, numeric.userEstimatedTaxCost, numeric.userEstimatedValue, state],
   );
   const readiness = buildPropertyCaseReadiness(draft);
+  const executiveSummary = useMemo(() => buildExecutiveDecisionSummary(draft), [draft]);
 
   function update<K extends keyof CommandCenterState>(key: K, value: CommandCenterState[K]) {
     setState((current) => ({ ...current, [key]: value }));
@@ -311,6 +341,22 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
 
   function removeOfferPlan(id: string) {
     setState((current) => ({ ...current, offerPlans: current.offerPlans.filter((offer) => offer.id !== id) }));
+  }
+
+  function addTimelineEvent() {
+    setState((current) => ({ ...current, timelineEvents: [...current.timelineEvents, emptyTimelineEvent()] }));
+  }
+
+  function updateTimelineEvent(id: string, patch: Partial<TimelineEvent>) {
+    setState((current) => ({ ...current, timelineEvents: current.timelineEvents.map((event) => event.id === id ? { ...event, ...patch } : event) }));
+  }
+
+  function removeTimelineEvent(id: string) {
+    setState((current) => ({ ...current, timelineEvents: current.timelineEvents.filter((event) => event.id !== id) }));
+  }
+
+  function updateMilestone(milestoneId: CaseMilestoneId, patch: Partial<CaseMilestone>) {
+    setState((current) => ({ ...current, caseMilestones: current.caseMilestones.map((milestone) => milestone.milestone_id === milestoneId ? { ...milestone, ...patch } : milestone) }));
   }
 
   return <main className="min-h-screen bg-stone-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
@@ -607,6 +653,86 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               {state.offerPlans.length >= MAX_OFFER_PLANS && <p className="mt-2 text-xs text-amber-700">最多保留 {MAX_OFFER_PLANS} 組出價情境，避免把草稿誤看成正式 offer。</p>}
             </PlannerBlock>
           </section>
+
+          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+            <SectionHeading eyebrow="G. EXECUTIVE PACK" title="案件時間軸與決策包" />
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              將手動輸入的案件進度、里程碑、缺口與最後審查備註整理成 Executive Decision Pack；不產生推薦、不改決策狀態、不呼叫外部資料。
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
+              <ReviewStat label="事件" value={timelineReadiness.event_count} />
+              <ReviewStat label="完成里程碑" value={timelineReadiness.milestone_done_count} />
+              <ReviewStat label="缺口" value={executiveSummary.missing_sections.length} />
+              <ReviewStat label="下一步" value={executiveSummary.active_next_actions_count} />
+            </div>
+            <div className="mt-4 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+              <h3 className="text-sm font-black text-cyan-950">Executive Summary</h3>
+              <div className="mt-3 grid gap-3 md:grid-cols-3">
+                <ReadinessRow label="基本資料" ready={executiveSummary.basic_data_complete} />
+                <ReadinessRow label="財務摘要" ready={executiveSummary.financial_summary_available} />
+                <ReadinessRow label="盡職調查" ready={executiveSummary.due_diligence_available} />
+                <ReadinessRow label="看屋出價" ready={executiveSummary.viewing_offer_available} />
+                <ReadinessRow label="決策審查" ready={executiveSummary.manual_decision_review_present} />
+                <ReadinessRow label="可列印" ready={executiveSummary.report_ready} />
+              </div>
+              <p className="mt-3 text-xs leading-5 text-cyan-900">
+                本摘要只整理使用者輸入的案件資訊與目前可用資料，不代表核貸、估價、法律、稅務、投資或購買建議。
+              </p>
+              <TextArea label="Executive summary note" value={state.executiveSummaryNote} onChange={(value) => update("executiveSummaryNote", value)} placeholder="手動填寫高階摘要，不自動生成推薦或結論。" />
+            </div>
+
+            <PlannerBlock title="缺口與下一步彙整" actionLabel="新增時間軸事件" onAdd={addTimelineEvent}>
+              {executiveSummary.missing_sections.length > 0
+                ? <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">待補區塊：{executiveSummary.missing_sections.join(", ")}</p>
+                : <p className="rounded-xl bg-stone-50 px-3 py-2 text-xs text-slate-500">目前沒有由模型標記的缺口；仍需人工確認。</p>}
+              {state.timelineEvents.length === 0 && <EmptyPlannerMessage text="尚未建立時間軸事件。" />}
+              {state.timelineEvents.map((event) => <div key={event.id} className="rounded-xl bg-stone-50 p-3">
+                <div className="grid gap-3 md:grid-cols-4">
+                  <TextField label="事件日期（YYYY-MM-DD）" value={event.event_date} onChange={(value) => updateTimelineEvent(event.id, { event_date: value })} placeholder="YYYY-MM-DD" />
+                  <label className="block text-xs font-bold text-slate-500">事件類型
+                    <select value={event.event_type} onChange={(input) => updateTimelineEvent(event.id, { event_type: input.target.value as TimelineEventType })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                      {TIMELINE_EVENT_TYPE_OPTIONS.map((type) => <option key={type} value={type}>{type}</option>)}
+                    </select>
+                  </label>
+                  <label className="block text-xs font-bold text-slate-500">關聯區塊
+                    <select value={event.related_section} onChange={(input) => updateTimelineEvent(event.id, { related_section: input.target.value as TimelineRelatedSection })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                      {TIMELINE_RELATED_SECTION_OPTIONS.map((section) => <option key={section} value={section}>{section}</option>)}
+                    </select>
+                  </label>
+                  <TextField label="標題" value={event.title} onChange={(value) => updateTimelineEvent(event.id, { title: value })} placeholder="必填；例如：完成第一次看屋" />
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <TextArea label="摘要" value={event.summary} onChange={(value) => updateTimelineEvent(event.id, { summary: value })} placeholder="手動摘要，不寫入外部資料。" />
+                  <TextArea label="備註" value={event.note} onChange={(value) => updateTimelineEvent(event.id, { note: value })} placeholder="可記錄人工判斷或下一步，不產生建議。" />
+                </div>
+                <button type="button" onClick={() => removeTimelineEvent(event.id)} className="mt-3 text-xs font-bold text-slate-500">刪除此事件</button>
+              </div>)}
+            </PlannerBlock>
+
+            <div className="mt-5 rounded-2xl border border-stone-200 p-4">
+              <h3 className="text-sm font-black text-slate-900">案件里程碑</h3>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {state.caseMilestones.map((milestone) => {
+                  const label = CASE_MILESTONE_TEMPLATE.find((template) => template.milestone_id === milestone.milestone_id)?.label ?? milestone.milestone_id;
+                  return <div key={milestone.milestone_id} className="rounded-xl bg-stone-50 p-3">
+                    <label className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <input type="checkbox" checked={milestone.is_done} onChange={(event) => updateMilestone(milestone.milestone_id, { is_done: event.target.checked })} />
+                      {label}
+                    </label>
+                    <div className="mt-3 grid gap-2 md:grid-cols-2">
+                      <TextField label="完成日期（YYYY-MM-DD）" value={milestone.done_date} onChange={(value) => updateMilestone(milestone.milestone_id, { done_date: value })} placeholder="YYYY-MM-DD" />
+                      <TextField label="備註" value={milestone.note} onChange={(value) => updateMilestone(milestone.milestone_id, { note: value })} />
+                    </div>
+                  </div>;
+                })}
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-stone-200 p-4">
+              <h3 className="text-sm font-black text-slate-900">最終人工審查備註</h3>
+              <TextArea label="final_review_note" value={state.finalReviewNote} onChange={(value) => update("finalReviewNote", value)} placeholder="由使用者手動記錄最後審查，不產生正式建議或法律／財務結論。" />
+            </div>
+          </section>
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
@@ -619,9 +745,11 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <ReadinessRow label="位置／市場" ready={Boolean(state.locationMarketNote.trim())} />
               <ReadinessRow label="盡職調查" ready={draft.readiness.due_diligence === "completed"} />
               <ReadinessRow label="看屋出價" ready={draft.readiness.viewing_offer === "completed"} />
+              <ReadinessRow label="決策包" ready={draft.readiness.timeline_summary === "completed"} />
             </dl>
             <p className="mt-2 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">Due diligence readiness: {draft.readiness.due_diligence}</p>
             <p className="mt-2 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">Viewing offer readiness: {draft.readiness.viewing_offer}</p>
+            <p className="mt-2 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">Executive pack readiness: {draft.readiness.timeline_summary}</p>
             <p className="mt-4 rounded-xl bg-stone-50 px-3 py-2 text-xs leading-5 text-slate-600">{readiness.primaryMessage}</p>
             {draft.readiness.missing_required.length > 0 && <p className="mt-2 text-xs text-amber-700">待補：{draft.readiness.missing_required.join(", ")}</p>}
           </section>
@@ -653,6 +781,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <li>情境比較：{financialScenarios.length > 0 ? `${financialScenarios.length} 組` : "未建立情境"}</li>
               <li>盡職調查：{dueDiligenceReadiness.confirmed_count} 項已確認、{dueDiligenceReadiness.reviewing_count} 項檢查中、{dueDiligenceReadiness.blocked_count} 項卡關</li>
               <li>看屋與出價：{viewingOfferReadiness.completed_viewing_count} 次完成看屋、{viewingOfferReadiness.open_question_count} 項待問、{viewingOfferReadiness.offer_plan_count} 組出價情境</li>
+              <li>Executive Decision Pack：{timelineReadiness.event_count} 筆時間軸、{timelineReadiness.milestone_done_count} 個完成里程碑</li>
+              <li>Executive summary note：{state.executiveSummaryNote.trim() || "待補"}</li>
+              <li>Final review note：{state.finalReviewNote.trim() || "待補"}</li>
               <li>審查下一步：{state.decisionNextStep.trim() || "待補"}</li>
               <li>決策狀態：{state.decisionStatus}</li>
               <li>可比較：{draft.readiness.compare_ready ? "yes" : "no"}</li>
@@ -760,6 +891,18 @@ function emptyOfferPlan(): OfferPlan {
     conditions_note: "",
     negotiation_note: "",
     status: "draft",
+  };
+}
+
+function emptyTimelineEvent(): TimelineEvent {
+  return {
+    id: `timeline-${Date.now()}`,
+    event_date: "",
+    event_type: "custom",
+    title: "",
+    summary: "",
+    related_section: "other",
+    note: "",
   };
 }
 

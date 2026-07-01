@@ -26,6 +26,14 @@ import {
   type ViewingOfferReadiness,
   type ViewingQuestion,
 } from "@/lib/property-case-viewing-offer";
+import {
+  buildTimelineReadiness,
+  normalizeCaseMilestones,
+  normalizeTimelineEvents,
+  type CaseMilestone,
+  type TimelineEvent,
+  type TimelineReadiness,
+} from "@/lib/property-case-timeline";
 
 export type PropertyCaseStatus = "completed" | "missing" | "unavailable" | "incomplete";
 export type PropertyDecisionStatus = "draft" | "reviewing" | "shortlisted" | "rejected" | "purchased";
@@ -63,9 +71,13 @@ export type PropertyCaseDraftInput = {
   viewingLogs?: Partial<ViewingLog>[];
   viewingQuestions?: Partial<ViewingQuestion>[];
   offerPlans?: Partial<OfferPlan>[];
+  timelineEvents?: Partial<TimelineEvent>[];
+  caseMilestones?: Partial<CaseMilestone>[];
   decisionReviewSummary?: string;
   decisionOpenQuestions?: string;
   decisionNextStep?: string;
+  executiveSummaryNote?: string;
+  finalReviewNote?: string;
   inputs: ValuationInputs;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
@@ -134,6 +146,10 @@ export type PropertyCaseDraft = {
   viewing_logs: ViewingLog[];
   viewing_questions: ViewingQuestion[];
   offer_plans: OfferPlan[];
+  timeline_events: TimelineEvent[];
+  case_milestones: CaseMilestone[];
+  executive_summary_note: string;
+  final_review_note: string;
   analysis_status: Record<"property" | "location" | "terrain" | "commute" | "valuation" | "loan" | "holding" | "tax" | "decision", PropertyCaseStatus>;
   analysis_summary: string[];
   readiness: {
@@ -143,6 +159,7 @@ export type PropertyCaseDraft = {
     print_notice: string | null;
     due_diligence: DueDiligenceReadiness;
     viewing_offer: ViewingOfferReadiness;
+    timeline_summary: TimelineReadiness;
     missing_required: string[];
     unavailable_or_incomplete: string[];
   };
@@ -164,12 +181,15 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
   const viewingLogs = normalizeViewingLogs(input.viewingLogs);
   const viewingQuestions = normalizeViewingQuestions(input.viewingQuestions);
   const offerPlans = normalizeOfferPlans(input.offerPlans);
+  const timelineEvents = normalizeTimelineEvents(input.timelineEvents);
+  const caseMilestones = normalizeCaseMilestones(input.caseMilestones);
   const dueDiligenceReadiness = buildDueDiligenceReadiness(dueDiligenceItems, {
     decision_review_summary: input.decisionReviewSummary,
     decision_open_questions: input.decisionOpenQuestions,
     decision_next_step: input.decisionNextStep,
   });
   const viewingOfferReadiness = buildViewingOfferReadiness(viewingLogs, viewingQuestions, offerPlans);
+  const timelineReadiness = buildTimelineReadiness(timelineEvents, caseMilestones, input.executiveSummaryNote, input.finalReviewNote);
   const analysisStatus = {
     property: input.propertySearch ? "completed" : "missing",
     location: locationStatus,
@@ -208,6 +228,8 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     decision_review_summary: safeText(input.decisionReviewSummary),
     decision_open_questions: safeText(input.decisionOpenQuestions),
     decision_next_step: safeText(input.decisionNextStep),
+    executive_summary_note: safeText(input.executiveSummaryNote),
+    final_review_note: safeText(input.finalReviewNote),
     last_reviewed_at: now,
     created_at: now,
     updated_at: now,
@@ -256,6 +278,8 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     viewing_logs: viewingLogs,
     viewing_questions: viewingQuestions,
     offer_plans: offerPlans,
+    timeline_events: timelineEvents,
+    case_milestones: caseMilestones,
     analysis_status: analysisStatus,
     analysis_summary: buildAnalysisSummary(input, analysisStatus),
     readiness: {
@@ -265,6 +289,7 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       print_notice: printReady ? PARTIAL_CASE_PRINT_NOTICE : null,
       due_diligence: dueDiligenceReadiness.readiness,
       viewing_offer: viewingOfferReadiness.readiness,
+      timeline_summary: timelineReadiness.readiness,
       missing_required: missingRequired,
       unavailable_or_incomplete: unavailableOrIncomplete,
     },
@@ -327,6 +352,7 @@ function buildAnalysisSummary(input: PropertyCaseDraftInput, status: PropertyCas
   if (input.terrainRisk) rows.push(`地勢風險 ${input.terrainRisk.overall.label}`);
   if (input.dueDiligenceItems?.some((item) => item.status && item.status !== "not_started")) rows.push("Due diligence review board has user-entered checklist progress.");
   if (input.viewingLogs?.length || input.viewingQuestions?.length || input.offerPlans?.length) rows.push("Viewing and offer planning board has user-entered planning progress.");
+  if (input.timelineEvents?.length || input.caseMilestones?.some((milestone) => milestone.is_done) || input.executiveSummaryNote || input.finalReviewNote) rows.push("Executive decision pack has user-entered timeline progress.");
   if (!rows.length) rows.push("尚未完成可比較的分析");
   return rows;
 }
