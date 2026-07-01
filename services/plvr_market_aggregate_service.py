@@ -47,6 +47,14 @@ COVERAGE_BOOTSTRAP_REASON_CODES = {
     "coverage_bootstrap_unknown_safe_failure",
 }
 
+COVERAGE_RECONCILE_REASON_CODES = {
+    "coverage_reconcile_route_unavailable",
+    "coverage_reconcile_request_invalid",
+    "coverage_reconcile_metadata_unavailable",
+    "coverage_reconcile_runtime_unavailable",
+    "coverage_reconcile_unknown_safe_failure",
+}
+
 
 class MarketReadModelRefreshFailure(RuntimeError):
     """Internal refresh failure with a safe public reason code."""
@@ -64,6 +72,14 @@ class MarketCoverageBootstrapFailure(RuntimeError):
 
     def __init__(self, reason_code: str) -> None:
         self.reason_code = safe_market_coverage_bootstrap_reason_code(reason_code)
+        super().__init__(self.reason_code)
+
+
+class MarketCoverageReconcileFailure(RuntimeError):
+    """Internal reconcile failure with a safe public reason code."""
+
+    def __init__(self, reason_code: str) -> None:
+        self.reason_code = safe_market_coverage_reconcile_reason_code(reason_code)
         super().__init__(self.reason_code)
 
 
@@ -234,34 +250,48 @@ class PostgresMarketReadModelRepository:
     def reconcile_coverage(self, county: str) -> dict[str, Any]:
         normalized = normalize_market_region(county)
         if not normalized.valid:
-            return _coverage_reconcile_unavailable(county)
-        county_regions = [region for region in iter_taiwan_regions() if region.county == normalized.county]
+            raise MarketCoverageReconcileFailure("coverage_reconcile_request_invalid")
+        county_regions = _run_reconcile_phase(
+            "coverage_reconcile_runtime_unavailable",
+            lambda: [region for region in iter_taiwan_regions() if region.county == normalized.county],
+        )
         if not county_regions:
-            return _coverage_reconcile_unavailable(normalized.county)
+            raise MarketCoverageReconcileFailure("coverage_reconcile_request_invalid")
         reconciled_at = datetime.now(timezone.utc)
-        with self._connect() as connection:
+        connection_context = _run_reconcile_phase("coverage_reconcile_runtime_unavailable", self._connect)
+        with connection_context as connection:
             with connection.cursor() as cursor:
-                cursor.execute("set local statement_timeout = '90s'")
-                cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL)
+                _run_reconcile_phase("coverage_reconcile_runtime_unavailable", lambda: cursor.execute("set local statement_timeout = '90s'"))
+                _run_reconcile_phase(
+                    "coverage_reconcile_metadata_unavailable",
+                    lambda: cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL),
+                )
                 counts: list[dict[str, Any]] = []
                 for region in county_regions:
-                    cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [region.county, region.district])
-                    coverage = dict(cursor.fetchone() or {})
+                    _run_reconcile_phase(
+                        "coverage_reconcile_runtime_unavailable",
+                        lambda region=region: cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [region.county, region.district]),
+                    )
+                    coverage = dict(_run_reconcile_phase("coverage_reconcile_runtime_unavailable", cursor.fetchone) or {})
                     valid_count = _int_value(coverage.get("valid_market_candidate_count"))
                     source_updated_at = _date_text(coverage.get("source_updated_at"))
-                    cursor.execute(
-                        MARKET_COVERAGE_METADATA_UPSERT_SQL,
-                        [
-                            region.county,
-                            region.district,
-                            "covered",
-                            valid_count,
-                            source_updated_at,
-                            reconciled_at,
-                        ],
+                    coverage_status = "covered" if valid_count > 0 else "not_covered"
+                    _run_reconcile_phase(
+                        "coverage_reconcile_metadata_unavailable",
+                        lambda region=region, coverage_status=coverage_status, valid_count=valid_count, source_updated_at=source_updated_at: cursor.execute(
+                            MARKET_COVERAGE_METADATA_UPSERT_SQL,
+                            [
+                                region.county,
+                                region.district,
+                                coverage_status,
+                                valid_count,
+                                source_updated_at,
+                                reconciled_at,
+                            ],
+                        ),
                     )
-                    counts.append({"coverage_status": "covered", "valid_market_candidate_count": valid_count})
-            connection.commit()
+                    counts.append({"coverage_status": coverage_status, "valid_market_candidate_count": valid_count})
+            _run_reconcile_phase("coverage_reconcile_metadata_unavailable", connection.commit)
         return _coverage_reconcile_response(normalized.county, counts)
 
     def audit_coverage(self) -> dict[str, Any]:
@@ -441,12 +471,16 @@ def reconcile_market_coverage(county: str, repository: Any | None = None) -> dic
 
     repo = repository or _repository_from_env()
     clean_county = (county or "").strip()
-    if repo is None or not hasattr(repo, "reconcile_coverage") or not clean_county:
-        return _coverage_reconcile_unavailable(clean_county)
+    if not clean_county:
+        return _coverage_reconcile_unavailable(clean_county, "coverage_reconcile_request_invalid")
+    if repo is None or not hasattr(repo, "reconcile_coverage"):
+        return _coverage_reconcile_unavailable(clean_county, "coverage_reconcile_route_unavailable")
     try:
         raw = repo.reconcile_coverage(clean_county)
+    except MarketCoverageReconcileFailure as exc:
+        return _coverage_reconcile_unavailable(clean_county, exc.reason_code)
     except Exception:
-        return _coverage_reconcile_unavailable(clean_county)
+        return _coverage_reconcile_unavailable(clean_county, "coverage_reconcile_unknown_safe_failure")
     if "processed_region_count" in raw:
         return _safe_coverage_reconcile_result(raw, clean_county)
     return _coverage_reconcile_response(
@@ -532,7 +566,10 @@ def _safe_coverage_reconcile_result(raw: dict[str, Any], fallback_county: str) -
     }
 
 
-def _coverage_reconcile_unavailable(county: str) -> dict[str, Any]:
+def _coverage_reconcile_unavailable(
+    county: str,
+    reason_code: str = "coverage_reconcile_unknown_safe_failure",
+) -> dict[str, Any]:
     return {
         "status": "unavailable",
         "operation": "reconcile",
@@ -543,6 +580,7 @@ def _coverage_reconcile_unavailable(county: str) -> dict[str, Any]:
         "not_covered_region_count": 0,
         "unknown_region_count": 0,
         "message": "Market coverage metadata is temporarily unavailable.",
+        "reason_code": safe_market_coverage_reconcile_reason_code(reason_code),
     }
 
 
@@ -726,6 +764,13 @@ def safe_market_coverage_bootstrap_reason_code(reason_code: Any) -> str:
     return text if text in COVERAGE_BOOTSTRAP_REASON_CODES else "coverage_bootstrap_unknown_safe_failure"
 
 
+def safe_market_coverage_reconcile_reason_code(reason_code: Any) -> str:
+    """Return an allowlisted public reason code for reconcile failures."""
+
+    text = str(reason_code or "").strip()
+    return text if text in COVERAGE_RECONCILE_REASON_CODES else "coverage_reconcile_unknown_safe_failure"
+
+
 def _run_refresh_phase(reason_code: str, operation: Any) -> Any:
     try:
         return operation()
@@ -742,6 +787,15 @@ def _run_bootstrap_phase(reason_code: str, operation: Any) -> Any:
         raise
     except Exception as exc:
         raise MarketCoverageBootstrapFailure(reason_code) from exc
+
+
+def _run_reconcile_phase(reason_code: str, operation: Any) -> Any:
+    try:
+        return operation()
+    except MarketCoverageReconcileFailure:
+        raise
+    except Exception as exc:
+        raise MarketCoverageReconcileFailure(reason_code) from exc
 
 
 def _refresh_unavailable(status: dict[str, Any], reason_code: str = "unknown_safe_failure") -> dict[str, Any]:

@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from services.plvr_market_aggregate_service import (
+    COVERAGE_RECONCILE_REASON_CODES,
     MARKET_REFRESH_REASON_CODES,
     DIRECT_HISTORY_COUNTY_SQL,
     DIRECT_HISTORY_DISTRICT_SQL,
@@ -17,6 +18,7 @@ from services.plvr_market_aggregate_service import (
     DIRECT_SUMMARY_DISTRICT_LATEST_SQL,
     MarketReadModelRefreshError,
     MarketReadModelRefreshFailure,
+    MarketCoverageReconcileFailure,
     PostgresMarketReadModelRepository,
     READ_MODEL_CATALOG_SQL,
     READ_MODEL_HISTORY_SQL,
@@ -39,6 +41,7 @@ from services.plvr_market_aggregate_service import (
     bootstrap_market_coverage_metadata,
     reconcile_market_coverage,
     safe_market_coverage_bootstrap_reason_code,
+    safe_market_coverage_reconcile_reason_code,
     safe_market_refresh_reason_code,
 )
 
@@ -232,6 +235,8 @@ class CoverageOperationsRepository:
         self.calls.append(f"reconcile:{county}")
         if self.fail == "reconcile":
             raise RuntimeError("raw database detail must not leak")
+        if self.fail == "metadata":
+            raise MarketCoverageReconcileFailure("coverage_reconcile_metadata_unavailable")
         return {
             "status": "resolved",
             "operation": "reconcile",
@@ -552,6 +557,26 @@ def test_coverage_reconcile_preserves_safe_counts_and_status() -> None:
     assert "internal message" not in str(result)
 
 
+def test_coverage_reconcile_zero_record_regions_are_safe_not_failures() -> None:
+    class ZeroRecordCoverageRepository:
+        def reconcile_coverage(self, county: str) -> dict[str, Any]:
+            return {
+                "county": county,
+                "regions": [
+                    {"coverage_status": "not_covered", "valid_market_candidate_count": 0},
+                    {"coverage_status": "coverage_unknown", "valid_market_candidate_count": 0},
+                ],
+            }
+
+    result = reconcile_market_coverage("Demo County", ZeroRecordCoverageRepository())
+
+    assert result["status"] == "resolved"
+    assert result["processed_region_count"] == 2
+    assert result["not_covered_region_count"] == 1
+    assert result["unknown_region_count"] == 1
+    assert "reason_code" not in result
+
+
 def test_coverage_operations_fail_safely_without_raw_details() -> None:
     bootstrap = bootstrap_market_coverage_metadata(CoverageOperationsRepository(fail="bootstrap"))
     assert bootstrap["status"] == "unavailable"
@@ -561,12 +586,24 @@ def test_coverage_operations_fail_safely_without_raw_details() -> None:
     reconcile = reconcile_market_coverage("Demo County", CoverageOperationsRepository(fail="reconcile"))
     assert reconcile["status"] == "unavailable"
     assert reconcile["coverage_status"] == "coverage_unknown"
+    assert reconcile["reason_code"] == "coverage_reconcile_unknown_safe_failure"
     assert "raw database detail" not in str(reconcile)
 
     audit = audit_market_coverage(CoverageOperationsRepository(fail="audit"))
     assert audit["status"] == "UNKNOWN"
     assert audit["covered_region_count"] == 0
     assert "raw database detail" not in str(audit)
+
+
+def test_coverage_reconcile_failure_reasons_are_safe_and_specific() -> None:
+    missing_repo = reconcile_market_coverage("Demo County", repository=object())
+    invalid_request = reconcile_market_coverage("   ", CoverageOperationsRepository())
+    metadata_failure = reconcile_market_coverage("Demo County", CoverageOperationsRepository(fail="metadata"))
+
+    assert missing_repo["reason_code"] == "coverage_reconcile_route_unavailable"
+    assert invalid_request["reason_code"] == "coverage_reconcile_request_invalid"
+    assert metadata_failure["reason_code"] == "coverage_reconcile_metadata_unavailable"
+    assert "raw database detail" not in str(metadata_failure)
 
 
 def test_coverage_audit_returns_only_canonical_aggregate_counts() -> None:
@@ -589,3 +626,16 @@ def test_coverage_bootstrap_reason_code_allowlist_normalizes_unknown_values() ->
         == "coverage_bootstrap_runtime_unavailable"
     )
     assert safe_market_coverage_bootstrap_reason_code("raw_exception") == "coverage_bootstrap_unknown_safe_failure"
+
+
+def test_coverage_reconcile_reason_code_allowlist_normalizes_unknown_values() -> None:
+    assert (
+        safe_market_coverage_reconcile_reason_code("coverage_reconcile_metadata_unavailable")
+        == "coverage_reconcile_metadata_unavailable"
+    )
+    assert (
+        safe_market_coverage_reconcile_reason_code("coverage_reconcile_runtime_unavailable")
+        == "coverage_reconcile_runtime_unavailable"
+    )
+    assert safe_market_coverage_reconcile_reason_code("raw_exception") == "coverage_reconcile_unknown_safe_failure"
+    assert "coverage_reconcile_request_invalid" in COVERAGE_RECONCILE_REASON_CODES

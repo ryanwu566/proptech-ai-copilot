@@ -64,6 +64,19 @@ jobs:
             esac
           }
 
+          safe_reconcile_reason() {
+            body_file="$1"
+            reason="$(grep -o '"reason_code"[[:space:]]*:[[:space:]]*"[^"]*"' "$body_file" | head -n 1 | sed 's/.*"reason_code"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || true)"
+            case "$reason" in
+              coverage_reconcile_route_unavailable|coverage_reconcile_request_invalid|coverage_reconcile_metadata_unavailable|coverage_reconcile_runtime_unavailable|coverage_reconcile_unknown_safe_failure)
+                printf '%s\n' "$reason"
+                ;;
+              *)
+                printf '%s\n' "coverage_reconcile_unknown_safe_failure"
+                ;;
+            esac
+          }
+
           bootstrap_body="$temp_dir/bootstrap.json"
           bootstrap_status_file="$temp_dir/bootstrap.status"
           call_api "/market-insights/coverage/bootstrap" "{}" "$bootstrap_body" "$bootstrap_status_file"
@@ -74,6 +87,9 @@ jobs:
             echo "MARKET_COVERAGE_BOOTSTRAP=failed"
             echo "MARKET_COVERAGE_BOOTSTRAP_REASON=$(safe_bootstrap_reason "$bootstrap_body")"
             echo "MARKET_COVERAGE_RECONCILE_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
             echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
             echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
             echo "EXPECTED_REGION_COUNT=not_run"
@@ -92,6 +108,9 @@ jobs:
             echo "MARKET_COVERAGE_REGISTRY=failed"
             echo "MARKET_COVERAGE_REGISTRY_REASON=canonical_registry_unavailable"
             echo "MARKET_COVERAGE_RECONCILE_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
             echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
             echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
             echo "EXPECTED_REGION_COUNT=not_run"
@@ -104,6 +123,9 @@ jobs:
             echo "MARKET_COVERAGE_REGISTRY=failed"
             echo "MARKET_COVERAGE_REGISTRY_REASON=canonical_registry_unavailable"
             echo "MARKET_COVERAGE_RECONCILE_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
             echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
             echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
             echo "EXPECTED_REGION_COUNT=not_run"
@@ -122,8 +144,12 @@ jobs:
             reconcile_status_file="$temp_dir/reconcile-${reconciled_count}.status"
             reconcile_payload="$(python -c "import json, sys; print(json.dumps({'county': sys.argv[1]}, ensure_ascii=False))" "$county")"
             call_api "/market-insights/coverage/reconcile" "$reconcile_payload" "$reconcile_body" "$reconcile_status_file"
-            if [ "$(cat "$reconcile_status_file")" != "200" ]; then
+            reconcile_status="$(cat "$reconcile_status_file")"
+            if [ "$reconcile_status" != "200" ]; then
               echo "MARKET_COVERAGE_RECONCILE_STATUS=failed"
+              echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=${reconcile_status:-0}"
+              echo "MARKET_COVERAGE_RECONCILE_REASON=$(safe_reconcile_reason "$reconcile_body")"
+              echo "MARKET_COVERAGE_RECONCILE_COUNTY=${county}"
               echo "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}"
               echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
               echo "EXPECTED_REGION_COUNT=not_run"
@@ -136,6 +162,9 @@ jobs:
           done < "$counties_file"
 
           echo "MARKET_COVERAGE_RECONCILE_STATUS=success"
+          echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=200"
+          echo "MARKET_COVERAGE_RECONCILE_REASON=none"
+          echo "MARKET_COVERAGE_RECONCILE_COUNTY=none"
           echo "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}"
 
           audit_body="$temp_dir/audit.json"
