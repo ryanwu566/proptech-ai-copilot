@@ -44,6 +44,9 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
     for line in (
         "MARKET_COVERAGE_BOOTSTRAP=success",
         "MARKET_COVERAGE_BOOTSTRAP=failed",
+        "MARKET_COVERAGE_BOOTSTRAP_HTTP_STATUS=",
+        "MARKET_COVERAGE_BOOTSTRAP_REASON=",
+        "MARKET_COVERAGE_RECONCILE_STATUS=",
         "MARKET_COVERAGE_RECONCILED_COUNT=",
         "MARKET_COVERAGE_AUDIT=",
         "EXPECTED_REGION_COUNT=",
@@ -52,9 +55,11 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
         "UNKNOWN_REGION_COUNT=",
     ):
         assert line in WORKFLOW
-    assert 'cat "$status_file"' in WORKFLOW
+    assert 'cat "$bootstrap_status_file"' in WORKFLOW
     assert 'cat "$body_file"' not in WORKFLOW
     assert 'echo "$body_file"' not in WORKFLOW
+    assert 'echo "MARKET_COVERAGE_RECONCILED_COUNT=0"' not in WORKFLOW
+    assert 'echo "MARKET_COVERAGE_AUDIT=UNKNOWN"' not in WORKFLOW.split('if [ "$bootstrap_status" != "200" ]; then', 1)[1].split("exit 1", 1)[0]
     assert "response body" not in WORKFLOW.lower()
     assert "database_url" not in WORKFLOW
     assert "raw exception" not in WORKFLOW.lower()
@@ -62,5 +67,42 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
 
 
 def test_market_coverage_rollout_full_only_exits_zero() -> None:
-    assert 'raise SystemExit(0 if status == "FULL" else 1)' in WORKFLOW
-    assert '"FULL", "PARTIAL", "UNKNOWN"' in WORKFLOW
+    assert "raise SystemExit(0 if status == 'FULL' else 1)" in WORKFLOW
+    assert "'FULL','PARTIAL','UNKNOWN'" in WORKFLOW
+
+
+def test_market_coverage_rollout_skips_later_stages_after_bootstrap_failure() -> None:
+    bootstrap_failure_block = WORKFLOW.split('if [ "$bootstrap_status" != "200" ]; then', 1)[1].split("exit 1", 1)[0]
+
+    assert "MARKET_COVERAGE_RECONCILE_STATUS=not_run" in bootstrap_failure_block
+    assert "MARKET_COVERAGE_RECONCILED_COUNT=not_run" in bootstrap_failure_block
+    assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in bootstrap_failure_block
+    assert "EXPECTED_REGION_COUNT=not_run" in bootstrap_failure_block
+    assert "COVERED_REGION_COUNT=not_run" in bootstrap_failure_block
+    assert "MISSING_REGION_COUNT=not_run" in bootstrap_failure_block
+    assert "UNKNOWN_REGION_COUNT=not_run" in bootstrap_failure_block
+    assert "/market-insights/coverage/reconcile" not in bootstrap_failure_block
+    assert "/market-insights/coverage/audit" not in bootstrap_failure_block
+
+
+def test_market_coverage_rollout_skips_audit_after_reconcile_failure() -> None:
+    reconcile_failure_block = WORKFLOW.split('if [ "$(cat "$reconcile_status_file")" != "200" ]; then', 1)[1].split("exit 1", 1)[0]
+
+    assert "MARKET_COVERAGE_RECONCILE_STATUS=failed" in reconcile_failure_block
+    assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in reconcile_failure_block
+    assert "EXPECTED_REGION_COUNT=not_run" in reconcile_failure_block
+    assert "COVERED_REGION_COUNT=not_run" in reconcile_failure_block
+    assert "MISSING_REGION_COUNT=not_run" in reconcile_failure_block
+    assert "UNKNOWN_REGION_COUNT=not_run" in reconcile_failure_block
+    assert "/market-insights/coverage/audit" not in reconcile_failure_block
+
+
+def test_market_coverage_rollout_allowlists_bootstrap_reason_codes() -> None:
+    for reason in (
+        "coverage_bootstrap_route_unavailable",
+        "coverage_bootstrap_migration_unavailable",
+        "coverage_bootstrap_runtime_unavailable",
+        "coverage_bootstrap_unknown_safe_failure",
+    ):
+        assert reason in WORKFLOW
+    assert "reason_code" in WORKFLOW
