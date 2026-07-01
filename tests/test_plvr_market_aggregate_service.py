@@ -1,4 +1,4 @@
-"""Read-model Market Insight service tests with fake repositories."""
+﻿"""Read-model Market Insight service tests with fake repositories."""
 
 from __future__ import annotations
 
@@ -9,6 +9,8 @@ from services.plvr_market_aggregate_service import (
     MARKET_REFRESH_REASON_CODES,
     DIRECT_HISTORY_COUNTY_SQL,
     DIRECT_HISTORY_DISTRICT_SQL,
+    DIRECT_COVERAGE_COUNTY_SQL,
+    DIRECT_COVERAGE_DISTRICT_SQL,
     DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL,
     DIRECT_SUMMARY_COUNTY_LATEST_SQL,
     DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL,
@@ -38,10 +40,18 @@ from services.plvr_market_aggregate_service import (
 
 
 class FakeReadModelRepository:
-    def __init__(self, *, empty: bool = False, raise_error: bool = False, invalid_summary: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        empty: bool = False,
+        raise_error: bool = False,
+        invalid_summary: bool = False,
+        coverage_status: str = "covered",
+    ) -> None:
         self.empty = empty
         self.raise_error = raise_error
         self.invalid_summary = invalid_summary
+        self.coverage_status = coverage_status
         self.calls: list[str] = []
 
     def status(self) -> dict[str, Any]:
@@ -67,18 +77,18 @@ class FakeReadModelRepository:
 
     def catalog(self) -> list[dict[str, Any]]:
         self.calls.append("catalog")
-        return [{"county": "Demo County"}]
+        return [{"county": "臺北市"}]
 
     def regions(self, county: str) -> list[dict[str, Any]]:
         self.calls.append(f"regions:{county}")
         return [
-            {"county": county, "district": "North", "latest_period": "2025-07"},
-            {"county": county, "district": "South", "latest_period": "2025-06"},
+            {"county": county, "district": "信義區", "latest_period": "2025-07"},
+            {"county": county, "district": "大安區", "latest_period": "2025-06"},
         ]
 
     def summary(self, county: str, district: str, period: str | None = None) -> dict[str, Any] | None:
         self.calls.append(f"summary:{period or 'latest'}")
-        if district == "Missing":
+        if district == "萬華區":
             return None
         return {
             "county": county,
@@ -101,6 +111,14 @@ class FakeReadModelRepository:
             {"period": period, "average_unit_price": 70 + index, "transaction_count": index + 1}
             for index, period in enumerate(periods[:limit])
         ]
+
+    def coverage(self, county: str, district: str) -> dict[str, Any]:
+        self.calls.append(f"coverage:{district or 'county'}")
+        return {
+            "coverage_status": self.coverage_status,
+            "valid_market_candidate_count": 1 if self.coverage_status == "covered" else 0,
+            "source_updated_at": "2025-03-05",
+        }
 
     def refresh(self) -> dict[str, Any]:
         self.calls.append("refresh")
@@ -204,6 +222,8 @@ def test_direct_query_sql_uses_only_plvr_transaction_table() -> None:
             DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL,
             DIRECT_HISTORY_COUNTY_SQL,
             DIRECT_HISTORY_DISTRICT_SQL,
+            DIRECT_COVERAGE_COUNTY_SQL,
+            DIRECT_COVERAGE_DISTRICT_SQL,
         ]
     )
     read_model_sql = "\n".join(
@@ -232,7 +252,7 @@ def test_status_and_catalog_return_safe_read_model_metadata() -> None:
     catalog = get_market_catalog(repo)
 
     assert status["read_model_status"] == "ready"
-    assert catalog["available_counties"] == ["Demo County"]
+    assert catalog["available_counties"] == ["臺北市"]
     assert catalog["available_county_count"] == 1
     assert "raw_payload" not in catalog
     assert "database_url" not in catalog
@@ -241,18 +261,19 @@ def test_status_and_catalog_return_safe_read_model_metadata() -> None:
 def test_regions_filter_by_county() -> None:
     repo = FakeReadModelRepository()
 
-    result = list_market_regions("Demo County", repo)
+    result = list_market_regions("臺北市", repo)
 
-    assert [row["district"] for row in result["regions"]] == ["North", "South"]
-    assert "regions:Demo County" in repo.calls
+    assert [row["district"] for row in result["regions"]] == ["信義區", "大安區"]
+    assert "regions:臺北市" in repo.calls
 
 
 def test_query_without_period_uses_latest_and_returns_history_without_interpolation() -> None:
     repo = FakeReadModelRepository()
 
-    result = get_market_summary("Demo County", "North", repository=repo)
+    result = get_market_summary("臺北市", "信義區", repository=repo)
 
     assert result["data_status"] == "available"
+    assert result["coverage_status"] == "covered"
     assert result["period"] == "2025-07"
     assert result["average_unit_price"] == 72.5
     assert len(result["history"]) == 6
@@ -265,16 +286,17 @@ def test_query_without_period_uses_latest_and_returns_history_without_interpolat
         "2024-12",
     ]
     assert "status" not in repo.calls
+    assert "coverage:信義區" in repo.calls
     assert "refresh" not in repo.calls
 
 
 def test_county_only_query_uses_direct_aggregate_without_district() -> None:
     repo = FakeReadModelRepository()
 
-    result = get_market_summary("Demo County", repository=repo)
+    result = get_market_summary("臺北市", repository=repo)
 
     assert result["data_status"] == "available"
-    assert result["city"] == "Demo County"
+    assert result["city"] == "臺北市"
     assert result["district"] == ""
     assert "summary:latest" in repo.calls
     assert "history:6" in repo.calls
@@ -284,18 +306,19 @@ def test_county_only_query_uses_direct_aggregate_without_district() -> None:
 def test_query_for_period_passes_requested_period() -> None:
     repo = FakeReadModelRepository()
 
-    result = get_market_summary("Demo County", "North", period="2025-02", repository=repo)
+    result = get_market_summary("臺北市", "信義區", period="2025-02", repository=repo)
 
     assert result["period"] == "2025-02"
     assert "summary:2025-02" in repo.calls
 
 
 def test_missing_and_invalid_summary_returns_no_metrics_or_history() -> None:
-    missing = get_market_summary("Demo County", "Missing", repository=FakeReadModelRepository())
-    invalid = get_market_summary("Demo County", "North", repository=FakeReadModelRepository(invalid_summary=True))
+    missing = get_market_summary("臺北市", "萬華區", repository=FakeReadModelRepository())
+    invalid = get_market_summary("臺北市", "信義區", repository=FakeReadModelRepository(invalid_summary=True))
 
     for result in (missing, invalid):
         assert result["data_status"] == "no_data"
+        assert result["coverage_status"] == "covered"
         assert result["average_unit_price"] is None
         assert result["transaction_count"] is None
         assert result["history"] == []
@@ -305,7 +328,7 @@ def test_missing_and_invalid_summary_returns_no_metrics_or_history() -> None:
 def test_direct_query_source_exception_is_unavailable_not_no_data() -> None:
     repo = SummaryFailureRepository()
 
-    result = get_market_summary("Demo County", "North", repository=repo)
+    result = get_market_summary("臺北市", "信義區", repository=repo)
 
     assert result["data_status"] == "unavailable"
     assert result["data_status"] != "no_data"
@@ -317,6 +340,28 @@ def test_direct_query_source_exception_is_unavailable_not_no_data() -> None:
     assert "history:unexpected" not in repo.calls
     assert "status" not in repo.calls
     assert "refresh" not in repo.calls
+
+
+def test_unknown_coverage_is_unavailable_without_source_query() -> None:
+    repo = FakeReadModelRepository(coverage_status="coverage_unknown")
+
+    result = get_market_summary("臺北市", "信義區", repository=repo)
+
+    assert result["data_status"] == "unavailable"
+    assert result["coverage_status"] == "coverage_unknown"
+    assert "coverage:信義區" in repo.calls
+    assert "summary:latest" not in repo.calls
+    assert "history:6" not in repo.calls
+
+
+def test_not_covered_region_is_unavailable_not_no_data() -> None:
+    repo = FakeReadModelRepository(coverage_status="not_covered")
+
+    result = get_market_summary("臺北市", "信義區", repository=repo)
+
+    assert result["data_status"] == "unavailable"
+    assert result["coverage_status"] == "not_covered"
+    assert result["data_status"] != "no_data"
 
 
 def test_empty_repository_is_missing_not_nationwide() -> None:
@@ -394,7 +439,7 @@ def test_postgres_refresh_no_eligible_source_records_is_explicit() -> None:
 
     assert result["status"] == "unavailable"
     assert result["reason_code"] == "read_model_no_eligible_source_records"
-    assert "Demo County" not in str(result)
+    assert "臺北市" not in str(result)
 
 
 def test_refresh_reason_code_allowlist_normalizes_unknown_values() -> None:
