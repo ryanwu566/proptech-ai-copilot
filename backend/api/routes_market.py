@@ -27,6 +27,14 @@ class MarketInsightQuery(BaseModel):
     period: str | None = None
 
 
+class MarketCoverageReconcileRequest(BaseModel):
+    """Bounded operator request for one county coverage reconcile."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    county: str
+
+
 @router.get("/market-insights/status")
 def get_market_insight_status() -> dict[str, Any]:
     """Return safe PLVR market aggregate status metadata."""
@@ -120,6 +128,84 @@ def post_market_read_model_refresh(
     return {key: result.get(key) for key in ("status", "data_status", "coverage_status", "built_at", "message")}
 
 
+@router.post("/market-insights/coverage/bootstrap")
+def post_market_coverage_bootstrap(
+    response: Response,
+    x_market_read_model_refresh_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Protected operator setup for market coverage metadata."""
+
+    if not _authorized_market_operator(response, x_market_read_model_refresh_token):
+        return _market_operator_auth_failure(response)
+
+    from services.plvr_market_aggregate_service import bootstrap_market_coverage_metadata
+
+    result = bootstrap_market_coverage_metadata()
+    safe_result = {
+        "status": result.get("status") or "unavailable",
+        "operation": "bootstrap",
+        "migration_status": result.get("migration_status") or "unavailable",
+        "message": result.get("message") or "Market coverage metadata is temporarily unavailable.",
+    }
+    if safe_result["status"] != "resolved":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return safe_result
+
+
+@router.post("/market-insights/coverage/reconcile")
+def post_market_coverage_reconcile(
+    request: MarketCoverageReconcileRequest,
+    response: Response,
+    x_market_read_model_refresh_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Protected operator coverage reconciliation for one county."""
+
+    if not _authorized_market_operator(response, x_market_read_model_refresh_token):
+        return _market_operator_auth_failure(response)
+
+    from services.plvr_market_aggregate_service import reconcile_market_coverage
+
+    result = reconcile_market_coverage(request.county)
+    safe_result = {
+        "status": result.get("status") or "unavailable",
+        "operation": "reconcile",
+        "county": result.get("county") or request.county.strip(),
+        "coverage_status": result.get("coverage_status") or "coverage_unknown",
+        "processed_region_count": int(result.get("processed_region_count") or 0),
+        "covered_region_count": int(result.get("covered_region_count") or 0),
+        "not_covered_region_count": int(result.get("not_covered_region_count") or 0),
+        "unknown_region_count": int(result.get("unknown_region_count") or 0),
+        "message": result.get("message") or "Market coverage metadata is temporarily unavailable.",
+    }
+    if safe_result["status"] != "resolved":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return safe_result
+
+
+@router.post("/market-insights/coverage/audit")
+def post_market_coverage_audit(
+    response: Response,
+    x_market_read_model_refresh_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Protected operator audit of coverage metadata against the canonical registry."""
+
+    if not _authorized_market_operator(response, x_market_read_model_refresh_token):
+        return _market_operator_auth_failure(response)
+
+    from services.plvr_market_aggregate_service import audit_market_coverage
+
+    result = audit_market_coverage()
+    return {
+        "MARKET_COVERAGE": result.get("status") or "UNKNOWN",
+        "EXPECTED_REGION_COUNT": int(result.get("expected_region_count") or 0),
+        "COVERED_REGION_COUNT": int(result.get("covered_region_count") or 0),
+        "MISSING_REGION_COUNT": int(result.get("missing_region_count") or 0),
+        "UNKNOWN_REGION_COUNT": int(result.get("unknown_region_count") or 0),
+        "MISSING_REGIONS": result.get("missing_regions") if isinstance(result.get("missing_regions"), list) else [],
+        "UNKNOWN_REGIONS": result.get("unknown_regions") if isinstance(result.get("unknown_regions"), list) else [],
+    }
+
+
 def _safe_refresh_unavailable(reason_code: str, message: str) -> dict[str, Any]:
     from services.plvr_market_aggregate_service import safe_market_refresh_reason_code
 
@@ -131,3 +217,26 @@ def _safe_refresh_unavailable(reason_code: str, message: str) -> dict[str, Any]:
         "message": message,
         "reason_code": safe_market_refresh_reason_code(reason_code),
     }
+
+
+def _authorized_market_operator(response: Response, token: str | None) -> bool:
+    configured_token = os.getenv(MARKET_READ_MODEL_REFRESH_TOKEN_ENV, "").strip()
+    if not configured_token:
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return False
+    if token != configured_token:
+        response.status_code = status.HTTP_403_FORBIDDEN
+        return False
+    return True
+
+
+def _market_operator_auth_failure(response: Response) -> dict[str, Any]:
+    if response.status_code == status.HTTP_403_FORBIDDEN:
+        return {
+            "status": "unavailable",
+            "data_status": "unavailable",
+            "coverage_status": "unknown",
+            "built_at": None,
+            "message": MARKET_REFRESH_FORBIDDEN_MESSAGE,
+        }
+    return _safe_refresh_unavailable("refresh_runtime_not_configured", MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE)

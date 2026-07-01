@@ -1,0 +1,152 @@
+name: Reconcile Nationwide Market Coverage
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  reconcile-market-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout canonical registry
+        uses: actions/checkout@v4
+
+      - name: Reconcile market coverage
+        shell: bash
+        env:
+          RENDER_API_BASE_URL: ${{ secrets.RENDER_API_BASE_URL }}
+          MARKET_READ_MODEL_REFRESH_TOKEN: ${{ secrets.MARKET_READ_MODEL_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          base_url="${RENDER_API_BASE_URL%/}"
+          tmp_files=()
+          cleanup() {
+            if [ "${#tmp_files[@]}" -gt 0 ]; then
+              rm -f "${tmp_files[@]}"
+            fi
+          }
+          trap cleanup EXIT
+
+          post_json() {
+            endpoint="$1"
+            payload="$2"
+            body_file="$3"
+            status_file="$(mktemp)"
+            tmp_files+=("$status_file" "$body_file")
+
+            set +e
+            curl \
+              --silent \
+              --output "$body_file" \
+              --write-out "%{http_code}" \
+              --connect-timeout 20 \
+              --max-time 120 \
+              --request POST \
+              --header "Content-Type: application/json" \
+              --header "X-Market-Read-Model-Refresh-Token: ${MARKET_READ_MODEL_REFRESH_TOKEN}" \
+              --data "$payload" \
+              "${base_url}${endpoint}" \
+              > "$status_file"
+            curl_exit=$?
+            set -e
+
+            if [ "$curl_exit" -eq 0 ]; then
+              cat "$status_file"
+            else
+              printf '0'
+            fi
+          }
+
+          bootstrap_body="$(mktemp)"
+          bootstrap_status="$(post_json "/market-insights/coverage/bootstrap" '{}' "$bootstrap_body")"
+          if [ "$bootstrap_status" != "200" ]; then
+            echo "MARKET_COVERAGE_BOOTSTRAP=failed"
+            echo "MARKET_COVERAGE_RECONCILED_COUNT=0"
+            echo "MARKET_COVERAGE_AUDIT=UNKNOWN"
+            echo "EXPECTED_REGION_COUNT=0"
+            echo "COVERED_REGION_COUNT=0"
+            echo "MISSING_REGION_COUNT=0"
+            echo "UNKNOWN_REGION_COUNT=0"
+            exit 1
+          fi
+          echo "MARKET_COVERAGE_BOOTSTRAP=success"
+
+          counties_file="$(mktemp)"
+          tmp_files+=("$counties_file")
+          python - <<'PY' > "$counties_file"
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path("data/taiwan-admin-areas.json").read_text(encoding="utf-8"))
+          for area in payload.get("areas", []):
+              county = str(area.get("county") or "").strip()
+              if county:
+                  print(county)
+          PY
+
+          reconciled_count=0
+          while IFS= read -r county; do
+            [ -n "$county" ] || continue
+            reconcile_body="$(mktemp)"
+            reconcile_payload="$(python - "$county" <<'PY'
+          import json
+          import sys
+
+          print(json.dumps({"county": sys.argv[1]}, ensure_ascii=False))
+          PY
+          )"
+            reconcile_status="$(post_json "/market-insights/coverage/reconcile" "$reconcile_payload" "$reconcile_body")"
+            if [ "$reconcile_status" != "200" ]; then
+              echo "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}"
+              echo "MARKET_COVERAGE_AUDIT=UNKNOWN"
+              echo "EXPECTED_REGION_COUNT=0"
+              echo "COVERED_REGION_COUNT=0"
+              echo "MISSING_REGION_COUNT=0"
+              echo "UNKNOWN_REGION_COUNT=0"
+              exit 1
+            fi
+            reconciled_count=$((reconciled_count + 1))
+          done < "$counties_file"
+
+          echo "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}"
+
+          audit_body="$(mktemp)"
+          audit_status="$(post_json "/market-insights/coverage/audit" '{}' "$audit_body")"
+          if [ "$audit_status" != "200" ]; then
+            echo "MARKET_COVERAGE_AUDIT=UNKNOWN"
+            echo "EXPECTED_REGION_COUNT=0"
+            echo "COVERED_REGION_COUNT=0"
+            echo "MISSING_REGION_COUNT=0"
+            echo "UNKNOWN_REGION_COUNT=0"
+            exit 1
+          fi
+
+          python - "$audit_body" <<'PY'
+          import json
+          import sys
+
+          try:
+              with open(sys.argv[1], "r", encoding="utf-8") as handle:
+                  payload = json.load(handle)
+          except Exception:
+              payload = {}
+
+          status = payload.get("MARKET_COVERAGE")
+          if status not in {"FULL", "PARTIAL", "UNKNOWN"}:
+              status = "UNKNOWN"
+
+          def count_value(name: str) -> int:
+              try:
+                  return max(0, int(payload.get(name) or 0))
+              except Exception:
+                  return 0
+
+          print(f"MARKET_COVERAGE_AUDIT={status}")
+          print(f"EXPECTED_REGION_COUNT={count_value('EXPECTED_REGION_COUNT')}")
+          print(f"COVERED_REGION_COUNT={count_value('COVERED_REGION_COUNT')}")
+          print(f"MISSING_REGION_COUNT={count_value('MISSING_REGION_COUNT')}")
+          print(f"UNKNOWN_REGION_COUNT={count_value('UNKNOWN_REGION_COUNT')}")
+          raise SystemExit(0 if status == "FULL" else 1)
+          PY

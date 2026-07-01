@@ -35,6 +35,9 @@ from services.plvr_market_aggregate_service import (
     get_market_summary,
     list_market_regions,
     refresh_market_read_model,
+    audit_market_coverage,
+    bootstrap_market_coverage_metadata,
+    reconcile_market_coverage,
     safe_market_refresh_reason_code,
 )
 
@@ -211,6 +214,48 @@ class PhaseRefreshRepository(PostgresMarketReadModelRepository):
         if self.failure == "connect":
             raise RuntimeError("connection detail must not leak")
         return PhaseRefreshConnection(failure=self.failure, aggregate_count=self.aggregate_count)
+
+
+class CoverageOperationsRepository:
+    def __init__(self, *, fail: str | None = None) -> None:
+        self.fail = fail
+        self.calls: list[str] = []
+
+    def bootstrap_coverage_metadata(self) -> dict[str, Any]:
+        self.calls.append("bootstrap")
+        if self.fail == "bootstrap":
+            raise RuntimeError("schema detail must not leak")
+        return {"migration_status": "applied_or_already_present"}
+
+    def reconcile_coverage(self, county: str) -> dict[str, Any]:
+        self.calls.append(f"reconcile:{county}")
+        if self.fail == "reconcile":
+            raise RuntimeError("raw database detail must not leak")
+        return {
+            "status": "resolved",
+            "operation": "reconcile",
+            "county": county,
+            "coverage_status": "covered",
+            "processed_region_count": 2,
+            "covered_region_count": 2,
+            "not_covered_region_count": 0,
+            "unknown_region_count": 0,
+            "message": "internal message must be replaced",
+        }
+
+    def audit_coverage(self) -> dict[str, Any]:
+        self.calls.append("audit")
+        if self.fail == "audit":
+            raise RuntimeError("raw database detail must not leak")
+        return {
+            "status": "FULL",
+            "expected_region_count": 2,
+            "covered_region_count": 2,
+            "missing_region_count": 0,
+            "unknown_region_count": 0,
+            "missing_regions": [],
+            "unknown_regions": [],
+        }
 
 
 def test_direct_query_sql_uses_only_plvr_transaction_table() -> None:
@@ -474,3 +519,57 @@ def test_datetime_status_is_serialized_safely() -> None:
     status = get_market_status(DatetimeRepository())
 
     assert status["built_at"].startswith("2025-03-06")
+
+
+def test_coverage_bootstrap_returns_safe_status_without_raw_details() -> None:
+    repo = CoverageOperationsRepository()
+
+    result = bootstrap_market_coverage_metadata(repo)
+
+    assert result == {
+        "status": "resolved",
+        "operation": "bootstrap",
+        "migration_status": "applied_or_already_present",
+        "message": "Market coverage metadata is ready.",
+    }
+    assert repo.calls == ["bootstrap"]
+
+
+def test_coverage_reconcile_preserves_safe_counts_and_status() -> None:
+    repo = CoverageOperationsRepository()
+
+    result = reconcile_market_coverage("Demo County", repo)
+
+    assert result["status"] == "resolved"
+    assert result["operation"] == "reconcile"
+    assert result["county"] == "Demo County"
+    assert result["coverage_status"] == "covered"
+    assert result["processed_region_count"] == 2
+    assert result["covered_region_count"] == 2
+    assert result["not_covered_region_count"] == 0
+    assert result["unknown_region_count"] == 0
+    assert "internal message" not in str(result)
+
+
+def test_coverage_operations_fail_safely_without_raw_details() -> None:
+    assert bootstrap_market_coverage_metadata(CoverageOperationsRepository(fail="bootstrap"))["status"] == "unavailable"
+
+    reconcile = reconcile_market_coverage("Demo County", CoverageOperationsRepository(fail="reconcile"))
+    assert reconcile["status"] == "unavailable"
+    assert reconcile["coverage_status"] == "coverage_unknown"
+    assert "raw database detail" not in str(reconcile)
+
+    audit = audit_market_coverage(CoverageOperationsRepository(fail="audit"))
+    assert audit["status"] == "UNKNOWN"
+    assert audit["covered_region_count"] == 0
+    assert "raw database detail" not in str(audit)
+
+
+def test_coverage_audit_returns_only_canonical_aggregate_counts() -> None:
+    result = audit_market_coverage(CoverageOperationsRepository())
+
+    assert result["status"] == "FULL"
+    assert result["expected_region_count"] == 2
+    assert result["covered_region_count"] == 2
+    assert "database_url" not in str(result)
+    assert "real_price_transactions" not in str(result)

@@ -14,7 +14,7 @@ from datetime import date, datetime, timezone
 from typing import Any, Protocol
 
 from services.market_data_foundation import MARKET_DATA_CAVEAT, market_unavailable_response
-from services.taiwan_admin_registry import normalize_market_region
+from services.taiwan_admin_registry import audit_region_coverage, iter_taiwan_regions, normalize_market_region
 
 
 OFFICIAL_PLVR_SOURCE = "official_plvr_opendata"
@@ -143,6 +143,17 @@ class PostgresMarketReadModelRepository:
                 normalized_county = _normalize_county(county)
                 clean_district = district.strip()
                 if clean_district:
+                    cursor.execute(MARKET_COVERAGE_METADATA_DISTRICT_SQL, [normalized_county, clean_district])
+                else:
+                    cursor.execute(MARKET_COVERAGE_METADATA_COUNTY_SQL, [normalized_county])
+                metadata_row = dict(cursor.fetchone() or {})
+                if metadata_row:
+                    return {
+                        "coverage_status": _direct_coverage_status(metadata_row.get("coverage_status")),
+                        "valid_market_candidate_count": _int_value(metadata_row.get("valid_market_candidate_count")),
+                        "source_updated_at": _date_text(metadata_row.get("source_updated_at")),
+                    }
+                if clean_district:
                     cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [normalized_county, clean_district])
                 else:
                     cursor.execute(DIRECT_COVERAGE_COUNTY_SQL, [normalized_county])
@@ -185,6 +196,65 @@ class PostgresMarketReadModelRepository:
                 _run_refresh_phase("read_model_metadata_unavailable", replace_metadata)
             _run_refresh_phase("read_model_write_unavailable", connection.commit)
         return _run_refresh_phase("read_model_refresh_unavailable", self.status)
+
+    def bootstrap_coverage_metadata(self) -> dict[str, Any]:
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("set local statement_timeout = '60s'")
+                cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL)
+            connection.commit()
+        return {"migration_status": "applied_or_already_present"}
+
+    def reconcile_coverage(self, county: str) -> dict[str, Any]:
+        normalized = normalize_market_region(county)
+        if not normalized.valid:
+            return _coverage_reconcile_unavailable(county)
+        county_regions = [region for region in iter_taiwan_regions() if region.county == normalized.county]
+        if not county_regions:
+            return _coverage_reconcile_unavailable(normalized.county)
+        reconciled_at = datetime.now(timezone.utc)
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("set local statement_timeout = '90s'")
+                cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL)
+                counts: list[dict[str, Any]] = []
+                for region in county_regions:
+                    cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [region.county, region.district])
+                    coverage = dict(cursor.fetchone() or {})
+                    valid_count = _int_value(coverage.get("valid_market_candidate_count"))
+                    source_updated_at = _date_text(coverage.get("source_updated_at"))
+                    cursor.execute(
+                        MARKET_COVERAGE_METADATA_UPSERT_SQL,
+                        [
+                            region.county,
+                            region.district,
+                            "covered",
+                            valid_count,
+                            source_updated_at,
+                            reconciled_at,
+                        ],
+                    )
+                    counts.append({"coverage_status": "covered", "valid_market_candidate_count": valid_count})
+            connection.commit()
+        return _coverage_reconcile_response(normalized.county, counts)
+
+    def audit_coverage(self) -> dict[str, Any]:
+        with self._connect() as connection:
+            with connection.cursor() as cursor:
+                _set_read_only(cursor)
+                cursor.execute(MARKET_COVERAGE_METADATA_AUDIT_SQL)
+                rows = [dict(row) for row in cursor.fetchall()]
+        covered = [
+            (_optional_text(row.get("county")) or "", _optional_text(row.get("district")) or "")
+            for row in rows
+            if _direct_coverage_status(row.get("coverage_status")) == "covered"
+        ]
+        unknown = [
+            (_optional_text(row.get("county")) or "", _optional_text(row.get("district")) or "")
+            for row in rows
+            if _direct_coverage_status(row.get("coverage_status")) == "coverage_unknown"
+        ]
+        return audit_region_coverage(covered, unknown_regions=unknown)
 
     def _connect(self):
         import psycopg
@@ -301,9 +371,154 @@ def refresh_market_read_model(repository: MarketReadModelRepository | None = Non
     return _refresh_unavailable(status, "read_model_refresh_unavailable")
 
 
+def bootstrap_market_coverage_metadata(repository: Any | None = None) -> dict[str, Any]:
+    """Apply or verify the operator coverage metadata schema safely."""
+
+    repo = repository or _repository_from_env()
+    if repo is None or not hasattr(repo, "bootstrap_coverage_metadata"):
+        return {
+            "status": "unavailable",
+            "operation": "bootstrap",
+            "migration_status": "unavailable",
+            "message": "Market coverage metadata is temporarily unavailable.",
+        }
+    try:
+        raw = repo.bootstrap_coverage_metadata()
+    except Exception:
+        return {
+            "status": "unavailable",
+            "operation": "bootstrap",
+            "migration_status": "unavailable",
+            "message": "Market coverage metadata is temporarily unavailable.",
+        }
+    migration_status = _optional_text(raw.get("migration_status")) or "applied_or_already_present"
+    return {
+        "status": "resolved",
+        "operation": "bootstrap",
+        "migration_status": migration_status,
+        "message": "Market coverage metadata is ready.",
+    }
+
+
+def reconcile_market_coverage(county: str, repository: Any | None = None) -> dict[str, Any]:
+    """Reconcile one canonical county into safe coverage metadata."""
+
+    repo = repository or _repository_from_env()
+    clean_county = (county or "").strip()
+    if repo is None or not hasattr(repo, "reconcile_coverage") or not clean_county:
+        return _coverage_reconcile_unavailable(clean_county)
+    try:
+        raw = repo.reconcile_coverage(clean_county)
+    except Exception:
+        return _coverage_reconcile_unavailable(clean_county)
+    if "processed_region_count" in raw:
+        return _safe_coverage_reconcile_result(raw, clean_county)
+    return _coverage_reconcile_response(
+        _optional_text(raw.get("county")) or clean_county,
+        [
+            {
+                "coverage_status": _direct_coverage_status(row.get("coverage_status")),
+                "valid_market_candidate_count": _int_value(row.get("valid_market_candidate_count")),
+            }
+            for row in raw.get("regions", [])
+            if isinstance(row, dict)
+        ],
+    )
+
+
+def audit_market_coverage(repository: Any | None = None) -> dict[str, Any]:
+    """Audit nationwide coverage metadata against the canonical registry."""
+
+    repo = repository or _repository_from_env()
+    if repo is None or not hasattr(repo, "audit_coverage"):
+        audit = audit_region_coverage([], unknown_regions=[])
+        return {**audit, "status": "UNKNOWN", "unknown_region_count": audit["expected_region_count"]}
+    try:
+        raw = repo.audit_coverage()
+    except Exception:
+        audit = audit_region_coverage([], unknown_regions=[])
+        return {**audit, "status": "UNKNOWN", "unknown_region_count": audit["expected_region_count"]}
+    return {
+        "status": str(raw.get("status") or "UNKNOWN"),
+        "expected_region_count": _int_value(raw.get("expected_region_count")),
+        "covered_region_count": _int_value(raw.get("covered_region_count")),
+        "missing_region_count": _int_value(raw.get("missing_region_count")),
+        "unknown_region_count": _int_value(raw.get("unknown_region_count")),
+        "missing_regions": _safe_region_labels(raw.get("missing_regions")),
+        "unknown_regions": _safe_region_labels(raw.get("unknown_regions")),
+    }
+
+
 def _repository_from_env() -> MarketReadModelRepository | None:
     database_url = os.getenv("VALUATION_DATABASE_URL", "").strip()
     return PostgresMarketReadModelRepository(database_url) if database_url else None
+
+
+def _coverage_reconcile_response(county: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
+    processed = len(rows)
+    covered = sum(1 for row in rows if _direct_coverage_status(row.get("coverage_status")) == "covered")
+    not_covered = sum(1 for row in rows if _direct_coverage_status(row.get("coverage_status")) == "not_covered")
+    unknown = max(0, processed - covered - not_covered)
+    coverage_status = "coverage_unknown"
+    if processed > 0 and unknown == 0 and covered > 0:
+        coverage_status = "covered"
+    elif not_covered > 0 and covered == 0 and unknown == 0:
+        coverage_status = "not_covered"
+    return {
+        "status": "resolved" if processed > 0 else "unavailable",
+        "operation": "reconcile",
+        "county": county,
+        "coverage_status": coverage_status,
+        "processed_region_count": processed,
+        "covered_region_count": covered,
+        "not_covered_region_count": not_covered,
+        "unknown_region_count": unknown,
+        "message": "Market coverage metadata reconciled." if processed > 0 else "Market coverage metadata is temporarily unavailable.",
+    }
+
+
+def _safe_coverage_reconcile_result(raw: dict[str, Any], fallback_county: str) -> dict[str, Any]:
+    processed = _int_value(raw.get("processed_region_count"))
+    covered = _int_value(raw.get("covered_region_count"))
+    not_covered = _int_value(raw.get("not_covered_region_count"))
+    unknown = _int_value(raw.get("unknown_region_count"))
+    coverage_status = _direct_coverage_status(raw.get("coverage_status"))
+    return {
+        "status": "resolved" if processed > 0 else "unavailable",
+        "operation": "reconcile",
+        "county": _optional_text(raw.get("county")) or fallback_county,
+        "coverage_status": coverage_status,
+        "processed_region_count": processed,
+        "covered_region_count": covered,
+        "not_covered_region_count": not_covered,
+        "unknown_region_count": unknown,
+        "message": "Market coverage metadata reconciled." if processed > 0 else "Market coverage metadata is temporarily unavailable.",
+    }
+
+
+def _coverage_reconcile_unavailable(county: str) -> dict[str, Any]:
+    return {
+        "status": "unavailable",
+        "operation": "reconcile",
+        "county": county,
+        "coverage_status": "coverage_unknown",
+        "processed_region_count": 0,
+        "covered_region_count": 0,
+        "not_covered_region_count": 0,
+        "unknown_region_count": 0,
+        "message": "Market coverage metadata is temporarily unavailable.",
+    }
+
+
+def _safe_region_labels(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    labels: list[str] = []
+    for item in value:
+        text = _optional_text(item)
+        if text:
+            labels.append(text)
+    return labels
 
 
 def _status_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
@@ -549,6 +764,61 @@ def _direct_coverage_status(value: Any) -> str:
     if text in {"nationwide", "partial"}:
         return "covered"
     return "coverage_unknown"
+
+
+MARKET_COVERAGE_METADATA_SCHEMA_SQL = """
+create table if not exists market_region_coverage (
+    county text not null,
+    district text not null,
+    coverage_status text not null,
+    valid_market_candidate_count integer not null default 0,
+    source_updated_at date,
+    reconciled_at timestamptz not null,
+    primary key (county, district)
+);
+create index if not exists idx_market_region_coverage_county on market_region_coverage (county);
+create index if not exists idx_market_region_coverage_status on market_region_coverage (coverage_status);
+"""
+
+MARKET_COVERAGE_METADATA_UPSERT_SQL = """
+insert into market_region_coverage (
+  county, district, coverage_status, valid_market_candidate_count, source_updated_at, reconciled_at
+)
+values (%s, %s, %s, %s, %s, %s)
+on conflict (county, district) do update set
+  coverage_status = excluded.coverage_status,
+  valid_market_candidate_count = excluded.valid_market_candidate_count,
+  source_updated_at = excluded.source_updated_at,
+  reconciled_at = excluded.reconciled_at
+"""
+
+MARKET_COVERAGE_METADATA_DISTRICT_SQL = """
+select coverage_status, valid_market_candidate_count, source_updated_at
+from market_region_coverage
+where replace(trim(county), '臺', '台') = %s
+  and trim(district) = %s
+limit 1
+"""
+
+MARKET_COVERAGE_METADATA_COUNTY_SQL = """
+select
+  case
+    when count(*) = 0 then null
+    when count(*) filter (where coverage_status = 'coverage_unknown') > 0 then 'coverage_unknown'
+    when count(*) filter (where coverage_status = 'covered') > 0 then 'covered'
+    when count(*) filter (where coverage_status = 'not_covered') > 0 then 'not_covered'
+    else 'coverage_unknown'
+  end as coverage_status,
+  coalesce(sum(valid_market_candidate_count), 0)::integer as valid_market_candidate_count,
+  max(source_updated_at)::date as source_updated_at
+from market_region_coverage
+where replace(trim(county), '臺', '台') = %s
+"""
+
+MARKET_COVERAGE_METADATA_AUDIT_SQL = """
+select county, district, coverage_status
+from market_region_coverage
+"""
 
 
 READ_MODEL_SCHEMA_SQL = """
