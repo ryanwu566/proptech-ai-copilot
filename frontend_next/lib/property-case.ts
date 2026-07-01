@@ -16,6 +16,16 @@ import {
   type DueDiligenceItem,
   type DueDiligenceReadiness,
 } from "@/lib/property-case-due-diligence";
+import {
+  buildViewingOfferReadiness,
+  normalizeOfferPlans,
+  normalizeViewingLogs,
+  normalizeViewingQuestions,
+  type OfferPlan,
+  type ViewingLog,
+  type ViewingOfferReadiness,
+  type ViewingQuestion,
+} from "@/lib/property-case-viewing-offer";
 
 export type PropertyCaseStatus = "completed" | "missing" | "unavailable" | "incomplete";
 export type PropertyDecisionStatus = "draft" | "reviewing" | "shortlisted" | "rejected" | "purchased";
@@ -50,6 +60,9 @@ export type PropertyCaseDraftInput = {
   decisionStatus?: PropertyDecisionStatus;
   decisionNote?: string;
   dueDiligenceItems?: Partial<DueDiligenceItem>[];
+  viewingLogs?: Partial<ViewingLog>[];
+  viewingQuestions?: Partial<ViewingQuestion>[];
+  offerPlans?: Partial<OfferPlan>[];
   decisionReviewSummary?: string;
   decisionOpenQuestions?: string;
   decisionNextStep?: string;
@@ -118,6 +131,9 @@ export type PropertyCaseDraft = {
     tax_note: string;
   };
   due_diligence_items: DueDiligenceItem[];
+  viewing_logs: ViewingLog[];
+  viewing_questions: ViewingQuestion[];
+  offer_plans: OfferPlan[];
   analysis_status: Record<"property" | "location" | "terrain" | "commute" | "valuation" | "loan" | "holding" | "tax" | "decision", PropertyCaseStatus>;
   analysis_summary: string[];
   readiness: {
@@ -126,6 +142,7 @@ export type PropertyCaseDraft = {
     print_ready: boolean;
     print_notice: string | null;
     due_diligence: DueDiligenceReadiness;
+    viewing_offer: ViewingOfferReadiness;
     missing_required: string[];
     unavailable_or_incomplete: string[];
   };
@@ -144,11 +161,15 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
   const commuteStatus: PropertyCaseStatus = "missing";
   const dueDiligenceItems = normalizeDueDiligenceItems(input.dueDiligenceItems);
+  const viewingLogs = normalizeViewingLogs(input.viewingLogs);
+  const viewingQuestions = normalizeViewingQuestions(input.viewingQuestions);
+  const offerPlans = normalizeOfferPlans(input.offerPlans);
   const dueDiligenceReadiness = buildDueDiligenceReadiness(dueDiligenceItems, {
     decision_review_summary: input.decisionReviewSummary,
     decision_open_questions: input.decisionOpenQuestions,
     decision_next_step: input.decisionNextStep,
   });
+  const viewingOfferReadiness = buildViewingOfferReadiness(viewingLogs, viewingQuestions, offerPlans);
   const analysisStatus = {
     property: input.propertySearch ? "completed" : "missing",
     location: locationStatus,
@@ -232,6 +253,9 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       tax_note: input.taxNote?.trim() || "",
     },
     due_diligence_items: dueDiligenceItems,
+    viewing_logs: viewingLogs,
+    viewing_questions: viewingQuestions,
+    offer_plans: offerPlans,
     analysis_status: analysisStatus,
     analysis_summary: buildAnalysisSummary(input, analysisStatus),
     readiness: {
@@ -240,6 +264,7 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       print_ready: printReady,
       print_notice: printReady ? PARTIAL_CASE_PRINT_NOTICE : null,
       due_diligence: dueDiligenceReadiness.readiness,
+      viewing_offer: viewingOfferReadiness.readiness,
       missing_required: missingRequired,
       unavailable_or_incomplete: unavailableOrIncomplete,
     },
@@ -301,6 +326,7 @@ function buildAnalysisSummary(input: PropertyCaseDraftInput, status: PropertyCas
   if (input.location) rows.push(`位置分析 ${status.location}`);
   if (input.terrainRisk) rows.push(`地勢風險 ${input.terrainRisk.overall.label}`);
   if (input.dueDiligenceItems?.some((item) => item.status && item.status !== "not_started")) rows.push("Due diligence review board has user-entered checklist progress.");
+  if (input.viewingLogs?.length || input.viewingQuestions?.length || input.offerPlans?.length) rows.push("Viewing and offer planning board has user-entered planning progress.");
   if (!rows.length) rows.push("尚未完成可比較的分析");
   return rows;
 }

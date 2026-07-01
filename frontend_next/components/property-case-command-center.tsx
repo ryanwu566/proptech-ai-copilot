@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { PARTIAL_CASE_PRINT_NOTICE, buildPropertyCaseDraft, type PropertyDecisionStatus } from "@/lib/property-case";
 import {
   buildPropertyCaseFinancialAnalysis,
@@ -18,6 +19,25 @@ import {
   type DueDiligenceItem,
   type DueDiligenceStatus,
 } from "@/lib/property-case-due-diligence";
+import {
+  MAX_OFFER_PLANS,
+  OFFER_PLAN_STATUS_LABELS,
+  OFFER_PLAN_STATUS_OPTIONS,
+  VIEWING_LOG_STATUS_LABELS,
+  VIEWING_LOG_STATUS_OPTIONS,
+  VIEWING_QUESTION_CATEGORY_OPTIONS,
+  VIEWING_QUESTION_STATUS_LABELS,
+  VIEWING_QUESTION_STATUS_OPTIONS,
+  buildOfferPlanFinancialPreviews,
+  buildViewingOfferReadiness,
+  type OfferPlan,
+  type OfferPlanStatus,
+  type ViewingLog,
+  type ViewingLogStatus,
+  type ViewingQuestion,
+  type ViewingQuestionCategory,
+  type ViewingQuestionStatus,
+} from "@/lib/property-case-viewing-offer";
 import { buildPropertyCaseReadiness } from "@/lib/property-case-readiness";
 import type { ValuationInputs } from "@/lib/valuation-share";
 
@@ -58,6 +78,9 @@ type CommandCenterState = {
   decisionNote: string;
   locationMarketNote: string;
   dueDiligenceItems: DueDiligenceItem[];
+  viewingLogs: ViewingLog[];
+  viewingQuestions: ViewingQuestion[];
+  offerPlans: OfferPlan[];
   decisionReviewSummary: string;
   decisionOpenQuestions: string;
   decisionNextStep: string;
@@ -117,6 +140,9 @@ const initialState: CommandCenterState = {
   decisionNote: "",
   locationMarketNote: "",
   dueDiligenceItems: buildDefaultDueDiligenceItems(),
+  viewingLogs: [],
+  viewingQuestions: [],
+  offerPlans: [],
   decisionReviewSummary: "",
   decisionOpenQuestions: "",
   decisionNextStep: "",
@@ -170,6 +196,14 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
     [state.decisionNextStep, state.decisionOpenQuestions, state.decisionReviewSummary, state.dueDiligenceItems],
   );
   const dueDiligenceGroups = useMemo(() => groupDueDiligenceItems(state.dueDiligenceItems), [state.dueDiligenceItems]);
+  const viewingOfferReadiness = useMemo(
+    () => buildViewingOfferReadiness(state.viewingLogs, state.viewingQuestions, state.offerPlans),
+    [state.offerPlans, state.viewingLogs, state.viewingQuestions],
+  );
+  const offerFinancialPreviews = useMemo(
+    () => buildOfferPlanFinancialPreviews(financialInputs, state.offerPlans),
+    [financialInputs, state.offerPlans],
+  );
   const estimatedMonthlyPayment = financialAnalysis.monthlyPayment.value;
   const derivedLoanAmount = financialAnalysis.loanAmount.value;
   const derivedDownPayment = financialAnalysis.downPayment.value;
@@ -202,6 +236,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
       decisionStatus: state.decisionStatus,
       decisionNote: state.decisionNote,
       dueDiligenceItems: state.dueDiligenceItems,
+      viewingLogs: state.viewingLogs,
+      viewingQuestions: state.viewingQuestions,
+      offerPlans: state.offerPlans,
       decisionReviewSummary: state.decisionReviewSummary,
       decisionOpenQuestions: state.decisionOpenQuestions,
       decisionNextStep: state.decisionNextStep,
@@ -238,6 +275,42 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
       ...current,
       dueDiligenceItems: current.dueDiligenceItems.map((item) => item.item_id === itemId ? { ...item, ...patch } : item),
     }));
+  }
+
+  function addViewingLog() {
+    setState((current) => ({ ...current, viewingLogs: [...current.viewingLogs, emptyViewingLog()] }));
+  }
+
+  function updateViewingLog(id: string, patch: Partial<ViewingLog>) {
+    setState((current) => ({ ...current, viewingLogs: current.viewingLogs.map((log) => log.id === id ? { ...log, ...patch } : log) }));
+  }
+
+  function removeViewingLog(id: string) {
+    setState((current) => ({ ...current, viewingLogs: current.viewingLogs.filter((log) => log.id !== id) }));
+  }
+
+  function addViewingQuestion() {
+    setState((current) => ({ ...current, viewingQuestions: [...current.viewingQuestions, emptyViewingQuestion()] }));
+  }
+
+  function updateViewingQuestion(id: string, patch: Partial<ViewingQuestion>) {
+    setState((current) => ({ ...current, viewingQuestions: current.viewingQuestions.map((question) => question.id === id ? { ...question, ...patch } : question) }));
+  }
+
+  function removeViewingQuestion(id: string) {
+    setState((current) => ({ ...current, viewingQuestions: current.viewingQuestions.filter((question) => question.id !== id) }));
+  }
+
+  function addOfferPlan() {
+    setState((current) => current.offerPlans.length >= MAX_OFFER_PLANS ? current : { ...current, offerPlans: [...current.offerPlans, emptyOfferPlan()] });
+  }
+
+  function updateOfferPlan(id: string, patch: Partial<OfferPlan>) {
+    setState((current) => ({ ...current, offerPlans: current.offerPlans.map((offer) => offer.id === id ? { ...offer, ...patch } : offer) }));
+  }
+
+  function removeOfferPlan(id: string) {
+    setState((current) => ({ ...current, offerPlans: current.offerPlans.filter((offer) => offer.id !== id) }));
   }
 
   return <main className="min-h-screen bg-stone-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
@@ -436,6 +509,104 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               </p>
             </div>
           </section>
+
+          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+            <SectionHeading eyebrow="F. VIEWING & OFFER" title="看屋、提問與出價規劃" />
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              這裡只整理使用者手動輸入的看屋紀錄、待問事項與出價情境；不產生正式出價、不自動套用開價、不查詢市場或位置資料。
+            </p>
+            <div className="mt-4 grid gap-3 md:grid-cols-5">
+              <ReviewStat label="看屋紀錄" value={viewingOfferReadiness.viewing_count} />
+              <ReviewStat label="完成看屋" value={viewingOfferReadiness.completed_viewing_count} />
+              <ReviewStat label="待問事項" value={viewingOfferReadiness.open_question_count} />
+              <ReviewStat label="出價情境" value={viewingOfferReadiness.offer_plan_count} />
+              <ReviewStat label="下一步" value={viewingOfferReadiness.next_step_count} />
+            </div>
+            <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
+              出價規劃只是一組使用者輸入的試算情境，不是正式 offer、法律文件、議價建議、成交機率或投資報酬預測。
+            </div>
+
+            <PlannerBlock title="看屋紀錄" actionLabel="新增看屋紀錄" onAdd={addViewingLog}>
+              {state.viewingLogs.length === 0 && <EmptyPlannerMessage text="尚未建立看屋紀錄。" />}
+              {state.viewingLogs.map((log) => <div key={log.id} className="rounded-xl bg-stone-50 p-3">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <TextField label="看屋日期（YYYY-MM-DD）" value={log.viewed_on} onChange={(value) => updateViewingLog(log.id, { viewed_on: value })} placeholder="YYYY-MM-DD" />
+                  <TextField label="參與者備註" value={log.participant_note} onChange={(value) => updateViewingLog(log.id, { participant_note: value })} placeholder="例如：家人、代書、設計師" />
+                  <label className="block text-xs font-bold text-slate-500">狀態
+                    <select value={log.status} onChange={(event) => updateViewingLog(log.id, { status: event.target.value as ViewingLogStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                      {VIEWING_LOG_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{VIEWING_LOG_STATUS_LABELS[status]}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <TextArea label="摘要" value={log.summary} onChange={(value) => updateViewingLog(log.id, { summary: value })} placeholder="只記錄使用者觀察，不放 provider raw data。" />
+                  <TextArea label="正向觀察" value={log.positive_observations} onChange={(value) => updateViewingLog(log.id, { positive_observations: value })} placeholder="例如：採光、動線、社區管理觀察。" />
+                  <TextArea label="疑慮" value={log.concerns} onChange={(value) => updateViewingLog(log.id, { concerns: value })} placeholder="例如：待確認漏水、噪音、管線或文件。" />
+                  <TextArea label="下一步" value={log.follow_up_action} onChange={(value) => updateViewingLog(log.id, { follow_up_action: value })} placeholder="例如：再次看屋、請賣方補文件。" />
+                </div>
+                <button type="button" onClick={() => removeViewingLog(log.id)} className="mt-3 text-xs font-bold text-slate-500">刪除此紀錄</button>
+              </div>)}
+            </PlannerBlock>
+
+            <PlannerBlock title="提問與回覆追蹤" actionLabel="新增提問" onAdd={addViewingQuestion}>
+              {state.viewingQuestions.length === 0 && <EmptyPlannerMessage text="尚未建立提問。" />}
+              {state.viewingQuestions.map((question) => <div key={question.id} className="rounded-xl bg-stone-50 p-3">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <label className="block text-xs font-bold text-slate-500">分類
+                    <select value={question.category} onChange={(event) => updateViewingQuestion(question.id, { category: event.target.value as ViewingQuestionCategory })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                      {VIEWING_QUESTION_CATEGORY_OPTIONS.map((category) => <option key={category} value={category}>{category}</option>)}
+                    </select>
+                  </label>
+                  <label className="block text-xs font-bold text-slate-500">狀態
+                    <select value={question.status} onChange={(event) => updateViewingQuestion(question.id, { status: event.target.value as ViewingQuestionStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                      {VIEWING_QUESTION_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{VIEWING_QUESTION_STATUS_LABELS[status]}</option>)}
+                    </select>
+                  </label>
+                  <TextField label="目標日期（YYYY-MM-DD）" value={question.target_date} onChange={(value) => updateViewingQuestion(question.id, { target_date: value })} placeholder="YYYY-MM-DD" />
+                </div>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <TextArea label="問題" value={question.question} onChange={(value) => updateViewingQuestion(question.id, { question: value })} placeholder="必填；例如：請確認屋況或契約條件。" />
+                  <TextArea label="使用者記錄回覆" value={question.recorded_response} onChange={(value) => updateViewingQuestion(question.id, { recorded_response: value })} placeholder="只記錄使用者取得的回覆，不產生正式結論。" />
+                  <TextArea label="回覆來源備註" value={question.response_source_note} onChange={(value) => updateViewingQuestion(question.id, { response_source_note: value })} placeholder="例如：仲介口頭回覆、待補文件；不要貼 URL、token 或原始資料。" />
+                  <TextArea label="後續行動" value={question.follow_up_action} onChange={(value) => updateViewingQuestion(question.id, { follow_up_action: value })} placeholder="例如：追文件、請專業人士確認。" />
+                </div>
+                <button type="button" onClick={() => removeViewingQuestion(question.id)} className="mt-3 text-xs font-bold text-slate-500">刪除此提問</button>
+              </div>)}
+            </PlannerBlock>
+
+            <PlannerBlock title="估價與出價規劃" actionLabel="新增出價情境" onAdd={addOfferPlan} disabled={state.offerPlans.length >= MAX_OFFER_PLANS}>
+              {state.offerPlans.length === 0 && <EmptyPlannerMessage text="尚未建立出價情境。" />}
+              {state.offerPlans.map((offer) => {
+                const preview = offerFinancialPreviews.find((item) => item.offer_plan_id === offer.id);
+                return <div key={offer.id} className="rounded-xl bg-stone-50 p-3">
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <TextField label="情境名稱" value={offer.scenario_name} onChange={(value) => updateOfferPlan(offer.id, { scenario_name: value })} placeholder="例如：保守出價、接近底價" />
+                    <TextField label="擬出價（萬元）" value={offer.proposed_price === null ? "" : String(offer.proposed_price)} onChange={(value) => updateOfferPlan(offer.id, { proposed_price: parsePositiveNumber(value) })} inputMode="decimal" />
+                    <TextField label="斡旋／訂金（萬元，可選）" value={offer.reservation_or_earnest_amount === null ? "" : String(offer.reservation_or_earnest_amount)} onChange={(value) => updateOfferPlan(offer.id, { reservation_or_earnest_amount: parseNonNegativeNumber(value) })} inputMode="decimal" />
+                    <TextField label="預計回覆日期（YYYY-MM-DD）" value={offer.intended_response_date} onChange={(value) => updateOfferPlan(offer.id, { intended_response_date: value })} placeholder="YYYY-MM-DD" />
+                    <label className="block text-xs font-bold text-slate-500">狀態
+                      <select value={offer.status} onChange={(event) => updateOfferPlan(offer.id, { status: event.target.value as OfferPlanStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
+                        {OFFER_PLAN_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{OFFER_PLAN_STATUS_LABELS[status]}</option>)}
+                      </select>
+                    </label>
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                    <TextArea label="條件備註" value={offer.conditions_note} onChange={(value) => updateOfferPlan(offer.id, { conditions_note: value })} placeholder="例如：屋況修繕、付款條件、契約待確認事項。" />
+                    <TextArea label="協商備註" value={offer.negotiation_note} onChange={(value) => updateOfferPlan(offer.id, { negotiation_note: value })} placeholder="只記錄使用者規劃，不產生正式 offer 文件。" />
+                  </div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-4">
+                    <MetricCard label="推算自備款" metric={preview?.analysis.downPayment ?? unavailableMetric()} formatter={formatWanMetric} />
+                    <MetricCard label="推算貸款" metric={preview?.analysis.loanAmount ?? unavailableMetric()} formatter={formatWanMetric} />
+                    <MetricCard label="月付參考" metric={preview?.analysis.monthlyPayment ?? unavailableMetric()} formatter={formatYuanMetric} />
+                    <MetricCard label="購屋後現金" metric={preview?.analysis.postPurchaseCash ?? unavailableMetric()} formatter={formatWanMetric} />
+                  </div>
+                  {offer.proposed_price === null && <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">尚未輸入擬出價，因此財務試算仍是不完整，不會用 0 代替。</p>}
+                  <button type="button" onClick={() => removeOfferPlan(offer.id)} className="mt-3 text-xs font-bold text-slate-500">刪除此出價情境</button>
+                </div>;
+              })}
+              {state.offerPlans.length >= MAX_OFFER_PLANS && <p className="mt-2 text-xs text-amber-700">最多保留 {MAX_OFFER_PLANS} 組出價情境，避免把草稿誤看成正式 offer。</p>}
+            </PlannerBlock>
+          </section>
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
@@ -447,8 +618,10 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <ReadinessRow label="估價／稅費" ready={Boolean(draft.valuation_tax_input.user_estimated_value || draft.valuation_tax_input.user_estimated_tax_cost || draft.valuation_tax_input.valuation_note || draft.valuation_tax_input.tax_note)} />
               <ReadinessRow label="位置／市場" ready={Boolean(state.locationMarketNote.trim())} />
               <ReadinessRow label="盡職調查" ready={draft.readiness.due_diligence === "completed"} />
+              <ReadinessRow label="看屋出價" ready={draft.readiness.viewing_offer === "completed"} />
             </dl>
             <p className="mt-2 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">Due diligence readiness: {draft.readiness.due_diligence}</p>
+            <p className="mt-2 rounded-xl bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">Viewing offer readiness: {draft.readiness.viewing_offer}</p>
             <p className="mt-4 rounded-xl bg-stone-50 px-3 py-2 text-xs leading-5 text-slate-600">{readiness.primaryMessage}</p>
             {draft.readiness.missing_required.length > 0 && <p className="mt-2 text-xs text-amber-700">待補：{draft.readiness.missing_required.join(", ")}</p>}
           </section>
@@ -479,6 +652,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <li>財務試算：月付 {formatYuanMetric(financialAnalysis.monthlyPayment)}；所需現金 {formatWanMetric(financialAnalysis.cashNeeded)}</li>
               <li>情境比較：{financialScenarios.length > 0 ? `${financialScenarios.length} 組` : "未建立情境"}</li>
               <li>盡職調查：{dueDiligenceReadiness.confirmed_count} 項已確認、{dueDiligenceReadiness.reviewing_count} 項檢查中、{dueDiligenceReadiness.blocked_count} 項卡關</li>
+              <li>看屋與出價：{viewingOfferReadiness.completed_viewing_count} 次完成看屋、{viewingOfferReadiness.open_question_count} 項待問、{viewingOfferReadiness.offer_plan_count} 組出價情境</li>
               <li>審查下一步：{state.decisionNextStep.trim() || "待補"}</li>
               <li>決策狀態：{state.decisionStatus}</li>
               <li>可比較：{draft.readiness.compare_ready ? "yes" : "no"}</li>
@@ -514,6 +688,20 @@ function ReviewStat({ label, value }: { label: string; value: number }) {
   </div>;
 }
 
+function PlannerBlock({ title, actionLabel, children, onAdd, disabled = false }: { title: string; actionLabel: string; children: ReactNode; onAdd: () => void; disabled?: boolean }) {
+  return <div className="mt-5 rounded-2xl border border-stone-200 p-4">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <h3 className="text-sm font-black text-slate-900">{title}</h3>
+      <button type="button" onClick={onAdd} disabled={disabled} className="rounded-xl border border-cyan-200 px-3 py-2 text-xs font-bold text-cyan-800 disabled:cursor-not-allowed disabled:opacity-50">{actionLabel}</button>
+    </div>
+    <div className="mt-4 space-y-3">{children}</div>
+  </div>;
+}
+
+function EmptyPlannerMessage({ text }: { text: string }) {
+  return <p className="rounded-xl bg-stone-50 px-3 py-2 text-xs text-slate-500">{text}</p>;
+}
+
 function MetricCard({ label, metric, formatter }: { label: string; metric: FinancialMetric; formatter: (metric: FinancialMetric) => string }) {
   return <div className="rounded-xl border border-white/70 bg-white px-3 py-3 shadow-sm">
     <p className="text-[10px] font-bold tracking-[0.12em] text-slate-500">{label}</p>
@@ -533,6 +721,45 @@ function emptyScenario(id: string, scenarioName: string): FinancialScenarioState
     optionalMonthlyHouseholdIncome: "",
     optionalMonthlyFixedObligations: "",
     optionalMonthlyOwnershipReserve: "",
+  };
+}
+
+function emptyViewingLog(): ViewingLog {
+  return {
+    id: `viewing-${Date.now()}`,
+    viewed_on: "",
+    participant_note: "",
+    summary: "",
+    positive_observations: "",
+    concerns: "",
+    follow_up_action: "",
+    status: "planned",
+  };
+}
+
+function emptyViewingQuestion(): ViewingQuestion {
+  return {
+    id: `question-${Date.now()}`,
+    category: "property",
+    question: "",
+    recorded_response: "",
+    response_source_note: "",
+    follow_up_action: "",
+    target_date: "",
+    status: "open",
+  };
+}
+
+function emptyOfferPlan(): OfferPlan {
+  return {
+    id: `offer-${Date.now()}`,
+    scenario_name: "",
+    proposed_price: null,
+    reservation_or_earnest_amount: null,
+    intended_response_date: "",
+    conditions_note: "",
+    negotiation_note: "",
+    status: "draft",
   };
 }
 
@@ -570,4 +797,8 @@ function formatYuanMetric(metric: FinancialMetric): string {
 
 function formatPercentMetric(metric: FinancialMetric): string {
   return metric.value === null ? "待補" : `${(metric.value * 100).toFixed(1)}%`;
+}
+
+function unavailableMetric(): FinancialMetric {
+  return { status: "unavailable", value: null, message: "待補擬出價或財務資料" };
 }

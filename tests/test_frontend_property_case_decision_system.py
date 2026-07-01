@@ -103,9 +103,23 @@ const dueJs = ts.transpileModule(dueSource, {{ compilerOptions: {{ module: ts.Mo
 const dueSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require }};
 vm.createContext(dueSandbox);
 vm.runInContext(dueJs, dueSandbox);
+const financialSource = fs.readFileSync('frontend_next/lib/property-case-financials.ts', 'utf8');
+const financialJs = ts.transpileModule(financialSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const financialSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {{}}, require }};
+vm.createContext(financialSandbox);
+vm.runInContext(financialJs, financialSandbox);
+const viewingSource = fs.readFileSync('frontend_next/lib/property-case-viewing-offer.ts', 'utf8');
+const viewingJs = ts.transpileModule(viewingSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const viewingSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {{}}, require: (name) => name === '@/lib/property-case-financials' ? financialSandbox.exports : require(name) }};
+vm.createContext(viewingSandbox);
+vm.runInContext(viewingJs, viewingSandbox);
 const source = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8');
 const js = ts.transpileModule(source, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
-const sandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require: (name) => name === '@/lib/property-case-due-diligence' ? dueSandbox.exports : require(name) }};
+const sandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require: (name) => {{
+  if (name === '@/lib/property-case-due-diligence') return dueSandbox.exports;
+  if (name === '@/lib/property-case-viewing-offer') return viewingSandbox.exports;
+  return require(name);
+}} }};
 vm.createContext(sandbox);
 vm.runInContext(js, sandbox);
 const buildPropertyCaseDraft = sandbox.exports.buildPropertyCaseDraft;
