@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import subprocess
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_PATH = ROOT / ".github/workflows/reconcile-market-coverage.yml"
 WORKFLOW = WORKFLOW_PATH.read_text(encoding="utf-8")
+REGISTRY_HELPER = ROOT / "scripts/list_market_coverage_counties.py"
 
 
 def test_market_coverage_rollout_workflow_is_manual_only() -> None:
@@ -46,6 +49,9 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
         "MARKET_COVERAGE_BOOTSTRAP=failed",
         "MARKET_COVERAGE_BOOTSTRAP_HTTP_STATUS=",
         "MARKET_COVERAGE_BOOTSTRAP_REASON=",
+        "MARKET_COVERAGE_REGISTRY=success",
+        "MARKET_COVERAGE_REGISTRY=failed",
+        "MARKET_COVERAGE_REGISTRY_REASON=",
         "MARKET_COVERAGE_RECONCILE_STATUS=",
         "MARKET_COVERAGE_RECONCILED_COUNT=",
         "MARKET_COVERAGE_AUDIT=",
@@ -64,6 +70,8 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
     assert "database_url" not in WORKFLOW
     assert "raw exception" not in WORKFLOW.lower()
     assert "real_price_transactions" not in WORKFLOW
+    assert "FileNotFoundError" not in WORKFLOW
+    assert "traceback" not in WORKFLOW.lower()
 
 
 def test_market_coverage_rollout_full_only_exits_zero() -> None:
@@ -83,6 +91,22 @@ def test_market_coverage_rollout_skips_later_stages_after_bootstrap_failure() ->
     assert "UNKNOWN_REGION_COUNT=not_run" in bootstrap_failure_block
     assert "/market-insights/coverage/reconcile" not in bootstrap_failure_block
     assert "/market-insights/coverage/audit" not in bootstrap_failure_block
+
+
+def test_market_coverage_rollout_skips_later_stages_after_registry_failure() -> None:
+    registry_failure_block = WORKFLOW.split('if [ ! -f "$registry_helper" ]; then', 1)[1].split("exit 1", 1)[0]
+
+    assert "MARKET_COVERAGE_REGISTRY=failed" in registry_failure_block
+    assert "MARKET_COVERAGE_REGISTRY_REASON=canonical_registry_unavailable" in registry_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_STATUS=not_run" in registry_failure_block
+    assert "MARKET_COVERAGE_RECONCILED_COUNT=not_run" in registry_failure_block
+    assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in registry_failure_block
+    assert "EXPECTED_REGION_COUNT=not_run" in registry_failure_block
+    assert "COVERED_REGION_COUNT=not_run" in registry_failure_block
+    assert "MISSING_REGION_COUNT=not_run" in registry_failure_block
+    assert "UNKNOWN_REGION_COUNT=not_run" in registry_failure_block
+    assert "/market-insights/coverage/reconcile" not in registry_failure_block
+    assert "/market-insights/coverage/audit" not in registry_failure_block
 
 
 def test_market_coverage_rollout_skips_audit_after_reconcile_failure() -> None:
@@ -106,3 +130,27 @@ def test_market_coverage_rollout_allowlists_bootstrap_reason_codes() -> None:
     ):
         assert reason in WORKFLOW
     assert "reason_code" in WORKFLOW
+
+
+def test_market_coverage_rollout_uses_workspace_registry_helper() -> None:
+    assert "$GITHUB_WORKSPACE/scripts/list_market_coverage_counties.py" in WORKFLOW
+    assert "data/taiwan-admin-areas.json" not in WORKFLOW
+    assert "canonical_registry_unavailable" in WORKFLOW
+    assert "CANONICAL_REGISTRY_UNAVAILABLE" not in WORKFLOW
+
+
+def test_market_coverage_county_helper_outputs_tracked_counties_safely() -> None:
+    result = subprocess.run(
+        [sys.executable, str(REGISTRY_HELPER)],
+        cwd=ROOT,
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+    counties = [line for line in result.stdout.splitlines() if line.strip()]
+    assert result.returncode == 0
+    assert len(counties) >= 1
+    assert "CANONICAL_REGISTRY_UNAVAILABLE" not in result.stdout
+    assert "Traceback" not in result.stderr
+    assert "FileNotFoundError" not in result.stderr
