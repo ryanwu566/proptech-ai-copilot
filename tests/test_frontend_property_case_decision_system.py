@@ -98,9 +98,35 @@ def test_property_case_helper_runtime_rules_with_node() -> None:
 const vm = require('vm');
 const fs = require('fs');
 const ts = require('./frontend_next/node_modules/typescript');
+const dueSource = fs.readFileSync('frontend_next/lib/property-case-due-diligence.ts', 'utf8');
+const dueJs = ts.transpileModule(dueSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const dueSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require }};
+vm.createContext(dueSandbox);
+vm.runInContext(dueJs, dueSandbox);
+const financialSource = fs.readFileSync('frontend_next/lib/property-case-financials.ts', 'utf8');
+const financialJs = ts.transpileModule(financialSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const financialSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {{}}, require }};
+vm.createContext(financialSandbox);
+vm.runInContext(financialJs, financialSandbox);
+const viewingSource = fs.readFileSync('frontend_next/lib/property-case-viewing-offer.ts', 'utf8');
+const viewingJs = ts.transpileModule(viewingSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const viewingSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {{}}, require: (name) => name === '@/lib/property-case-financials' ? financialSandbox.exports : require(name) }};
+vm.createContext(viewingSandbox);
+vm.runInContext(viewingJs, viewingSandbox);
+const timelineSource = fs.readFileSync('frontend_next/lib/property-case-timeline.ts', 'utf8')
+  .replace(/import type[\s\S]*?from "@\/lib\/property-case";/, '');
+const timelineJs = ts.transpileModule(timelineSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const timelineSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {{}}, require }};
+vm.createContext(timelineSandbox);
+vm.runInContext(timelineJs, timelineSandbox);
 const source = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8');
 const js = ts.transpileModule(source, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
-const sandbox = {{ console, Date, Number, Object, String, Map, Set, exports: {{}}, require }};
+const sandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require: (name) => {{
+  if (name === '@/lib/property-case-due-diligence') return dueSandbox.exports;
+  if (name === '@/lib/property-case-viewing-offer') return viewingSandbox.exports;
+  if (name === '@/lib/property-case-timeline') return timelineSandbox.exports;
+  return require(name);
+}} }};
 vm.createContext(sandbox);
 vm.runInContext(js, sandbox);
 const buildPropertyCaseDraft = sandbox.exports.buildPropertyCaseDraft;

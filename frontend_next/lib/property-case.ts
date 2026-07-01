@@ -10,6 +10,30 @@ import type {
 } from "@/lib/api";
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { ValuationInputs } from "@/lib/valuation-share";
+import {
+  buildDueDiligenceReadiness,
+  normalizeDueDiligenceItems,
+  type DueDiligenceItem,
+  type DueDiligenceReadiness,
+} from "@/lib/property-case-due-diligence";
+import {
+  buildViewingOfferReadiness,
+  normalizeOfferPlans,
+  normalizeViewingLogs,
+  normalizeViewingQuestions,
+  type OfferPlan,
+  type ViewingLog,
+  type ViewingOfferReadiness,
+  type ViewingQuestion,
+} from "@/lib/property-case-viewing-offer";
+import {
+  buildTimelineReadiness,
+  normalizeCaseMilestones,
+  normalizeTimelineEvents,
+  type CaseMilestone,
+  type TimelineEvent,
+  type TimelineReadiness,
+} from "@/lib/property-case-timeline";
 
 export type PropertyCaseStatus = "completed" | "missing" | "unavailable" | "incomplete";
 export type PropertyDecisionStatus = "draft" | "reviewing" | "shortlisted" | "rejected" | "purchased";
@@ -28,6 +52,14 @@ export type PropertyCaseDraftInput = {
   loanAmount?: number | null;
   loanYears?: number | null;
   loanRate?: number | null;
+  fundingMode?: "loan_amount" | "down_payment";
+  fundingValue?: number | null;
+  estimatedBuyerCosts?: number | null;
+  renovationReserve?: number | null;
+  availableLiquidCash?: number | null;
+  monthlyHouseholdIncome?: number | null;
+  monthlyFixedObligations?: number | null;
+  monthlyOwnershipReserve?: number | null;
   estimatedMonthlyPayment?: number | null;
   userEstimatedValue?: number | null;
   userEstimatedTaxCost?: number | null;
@@ -35,6 +67,17 @@ export type PropertyCaseDraftInput = {
   taxNote?: string;
   decisionStatus?: PropertyDecisionStatus;
   decisionNote?: string;
+  dueDiligenceItems?: Partial<DueDiligenceItem>[];
+  viewingLogs?: Partial<ViewingLog>[];
+  viewingQuestions?: Partial<ViewingQuestion>[];
+  offerPlans?: Partial<OfferPlan>[];
+  timelineEvents?: Partial<TimelineEvent>[];
+  caseMilestones?: Partial<CaseMilestone>[];
+  decisionReviewSummary?: string;
+  decisionOpenQuestions?: string;
+  decisionNextStep?: string;
+  executiveSummaryNote?: string;
+  finalReviewNote?: string;
   inputs: ValuationInputs;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
@@ -52,6 +95,9 @@ export type PropertyCaseDraft = {
   case_name: string;
   decision_status: PropertyDecisionStatus;
   decision_note: string;
+  decision_review_summary: string;
+  decision_open_questions: string;
+  decision_next_step: string;
   last_reviewed_at: string;
   created_at: string;
   updated_at: string;
@@ -79,9 +125,15 @@ export type PropertyCaseDraft = {
     loan_amount: number | null;
     loan_years: number | null;
     interest_rate: number | null;
+    funding_mode: "loan_amount" | "down_payment" | null;
+    funding_value: number | null;
+    estimated_buyer_costs: number | null;
+    renovation_reserve: number | null;
+    available_liquid_cash: number | null;
     grace_period_months: number | null;
     monthly_income: number | null;
     other_monthly_debt: number | null;
+    monthly_ownership_reserve: number | null;
     estimated_holding_cost: number | null;
   };
   valuation_tax_input: {
@@ -90,6 +142,14 @@ export type PropertyCaseDraft = {
     valuation_note: string;
     tax_note: string;
   };
+  due_diligence_items: DueDiligenceItem[];
+  viewing_logs: ViewingLog[];
+  viewing_questions: ViewingQuestion[];
+  offer_plans: OfferPlan[];
+  timeline_events: TimelineEvent[];
+  case_milestones: CaseMilestone[];
+  executive_summary_note: string;
+  final_review_note: string;
   analysis_status: Record<"property" | "location" | "terrain" | "commute" | "valuation" | "loan" | "holding" | "tax" | "decision", PropertyCaseStatus>;
   analysis_summary: string[];
   readiness: {
@@ -97,6 +157,9 @@ export type PropertyCaseDraft = {
     compare_ready: boolean;
     print_ready: boolean;
     print_notice: string | null;
+    due_diligence: DueDiligenceReadiness;
+    viewing_offer: ViewingOfferReadiness;
+    timeline_summary: TimelineReadiness;
     missing_required: string[];
     unavailable_or_incomplete: string[];
   };
@@ -114,6 +177,19 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
   const locationStatus = input.location ? dataQualityToStatus(input.location.data_quality.status) : "missing";
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
   const commuteStatus: PropertyCaseStatus = "missing";
+  const dueDiligenceItems = normalizeDueDiligenceItems(input.dueDiligenceItems);
+  const viewingLogs = normalizeViewingLogs(input.viewingLogs);
+  const viewingQuestions = normalizeViewingQuestions(input.viewingQuestions);
+  const offerPlans = normalizeOfferPlans(input.offerPlans);
+  const timelineEvents = normalizeTimelineEvents(input.timelineEvents);
+  const caseMilestones = normalizeCaseMilestones(input.caseMilestones);
+  const dueDiligenceReadiness = buildDueDiligenceReadiness(dueDiligenceItems, {
+    decision_review_summary: input.decisionReviewSummary,
+    decision_open_questions: input.decisionOpenQuestions,
+    decision_next_step: input.decisionNextStep,
+  });
+  const viewingOfferReadiness = buildViewingOfferReadiness(viewingLogs, viewingQuestions, offerPlans);
+  const timelineReadiness = buildTimelineReadiness(timelineEvents, caseMilestones, input.executiveSummaryNote, input.finalReviewNote);
   const analysisStatus = {
     property: input.propertySearch ? "completed" : "missing",
     location: locationStatus,
@@ -149,6 +225,11 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     case_name: caseName,
     decision_status: input.decisionStatus ?? "draft",
     decision_note: input.decisionNote?.trim() || "",
+    decision_review_summary: safeText(input.decisionReviewSummary),
+    decision_open_questions: safeText(input.decisionOpenQuestions),
+    decision_next_step: safeText(input.decisionNextStep),
+    executive_summary_note: safeText(input.executiveSummaryNote),
+    final_review_note: safeText(input.finalReviewNote),
     last_reviewed_at: now,
     created_at: now,
     updated_at: now,
@@ -176,9 +257,15 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       loan_amount: finiteNumber(input.loanAmount) ?? input.loan?.loan_amount_wan ?? null,
       loan_years: finiteNumber(input.loanYears) ?? input.loan?.loan_years ?? null,
       interest_rate: finiteNumber(input.loanRate) ?? input.loan?.annual_interest_rate ?? null,
+      funding_mode: input.fundingMode ?? null,
+      funding_value: finiteNumber(input.fundingValue),
+      estimated_buyer_costs: finiteNumberOrZero(input.estimatedBuyerCosts),
+      renovation_reserve: finiteNumberOrZero(input.renovationReserve),
+      available_liquid_cash: finiteNumberOrZero(input.availableLiquidCash),
       grace_period_months: input.loan?.grace_period_years ? input.loan.grace_period_years * 12 : null,
-      monthly_income: input.loan?.monthly_income_wan ?? input.holding?.input.monthly_income_wan ?? null,
-      other_monthly_debt: null,
+      monthly_income: finiteNumberOrZero(input.monthlyHouseholdIncome) ?? input.loan?.monthly_income_wan ?? input.holding?.input.monthly_income_wan ?? null,
+      other_monthly_debt: finiteNumberOrZero(input.monthlyFixedObligations),
+      monthly_ownership_reserve: finiteNumberOrZero(input.monthlyOwnershipReserve),
       estimated_holding_cost: finiteNumber(input.estimatedMonthlyPayment) ?? input.holding?.monthly_total_holding_cost ?? null,
     },
     valuation_tax_input: {
@@ -187,6 +274,12 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       valuation_note: input.valuationNote?.trim() || "",
       tax_note: input.taxNote?.trim() || "",
     },
+    due_diligence_items: dueDiligenceItems,
+    viewing_logs: viewingLogs,
+    viewing_questions: viewingQuestions,
+    offer_plans: offerPlans,
+    timeline_events: timelineEvents,
+    case_milestones: caseMilestones,
     analysis_status: analysisStatus,
     analysis_summary: buildAnalysisSummary(input, analysisStatus),
     readiness: {
@@ -194,6 +287,9 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       compare_ready: Boolean(hasBasicCaseInfo && listingPrice),
       print_ready: printReady,
       print_notice: printReady ? PARTIAL_CASE_PRINT_NOTICE : null,
+      due_diligence: dueDiligenceReadiness.readiness,
+      viewing_offer: viewingOfferReadiness.readiness,
+      timeline_summary: timelineReadiness.readiness,
       missing_required: missingRequired,
       unavailable_or_incomplete: unavailableOrIncomplete,
     },
@@ -214,6 +310,11 @@ function stableCaseId(caseName: string, address: string): string {
 function finiteNumber(value: unknown): number | null {
   const number = Number(value);
   return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function finiteNumberOrZero(value: unknown): number | null {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
 function dataQualityToStatus(status?: string): PropertyCaseStatus {
@@ -249,6 +350,13 @@ function buildAnalysisSummary(input: PropertyCaseDraftInput, status: PropertyCas
   if (input.holding) rows.push(`持有成本 ${input.holding.monthly_total_holding_cost.toLocaleString()} 元/月`);
   if (input.location) rows.push(`位置分析 ${status.location}`);
   if (input.terrainRisk) rows.push(`地勢風險 ${input.terrainRisk.overall.label}`);
+  if (input.dueDiligenceItems?.some((item) => item.status && item.status !== "not_started")) rows.push("Due diligence review board has user-entered checklist progress.");
+  if (input.viewingLogs?.length || input.viewingQuestions?.length || input.offerPlans?.length) rows.push("Viewing and offer planning board has user-entered planning progress.");
+  if (input.timelineEvents?.length || input.caseMilestones?.some((milestone) => milestone.is_done) || input.executiveSummaryNote || input.finalReviewNote) rows.push("Executive decision pack has user-entered timeline progress.");
   if (!rows.length) rows.push("尚未完成可比較的分析");
   return rows;
+}
+
+function safeText(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
 }
