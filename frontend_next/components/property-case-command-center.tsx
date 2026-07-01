@@ -62,6 +62,17 @@ const DECISION_STATUS_OPTIONS: Array<{ value: PropertyDecisionStatus; label: str
   { value: "purchased", label: "已購買" },
 ];
 
+type WorkspaceSectionId = "financial" | "value_tax" | "location_market" | "due_diligence" | "viewing_offer" | "executive_pack";
+
+const WORKSPACE_SECTION_TABS: Array<{ id: WorkspaceSectionId; label: string; description: string }> = [
+  { id: "financial", label: "資金", description: "貸款與持有成本" },
+  { id: "value_tax", label: "估價稅費", description: "手動補充欄位" },
+  { id: "location_market", label: "位置市場", description: "資料狀態與限制" },
+  { id: "due_diligence", label: "盡職調查", description: "檢查清單與問題" },
+  { id: "viewing_offer", label: "看屋出價", description: "看屋、提問與出價" },
+  { id: "executive_pack", label: "決策包", description: "時間軸與總結" },
+];
+
 type CommandCenterState = {
   caseName: string;
   address: string;
@@ -171,6 +182,7 @@ const initialState: CommandCenterState = {
 
 export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
   const [state, setState] = useState<CommandCenterState>(initialState);
+  const [activeWorkspaceSection, setActiveWorkspaceSection] = useState<WorkspaceSectionId>("financial");
   const numeric = {
     listingPrice: parsePositiveNumber(state.listingPrice),
     floorAreaPing: parsePositiveNumber(state.floorAreaPing),
@@ -393,7 +405,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
             <TextArea label="案件備註" value={state.notes} onChange={(value) => update("notes", value)} placeholder="只記錄你已確認的人工觀察，不放 provider raw data。" />
           </section>
 
-          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          <WorkspaceSectionPicker active={activeWorkspaceSection} onSelect={setActiveWorkspaceSection} />
+
+          {activeWorkspaceSection === "financial" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="B. FINANCING" title="資金與貸款參考" />
             <div className="mt-4 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
               <div className="grid gap-3 md:grid-cols-4">
@@ -466,7 +480,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
                 <table className="min-w-[760px] text-left text-xs">
                   <thead className="text-slate-500"><tr><th className="py-2">情境</th><th>所需現金</th><th>月付</th><th>月負擔</th><th>月結餘</th><th>購屋後現金</th><th>LTV</th></tr></thead>
                   <tbody className="divide-y divide-stone-100">
-                    {financialScenarios.map((scenario) => <tr key={scenario.scenarioName}>
+                    {financialScenarios.map((scenario, index) => <tr key={state.scenarios[index]?.id ?? scenario.scenarioName}>
                       <td className="py-2 font-bold text-slate-700">{scenario.scenarioName}</td>
                       <td>{formatWanMetric(scenario.cashNeeded)}</td>
                       <td>{formatYuanMetric(scenario.monthlyPayment)}</td>
@@ -479,9 +493,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
                 </table>
               </div>}
             </div>
-          </section>
+          </section>}
 
-          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          {activeWorkspaceSection === "value_tax" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="C. VALUE & TAX" title="估價、成本與稅費手動欄位" />
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <TextField label="使用者估計價值（萬元）" value={state.userEstimatedValue} onChange={(value) => update("userEstimatedValue", value)} inputMode="decimal" />
@@ -489,9 +503,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
             </div>
             <TextArea label="估價備註" value={state.valuationNote} onChange={(value) => update("valuationNote", value)} placeholder="例如：待補官方 PLVR 可比成交、估價區間或議價假設。" />
             <TextArea label="稅費備註" value={state.taxNote} onChange={(value) => update("taxNote", value)} placeholder="例如：待補 TaxOracle、契稅、持有成本或人工稅務確認。" />
-          </section>
+          </section>}
 
-          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          {activeWorkspaceSection === "location_market" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="D. LOCATION & MARKET" title="位置、通勤、地勢與市場資料" />
             <p className="mt-2 text-sm leading-6 text-slate-600">
               若需要市場資料，請手動使用 Market Insight 的 Direct Market Query Mode（county 必填、district 選填）。這個工作台不會自動呼叫 market query、read model refresh、通勤、地勢或地圖 provider。
@@ -501,9 +515,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
             <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
               市場、通勤與地勢資料僅供看房風險參考；unavailable、unknown、not assessed 或資料不足不代表低風險、低價格或適合購買。
             </div>
-          </section>
+          </section>}
 
-          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          {activeWorkspaceSection === "due_diligence" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="E. DUE DILIGENCE" title="盡職調查與決策審查板" />
             <p className="mt-2 text-sm leading-6 text-slate-600">
               這個區塊只整理使用者確認進度、待補資料、卡關原因與下一步；不會自動查詢市場、通勤、地勢、地圖或任何外部服務，也不會改變案件決策狀態。
@@ -554,9 +568,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
                 審查摘要不會自動修改 draft/reviewing/shortlisted/rejected/purchased，也不會使用市場、通勤、地勢或位置資料改變案件結論。
               </p>
             </div>
-          </section>
+          </section>}
 
-          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          {activeWorkspaceSection === "viewing_offer" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="F. VIEWING & OFFER" title="看屋、提問與出價規劃" />
             <p className="mt-2 text-sm leading-6 text-slate-600">
               這裡只整理使用者手動輸入的看屋紀錄、待問事項與出價情境；不產生正式出價、不自動套用開價、不查詢市場或位置資料。
@@ -652,9 +666,9 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               })}
               {state.offerPlans.length >= MAX_OFFER_PLANS && <p className="mt-2 text-xs text-amber-700">最多保留 {MAX_OFFER_PLANS} 組出價情境，避免把草稿誤看成正式 offer。</p>}
             </PlannerBlock>
-          </section>
+          </section>}
 
-          <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          {activeWorkspaceSection === "executive_pack" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="G. EXECUTIVE PACK" title="案件時間軸與決策包" />
             <p className="mt-2 text-sm leading-6 text-slate-600">
               將手動輸入的案件進度、里程碑、缺口與最後審查備註整理成 Executive Decision Pack；不產生推薦、不改決策狀態、不呼叫外部資料。
@@ -732,7 +746,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
               <h3 className="text-sm font-black text-slate-900">最終人工審查備註</h3>
               <TextArea label="final_review_note" value={state.finalReviewNote} onChange={(value) => update("finalReviewNote", value)} placeholder="由使用者手動記錄最後審查，不產生正式建議或法律／財務結論。" />
             </div>
-          </section>
+          </section>}
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-6 lg:self-start">
@@ -794,6 +808,33 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
       </div>
     </section>
   </main>;
+}
+
+function WorkspaceSectionPicker({ active, onSelect }: { active: WorkspaceSectionId; onSelect: (section: WorkspaceSectionId) => void }) {
+  return <section className="rounded-2xl border border-cyan-100 bg-white p-4 shadow-sm" aria-label="案件工作區切換">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p className="text-[10px] font-bold tracking-[0.18em] text-cyan-700">WORKSPACE SECTIONS</p>
+        <h2 className="mt-1 text-base font-black text-slate-950">選擇目前要編輯的案件工作區</h2>
+      </div>
+      <p className="max-w-lg text-xs leading-5 text-slate-500">重型區塊只在選取時掛載，輸入狀態仍保留在案件草稿中；這不會自動查詢外部資料或自動保存。</p>
+    </div>
+    <div className="mt-4 grid gap-2 md:grid-cols-3 xl:grid-cols-6">
+      {WORKSPACE_SECTION_TABS.map((section) => {
+        const selected = active === section.id;
+        return <button
+          key={section.id}
+          type="button"
+          aria-pressed={selected}
+          onClick={() => onSelect(section.id)}
+          className={selected ? "rounded-xl border border-cyan-500 bg-cyan-50 px-3 py-3 text-left shadow-sm" : "rounded-xl border border-stone-200 bg-stone-50 px-3 py-3 text-left hover:border-cyan-200"}
+        >
+          <span className={selected ? "block text-sm font-black text-cyan-900" : "block text-sm font-black text-slate-800"}>{section.label}</span>
+          <span className="mt-1 block text-[10px] leading-4 text-slate-500">{section.description}</span>
+        </button>;
+      })}
+    </div>
+  </section>;
 }
 
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
