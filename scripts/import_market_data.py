@@ -16,6 +16,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from services.taiwan_admin_registry import normalize_market_region
+
 
 REQUIRED_COLUMNS = {
     "county",
@@ -72,7 +74,10 @@ def build_market_aggregate(
             }
         )
 
+    safe_manifest = _safe_coverage_manifest(coverage_manifest)
     data_status = "available" if regions else "unavailable"
+    if not regions and safe_manifest and safe_manifest["covered_region_count"] > 0:
+        data_status = "no_data"
     return {
         "schema_version": "market-data-foundation-v1",
         "source_name": source_name,
@@ -83,7 +88,7 @@ def build_market_aggregate(
         "aggregation_method": "mean_unit_price_per_ping_by_county_district_period",
         "record_count": len(rows),
         "generated_at": datetime.now(UTC).isoformat(),
-        "coverage_manifest": _safe_coverage_manifest(coverage_manifest),
+        "coverage_manifest": safe_manifest,
         "regions": regions,
     }
 
@@ -157,13 +162,38 @@ def _safe_coverage_manifest(payload: dict[str, Any] | None) -> dict[str, int | s
     status = str(payload.get("coverage_status") or payload.get("status") or "coverage_unknown").strip()
     if status not in VALID_COVERAGE_STATUSES:
         status = "coverage_unknown"
-    covered = payload.get("covered_regions")
-    unknown = payload.get("unknown_regions")
+    canonical = bool(payload.get("canonical_scope"))
+    covered = _safe_manifest_regions(payload.get("covered_regions"), canonical=canonical)
+    not_covered = _safe_manifest_regions(payload.get("not_covered_regions"), canonical=canonical)
+    unknown = _safe_manifest_regions(payload.get("unknown_regions"), canonical=canonical)
     return {
         "coverage_status": status,
-        "covered_region_count": len(covered) if isinstance(covered, list) else 0,
-        "unknown_region_count": len(unknown) if isinstance(unknown, list) else 0,
+        "covered_region_count": len(covered),
+        "not_covered_region_count": len(not_covered),
+        "unknown_region_count": len(unknown),
+        "canonical_scope_count": len(covered) + len(not_covered) + len(unknown),
     }
+
+
+def _safe_manifest_regions(value: Any, *, canonical: bool) -> list[tuple[str, str]]:
+    if not isinstance(value, list):
+        return []
+    regions: list[tuple[str, str]] = []
+    for row in value:
+        if not isinstance(row, dict):
+            continue
+        county = str(row.get("county") or "").strip()
+        district = str(row.get("district") or "").strip()
+        if not county or not district:
+            continue
+        if canonical:
+            normalized = normalize_market_region(county, district)
+            if not normalized.valid:
+                raise ValueError("Coverage manifest contains a region outside the canonical registry.")
+            regions.append((normalized.county, normalized.district))
+        else:
+            regions.append((county, district))
+    return regions
 
 
 if __name__ == "__main__":

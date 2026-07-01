@@ -1,0 +1,66 @@
+"""Static tests for the protected market coverage rollout workflow."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+WORKFLOW_PATH = ROOT / ".github/workflows/reconcile-market-coverage.yml"
+WORKFLOW = WORKFLOW_PATH.read_text(encoding="utf-8")
+
+
+def test_market_coverage_rollout_workflow_is_manual_only() -> None:
+    assert WORKFLOW_PATH.exists()
+    assert "name: Reconcile Nationwide Market Coverage" in WORKFLOW
+    assert "workflow_dispatch" in WORKFLOW
+    assert "schedule" not in WORKFLOW
+    assert "push:" not in WORKFLOW
+    assert "pull_request" not in WORKFLOW
+    assert "workflow_run" not in WORKFLOW
+    assert "permissions: {}" in WORKFLOW
+
+
+def test_market_coverage_rollout_uses_existing_secrets_and_safe_curl() -> None:
+    assert "secrets.RENDER_API_BASE_URL" in WORKFLOW
+    assert "secrets.MARKET_READ_MODEL_REFRESH_TOKEN" in WORKFLOW
+    assert "X-Market-Read-Model-Refresh-Token" in WORKFLOW
+    assert "set -euo pipefail" in WORKFLOW
+    assert "--connect-timeout 20" in WORKFLOW
+    assert "--max-time 120" in WORKFLOW
+    assert "--verbose" not in WORKFLOW
+    assert "--retry" not in WORKFLOW
+    assert "set -x" not in WORKFLOW
+
+
+def test_market_coverage_rollout_calls_only_coverage_routes() -> None:
+    assert WORKFLOW.count("/market-insights/coverage/bootstrap") == 1
+    assert WORKFLOW.count("/market-insights/coverage/reconcile") == 1
+    assert WORKFLOW.count("/market-insights/coverage/audit") == 1
+    assert "/market-insights/refresh" not in WORKFLOW
+
+
+def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
+    for line in (
+        "MARKET_COVERAGE_BOOTSTRAP=success",
+        "MARKET_COVERAGE_BOOTSTRAP=failed",
+        "MARKET_COVERAGE_RECONCILED_COUNT=",
+        "MARKET_COVERAGE_AUDIT=",
+        "EXPECTED_REGION_COUNT=",
+        "COVERED_REGION_COUNT=",
+        "MISSING_REGION_COUNT=",
+        "UNKNOWN_REGION_COUNT=",
+    ):
+        assert line in WORKFLOW
+    assert 'cat "$status_file"' in WORKFLOW
+    assert 'cat "$body_file"' not in WORKFLOW
+    assert 'echo "$body_file"' not in WORKFLOW
+    assert "response body" not in WORKFLOW.lower()
+    assert "database_url" not in WORKFLOW
+    assert "raw exception" not in WORKFLOW.lower()
+    assert "real_price_transactions" not in WORKFLOW
+
+
+def test_market_coverage_rollout_full_only_exits_zero() -> None:
+    assert 'raise SystemExit(0 if status == "FULL" else 1)' in WORKFLOW
+    assert '"FULL", "PARTIAL", "UNKNOWN"' in WORKFLOW

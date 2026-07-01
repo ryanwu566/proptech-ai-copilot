@@ -401,3 +401,124 @@ def test_refresh_unclassified_exception_is_safe_failure(monkeypatch) -> None:
     payload = response.json()
     assert payload["reason_code"] == "unknown_safe_failure"
     assert "raw exception" not in str(payload)
+
+
+def test_market_coverage_operator_routes_require_existing_token(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    called = {"bootstrap": False}
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "bootstrap_market_coverage_metadata",
+        lambda: called.update(bootstrap=True),
+    )
+
+    response = client.post(
+        "/market-insights/coverage/bootstrap",
+        headers={"X-Market-Read-Model-Refresh-Token": "wrong"},
+    )
+
+    assert response.status_code == 403
+    assert called == {"bootstrap": False}
+    assert "reason_code" not in response.json()
+
+
+def test_market_coverage_bootstrap_returns_safe_fields(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "bootstrap_market_coverage_metadata",
+        lambda: {
+            "status": "resolved",
+            "operation": "bootstrap",
+            "migration_status": "applied_or_already_present",
+            "message": "Market coverage metadata is ready.",
+            "sql": "must not leak",
+        },
+    )
+
+    response = client.post(
+        "/market-insights/coverage/bootstrap",
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload == {
+        "status": "resolved",
+        "operation": "bootstrap",
+        "migration_status": "applied_or_already_present",
+        "message": "Market coverage metadata is ready.",
+    }
+    assert "must not leak" not in str(payload)
+
+
+def test_market_coverage_reconcile_returns_counts_without_raw_rows(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "reconcile_market_coverage",
+        lambda county: {
+            "status": "resolved",
+            "operation": "reconcile",
+            "county": county,
+            "coverage_status": "covered",
+            "processed_region_count": 3,
+            "covered_region_count": 3,
+            "not_covered_region_count": 0,
+            "unknown_region_count": 0,
+            "message": "Market coverage metadata reconciled.",
+            "raw_rows": [{"address": "must not leak"}],
+        },
+    )
+
+    response = client.post(
+        "/market-insights/coverage/reconcile",
+        json={"county": "Demo County"},
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["coverage_status"] == "covered"
+    assert payload["processed_region_count"] == 3
+    assert "raw_rows" not in payload
+    assert "must not leak" not in str(payload)
+
+
+def test_market_coverage_audit_returns_safe_aggregate_lines(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "audit_market_coverage",
+        lambda: {
+            "status": "PARTIAL",
+            "expected_region_count": 3,
+            "covered_region_count": 2,
+            "missing_region_count": 1,
+            "unknown_region_count": 0,
+            "missing_regions": ["Demo County/Demo District"],
+            "unknown_regions": [],
+            "database_url": "must not leak",
+        },
+    )
+
+    response = client.post(
+        "/market-insights/coverage/audit",
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["MARKET_COVERAGE"] == "PARTIAL"
+    assert payload["EXPECTED_REGION_COUNT"] == 3
+    assert payload["MISSING_REGIONS"] == ["Demo County/Demo District"]
+    assert "database_url" not in payload
+    assert "must not leak" not in str(payload)
