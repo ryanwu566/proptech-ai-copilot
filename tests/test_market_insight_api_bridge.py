@@ -529,6 +529,71 @@ def test_market_coverage_reconcile_returns_counts_without_raw_rows(monkeypatch) 
     assert "must not leak" not in str(payload)
 
 
+def test_market_coverage_reconcile_failure_returns_safe_reason_only(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "reconcile_market_coverage",
+        lambda county: {
+            "status": "unavailable",
+            "operation": "reconcile",
+            "county": county,
+            "coverage_status": "coverage_unknown",
+            "processed_region_count": 0,
+            "covered_region_count": 0,
+            "not_covered_region_count": 0,
+            "unknown_region_count": 0,
+            "message": "raw details must be replaced",
+            "reason_code": "coverage_reconcile_metadata_unavailable",
+            "sql": "must not leak",
+        },
+    )
+
+    response = client.post(
+        "/market-insights/coverage/reconcile",
+        json={"county": "Demo County"},
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload == {
+        "status": "unavailable",
+        "operation": "reconcile",
+        "county": "Demo County",
+        "message": "Market coverage metadata is temporarily unavailable.",
+        "reason_code": "coverage_reconcile_metadata_unavailable",
+    }
+    assert "raw details" not in str(payload)
+    assert "sql" not in payload
+
+
+def test_market_coverage_reconcile_unknown_reason_is_safely_normalized(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "reconcile_market_coverage",
+        lambda county: {
+            "status": "unavailable",
+            "county": county,
+            "reason_code": "raw_database_exception",
+        },
+    )
+
+    response = client.post(
+        "/market-insights/coverage/reconcile",
+        json={"county": "Demo County"},
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 503
+    assert response.json()["reason_code"] == "coverage_reconcile_unknown_safe_failure"
+
+
 def test_market_coverage_audit_returns_safe_aggregate_lines(monkeypatch) -> None:
     from services import plvr_market_aggregate_service
 

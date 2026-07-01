@@ -166,9 +166,18 @@ def post_market_coverage_reconcile(
     if not _authorized_market_operator(response, x_market_read_model_refresh_token):
         return _market_operator_auth_failure(response)
 
-    from services.plvr_market_aggregate_service import reconcile_market_coverage
+    from services.plvr_market_aggregate_service import reconcile_market_coverage, safe_market_coverage_reconcile_reason_code
 
     result = reconcile_market_coverage(request.county)
+    if result.get("status") != "resolved":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+        return {
+            "status": "unavailable",
+            "operation": "reconcile",
+            "county": result.get("county") or request.county.strip(),
+            "message": "Market coverage metadata is temporarily unavailable.",
+            "reason_code": safe_market_coverage_reconcile_reason_code(result.get("reason_code")),
+        }
     safe_result = {
         "status": result.get("status") or "unavailable",
         "operation": "reconcile",
@@ -180,8 +189,6 @@ def post_market_coverage_reconcile(
         "unknown_region_count": int(result.get("unknown_region_count") or 0),
         "message": result.get("message") or "Market coverage metadata is temporarily unavailable.",
     }
-    if safe_result["status"] != "resolved":
-        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     return safe_result
 
 
