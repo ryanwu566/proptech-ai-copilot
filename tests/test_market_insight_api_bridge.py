@@ -567,6 +567,72 @@ def test_market_coverage_reconcile_degraded_completion_is_http_200(monkeypatch) 
     assert "database" not in payload
 
 
+def test_market_coverage_reconcile_service_exception_is_safe_503(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+
+    def fail_reconcile(_county: str) -> dict[str, object]:
+        raise RuntimeError("raw database traceback must not leak")
+
+    monkeypatch.setattr(plvr_market_aggregate_service, "reconcile_market_coverage", fail_reconcile)
+
+    response = client.post(
+        "/market-insights/coverage/reconcile",
+        json={"county": "臺北市"},
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 503
+    payload = response.json()
+    assert payload == {
+        "status": "unavailable",
+        "operation": "reconcile",
+        "county": "臺北市",
+        "message": "Market coverage metadata is temporarily unavailable.",
+        "reason_code": "coverage_reconcile_unknown_safe_failure",
+    }
+    assert "traceback" not in str(payload)
+    assert "database" not in str(payload)
+
+
+def test_market_coverage_reconcile_response_formatting_cannot_raise_500(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "reconcile_market_coverage",
+        lambda county: {
+            "status": "resolved",
+            "operation": "reconcile",
+            "county": county,
+            "coverage_status": "coverage_unknown",
+            "processed_region_count": object(),
+            "covered_region_count": "not-a-number",
+            "not_covered_region_count": None,
+            "unknown_region_count": -4,
+            "persistence_status": "degraded",
+            "message": "Market coverage metadata reconciled.",
+        },
+    )
+
+    response = client.post(
+        "/market-insights/coverage/reconcile",
+        json={"county": "臺北市"},
+        headers={"X-Market-Read-Model-Refresh-Token": "expected"},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["processed_region_count"] == 0
+    assert payload["covered_region_count"] == 0
+    assert payload["not_covered_region_count"] == 0
+    assert payload["unknown_region_count"] == 0
+    assert "reason_code" not in payload
+    assert "not-a-number" not in str(payload)
+
+
 def test_market_coverage_reconcile_invalid_county_is_422_without_service(monkeypatch) -> None:
     from services import plvr_market_aggregate_service
 

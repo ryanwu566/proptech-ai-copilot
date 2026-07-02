@@ -264,47 +264,45 @@ class PostgresMarketReadModelRepository:
         ]
         try:
             connection_context = self._connect()
-        except Exception:
-            return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
-        with connection_context as connection:
-            with connection.cursor() as cursor:
-                try:
-                    cursor.execute("set local statement_timeout = '90s'")
-                    cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL)
-                except Exception:
-                    return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
-                counts: list[dict[str, Any]] = []
-                for region in county_regions:
+            with connection_context as connection:
+                with connection.cursor() as cursor:
                     try:
-                        cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [region.county, region.district])
-                        coverage = dict(cursor.fetchone() or {})
-                        valid_count = _int_value(coverage.get("valid_market_candidate_count"))
-                        source_updated_at = _date_text(coverage.get("source_updated_at"))
-                        coverage_status = "covered"
-                    except Exception:
-                        valid_count = 0
-                        source_updated_at = None
-                        coverage_status = "coverage_unknown"
-                    try:
-                        cursor.execute(
-                            MARKET_COVERAGE_METADATA_UPSERT_SQL,
-                            [
-                                region.county,
-                                region.district,
-                                coverage_status,
-                                valid_count,
-                                source_updated_at,
-                                reconciled_at,
-                            ],
-                        )
+                        cursor.execute("set local statement_timeout = '90s'")
+                        cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL)
                     except Exception:
                         return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
-                    counts.append({"coverage_status": coverage_status, "valid_market_candidate_count": valid_count})
-            try:
-                connection.commit()
-            except Exception:
-                return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
-        return _coverage_reconcile_response(normalized.county, counts)
+                    counts: list[dict[str, Any]] = []
+                    for region in county_regions:
+                        try:
+                            cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [region.county, region.district])
+                            coverage = dict(cursor.fetchone() or {})
+                            valid_count = _int_value(coverage.get("valid_market_candidate_count"))
+                            source_updated_at = _date_text(coverage.get("source_updated_at"))
+                            coverage_status = "covered"
+                        except Exception:
+                            return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
+                        try:
+                            cursor.execute(
+                                MARKET_COVERAGE_METADATA_UPSERT_SQL,
+                                [
+                                    region.county,
+                                    region.district,
+                                    coverage_status,
+                                    valid_count,
+                                    source_updated_at,
+                                    reconciled_at,
+                                ],
+                            )
+                        except Exception:
+                            return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
+                        counts.append({"coverage_status": coverage_status, "valid_market_candidate_count": valid_count})
+                try:
+                    connection.commit()
+                except Exception:
+                    return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
+            return _coverage_reconcile_response(normalized.county, counts)
+        except Exception:
+            return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
 
     def audit_coverage(self) -> dict[str, Any]:
         with self._connect() as connection:

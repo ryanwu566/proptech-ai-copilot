@@ -178,25 +178,35 @@ def post_market_coverage_reconcile(
 
     from services.plvr_market_aggregate_service import reconcile_market_coverage, safe_market_coverage_reconcile_reason_code
 
-    result = reconcile_market_coverage(request.county)
-    if result.get("status") != "resolved":
+    try:
+        result = reconcile_market_coverage(request.county)
+    except Exception:
+        result = {
+            "status": "unavailable",
+            "operation": "reconcile",
+            "county": request.county.strip(),
+            "reason_code": "coverage_reconcile_unknown_safe_failure",
+        }
+    if not isinstance(result, dict) or result.get("status") != "resolved":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {
             "status": "unavailable",
             "operation": "reconcile",
-            "county": result.get("county") or request.county.strip(),
+            "county": result.get("county") if isinstance(result, dict) else request.county.strip(),
             "message": "Market coverage metadata is temporarily unavailable.",
-            "reason_code": safe_market_coverage_reconcile_reason_code(result.get("reason_code")),
+            "reason_code": safe_market_coverage_reconcile_reason_code(
+                result.get("reason_code") if isinstance(result, dict) else None
+            ),
         }
     safe_result = {
         "status": result.get("status") or "unavailable",
         "operation": "reconcile",
         "county": result.get("county") or request.county.strip(),
         "coverage_status": result.get("coverage_status") or "coverage_unknown",
-        "processed_region_count": int(result.get("processed_region_count") or 0),
-        "covered_region_count": int(result.get("covered_region_count") or 0),
-        "not_covered_region_count": int(result.get("not_covered_region_count") or 0),
-        "unknown_region_count": int(result.get("unknown_region_count") or 0),
+        "processed_region_count": _safe_non_negative_int(result.get("processed_region_count")),
+        "covered_region_count": _safe_non_negative_int(result.get("covered_region_count")),
+        "not_covered_region_count": _safe_non_negative_int(result.get("not_covered_region_count")),
+        "unknown_region_count": _safe_non_negative_int(result.get("unknown_region_count")),
         "persistence_status": result.get("persistence_status") or "applied",
         "message": result.get("message") or "Market coverage metadata is temporarily unavailable.",
     }
@@ -238,6 +248,13 @@ def _safe_refresh_unavailable(reason_code: str, message: str) -> dict[str, Any]:
         "message": message,
         "reason_code": safe_market_refresh_reason_code(reason_code),
     }
+
+
+def _safe_non_negative_int(value: Any) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
 
 
 def _authorized_market_operator(response: Response, token: str | None) -> bool:

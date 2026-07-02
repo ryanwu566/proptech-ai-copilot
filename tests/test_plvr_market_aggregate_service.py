@@ -19,6 +19,8 @@ from services.plvr_market_aggregate_service import (
     MarketReadModelRefreshError,
     MarketReadModelRefreshFailure,
     MarketCoverageReconcileFailure,
+    MARKET_COVERAGE_METADATA_SCHEMA_SQL,
+    MARKET_COVERAGE_METADATA_UPSERT_SQL,
     PostgresMarketReadModelRepository,
     READ_MODEL_CATALOG_SQL,
     READ_MODEL_HISTORY_SQL,
@@ -218,6 +220,71 @@ class PhaseRefreshRepository(PostgresMarketReadModelRepository):
         if self.failure == "connect":
             raise RuntimeError("connection detail must not leak")
         return PhaseRefreshConnection(failure=self.failure, aggregate_count=self.aggregate_count)
+
+
+class PhaseCoverageCursor:
+    def __init__(self, *, failure: str | None = None) -> None:
+        self.failure = failure
+        self.row: dict[str, Any] | None = None
+
+    def __enter__(self):
+        if self.failure == "cursor_enter":
+            raise RuntimeError("cursor enter detail must not leak")
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        if self.failure == "cursor_exit":
+            raise RuntimeError("cursor exit detail must not leak")
+        return None
+
+    def execute(self, sql: str, _params: list[Any] | None = None) -> None:
+        if sql == MARKET_COVERAGE_METADATA_SCHEMA_SQL and self.failure == "schema":
+            raise RuntimeError("schema detail must not leak")
+        if sql == DIRECT_COVERAGE_DISTRICT_SQL:
+            if self.failure == "source":
+                raise RuntimeError("source detail must not leak")
+            self.row = {"valid_market_candidate_count": 1, "source_updated_at": "2025-03-05"}
+            return
+        if sql == MARKET_COVERAGE_METADATA_UPSERT_SQL and self.failure == "upsert":
+            raise RuntimeError("upsert detail must not leak")
+
+    def fetchone(self) -> dict[str, Any] | None:
+        return self.row
+
+
+class PhaseCoverageConnection:
+    def __init__(self, *, failure: str | None = None) -> None:
+        self.failure = failure
+
+    def __enter__(self):
+        if self.failure == "connection_enter":
+            raise RuntimeError("connection enter detail must not leak")
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        if self.failure == "connection_exit":
+            raise RuntimeError("connection exit detail must not leak")
+        return None
+
+    def cursor(self) -> PhaseCoverageCursor:
+        if self.failure == "cursor_acquisition":
+            raise RuntimeError("cursor acquisition detail must not leak")
+        return PhaseCoverageCursor(failure=self.failure)
+
+    def commit(self) -> None:
+        if self.failure == "commit":
+            raise RuntimeError("commit detail must not leak")
+
+
+class PhaseCoverageRepository(PostgresMarketReadModelRepository):
+    def __init__(self, *, failure: str | None = None) -> None:
+        super().__init__("unused")
+        object.__setattr__(self, "failure", failure)
+
+    def _connect(self):
+        if self.failure == "connect":
+            raise RuntimeError("connection detail must not leak")
+        return PhaseCoverageConnection(failure=self.failure)
 
 
 class CoverageOperationsRepository:
@@ -642,6 +709,35 @@ def test_coverage_reconcile_degraded_fallback_uses_canonical_registry() -> None:
     assert result["unknown_region_count"] == 12
     assert "reason_code" not in result
     assert "connection detail" not in str(result)
+
+
+def test_postgres_coverage_reconcile_db_phase_failures_return_degraded_canonical_result() -> None:
+    failure_phases = [
+        "connect",
+        "connection_enter",
+        "cursor_acquisition",
+        "cursor_enter",
+        "schema",
+        "source",
+        "upsert",
+        "commit",
+        "cursor_exit",
+        "connection_exit",
+    ]
+
+    for phase in failure_phases:
+        result = PhaseCoverageRepository(failure=phase).reconcile_coverage("臺北市")
+
+        assert result["status"] == "resolved", phase
+        assert result["county"] == "臺北市"
+        assert result["coverage_status"] == "coverage_unknown"
+        assert result["processed_region_count"] == 12
+        assert result["covered_region_count"] == 0
+        assert result["not_covered_region_count"] == 0
+        assert result["unknown_region_count"] == 12
+        assert result["persistence_status"] == "degraded"
+        assert "reason_code" not in result
+        assert "detail" not in str(result)
 
 
 def test_coverage_audit_returns_only_canonical_aggregate_counts() -> None:
