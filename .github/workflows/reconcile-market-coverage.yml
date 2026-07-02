@@ -91,6 +91,9 @@ jobs:
             echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
             echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
             echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run"
             echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
             echo "EXPECTED_REGION_COUNT=not_run"
             echo "COVERED_REGION_COUNT=not_run"
@@ -112,6 +115,9 @@ jobs:
             echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
             echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
             echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run"
             echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
             echo "EXPECTED_REGION_COUNT=not_run"
             echo "COVERED_REGION_COUNT=not_run"
@@ -127,6 +133,9 @@ jobs:
             echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
             echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
             echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run"
             echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
             echo "EXPECTED_REGION_COUNT=not_run"
             echo "COVERED_REGION_COUNT=not_run"
@@ -138,6 +147,9 @@ jobs:
           echo "MARKET_COVERAGE_REGISTRY_REASON=none"
 
           reconciled_count=0
+          reconcile_covered_count=0
+          reconcile_not_covered_count=0
+          reconcile_unknown_count=0
           while IFS= read -r county; do
             [ -n "$county" ] || continue
             reconcile_body="$temp_dir/reconcile-${reconciled_count}.json"
@@ -151,6 +163,9 @@ jobs:
               echo "MARKET_COVERAGE_RECONCILE_REASON=$(safe_reconcile_reason "$reconcile_body")"
               echo "MARKET_COVERAGE_RECONCILE_COUNTY=${county}"
               echo "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}"
+              echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run"
+              echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run"
+              echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run"
               echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
               echo "EXPECTED_REGION_COUNT=not_run"
               echo "COVERED_REGION_COUNT=not_run"
@@ -158,6 +173,26 @@ jobs:
               echo "UNKNOWN_REGION_COUNT=not_run"
               exit 1
             fi
+            reconcile_metrics="$(python -c "import json, sys; payload=json.load(open(sys.argv[1], encoding='utf-8')); status=payload.get('coverage_status'); allowed={'covered','not_covered','coverage_unknown'}; count=lambda name: max(0, int(payload.get(name) or 0)); raise SystemExit(2) if status not in allowed else None; print('{} {} {}'.format(count('covered_region_count'), count('not_covered_region_count'), count('unknown_region_count')))" "$reconcile_body")" || {
+              echo "MARKET_COVERAGE_RECONCILE_STATUS=failed"
+              echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=200"
+              echo "MARKET_COVERAGE_RECONCILE_REASON=coverage_reconcile_unknown_safe_failure"
+              echo "MARKET_COVERAGE_RECONCILE_COUNTY=${county}"
+              echo "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}"
+              echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run"
+              echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run"
+              echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run"
+              echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
+              echo "EXPECTED_REGION_COUNT=not_run"
+              echo "COVERED_REGION_COUNT=not_run"
+              echo "MISSING_REGION_COUNT=not_run"
+              echo "UNKNOWN_REGION_COUNT=not_run"
+              exit 1
+            }
+            read -r county_covered county_not_covered county_unknown <<< "$reconcile_metrics"
+            reconcile_covered_count=$((reconcile_covered_count + county_covered))
+            reconcile_not_covered_count=$((reconcile_not_covered_count + county_not_covered))
+            reconcile_unknown_count=$((reconcile_unknown_count + county_unknown))
             reconciled_count=$((reconciled_count + 1))
           done < "$counties_file"
 
@@ -166,6 +201,9 @@ jobs:
           echo "MARKET_COVERAGE_RECONCILE_REASON=none"
           echo "MARKET_COVERAGE_RECONCILE_COUNTY=none"
           echo "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}"
+          echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=${reconcile_covered_count}"
+          echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=${reconcile_not_covered_count}"
+          echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=${reconcile_unknown_count}"
 
           audit_body="$temp_dir/audit.json"
           audit_status_file="$temp_dir/audit.status"

@@ -554,10 +554,24 @@ def test_coverage_reconcile_preserves_safe_counts_and_status() -> None:
     assert result["covered_region_count"] == 2
     assert result["not_covered_region_count"] == 0
     assert result["unknown_region_count"] == 0
+    assert result["persistence_status"] == "applied"
     assert "internal message" not in str(result)
 
 
 def test_coverage_reconcile_zero_record_regions_are_safe_not_failures() -> None:
+    class ZeroRecordCoveredRepository:
+        def reconcile_coverage(self, county: str) -> dict[str, Any]:
+            return {
+                "county": county,
+                "regions": [{"coverage_status": "covered", "valid_market_candidate_count": 0}],
+            }
+
+    covered_result = reconcile_market_coverage("Demo County", ZeroRecordCoveredRepository())
+    assert covered_result["status"] == "resolved"
+    assert covered_result["coverage_status"] == "covered"
+    assert covered_result["covered_region_count"] == 1
+    assert covered_result["not_covered_region_count"] == 0
+
     class ZeroRecordCoverageRepository:
         def reconcile_coverage(self, county: str) -> dict[str, Any]:
             return {
@@ -574,6 +588,7 @@ def test_coverage_reconcile_zero_record_regions_are_safe_not_failures() -> None:
     assert result["processed_region_count"] == 2
     assert result["not_covered_region_count"] == 1
     assert result["unknown_region_count"] == 1
+    assert result["persistence_status"] == "applied"
     assert "reason_code" not in result
 
 
@@ -583,10 +598,12 @@ def test_coverage_operations_fail_safely_without_raw_details() -> None:
     assert bootstrap["reason_code"] == "coverage_bootstrap_unknown_safe_failure"
     assert "schema detail" not in str(bootstrap)
 
-    reconcile = reconcile_market_coverage("Demo County", CoverageOperationsRepository(fail="reconcile"))
-    assert reconcile["status"] == "unavailable"
+    reconcile = reconcile_market_coverage("臺北市", CoverageOperationsRepository(fail="reconcile"))
+    assert reconcile["status"] == "resolved"
     assert reconcile["coverage_status"] == "coverage_unknown"
-    assert reconcile["reason_code"] == "coverage_reconcile_unknown_safe_failure"
+    assert reconcile["persistence_status"] == "degraded"
+    assert reconcile["processed_region_count"] > 0
+    assert "reason_code" not in reconcile
     assert "raw database detail" not in str(reconcile)
 
     audit = audit_market_coverage(CoverageOperationsRepository(fail="audit"))
@@ -598,11 +615,14 @@ def test_coverage_operations_fail_safely_without_raw_details() -> None:
 def test_coverage_reconcile_failure_reasons_are_safe_and_specific() -> None:
     missing_repo = reconcile_market_coverage("Demo County", repository=object())
     invalid_request = reconcile_market_coverage("   ", CoverageOperationsRepository())
-    metadata_failure = reconcile_market_coverage("Demo County", CoverageOperationsRepository(fail="metadata"))
+    metadata_failure = reconcile_market_coverage("臺北市", CoverageOperationsRepository(fail="metadata"))
 
     assert missing_repo["reason_code"] == "coverage_reconcile_route_unavailable"
     assert invalid_request["reason_code"] == "coverage_reconcile_request_invalid"
-    assert metadata_failure["reason_code"] == "coverage_reconcile_metadata_unavailable"
+    assert metadata_failure["status"] == "resolved"
+    assert metadata_failure["coverage_status"] == "coverage_unknown"
+    assert metadata_failure["persistence_status"] == "degraded"
+    assert "reason_code" not in metadata_failure
     assert "raw database detail" not in str(metadata_failure)
 
 

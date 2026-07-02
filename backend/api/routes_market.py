@@ -6,7 +6,7 @@ import os
 from typing import Any
 
 from fastapi import APIRouter, Header, Response, status
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 
 router = APIRouter(tags=["market-insight"])
 MARKET_READ_MODEL_REFRESH_TOKEN_ENV = "MARKET_READ_MODEL_REFRESH_TOKEN"
@@ -33,6 +33,16 @@ class MarketCoverageReconcileRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     county: str
+
+    @field_validator("county")
+    @classmethod
+    def require_canonical_county(cls, value: str) -> str:
+        from services.taiwan_admin_registry import normalize_market_region
+
+        normalized = normalize_market_region(value)
+        if not normalized.valid or normalized.district:
+            raise ValueError("invalid county")
+        return normalized.county
 
 
 @router.get("/market-insights/status")
@@ -187,6 +197,7 @@ def post_market_coverage_reconcile(
         "covered_region_count": int(result.get("covered_region_count") or 0),
         "not_covered_region_count": int(result.get("not_covered_region_count") or 0),
         "unknown_region_count": int(result.get("unknown_region_count") or 0),
+        "persistence_status": result.get("persistence_status") or "applied",
         "message": result.get("message") or "Market coverage metadata is temporarily unavailable.",
     }
     return safe_result
