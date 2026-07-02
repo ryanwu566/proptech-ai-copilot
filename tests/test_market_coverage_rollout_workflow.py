@@ -12,21 +12,14 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_PATH = ROOT / ".github/workflows/reconcile-market-coverage.yml"
 WORKFLOW = WORKFLOW_PATH.read_text(encoding="utf-8")
 REGISTRY_HELPER = ROOT / "scripts/list_market_coverage_counties.py"
-
-
-def _reconcile_metrics_parser() -> str:
-    marker = 'reconcile_metrics="$(python - "$reconcile_body" <<\'PY\''
-    start = WORKFLOW.index(marker) + len(marker)
-    end = WORKFLOW.index("\nPY\n", start)
-    return WORKFLOW[start:end].lstrip()
+METRICS_PARSER = ROOT / "scripts/parse_market_coverage_reconcile_metrics.py"
 
 
 def _run_reconcile_metrics_parser(payload: dict[str, object], tmp_path: Path) -> subprocess.CompletedProcess[str]:
     payload_file = tmp_path / "reconcile.json"
     payload_file.write_text(json.dumps(payload), encoding="utf-8")
     return subprocess.run(
-        [sys.executable, "-", str(payload_file)],
-        input=_reconcile_metrics_parser(),
+        [sys.executable, str(METRICS_PARSER), str(payload_file)],
         check=False,
         text=True,
         capture_output=True,
@@ -178,16 +171,41 @@ def test_market_coverage_rollout_outputs_reconcile_success_metadata_before_audit
 
 
 def test_market_coverage_rollout_accumulates_reconcile_coverage_counts() -> None:
+    parser = METRICS_PARSER.read_text(encoding="utf-8")
+
     assert "reconcile_covered_count=0" in WORKFLOW
     assert "reconcile_not_covered_count=0" in WORKFLOW
     assert "reconcile_unknown_count=0" in WORKFLOW
-    assert "coverage_status" in WORKFLOW
-    assert "covered_region_count" in WORKFLOW
-    assert "not_covered_region_count" in WORKFLOW
-    assert "unknown_region_count" in WORKFLOW
+    assert "coverage_status" in parser
+    assert "covered_region_count" in parser
+    assert "not_covered_region_count" in parser
+    assert "unknown_region_count" in parser
     assert "reconcile_covered_count=$((reconcile_covered_count + county_covered))" in WORKFLOW
     assert "reconcile_not_covered_count=$((reconcile_not_covered_count + county_not_covered))" in WORKFLOW
     assert "reconcile_unknown_count=$((reconcile_unknown_count + county_unknown))" in WORKFLOW
+
+
+def test_market_coverage_rollout_uses_tracked_metrics_parser_without_heredoc() -> None:
+    assert "$GITHUB_WORKSPACE/scripts/parse_market_coverage_reconcile_metrics.py" in WORKFLOW
+    assert 'python "$metrics_parser" "$reconcile_body"' in WORKFLOW
+    assert 'python - "$reconcile_body"' not in WORKFLOW
+    assert "<<'PY'" not in WORKFLOW
+    assert "\nPY\n" not in WORKFLOW
+    assert "raise None" not in WORKFLOW
+    assert "raise SystemExit(2) if" not in WORKFLOW
+
+
+def test_market_coverage_rollout_yaml_structure_is_parseable_if_parser_available() -> None:
+    try:
+        import yaml  # type: ignore[import-not-found]
+    except ModuleNotFoundError:
+        assert "run: |" in WORKFLOW
+        assert "<<'PY'" not in WORKFLOW
+        return
+
+    parsed = yaml.safe_load(WORKFLOW)
+
+    assert isinstance(parsed, dict)
 
 
 def test_market_coverage_reconcile_parser_accepts_legal_statuses(tmp_path) -> None:
@@ -218,6 +236,9 @@ def test_market_coverage_reconcile_parser_fails_safely_for_invalid_payloads(tmp_
     invalid_payloads = [
         {"coverage_status": "unexpected"},
         {"coverage_status": "covered", "covered_region_count": "not-a-count"},
+        {"coverage_status": "covered", "covered_region_count": 1, "not_covered_region_count": 0},
+        {"coverage_status": "covered", "covered_region_count": True, "not_covered_region_count": 0, "unknown_region_count": 0},
+        {"coverage_status": "covered", "covered_region_count": -1, "not_covered_region_count": 0, "unknown_region_count": 0},
     ]
 
     for payload in invalid_payloads:
@@ -234,8 +255,7 @@ def test_market_coverage_reconcile_parser_fails_safely_for_invalid_json(tmp_path
     payload_file.write_text("{invalid json", encoding="utf-8")
 
     result = subprocess.run(
-        [sys.executable, "-", str(payload_file)],
-        input=_reconcile_metrics_parser(),
+        [sys.executable, str(METRICS_PARSER), str(payload_file)],
         check=False,
         text=True,
         capture_output=True,
@@ -247,14 +267,34 @@ def test_market_coverage_reconcile_parser_fails_safely_for_invalid_json(tmp_path
     assert "exceptions must derive from BaseException" not in result.stderr
 
 
+def test_market_coverage_reconcile_parser_fails_safely_for_non_object_json(tmp_path) -> None:
+    payload_file = tmp_path / "reconcile.json"
+    payload_file.write_text("[1, 2, 3]", encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, str(METRICS_PARSER), str(payload_file)],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 2
+    assert result.stdout == ""
+    assert result.stderr == ""
+
+
 def test_market_coverage_reconcile_parser_has_no_raise_none_pattern() -> None:
-    parser = _reconcile_metrics_parser()
+    parser = METRICS_PARSER.read_text(encoding="utf-8")
 
     assert "raise SystemExit(2) if" not in WORKFLOW
     assert "raise None" not in WORKFLOW
     assert "exceptions must derive from BaseException" not in WORKFLOW
-    assert "sys.exit(2)" in parser
-    assert "allowed = {\"covered\", \"not_covered\", \"coverage_unknown\"}" in parser
+    assert "raise SystemExit(2) if" not in parser
+    assert "raise None" not in parser
+    assert "raise \"\"" not in parser
+    assert "raise {}" not in parser
+    assert "raise SystemExit(main())" in parser
+    assert 'ALLOWED_COVERAGE_STATUSES = {"covered", "not_covered", "coverage_unknown"}' in parser
 
 
 def test_market_coverage_rollout_allowlists_bootstrap_reason_codes() -> None:

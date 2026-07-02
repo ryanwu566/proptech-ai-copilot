@@ -146,6 +146,7 @@ jobs:
           echo "MARKET_COVERAGE_REGISTRY=success"
           echo "MARKET_COVERAGE_REGISTRY_REASON=none"
 
+          metrics_parser="$GITHUB_WORKSPACE/scripts/parse_market_coverage_reconcile_metrics.py"
           reconciled_count=0
           reconcile_covered_count=0
           reconcile_not_covered_count=0
@@ -173,33 +174,7 @@ jobs:
               echo "UNKNOWN_REGION_COUNT=not_run"
               exit 1
             fi
-            reconcile_metrics="$(python - "$reconcile_body" <<'PY'
-import json
-import sys
-
-allowed = {"covered", "not_covered", "coverage_unknown"}
-
-try:
-    with open(sys.argv[1], encoding="utf-8") as handle:
-        payload = json.load(handle)
-    coverage_status = payload.get("coverage_status")
-    if coverage_status not in allowed:
-        sys.exit(2)
-
-    def safe_count(name):
-        return max(0, int(payload.get(name) or 0))
-
-    print(
-        "{} {} {}".format(
-            safe_count("covered_region_count"),
-            safe_count("not_covered_region_count"),
-            safe_count("unknown_region_count"),
-        )
-    )
-except Exception:
-    sys.exit(2)
-PY
-            )" || {
+            if ! reconcile_metrics="$(python "$metrics_parser" "$reconcile_body")"; then
               echo "MARKET_COVERAGE_RECONCILE_STATUS=failed"
               echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=200"
               echo "MARKET_COVERAGE_RECONCILE_REASON=coverage_reconcile_unknown_safe_failure"
@@ -214,7 +189,7 @@ PY
               echo "MISSING_REGION_COUNT=not_run"
               echo "UNKNOWN_REGION_COUNT=not_run"
               exit 1
-            }
+            fi
             read -r county_covered county_not_covered county_unknown <<< "$reconcile_metrics"
             reconcile_covered_count=$((reconcile_covered_count + county_covered))
             reconcile_not_covered_count=$((reconcile_not_covered_count + county_not_covered))
