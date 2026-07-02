@@ -258,27 +258,35 @@ class PostgresMarketReadModelRepository:
         if not county_regions:
             raise MarketCoverageReconcileFailure("coverage_reconcile_request_invalid")
         reconciled_at = datetime.now(timezone.utc)
-        connection_context = _run_reconcile_phase("coverage_reconcile_runtime_unavailable", self._connect)
+        degraded_rows = [
+            {"coverage_status": "coverage_unknown", "valid_market_candidate_count": 0}
+            for _region in county_regions
+        ]
+        try:
+            connection_context = self._connect()
+        except Exception:
+            return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
         with connection_context as connection:
             with connection.cursor() as cursor:
-                _run_reconcile_phase("coverage_reconcile_runtime_unavailable", lambda: cursor.execute("set local statement_timeout = '90s'"))
-                _run_reconcile_phase(
-                    "coverage_reconcile_metadata_unavailable",
-                    lambda: cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL),
-                )
+                try:
+                    cursor.execute("set local statement_timeout = '90s'")
+                    cursor.execute(MARKET_COVERAGE_METADATA_SCHEMA_SQL)
+                except Exception:
+                    return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
                 counts: list[dict[str, Any]] = []
                 for region in county_regions:
-                    _run_reconcile_phase(
-                        "coverage_reconcile_runtime_unavailable",
-                        lambda region=region: cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [region.county, region.district]),
-                    )
-                    coverage = dict(_run_reconcile_phase("coverage_reconcile_runtime_unavailable", cursor.fetchone) or {})
-                    valid_count = _int_value(coverage.get("valid_market_candidate_count"))
-                    source_updated_at = _date_text(coverage.get("source_updated_at"))
-                    coverage_status = "covered" if valid_count > 0 else "not_covered"
-                    _run_reconcile_phase(
-                        "coverage_reconcile_metadata_unavailable",
-                        lambda region=region, coverage_status=coverage_status, valid_count=valid_count, source_updated_at=source_updated_at: cursor.execute(
+                    try:
+                        cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [region.county, region.district])
+                        coverage = dict(cursor.fetchone() or {})
+                        valid_count = _int_value(coverage.get("valid_market_candidate_count"))
+                        source_updated_at = _date_text(coverage.get("source_updated_at"))
+                        coverage_status = "covered"
+                    except Exception:
+                        valid_count = 0
+                        source_updated_at = None
+                        coverage_status = "coverage_unknown"
+                    try:
+                        cursor.execute(
                             MARKET_COVERAGE_METADATA_UPSERT_SQL,
                             [
                                 region.county,
@@ -288,10 +296,14 @@ class PostgresMarketReadModelRepository:
                                 source_updated_at,
                                 reconciled_at,
                             ],
-                        ),
-                    )
+                        )
+                    except Exception:
+                        return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
                     counts.append({"coverage_status": coverage_status, "valid_market_candidate_count": valid_count})
-            _run_reconcile_phase("coverage_reconcile_metadata_unavailable", connection.commit)
+            try:
+                connection.commit()
+            except Exception:
+                return _coverage_reconcile_response(normalized.county, degraded_rows, persistence_status="degraded")
         return _coverage_reconcile_response(normalized.county, counts)
 
     def audit_coverage(self) -> dict[str, Any]:
@@ -478,9 +490,11 @@ def reconcile_market_coverage(county: str, repository: Any | None = None) -> dic
     try:
         raw = repo.reconcile_coverage(clean_county)
     except MarketCoverageReconcileFailure as exc:
+        if exc.reason_code in {"coverage_reconcile_metadata_unavailable", "coverage_reconcile_runtime_unavailable"}:
+            return _coverage_reconcile_degraded(clean_county)
         return _coverage_reconcile_unavailable(clean_county, exc.reason_code)
     except Exception:
-        return _coverage_reconcile_unavailable(clean_county, "coverage_reconcile_unknown_safe_failure")
+        return _coverage_reconcile_degraded(clean_county)
     if "processed_region_count" in raw:
         return _safe_coverage_reconcile_result(raw, clean_county)
     return _coverage_reconcile_response(
@@ -524,7 +538,12 @@ def _repository_from_env() -> MarketReadModelRepository | None:
     return PostgresMarketReadModelRepository(database_url) if database_url else None
 
 
-def _coverage_reconcile_response(county: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
+def _coverage_reconcile_response(
+    county: str,
+    rows: list[dict[str, Any]],
+    *,
+    persistence_status: str = "applied",
+) -> dict[str, Any]:
     processed = len(rows)
     covered = sum(1 for row in rows if _direct_coverage_status(row.get("coverage_status")) == "covered")
     not_covered = sum(1 for row in rows if _direct_coverage_status(row.get("coverage_status")) == "not_covered")
@@ -543,6 +562,7 @@ def _coverage_reconcile_response(county: str, rows: list[dict[str, Any]]) -> dic
         "covered_region_count": covered,
         "not_covered_region_count": not_covered,
         "unknown_region_count": unknown,
+        "persistence_status": _persistence_status(persistence_status),
         "message": "Market coverage metadata reconciled." if processed > 0 else "Market coverage metadata is temporarily unavailable.",
     }
 
@@ -562,8 +582,24 @@ def _safe_coverage_reconcile_result(raw: dict[str, Any], fallback_county: str) -
         "covered_region_count": covered,
         "not_covered_region_count": not_covered,
         "unknown_region_count": unknown,
+        "persistence_status": _persistence_status(raw.get("persistence_status")),
         "message": "Market coverage metadata reconciled." if processed > 0 else "Market coverage metadata is temporarily unavailable.",
     }
+
+
+def _coverage_reconcile_degraded(county: str) -> dict[str, Any]:
+    normalized = normalize_market_region(county)
+    if not normalized.valid:
+        return _coverage_reconcile_unavailable(county, "coverage_reconcile_request_invalid")
+    try:
+        rows = [
+            {"coverage_status": "coverage_unknown", "valid_market_candidate_count": 0}
+            for region in iter_taiwan_regions()
+            if region.county == normalized.county
+        ]
+    except Exception:
+        return _coverage_reconcile_unavailable(county, "coverage_reconcile_unknown_safe_failure")
+    return _coverage_reconcile_response(normalized.county, rows, persistence_status="degraded")
 
 
 def _coverage_reconcile_unavailable(
@@ -579,6 +615,7 @@ def _coverage_reconcile_unavailable(
         "covered_region_count": 0,
         "not_covered_region_count": 0,
         "unknown_region_count": 0,
+        "persistence_status": "unavailable",
         "message": "Market coverage metadata is temporarily unavailable.",
         "reason_code": safe_market_coverage_reconcile_reason_code(reason_code),
     }
@@ -870,6 +907,11 @@ def _direct_coverage_status(value: Any) -> str:
     if text in {"nationwide", "partial"}:
         return "covered"
     return "coverage_unknown"
+
+
+def _persistence_status(value: Any) -> str:
+    text = str(value or "").strip()
+    return text if text in {"applied", "degraded", "unavailable"} else "applied"
 
 
 MARKET_COVERAGE_METADATA_SCHEMA_SQL = """

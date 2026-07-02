@@ -57,6 +57,9 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
         "MARKET_COVERAGE_RECONCILE_REASON=",
         "MARKET_COVERAGE_RECONCILE_COUNTY=",
         "MARKET_COVERAGE_RECONCILED_COUNT=",
+        "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=",
+        "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=",
+        "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=",
         "MARKET_COVERAGE_AUDIT=",
         "EXPECTED_REGION_COUNT=",
         "COVERED_REGION_COUNT=",
@@ -90,6 +93,9 @@ def test_market_coverage_rollout_skips_later_stages_after_bootstrap_failure() ->
     assert "MARKET_COVERAGE_RECONCILE_REASON=not_run" in bootstrap_failure_block
     assert "MARKET_COVERAGE_RECONCILE_COUNTY=not_run" in bootstrap_failure_block
     assert "MARKET_COVERAGE_RECONCILED_COUNT=not_run" in bootstrap_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run" in bootstrap_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run" in bootstrap_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run" in bootstrap_failure_block
     assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in bootstrap_failure_block
     assert "EXPECTED_REGION_COUNT=not_run" in bootstrap_failure_block
     assert "COVERED_REGION_COUNT=not_run" in bootstrap_failure_block
@@ -109,6 +115,9 @@ def test_market_coverage_rollout_skips_later_stages_after_registry_failure() -> 
     assert "MARKET_COVERAGE_RECONCILE_REASON=not_run" in registry_failure_block
     assert "MARKET_COVERAGE_RECONCILE_COUNTY=not_run" in registry_failure_block
     assert "MARKET_COVERAGE_RECONCILED_COUNT=not_run" in registry_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run" in registry_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run" in registry_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run" in registry_failure_block
     assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in registry_failure_block
     assert "EXPECTED_REGION_COUNT=not_run" in registry_failure_block
     assert "COVERED_REGION_COUNT=not_run" in registry_failure_block
@@ -125,6 +134,9 @@ def test_market_coverage_rollout_skips_audit_after_reconcile_failure() -> None:
     assert "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=${reconcile_status:-0}" in reconcile_failure_block
     assert 'MARKET_COVERAGE_RECONCILE_REASON=$(safe_reconcile_reason "$reconcile_body")' in reconcile_failure_block
     assert "MARKET_COVERAGE_RECONCILE_COUNTY=${county}" in reconcile_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run" in reconcile_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run" in reconcile_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run" in reconcile_failure_block
     assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in reconcile_failure_block
     assert "EXPECTED_REGION_COUNT=not_run" in reconcile_failure_block
     assert "COVERED_REGION_COUNT=not_run" in reconcile_failure_block
@@ -140,6 +152,22 @@ def test_market_coverage_rollout_outputs_reconcile_success_metadata_before_audit
     assert "MARKET_COVERAGE_RECONCILE_REASON=none" in success_block
     assert "MARKET_COVERAGE_RECONCILE_COUNTY=none" in success_block
     assert "MARKET_COVERAGE_RECONCILED_COUNT=${reconciled_count}" in success_block
+    assert "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=${reconcile_covered_count}" in success_block
+    assert "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=${reconcile_not_covered_count}" in success_block
+    assert "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=${reconcile_unknown_count}" in success_block
+
+
+def test_market_coverage_rollout_accumulates_reconcile_coverage_counts() -> None:
+    assert "reconcile_covered_count=0" in WORKFLOW
+    assert "reconcile_not_covered_count=0" in WORKFLOW
+    assert "reconcile_unknown_count=0" in WORKFLOW
+    assert "coverage_status" in WORKFLOW
+    assert "covered_region_count" in WORKFLOW
+    assert "not_covered_region_count" in WORKFLOW
+    assert "unknown_region_count" in WORKFLOW
+    assert "reconcile_covered_count=$((reconcile_covered_count + county_covered))" in WORKFLOW
+    assert "reconcile_not_covered_count=$((reconcile_not_covered_count + county_not_covered))" in WORKFLOW
+    assert "reconcile_unknown_count=$((reconcile_unknown_count + county_unknown))" in WORKFLOW
 
 
 def test_market_coverage_rollout_allowlists_bootstrap_reason_codes() -> None:
