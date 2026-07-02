@@ -7,10 +7,33 @@ import subprocess
 import sys
 from pathlib import Path
 
-from services.taiwan_admin_registry import audit_region_coverage, expected_region_count, normalize_market_region
+from services.taiwan_admin_registry import (
+    DEFAULT_REGISTRY_PATH,
+    audit_region_coverage,
+    expected_region_count,
+    iter_taiwan_regions,
+    load_taiwan_admin_areas,
+    normalize_market_region,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
+SHARED_REGISTRY_PATH = ROOT / "frontend_next" / "lib" / "taiwan-admin-areas.json"
+
+
+def test_backend_default_registry_uses_shared_frontend_json() -> None:
+    assert DEFAULT_REGISTRY_PATH == SHARED_REGISTRY_PATH
+    assert DEFAULT_REGISTRY_PATH.exists()
+
+
+def test_shared_registry_loads_for_python_and_frontend() -> None:
+    registry = json.loads(SHARED_REGISTRY_PATH.read_text(encoding="utf-8"))
+    areas = load_taiwan_admin_areas()
+
+    assert registry["schema_version"] == "taiwan-admin-areas-v1"
+    assert areas == registry["areas"]
+    assert len(areas) == 22
+    assert len(iter_taiwan_regions()) == 368
 
 
 def test_registry_normalizes_county_alias_and_rejects_cross_county_district() -> None:
@@ -25,7 +48,7 @@ def test_registry_normalizes_county_alias_and_rejects_cross_county_district() ->
 
 
 def test_registry_has_nationwide_county_district_pairs_without_metrics() -> None:
-    registry = json.loads((ROOT / "data/taiwan-admin-areas.json").read_text(encoding="utf-8"))
+    registry = json.loads(SHARED_REGISTRY_PATH.read_text(encoding="utf-8"))
     serialized = json.dumps(registry, ensure_ascii=False)
 
     assert registry["schema_version"] == "taiwan-admin-areas-v1"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 
@@ -9,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next/app/page.tsx").read_text(encoding="utf-8")
 API = (ROOT / "frontend_next/lib/api.ts").read_text(encoding="utf-8")
 ADMIN_AREAS = (ROOT / "frontend_next/lib/taiwan-admin-areas.ts").read_text(encoding="utf-8")
+ADMIN_AREAS_JSON = json.loads((ROOT / "frontend_next/lib/taiwan-admin-areas.json").read_text(encoding="utf-8"))
 SIDEBAR = (ROOT / "frontend_next/components/sidebar.tsx").read_text(encoding="utf-8")
 
 
@@ -82,13 +84,21 @@ def test_market_api_contract_has_direct_query_endpoint_and_history() -> None:
 
 
 def test_taiwan_admin_area_helper_provides_canonical_aliases() -> None:
+    serialized_registry = json.dumps(ADMIN_AREAS_JSON, ensure_ascii=False)
+
+    assert 'import registry from "./taiwan-admin-areas.json"' in ADMIN_AREAS
     assert "TAIWAN_ADMIN_AREAS" in ADMIN_AREAS
     assert "TAIWAN_COUNTIES" in ADMIN_AREAS
     assert "normalizeTaiwanCounty" in ADMIN_AREAS
     assert "normalizeTaiwanDistrict" in ADMIN_AREAS
     assert "getDistrictsForCounty" in ADMIN_AREAS
-    assert "臺北市" in ADMIN_AREAS
-    assert "信義區" in ADMIN_AREAS
+    assert ADMIN_AREAS_JSON["schema_version"] == "taiwan-admin-areas-v1"
+    assert len(ADMIN_AREAS_JSON["areas"]) == 22
+    assert sum(len(area["districts"]) for area in ADMIN_AREAS_JSON["areas"]) == 368
+    assert "臺北市" in serialized_registry
+    assert "信義區" in serialized_registry
+    assert "average_unit_price" not in serialized_registry
+    assert "transaction_count" not in serialized_registry
     assert "[normalizeKey(county.replace(\"臺\", \"台\")), county]" in ADMIN_AREAS
 
 

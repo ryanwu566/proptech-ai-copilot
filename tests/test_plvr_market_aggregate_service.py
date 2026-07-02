@@ -264,6 +264,11 @@ class CoverageOperationsRepository:
         }
 
 
+class CoverageConnectionFailureRepository:
+    def reconcile_coverage(self, county: str) -> dict[str, Any]:
+        raise RuntimeError("connection detail must not leak")
+
+
 def test_direct_query_sql_uses_only_plvr_transaction_table() -> None:
     direct_query_sql = "\n".join(
         [
@@ -624,6 +629,19 @@ def test_coverage_reconcile_failure_reasons_are_safe_and_specific() -> None:
     assert metadata_failure["persistence_status"] == "degraded"
     assert "reason_code" not in metadata_failure
     assert "raw database detail" not in str(metadata_failure)
+
+
+def test_coverage_reconcile_degraded_fallback_uses_canonical_registry() -> None:
+    result = reconcile_market_coverage("臺北市", CoverageConnectionFailureRepository())
+
+    assert result["status"] == "resolved"
+    assert result["county"] == "臺北市"
+    assert result["coverage_status"] == "coverage_unknown"
+    assert result["persistence_status"] == "degraded"
+    assert result["processed_region_count"] == 12
+    assert result["unknown_region_count"] == 12
+    assert "reason_code" not in result
+    assert "connection detail" not in str(result)
 
 
 def test_coverage_audit_returns_only_canonical_aggregate_counts() -> None:
