@@ -47,6 +47,41 @@ def test_market_coverage_rollout_uses_existing_secrets_and_safe_curl() -> None:
     assert "--verbose" not in WORKFLOW
     assert "--retry" not in WORKFLOW
     assert "set -x" not in WORKFLOW
+    assert "curl_exit_file" in WORKFLOW
+    assert ': > "$body_file"' in WORKFLOW
+    assert ': > "$status_file"' in WORKFLOW
+    assert ': > "$curl_exit_file"' in WORKFLOW
+    assert "printf '%s' \"$curl_exit\" > \"$curl_exit_file\"" in WORKFLOW
+    assert "curl -v" not in WORKFLOW
+    assert "--show-error" not in WORKFLOW
+
+
+def test_market_coverage_rollout_classifies_transport_failures_safely() -> None:
+    classifier = WORKFLOW.split("safe_transport_reason() {", 1)[1].split("\n          }", 1)[0]
+
+    assert 'printf \'%s\\n\' "none"' in classifier
+    assert "28)" in classifier
+    assert 'printf \'%s\\n\' "timeout"' in classifier
+    assert "5|6|7)" in classifier
+    assert 'printf \'%s\\n\' "dns_or_connect_unavailable"' in classifier
+    assert "35|51|58|59|60)" in classifier
+    assert 'printf \'%s\\n\' "tls_unavailable"' in classifier
+    assert 'printf \'%s\\n\' "transport_unavailable"' in classifier
+    assert "curl_exit" not in classifier.lower().replace("curl_exit_code", "")
+
+
+def test_market_coverage_rollout_reason_parsers_handle_empty_body_without_grep() -> None:
+    bootstrap_reason = WORKFLOW.split("safe_bootstrap_reason() {", 1)[1].split("\n          }", 1)[0]
+    reconcile_reason = WORKFLOW.split("safe_reconcile_reason() {", 1)[1].split("\n          }", 1)[0]
+
+    for parser in (bootstrap_reason, reconcile_reason):
+        assert '[ ! -s "$body_file" ]' in parser
+        assert "grep" not in parser
+        assert "2> /dev/null" in parser
+        assert "reason_code" in parser
+
+    assert "coverage_bootstrap_unknown_safe_failure" in bootstrap_reason
+    assert "coverage_reconcile_unknown_safe_failure" in reconcile_reason
 
 
 def test_market_coverage_rollout_calls_only_coverage_routes() -> None:
@@ -61,6 +96,7 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
         "MARKET_COVERAGE_BOOTSTRAP=success",
         "MARKET_COVERAGE_BOOTSTRAP=failed",
         "MARKET_COVERAGE_BOOTSTRAP_HTTP_STATUS=",
+        "MARKET_COVERAGE_BOOTSTRAP_TRANSPORT=",
         "MARKET_COVERAGE_BOOTSTRAP_REASON=",
         "MARKET_COVERAGE_REGISTRY=success",
         "MARKET_COVERAGE_REGISTRY=failed",
@@ -82,7 +118,10 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
         assert line in WORKFLOW
     assert 'cat "$bootstrap_status_file"' in WORKFLOW
     assert 'cat "$body_file"' not in WORKFLOW
+    assert 'grep -o' not in WORKFLOW
     assert 'echo "$body_file"' not in WORKFLOW
+    assert 'echo "$RENDER_API_BASE_URL"' not in WORKFLOW
+    assert 'echo "$MARKET_READ_MODEL_REFRESH_TOKEN"' not in WORKFLOW
     assert 'echo "MARKET_COVERAGE_RECONCILED_COUNT=0"' not in WORKFLOW
     assert 'echo "MARKET_COVERAGE_AUDIT=UNKNOWN"' not in WORKFLOW.split('if [ "$bootstrap_status" != "200" ]; then', 1)[1].split("exit 1", 1)[0]
     assert "response body" not in WORKFLOW.lower()
@@ -91,6 +130,7 @@ def test_market_coverage_rollout_outputs_only_safe_lines() -> None:
     assert "real_price_transactions" not in WORKFLOW
     assert "FileNotFoundError" not in WORKFLOW
     assert "traceback" not in WORKFLOW.lower()
+    assert "No such file or directory" not in WORKFLOW
 
 
 def test_market_coverage_rollout_full_only_exits_zero() -> None:
@@ -100,22 +140,40 @@ def test_market_coverage_rollout_full_only_exits_zero() -> None:
 
 def test_market_coverage_rollout_skips_later_stages_after_bootstrap_failure() -> None:
     bootstrap_failure_block = WORKFLOW.split('if [ "$bootstrap_status" != "200" ]; then', 1)[1].split("exit 1", 1)[0]
+    not_run_helper = WORKFLOW.split("emit_not_run_after_bootstrap_failure() {", 1)[1].split("\n          }", 1)[0]
 
-    assert "MARKET_COVERAGE_RECONCILE_STATUS=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_RECONCILE_REASON=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_RECONCILE_COUNTY=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_RECONCILED_COUNT=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run" in bootstrap_failure_block
-    assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in bootstrap_failure_block
-    assert "EXPECTED_REGION_COUNT=not_run" in bootstrap_failure_block
-    assert "COVERED_REGION_COUNT=not_run" in bootstrap_failure_block
-    assert "MISSING_REGION_COUNT=not_run" in bootstrap_failure_block
-    assert "UNKNOWN_REGION_COUNT=not_run" in bootstrap_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_STATUS=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_BOOTSTRAP_TRANSPORT=${bootstrap_transport}" in bootstrap_failure_block
+    assert "emit_not_run_after_bootstrap_failure" in bootstrap_failure_block
+    assert "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_RECONCILE_REASON=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_RECONCILE_COUNTY=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_RECONCILED_COUNT=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run" in not_run_helper
+    assert "MARKET_COVERAGE_AUDIT=NOT_RUN" in not_run_helper
+    assert "EXPECTED_REGION_COUNT=not_run" in not_run_helper
+    assert "COVERED_REGION_COUNT=not_run" in not_run_helper
+    assert "MISSING_REGION_COUNT=not_run" in not_run_helper
+    assert "UNKNOWN_REGION_COUNT=not_run" in not_run_helper
     assert "/market-insights/coverage/reconcile" not in bootstrap_failure_block
     assert "/market-insights/coverage/audit" not in bootstrap_failure_block
+
+
+def test_market_coverage_rollout_preflights_required_configuration_safely() -> None:
+    config_failure_block = WORKFLOW.split('if [ -z "${RENDER_API_BASE_URL:-}" ] || [ -z "${MARKET_READ_MODEL_REFRESH_TOKEN:-}" ]; then', 1)[1].split("exit 1", 1)[0]
+
+    assert "MARKET_COVERAGE_BOOTSTRAP_HTTP_STATUS=0" in config_failure_block
+    assert "MARKET_COVERAGE_BOOTSTRAP=failed" in config_failure_block
+    assert "MARKET_COVERAGE_BOOTSTRAP_TRANSPORT=config_unavailable" in config_failure_block
+    assert "MARKET_COVERAGE_BOOTSTRAP_REASON=coverage_bootstrap_route_unavailable" in config_failure_block
+    assert "emit_not_run_after_bootstrap_failure" in config_failure_block
+    assert "RENDER_API_BASE_URL}" not in config_failure_block
+    assert "MARKET_READ_MODEL_REFRESH_TOKEN}" not in config_failure_block
+    assert "/market-insights/coverage/bootstrap" not in config_failure_block
+    assert "/market-insights/coverage/reconcile" not in config_failure_block
+    assert "/market-insights/coverage/audit" not in config_failure_block
 
 
 def test_market_coverage_rollout_skips_later_stages_after_registry_failure() -> None:

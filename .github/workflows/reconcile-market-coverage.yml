@@ -20,15 +20,69 @@ jobs:
         run: |
           set -euo pipefail
 
-          base_url="${RENDER_API_BASE_URL%/}"
           temp_dir="$(mktemp -d)"
           trap 'rm -rf "$temp_dir"' EXIT
+
+          emit_not_run_after_bootstrap_failure() {
+            echo "MARKET_COVERAGE_RECONCILE_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
+            echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run"
+            echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run"
+            echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
+            echo "EXPECTED_REGION_COUNT=not_run"
+            echo "COVERED_REGION_COUNT=not_run"
+            echo "MISSING_REGION_COUNT=not_run"
+            echo "UNKNOWN_REGION_COUNT=not_run"
+          }
+
+          if [ -z "${RENDER_API_BASE_URL:-}" ] || [ -z "${MARKET_READ_MODEL_REFRESH_TOKEN:-}" ]; then
+            echo "MARKET_COVERAGE_BOOTSTRAP_HTTP_STATUS=0"
+            echo "MARKET_COVERAGE_BOOTSTRAP=failed"
+            echo "MARKET_COVERAGE_BOOTSTRAP_TRANSPORT=config_unavailable"
+            echo "MARKET_COVERAGE_BOOTSTRAP_REASON=coverage_bootstrap_route_unavailable"
+            emit_not_run_after_bootstrap_failure
+            exit 1
+          fi
+
+          base_url="${RENDER_API_BASE_URL%/}"
+
+          safe_transport_reason() {
+            curl_exit_code="${1:-0}"
+            http_status="${2:-0}"
+            if [ -n "$http_status" ] && [ "$http_status" != "0" ]; then
+              printf '%s\n' "none"
+              return
+            fi
+            case "$curl_exit_code" in
+              28)
+                printf '%s\n' "timeout"
+                ;;
+              5|6|7)
+                printf '%s\n' "dns_or_connect_unavailable"
+                ;;
+              35|51|58|59|60)
+                printf '%s\n' "tls_unavailable"
+                ;;
+              *)
+                printf '%s\n' "transport_unavailable"
+                ;;
+            esac
+          }
 
           call_api() {
             endpoint="$1"
             payload="$2"
             body_file="$3"
             status_file="$4"
+            curl_exit_file="$5"
+
+            : > "$body_file"
+            : > "$status_file"
+            : > "$curl_exit_file"
 
             set +e
             curl \
@@ -45,6 +99,7 @@ jobs:
               > "$status_file"
             curl_exit=$?
             set -e
+            printf '%s' "$curl_exit" > "$curl_exit_file"
 
             if [ "$curl_exit" -ne 0 ]; then
               printf '0' > "$status_file"
@@ -53,7 +108,11 @@ jobs:
 
           safe_bootstrap_reason() {
             body_file="$1"
-            reason="$(grep -o '"reason_code"[[:space:]]*:[[:space:]]*"[^"]*"' "$body_file" | head -n 1 | sed 's/.*"reason_code"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || true)"
+            if [ ! -s "$body_file" ]; then
+              printf '%s\n' "coverage_bootstrap_unknown_safe_failure"
+              return
+            fi
+            reason="$(python -c "import json, sys; p=json.load(open(sys.argv[1], encoding='utf-8')); print(p.get('reason_code') or '')" "$body_file" 2> /dev/null || true)"
             case "$reason" in
               coverage_bootstrap_route_unavailable|coverage_bootstrap_migration_unavailable|coverage_bootstrap_runtime_unavailable|coverage_bootstrap_unknown_safe_failure)
                 printf '%s\n' "$reason"
@@ -66,7 +125,11 @@ jobs:
 
           safe_reconcile_reason() {
             body_file="$1"
-            reason="$(grep -o '"reason_code"[[:space:]]*:[[:space:]]*"[^"]*"' "$body_file" | head -n 1 | sed 's/.*"reason_code"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || true)"
+            if [ ! -s "$body_file" ]; then
+              printf '%s\n' "coverage_reconcile_unknown_safe_failure"
+              return
+            fi
+            reason="$(python -c "import json, sys; p=json.load(open(sys.argv[1], encoding='utf-8')); print(p.get('reason_code') or '')" "$body_file" 2> /dev/null || true)"
             case "$reason" in
               coverage_reconcile_route_unavailable|coverage_reconcile_request_invalid|coverage_reconcile_metadata_unavailable|coverage_reconcile_runtime_unavailable|coverage_reconcile_unknown_safe_failure)
                 printf '%s\n' "$reason"
@@ -79,30 +142,22 @@ jobs:
 
           bootstrap_body="$temp_dir/bootstrap.json"
           bootstrap_status_file="$temp_dir/bootstrap.status"
-          call_api "/market-insights/coverage/bootstrap" "{}" "$bootstrap_body" "$bootstrap_status_file"
+          bootstrap_curl_exit_file="$temp_dir/bootstrap.curl_exit"
+          call_api "/market-insights/coverage/bootstrap" "{}" "$bootstrap_body" "$bootstrap_status_file" "$bootstrap_curl_exit_file"
           bootstrap_status="$(cat "$bootstrap_status_file")"
+          bootstrap_transport="$(safe_transport_reason "$(cat "$bootstrap_curl_exit_file")" "${bootstrap_status:-0}")"
           echo "MARKET_COVERAGE_BOOTSTRAP_HTTP_STATUS=${bootstrap_status:-0}"
 
           if [ "$bootstrap_status" != "200" ]; then
             echo "MARKET_COVERAGE_BOOTSTRAP=failed"
+            echo "MARKET_COVERAGE_BOOTSTRAP_TRANSPORT=${bootstrap_transport}"
             echo "MARKET_COVERAGE_BOOTSTRAP_REASON=$(safe_bootstrap_reason "$bootstrap_body")"
-            echo "MARKET_COVERAGE_RECONCILE_STATUS=not_run"
-            echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=not_run"
-            echo "MARKET_COVERAGE_RECONCILE_REASON=not_run"
-            echo "MARKET_COVERAGE_RECONCILE_COUNTY=not_run"
-            echo "MARKET_COVERAGE_RECONCILED_COUNT=not_run"
-            echo "MARKET_COVERAGE_RECONCILE_COVERED_COUNT=not_run"
-            echo "MARKET_COVERAGE_RECONCILE_NOT_COVERED_COUNT=not_run"
-            echo "MARKET_COVERAGE_RECONCILE_UNKNOWN_COUNT=not_run"
-            echo "MARKET_COVERAGE_AUDIT=NOT_RUN"
-            echo "EXPECTED_REGION_COUNT=not_run"
-            echo "COVERED_REGION_COUNT=not_run"
-            echo "MISSING_REGION_COUNT=not_run"
-            echo "UNKNOWN_REGION_COUNT=not_run"
+            emit_not_run_after_bootstrap_failure
             exit 1
           fi
 
           echo "MARKET_COVERAGE_BOOTSTRAP=success"
+          echo "MARKET_COVERAGE_BOOTSTRAP_TRANSPORT=none"
           echo "MARKET_COVERAGE_BOOTSTRAP_REASON=none"
 
           counties_file="$temp_dir/counties.txt"
@@ -155,8 +210,9 @@ jobs:
             [ -n "$county" ] || continue
             reconcile_body="$temp_dir/reconcile-${reconciled_count}.json"
             reconcile_status_file="$temp_dir/reconcile-${reconciled_count}.status"
+            reconcile_curl_exit_file="$temp_dir/reconcile-${reconciled_count}.curl_exit"
             reconcile_payload="$(python -c "import json, sys; print(json.dumps({'county': sys.argv[1]}, ensure_ascii=False))" "$county")"
-            call_api "/market-insights/coverage/reconcile" "$reconcile_payload" "$reconcile_body" "$reconcile_status_file"
+            call_api "/market-insights/coverage/reconcile" "$reconcile_payload" "$reconcile_body" "$reconcile_status_file" "$reconcile_curl_exit_file"
             reconcile_status="$(cat "$reconcile_status_file")"
             if [ "$reconcile_status" != "200" ]; then
               echo "MARKET_COVERAGE_RECONCILE_STATUS=failed"
@@ -208,7 +264,8 @@ jobs:
 
           audit_body="$temp_dir/audit.json"
           audit_status_file="$temp_dir/audit.status"
-          call_api "/market-insights/coverage/audit" "{}" "$audit_body" "$audit_status_file"
+          audit_curl_exit_file="$temp_dir/audit.curl_exit"
+          call_api "/market-insights/coverage/audit" "{}" "$audit_body" "$audit_status_file" "$audit_curl_exit_file"
 
           if [ "$(cat "$audit_status_file")" != "200" ]; then
             echo "MARKET_COVERAGE_AUDIT=UNKNOWN"
