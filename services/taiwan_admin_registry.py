@@ -9,7 +9,7 @@ from typing import Any, Iterable
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_REGISTRY_PATH = ROOT / "data" / "taiwan-admin-areas.json"
+DEFAULT_REGISTRY_PATH = ROOT / "frontend_next" / "lib" / "taiwan-admin-areas.json"
 
 
 @dataclass(frozen=True)

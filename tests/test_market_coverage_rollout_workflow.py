@@ -196,8 +196,19 @@ def test_market_coverage_rollout_allowlists_reconcile_reason_codes() -> None:
 def test_market_coverage_rollout_uses_workspace_registry_helper() -> None:
     assert "$GITHUB_WORKSPACE/scripts/list_market_coverage_counties.py" in WORKFLOW
     assert "data/taiwan-admin-areas.json" not in WORKFLOW
+    assert "frontend_next/lib/taiwan-admin-areas.ts" not in WORKFLOW
     assert "canonical_registry_unavailable" in WORKFLOW
     assert "CANONICAL_REGISTRY_UNAVAILABLE" not in WORKFLOW
+
+
+def test_market_coverage_county_helper_reads_shared_json_registry() -> None:
+    helper = REGISTRY_HELPER.read_text(encoding="utf-8")
+
+    assert 'frontend_next" / "lib" / "taiwan-admin-areas.json"' in helper
+    assert "taiwan-admin-areas.ts" not in helper
+    assert "COUNTY_PATTERN" not in helper
+    assert "traceback" not in helper.lower()
+    assert "FileNotFoundError" not in helper
 
 
 def test_market_coverage_county_helper_outputs_tracked_counties_safely() -> None:

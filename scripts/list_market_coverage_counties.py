@@ -1,26 +1,26 @@
 """Print canonical county names for the market coverage workflow.
 
 The workflow needs only county labels for bounded reconciliation calls. This
-helper reads the existing tracked frontend registry artifact and emits one
-county per line. It intentionally does not print tracebacks or file contents.
+helper reads the shared tracked JSON registry and emits one county per line. It
+intentionally does not print diagnostic internals or file contents.
 """
 
 from __future__ import annotations
 
-import re
+import json
 import sys
 from pathlib import Path
+from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-REGISTRY_SOURCE = ROOT / "frontend_next" / "lib" / "taiwan-admin-areas.ts"
-COUNTY_PATTERN = re.compile(r'county:\s*"([^"]+)"')
+REGISTRY_SOURCE = ROOT / "frontend_next" / "lib" / "taiwan-admin-areas.json"
 
 
 def main() -> int:
     try:
-        text = REGISTRY_SOURCE.read_text(encoding="utf-8")
-        counties = _unique_counties(text)
+        payload = json.loads(REGISTRY_SOURCE.read_text(encoding="utf-8"))
+        counties = _unique_counties(payload)
     except Exception:
         counties = []
     if not counties:
@@ -31,12 +31,18 @@ def main() -> int:
     return 0
 
 
-def _unique_counties(text: str) -> list[str]:
+def _unique_counties(payload: dict[str, Any]) -> list[str]:
+    areas = payload.get("areas")
+    if not isinstance(areas, list):
+        return []
     counties: list[str] = []
     seen: set[str] = set()
-    for match in COUNTY_PATTERN.finditer(text):
-        county = match.group(1).strip()
-        if county and county not in seen:
+    for area in areas:
+        if not isinstance(area, dict):
+            continue
+        county = str(area.get("county") or "").strip()
+        districts = area.get("districts")
+        if county and isinstance(districts, list) and districts and county not in seen:
             counties.append(county)
             seen.add(county)
     return counties
