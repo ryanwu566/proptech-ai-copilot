@@ -173,7 +173,33 @@ jobs:
               echo "UNKNOWN_REGION_COUNT=not_run"
               exit 1
             fi
-            reconcile_metrics="$(python -c "import json, sys; payload=json.load(open(sys.argv[1], encoding='utf-8')); status=payload.get('coverage_status'); allowed={'covered','not_covered','coverage_unknown'}; count=lambda name: max(0, int(payload.get(name) or 0)); raise SystemExit(2) if status not in allowed else None; print('{} {} {}'.format(count('covered_region_count'), count('not_covered_region_count'), count('unknown_region_count')))" "$reconcile_body")" || {
+            reconcile_metrics="$(python - "$reconcile_body" <<'PY'
+import json
+import sys
+
+allowed = {"covered", "not_covered", "coverage_unknown"}
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        payload = json.load(handle)
+    coverage_status = payload.get("coverage_status")
+    if coverage_status not in allowed:
+        sys.exit(2)
+
+    def safe_count(name):
+        return max(0, int(payload.get(name) or 0))
+
+    print(
+        "{} {} {}".format(
+            safe_count("covered_region_count"),
+            safe_count("not_covered_region_count"),
+            safe_count("unknown_region_count"),
+        )
+    )
+except Exception:
+    sys.exit(2)
+PY
+            )" || {
               echo "MARKET_COVERAGE_RECONCILE_STATUS=failed"
               echo "MARKET_COVERAGE_RECONCILE_HTTP_STATUS=200"
               echo "MARKET_COVERAGE_RECONCILE_REASON=coverage_reconcile_unknown_safe_failure"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -11,6 +12,25 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_PATH = ROOT / ".github/workflows/reconcile-market-coverage.yml"
 WORKFLOW = WORKFLOW_PATH.read_text(encoding="utf-8")
 REGISTRY_HELPER = ROOT / "scripts/list_market_coverage_counties.py"
+
+
+def _reconcile_metrics_parser() -> str:
+    marker = 'reconcile_metrics="$(python - "$reconcile_body" <<\'PY\''
+    start = WORKFLOW.index(marker) + len(marker)
+    end = WORKFLOW.index("\nPY\n", start)
+    return WORKFLOW[start:end].lstrip()
+
+
+def _run_reconcile_metrics_parser(payload: dict[str, object], tmp_path: Path) -> subprocess.CompletedProcess[str]:
+    payload_file = tmp_path / "reconcile.json"
+    payload_file.write_text(json.dumps(payload), encoding="utf-8")
+    return subprocess.run(
+        [sys.executable, "-", str(payload_file)],
+        input=_reconcile_metrics_parser(),
+        check=False,
+        text=True,
+        capture_output=True,
+    )
 
 
 def test_market_coverage_rollout_workflow_is_manual_only() -> None:
@@ -168,6 +188,73 @@ def test_market_coverage_rollout_accumulates_reconcile_coverage_counts() -> None
     assert "reconcile_covered_count=$((reconcile_covered_count + county_covered))" in WORKFLOW
     assert "reconcile_not_covered_count=$((reconcile_not_covered_count + county_not_covered))" in WORKFLOW
     assert "reconcile_unknown_count=$((reconcile_unknown_count + county_unknown))" in WORKFLOW
+
+
+def test_market_coverage_reconcile_parser_accepts_legal_statuses(tmp_path) -> None:
+    expected_outputs = {
+        "covered": "2 0 0",
+        "not_covered": "0 3 0",
+        "coverage_unknown": "0 0 4",
+    }
+
+    for coverage_status, expected_stdout in expected_outputs.items():
+        result = _run_reconcile_metrics_parser(
+            {
+                "coverage_status": coverage_status,
+                "covered_region_count": 2 if coverage_status == "covered" else 0,
+                "not_covered_region_count": 3 if coverage_status == "not_covered" else 0,
+                "unknown_region_count": 4 if coverage_status == "coverage_unknown" else 0,
+            },
+            tmp_path,
+        )
+
+        assert result.returncode == 0
+        assert result.stdout.strip() == expected_stdout
+        assert "Traceback" not in result.stderr
+        assert "exceptions must derive from BaseException" not in result.stderr
+
+
+def test_market_coverage_reconcile_parser_fails_safely_for_invalid_payloads(tmp_path) -> None:
+    invalid_payloads = [
+        {"coverage_status": "unexpected"},
+        {"coverage_status": "covered", "covered_region_count": "not-a-count"},
+    ]
+
+    for payload in invalid_payloads:
+        result = _run_reconcile_metrics_parser(payload, tmp_path)
+
+        assert result.returncode == 2
+        assert result.stdout == ""
+        assert "Traceback" not in result.stderr
+        assert "exceptions must derive from BaseException" not in result.stderr
+
+
+def test_market_coverage_reconcile_parser_fails_safely_for_invalid_json(tmp_path) -> None:
+    payload_file = tmp_path / "reconcile.json"
+    payload_file.write_text("{invalid json", encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, "-", str(payload_file)],
+        input=_reconcile_metrics_parser(),
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 2
+    assert result.stdout == ""
+    assert "Traceback" not in result.stderr
+    assert "exceptions must derive from BaseException" not in result.stderr
+
+
+def test_market_coverage_reconcile_parser_has_no_raise_none_pattern() -> None:
+    parser = _reconcile_metrics_parser()
+
+    assert "raise SystemExit(2) if" not in WORKFLOW
+    assert "raise None" not in WORKFLOW
+    assert "exceptions must derive from BaseException" not in WORKFLOW
+    assert "sys.exit(2)" in parser
+    assert "allowed = {\"covered\", \"not_covered\", \"coverage_unknown\"}" in parser
 
 
 def test_market_coverage_rollout_allowlists_bootstrap_reason_codes() -> None:
