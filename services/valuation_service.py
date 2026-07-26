@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from services.community_index_service import match_community
+from services.plvr_data_freshness import evaluate_plvr_freshness
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
 
 
@@ -349,6 +350,13 @@ def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], 
     roads_count = len({(row["city"], row["district"], row["road"]) for row in rows})
     if path and path.exists():
         last_updated = datetime.fromtimestamp(path.stat().st_mtime, UTC).isoformat()
+    freshness = evaluate_plvr_freshness(
+        official_records_count=0,
+        latest_import_status=None,
+        last_updated=last_updated,
+        newest_effective_period=None,
+        provider_available=True,
+    )
     return {
         "active_source": provider.source,
         "is_demo_data": provider.is_demo_data,
@@ -379,6 +387,7 @@ def _build_data_status(provider: ValuationProvider, rows: tuple[dict[str, Any], 
             else "目前使用已建立索引的估價資料來源。"
         ),
         "user_message": USER_MESSAGE,
+        **freshness,
     }
 
 
