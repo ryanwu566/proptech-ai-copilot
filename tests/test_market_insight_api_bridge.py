@@ -276,6 +276,114 @@ def test_market_query_preserves_unavailable_state(monkeypatch) -> None:
     assert payload["history"] == []
 
 
+def test_market_query_available_requires_complete_positive_contract(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_summary",
+        lambda *_args, **_kwargs: {
+            "city": "Demo County",
+            "county": "Demo County",
+            "district": "North",
+            "period": "2025-02",
+            "average_unit_price": 70.0,
+            "avg_price_per_ping": 70.0,
+            "transaction_count": 4,
+            "transaction_volume": 4,
+            "record_count": 4,
+            "history": [],
+            "summary": "aggregate ready",
+            "source_name": "Official PLVR OpenData aggregate",
+            "source_updated_at": "2025-03-05",
+            "coverage_status": "covered",
+            "data_status": "available",
+            "caveat": "market caveat",
+            "disclaimer": "market caveat",
+            "raw_payload": "must not leak",
+        },
+    )
+
+    response = client.post("/market-insights/query", json={"county": "Demo County", "district": "North"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["data_status"] == "available"
+    assert payload["coverage_status"] == "covered"
+    assert payload["average_unit_price"] == payload["avg_price_per_ping"]
+    assert payload["transaction_count"] == payload["transaction_volume"]
+    assert "raw_payload" not in payload
+
+
+def test_market_query_invalid_available_degrades_to_no_data_without_zero_metrics(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_summary",
+        lambda *_args, **_kwargs: {
+            "city": "Demo County",
+            "county": "Demo County",
+            "district": "North",
+            "average_unit_price": float("nan"),
+            "avg_price_per_ping": float("nan"),
+            "transaction_count": 0,
+            "transaction_volume": 0,
+            "record_count": 0,
+            "history": [],
+            "source_name": "Official PLVR OpenData aggregate",
+            "coverage_status": "covered",
+            "data_status": "available",
+        },
+    )
+
+    payload = client.post("/market-insights/query", json={"county": "Demo County", "district": "North"}).json()
+
+    assert payload["data_status"] == "no_data"
+    assert payload["coverage_status"] == "covered"
+    assert payload["average_unit_price"] is None
+    assert payload["transaction_count"] is None
+    assert payload["transaction_volume"] is None
+    assert payload["record_count"] is None
+    assert payload["history"] == []
+    assert "0" not in payload["summary"]
+
+
+def test_market_query_unavailable_state_is_not_rewritten_to_no_data(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_summary",
+        lambda *_args, **_kwargs: {
+            "city": "Demo County",
+            "county": "Demo County",
+            "district": "North",
+            "average_unit_price": None,
+            "avg_price_per_ping": None,
+            "transaction_count": None,
+            "transaction_volume": None,
+            "record_count": None,
+            "history": [],
+            "summary": "internal details must not leak",
+            "source_name": None,
+            "coverage_status": "coverage_unknown",
+            "data_status": "unavailable",
+            "database_url": "must not leak",
+        },
+    )
+
+    response = client.post("/market-insights/query", json={"county": "Demo County", "district": "North"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["data_status"] == "unavailable"
+    assert payload["coverage_status"] == "coverage_unknown"
+    assert payload["history"] == []
+    assert "database_url" not in payload
+    assert "internal details" not in str(payload)
+
+
 def test_refresh_requires_configured_token_before_db_work(monkeypatch) -> None:
     from services import market_insight_service
 

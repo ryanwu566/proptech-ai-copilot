@@ -452,6 +452,57 @@ def test_missing_and_invalid_summary_returns_no_metrics_or_history() -> None:
         assert "0" not in result["summary"]
 
 
+def test_direct_query_requires_source_name_and_finite_positive_price() -> None:
+    class InvalidContractRepository(FakeReadModelRepository):
+        def summary(self, county: str, district: str, period: str | None = None) -> dict[str, Any]:
+            self.calls.append("summary:invalid")
+            return {
+                "county": county,
+                "district": district,
+                "period": period or "2025-07",
+                "average_unit_price": float("nan"),
+                "transaction_count": 3,
+                "record_count": 3,
+                "source_name": "",
+                "coverage_status": "covered",
+                "data_status": "available",
+            }
+
+    result = get_market_summary("臺北市", "信義區", repository=InvalidContractRepository())
+
+    assert result["data_status"] == "no_data"
+    assert result["coverage_status"] == "covered"
+    assert result["average_unit_price"] is None
+    assert result["transaction_count"] is None
+    assert result["transaction_volume"] is None
+    assert result["record_count"] is None
+    assert result["history"] == []
+
+
+def test_direct_query_uncovered_region_skips_summary_and_history() -> None:
+    repo = FakeReadModelRepository(coverage_status="not_covered")
+
+    result = get_market_summary("臺北市", "信義區", repository=repo)
+
+    assert result["data_status"] == "unavailable"
+    assert result["coverage_status"] == "not_covered"
+    assert result["history"] == []
+    assert not any(call.startswith("summary:") for call in repo.calls)
+    assert not any(call.startswith("history:") for call in repo.calls)
+
+
+def test_direct_query_unknown_coverage_skips_summary_and_history() -> None:
+    repo = FakeReadModelRepository(coverage_status="coverage_unknown")
+
+    result = get_market_summary("臺北市", "信義區", repository=repo)
+
+    assert result["data_status"] == "unavailable"
+    assert result["coverage_status"] == "coverage_unknown"
+    assert result["history"] == []
+    assert not any(call.startswith("summary:") for call in repo.calls)
+    assert not any(call.startswith("history:") for call in repo.calls)
+
+
 def test_direct_query_source_exception_is_unavailable_not_no_data() -> None:
     repo = SummaryFailureRepository()
 

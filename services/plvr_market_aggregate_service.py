@@ -8,6 +8,7 @@ or prepared read model tables.
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
@@ -20,6 +21,8 @@ from services.taiwan_admin_registry import audit_region_coverage, iter_taiwan_re
 OFFICIAL_PLVR_SOURCE = "official_plvr_opendata"
 PLVR_MARKET_SOURCE_NAME = "Official PLVR OpenData aggregate"
 PLVR_AGGREGATION_METHOD = "avg_unit_price_per_ping_by_city_district_period"
+MARKET_NO_DATA_SUMMARY = "目前此區域尚無足夠的官方 PLVR 市場資料。"
+MARKET_UNAVAILABLE_SUMMARY = "市場資料目前無法使用，請稍後再試。"
 PLVR_MARKET_CAVEAT = (
     "市場行情資料來自後台建立的官方實價登錄行政區期別彙整，只供區域背景參考；"
     "資料不足、未涵蓋或暫時不可用時，不代表該區沒有交易或風險。"
@@ -409,7 +412,9 @@ def get_market_summary(
         history = repo.history(county, district, limit=6) if row else []
     except Exception:
         return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
-    if not row:
+    if not isinstance(row, dict):
+        return _no_data_summary(county, district, _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
+    if not isinstance(history, list):
         return _no_data_summary(county, district, _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
     return _summary_from_row(row, history, _direct_query_status(coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
 
@@ -659,10 +664,18 @@ def _status_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
 
 
 def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], status: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(row, dict) or not isinstance(history_rows, list):
+        return _no_data_summary(
+            _optional_text(row.get("county")) if isinstance(row, dict) else "",
+            _optional_text(row.get("district")) if isinstance(row, dict) else "",
+            {**status, "data_status": "no_data", "coverage_status": "covered"},
+        )
     data_status = _data_status(row.get("data_status"))
     coverage_status = _direct_coverage_status(row.get("coverage_status") or status.get("coverage_status"))
     county = _optional_text(row.get("county")) or ""
     district = _optional_text(row.get("district")) or ""
+    if coverage_status != "covered":
+        return _unavailable_summary(county, district, {**status, "data_status": "unavailable", "coverage_status": coverage_status})
     if data_status != "available":
         if data_status == "no_data":
             return _no_data_summary(county, district, {**status, "data_status": "no_data"})
@@ -670,7 +683,15 @@ def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], s
     average_unit_price = _float_value(row.get("average_unit_price"))
     transaction_count = _int_value(row.get("transaction_count"))
     record_count = _int_value(row.get("record_count"))
-    if average_unit_price is None or average_unit_price <= 0 or transaction_count <= 0 or record_count <= 0:
+    source_name = _optional_text(row.get("source_name"))
+    if (
+        average_unit_price is None
+        or not math.isfinite(average_unit_price)
+        or average_unit_price <= 0
+        or transaction_count <= 0
+        or record_count <= 0
+        or not source_name
+    ):
         return _no_data_summary(county, district, {**status, "data_status": "no_data"})
     history = [_history_item(item) for item in history_rows[:6]]
     return {
@@ -683,7 +704,7 @@ def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], s
         "transaction_count": transaction_count,
         "transaction_volume": transaction_count,
         "record_count": record_count,
-        "source_name": _optional_text(row.get("source_name")) or status["source_name"],
+        "source_name": source_name,
         "source_updated_at": _date_text(row.get("source_updated_at")) or status["source_updated_at"],
         "coverage_status": coverage_status,
         "data_status": "available",
@@ -717,6 +738,7 @@ def _unavailable_summary(county: str, district: str, status: dict[str, Any]) -> 
         "coverage_status": status.get("coverage_status", "unknown"),
         "source_name": status.get("source_name"),
         "source_updated_at": status.get("source_updated_at"),
+        "summary": MARKET_UNAVAILABLE_SUMMARY,
         "caveat": status.get("caveat") or MARKET_DATA_CAVEAT,
         "disclaimer": status.get("caveat") or MARKET_DATA_CAVEAT,
         "history": [],
@@ -735,6 +757,7 @@ def _no_data_summary(county: str, district: str, status: dict[str, Any]) -> dict
         "caveat": status.get("caveat") or MARKET_DATA_CAVEAT,
         "disclaimer": status.get("caveat") or MARKET_DATA_CAVEAT,
         "summary": "目前此區域尚無足夠的官方 PLVR 市場資料可供查詢。",
+        "summary": MARKET_NO_DATA_SUMMARY,
         "history": [],
         "record_count": None,
     }
@@ -883,9 +906,10 @@ def _int_value(value: Any) -> int:
 
 def _float_value(value: Any) -> float | None:
     try:
-        return float(value)
+        number = float(value)
     except (TypeError, ValueError):
         return None
+    return number if math.isfinite(number) else None
 
 
 def _data_status(value: Any) -> str:
