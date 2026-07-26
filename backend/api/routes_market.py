@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 from typing import Any
 
@@ -11,6 +12,15 @@ from pydantic import BaseModel, ConfigDict, field_validator
 router = APIRouter(tags=["market-insight"])
 MARKET_READ_MODEL_REFRESH_TOKEN_ENV = "MARKET_READ_MODEL_REFRESH_TOKEN"
 MARKET_REFRESH_503_FIELDS = ("status", "data_status", "coverage_status", "built_at", "message", "reason_code")
+MARKET_NO_DATA_SUMMARY = "目前此區域尚無足夠的官方 PLVR 市場資料。"
+MARKET_UNAVAILABLE_SUMMARY = "市場資料目前無法使用，請稍後再試。"
+MARKET_QUERY_SAFE_FIELDS = (
+    "city", "county", "district", "period", "average_unit_price", "avg_price_per_ping",
+    "transaction_count", "transaction_volume", "record_count", "summary", "source_name",
+    "source_updated_at", "coverage_status", "data_status", "caveat", "disclaimer",
+    "source_file_hash", "aggregation_method", "history", "trend", "livability_score",
+    "esg_lite_score", "poi_breakdown", "sdg11_note",
+)
 MARKET_REFRESH_UNAVAILABLE_MESSAGE = "市場讀取模型暫時無法刷新，請稍後再試。"
 MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE = "市場讀取模型刷新設定尚未完成。"
 MARKET_REFRESH_FORBIDDEN_MESSAGE = "沒有權限刷新市場讀取模型。"
@@ -85,13 +95,105 @@ def get_market_insights() -> dict[str, Any]:
 def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
     """Return one traceable Market Insight summary, or unavailable."""
 
-    from services.market_data_foundation import market_unavailable_response
     from services.market_insight_service import get_market_summary
 
     county = request.county or request.city or ""
     if not county.strip():
-        return market_unavailable_response(city=county, district=request.district)
-    return get_market_summary(county, request.district, request.period)
+        return _safe_market_unavailable(county, request.district, "coverage_unknown")
+    try:
+        result = get_market_summary(county, request.district, request.period)
+    except Exception:
+        return _safe_market_unavailable(county, request.district, "coverage_unknown")
+    return _safe_market_query_result(result, county, request.district)
+
+
+def _safe_market_query_result(raw: Any, county: str, district: str) -> dict[str, Any]:
+    """Allowlist and validate the public Market Insight result contract."""
+
+    if not isinstance(raw, dict):
+        return _safe_market_unavailable(county, district, "coverage_unknown")
+
+    coverage_status = _safe_market_coverage(raw.get("coverage_status"))
+    data_status = raw.get("data_status")
+    if coverage_status == "covered":
+        if data_status == "available" and _market_result_has_valid_metrics(raw):
+            return {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+        return _safe_market_no_data(raw, county, district)
+    return _safe_market_unavailable(county, district, coverage_status)
+
+
+def _market_result_has_valid_metrics(result: dict[str, Any]) -> bool:
+    average = result.get("average_unit_price")
+    average_alias = result.get("avg_price_per_ping")
+    transaction_count = result.get("transaction_count")
+    transaction_volume = result.get("transaction_volume")
+    record_count = result.get("record_count")
+    history = result.get("history")
+    return (
+        _positive_finite_number(average)
+        and _positive_finite_number(average_alias)
+        and average == average_alias
+        and _positive_finite_number(transaction_count)
+        and _positive_finite_number(transaction_volume)
+        and transaction_count == transaction_volume
+        and (_positive_finite_number(record_count) or _positive_finite_number(transaction_count))
+        and bool(str(result.get("source_name") or "").strip())
+        and isinstance(history, list)
+    )
+
+
+def _positive_finite_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
+
+
+def _safe_market_coverage(value: Any) -> str:
+    text = str(value or "").strip()
+    if text in {"covered", "partial", "nationwide"}:
+        return "covered"
+    if text == "not_covered":
+        return text
+    return "coverage_unknown"
+
+
+def _safe_market_no_data(raw: dict[str, Any], county: str, district: str) -> dict[str, Any]:
+    result = {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+    result.update(
+        {
+            "city": raw.get("city") or county,
+            "county": raw.get("county") or county,
+            "district": raw.get("district") or district,
+            "average_unit_price": None,
+            "avg_price_per_ping": None,
+            "transaction_count": None,
+            "transaction_volume": None,
+            "record_count": None,
+            "coverage_status": "covered",
+            "data_status": "no_data",
+            "summary": MARKET_NO_DATA_SUMMARY,
+            "history": [],
+        }
+    )
+    return result
+
+
+def _safe_market_unavailable(county: str, district: str, coverage_status: str) -> dict[str, Any]:
+    from services.market_data_foundation import market_unavailable_response
+
+    result = market_unavailable_response(city=county, district=district)
+    result.update(
+        {
+            "average_unit_price": None,
+            "avg_price_per_ping": None,
+            "transaction_count": None,
+            "transaction_volume": None,
+            "record_count": None,
+            "coverage_status": coverage_status if coverage_status in {"not_covered", "coverage_unknown"} else "coverage_unknown",
+            "data_status": "unavailable",
+            "summary": MARKET_UNAVAILABLE_SUMMARY,
+            "history": [],
+        }
+    )
+    return {key: result.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
 
 
 @router.post("/market-insights/refresh")

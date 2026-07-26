@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next/app/page.tsx").read_text(encoding="utf-8")
 API = (ROOT / "frontend_next/lib/api.ts").read_text(encoding="utf-8")
+STATE_HELPER = (ROOT / "frontend_next/lib/market-result-state.ts").read_text(encoding="utf-8")
 ADMIN_AREAS = (ROOT / "frontend_next/lib/taiwan-admin-areas.ts").read_text(encoding="utf-8")
 ADMIN_AREAS_JSON = json.loads((ROOT / "frontend_next/lib/taiwan-admin-areas.json").read_text(encoding="utf-8"))
 SIDEBAR = (ROOT / "frontend_next/components/sidebar.tsx").read_text(encoding="utf-8")
@@ -53,11 +54,16 @@ def test_market_insight_has_canonical_county_and_dependent_district_selectors() 
 def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
     component = _market_insight_component()
 
-    assert 'result?.data_status === "no_data"' in component
+    assert "getMarketDisplayState(result)" in component
+    assert 'marketDisplayState === "available"' in component
+    assert 'marketDisplayState === "no_data"' in component
     assert "目前此區域尚無市場資料" in component
     assert "目前尚未找到足夠的官方 PLVR 市場資料。" in component
+    assert "目前沒有可用市場資料" in component
+    assert "市場資料目前無法使用，請稍後再試。" in component
     assert "不會顯示 0 元、低風險或展示成功狀態" in component
     assert "!availableResult && !noDataResult" in component
+    assert "record_count ?? result.transaction_count ?? 0" not in component
     assert "livability_score" not in component
     assert "esg_lite_score" not in component
     assert "trend" not in component
@@ -81,6 +87,18 @@ def test_market_api_contract_has_direct_query_endpoint_and_history() -> None:
     assert "history:" in API
     assert "livability_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]
     assert "esg_lite_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]
+
+
+def test_market_display_state_helper_requires_covered_positive_complete_data() -> None:
+    assert 'export type MarketDisplayState = "available" | "no_data" | "unavailable";' in STATE_HELPER
+    assert 'result?.data_status === "available"' in STATE_HELPER
+    assert 'result.coverage_status === "covered"' in STATE_HELPER
+    assert "Number.isFinite" in STATE_HELPER
+    assert "result.avg_price_per_ping === result.average_unit_price" in STATE_HELPER
+    assert "result.transaction_volume === result.transaction_count" in STATE_HELPER
+    assert 'result?.data_status === "no_data" && result.coverage_status === "covered"' in STATE_HELPER
+    assert "Number(value || 0)" not in STATE_HELPER
+    assert "value ?? 0" not in STATE_HELPER
 
 
 def test_taiwan_admin_area_helper_provides_canonical_aliases() -> None:

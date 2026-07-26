@@ -20,6 +20,7 @@ import { CASE_CLEARED_EVENT, CASE_LOADED_EVENT, type SavedCase } from "@/lib/cas
 import { Badge, Button, EmptyState, Notice } from "@/components/ui";
 import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
 import { API_BASE, api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, TerrainRiskResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import { getMarketDisplayState } from "@/lib/market-result-state";
 import { buildValuationShareUrl, buildValuationSummaryHtml, parseValuationShareParams, valuationSummaryFilename, ValuationInputs } from "@/lib/valuation-share";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { buildWorkflowStatus, markTaxOracleCompleted, markWorkflowReportCompleted, OPEN_TAXORACLE_EVENT, readWorkflowSession, type WorkflowStatus } from "@/lib/workflow-status";
@@ -268,8 +269,13 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   const canonicalCounty = normalizeTaiwanCounty(county);
   const districtOptions = getDistrictsForCounty(canonicalCounty);
   const canonicalDistrict = normalizeTaiwanDistrict(canonicalCounty, district);
-  const availableResult = result?.data_status === "available";
-  const noDataResult = result?.data_status === "no_data";
+  const marketDisplayState = getMarketDisplayState(result);
+  const availableResult = marketDisplayState === "available";
+  const noDataResult = marketDisplayState === "no_data";
+  const marketHistory = Array.isArray(result?.history) ? result.history : [];
+  const availableRecordCount = result && result.record_count !== null && result.record_count !== undefined
+    ? result.record_count
+    : result?.transaction_count;
 
   async function query() {
     if (querying) return;
@@ -309,7 +315,7 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
           disclaimer: "市場資料目前無法判定，請稍後再試。",
           history: [],
         });
-        setError((e as Error).name === "AbortError" ? "" : (e as Error).message);
+        setError((e as Error).name === "AbortError" ? "" : "市場資料目前無法使用，請稍後再試。");
       }
     } finally {
       window.clearTimeout(timeout);
@@ -356,7 +362,7 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     </SectionCard>
     {result && noDataResult && <SectionCard title="目前此區域尚無市場資料"><p className="text-sm leading-6 text-slate-600">目前尚未找到足夠的官方 PLVR 市場資料。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
     {result && !availableResult && !noDataResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
-    {availableResult && result && <><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period ?? undefined} /><MetricTile label="交易量" value={result.transaction_volume} /><MetricTile label="有效紀錄數" value={result.record_count ?? result.transaction_count ?? 0} /></div><SectionCard title="資料來源與狀態"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{result.history.length > 0 && <SectionCard title="近期趨勢"><SwipeHint /><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期間</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{result.history.map((item) => <tr key={item.period ?? "unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬 / 坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}
+    {availableResult && result && <><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period ?? undefined} /><MetricTile label="交易量" value={result.transaction_volume} /><MetricTile label="有效紀錄數" value={availableRecordCount} /></div><SectionCard title="資料來源與狀態"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{marketHistory.length > 0 && <SectionCard title="近期趨勢"><SwipeHint /><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期間</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{marketHistory.map((item) => <tr key={item.period ?? "unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬 / 坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}
   </div>;
 }
 
