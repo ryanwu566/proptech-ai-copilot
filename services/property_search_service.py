@@ -9,6 +9,7 @@ from typing import Any
 
 from services.valuation_service import get_valuation_provider, normalize_building_type, normalize_city
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
+from services.valuation_providers.unavailable_provider import UnavailableValuationProvider
 
 DISCLAIMER = "這是歷史成交資料篩選，不代表目前有待售物件，亦非正式鑑價、投資建議或成交保證。"
 
@@ -19,10 +20,27 @@ def search_properties(payload: dict[str, Any], rows: list[dict[str, Any]] | None
     request = {**payload, "limit": max(1, min(int(payload.get("limit") or 50), 100))}
     provider = get_valuation_provider()
     if rows is None:
-        rows = provider.query_property_search_rows(request) if isinstance(provider, PostgresValuationProvider) else []
-    selected = _filter_rows(rows, request)
+        if isinstance(provider, UnavailableValuationProvider):
+            return _empty_search("unavailable", "provider_unavailable", request)
+        if not isinstance(provider, PostgresValuationProvider):
+            return _empty_search("no_data", "official_data_missing", request)
+        try:
+            rows = provider.query_property_search_rows(request)
+        except Exception:
+            return _empty_search("unavailable", "provider_query_failed", request)
+        if provider.last_query_metadata.get("query_status") == "failed":
+            return _empty_search("unavailable", "provider_query_failed", request)
+    try:
+        selected = _filter_rows(rows, request)
+    except (TypeError, ValueError, OverflowError):
+        return _empty_search("unavailable", "result_metrics_invalid", request)
+    if not selected:
+        return _empty_search("no_data", "official_data_missing", request)
     periods = sorted(str(row["transaction_period"]) for row in selected)
     return {
+        "search_status": "available",
+        "search_reason_code": "official_result_available",
+        "is_actionable": True,
         "summary": {
             "matched_count": len(selected),
             "city_count": len({normalize_city(str(row["city"])) for row in selected}),
@@ -40,6 +58,35 @@ def search_properties(payload: dict[str, Any], rows: list[dict[str, Any]] | None
         "road_suggestions": _suggestions(selected, request, ("city", "district", "road"), 30),
         "matched_transactions": [_public_row(row) for row in _sort_rows(selected)[: request["limit"]]],
         "methodology": "分數由預算貼近度 60%、樣本量 25%、近一年成交比例 15% 組成；不使用黑箱 AI。",
+        "disclaimer": DISCLAIMER,
+    }
+
+
+def _empty_search(status: str, reason_code: str, request: dict[str, Any]) -> dict[str, Any]:
+    unavailable = status == "unavailable"
+    empty_count = None if unavailable else 0
+    message = "市場資料目前無法使用，請稍後再試。" if unavailable else "目前篩選條件沒有可用的官方交易資料。"
+    return {
+        "search_status": status,
+        "search_reason_code": reason_code,
+        "is_actionable": False,
+        "summary": {
+            "matched_count": empty_count,
+            "city_count": empty_count,
+            "district_count": empty_count,
+            "road_count": empty_count,
+            "budget_min": request.get("budget_min"),
+            "budget_max": request.get("budget_max"),
+            "period_min": None,
+            "period_max": None,
+            "data_source_label": "官方 PLVR",
+            "message": message,
+            "disclaimer": DISCLAIMER,
+        },
+        "district_suggestions": [],
+        "road_suggestions": [],
+        "matched_transactions": [],
+        "methodology": "僅在官方 PLVR 資料可用且符合篩選條件時提供結果。",
         "disclaimer": DISCLAIMER,
     }
 

@@ -26,9 +26,9 @@ PAYLOAD = {
 
 
 def test_sample_provider_and_data_status() -> None:
-    provider = get_valuation_provider(database_url="", sqlite_path=Path("missing.sqlite"))
+    provider = get_valuation_provider(database_url="", sqlite_path=Path("missing.sqlite"), demo_mode=True)
     assert isinstance(provider, SampleValuationProvider)
-    status = get_valuation_data_status()
+    status = provider.data_status()
     assert status["active_source"] == "real_price_sample"
     assert status["coverage"]["records_count"] >= 60
     assert status["is_demo_data"] is True
@@ -39,26 +39,30 @@ def test_postgres_placeholder_falls_back_without_crashing(monkeypatch) -> None:
     monkeypatch.setattr(PostgresValuationProvider, "_connect", lambda self: (_ for _ in ()).throw(ConnectionError("offline")))
     monkeypatch.setenv("VALUATION_DATABASE_URL", "postgresql://configured-but-not-enabled")
     provider = get_valuation_provider(sqlite_path=Path("missing.sqlite"))
-    assert isinstance(provider, SampleValuationProvider)
+    assert provider.__class__.__name__ == "UnavailableValuationProvider"
 
 
-def test_missing_sqlite_and_sample_use_mock_fallback() -> None:
+def test_missing_sqlite_and_sample_are_unavailable() -> None:
     provider = get_valuation_provider(database_url="", sqlite_path=Path("missing.sqlite"), sample_path=Path("missing.csv"))
-    assert isinstance(provider, MockFallbackProvider)
-    assert provider.load_transactions()
+    assert provider.__class__.__name__ == "UnavailableValuationProvider"
+    assert provider.load_transactions() == ()
 
 
-def test_estimate_returns_level_status_and_comparables() -> None:
+def test_explicit_demo_estimate_returns_demo_status(monkeypatch) -> None:
+    monkeypatch.setenv("VALUATION_DEMO_MODE", "true")
     result = estimate_property({**PAYLOAD, "address_text": "和平綠境"})
     assert result["estimate_total_price"] > 0
     assert result["price_range"]["low"] <= result["price_range"]["mid"] <= result["price_range"]["high"]
     assert result["estimate_level"] == "community"
     assert result["matched_community"]["community_name"] == "和平綠境"
     assert result["data_status"]["active_source"] == "real_price_sample"
+    assert result["valuation_status"] == "demo"
+    assert result["is_actionable"] is False
     assert result["confidence_reason"]
 
 
-def test_unknown_community_falls_back_to_road_or_district() -> None:
+def test_explicit_demo_unknown_community_falls_back_to_road_or_district(monkeypatch) -> None:
+    monkeypatch.setenv("VALUATION_DEMO_MODE", "true")
     result = estimate_property({**PAYLOAD, "road": "和平東路二段", "address_text": "不明社區"})
     assert result["estimate_level"] == "road"
     assert result["matched_community"] is None
@@ -66,7 +70,7 @@ def test_unknown_community_falls_back_to_road_or_district() -> None:
 
 
 def test_sample_has_three_demo_regions_with_at_least_twenty_rows_each() -> None:
-    rows = load_transactions()
+    rows = get_valuation_provider(demo_mode=True).load_transactions()
     counts = Counter((row["city"], row["district"], row["road"]) for row in rows)
     assert len(rows) >= 60
     assert counts[("台北市", "大安區", "和平東路二段")] >= 20

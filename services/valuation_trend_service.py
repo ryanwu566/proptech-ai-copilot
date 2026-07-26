@@ -11,6 +11,7 @@ from typing import Any
 
 from services.valuation_service import get_valuation_provider, normalize_building_type, normalize_city, normalize_road
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
+from services.valuation_providers.unavailable_provider import UnavailableValuationProvider
 
 DISCLAIMER = "此為依官方實價登錄歷史資料推估之情境參考，不代表成交保證、正式鑑價、銀行估價或投資建議。"
 METHODOLOGY = [
@@ -28,8 +29,20 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
     request = {**payload, "current_period": current, "window_start": window_start}
     provider = get_valuation_provider()
     if rows is None:
-        rows = provider.query_trend_rows(request) if isinstance(provider, PostgresValuationProvider) else list(provider.load_transactions())
-    official, quality = _valid_official_rows(rows, window_start, current)
+        if isinstance(provider, UnavailableValuationProvider):
+            return _empty_trend("unavailable", "provider_unavailable")
+        if not isinstance(provider, PostgresValuationProvider):
+            return _empty_trend("no_data", "official_data_missing")
+        try:
+            rows = provider.query_trend_rows(request)
+        except Exception:
+            return _empty_trend("unavailable", "provider_query_failed")
+        if provider.last_query_metadata.get("query_status") == "failed":
+            return _empty_trend("unavailable", "provider_query_failed")
+    try:
+        official, quality = _valid_official_rows(rows, window_start, current)
+    except (TypeError, ValueError, OverflowError):
+        return _empty_trend("unavailable", "result_metrics_invalid")
     road_rows = [row for row in official if normalize_road(str(row.get("road", ""))) == normalize_road(str(payload.get("road", "")))]
     district_type_rows = [
         row for row in official
@@ -43,6 +56,13 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
         scope, selected = "district", official
 
     monthly = _monthly_series(selected)
+    if len(monthly) < 2:
+        return _empty_trend(
+            "no_data",
+            "official_comparables_insufficient",
+            sample_count=len(selected),
+            quality=quality,
+        )
     yearly = _yearly_series(selected)
     recent = _recent_median(monthly)
     annualized = _annualized_rate(monthly)
@@ -58,6 +78,9 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
     )
     return {
         "source": "official_plvr_opendata",
+        "trend_status": "available",
+        "trend_reason_code": "official_result_available",
+        "is_actionable": True,
         "data_scope": scope,
         "raw_period_min": quality["raw_period_min"],
         "raw_period_max": quality["raw_period_max"],
@@ -78,6 +101,44 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
         "confidence_level": confidence,
         "confidence_reason": reason,
         "scenario_forecast": forecast,
+        "methodology": METHODOLOGY,
+        "disclaimer": DISCLAIMER,
+    }
+
+
+def _empty_trend(
+    status: str,
+    reason_code: str,
+    *,
+    sample_count: int = 0,
+    quality: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    quality = quality or {}
+    return {
+        "source": "official_plvr_opendata",
+        "trend_status": status,
+        "trend_reason_code": reason_code,
+        "is_actionable": False,
+        "data_scope": "none",
+        "raw_period_min": quality.get("raw_period_min"),
+        "raw_period_max": quality.get("raw_period_max"),
+        "effective_period_min": None,
+        "effective_period_max": None,
+        "excluded_future_period_count": quality.get("excluded_future_period_count", 0),
+        "excluded_out_of_window_count": quality.get("excluded_out_of_window_count", 0),
+        "period_min": None,
+        "period_max": None,
+        "sample_count": max(0, int(sample_count)),
+        "road_sample_count": 0,
+        "district_sample_count": 0,
+        "monthly_series": [],
+        "yearly_series": [],
+        "recent_median_unit_price": None,
+        "trend_annualized_rate": None,
+        "volatility": None,
+        "confidence_level": "unknown",
+        "confidence_reason": "目前沒有足夠的官方成交資料可供趨勢分析。" if status == "no_data" else "估價趨勢資料目前無法使用，請稍後再試。",
+        "scenario_forecast": {"conservative": [], "base": [], "optimistic": []},
         "methodology": METHODOLOGY,
         "disclaimer": DISCLAIMER,
     }

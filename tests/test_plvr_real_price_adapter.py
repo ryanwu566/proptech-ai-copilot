@@ -1,9 +1,8 @@
 from services.adapters.plvr_real_price_adapter import PlvrRealPriceAdapter
 
 
-def test_plvr_adapter_is_inactive_and_falls_back_to_sample() -> None:
+def test_plvr_adapter_is_inactive_without_explicit_demo_provider() -> None:
     adapter = PlvrRealPriceAdapter()
-    rows = adapter.load_transactions("台北市", "大安區", "和平東路二段")
+    rows = adapter.load_transactions("Taipei City", "Central District", "Example Road")
     assert adapter.enabled is False
-    assert rows
-    assert all(row["road"] == "和平東路二段" for row in rows)
+    assert rows == []
