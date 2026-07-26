@@ -11,6 +11,9 @@ def test_valuation_schema_exists_with_required_tables_and_indexes() -> None:
     assert "idx_community_name" in schema
     assert "dedupe_key text" in schema
     assert "uq_real_price_source_dedupe_key" in schema
+    transaction_table = schema.split("create table if not exists real_price_transactions", 1)[1].split(");", 1)[0]
+    assert "imported_at timestamptz not null default now()" in transaction_table
+    assert "transaction_date" not in transaction_table
     assert "skipped_duplicate_rows integer" in schema
     assert "input_file_count integer" in schema
     migrations = schema_path.parent / "migrations"

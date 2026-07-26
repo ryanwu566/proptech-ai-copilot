@@ -19,6 +19,8 @@ from services.plvr_market_aggregate_service import (
     MarketReadModelRefreshError,
     MarketReadModelRefreshFailure,
     MarketCoverageReconcileFailure,
+    MARKET_COVERAGE_METADATA_SCHEMA_SQL,
+    MARKET_COVERAGE_METADATA_UPSERT_SQL,
     PostgresMarketReadModelRepository,
     READ_MODEL_CATALOG_SQL,
     READ_MODEL_HISTORY_SQL,
@@ -220,6 +222,72 @@ class PhaseRefreshRepository(PostgresMarketReadModelRepository):
         return PhaseRefreshConnection(failure=self.failure, aggregate_count=self.aggregate_count)
 
 
+class CoverageSourceCursor:
+    def __init__(self, *, failure: str | None = None, valid_count: int = 1) -> None:
+        self.failure = failure
+        self.valid_count = valid_count
+        self.row: dict[str, Any] | None = None
+        self.source_count = 0
+        self.source_params: list[list[Any]] = []
+        self.upsert_params: list[list[Any]] = []
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def execute(self, sql: str, params: list[Any] | None = None) -> None:
+        if sql == MARKET_COVERAGE_METADATA_SCHEMA_SQL:
+            return
+        if sql == DIRECT_COVERAGE_DISTRICT_SQL:
+            if self.failure == "source":
+                raise RuntimeError("source detail must not leak")
+            self.source_count += 1
+            self.source_params.append(list(params or []))
+            self.row = {
+                "valid_market_candidate_count": self.valid_count,
+                "source_updated_at": "2025-03-05",
+            }
+            return
+        if sql == MARKET_COVERAGE_METADATA_UPSERT_SQL:
+            if self.failure == "upsert":
+                raise RuntimeError("upsert detail must not leak")
+            self.upsert_params.append(list(params or []))
+
+    def fetchone(self) -> dict[str, Any] | None:
+        return self.row
+
+
+class CoverageSourceConnection:
+    def __init__(self, cursor: CoverageSourceCursor) -> None:
+        self.cursor_instance = cursor
+        self.committed = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def cursor(self) -> CoverageSourceCursor:
+        return self.cursor_instance
+
+    def commit(self) -> None:
+        self.committed = True
+
+
+class CoverageSourceRepository(PostgresMarketReadModelRepository):
+    def __init__(self, *, failure: str | None = None, valid_count: int = 1) -> None:
+        super().__init__("unused")
+        cursor = CoverageSourceCursor(failure=failure, valid_count=valid_count)
+        object.__setattr__(self, "cursor_instance", cursor)
+        object.__setattr__(self, "connection", CoverageSourceConnection(cursor))
+
+    def _connect(self):
+        return self.connection
+
+
 class CoverageOperationsRepository:
     def __init__(self, *, fail: str | None = None) -> None:
         self.fail = fail
@@ -292,10 +360,13 @@ def test_direct_query_sql_uses_only_plvr_transaction_table() -> None:
             READ_MODEL_HISTORY_SQL,
         ]
     )
+    direct_coverage_sql = "\n".join([DIRECT_COVERAGE_COUNTY_SQL, DIRECT_COVERAGE_DISTRICT_SQL])
 
     assert "real_price_transactions" in direct_query_sql
     assert "market_district_period_aggregates" not in direct_query_sql
     assert "market_read_model_metadata" not in direct_query_sql
+    assert "max(imported_at)::date as source_updated_at" in direct_coverage_sql
+    assert "transaction_date" not in direct_coverage_sql
     assert "market_district_period_aggregates" in read_model_sql
     assert "market_read_model_metadata" in read_model_sql
     assert "real_price_transactions" in REFRESH_TEMP_AGGREGATES_SQL
@@ -642,6 +713,68 @@ def test_coverage_reconcile_degraded_fallback_uses_canonical_registry() -> None:
     assert result["unknown_region_count"] == 12
     assert "reason_code" not in result
     assert "connection detail" not in str(result)
+
+
+def test_postgres_coverage_reconcile_normalizes_source_county_and_preserves_metadata_county() -> None:
+    repo = CoverageSourceRepository(valid_count=1)
+
+    result = repo.reconcile_coverage("臺北市")
+
+    assert result["status"] == "resolved"
+    assert result["county"] == "臺北市"
+    assert result["coverage_status"] == "covered"
+    assert result["persistence_status"] == "applied"
+    assert result["processed_region_count"] == 12
+    assert result["covered_region_count"] == 12
+    assert repo.cursor_instance.source_count == 12
+    assert repo.cursor_instance.source_params[0][0] == "台北市"
+    assert repo.cursor_instance.source_params[0][1] == "中正區"
+    assert repo.cursor_instance.upsert_params[0][0] == "臺北市"
+    assert repo.cursor_instance.upsert_params[0][1] == "中正區"
+    assert repo.connection.committed is True
+
+
+def test_postgres_coverage_reconcile_zero_source_count_still_marks_covered_metadata() -> None:
+    repo = CoverageSourceRepository(valid_count=0)
+
+    result = repo.reconcile_coverage("臺北市")
+
+    assert result["status"] == "resolved"
+    assert result["coverage_status"] == "covered"
+    assert result["persistence_status"] == "applied"
+    assert result["processed_region_count"] == 12
+    assert result["covered_region_count"] == 12
+    assert result["unknown_region_count"] == 0
+    assert all(params[2] == "covered" for params in repo.cursor_instance.upsert_params)
+
+
+def test_postgres_coverage_reconcile_source_failure_is_degraded_without_upsert() -> None:
+    repo = CoverageSourceRepository(failure="source")
+
+    result = repo.reconcile_coverage("臺北市")
+
+    assert result["status"] == "resolved"
+    assert result["coverage_status"] == "coverage_unknown"
+    assert result["persistence_status"] == "degraded"
+    assert result["processed_region_count"] == 12
+    assert result["unknown_region_count"] == 12
+    assert repo.cursor_instance.upsert_params == []
+    assert "reason_code" not in result
+    assert "source detail" not in str(result)
+
+
+def test_postgres_coverage_reconcile_upsert_failure_is_degraded_without_raw_error() -> None:
+    repo = CoverageSourceRepository(failure="upsert")
+
+    result = repo.reconcile_coverage("臺北市")
+
+    assert result["status"] == "resolved"
+    assert result["coverage_status"] == "coverage_unknown"
+    assert result["persistence_status"] == "degraded"
+    assert result["processed_region_count"] == 12
+    assert result["unknown_region_count"] == 12
+    assert "reason_code" not in result
+    assert "upsert detail" not in str(result)
 
 
 def test_coverage_audit_returns_only_canonical_aggregate_counts() -> None:
