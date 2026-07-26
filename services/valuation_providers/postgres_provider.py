@@ -6,6 +6,8 @@ import time
 from datetime import UTC, datetime
 from typing import Any
 
+from services.plvr_data_freshness import evaluate_plvr_freshness
+
 
 DATA_QUALITY_NOTE = (
     "資料庫可能含歷史或未來期別，但估價與趨勢分析會自動排除超出分析窗口、"
@@ -33,6 +35,9 @@ class PostgresValuationProvider:
         self.connect_timeout = connect_timeout
         self.is_demo_data = True
         self._last_status: dict[str, Any] | None = None
+        self._status_cached_at = 0.0
+        self.status_cache_seconds = 60
+        self._clock = time.monotonic
         self.last_query_metadata: dict[str, Any] = {}
 
     def available(self) -> bool:
@@ -193,7 +198,7 @@ class PostgresValuationProvider:
     def data_status(self) -> dict[str, Any]:
         """Summarize indexed coverage and official/sample composition."""
 
-        if self._last_status:
+        if self._last_status and self._clock() - self._status_cached_at < self.status_cache_seconds:
             return self._last_status
         try:
             current_period = datetime.now(UTC).strftime("%Y-%m")
@@ -256,6 +261,13 @@ class PostgresValuationProvider:
             last_updated = last_run.get("imported_at") if last_run else None
             if isinstance(last_updated, datetime):
                 last_updated = last_updated.astimezone(UTC).isoformat()
+            freshness = evaluate_plvr_freshness(
+                official_records_count=official_count,
+                latest_import_status=last_run.get("status") if last_run else None,
+                last_updated=last_updated,
+                newest_effective_period=summary.get("effective_trend_period_max"),
+                provider_available=True,
+            )
             self._last_status = {
                 "active_source": self.source,
                 "is_demo_data": self.is_demo_data,
@@ -299,7 +311,9 @@ class PostgresValuationProvider:
                 "update_frequency_note": UPDATE_FREQUENCY_NOTE,
                 "source_note": _source_note(composition),
                 "user_message": USER_MESSAGE,
+                **freshness,
             }
+            self._status_cached_at = self._clock()
             return self._last_status
         except Exception:
             return {
@@ -334,6 +348,13 @@ class PostgresValuationProvider:
                 "update_frequency_note": UPDATE_FREQUENCY_NOTE,
                 "source_note": "Supabase/Postgres 暫時無法使用，系統會安全切換至下一個估價資料來源。",
                 "user_message": USER_MESSAGE,
+                **evaluate_plvr_freshness(
+                    official_records_count=0,
+                    latest_import_status=None,
+                    last_updated=None,
+                    newest_effective_period=None,
+                    provider_available=False,
+                ),
             }
 
     def estimate(self, request: dict[str, Any]) -> list[dict[str, Any]]:

@@ -50,7 +50,85 @@ def data_status() -> dict[str, Any]:
     """Return the active valuation provider and coverage summary."""
 
     from services.valuation_service import get_valuation_data_status
-    return get_valuation_data_status()
+    try:
+        return _safe_data_status(get_valuation_data_status())
+    except Exception:
+        return _unavailable_data_status()
+
+
+_DATA_STATUS_FIELDS = {
+    "active_source", "is_demo_data", "is_full_taiwan", "data_composition", "official_records_count",
+    "sample_records_count", "official_period_min", "official_period_max", "raw_official_period_min",
+    "raw_official_period_max", "effective_trend_period_min", "effective_trend_period_max",
+    "excluded_future_period_count", "excluded_too_old_period_count", "data_quality_note",
+    "retention_policy_years", "retention_cutoff_period", "records_outside_retention_count",
+    "oldest_effective_period", "newest_effective_period", "retention_note", "official_coverage_note",
+    "coverage_city_count", "coverage_district_count", "coverage_road_count", "coverage_cities",
+    "coverage_summary", "coverage_note_short", "latest_import_status", "latest_import_scope",
+    "latest_import_inserted_rows", "latest_import_skipped_duplicates", "coverage", "last_updated",
+    "update_frequency_note", "source_note", "user_message", "freshness_status", "freshness_reason_code",
+    "freshness_as_of", "latest_import_at", "latest_import_age_days", "newest_effective_period_lag_months",
+    "operator_attention_required", "freshness_user_message",
+}
+
+
+def _safe_data_status(status: Any) -> dict[str, Any]:
+    """Keep the public status contract explicit and discard provider internals."""
+
+    if not isinstance(status, dict):
+        return _unavailable_data_status()
+    safe = {key: status[key] for key in _DATA_STATUS_FIELDS if key in status}
+    coverage = safe.get("coverage")
+    if not isinstance(coverage, dict):
+        coverage = {"cities": [], "districts": [], "roads_count": 0, "records_count": 0}
+    safe["coverage"] = {
+        "cities": coverage.get("cities") if isinstance(coverage.get("cities"), list) else [],
+        "districts": coverage.get("districts") if isinstance(coverage.get("districts"), list) else [],
+        "roads_count": _safe_nonnegative_int(coverage.get("roads_count")),
+        "records_count": _safe_nonnegative_int(coverage.get("records_count")),
+    }
+    safe.setdefault("active_source", "unknown")
+    safe.setdefault("freshness_status", "unavailable")
+    safe.setdefault("freshness_reason_code", "provider_unavailable")
+    safe.setdefault("freshness_as_of", None)
+    safe.setdefault("latest_import_at", None)
+    safe.setdefault("latest_import_age_days", None)
+    safe.setdefault("newest_effective_period_lag_months", None)
+    safe.setdefault("operator_attention_required", True)
+    safe.setdefault("freshness_user_message", "目前無法讀取官方 PLVR 資料新鮮度，請稍後再試。")
+    return safe
+
+
+def _unavailable_data_status() -> dict[str, Any]:
+    return _safe_data_status(
+        {
+            "active_source": "unknown",
+            "is_demo_data": True,
+            "is_full_taiwan": False,
+            "official_records_count": 0,
+            "sample_records_count": 0,
+            "coverage": {"cities": [], "districts": [], "roads_count": 0, "records_count": 0},
+            "latest_import_status": None,
+            "last_updated": None,
+            "source_note": "估價資料狀態暫時無法讀取。",
+            "user_message": "估價資料狀態暫時無法讀取，請稍後再試。",
+            "freshness_status": "unavailable",
+            "freshness_reason_code": "provider_unavailable",
+            "freshness_as_of": None,
+            "latest_import_at": None,
+            "latest_import_age_days": None,
+            "newest_effective_period_lag_months": None,
+            "operator_attention_required": True,
+            "freshness_user_message": "目前無法讀取官方 PLVR 資料新鮮度，請稍後再試。",
+        }
+    )
+
+
+def _safe_nonnegative_int(value: Any) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
 
 
 @router.post("/estimate")

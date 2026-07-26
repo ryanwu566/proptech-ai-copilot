@@ -19,6 +19,12 @@ if str(ROOT) not in sys.path:
 
 from services.plvr_import_service import OFFICIAL_SOURCE, build_dedupe_key, city_from_filename, is_sale_transaction_csv, normalize_rows, read_csv_rows
 
+REPORT_SCHEMA_VERSION = "plvr-import-readiness-v1"
+QUALITY_REASON_CODES = {
+    "no_rows_read", "no_rows_accepted", "no_valid_source_period", "large_import_confirmation_required",
+    "high_exclusion_ratio", "high_duplicate_ratio", "scope_missing", "report_input_invalid",
+}
+
 
 STAGING_INSERT_SQL = """
 insert into plvr_import_staging (
@@ -191,6 +197,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--progress-every", type=int, default=100, help="至少每處理指定筆數顯示進度，預設 100")
     parser.add_argument("--statement-timeout", type=int, default=30, help="每個資料庫 statement timeout 秒數，預設 30")
     parser.add_argument("--max-write-rows", type=int, default=None, help="正式匯入最多寫入筆數，方便小範圍驗證")
+    parser.add_argument("--report-output", type=Path, default=None, help="以原子方式輸出安全匯入 readiness JSON")
+    parser.add_argument("--quality-gate", action="store_true", help="以 readiness 結果決定 exit code")
     return parser
 
 
@@ -273,14 +281,18 @@ def main(argv: list[str] | None = None) -> int:
                 "current_db_records_after": None,
                 "estimated_growth": len(normalized),
                 "status": "dry_run" if args.dry_run else "ready",
+                "is_dry_run": args.dry_run,
             }
         )
+        _update_quality_report(report)
 
         if len(normalized) > 10_000 and not args.confirm_large_import:
             report["status"] = "blocked_large_import"
+            _update_quality_report(report)
+            _write_report_output(report, args.report_output)
             print(json.dumps(report, ensure_ascii=False, indent=2))
             print("本次 accepted_rows 超過 10,000；請縮小範圍，或確認後加上 --confirm-large-import。")
-            return 1
+            return 2 if args.quality_gate else 1
         if args.dry_run:
             database_url = os.getenv("VALUATION_DATABASE_URL", "").strip()
             if database_url:
@@ -297,20 +309,25 @@ def main(argv: list[str] | None = None) -> int:
                     - int(report["skipped_natural_duplicate_rows"])
                     - int(report["skipped_dedupe_key_duplicate_rows"]),
                 )
+            _update_quality_report(report)
+            _write_report_output(report, args.report_output)
             print(json.dumps(report, ensure_ascii=False, indent=2))
-            return 0
+            return _quality_gate_exit(report) if args.quality_gate else 0
 
         database_url = os.getenv("VALUATION_DATABASE_URL", "").strip()
         if not database_url:
             print("未設定 VALUATION_DATABASE_URL；可先加上 --dry-run 檢查資料，不會寫入資料庫。")
-            return 0
+            _write_report_output(report, args.report_output)
+            return _quality_gate_exit(report) if args.quality_gate else 0
         write_rows = normalized[: args.max_write_rows] if args.max_write_rows is not None else normalized
         report["write_rows"] = len(write_rows)
         write_report = _write_rows(database_url, write_rows, report, args, city_filters, district_filters)
         report.update(write_report)
         report["status"] = "completed"
+        _update_quality_report(report)
+        _write_report_output(report, args.report_output)
         print(json.dumps(report, ensure_ascii=False, indent=2))
-        return 0
+        return _quality_gate_exit(report) if args.quality_gate else 0
     except Exception as error:
         print(f"PLVR 匯入未完成：{type(error).__name__}。請檢查 migration、輸入格式與資料庫連線。")
         return 1
@@ -362,6 +379,101 @@ def _city_counts(rows: list[dict[str, Any]]) -> dict[str, int]:
     """Count normalized rows per city for transparent import reports."""
 
     return dict(sorted(Counter(str(row.get("city", "")) for row in rows).items()))
+
+
+def classify_import_readiness(report: dict[str, Any]) -> dict[str, Any]:
+    """Classify an import report without reading files, databases, or environment values."""
+
+    reasons: list[str] = []
+    try:
+        read_rows = int(report.get("read_rows"))
+        accepted_rows = int(report.get("accepted_rows"))
+        excluded_rows = int(report.get("excluded_rows") or 0)
+        duplicate_rows = int(report.get("skipped_duplicate_rows") or 0)
+        if min(read_rows, accepted_rows, excluded_rows, duplicate_rows) < 0:
+            raise ValueError
+    except (TypeError, ValueError):
+        reasons.append("report_input_invalid")
+        read_rows = accepted_rows = excluded_rows = duplicate_rows = 0
+    periods = report.get("source_periods", report.get("periods", []))
+    valid_periods = sorted({item for item in periods if isinstance(item, str) and re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", item)}) if isinstance(periods, list) else []
+    if read_rows <= 0:
+        reasons.append("no_rows_read")
+    if accepted_rows <= 0:
+        reasons.append("no_rows_accepted")
+    if not valid_periods:
+        reasons.append("no_valid_source_period")
+    if report.get("status") == "blocked_large_import":
+        reasons.append("large_import_confirmation_required")
+    if not bool(report.get("is_dry_run", False)) and not (report.get("city_scope") or report.get("cities")):
+        reasons.append("scope_missing")
+    if read_rows:
+        exclusion_ratio = excluded_rows / read_rows
+        duplicate_ratio = duplicate_rows / read_rows
+        accepted_ratio = accepted_rows / read_rows
+    else:
+        exclusion_ratio = duplicate_ratio = accepted_ratio = None
+    if exclusion_ratio is not None and exclusion_ratio > 0.25:
+        reasons.append("high_exclusion_ratio")
+    if duplicate_ratio is not None and duplicate_ratio > 0.50:
+        reasons.append("high_duplicate_ratio")
+    blocking = {"report_input_invalid", "no_rows_read", "no_rows_accepted", "no_valid_source_period", "large_import_confirmation_required", "scope_missing"}
+    quality_status = "blocked" if any(reason in blocking for reason in reasons) else "warning" if reasons else "pass"
+    return {
+        "report_schema_version": REPORT_SCHEMA_VERSION,
+        "quality_status": quality_status,
+        "quality_reason_codes": [reason for reason in reasons if reason in QUALITY_REASON_CODES],
+        "accepted_ratio": accepted_ratio,
+        "exclusion_ratio": exclusion_ratio,
+        "duplicate_ratio": duplicate_ratio,
+        "source_period_min": valid_periods[0] if valid_periods else None,
+        "source_period_max": valid_periods[-1] if valid_periods else None,
+        "city_count": len(report.get("cities", [])) if isinstance(report.get("cities", []), list) else 0,
+        "operator_attention_required": quality_status != "pass",
+    }
+
+
+def _update_quality_report(report: dict[str, Any]) -> None:
+    report.update(classify_import_readiness(report))
+
+
+def _safe_report_payload(report: dict[str, Any]) -> dict[str, Any]:
+    quality = classify_import_readiness(report)
+    return {
+        **quality,
+        "read_rows": _safe_report_int(report.get("read_rows")),
+        "accepted_rows": _safe_report_int(report.get("accepted_rows")),
+        "inserted_rows": _safe_report_int(report.get("inserted_rows")),
+        "excluded_rows": _safe_report_int(report.get("excluded_rows")),
+        "skipped_duplicate_rows": _safe_report_int(report.get("skipped_duplicate_rows")),
+    }
+
+
+def _write_report_output(report: dict[str, Any], output: Path | None) -> None:
+    if output is None:
+        return
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=output.parent, prefix=f".{output.name}.", suffix=".tmp", delete=False) as handle:
+            temporary = Path(handle.name)
+            json.dump(_safe_report_payload(report), handle, ensure_ascii=False, indent=2)
+            handle.write("\n")
+        os.replace(temporary, output)
+    finally:
+        if temporary and temporary.exists():
+            temporary.unlink(missing_ok=True)
+
+
+def _quality_gate_exit(report: dict[str, Any]) -> int:
+    return 2 if report.get("quality_status") == "blocked" else 0
+
+
+def _safe_report_int(value: Any) -> int:
+    try:
+        return max(0, int(value or 0))
+    except (TypeError, ValueError):
+        return 0
 
 
 def _write_rows(
