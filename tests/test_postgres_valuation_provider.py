@@ -12,11 +12,11 @@ def test_postgres_provider_connection_failure_is_safe(monkeypatch) -> None:
     assert provider.query_comparables({"city": "台北市"}) == []
 
 
-def test_configured_but_failed_postgres_falls_back_to_sample(monkeypatch) -> None:
+def test_configured_but_failed_postgres_is_unavailable(monkeypatch) -> None:
     PostgresValuationProvider._availability_cache.clear()
     monkeypatch.setattr(PostgresValuationProvider, "_connect", lambda self: (_ for _ in ()).throw(ConnectionError("offline")))
     provider = get_valuation_provider(database_url="postgresql://unavailable", sqlite_path=Path("missing.sqlite"))
-    assert isinstance(provider, SampleValuationProvider)
+    assert provider.__class__.__name__ == "UnavailableValuationProvider"
 
 
 def test_postgres_failed_status_is_user_safe(monkeypatch) -> None:

@@ -6,6 +6,7 @@ import type { LocationInsightResult } from "@/lib/api";
 import { buildDecisionSummary } from "@/lib/decision-summary";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { readWorkflowSession } from "@/lib/workflow-status";
+import { getValuationDisplayState } from "@/lib/valuation-result-state";
 
 export type ValuationInputs = {
   city: string;
@@ -57,6 +58,10 @@ export function buildValuationSummaryHtml(
   locationInsight?: LocationInsightResult,
   terrainRiskResult?: TerrainRiskResult,
 ): string {
+  const displayState = getValuationDisplayState(result);
+  if (displayState.kind !== "available") {
+    return `<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>估價摘要</title><body><main><h1>估價摘要</h1><p>${escapeHtml(displayState.message)}</p><p>本摘要未包含不可用或展示狀態的價格數字。</p></main></body></html>`;
+  }
   const holding = holdingCost ?? readHoldingCostResult();
   const location = locationInsight ?? readLocationInsightResult();
   const terrainRisk = terrainRiskResult ?? readTerrainRiskResult();

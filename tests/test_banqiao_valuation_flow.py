@@ -91,7 +91,7 @@ def test_banqiao_culture_road_official_candidates_are_selected_first(monkeypatch
     assert response.status_code == 200
     assert payload["candidate_pool_size"] == 13
     assert payload["official_same_road_count"] == 4
-    assert payload["estimate_data_composition"] == "official_limited"
+    assert payload["estimate_data_composition"] == "official"
     assert payload["comparables"]
     assert [item["source"] for item in payload["comparables"][:4]] == ["official_plvr_opendata"] * 4
     assert all(normalize_road(item["road"]) == normalize_road("文化路二段") for item in payload["comparables"])

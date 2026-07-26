@@ -14,7 +14,9 @@ from typing import Any, Protocol
 
 from services.community_index_service import match_community
 from services.plvr_data_freshness import evaluate_plvr_freshness
+from services.valuation_providers.unavailable_provider import UnavailableValuationProvider
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
+from services.valuation_result_contract import empty_estimate_result, finite_positive, validate_official_result
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -134,18 +136,27 @@ def get_valuation_provider(
     database_url: str | None = None,
     sqlite_path: Path = SQLITE_PATH,
     sample_path: Path = SAMPLE_PATH,
+    demo_mode: bool | None = None,
+    postgres_factory: Any | None = None,
 ) -> ValuationProvider:
-    """Select a provider lazily, falling through unavailable placeholders."""
+    """Select official data by default; sample data requires explicit demo mode."""
 
     configured_url = os.getenv("VALUATION_DATABASE_URL", "") if database_url is None else database_url
-    providers: list[ValuationProvider] = []
+    explicit_demo = _truthy(os.getenv("VALUATION_DEMO_MODE", "")) if demo_mode is None else bool(demo_mode)
     if configured_url.strip():
-        providers.append(PostgresValuationProvider(configured_url.strip()))
-    providers.extend([SQLiteValuationProvider(sqlite_path), SampleValuationProvider(sample_path), MockFallbackProvider()])
-    for provider in providers:
+        factory = postgres_factory or PostgresValuationProvider
+        try:
+            provider = factory(configured_url.strip())
+            if provider.available():
+                return provider
+        except Exception:
+            return UnavailableValuationProvider()
+        return UnavailableValuationProvider()
+    if explicit_demo and sample_path.is_file():
+        provider = SampleValuationProvider(sample_path)
         if provider.available():
             return provider
-    return MockFallbackProvider()
+    return UnavailableValuationProvider()
 
 
 def get_valuation_data_status() -> dict[str, Any]:
@@ -154,13 +165,26 @@ def get_valuation_data_status() -> dict[str, Any]:
     return get_valuation_provider().data_status()
 
 
+def _truthy(value: str) -> bool:
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _row_has_positive_metrics(row: dict[str, Any]) -> bool:
+    return all(finite_positive(row.get(key)) for key in ("unit_price_per_ping", "total_price", "area_ping"))
+
+
 def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     """Estimate a range using the best available provider and comparison level."""
 
     provider = get_valuation_provider()
-    all_rows = list(provider.query_comparables(payload) if isinstance(provider, PostgresValuationProvider) else provider.load_transactions())
-    all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider))
     data_status = provider.data_status()
+    if isinstance(provider, UnavailableValuationProvider):
+        return empty_estimate_result(data_status, status="unavailable", reason_code="provider_unavailable", result_origin="none", provider_source=provider.source)
+    try:
+        all_rows = list(provider.query_comparables(payload) if isinstance(provider, PostgresValuationProvider) else provider.load_transactions())
+    except Exception:
+        return empty_estimate_result(data_status, status="unavailable", reason_code="provider_query_failed", result_origin="none", provider_source=provider.source)
+    all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider))
     query_metadata = provider.last_query_metadata if isinstance(provider, PostgresValuationProvider) else {
         "provider_active": provider.source,
         "candidate_pool_size": len(all_rows),
@@ -171,6 +195,8 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         "db_rows_returned": len(all_rows),
         "query_status": "ok",
     }
+    if isinstance(provider, PostgresValuationProvider) and query_metadata.get("query_status") == "failed":
+        return empty_estimate_result(data_status, status="unavailable", reason_code="provider_query_failed", result_origin="none", provider_source=provider.source, query_metadata=query_metadata)
     community = (
         provider.match_community(payload)
         if isinstance(provider, PostgresValuationProvider)
@@ -184,16 +210,27 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     estimate_level, candidates = (
         (selection["estimate_level"], all_rows)
         if selection["estimate_level"]
-        else _select_estimate_level(all_rows, payload, community)
+        else _select_estimate_level(all_rows, payload, community, allow_fallback=not isinstance(provider, PostgresValuationProvider))
     )
     if not candidates:
-        return _empty_result(data_status, community, query_metadata)
+        return empty_estimate_result(
+            data_status,
+            status="no_data" if isinstance(provider, PostgresValuationProvider) else "no_data",
+            reason_code="official_comparables_insufficient" if isinstance(provider, PostgresValuationProvider) else "official_data_missing",
+            result_origin="official" if isinstance(provider, PostgresValuationProvider) else "demo",
+            provider_source=provider.source,
+            matched_community=_public_community(community),
+            sample_count=len(all_rows),
+            query_metadata=query_metadata,
+        )
 
     scored = [{**row, **_score_comparable(row, payload, community)} for row in candidates]
     filtered = _filter_outliers(scored, preserve_official=any(row.get("_official_limited") for row in scored))
     comparables = sorted(filtered, key=_comparable_sort_key)[:10]
     if len(comparables) < 3:
         comparables = sorted(scored, key=_comparable_sort_key)[:10]
+    if len(comparables) < 3:
+        return empty_estimate_result(data_status, status="no_data", reason_code="official_comparables_insufficient", result_origin="official", provider_source=provider.source, matched_community=_public_community(community), sample_count=len(comparables), query_metadata=query_metadata)
     unit_prices = [row["unit_price_per_ping"] for row in comparables]
     ordered = sorted(unit_prices)
     weighted_mean = _weighted_mean(comparables)
@@ -204,9 +241,13 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     estimate_composition = selection["estimate_data_composition"] or _estimate_composition(comparables)
     confidence, confidence_score, confidence_caps = _confidence(comparables, explanation, estimate_level, community)
     area = float(payload["area_ping"])
-    return {
+    result = {
         "source": provider.source,
         "data_status": data_status,
+        "valuation_status": "demo" if not isinstance(provider, PostgresValuationProvider) else "available",
+        "valuation_reason_code": "demo_result_available" if not isinstance(provider, PostgresValuationProvider) else "official_result_available",
+        "result_origin": "demo" if not isinstance(provider, PostgresValuationProvider) else "official",
+        "is_actionable": False if not isinstance(provider, PostgresValuationProvider) else True,
         "estimate_level": estimate_level,
         "matched_community": _public_community(community),
         "confidence_reason": _confidence_reason(estimate_level, confidence, explanation, community, estimate_composition, confidence_caps, data_status),
@@ -230,9 +271,13 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         "methodology": METHODOLOGY,
         "disclaimer": DISCLAIMER,
     }
+    if isinstance(provider, PostgresValuationProvider):
+        if not validate_official_result(result):
+            return empty_estimate_result(data_status, status="unavailable", reason_code="invalid_provider_result", result_origin="none", provider_source=provider.source, query_metadata=query_metadata)
+    return result
 
 
-def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], community: dict[str, Any] | None) -> tuple[str, list[dict[str, Any]]]:
+def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], community: dict[str, Any] | None, allow_fallback: bool = True) -> tuple[str, list[dict[str, Any]]]:
     if community:
         community_rows = [row for row in rows if row["city"] == community["city"] and row["district"] == community["district"] and row["road"] == community["road"] and _distance(community, row) is not None and _distance(community, row) <= 600]
         if len(community_rows) >= 3:
@@ -245,13 +290,15 @@ def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], c
     for level, candidates in hierarchy:
         if len(candidates) >= 3:
             return level, candidates
-    return "fallback", rows
+    return ("fallback", rows) if allow_fallback else ("none", [])
 
 
 def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], enforce_scope: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Choose an explicit road-first valuation scope before scoring."""
 
     prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if not _is_future_official(row)]
+    if enforce_scope:
+        prepared = [row for row in prepared if row.get("source") == "official_plvr_opendata" and _row_has_positive_metrics(row)]
     target_road = normalize_road(str(target.get("road", "")))
     same_district = [
         row for row in prepared
@@ -272,20 +319,17 @@ def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], 
     }
     if not enforce_scope:
         return prepared, selection
-    if len(official_same_road) >= 5:
+    if len(official_same_road) >= 3:
         selection.update({"estimate_level": "road", "estimate_data_composition": "official"})
         return official_same_road, selection
-    if official_same_road:
-        selection.update({"estimate_level": "road", "estimate_data_composition": "official_limited"})
-        candidates = [{**row, "_official_limited": True} for row in [*official_same_road, *sample_same_road]]
-        return candidates[:10], selection
-    if len(official_same_district) >= 5:
+    if len(official_same_district) >= 3:
         selection.update({"estimate_level": "district", "estimate_data_composition": "official_district"})
         return [{**row, "_official_district": True} for row in official_same_district], selection
-    if sample_same_road:
-        selection.update({"estimate_level": "road", "estimate_data_composition": "sample"})
-        return sample_same_road, selection
-    return prepared, selection
+    official_city = [row for row in prepared if normalize_city(str(row.get("city", ""))) == normalize_city(str(target.get("city", "")))]
+    if len(official_city) >= 3:
+        selection.update({"estimate_level": "city", "estimate_data_composition": "official"})
+        return official_city, selection
+    return [], selection
 
 
 def _is_future_official(row: dict[str, Any]) -> bool:

@@ -5,6 +5,8 @@ from typing import Any
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
+from services.valuation_result_contract import empty_estimate_result, public_source_details
+
 router = APIRouter(prefix="/valuation", tags=["valuation"])
 
 
@@ -102,8 +104,8 @@ def _safe_data_status(status: Any) -> dict[str, Any]:
 def _unavailable_data_status() -> dict[str, Any]:
     return _safe_data_status(
         {
-            "active_source": "unknown",
-            "is_demo_data": True,
+            "active_source": "unavailable",
+            "is_demo_data": False,
             "is_full_taiwan": False,
             "official_records_count": 0,
             "sample_records_count": 0,
@@ -124,6 +126,68 @@ def _unavailable_data_status() -> dict[str, Any]:
     )
 
 
+def _safe_estimate_response(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return empty_estimate_result(_unavailable_data_status(), status="unavailable", reason_code="result_contract_unavailable", result_origin="none", provider_source="unavailable")
+    safe = {key: value[key] for key in {
+        "source", "valuation_status", "valuation_reason_code", "result_origin", "is_actionable",
+        "estimate_level", "matched_community", "confidence_reason", "estimate_data_composition",
+        "data_composition", "estimate_source_label", "candidate_pool_size", "official_same_road_count",
+        "official_same_district_count", "sample_same_road_count", "sample_same_district_count",
+        "estimate_total_price", "estimate_unit_price_per_ping", "price_range", "unit_price_distribution",
+        "confidence", "confidence_score", "comparables", "valuation_explanation", "methodology", "disclaimer",
+    } if key in value}
+    safe["data_status"] = _safe_data_status(value.get("data_status"))
+    safe["source_details"] = public_source_details(value.get("source_details"))
+    return safe
+
+
+def _safe_trend_response(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return _empty_trend_response("unavailable", "result_contract_unavailable")
+    fields = {
+        "source", "trend_status", "trend_reason_code", "is_actionable", "data_scope", "raw_period_min",
+        "raw_period_max", "effective_period_min", "effective_period_max", "excluded_future_period_count",
+        "excluded_out_of_window_count", "period_min", "period_max", "sample_count", "road_sample_count",
+        "district_sample_count", "monthly_series", "yearly_series", "recent_median_unit_price",
+        "trend_annualized_rate", "volatility", "confidence_level", "confidence_reason", "scenario_forecast",
+        "methodology", "disclaimer",
+    }
+    return {key: value[key] for key in fields if key in value}
+
+
+def _empty_trend_response(status: str, reason_code: str) -> dict[str, Any]:
+    return {
+        "source": "official_plvr_opendata", "trend_status": status, "trend_reason_code": reason_code,
+        "is_actionable": False, "data_scope": "none", "raw_period_min": None, "raw_period_max": None,
+        "effective_period_min": None, "effective_period_max": None, "excluded_future_period_count": 0,
+        "excluded_out_of_window_count": 0, "period_min": None, "period_max": None, "sample_count": 0,
+        "road_sample_count": 0, "district_sample_count": 0, "monthly_series": [], "yearly_series": [],
+        "recent_median_unit_price": None, "trend_annualized_rate": None, "volatility": None,
+        "confidence_level": "unknown", "confidence_reason": "估價趨勢資料目前無法使用，請稍後再試。",
+        "scenario_forecast": {"conservative": [], "base": [], "optimistic": []}, "methodology": [], "disclaimer": "",
+    }
+
+
+def _safe_property_search_response(value: Any) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return _empty_property_search_response("unavailable", "result_contract_unavailable")
+    safe = {key: value[key] for key in {"search_status", "search_reason_code", "is_actionable", "summary", "district_suggestions", "road_suggestions", "matched_transactions", "methodology", "disclaimer"} if key in value}
+    summary = value.get("summary")
+    if not isinstance(summary, dict):
+        return _empty_property_search_response("unavailable", "result_contract_unavailable")
+    safe["summary"] = {key: summary.get(key) for key in {"matched_count", "city_count", "district_count", "road_count", "budget_min", "budget_max", "period_min", "period_max", "data_source_label", "message", "disclaimer"}}
+    return safe
+
+
+def _empty_property_search_response(status: str, reason_code: str) -> dict[str, Any]:
+    return {
+        "search_status": status, "search_reason_code": reason_code, "is_actionable": False,
+        "summary": {"matched_count": None, "city_count": None, "district_count": None, "road_count": None, "budget_min": None, "budget_max": None, "period_min": None, "period_max": None, "data_source_label": "官方 PLVR", "message": "市場資料目前無法使用，請稍後再試。", "disclaimer": ""},
+        "district_suggestions": [], "road_suggestions": [], "matched_transactions": [], "methodology": "", "disclaimer": "",
+    }
+
+
 def _safe_nonnegative_int(value: Any) -> int:
     try:
         return max(0, int(value or 0))
@@ -134,7 +198,10 @@ def _safe_nonnegative_int(value: Any) -> int:
 @router.post("/estimate")
 def estimate(request: ValuationRequest) -> dict[str, Any]:
     from services.valuation_service import estimate_property
-    return estimate_property(request.model_dump())
+    try:
+        return _safe_estimate_response(estimate_property(request.model_dump()))
+    except Exception:
+        return _safe_estimate_response(None)
 
 
 @router.post("/trend")
@@ -142,7 +209,10 @@ def trend(request: ValuationTrendRequest) -> dict[str, Any]:
     """Return official-PLVR historical trends and bounded scenarios."""
 
     from services.valuation_trend_service import analyze_valuation_trend
-    return analyze_valuation_trend(request.model_dump())
+    try:
+        return _safe_trend_response(analyze_valuation_trend(request.model_dump()))
+    except Exception:
+        return _empty_trend_response("unavailable", "result_contract_unavailable")
 
 
 @router.post("/property-search")
@@ -150,4 +220,7 @@ def property_search(request: PropertySearchRequest) -> dict[str, Any]:
     """Return official historical transaction directions, not live listings."""
 
     from services.property_search_service import search_properties
-    return search_properties(request.model_dump())
+    try:
+        return _safe_property_search_response(search_properties(request.model_dump()))
+    except Exception:
+        return _empty_property_search_response("unavailable", "result_contract_unavailable")
