@@ -8,6 +8,11 @@ import { ErrorState, LoadingState, MetricTile, SectionCard } from "@/components/
 import { ImmersiveViewingWorkspace } from "@/components/immersive-viewing-workspace";
 import { GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
 import { DetailDisclosure } from "@/components/detail-disclosure";
+import { buildPropertySearchVisualModel } from "@/lib/property-search-visualization";
+import { PropertySearchPriceRangeChart } from "@/components/data-visualization/property-search-price-range-chart";
+import { PropertySearchSampleChart } from "@/components/data-visualization/property-search-sample-chart";
+import { PropertySearchEvidenceSummary } from "@/components/data-visualization/property-search-evidence-summary";
+import { VisualDataUnavailableState } from "@/components/data-visualization/visual-data-unavailable-state";
 
 export type PropertyFinderSelection = {
   city: string;
@@ -102,7 +107,8 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
 }
 
 function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight }: { result: PropertySearchResult; onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void }) {
-  if (!result.summary.matched_count) return <div className="mt-5"><EmptyState title="尚未找到符合條件的歷史成交" detail={result.summary.message} /></div>;
+  const visualModel = buildPropertySearchVisualModel(result);
+  if (visualModel.state !== "available") return <div className="mt-5"><VisualDataUnavailableState message={visualModel.state === "no_data" ? "目前篩選條件沒有可用的官方交易資料。" : "市場資料目前無法使用，請稍後再試。"} /><PropertySearchEvidenceSummary model={visualModel} /></div>;
   return <div className="mt-6 space-y-5 border-t border-stone-200 pt-5">
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <MetricTile label="符合成交" value={`${result.summary.matched_count.toLocaleString()} 筆`} note={result.summary.data_source_label} />
@@ -114,6 +120,7 @@ function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseF
       <h3 className="text-sm font-bold text-slate-900">推薦行政區</h3>
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{result.district_suggestions.map((item) => <article key={`${item.city}-${item.district}`} className="rounded-xl border border-stone-200 bg-stone-50/70 p-3"><div className="flex items-start justify-between gap-3"><div><p className="font-bold text-slate-900">{item.city} {item.district}</p><p className="mt-1 text-[10px] text-slate-500">{item.sample_count} 筆成交 · 中位總價 {item.median_total_price.toLocaleString()} 萬</p></div><span className="rounded-full bg-cyan-100 px-2 py-1 text-[10px] font-bold text-cyan-800">{item.score}</span></div><p className="mt-3 text-xs leading-5 text-slate-600">{item.reason}</p></article>)}</div>
     </div>
+    {visualModel.state === "available" ? <div className="grid min-w-0 gap-4 lg:grid-cols-2"><PropertySearchPriceRangeChart title="行政區價格區間" data={visualModel.districtRanges} /><PropertySearchPriceRangeChart title="路段價格區間" data={visualModel.roadRanges} /><PropertySearchSampleChart data={visualModel.districtRanges} /><PropertySearchEvidenceSummary model={visualModel} /></div> : <VisualDataUnavailableState message="目前找房資料不可用，數字與操作不會被解讀為低價或完成比較。" />}
     <FinderTable title="推薦路段" minWidth="min-w-[820px]" headers={["區域", "路段", "成交筆數", "中位總價", "中位坪數", "常見型態", "操作"]}>
       {result.road_suggestions.map((item) => { const selection=suggestionSelection(item); return <tr key={`${item.city}-${item.district}-${item.road}`} className="border-t border-stone-100"><td className="p-2">{item.city} {item.district}</td><td>{item.road}</td><td>{item.sample_count}</td><td>{item.median_total_price.toLocaleString()} 萬</td><td>{item.median_area_ping} 坪</td><td>{item.common_building_type}</td><td><FinderActions onValuation={() => onUseForValuation(selection)} onLoan={() => onUseForLoan(item.median_total_price)} onHoldingCost={() => onUseForHoldingCost(item.median_total_price, item.median_area_ping)} onLocation={() => onUseForLocationInsight(selection,item.median_total_price)} /></td></tr>; })}
     </FinderTable>
