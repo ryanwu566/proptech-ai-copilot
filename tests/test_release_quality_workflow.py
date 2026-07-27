@@ -27,6 +27,8 @@ def test_workflow_is_read_only_and_bounded() -> None:
     assert "actions/setup-node@v4" in WORKFLOW
     assert "fetch-depth: 1" in WORKFLOW
     assert "persist-credentials: false" in WORKFLOW
+    assert "Install test dependencies" in WORKFLOW
+    assert 'python -m pip install "pytest>=8,<9"' in WORKFLOW
     assert "python -m pytest -q --basetemp \"${RUNNER_TEMP}/release-quality-pytest\"" in WORKFLOW
     assert "npm --prefix frontend_next run build" in WORKFLOW
     assert "python scripts/release_quality_gate.py --skip-tests --skip-frontend-build" in WORKFLOW
@@ -54,5 +56,11 @@ def test_required_steps_do_not_hide_failures() -> None:
 
 
 def test_required_steps_run_in_observable_order() -> None:
+    assert WORKFLOW.index("Install test dependencies") < WORKFLOW.index("Run Python tests")
     assert WORKFLOW.index("Run Python tests") < WORKFLOW.index("Build frontend")
     assert WORKFLOW.index("Build frontend") < WORKFLOW.index("Run release contract gate")
+
+
+def test_production_runtime_requirements_are_not_changed_for_ci_pytest() -> None:
+    requirements = (ROOT / "backend/requirements.txt").read_text(encoding="utf-8").lower()
+    assert "pytest" not in requirements
