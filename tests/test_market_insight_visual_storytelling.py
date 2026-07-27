@@ -55,15 +55,37 @@ def test_charts_have_safe_empty_states_and_no_chart_dependency() -> None:
         assert "<desc>" in source
         assert "recharts" not in source.lower()
         assert "chart.js" not in source.lower()
+        assert "overflow-x-auto" not in source
+        assert "min-w-[560px]" not in source
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    assert "selectChartLabelIndexes" in helper
 
 
 def test_market_page_uses_conclusion_first_visual_disclosure() -> None:
     page = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
-    section = page.split("function MarketInsight(", 1)[1].split("function LegacyTextMarketInsight", 1)[0]
+    section = page.split("function MarketInsight(", 1)[1].split("function LegacyMarketInsightOriginal", 1)[0]
     assert "buildMarketInsightVisualModel" in section
     assert "MarketInsightVisualResult" in section
+    assert "if (!result) return null" not in section
+    assert "resultState" not in section
+    assert "as MarketResult" not in section
+    assert "canonicalCounty" in section
+    assert "canonicalDistrict" in section
+    assert "setResult(undefined)" in section
+    assert "querying" in section
     assert "DataMetricCard" in page
     assert "TrendLineChart" in page
     assert "VolumeBarChart" in page
     assert "EvidenceSummary" in page
     assert "EvidenceDetails" in page
+
+
+def test_non_available_states_keep_evidence_disclosure() -> None:
+    page = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+    section = page.split("function MarketInsight(", 1)[1].split("function LegacyMarketInsightOriginal", 1)[0]
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    assert 'visualModel.state !== "available"' in section
+    assert "EvidenceSummary items={visualModel.evidence}" in section
+    assert "EvidenceDetails items={visualModel.evidence}" in section
+    assert '"caveat"' in helper
+    assert '"disclaimer"' in helper

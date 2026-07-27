@@ -218,3 +218,19 @@ python scripts/prune_valuation_data.py --keep-years 3 --dry-run
 六都已建立穩定的 rolling 3 年官方 PLVR 流程；其他縣市可沿用同一套 ETL，依基隆／新竹、苗彰投、雲嘉、屏宜花、東部離島與連江等分組先 dry-run，再分批匯入。Importer 僅辨識買賣主檔，並使用 `dedupe_key v2` 與 natural-key duplicate guard 避免重複交易。
 
 Render runtime 不執行 ETL，raw ZIP／CSV 不 commit，DB URL 與任何 secrets 不寫入 repo。完整流程請見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)，後續功能切分請見 [Product Roadmap](docs/product_roadmap.md)。
+# PropTech AI Copilot
+
+## Release quality gate
+
+Before a release candidate is handed to production acceptance, run the local
+hermetic gate:
+
+```text
+python scripts/release_quality_gate.py
+```
+
+The gate checks tracked source contracts, the nationwide registry, market and
+valuation trust boundaries, property-case privacy, deployment declarations,
+and frontend recovery/accessibility surfaces. It does not call production,
+providers, a database, or an importer. Use
+`--skip-tests --skip-frontend-build` for contract-only validation.

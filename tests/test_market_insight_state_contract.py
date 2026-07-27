@@ -26,9 +26,16 @@ def test_partial_and_stale_states_are_disclosed_without_claiming_freshness() -> 
     assert "freshness_status" in helper
 
 
+def test_evidence_contract_includes_safe_metadata_and_limitations_for_all_states() -> None:
+    helper = (ROOT / "frontend_next" / "lib" / "market-insight-visualization.ts").read_text(encoding="utf-8")
+    for key in ["source_name", "source_updated_at", "period", "transaction_count", "record_count", "coverage_status", "data_status", "aggregation_method", "caveat", "disclaimer"]:
+        assert f'"{key}"' in helper
+    assert "EvidenceDetails" in (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+
+
 def test_market_page_does_not_transfer_results_or_add_storage() -> None:
     page = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
-    section = page.split("function MarketInsight(", 1)[1].split("function LegacyTextMarketInsight", 1)[0]
+    section = page.split("function MarketInsight(", 1)[1].split("function MarketInsightVisualResult", 1)[0]
     assert "sessionStorage" not in section
     assert "localStorage" not in section
     assert "document.cookie" not in section

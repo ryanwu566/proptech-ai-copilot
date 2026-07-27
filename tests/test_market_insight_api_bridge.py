@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from backend.api_main import app
@@ -532,12 +533,52 @@ def test_market_coverage_operator_routes_require_existing_token(monkeypatch) -> 
     assert "reason_code" not in response.json()
 
 
-def test_market_coverage_operator_routes_are_mounted() -> None:
-    route_paths = {getattr(route, "path", "") for route in app.routes}
+@pytest.mark.parametrize(
+    ("path", "body", "service_name"),
+    (
+        ("/market-insights/coverage/bootstrap", None, "bootstrap"),
+        ("/market-insights/coverage/reconcile", {"county": "placeholder"}, "reconcile"),
+        ("/market-insights/coverage/audit", None, "audit"),
+    ),
+)
+def test_market_coverage_operator_routes_are_mounted_and_protected(
+    monkeypatch, path: str, body: dict[str, str] | None, service_name: str
+) -> None:
+    from services import plvr_market_aggregate_service
+    from services.taiwan_admin_registry import iter_taiwan_regions
 
-    assert "/market-insights/coverage/bootstrap" in route_paths
-    assert "/market-insights/coverage/reconcile" in route_paths
-    assert "/market-insights/coverage/audit" in route_paths
+    if service_name == "reconcile":
+        body = {"county": iter_taiwan_regions()[0].county}
+
+    called = {"bootstrap": False, "reconcile": False, "audit": False}
+    monkeypatch.setenv("MARKET_READ_MODEL_REFRESH_TOKEN", "expected")
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "bootstrap_market_coverage_metadata",
+        lambda: called.update(bootstrap=True),
+    )
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "reconcile_market_coverage",
+        lambda *_args, **_kwargs: called.update(reconcile=True),
+    )
+    monkeypatch.setattr(
+        plvr_market_aggregate_service,
+        "audit_market_coverage",
+        lambda: called.update(audit=True),
+    )
+
+    response = client.post(
+        path,
+        json=body,
+        headers={"X-Market-Read-Model-Refresh-Token": "wrong"},
+    )
+
+    assert response.status_code == 403
+    assert response.status_code != 404
+    assert called == {"bootstrap": False, "reconcile": False, "audit": False}
+    assert service_name in called
+    assert "reason_code" not in response.json()
 
 
 def test_market_coverage_bootstrap_returns_safe_fields(monkeypatch) -> None:
