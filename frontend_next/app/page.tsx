@@ -21,6 +21,14 @@ import { Badge, Button, EmptyState, Notice } from "@/components/ui";
 import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
 import { API_BASE, api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, TerrainRiskResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { getMarketDisplayState } from "@/lib/market-result-state";
+import { buildMarketInsightVisualModel } from "@/lib/market-insight-visualization";
+import { DataMetricCard } from "@/components/data-visualization/data-metric-card";
+import { DataStatusBadge } from "@/components/data-visualization/data-status-badge";
+import { EvidenceDetails } from "@/components/data-visualization/evidence-details";
+import { EvidenceSummary } from "@/components/data-visualization/evidence-summary";
+import { FreshnessIndicator } from "@/components/data-visualization/freshness-indicator";
+import { TrendLineChart } from "@/components/data-visualization/trend-line-chart";
+import { VolumeBarChart } from "@/components/data-visualization/volume-bar-chart";
 import { buildValuationShareUrl, buildValuationSummaryHtml, parseValuationShareParams, valuationSummaryFilename, ValuationInputs } from "@/lib/valuation-share";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { buildWorkflowStatus, markTaxOracleCompleted, markWorkflowReportCompleted, OPEN_TAXORACLE_EVENT, readWorkflowSession, type WorkflowStatus } from "@/lib/workflow-status";
@@ -265,7 +273,8 @@ function PlaceCard({ place, label, selected, onSelect }: { place: NearbyPlace; l
 function MarketInsight({ onMap }: { onMap: () => void }) {
   const [county, setCounty] = useState("");
   const [district, setDistrict] = useState("");
-  const [result, setResult] = useState<MarketResult>();
+  const [resultState, setResult] = useState<MarketResult>();
+  const result = resultState as MarketResult;
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState("");
   const marketQuerySeq = useRef(0);
@@ -341,6 +350,10 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     setError("");
   }
 
+  if (!result) return null;
+  const visualModel = buildMarketInsightVisualModel(result);
+  return <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} />;
+
   return <div className="space-y-6">
     <PageHeader kicker="市場資料" title="Market Insight 區域行情" description="以官方 PLVR 聚合資料做保守查詢；不依賴 read model refresh workflow，也不以展示數字替代真實資料。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
     <HelpCallout>Market Insight 只作市場背景參考，不會自動影響估價、貸款、稅費、案件比較或看房決策。</HelpCallout>
@@ -366,6 +379,34 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     {result && noDataResult && <SectionCard title="目前此區域尚無市場資料"><p className="text-sm leading-6 text-slate-600">目前尚未找到足夠的官方 PLVR 市場資料。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
     {result && !availableResult && !noDataResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
     {availableResult && result && <><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period ?? undefined} /><MetricTile label="交易量" value={result.transaction_volume} /><MetricTile label="有效紀錄數" value={availableRecordCount} /></div><SectionCard title="資料來源與狀態"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{marketHistory.length > 0 && <SectionCard title="近期趨勢"><SwipeHint /><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期間</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{marketHistory.map((item) => <tr key={item.period ?? "unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬 / 坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}
+  </div>;
+}
+
+function MarketInsightVisualResult({ result, model, onMap }: { result?: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; onMap: () => void }) {
+  if (!result) return null;
+  const isAvailable = model.state === "available";
+  return <div className="space-y-5">
+    <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與可展開的資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
+    <HelpCallout>市場行情不會自動影響估價、貸款、稅費、地勢風險、案件比較或看房決策。</HelpCallout>
+    <SectionCard title="市場洞察結論" description="資料狀態與涵蓋限制會和數字一起呈現，不以缺失資料補成零。">
+      <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} /><FreshnessIndicator status={model.freshness} /></div>
+      <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? "此區域目前查無可安全呈現的市場資料。" : "市場資料目前暫不可用，請稍後再試。"}</p>
+    </SectionCard>
+    {isAvailable ? <>
+      <div className="grid gap-3 md:grid-cols-3">
+        <DataMetricCard label="平均單價" value={model.metrics.averageUnitPrice} suffix=" 萬 / 坪" status={model.state} note={result.period ?? undefined} />
+        <DataMetricCard label="交易量" value={model.metrics.transactionVolume} status={model.state} />
+        <DataMetricCard label="有效紀錄數" value={model.metrics.recordCount} status={model.state} />
+      </div>
+      <SectionCard title="價格趨勢"><TrendLineChart data={model.history} status={model.state} textSummary={model.chartTextSummary} /></SectionCard>
+      <SectionCard title="交易量趨勢"><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
+      <EvidenceSummary items={model.evidence} />
+      <EvidenceDetails items={model.evidence} />
+      <Notice tone="warning">{result.caveat}</Notice>
+    </> : <SectionCard title={model.state === "no_data" ? "目前查無市場資料" : "市場資料暫不可用"}>
+      <p className="text-sm leading-6 text-slate-700">{result.caveat}</p>
+      <p className="mt-2 text-xs leading-5 text-amber-800">資料不足、未涵蓋或暫時不可用不代表價格較低、風險較低或適合購買。</p>
+    </SectionCard>}
   </div>;
 }
 
