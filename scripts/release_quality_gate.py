@@ -234,10 +234,26 @@ def _run_command(command: list[str], *, cwd: Path, timeout: int) -> bool:
     return completed.returncode == 0
 
 
+def _pytest_command(temp_path: Path) -> list[str]:
+    """Build a platform-neutral pytest command for local gate execution."""
+
+    return [sys.executable, "-m", "pytest", "-q", "--basetemp", str(temp_path)]
+
+
+def _npm_executable(platform_name: str | None = None) -> str:
+    """Resolve npm without embedding a Windows-only executable in CI."""
+
+    return "npm.cmd" if (platform_name or os.name) == "nt" else "npm"
+
+
+def _frontend_build_command(platform_name: str | None = None) -> list[str]:
+    return [_npm_executable(platform_name), "--prefix", "frontend_next", "run", "build"]
+
+
 def _run_tests() -> bool:
     temp_path = Path(tempfile.mkdtemp(prefix="release-quality-pytest-"))
     try:
-        return _run_command([sys.executable, "-m", "pytest", "-q", "--basetemp", str(temp_path)], cwd=ROOT, timeout=900)
+        return _run_command(_pytest_command(temp_path), cwd=ROOT, timeout=900)
     finally:
         # The temporary directory is outside the repository and is safe to remove.
         import shutil
@@ -246,8 +262,7 @@ def _run_tests() -> bool:
 
 
 def _run_frontend_build() -> bool:
-    npm = "npm.cmd" if os.name == "nt" else "npm"
-    return _run_command([npm, "--prefix", "frontend_next", "run", "build"], cwd=ROOT, timeout=900)
+    return _run_command(_frontend_build_command(), cwd=ROOT, timeout=900)
 
 
 def _write_json(path: Path, payload: dict[str, Any]) -> None:

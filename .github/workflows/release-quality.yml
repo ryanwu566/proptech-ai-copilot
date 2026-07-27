@@ -22,6 +22,9 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -34,5 +37,9 @@ jobs:
         run: python -m pip install -r backend/requirements.txt
       - name: Install frontend dependencies
         run: npm ci --prefix frontend_next
-      - name: Run release quality gate
-        run: python scripts/release_quality_gate.py
+      - name: Run Python tests
+        run: python -m pytest -q --basetemp "${RUNNER_TEMP}/release-quality-pytest"
+      - name: Build frontend
+        run: npm --prefix frontend_next run build
+      - name: Run release contract gate
+        run: python scripts/release_quality_gate.py --skip-tests --skip-frontend-build
