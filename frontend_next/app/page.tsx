@@ -282,7 +282,12 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   const districtOptions = getDistrictsForCounty(canonicalCounty);
 
   async function query() {
-    if (querying || !canonicalCounty) return;
+    if (querying) return;
+    if (!canonicalCounty) {
+      setError("請先選擇縣市，再查詢市場資料。");
+      setResult(undefined);
+      return;
+    }
     const queryId = marketQuerySeq.current + 1;
     marketQuerySeq.current = queryId;
     const controller = new AbortController();
@@ -337,6 +342,9 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     setError("");
   }
 
+  const marketDisplayState = getMarketDisplayState(result);
+  const availableResult = marketDisplayState === "available";
+  const noDataResult = marketDisplayState === "no_data";
   const visualModel = buildMarketInsightVisualModel(result);
   return <div className="space-y-5">
     <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
@@ -344,13 +352,13 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     {error && <ErrorState message={error} />}
     <SectionCard title="查詢市場資料" description="選擇縣市與行政區後按下查詢；切換選項不會自動呼叫 API。">
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-        <label className="text-xs text-slate-500">縣市
+        <label className="text-xs text-slate-500">縣市（必填）
           <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
             <option value="">選擇縣市</option>
             {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
-        <label className="text-xs text-slate-500">行政區
+        <label className="text-xs text-slate-500">行政區（可留空）
           <select value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
             <option value="">{canonicalCounty ? "選擇行政區" : "請先選擇縣市"}</option>
             {districtOptions.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -359,122 +367,12 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
         <div className="flex items-end"><button type="button" onClick={query} disabled={querying || !canonicalCounty} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? "正在查詢市場資料..." : "查詢市場資料"}</button></div>
       </div>
       {querying && <div className="mt-3"><LoadingState label="正在查詢市場資料..." /></div>}
-      <p className="mt-3 text-xs leading-5 text-slate-500">資料不足、未涵蓋或暫時不可用時，不會以零值、mock 數字或推估趨勢補齊。</p>
+      <p className="mt-3 text-xs leading-5 text-slate-500">資料不足、未涵蓋或暫時不可用時，不會以 mock 數字、零值或推估趨勢補齊，也不會顯示 0 元、低風險或展示成功狀態。</p>
     </SectionCard>
     {result && <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} />}
     {result && visualModel.state !== "available" && <div className="space-y-3"><EvidenceSummary items={visualModel.evidence} /><EvidenceDetails items={visualModel.evidence} /></div>}
-  </div>;
-}
-
-function LegacyMarketInsightOriginal({ onMap }: { onMap: () => void }) {
-  const [county, setCounty] = useState("");
-  const [district, setDistrict] = useState("");
-  const [resultState, setResult] = useState<MarketResult>();
-  const result = resultState as MarketResult;
-  const [querying, setQuerying] = useState(false);
-  const [error, setError] = useState("");
-  const marketQuerySeq = useRef(0);
-  const canonicalCounty = normalizeTaiwanCounty(county);
-  const districtOptions = getDistrictsForCounty(canonicalCounty);
-  const canonicalDistrict = normalizeTaiwanDistrict(canonicalCounty, district);
-  const marketDisplayState = getMarketDisplayState(result);
-  const availableResult = marketDisplayState === "available";
-  const noDataResult = marketDisplayState === "no_data";
-  const marketHistory = Array.isArray(result?.history) ? result.history : [];
-  const availableRecordCount = result && result.record_count !== null && result.record_count !== undefined
-    ? result.record_count
-    : result?.transaction_count;
-
-  async function query() {
-    if (querying) return;
-    if (!canonicalCounty) {
-      setError("請先選擇縣市，再查詢市場資料。");
-      setResult(undefined);
-      return;
-    }
-    const queryId = marketQuerySeq.current + 1;
-    marketQuerySeq.current = queryId;
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 12000);
-    setQuerying(true);
-    setError("");
-    setResult(undefined);
-    try {
-      const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal);
-      if (marketQuerySeq.current === queryId) setResult(nextResult);
-    } catch (e) {
-      if (marketQuerySeq.current === queryId) {
-        setResult({
-          city: canonicalCounty,
-          county: canonicalCounty,
-          district: canonicalDistrict,
-          period: null,
-          average_unit_price: null,
-          avg_price_per_ping: null,
-          transaction_count: null,
-          transaction_volume: null,
-          record_count: null,
-          summary: "市場資料目前無法判定，請稍後再試。",
-          source_name: null,
-          source_updated_at: null,
-          coverage_status: "coverage_unknown",
-          data_status: "unavailable",
-          caveat: "市場資料目前無法判定，請稍後再試。",
-          disclaimer: "市場資料目前無法判定，請稍後再試。",
-          history: [],
-        });
-        setError((e as Error).name === "AbortError" ? "" : "市場資料目前無法使用，請稍後再試。");
-      }
-    } finally {
-      window.clearTimeout(timeout);
-      if (marketQuerySeq.current === queryId) setQuerying(false);
-    }
-  }
-
-  function updateCounty(value: string) {
-    marketQuerySeq.current += 1;
-    setCounty(normalizeTaiwanCounty(value));
-    setDistrict("");
-    setResult(undefined);
-    setError("");
-  }
-
-  function updateDistrict(value: string) {
-    marketQuerySeq.current += 1;
-    setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
-    setResult(undefined);
-    setError("");
-  }
-
-  if (!result) return null;
-  const visualModel = buildMarketInsightVisualModel(result);
-  return <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} />;
-
-  return <div className="space-y-6">
-    <PageHeader kicker="市場資料" title="Market Insight 區域行情" description="以官方 PLVR 聚合資料做保守查詢；不依賴 read model refresh workflow，也不以展示數字替代真實資料。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
-    <HelpCallout>Market Insight 只作市場背景參考，不會自動影響估價、貸款、稅費、案件比較或看房決策。</HelpCallout>
-    {error && <ErrorState message={error} />}
-    <SectionCard title="查詢市場資料" description="請先選擇縣市，再視需要選擇行政區；查詢只會在按下按鈕後進行。">
-      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-        <label className="text-xs text-slate-500">縣市（必填）
-          <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
-            <option value="">請選擇縣市</option>
-            {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
-        </label>
-        <label className="text-xs text-slate-500">行政區（可留空）
-          <select value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
-            <option value="">{canonicalCounty ? "全部行政區" : "請先選擇縣市"}</option>
-            {districtOptions.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
-        </label>
-        <div className="flex items-end"><Button onClick={query} disabled={querying || !canonicalCounty}>{querying ? "正在查詢市場資料..." : "查詢市場資料"}</Button></div>
-      </div>
-      <p className="mt-3 text-xs leading-5 text-slate-500">若未選行政區，系統會查詢該縣市可用的整體市場資料。資料不足時會顯示 unavailable，不會顯示 0 元、低風險或展示成功狀態。</p>
-    </SectionCard>
-    {result && noDataResult && <SectionCard title="目前此區域尚無市場資料"><p className="text-sm leading-6 text-slate-600">目前尚未找到足夠的官方 PLVR 市場資料。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
-    {result && !availableResult && !noDataResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}
-    {availableResult && result && <><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period ?? undefined} /><MetricTile label="交易量" value={result.transaction_volume} /><MetricTile label="有效紀錄數" value={availableRecordCount} /></div><SectionCard title="資料來源與狀態"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{marketHistory.length > 0 && <SectionCard title="近期趨勢"><SwipeHint /><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期間</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{marketHistory.map((item) => <tr key={item.period ?? "unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬 / 坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}
+    {result && !availableResult && !noDataResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p></SectionCard>}
+    {result && noDataResult && <SectionCard title="目前此區域尚無市場資料"><p className="text-sm leading-6 text-slate-600">目前尚未找到足夠的官方 PLVR 市場資料。</p></SectionCard>}
   </div>;
 }
 
@@ -503,39 +401,6 @@ function MarketInsightVisualResult({ result, model, onMap }: { result: MarketRes
       <p className="mt-2 text-xs leading-5 text-amber-800">資料不足、未涵蓋或暫時不可用不代表價格較低、風險較低或適合購買。</p>
     </SectionCard>}
   </div>;
-}
-
-function LegacyTextMarketInsight({ onMap }: { onMap: () => void }) {
-  const [county,setCounty]=useState(""),[district,setDistrict]=useState(""),[result,setResult]=useState<MarketResult>(),[querying,setQuerying]=useState(false),[error,setError]=useState("");
-  async function query(){if(!county.trim()){setError("請先輸入縣市。");setResult(undefined);return;}setQuerying(true);setError("");setResult(undefined);try{setResult(await api.marketInsight(county.trim(),district.trim()||undefined));}catch(e){setError((e as Error).message);}finally{setQuerying(false);}}
-  function updateCounty(value:string){setCounty(value);setResult(undefined);setError("");}
-  function updateDistrict(value:string){setDistrict(value);setResult(undefined);setError("");}
-  const availableResult=result?.data_status==="available";
-  return <div className="space-y-6"><PageHeader kicker="市場背景" title="Market Insight 行政區行情" description="直接查詢既有官方 PLVR 實價登錄聚合資料；不依賴 read model refresh、workflow 或展示數字。" action={<Button secondary onClick={onMap}>查看地圖洞察</Button>} /><HelpCallout>市場行情只供區域背景參考，不會自動影響估價、貸款、稅務、法律、案件比較或看房決策。</HelpCallout>{error&&<ErrorState message={error}/>}<SectionCard title="查詢縣市與行政區" description="縣市為必填；行政區可留空以查詢縣市層級彙整。按下按鈕才會查詢市場資料。"><div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]"><label className="text-xs text-slate-500">縣市<input value={county} onChange={(e)=>updateCounty(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" placeholder="例如：台北市" /></label><label className="text-xs text-slate-500">行政區（選填）<input value={district} onChange={(e)=>updateDistrict(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" placeholder="例如：信義區" /></label><div className="flex items-end"><Button onClick={query} disabled={querying||!county.trim()}>{querying?"正在查詢行情...":"查詢市場資料"}</Button></div></div><p className="mt-3 text-xs leading-5 text-slate-500">資料不足、未涵蓋或暫時不可用時，只會顯示保守不可用狀態，不會以 mock 平均單價、交易量、生活機能或 ESG 分數替代。</p></SectionCard>{result&&!availableResult&&<SectionCard title="目前沒有可安全呈現的行情"><p className="text-sm leading-6 text-slate-600">{result.summary}</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}{availableResult&&result&&<><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period??undefined}/><MetricTile label="交易量" value={result.transaction_volume}/><MetricTile label="彙整筆數" value={result.record_count??result.transaction_count??0}/></div><SectionCard title="資料來源與限制"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{result.history.length>0&&<SectionCard title="最近期別行情"><SwipeHint/><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期別</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{result.history.map((item)=><tr key={item.period??"unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬 / 坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}</div>;
-}
-
-function ReadModelMarketInsight({ onMap }: { onMap: () => void }) {
-  const [catalog,setCatalog]=useState<MarketRegionCatalog>(),[regions,setRegions]=useState<MarketRegion[]>([]),[county,setCounty]=useState(""),[district,setDistrict]=useState(""),[districtSearch,setDistrictSearch]=useState(""),[result,setResult]=useState<MarketResult>(),[loading,setLoading]=useState(false),[regionsLoading,setRegionsLoading]=useState(false),[querying,setQuerying]=useState(false),[error,setError]=useState("");
-  async function loadCatalog(){setLoading(true);setError("");setResult(undefined);setRegions([]);setCounty("");setDistrict("");setDistrictSearch("");try{const nextCatalog=await api.marketCatalog();setCatalog(nextCatalog);}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
-  async function changeCounty(value:string){setCounty(value);setDistrict("");setDistrictSearch("");setResult(undefined);setRegions([]);if(!value)return;setRegionsLoading(true);setError("");try{const nextRegions=await api.marketRegions(value);setRegions(nextRegions.regions);}catch(e){setError((e as Error).message);}finally{setRegionsLoading(false);}}
-  async function query(){if(!county||!district)return;setQuerying(true);setError("");try{setResult(await api.marketInsight(county,district));}catch(e){setError((e as Error).message);}finally{setQuerying(false);}}
-  const counties=catalog?.available_counties??[];
-  const filteredDistricts=regions.filter((r)=>(r.county??r.city)===county&&r.district.includes(districtSearch));
-  const unavailable=Boolean(catalog&&catalog.read_model_status!=="ready");
-  const availableResult=result?.data_status==="available";
-  return <div className="space-y-6"><PageHeader kicker="市場背景" title="Market Insight 全台行政區行情" description="以後台 read model 彙整官方實價登錄行政區期別資料；沒有資料時只顯示不可用，不用 mock 數字補齊。" action={<Button secondary onClick={onMap}>在地圖查看區域</Button>} /><HelpCallout>市場行情只供區域背景參考，不會自動影響估價、貸款、稅務、法律、案件比較或看房決策。</HelpCallout>{error&&<ErrorState message={error}/>}<SectionCard title="載入市場 read model" description={catalog?.built_at?`Read model 建立時間：${catalog.built_at}`:"請手動載入可查詢的縣市與行政區。"}><div className="flex flex-col gap-3"><Button onClick={loadCatalog} disabled={loading}>{loading?"正在載入市場資料...":"載入可查詢縣市"}</Button>{catalog&&<div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2 lg:grid-cols-4"><p>Read model：<strong>{catalog.read_model_status}</strong></p><p>資料狀態：<strong>{catalog.data_status}</strong></p><p>覆蓋狀態：<strong>{catalog.coverage_status}</strong></p><p>資料期間：<strong>{catalog.earliest_period&&catalog.latest_period?`${catalog.earliest_period} ~ ${catalog.latest_period}`:"尚無可用期間"}</strong></p></div>}<p className="text-xs leading-5 text-slate-500">{catalog?.caveat??"尚未載入市場 read model。資料不足、未涵蓋或暫時不可用時，不代表沒有交易或風險。"}</p></div></SectionCard>{catalog&&!unavailable&&<SectionCard title="選擇縣市與行政區"><div className="grid gap-3 md:grid-cols-3"><select value={county} onChange={(e)=>changeCounty(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"><option value="">選擇縣市</option>{counties.map((item)=><option key={item} value={item}>{item}</option>)}</select><input value={districtSearch} onChange={(e)=>setDistrictSearch(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" placeholder="搜尋行政區" /><select value={district} onChange={(e)=>{setDistrict(e.target.value);setResult(undefined);}} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" disabled={!county||regionsLoading}><option value="">{regionsLoading?"正在載入行政區...":"選擇行政區"}</option>{filteredDistricts.map((r)=><option key={`${r.city}|${r.district}|${r.period??""}`} value={r.district}>{r.district}{r.period?` · ${r.period}`:""}</option>)}</select></div><Button className="mt-3" onClick={query} disabled={!county||!district||querying}>{querying?"正在查詢行情...":"查詢行政區行情"}</Button></SectionCard>}{catalog&&unavailable&&<SectionCard title="市場 read model 暫不可用"><p className="text-sm leading-6 text-slate-600">目前沒有可安全呈現的官方 PLVR 行政區行情資料。</p><p className="mt-2 text-xs leading-5 text-amber-700">資料缺漏、未刷新或未涵蓋時，不會以展示數字、生活機能分數、ESG 分數或假趨勢替代。</p></SectionCard>}{result&&!availableResult&&<SectionCard title="此行政區目前無可用行情"><p className="text-sm leading-6 text-slate-600">{result.summary}</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}{availableResult&&result&&<><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬/坪`} note={result.period??undefined}/><MetricTile label="交易量" value={result.transaction_volume}/><MetricTile label="彙整筆數" value={result.record_count??result.transaction_count??0}/></div><SectionCard title="資料來源與狀態"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新日期</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">覆蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard>{result.history.length>0&&<SectionCard title="最近期別行情"><SwipeHint/><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[420px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期別</th><th>平均單價</th><th>交易量</th></tr></thead><tbody>{result.history.map((item)=><tr key={item.period??"unknown"} className="border-t border-stone-100"><td className="p-2">{item.period}</td><td>{item.average_unit_price} 萬/坪</td><td>{item.transaction_count}</td></tr>)}</tbody></table></div></SectionCard>}<Notice tone="warning">{result.caveat}</Notice></>}</div>;
-}
-
-function LegacyMarketInsight({ onMap }: { onMap: () => void }) {
-  const [catalog,setCatalog]=useState<MarketRegionCatalog>(),[regions,setRegions]=useState<MarketRegion[]>([]),[county,setCounty]=useState(""),[district,setDistrict]=useState(""),[districtSearch,setDistrictSearch]=useState(""),[result,setResult]=useState<MarketResult>(),[loading,setLoading]=useState(false),[querying,setQuerying]=useState(false),[error,setError]=useState("");
-  async function loadRegions(selectedCounty=""){setLoading(true);setError("");setResult(undefined);try{const [status,nextRegions]=await Promise.all([api.marketStatus(),api.marketRegions(selectedCounty)]);const merged={...status,...nextRegions,regions:nextRegions.regions};setCatalog(merged);setRegions(nextRegions.regions);const first=nextRegions.regions[0];if(first){setCounty(first.county??first.city);setDistrict(first.district);}else{setDistrict("");}}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
-  async function changeCounty(value:string){setCounty(value);setDistrict("");setDistrictSearch("");setResult(undefined);await loadRegions(value);}
-  async function query(){if(!county||!district)return;setQuerying(true);setError("");try{setResult(await api.marketInsight(county,district));}catch(e){setError((e as Error).message);}finally{setQuerying(false);}}
-  const counties=[...new Set(regions.map((r)=>r.county??r.city).filter(Boolean))];
-  const filteredDistricts=regions.filter((r)=>(r.county??r.city)===county&&r.district.includes(districtSearch));
-  const unavailable=Boolean(catalog&&catalog.data_status!=="available");
-  const availableResult=result?.data_status==="available";
-  return <div className="space-y-6"><PageHeader kicker="區域洞察" title="Market Insight 區域行情" description="以既有官方 PLVR 實價登錄聚合資料補充市場背景；不下載資料、不顯示 mock 數字。" action={<Button secondary onClick={onMap}>查看地圖洞察</Button>} /><HelpCallout>用來補充區域行情與趨勢，不取代正式估價；資料不足或暫時不可用不代表低風險或低價格。</HelpCallout>{error&&<ErrorState message={error}/>}<SectionCard title="可用市場資料" description={catalog?.source_updated_at?`資料更新：${catalog.source_updated_at}`:"尚未載入可用行政區清單。"}><div className="flex flex-col gap-3"><Button onClick={()=>loadRegions()} disabled={loading}>{loading?"載入中...":"載入可用市場資料"}</Button>{catalog&&<div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2 lg:grid-cols-4"><p>資料狀態：<strong>{catalog.data_status}</strong></p><p>涵蓋狀態：<strong>{catalog.coverage_status}</strong></p><p>縣市數：<strong>{catalog.available_county_count??0}</strong></p><p>行政區數：<strong>{catalog.available_district_count??regions.length}</strong></p></div>}<p className="text-xs leading-5 text-slate-500">{catalog?.caveat??"按下後才會查詢既有 PLVR 聚合狀態；不會呼叫匯入、下載或外部資料源。"}</p></div></SectionCard>{catalog&&!unavailable&&<SectionCard title="選擇行政區"><div className="grid gap-3 md:grid-cols-3"><select value={county} onChange={(e)=>changeCounty(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"><option value="">選擇縣市</option>{counties.map((item)=><option key={item} value={item}>{item}</option>)}</select><input value={districtSearch} onChange={(e)=>setDistrictSearch(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" placeholder="搜尋行政區" /><select value={district} onChange={(e)=>{setDistrict(e.target.value);setResult(undefined);}} className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm"><option value="">選擇行政區</option>{filteredDistricts.map((r)=><option key={`${r.city}|${r.district}|${r.period??""}`} value={r.district}>{r.district}{r.period?` · ${r.period}`:""}</option>)}</select></div><Button className="mt-3" onClick={query} disabled={!county||!district||querying}>{querying?"查詢中...":"查詢市場資料"}</Button></SectionCard>}{catalog&&unavailable&&<SectionCard title="市場資料暫不可用"><p className="text-sm leading-6 text-slate-600">目前尚未取得可用的官方 PLVR 行政區聚合資料。</p><p className="mt-2 text-xs leading-5 text-amber-700">資料不足不代表價格較低、風險較低或適合購買；也不會顯示 mock 平均單價、交易量、趨勢、生活機能或 ESG 輔助分數。</p></SectionCard>}{result&&!availableResult&&<SectionCard title="此行政區暫無可用市場資料"><p className="text-sm leading-6 text-slate-600">{result.summary}</p><p className="mt-2 text-xs leading-5 text-amber-700">{result.caveat}</p></SectionCard>}{availableResult&&result&&<><div className="grid gap-3 md:grid-cols-3"><MetricTile label="平均單價" value={`${result.avg_price_per_ping} 萬 / 坪`} note={result.period??undefined}/><MetricTile label="交易量" value={result.transaction_volume}/><MetricTile label="彙整筆數" value={result.record_count??result.transaction_count??0}/></div><SectionCard title="資料來源與限制"><dl className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2"><div><dt className="font-bold text-slate-800">資料來源</dt><dd>{result.source_name}</dd></div><div><dt className="font-bold text-slate-800">更新時間</dt><dd>{result.source_updated_at}</dd></div><div><dt className="font-bold text-slate-800">涵蓋狀態</dt><dd>{result.coverage_status}</dd></div><div><dt className="font-bold text-slate-800">資料狀態</dt><dd>{result.data_status}</dd></div></dl></SectionCard><Notice tone="warning">{result.caveat}</Notice></>}</div>;
 }
 
 function AegisCredit() {

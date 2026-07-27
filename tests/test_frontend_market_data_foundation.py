@@ -17,7 +17,7 @@ SIDEBAR = (ROOT / "frontend_next/components/sidebar.tsx").read_text(encoding="ut
 
 def _market_insight_component() -> str:
     start = PAGE.index("function MarketInsight")
-    end = PAGE.index("function LegacyTextMarketInsight", start)
+    end = PAGE.index("function MarketInsightVisualResult", start)
     return PAGE[start:end]
 
 

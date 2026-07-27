@@ -35,7 +35,7 @@ def test_evidence_contract_includes_safe_metadata_and_limitations_for_all_states
 
 def test_market_page_does_not_transfer_results_or_add_storage() -> None:
     page = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
-    section = page.split("function MarketInsight(", 1)[1].split("function LegacyTextMarketInsight", 1)[0]
+    section = page.split("function MarketInsight(", 1)[1].split("function MarketInsightVisualResult", 1)[0]
     assert "sessionStorage" not in section
     assert "localStorage" not in section
     assert "document.cookie" not in section
