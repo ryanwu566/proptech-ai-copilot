@@ -10,7 +10,10 @@ export type MarketHistoryPoint = {
   transaction_count: number;
 };
 
+export type EvidenceKey = "source_name" | "source_updated_at" | "period" | "transaction_count" | "record_count" | "coverage_status" | "data_status" | "aggregation_method" | "caveat" | "disclaimer";
+
 export type EvidenceItem = {
+  key: EvidenceKey;
   label: string;
   value: string;
 };
@@ -65,25 +68,34 @@ export function formatMarketMetric(value: number | null | undefined, suffix = ""
 
 export function buildEvidenceItems(result: MarketResult | undefined): EvidenceItem[] {
   if (!result) return [];
-  const items: Array<[string, unknown]> = [
-    ["資料來源", result.source_name],
-    ["資料更新日期", result.source_updated_at],
-    ["資料期間", result.period],
-    ["交易筆數", result.transaction_count],
-    ["彙整紀錄數", result.record_count],
-    ["涵蓋狀態", result.coverage_status],
-    ["資料狀態", result.data_status],
-    ["彙整方法", result.aggregation_method],
+  const items: Array<[EvidenceKey, string, unknown]> = [
+    ["source_name", "資料來源", result.source_name],
+    ["source_updated_at", "資料更新日期", result.source_updated_at],
+    ["period", "資料期間", result.period],
+    ["transaction_count", "交易筆數", result.transaction_count],
+    ["record_count", "彙整紀錄數", result.record_count],
+    ["coverage_status", "涵蓋狀態", result.coverage_status],
+    ["data_status", "資料狀態", result.data_status],
+    ["aggregation_method", "彙整方法", result.aggregation_method],
+    ["caveat", "資料限制", result.caveat],
+    ["disclaimer", "使用提醒", result.disclaimer],
   ];
-  return items.flatMap(([label, value]) => {
+  return items.flatMap(([key, label, value]) => {
     if (value === null || value === undefined || value === "") return [];
-    return [{ label, value: String(value) }];
+    return [{ key, label, value: String(value) }];
   });
 }
 
 export function buildChartTextSummary(history: MarketHistoryPoint[]): string {
   if (history.length < 2) return "目前沒有足夠的有效期別資料可繪製趨勢。";
   return `已顯示 ${history.length} 個有效期別的平均單價與交易量趨勢。`;
+}
+
+export function selectChartLabelIndexes(count: number): number[] {
+  if (count <= 0) return [];
+  if (count <= 6) return Array.from({ length: count }, (_, index) => index);
+  const interval = count <= 12 ? 2 : count <= 24 ? 4 : 8;
+  return Array.from(new Set([0, ...Array.from({ length: Math.ceil((count - 1) / interval) }, (_, index) => Math.min(count - 1, (index + 1) * interval)), count - 1]));
 }
 
 export function buildMarketInsightVisualModel(result: MarketResult | undefined): MarketInsightVisualModel {

@@ -273,6 +273,102 @@ function PlaceCard({ place, label, selected, onSelect }: { place: NearbyPlace; l
 function MarketInsight({ onMap }: { onMap: () => void }) {
   const [county, setCounty] = useState("");
   const [district, setDistrict] = useState("");
+  const [result, setResult] = useState<MarketResult>();
+  const [querying, setQuerying] = useState(false);
+  const [error, setError] = useState("");
+  const marketQuerySeq = useRef(0);
+  const canonicalCounty = normalizeTaiwanCounty(county);
+  const canonicalDistrict = normalizeTaiwanDistrict(canonicalCounty, district);
+  const districtOptions = getDistrictsForCounty(canonicalCounty);
+
+  async function query() {
+    if (querying || !canonicalCounty) return;
+    const queryId = marketQuerySeq.current + 1;
+    marketQuerySeq.current = queryId;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 12000);
+    setQuerying(true);
+    setError("");
+    setResult(undefined);
+    try {
+      const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal);
+      if (marketQuerySeq.current === queryId) setResult(nextResult);
+    } catch (caught) {
+      if (marketQuerySeq.current === queryId) {
+        setError(caught instanceof Error && caught.name === "AbortError" ? "查詢逾時，請稍後再試。" : "市場資料暫時無法取得，請稍後再試。");
+        setResult({
+          city: canonicalCounty,
+          county: canonicalCounty,
+          district: canonicalDistrict,
+          period: null,
+          average_unit_price: null,
+          avg_price_per_ping: null,
+          transaction_count: null,
+          transaction_volume: null,
+          record_count: null,
+          summary: "市場資料暫時無法取得。",
+          source_name: null,
+          source_updated_at: null,
+          coverage_status: "coverage_unknown",
+          data_status: "unavailable",
+          caveat: "資料不足或暫時不可用不代表沒有交易或較低風險。",
+          disclaimer: "僅供市場背景參考，不影響估價、貸款、稅務、法律或看房結論。",
+          history: [],
+        });
+      }
+    } finally {
+      window.clearTimeout(timeout);
+      if (marketQuerySeq.current === queryId) setQuerying(false);
+    }
+  }
+
+  function updateCounty(value: string) {
+    marketQuerySeq.current += 1;
+    setCounty(normalizeTaiwanCounty(value));
+    setDistrict("");
+    setResult(undefined);
+    setError("");
+  }
+
+  function updateDistrict(value: string) {
+    marketQuerySeq.current += 1;
+    setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
+    setResult(undefined);
+    setError("");
+  }
+
+  const visualModel = buildMarketInsightVisualModel(result);
+  return <div className="space-y-5">
+    <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
+    <HelpCallout>市場行情不會自動影響估價、貸款、稅費、地勢風險、案件比較或看房決策。</HelpCallout>
+    {error && <ErrorState message={error} />}
+    <SectionCard title="查詢市場資料" description="選擇縣市與行政區後按下查詢；切換選項不會自動呼叫 API。">
+      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+        <label className="text-xs text-slate-500">縣市
+          <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+            <option value="">選擇縣市</option>
+            {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </label>
+        <label className="text-xs text-slate-500">行政區
+          <select value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
+            <option value="">{canonicalCounty ? "選擇行政區" : "請先選擇縣市"}</option>
+            {districtOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </label>
+        <div className="flex items-end"><button type="button" onClick={query} disabled={querying || !canonicalCounty} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? "正在查詢市場資料..." : "查詢市場資料"}</button></div>
+      </div>
+      {querying && <div className="mt-3"><LoadingState label="正在查詢市場資料..." /></div>}
+      <p className="mt-3 text-xs leading-5 text-slate-500">資料不足、未涵蓋或暫時不可用時，不會以零值、mock 數字或推估趨勢補齊。</p>
+    </SectionCard>
+    {result && <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} />}
+    {result && visualModel.state !== "available" && <div className="space-y-3"><EvidenceSummary items={visualModel.evidence} /><EvidenceDetails items={visualModel.evidence} /></div>}
+  </div>;
+}
+
+function LegacyMarketInsightOriginal({ onMap }: { onMap: () => void }) {
+  const [county, setCounty] = useState("");
+  const [district, setDistrict] = useState("");
   const [resultState, setResult] = useState<MarketResult>();
   const result = resultState as MarketResult;
   const [querying, setQuerying] = useState(false);
@@ -382,8 +478,7 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   </div>;
 }
 
-function MarketInsightVisualResult({ result, model, onMap }: { result?: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; onMap: () => void }) {
-  if (!result) return null;
+function MarketInsightVisualResult({ result, model, onMap }: { result: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; onMap: () => void }) {
   const isAvailable = model.state === "available";
   return <div className="space-y-5">
     <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與可展開的資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
