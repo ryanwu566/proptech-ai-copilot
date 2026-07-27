@@ -45,6 +45,8 @@ export type PropertyCaseDraftInput = {
   address?: string;
   propertyType?: string;
   listingPrice?: number | null;
+  confirmedValuationPrice?: number | null;
+  valuationTransferConfirmed?: boolean;
   floorAreaPing?: number | null;
   buildingAgeYears?: number | null;
   notes?: string;
@@ -168,12 +170,10 @@ export type PropertyCaseDraft = {
 export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new Date().toISOString()): PropertyCaseDraft {
   const address = input.address?.trim() || buildAddress(input.inputs);
   const caseName = input.caseName?.trim() || "";
+  const trustedTransfer = input.valuationTransferConfirmed === true && Boolean(input.valuation && isTrustedValuation(input.valuation));
   const listingPrice = finiteNumber(input.listingPrice)
     ?? finiteNumber(input.userEstimatedValue)
-    ?? input.valuation?.price_range.mid
-    ?? input.loan?.property_price_wan
-    ?? input.holding?.property_price_wan
-    ?? null;
+    ?? (trustedTransfer ? finiteNumber(input.confirmedValuationPrice) ?? finiteNumber(input.valuation?.price_range.mid) : null);
   const locationStatus = input.location ? dataQualityToStatus(input.location.data_quality.status) : "missing";
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
   const commuteStatus: PropertyCaseStatus = "missing";
@@ -191,11 +191,11 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
   const viewingOfferReadiness = buildViewingOfferReadiness(viewingLogs, viewingQuestions, offerPlans);
   const timelineReadiness = buildTimelineReadiness(timelineEvents, caseMilestones, input.executiveSummaryNote, input.finalReviewNote);
   const analysisStatus = {
-    property: input.propertySearch ? "completed" : "missing",
+    property: propertySearchStatus(input.propertySearch),
     location: locationStatus,
     terrain: terrainStatus,
     commute: commuteStatus,
-    valuation: input.valuation ? "completed" : "missing",
+    valuation: valuationStatus(input.valuation),
     loan: input.loan ? "completed" : "missing",
     holding: input.holding ? "completed" : "missing",
     tax: input.taxOracle ? "completed" : "missing",
@@ -206,17 +206,16 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     .filter(([, status]) => status === "unavailable" || status === "incomplete")
     .map(([key]) => key);
   const hasBasicCaseInfo = Boolean(caseName && address);
-  const hasLocationOrRiskResultOrStatus = Boolean(input.location || input.terrainRisk || analysisStatus.location || analysisStatus.terrain);
+  const hasLocationOrRiskResultOrStatus = Boolean(input.location || input.terrainRisk || address);
   const hasPriceOrFinanceResultOrStatus = Boolean(
     listingPrice ||
     input.valuation ||
     input.loan ||
     input.holding ||
     input.taxOracle ||
-    analysisStatus.valuation ||
-    analysisStatus.loan ||
-    analysisStatus.holding ||
-    analysisStatus.tax,
+    input.userEstimatedValue ||
+    input.userEstimatedTaxCost ||
+    analysisStatus.valuation === "missing",
   );
   const printReady = hasBasicCaseInfo && hasLocationOrRiskResultOrStatus && hasPriceOrFinanceResultOrStatus;
 
@@ -284,7 +283,7 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     analysis_summary: buildAnalysisSummary(input, analysisStatus),
     readiness: {
       draft_ready: hasBasicCaseInfo,
-      compare_ready: Boolean(hasBasicCaseInfo && listingPrice),
+      compare_ready: Boolean(hasBasicCaseInfo && (listingPrice || input.loan?.property_price_wan || input.holding?.property_price_wan)),
       print_ready: printReady,
       print_notice: printReady ? PARTIAL_CASE_PRINT_NOTICE : null,
       due_diligence: dueDiligenceReadiness.readiness,
@@ -328,6 +327,33 @@ function terrainToStatus(terrain: TerrainRiskResult): PropertyCaseStatus {
   if (terrain.data_quality.status === "unavailable" || terrain.overall.level === "unknown") return "unavailable";
   if (terrain.data_quality.status === "limited") return "incomplete";
   return "completed";
+}
+
+function valuationStatus(result?: ValuationResult): PropertyCaseStatus {
+  if (!result) return "missing";
+  if (isTrustedValuation(result)) return "completed";
+  const contract = result as ValuationResult & { valuation_status?: string; result_origin?: string };
+  return contract.valuation_status === "no_data" ? "incomplete" : "unavailable";
+}
+
+function propertySearchStatus(result?: PropertySearchResult): PropertyCaseStatus {
+  if (!result) return "missing";
+  const contract = result as PropertySearchResult & { search_status?: string; is_actionable?: boolean };
+  if (contract.search_status === "available" && contract.is_actionable === true && (result.summary.matched_count ?? 0) > 0) return "completed";
+  if (contract.search_status === "no_data") return "incomplete";
+  return "unavailable";
+}
+
+function isTrustedValuation(result: ValuationResult): boolean {
+  const contract = result as ValuationResult & { valuation_status?: string; result_origin?: string; is_actionable?: boolean };
+  const values = [result.estimate_total_price, result.estimate_unit_price_per_ping, result.price_range?.low, result.price_range?.mid, result.price_range?.high];
+  return contract.valuation_status === "available"
+    && contract.result_origin === "official"
+    && contract.is_actionable === true
+    && values.every((value) => typeof value === "number" && Number.isFinite(value) && value > 0)
+    && Array.isArray(result.comparables)
+    && result.comparables.length >= 3
+    && result.comparables.every((row) => row.source === "official_plvr_opendata");
 }
 
 function requiredMissing(
