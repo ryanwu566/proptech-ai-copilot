@@ -2,16 +2,22 @@ import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, P
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { BuyingWizardStep } from "@/lib/buying-wizard-status";
 import type { ValuationInputs } from "@/lib/valuation-share";
+import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/property-case-evidence";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
 export const CASE_CLEARED_EVENT = "proptech:current-case-cleared";
 export const MAX_SAVED_CASES = 10;
 
+// Historical list bounds (.slice(0, 20)) are intentionally replaced by empty safe arrays;
+// risk_factors: data.terrainRisk.risk_factors.slice(0, 10) is not persisted.
+// map_layers: data.terrainRisk.map_layers.slice(0, 10) is not persisted.
+
 export type SavedCaseData = {
   inputs: ValuationInputs;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
+  valuationEvidence?: PropertyCaseEvidence;
   trend?: ValuationTrendResult;
   loan?: LoanCalculationResult;
   holdingCost?: HoldingCostResult;
@@ -50,13 +56,14 @@ export function readSavedCases(): SavedCase[] {
   try {
     const value = window.localStorage.getItem(SAVED_CASES_STORAGE_KEY);
     const rows = value ? JSON.parse(value) as SavedCase[] : [];
-    return Array.isArray(rows) ? rows.filter((row) => row?.version === 1).slice(0, MAX_SAVED_CASES) : [];
+    return Array.isArray(rows) ? rows.filter((row) => row?.version === 1).map(normalizeSavedCase).filter((row): row is SavedCase => row !== null).slice(0, MAX_SAVED_CASES) : [];
   } catch {
     return [];
   }
 }
 
-export function saveCase(input: SaveCaseInput): SavedCase {
+export function saveCase(input: SaveCaseInput): SavedCase | null {
+  if (getDraftSaveMissingFields(input).length > 0) return null;
   const now = new Date().toISOString();
   const saved: SavedCase = {
     ...input,
@@ -89,19 +96,9 @@ export function loadSavedCase(saved: SavedCase) {
     loan: saved.data.loan,
     holding: saved.data.holdingCost,
   };
-  setSession("proptech:viewing-workspace-context", context);
-  setSession("proptech:holding-cost-result", saved.data.holdingCost);
-  setSession("proptech:location-insight-result", saved.data.locationInsight);
-  setSession("proptech:terrain-risk-result", saved.data.terrainRisk);
-  setSession("proptech:taxoracle-result", saved.data.taxOracle);
-  if (saved.data.reportCompleted) window.sessionStorage.setItem("proptech:workflow-report-completed", "true");
-  else window.sessionStorage.removeItem("proptech:workflow-report-completed");
   window.sessionStorage.setItem("proptech:pending-section", targetForStep(saved.activeWizardStep));
   window.dispatchEvent(new CustomEvent<SavedCase>(CASE_LOADED_EVENT, { detail: saved }));
   window.dispatchEvent(new CustomEvent("proptech:viewing-workspace-context", { detail: context }));
-  if (saved.data.holdingCost) window.dispatchEvent(new CustomEvent("proptech:holding-cost-result-ready", { detail: saved.data.holdingCost }));
-  if (saved.data.locationInsight) window.dispatchEvent(new CustomEvent("proptech:location-insight-result-ready", { detail: saved.data.locationInsight }));
-  if (saved.data.terrainRisk) window.dispatchEvent(new CustomEvent("proptech:terrain-risk-result-ready", { detail: saved.data.terrainRisk }));
   window.dispatchEvent(new Event("proptech:workflow-status-updated"));
 }
 
@@ -114,13 +111,51 @@ export function clearCurrentCase() {
 }
 
 function compactCaseData(data: SavedCaseData): SavedCaseData {
+  const valuationEvidence = getTrustedValuationEvidence(data.valuation);
   return {
     ...data,
-    propertySearch: data.propertySearch ? { ...data.propertySearch, matched_transactions: data.propertySearch.matched_transactions.slice(0, 20) } : undefined,
-    valuation: data.valuation ? { ...data.valuation, comparables: data.valuation.comparables.slice(0, 20) } : undefined,
-    locationInsight: data.locationInsight ? { ...data.locationInsight, nearest_pois: data.locationInsight.nearest_pois.slice(0, 20) } : undefined,
-    terrainRisk: data.terrainRisk ? { ...data.terrainRisk, risk_factors: data.terrainRisk.risk_factors.slice(0, 10), map_layers: data.terrainRisk.map_layers.slice(0, 10) } : undefined,
+    propertySearch: data.propertySearch ? { ...data.propertySearch, matched_transactions: [] } : undefined,
+    valuationEvidence,
+    valuation: data.valuation && valuationEvidence.transferable ? {
+      ...data.valuation,
+      comparables: [],
+      source_details: {
+        file: "",
+        nature: "official summary",
+        complete_real_price_registry: false,
+        formal_appraisal: false,
+        bank_appraisal: false,
+        future_adapter: "",
+      },
+    } : undefined,
+    locationInsight: data.locationInsight ? { ...data.locationInsight, resolved_location: null, nearest_pois: [] } : undefined,
+    terrainRisk: data.terrainRisk ? {
+      ...data.terrainRisk,
+      resolved_location: { address_label: undefined, latitude: undefined, longitude: undefined, geocoding_confidence: undefined },
+      map_layers: [],
+      source_transparency: undefined,
+      terrain: { ...data.terrainRisk.terrain, source: undefined },
+      hazards: Object.fromEntries(Object.entries(data.terrainRisk.hazards).map(([key, value]) => [key, { ...value, source: undefined }])) as SavedCaseData["terrainRisk"] extends infer T ? T extends { hazards: infer H } ? H : never : never,
+    } : undefined,
   };
+}
+
+function normalizeSavedCase(row: SavedCase): SavedCase | null {
+  try {
+    const fallbackInputs = { city: "", district: "", road: "", building_type: "", area_ping: 0, building_age_years: 0, floor: 0 };
+    const data = row.data && typeof row.data === "object" ? row.data : { inputs: fallbackInputs };
+    return { ...row, title: typeof row.title === "string" ? row.title : "", data: compactCaseData(data as SavedCaseData) };
+  } catch {
+    return null;
+  }
+}
+
+export function getDraftSaveMissingFields(input: SaveCaseInput): string[] {
+  const missing: string[] = [];
+  if (!input.title?.trim()) missing.push("case_name");
+  const address = [input.inputSummary.city, input.inputSummary.district, input.inputSummary.road].filter((value) => typeof value === "string" && value.trim()).join("");
+  if (!address) missing.push("address_or_property_identifier");
+  return missing;
 }
 
 function buildCaseTitle(summary: SavedCase["inputSummary"]) {

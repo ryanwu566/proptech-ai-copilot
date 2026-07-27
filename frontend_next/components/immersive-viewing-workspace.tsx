@@ -24,6 +24,7 @@ import { ViewingDecisionPanel } from "@/components/viewing-decision-panel";
 import { buildViewingDecision } from "@/lib/viewing-decision";
 import { PropertyCaseReadiness } from "@/components/property-case-readiness";
 import { buildPropertyCaseDraft } from "@/lib/property-case";
+import { getTrustedValuationEvidence } from "@/lib/property-case-evidence";
 
 export type WorkspaceContext = {
   inputs: ValuationInputs;
@@ -88,14 +89,14 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   };
   const stage = location && holdingResult && loan && valuation ? "complete" : location || holdingResult ? "location" : loan ? "loan" : valuation ? "valuation" : search ? "finder" : "start";
   function exportReport() {
-    if (!valuation) return;
+    if (!valuation || !getTrustedValuationEvidence(valuation).transferable) return;
     const html = buildValuationSummaryHtml(inputs, valuation, trend, search, loan, holdingResult, location, terrainRisk);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
     markWorkflowReportCompleted();
   }
   function exportSavedCase(saved: SavedCase) {
-    if (!saved.data.valuation) return;
+    if (!saved.data.valuation || saved.data.valuationEvidence?.transferable !== true) return;
     const html = buildValuationSummaryHtml(saved.data.inputs, saved.data.valuation, saved.data.trend, saved.data.propertySearch, saved.data.loan, saved.data.holdingCost, saved.data.locationInsight, saved.data.terrainRisk);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
@@ -103,13 +104,14 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   const currentCase = {
     activeWizardStep: activeWizardStep.id,
     progress: workflowStatus.overallProgress,
-    inputSummary: { city: inputs.city, district: inputs.district, road: inputs.road, budgetMin: search?.summary.budget_min, budgetMax: search?.summary.budget_max, propertyPrice: valuation?.price_range.mid ?? loan?.property_price_wan, areaPing: inputs.area_ping },
+    title: "",
+    inputSummary: { city: inputs.city, district: inputs.district, road: inputs.road, budgetMin: search?.summary.budget_min, budgetMax: search?.summary.budget_max, areaPing: inputs.area_ping },
     data: { inputs, propertySearch: search, valuation, trend, loan, holdingCost: holdingResult, locationInsight: location, terrainRisk, riskSummary, taxOracle: workflowSession.taxOracleResult, reportCompleted: workflowSession.reportCompleted },
   };
   const propertyCaseDraft = buildPropertyCaseDraft({ inputs, propertySearch: search, valuation, trend, loan, holding: holdingResult, location, terrainRisk, riskSummary, taxOracle: workflowSession.taxOracleResult });
   function saveCurrentCase() {
-    saveCase(currentCase);
-    setCaseMessage("案件已保存，下一步可匯出報告或繼續分析。");
+    const saved = saveCase(currentCase);
+    setCaseMessage(saved ? "案件已保存，下一步可繼續分析。" : "請先補齊案件名稱與物件地址／識別，再儲存草稿。");
   }
   function handleViewingDecisionNext(targetId: string) {
     document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
