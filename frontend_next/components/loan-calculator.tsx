@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { HoldingCostCalculator, HoldingCostPrefill } from "@/components/holding-cost-calculator";
 import { LocationInsight } from "@/components/location-insight";
 import { api, LoanCalculationResult } from "@/lib/api";
-import { Button, Notice } from "@/components/ui";
-import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
+import { Button } from "@/components/ui";
+import { ErrorState, SectionCard } from "@/components/product-ui";
 import { GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
-import { DetailDisclosure } from "@/components/detail-disclosure";
+import { buildLoanVisualModel } from "@/lib/loan-visualization";
+import { LoanVisualPanel } from "@/components/data-visualization/loan-visual-panel";
 
 
 export function LoanCalculator({
@@ -108,28 +109,8 @@ export function LoanCalculator({
 }
 
 function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult; onHoldingCost?: (result: LoanCalculationResult) => void }) {
-  const levelLabels: Record<string, string> = { comfortable: "舒適", manageable: "可管理", tight: "偏緊", risky: "風險偏高", unknown: "未評估" };
-  return <div className="min-w-0 space-y-4">
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      <MetricTile label="頭期款" value={`${result.down_payment_wan.toLocaleString()} 萬`} />
-      <MetricTile label="貸款金額" value={`${result.loan_amount_wan.toLocaleString()} 萬`} />
-      <MetricTile label="每月月付" value={`${result.monthly_payment.toLocaleString()} 元`} note={result.grace_period_years ? "寬限期後本息月付" : undefined} />
-      <MetricTile label="總還款" value={`${result.total_payment.toLocaleString()} 元`} />
-      <MetricTile label="總利息" value={`${result.total_interest.toLocaleString()} 元`} />
-      <MetricTile label="月收入負擔率" value={result.income_burden_ratio === null ? "未輸入收入" : `${(result.income_burden_ratio * 100).toFixed(1)}%`} note={levelLabels[result.affordability_level]} />
-    </div>
-    {result.grace_period_years > 0 && <div className="grid gap-3 sm:grid-cols-2"><MetricTile label="寬限期內月付" value={`${(result.grace_period_monthly_payment ?? 0).toLocaleString()} 元`} note="僅繳利息" /><MetricTile label="寬限期後月付" value={`${(result.post_grace_monthly_payment ?? 0).toLocaleString()} 元`} note="剩餘期間本息攤還" /></div>}
-    <Notice>{result.affordability_message}</Notice>
-    {onHoldingCost && <Button secondary className="w-full sm:w-auto" onClick={() => onHoldingCost(result)}>帶入持有成本</Button>}
-    <DetailDisclosure title="查看利率敏感度詳細表">
-      <p className="mb-2 text-xs font-bold text-slate-800">利率敏感度</p>
-      <p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p>
-      <div className="max-w-full touch-pan-x overflow-x-auto">
-        <table className="w-full min-w-[620px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">年利率</th><th>月付</th><th>總利息</th><th>相對基準月付差</th></tr></thead><tbody>{result.sensitivity.map((item) => <tr key={item.annual_interest_rate} className="border-t border-stone-100"><td className="p-2">{item.annual_interest_rate.toFixed(2)}%</td><td>{item.monthly_payment.toLocaleString()} 元</td><td>{item.total_interest.toLocaleString()} 元</td><td>{formatDifference(item.difference_from_base)}</td></tr>)}</tbody></table>
-      </div>
-    </DetailDisclosure>
-    <p className="text-[10px] leading-5 text-amber-700">{result.disclaimer}</p>
-  </div>;
+  const model = buildLoanVisualModel(result);
+  return <LoanVisualPanel model={model} onHoldingCost={onHoldingCost ? () => onHoldingCost(result) : undefined} />;
 }
 
 function LoanNumberField({ label, value, onChange, min, max, step }: { label: string; value: number; onChange: (value: number) => void; min: number; max?: number; step?: number }) {

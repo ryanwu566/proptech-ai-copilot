@@ -6,6 +6,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 COMPONENT = (ROOT / "frontend_next" / "components" / "loan-calculator.tsx").read_text(encoding="utf-8")
+COMPONENT += (ROOT / "frontend_next" / "components" / "data-visualization" / "loan-visual-panel.tsx").read_text(encoding="utf-8") + (ROOT / "frontend_next" / "components" / "data-visualization" / "calculation-evidence-details.tsx").read_text(encoding="utf-8") + (ROOT / "frontend_next" / "lib" / "loan-visualization.ts").read_text(encoding="utf-8")
+COMPONENT += (ROOT / "frontend_next" / "components" / "data-visualization" / "affordability-status.tsx").read_text(encoding="utf-8")
+COMPONENT += (ROOT / "frontend_next" / "components" / "data-visualization" / "loan-sensitivity-chart.tsx").read_text(encoding="utf-8")
 FINDER = (ROOT / "frontend_next" / "components" / "property-finder.tsx").read_text(encoding="utf-8")
 API = (ROOT / "frontend_next" / "lib" / "api.ts").read_text(encoding="utf-8")
 SHARE = (ROOT / "frontend_next" / "lib" / "valuation-share.ts").read_text(encoding="utf-8")
@@ -19,11 +22,11 @@ def test_loan_calculator_form_and_api_client_exist() -> None:
 
 
 def test_loan_results_and_sensitivity_are_visible() -> None:
-    for text in ("頭期款", "貸款金額", "每月月付", "總還款", "總利息", "月收入負擔率", "利率敏感度"):
+    for text in ("頭期款", "貸款金額", "每月月付", "總還款", "總利息", "收入負擔狀態", "利率敏感度"):
         assert text in COMPONENT
     assert "overflow-x-auto" in COMPONENT
     assert "min-w-[620px]" in COMPONENT
-    assert "grid gap-3 sm:grid-cols-2 xl:grid-cols-3" in COMPONENT
+    assert "grid gap-3 sm:grid-cols-2" in COMPONENT
 
 
 def test_valuation_and_property_finder_can_fill_loan_without_auto_submit() -> None:

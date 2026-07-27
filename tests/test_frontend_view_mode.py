@@ -12,6 +12,8 @@ WIZARD = (ROOT / "frontend_next" / "components" / "buying-wizard.tsx").read_text
 FINDER = (ROOT / "frontend_next" / "components" / "property-finder.tsx").read_text(encoding="utf-8")
 LOAN = (ROOT / "frontend_next" / "components" / "loan-calculator.tsx").read_text(encoding="utf-8")
 HOLDING = (ROOT / "frontend_next" / "components" / "holding-cost-calculator.tsx").read_text(encoding="utf-8")
+LOAN += (ROOT / "frontend_next" / "components" / "data-visualization" / "calculation-evidence-details.tsx").read_text(encoding="utf-8")
+HOLDING += (ROOT / "frontend_next" / "components" / "data-visualization" / "holding-cost-visual-panel.tsx").read_text(encoding="utf-8")
 LOCATION = (ROOT / "frontend_next" / "components" / "location-insight.tsx").read_text(encoding="utf-8")
 COMPARE = (ROOT / "frontend_next" / "components" / "case-comparison-panel.tsx").read_text(encoding="utf-8")
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
@@ -45,8 +47,8 @@ def test_detail_disclosure_collapses_beginner_and_expands_pro() -> None:
 def test_major_technical_tables_use_disclosure() -> None:
     for source, text in (
         (FINDER, "查看完整成交樣本"),
-        (LOAN, "查看利率敏感度詳細表"),
-        (HOLDING, "查看每月成本明細"),
+        (LOAN, "查看貸款計算依據與完整敏感度表"),
+        (HOLDING, "查看完整成本明細與計算假設"),
         (LOCATION, "查看最近 POI 詳細表"),
         (LOCATION, "查看資料品質與限制"),
         (COMPARE, "查看案件比較完整表"),
