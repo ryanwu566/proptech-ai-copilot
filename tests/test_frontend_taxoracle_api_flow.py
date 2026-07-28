@@ -5,6 +5,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+TAX_VISUAL = (ROOT / "frontend_next" / "components" / "data-visualization" / "tax-decision-visual-panel.tsx").read_text(encoding="utf-8")
+PAGE += TAX_VISUAL
 API = (ROOT / "frontend_next" / "lib" / "api.ts").read_text(encoding="utf-8")
 STEPPER = (ROOT / "frontend_next" / "components" / "workflow-stepper.tsx").read_text(encoding="utf-8")
 
@@ -32,18 +34,18 @@ def test_taxoracle_has_demo_and_custom_case_inputs() -> None:
 def test_taxoracle_loading_error_result_and_report_states_are_clear() -> None:
     for text in (
         "正在檢核 TX001–TX009", "稅務快篩 API 呼叫失敗，請稍後再試",
-        "未通過規則", "需複核規則", "通過規則", "命中規則與下一步",
+        "未通過規則", "需複核規則", "通過規則", "關鍵命中規則",
         "請先完成稅務快篩才能輸出報告", "下載 TaxOracle HTML 報告",
     ):
         assert text in PAGE
-    assert "disabled={downloading}" in PAGE
+    assert "disabled={downloading || !taxCase}" in PAGE
     assert "isRunning" in PAGE
 
 
 def test_taxoracle_rule_trace_and_step_status_are_interactive() -> None:
     assert "<details" in PAGE
     assert "row.detail" in PAGE
-    assert "setTab(\"規則追蹤\")" in PAGE
+    assert "setTab(\"原因\")" in PAGE
     assert "activeStep" in PAGE
     assert "activeStep?: number" in STEPPER
     assert "markTaxOracleCompleted(next)" in PAGE

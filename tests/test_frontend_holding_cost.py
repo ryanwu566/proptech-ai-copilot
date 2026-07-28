@@ -6,7 +6,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 COMPONENT = (ROOT / "frontend_next" / "components" / "holding-cost-calculator.tsx").read_text(encoding="utf-8")
+COMPONENT += (ROOT / "frontend_next" / "components" / "data-visualization" / "holding-cost-visual-panel.tsx").read_text(encoding="utf-8")
+COMPONENT += (ROOT / "frontend_next" / "components" / "data-visualization" / "holding-cost-breakdown-chart.tsx").read_text(encoding="utf-8")
+COMPONENT += (ROOT / "frontend_next" / "components" / "data-visualization" / "affordability-status.tsx").read_text(encoding="utf-8")
 LOAN = (ROOT / "frontend_next" / "components" / "loan-calculator.tsx").read_text(encoding="utf-8")
+LOAN += (ROOT / "frontend_next" / "components" / "data-visualization" / "loan-visual-panel.tsx").read_text(encoding="utf-8")
 FINDER = (ROOT / "frontend_next" / "components" / "property-finder.tsx").read_text(encoding="utf-8")
 API = (ROOT / "frontend_next" / "lib" / "api.ts").read_text(encoding="utf-8")
 SHARE = (ROOT / "frontend_next" / "lib" / "valuation-share.ts").read_text(encoding="utf-8")
@@ -20,11 +24,11 @@ def test_holding_cost_form_and_api_client_exist() -> None:
 
 
 def test_holding_cost_results_and_mobile_breakdown_exist() -> None:
-    for text in ("每月總持有成本", "年持有成本", "月收入負擔率", "每月成本 breakdown", "管理費", "修繕預備金", "稅費", "保險"):
+    for text in ("每月總持有成本", "年持有成本", "月收入負擔率", "每月成本組成", "管理費", "修繕預備金", "稅費", "保險"):
         assert text in COMPONENT
     assert "overflow-x-auto" in COMPONENT
     assert "min-w-[520px]" in COMPONENT
-    assert "grid gap-3 sm:grid-cols-2 xl:grid-cols-3" in COMPONENT
+    assert "grid gap-3 sm:grid-cols-2" in COMPONENT
 
 
 def test_loan_valuation_and_property_finder_can_prefill_holding_cost() -> None:
