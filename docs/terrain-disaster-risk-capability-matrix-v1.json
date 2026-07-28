@@ -1,0 +1,355 @@
+[
+  {
+    "hazard_id": "terrain",
+    "display_name": "地形／坡度",
+    "capability_state": "unavailable",
+    "provider_present": true,
+    "provider_kind": "placeholder",
+    "source_name": "NLSC 國土測繪中心地形圖資",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "unknown",
+    "coverage_proven": false,
+    "spatial_matching_method": "座標輸入後預留點位分析；目前 provider 明確回傳 unavailable",
+    "geocoding_dependency": "地址、縣市、行政區或路段由既有 map_service.search_location 解析；也可直接提供座標",
+    "freshness_available": false,
+    "source_version_available": false,
+    "failure_state": "unavailable；未設定可合法直接查詢單點坡度／高程的官方 API",
+    "no_match_state": "not_assessed；不可由 unavailable 推論未命中或低風險",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "既有 terrainRisk runtime/session 與案件資料流存在，需後續重新確認邊界",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/nlsc_terrain_provider.py",
+      "services/terrain_risk_service.py",
+      "backend/api/routes_terrain_risk.py",
+      "frontend_next/components/terrain-risk-analysis.tsx",
+      "tests/test_terrain_risk_service.py"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_service.py",
+      "tests/test_terrain_risk_api.py",
+      "tests/test_frontend_terrain_risk.py"
+    ],
+    "confirmed_gaps": [
+      "沒有 repository 內資料資產",
+      "沒有可證明的覆蓋範圍與 freshness",
+      "production 查詢路徑未由本 audit 驗證"
+    ]
+  },
+  {
+    "hazard_id": "slope",
+    "display_name": "坡度",
+    "capability_state": "unavailable",
+    "provider_present": true,
+    "provider_kind": "placeholder",
+    "source_name": "NLSC 國土測繪中心地形圖資",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "unknown",
+    "coverage_proven": false,
+    "spatial_matching_method": "預留座標點位查詢；目前沒有可執行單點坡度結果",
+    "geocoding_dependency": "既有地址定位或直接座標",
+    "freshness_available": false,
+    "source_version_available": false,
+    "failure_state": "unavailable；NlscTerrainProvider 固定回傳 unavailable",
+    "no_match_state": "not_assessed；沒有可用結果時不表示未命中",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "隨 terrainRisk 欄位存在既有傳遞路徑；未證明為可信證據",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/nlsc_terrain_provider.py",
+      "services/terrain_risk_service.py",
+      "frontend_next/components/terrain-risk-analysis.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_providers.py",
+      "tests/test_frontend_terrain_risk.py"
+    ],
+    "confirmed_gaps": [
+      "沒有點位查詢資料與版本日期",
+      "全臺覆蓋未知"
+    ]
+  },
+  {
+    "hazard_id": "elevation",
+    "display_name": "高程／地形",
+    "capability_state": "unavailable",
+    "provider_present": true,
+    "provider_kind": "placeholder",
+    "source_name": "NLSC 國土測繪中心地形圖資",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "unknown",
+    "coverage_proven": false,
+    "spatial_matching_method": "預留座標點位查詢；目前 elevation_m 為 unavailable 結果",
+    "geocoding_dependency": "既有地址定位或直接座標",
+    "freshness_available": false,
+    "source_version_available": false,
+    "failure_state": "unavailable；目前沒有可合法直接查詢單點高程的官方 API",
+    "no_match_state": "not_assessed；不可由空值推論無高程風險",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "僅隨既有 terrainRisk 結果流動，未有獨立可信 transfer guard 證據",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/nlsc_terrain_provider.py",
+      "services/terrain_risk_service.py",
+      "frontend_next/components/data-visualization/terrain-status-matrix.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_service.py",
+      "tests/test_terrain_risk_transparency.py"
+    ],
+    "confirmed_gaps": [
+      "沒有高程資料資產、日期或版本",
+      "空間覆蓋未知"
+    ]
+  },
+  {
+    "hazard_id": "flood",
+    "display_name": "淹水潛勢",
+    "capability_state": "unavailable",
+    "provider_present": true,
+    "provider_kind": "placeholder",
+    "source_name": "淹水潛勢與防災資訊（經濟部水利署）",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "unknown",
+    "coverage_proven": false,
+    "spatial_matching_method": "預留座標與半徑查詢；目前 provider 不執行資料查詢",
+    "geocoding_dependency": "既有地址定位或直接座標",
+    "freshness_available": false,
+    "source_version_available": false,
+    "failure_state": "unavailable；未設定可合法直接查詢座標淹水級距的官方 API",
+    "no_match_state": "not_assessed；不可把未查詢解讀為沒有淹水",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "既有 terrainRisk 資料可能進入案件資料流；本矩陣不授權自動轉入",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/wra_flood_provider.py",
+      "services/terrain_risk_service.py",
+      "frontend_next/components/terrain-risk-analysis.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_providers.py",
+      "tests/test_terrain_risk_service.py",
+      "tests/test_terrain_risk_api.py"
+    ],
+    "confirmed_gaps": [
+      "沒有實際淹水資料資產或查詢結果",
+      "沒有更新日期、版本與涵蓋證據"
+    ]
+  },
+  {
+    "hazard_id": "liquefaction",
+    "display_name": "土壤液化",
+    "capability_state": "unavailable",
+    "provider_present": true,
+    "provider_kind": "placeholder",
+    "source_name": "地質雲與地質敏感圖資（經濟部地質調查及礦業管理中心）",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "unknown",
+    "coverage_proven": false,
+    "spatial_matching_method": "預留座標與半徑查詢；目前 provider 固定回傳 unavailable",
+    "geocoding_dependency": "既有地址定位或直接座標",
+    "freshness_available": false,
+    "source_version_available": false,
+    "failure_state": "unavailable；未設定可合法直接比對座標的官方圖資查詢 API",
+    "no_match_state": "not_assessed；不可把沒有查詢結果解讀為未命中",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "既有 terrainRisk 資料流存在，但未有可用正式證據",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/geologycloud_provider.py",
+      "services/terrain_risk_service.py",
+      "frontend_next/components/data-visualization/terrain-status-matrix.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_providers.py",
+      "tests/test_terrain_risk_transparency.py"
+    ],
+    "confirmed_gaps": [
+      "沒有液化資料資產、版本與日期",
+      "無法證明全臺涵蓋"
+    ]
+  },
+  {
+    "hazard_id": "landslide",
+    "display_name": "山崩與地滑／大規模崩塌",
+    "capability_state": "partial",
+    "provider_present": true,
+    "provider_kind": "live_external",
+    "source_name": "農業部農村發展及水土保持署官方 MVT",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "MVT 圖磚查詢範圍；全臺覆蓋未由 repository 證明",
+    "coverage_proven": false,
+    "spatial_matching_method": "座標轉 MVT tile，解析圖形後以點、線或多邊形與半徑匹配",
+    "geocoding_dependency": "既有地址定位；也可直接提供座標",
+    "freshness_available": false,
+    "source_version_available": true,
+    "failure_state": "error 或 limited；decoder 缺失、tile 逾時與部分 tile 失敗均保留失敗狀態",
+    "no_match_state": "available 且 matched=false 時 level=unknown，不等於 no-risk",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "既有結果可隨 terrainRisk 進入 runtime/session 與案件資料流；需後續建立明確可信 evidence guard",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/ardswc_slope_hazard_provider.py",
+      "services/terrain_risk_service.py",
+      "backend/api/routes_terrain_risk.py",
+      "frontend_next/components/terrain-risk-analysis.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_providers.py",
+      "tests/test_terrain_risk_service.py",
+      "tests/test_terrain_risk_transparency.py"
+    ],
+    "confirmed_gaps": [
+      "沒有 repository 內快照資料資產",
+      "全臺覆蓋與 production 執行結果未驗證",
+      "資料日期只有年度字串，非完整 freshness"
+    ]
+  },
+  {
+    "hazard_id": "debris_flow",
+    "display_name": "土石流潛勢溪流",
+    "capability_state": "partial",
+    "provider_present": true,
+    "provider_kind": "live_external",
+    "source_name": "農業部農村發展及水土保持署官方 MVT",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "MVT 圖磚查詢範圍；全臺覆蓋未由 repository 證明",
+    "coverage_proven": false,
+    "spatial_matching_method": "座標轉 MVT tile，解析線與多邊形後以點、線或多邊形與半徑匹配",
+    "geocoding_dependency": "既有地址定位；也可直接提供座標",
+    "freshness_available": false,
+    "source_version_available": true,
+    "failure_state": "error 或 limited；HTTP、decoder 與部分 tile 失敗不會被轉成未命中",
+    "no_match_state": "available 且 matched=false 時 level=unknown，前端保留資料限制",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "既有結果可進 terrainRisk 資料流；本 audit 不將其視為可供案件決策的 trusted evidence",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/ardswc_slope_hazard_provider.py",
+      "services/terrain_risk_service.py",
+      "frontend_next/components/data-visualization/terrain-status-matrix.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_providers.py",
+      "tests/test_terrain_risk_service.py",
+      "tests/test_frontend_terrain_risk_transparency.py"
+    ],
+    "confirmed_gaps": [
+      "沒有 repository 內快照資料資產",
+      "沒有全臺 coverage proof",
+      "沒有完整資料 freshness 欄位"
+    ]
+  },
+  {
+    "hazard_id": "active_fault",
+    "display_name": "活動斷層",
+    "capability_state": "unavailable",
+    "provider_present": true,
+    "provider_kind": "placeholder",
+    "source_name": "地質雲與地質敏感圖資（經濟部地質調查及礦業管理中心）",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "unknown",
+    "coverage_proven": false,
+    "spatial_matching_method": "預留座標與半徑查詢；目前沒有可用官方座標比對結果",
+    "geocoding_dependency": "既有地址定位或直接座標",
+    "freshness_available": false,
+    "source_version_available": false,
+    "failure_state": "unavailable；GeologyCloudProvider 明確回傳 unavailable",
+    "no_match_state": "not_assessed；不得把來源不可用當成未命中",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "既有 terrainRisk 欄位可能被保存；未授權自動轉入案件決策",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/geologycloud_provider.py",
+      "services/terrain_risk_service.py",
+      "frontend_next/components/terrain-risk-analysis.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_providers.py",
+      "tests/test_terrain_risk_service.py",
+      "tests/test_frontend_terrain_risk.py"
+    ],
+    "confirmed_gaps": [
+      "沒有活動斷層資料資產或版本日期",
+      "沒有可證明的空間 coverage"
+    ]
+  },
+  {
+    "hazard_id": "geological_sensitivity",
+    "display_name": "地質敏感區",
+    "capability_state": "unavailable",
+    "provider_present": true,
+    "provider_kind": "placeholder",
+    "source_name": "地質雲與地質敏感圖資（經濟部地質調查及礦業管理中心）",
+    "official_source_proven": true,
+    "data_asset_present": false,
+    "coverage_scope": "unknown",
+    "coverage_proven": false,
+    "spatial_matching_method": "預留座標與半徑查詢；目前未設定直接比對 API",
+    "geocoding_dependency": "既有地址定位或直接座標",
+    "freshness_available": false,
+    "source_version_available": false,
+    "failure_state": "unavailable；來源查詢沒有被實際設定",
+    "no_match_state": "not_assessed；不產生無風險判定",
+    "unknown_preserved": true,
+    "not_assessed_preserved": true,
+    "unavailable_preserved": true,
+    "frontend_present": true,
+    "evidence_metadata_present": true,
+    "property_case_transfer": "隨 terrainRisk 結果存在既有資料流；尚無可用可信證據",
+    "decision_effect": "reference_only",
+    "supporting_files": [
+      "services/terrain_risk_providers/geologycloud_provider.py",
+      "services/terrain_risk_service.py",
+      "frontend_next/components/data-visualization/terrain-status-matrix.tsx"
+    ],
+    "supporting_tests": [
+      "tests/test_terrain_risk_providers.py",
+      "tests/test_terrain_risk_transparency.py"
+    ],
+    "confirmed_gaps": [
+      "沒有實際地質敏感區資料 asset",
+      "coverage、freshness 與 source version 未知"
+    ]
+  }
+]
