@@ -5,8 +5,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = (ROOT / "frontend_next/lib/guided-journey.ts").read_text(encoding="utf-8")
+LOCATION_HELPER = (ROOT / "frontend_next/lib/location-market-journey.ts").read_text(encoding="utf-8")
 JOURNEY_DIR = ROOT / "frontend_next/components/guided-journey"
 PAGE = (ROOT / "frontend_next/app/page.tsx").read_text(encoding="utf-8")
+LOCATION_STAGE = (ROOT / "frontend_next/components/guided-journey/location-market-stage.tsx").read_text(encoding="utf-8")
 
 
 def test_pure_helper_has_no_data_or_storage_boundary() -> None:
@@ -26,8 +28,9 @@ def test_home_journey_keeps_conservative_product_boundaries() -> None:
     journey_section = PAGE.split("function renderJourneyStep", 1)[1].split("return <AppShell", 1)[0]
     for forbidden in ("最佳物件", "AI 幫你決定", "投資排名", "推薦購買", "winner"):
         assert forbidden not in journey_section
-    for marker in ("不影響其他決策", "不代表安全", "只作研究與背景參考", "不代表銀行核貸", "不代表法律或主管機關認定"):
-        assert marker in journey_section
+    for marker in ("不代表沒有風險", "市場資料僅供研究參考", "不代表銀行核貸", "不代表法律或主管機關認定"):
+        assert marker in journey_section or marker in PAGE or marker in LOCATION_STAGE or marker in LOCATION_HELPER
+    assert "通勤資訊只供生活安排參考" in LOCATION_STAGE
     assert "不會自動執行估價或保存案件" in journey_section
 
 

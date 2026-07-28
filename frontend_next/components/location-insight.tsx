@@ -27,7 +27,7 @@ export function prefillLocationInsight(prefill: LocationInsightPrefill) {
   window.dispatchEvent(new CustomEvent<LocationInsightPrefill>(LOCATION_INSIGHT_PREFILL_EVENT, { detail: prefill }));
 }
 
-export function LocationInsight({ onMap }: { onMap?: () => void }) {
+export function LocationInsight({ onMap, onContextChange, onResult, embeddedJourney = false }: { onMap?: () => void; onContextChange?: (context: LocationInsightPrefill) => void; onResult?: (result: LocationInsightResult | null) => void; embeddedJourney?: boolean }) {
   const [city, setCity] = useState("台北市");
   const [district, setDistrict] = useState("大安區");
   const [road, setRoad] = useState("和平東路二段");
@@ -43,6 +43,7 @@ export function LocationInsight({ onMap }: { onMap?: () => void }) {
   function invalidateLocationFlow() {
     setResult(undefined);
     setError("");
+    onResult?.(null);
     window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
     window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY);
   }
@@ -57,11 +58,12 @@ export function LocationInsight({ onMap }: { onMap?: () => void }) {
       setPropertyPrice(detail.property_price ?? "");
       setAreaPing(detail.area_ping ?? "");
       setBuildingType(detail.building_type ?? "");
+      onContextChange?.(detail);
       invalidateLocationFlow();
     }
     window.addEventListener(LOCATION_INSIGHT_PREFILL_EVENT, applyPrefill);
     return () => window.removeEventListener(LOCATION_INSIGHT_PREFILL_EVENT, applyPrefill);
-  }, []);
+  }, [onContextChange]);
 
   useEffect(() => {
     function applyResult(event: Event) {
@@ -87,6 +89,7 @@ export function LocationInsight({ onMap }: { onMap?: () => void }) {
         use_existing_poi_sources: true,
       });
       setResult(next);
+      onResult?.(next);
       window.sessionStorage.setItem(LOCATION_INSIGHT_SESSION_KEY, JSON.stringify(next));
       window.dispatchEvent(new CustomEvent<LocationInsightResult>(LOCATION_INSIGHT_RESULT_EVENT, { detail: next }));
     } catch (caught) {
@@ -94,6 +97,10 @@ export function LocationInsight({ onMap }: { onMap?: () => void }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  function emitContext(overrides: LocationInsightPrefill = {}) {
+    onContextChange?.({ city, district, road, address, property_price: propertyPrice === "" ? undefined : propertyPrice, area_ping: areaPing === "" ? undefined : areaPing, building_type: buildingType, ...overrides });
   }
 
   const inputClass = "mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm";
@@ -106,10 +113,10 @@ export function LocationInsight({ onMap }: { onMap?: () => void }) {
     </div>
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
-        <label className="text-xs text-slate-500">物件地址<input className={inputClass} value={address} onChange={(event) => { setAddress(event.target.value); invalidateLocationFlow(); }} placeholder="請輸入完整物件地址" /></label>
+        <label className="text-xs text-slate-500">物件地址<input className={inputClass} value={address} onChange={(event) => { const value = event.target.value; setAddress(value); emitContext({ address: value }); invalidateLocationFlow(); }} placeholder="請輸入完整物件地址" /></label>
         <label className="text-xs text-slate-500">分析半徑（公尺）<input type="number" min="100" max="1500" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
-        <label className="text-xs text-slate-500">房屋總價（萬元，可選）<input type="number" min="0" className={inputClass} value={propertyPrice} onChange={(event) => setPropertyPrice(event.target.value === "" ? "" : Number(event.target.value))} /></label>
-        <label className="text-xs text-slate-500">坪數（可選）<input type="number" min="0" className={inputClass} value={areaPing} onChange={(event) => setAreaPing(event.target.value === "" ? "" : Number(event.target.value))} /></label>
+        <label className="text-xs text-slate-500">房屋總價（萬元，可選）<input type="number" min="0" className={inputClass} value={propertyPrice} onChange={(event) => { const value = event.target.value === "" ? "" : Number(event.target.value); setPropertyPrice(value); emitContext({ property_price: value === "" ? undefined : value }); }} /></label>
+        <label className="text-xs text-slate-500">坪數（可選）<input type="number" min="0" className={inputClass} value={areaPing} onChange={(event) => { const value = event.target.value === "" ? "" : Number(event.target.value); setAreaPing(value); emitContext({ area_ping: value === "" ? undefined : value }); }} /></label>
         <Button className="w-full" disabled={loading || !address.trim()} onClick={analyze}>{loading ? "分析中..." : "開始位置分析"}</Button>
         {!address.trim() && <p className="text-[10px] leading-5 text-amber-700">請先輸入完整物件地址。</p>}
         {address.trim() && !result && !loading && <p className="text-[10px] leading-5 text-slate-500">地址變更後，舊的位置洞察、地勢與通勤結果會失效；請重新按下開始位置分析。</p>}
@@ -120,20 +127,20 @@ export function LocationInsight({ onMap }: { onMap?: () => void }) {
       </div>
     </div>
   </SectionCard>
-    <details className="rounded-xl border border-stone-200 bg-white" open={Boolean(result?.resolved_location)}>
+    {!embeddedJourney && <details className="rounded-xl border border-stone-200 bg-white" open={Boolean(result?.resolved_location)}>
       <summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">地勢／災害風險</summary>
       <div className="border-t border-stone-100 p-4"><TerrainRiskAnalysis location={result} compactFromLocation resetKey={address} /></div>
-    </details>
-    <details className="rounded-xl border border-stone-200 bg-white">
+    </details>}
+    {!embeddedJourney && <details className="rounded-xl border border-stone-200 bg-white">
       <summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">通勤與生活機能</summary>
       <div className="border-t border-stone-100 p-4"><CommuteLivabilityCard address={address} /></div>
-    </details>
-    <div className="rounded-xl border border-stone-200 bg-white p-4">
+    </details>}
+    {!embeddedJourney && <div className="rounded-xl border border-stone-200 bg-white p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div><p className="text-xs font-bold text-slate-900">在地圖查看</p><p className="mt-1 text-[11px] leading-5 text-slate-500">前往既有地圖洞察頁；目前不在工作台預先載入大型地圖，也不偽造地址同步。</p></div>
         <Button secondary className="w-full sm:w-auto" onClick={onMap}>在地圖查看</Button>
       </div>
-    </div>
+    </div>}
   </div>;
 }
 

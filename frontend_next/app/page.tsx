@@ -45,7 +45,9 @@ import { buildViewingDecision, type ViewingDecision } from "@/lib/viewing-decisi
 import { TAIWAN_COUNTIES, getDistrictsForCounty, normalizeTaiwanCounty, normalizeTaiwanDistrict } from "@/lib/taiwan-admin-areas";
 import { GuidedPropertyJourney } from "@/components/guided-journey/guided-property-journey";
 import { JourneyToolCard } from "@/components/guided-journey/journey-tool-card";
-import type { JourneyStepId } from "@/lib/guided-journey";
+import { LocationMarketStage } from "@/components/guided-journey/location-market-stage";
+import type { JourneyRenderActions, JourneyStepId } from "@/lib/guided-journey";
+import type { JourneyPropertyContext, LocationMarketDisplayStatus } from "@/lib/location-market-journey";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -57,9 +59,9 @@ export default function Home() {
   useEffect(() => { const open=()=>setPage("TaxOracle");window.addEventListener(OPEN_TAXORACLE_EVENT,open);return()=>window.removeEventListener(OPEN_TAXORACLE_EVENT,open);}, []);
   const openTax = (caseId = "") => { setRequestedCase(caseId); setPage("TaxOracle"); };
   const openViewingFlow = (target: string) => { window.sessionStorage.setItem("proptech:pending-section", target); setPage("房價估算"); };
-  function renderJourneyStep(step: JourneyStepId) {
+  function renderJourneyStep(step: JourneyStepId, actions: JourneyRenderActions) {
     if (step === "property") return <div className="space-y-4"><JourneyToolCard title="先找到一間可以進一步分析的房子" productLabel="Property Finder · Property Search" description="輸入預算、地點與坪數，從官方歷史成交中找出看屋方向；不會自動執行估價或保存案件。" onOpen={() => openViewingFlow("property-finder")} primary /><p className="rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">完成選擇後，請使用既有的「帶入估價」、「帶入貸款」或「分析區位」按鈕前往下一步。</p></div>;
-    if (step === "location") return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="查看生活機能與位置" productLabel="Location Insight" description="手動分析附近生活機能與資料品質。" onOpen={() => openViewingFlow("location-insight-calculator")} primary /><JourneyToolCard title="查看通勤參考" productLabel="Commute Livability" description="從位置流程查看最近捷運與生活機能參考，不影響其他決策。" onOpen={() => openViewingFlow("location-insight-calculator")} /><JourneyToolCard title="查看地勢與災害資料" productLabel="Terrain Risk" description="資料不足或未評估時維持保守狀態，不代表安全。" onOpen={() => openViewingFlow("terrain-risk-analysis")} /><JourneyToolCard title="查看區域市場背景" productLabel="Market Insight" description="官方市場資料只作研究與背景參考，不形成總分或推薦。" onOpen={() => setPage("Market Insight Lite")} /></div>;
+    if (step === "location") return <LocationMarketStage onBackToProperty={() => actions.goToTool("property-finder")} onContinueToPrice={actions.goToNextStep} onMap={() => setPage("Map Insight Lite")} renderMarket={(context: JourneyPropertyContext, handlers: { onStatusChange: (status: LocationMarketDisplayStatus) => void; onResult: (result: MarketResult | null) => void }) => <MarketInsight embedded initialCounty={context.city} initialDistrict={context.district} onMap={() => setPage("Map Insight Lite")} onStatusChange={handlers.onStatusChange} onResult={handlers.onResult} />} />;
     if (step === "price") return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="確認官方成交與估價" productLabel="Valuation" description="查看官方可比成交、估價狀態、趨勢與證據揭露。" onOpen={() => setPage("房價估算")} primary /><JourneyToolCard title="回到成交條件選擇" productLabel="Property Search" description="只有可用且可操作的結果才提供既有帶入操作。" onOpen={() => openViewingFlow("property-finder")} /></div>;
     if (step === "affordability") return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="試算貸款與月付" productLabel="Loan · Aegis Credit" description="查看情境試算與敏感度，不代表銀行核貸。" onOpen={() => setPage("Aegis-Credit Lite")} primary /><JourneyToolCard title="查看持有成本" productLabel="Holding Cost" description="整理每月成本與簡化稅費假設，不代表正式稅單。" onOpen={() => setPage("Aegis-Credit Lite")} /><JourneyToolCard title="進行稅務快篩" productLabel="TaxOracle" description="檢視既有 TX001–TX009 規則結果，不代表法律或主管機關認定。" onOpen={() => openTax()} /></div>;
     return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="整理看房決策摘要" productLabel="Viewing Decision · Decision Report" description="查看目前資料、缺少項目與下一步，不新增總分或購買建議。" onOpen={() => openViewingFlow("immersive-workspace")} primary /><JourneyToolCard title="保存與比較案件" productLabel="Property Case · Comparison" description="前往既有案件保存、比較與列印入口；資料不完整時維持原狀態。" onOpen={() => setPage("歷史案件")} /><JourneyToolCard title="查看列印與匯出" productLabel="Print · Export" description="使用既有瀏覽器列印與報告匯出能力，受既有可信資料 guard 保護。" onOpen={() => openViewingFlow("immersive-workspace")} /></div>;
@@ -279,9 +281,17 @@ function PlaceCard({ place, label, selected, onSelect }: { place: NearbyPlace; l
   return <button onClick={() => onSelect(place)} className={`w-full rounded-lg border p-2.5 text-left transition ${selected ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100" : "border-stone-200 bg-white hover:border-cyan-200"}`}><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-bold text-slate-800">{place.name}</p><div className="mt-1 flex flex-wrap items-center gap-1.5"><span className="rounded-full bg-cyan-50 px-1.5 py-0.5 text-[8px] font-bold text-cyan-700">{label}</span><span className="text-[9px] font-bold text-slate-500">{Math.round(place.distance_m)} 公尺</span>{place.rating && <span className="text-[9px] font-bold text-amber-600">★ {place.rating} ({place.user_rating_count})</span>}</div></div><span className="shrink-0 text-[8px] font-bold text-emerald-700">{place.opening_status_label}</span></div><p className="mt-1.5 truncate text-[9px] text-slate-400">{place.address}</p><p className="mt-1 text-[8px] font-bold text-slate-400">{place.source === "google_places" ? `Google Places · ${place.opening_hours_source}` : "展示資料"}</p></button>;
 }
 
-function MarketInsight({ onMap }: { onMap: () => void }) {
-  const [county, setCounty] = useState("");
-  const [district, setDistrict] = useState("");
+function marketDisplayJourneyStatus(result: MarketResult): LocationMarketDisplayStatus {
+  if (result.data_status === "no_data") return "no_data";
+  if (result.data_status !== "available") return "unavailable";
+  if (result.coverage_status === "partial") return "partial";
+  if ((result as MarketResult & { freshness_status?: string }).freshness_status === "stale") return "stale";
+  return getMarketDisplayState(result) === "available" ? "available" : "unavailable";
+}
+
+function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDistrict = "", onStatusChange, onResult }: { onMap: () => void; embedded?: boolean; initialCounty?: string; initialDistrict?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: MarketResult | null) => void }) {
+  const [county, setCounty] = useState(initialCounty);
+  const [district, setDistrict] = useState(initialDistrict);
   const [result, setResult] = useState<MarketResult>();
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState("");
@@ -302,15 +312,16 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 12000);
     setQuerying(true);
+    onStatusChange?.("loading");
     setError("");
     setResult(undefined);
     try {
       const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal);
-      if (marketQuerySeq.current === queryId) setResult(nextResult);
+      if (marketQuerySeq.current === queryId) { setResult(nextResult); onResult?.(nextResult); onStatusChange?.(marketDisplayJourneyStatus(nextResult)); }
     } catch (caught) {
       if (marketQuerySeq.current === queryId) {
         setError(caught instanceof Error && caught.name === "AbortError" ? "查詢逾時，請稍後再試。" : "市場資料暫時無法取得，請稍後再試。");
-        setResult({
+        const unavailableResult: MarketResult = {
           city: canonicalCounty,
           county: canonicalCounty,
           district: canonicalDistrict,
@@ -328,7 +339,10 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
           caveat: "資料不足或暫時不可用不代表沒有交易或較低風險。",
           disclaimer: "僅供市場背景參考，不影響估價、貸款、稅務、法律或看房結論。",
           history: [],
-        });
+        };
+        setResult(unavailableResult);
+        onResult?.(unavailableResult);
+        onStatusChange?.("unavailable");
       }
     } finally {
       window.clearTimeout(timeout);
@@ -341,6 +355,8 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     setCounty(normalizeTaiwanCounty(value));
     setDistrict("");
     setResult(undefined);
+    onResult?.(null);
+    onStatusChange?.("not_started");
     setError("");
   }
 
@@ -348,6 +364,8 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
     marketQuerySeq.current += 1;
     setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
     setResult(undefined);
+    onResult?.(null);
+    onStatusChange?.("not_started");
     setError("");
   }
 
@@ -364,8 +382,8 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   const legacyNonAvailableGuard = !availableResult && !noDataResult;
   const nonAvailableEvidence = !availableResult && visualStateNonAvailable ? evidenceDisclosure : null;
   return <div className="space-y-5">
-    <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
-    <HelpCallout>市場行情不會自動影響估價、貸款、稅費、地勢風險、案件比較或看房決策。</HelpCallout>
+    {!embedded && <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />}
+    {!embedded && <HelpCallout>市場行情不會自動影響估價、貸款、稅費、地勢風險、案件比較或看房決策。</HelpCallout>}
     {error && <ErrorState message={error} />}
     <SectionCard title="查詢市場資料" description="選擇縣市與行政區後按下查詢；切換選項不會自動呼叫 API。">
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
