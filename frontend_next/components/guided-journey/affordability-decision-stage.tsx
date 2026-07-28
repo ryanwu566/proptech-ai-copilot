@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { HoldingCostPrefill } from "@/components/holding-cost-calculator";
 import type { HoldingCostResult, LoanCalculationResult, TaxResult } from "@/lib/api";
 import { JourneyMissingDataPanel } from "@/components/guided-journey/journey-missing-data-panel";
@@ -13,7 +13,7 @@ type LoanHandlers = { onResult: (result: LoanCalculationResult) => void; onHoldi
 type HoldingHandlers = { onResult: (result: HoldingCostResult) => void };
 type TaxHandlers = { onResult: (result: TaxResult) => void };
 
-export function AffordabilityDecisionStage({ propertyContext, priceContext, explicitPriceWan, initialSecondaryTool, initialHoldingPrefill, renderLoan, renderHolding, renderTax, onBackToPrice, onContinueToDecision }: { propertyContext: JourneyPropertyContext; priceContext?: JourneyPriceContext; explicitPriceWan?: number; initialSecondaryTool?: AffordabilityToolId; initialHoldingPrefill?: HoldingCostPrefill; renderLoan: (priceWan: number | undefined, handlers: LoanHandlers) => ReactNode; renderHolding: (prefill: HoldingCostPrefill | undefined, handlers: HoldingHandlers) => ReactNode; renderTax: (handlers: TaxHandlers) => ReactNode; onBackToPrice: () => void; onContinueToDecision: () => void }) {
+export function AffordabilityDecisionStage({ propertyContext, priceContext, explicitPriceWan, initialSecondaryTool, initialHoldingPrefill, renderLoan, renderHolding, renderTax, onContextChange, onBackToPrice, onContinueToDecision }: { propertyContext: JourneyPropertyContext; priceContext?: JourneyPriceContext; explicitPriceWan?: number; initialSecondaryTool?: AffordabilityToolId; initialHoldingPrefill?: HoldingCostPrefill; renderLoan: (priceWan: number | undefined, handlers: LoanHandlers) => ReactNode; renderHolding: (prefill: HoldingCostPrefill | undefined, handlers: HoldingHandlers) => ReactNode; renderTax: (handlers: TaxHandlers) => ReactNode; onContextChange?: (context: ReturnType<typeof buildJourneyAffordabilityContext>) => void; onBackToPrice: () => void; onContinueToDecision: () => void }) {
   const [loanResult, setLoanResult] = useState<LoanCalculationResult>();
   const [holdingResult, setHoldingResult] = useState<HoldingCostResult>();
   const [taxResult, setTaxResult] = useState<TaxResult>();
@@ -28,8 +28,9 @@ export function AffordabilityDecisionStage({ propertyContext, priceContext, expl
   useEffect(() => {
     if (initialHoldingPrefill) setHoldingPrefill(initialHoldingPrefill);
   }, [initialHoldingPrefill]);
-  const context = buildJourneyAffordabilityContext({ propertyPriceWan: explicitPriceWan, loanResult, holdingResult, taxResult });
+  const context = useMemo(() => buildJourneyAffordabilityContext({ propertyPriceWan: explicitPriceWan, loanResult, holdingResult, taxResult }), [explicitPriceWan, holdingResult, loanResult, taxResult]);
   const statusItems = buildAffordabilityStatusItems(context);
+  useEffect(() => { onContextChange?.(context); }, [context, onContextChange]);
 
   function selectTool(tool: AffordabilityToolId) {
     setVisitedTools((current) => addVisitedAffordabilityTool(current, tool));

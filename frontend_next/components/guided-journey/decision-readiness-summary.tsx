@@ -1,0 +1,6 @@
+import type { JourneyDecisionContext } from "@/lib/decision-case-journey";
+
+export function DecisionReadinessSummary({ context }: { context: JourneyDecisionContext }) {
+  const known = [context.propertyContext.selectionStatus !== "not_selected", context.officialValuationAvailable, context.loanKnown, context.holdingKnown, context.taxStatus !== "not_started"].filter(Boolean).length;
+  return <section aria-labelledby="decision-readiness-summary-heading" className="min-w-0 rounded-xl border border-violet-100 bg-violet-50/50 p-4"><h3 id="decision-readiness-summary-heading" className="text-base font-black text-slate-950">資料狀態與下一個人工動作</h3><p className="mt-1 text-xs leading-5 text-slate-600">目前已知 {known} 項狀態；這是資料填寫與處理提示，不代表案件品質、安全程度或購買建議。</p><ul className="mt-3 grid gap-2 text-xs text-slate-700 sm:grid-cols-2"><li className="rounded-lg bg-white p-3">價格：{context.officialValuationAvailable ? "已有官方可採取行動資料" : "尚無可採取行動的官方估價"}</li><li className="rounded-lg bg-white p-3">資金：{context.loanKnown ? "已有貸款試算" : "先完成貸款試算"}</li><li className="rounded-lg bg-white p-3">案件：{context.candidateCaseId ? "可繼續整理" : "由使用者決定是否建立案件"}</li><li className="rounded-lg bg-white p-3">下一步：{context.missingDataLabels[0] || "查看缺失資料並手動補充"}</li></ul></section>;
+}

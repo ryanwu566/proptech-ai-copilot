@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { PARTIAL_CASE_PRINT_NOTICE, buildPropertyCaseDraft, type PropertyDecisionStatus } from "@/lib/property-case";
 import {
@@ -190,9 +190,12 @@ const initialState: CommandCenterState = {
   finalReviewNote: "",
 };
 
-export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
+export function PropertyCaseCommandCenter({ caseId, embedded = false, showComparison = true, initialSection = "financial", onSectionChange }: { caseId: string; embedded?: boolean; showComparison?: boolean; initialSection?: WorkspaceSectionId; onSectionChange?: (section: WorkspaceSectionId) => void }) {
   const [state, setState] = useState<CommandCenterState>(initialState);
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState<WorkspaceSectionId>("financial");
+  useEffect(() => {
+    if (initialSection !== "financial") setActiveWorkspaceSection(initialSection);
+  }, [initialSection]);
   const numeric = {
     listingPrice: parsePositiveNumber(state.listingPrice),
     floorAreaPing: parsePositiveNumber(state.floorAreaPing),
@@ -390,9 +393,14 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
     setState((current) => ({ ...current, caseMilestones: current.caseMilestones.map((milestone) => milestone.milestone_id === milestoneId ? { ...milestone, ...patch } : milestone) }));
   }
 
-  return <main className="min-h-screen bg-stone-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+  function selectWorkspaceSection(section: WorkspaceSectionId) {
+    setActiveWorkspaceSection(section);
+    onSectionChange?.(section);
+  }
+
+  return <main className={embedded ? "min-w-0 text-slate-900" : "min-h-screen bg-stone-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8"}>
     <section className="mx-auto max-w-6xl space-y-6">
-      <header className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
+      {!embedded && <header className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-bold tracking-[0.2em] text-cyan-700">PROPERTY CASE COMMAND CENTER</p>
         <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -407,12 +415,12 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
             <a href="/" className="rounded-xl border border-stone-300 bg-white px-4 py-2 text-sm font-bold text-slate-700">回首頁流程</a>
           </div>
         </div>
-      </header>
+      </header>}
 
       <PropertyCaseOverview model={visualModel} />
       <PropertyCaseCompletenessChart model={visualModel} />
-      <div className="grid gap-5 lg:grid-cols-2"><PropertyCaseMissingDataPanel model={visualModel} /><PropertyCaseEvidenceDetails draft={draft} model={visualModel} /></div>
-      <PropertyCaseComparisonWorkbench />
+      <div className="grid gap-5 lg:grid-cols-2"><PropertyCaseMissingDataPanel model={visualModel} />{embedded ? <details className="rounded-2xl border border-stone-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">查看案件證據與欄位狀態</summary><div className="border-t border-stone-100 p-4"><PropertyCaseEvidenceDetails draft={draft} model={visualModel} /></div></details> : <PropertyCaseEvidenceDetails draft={draft} model={visualModel} />}</div>
+      {showComparison && <PropertyCaseComparisonWorkbench />}
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-5">
@@ -429,7 +437,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
             <TextArea label="案件備註" value={state.notes} onChange={(value) => update("notes", value)} placeholder="只記錄你已確認的人工觀察，不放 provider raw data。" />
           </section>
 
-          <WorkspaceSectionPicker active={activeWorkspaceSection} onSelect={setActiveWorkspaceSection} />
+          <WorkspaceSectionPicker active={activeWorkspaceSection} onSelect={selectWorkspaceSection} />
 
           {activeWorkspaceSection === "financial" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="B. FINANCING" title="資金與貸款參考" />
