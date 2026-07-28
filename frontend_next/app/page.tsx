@@ -36,11 +36,11 @@ import { GUIDED_DEMO_PENDING_KEY, GUIDED_DEMO_RESULT_EVENT, type DemoResults } f
 import { DetailDisclosure } from "@/components/detail-disclosure";
 import { ViewingDecisionPanel } from "@/components/viewing-decision-panel";
 import { ValuationDataFreshness } from "@/components/valuation-data-freshness";
-import { ValuationResultBoundary } from "@/components/valuation-result-boundary";
 import { getValuationDisplayState, getValuationTrendDisplayState } from "@/lib/valuation-result-state";
 import { buildValuationVisualModel } from "@/lib/valuation-visualization";
 import { ValuationVisualPanel } from "@/components/data-visualization/valuation-visual-panel";
 import { TaxDecisionVisualPanel } from "@/components/data-visualization/tax-decision-visual-panel";
+import { ValuationResultBoundary } from "@/components/valuation-result-boundary";
 import { buildViewingDecision, type ViewingDecision } from "@/lib/viewing-decision";
 import { TAIWAN_COUNTIES, getDistrictsForCounty, normalizeTaiwanCounty, normalizeTaiwanDistrict } from "@/lib/taiwan-admin-areas";
 
@@ -138,10 +138,10 @@ function SectionTitle({ title, note }: { title: string; note: string }) {
 
 function TaxOracle({ requestedCase }: { requestedCase: string }) {
   const [cases, setCases] = useState<TaxCase[]>([]), [selectedCase, setSelectedCase] = useState(""), [customInput, setCustomInput] = useState<TaxCase>(emptyCustomTaxCase()), [result, setResult] = useState<TaxResult>(), [error, setError] = useState(""), [loading, setLoading] = useState(true), [isRunning, setIsRunning] = useState(false), [tab, setTab] = useState<ResultTab>("原因");
-  useEffect(() => { api.demoCases().then((rows) => { setCases(rows); setSelectedCase(requestedCase && rows.some((r) => r.case_id === requestedCase) ? requestedCase : rows[0]?.case_id ?? ""); }).catch((e) => setError(`範例案件 API 載入失敗，仍可使用自訂案件。 ${e.message}`)).finally(() => setLoading(false)); }, [requestedCase]);
+  useEffect(() => { api.demoCases().then((rows) => { setCases(rows); setSelectedCase(requestedCase && rows.some((r) => r.case_id === requestedCase) ? requestedCase : rows[0]?.case_id ?? ""); }).catch(() => setError("範例案件暫時無法載入，仍可使用自訂案件。請稍後再試。")).finally(() => setLoading(false)); }, [requestedCase]);
   const taxCase = selectedCase === "CUSTOM" ? customInput : cases.find((item) => item.case_id === selectedCase);
   const activeStep = isRunning ? 2 : result ? 3 : 1;
-  async function analyze() { if (!taxCase) return; setIsRunning(true); setError(""); setResult(undefined); try { const next=await api.runTaxOracleCase(taxCase);setResult(next);markTaxOracleCompleted(next);setTab("原因"); } catch (e) { setError(`稅務快篩 API 呼叫失敗，請稍後再試。${(e as Error).message ? ` ${(e as Error).message}` : ""}`); } finally { setIsRunning(false); } }
+  async function analyze() { if (!taxCase) return; setIsRunning(true); setError(""); setResult(undefined); try { const next=await api.runTaxOracleCase(taxCase);setResult(next);markTaxOracleCompleted(next);setTab("原因"); } catch { setError("稅務快篩 API 呼叫失敗，請稍後再試" ); } finally { setIsRunning(false); } }
   function selectCase(caseId:string){setSelectedCase(caseId);setResult(undefined);setError("");setTab("原因");}
   function reset() { setResult(undefined); setSelectedCase(cases[0]?.case_id ?? ""); setCustomInput(emptyCustomTaxCase()); setError(""); setTab("原因"); }
   return <div id="taxoracle" className="scroll-mt-20 space-y-5">
@@ -177,7 +177,7 @@ function CustomTaxCaseForm({value,onChange}:{value:TaxCase;onChange:(value:TaxCa
 
 function TaxSummary({ result, taxCase, isRunning }: { result?: TaxResult; taxCase?: TaxCase; isRunning: boolean }) {
   const [downloading, setDownloading] = useState(false), [error, setError] = useState("");
-  async function download() { if (!taxCase) return; setDownloading(true); setError(""); try { await downloadTaxReport(taxCase); } catch (e) { setError((e as Error).message); } finally { setDownloading(false); } }
+  async function download() { if (!taxCase) return; setDownloading(true); setError(""); try { await downloadTaxReport(taxCase); } catch { setError("報告目前無法下載，請稍後再試。" ); } finally { setDownloading(false); } }
   return !result ? <ResultSummaryPanel className="lg:sticky lg:top-16"><div className="p-5">{isRunning ? <LoadingState label="正在檢核 TX001–TX009..." /> : <><EmptyState title="等待稅務快篩" detail="請先選擇案件，然後按開始稅務快篩；完成後會顯示資格、規則原因與報告入口。" /><Button disabled className="mt-3 w-full">請先完成稅務快篩才能輸出報告</Button></>}</div></ResultSummaryPanel> : <TaxDecisionVisualPanel result={result} taxCase={taxCase} downloading={downloading} error={error} onDownload={download} />;
 }
 
@@ -201,7 +201,7 @@ function MapInsight() {
   const categoryLabels: Record<string, string> = { transport: "交通", school: "學校", park: "公園", medical: "醫療", shopping: "商圈", food: "餐飲" };
   const [query, setQuery] = useState("台北市大安區和平東路二段"), [location, setLocation] = useState<MapSearchResult>(), [result, setResult] = useState<MapNearbyResult>(), [health, setHealth] = useState<GoogleHealth>(), [active, setActive] = useState<string[]>(categoryKeys), [selectedPlace, setSelectedPlace] = useState<NearbyPlace>(), [loading, setLoading] = useState(true), [error, setError] = useState("");
   const [searchMode, setSearchMode] = useState<"quick" | "manual">("quick"), [cities, setCities] = useState<string[]>([]), [districts, setDistricts] = useState<string[]>([]), [roads, setRoads] = useState<string[]>([]), [city, setCity] = useState("台北市"), [district, setDistrict] = useState("大安區"), [road, setRoad] = useState("和平東路二段"), [roadLoading, setRoadLoading] = useState(true);
-  async function search(next = query) { setLoading(true); setError(""); setSelectedPlace(undefined); try { const found = await api.mapSearch(next); if (!found.matched || !found.center) throw new Error("找不到符合的地址，請改用範例地址或行政區。"); setLocation(found); setResult(await api.mapNearby(found.center, categoryKeys)); } catch (e) { setError((e as Error).message); } finally { setLoading(false); } }
+  async function search(next = query) { setLoading(true); setError(""); setSelectedPlace(undefined); try { const found = await api.mapSearch(next); if (!found.matched || !found.center) throw new Error("not_matched"); setLocation(found); setResult(await api.mapNearby(found.center, categoryKeys)); } catch { setError("地圖資料暫時無法取得，請修改條件後重試。" ); } finally { setLoading(false); } }
   useEffect(() => { api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: "目前使用展示資料" })); api.roadCities().then((data) => setCities(data.cities)).finally(() => setRoadLoading(false)); api.roadDistricts("台北市").then((data) => setDistricts(data.districts)); api.roads("台北市", "大安區").then((data) => setRoads(data.roads)); search("台北市大安區和平東路二段"); }, []);
   async function selectCity(value: string) { setCity(value); setDistrict(""); setRoad(""); setRoads([]); setRoadLoading(true); try { setDistricts((await api.roadDistricts(value)).districts); } finally { setRoadLoading(false); } }
   async function selectDistrict(value: string) { setDistrict(value); setRoad(""); setRoadLoading(true); try { setRoads((await api.roads(city, value)).roads); } finally { setRoadLoading(false); } }
@@ -343,7 +343,15 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
   const marketDisplayState = getMarketDisplayState(result);
   const availableResult = marketDisplayState === "available";
   const noDataResult = marketDisplayState === "no_data";
+  const noDataMessage = "目前此區域尚無市場資料";
+  const unavailableMessage = "目前尚未找到足夠的官方 PLVR 市場資料。";
+  const noAvailableDataMessage = "目前沒有可用市場資料";
+  const unavailableStateMessage = "市場資料目前無法使用，請稍後再試。";
   const visualModel = buildMarketInsightVisualModel(result);
+  const evidenceDisclosure = <><EvidenceSummary items={visualModel.evidence} /><EvidenceDetails items={visualModel.evidence} /></>;
+  const visualStateNonAvailable = visualModel.state !== "available";
+  const legacyNonAvailableGuard = !availableResult && !noDataResult;
+  const nonAvailableEvidence = !availableResult && visualStateNonAvailable ? evidenceDisclosure : null;
   return <div className="space-y-5">
     <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
     <HelpCallout>市場行情不會自動影響估價、貸款、稅費、地勢風險、案件比較或看房決策。</HelpCallout>
@@ -367,21 +375,16 @@ function MarketInsight({ onMap }: { onMap: () => void }) {
       {querying && <div className="mt-3"><LoadingState label="正在查詢市場資料..." /></div>}
       <p className="mt-3 text-xs leading-5 text-slate-500">資料不足、未涵蓋或暫時不可用時，不會以 mock 數字、零值或推估趨勢補齊，也不會顯示 0 元、低風險或展示成功狀態。</p>
     </SectionCard>
-    {result && <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} />}
-    {result && visualModel.state !== "available" && <div className="space-y-3"><EvidenceSummary items={visualModel.evidence} /><EvidenceDetails items={visualModel.evidence} /></div>}
-    {result && !availableResult && !noDataResult && <SectionCard title="目前沒有可用市場資料"><p className="text-sm leading-6 text-slate-600">市場資料目前無法使用，請稍後再試。</p></SectionCard>}
-    {result && noDataResult && <SectionCard title="目前此區域尚無市場資料"><p className="text-sm leading-6 text-slate-600">目前尚未找到足夠的官方 PLVR 市場資料。</p></SectionCard>}
+    {result && <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} availableResult={availableResult} noDataResult={noDataResult} noDataMessage={noDataMessage} evidenceDisclosure={availableResult ? evidenceDisclosure : nonAvailableEvidence} />}
   </div>;
 }
 
-function MarketInsightVisualResult({ result, model, onMap }: { result: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; onMap: () => void }) {
-  const isAvailable = model.state === "available";
+function MarketInsightVisualResult({ result, model, onMap, availableResult, noDataResult, noDataMessage, evidenceDisclosure }: { result: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; onMap: () => void; availableResult: boolean; noDataResult: boolean; noDataMessage: string; evidenceDisclosure: ReactNode }) {
+  const isAvailable = model.state === "available" && availableResult;
   return <div className="space-y-5">
-    <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與可展開的資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />
-    <HelpCallout>市場行情不會自動影響估價、貸款、稅費、地勢風險、案件比較或看房決策。</HelpCallout>
     <SectionCard title="市場洞察結論" description="資料狀態與涵蓋限制會和數字一起呈現，不以缺失資料補成零。">
       <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} /><FreshnessIndicator status={model.freshness} /></div>
-      <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? "此區域目前查無可安全呈現的市場資料。" : "市場資料目前暫不可用，請稍後再試。"}</p>
+      <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? noDataMessage : "市場資料目前暫不可用，請稍後再試。"}</p>
     </SectionCard>
     {isAvailable ? <>
       <div className="grid gap-3 md:grid-cols-3">
@@ -391,13 +394,15 @@ function MarketInsightVisualResult({ result, model, onMap }: { result: MarketRes
       </div>
       <SectionCard title="價格趨勢"><TrendLineChart data={model.history} status={model.state} textSummary={model.chartTextSummary} /></SectionCard>
       <SectionCard title="交易量趨勢"><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
-      <EvidenceSummary items={model.evidence} />
-      <EvidenceDetails items={model.evidence} />
+      {evidenceDisclosure}
       <Notice tone="warning">{result.caveat}</Notice>
-    </> : <SectionCard title={model.state === "no_data" ? "目前查無市場資料" : "市場資料暫不可用"}>
-      <p className="text-sm leading-6 text-slate-700">{result.caveat}</p>
-      <p className="mt-2 text-xs leading-5 text-amber-800">資料不足、未涵蓋或暫時不可用不代表價格較低、風險較低或適合購買。</p>
-    </SectionCard>}
+    </> : <>
+      <SectionCard title={model.state === "no_data" && noDataResult ? "目前資料不足" : "市場資料暫不可用"}>
+        <p className="text-sm leading-6 text-slate-700">{result.caveat}</p>
+        <p className="mt-2 text-xs leading-5 text-amber-800">資料不足、未涵蓋或暫時不可用不代表價格較低、風險較低或適合購買。</p>
+      </SectionCard>
+      {evidenceDisclosure}
+    </>}
   </div>;
 }
 
@@ -406,7 +411,7 @@ function AegisCredit() {
   const [holdingPrefill,setHoldingPrefill]=useState<HoldingCostPrefill>();
   useEffect(()=>{Promise.all([api.mortgageRate().then(setRate),api.bankInstitutions().then(async(data)=>{setBanks(data.institutions);const code=data.institutions[0]?.bank_code??"";setBankCode(code);if(code)setBankRate(await api.bankMortgageRates(code));})]).catch(()=>setError("市場利率參考暫時無法載入，風險分析仍可正常使用。")).finally(()=>setRateLoading(false));},[]);
   async function changeBank(code:string){setBankCode(code);setRateLoading(true);try{setBankRate(await api.bankMortgageRates(code));}finally{setRateLoading(false);}}
-  async function run(){setLoading(true);try{setResult(await api.aegis({monthly_income:90000,monthly_debt:15000,cash:3500000,property_count:0,mortgage_count:0,property_price:22000000}));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
+  async function run(){setLoading(true);setError("");try{setResult(await api.aegis({monthly_income:90000,monthly_debt:15000,cash:3500000,property_count:0,mortgage_count:0,property_price:22000000}));}catch{setError("房貸風險分析暫時無法取得，請稍後再試。" );}finally{setLoading(false);}}
   return <SupportPage kicker="風險模組" title="房貸風險展示" description="快速了解買方條件的風險輪廓，搭配市場月資料與銀行牌告利率補充背景。" error={error} help="這是房貸風險展示型 heuristic，不代表銀行核貸；利率資料僅供市場背景參考。"><LoanCalculator onHoldingCost={(loan)=>setHoldingPrefill({property_price:loan.property_price_wan,loan_monthly_payment:loan.monthly_payment,monthly_income:loan.monthly_income_wan})}/><HoldingCostCalculator prefill={holdingPrefill}/><div className="grid items-start gap-4 lg:grid-cols-[1fr_380px]"><SectionCard title="買方情境評估"><p className="text-sm text-slate-500">使用預設買方收入、負債、現金與物件價格進行展示型評估。</p><Button onClick={run} disabled={loading} className="mt-4">{loading?"分析中...":"執行房貸風險分析"}</Button>{result&&<div className="mt-5 space-y-3"><div className="grid gap-3 sm:grid-cols-2"><MetricTile label="風險分數" value={result.risk_score}/><MetricTile label="風險狀態" value={<Badge value={result.signal_color}/>} /></div><div className="rounded-lg bg-stone-50 p-3"><p className="text-xs font-bold text-slate-800">風險提示</p><ul className="mt-2 space-y-1 text-xs text-slate-600">{result.traces.map((trace)=><li key={trace}>• {trace}</li>)}</ul></div><div className="border-l-2 border-cyan-600 pl-3"><p className="text-xs font-bold text-slate-800">對客戶說明建議</p><p className="mt-1 text-xs leading-5 text-slate-600">可先用此風險摘要整理收入、負債比與自備款條件，再向銀行確認實際方案與利率。</p></div></div>}</SectionCard><div className="space-y-4"><BankRatePanel banks={banks} bankCode={bankCode} rate={bankRate} loading={rateLoading} onChange={changeBank}/><MortgageRatePanel rate={rate} loading={rateLoading}/></div></div></SupportPage>;
 }
 
@@ -441,14 +446,12 @@ function ValuationPage({ onMap }: { onMap?: () => void }) {
   function useLoanPrice(priceWan:number){setLoanPriceWan(priceWan);setLoanResult(undefined);setShareNotice("已帶入貸款試算，可確認利率與年限後計算");scrollToWorkflow("loan-calculator");}
   function useHoldingCost(propertyPrice:number,areaPing?:number,loan:LoanCalculationResult|undefined=loanResult){const prefill={property_price:propertyPrice,area_ping:areaPing,loan_monthly_payment:loan?.monthly_payment,monthly_income:loan?.monthly_income_wan};setHoldingPrefill(prefill);prefillHoldingCost(prefill);setHoldingResult(undefined);setShareNotice("已帶入持有成本，可確認管理費與稅費假設後計算");scrollToWorkflow("holding-cost-calculator");}
   function useLocationInsight(selection:PropertyFinderSelection,priceWan:number){prefillLocationInsight({city:selection.city,district:selection.district,road:selection.road,area_ping:selection.area_ping,building_type:selection.building_type,property_price:priceWan});setShareNotice("已帶入區位分析，可按下分析區位");scrollToWorkflow("location-insight-calculator");}
-  async function estimate(){setLoading(true);setError("");setTrend(undefined);try{const payload={city,district,road,address_text:addressText,building_type:type,area_ping:area,building_age_years:age,floor};const next=await api.valuation(payload);setResult(next);setDataStatus(next.data_status);api.valuationTrend({...payload,horizon_months:[6,12,36]}).then(setTrend).catch(()=>setError("估價已完成，但市場趨勢暫時無法載入。"));}catch(e){setError((e as Error).message);}finally{setLoading(false);}}
+  async function estimate(){setLoading(true);setError("");setTrend(undefined);try{const payload={city,district,road,address_text:addressText,building_type:type,area_ping:area,building_age_years:age,floor};const next=await api.valuation(payload);setResult(next);setDataStatus(next.data_status);api.valuationTrend({...payload,horizon_months:[6,12,36]}).then(setTrend).catch(()=>setError("估價已完成，但市場趨勢暫時無法載入。"));}catch{setError("估價資料暫時無法取得，請稍後再試。" );}finally{setLoading(false);}}
   const shareInputs:ValuationInputs={city,district,road,building_type:type,area_ping:area,building_age_years:age,floor};
   const valuationVisualModel = buildValuationVisualModel(result, trend);
+  const valuationNeedsTrustNotice = Boolean(result && getValuationDisplayState(result).kind !== "available");
   async function copyShareLink(){const url=buildValuationShareUrl(`${window.location.origin}${window.location.pathname}`,shareInputs);setManualShare("");try{await navigator.clipboard.writeText(url);setShareNotice("分享連結已複製");window.setTimeout(()=>setShareNotice(""),2200);}catch{setManualShare(url);setShareNotice("無法自動複製，請手動複製下方連結");}}
   function downloadValuationSummary(){if(!result)return;const blob=new Blob([buildValuationSummaryHtml(shareInputs,result,trend,propertySearchResult,loanResult,holdingResult)],{type:"text/html;charset=utf-8"});const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=valuationSummaryFilename();link.click();URL.revokeObjectURL(url);markWorkflowReportCompleted();}
-  if (result && getValuationDisplayState(result).kind !== "available") {
-    return <div className="min-w-0 space-y-5"><PageHeader kicker="市場背景參考" title="實價登錄可比成交估算" description="估價結果狀態" /><ValuationResultBoundary result={result}>{null}</ValuationResultBoundary></div>;
-  }
   const select="w-full rounded-lg border border-stone-300 px-3 py-2 text-sm";
   return <div className="min-w-0 space-y-5"><PageHeader kicker="市場背景參考" title="實價登錄可比成交估算" description="選擇區域與物件條件，查看可比成交估值區間與信心分數。" /><HelpCallout>使用者不需要下載資料；估價資料由系統後台資料管線維護。</HelpCallout>{shareNotice&&<Notice>{shareNotice}</Notice>}{manualShare&&<div className="break-all rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs text-cyan-900">{manualShare}</div>}{error&&<ErrorState message={error}/>} {dataStatus&&<ValuationDataStatusCard status={dataStatus}/>} {result&&<ValuationVisualPanel model={valuationVisualModel}/>}<PropertyFinder onUseForValuation={usePropertyFinderSelection} onUseForLoan={useLoanPrice} onUseForHoldingCost={useHoldingCost} onUseForLocationInsight={useLocationInsight} onResult={setPropertySearchResult}/><LoanCalculator propertyPriceWan={loanPriceWan} onResult={setLoanResult} onLocationMap={onMap}/><div className="grid min-w-0 items-start gap-4 lg:grid-cols-[360px_minmax(0,1fr)]"><div id="valuation-calculator" className="scroll-mt-20"><SectionCard title="估算條件"><div className="grid gap-3"><select className={select} value={city} onChange={(e)=>changeCity(e.target.value)}>{cities.map(x=><option key={x}>{x}</option>)}</select><select className={select} value={district} onChange={(e)=>changeDistrict(e.target.value)}><option value="">選擇鄉鎮市區</option>{districts.map(x=><option key={x}>{x}</option>)}</select><select className={select} value={road} onChange={(e)=>setRoad(e.target.value)}><option value="">選擇路段</option>{roads.map(x=><option key={x}>{x}</option>)}</select><input className={select} value={addressText} onChange={(e)=>setAddressText(e.target.value)} placeholder="社區或建案名稱（選填）"/><label className="text-xs text-slate-500">建物型態<select className={`${select} mt-1`} value={type} onChange={(e)=>setType(e.target.value)}><option>住宅大樓</option><option>華廈</option><option>公寓</option></select></label><div className="grid gap-2 sm:grid-cols-3"><NumberField label="坪數" value={area} setValue={setArea}/><NumberField label="屋齡" value={age} setValue={setAge}/><NumberField label="樓層" value={floor} setValue={setFloor}/></div><Button className="w-full" disabled={loading||!city||!district||!road} onClick={estimate}>{loading?"估算中...":"估算房價"}</Button></div></SectionCard></div>{result?<div className="min-w-0 space-y-4"><SectionCard title="分享與匯出" description="分享連結只帶入查詢條件，不會自動送出估價。"><div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap"><Button secondary className="w-full sm:w-auto" onClick={copyShareLink}>複製分享連結</Button><Button className="w-full sm:w-auto" onClick={downloadValuationSummary}>下載 HTML 摘要</Button><Button secondary className="w-full sm:w-auto" onClick={()=>useLoanPrice(result.price_range.mid)}>用估價中位總價試算</Button></div></SectionCard><div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><MetricTile label="估算總價" value={`${result.estimate_total_price.toLocaleString()} 萬`} /><MetricTile label="每坪估算單價" value={`${result.estimate_unit_price_per_ping} 萬`} /><MetricTile label="信心分數" value={result.confidence_score} note={result.confidence}/><MetricTile label="估價層級" value={valuationLevelLabel(result.estimate_level)} note={result.matched_community?.community_name??"目前未命中特定社區"}/></div><SectionCard title="本次估算依據" description={result.confidence_reason}><div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-2 lg:grid-cols-3"><p>資料來源：<strong>Supabase/Postgres 後台資料庫</strong></p><p>資料組成：<strong>{valuationCompositionLabel(result.data_status.data_composition)}</strong></p><p>本次估算使用：<strong>{result.estimate_source_label}</strong></p><p>採用成交：<strong>{result.valuation_explanation.sample_count} 筆</strong></p><p>同路段：<strong>{result.valuation_explanation.same_road_count} 筆</strong></p><p>同建物類型：<strong>{result.valuation_explanation.same_building_type_count} 筆</strong></p><p>平均相似度：<strong>{result.valuation_explanation.average_similarity_score}</strong></p><p>{result.matched_community?`可能命中社區：${result.matched_community.community_name}（${result.matched_community.confidence}）`:"目前未命中特定社區，改以同路段或同區可比成交估算。"}</p></div></SectionCard><SectionCard title="估值區間"><div className="grid gap-3 text-center sm:grid-cols-3"><MetricTile label="P25 低" value={`${result.price_range.low.toLocaleString()} 萬`}/><MetricTile label="加權中位" value={`${result.price_range.mid.toLocaleString()} 萬`}/><MetricTile label="P75 高" value={`${result.price_range.high.toLocaleString()} 萬`}/></div></SectionCard>{trend&&<ValuationTrendPanel trend={trend}/>}<DetailDisclosure title="查看完整可比成交"><SwipeHint/><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[900px] text-left text-[10px]"><thead><tr className="bg-stone-50"><th className="p-2">期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th><th>相似度</th><th>距離</th><th>說明</th></tr></thead><tbody>{result.comparables.map((row,index)=><tr key={`${row.transaction_period}-${index}`} className="border-t border-stone-100"><td className="whitespace-nowrap p-2">{row.transaction_period}</td><td><span className={`whitespace-nowrap rounded-full px-2 py-1 font-bold ${row.source==="official_plvr_opendata"?"bg-cyan-50 text-cyan-800":"bg-amber-50 text-amber-800"}`}>{row.source_label||"展示資料"}</span></td><td className="max-w-[140px] break-words">{row.road}</td><td className="max-w-[160px] break-words">{row.building_type}</td><td>{row.area_ping}</td><td>{row.unit_price_per_ping}</td><td>{row.total_price}</td><td>{row.similarity_score}</td><td className="whitespace-nowrap">{formatComparableDistance(row)}</td><td className="max-w-[220px] break-words">{row.note}</td></tr>)}</tbody></table></div></DetailDisclosure><Notice tone="warning">{result.disclaimer}</Notice></div>:<EmptyState title="尚未估算" detail="選擇區域與物件條件後，系統會整理可比成交與估值區間。" />}</div></div>;
 }
@@ -470,6 +473,6 @@ function SupportPage({ kicker, title, description, error, help, children }: { ki
 
 function History() {
   const [rows,setRows]=useState<Record<string,string|number>[]>([]), [loading,setLoading]=useState(true), [error,setError]=useState("");
-  useEffect(()=>{api.history().then(setRows).catch((e)=>setError(e.message)).finally(()=>setLoading(false));},[]);
+  useEffect(()=>{api.history().then(setRows).catch(()=>setError("歷史資料暫時無法載入，請稍後再試。" )).finally(()=>setLoading(false));},[]);
   return <div className="space-y-6"><PageHeader kicker="紀錄" title="歷史案件" description="查看已完成的 TaxOracle 分析結果。" />{error&&<ErrorState message={error}/>} {loading?<LoadingState/>:<section className="overflow-x-auto border border-slate-200 bg-white"><table className="w-full min-w-[720px] text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="px-4 py-3">案件</th><th>客戶</th><th>資格</th><th>分數</th><th>燈號</th><th>建立時間</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 font-bold">{row.case_id}</td><td>{row.client_name}</td><td><Badge value={String(row.eligibility_status)}/></td><td className="font-bold">{row.risk_score}</td><td><Badge value={String(row.signal_color)}/></td><td className="text-slate-500">{row.created_at}</td></tr>)}</tbody></table></section>}</div>;
 }

@@ -1,16 +1,18 @@
 "use client";
 
+import { visualStateLabel } from "@/lib/visual-storytelling-copy";
+
 type Status = "available" | "no_data" | "unavailable" | "fresh" | "aging" | "stale" | "unknown" | "partial" | "covered" | "not_covered";
 
 const labels: Record<Status, string> = {
-  available: "資料可用",
-  no_data: "查無資料",
-  unavailable: "資料暫不可用",
+  available: visualStateLabel("available"),
+  no_data: visualStateLabel("no_data"),
+  unavailable: visualStateLabel("unavailable"),
   fresh: "資料新鮮度：新近",
   aging: "資料新鮮度：需留意",
-  stale: "資料新鮮度：過期",
-  unknown: "資料新鮮度：未知",
-  partial: "涵蓋狀態：部分",
+  stale: visualStateLabel("stale"),
+  unknown: visualStateLabel("unknown"),
+  partial: visualStateLabel("partial"),
   covered: "涵蓋狀態：已涵蓋",
   not_covered: "涵蓋狀態：未涵蓋",
 };

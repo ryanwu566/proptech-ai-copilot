@@ -27,3 +27,18 @@ Only the existing allowlisted case summary and browser export surfaces may be
 shared. They must use escaped text and omit raw provider payloads, credentials,
 coordinates, and private database details. A release readiness result itself is
 not a storage key and is not an API response.
+
+## Phase 5A visual storytelling boundary
+
+- Visual state labels and evidence disclosures are derived at render time from
+  existing response models; no new storage key is introduced.
+- Open or closed evidence disclosures are not saved to browser storage, URL
+  query, URL hash, or cookies.
+- Property comparison selection remains an in-memory interaction and is not
+  persisted by the visual storytelling layer.
+- Address text and resolved coordinates are not placed in URL state or visual
+  evidence exports.
+- Raw JSON, SQL, provider payloads, stack traces, credentials, and response
+  bodies remain outside the browser presentation boundary.
+- `unavailable`, `unknown`, `partial`, `missing`, and `demo` are never
+  converted into successful, official, complete, or low-risk states.

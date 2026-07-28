@@ -8,6 +8,7 @@ body { margin: 0; overflow-x: hidden; background: #f7f5f0; color: #172033; font-
 img, svg { max-width: 100%; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #0891b2; outline-offset: 2px; }
 ::selection { background: #dbeafe; color: #172033; }
 .leaflet-control-zoom, .leaflet-control-attribution { opacity: .82; }
 @keyframes onboarding-fade { from { opacity: 0; } to { opacity: 1; } }

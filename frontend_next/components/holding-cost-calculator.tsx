@@ -86,8 +86,8 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
       window.sessionStorage.setItem(HOLDING_COST_SESSION_KEY, JSON.stringify(next));
       window.dispatchEvent(new CustomEvent<HoldingCostResult>(HOLDING_COST_RESULT_EVENT, { detail: next }));
       onResult?.(next);
-    } catch (caught) {
-      setError((caught as Error).message);
+    } catch {
+      setError("持有成本試算暫時無法完成，請稍後再試。" );
     } finally {
       setLoading(false);
     }
