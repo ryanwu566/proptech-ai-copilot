@@ -52,7 +52,17 @@ import {
   type TimelineRelatedSection,
 } from "@/lib/property-case-timeline";
 import { buildPropertyCaseReadiness } from "@/lib/property-case-readiness";
+import { buildPropertyCaseVisualModel } from "@/lib/property-case-visualization";
 import type { ValuationInputs } from "@/lib/valuation-share";
+import { PropertyCaseOverview } from "@/components/data-visualization/property-case-overview";
+import { PropertyCaseCompletenessChart } from "@/components/data-visualization/property-case-completeness-chart";
+import { PropertyCaseFinancialComparison } from "@/components/data-visualization/property-case-financial-comparison";
+import { PropertyCaseDueDiligenceMatrix } from "@/components/data-visualization/property-case-due-diligence-matrix";
+import { PropertyCaseViewingReadiness } from "@/components/data-visualization/property-case-viewing-readiness";
+import { PropertyCaseTimelineChart } from "@/components/data-visualization/property-case-timeline-chart";
+import { PropertyCaseComparisonWorkbench } from "@/components/data-visualization/property-case-comparison-workbench";
+import { PropertyCaseEvidenceDetails } from "@/components/data-visualization/property-case-evidence-details";
+import { PropertyCaseMissingDataPanel } from "@/components/data-visualization/property-case-missing-data-panel";
 
 const DECISION_STATUS_OPTIONS: Array<{ value: PropertyDecisionStatus; label: string }> = [
   { value: "draft", label: "草稿" },
@@ -289,6 +299,15 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
   );
   const readiness = buildPropertyCaseReadiness(draft);
   const executiveSummary = useMemo(() => buildExecutiveDecisionSummary(draft), [draft]);
+  const visualModel = useMemo(() => buildPropertyCaseVisualModel({
+    draft,
+    financialAnalysis,
+    financialScenarios,
+    dueDiligenceReadiness,
+    dueDiligenceItems: state.dueDiligenceItems,
+    viewingOfferReadiness,
+    timelineReadiness,
+  }), [draft, dueDiligenceReadiness, financialAnalysis, financialScenarios, state.dueDiligenceItems, timelineReadiness, viewingOfferReadiness]);
 
   function update<K extends keyof CommandCenterState>(key: K, value: CommandCenterState[K]) {
     setState((current) => ({ ...current, [key]: value }));
@@ -390,6 +409,11 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
         </div>
       </header>
 
+      <PropertyCaseOverview model={visualModel} />
+      <PropertyCaseCompletenessChart model={visualModel} />
+      <div className="grid gap-5 lg:grid-cols-2"><PropertyCaseMissingDataPanel model={visualModel} /><PropertyCaseEvidenceDetails draft={draft} model={visualModel} /></div>
+      <PropertyCaseComparisonWorkbench />
+
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-5">
           <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
@@ -409,6 +433,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
 
           {activeWorkspaceSection === "financial" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="B. FINANCING" title="資金與貸款參考" />
+            <PropertyCaseFinancialComparison scenarios={visualModel.scenarios} />
             <div className="mt-4 rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
               <div className="grid gap-3 md:grid-cols-4">
                 <MetricCard label="總承諾金額" metric={financialAnalysis.totalCommitment} formatter={formatWanMetric} />
@@ -519,6 +544,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
 
           {activeWorkspaceSection === "due_diligence" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="E. DUE DILIGENCE" title="盡職調查與決策審查板" />
+            <PropertyCaseDueDiligenceMatrix items={state.dueDiligenceItems} readiness={dueDiligenceReadiness} />
             <p className="mt-2 text-sm leading-6 text-slate-600">
               這個區塊只整理使用者確認進度、待補資料、卡關原因與下一步；不會自動查詢市場、通勤、地勢、地圖或任何外部服務，也不會改變案件決策狀態。
             </p>
@@ -572,6 +598,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
 
           {activeWorkspaceSection === "viewing_offer" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="F. VIEWING & OFFER" title="看屋、提問與出價規劃" />
+            <PropertyCaseViewingReadiness readiness={viewingOfferReadiness} />
             <p className="mt-2 text-sm leading-6 text-slate-600">
               這裡只整理使用者手動輸入的看屋紀錄、待問事項與出價情境；不產生正式出價、不自動套用開價、不查詢市場或位置資料。
             </p>
@@ -670,6 +697,7 @@ export function PropertyCaseCommandCenter({ caseId }: { caseId: string }) {
 
           {activeWorkspaceSection === "executive_pack" && <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
             <SectionHeading eyebrow="G. EXECUTIVE PACK" title="案件時間軸與決策包" />
+            <PropertyCaseTimelineChart events={state.timelineEvents} milestones={state.caseMilestones} readiness={timelineReadiness} />
             <p className="mt-2 text-sm leading-6 text-slate-600">
               將手動輸入的案件進度、里程碑、缺口與最後審查備註整理成 Executive Decision Pack；不產生推薦、不改決策狀態、不呼叫外部資料。
             </p>
