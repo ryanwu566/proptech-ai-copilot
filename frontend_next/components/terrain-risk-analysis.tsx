@@ -6,6 +6,7 @@ import { HelpTooltip } from "@/components/help-tooltip";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 import { HELP_CONTENT } from "@/lib/help-content";
+import type { LocationMarketDisplayStatus } from "@/lib/location-market-journey";
 
 export const TERRAIN_RISK_SESSION_KEY = "proptech:terrain-risk-result";
 export const TERRAIN_RISK_RESULT_EVENT = "proptech:terrain-risk-result-ready";
@@ -27,7 +28,7 @@ export function prefillTerrainRisk(prefill: TerrainRiskPrefill) {
   window.dispatchEvent(new CustomEvent<TerrainRiskPrefill>(TERRAIN_RISK_PREFILL_EVENT, { detail: prefill }));
 }
 
-export function TerrainRiskAnalysis({ location, compactFromLocation = false, resetKey }: { location?: LocationInsightResult; compactFromLocation?: boolean; resetKey?: string }) {
+export function TerrainRiskAnalysis({ location, compactFromLocation = false, resetKey, onStatusChange, onResult }: { location?: LocationInsightResult; compactFromLocation?: boolean; resetKey?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: TerrainRiskResult | null) => void }) {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("台北市");
   const [district, setDistrict] = useState("大安區");
@@ -43,6 +44,8 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
   useEffect(() => {
     setResult(undefined);
     setError("");
+    onResult?.(null);
+    onStatusChange?.("not_started");
     window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY);
   }, [resetKey]);
 
@@ -82,6 +85,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     setLoading(true);
     setError("");
     try {
+      onStatusChange?.("loading");
       const resolved = location?.resolved_location;
       const next = await api.terrainRiskAnalyze({
         address: compactFromLocation ? resolved?.address_label ?? address : address,
@@ -91,11 +95,14 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
         include_layers: layers,
       });
       setResult(next);
+      onResult?.(next);
       window.sessionStorage.setItem(TERRAIN_RISK_SESSION_KEY, JSON.stringify(next));
       window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next }));
       window.dispatchEvent(new Event("proptech:workflow-status-updated"));
     } catch (caught) {
       setError((caught as Error).message);
+      onResult?.(null);
+      onStatusChange?.("unavailable");
     } finally {
       setLoading(false);
     }

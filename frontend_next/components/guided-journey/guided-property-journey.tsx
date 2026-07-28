@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { JOURNEY_STEPS, addVisitedJourneyStep, getNextJourneyStep, getPreviousJourneyStep, type JourneyStepId } from "@/lib/guided-journey";
+import { JOURNEY_STEPS, addVisitedJourneyStep, getJourneyStepForTool, getNextJourneyStep, getPreviousJourneyStep, type JourneyRenderActions, type JourneyStepId } from "@/lib/guided-journey";
 import { JourneyExpertTools } from "@/components/guided-journey/journey-expert-tools";
 import { JourneyProgressSummary } from "@/components/guided-journey/journey-progress-summary";
 import { JourneyStage } from "@/components/guided-journey/journey-stage";
 import { JourneyStepper } from "@/components/guided-journey/journey-stepper";
 
-export function GuidedPropertyJourney({ renderStep, renderExpertTools }: { renderStep: (step: JourneyStepId) => ReactNode; renderExpertTools: () => ReactNode }) {
+export function GuidedPropertyJourney({ renderStep, renderExpertTools }: { renderStep: (step: JourneyStepId, actions: JourneyRenderActions) => ReactNode; renderExpertTools: () => ReactNode }) {
   const [activeStep, setActiveStep] = useState<JourneyStepId>("property");
   const [visitedSteps, setVisitedSteps] = useState<JourneyStepId[]>(["property"]);
 
@@ -19,6 +19,17 @@ export function GuidedPropertyJourney({ renderStep, renderExpertTools }: { rende
   function moveTo(step: JourneyStepId | undefined) {
     selectStep(step ?? "property");
   }
+
+  const actions: JourneyRenderActions = {
+    activeStep,
+    selectStep,
+    goToPreviousStep: () => moveTo(getPreviousJourneyStep(activeStep)),
+    goToNextStep: () => moveTo(getNextJourneyStep(activeStep)),
+    goToTool: (toolId) => {
+      const step = getJourneyStepForTool(toolId);
+      if (step) selectStep(step);
+    },
+  };
 
   return <section aria-label="購屋判斷旅程" className="space-y-5">
     <header className="rounded-2xl border border-cyan-200 bg-slate-950 px-4 py-6 text-white shadow-lg sm:px-6 sm:py-8">
@@ -34,7 +45,7 @@ export function GuidedPropertyJourney({ renderStep, renderExpertTools }: { rende
         <JourneyExpertTools renderTools={renderExpertTools} />
       </aside>
       <main className="min-w-0 space-y-4">
-        {JOURNEY_STEPS.filter((step) => visitedSteps.includes(step.id)).map((step) => <JourneyStage key={step.id} step={step} active={activeStep === step.id} onPrevious={() => moveTo(getPreviousJourneyStep(step.id))} onNext={() => moveTo(getNextJourneyStep(step.id))} hasPrevious={Boolean(getPreviousJourneyStep(step.id))} hasNext={Boolean(getNextJourneyStep(step.id))}>{renderStep(step.id)}</JourneyStage>)}
+        {JOURNEY_STEPS.filter((step) => visitedSteps.includes(step.id)).map((step) => <JourneyStage key={step.id} step={step} active={activeStep === step.id} onPrevious={() => moveTo(getPreviousJourneyStep(step.id))} onNext={() => moveTo(getNextJourneyStep(step.id))} hasPrevious={Boolean(getPreviousJourneyStep(step.id))} hasNext={Boolean(getNextJourneyStep(step.id))}>{renderStep(step.id, actions)}</JourneyStage>)}
       </main>
     </div>
   </section>;

@@ -33,14 +33,16 @@ def test_mapping_does_not_turn_reference_tools_into_decision_scores() -> None:
     assert '"terrain-risk": "investment"' not in HELPER
     assert '"commute": "price"' not in HELPER
     journey_section = PAGE.split("function renderJourneyStep", 1)[1].split("function Dashboard", 1)[0]
-    assert "官方市場資料只作研究與背景參考" in journey_section
-    assert "不影響其他決策" in journey_section
+    assert "市場資料僅供研究參考" in (ROOT / "frontend_next/lib/location-market-journey.ts").read_text(encoding="utf-8")
+    selector = (ROOT / "frontend_next/components/guided-journey/location-market-tool-selector.tsx").read_text(encoding="utf-8")
+    assert "自動影響估價" in selector
+    assert "不會合成分數" in selector
 
 
 def test_all_five_customer_questions_and_tools_are_visible() -> None:
     for text in (
         "我現在看的是哪一間房？",
-        "住在這裡方便嗎？區域行情與環境如何？",
+        "住在這裡方便嗎？區域市場有什麼資料？",
         "這間房的開價有沒有官方成交依據？",
         "頭期、月付、持有成本與稅務條件如何？",
         "資料是否足夠，我接下來要做什麼？",

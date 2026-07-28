@@ -5,7 +5,7 @@ import { api, type CommuteAddressLookupResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { COMMUTE_LIVABILITY_NOTICE, commuteStatusMessage, isBlankAddress, normalizeCommuteResult, type CommuteLivabilityStatus } from "@/lib/commute-livability-ui";
 
-export function CommuteLivabilityCard({ address }: { address: string }) {
+export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { address: string; onStatusChange?: (status: CommuteLivabilityStatus) => void; onResult?: (result: CommuteAddressLookupResult | null) => void }) {
   const [status, setStatus] = useState<CommuteLivabilityStatus>("idle");
   const [result, setResult] = useState<CommuteAddressLookupResult | null>(null);
   const [message, setMessage] = useState(commuteStatusMessage("idle"));
@@ -16,7 +16,12 @@ export function CommuteLivabilityCard({ address }: { address: string }) {
     setStatus("idle");
     setResult(null);
     setMessage(commuteStatusMessage("idle"));
+    onResult?.(null);
   }, [address]);
+
+  useEffect(() => {
+    onStatusChange?.(status);
+  }, [onStatusChange, status]);
 
   async function lookupCommute() {
     const requestedAddress = address.trim();
@@ -36,20 +41,24 @@ export function CommuteLivabilityCard({ address }: { address: string }) {
       if (latestAddressRef.current.trim() !== requestedAddress) return;
       if (next.status === "resolved") {
         setResult(next);
+        onResult?.(next);
         setStatus("resolved");
         setMessage("");
       } else if (next.status === "unresolved") {
         setResult(null);
+        onResult?.(null);
         setStatus("unresolved");
         setMessage(commuteStatusMessage("unresolved"));
       } else {
         setResult(null);
+        onResult?.(null);
         setStatus("unavailable");
         setMessage(commuteStatusMessage("unavailable"));
       }
     } catch {
       if (latestAddressRef.current.trim() !== requestedAddress) return;
       setResult(null);
+      onResult?.(null);
       setStatus("error");
       setMessage(commuteStatusMessage("error"));
     }

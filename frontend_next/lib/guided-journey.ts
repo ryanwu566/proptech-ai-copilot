@@ -11,6 +11,14 @@ export type JourneyStepDefinition = {
   toolLabels: readonly string[];
 };
 
+export type JourneyRenderActions = {
+  activeStep: JourneyStepId;
+  selectStep: (step: JourneyStepId) => void;
+  goToPreviousStep: () => void;
+  goToNextStep: () => void;
+  goToTool: (toolId: string) => void;
+};
+
 export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = [
   {
     id: "property",
@@ -26,8 +34,8 @@ export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = [
     id: "location",
     number: 2,
     title: "看地點與市場",
-    question: "住在這裡方便嗎？區域行情與環境如何？",
-    description: "分開查看生活機能、通勤、地形與官方市場資料，這些資訊只供研究參考。",
+    question: "住在這裡方便嗎？區域市場有什麼資料？",
+    description: "分開查看生活機能、通勤、地形與官方市場資料，這些資訊只供研究參考，不會合成分數或自動影響估價。",
     nextLabel: "確認合理價格",
     previousLabel: "找到物件",
     toolLabels: ["Location Insight", "Terrain Risk", "Commute Livability", "Market Insight"],
