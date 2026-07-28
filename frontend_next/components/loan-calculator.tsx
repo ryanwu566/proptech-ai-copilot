@@ -74,8 +74,8 @@ export function LoanCalculator({
       });
       setResult(next);
       onResult?.(next);
-    } catch (caught) {
-      setError((caught as Error).message);
+    } catch {
+      setError("貸款試算暫時無法完成，請稍後再試。" );
     } finally {
       setLoading(false);
     }

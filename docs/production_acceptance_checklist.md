@@ -18,3 +18,41 @@ checklist, not an automated production call.
 
 Do not place credentials, database settings, provider payloads, addresses, or
 production response bodies in this checklist or in release evidence.
+
+## Phase 5A manual acceptance
+
+Every item below starts as `PENDING`. The default release decision is
+`NO_GO` until an operator records evidence for all required gates.
+
+- `PENDING`: Pull request checks are green and the intended commit is merged
+  to `main`.
+- `PENDING`: Frontend deployment is ready in the configured hosting dashboard.
+- `PENDING`: Backend dashboard reports healthy and the deployed health check is
+  reachable through the configured frontend API boundary.
+- `PENDING`: Property Finder is the clear primary entry point.
+- `PENDING`: Location Insight, Terrain Risk, Commute Livability, Market
+  Insight, Valuation, loan, holding cost, tax, comparison, and decision report
+  flows remain reachable.
+- `PENDING`: Initial, loading, available, no-data, unavailable, partial,
+  stale, unknown, missing, blocked, and demo states preserve their meaning.
+- `PENDING`: Source, freshness, and calculation evidence use explicit
+  disclosures without exposing raw payloads.
+- `PENDING`: Check desktop behavior and repeat at 320px, 375px, and 768px.
+- `PENDING`: Principal charts do not require horizontal page scrolling and
+  dense detail tables are behind explicit disclosures.
+- `PENDING`: Keyboard-only navigation, visible focus, labels, disclosures,
+  and live status announcements work without a mouse.
+- `PENDING`: No new browser storage, cookie, URL query, or URL hash persistence
+  is used by visual storytelling.
+- `PENDING`: Unavailable, unknown, partial, missing, and demo data are not
+  presented as successful, official, complete, or low-risk conclusions.
+- `PENDING`: Retry and failure recovery do not break unrelated modules or
+  change decision rules.
+
+Record final signoff in `docs/release_signoff_template.md`. Until every
+deployment, responsive, accessibility, privacy, and recovery item is checked,
+use:
+
+```text
+RELEASE_DECISION=NO_GO
+```

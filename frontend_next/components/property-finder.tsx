@@ -73,8 +73,8 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
       });
       setResult(next);
       onResult?.(next);
-    } catch (caught) {
-      setError((caught as Error).message);
+    } catch {
+      setError("找房資料暫時無法取得，請稍後再試。" );
     } finally {
       setLoading(false);
     }
@@ -124,7 +124,7 @@ function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseF
     <FinderTable title="推薦路段" minWidth="min-w-[820px]" headers={["區域", "路段", "成交筆數", "中位總價", "中位坪數", "常見型態", "操作"]}>
       {result.road_suggestions.map((item) => { const selection=suggestionSelection(item); return <tr key={`${item.city}-${item.district}-${item.road}`} className="border-t border-stone-100"><td className="p-2">{item.city} {item.district}</td><td>{item.road}</td><td>{item.sample_count}</td><td>{item.median_total_price.toLocaleString()} 萬</td><td>{item.median_area_ping} 坪</td><td>{item.common_building_type}</td><td><FinderActions onValuation={() => onUseForValuation(selection)} onLoan={() => onUseForLoan(item.median_total_price)} onHoldingCost={() => onUseForHoldingCost(item.median_total_price, item.median_area_ping)} onLocation={() => onUseForLocationInsight(selection,item.median_total_price)} /></td></tr>; })}
     </FinderTable>
-    <FinderTable title="符合條件的成交樣本" minWidth="min-w-[980px]" headers={["期間", "區域", "路段", "型態", "坪數", "總價", "每坪單價", "來源", "操作"]}>
+    <FinderTable title="查看完整成交樣本" minWidth="min-w-[980px]" headers={["期間", "區域", "路段", "型態", "坪數", "總價", "每坪單價", "來源", "操作"]}>
       {result.matched_transactions.map((item, index) => { const selection=transactionSelection(item); return <tr key={`${item.transaction_period}-${item.road}-${index}`} className="border-t border-stone-100"><td className="whitespace-nowrap p-2">{item.transaction_period}</td><td>{item.city} {item.district}</td><td>{item.road}</td><td>{item.building_type}</td><td>{item.area_ping}</td><td>{item.total_price.toLocaleString()} 萬</td><td>{item.unit_price_per_ping} 萬</td><td><span className="whitespace-nowrap rounded-full bg-cyan-50 px-2 py-1 font-bold text-cyan-800">{item.source_label}</span></td><td><FinderActions onValuation={() => onUseForValuation(selection)} onLoan={() => onUseForLoan(item.total_price)} onHoldingCost={() => onUseForHoldingCost(item.total_price, item.area_ping)} onLocation={() => onUseForLocationInsight(selection,item.total_price)} /></td></tr>; })}
     </FinderTable>
     <Notice tone="warning">{result.disclaimer}</Notice>
@@ -132,8 +132,10 @@ function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseF
 }
 
 function FinderTable({ title, headers, minWidth, children }: { title: string; headers: string[]; minWidth: string; children: ReactNode }) {
+  const matchedTransactionsLabel = "符合條件的成交樣本";
   const table = <><p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">表格可左右滑動</p><div className="max-w-full touch-pan-x overflow-x-auto"><table className={`w-full ${minWidth} text-left text-[10px]`}><thead><tr className="bg-stone-50">{headers.map((header, index) => <th key={header} className={index === 0 ? "p-2" : ""}>{header}</th>)}</tr></thead><tbody>{children}</tbody></table></div></>;
-  return title.includes("成交樣本") ? <DetailDisclosure title="查看完整成交樣本">{table}</DetailDisclosure> : <div><h3 className="mb-2 text-sm font-bold text-slate-900">{title}</h3>{table}</div>;
+  const isTransactionTable = title.includes(matchedTransactionsLabel) || title === "查看完整成交樣本";
+  return <DetailDisclosure title={isTransactionTable ? "查看完整成交樣本" : "查看" + title}>{table}</DetailDisclosure>;
 }
 
 function FinderActions({ onValuation, onLoan, onHoldingCost, onLocation }: { onValuation: () => void; onLoan: () => void; onHoldingCost: () => void; onLocation?: () => void }) {
