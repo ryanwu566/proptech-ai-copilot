@@ -17,14 +17,16 @@ export function LoanCalculator({
   onResult,
   onHoldingCost,
   onLocationMap,
+  embedded = false,
 }: {
   propertyPriceWan?: number;
   initialResult?: LoanCalculationResult;
   onResult?: (result: LoanCalculationResult) => void;
   onHoldingCost?: (result: LoanCalculationResult) => void;
   onLocationMap?: () => void;
+  embedded?: boolean;
 }) {
-  const [propertyPrice, setPropertyPrice] = useState(propertyPriceWan ?? 2000);
+  const [propertyPrice, setPropertyPrice] = useState<number | "">(propertyPriceWan ?? (embedded ? "" : 2000));
   const [downPaymentRatio, setDownPaymentRatio] = useState(0.2);
   const [annualInterestRate, setAnnualInterestRate] = useState(2.2);
   const [loanYears, setLoanYears] = useState(30);
@@ -33,7 +35,7 @@ export function LoanCalculator({
   const [result, setResult] = useState<LoanCalculationResult>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [holdingPrefill, setHoldingPrefill] = useState<HoldingCostPrefill>(propertyPriceWan ? { property_price: propertyPriceWan } : { property_price: 2000 });
+  const [holdingPrefill, setHoldingPrefill] = useState<HoldingCostPrefill | undefined>(propertyPriceWan ? { property_price: propertyPriceWan } : undefined);
 
   useEffect(() => {
     if (propertyPriceWan && propertyPriceWan > 0) {
@@ -64,7 +66,7 @@ export function LoanCalculator({
     setError("");
     try {
       const next = await api.loanCalculate({
-        property_price: propertyPrice,
+        property_price: propertyPrice === "" ? 0 : propertyPrice,
         down_payment_ratio: downPaymentRatio,
         annual_interest_rate: annualInterestRate,
         loan_years: loanYears,
@@ -97,15 +99,15 @@ export function LoanCalculator({
         <label className="text-xs text-slate-500">月收入（萬元，可選）
           <input type="number" min="0.01" step="0.1" value={monthlyIncome} onChange={(event) => setMonthlyIncome(event.target.value === "" ? "" : Number(event.target.value))} className="mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm" />
         </label>
-        <Button className="w-full" disabled={loading || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears} onClick={calculate}>{loading ? "試算中..." : "計算貸款月付"}</Button>
-        {(propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears) && <p className="text-[10px] leading-5 text-amber-700">請先輸入有效總價與貸款年限；寬限期必須小於貸款年限。</p>}
+        <Button className="w-full" disabled={loading || propertyPrice === "" || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears} onClick={calculate}>{loading ? "試算中..." : "計算貸款月付"}</Button>
+        {(propertyPrice === "" || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears) && <p className="text-[10px] leading-5 text-amber-700">請先輸入有效總價與貸款年限；寬限期必須小於貸款年限。</p>}
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
         {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入總價、利率與貸款年限，再計算月付、總利息與負擔率。</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
       </div>
     </div>
-  </SectionCard>{!onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>}<LocationInsight onMap={onLocationMap} /></div>;
+  </SectionCard>{!embedded && !onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>} {!embedded && <LocationInsight onMap={onLocationMap} />}</div>;
 }
 
 function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult; onHoldingCost?: (result: LoanCalculationResult) => void }) {
@@ -113,7 +115,7 @@ function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult;
   return <LoanVisualPanel model={model} onHoldingCost={onHoldingCost ? () => onHoldingCost(result) : undefined} />;
 }
 
-function LoanNumberField({ label, value, onChange, min, max, step }: { label: string; value: number; onChange: (value: number) => void; min: number; max?: number; step?: number }) {
+function LoanNumberField({ label, value, onChange, min, max, step }: { label: string; value: number | ""; onChange: (value: number) => void; min: number; max?: number; step?: number }) {
   return <label className="text-xs text-slate-500">{label}<input type="number" value={value} min={min} max={max} step={step} onChange={(event) => onChange(Number(event.target.value))} className="mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm" /></label>;
 }
 

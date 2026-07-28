@@ -1,6 +1,6 @@
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
 
-export function JourneyPropertyContextHeader({ context, onBackToProperty }: { context: JourneyPropertyContext; onBackToProperty: () => void }) {
+export function JourneyPropertyContextHeader({ context, onBackToProperty, onDirectValuation }: { context: JourneyPropertyContext; onBackToProperty: () => void; onDirectValuation?: () => void }) {
   const hasContext = context.selectionStatus !== "not_selected";
   return <section aria-labelledby="journey-property-context-heading" className="rounded-xl border border-cyan-100 bg-cyan-50/60 p-4">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">

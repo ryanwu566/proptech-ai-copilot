@@ -22,7 +22,7 @@ export type PropertyFinderSelection = {
   area_ping: number;
 };
 
-export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void; initialResult?: PropertySearchResult }) {
+export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult, embedded = false }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void; initialResult?: PropertySearchResult; embedded?: boolean }) {
   const [city, setCity] = useState("");
   const [districtText, setDistrictText] = useState("");
   const [budgetMin, setBudgetMin] = useState<number | "">("");
@@ -103,7 +103,7 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
     {loading && <div className="mt-4"><LoadingState label="整理符合條件的區域與路段..." /></div>}
     {!result && !loading && <div className="mt-4"><EmptyState title="尚未開始找房" detail="請先輸入預算與地點，或載入示範條件後按搜尋看屋方向。" /></div>}
     {result && !loading && <PropertyFinderResults result={result} onUseForValuation={onUseForValuation} onUseForLoan={onUseForLoan} onUseForHoldingCost={onUseForHoldingCost} onUseForLocationInsight={onUseForLocationInsight} />}
-  </SectionCard></div><ImmersiveViewingWorkspace propertySearch={result}/></div>;
+  </SectionCard></div>{!embedded && <ImmersiveViewingWorkspace propertySearch={result}/>}</div>;
 }
 
 function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight }: { result: PropertySearchResult; onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void }) {
