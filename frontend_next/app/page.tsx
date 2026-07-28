@@ -43,6 +43,9 @@ import { TaxDecisionVisualPanel } from "@/components/data-visualization/tax-deci
 import { ValuationResultBoundary } from "@/components/valuation-result-boundary";
 import { buildViewingDecision, type ViewingDecision } from "@/lib/viewing-decision";
 import { TAIWAN_COUNTIES, getDistrictsForCounty, normalizeTaiwanCounty, normalizeTaiwanDistrict } from "@/lib/taiwan-admin-areas";
+import { GuidedPropertyJourney } from "@/components/guided-journey/guided-property-journey";
+import { JourneyToolCard } from "@/components/guided-journey/journey-tool-card";
+import type { JourneyStepId } from "@/lib/guided-journey";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -53,11 +56,19 @@ export default function Home() {
   useEffect(() => { if (parseValuationShareParams(window.location.search)) setPage("房價估算"); }, []);
   useEffect(() => { const open=()=>setPage("TaxOracle");window.addEventListener(OPEN_TAXORACLE_EVENT,open);return()=>window.removeEventListener(OPEN_TAXORACLE_EVENT,open);}, []);
   const openTax = (caseId = "") => { setRequestedCase(caseId); setPage("TaxOracle"); };
+  const openViewingFlow = (target: string) => { window.sessionStorage.setItem("proptech:pending-section", target); setPage("房價估算"); };
+  function renderJourneyStep(step: JourneyStepId) {
+    if (step === "property") return <div className="space-y-4"><JourneyToolCard title="先找到一間可以進一步分析的房子" productLabel="Property Finder · Property Search" description="輸入預算、地點與坪數，從官方歷史成交中找出看屋方向；不會自動執行估價或保存案件。" onOpen={() => openViewingFlow("property-finder")} primary /><p className="rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">完成選擇後，請使用既有的「帶入估價」、「帶入貸款」或「分析區位」按鈕前往下一步。</p></div>;
+    if (step === "location") return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="查看生活機能與位置" productLabel="Location Insight" description="手動分析附近生活機能與資料品質。" onOpen={() => openViewingFlow("location-insight-calculator")} primary /><JourneyToolCard title="查看通勤參考" productLabel="Commute Livability" description="從位置流程查看最近捷運與生活機能參考，不影響其他決策。" onOpen={() => openViewingFlow("location-insight-calculator")} /><JourneyToolCard title="查看地勢與災害資料" productLabel="Terrain Risk" description="資料不足或未評估時維持保守狀態，不代表安全。" onOpen={() => openViewingFlow("terrain-risk-analysis")} /><JourneyToolCard title="查看區域市場背景" productLabel="Market Insight" description="官方市場資料只作研究與背景參考，不形成總分或推薦。" onOpen={() => setPage("Market Insight Lite")} /></div>;
+    if (step === "price") return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="確認官方成交與估價" productLabel="Valuation" description="查看官方可比成交、估價狀態、趨勢與證據揭露。" onOpen={() => setPage("房價估算")} primary /><JourneyToolCard title="回到成交條件選擇" productLabel="Property Search" description="只有可用且可操作的結果才提供既有帶入操作。" onOpen={() => openViewingFlow("property-finder")} /></div>;
+    if (step === "affordability") return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="試算貸款與月付" productLabel="Loan · Aegis Credit" description="查看情境試算與敏感度，不代表銀行核貸。" onOpen={() => setPage("Aegis-Credit Lite")} primary /><JourneyToolCard title="查看持有成本" productLabel="Holding Cost" description="整理每月成本與簡化稅費假設，不代表正式稅單。" onOpen={() => setPage("Aegis-Credit Lite")} /><JourneyToolCard title="進行稅務快篩" productLabel="TaxOracle" description="檢視既有 TX001–TX009 規則結果，不代表法律或主管機關認定。" onOpen={() => openTax()} /></div>;
+    return <div className="grid gap-3 sm:grid-cols-2"><JourneyToolCard title="整理看房決策摘要" productLabel="Viewing Decision · Decision Report" description="查看目前資料、缺少項目與下一步，不新增總分或購買建議。" onOpen={() => openViewingFlow("immersive-workspace")} primary /><JourneyToolCard title="保存與比較案件" productLabel="Property Case · Comparison" description="前往既有案件保存、比較與列印入口；資料不完整時維持原狀態。" onOpen={() => setPage("歷史案件")} /><JourneyToolCard title="查看列印與匯出" productLabel="Print · Export" description="使用既有瀏覽器列印與報告匯出能力，受既有可信資料 guard 保護。" onOpen={() => openViewingFlow("immersive-workspace")} /></div>;
+  }
   const handleTourAction = (action: "tax-low" | "map" | "explore") => {
     if (action === "tax-low") openTax("DEMO-LOW");
     if (action === "map") setPage("Map Insight Lite");
   };
-  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction}>{renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction}>{page === "儀表板" ? <GuidedPropertyJourney renderStep={renderJourneyStep} renderExpertTools={() => <Dashboard setPage={setPage} openTax={openTax} />} /> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (caseId?: string) => void, requestedCase: string) {
