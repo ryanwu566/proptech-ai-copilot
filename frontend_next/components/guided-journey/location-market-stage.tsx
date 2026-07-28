@@ -18,7 +18,7 @@ type MarketHandlers = {
   onResult: (result: MarketResult | null) => void;
 };
 
-export function LocationMarketStage({ renderMarket, onMap, onBackToProperty, onContinueToPrice }: { renderMarket: (context: JourneyPropertyContext, handlers: MarketHandlers) => ReactNode; onMap: () => void; onBackToProperty: () => void; onContinueToPrice: () => void }) {
+export function LocationMarketStage({ renderMarket, onMap, onBackToProperty, onContinueToPrice, onPropertyContextChange }: { renderMarket: (context: JourneyPropertyContext, handlers: MarketHandlers) => ReactNode; onMap: () => void; onBackToProperty: () => void; onContinueToPrice: (context: JourneyPropertyContext) => void; onPropertyContextChange?: (context: JourneyPropertyContext) => void }) {
   const [propertyContext, setPropertyContext] = useState<JourneyPropertyContext>(() => getSafeJourneyPropertyContext(undefined));
   const [locationResult, setLocationResult] = useState<LocationInsightResult | null>(null);
   const [commuteResult, setCommuteResult] = useState<CommuteAddressLookupResult | null>(null);
@@ -31,18 +31,20 @@ export function LocationMarketStage({ renderMarket, onMap, onBackToProperty, onC
   const [visitedTools, setVisitedTools] = useState<LocationMarketToolId[]>([]);
 
   function updatePropertyContext(next: LocationInsightPrefill) {
-    setPropertyContext((current) => getSafeJourneyPropertyContext({
-      ...current,
-      city: next.city ?? current.city,
-      district: next.district ?? current.district,
-      road: next.road ?? current.road,
-      addressSummary: next.address ?? current.addressSummary,
-      buildingType: next.building_type ?? current.buildingType,
-      areaPing: next.area_ping ?? current.areaPing,
-      askingPriceWan: next.property_price ?? current.askingPriceWan,
+    const nextContext = getSafeJourneyPropertyContext({
+      ...propertyContext,
+      city: next.city ?? propertyContext.city,
+      district: next.district ?? propertyContext.district,
+      road: next.road ?? propertyContext.road,
+      addressSummary: next.address ?? propertyContext.addressSummary,
+      buildingType: next.building_type ?? propertyContext.buildingType,
+      areaPing: next.area_ping ?? propertyContext.areaPing,
+      askingPriceWan: next.property_price ?? propertyContext.askingPriceWan,
       sourceLabel: "使用者輸入或選擇",
       selectionStatus: "partial",
-    }));
+    });
+    setPropertyContext(nextContext);
+    onPropertyContextChange?.(nextContext);
   }
 
   function selectTool(tool: LocationMarketToolId) {
@@ -77,7 +79,7 @@ export function LocationMarketStage({ renderMarket, onMap, onBackToProperty, onC
     {visitedTools.includes("terrain") && <section hidden={activeTool !== "terrain"} aria-hidden={activeTool !== "terrain"} aria-labelledby="location-market-terrain-heading" className="min-w-0 rounded-xl border border-stone-200 bg-white p-4"><h3 id="location-market-terrain-heading" className="text-base font-black text-slate-950">地形與環境狀態</h3><p className="mt-1 text-xs leading-5 text-slate-600">保留各資料圖層的獨立狀態；資料不足不代表沒有風險。</p><div className="mt-3"><TerrainRiskAnalysis compactFromLocation location={locationResult ?? undefined} resetKey={contextAddress} onStatusChange={setTerrainDisplayStatus} onResult={setTerrainResult} /></div><div className="mt-4"><TerrainStatusMatrix result={terrainResult} /></div></section>}
     {visitedTools.includes("market") && <section hidden={activeTool !== "market"} aria-hidden={activeTool !== "market"} aria-labelledby="location-market-market-heading" className="min-w-0 rounded-xl border border-stone-200 bg-white p-4"><h3 id="location-market-market-heading" className="text-base font-black text-slate-950">官方市場背景</h3><p className="mt-1 text-xs leading-5 text-slate-600">研究參考，不會自動影響估價或案件決策。</p><div className="mt-3">{renderMarket(propertyContext, { onStatusChange: setMarketDisplayStatus, onResult: setMarketResult })}</div></section>}
     <LocationMarketSnapshot items={statusItems} evidenceAvailable={snapshot.evidenceAvailable} />
-    <div className="rounded-xl border border-cyan-100 bg-cyan-50/60 p-4"><p className="text-xs font-bold text-cyan-900">下一步</p><p className="mt-1 text-sm font-black text-slate-950">確認合理價格</p><p className="mt-1 text-xs leading-5 text-slate-600">只切換到價格分析，不會自動執行估價、建立估算、保存案件或把位置資料轉成估價因素。</p><button type="button" onClick={onContinueToPrice} className="mt-3 w-full rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto">下一步：確認合理價格</button></div>
+    <div className="rounded-xl border border-cyan-100 bg-cyan-50/60 p-4"><p className="text-xs font-bold text-cyan-900">下一步</p><p className="mt-1 text-sm font-black text-slate-950">確認合理價格</p><p className="mt-1 text-xs leading-5 text-slate-600">只切換到價格分析，不會自動執行估價、建立估算、保存案件或把位置資料轉成估價因素。</p><button type="button" onClick={() => onContinueToPrice(propertyContext)} className="mt-3 w-full rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto">下一步：確認合理價格</button></div>
   </div>;
 }
 

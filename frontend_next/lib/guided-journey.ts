@@ -19,7 +19,7 @@ export type JourneyRenderActions = {
   goToTool: (toolId: string) => void;
 };
 
-export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = [
+export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = ([
   {
     id: "property",
     number: 1,
@@ -70,7 +70,11 @@ export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = [
     previousLabel: "計算資金與稅務",
     toolLabels: ["Viewing Decision", "Property Case", "Comparison", "Print / export"],
   },
-];
+] as const).map((step) => {
+  if (step.id === "price") return { ...step, title: "價格判斷", question: "這間房的價格有沒有官方成交依據？", description: "先確認資料狀態、官方可比成交與估價區間。只有正式且可採取行動的估價，才能手動帶入後續工具。", nextLabel: "下一步：計算資金與稅務" };
+  if (step.id === "affordability") return { ...step, title: "資金與負擔", question: "頭期、月付、持有成本與稅務條件如何？", description: "分開查看貸款試算、每月持有成本與稅務快篩。這些結果不是銀行、會計師或主管機關的正式認定。", nextLabel: "下一步：儲存、比較與決定下一步" };
+  return step;
+});
 
 const TOOL_STEP_MAP: Readonly<Record<string, JourneyStepId>> = {
   "property-finder": "property",

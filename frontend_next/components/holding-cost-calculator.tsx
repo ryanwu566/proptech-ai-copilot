@@ -19,8 +19,8 @@ export const HOLDING_COST_PREFILL_EVENT = "proptech:holding-cost-prefill";
 export const HOLDING_COST_SESSION_KEY = "proptech:holding-cost-result";
 export const HOLDING_COST_RESULT_EVENT = "proptech:holding-cost-result-ready";
 
-export function HoldingCostCalculator({ prefill, onResult }: { prefill?: HoldingCostPrefill; onResult?: (result: HoldingCostResult) => void }) {
-  const [propertyPrice, setPropertyPrice] = useState(prefill?.property_price ?? 2000);
+export function HoldingCostCalculator({ prefill, onResult, embedded = false }: { prefill?: HoldingCostPrefill; onResult?: (result: HoldingCostResult) => void; embedded?: boolean }) {
+  const [propertyPrice, setPropertyPrice] = useState<number | "">(prefill?.property_price ?? (embedded ? "" : 2000));
   const [loanMonthlyPayment, setLoanMonthlyPayment] = useState(prefill?.loan_monthly_payment ?? 0);
   const [monthlyIncome, setMonthlyIncome] = useState<number | "">(prefill?.monthly_income ?? "");
   const [areaPing, setAreaPing] = useState<number | "">(prefill?.area_ping ?? "");
@@ -71,7 +71,7 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
     setError("");
     try {
       const next = await api.holdingCostCalculate({
-        property_price: propertyPrice,
+        property_price: propertyPrice === "" ? 0 : propertyPrice,
         loan_monthly_payment: loanMonthlyPayment,
         monthly_income: monthlyIncome === "" ? undefined : monthlyIncome,
         area_ping: areaPing === "" ? undefined : areaPing,
@@ -105,8 +105,8 @@ export function HoldingCostCalculator({ prefill, onResult }: { prefill?: Holding
         <CostField label="房屋稅簡化估算率" value={homeTaxRate} onChange={setHomeTaxRate} min={0} step={0.0001} />
         <CostField label="地價稅簡化估算率" value={landTaxRate} onChange={setLandTaxRate} min={0} step={0.0001} />
         <CostField label="年保險費（元）" value={annualInsurance} onChange={setAnnualInsurance} min={0} />
-        <Button className="w-full" disabled={loading || propertyPrice <= 0} onClick={calculate}>{loading ? "試算中..." : "計算每月持有成本"}</Button>
-        {propertyPrice <= 0 && <p className="text-[10px] leading-5 text-amber-700">請先完成貸款帶入，或輸入有效房屋總價與月付。</p>}
+        <Button className="w-full" disabled={loading || propertyPrice === "" || propertyPrice <= 0} onClick={calculate}>{loading ? "試算中..." : "計算每月持有成本"}</Button>
+        {(propertyPrice === "" || propertyPrice <= 0) && <p className="text-[10px] leading-5 text-amber-700">請先完成貸款帶入，或輸入有效房屋總價與月付。</p>}
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
@@ -124,7 +124,7 @@ function HoldingCostResults({ result }: { result: HoldingCostResult }) {
   return <HoldingCostVisualPanel model={buildHoldingCostVisualModel(result)} result={result} />;
 }
 
-function CostField({ label, value, onChange, min, step }: { label: string; value: number; onChange: (value: number) => void; min: number; step?: number }) {
+function CostField({ label, value, onChange, min, step }: { label: string; value: number | ""; onChange: (value: number) => void; min: number; step?: number }) {
   return <label className="text-xs text-slate-500">{label}<input type="number" value={value} min={min} step={step} onChange={(event) => onChange(Number(event.target.value))} className="mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm" /></label>;
 }
 
