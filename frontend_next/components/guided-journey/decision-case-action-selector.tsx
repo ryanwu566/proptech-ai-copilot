@@ -1,0 +1,7 @@
+export type DecisionCaseAction = "new" | "saved" | "none";
+
+export function DecisionCaseActionSelector({ activeAction, onSelect }: { activeAction: DecisionCaseAction; onSelect: (action: Exclude<DecisionCaseAction, "none">) => void }) {
+  return <section aria-labelledby="decision-case-action-heading" className="min-w-0 rounded-xl border border-cyan-100 bg-white p-4"><h3 id="decision-case-action-heading" className="text-base font-black text-slate-950">案件工作區</h3><p className="mt-1 text-xs leading-5 text-slate-600">請由你明確選擇要建立新案件、開啟既有案件，或先查看缺失資料；不會自動建立或選取案件。</p><div className="mt-3 grid gap-2 sm:grid-cols-3"><ActionButton active={activeAction === "new"} label="建立新案件" onClick={() => onSelect("new")} /><ActionButton active={activeAction === "saved"} label="開啟既有案件" onClick={() => onSelect("saved")} /><div className="rounded-lg border border-stone-200 bg-stone-50 p-3 text-xs font-bold text-slate-700">暫不建立，先查看缺失資料</div></div></section>;
+}
+
+function ActionButton({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) { return <button type="button" aria-pressed={active} onClick={onClick} className={active ? "rounded-lg border border-cyan-500 bg-cyan-50 px-3 py-3 text-left text-xs font-black text-cyan-900" : "rounded-lg border border-stone-200 bg-white px-3 py-3 text-left text-xs font-bold text-slate-800 hover:border-cyan-300"}>{label}<span className="mt-1 block text-[10px] font-normal text-slate-500">{active ? "目前開啟" : "需要時再選"}</span></button>; }
