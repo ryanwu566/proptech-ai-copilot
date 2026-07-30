@@ -1,8 +1,12 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { getExperienceStatePresentation, type ExperienceState } from "@/lib/experience-architecture";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
 
 export function ExperienceStatePanel({ state, title, explanation, nextAction, sourceNote, onAction, children, className = "" }: { state: ExperienceState; title?: string; explanation?: string; nextAction?: string; sourceNote?: string; onAction?: () => void; children?: ReactNode; className?: string }) {
-  const copy = getExperienceStatePresentation(state);
+  const { t } = useExperienceLocale();
+  const copy = getExperienceStatePresentation(state, t);
   const action = nextAction ?? copy.nextAction;
   const note = sourceNote ?? copy.sourceNote;
   return <section role="status" aria-live="polite" data-experience-state={state} className={`rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-amber-950 ${className}`}>

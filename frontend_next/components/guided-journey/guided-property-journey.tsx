@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { JOURNEY_STEPS, addVisitedJourneyStep, getJourneyStepForTool, getNextJourneyStep, getPreviousJourneyStep, type JourneyRenderActions, type JourneyStepId } from "@/lib/guided-journey";
 import { JourneyExpertTools } from "@/components/guided-journey/journey-expert-tools";
 import { JourneyProgressSummary } from "@/components/guided-journey/journey-progress-summary";
@@ -10,6 +10,15 @@ import { JourneyStepper } from "@/components/guided-journey/journey-stepper";
 export function GuidedPropertyJourney({ renderStep, renderExpertTools }: { renderStep: (step: JourneyStepId, actions: JourneyRenderActions) => ReactNode; renderExpertTools: () => ReactNode }) {
   const [activeStep, setActiveStep] = useState<JourneyStepId>("property");
   const [visitedSteps, setVisitedSteps] = useState<JourneyStepId[]>(["property"]);
+
+  useEffect(() => {
+    const onVoiceStep = (event: Event) => {
+      const step = (event as CustomEvent<JourneyStepId>).detail;
+      if (JOURNEY_STEPS.some((item) => item.id === step)) selectStep(step);
+    };
+    window.addEventListener("proptech:select-journey-step", onVoiceStep);
+    return () => window.removeEventListener("proptech:select-journey-step", onVoiceStep);
+  }, []);
 
   function selectStep(step: JourneyStepId) {
     setVisitedSteps((current) => addVisitedJourneyStep(current, step));

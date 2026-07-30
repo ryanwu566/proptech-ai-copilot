@@ -1,3 +1,5 @@
+import type { TranslationKey } from "@/lib/experience-i18n";
+
 export type ExperienceState =
   | "empty"
   | "loading"
@@ -16,6 +18,20 @@ export type ExperienceStatePresentation = {
   explanation: string;
   nextAction?: string;
   sourceNote?: string;
+};
+
+export const EXPERIENCE_STATE_TRANSLATION_KEYS: Record<ExperienceState, { heading: TranslationKey; explanation: TranslationKey; nextAction: TranslationKey; sourceNote?: TranslationKey }> = {
+  empty: { heading: "state.empty.heading", explanation: "state.empty.explanation", nextAction: "state.empty.next" },
+  loading: { heading: "state.loading.heading", explanation: "state.loading.explanation", nextAction: "state.loading.explanation" },
+  unavailable: { heading: "state.unavailable.heading", explanation: "state.unavailable.explanation", nextAction: "state.unavailable.next" },
+  no_official_data: { heading: "state.no_official_data.heading", explanation: "state.no_official_data.explanation", nextAction: "state.no_official_data.next", sourceNote: "state.no_official_data.source" },
+  partial: { heading: "state.partial.heading", explanation: "state.partial.explanation", nextAction: "state.partial.next" },
+  limited: { heading: "state.limited.heading", explanation: "state.limited.explanation", nextAction: "state.limited.next" },
+  no_match: { heading: "state.no_match.heading", explanation: "state.no_match.explanation", nextAction: "state.no_match.next" },
+  unknown: { heading: "state.unknown.heading", explanation: "state.unknown.explanation", nextAction: "state.unknown.next" },
+  not_assessed: { heading: "state.not_assessed.heading", explanation: "state.not_assessed.explanation", nextAction: "state.not_assessed.next" },
+  error: { heading: "state.error.heading", explanation: "state.error.explanation", nextAction: "state.error.next" },
+  ready: { heading: "state.ready.heading", explanation: "state.ready.explanation", nextAction: "state.ready.explanation" },
 };
 
 export const EXPERIENCE_STATE_PRESENTATIONS: Record<ExperienceState, ExperienceStatePresentation> = {
@@ -56,6 +72,14 @@ export const JOURNEY_PRIMARY_ACTION_CONTRACTS: Readonly<Record<string, PrimaryAc
   decision: { viewId: "journey-decision", primaryActionId: "viewing-decision", secondaryActionIds: ["property-case", "comparison", "print-export"], automaticEffects: false },
 };
 
-export function getExperienceStatePresentation(state: ExperienceState): ExperienceStatePresentation {
-  return EXPERIENCE_STATE_PRESENTATIONS[state];
+export function getExperienceStatePresentation(state: ExperienceState, translate?: (key: TranslationKey) => string): ExperienceStatePresentation {
+  const presentation = EXPERIENCE_STATE_PRESENTATIONS[state];
+  if (!translate) return presentation;
+  const keys = EXPERIENCE_STATE_TRANSLATION_KEYS[state];
+  return {
+    heading: translate(keys.heading),
+    explanation: translate(keys.explanation),
+    nextAction: translate(keys.nextAction),
+    sourceNote: keys.sourceNote ? translate(keys.sourceNote) : presentation.sourceNote,
+  };
 }
