@@ -8,7 +8,7 @@ export function VolumeBarChart({ data, status }: { data: MarketHistoryPoint[]; s
   if (data.length < 2) return <ChartEmptyState />;
   const max = Math.max(...data.map((point) => point.transaction_count));
   const labelIndexes = selectChartLabelIndexes(data.length);
-  return <div className="min-h-[320px] max-w-full overflow-hidden" aria-label="交易量柱狀圖與文字摘要">
+  return <div className=" max-w-full overflow-hidden" aria-label="交易量柱狀圖與文字摘要">
     <svg viewBox="0 0 640 280" role="img" aria-label="交易量柱狀圖" className="h-auto w-full">
       <title>交易量趨勢</title><desc>顯示各有效期別的交易筆數，不以缺失資料補零。</desc>
       {data.map((point, index) => { const x = 48 + (index * 544) / data.length; const barWidth = Math.max(8, 480 / data.length); const barHeight = (point.transaction_count / max) * 200; return <rect key={`${point.period}-${index}`} x={x} y={224 - barHeight} width={barWidth} height={barHeight} className="fill-cyan-600" />; })}

@@ -13,7 +13,7 @@ export function TrendLineChart({ data, status, textSummary }: { data: MarketHist
   const range = max - min || 1;
   const points = data.map((point, index) => `${40 + (index * 560) / (data.length - 1)},${24 + (1 - (point.average_unit_price - min) / range) * 200}`).join(" ");
   const labelIndexes = selectChartLabelIndexes(data.length);
-  return <div className="min-h-[320px] max-w-full overflow-hidden" aria-label="平均單價趨勢圖與文字摘要">
+  return <div className=" max-w-full overflow-hidden" aria-label="平均單價趨勢圖與文字摘要">
     <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="平均單價趨勢折線圖" className="h-auto w-full">
       <title>平均單價趨勢</title><desc>{textSummary}</desc>
       <polyline fill="none" stroke="currentColor" strokeWidth="4" points={points} className="text-cyan-700" />

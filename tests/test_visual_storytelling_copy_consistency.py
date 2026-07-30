@@ -46,7 +46,11 @@ def test_evidence_disclosure_labels_are_allowlisted() -> None:
 
 def test_unavailable_copy_is_conservative_and_accessible() -> None:
     source = (ROOT / "frontend_next/components/data-visualization/visual-data-unavailable-state.tsx").read_text(encoding="utf-8")
-    assert "資料暫時無法取得" in source
-    assert 'role="status"' in source
-    assert 'aria-live="polite"' in source
+    state_panel = (ROOT / "frontend_next/components/experience-state-panel.tsx").read_text(encoding="utf-8")
+    state_contract = (ROOT / "frontend_next/lib/experience-architecture.ts").read_text(encoding="utf-8")
+    assert "ExperienceStatePanel" in source
+    assert 'state = "unavailable"' in source
+    assert 'role="status"' in state_panel
+    assert 'aria-live="polite"' in state_panel
+    assert "資料暫時不可用" in state_contract
     assert "值得買" not in source

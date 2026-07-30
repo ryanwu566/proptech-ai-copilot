@@ -44,10 +44,10 @@ def test_evidence_details_and_status_are_keyboard_and_screen_reader_friendly() -
     assert "hover" not in details.lower()
 
 
-def test_metric_and_chart_layouts_keep_mobile_safe_minimums() -> None:
+def test_metric_and_chart_layouts_avoid_fixed_empty_blocks() -> None:
     trend = (VISUAL_DIR / "trend-line-chart.tsx").read_text(encoding="utf-8")
     volume = (VISUAL_DIR / "volume-bar-chart.tsx").read_text(encoding="utf-8")
     empty = (VISUAL_DIR / "chart-empty-state.tsx").read_text(encoding="utf-8")
-    assert "min-h-[320px]" in trend
-    assert "min-h-[320px]" in volume
-    assert "min-h-[320px]" in empty
+    for source in (trend, volume, empty):
+        assert "max-w-full" in source or "ExperienceStatePanel" in source
+        assert "min-h-[320px]" not in source
