@@ -21,7 +21,7 @@ export function JourneyStepper({ steps, activeStep, visitedSteps, onSelect }: Jo
   return <nav aria-label="購屋判斷流程" className="space-y-3">
     <div className="hidden space-y-2 lg:block">{steps.map((step) => <StepButton key={step.id} step={step} activeStep={activeStep} visitedSteps={visitedSteps} onSelect={onSelect} />)}</div>
     <details className="rounded-xl border border-stone-200 bg-white lg:hidden">
-      <summary className="cursor-pointer px-3 py-3 text-sm font-bold text-slate-900">查看全部步驟</summary>
+      <summary className="cursor-pointer px-3 py-3 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-inset">查看全部步驟</summary>
       <div className="space-y-2 border-t border-stone-100 p-3">{steps.map((step) => <StepButton key={step.id} step={step} activeStep={activeStep} visitedSteps={visitedSteps} onSelect={onSelect} />)}</div>
     </details>
   </nav>;

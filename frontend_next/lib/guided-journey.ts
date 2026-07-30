@@ -3,6 +3,7 @@ export type JourneyStepId = "property" | "location" | "price" | "affordability" 
 export type JourneyStepDefinition = {
   id: JourneyStepId;
   number: number;
+  primaryActionId: string;
   title: string;
   question: string;
   description: string;
@@ -23,6 +24,7 @@ export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = ([
   {
     id: "property",
     number: 1,
+    primaryActionId: "property-finder",
     title: "找到物件",
     question: "我現在看的是哪一間房？",
     description: "先輸入物件條件，或從歷史成交中找到可進一步分析的物件。",
@@ -33,6 +35,7 @@ export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = ([
   {
     id: "location",
     number: 2,
+    primaryActionId: "location-insight",
     title: "看地點與市場",
     question: "住在這裡方便嗎？區域市場有什麼資料？",
     description: "分開查看生活機能、通勤、地形與官方市場資料，這些資訊只供研究參考，不會合成分數或自動影響估價。",
@@ -43,6 +46,7 @@ export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = ([
   {
     id: "price",
     number: 3,
+    primaryActionId: "valuation",
     title: "確認合理價格",
     question: "這間房的開價有沒有官方成交依據？",
     description: "先確認官方可比成交與估價狀態，再決定是否繼續進行資金試算。",
@@ -53,6 +57,7 @@ export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = ([
   {
     id: "affordability",
     number: 4,
+    primaryActionId: "loan",
     title: "計算資金與稅務",
     question: "頭期、月付、持有成本與稅務條件如何？",
     description: "分開查看貸款試算、每月持有成本與稅務快篩，不將試算結果當作正式結論。",
@@ -63,6 +68,7 @@ export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = ([
   {
     id: "decision",
     number: 5,
+    primaryActionId: "viewing-decision",
     title: "儲存、比較與決定下一步",
     question: "資料是否足夠，我接下來要做什麼？",
     description: "將已確認資料整理成案件，查看缺少項目、看屋問題、出價方案與其他案件差異。",

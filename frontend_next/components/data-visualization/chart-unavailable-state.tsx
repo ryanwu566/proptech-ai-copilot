@@ -1,3 +1,5 @@
+import { ExperienceStatePanel } from "@/components/experience-state-panel";
+
 export function ChartUnavailableState() {
-  return <div role="status" className="flex min-h-[320px] items-center justify-center rounded-xl border border-dashed border-amber-300 bg-amber-50 p-6 text-center text-sm text-amber-900">市場資料暫不可用，暫不顯示數字或圖表。</div>;
+  return <ExperienceStatePanel state="unavailable" title="圖表資料暫時不可用" explanation="目前無法取得足夠資料，因此不顯示空白圖表。" />;
 }

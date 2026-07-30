@@ -1,3 +1,5 @@
-export function ChartEmptyState({ title = "目前無足夠資料可繪圖" }: { title?: string }) {
-  return <div role="status" className="flex min-h-[320px] items-center justify-center rounded-xl border border-dashed border-stone-300 bg-stone-50 p-6 text-center text-sm text-slate-600">{title}，不以零值或推估資料補齊。</div>;
+import { ExperienceStatePanel } from "@/components/experience-state-panel";
+
+export function ChartEmptyState({ title = "目前沒有足夠資料可呈現圖表" }: { title?: string }) {
+  return <ExperienceStatePanel state="partial" title={title} explanation="資料不足以形成有意義的視覺化，不會以零值補上缺口。" nextAction="查看資料來源與限制，或先完成必要的分析。" />;
 }
