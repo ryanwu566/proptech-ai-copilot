@@ -25,7 +25,11 @@ def test_case_storage_can_save_load_delete_clear_without_api_calls() -> None:
 
 
 def test_large_result_lists_are_bounded() -> None:
-    for field in ("matched_transactions", "comparables", "nearest_pois", "terrainRisk"):
+    for field in ("matched_transactions", "comparables", "nearest_pois", "terrainReference"):
         assert field in STORAGE
-    assert ".slice(0, 20)" in STORAGE
-    assert "proptech:terrain-risk-result" in STORAGE
+    assert "matched_transactions: []" in STORAGE
+    assert "StoredTerrainReferenceEvidenceV1" in STORAGE
+    assert "migrateLegacyTerrainReference" in STORAGE
+    assert "normalizeStoredTerrainReferenceEvidence" in STORAGE
+    assert "terrainRisk: undefined" in STORAGE
+    assert "proptech:terrain-risk-result" not in STORAGE

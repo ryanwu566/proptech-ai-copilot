@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { HOLDING_COST_RESULT_EVENT, HOLDING_COST_SESSION_KEY } from "@/components/holding-cost-calculator";
 import { LOCATION_INSIGHT_RESULT_EVENT, LOCATION_INSIGHT_SESSION_KEY, prefillLocationInsight } from "@/components/location-insight";
-import { TERRAIN_RISK_RESULT_EVENT, TERRAIN_RISK_SESSION_KEY } from "@/components/terrain-risk-analysis";
+import { TERRAIN_REFERENCE_EVIDENCE_EVENT, TERRAIN_RISK_RESULT_EVENT } from "@/components/terrain-risk-analysis";
 import { DecisionReport } from "@/components/decision-report";
 import { PropertyGuideMascot } from "@/components/property-guide-mascot";
 import { RiskSummaryPanel } from "@/components/risk-summary-panel";
@@ -25,6 +25,7 @@ import { buildViewingDecision } from "@/lib/viewing-decision";
 import { PropertyCaseReadiness } from "@/components/property-case-readiness";
 import { buildPropertyCaseDraft } from "@/lib/property-case";
 import { getTrustedValuationEvidence } from "@/lib/property-case-evidence";
+import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1, type TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 
 export type WorkspaceContext = {
   inputs: ValuationInputs;
@@ -47,6 +48,7 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   const [holdingResult, setHoldingResult] = useState<HoldingCostResult>();
   const [location, setLocation] = useState<LocationInsightResult>();
   const [terrainRisk, setTerrainRisk] = useState<TerrainRiskResult>();
+  const [attachedTerrainReference, setAttachedTerrainReference] = useState<StoredTerrainReferenceEvidenceV1>();
   const [workflowSession, setWorkflowSession] = useState<{ reportCompleted: boolean; taxOracleResult?: TaxResult }>(() => ({ reportCompleted: false }));
   const [caseMessage, setCaseMessage] = useState("保存兩個以上案件後，就可以比較哪個更值得看。");
   useEffect(() => {
@@ -54,29 +56,30 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     if (stored) setContext({ ...stored, propertySearch: propertySearch ?? stored.propertySearch });
     setHoldingResult(stored?.holding ?? readSession<HoldingCostResult>(HOLDING_COST_SESSION_KEY));
     setLocation(readSession<LocationInsightResult>(LOCATION_INSIGHT_SESSION_KEY));
-    setTerrainRisk(readSession<TerrainRiskResult>(TERRAIN_RISK_SESSION_KEY));
     const contextListener = (event: Event) => setContext((event as CustomEvent<WorkspaceContext>).detail);
     const holdingListener = (event: Event) => setHoldingResult((event as CustomEvent<HoldingCostResult>).detail);
     const locationListener = (event: Event) => setLocation((event as CustomEvent<LocationInsightResult>).detail);
-    const terrainRiskListener = (event: Event) => setTerrainRisk((event as CustomEvent<TerrainRiskResult>).detail);
+    const terrainRiskListener = (event: Event) => { setTerrainRisk((event as CustomEvent<TerrainRiskResult>).detail); setAttachedTerrainReference(undefined); };
+    const terrainEvidenceListener = (event: Event) => { const evidence = (event as CustomEvent<TerrainReferenceEvidence>).detail; setAttachedTerrainReference(toStoredTerrainReferenceEvidence(evidence) ?? undefined); };
     const workflowListener = () => setWorkflowSession(readWorkflowSession());
-    const loadedListener = () => setCaseMessage("已回到上次進度。");
-    const clearedListener = () => { setContext({ inputs: { city: "", district: "", road: "", building_type: "", area_ping: 0, building_age_years: 0, floor: 0 } }); setHoldingResult(undefined); setLocation(undefined); setTerrainRisk(undefined); setWorkflowSession({ reportCompleted: false }); setCaseMessage("保存兩個以上案件後，就可以比較哪個更值得看。"); };
+    const loadedListener = (event: Event) => { const saved = (event as CustomEvent<SavedCase>).detail; setAttachedTerrainReference(normalizeStoredTerrainReferenceEvidence(saved?.data?.terrainReference)); setCaseMessage("已回到上次進度。"); };
+    const clearedListener = () => { setContext({ inputs: { city: "", district: "", road: "", building_type: "", area_ping: 0, building_age_years: 0, floor: 0 } }); setHoldingResult(undefined); setLocation(undefined); setTerrainRisk(undefined); setAttachedTerrainReference(undefined); setWorkflowSession({ reportCompleted: false }); setCaseMessage("保存兩個以上案件後，就可以比較哪個更值得看。"); };
     window.addEventListener(WORKSPACE_CONTEXT_EVENT, contextListener);
     window.addEventListener(HOLDING_COST_RESULT_EVENT, holdingListener);
     window.addEventListener(LOCATION_INSIGHT_RESULT_EVENT, locationListener);
     window.addEventListener(TERRAIN_RISK_RESULT_EVENT, terrainRiskListener);
+    window.addEventListener(TERRAIN_REFERENCE_EVIDENCE_EVENT, terrainEvidenceListener);
     window.addEventListener(WORKFLOW_STATUS_EVENT, workflowListener);
     window.addEventListener(CASE_LOADED_EVENT, loadedListener);
     window.addEventListener(CASE_CLEARED_EVENT, clearedListener);
     workflowListener();
-    return () => { window.removeEventListener(WORKSPACE_CONTEXT_EVENT, contextListener); window.removeEventListener(HOLDING_COST_RESULT_EVENT, holdingListener); window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, locationListener); window.removeEventListener(TERRAIN_RISK_RESULT_EVENT, terrainRiskListener); window.removeEventListener(WORKFLOW_STATUS_EVENT, workflowListener); window.removeEventListener(CASE_LOADED_EVENT, loadedListener); window.removeEventListener(CASE_CLEARED_EVENT, clearedListener); };
+    return () => { window.removeEventListener(WORKSPACE_CONTEXT_EVENT, contextListener); window.removeEventListener(HOLDING_COST_RESULT_EVENT, holdingListener); window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, locationListener); window.removeEventListener(TERRAIN_RISK_RESULT_EVENT, terrainRiskListener); window.removeEventListener(TERRAIN_REFERENCE_EVIDENCE_EVENT, terrainEvidenceListener); window.removeEventListener(WORKFLOW_STATUS_EVENT, workflowListener); window.removeEventListener(CASE_LOADED_EVENT, loadedListener); window.removeEventListener(CASE_CLEARED_EVENT, clearedListener); };
   }, [propertySearch]);
   const search = propertySearch ?? context.propertySearch;
   const { inputs, valuation, trend, loan } = context;
   const riskSummary = buildRiskSummary({ propertySearch: search, valuation, trend, loan, holding: holdingResult, location, terrainRisk });
   const workflowStatus = buildWorkflowStatus({ propertySearch: search, valuation, loan, holding: holdingResult, location, riskSummary, reportCompleted: workflowSession.reportCompleted, taxOracleResult: workflowSession.taxOracleResult });
-  const viewingDecision = buildViewingDecision({ valuation, loan, holding: holdingResult, location, terrainRisk, riskSummary, taxOracleResult: workflowSession.taxOracleResult });
+  const viewingDecision = buildViewingDecision({ valuation, loan, holding: holdingResult, location, riskSummary, taxOracleResult: workflowSession.taxOracleResult });
   const activeWizardStep = getActiveWizardStep(workflowStatus);
   const wizardSummaries: WizardStepSummary = {
     property_search: search ? [`符合預算成交 ${search.summary.matched_count} 筆`, `推薦路段 ${search.road_suggestions.length} 條`] : undefined,
@@ -90,14 +93,14 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   const stage = location && holdingResult && loan && valuation ? "complete" : location || holdingResult ? "location" : loan ? "loan" : valuation ? "valuation" : search ? "finder" : "start";
   function exportReport() {
     if (!valuation || !getTrustedValuationEvidence(valuation).transferable) return;
-    const html = buildValuationSummaryHtml(inputs, valuation, trend, search, loan, holdingResult, location, terrainRisk);
+    const html = buildValuationSummaryHtml(inputs, valuation, trend, search, loan, holdingResult, location, attachedTerrainReference);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
     markWorkflowReportCompleted();
   }
   function exportSavedCase(saved: SavedCase) {
     if (!saved.data.valuation || saved.data.valuationEvidence?.transferable !== true) return;
-    const html = buildValuationSummaryHtml(saved.data.inputs, saved.data.valuation, saved.data.trend, saved.data.propertySearch, saved.data.loan, saved.data.holdingCost, saved.data.locationInsight, saved.data.terrainRisk);
+    const html = buildValuationSummaryHtml(saved.data.inputs, saved.data.valuation, saved.data.trend, saved.data.propertySearch, saved.data.loan, saved.data.holdingCost, saved.data.locationInsight, saved.data.terrainReference);
     const url = URL.createObjectURL(new Blob([html], { type: "text/html;charset=utf-8" }));
     const link = document.createElement("a"); link.href = url; link.download = valuationSummaryFilename(); link.click(); URL.revokeObjectURL(url);
   }
@@ -106,9 +109,9 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     progress: workflowStatus.overallProgress,
     title: "",
     inputSummary: { city: inputs.city, district: inputs.district, road: inputs.road, budgetMin: search?.summary.budget_min, budgetMax: search?.summary.budget_max, areaPing: inputs.area_ping },
-    data: { inputs, propertySearch: search, valuation, trend, loan, holdingCost: holdingResult, locationInsight: location, terrainRisk, riskSummary, taxOracle: workflowSession.taxOracleResult, reportCompleted: workflowSession.reportCompleted },
+    data: { inputs, propertySearch: search, valuation, trend, loan, holdingCost: holdingResult, locationInsight: location, terrainReference: attachedTerrainReference, riskSummary, taxOracle: workflowSession.taxOracleResult, reportCompleted: workflowSession.reportCompleted },
   };
-  const propertyCaseDraft = buildPropertyCaseDraft({ inputs, propertySearch: search, valuation, trend, loan, holding: holdingResult, location, terrainRisk, riskSummary, taxOracle: workflowSession.taxOracleResult });
+  const propertyCaseDraft = buildPropertyCaseDraft({ inputs, propertySearch: search, valuation, trend, loan, holding: holdingResult, location, terrainRisk: undefined, riskSummary, taxOracle: workflowSession.taxOracleResult });
   function saveCurrentCase() {
     const saved = saveCase(currentCase);
     setCaseMessage(saved ? "案件已保存，下一步可繼續分析。" : "請先補齊案件名稱與物件地址／識別，再儲存草稿。");
@@ -120,7 +123,7 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     <div className="border-b border-stone-200 bg-white px-4 py-4 sm:px-5"><div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(260px,360px)] sm:items-center"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">IMMERSIVE VIEWING WORKSPACE</p><h2 className="mt-1 text-xl font-bold text-slate-950">沉浸式看房工作台</h2><p className="mt-1 text-xs text-slate-500">導覽式看房流程：每次專注完成一個主要步驟，已完成內容收進摘要卡。</p></div><PropertyGuideMascot stage={stage} riskSignal={riskSummary.overallSignal} workflowStatus={workflowStatus} activeWizardStep={activeWizardStep.id} caseMessage={caseMessage} /></div></div>
     <div className="space-y-3 p-4 pb-0 lg:p-5 lg:pb-0"><GuidedDemoRunner onMessage={setCaseMessage} onSave={saveCurrentCase} onExport={exportReport} canExport={Boolean(valuation)} /><div className="flex flex-wrap items-center gap-2 rounded-xl border border-stone-200 bg-white px-3 py-2 text-[10px] font-bold text-slate-600"><span>常用操作說明</span><HelpTooltip title={HELP_CONTENT.caseSave.title}>{HELP_CONTENT.caseSave.body}</HelpTooltip><HelpTooltip title={HELP_CONTENT.caseComparison.title}>{HELP_CONTENT.caseComparison.body}</HelpTooltip><HelpTooltip title={HELP_CONTENT.htmlExport.title}>{HELP_CONTENT.htmlExport.body}</HelpTooltip><HelpTooltip title={HELP_CONTENT.shareLink.title}>{HELP_CONTENT.shareLink.body}</HelpTooltip></div></div>
     <div className="grid min-w-0 gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_340px] lg:p-5">
-      <div className="min-w-0 space-y-4"><PropertyCaseReadiness draft={propertyCaseDraft} /><CaseManager current={currentCase} onSaved={() => setCaseMessage("案件已保存，下一步可繼續完成缺少的分析。")} onLoaded={() => setCaseMessage("已回到上次進度。")} onCleared={() => setCaseMessage("保存兩個以上案件後，就可以比較哪個更值得看。")} onExport={exportSavedCase} /><ViewingDecisionPanel decision={viewingDecision} onNext={handleViewingDecisionNext} /><WorkflowCommandCenter status={workflowStatus} summaries={wizardSummaries} /><details className="rounded-xl border border-stone-200 bg-white" open={activeWizardStep.id === "risk"}><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">Step 5 風險總評</summary><div className="border-t border-stone-100 p-4"><RiskSummaryPanel summary={riskSummary} /></div></details><details className="rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">查看各模組完成摘要</summary><div className="border-t border-stone-100 p-4"><FlowCards propertySearch={search} valuation={valuation} trend={trend} loan={loan} holding={holdingResult} location={location} /></div></details><details className="rounded-xl border border-stone-200 bg-white" open={activeWizardStep.id === "report"}><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">Step 6 看屋決策報告</summary><div className="border-t border-stone-100 p-4"><DecisionReport propertySearch={search} valuation={valuation} loan={loan} holding={holdingResult} location={location} terrainRisk={terrainRisk} riskSummary={riskSummary} taxOracleResult={workflowSession.taxOracleResult} onDecisionNext={handleViewingDecisionNext} /></div></details></div>
+      <div className="min-w-0 space-y-4"><PropertyCaseReadiness draft={propertyCaseDraft} /><CaseManager current={currentCase} onSaved={() => setCaseMessage("案件已保存，下一步可繼續完成缺少的分析。")} onLoaded={() => setCaseMessage("已回到上次進度。")} onCleared={() => setCaseMessage("保存兩個以上案件後，就可以比較哪個更值得看。")} onExport={exportSavedCase} /><ViewingDecisionPanel decision={viewingDecision} onNext={handleViewingDecisionNext} /><WorkflowCommandCenter status={workflowStatus} summaries={wizardSummaries} /><details className="rounded-xl border border-stone-200 bg-white" open={activeWizardStep.id === "risk"}><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">Step 5 風險總評</summary><div className="border-t border-stone-100 p-4"><RiskSummaryPanel summary={riskSummary} /></div></details><details className="rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">查看各模組完成摘要</summary><div className="border-t border-stone-100 p-4"><FlowCards propertySearch={search} valuation={valuation} trend={trend} loan={loan} holding={holdingResult} location={location} /></div></details><details className="rounded-xl border border-stone-200 bg-white" open={activeWizardStep.id === "report"}><summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">Step 6 看屋決策報告</summary><div className="border-t border-stone-100 p-4"><DecisionReport propertySearch={search} valuation={valuation} loan={loan} holding={holdingResult} location={location} riskSummary={riskSummary} taxOracleResult={workflowSession.taxOracleResult} onDecisionNext={handleViewingDecisionNext} /></div></details></div>
       <aside className="min-w-0 lg:sticky lg:top-16 lg:self-start"><MapSummary city={inputs.city} district={inputs.district} road={inputs.road} areaPing={inputs.area_ping} buildingType={inputs.building_type} valuation={valuation} location={location} onExport={exportReport} /></aside>
     </div>
   </section>;

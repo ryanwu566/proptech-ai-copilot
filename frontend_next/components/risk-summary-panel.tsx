@@ -24,6 +24,10 @@ export function RiskSummaryPanel({ summary }: { summary: RiskSummary }) {
       <SummaryBlock title="主要風險因素" items={summary.riskFactors.map((item) => `${item.title}：${item.message}`)} empty="尚無明確高風險訊號。" />
       <SummaryBlock title="尚需補查" items={summary.missingChecks} empty="核心分析已完成，仍建議實地確認。" />
       <SummaryBlock title="下一步建議" items={summary.nextActions} empty="完成更多分析後會提供下一步建議。" />
+      <div className="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+        <p className="text-xs font-bold text-amber-900">風險資料來源與限制</p>
+        <ul className="mt-2 space-y-1 text-xs leading-5 text-amber-900">{summary.referenceNotes.map((item) => <li key={item} className="break-words">・{item}</li>)}</ul>
+      </div>
     </div></DetailDisclosure></div>
     <p className="border-t border-stone-100 px-4 py-3 text-[10px] leading-5 text-slate-500">本總評為規則式買房決策提醒，不代表正式鑑價、銀行核貸或投資建議。</p>
   </section>;
