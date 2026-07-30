@@ -12,12 +12,10 @@ WALKTHROUGH = (ROOT / "frontend_next" / "components" / "friendly-intro-walkthrou
 
 def test_hero_intro_explains_the_buying_decision_task() -> None:
     assert "HeroIntro" in HERO
-    assert "不知道這間房值不值得看？先跑一份看屋決策報告。" in HERO
-    assert "輸入預算、地點或路段" in HERO
-    for stage in ("輸入條件", "系統分析", "產出報告"):
-        assert stage in HERO
-    for capability in ("合理價格", "月付", "持有成本", "區位", "風險"):
-        assert capability in HERO or capability in WALKTHROUGH
+    for key in ("hero.title", "hero.description", "hero.report", "hero.primary"):
+        assert f't("{key}")' in HERO
+    assert "outcomeCards" in HERO
+    assert "FriendlyIntroWalkthrough" in HERO
 
 
 def test_hero_ctas_keep_real_navigation_handlers() -> None:

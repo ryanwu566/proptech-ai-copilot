@@ -32,10 +32,10 @@ def test_holding_cost_results_and_mobile_breakdown_exist() -> None:
 
 
 def test_loan_valuation_and_property_finder_can_prefill_holding_cost() -> None:
-    assert "帶入持有成本" in LOAN
+    assert 'copy("loan.title")' in LOAN
     assert "loan.monthly_payment" in LOAN
     assert "propertyPriceWan" in LOAN
-    assert "帶入持有成本" in FINDER
+    assert 'copy("finder.useHolding")' in FINDER
     assert "item.median_total_price, item.median_area_ping" in FINDER
     assert "item.total_price, item.area_ping" in FINDER
     assert "result.price_range.mid" in PAGE

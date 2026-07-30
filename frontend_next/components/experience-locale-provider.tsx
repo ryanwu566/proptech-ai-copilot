@@ -2,11 +2,13 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { DEFAULT_LOCALE, formatExperienceDate, formatExperienceNumber, formatExperiencePercent, normalizeExperienceLocale, translateExperience, type ExperienceLocale, type TranslationKey } from "@/lib/experience-i18n";
+import { translateRuntimeCopy, type RuntimeCopyKey } from "@/lib/runtime-copy";
 
 type ExperienceLocaleContextValue = {
   locale: ExperienceLocale;
   setLocale: (value: string) => void;
   t: (key: TranslationKey) => string;
+  copy: (key: RuntimeCopyKey, values?: Record<string, string | number>) => string;
   formatNumber: (value: number) => string;
   formatPercent: (value: number) => string;
   formatDate: (value: string | number | Date) => string;
@@ -25,6 +27,7 @@ export function ExperienceLocaleProvider({ children }: { children: ReactNode }) 
     locale,
     setLocale: (next) => setLocale(normalizeExperienceLocale(next)),
     t: (key) => translateExperience(locale, key),
+    copy: (key, values) => translateRuntimeCopy(locale, key, values),
     formatNumber: (number) => formatExperienceNumber(number, locale),
     formatPercent: (percent) => formatExperiencePercent(percent, locale),
     formatDate: (date) => formatExperienceDate(date, locale),

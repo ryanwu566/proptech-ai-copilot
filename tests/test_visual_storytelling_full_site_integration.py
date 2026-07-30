@@ -41,13 +41,12 @@ def test_dense_tables_are_disclosure_scoped_and_charts_are_mobile_safe() -> None
     finder = read("frontend_next/components/property-finder.tsx")
     visual_dir = FRONTEND / "components" / "data-visualization"
     assert "return <DetailDisclosure" in finder
-    assert "查看完整成交樣本" in finder
+    assert 'copy("finder.transactions")' in finder
     for path in visual_dir.glob("*.tsx"):
         source = path.read_text(encoding="utf-8")
         if path.name in {"trend-line-chart.tsx", "volume-bar-chart.tsx"}:
             assert "overflow-x-auto" not in source
             assert "min-w-[560px]" not in source
-
 
 def test_visual_integration_has_no_new_persistence_or_network_boundary() -> None:
     sources = [

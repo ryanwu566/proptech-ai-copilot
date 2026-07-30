@@ -81,10 +81,3 @@ export function addVisitedJourneyStep(visited: readonly JourneyStepId[], step: J
 export function getJourneyStepForTool(tool: string): JourneyStepId | undefined {
   return TOOL_STEP_MAP[tool];
 }
-
-// Legacy customer-question contracts now resolve through translation keys:
-// 先確認資料狀態、官方可比成交與估價區間。只有正式且可採取行動的估價，才能手動帶入後續工具。
-// question: "我現在看的是哪一間房？" · question: "住在這裡方便嗎？區域市場有什麼資料？"
-// question: "這間房的價格有沒有官方成交依據？" · question: "這間房的開價有沒有官方成交依據？"
-// question: "頭期、月付、持有成本與稅務條件如何？" · question: "資料是否足夠，我接下來要做什麼？"
-// 這些結果不是銀行、會計師或主管機關的正式認定。 · Property Case · Comparison

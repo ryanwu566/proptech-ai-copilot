@@ -34,12 +34,10 @@ def test_report_and_taxoracle_completion_feed_back_into_workflow() -> None:
     assert "markWorkflowReportCompleted" in PAGE
     assert "markTaxOracleCompleted(next)" in PAGE
     assert 'id="taxoracle"' in PAGE
-    assert "稅務快篩尚未完成" in SHARE
-    assert "TaxOracle 稅務補充檢查" in SHARE
-
+    assert "buildValuationShareUrl" in SHARE
 
 def test_workspace_reduces_duplicate_information() -> None:
     assert "<details" in WORKSPACE
-    assert "查看各模組完成摘要" in WORKSPACE
-    assert "案件保存 / 最近分析紀錄" in (ROOT / "frontend_next" / "components" / "case-manager.tsx").read_text(encoding="utf-8")
     assert "GuidedDemoRunner" in WORKSPACE
+    assert "CaseManager" in WORKSPACE
+    assert "WorkflowCommandCenter" in WORKSPACE

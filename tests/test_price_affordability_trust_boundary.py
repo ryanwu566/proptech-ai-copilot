@@ -22,7 +22,7 @@ def test_only_explicit_price_actions_transfer_to_followup_tools() -> None:
     assert "actionsAvailable" in PRICE_STAGE
     assert "setJourneyPricePrefill" in PAGE
     assert "actions.goToNextStep()" in PAGE
-    assert "自動" in PRICE_STAGE
+    assert 't("trust.noPurchase")' in PRICE_STAGE
 
 
 def test_phase3_copy_does_not_claim_purchase_or_approval_outcomes() -> None:

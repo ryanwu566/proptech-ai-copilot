@@ -54,7 +54,7 @@ def test_valuation_evidence_is_compact_and_collapsed() -> None:
     assert "official_records_count" in helper
     assert "ValuationVisualPanel" in page
     assert "ValuationResultBoundary" in page
-    assert 'title="查看完整可比成交"' in page
+    assert 'title={copy("valuation.comparables")}' in page
 
 
 def test_valuation_visuals_do_not_add_storage_or_sensitive_output() -> None:

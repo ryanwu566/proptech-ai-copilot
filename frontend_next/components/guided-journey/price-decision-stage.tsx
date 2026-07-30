@@ -46,5 +46,3 @@ export function PriceDecisionStage({ propertyContext, renderValuation, renderPro
     <div className="rounded-xl border border-cyan-100 bg-cyan-50/60 p-4"><h3 className="text-sm font-black text-slate-950">{t("journey.affordability.next")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("journey.affordability.description")}</p><button type="button" onClick={onContinueToAffordability} className="mt-3 w-full rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white hover:bg-cyan-800 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto">{t("journey.affordability.next")}</button></div>
   </div>;
 }
-
-// Legacy source contracts: 估價主工作區 · 下一步：計算資金與稅務 · 價格資料待補與限制 · 重新查看官方成交條件 · 不會自動計算或儲存 · 自動

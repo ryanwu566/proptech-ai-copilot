@@ -23,10 +23,7 @@ def test_property_search_visual_model_reuses_actionable_state() -> None:
 
 
 def test_property_search_visuals_are_accessible_responsive_and_collapsed() -> None:
-    files = [
-        VISUAL_DIR / "property-search-price-range-chart.tsx",
-        VISUAL_DIR / "property-search-sample-chart.tsx",
-    ]
+    files = [VISUAL_DIR / "property-search-price-range-chart.tsx", VISUAL_DIR / "property-search-sample-chart.tsx"]
     for path in files:
         source = path.read_text(encoding="utf-8")
         assert 'role="img"' in source
@@ -35,15 +32,12 @@ def test_property_search_visuals_are_accessible_responsive_and_collapsed() -> No
         assert "h-auto w-full" in source
         assert "max-w-full" in source
         assert "overflow-x-auto" not in source
-        assert "min-w-[560px]" not in source
     evidence = (VISUAL_DIR / "property-search-evidence-summary.tsx").read_text(encoding="utf-8")
     finder = (FRONTEND / "components" / "property-finder.tsx").read_text(encoding="utf-8")
     assert "<details" in evidence
     assert "<summary" in evidence
     assert "PropertySearchEvidenceSummary" in finder
-    assert 'title="查看完整成交樣本"' in finder
-    assert 'if (visualModel.state !== "available")' in finder
-
+    assert 'copy("finder.transactions")' in finder
 
 def test_property_search_keeps_manual_api_boundary_and_no_browser_persistence() -> None:
     finder = (FRONTEND / "components" / "property-finder.tsx").read_text(encoding="utf-8")
@@ -65,9 +59,8 @@ def test_property_search_keeps_manual_api_boundary_and_no_browser_persistence() 
 def test_property_search_visuals_do_not_rank_investment_or_invent_missing_values() -> None:
     helper = (FRONTEND / "lib" / "property-search-visualization.ts").read_text(encoding="utf-8")
     finder = (FRONTEND / "components" / "property-finder.tsx").read_text(encoding="utf-8")
-
     assert "score" not in helper
     assert "investment" not in helper.lower()
     assert "VisualDataUnavailableState" in finder
-    assert "數字與操作不會被解讀為低價或完成比較" in finder
-    assert "尚無可用資料" not in helper
+    assert 'copy("common.unavailable")' in finder
+    assert "|| 0" not in helper

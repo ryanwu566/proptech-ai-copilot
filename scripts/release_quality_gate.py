@@ -117,7 +117,7 @@ def _market_contract() -> tuple[str, str | None]:
         return "fail", "market_contract_invalid"
     if not _has_all(service, "average_unit_price", "transaction_count", "source_name", "source_updated_at", "trend"):
         return "fail", "market_contract_invalid"
-    if not _has_all(page, "availableResult", "資料不足", "不會以 mock"):
+    if not _has_all(page, "availableResult", 'copy("common.noData")', 'copy("common.dataLimit")'):
         return "fail", "market_contract_invalid"
     return "pass", None
 

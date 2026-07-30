@@ -31,7 +31,7 @@ export function LocationMarketStage({ renderMarket, onMap, onBackToProperty, onC
   const [marketDisplayStatus, setMarketDisplayStatus] = useState<LocationMarketDisplayStatus>("not_started");
   const [activeTool, setActiveTool] = useState<LocationMarketToolId | null>(null);
   const [visitedTools, setVisitedTools] = useState<LocationMarketToolId[]>([]);
-  const { t } = useExperienceLocale();
+  const { t, copy } = useExperienceLocale();
 
   function updatePropertyContext(next: LocationInsightPrefill) {
     const nextContext = getSafeJourneyPropertyContext({
@@ -43,7 +43,7 @@ export function LocationMarketStage({ renderMarket, onMap, onBackToProperty, onC
       buildingType: next.building_type ?? propertyContext.buildingType,
       areaPing: next.area_ping ?? propertyContext.areaPing,
       askingPriceWan: next.property_price ?? propertyContext.askingPriceWan,
-      sourceLabel: "使用者輸入或選擇",
+      sourceLabel: copy("common.source"),
       selectionStatus: "partial",
     });
     setPropertyContext(nextContext);
@@ -87,6 +87,3 @@ export function LocationMarketStage({ renderMarket, onMap, onBackToProperty, onC
 }
 
 type LocationMarketStatusItemId = "location" | LocationMarketToolId;
-
-// Legacy trust contracts: 不代表沒有風險 · 市場資料僅供研究參考 · 通勤資訊只供生活安排參考 · 不會自動執行估價或保存案件 · 不代表法律或主管機關認定
-// Legacy flow marker: 下一步：確認合理價格 · 只切換到價格分析 · 不會自動執行估價、建立估算、保存案件 · 研究參考，不會自動影響估價或案件決策 · 不會影響估價、風險或案件排名

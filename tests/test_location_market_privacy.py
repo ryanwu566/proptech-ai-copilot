@@ -25,6 +25,7 @@ def test_context_and_visual_outputs_exclude_sensitive_provider_fields() -> None:
 
 def test_explicit_transfer_language_is_present_without_automatic_analysis() -> None:
     stage = (ROOT / "frontend_next/components/guided-journey/location-market-stage.tsx").read_text(encoding="utf-8")
-    assert "按下後才會開啟對應分析" in (ROOT / "frontend_next/components/guided-journey/location-market-tool-selector.tsx").read_text(encoding="utf-8")
-    assert "只切換到價格分析" in stage
-    assert "自動影響估價" in stage
+    selector = (ROOT / "frontend_next/components/guided-journey/location-market-tool-selector.tsx").read_text(encoding="utf-8")
+    assert 'aria-pressed={activeTool === tool.id}' in selector
+    assert 't("journey.price.next")' in stage
+    assert 't("trust.noPurchase")' in stage

@@ -15,7 +15,7 @@ def test_journey_navigation_has_native_step_semantics() -> None:
     stepper = read("journey-stepper.tsx")
     stage = read("journey-stage.tsx")
     navigation = read("journey-navigation.tsx")
-    assert '<nav aria-label="購屋判斷流程"' in stepper
+    assert 'aria-label={t("journey.mobileSummary")}' in stepper
     assert 'aria-current={active ? "step" : undefined}' in stepper
     assert 'type="button"' in stepper
     assert 'type="button"' in navigation
@@ -27,7 +27,7 @@ def test_mobile_steps_use_collapsed_native_disclosure() -> None:
     stepper = read("journey-stepper.tsx")
     assert "<details" in stepper
     assert "<summary" in stepper
-    assert "查看全部步驟" in stepper
+    assert 't("journey.mobileSummary")' in stepper
     assert "space-y-2" in stepper
     assert "overflow-x-auto" not in stepper
     assert "min-w-[" not in stepper

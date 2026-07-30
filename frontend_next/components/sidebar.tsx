@@ -19,9 +19,6 @@ const groups: NavigationGroup[] = [
   ] },
 ];
 
-// Legacy navigation contracts intentionally keep the four product group concepts.
-// label: "工作台"; label: "地圖"; label: "案件"; label: "更多工具"
-// Legacy market status contract: 正式資料模式
 
 export function Sidebar({ page, onNavigate, open = false, onClose }: { page: AppPage; onNavigate: (page: AppPage) => void; open?: boolean; onClose?: () => void }) {
   const { t } = useExperienceLocale();

@@ -12,22 +12,17 @@ SHARE = (ROOT / "frontend_next" / "lib" / "valuation-share.ts").read_text(encodi
 
 def test_property_finder_api_and_form_contracts() -> None:
     assert '"/valuation/property-search"' in API
-    assert "找房雷達" in COMPONENT
-    assert "搜尋看屋方向" in COMPONENT
-    assert "推薦行政區" in COMPONENT
-    assert "推薦路段" in COMPONENT
-    assert "符合條件的成交樣本" in COMPONENT
+    for key in ("finder.title", "finder.description", "finder.search", "finder.districts", "finder.roads", "finder.transactions"):
+        assert f'copy("{key}")' in COMPONENT
     assert 'id="property-finder"' in COMPONENT
 
-
 def test_property_finder_can_fill_valuation_without_auto_estimate() -> None:
-    assert "帶入估價" in COMPONENT
+    assert 'copy("finder.useValuation")' in COMPONENT
     handler = PAGE.split("async function usePropertyFinderSelection", 1)[1].split("async function estimate", 1)[0]
     assert "setCity(selection.city||city)" in handler
     assert "setRoad(selection.road||road)" in handler
     assert "api.valuation(" not in handler
-    assert "已帶入估價條件，可按下估價重新查詢" in handler
-
+    assert "setShareNotice" in handler
 
 def test_property_finder_actions_have_real_page_handlers() -> None:
     for handler in ("onUseForValuation", "onUseForLoan", "onUseForHoldingCost", "onUseForLocationInsight"):
@@ -60,7 +55,7 @@ def test_data_status_does_not_render_long_coverage_note() -> None:
 
 
 def test_existing_share_and_html_export_remain_available() -> None:
-    assert "複製分享連結" in PAGE
-    assert "下載 HTML 摘要" in PAGE
+    assert 'copy("valuation.copyShare")' in PAGE
+    assert 'copy("valuation.download")' in PAGE
     assert "找房雷達摘要" in SHARE
     assert "propertySearch?.road_suggestions.slice(0, 5)" in SHARE
