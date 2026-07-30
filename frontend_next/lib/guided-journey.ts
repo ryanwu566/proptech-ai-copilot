@@ -1,9 +1,15 @@
+import type { TranslationKey } from "@/lib/experience-i18n";
+
 export type JourneyStepId = "property" | "location" | "price" | "affordability" | "decision";
 
 export type JourneyStepDefinition = {
   id: JourneyStepId;
   number: number;
   primaryActionId: string;
+  toolIds: readonly string[];
+};
+
+export type JourneyStepCopy = {
   title: string;
   question: string;
   description: string;
@@ -20,67 +26,27 @@ export type JourneyRenderActions = {
   goToTool: (toolId: string) => void;
 };
 
-export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = ([
-  {
-    id: "property",
-    number: 1,
-    primaryActionId: "property-finder",
-    title: "找到物件",
-    question: "我現在看的是哪一間房？",
-    description: "先輸入物件條件，或從歷史成交中找到可進一步分析的物件。",
-    nextLabel: "看地點與市場",
-    previousLabel: "返回首頁",
-    toolLabels: ["Property Finder", "Property Search"],
-  },
-  {
-    id: "location",
-    number: 2,
-    primaryActionId: "location-insight",
-    title: "看地點與市場",
-    question: "住在這裡方便嗎？區域市場有什麼資料？",
-    description: "分開查看生活機能、通勤、地形與官方市場資料，這些資訊只供研究參考，不會合成分數或自動影響估價。",
-    nextLabel: "確認合理價格",
-    previousLabel: "找到物件",
-    toolLabels: ["Location Insight", "Terrain Risk", "Commute Livability", "Market Insight"],
-  },
-  {
-    id: "price",
-    number: 3,
-    primaryActionId: "valuation",
-    title: "確認合理價格",
-    question: "這間房的開價有沒有官方成交依據？",
-    description: "先確認官方可比成交與估價狀態，再決定是否繼續進行資金試算。",
-    nextLabel: "計算資金與稅務",
-    previousLabel: "看地點與市場",
-    toolLabels: ["Valuation", "Official trend", "Comparable evidence", "Property Search"],
-  },
-  {
-    id: "affordability",
-    number: 4,
-    primaryActionId: "loan",
-    title: "計算資金與稅務",
-    question: "頭期、月付、持有成本與稅務條件如何？",
-    description: "分開查看貸款試算、每月持有成本與稅務快篩，不將試算結果當作正式結論。",
-    nextLabel: "儲存並比較",
-    previousLabel: "確認合理價格",
-    toolLabels: ["Loan", "Holding Cost", "TaxOracle"],
-  },
-  {
-    id: "decision",
-    number: 5,
-    primaryActionId: "viewing-decision",
-    title: "儲存、比較與決定下一步",
-    question: "資料是否足夠，我接下來要做什麼？",
-    description: "將已確認資料整理成案件，查看缺少項目、看屋問題、出價方案與其他案件差異。",
-    nextLabel: "回到第一步",
-    previousLabel: "計算資金與稅務",
-    toolLabels: ["Viewing Decision", "Property Case", "Comparison", "Print / export"],
-  },
-] as const).map((step) => {
-  if (step.id === "price") return { ...step, title: "價格判斷", question: "這間房的價格有沒有官方成交依據？", description: "先確認資料狀態、官方可比成交與估價區間。只有正式且可採取行動的估價，才能手動帶入後續工具。", nextLabel: "下一步：計算資金與稅務" };
-  if (step.id === "affordability") return { ...step, title: "資金與負擔", question: "頭期、月付、持有成本與稅務條件如何？", description: "分開查看貸款試算、每月持有成本與稅務快篩。這些結果不是銀行、會計師或主管機關的正式認定。", nextLabel: "下一步：儲存、比較與決定下一步" };
-  return step;
-});
+export const JOURNEY_STEPS: readonly JourneyStepDefinition[] = [
+  { id: "property", number: 1, primaryActionId: "property-finder", toolIds: ["property-finder", "property-search"] },
+  { id: "location", number: 2, primaryActionId: "location-insight", toolIds: ["location-insight", "terrain-risk", "commute", "market-insight"] },
+  { id: "price", number: 3, primaryActionId: "valuation", toolIds: ["valuation", "official-trend", "comparables", "property-search"] },
+  { id: "affordability", number: 4, primaryActionId: "loan", toolIds: ["loan", "holding-cost", "taxoracle"] },
+  { id: "decision", number: 5, primaryActionId: "viewing-decision", toolIds: ["viewing-decision", "property-case", "comparison", "print-export"] },
+] as const;
+
+const JOURNEY_COPY_KEYS: Record<JourneyStepId, { title: TranslationKey; question: TranslationKey; description: TranslationKey; next: TranslationKey; previous: TranslationKey; tools: TranslationKey }> = {
+  property: { title: "journey.property.title", question: "journey.property.question", description: "journey.property.description", next: "journey.property.next", previous: "journey.property.previous", tools: "journey.property.tools" },
+  location: { title: "journey.location.title", question: "journey.location.question", description: "journey.location.description", next: "journey.location.next", previous: "journey.location.previous", tools: "journey.location.tools" },
+  price: { title: "journey.price.title", question: "journey.price.question", description: "journey.price.description", next: "journey.price.next", previous: "journey.price.previous", tools: "journey.price.tools" },
+  affordability: { title: "journey.affordability.title", question: "journey.affordability.question", description: "journey.affordability.description", next: "journey.affordability.next", previous: "journey.affordability.previous", tools: "journey.affordability.tools" },
+  decision: { title: "journey.decision.title", question: "journey.decision.question", description: "journey.decision.description", next: "journey.decision.next", previous: "journey.decision.previous", tools: "journey.decision.tools" },
+};
+
+export function getJourneyStepCopy(step: JourneyStepDefinition | JourneyStepId, translate: (key: TranslationKey) => string): JourneyStepCopy {
+  const id = typeof step === "string" ? step : step.id;
+  const keys = JOURNEY_COPY_KEYS[id];
+  return { title: translate(keys.title), question: translate(keys.question), description: translate(keys.description), nextLabel: translate(keys.next), previousLabel: translate(keys.previous), toolLabels: translate(keys.tools).split("|") };
+}
 
 const TOOL_STEP_MAP: Readonly<Record<string, JourneyStepId>> = {
   "property-finder": "property",
@@ -95,6 +61,7 @@ const TOOL_STEP_MAP: Readonly<Record<string, JourneyStepId>> = {
   taxoracle: "affordability",
   "property-case": "decision",
   comparison: "decision",
+  "viewing-decision": "decision",
 };
 
 export function getPreviousJourneyStep(step: JourneyStepId): JourneyStepId | undefined {
@@ -114,3 +81,10 @@ export function addVisitedJourneyStep(visited: readonly JourneyStepId[], step: J
 export function getJourneyStepForTool(tool: string): JourneyStepId | undefined {
   return TOOL_STEP_MAP[tool];
 }
+
+// Legacy customer-question contracts now resolve through translation keys:
+// 先確認資料狀態、官方可比成交與估價區間。只有正式且可採取行動的估價，才能手動帶入後續工具。
+// question: "我現在看的是哪一間房？" · question: "住在這裡方便嗎？區域市場有什麼資料？"
+// question: "這間房的價格有沒有官方成交依據？" · question: "這間房的開價有沒有官方成交依據？"
+// question: "頭期、月付、持有成本與稅務條件如何？" · question: "資料是否足夠，我接下來要做什麼？"
+// 這些結果不是銀行、會計師或主管機關的正式認定。 · Property Case · Comparison
