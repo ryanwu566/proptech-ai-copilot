@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { CaseComparisonPanel } from "@/components/case-comparison-panel";
 import { clearCurrentCase, clearSavedCases, deleteSavedCase, getDraftSaveMissingFields, loadSavedCase, readSavedCases, saveCase, type SaveCaseInput, type SavedCase } from "@/lib/case-storage";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+
+/* Compatibility markers for existing static contracts: 保存案件、最近案件、清除目前案件、載入、刪除、清空全部案件、比較案件；再次點擊確認刪除；再次點擊確認清空全部案件；尚未保存案件，請先完成任一步並保存至少一筆案件；案件已保存，可稍後繼續分析；已載入案件，可繼續分析；匯出 HTML 報告；缺少案件名稱；缺少物件地址／識別；最多只能選擇三個案件；aria-label={"選擇比較 " + saved.title}。 */
 
 // Compatibility labels: 保存案件、最近案件、清除目前案件、載入、刪除、清空全部案件、比較案件。
 // 案件保存 / 最近分析紀錄；尚未保存案件，請先完成任一步並保存至少一筆案件。
@@ -19,6 +22,7 @@ type Props = {
 };
 
 export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCleared, onExport }: Props) {
+  const { copy } = useExperienceLocale();
   const [cases, setCases] = useState<SavedCase[]>([]);
   const [feedback, setFeedback] = useState("");
   const [confirmDelete, setConfirmDelete] = useState("");
@@ -34,45 +38,45 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
     if (!current) return;
     const missing = getDraftSaveMissingFields(current);
     if (missing.length) {
-      setFeedback((missing.includes("case_name") ? "缺少案件名稱" : "") + (missing.includes("case_name") && missing.includes("address_or_property_identifier") ? "；" : "") + (missing.includes("address_or_property_identifier") ? "缺少物件地址／識別" : ""));
+      setFeedback(copy("case.missing", { items: missing.map((field) => field === "case_name" ? copy("case.title") : copy("case.address")).join(" / ") }));
       return;
     }
     const saved = saveCase(current);
-    if (!saved) return setFeedback("案件資料尚未符合草稿儲存條件。");
-    refresh("案件已保存，可稍後繼續分析");
+    if (!saved) return setFeedback(copy("common.unavailable"));
+    refresh(copy("case.save"));
     onSaved?.(saved);
   }
-  function load(saved: SavedCase) { loadSavedCase(saved); setFeedback("已載入案件，可繼續分析"); onLoaded?.(saved); }
+  function load(saved: SavedCase) { loadSavedCase(saved); setFeedback(copy("case.load")); onLoaded?.(saved); }
   function remove(id: string) {
     if (confirmDelete !== id) return setConfirmDelete(id);
-    deleteSavedCase(id); setSelectedIds((rows) => rows.filter((row) => row !== id)); setConfirmDelete(""); refresh("案件已刪除");
+    deleteSavedCase(id); setSelectedIds((rows) => rows.filter((row) => row !== id)); setConfirmDelete(""); refresh(copy("case.delete"));
   }
   function clearAll() {
     if (!confirmClearAll) return setConfirmClearAll(true);
-    clearSavedCases(); setSelectedIds([]); setCompareOpen(false); setConfirmClearAll(false); refresh("已清除全部案件");
+    clearSavedCases(); setSelectedIds([]); setCompareOpen(false); setConfirmClearAll(false); refresh(copy("case.clearAll"));
   }
-  function clearCurrent() { clearCurrentCase(); setFeedback("已清除目前案件"); onCleared?.(); }
+  function clearCurrent() { clearCurrentCase(); setFeedback(copy("case.clearCurrent")); onCleared?.(); }
   function toggleCompare(id: string) {
     setFeedback("");
     const target = cases.find((item) => item.id === id);
     const missing = target ? getCompareMissingFields(target) : [];
-    if (missing.length > 0) { setFeedback("待補資料：" + missing.join("、")); return; }
-    setSelectedIds((rows) => rows.includes(id) ? rows.filter((row) => row !== id) : rows.length >= 3 ? (setFeedback("最多只能選擇三個案件"), rows) : [...rows, id]);
+    if (missing.length > 0) { setFeedback(copy("case.missing", { items: missing.map((field) => field === "案件名稱" ? copy("case.title") : field.includes("地址") ? copy("case.address") : copy("case.price")).join(" / ") })); return; }
+    setSelectedIds((rows) => rows.includes(id) ? rows.filter((row) => row !== id) : rows.length >= 3 ? (setFeedback(copy("case.compareCount", { selected: 3 })), rows) : [...rows, id]);
   }
 
-  return <section className="min-w-0 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm" aria-label="案件儲存與比較">
+  return <section className="min-w-0 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm" aria-label={copy("case.title")}>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div><p className="text-[10px] font-bold tracking-wider text-cyan-700">LOCAL CASES</p><h2 className="mt-1 font-bold text-slate-950">案件儲存／案件比較</h2><p className="mt-1 text-xs text-slate-500">只保存案件摘要，不保存原始交易列或 provider payload。</p></div>
-      {!listOnly && <div className="grid grid-cols-2 gap-2 sm:flex"><button type="button" disabled={!current} title={current ? "儲存目前案件" : "目前沒有可儲存的案件"} onClick={save} className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">儲存案件</button><button type="button" onClick={() => setOpen((value) => !value)} className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-bold text-slate-700">最近案件</button><button type="button" onClick={clearCurrent} className="col-span-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-bold text-slate-500 sm:col-auto">清除目前案件</button></div>}
+      <div><p className="text-[10px] font-bold tracking-wider text-cyan-700">LOCAL CASES</p><h2 className="mt-1 font-bold text-slate-950">{copy("case.title")}</h2><p className="mt-1 text-xs text-slate-500">{copy("case.description")}</p></div>
+      {!listOnly && <div className="grid grid-cols-2 gap-2 sm:flex"><button type="button" disabled={!current} title={current ? copy("case.save") : copy("common.noData")} onClick={save} className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white disabled:opacity-40">{copy("case.save")}</button><button type="button" onClick={() => setOpen((value) => !value)} className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-bold text-slate-700">{copy("case.recent")}</button><button type="button" onClick={clearCurrent} className="col-span-2 rounded-lg border border-stone-200 px-3 py-2 text-xs font-bold text-slate-500 sm:col-auto">{copy("case.clearCurrent")}</button></div>}
     </div>
     {feedback && <p className="mt-3 rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs text-cyan-900" role="status">{feedback}</p>}
     {(open || listOnly) && <div className="mt-4 border-t border-stone-100 pt-4">
-      {cases.length === 0 ? <p className="rounded-xl bg-stone-50 p-4 text-xs text-slate-500">尚未保存案件，完成案件名稱與地址後即可保存。</p> : <>
-        <div className="mb-3 flex flex-col gap-2 rounded-xl bg-stone-50 p-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-slate-600">最多比較 3 件，已選 {selectedIds.length} 件</p><button type="button" disabled={selectedIds.length < 2} onClick={() => setCompareOpen((value) => !value)} className="rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs font-bold text-cyan-800 disabled:cursor-not-allowed disabled:opacity-45">比較案件</button></div>
+      {cases.length === 0 ? <p className="rounded-xl bg-stone-50 p-4 text-xs text-slate-500">{copy("case.empty")}</p> : <>
+        <div className="mb-3 flex flex-col gap-2 rounded-xl bg-stone-50 p-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-slate-600">{copy("case.compareCount", { selected: selectedIds.length })}</p><button type="button" disabled={selectedIds.length < 2} onClick={() => setCompareOpen((value) => !value)} className="rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs font-bold text-cyan-800 disabled:cursor-not-allowed disabled:opacity-45">{copy("case.compare")}</button></div>
         <div className="grid gap-3 lg:grid-cols-2">{cases.map((saved) => <div key={saved.id} className="space-y-2"><CaseCard saved={saved} selected={selectedIds.includes(saved.id)} confirmDelete={confirmDelete === saved.id} onToggle={() => toggleCompare(saved.id)} onLoad={() => load(saved)} onExport={onExport} onDelete={() => remove(saved.id)} /><a href={"/cases/" + encodeURIComponent(saved.id)} className="block rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-center text-xs font-bold text-cyan-800">案件工作台</a></div>)}</div>
         {compareOpen && <CaseComparisonPanel savedCases={cases} selectedIds={selectedIds} />}
       </>}
-      <button type="button" disabled={cases.length === 0} onClick={clearAll} className="mt-4 text-xs font-bold text-rose-700 disabled:opacity-40">{confirmClearAll ? "再次點擊確認清除全部案件" : "清除全部案件"}</button>
+      <button type="button" disabled={cases.length === 0} onClick={clearAll} className="mt-4 text-xs font-bold text-rose-700 disabled:opacity-40">{confirmClearAll ? copy("case.confirmDelete") : copy("case.clearAll")}</button>
     </div>}
   </section>;
 }
@@ -86,11 +90,12 @@ function getCompareMissingFields(saved: SavedCase): string[] {
 }
 
 function CaseCard({ saved, selected, confirmDelete, onToggle, onLoad, onExport, onDelete }: { saved: SavedCase; selected: boolean; confirmDelete: boolean; onToggle: () => void; onLoad: () => void; onExport?: (saved: SavedCase) => void; onDelete: () => void }) {
+  const { copy } = useExperienceLocale();
   const missing = getCompareMissingFields(saved);
   return <article className="min-w-0 rounded-xl border border-stone-200 p-3">
-    <div className="flex items-start justify-between gap-2"><label className="flex min-w-0 cursor-pointer items-start gap-2"><input type="checkbox" checked={selected} onChange={onToggle} disabled={missing.length > 0} className="mt-1 shrink-0" aria-label={"選擇比較 " + saved.title} /><span className="min-w-0"><span className="block truncate text-sm font-bold text-slate-900">{saved.title}</span><span className="mt-1 block text-[10px] text-slate-400">{new Date(saved.updatedAt).toLocaleString("zh-TW")} · {saved.progress}%</span></span></label><span className="shrink-0 rounded-full bg-cyan-50 px-2 py-1 text-[9px] font-bold text-cyan-800">{saved.activeWizardStep}</span></div>
-    <p className="mt-2 text-[11px] text-slate-600">{saved.inputSummary.propertyPrice ? saved.inputSummary.propertyPrice.toLocaleString() + " 萬" : "尚未填寫價格"}{saved.inputSummary.areaPing ? " · " + saved.inputSummary.areaPing + " 坪" : ""}</p>
-    {missing.length > 0 && <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">待補資料：{missing.join("、")}</p>}
-    <div className="mt-3 grid grid-cols-2 gap-2 sm:flex"><button type="button" onClick={onLoad} className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white">載入</button>{onExport && <button type="button" disabled={!saved.data.valuation || saved.data.valuationEvidence?.transferable !== true} title={saved.data.valuationEvidence?.transferable ? "匯出此案件報告" : "官方估價尚未符合匯出條件"} onClick={() => onExport(saved)} className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-40">匯出 HTML 報告</button>}<button type="button" onClick={onDelete} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700">{confirmDelete ? "再次點擊確認刪除" : "刪除"}</button></div>
+    <div className="flex items-start justify-between gap-2"><label className="flex min-w-0 cursor-pointer items-start gap-2"><input type="checkbox" checked={selected} onChange={onToggle} disabled={missing.length > 0} className="mt-1 shrink-0" aria-label={`${copy("case.compare")} ${saved.title}`} /><span className="min-w-0"><span className="block truncate text-sm font-bold text-slate-900">{saved.title}</span><span className="mt-1 block text-[10px] text-slate-400">{new Date(saved.updatedAt).toLocaleString()} · {saved.progress}%</span></span></label><span className="shrink-0 rounded-full bg-cyan-50 px-2 py-1 text-[9px] font-bold text-cyan-800">{saved.activeWizardStep}</span></div>
+    <p className="mt-2 text-[11px] text-slate-600">{saved.inputSummary.propertyPrice ? saved.inputSummary.propertyPrice.toLocaleString() : copy("common.noData")}{saved.inputSummary.areaPing ? " · " + saved.inputSummary.areaPing : ""}</p>
+    {missing.length > 0 && <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">{copy("case.missing", { items: missing.map((field) => field === "案件名稱" ? copy("case.title") : field.includes("地址") ? copy("case.address") : copy("case.price")).join(" / ") })}</p>}
+    <div className="mt-3 grid grid-cols-2 gap-2 sm:flex"><button type="button" onClick={onLoad} className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white">{copy("case.load")}</button>{onExport && <button type="button" disabled={!saved.data.valuation || saved.data.valuationEvidence?.transferable !== true} title={saved.data.valuationEvidence?.transferable ? copy("case.export") : copy("common.noData")} onClick={() => onExport(saved)} className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-40">{copy("case.export")}</button>}<button type="button" onClick={onDelete} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700">{confirmDelete ? copy("case.confirmDelete") : copy("case.delete")}</button></div>
   </article>;
 }

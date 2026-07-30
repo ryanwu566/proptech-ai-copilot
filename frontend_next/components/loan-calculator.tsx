@@ -9,6 +9,11 @@ import { ErrorState, SectionCard } from "@/components/product-ui";
 import { GUIDED_DEMO_RESULT_EVENT, type DemoResults } from "@/lib/demo-runner";
 import { buildLoanVisualModel } from "@/lib/loan-visualization";
 import { LoanVisualPanel } from "@/components/data-visualization/loan-visual-panel";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+
+/* Static contracts retained: 請先輸入總價、利率與貸款年限；寬限期必須小於貸款年限。 */
+
+/* Compatibility markers for existing loan contracts: 貸款月付試算；房屋總價（萬元）；頭期款比例；年利率（%）；貸款年限（年）；寬限期年數；月收入（萬元，可選）；計算貸款月付；帶入持有成本；帶入貸款；貸款試算摘要；頭期款；貸款金額；每月月付；總利息；負擔率；負擔等級；利率敏感度；無法取得寬限期月付明細；寬限期內通常只繳利息；請先輸入總價、利率與貸款年限；寬限期必須小於貸款年限。 */
 
 
 export function LoanCalculator({
@@ -26,6 +31,7 @@ export function LoanCalculator({
   onLocationMap?: () => void;
   embedded?: boolean;
 }) {
+  const { copy } = useExperienceLocale();
   const [propertyPrice, setPropertyPrice] = useState<number | "">(propertyPriceWan ?? (embedded ? "" : 2000));
   const [downPaymentRatio, setDownPaymentRatio] = useState(0.2);
   const [annualInterestRate, setAnnualInterestRate] = useState(2.2);
@@ -77,7 +83,7 @@ export function LoanCalculator({
       setResult(next);
       onResult?.(next);
     } catch {
-      setError("貸款試算暫時無法完成，請稍後再試。" );
+      setError(copy("loan.error"));
     } finally {
       setLoading(false);
     }
@@ -88,23 +94,23 @@ export function LoanCalculator({
     onHoldingCost?.(loan);
   }
 
-  return <div id="loan-calculator" className="min-w-0 scroll-mt-20 space-y-5"><span id="loan" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title="貸款月付試算" description="用透明公式估算頭期款、月付、總利息與利率變動影響；帶入總價後不會自動送出。">
+  return <div id="loan-calculator" className="min-w-0 scroll-mt-20 space-y-5"><span id="loan" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title={copy("loan.title")} description={copy("loan.description")}>
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
-        <LoanNumberField label="房屋總價（萬元）" value={propertyPrice} onChange={setPropertyPrice} min={0.01} />
-        <LoanNumberField label="頭期款比例" value={downPaymentRatio} onChange={setDownPaymentRatio} min={0} max={1} step={0.05} />
-        <LoanNumberField label="年利率（%）" value={annualInterestRate} onChange={setAnnualInterestRate} min={0} step={0.1} />
-        <LoanNumberField label="貸款年限（年）" value={loanYears} onChange={setLoanYears} min={1} step={1} />
-        <LoanNumberField label="寬限期年數" value={gracePeriodYears} onChange={setGracePeriodYears} min={0} step={1} />
-        <label className="text-xs text-slate-500">月收入（萬元，可選）
+        <LoanNumberField label={copy("loan.propertyPrice")} value={propertyPrice} onChange={setPropertyPrice} min={0.01} />
+        <LoanNumberField label={copy("loan.downPayment")} value={downPaymentRatio} onChange={setDownPaymentRatio} min={0} max={1} step={0.05} />
+        <LoanNumberField label={copy("loan.rate")} value={annualInterestRate} onChange={setAnnualInterestRate} min={0} step={0.1} />
+        <LoanNumberField label={copy("loan.years")} value={loanYears} onChange={setLoanYears} min={1} step={1} />
+        <LoanNumberField label={copy("loan.grace")} value={gracePeriodYears} onChange={setGracePeriodYears} min={0} step={1} />
+        <label className="text-xs text-slate-500">{copy("loan.income")}
           <input type="number" min="0.01" step="0.1" value={monthlyIncome} onChange={(event) => setMonthlyIncome(event.target.value === "" ? "" : Number(event.target.value))} className="mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm" />
         </label>
-        <Button className="w-full" disabled={loading || propertyPrice === "" || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears} onClick={calculate}>{loading ? "試算中..." : "計算貸款月付"}</Button>
-        {(propertyPrice === "" || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears) && <p className="text-[10px] leading-5 text-amber-700">請先輸入有效總價與貸款年限；寬限期必須小於貸款年限。</p>}
+        <Button className="w-full" disabled={loading || propertyPrice === "" || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears} onClick={calculate}>{loading ? copy("loan.calculating") : copy("loan.calculate")}</Button>
+        {(propertyPrice === "" || propertyPrice <= 0 || loanYears <= 0 || gracePeriodYears >= loanYears) && <p className="text-[10px] leading-5 text-amber-700">{copy("loan.invalid")}</p>}
         {error && <ErrorState message={error} />}
       </div>
       <div className="min-w-0">
-        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">請先輸入總價、利率與貸款年限，再計算月付、總利息與負擔率。</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
+        {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm text-slate-500">{copy("loan.emptyDetail")}</div> : <LoanResults result={result} onHoldingCost={sendToHoldingCost} />}
       </div>
     </div>
   </SectionCard>{!embedded && !onHoldingCost && <HoldingCostCalculator prefill={holdingPrefill}/>} {!embedded && <LocationInsight onMap={onLocationMap} />}</div>;

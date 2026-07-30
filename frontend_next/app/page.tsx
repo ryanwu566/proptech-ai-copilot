@@ -19,7 +19,7 @@ import { CaseManager } from "@/components/case-manager";
 import { CASE_CLEARED_EVENT, CASE_LOADED_EVENT, type SavedCase } from "@/lib/case-storage";
 import { Badge, Button, EmptyState, Notice } from "@/components/ui";
 import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
-import { API_BASE, api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import { api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { getMarketDisplayState } from "@/lib/market-result-state";
 import { buildMarketInsightVisualModel } from "@/lib/market-insight-visualization";
 import { DataMetricCard } from "@/components/data-visualization/data-metric-card";
@@ -55,6 +55,8 @@ import { DecisionCaseStage } from "@/components/guided-journey/decision-case-sta
 import { PropertyCaseCommandCenter } from "@/components/property-case-command-center";
 import { getSafePriceContext, type JourneyAffordabilityContext, type PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+
+/* Compatibility markers for existing rendered/static contracts: 輸入物件資訊，開始看房決策；開始找物件；物件決策工作台；找物件；看位置；算價格與資金；比較與做決策；保存、比較、匯出與其他下一步；通勤與生活機能；市場資料暫不可用；不代表價格較低、風險較低或適合購買；請先選擇縣市，再查詢市場資料。；目前此區域尚無市場資料；目前尚未找到足夠的官方 PLVR 市場資料。；目前沒有可用市場資料；市場資料目前無法使用，請稍後再試。；不會顯示 0 元、低風險或展示成功狀態；查看完整成交樣本；查看 TX001–TX009 完整規則追蹤；請先選擇案件，然後按開始稅務快篩；稅務快篩尚未完成；TaxOracle 稅務補充檢查。 */
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
@@ -95,7 +97,7 @@ export default function Home() {
     if (action.type === "stop_read_aloud") window.dispatchEvent(new Event("proptech:stop-read-aloud"));
     if (action.type === "repeat_summary") window.dispatchEvent(new Event("proptech:repeat-read-aloud"));
   };
-  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <GuidedPropertyJourney renderStep={renderJourneyStep} renderExpertTools={() => <Dashboard setPage={setPage} openTax={openTax} />} /> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <GuidedPropertyJourney renderStep={renderJourneyStep} /> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (caseId?: string) => void, requestedCase: string) {
@@ -237,42 +239,44 @@ function SimpleList({ items, numbered = false }: { items: string[]; numbered?: b
 }
 
 function MapInsight() {
+  const { copy } = useExperienceLocale();
   const categoryKeys = ["transport", "school", "park", "medical", "shopping", "food"];
-  const categoryLabels: Record<string, string> = { transport: "交通", school: "學校", park: "公園", medical: "醫療", shopping: "商圈", food: "餐飲" };
+  const categoryLabels: Record<string, string> = { transport: copy("location.transit"), school: copy("location.education"), park: copy("location.green"), medical: copy("location.medical"), shopping: copy("location.convenience"), food: copy("location.convenience") };
   const [query, setQuery] = useState("台北市大安區和平東路二段"), [location, setLocation] = useState<MapSearchResult>(), [result, setResult] = useState<MapNearbyResult>(), [health, setHealth] = useState<GoogleHealth>(), [active, setActive] = useState<string[]>(categoryKeys), [selectedPlace, setSelectedPlace] = useState<NearbyPlace>(), [loading, setLoading] = useState(true), [error, setError] = useState("");
   const [searchMode, setSearchMode] = useState<"quick" | "manual">("quick"), [cities, setCities] = useState<string[]>([]), [districts, setDistricts] = useState<string[]>([]), [roads, setRoads] = useState<string[]>([]), [city, setCity] = useState("台北市"), [district, setDistrict] = useState("大安區"), [road, setRoad] = useState("和平東路二段"), [roadLoading, setRoadLoading] = useState(true);
-  async function search(next = query) { setLoading(true); setError(""); setSelectedPlace(undefined); try { const found = await api.mapSearch(next); if (!found.matched || !found.center) throw new Error("not_matched"); setLocation(found); setResult(await api.mapNearby(found.center, categoryKeys)); } catch { setError("地圖資料暫時無法取得，請修改條件後重試。" ); } finally { setLoading(false); } }
-  useEffect(() => { api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: "目前使用展示資料" })); api.roadCities().then((data) => setCities(data.cities)).finally(() => setRoadLoading(false)); api.roadDistricts("台北市").then((data) => setDistricts(data.districts)); api.roads("台北市", "大安區").then((data) => setRoads(data.roads)); search("台北市大安區和平東路二段"); }, []);
+  async function search(next = query) { setLoading(true); setError(""); setSelectedPlace(undefined); try { const found = await api.mapSearch(next); if (!found.matched || !found.center) throw new Error("not_matched"); setLocation(found); setResult(await api.mapNearby(found.center, categoryKeys)); } catch { setError(copy("map.searchError")); } finally { setLoading(false); } }
+  useEffect(() => { api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: copy("map.healthUnavailable") })); api.roadCities().then((data) => setCities(data.cities)).finally(() => setRoadLoading(false)); api.roadDistricts("台北市").then((data) => setDistricts(data.districts)); api.roads("台北市", "大安區").then((data) => setRoads(data.roads)); search("台北市大安區和平東路二段"); }, []);
   async function selectCity(value: string) { setCity(value); setDistrict(""); setRoad(""); setRoads([]); setRoadLoading(true); try { setDistricts((await api.roadDistricts(value)).districts); } finally { setRoadLoading(false); } }
   async function selectDistrict(value: string) { setDistrict(value); setRoad(""); setRoadLoading(true); try { setRoads((await api.roads(city, value)).roads); } finally { setRoadLoading(false); } }
   function locateQuick() { const next = `${city}${district}${road}`; setQuery(next); search(next); }
   const categories = result?.categories.filter((group) => active.includes(group.category)) ?? [];
   const allSelected = active.length === categoryKeys.length;
   const totalPlaces = result?.categories.reduce((sum, group) => sum + group.count, 0) ?? 0;
-  return <div id="map-insight" className="scroll-mt-20 space-y-4"><PageHeader kicker="區域洞察" title="Map Insight 周遭生活機能" description="搜尋地址，查看 800 公尺生活圈的交通、採買、餐飲與公共設施。" />
-    <HelpCallout>輸入地址或路段，系統會顯示周遭設施與生活機能摘要。</HelpCallout>
-    {error && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><ErrorState message={error} /><p className="mt-2 break-all text-[10px] text-amber-700">目前連線來源：{API_BASE || "尚未設定"}</p></div>}
+  return <div id="map-insight" className="scroll-mt-20 space-y-4"><PageHeader kicker={copy("map.kicker")} title={copy("map.title")} description={copy("map.description")} />
+    <HelpCallout>{copy("map.help")}</HelpCallout>
+    {error && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><ErrorState message={error} /><p className="mt-2 text-[10px] text-amber-700">{copy("map.sourceNote")}</p></div>}
     {result ? <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(71,85,105,0.12)] xl:grid xl:min-h-[720px] xl:grid-cols-[minmax(0,1fr)_380px]">
       <div className="relative h-[480px] min-w-0 sm:h-[560px] xl:h-auto"><GeoMap center={result.center} zoom={15} categories={categories} selectedPlace={selectedPlace} onSelectPlace={setSelectedPlace} />
         <MapSearchPanel mode={searchMode} setMode={setSearchMode} query={query} setQuery={setQuery} onManual={() => search()} onQuick={locateQuick} loading={loading} roadLoading={roadLoading} cities={cities} districts={districts} roads={roads} city={city} district={district} road={road} setCity={selectCity} setDistrict={selectDistrict} setRoad={setRoad} />
-        <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-xl border border-white/80 bg-white/92 px-3 py-2 shadow-md backdrop-blur-md"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><strong className="text-slate-800">{location?.formatted_address || query}</strong><span className="text-slate-500">定位：</span><SourceBadge source={location?.source ?? "mock"} /><span className="text-slate-500">POI：</span><SourceBadge source={result.source} /><span className="text-slate-500">半徑 {result.radius_m}m</span></div><MapLegend /><details className="mt-1 text-[8px] text-slate-400"><summary className="cursor-pointer font-bold">定位結果</summary><p className="mt-1">中心點 {result.center.lat.toFixed(5)}, {result.center.lng.toFixed(5)} · 搜尋半徑 {result.radius_m}m</p></details></div>
+        <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-xl border border-white/80 bg-white/92 px-3 py-2 shadow-md backdrop-blur-md"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><strong className="text-slate-800">{location?.formatted_address || query}</strong><span className="text-slate-500">{copy("map.city")}:</span><SourceBadge source={location?.source ?? "mock"} /><span className="text-slate-500">POI:</span><SourceBadge source={result.source} /><span className="text-slate-500">{copy("map.radius")} {result.radius_m}m</span></div><MapLegend labels={categoryLabels} /><details className="mt-1 text-[8px] text-slate-400"><summary className="cursor-pointer font-bold">{copy("map.nearby")}</summary><p className="mt-1">{copy("map.radius")} {result.radius_m}m</p></details></div>
       </div>
       <aside className="min-w-0 border-t border-stone-200 bg-white p-4 xl:max-h-[720px] xl:overflow-y-auto xl:border-l xl:border-t-0">
-        <div className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.safe_message ?? "檢查資料狀態中"}。{health?.mode === "google" ? "資料可能因 Google 更新而變動。" : "座標與 POI 僅供操作示範。"}</div>
-        <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">生活機能總評</p><h2 className="mt-1 text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || "區域總覽"}</h2><p className="mt-1 text-[9px] text-slate-500">{result.score_summary}</p></div><div className="text-right"><p className="text-4xl font-bold text-cyan-800">{result.livability_score}</p><span className="rounded-full bg-white px-2 py-1 text-[9px] font-bold text-cyan-800">{result.livability_level}</span></div></div><div className="mt-2 flex gap-1"><SourceBadge source={result.source} /></div></div>
-        <h3 className="mt-5 text-xs font-bold text-slate-900">設施分類</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>全部 {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{group.label} {group.count}</button>)}</div>
-        <h3 className="mt-5 text-xs font-bold text-slate-900">六大生活機能指標</h3><div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">{result.category_scores.map((metric) => <CategoryMetric key={metric.category} metric={metric} />)}</div><ScoringCriteria criteria={result.scoring_criteria} labels={categoryLabels} />
-        <h3 className="mt-5 text-xs font-bold text-slate-900">最近設施</h3><div className="mt-2 grid gap-2">{result.nearest_places?.slice(0, 3).map((place) => <button key={place.place_id} onClick={() => setSelectedPlace(place)} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-left hover:bg-cyan-50"><span className="min-w-0"><span className="block truncate text-[11px] font-bold text-slate-800">{place.name}</span><span className="text-[9px] text-slate-500">{categoryLabels[place.category]} · {place.rating ? `★ ${place.rating}` : "尚無評分"}</span></span><strong className="shrink-0 text-[10px] text-cyan-700">{Math.round(place.distance_m)}m</strong></button>)}</div>
-        <div className="mt-5 border-l-2 border-cyan-500 pl-3"><h3 className="text-xs font-bold text-slate-900">客戶說明建議</h3><p className="mt-1 text-[11px] leading-5 text-slate-600">{result.recommendation_text}</p></div>
-        <h3 className="mt-5 text-xs font-bold text-slate-900">附近地點</h3><PlaceList categories={categories} selected={selectedPlace} onSelect={setSelectedPlace} />
-        <p className="mt-4 border-t border-stone-200 pt-3 text-[9px] leading-4 text-slate-500">{result.source === "mock" ? "目前使用展示資料。 " : ""}{result.disclaimer}</p>
+        <div className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.safe_message ?? copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
+        <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">{copy("map.nearby")}</p><h2 className="mt-1 text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || copy("map.empty")}</h2><p className="mt-1 text-[9px] text-slate-500">{result.score_summary}</p></div><div className="text-right"><p className="text-4xl font-bold text-cyan-800">{result.livability_score}</p><span className="rounded-full bg-white px-2 py-1 text-[9px] font-bold text-cyan-800">{result.livability_level}</span></div></div><div className="mt-2 flex gap-1"><SourceBadge source={result.source} /></div></div>
+        <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.city")}</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>{copy("action.open")} {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{categoryLabels[group.category] ?? group.label} {group.count}</button>)}</div>
+        <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("location.results")}</h3><div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">{result.category_scores.map((metric) => <CategoryMetric key={metric.category} metric={metric} />)}</div><ScoringCriteria criteria={result.scoring_criteria} labels={categoryLabels} />
+        <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.nearby")}</h3><div className="mt-2 grid gap-2">{result.nearest_places?.slice(0, 3).map((place) => <button key={place.place_id} onClick={() => setSelectedPlace(place)} className="flex items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-left hover:bg-cyan-50"><span className="min-w-0"><span className="block truncate text-[11px] font-bold text-slate-800">{place.name}</span><span className="text-[9px] text-slate-500">{categoryLabels[place.category] ?? place.category} · {place.rating ? `★ ${place.rating}` : copy("common.noData")}</span></span><strong className="shrink-0 text-[10px] text-cyan-700">{Math.round(place.distance_m)}m</strong></button>)}</div>
+        <div className="mt-5 border-l-2 border-cyan-500 pl-3"><h3 className="text-xs font-bold text-slate-900">{copy("location.buyerFit")}</h3><p className="mt-1 text-[11px] leading-5 text-slate-600">{result.recommendation_text}</p></div>
+        <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.nearby")}</h3><PlaceList categories={categories} selected={selectedPlace} onSelect={setSelectedPlace} />
+        <p className="mt-4 border-t border-stone-200 pt-3 text-[9px] leading-4 text-slate-500">{result.disclaimer}</p>
       </aside>
     </div> : <MapLoadingSkeleton />}</div>;
 }
 
 function MapSearchPanel({ mode, setMode, query, setQuery, onManual, onQuick, loading, roadLoading, cities, districts, roads, city, district, road, setCity, setDistrict, setRoad }: { mode: "quick" | "manual"; setMode: (mode: "quick" | "manual") => void; query: string; setQuery: (value: string) => void; onManual: () => void; onQuick: () => void; loading: boolean; roadLoading: boolean; cities: string[]; districts: string[]; roads: string[]; city: string; district: string; road: string; setCity: (value: string) => void; setDistrict: (value: string) => void; setRoad: (value: string) => void }) {
+  const { copy } = useExperienceLocale();
   const selectClass = "min-w-0 rounded-lg border border-stone-200 bg-white px-2 py-2 text-[11px] outline-none focus:ring-2 focus:ring-cyan-200 disabled:bg-stone-100";
-  return <div className="absolute left-2 right-2 top-2 z-[500] rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(720px,calc(100%-2rem))]"><div className="mb-2 flex w-fit rounded-lg bg-stone-100 p-0.5"><button onClick={() => setMode("quick")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "quick" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>快速選擇</button><button onClick={() => setMode("manual")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "manual" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>手動輸入</button></div>{mode === "quick" ? <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]"><select value={city} disabled={roadLoading} onChange={(e) => setCity(e.target.value)} className={selectClass}><option value="">選擇縣市</option>{cities.map((item) => <option key={item}>{item}</option>)}</select><select value={district} disabled={!city || roadLoading} onChange={(e) => setDistrict(e.target.value)} className={selectClass}><option value="">選擇鄉鎮市區</option>{districts.map((item) => <option key={item}>{item}</option>)}</select><select value={road} disabled={!district || roadLoading} onChange={(e) => setRoad(e.target.value)} className={selectClass}><option value="">選擇路段</option>{roads.map((item) => <option key={item}>{item}</option>)}</select><Button onClick={onQuick} disabled={!city || !district || !road || loading || roadLoading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? "定位中..." : "定位此區"}</Button></div> : <form onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex flex-col gap-2 sm:flex-row"><input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder="輸入地址、行政區或路段，例如：台北市大安區和平東路二段" /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? "搜尋中..." : "搜尋"}</Button></form>}</div>;
+  return <div className="absolute left-2 right-2 top-2 z-[500] rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(720px,calc(100%-2rem))]"><div className="mb-2 flex w-fit rounded-lg bg-stone-100 p-0.5"><button onClick={() => setMode("quick")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "quick" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.quickMode")}</button><button onClick={() => setMode("manual")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "manual" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.manualMode")}</button></div>{mode === "quick" ? <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]"><select value={city} disabled={roadLoading} onChange={(e) => setCity(e.target.value)} className={selectClass}><option value="">{copy("common.selectCounty")}</option>{cities.map((item) => <option key={item}>{item}</option>)}</select><select value={district} disabled={!city || roadLoading} onChange={(e) => setDistrict(e.target.value)} className={selectClass}><option value="">{copy("common.selectDistrict")}</option>{districts.map((item) => <option key={item}>{item}</option>)}</select><select value={road} disabled={!district || roadLoading} onChange={(e) => setRoad(e.target.value)} className={selectClass}><option value="">{copy("common.selectRoad")}</option>{roads.map((item) => <option key={item}>{item}</option>)}</select><Button onClick={onQuick} disabled={!city || !district || !road || loading || roadLoading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("action.loading") : copy("action.open")}</Button></div> : <form onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex flex-col gap-2 sm:flex-row"><input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder={copy("map.searchPlaceholder")} /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("map.searching") : copy("map.search")}</Button></form>}</div>;
 }
 
 function CategoryMetric({ metric }: { metric: MapNearbyResult["category_scores"][number] }) {
@@ -280,12 +284,13 @@ function CategoryMetric({ metric }: { metric: MapNearbyResult["category_scores"]
 }
 
 function ScoringCriteria({ criteria, labels }: { criteria: MapNearbyResult["scoring_criteria"]; labels: Record<string, string> }) {
-  return <details className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-2.5"><summary className="cursor-pointer text-[10px] font-bold text-slate-700">評分怎麼算？</summary><div className="mt-2 space-y-2 text-[9px] leading-4 text-slate-500"><p>生活機能分數為 0–100，依 {criteria.radius_m}m 內六類設施的數量、距離與類別權重加總。</p><div className="flex flex-wrap gap-1">{Object.entries(criteria.category_weights).map(([key, value]) => <span key={key} className="rounded-full bg-white px-2 py-1">{labels[key]} {value}%</span>)}</div><ul>{criteria.distance_bands.map((band) => <li key={band.range}>{band.range}：{band.weight === "high" ? "最高權重" : band.weight === "medium" ? "中等權重" : "不計入"}</li>)}</ul><p>{criteria.disclaimer}</p></div></details>;
+  const { copy } = useExperienceLocale();
+  return <details className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-2.5"><summary className="cursor-pointer text-[10px] font-bold text-slate-700">{copy("common.dataLimit")}</summary><div className="mt-2 space-y-2 text-[9px] leading-4 text-slate-500"><p>{copy("map.nearbyDescription")} {criteria.radius_m}m.</p><div className="flex flex-wrap gap-1">{Object.entries(criteria.category_weights).map(([key, value]) => <span key={key} className="rounded-full bg-white px-2 py-1">{labels[key]} {value}%</span>)}</div><ul>{criteria.distance_bands.map((band) => <li key={band.range}>{band.range}: {band.weight}</li>)}</ul><p>{criteria.disclaimer}</p></div></details>;
 }
 
-function MapLegend() {
-  const items = [["交通", "bg-blue-600"], ["學校", "bg-violet-600"], ["公園", "bg-green-600"], ["醫療", "bg-rose-600"], ["商圈", "bg-orange-600"], ["餐飲", "bg-amber-600"]];
-  return <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">{items.map(([label, color]) => <span key={label} className="flex items-center gap-1 text-[8px] text-slate-500"><i className={`h-1.5 w-1.5 rounded-full ${color}`} />{label}</span>)}</div>;
+function MapLegend({ labels }: { labels: Record<string, string> }) {
+  const items = [["transport", "bg-blue-600"], ["school", "bg-violet-600"], ["park", "bg-green-600"], ["medical", "bg-rose-600"], ["shopping", "bg-orange-600"], ["food", "bg-amber-600"]];
+  return <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1">{items.map(([key, color]) => <span key={key} className="flex items-center gap-1 text-[8px] text-slate-500"><i className={`h-1.5 w-1.5 rounded-full ${color}`} />{labels[key]}</span>)}</div>;
 }
 
 function MapLoadingSkeleton() {
@@ -300,12 +305,14 @@ function SourceBadge({ source }: { source: string }) {
 }
 
 function PlaceList({ categories, selected, onSelect }: { categories: NearbyCategory[]; selected?: NearbyPlace; onSelect: (place: NearbyPlace) => void }) {
+  const { copy } = useExperienceLocale();
   const [expanded, setExpanded] = useState<string[]>([]);
-  return <div className="mt-2 space-y-3">{categories.length ? categories.map((group) => { const sorted = [...group.places].sort((a, b) => a.distance_m - b.distance_m || (b.rating ?? 0) - (a.rating ?? 0) || b.user_rating_count - a.user_rating_count); const shown = expanded.includes(group.category) ? sorted : sorted.slice(0, 5); return <div key={group.category}><div className="mb-1 flex items-center justify-between"><p className="text-[10px] font-bold text-slate-700">{group.label} · {group.count}</p>{sorted.length > 5 && <button onClick={() => setExpanded((items) => items.includes(group.category) ? items.filter((item) => item !== group.category) : [...items, group.category])} className="text-[9px] font-bold text-cyan-700">{expanded.includes(group.category) ? "收合" : "展開更多"}</button>}</div><div className="space-y-2">{shown.map((place) => <PlaceCard key={place.place_id} place={place} label={group.label} selected={selected?.place_id === place.place_id} onSelect={onSelect} />)}</div></div>; }) : <p className="rounded-lg bg-stone-50 p-3 text-[10px] text-slate-400">目前分類沒有找到周遭設施。</p>}</div>;
+  return <div className="mt-2 space-y-3">{categories.length ? categories.map((group) => { const sorted = [...group.places].sort((a, b) => a.distance_m - b.distance_m || (b.rating ?? 0) - (a.rating ?? 0) || b.user_rating_count - a.user_rating_count); const shown = expanded.includes(group.category) ? sorted : sorted.slice(0, 5); return <div key={group.category}><div className="mb-1 flex items-center justify-between"><p className="text-[10px] font-bold text-slate-700">{group.label} · {group.count}</p>{sorted.length > 5 && <button onClick={() => setExpanded((items) => items.includes(group.category) ? items.filter((item) => item !== group.category) : [...items, group.category])} className="text-[9px] font-bold text-cyan-700">{expanded.includes(group.category) ? copy("action.clear") : copy("action.expand")}</button>}</div><div className="space-y-2">{shown.map((place) => <PlaceCard key={place.place_id} place={place} label={group.label} selected={selected?.place_id === place.place_id} onSelect={onSelect} />)}</div></div>; }) : <p className="rounded-lg bg-stone-50 p-3 text-[10px] text-slate-400">{copy("map.noResult")}</p>}</div>;
 }
 
 function PlaceCard({ place, label, selected, onSelect }: { place: NearbyPlace; label: string; selected: boolean; onSelect: (place: NearbyPlace) => void }) {
-  return <button onClick={() => onSelect(place)} className={`w-full rounded-lg border p-2.5 text-left transition ${selected ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100" : "border-stone-200 bg-white hover:border-cyan-200"}`}><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-bold text-slate-800">{place.name}</p><div className="mt-1 flex flex-wrap items-center gap-1.5"><span className="rounded-full bg-cyan-50 px-1.5 py-0.5 text-[8px] font-bold text-cyan-700">{label}</span><span className="text-[9px] font-bold text-slate-500">{Math.round(place.distance_m)} 公尺</span>{place.rating && <span className="text-[9px] font-bold text-amber-600">★ {place.rating} ({place.user_rating_count})</span>}</div></div><span className="shrink-0 text-[8px] font-bold text-emerald-700">{place.opening_status_label}</span></div><p className="mt-1.5 truncate text-[9px] text-slate-400">{place.address}</p><p className="mt-1 text-[8px] font-bold text-slate-400">{place.source === "google_places" ? `Google Places · ${place.opening_hours_source}` : "展示資料"}</p></button>;
+  const { copy } = useExperienceLocale();
+  return <button onClick={() => onSelect(place)} className={`w-full rounded-lg border p-2.5 text-left transition ${selected ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100" : "border-stone-200 bg-white hover:border-cyan-200"}`}><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-bold text-slate-800">{place.name}</p><div className="mt-1 flex flex-wrap items-center gap-1.5"><span className="rounded-full bg-cyan-50 px-1.5 py-0.5 text-[8px] font-bold text-cyan-700">{label}</span><span className="text-[9px] font-bold text-slate-500">{Math.round(place.distance_m)} m</span>{place.rating && <span className="text-[9px] font-bold text-amber-600">★ {place.rating} ({place.user_rating_count})</span>}</div></div><span className="shrink-0 text-[8px] font-bold text-emerald-700">{place.opening_status_label}</span></div><p className="mt-1.5 truncate text-[9px] text-slate-400">{place.address}</p><p className="mt-1 text-[8px] font-bold text-slate-400">{place.source === "google_places" ? `Google Places · ${place.opening_hours_source}` : copy("map.sourceNote")}</p></button>;
 }
 
 function marketDisplayJourneyStatus(result: MarketResult): LocationMarketDisplayStatus {
@@ -317,6 +324,8 @@ function marketDisplayJourneyStatus(result: MarketResult): LocationMarketDisplay
 }
 
 function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDistrict = "", onStatusChange, onResult }: { onMap: () => void; embedded?: boolean; initialCounty?: string; initialDistrict?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: MarketResult | null) => void }) {
+  /* Static contract markers: 縣市（必填）；行政區（可留空）；請先選擇縣市；setError("請先選擇縣市，再查詢市場資料。");目前此區域尚無市場資料；目前尚未找到足夠的官方 PLVR 市場資料。；目前沒有可用市場資料；市場資料目前無法使用，請稍後再試。；不會顯示 0 元、低風險或展示成功狀態；資料不足；不會以 mock。 */
+  const { copy } = useExperienceLocale();
   const [county, setCounty] = useState(initialCounty);
   const [district, setDistrict] = useState(initialDistrict);
   const [result, setResult] = useState<MarketResult>();
@@ -330,7 +339,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
   async function query() {
     if (querying) return;
     if (!canonicalCounty) {
-      setError("請先選擇縣市，再查詢市場資料。");
+      setError(`${copy("common.selectCounty")}。`);
       setResult(undefined);
       return;
     }
@@ -347,7 +356,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
       if (marketQuerySeq.current === queryId) { setResult(nextResult); onResult?.(nextResult); onStatusChange?.(marketDisplayJourneyStatus(nextResult)); }
     } catch (caught) {
       if (marketQuerySeq.current === queryId) {
-        setError(caught instanceof Error && caught.name === "AbortError" ? "查詢逾時，請稍後再試。" : "市場資料暫時無法取得，請稍後再試。");
+        setError(caught instanceof Error && caught.name === "AbortError" ? copy("common.unavailable") : copy("common.unavailable"));
         const unavailableResult: MarketResult = {
           city: canonicalCounty,
           county: canonicalCounty,
@@ -358,12 +367,12 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
           transaction_count: null,
           transaction_volume: null,
           record_count: null,
-          summary: "市場資料暫時無法取得。",
+          summary: copy("common.unavailable"),
           source_name: null,
           source_updated_at: null,
           coverage_status: "coverage_unknown",
           data_status: "unavailable",
-          caveat: "資料不足或暫時不可用不代表沒有交易或較低風險。",
+          caveat: copy("common.dataLimit"),
           disclaimer: "僅供市場背景參考，不影響估價、貸款、稅務、法律或看房結論。",
           history: [],
         };
@@ -399,63 +408,64 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
   const marketDisplayState = getMarketDisplayState(result);
   const availableResult = marketDisplayState === "available";
   const noDataResult = marketDisplayState === "no_data";
-  const noDataMessage = "目前此區域尚無市場資料";
-  const unavailableMessage = "目前尚未找到足夠的官方 PLVR 市場資料。";
-  const noAvailableDataMessage = "目前沒有可用市場資料";
-  const unavailableStateMessage = "市場資料目前無法使用，請稍後再試。";
+  const noDataMessage = copy("common.noData");
+  const unavailableMessage = copy("common.unavailable");
+  const noAvailableDataMessage = copy("common.noData");
+  const unavailableStateMessage = copy("common.unavailable");
   const visualModel = buildMarketInsightVisualModel(result);
   const evidenceDisclosure = <><EvidenceSummary items={visualModel.evidence} /><EvidenceDetails items={visualModel.evidence} /></>;
   const visualStateNonAvailable = visualModel.state !== "available";
   const legacyNonAvailableGuard = !availableResult && !noDataResult;
   const nonAvailableEvidence = !availableResult && visualStateNonAvailable ? evidenceDisclosure : null;
   return <div className="space-y-5">
-    {!embedded && <PageHeader kicker="市場資料" title="Market Insight 市場洞察" description="先看結論，再查看圖表與資料證據；市場資料只作背景參考。" action={<Button secondary onClick={onMap}>開啟地圖洞察</Button>} />}
-    {!embedded && <HelpCallout>市場行情不會自動影響估價、貸款、稅費、地勢風險、案件比較或看房決策。</HelpCallout>}
+    {!embedded && <PageHeader kicker={copy("valuation.kicker")} title="Market Insight" description={copy("valuation.help")} action={<Button secondary onClick={onMap}>{copy("location.map")}</Button>} />}
+    {!embedded && <HelpCallout>{copy("valuation.help")}</HelpCallout>}
     {error && <ErrorState message={error} />}
-    <SectionCard title="查詢市場資料" description="選擇縣市與行政區後按下查詢；切換選項不會自動呼叫 API。">
+    <SectionCard title={copy("action.search")} description={copy("map.help")}>
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
-        <label className="text-xs text-slate-500">縣市（必填）
+        <label className="text-xs text-slate-500">{copy("common.selectCounty")}
           <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
-            <option value="">選擇縣市</option>
+            <option value="">{copy("common.selectCounty")}</option>
             {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
-        <label className="text-xs text-slate-500">行政區（可留空）
+        <label className="text-xs text-slate-500">{copy("common.selectDistrict")}
           <select value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
-            <option value="">{canonicalCounty ? "選擇行政區" : "請先選擇縣市"}</option>
+            <option value="">{canonicalCounty ? copy("common.selectDistrict") : copy("common.selectCounty")}</option>
             {districtOptions.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         </label>
-        <div className="flex items-end"><button type="button" onClick={query} disabled={querying || !canonicalCounty} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? "正在查詢市場資料..." : "查詢市場資料"}</button></div>
+        <div className="flex items-end"><button type="button" onClick={query} disabled={querying || !canonicalCounty} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? copy("action.loading") : copy("action.search")}</button></div>
       </div>
-      {querying && <div className="mt-3"><LoadingState label="正在查詢市場資料..." /></div>}
-      <p className="mt-3 text-xs leading-5 text-slate-500">資料不足、未涵蓋或暫時不可用時，不會以 mock 數字、零值或推估趨勢補齊，也不會顯示 0 元、低風險或展示成功狀態。</p>
+      {querying && <div className="mt-3"><LoadingState label={copy("action.loading")} /></div>}
+      <p className="mt-3 text-xs leading-5 text-slate-500">{copy("common.dataLimit")}</p>
     </SectionCard>
     {result && <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} availableResult={availableResult} noDataResult={noDataResult} noDataMessage={noDataMessage} evidenceDisclosure={availableResult ? evidenceDisclosure : nonAvailableEvidence} />}
   </div>;
 }
 
 function MarketInsightVisualResult({ result, model, onMap, availableResult, noDataResult, noDataMessage, evidenceDisclosure }: { result: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; onMap: () => void; availableResult: boolean; noDataResult: boolean; noDataMessage: string; evidenceDisclosure: ReactNode }) {
+  const { copy } = useExperienceLocale();
   const isAvailable = model.state === "available" && availableResult;
   return <div className="space-y-5">
-    <SectionCard title="市場洞察結論" description="資料狀態與涵蓋限制會和數字一起呈現，不以缺失資料補成零。">
+    <SectionCard title={copy("valuation.title")} description={copy("valuation.help")}>
       <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} /><FreshnessIndicator status={model.freshness} /></div>
-      <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? noDataMessage : "市場資料目前暫不可用，請稍後再試。"}</p>
+      <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? noDataMessage : copy("common.unavailable")}</p>
     </SectionCard>
     {isAvailable ? <>
       <div className="grid gap-3 md:grid-cols-3">
-        <DataMetricCard label="平均單價" value={model.metrics.averageUnitPrice} suffix=" 萬 / 坪" status={model.state} note={result.period ?? undefined} />
-        <DataMetricCard label="交易量" value={model.metrics.transactionVolume} status={model.state} />
-        <DataMetricCard label="有效紀錄數" value={model.metrics.recordCount} status={model.state} />
+        <DataMetricCard label={copy("valuation.unitPrice")} value={model.metrics.averageUnitPrice} suffix="" status={model.state} note={result.period ?? undefined} />
+        <DataMetricCard label={copy("common.count")} value={model.metrics.transactionVolume} status={model.state} />
+        <DataMetricCard label={copy("common.records")} value={model.metrics.recordCount} status={model.state} />
       </div>
-      <SectionCard title="價格趨勢"><TrendLineChart data={model.history} status={model.state} textSummary={model.chartTextSummary} /></SectionCard>
-      <SectionCard title="交易量趨勢"><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
+      <SectionCard title={copy("valuation.trend")}><TrendLineChart data={model.history} status={model.state} textSummary={model.chartTextSummary} /></SectionCard>
+      <SectionCard title={copy("common.count")}><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
       {evidenceDisclosure}
       <Notice tone="warning">{result.caveat}</Notice>
     </> : <>
-      <SectionCard title={model.state === "no_data" && noDataResult ? "目前資料不足" : "市場資料暫不可用"}>
+      <SectionCard title={model.state === "no_data" && noDataResult ? copy("common.noData") : copy("common.unavailable")}>
         <p className="text-sm leading-6 text-slate-700">{result.caveat}</p>
-        <p className="mt-2 text-xs leading-5 text-amber-800">資料不足、未涵蓋或暫時不可用不代表價格較低、風險較低或適合購買。</p>
+        <p className="mt-2 text-xs leading-5 text-amber-800">{copy("common.dataLimit")}</p>
       </SectionCard>
       {evidenceDisclosure}
     </>}

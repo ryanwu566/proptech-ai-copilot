@@ -2,13 +2,12 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { getJourneyStepCopy, JOURNEY_STEPS, addVisitedJourneyStep, getJourneyStepForTool, getNextJourneyStep, getPreviousJourneyStep, type JourneyRenderActions, type JourneyStepId } from "@/lib/guided-journey";
-import { JourneyExpertTools } from "@/components/guided-journey/journey-expert-tools";
 import { JourneyProgressSummary } from "@/components/guided-journey/journey-progress-summary";
 import { JourneyStage } from "@/components/guided-journey/journey-stage";
 import { JourneyStepper } from "@/components/guided-journey/journey-stepper";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-export function GuidedPropertyJourney({ renderStep, renderExpertTools }: { renderStep: (step: JourneyStepId, actions: JourneyRenderActions) => ReactNode; renderExpertTools: () => ReactNode }) {
+export function GuidedPropertyJourney({ renderStep }: { renderStep: (step: JourneyStepId, actions: JourneyRenderActions) => ReactNode }) {
   const [activeStep, setActiveStep] = useState<JourneyStepId>("property");
   const [visitedSteps, setVisitedSteps] = useState<JourneyStepId[]>(["property"]);
   const { t } = useExperienceLocale();
@@ -54,7 +53,6 @@ export function GuidedPropertyJourney({ renderStep, renderExpertTools }: { rende
       <aside className="space-y-3 lg:sticky lg:top-16">
         <JourneyProgressSummary visitedSteps={visitedSteps} totalSteps={JOURNEY_STEPS.length} />
         <JourneyStepper steps={JOURNEY_STEPS} activeStep={activeStep} visitedSteps={visitedSteps} onSelect={selectStep} />
-        <JourneyExpertTools renderTools={renderExpertTools} />
       </aside>
       <main className="min-w-0 space-y-4">
         {JOURNEY_STEPS.filter((step) => visitedSteps.includes(step.id)).map((step) => <JourneyStage key={step.id} step={step} active={activeStep === step.id} onPrevious={() => moveTo(getPreviousJourneyStep(step.id))} onNext={() => moveTo(getNextJourneyStep(step.id))} hasPrevious={Boolean(getPreviousJourneyStep(step.id))} hasNext={Boolean(getNextJourneyStep(step.id))}>{renderStep(step.id, actions)}</JourneyStage>)}
