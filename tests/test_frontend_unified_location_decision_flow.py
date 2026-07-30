@@ -46,7 +46,7 @@ def test_address_change_invalidates_old_location_terrain_and_commute_results() -
     assert "function invalidateLocationFlow()" in LOCATION
     assert "setResult(undefined)" in LOCATION
     assert "window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY)" in LOCATION
-    assert "window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY)" in LOCATION
+    assert "TERRAIN_RISK_SESSION_KEY" not in LOCATION
     assert "invalidateLocationFlow();" in LOCATION
     assert "resetKey={address}" in LOCATION
     assert "latestAddressRef.current = address" in COMMUTE

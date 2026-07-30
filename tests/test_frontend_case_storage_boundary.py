@@ -14,7 +14,11 @@ def test_existing_storage_key_is_reused_without_raw_transaction_persistence() ->
     assert "comparables: []" in STORAGE
     assert "resolved_location: null" in STORAGE
     assert "nearest_pois: []" in STORAGE
-    assert "source_transparency: undefined" in STORAGE
+    assert "StoredTerrainReferenceEvidenceV1" in STORAGE
+    assert "terrainReference: normalizeStoredTerrainReferenceEvidence(data.terrainReference) ?? migrateLegacyTerrainReference(data.terrainRisk)" in STORAGE
+    assert "terrainRisk: undefined" in STORAGE
+    assert "source_transparency" not in STORAGE
+    assert "input: {}," not in STORAGE
 
 
 def test_invalid_or_incomplete_draft_is_not_saved_and_feedback_is_safe() -> None:

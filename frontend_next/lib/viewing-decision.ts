@@ -32,7 +32,6 @@ const criticalChecks: Array<{ key: keyof ViewingDecisionInputs; label: string; t
   { key: "loan", label: "貸款月付", targetId: "loan-calculator", action: "先試算每月房貸" },
   { key: "holding", label: "每月持有成本", targetId: "holding-cost-calculator", action: "先估算每月總支出" },
   { key: "location", label: "生活機能與區位", targetId: "location-insight-calculator", action: "先分析生活機能與區位" },
-  { key: "terrainRisk", label: "地勢與災害風險", targetId: "terrain-risk-analysis", action: "先補查地勢與災害風險" },
 ];
 
 export function buildViewingDecision(input: ViewingDecisionInputs): ViewingDecision {
@@ -45,7 +44,6 @@ export function buildViewingDecision(input: ViewingDecisionInputs): ViewingDecis
     || input.loan?.affordability_level === "risky"
     || input.holding?.affordability_level === "risky"
     || Boolean(input.location?.poi_summary.risk_facility_count && input.location.poi_summary.risk_facility_count > 0)
-    || input.terrainRisk?.overall.level === "high"
     || input.taxOracleResult?.signal_color === "red"
     || input.taxOracleResult?.eligibility_status === "not_eligible";
   const firstMissing = criticalChecks.find((item) => !hasUsableCriticalData(item.key, input));
@@ -96,10 +94,7 @@ export function buildViewingDecision(input: ViewingDecisionInputs): ViewingDecis
 }
 
 function hasUsableCriticalData(key: keyof ViewingDecisionInputs, input: ViewingDecisionInputs) {
-  if (key !== "terrainRisk") return Boolean(input[key]);
-  const terrain = input.terrainRisk;
-  if (!terrain) return false;
-  return terrain.overall.level !== "unknown" && terrain.data_quality.status !== "unavailable";
+  return Boolean(input[key]);
 }
 
 function collectHighRiskSources(input: ViewingDecisionInputs) {
@@ -111,13 +106,11 @@ function collectHighRiskSources(input: ViewingDecisionInputs) {
   if (input.loan?.affordability_level === "risky") sources.push("貸款月付負擔偏高，需先確認收入與核貸條件。");
   if (input.holding?.affordability_level === "risky") sources.push("每月持有成本負擔偏高，需先確認總支出是否可承受。");
   if (input.location?.poi_summary.risk_facility_count && input.location.poi_summary.risk_facility_count > 0) sources.push("區位分析顯示附近有風險設施，建議先實地確認。");
-  if (input.terrainRisk?.overall.level === "high") sources.push("地勢與災害風險結果為高，建議先確認官方圖資與現場條件。");
   if (input.taxOracleResult?.signal_color === "red" || input.taxOracleResult?.eligibility_status === "not_eligible") sources.push("TaxOracle 稅務快篩顯示高風險，建議先釐清稅務條件。");
   return [...new Set(sources)];
 }
 
 function firstHighRiskAction(input: ViewingDecisionInputs) {
-  if (input.terrainRisk?.overall.level === "high") return { label: "查看地勢與災害風險", targetId: "terrain-risk-analysis" };
   if (input.location?.poi_summary.risk_facility_count && input.location.poi_summary.risk_facility_count > 0) return { label: "查看區位分析", targetId: "location-insight-calculator" };
   if (input.loan?.affordability_level === "risky") return { label: "重新檢查貸款月付", targetId: "loan-calculator" };
   if (input.holding?.affordability_level === "risky") return { label: "重新檢查持有成本", targetId: "holding-cost-calculator" };

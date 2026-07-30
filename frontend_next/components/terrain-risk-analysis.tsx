@@ -7,10 +7,11 @@ import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 import { HELP_CONTENT } from "@/lib/help-content";
 import type { LocationMarketDisplayStatus } from "@/lib/location-market-journey";
+import { buildTerrainReferenceEvidence, TERRAIN_REFERENCE_NOTICE, terrainReferenceStateLabel, type TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 
-export const TERRAIN_RISK_SESSION_KEY = "proptech:terrain-risk-result";
 export const TERRAIN_RISK_RESULT_EVENT = "proptech:terrain-risk-result-ready";
 export const TERRAIN_RISK_PREFILL_EVENT = "proptech:terrain-risk-prefill";
+export const TERRAIN_REFERENCE_EVIDENCE_EVENT = "proptech:terrain-reference-evidence-ready";
 
 export type TerrainRiskPrefill = {
   address?: string;
@@ -28,7 +29,7 @@ export function prefillTerrainRisk(prefill: TerrainRiskPrefill) {
   window.dispatchEvent(new CustomEvent<TerrainRiskPrefill>(TERRAIN_RISK_PREFILL_EVENT, { detail: prefill }));
 }
 
-export function TerrainRiskAnalysis({ location, compactFromLocation = false, resetKey, onStatusChange, onResult }: { location?: LocationInsightResult; compactFromLocation?: boolean; resetKey?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: TerrainRiskResult | null) => void }) {
+export function TerrainRiskAnalysis({ location, compactFromLocation = false, resetKey, onStatusChange, onResult, onReferenceAttach }: { location?: LocationInsightResult; compactFromLocation?: boolean; resetKey?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: TerrainRiskResult | null) => void; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("台北市");
   const [district, setDistrict] = useState("大安區");
@@ -46,7 +47,6 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     setError("");
     onResult?.(null);
     onStatusChange?.("not_started");
-    window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY);
   }, [resetKey]);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
       setLongitude(detail.longitude ?? "");
       setRadius(detail.radius_m ?? 500);
       setResult(undefined);
-      window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY);
     }
     window.addEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
     return () => window.removeEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
@@ -96,7 +95,6 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
       });
       setResult(next);
       onResult?.(next);
-      window.sessionStorage.setItem(TERRAIN_RISK_SESSION_KEY, JSON.stringify(next));
       window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next }));
       window.dispatchEvent(new Event("proptech:workflow-status-updated"));
     } catch (caught) {
@@ -143,25 +141,35 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
           {error && <ErrorState message={error} />}
         </div>
         <div className="min-w-0">
-          {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500">尚未分析。完成區位分析後可帶入座標，或直接輸入地址後按「開始分析地勢風險」。</div> : <TerrainRiskResults result={result} />}
+          {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500">尚未分析。完成區位分析後可帶入座標，或直接輸入地址後按「開始分析地勢風險」。</div> : <TerrainRiskResults result={result} onReferenceAttach={onReferenceAttach} />}
         </div>
       </div>
     </SectionCard>
   </section>;
 }
 
-function TerrainRiskResults({ result }: { result: TerrainRiskResult }) {
+function TerrainRiskResults({ result, onReferenceAttach }: { result: TerrainRiskResult; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
   const hazards = Object.values(result.hazards);
+  const evidence = buildTerrainReferenceEvidence(result);
+  const evidenceByLayer = new Map(evidence.layers.map((layer) => [layer.layer_id, layer]));
   return <div className="min-w-0 space-y-4">
-    <div className={`rounded-xl border p-4 ${toneClass(result.overall.level)}`}>
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
       <p className="text-[10px] font-bold tracking-wider">地勢與災害風險</p>
-      <h3 className="mt-1 text-xl font-extrabold">{result.overall.label}</h3>
-      <p className="mt-2 text-sm leading-6">{result.overall.summary}</p>
-      <p className="mt-2 text-[10px]">信心：{result.overall.confidence} · 資料品質：{result.data_quality.status}</p>
+      <h3 className="mt-1 text-xl font-extrabold">資料檢查狀態</h3>
+      <p className="mt-2 text-sm leading-6">{evidence.summary}</p>
+      <p className="mt-2 text-[10px]">此區塊只呈現參考資料，不形成總體結論。</p>
+    </div>
+    <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4">
+      <p className="text-xs font-bold text-cyan-950">風險資料來源與限制</p>
+      <p className="mt-2 text-xs leading-5 text-cyan-950">{TERRAIN_REFERENCE_NOTICE}</p>
+      <p className="mt-2 text-xs leading-5 text-slate-700">{evidence.summary}</p>
+      <button type="button" className="mt-3 rounded-lg border border-cyan-700 bg-white px-3 py-2 text-xs font-bold text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" disabled={!evidence.attachable} onClick={() => { onReferenceAttach?.(evidence); window.dispatchEvent(new CustomEvent<TerrainReferenceEvidence>(TERRAIN_REFERENCE_EVIDENCE_EVENT, { detail: evidence })); }}>{evidence.attachable ? "加入案件作為參考資料" : "資料不可附加"}</button>
+      {!evidence.attachable && <p className="mt-2 text-[11px] text-amber-800">{evidence.attachDisabledReason}</p>}
+      <p className="mt-2 text-[11px] text-slate-600">目前狀態：{terrainReferenceStateLabel(evidence.status)}</p>
     </div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <MetricTile label="坡度／高程" value={result.terrain.slope_class ?? result.terrain.status} note={result.terrain.explanation} />
-      {hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} />)}
+      {hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} state={evidenceByLayer.get(hazard.key)?.state ?? "unknown"} />)}
     </div>
     {result.risk_factors.length > 0 ? <ListCard title="命中或需注意項目" items={result.risk_factors.map((item) => `${item.title}：${item.message}`)} /> : <Notice>目前沒有可用來源命中明確風險；若資料來源不足，不能解讀為低風險。</Notice>}
     <ListCard title="建議補查" items={result.recommended_checks} />
@@ -204,10 +212,10 @@ function SourceLayerCard({ layer }: { layer: TerrainRiskSourceTransparencyLayer 
     <p className="mt-2 text-[11px] leading-5 text-amber-800">{layer.caveat}</p>
   </div>;
 }
-function HazardCard({ hazard }: { hazard: TerrainHazardLayer }) {
+function HazardCard({ hazard, state }: { hazard: TerrainHazardLayer; state: Parameters<typeof terrainReferenceStateLabel>[0] }) {
   return <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
     <p className="text-xs font-bold text-slate-800">{hazard.label}</p>
-    <p className="mt-1 text-lg font-extrabold text-slate-950">{hazard.matched ? riskLabel(hazard.level) : statusLabel(hazard.status)}</p>
+    <p className="mt-1 text-lg font-extrabold text-slate-950">{terrainReferenceStateLabel(state)}</p>
     <p className="mt-2 text-[11px] leading-5 text-slate-600">{hazard.explanation}</p>
     <p className="mt-2 text-[10px] text-slate-400">{hazard.source?.agency ?? "官方來源"} · {hazard.source?.status ?? hazard.status}</p>
   </div>;

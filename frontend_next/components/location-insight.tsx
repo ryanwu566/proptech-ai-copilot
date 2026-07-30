@@ -5,7 +5,7 @@ import { api, LocationInsightResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 import { DetailDisclosure } from "@/components/detail-disclosure";
-import { TerrainRiskAnalysis, TERRAIN_RISK_SESSION_KEY } from "@/components/terrain-risk-analysis";
+import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
 import { CommuteLivabilityCard } from "@/components/commute-livability-card";
 
 
@@ -45,7 +45,6 @@ export function LocationInsight({ onMap, onContextChange, onResult, embeddedJour
     setError("");
     onResult?.(null);
     window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
-    window.sessionStorage.removeItem(TERRAIN_RISK_SESSION_KEY);
   }
 
   useEffect(() => {

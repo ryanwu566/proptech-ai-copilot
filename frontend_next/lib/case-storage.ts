@@ -3,15 +3,14 @@ import type { RiskSummary } from "@/lib/risk-summary";
 import type { BuyingWizardStep } from "@/lib/buying-wizard-status";
 import type { ValuationInputs } from "@/lib/valuation-share";
 import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/property-case-evidence";
+import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
 export const CASE_CLEARED_EVENT = "proptech:current-case-cleared";
 export const MAX_SAVED_CASES = 10;
 
-// Historical list bounds (.slice(0, 20)) are intentionally replaced by empty safe arrays;
-// risk_factors: data.terrainRisk.risk_factors.slice(0, 10) is not persisted.
-// map_layers: data.terrainRisk.map_layers.slice(0, 10) is not persisted.
+// Historical list bounds are intentionally replaced by empty safe arrays.
 
 export type SavedCaseData = {
   inputs: ValuationInputs;
@@ -22,7 +21,9 @@ export type SavedCaseData = {
   loan?: LoanCalculationResult;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
+  /** Legacy input only; new saved cases use terrainReference. */
   terrainRisk?: TerrainRiskResult;
+  terrainReference?: StoredTerrainReferenceEvidenceV1;
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
   reportCompleted?: boolean;
@@ -103,7 +104,7 @@ export function loadSavedCase(saved: SavedCase) {
 }
 
 export function clearCurrentCase() {
-  for (const key of ["proptech:viewing-workspace-context", "proptech:holding-cost-result", "proptech:location-insight-result", "proptech:terrain-risk-result", "proptech:taxoracle-result", "proptech:workflow-report-completed", "proptech:pending-section"]) {
+  for (const key of ["proptech:viewing-workspace-context", "proptech:holding-cost-result", "proptech:location-insight-result", "proptech:taxoracle-result", "proptech:workflow-report-completed", "proptech:pending-section"]) {
     window.sessionStorage.removeItem(key);
   }
   window.dispatchEvent(new Event(CASE_CLEARED_EVENT));
@@ -129,14 +130,8 @@ function compactCaseData(data: SavedCaseData): SavedCaseData {
       },
     } : undefined,
     locationInsight: data.locationInsight ? { ...data.locationInsight, resolved_location: null, nearest_pois: [] } : undefined,
-    terrainRisk: data.terrainRisk ? {
-      ...data.terrainRisk,
-      resolved_location: { address_label: undefined, latitude: undefined, longitude: undefined, geocoding_confidence: undefined },
-      map_layers: [],
-      source_transparency: undefined,
-      terrain: { ...data.terrainRisk.terrain, source: undefined },
-      hazards: Object.fromEntries(Object.entries(data.terrainRisk.hazards).map(([key, value]) => [key, { ...value, source: undefined }])) as SavedCaseData["terrainRisk"] extends infer T ? T extends { hazards: infer H } ? H : never : never,
-    } : undefined,
+    terrainReference: normalizeStoredTerrainReferenceEvidence(data.terrainReference) ?? migrateLegacyTerrainReference(data.terrainRisk),
+    terrainRisk: undefined,
   };
 }
 

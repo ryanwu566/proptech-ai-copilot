@@ -1,4 +1,5 @@
 import type { SavedCase } from "@/lib/case-storage";
+import { terrainReferenceStateLabel } from "@/lib/terrain-reference-evidence";
 
 // 資料不足，排序信心較低；尚未快篩；本模組不以缺資料補成中性分數。
 
@@ -103,7 +104,7 @@ export function getCaseCompareMissingFields(saved: SavedCase): string[] {
 }
 
 function toComparedCase(saved: SavedCase): ComparedCase {
-  const { valuation, loan, holdingCost, locationInsight, terrainRisk, riskSummary, taxOracle, inputs, valuationEvidence } = saved.data;
+  const { valuation, loan, holdingCost, locationInsight, terrainReference, riskSummary, taxOracle, inputs, valuationEvidence } = saved.data;
   const valuationTrusted = valuationEvidence?.transferable === true;
   return {
     caseId: saved.id,
@@ -128,8 +129,8 @@ function toComparedCase(saved: SavedCase): ComparedCase {
     educationScore: finite(locationInsight?.category_scores.education_score),
     medicalScore: finite(locationInsight?.category_scores.medical_score),
     locationRiskGap: locationInsight ? locationInsight.data_quality.missing_sources.join("、") || "目前沒有額外缺口" : "尚未完成",
-    terrainRiskLevel: terrainRisk?.overall.label ?? "尚未完成",
-    terrainRiskStatus: terrainRisk ? terrainRisk.overall.level + " / " + terrainRisk.data_quality.status : "尚未完成",
+    terrainRiskLevel: terrainReferenceStateLabel(terrainReference?.status ?? "not_assessed"),
+    terrainRiskStatus: terrainReference?.summary ?? "尚未附加地勢與災害參考資料。",
     riskSignal: riskSummary?.overallSignal ?? "unknown",
     riskScore: finite(riskSummary?.overallScore),
     mainRisks: riskSummary?.riskFactors.slice(0, 3).map((item) => item.title) ?? [],

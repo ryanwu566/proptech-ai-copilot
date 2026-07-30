@@ -133,7 +133,7 @@ async function runStep(step: DemoStepId, results: DemoResults): Promise<string> 
   if (step === "terrainRisk") {
     try {
       results.terrainRisk = await api.terrainRiskAnalyze({ city: DEMO_INPUT.city, district: DEMO_INPUT.district, road: DEMO_INPUT.road, radius_m: 500 });
-      return `地勢風險：${results.terrainRisk.overall.label}`;
+      return "地勢資料已取得，僅作看房風險參考，不形成安全結論。";
     } catch {
       return "地勢風險資料暫時無法自動比對，已略過並保留手動分析入口";
     }

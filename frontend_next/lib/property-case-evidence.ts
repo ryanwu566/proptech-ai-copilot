@@ -1,4 +1,5 @@
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import { buildTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
 import { getPropertySearchDisplayState, getValuationTrendDisplayState } from "@/lib/valuation-result-state";
 
 export type PropertyCaseEvidenceStatus = "trusted" | "manual" | "partial" | "unavailable" | "not_assessed";
@@ -87,9 +88,18 @@ export function getLocationEvidence(result?: LocationInsightResult | null): Prop
 
 export function getTerrainEvidence(result?: TerrainRiskResult | null): PropertyCaseEvidence {
   if (!result) return notAssessed("地勢與災害");
-  if (result.data_quality.status === "unavailable" || result.overall.level === "unknown") return unavailable("地勢與災害", "資料不足不代表沒有風險");
-  if (result.data_quality.status === "limited") return partial("地勢與災害", "資料涵蓋有限", "terrain_reference");
-  return { status: "trusted", source: "terrain_reference", label: "地勢與災害", value: result.overall.label, range: null, confidence: null, reason: "僅作看房風險參考", transferable: false };
+  const reference = buildTerrainReferenceEvidence(result);
+  if (["unavailable", "error", "unknown", "not_assessed"].includes(reference.status)) return unavailable("地勢與災害", "資料不足或暫時不可用，不代表沒有風險。");
+  if (reference.status === "limited" || reference.status === "partial") return partial("地勢與災害", "目前只有部分資料可用，僅作看房風險參考。", "terrain_reference");
+  return partial("地勢與災害", "地勢與災害結果僅作看房風險參考，不形成安全結論。", "terrain_reference");
+}
+
+export function getStoredTerrainReferenceEvidence(result?: StoredTerrainReferenceEvidenceV1): PropertyCaseEvidence {
+  if (!result) return notAssessed("地勢與災害");
+  if (result.status === "unknown" || result.status === "not_assessed") return notAssessed("地勢與災害");
+  if (result.status === "unavailable" || result.status === "error") return unavailable("地勢與災害", "資料不足或暫時不可用，不代表沒有風險。");
+  if (result.status === "no_match") return partial("地勢與災害", "目前未命中明確圖層訊號，不代表沒有風險。", "terrain_reference");
+  return partial("地勢與災害", "地勢與災害參考資料已附加，僅作看房風險參考。", "terrain_reference");
 }
 
 export function getTaxEvidence(result?: TaxResult | null): PropertyCaseEvidence {
