@@ -1,5 +1,12 @@
 # PropTech AI Copilot
 
+## Documentation
+
+Start with [the documentation index](docs/README.md). It identifies the
+authoritative architecture, data contracts, trust boundaries, operations,
+release checks, and historical archive. Archived documents are context only;
+active documentation takes precedence.
+
 > 推薦展示方式：**Next.js + FastAPI**。  
 > `app.py` 的 Streamlit 版本保留為 **legacy backup demo**。
 
@@ -156,10 +163,10 @@ npm.cmd run build
 
 ## 文件
 
-- [競賽展示講稿](docs/demo_script.md)
-- [最終展示檢查清單](docs/final_demo_checklist.md)
-- [展示截圖清單](docs/screenshot_plan.md)
-- [Legacy 功能盤點](docs/legacy_feature_inventory.md)
+- [競賽展示講稿](docs/archive/release-history/demo_script.md)
+- [最終展示檢查清單](docs/archive/release-history/final_demo_checklist.md)
+- [展示截圖清單](docs/archive/release-history/screenshot_plan.md)
+- [Legacy 功能盤點](docs/archive/audits/legacy_feature_inventory.md)
 ## 資料來源與可信度
 
 - 銀行牌告利率使用中央銀行 OpenData `set_id=9464`；服務失敗時切換 13 家金融機構展示資料。牌告資料不代表實際核貸利率。
@@ -217,7 +224,7 @@ python scripts/prune_valuation_data.py --keep-years 3 --dry-run
 
 六都已建立穩定的 rolling 3 年官方 PLVR 流程；其他縣市可沿用同一套 ETL，依基隆／新竹、苗彰投、雲嘉、屏宜花、東部離島與連江等分組先 dry-run，再分批匯入。Importer 僅辨識買賣主檔，並使用 `dedupe_key v2` 與 natural-key duplicate guard 避免重複交易。
 
-Render runtime 不執行 ETL，raw ZIP／CSV 不 commit，DB URL 與任何 secrets 不寫入 repo。完整流程請見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)，後續功能切分請見 [Product Roadmap](docs/product_roadmap.md)。
+Render runtime 不執行 ETL，raw ZIP／CSV 不 commit，DB URL 與任何 secrets 不寫入 repo。完整流程請見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)，後續功能切分請見 [Product Roadmap](docs/archive/implementation-phases/product_roadmap.md)。
 # PropTech AI Copilot
 
 ## Release quality gate

@@ -28,7 +28,7 @@ PropTech AI Copilot/
 │  ├─ mock_bank_policies.csv
 │  ├─ mock_judgments.csv
 │  └─ mock_land_values.csv
-├─ docs/demo_script.md
+├─ docs/archive/release-history/demo_script.md
 ├─ models/schemas.py
 ├─ reports/templates/tax_report.html
 ├─ rules/
