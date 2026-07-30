@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
+import { ExperienceLocaleProvider } from "@/components/experience-locale-provider";
 
 export const metadata: Metadata = {
   title: "PropTech AI Copilot",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-Hant">
-      <body>{children}</body>
+      <body><ExperienceLocaleProvider>{children}</ExperienceLocaleProvider></body>
     </html>
   );
 }

@@ -47,6 +47,7 @@ import { GuidedPropertyJourney } from "@/components/guided-journey/guided-proper
 import { JourneyToolCard } from "@/components/guided-journey/journey-tool-card";
 import { LocationMarketStage } from "@/components/guided-journey/location-market-stage";
 import type { JourneyRenderActions, JourneyStepId } from "@/lib/guided-journey";
+import type { VoiceAction } from "@/lib/voice-input";
 import { getSafeJourneyPropertyContext, type JourneyPropertyContext, type LocationMarketDisplayStatus } from "@/lib/location-market-journey";
 import { PriceDecisionStage } from "@/components/guided-journey/price-decision-stage";
 import { AffordabilityDecisionStage } from "@/components/guided-journey/affordability-decision-stage";
@@ -81,7 +82,16 @@ export default function Home() {
     if (action === "tax-low") openTax("DEMO-LOW");
     if (action === "map") setPage("Map Insight Lite");
   };
-  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction}>{page === "儀表板" ? <GuidedPropertyJourney renderStep={renderJourneyStep} renderExpertTools={() => <Dashboard setPage={setPage} openTax={openTax} />} /> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  const handleVoiceAction = (action: VoiceAction) => {
+    if (action.type === "navigate_step") {
+      setPage("儀表板");
+      window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: action.step }));
+    }
+    if (action.type === "focus_field") document.getElementById(action.field)?.focus();
+    if (action.type === "stop_read_aloud") window.dispatchEvent(new Event("proptech:stop-read-aloud"));
+    if (action.type === "repeat_summary") window.dispatchEvent(new Event("proptech:repeat-read-aloud"));
+  };
+  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <GuidedPropertyJourney renderStep={renderJourneyStep} renderExpertTools={() => <Dashboard setPage={setPage} openTax={openTax} />} /> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (caseId?: string) => void, requestedCase: string) {

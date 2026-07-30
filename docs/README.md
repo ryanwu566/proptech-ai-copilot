@@ -9,6 +9,7 @@ kept under `docs/archive/` and must not be used as current product guidance.
 - [Project README](../README.md) - project purpose, local commands, current capabilities, and high-level limitations.
 - [Product capability surface](product-capability-surface-v1.md) - authoritative map of user-facing capabilities and their trust status.
 - [Experience architecture audit](experience-architecture-v3-audit.md) - active journey, accessibility, privacy, and release-boundary audit.
+- [Experience architecture phases 5-8](experience-architecture-v3-phases5-8.md) - multilingual runtime shell, native speech boundaries, voice allowlist, and release evidence.
 
 ## Architecture and development
 
