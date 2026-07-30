@@ -37,10 +37,3 @@ export function HeroIntro({ onStart, onWorkspace, reportReady = false, onReport,
     </div>
   </section>;
 }
-
-/* Legacy test contracts verify the original customer questions remain discoverable:
-不知道這間房值不值得看？先跑一份看屋決策報告。
-幫你判斷要不要進一步看屋
-輸入預算、地點或路段 · 輸入條件 · 系統分析 · 產出報告
-合理價格 月付壓力 持有成本 區位優缺點 紅黃綠風險燈號 HTML 報告
-*/

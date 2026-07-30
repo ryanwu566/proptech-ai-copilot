@@ -43,19 +43,14 @@ def test_readiness_rules_are_conservative_about_missing_and_unavailable_data() -
 
 def test_property_case_readiness_ui_reuses_existing_workspace_and_case_manager() -> None:
     component = READINESS_COMPONENT.read_text(encoding="utf-8")
-
     assert "PropertyCaseReadiness" in WORKSPACE
     assert "buildPropertyCaseDraft" in WORKSPACE
     assert WORKSPACE.index("PropertyCaseReadiness") < WORKSPACE.index("CaseManager current={currentCase}")
     assert "CaseManager current={currentCase}" in WORKSPACE
     assert "ViewingDecisionPanel" in WORKSPACE
     assert "DecisionReport" in WORKSPACE
-    assert "案件決策完整度" in component
-    assert "可列印目前摘要" in component
-    assert "資料限制" in component
-    assert "待補案件名稱" in component
-    assert "待補物件地址／識別" in component
-
+    for key in ("case.status", "case.missing", "case.address", "case.price"):
+        assert f'copy("{key}"' in component
 
 def test_no_new_api_calls_or_client_storage_for_case_decision_system() -> None:
     source = "\n".join(

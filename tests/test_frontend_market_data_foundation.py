@@ -40,15 +40,14 @@ def test_market_insight_queries_only_on_button_click_without_catalog_scan() -> N
 def test_market_insight_has_canonical_county_and_dependent_district_selectors() -> None:
     component = _market_insight_component()
 
-    assert "縣市（必填）" in component
-    assert "行政區（可留空）" in component
-    assert "請先選擇縣市" in component
+    assert 'copy("common.selectCounty")' in component
+    assert 'copy("common.selectDistrict")' in component
     assert "<select value={canonicalCounty}" in component
     assert "<select value={canonicalDistrict}" in component
     assert "disabled={!canonicalCounty}" in component
     assert "setDistrict(\"\")" in component
     assert "marketQuerySeq.current += 1" in component
-    assert 'setError("請先選擇縣市，再查詢市場資料。")' in component
+    assert 'setError(`${copy("common.selectCounty")}。`)' in component
 
 
 def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
@@ -57,12 +56,10 @@ def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
     assert "getMarketDisplayState(result)" in component
     assert 'marketDisplayState === "available"' in component
     assert 'marketDisplayState === "no_data"' in component
-    assert "目前此區域尚無市場資料" in component
-    assert "目前尚未找到足夠的官方 PLVR 市場資料。" in component
-    assert "目前沒有可用市場資料" in component
-    assert "市場資料目前無法使用，請稍後再試。" in component
-    assert "不會顯示 0 元、低風險或展示成功狀態" in component
-    assert "!availableResult && !noDataResult" in component
+    assert 'copy("common.noData")' in component
+    assert 'copy("common.unavailable")' in component
+    assert 'copy("common.dataLimit")' in component
+    assert "nonAvailableEvidence" in component
     assert "record_count ?? result.transaction_count ?? 0" not in component
     assert "livability_score" not in component
     assert "esg_lite_score" not in component
@@ -122,4 +119,4 @@ def test_taiwan_admin_area_helper_provides_canonical_aliases() -> None:
 
 def test_production_sidebar_no_longer_displays_market_mock_badge() -> None:
     assert "<span>Mock</span>" not in SIDEBAR
-    assert "正式資料模式" in SIDEBAR
+    assert 't("nav.ready")' in SIDEBAR

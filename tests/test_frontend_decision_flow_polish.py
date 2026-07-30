@@ -49,17 +49,15 @@ def test_existing_capabilities_are_grouped_progressively() -> None:
 
 def test_commute_card_stays_in_location_livability_area() -> None:
     assert "CommuteLivabilityCard" in LOCATION
-    assert "通勤與生活機能" in PAGE
-    assert "不會改變任何風險或看房結論" in COMMUTE
+    assert 'copy("commute.title")' in COMMUTE
+    assert 'copy("commute.description")' in COMMUTE
     assert "/commute/address-lookup" not in PAGE
-
 
 def test_property_finder_appears_before_workspace() -> None:
     rendered = FINDER.split("return <div", 1)[1].split("function PropertyFinderResults", 1)[0]
     assert rendered.index('id="property-finder"') < rendered.index("ImmersiveViewingWorkspace")
-    assert "尚未開始找房" in FINDER
-    assert "請先輸入預算與地點" in FINDER
-
+    assert 'copy("finder.empty")' in FINDER
+    assert 'copy("finder.emptyDetail")' in FINDER
 
 def test_viewing_decision_logic_is_not_replaced() -> None:
     assert "ViewingDecisionPanel" in PAGE

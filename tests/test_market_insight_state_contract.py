@@ -12,10 +12,9 @@ def test_market_visual_model_preserves_safe_states() -> None:
     assert '"no_data"' in state_helper
     assert '"unavailable"' in state_helper
     assert "getMarketDisplayState" in helper
-    assert "model.state === \"no_data\"" in page
-    assert "市場資料暫不可用" in page
-    assert "不代表價格較低、風險較低或適合購買" in page
-
+    assert 'model.state === "no_data"' in page
+    assert "noDataMessage" in page
+    assert "evidenceDisclosure" in page
 
 def test_partial_and_stale_states_are_disclosed_without_claiming_freshness() -> None:
     helper = (ROOT / "frontend_next" / "lib" / "market-insight-visualization.ts").read_text(encoding="utf-8")

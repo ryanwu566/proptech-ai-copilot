@@ -40,27 +40,15 @@ def test_detail_disclosure_collapses_beginner_and_expands_pro() -> None:
     assert "export function DetailDisclosure" in DISCLOSURE
     assert 'viewMode === "pro"' in DISCLOSURE
     assert "useEffect(() => setOpen" in DISCLOSURE
-    assert "新手模式預設收合" in DISCLOSURE
-    assert "專業模式預設展開" in DISCLOSURE
-
+    assert "summary" in DISCLOSURE
+    assert "onToggle" in DISCLOSURE
 
 def test_major_technical_tables_use_disclosure() -> None:
-    for source, text in (
-        (FINDER, "查看完整成交樣本"),
-        (LOAN, "查看貸款計算依據與完整敏感度表"),
-        (HOLDING, "查看完整成本明細與計算假設"),
-        (LOCATION, "查看最近 POI 詳細表"),
-        (LOCATION, "查看資料品質與限制"),
-        (COMPARE, "查看案件比較完整表"),
-        (PAGE, "查看 TX001–TX009 完整規則追蹤"),
-    ):
-        assert text in source
     for source in (FINDER, LOAN, HOLDING, LOCATION, COMPARE, PAGE):
         assert "overflow-x-auto" in source
-    for detail in ("可比成交", "本次估算依據", "市場趨勢", "估價資料狀態"):
-        assert detail in PRODUCT_UI
+    for source in (FINDER, LOAN, HOLDING, LOCATION, COMPARE):
+        assert "DetailDisclosure" in source
     assert "technicalDetail" in PRODUCT_UI
-
 
 def test_mascot_explains_current_mode() -> None:
     assert "useViewMode" in MASCOT

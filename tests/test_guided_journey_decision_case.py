@@ -14,8 +14,8 @@ def test_step_five_is_a_decision_case_stage_not_three_entry_cards() -> None:
     assert "<DecisionCaseStage" in PAGE
     decision_section = PAGE.split("<DecisionCaseStage", 1)[1].split("const handleTourAction", 1)[0]
     assert "<JourneyToolCard" not in decision_section
-    assert "資料是否足夠，我接下來要做什麼？" in STAGE
-    assert "先整理目前已知資料、缺失項目與阻擋事項" in STAGE
+    assert 't("journey.decision.question")' in STAGE
+    assert 't("journey.decision.description")' in STAGE
 
 
 def test_decision_stage_orders_context_status_readiness_and_attention() -> None:

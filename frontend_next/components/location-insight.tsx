@@ -10,9 +10,7 @@ import { CommuteLivabilityCard } from "@/components/commute-livability-card";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { RuntimeCopyKey } from "@/lib/runtime-copy";
 
-/* Static contracts retained: 查看資料品質與限制。 */
 
-/* Compatibility markers for existing location contracts: 位置洞察；看位置；物件地址；物件地址<input；開始位置分析；分析半徑（公尺）；用同一個物件地址；請先輸入完整物件地址。；區位總分；"交通"；"生活機能"；區位優點；區位缺點；最近 POI；查看最近 POI 詳細表；資料品質；目前資料不足，建議改用完整地址或手動查詢；查看地勢與災害；地勢／災害風險；通勤與生活機能；在地圖查看；查看通勤資訊。 */
 
 
 export type LocationInsightPrefill = {

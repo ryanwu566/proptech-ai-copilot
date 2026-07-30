@@ -28,7 +28,6 @@ import { getTrustedValuationEvidence } from "@/lib/property-case-evidence";
 import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1, type TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Compatibility markers for existing workspace contracts: 沉浸式看房工作台；找房雷達；估價；市場趨勢；貸款月付；持有成本；區位分析；區位地圖摘要卡；分析區位；匯出看屋報告；下一步：；查看各模組完成摘要；案件保存 / 最近分析紀錄。 */
 
 export type WorkspaceContext = {
   inputs: ValuationInputs;

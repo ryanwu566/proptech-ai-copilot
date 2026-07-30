@@ -11,5 +11,4 @@ export function JourneyProgressSummary({ visitedSteps, totalSteps }: { visitedSt
   </div>;
 }
 
-// Legacy copy contracts remain in tests while rendered copy comes from resources:
 // 流程瀏覽進度 · 已瀏覽 · 瀏覽進度不代表資料完整度或決策完成度

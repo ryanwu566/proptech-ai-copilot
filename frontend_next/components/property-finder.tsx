@@ -15,9 +15,7 @@ import { PropertySearchEvidenceSummary } from "@/components/data-visualization/p
 import { VisualDataUnavailableState } from "@/components/data-visualization/visual-data-unavailable-state";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Static contracts retained: 分析區位；title="查看完整成交樣本"。 */
 
-/* Compatibility markers for existing finder contracts: 找房雷達；搜尋看屋方向；推薦行政區；推薦路段；符合條件的成交樣本；載入示範條件；已載入示範條件，請按開始找房；尚未開始找房；請先輸入預算與地點；請先輸入預算上限；帶入持有成本；帶入估價；帶入貸款；分析區位；title="查看完整成交樣本"；查看完整成交樣本；數字與操作不會被解讀為低價或完成比較。 */
 
 export type PropertyFinderSelection = {
   city: string;

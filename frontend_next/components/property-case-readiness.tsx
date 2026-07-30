@@ -4,7 +4,6 @@ import type { PropertyCaseDraft } from "@/lib/property-case";
 import { buildPropertyCaseReadiness, moduleLabel } from "@/lib/property-case-readiness";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Compatibility markers for the existing case readiness contract: 案件決策完整度；可列印目前摘要；資料限制；待補案件名稱；待補物件地址／識別；待補案件基本資料；待補比較資料；不能推論為低風險或已完成；缺少價格資料時，不會顯示為低價、0 元或比較完成；完整度不是投資評分或買賣建議。 */
 
 export function PropertyCaseReadiness({ draft }: { draft: PropertyCaseDraft }) {
   const { copy } = useExperienceLocale();

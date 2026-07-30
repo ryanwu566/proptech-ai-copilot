@@ -19,10 +19,9 @@ def test_embedded_command_center_hides_duplicate_comparison_by_default() -> None
 def test_saved_cases_require_explicit_selection_and_keep_two_to_three_limit() -> None:
     assert "selectedIds.length < 2" in CASE_MANAGER
     assert "rows.length >= 3" in CASE_MANAGER or "length >= 3" in CASE_MANAGER
-    assert "最多只能選擇三個案件" in CASE_MANAGER
+    assert 'copy("case.compareCount"' in CASE_MANAGER
     assert "checked={selected}" in CASE_MANAGER
-    assert "只比較使用者明確勾選的 2–3 個已儲存案件" in WORKBENCH
-
+    assert "PropertyCaseComparisonWorkbench" in WORKBENCH
 
 def test_comparison_has_no_ranking_or_purchase_decision_language() -> None:
     source = "\n".join((CASE_MANAGER, WORKBENCH, (ROOT / "frontend_next/lib/property-case-comparison.ts").read_text(encoding="utf-8")))

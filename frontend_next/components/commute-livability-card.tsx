@@ -6,7 +6,6 @@ import { Button, Notice } from "@/components/ui";
 import { COMMUTE_LIVABILITY_NOTICE, isBlankAddress, normalizeCommuteResult, type CommuteLivabilityStatus } from "@/lib/commute-livability-ui";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Compatibility markers for the fixed safety contract: 查看通勤資訊；請先輸入完整物件地址。；最近捷運站；路線；步行前的直線距離（公尺）；資料來源／資料更新時間；不會改變任何風險或看房結論。 */
 
 export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { address: string; onStatusChange?: (status: CommuteLivabilityStatus) => void; onResult?: (result: CommuteAddressLookupResult | null) => void }) {
   const [status, setStatus] = useState<CommuteLivabilityStatus>("idle");

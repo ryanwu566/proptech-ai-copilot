@@ -42,7 +42,7 @@ def test_hidden_secondary_tools_are_not_exposed_to_assistive_technology() -> Non
 def test_charts_have_text_alternatives_and_mobile_safe_layout() -> None:
     source = read_all()
     assert 'role="img"' in source
-    assert "數量僅反映" in source
+    assert 't("evidence.summaryDescription")' in source
     assert "overflow-x-auto" not in source
     assert "min-w-[560px]" not in source
     assert "min-w-[620px]" not in source

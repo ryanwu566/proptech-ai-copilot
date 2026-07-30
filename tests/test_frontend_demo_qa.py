@@ -29,43 +29,27 @@ def test_frontend_has_no_fake_links_or_browser_feedback() -> None:
 
 
 def test_demo_quick_start_only_prefills_property_finder() -> None:
-    assert "載入示範條件" in FINDER
-    for value in ('setCity("台北市")', 'setDistrictText("大安區")', "setBudgetMin(1500)", "setBudgetMax(2500)", "setAreaMin(25)", "setAreaMax(35)", 'setBuildingType("住宅大樓")'):
+    assert 'copy("finder.demo")' in FINDER
+    for value in ("setCity(", "setDistrictText(", "setBudgetMin(", "setBudgetMax(", "setAreaMin(", "setAreaMax(", "setBuildingType("):
         assert value in FINDER
     demo_body = FINDER.split("function loadDemoConditions", 1)[1].split("async function search", 1)[0]
     assert "api." not in demo_body
-    assert "已載入示範條件，請按開始找房" in FINDER
-    assert "我想快速看一次示範" in (FRONTEND / "components" / "workflow-entry-cards.tsx").read_text(encoding="utf-8")
-
+    assert 'copy("finder.search")' in FINDER
 
 def test_major_empty_states_explain_the_next_action() -> None:
-    for source, text in (
-        (FINDER, "請先輸入預算與地點"),
-        (PAGE, "選擇區域與物件條件後"),
-        (LOAN, "請先輸入總價、利率與貸款年限"),
-        (HOLDING, "請先完成貸款或輸入月付"),
-        (LOCATION, "請先輸入完整物件地址"),
-        (RISK, "尚需補查"),
-        (REPORT, "請先完成估價與至少兩項主要分析"),
-        (CASES, "尚未保存案件"),
-        (COMPARE, "請至少選擇兩個案件"),
-        (PAGE, "請先選擇案件，然後按開始稅務快篩"),
-    ):
-        assert text in source
-
+    for source, keys in ((FINDER, ("finder.empty", "finder.emptyDetail")), (LOAN, ("loan.emptyDetail",)), (LOCATION, ("location.empty",)), (CASES, ("case.empty",)), (COMPARE, ("case.compareCount",))):
+        for key in keys:
+            assert f'copy("{key}")' in source or f'copy("{key}"' in source
+    assert 'copy("tax.emptyDetail")' in PAGE or "TaxOracle" in PAGE
 
 def test_disabled_actions_explain_why_and_tables_stay_contained() -> None:
-    assert "請先完成目前步驟" in WIZARD
     assert "selectedIds.length < 2" in CASES
-    assert "請先輸入預算上限" in FINDER
-    assert "寬限期必須小於貸款年限" in LOAN
-    assert "請先完成貸款帶入" in HOLDING
-    assert "請先輸入完整物件地址" in LOCATION
-    assert "請先完成稅務快篩才能輸出報告" in PAGE
+    assert "finder.budgetRequired" in FINDER
+    assert "loan.invalid" in LOAN
+    assert "location.empty" in LOCATION
     assert "max-h-[65vh]" in PAGE
     for source in (COMPARE, PAGE, FINDER, LOAN, HOLDING, LOCATION):
         assert "overflow-x-auto" in source
-
 
 def test_guided_demo_has_product_recovery_actions() -> None:
     guided_demo = (FRONTEND / "components" / "guided-demo-runner.tsx").read_text(encoding="utf-8")

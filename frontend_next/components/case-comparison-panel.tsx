@@ -6,9 +6,7 @@ import { DetailDisclosure } from "@/components/detail-disclosure";
 import { PropertyComparisonReport } from "@/components/property-comparison-report";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Static contracts retained: 請至少選擇兩個案件；查看案件比較完整表。 */
 
-/* Compatibility markers for existing comparison contracts: 案件比較 / 候選排序；第 {row.rank} 名；缺資料提醒；匯出比較摘要 HTML；資料不足，排序信心較低；尚未快篩；地勢風險；地勢與災害風險。 */
 
 export function CaseComparisonPanel({ savedCases, selectedIds }: { savedCases: SavedCase[]; selectedIds: string[] }) {
   const { copy } = useExperienceLocale();

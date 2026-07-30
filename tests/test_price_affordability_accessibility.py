@@ -29,5 +29,5 @@ def test_price_search_and_missing_data_are_disclosures_not_primary_headers() -> 
     price = read("price-decision-stage.tsx")
     assert "<details" in price
     assert "JourneyMissingDataPanel" in price
-    assert "估價主工作區" in price
-    assert "下一步：計算資金與稅務" in price
+    assert 't("journey.price.title")' in price
+    assert 't("journey.affordability.next")' in price

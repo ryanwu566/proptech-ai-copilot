@@ -10,20 +10,14 @@ PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 
 
 def test_case_manager_has_save_recent_load_and_clear_controls() -> None:
-    for text in ("保存案件", "最近案件", "清除目前案件", "載入", "刪除", "清空全部案件", "比較案件"):
-        assert text in MANAGER
-    assert "再次點擊確認刪除" in MANAGER
-    assert "再次點擊確認清空全部案件" in MANAGER
+    for key in ("case.save", "case.recent", "case.clearCurrent", "case.load", "case.delete", "case.clearAll", "case.compare"):
+        assert f'copy("{key}"' in MANAGER
     assert "alert(" not in MANAGER
 
-
 def test_case_manager_has_empty_feedback_and_optional_html_export() -> None:
-    assert "尚未保存案件，請先完成任一步並保存至少一筆案件" in MANAGER
-    assert "案件已保存，可稍後繼續分析" in MANAGER
-    assert "已載入案件，可繼續分析" in MANAGER
-    assert "匯出 HTML 報告" in MANAGER
+    for key in ("case.empty", "case.missing", "case.export", "case.confirmDelete"):
+        assert f'copy("{key}"' in MANAGER
     assert "onExport" in MANAGER
-
 
 def test_case_manager_is_available_on_home_and_buying_wizard() -> None:
     assert "<CaseManager listOnly" in PAGE

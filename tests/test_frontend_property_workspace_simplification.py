@@ -23,7 +23,7 @@ def test_workspace_has_exact_primary_steps_and_progressive_sections() -> None:
 
 
 def test_top_level_navigation_is_reduced_to_four_groups() -> None:
-    for label in ('label: "工作台"', 'label: "地圖"', 'label: "案件"', 'label: "更多工具"'):
+    for label in ('labelKey: "nav.core"', 'labelKey: "nav.analysis"', 'labelKey: "nav.system"', 'labelKey: "nav.tools"'):
         assert label in SIDEBAR
     for old_group in ('label: "案件決策"', 'label: "區域洞察"', 'label: "風險模組"', 'label: "紀錄"'):
         assert old_group not in SIDEBAR

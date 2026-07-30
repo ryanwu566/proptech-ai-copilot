@@ -8,7 +8,6 @@ import { ViewingDecisionPanel } from "@/components/viewing-decision-panel";
 import { buildViewingDecision } from "@/lib/viewing-decision";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Compatibility markers for existing decision report contracts: 看屋決策報告尚未完成；請先完成估價與至少兩項主要分析；看屋決策摘要；主要理由；主要風險；資料信心；決策 checklist；風險總評；值得進一步看屋；需謹慎評估；暫不建議；價格是否合理；月付是否可承受；持有成本是否可承受；區位是否符合需求；是否建議實地看屋；看屋決策報告 v2；快速結論；年持有成本；市場趨勢摘要；風險總評 / 開價合理性；補查清單；不代表銀行核貸；不代表正式鑑價；不代表正式稅務申報；不代表即時待售物件；實地確認。 */
 
 export function DecisionReport({
   propertySearch, valuation, loan, holding, location, terrainRisk, riskSummary, taxOracleResult, onDecisionNext,

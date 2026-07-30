@@ -25,9 +25,9 @@ def test_invalid_or_incomplete_draft_is_not_saved_and_feedback_is_safe() -> None
     assert "getDraftSaveMissingFields" in STORAGE
     assert "case_name" in STORAGE
     assert "address_or_property_identifier" in STORAGE
-    assert "缺少案件名稱" in MANAGER
-    assert "缺少物件地址／識別" in MANAGER
-
+    assert 'copy("case.missing"' in MANAGER
+    assert 'copy("case.title"' in MANAGER
+    assert 'copy("case.address"' in MANAGER
 
 def test_loading_does_not_rehydrate_analysis_results_into_session_storage() -> None:
     load_section = STORAGE.split("export function loadSavedCase", 1)[1].split("export function clearCurrentCase", 1)[0]

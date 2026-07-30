@@ -22,8 +22,8 @@ def test_share_query_loads_inputs_without_auto_estimate() -> None:
 
 
 def test_share_and_html_download_buttons_exist_and_are_mobile_safe() -> None:
-    assert "複製分享連結" in PAGE
-    assert "下載 HTML 摘要" in PAGE
+    assert 'copy("valuation.copyShare")' in PAGE
+    assert 'copy("valuation.download")' in PAGE
     assert 'className="w-full sm:w-auto"' in PAGE
     assert "break-all" in PAGE
 

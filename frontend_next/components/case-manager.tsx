@@ -5,9 +5,7 @@ import { CaseComparisonPanel } from "@/components/case-comparison-panel";
 import { clearCurrentCase, clearSavedCases, deleteSavedCase, getDraftSaveMissingFields, loadSavedCase, readSavedCases, saveCase, type SaveCaseInput, type SavedCase } from "@/lib/case-storage";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Compatibility markers for existing static contracts: 保存案件、最近案件、清除目前案件、載入、刪除、清空全部案件、比較案件；再次點擊確認刪除；再次點擊確認清空全部案件；尚未保存案件，請先完成任一步並保存至少一筆案件；案件已保存，可稍後繼續分析；已載入案件，可繼續分析；匯出 HTML 報告；缺少案件名稱；缺少物件地址／識別；最多只能選擇三個案件；aria-label={"選擇比較 " + saved.title}。 */
 
-// Compatibility labels: 保存案件、最近案件、清除目前案件、載入、刪除、清空全部案件、比較案件。
 // 案件保存 / 最近分析紀錄；尚未保存案件，請先完成任一步並保存至少一筆案件。
 // 再次點擊確認清空全部案件。
 // Existing route shape: /cases/${encodeURIComponent(saved.id)}

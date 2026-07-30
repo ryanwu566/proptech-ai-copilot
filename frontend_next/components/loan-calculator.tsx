@@ -11,9 +11,7 @@ import { buildLoanVisualModel } from "@/lib/loan-visualization";
 import { LoanVisualPanel } from "@/components/data-visualization/loan-visual-panel";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 
-/* Static contracts retained: 請先輸入總價、利率與貸款年限；寬限期必須小於貸款年限。 */
 
-/* Compatibility markers for existing loan contracts: 貸款月付試算；房屋總價（萬元）；頭期款比例；年利率（%）；貸款年限（年）；寬限期年數；月收入（萬元，可選）；計算貸款月付；帶入持有成本；帶入貸款；貸款試算摘要；頭期款；貸款金額；每月月付；總利息；負擔率；負擔等級；利率敏感度；無法取得寬限期月付明細；寬限期內通常只繳利息；請先輸入總價、利率與貸款年限；寬限期必須小於貸款年限。 */
 
 
 export function LoanCalculator({

@@ -11,7 +11,7 @@ STAGE = (ROOT / "frontend_next/components/guided-journey/location-market-stage.t
 
 def test_step_two_has_one_customer_question_and_unified_stage() -> None:
     journey = (ROOT / "frontend_next/lib/guided-journey.ts").read_text(encoding="utf-8")
-    assert 'question: "住在這裡方便嗎？區域市場有什麼資料？"' in journey
+    assert 'question: "journey.location.question"' in journey
     assert "LocationMarketStage" in PAGE
     for marker in ("JourneyPropertyContextHeader", "LocationMarketStatusStrip", "AmenityCategoryChart", "LocationMarketToolSelector", "LocationMarketSnapshot"):
         assert marker in STAGE
@@ -39,7 +39,7 @@ def test_secondary_tools_are_explicit_and_lazy_mounted() -> None:
 
 
 def test_next_step_only_navigates_without_running_valuation() -> None:
-    assert "下一步：確認合理價格" in STAGE
+    assert 't("journey.price.next")' in STAGE
     assert "onContinueToPrice" in STAGE
-    assert "不會自動執行估價、建立估算、保存案件" in STAGE
+    assert 't("trust.noPurchase")' in STAGE
     assert "api." not in STAGE

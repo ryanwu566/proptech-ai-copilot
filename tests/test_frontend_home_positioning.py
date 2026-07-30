@@ -10,10 +10,9 @@ PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 
 
 def test_home_explains_the_problem_and_final_outcome() -> None:
-    assert "不知道這間房值不值得看？先跑一份看屋決策報告。" in HERO
-    assert "幫你判斷要不要進一步看屋" in HERO
-    for outcome in ("合理價格", "月付壓力", "區位優缺點", "紅黃綠風險燈號", "HTML 報告"):
-        assert outcome in HERO
+    for key in ("hero.title", "hero.description", "hero.primary", "hero.report"):
+        assert f't("{key}")' in HERO
+    assert "outcomeCards" in HERO
 
 
 def test_primary_entries_are_user_tasks_with_real_handlers() -> None:

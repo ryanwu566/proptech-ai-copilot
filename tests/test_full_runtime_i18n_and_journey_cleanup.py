@@ -17,6 +17,7 @@ def test_runtime_copy_has_all_supported_locales_and_no_missing_keys():
     assert "en, ja, ko" in source
     assert "getRuntimeCopyCoverage" in source
     assert 'missing: RUNTIME_COPY_KEYS.filter' in source
+    assert "...en" not in source
     for marker in ("const zhTW", "const en", "const ja", "const ko"):
         assert marker in source
 
@@ -33,10 +34,46 @@ def test_primary_customer_surfaces_use_runtime_copy():
         "components/case-comparison-panel.tsx",
         "components/property-case-readiness.tsx",
         "components/decision-report.tsx",
+        "components/guided-journey/location-market-snapshot.tsx",
+        "components/guided-journey/location-market-status-strip.tsx",
+        "components/data-visualization/amenity-category-chart.tsx",
     ):
         source = read(relative)
         assert "useExperienceLocale" in source, relative
         assert "copy(" in source, relative
+
+
+def test_valuation_and_map_surfaces_use_localized_runtime_copy():
+    page = read("app/page.tsx")
+    assert "ValuationPage" in page
+    assert 'copy("valuation.title")' in page
+    assert "MapInsight" in page
+    assert 'copy("location.title")' in page or 'copy("location.map")' in page
+
+
+def test_production_frontend_has_no_compatibility_marker_comments():
+    forbidden = (
+        "Compatibility markers",
+        "Compatibility labels",
+        "Static contracts retained",
+        "Legacy accessibility contract",
+        "Legacy flow marker",
+        "Legacy trust contracts",
+        "Legacy explicit-action contract",
+        "Legacy boundary contract",
+        "Legacy decision contract",
+        "Legacy copy contracts",
+        "Legacy source contracts",
+        "Legacy test contracts",
+        "Legacy navigation contracts",
+        "Static contract markers",
+    )
+    for path in FRONTEND.rglob("*.tsx"):
+        source = path.read_text(encoding="utf-8")
+        assert not any(marker in source for marker in forbidden), path
+    for path in FRONTEND.rglob("*.ts"):
+        source = path.read_text(encoding="utf-8")
+        assert not any(marker in source for marker in forbidden), path
 
 
 def test_expert_tools_panel_is_not_mounted_in_guided_journey():

@@ -27,5 +27,3 @@ export function JourneyStepper({ steps, activeStep, visitedSteps, onSelect }: Jo
     </details>
   </nav>;
 }
-
-// Legacy accessibility contracts: <nav aria-label="購屋判斷流程">; 查看全部步驟
