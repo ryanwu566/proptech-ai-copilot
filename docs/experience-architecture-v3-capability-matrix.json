@@ -1,0 +1,173 @@
+{
+  "audit_version": "experience-architecture-v3-phase-1",
+  "base_sha": "24f24733ea21cfc2f3992a8ef5768c91beb32dcf",
+  "generated_from_repository": {
+    "branch": "audit/experience-i18n-voice-architecture-v3",
+    "static_inventory_only": true,
+    "browser_validation_completed": false,
+    "production_validation_completed": false,
+    "external_provider_calls": false
+  },
+  "pages": [
+    {
+      "route": "/",
+      "entry": "frontend_next/app/page.tsx",
+      "role": "homepage and guided property decision journey",
+      "primary_action_contract": "one primary action per active view",
+      "current_status": "multiple entry surfaces require hierarchy review"
+    },
+    {
+      "route": "/cases/[caseId]",
+      "entry": "frontend_next/app/cases/[caseId]/page.tsx",
+      "role": "saved property case command center",
+      "primary_action_contract": "preserve deep link and explicit case actions",
+      "current_status": "existing route; browser acceptance pending"
+    }
+  ],
+  "journey_steps": [
+    {
+      "id": "property",
+      "number": 1,
+      "question": "What property are we deciding about?",
+      "components": ["PropertyFinder", "Property Search"],
+      "primary_action": "establish property context",
+      "disclosure": "secondary search and help remain subordinate"
+    },
+    {
+      "id": "location",
+      "number": 2,
+      "question": "What does the location and its evidence show?",
+      "components": ["LocationInsight", "TerrainRiskAnalysis", "CommuteLivabilityCard", "MarketInsight"],
+      "primary_action": "inspect location evidence",
+      "disclosure": "source and limitation details are expandable"
+    },
+    {
+      "id": "price",
+      "number": 3,
+      "question": "How does the price compare with available evidence?",
+      "components": ["ValuationPage", "PropertyFinder"],
+      "primary_action": "review valuation evidence",
+      "disclosure": "comparables and chart details are secondary"
+    },
+    {
+      "id": "affordability",
+      "number": 4,
+      "question": "What funding and ownership information is available?",
+      "components": ["LoanCalculator", "HoldingCostCalculator", "TaxOracle"],
+      "primary_action": "review affordability inputs",
+      "disclosure": "financial tools remain separate contracts"
+    },
+    {
+      "id": "decision",
+      "number": 5,
+      "question": "What should be checked before the next viewing step?",
+      "components": ["ViewingDecisionPanel", "PropertyCaseCommandCenter", "CaseManager", "CaseComparisonPanel", "DecisionReport"],
+      "primary_action": "review current decision summary",
+      "disclosure": "evidence and export actions are secondary"
+    }
+  ],
+  "ux_findings": [
+    {
+      "id": "UX-01",
+      "category": "density",
+      "severity": "high",
+      "finding": "homepage, rail, journey and dashboard expose overlapping navigation",
+      "action": "define one primary action and collapse advanced tools"
+    },
+    {
+      "id": "UX-02",
+      "category": "primary_action",
+      "severity": "high",
+      "finding": "hero, journey, workflow cards and decision panel can all appear actionable",
+      "action": "declare a single primary target for each view"
+    },
+    {
+      "id": "UX-03",
+      "category": "evidence",
+      "severity": "medium",
+      "finding": "charts and evidence blocks need a consistent summary-first disclosure rule",
+      "action": "hide empty visuals and disclose details progressively"
+    }
+  ],
+  "multilingual": {
+    "current_document_language": "zh-Hant",
+    "locale_switcher_present": false,
+    "locale_route_present": false,
+    "translation_resource_layer_present": false,
+    "new_dependency_added": false,
+    "target_locales": ["zh-TW", "en", "ja", "ko"],
+    "matrix": [
+      {"locale": "zh-TW", "navigation": "baseline", "journey": "baseline", "data_status": "baseline", "trust_copy": "baseline"},
+      {"locale": "en", "navigation": "planned", "journey": "planned", "data_status": "planned", "trust_copy": "planned"},
+      {"locale": "ja", "navigation": "planned", "journey": "planned", "data_status": "planned", "trust_copy": "planned"},
+      {"locale": "ko", "navigation": "planned", "journey": "planned", "data_status": "planned", "trust_copy": "planned"}
+    ],
+    "stable_enum_policy": "API and domain enum values remain stable; display labels may be translated"
+  },
+  "voice_read_aloud": {
+    "status": "unavailable",
+    "states": ["supported", "unavailable", "permission_not_required", "voice_missing", "stopped", "speaking", "paused", "error"],
+    "explicit_play_required": true,
+    "autoplay": false,
+    "background_audio": false,
+    "visible_summary_only": true,
+    "raw_json_allowed": false,
+    "coordinates_allowed": false,
+    "provider_payload_allowed": false,
+    "url_allowed": false,
+    "hidden_state_allowed": false,
+    "provider_dependency_added": false
+  },
+  "voice_input": {
+    "status": "not_implemented",
+    "explicit_microphone_action": true,
+    "recording_status_visible": true,
+    "stop_action_required": true,
+    "background_listening": false,
+    "transcript_visible_before_action": true,
+    "transcript_persisted": false,
+    "allowed_actions": ["navigate", "open_help", "select_visible_step", "fill_reversible_field_after_confirmation"],
+    "blocked_actions": ["save_case", "delete_case", "export_report", "attach_evidence", "place_bid", "submit_loan", "submit_tax", "bypass_trust_warning"],
+    "dangerous_action_confirmation_required": true,
+    "raw_audio_persisted": false,
+    "voice_dependency_added": false
+  },
+  "privacy": {
+    "audit_added_storage": false,
+    "new_storage_key": false,
+    "url_query_or_hash_added": false,
+    "raw_audio_storage": false,
+    "transcript_storage": false,
+    "spoken_sensitive_fields": ["address", "coordinates", "provider_payload", "tokens", "hidden_decision_state"],
+    "existing_runtime_storage_requires_review": true
+  },
+  "accessibility": {
+    "existing_foundations": ["native buttons", "aria-current step", "labelled stages", "details summary", "chart text summaries"],
+    "browser_acceptance_completed": false,
+    "screen_reader_acceptance_completed": false,
+    "keyboard_acceptance_completed": false,
+    "zoom_and_contrast_acceptance_completed": false
+  },
+  "responsive": {
+    "existing_foundations": ["mobile menu", "collapsed mobile stepper", "min-w-0 layouts", "bounded content width"],
+    "mobile_acceptance_completed": false,
+    "risks": ["long translated labels", "sticky workspace panel order", "fixed-viewbox chart labels", "dense evidence tables"]
+  },
+  "recommended_phases": [
+    {"phase": 2, "name": "homepage hierarchy", "status": "proposed", "primary_risk": "competing actions"},
+    {"phase": 3, "name": "copy and state normalization", "status": "proposed", "primary_risk": "weakening caveats"},
+    {"phase": 4, "name": "evidence disclosure and responsive charts", "status": "proposed", "primary_risk": "misrepresenting missing data"},
+    {"phase": 5, "name": "locale resource boundary", "status": "proposed", "primary_risk": "translating stable enums"},
+    {"phase": 6, "name": "safe read aloud", "status": "proposed", "primary_risk": "speaking hidden or sensitive data"},
+    {"phase": 7, "name": "safe voice input", "status": "proposed", "primary_risk": "unconfirmed destructive actions"},
+    {"phase": 8, "name": "release acceptance", "status": "proposed", "primary_risk": "missing real-device evidence"}
+  ],
+  "release_decision": {
+    "decision": "NO_GO",
+    "reason": "audit and contracts exist, but experience implementation, locale resources, voice safety review, and browser/production acceptance remain pending",
+    "browser_validation_completed": false,
+    "production_validation_completed": false,
+    "skipped_tests": 0,
+    "xfail_tests": 0
+  }
+}
