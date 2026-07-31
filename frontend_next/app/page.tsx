@@ -54,6 +54,7 @@ import { AffordabilityDecisionStage } from "@/components/guided-journey/affordab
 import { DecisionCaseStage } from "@/components/guided-journey/decision-case-stage";
 import { PropertyCaseCommandCenter } from "@/components/property-case-command-center";
 import { getSafePriceContext, type JourneyAffordabilityContext, type PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
+import { hasSearchablePlaceQuery, normalizeTaiwanPlaceQuery } from "@/lib/map-search";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { RuntimeCopyKey } from "@/lib/runtime-copy";
 
@@ -239,6 +240,110 @@ function SimpleList({ items, numbered = false }: { items: string[]; numbered?: b
 }
 
 function MapInsight() {
+  const { copy, locale } = useExperienceLocale();
+  const categoryKeys = ["transport", "school", "park", "medical", "shopping", "food"];
+  const categoryLabels: Record<string, string> = { transport: copy("location.transit"), school: copy("location.education"), park: copy("location.green"), medical: copy("location.medical"), shopping: copy("location.convenience"), food: copy("location.convenience") };
+  const [query, setQuery] = useState("");
+  const [location, setLocation] = useState<MapSearchResult>();
+  const [result, setResult] = useState<MapNearbyResult>();
+  const [health, setHealth] = useState<GoogleHealth>();
+  const [active, setActive] = useState<string[]>(categoryKeys);
+  const [selectedPlace, setSelectedPlace] = useState<NearbyPlace>();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [searchMode, setSearchMode] = useState<"quick" | "manual">("quick");
+  const [cities, setCities] = useState<string[]>([]);
+  const [districts, setDistricts] = useState<string[]>([]);
+  const [roads, setRoads] = useState<string[]>([]);
+  const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
+  const [road, setRoad] = useState("");
+  const [roadLoading, setRoadLoading] = useState(true);
+
+  useEffect(() => {
+    api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: copy("map.healthUnavailable") }));
+    api.roadCities().then((data) => setCities(data.cities)).finally(() => setRoadLoading(false));
+  }, []);
+
+  async function search(next = query) {
+    const normalized = normalizeTaiwanPlaceQuery(next, locale);
+    if (!hasSearchablePlaceQuery(normalized)) {
+      setError(copy("map.emptyDetail"));
+      return;
+    }
+    setQuery(next);
+    setLoading(true);
+    setError("");
+    setSelectedPlace(undefined);
+    try {
+      const found = await api.mapSearch(normalized);
+      if (!found.matched || !found.center) throw new Error("not_matched");
+      setLocation(found);
+      setResult(await api.mapNearby(found.center, categoryKeys));
+    } catch {
+      setError(copy("map.searchError"));
+      setResult(undefined);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function selectCity(value: string) {
+    setCity(value);
+    setDistrict("");
+    setRoad("");
+    setRoads([]);
+    setRoadLoading(true);
+    try { setDistricts((await api.roadDistricts(value)).districts); } finally { setRoadLoading(false); }
+  }
+
+  async function selectDistrict(value: string) {
+    setDistrict(value);
+    setRoad("");
+    setRoadLoading(true);
+    try { setRoads((await api.roads(city, value)).roads); } finally { setRoadLoading(false); }
+  }
+
+  function locateQuick() {
+    const next = `${city}${district}${road}`;
+    setQuery(next);
+    void search(next);
+  }
+
+  const categories = result?.categories.filter((group) => active.includes(group.category)) ?? [];
+  const allSelected = active.length === categoryKeys.length;
+  const totalPlaces = result?.categories.reduce((sum, group) => sum + group.count, 0) ?? 0;
+
+  return <div id="map-insight" className="scroll-mt-20 space-y-4">
+    <PageHeader kicker={copy("map.kicker")} title={copy("map.title")} description={copy("map.description")} />
+    <HelpCallout>{copy("map.help")}</HelpCallout>
+    {error && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><ErrorState message={error} /><p className="mt-2 text-[10px] text-amber-700">{copy("map.sourceNote")}</p></div>}
+    <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(71,85,105,0.12)] xl:grid xl:min-h-[720px] xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="relative h-[min(72vh,720px)] min-h-[520px] min-w-0 sm:h-[620px] xl:h-auto">
+        {result ? <GeoMap center={result.center} zoom={15} categories={categories} selectedPlace={selectedPlace} onSelectPlace={setSelectedPlace} /> : <div className="grid h-full place-items-center bg-gradient-to-br from-stone-100 via-cyan-50 to-stone-200 p-6 text-center"><EmptyState title={copy("map.empty")} detail={copy("map.emptyDetail")} /></div>}
+        <MapSearchPanel mode={searchMode} setMode={setSearchMode} query={query} setQuery={setQuery} onManual={() => void search()} onQuick={locateQuick} loading={loading} roadLoading={roadLoading} cities={cities} districts={districts} roads={roads} city={city} district={district} road={road} setCity={selectCity} setDistrict={selectDistrict} setRoad={setRoad} />
+        {result && <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-xl border border-white/80 bg-white/92 px-3 py-2 shadow-md backdrop-blur-md"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><strong className="min-w-0 break-words text-slate-800">{location?.formatted_address || query}</strong><span className="text-slate-500">{copy("map.city")}:</span><SourceBadge source={location?.source ?? "mock"} /><span className="text-slate-500">{copy("map.nearby")}:</span><SourceBadge source={result.source} /><span className="text-slate-500">{copy("map.radius")} {result.radius_m}m</span></div><MapLegend labels={categoryLabels} /></div>}
+      </div>
+      <details open className="min-w-0 border-t border-stone-200 bg-white xl:open xl:max-h-[720px] xl:overflow-y-auto xl:border-l xl:border-t-0">
+        <summary className="cursor-pointer border-b border-stone-200 px-4 py-3 text-xs font-bold text-slate-900 xl:hidden">{copy("map.nearby")}</summary>
+        <aside className="min-w-0 p-4">
+          <div className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.safe_message ?? copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
+          {result ? <>
+            <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-[10px] font-bold tracking-wider text-cyan-700">{copy("map.nearby")}</p><h2 className="mt-1 break-words text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || copy("map.empty")}</h2><p className="mt-1 text-[9px] text-slate-500">{result.score_summary}</p></div><div className="shrink-0 text-right"><p className="text-4xl font-bold text-cyan-800">{result.livability_score}</p><span className="rounded-full bg-white px-2 py-1 text-[9px] font-bold text-cyan-800">{result.livability_level}</span></div></div><div className="mt-2 flex gap-1"><SourceBadge source={result.source} /></div></div>
+            <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.city")}</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>{copy("action.open")} {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{categoryLabels[group.category] ?? group.label} {group.count}</button>)}</div>
+            <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("location.results")}</h3><div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">{result.category_scores.map((metric) => <CategoryMetric key={metric.category} metric={metric} />)}</div><ScoringCriteria criteria={result.scoring_criteria} labels={categoryLabels} />
+            <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.nearby")}</h3><div className="mt-2 grid gap-2">{result.nearest_places?.slice(0, 3).map((place) => <button key={place.place_id} onClick={() => setSelectedPlace(place)} className="flex min-w-0 items-center justify-between rounded-lg bg-stone-50 px-3 py-2 text-left hover:bg-cyan-50"><span className="min-w-0"><span className="block truncate text-[11px] font-bold text-slate-800">{place.name}</span><span className="text-[9px] text-slate-500">{categoryLabels[place.category] ?? place.category} · {place.rating === null ? copy("common.noData") : `${copy("map.rating")} ${place.rating}`}</span></span><strong className="shrink-0 text-[10px] text-cyan-700">{Math.round(place.distance_m)}m</strong></button>)}</div>
+            <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("location.results")}</h3><PlaceList categories={categories} selected={selectedPlace} onSelect={setSelectedPlace} />
+            <div className="mt-5 border-l-2 border-cyan-500 pl-3"><h3 className="text-xs font-bold text-slate-900">{copy("location.buyerFit")}</h3><p className="mt-1 text-[11px] leading-5 text-slate-600">{result.recommendation_text}</p></div>
+            <p className="mt-4 border-t border-stone-200 pt-3 text-[9px] leading-4 text-slate-500">{result.disclaimer}</p>
+          </> : <p className="rounded-xl bg-stone-50 p-4 text-xs leading-5 text-slate-600">{copy("map.emptyDetail")}</p>}
+        </aside>
+      </details>
+    </div>
+  </div>;
+}
+
+function LegacyMapInsight() {
   const { copy } = useExperienceLocale();
   const categoryKeys = ["transport", "school", "park", "medical", "shopping", "food"];
   const categoryLabels: Record<string, string> = { transport: copy("location.transit"), school: copy("location.education"), park: copy("location.green"), medical: copy("location.medical"), shopping: copy("location.convenience"), food: copy("location.convenience") };
@@ -549,11 +654,23 @@ function formatComparableDistance(row:ValuationResult["comparables"][number], co
 
 function NumberField({label,value,setValue}:{label:string;value:number;setValue:(value:number)=>void}){return <label className="text-[10px] text-slate-500">{label}<input type="number" value={value} onChange={(e)=>setValue(Number(e.target.value))} className="mt-1 w-full rounded-lg border border-stone-300 px-2 py-2 text-sm"/></label>;}
 function TerrainRiskPage() {
+  const { t, copy } = useExperienceLocale();
+  return <SupportPage kicker={t("page.terrain")} title={t("page.terrain")} description={copy("location.description")} error="" help={copy("map.help")}><TerrainRiskAnalysis /></SupportPage>;
+}
+
+function LegacyTerrainRiskPage() {
   return <SupportPage kicker="風險模組" title="地勢與災害風險分析" description="用官方公開圖資，初步檢查坡度、淹水、坡地災害與地質敏感風險。" error="" help="這不是正式地質調查或建築結構鑑定，只是買房前的公開資料初步檢查。"><TerrainRiskAnalysis /></SupportPage>;
 }
 function SupportPage({ kicker, title, description, error, help, children }: { kicker: string; title: string; description: string; error: string; help: string; children: ReactNode }) { return <div className="space-y-6"><PageHeader kicker={kicker} title={title} description={description} /><HelpCallout>{help}</HelpCallout>{error && <ErrorState message={error} />}{children}</div>; }
 
 function History() {
+  const { t, copy } = useExperienceLocale();
+  const [rows, setRows] = useState<Record<string, string | number>[]>([]), [loading, setLoading] = useState(true), [error, setError] = useState("");
+  useEffect(() => { api.history().then(setRows).catch(() => setError(copy("common.unavailable"))).finally(() => setLoading(false)); }, [copy]);
+  return <div className="space-y-6"><PageHeader kicker={t("page.history")} title={copy("case.title")} description={copy("case.description")} />{error && <ErrorState message={error} />}{loading ? <LoadingState /> : <section className="max-w-full overflow-x-auto border border-slate-200 bg-white"><table className="w-full min-w-[720px] text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="px-4 py-3">{copy("case.title")}</th><th>{copy("case.address")}</th><th>{copy("case.status")}</th><th>{copy("tour.risk")}</th><th>{copy("case.status")}</th><th>{copy("common.updated")}</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 font-bold">{row.case_id}</td><td>{row.client_name}</td><td><Badge value={String(row.eligibility_status)} /></td><td className="font-bold">{row.risk_score}</td><td><Badge value={String(row.signal_color)} /></td><td className="text-slate-500">{row.created_at}</td></tr>)}</tbody></table></section>}</div>;
+}
+
+function LegacyHistory() {
   const [rows,setRows]=useState<Record<string,string|number>[]>([]), [loading,setLoading]=useState(true), [error,setError]=useState("");
   useEffect(()=>{api.history().then(setRows).catch(()=>setError("歷史資料暫時無法載入，請稍後再試。" )).finally(()=>setLoading(false));},[]);
   return <div className="space-y-6"><PageHeader kicker="紀錄" title="歷史案件" description="查看已完成的 TaxOracle 分析結果。" />{error&&<ErrorState message={error}/>} {loading?<LoadingState/>:<section className="overflow-x-auto border border-slate-200 bg-white"><table className="w-full min-w-[720px] text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="px-4 py-3">案件</th><th>客戶</th><th>資格</th><th>分數</th><th>燈號</th><th>建立時間</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 font-bold">{row.case_id}</td><td>{row.client_name}</td><td><Badge value={String(row.eligibility_status)}/></td><td className="font-bold">{row.risk_score}</td><td><Badge value={String(row.signal_color)}/></td><td className="text-slate-500">{row.created_at}</td></tr>)}</tbody></table></section>}</div>;

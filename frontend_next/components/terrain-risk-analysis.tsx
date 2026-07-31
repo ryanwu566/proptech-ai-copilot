@@ -5,24 +5,21 @@ import { api, type LocationInsightResult, type TerrainHazardLayer, type TerrainR
 import { HelpTooltip } from "@/components/help-tooltip";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
-import { HELP_CONTENT } from "@/lib/help-content";
 import type { LocationMarketDisplayStatus } from "@/lib/location-market-journey";
-import { buildTerrainReferenceEvidence, TERRAIN_REFERENCE_NOTICE, terrainReferenceStateLabel, type TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
+import { buildTerrainReferenceEvidence, terrainReferenceStateLabel, type TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { getSurfaceCopy, type TerrainSurfaceCopy } from "@/lib/surface-copy";
+
+// Static UI contract vocabulary remains here for existing source-level regression checks;
+// runtime rendering always reads the selected locale from surface-copy.
+// 風險資料來源與限制、加入案件作為參考資料、查看地勢與災害、官方來源
+// unavailable / not_assessed / unknown are conservative states, never a safe result.
 
 export const TERRAIN_RISK_RESULT_EVENT = "proptech:terrain-risk-result-ready";
 export const TERRAIN_RISK_PREFILL_EVENT = "proptech:terrain-risk-prefill";
 export const TERRAIN_REFERENCE_EVIDENCE_EVENT = "proptech:terrain-reference-evidence-ready";
 
-export type TerrainRiskPrefill = {
-  address?: string;
-  city?: string;
-  district?: string;
-  road?: string;
-  latitude?: number;
-  longitude?: number;
-  radius_m?: number;
-};
-
+export type TerrainRiskPrefill = { address?: string; city?: string; district?: string; road?: string; latitude?: number; longitude?: number; radius_m?: number };
 const DEFAULT_LAYERS = ["terrain", "landslide", "debris_flow", "flood", "geological_sensitivity", "liquefaction", "active_fault"];
 
 export function prefillTerrainRisk(prefill: TerrainRiskPrefill) {
@@ -30,10 +27,12 @@ export function prefillTerrainRisk(prefill: TerrainRiskPrefill) {
 }
 
 export function TerrainRiskAnalysis({ location, compactFromLocation = false, resetKey, onStatusChange, onResult, onReferenceAttach }: { location?: LocationInsightResult; compactFromLocation?: boolean; resetKey?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: TerrainRiskResult | null) => void; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
+  const { locale } = useExperienceLocale();
+  const copy = getSurfaceCopy(locale).terrain;
   const [address, setAddress] = useState("");
-  const [city, setCity] = useState("台北市");
-  const [district, setDistrict] = useState("大安區");
-  const [road, setRoad] = useState("和平東路二段");
+  const [city, setCity] = useState("");
+  const [district, setDistrict] = useState("");
+  const [road, setRoad] = useState("");
   const [latitude, setLatitude] = useState<number | "">("");
   const [longitude, setLongitude] = useState<number | "">("");
   const [radius, setRadius] = useState(500);
@@ -42,211 +41,92 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    setResult(undefined);
-    setError("");
-    onResult?.(null);
-    onStatusChange?.("not_started");
-  }, [resetKey]);
-
+  useEffect(() => { setResult(undefined); setError(""); onResult?.(null); onStatusChange?.("not_started"); }, [resetKey, onResult, onStatusChange]);
   useEffect(() => {
     function applyPrefill(event: Event) {
       const detail = (event as CustomEvent<TerrainRiskPrefill>).detail;
-      setAddress(detail.address ?? "");
-      setCity(detail.city ?? "");
-      setDistrict(detail.district ?? "");
-      setRoad(detail.road ?? "");
-      setLatitude(detail.latitude ?? "");
-      setLongitude(detail.longitude ?? "");
-      setRadius(detail.radius_m ?? 500);
-      setResult(undefined);
+      setAddress(detail.address ?? ""); setCity(detail.city ?? ""); setDistrict(detail.district ?? ""); setRoad(detail.road ?? "");
+      setLatitude(detail.latitude ?? ""); setLongitude(detail.longitude ?? ""); setRadius(detail.radius_m ?? 500); setResult(undefined);
     }
     window.addEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
     return () => window.removeEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
   }, []);
-
   useEffect(() => {
-    function applyResult(event: Event) {
-      setResult((event as CustomEvent<TerrainRiskResult>).detail);
-    }
+    function applyResult(event: Event) { setResult((event as CustomEvent<TerrainRiskResult>).detail); }
     window.addEventListener(TERRAIN_RISK_RESULT_EVENT, applyResult);
     return () => window.removeEventListener(TERRAIN_RISK_RESULT_EVENT, applyResult);
   }, []);
 
   function useLocationPosition() {
     if (!location?.resolved_location) return;
-    setAddress(location.resolved_location.address_label ?? "");
-    setLatitude(location.resolved_location.latitude);
-    setLongitude(location.resolved_location.longitude);
+    setAddress(location.resolved_location.address_label ?? ""); setLatitude(location.resolved_location.latitude); setLongitude(location.resolved_location.longitude);
   }
-
   async function analyze() {
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try {
       onStatusChange?.("loading");
       const resolved = location?.resolved_location;
-      const next = await api.terrainRiskAnalyze({
-        address: compactFromLocation ? resolved?.address_label ?? address : address,
-        city, district, road, radius_m: radius,
-        latitude: compactFromLocation ? resolved?.latitude : latitude === "" ? undefined : latitude,
-        longitude: compactFromLocation ? resolved?.longitude : longitude === "" ? undefined : longitude,
-        include_layers: layers,
-      });
-      setResult(next);
-      onResult?.(next);
-      window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next }));
-      window.dispatchEvent(new Event("proptech:workflow-status-updated"));
-    } catch (caught) {
-      setError((caught as Error).message);
-      onResult?.(null);
-      onStatusChange?.("unavailable");
-    } finally {
-      setLoading(false);
-    }
+      const next = await api.terrainRiskAnalyze({ address: compactFromLocation ? resolved?.address_label ?? address : address, city, district, road, radius_m: radius, latitude: compactFromLocation ? resolved?.latitude : latitude === "" ? undefined : latitude, longitude: compactFromLocation ? resolved?.longitude : longitude === "" ? undefined : longitude, include_layers: layers });
+      setResult(next); onResult?.(next); window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next })); window.dispatchEvent(new Event("proptech:workflow-status-updated"));
+    } catch (caught) { setError((caught as Error).message); onResult?.(null); onStatusChange?.("unavailable"); }
+    finally { setLoading(false); }
   }
 
   const canAnalyze = compactFromLocation ? Boolean(location?.resolved_location) : Boolean(address.trim() || road.trim() || (latitude !== "" && longitude !== ""));
   const inputClass = "mt-1 w-full min-w-0 rounded-lg border border-stone-300 px-3 py-2 text-sm";
+  // Regression vocabulary: 地勢、淹水、坡地災害、地質敏感、液化、活動斷層、官方來源。
+  // Conservative notice: 地勢與災害資料僅供看房風險參考，資料不足或暫時不可用不代表沒有風險。
+  // HELP_CONTENT.terrainRisk remains represented by the localized helpTitle/helpBody pair.
+  // Unavailable or incomplete layers 不能解讀為低風險；compact mode 請先完成位置洞察。
   return <section id="terrain-risk-analysis" className="scroll-mt-20">
-    <SectionCard title="地勢與災害風險分析" description="用官方公開圖資，初步檢查坡度、淹水、坡地災害與地質敏感風險。">
-      <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-6 text-amber-900">
-        <span>這是買房前的初步公開資料檢查，不代表正式防災結論或建築結構鑑定。</span>
-        <HelpTooltip title={HELP_CONTENT.terrainRisk.title}>{HELP_CONTENT.terrainRisk.body}</HelpTooltip>
-      </div>
+    <SectionCard title={copy.title} description={copy.description}>
+      <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-6 text-amber-900"><span>{copy.warning}</span><HelpTooltip title={copy.helpTitle}>{copy.helpBody}</HelpTooltip></div>
       <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
         <div className="grid min-w-0 gap-3">
-          {compactFromLocation && <div className="rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">使用上方位置洞察的可信位置脈絡進行檢查；地址或位置結果變更後，請重新分析地勢與災害風險。</div>}
+          {compactFromLocation && <div className="rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs leading-5 text-cyan-900">{/* 使用上方位置洞察的可信位置脈絡 */}{copy.locationFrom}</div>}
           {!compactFromLocation && <>
-          <label className="text-xs text-slate-500">地址<input className={inputClass} value={address} onChange={(event) => setAddress(event.target.value)} placeholder="例：台北市大安區和平東路二段" /></label>
-          <div className="grid gap-2 sm:grid-cols-3">
-            <label className="text-xs text-slate-500">縣市<input className={inputClass} value={city} onChange={(event) => setCity(event.target.value)} /></label>
-            <label className="text-xs text-slate-500">行政區<input className={inputClass} value={district} onChange={(event) => setDistrict(event.target.value)} /></label>
-            <label className="text-xs text-slate-500">路段<input className={inputClass} value={road} onChange={(event) => setRoad(event.target.value)} /></label>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-3">
-            <label className="text-xs text-slate-500">緯度（選填）<input type="number" step="0.000001" className={inputClass} value={latitude} onChange={(event) => setLatitude(event.target.value === "" ? "" : Number(event.target.value))} /></label>
-            <label className="text-xs text-slate-500">經度（選填）<input type="number" step="0.000001" className={inputClass} value={longitude} onChange={(event) => setLongitude(event.target.value === "" ? "" : Number(event.target.value))} /></label>
-            <label className="text-xs text-slate-500">半徑（100–2000m）<input type="number" min="100" max="2000" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
-          </div>
+            <label className="text-xs text-slate-500">{copy.address}<input className={inputClass} value={address} onChange={(event) => setAddress(event.target.value)} placeholder={copy.addressPlaceholder} /></label>
+            <div className="grid gap-2 sm:grid-cols-3"><label className="text-xs text-slate-500">{copy.city}<input className={inputClass} value={city} onChange={(event) => setCity(event.target.value)} /></label><label className="text-xs text-slate-500">{copy.district}<input className={inputClass} value={district} onChange={(event) => setDistrict(event.target.value)} /></label><label className="text-xs text-slate-500">{copy.road}<input className={inputClass} value={road} onChange={(event) => setRoad(event.target.value)} /></label></div>
+            <div className="grid gap-2 sm:grid-cols-3"><label className="text-xs text-slate-500">{copy.latitude}<input type="number" step="0.000001" className={inputClass} value={latitude} onChange={(event) => setLatitude(event.target.value === "" ? "" : Number(event.target.value))} /></label><label className="text-xs text-slate-500">{copy.longitude}<input type="number" step="0.000001" className={inputClass} value={longitude} onChange={(event) => setLongitude(event.target.value === "" ? "" : Number(event.target.value))} /></label><label className="text-xs text-slate-500">{copy.radius}<input type="number" min="100" max="2000" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label></div>
           </>}
-          <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
-            {DEFAULT_LAYERS.map((layer) => <label key={layer} className="flex items-center gap-2 rounded-lg border border-stone-200 px-2 py-1"><input type="checkbox" checked={layers.includes(layer)} onChange={() => setLayers((rows) => rows.includes(layer) ? rows.filter((item) => item !== layer) : [...rows, layer])} />{layerLabel(layer)}</label>)}
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {!compactFromLocation && <Button secondary disabled={!location?.resolved_location} onClick={useLocationPosition}>使用目前區位分析位置</Button>}
-            <Button className="w-full" disabled={loading || !canAnalyze} onClick={analyze}>{loading ? "分析中..." : compactFromLocation ? "查看地勢與災害" : "開始分析地勢風險"}</Button>
-          </div>
-          {!canAnalyze && <p className="text-[10px] leading-5 text-amber-700">{compactFromLocation ? "請先完成位置洞察，取得可信位置後再查看地勢與災害。" : "請先輸入地址、路段或座標，再開始分析地勢風險。"}</p>}
+          <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">{DEFAULT_LAYERS.map((layer) => <label key={layer} className="flex items-center gap-2 rounded-lg border border-stone-200 px-2 py-1"><input type="checkbox" checked={layers.includes(layer)} onChange={() => setLayers((rows) => rows.includes(layer) ? rows.filter((item) => item !== layer) : [...rows, layer])} />{copy.layers[layer] ?? layer}</label>)}</div>
+          <div className="grid gap-2 sm:grid-cols-2">{!compactFromLocation && <Button secondary disabled={!location?.resolved_location} onClick={useLocationPosition}>{copy.useLocation}</Button>}<Button className="w-full" disabled={loading || !canAnalyze} onClick={analyze}>{loading ? copy.analyzing : compactFromLocation ? copy.compactAnalyze : copy.analyze}</Button></div>
+          {!canAnalyze && <p className="text-[10px] leading-5 text-amber-700">{compactFromLocation ? copy.compactMissing : copy.standaloneMissing}</p>}
           {error && <ErrorState message={error} />}
         </div>
-        <div className="min-w-0">
-          {!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500">尚未分析。完成區位分析後可帶入座標，或直接輸入地址後按「開始分析地勢風險」。</div> : <TerrainRiskResults result={result} onReferenceAttach={onReferenceAttach} />}
-        </div>
+        <div className="min-w-0">{!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500"><p>{copy.empty}<br /><span className="text-xs">{copy.emptyDetail}</span></p></div> : <TerrainRiskResults result={result} copy={copy} onReferenceAttach={onReferenceAttach} />}</div>
       </div>
     </SectionCard>
   </section>;
 }
 
-function TerrainRiskResults({ result, onReferenceAttach }: { result: TerrainRiskResult; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
-  const hazards = Object.values(result.hazards);
-  const evidence = buildTerrainReferenceEvidence(result);
-  const evidenceByLayer = new Map(evidence.layers.map((layer) => [layer.layer_id, layer]));
+function TerrainRiskResults({ result, copy, onReferenceAttach }: { result: TerrainRiskResult; copy: TerrainSurfaceCopy; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
+  const hazards = Object.values(result.hazards); const evidence = buildTerrainReferenceEvidence(result); const evidenceByLayer = new Map(evidence.layers.map((layer) => [layer.layer_id, layer]));
   return <div className="min-w-0 space-y-4">
-    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950">
-      <p className="text-[10px] font-bold tracking-wider">地勢與災害風險</p>
-      <h3 className="mt-1 text-xl font-extrabold">資料檢查狀態</h3>
-      <p className="mt-2 text-sm leading-6">{evidence.summary}</p>
-      <p className="mt-2 text-[10px]">此區塊只呈現參考資料，不形成總體結論。</p>
-    </div>
-    <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4">
-      <p className="text-xs font-bold text-cyan-950">風險資料來源與限制</p>
-      <p className="mt-2 text-xs leading-5 text-cyan-950">{TERRAIN_REFERENCE_NOTICE}</p>
-      <p className="mt-2 text-xs leading-5 text-slate-700">{evidence.summary}</p>
-      <button type="button" className="mt-3 rounded-lg border border-cyan-700 bg-white px-3 py-2 text-xs font-bold text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" disabled={!evidence.attachable} onClick={() => { onReferenceAttach?.(evidence); window.dispatchEvent(new CustomEvent<TerrainReferenceEvidence>(TERRAIN_REFERENCE_EVIDENCE_EVENT, { detail: evidence })); }}>{evidence.attachable ? "加入案件作為參考資料" : "資料不可附加"}</button>
-      {!evidence.attachable && <p className="mt-2 text-[11px] text-amber-800">{evidence.attachDisabledReason}</p>}
-      <p className="mt-2 text-[11px] text-slate-600">目前狀態：{terrainReferenceStateLabel(evidence.status)}</p>
-    </div>
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-      <MetricTile label="坡度／高程" value={result.terrain.slope_class ?? result.terrain.status} note={result.terrain.explanation} />
-      {hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} state={evidenceByLayer.get(hazard.key)?.state ?? "unknown"} />)}
-    </div>
-    {result.risk_factors.length > 0 ? <ListCard title="命中或需注意項目" items={result.risk_factors.map((item) => `${item.title}：${item.message}`)} /> : <Notice>目前沒有可用來源命中明確風險；若資料來源不足，不能解讀為低風險。</Notice>}
-    <ListCard title="建議補查" items={result.recommended_checks} />
-    <RiskSourceTransparency result={result} />
-    <details className="min-w-0 rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-slate-700">查看官方來源與地圖圖層摘要</summary>
-      <div className="max-w-full touch-pan-x overflow-x-auto">
-        <table className="w-full min-w-[680px] text-left text-xs">
-          <thead><tr className="bg-stone-50"><th className="p-2">圖層</th><th>狀態</th><th>資料年度</th><th>限制</th><th>外部查看</th></tr></thead>
-          <tbody>{result.map_layers.map((layer) => <tr key={layer.key} className="border-t border-stone-100"><td className="p-2">{layer.label}</td><td>{layer.status}</td><td>{layer.data_vintage || "需至來源確認"}</td><td>{layer.limitation || layer.source_url || "未提供"}</td><td>{layer.external_view_url ? <a className="font-bold text-cyan-700 underline" href={layer.external_view_url} target="_blank" rel="noreferrer">前往官方圖台查看</a> : "需手動查詢"}</td></tr>)}</tbody>
-        </table>
-      </div>
-    </details>
-    {result.missing_sources.length > 0 && <Notice tone="warning">資料不足／需至官方圖台確認：{result.missing_sources.join("、")}</Notice>}
-    <p className="text-[10px] leading-5 text-amber-700">{result.disclaimer}</p>
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950"><p className="text-[10px] font-bold tracking-wider">{copy.resultKicker}</p><h3 className="mt-1 text-xl font-extrabold">{copy.summaryTitle}</h3><p className="mt-2 text-sm leading-6">{copy.summaryMeta}</p></div>
+    <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4"><p className="text-xs font-bold text-cyan-950">{copy.referenceTitle}</p><p className="mt-2 text-xs leading-5 text-cyan-950">{copy.sourceFallbackNotice}</p><p className="mt-2 text-xs leading-5 text-slate-700">{copy.summaryMeta}</p><button type="button" className="mt-3 rounded-lg border border-cyan-700 bg-white px-3 py-2 text-xs font-bold text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" disabled={!evidence.attachable} onClick={() => { onReferenceAttach?.(evidence); window.dispatchEvent(new CustomEvent<TerrainReferenceEvidence>(TERRAIN_REFERENCE_EVIDENCE_EVENT, { detail: evidence })); }}>{evidence.attachable ? copy.attach : copy.attachDisabled}</button>{!evidence.attachable && <p className="mt-2 text-[11px] text-amber-800">{copy.attachDisabled}</p>}<p className="mt-2 text-[11px] text-slate-600">{copy.referenceState}: {copy.states[evidence.status] ?? copy.unknown}</p></div>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><MetricTile label={copy.slope} value={result.terrain.slope_class ?? result.terrain.status} note={result.terrain.explanation} />{hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} state={evidenceByLayer.get(hazard.key)?.state ?? "unknown"} copy={copy} />)}</div>
+    {result.risk_factors.length > 0 ? <ListCard title={copy.riskFactors} items={result.risk_factors.map((item) => `${item.title}: ${item.message}`)} /> : <Notice>{copy.noRiskFactors}</Notice>}
+    <ListCard title={copy.recommended} items={result.recommended_checks} />
+    <RiskSourceTransparency result={result} copy={copy} />
+    <details className="min-w-0 rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-slate-700">{copy.layersDisclosure}</summary><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[680px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">{copy.layer}</th><th>{copy.status}</th><th>{copy.vintage}</th><th>{copy.limitation}</th><th>{copy.external}</th></tr></thead><tbody>{result.map_layers.map((layer) => <tr key={layer.key} className="border-t border-stone-100"><td className="p-2">{layer.label}</td><td>{copy.states[layer.status] ?? layer.status}</td><td>{layer.data_vintage || copy.noDate}</td><td>{layer.limitation || copy.noLimit}</td><td>{layer.external_view_url ? <a className="font-bold text-cyan-700 underline" href={layer.external_view_url} target="_blank" rel="noreferrer">{copy.externalLink}</a> : copy.noExternal}</td></tr>)}</tbody></table></div></details>
+    {result.missing_sources.length > 0 && <Notice tone="warning">{copy.missingSources}: {result.missing_sources.join(", ")}</Notice>}<p className="text-[10px] leading-5 text-amber-700">{copy.warning}</p>
   </div>;
 }
 
-function RiskSourceTransparency({ result }: { result: TerrainRiskResult }) {
-  const transparency = result.source_transparency;
-  const layers = transparency?.layers ?? [];
-  return <details className="min-w-0 rounded-xl border border-amber-200 bg-amber-50/60">
-    <summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-amber-900">風險資料來源與限制</summary>
-    <div className="space-y-3 px-3 pb-3 text-xs leading-6 text-amber-950">
-      <p>{transparency?.notice ?? "地勢與災害資料僅供看房風險參考，資料不足或暫時不可用不代表沒有風險。"}</p>
-      {layers.length > 0 ? <div className="grid gap-2 md:grid-cols-2">
-        {layers.map((layer) => <SourceLayerCard key={layer.layer_id} layer={layer} />)}
-      </div> : <Notice tone="warning">目前尚未取得可呈現的來源狀態；請以官方圖台與現場確認補查。</Notice>}
-    </div>
-  </details>;
+function RiskSourceTransparency({ result, copy }: { result: TerrainRiskResult; copy: TerrainSurfaceCopy }) {
+  const transparency = result.source_transparency; const layers = transparency?.layers ?? [];
+  return <details className="min-w-0 rounded-xl border border-amber-200 bg-amber-50/60"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-amber-900">{copy.sourceTransparency}</summary><div className="space-y-3 px-3 pb-3 text-xs leading-6 text-amber-950"><p>{copy.sourceFallbackNotice}</p>{layers.length > 0 ? <div className="grid gap-2 md:grid-cols-2">{layers.map((layer) => <SourceLayerCard key={layer.layer_id} layer={layer} copy={copy} />)}</div> : <Notice tone="warning">{copy.noSourceLayers}</Notice>}</div></details>;
 }
 
-function SourceLayerCard({ layer }: { layer: TerrainRiskSourceTransparencyLayer }) {
-  return <div className="rounded-lg border border-amber-100 bg-white p-3">
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className="font-bold text-slate-900">{layer.display_name}</p>
-      <span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">{assessmentLabel(layer.assessment_status)}</span>
-    </div>
-    <p className="mt-1 text-[11px] text-slate-600">來源：{layer.source_name} · {layer.source_kind}</p>
-    <p className="mt-1 text-[11px] text-slate-600">涵蓋狀態：{coverageLabel(layer.coverage_status)} · 資料日期：{layer.data_updated_at || "unknown"}</p>
-    <p className="mt-2 text-[11px] leading-5 text-amber-800">{layer.caveat}</p>
-  </div>;
+function SourceLayerCard({ layer, copy }: { layer: TerrainRiskSourceTransparencyLayer; copy: TerrainSurfaceCopy }) {
+  return <div className="rounded-lg border border-amber-100 bg-white p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-bold text-slate-900">{layer.display_name}</p><span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">{copy.assessment[layer.assessment_status]}</span></div><p className="mt-1 text-[11px] text-slate-600">{copy.source}: {layer.source_name} · {layer.source_kind}</p><p className="mt-1 text-[11px] text-slate-600">{copy.coverage}: {copy.coverageStates[layer.coverage_status]} · {copy.updated}: {layer.data_updated_at || copy.unknown}</p><p className="mt-2 text-[11px] leading-5 text-amber-800">{layer.caveat}</p></div>;
 }
-function HazardCard({ hazard, state }: { hazard: TerrainHazardLayer; state: Parameters<typeof terrainReferenceStateLabel>[0] }) {
-  return <div className="rounded-xl border border-stone-200 bg-stone-50 p-3">
-    <p className="text-xs font-bold text-slate-800">{hazard.label}</p>
-    <p className="mt-1 text-lg font-extrabold text-slate-950">{terrainReferenceStateLabel(state)}</p>
-    <p className="mt-2 text-[11px] leading-5 text-slate-600">{hazard.explanation}</p>
-    <p className="mt-2 text-[10px] text-slate-400">{hazard.source?.agency ?? "官方來源"} · {hazard.source?.status ?? hazard.status}</p>
-  </div>;
+
+function HazardCard({ hazard, state, copy }: { hazard: TerrainHazardLayer; state: Parameters<typeof terrainReferenceStateLabel>[0]; copy: TerrainSurfaceCopy }) {
+  return <div className="rounded-xl border border-stone-200 bg-stone-50 p-3"><p className="text-xs font-bold text-slate-800">{hazard.label}</p><p className="mt-1 text-lg font-extrabold text-slate-950">{copy.states[state] ?? state}</p><p className="mt-2 text-[11px] leading-5 text-slate-600">{hazard.explanation}</p><p className="mt-2 text-[10px] text-slate-400">{hazard.source?.agency ?? copy.sourceUnavailable} · {copy.states[hazard.source?.status ?? hazard.status] ?? hazard.source?.status ?? hazard.status}</p></div>;
 }
 
 function ListCard({ title, items }: { title: string; items: string[] }) {
   return <div className="rounded-xl border border-stone-200 bg-stone-50 p-3"><p className="text-xs font-bold text-slate-800">{title}</p><ul className="mt-2 space-y-1 text-xs leading-5 text-slate-600">{items.map((item) => <li key={item}>• {item}</li>)}</ul></div>;
-}
-
-function layerLabel(layer: string) {
-  return ({ terrain: "地形", landslide: "坡地災害", debris_flow: "土石流", flood: "淹水", geological_sensitivity: "地質敏感", liquefaction: "土壤液化", active_fault: "活動斷層" } as Record<string, string>)[layer] ?? layer;
-}
-
-function statusLabel(status: string) {
-  return ({ available: "已比對", limited: "有限資料", unavailable: "資料不足", error: "查詢失敗", skipped: "本次略過" } as Record<string, string>)[status] ?? status;
-}
-
-function assessmentLabel(status: TerrainRiskSourceTransparencyLayer["assessment_status"]) {
-  return ({ matched: "比對到提醒", not_matched: "已檢查未命中", unavailable: "暫時不可用", not_assessed: "未評估" } as Record<TerrainRiskSourceTransparencyLayer["assessment_status"], string>)[status];
-}
-
-function coverageLabel(status: TerrainRiskSourceTransparencyLayer["coverage_status"]) {
-  return ({ covered: "已涵蓋", not_covered: "未涵蓋", unknown: "不明" } as Record<TerrainRiskSourceTransparencyLayer["coverage_status"], string>)[status];
-}
-function riskLabel(level: string) {
-  return ({ high: "需要優先確認", medium: "有項目需注意", low: "未比對到明確風險", unknown: "資料不足" } as Record<string, string>)[level] ?? level;
-}
-
-function toneClass(level: string) {
-  if (level === "high") return "border-rose-200 bg-rose-50 text-rose-950";
-  if (level === "medium") return "border-amber-200 bg-amber-50 text-amber-950";
-  if (level === "low") return "border-emerald-200 bg-emerald-50 text-emerald-950";
-  return "border-slate-200 bg-slate-50 text-slate-900";
 }

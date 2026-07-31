@@ -1,3 +1,5 @@
+import { getExperienceOverride } from "@/lib/experience-i18n-overrides";
+
 export const SUPPORTED_LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
 export type ExperienceLocale = (typeof SUPPORTED_LOCALES)[number];
 
@@ -225,7 +227,7 @@ export function normalizeExperienceLocale(value: string | null | undefined): Exp
 }
 
 export function translateExperience(locale: ExperienceLocale, key: TranslationKey): string {
-  return resources[locale][key] ?? resources[DEFAULT_LOCALE][key] ?? key;
+  return getExperienceOverride(locale, key) ?? resources[locale][key] ?? resources[DEFAULT_LOCALE][key] ?? key;
 }
 
 export function getExperienceLocaleCoverage(): Record<ExperienceLocale, { total: number; translated: number; missing: readonly TranslationKey[] }> {

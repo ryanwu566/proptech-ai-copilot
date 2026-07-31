@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import L from "leaflet";
 import { Circle, LayersControl, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { NearbyCategory, NearbyPlace } from "@/lib/api";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
 
 const categoryColors: Record<string, string> = {
   transport: "#2563eb",
@@ -23,37 +24,48 @@ function markerIcon(color: string, center = false, selected = false) {
   });
 }
 
-function Recenter({ center, zoom, selected }: { center: { lat: number; lng: number }; zoom: number; selected?: NearbyPlace }) {
+function escapeHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character] ?? character);
+}
+
+function Recenter({ center, zoom, selected, selectedLabel, distanceLabel, ratingLabel }: { center: { lat: number; lng: number }; zoom: number; selected?: NearbyPlace; selectedLabel: string; distanceLabel: string; ratingLabel: string }) {
   const map = useMap();
   useEffect(() => {
     map.setView(selected ? [selected.lat, selected.lng] : [center.lat, center.lng], selected ? Math.max(zoom, 17) : zoom);
     if (selected) {
-      const safe = (value: string) => value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character] ?? character);
+      const distance = `${distanceLabel}: ${Math.round(selected.distance_m)} m`;
+      const rating = selected.rating === null ? "" : `<br>${escapeHtml(ratingLabel)}: ${selected.rating}`;
       L.popup()
         .setLatLng([selected.lat, selected.lng])
-        .setContent(`<strong>${safe(selected.name)}</strong><br>${Math.round(selected.distance_m)} 公尺<br>${safe(selected.address)}`)
+        .setContent(`<strong>${escapeHtml(selectedLabel)}: ${escapeHtml(selected.name)}</strong><br>${escapeHtml(distance)}${rating}<br>${escapeHtml(selected.address)}`)
         .openOn(map);
     }
-  }, [center, map, selected, zoom]);
+  }, [center, distanceLabel, map, ratingLabel, selected, selectedLabel, zoom]);
   return null;
 }
 
 export default function GeoMap({ center, zoom, categories, selectedPlace, onSelectPlace }: { center: { lat: number; lng: number }; zoom: number; categories: NearbyCategory[]; selectedPlace?: NearbyPlace; onSelectPlace?: (place: NearbyPlace) => void }) {
+  const { copy } = useExperienceLocale();
+  const baseLayers = {
+    standard: copy("map.baseStandard"),
+    light: copy("map.baseLight"),
+    satellite: copy("map.baseSatellite"),
+  };
   return <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom className="h-full min-h-[360px] w-full sm:min-h-[500px] xl:min-h-[650px]">
-    <Recenter center={center} zoom={zoom} selected={selectedPlace} />
+    <Recenter center={center} zoom={zoom} selected={selectedPlace} selectedLabel={copy("map.selected")} distanceLabel={copy("map.distance")} ratingLabel={copy("map.rating")} />
     <LayersControl position="topright">
-      <LayersControl.BaseLayer checked name="標準">
-        <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <LayersControl.BaseLayer checked name={baseLayers.standard}>
+        <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       </LayersControl.BaseLayer>
-      <LayersControl.BaseLayer name="淺色">
-        <TileLayer attribution='&copy; OpenStreetMap contributors &copy; CARTO' url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+      <LayersControl.BaseLayer name={baseLayers.light}>
+        <TileLayer attribution="&copy; OpenStreetMap contributors &copy; CARTO" url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
       </LayersControl.BaseLayer>
-      <LayersControl.BaseLayer name="衛星">
-        <TileLayer attribution='Tiles &copy; Esri' url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
+      <LayersControl.BaseLayer name={baseLayers.satellite}>
+        <TileLayer attribution="Tiles &copy; Esri" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
       </LayersControl.BaseLayer>
     </LayersControl>
     <Circle center={[center.lat, center.lng]} radius={800} pathOptions={{ color: "#0891b2", fillColor: "#22d3ee", fillOpacity: 0.05, weight: 2 }} />
-    <Marker position={[center.lat, center.lng]} icon={markerIcon("#0f172a", true)}><Popup>查詢中心點</Popup></Marker>
-    {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={markerIcon(categoryColors[group.category] ?? "#64748b", false, selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {place.distance_m} 公尺<br />{place.rating ? `評分 ${place.rating} · ` : ""}{place.opening_status_label}<br />{place.address}</Popup></Marker>))}
+    <Marker position={[center.lat, center.lng]} icon={markerIcon("#0f172a", true)}><Popup>{copy("map.selected")}</Popup></Marker>
+    {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={markerIcon(categoryColors[group.category] ?? "#64748b", false, selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {Math.round(place.distance_m)} m{place.rating === null ? "" : ` · ${copy("map.rating")} ${place.rating}`}<br />{place.opening_status_label}<br />{place.address}</Popup></Marker>))}
   </MapContainer>;
 }
