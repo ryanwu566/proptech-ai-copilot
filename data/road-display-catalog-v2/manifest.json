@@ -1,0 +1,113 @@
+{
+  "schema_version": "road-display-v2",
+  "source": "data/taiwan_roads.csv",
+  "record_count": 35516,
+  "scoped_key_count": 35516,
+  "files": [
+    {
+      "county": "南投縣",
+      "path": "county-01.json",
+      "record_count": 1010
+    },
+    {
+      "county": "嘉義市",
+      "path": "county-02.json",
+      "record_count": 460
+    },
+    {
+      "county": "嘉義縣",
+      "path": "county-03.json",
+      "record_count": 936
+    },
+    {
+      "county": "基隆市",
+      "path": "county-04.json",
+      "record_count": 240
+    },
+    {
+      "county": "宜蘭縣",
+      "path": "county-05.json",
+      "record_count": 1562
+    },
+    {
+      "county": "屏東縣",
+      "path": "county-06.json",
+      "record_count": 2412
+    },
+    {
+      "county": "彰化縣",
+      "path": "county-07.json",
+      "record_count": 2859
+    },
+    {
+      "county": "新北市",
+      "path": "county-08.json",
+      "record_count": 2454
+    },
+    {
+      "county": "新竹市",
+      "path": "county-09.json",
+      "record_count": 490
+    },
+    {
+      "county": "新竹縣",
+      "path": "county-10.json",
+      "record_count": 1201
+    },
+    {
+      "county": "桃園市",
+      "path": "county-11.json",
+      "record_count": 3544
+    },
+    {
+      "county": "澎湖縣",
+      "path": "county-12.json",
+      "record_count": 209
+    },
+    {
+      "county": "臺中市",
+      "path": "county-13.json",
+      "record_count": 4184
+    },
+    {
+      "county": "臺北市",
+      "path": "county-14.json",
+      "record_count": 757
+    },
+    {
+      "county": "臺南市",
+      "path": "county-15.json",
+      "record_count": 3032
+    },
+    {
+      "county": "臺東縣",
+      "path": "county-16.json",
+      "record_count": 656
+    },
+    {
+      "county": "花蓮縣",
+      "path": "county-17.json",
+      "record_count": 1388
+    },
+    {
+      "county": "苗栗縣",
+      "path": "county-18.json",
+      "record_count": 1209
+    },
+    {
+      "county": "金門縣",
+      "path": "county-19.json",
+      "record_count": 221
+    },
+    {
+      "county": "雲林縣",
+      "path": "county-20.json",
+      "record_count": 1991
+    },
+    {
+      "county": "高雄市",
+      "path": "county-21.json",
+      "record_count": 4701
+    }
+  ]
+}

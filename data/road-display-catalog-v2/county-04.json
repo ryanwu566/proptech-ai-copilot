@@ -1,0 +1,4566 @@
+{
+  "schema_version": "road-display-v2",
+  "county": "基隆市",
+  "records": [
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "三合街",
+      "labels": {
+        "zh-TW": "三合街",
+        "en": "Sanhe Street",
+        "ja": "スアンホエ通り ストリート",
+        "ko": "사허길"
+      },
+      "romanization": "Sanhe Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "俊德街",
+      "labels": {
+        "zh-TW": "俊德街",
+        "en": "Junde Street",
+        "ja": "ジウンドエ通り ストリート",
+        "ko": "주더길"
+      },
+      "romanization": "Junde Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "俊賢路",
+      "labels": {
+        "zh-TW": "俊賢路",
+        "en": "Junxian Road",
+        "ja": "ジウンシイェン道路 ロード",
+        "ko": "주샤로"
+      },
+      "romanization": "Junxian Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "光明路",
+      "labels": {
+        "zh-TW": "光明路",
+        "en": "Guangming Road",
+        "ja": "グワンムイン道路 ロード",
+        "ko": "궈미로"
+      },
+      "romanization": "Guangming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "八德路",
+      "labels": {
+        "zh-TW": "八德路",
+        "en": "Bade Road",
+        "ja": "ブアドエ道路 ロード",
+        "ko": "바더로"
+      },
+      "romanization": "Bade Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "六堵一街",
+      "labels": {
+        "zh-TW": "六堵一街",
+        "en": "Liudu 1st Street",
+        "ja": "ルウドウ1通り ストリート",
+        "ko": "루두1길"
+      },
+      "romanization": "Liudu 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "六堵二街",
+      "labels": {
+        "zh-TW": "六堵二街",
+        "en": "Liudu 2nd Street",
+        "ja": "ルウドウ2通り ストリート",
+        "ko": "루두2길"
+      },
+      "romanization": "Liudu 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "南光街",
+      "labels": {
+        "zh-TW": "南光街",
+        "en": "South Guang Street",
+        "ja": "ヌアングワン通り ストリート",
+        "ko": "나궈길"
+      },
+      "romanization": "South Guang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "南興路",
+      "labels": {
+        "zh-TW": "南興路",
+        "en": "South Xing Road",
+        "ja": "ヌアンシイン道路 ロード",
+        "ko": "나시로"
+      },
+      "romanization": "South Xing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "堵南街",
+      "labels": {
+        "zh-TW": "堵南街",
+        "en": "Du South Street",
+        "ja": "ドウヌアン通り ストリート",
+        "ko": "두나길"
+      },
+      "romanization": "Du South Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "大同街",
+      "labels": {
+        "zh-TW": "大同街",
+        "en": "Datong Street",
+        "ja": "ドアトオン通り ストリート",
+        "ko": "다토길"
+      },
+      "romanization": "Datong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "大德路",
+      "labels": {
+        "zh-TW": "大德路",
+        "en": "Dade Road",
+        "ja": "ドアドエ道路 ロード",
+        "ko": "다더로"
+      },
+      "romanization": "Dade Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "大成街",
+      "labels": {
+        "zh-TW": "大成街",
+        "en": "Dacheng Street",
+        "ja": "ドアチン通り ストリート",
+        "ko": "다처길"
+      },
+      "romanization": "Dacheng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "大華一路",
+      "labels": {
+        "zh-TW": "大華一路",
+        "en": "Dahua 1st Road",
+        "ja": "ドアホア1道路 ロード",
+        "ko": "다화1로"
+      },
+      "romanization": "Dahua 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "大華三路",
+      "labels": {
+        "zh-TW": "大華三路",
+        "en": "Dahua 3rd Road",
+        "ja": "ドアホア3道路 ロード",
+        "ko": "다화3로"
+      },
+      "romanization": "Dahua 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "大華二路",
+      "labels": {
+        "zh-TW": "大華二路",
+        "en": "Dahua 2nd Road",
+        "ja": "ドアホア2道路 ロード",
+        "ko": "다화2로"
+      },
+      "romanization": "Dahua 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "實踐路",
+      "labels": {
+        "zh-TW": "實踐路",
+        "en": "Shijian Road",
+        "ja": "シイジイェン道路 ロード",
+        "ko": "시쟈로"
+      },
+      "romanization": "Shijian Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "崇信街",
+      "labels": {
+        "zh-TW": "崇信街",
+        "en": "Chongxin Street",
+        "ja": "チオンシイン通り ストリート",
+        "ko": "초시길"
+      },
+      "romanization": "Chongxin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "崇孝街",
+      "labels": {
+        "zh-TW": "崇孝街",
+        "en": "Chongxiao Street",
+        "ja": "チオンシヤオ通り ストリート",
+        "ko": "초쇄길"
+      },
+      "romanization": "Chongxiao Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "崇廉街",
+      "labels": {
+        "zh-TW": "崇廉街",
+        "en": "Chonglian Street",
+        "ja": "チオンルイェン通り ストリート",
+        "ko": "초랴길"
+      },
+      "romanization": "Chonglian Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "崇智街",
+      "labels": {
+        "zh-TW": "崇智街",
+        "en": "Chongzhi Street",
+        "ja": "チオンジイ通り ストリート",
+        "ko": "초지길"
+      },
+      "romanization": "Chongzhi Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "崇禮街",
+      "labels": {
+        "zh-TW": "崇禮街",
+        "en": "Chongli Street",
+        "ja": "チオンルイ通り ストリート",
+        "ko": "초리길"
+      },
+      "romanization": "Chongli Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "崇義街",
+      "labels": {
+        "zh-TW": "崇義街",
+        "en": "Chongyi Street",
+        "ja": "チオンイイ通り ストリート",
+        "ko": "초이길"
+      },
+      "romanization": "Chongyi Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "工建北路",
+      "labels": {
+        "zh-TW": "工建北路",
+        "en": "Gongjian North Road",
+        "ja": "グオンジイェンブエイ道路 ロード",
+        "ko": "고쟈벼로"
+      },
+      "romanization": "Gongjian North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "工建南路",
+      "labels": {
+        "zh-TW": "工建南路",
+        "en": "Gongjian South Road",
+        "ja": "グオンジイェンヌアン道路 ロード",
+        "ko": "고쟈나로"
+      },
+      "romanization": "Gongjian South Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "工建西路",
+      "labels": {
+        "zh-TW": "工建西路",
+        "en": "Gongjian West Road",
+        "ja": "グオンジイェンシイ道路 ロード",
+        "ko": "고쟈시로"
+      },
+      "romanization": "Gongjian West Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "工建路",
+      "labels": {
+        "zh-TW": "工建路",
+        "en": "Gongjian Road",
+        "ja": "グオンジイェン道路 ロード",
+        "ko": "고쟈로"
+      },
+      "romanization": "Gongjian Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "工東街",
+      "labels": {
+        "zh-TW": "工東街",
+        "en": "Gong East Street",
+        "ja": "グオンドオン通り ストリート",
+        "ko": "고도길"
+      },
+      "romanization": "Gong East Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "明德一路",
+      "labels": {
+        "zh-TW": "明德一路",
+        "en": "Mingde 1st Road",
+        "ja": "ムインドエ1道路 ロード",
+        "ko": "미더1로"
+      },
+      "romanization": "Mingde 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "明德三路",
+      "labels": {
+        "zh-TW": "明德三路",
+        "en": "Mingde 3rd Road",
+        "ja": "ムインドエ3道路 ロード",
+        "ko": "미더3로"
+      },
+      "romanization": "Mingde 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "明德二路",
+      "labels": {
+        "zh-TW": "明德二路",
+        "en": "Mingde 2nd Road",
+        "ja": "ムインドエ2道路 ロード",
+        "ko": "미더2로"
+      },
+      "romanization": "Mingde 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "東新街",
+      "labels": {
+        "zh-TW": "東新街",
+        "en": "East Xin Street",
+        "ja": "ドオンシイン通り ストリート",
+        "ko": "도시길"
+      },
+      "romanization": "East Xin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "永富路",
+      "labels": {
+        "zh-TW": "永富路",
+        "en": "Yongfu Road",
+        "ja": "イオンフウ道路 ロード",
+        "ko": "오뿌로"
+      },
+      "romanization": "Yongfu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "泰和街",
+      "labels": {
+        "zh-TW": "泰和街",
+        "en": "Taihe Street",
+        "ja": "トアイホエ通り ストリート",
+        "ko": "턔허길"
+      },
+      "romanization": "Taihe Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "泰安路",
+      "labels": {
+        "zh-TW": "泰安路",
+        "en": "Taian Road",
+        "ja": "トアイアン道路 ロード",
+        "ko": "턔아로"
+      },
+      "romanization": "Taian Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "溪頭街",
+      "labels": {
+        "zh-TW": "溪頭街",
+        "en": "Xitou Street",
+        "ja": "シイトオウ通り ストリート",
+        "ko": "시투길"
+      },
+      "romanization": "Xitou Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "百一街",
+      "labels": {
+        "zh-TW": "百一街",
+        "en": "Bai 1st Street",
+        "ja": "ブアイ1通り ストリート",
+        "ko": "뱨1길"
+      },
+      "romanization": "Bai 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "百七街",
+      "labels": {
+        "zh-TW": "百七街",
+        "en": "Bai 7th Street",
+        "ja": "ブアイ7通り ストリート",
+        "ko": "뱨7길"
+      },
+      "romanization": "Bai 7th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "百三街",
+      "labels": {
+        "zh-TW": "百三街",
+        "en": "Bai 3rd Street",
+        "ja": "ブアイ3通り ストリート",
+        "ko": "뱨3길"
+      },
+      "romanization": "Bai 3rd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "百二街",
+      "labels": {
+        "zh-TW": "百二街",
+        "en": "Bai 2nd Street",
+        "ja": "ブアイ2通り ストリート",
+        "ko": "뱨2길"
+      },
+      "romanization": "Bai 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "百五街",
+      "labels": {
+        "zh-TW": "百五街",
+        "en": "Bai 5th Street",
+        "ja": "ブアイ5通り ストリート",
+        "ko": "뱨5길"
+      },
+      "romanization": "Bai 5th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "百六街",
+      "labels": {
+        "zh-TW": "百六街",
+        "en": "Bai 6th Street",
+        "ja": "ブアイ6通り ストリート",
+        "ko": "뱨6길"
+      },
+      "romanization": "Bai 6th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "福一街",
+      "labels": {
+        "zh-TW": "福一街",
+        "en": "Fu 1st Street",
+        "ja": "フウ1通り ストリート",
+        "ko": "뿌1길"
+      },
+      "romanization": "Fu 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "福三街",
+      "labels": {
+        "zh-TW": "福三街",
+        "en": "Fu 3rd Street",
+        "ja": "フウ3通り ストリート",
+        "ko": "뿌3길"
+      },
+      "romanization": "Fu 3rd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "福二街",
+      "labels": {
+        "zh-TW": "福二街",
+        "en": "Fu 2nd Street",
+        "ja": "フウ2通り ストリート",
+        "ko": "뿌2길"
+      },
+      "romanization": "Fu 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "福五街",
+      "labels": {
+        "zh-TW": "福五街",
+        "en": "Fu 5th Street",
+        "ja": "フウ5通り ストリート",
+        "ko": "뿌5길"
+      },
+      "romanization": "Fu 5th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "福六街",
+      "labels": {
+        "zh-TW": "福六街",
+        "en": "Fu 6th Street",
+        "ja": "フウ6通り ストリート",
+        "ko": "뿌6길"
+      },
+      "romanization": "Fu 6th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "綠葉街",
+      "labels": {
+        "zh-TW": "綠葉街",
+        "en": "Luxie Street",
+        "ja": "ルウシエ通り ストリート",
+        "ko": "루샤길"
+      },
+      "romanization": "Luxie Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "自強路",
+      "labels": {
+        "zh-TW": "自強路",
+        "en": "Ziqiang Road",
+        "ja": "ズイチヤン道路 ロード",
+        "ko": "지챠로"
+      },
+      "romanization": "Ziqiang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "自治北街",
+      "labels": {
+        "zh-TW": "自治北街",
+        "en": "Zizhi North Street",
+        "ja": "ズイジイブエイ通り ストリート",
+        "ko": "지지벼길"
+      },
+      "romanization": "Zizhi North Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "自治街",
+      "labels": {
+        "zh-TW": "自治街",
+        "en": "Zizhi Street",
+        "ja": "ズイジイ通り ストリート",
+        "ko": "지지길"
+      },
+      "romanization": "Zizhi Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "華新一路",
+      "labels": {
+        "zh-TW": "華新一路",
+        "en": "Huaxin 1st Road",
+        "ja": "ホアシイン1道路 ロード",
+        "ko": "화시1로"
+      },
+      "romanization": "Huaxin 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "華新二路",
+      "labels": {
+        "zh-TW": "華新二路",
+        "en": "Huaxin 2nd Road",
+        "ja": "ホアシイン2道路 ロード",
+        "ko": "화시2로"
+      },
+      "romanization": "Huaxin 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "褔一街",
+      "labels": {
+        "zh-TW": "褔一街",
+        "en": "Fu 1st Street",
+        "ja": "フウ1通り ストリート",
+        "ko": "뿌1길"
+      },
+      "romanization": "Fu 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "長安街",
+      "labels": {
+        "zh-TW": "長安街",
+        "en": "Changan Street",
+        "ja": "チアンアン通り ストリート",
+        "ko": "차아길"
+      },
+      "romanization": "Changan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "開元路",
+      "labels": {
+        "zh-TW": "開元路",
+        "en": "Kaiyuan Road",
+        "ja": "クアイイワン道路 ロード",
+        "ko": "컈워로"
+      },
+      "romanization": "Kaiyuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "麗景一街",
+      "labels": {
+        "zh-TW": "麗景一街",
+        "en": "Lijing 1st Street",
+        "ja": "ルイジイン1通り ストリート",
+        "ko": "리지1길"
+      },
+      "romanization": "Lijing 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "七堵區",
+      "canonical": "麗景二街",
+      "labels": {
+        "zh-TW": "麗景二街",
+        "en": "Lijing 2nd Street",
+        "ja": "ルイジイン2通り ストリート",
+        "ko": "리지2길"
+      },
+      "romanization": "Lijing 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中和路",
+      "labels": {
+        "zh-TW": "中和路",
+        "en": "Zhonghe Road",
+        "ja": "ジオンホエ道路 ロード",
+        "ko": "조허로"
+      },
+      "romanization": "Zhonghe Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中山一路",
+      "labels": {
+        "zh-TW": "中山一路",
+        "en": "Zhongshan 1st Road",
+        "ja": "ジオンシアン1道路 ロード",
+        "ko": "조사1로"
+      },
+      "romanization": "Zhongshan 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中山三路",
+      "labels": {
+        "zh-TW": "中山三路",
+        "en": "Zhongshan 3rd Road",
+        "ja": "ジオンシアン3道路 ロード",
+        "ko": "조사3로"
+      },
+      "romanization": "Zhongshan 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中山二路",
+      "labels": {
+        "zh-TW": "中山二路",
+        "en": "Zhongshan 2nd Road",
+        "ja": "ジオンシアン2道路 ロード",
+        "ko": "조사2로"
+      },
+      "romanization": "Zhongshan 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中山區文明路",
+      "labels": {
+        "zh-TW": "中山區文明路",
+        "en": "Zhongshanquwenming Road",
+        "ja": "ジオンシアンチウウエンムイン道路 ロード",
+        "ko": "조사추어미로"
+      },
+      "romanization": "Zhongshanquwenming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中山四路",
+      "labels": {
+        "zh-TW": "中山四路",
+        "en": "Zhongshan 4th Road",
+        "ja": "ジオンシアン4道路 ロード",
+        "ko": "조사4로"
+      },
+      "romanization": "Zhongshan 4th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中平街",
+      "labels": {
+        "zh-TW": "中平街",
+        "en": "Zhongping Street",
+        "ja": "ジオンプイン通り ストリート",
+        "ko": "조피길"
+      },
+      "romanization": "Zhongping Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "中華路",
+      "labels": {
+        "zh-TW": "中華路",
+        "en": "Zhonghua Road",
+        "ja": "ジオンホア道路 ロード",
+        "ko": "조화로"
+      },
+      "romanization": "Zhonghua Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "仁安街",
+      "labels": {
+        "zh-TW": "仁安街",
+        "en": "Renan Street",
+        "ja": "ルエンアン通り ストリート",
+        "ko": "러아길"
+      },
+      "romanization": "Renan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "仙洞街",
+      "labels": {
+        "zh-TW": "仙洞街",
+        "en": "Xiandong Street",
+        "ja": "シイェンドオン通り ストリート",
+        "ko": "샤도길"
+      },
+      "romanization": "Xiandong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "健民街",
+      "labels": {
+        "zh-TW": "健民街",
+        "en": "Jianmin Street",
+        "ja": "ジイェンムイン通り ストリート",
+        "ko": "쟈미길"
+      },
+      "romanization": "Jianmin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "光華路",
+      "labels": {
+        "zh-TW": "光華路",
+        "en": "Guanghua Road",
+        "ja": "グワンホア道路 ロード",
+        "ko": "궈화로"
+      },
+      "romanization": "Guanghua Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "協和街",
+      "labels": {
+        "zh-TW": "協和街",
+        "en": "Xiehe Street",
+        "ja": "シエホエ通り ストリート",
+        "ko": "샤허길"
+      },
+      "romanization": "Xiehe Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "太白街",
+      "labels": {
+        "zh-TW": "太白街",
+        "en": "Taibai Street",
+        "ja": "トアイブアイ通り ストリート",
+        "ko": "턔뱨길"
+      },
+      "romanization": "Taibai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "安一路",
+      "labels": {
+        "zh-TW": "安一路",
+        "en": "An 1st Road",
+        "ja": "アン1道路 ロード",
+        "ko": "아1로"
+      },
+      "romanization": "An 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "復旦路",
+      "labels": {
+        "zh-TW": "復旦路",
+        "en": "Fudan Road",
+        "ja": "フウドアン道路 ロード",
+        "ko": "뿌다로"
+      },
+      "romanization": "Fudan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "復興路",
+      "labels": {
+        "zh-TW": "復興路",
+        "en": "Fuxing Road",
+        "ja": "フウシイン道路 ロード",
+        "ko": "뿌시로"
+      },
+      "romanization": "Fuxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "德安路",
+      "labels": {
+        "zh-TW": "德安路",
+        "en": "Dean Road",
+        "ja": "ドエアン道路 ロード",
+        "ko": "더아로"
+      },
+      "romanization": "Dean Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "成功二路",
+      "labels": {
+        "zh-TW": "成功二路",
+        "en": "Chenggong 2nd Road",
+        "ja": "チングオン2道路 ロード",
+        "ko": "처고2로"
+      },
+      "romanization": "Chenggong 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "文化路",
+      "labels": {
+        "zh-TW": "文化路",
+        "en": "Wenhua Road",
+        "ja": "ウエンホア道路 ロード",
+        "ko": "어화로"
+      },
+      "romanization": "Wenhua Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "文明路",
+      "labels": {
+        "zh-TW": "文明路",
+        "en": "Wenming Road",
+        "ja": "ウエンムイン道路 ロード",
+        "ko": "어미로"
+      },
+      "romanization": "Wenming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "新民路",
+      "labels": {
+        "zh-TW": "新民路",
+        "en": "Xinmin Road",
+        "ja": "シインムイン道路 ロード",
+        "ko": "시미로"
+      },
+      "romanization": "Xinmin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "新生路",
+      "labels": {
+        "zh-TW": "新生路",
+        "en": "Xinsheng Road",
+        "ja": "シインシン道路 ロード",
+        "ko": "시서로"
+      },
+      "romanization": "Xinsheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "湖海路",
+      "labels": {
+        "zh-TW": "湖海路",
+        "en": "Huhai Road",
+        "ja": "ホウホアイ道路 ロード",
+        "ko": "후햬로"
+      },
+      "romanization": "Huhai Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "華興街",
+      "labels": {
+        "zh-TW": "華興街",
+        "en": "Huaxing Street",
+        "ja": "ホアシイン通り ストリート",
+        "ko": "화시길"
+      },
+      "romanization": "Huaxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "西定路",
+      "labels": {
+        "zh-TW": "西定路",
+        "en": "West Ding Road",
+        "ja": "シイドイン道路 ロード",
+        "ko": "시디로"
+      },
+      "romanization": "West Ding Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "通仁街",
+      "labels": {
+        "zh-TW": "通仁街",
+        "en": "Tongren Street",
+        "ja": "トオンルエン通り ストリート",
+        "ko": "토러길"
+      },
+      "romanization": "Tongren Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中山區",
+      "canonical": "通明街",
+      "labels": {
+        "zh-TW": "通明街",
+        "en": "Tongming Street",
+        "ja": "トオンムイン通り ストリート",
+        "ko": "토미길"
+      },
+      "romanization": "Tongming Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "中正路",
+      "labels": {
+        "zh-TW": "中正路",
+        "en": "Zhongzheng Road",
+        "ja": "ジオンジン道路 ロード",
+        "ko": "조저로"
+      },
+      "romanization": "Zhongzheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "中船路",
+      "labels": {
+        "zh-TW": "中船路",
+        "en": "Zhongchuan Road",
+        "ja": "ジオンチワン道路 ロード",
+        "ko": "조춰로"
+      },
+      "romanization": "Zhongchuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "信一路",
+      "labels": {
+        "zh-TW": "信一路",
+        "en": "Xin 1st Road",
+        "ja": "シイン1道路 ロード",
+        "ko": "시1로"
+      },
+      "romanization": "Xin 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "信七路",
+      "labels": {
+        "zh-TW": "信七路",
+        "en": "Xin 7th Road",
+        "ja": "シイン7道路 ロード",
+        "ko": "시7로"
+      },
+      "romanization": "Xin 7th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "信三路",
+      "labels": {
+        "zh-TW": "信三路",
+        "en": "Xin 3rd Road",
+        "ja": "シイン3道路 ロード",
+        "ko": "시3로"
+      },
+      "romanization": "Xin 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "信二路",
+      "labels": {
+        "zh-TW": "信二路",
+        "en": "Xin 2nd Road",
+        "ja": "シイン2道路 ロード",
+        "ko": "시2로"
+      },
+      "romanization": "Xin 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "信五路",
+      "labels": {
+        "zh-TW": "信五路",
+        "en": "Xin 5th Road",
+        "ja": "シイン5道路 ロード",
+        "ko": "시5로"
+      },
+      "romanization": "Xin 5th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "信六路",
+      "labels": {
+        "zh-TW": "信六路",
+        "en": "Xin 6th Road",
+        "ja": "シイン6道路 ロード",
+        "ko": "시6로"
+      },
+      "romanization": "Xin 6th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "信四路",
+      "labels": {
+        "zh-TW": "信四路",
+        "en": "Xin 4th Road",
+        "ja": "シイン4道路 ロード",
+        "ko": "시4로"
+      },
+      "romanization": "Xin 4th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "八斗街",
+      "labels": {
+        "zh-TW": "八斗街",
+        "en": "Badou Street",
+        "ja": "ブアドオウ通り ストリート",
+        "ko": "바두길"
+      },
+      "romanization": "Badou Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "北寧路",
+      "labels": {
+        "zh-TW": "北寧路",
+        "en": "North Zhu Road",
+        "ja": "ブエイジウ道路 ロード",
+        "ko": "벼주로"
+      },
+      "romanization": "North Zhu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "和一路",
+      "labels": {
+        "zh-TW": "和一路",
+        "en": "He 1st Road",
+        "ja": "ホエ1道路 ロード",
+        "ko": "허1로"
+      },
+      "romanization": "He 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "和二路",
+      "labels": {
+        "zh-TW": "和二路",
+        "en": "He 2nd Road",
+        "ja": "ホエ2道路 ロード",
+        "ko": "허2로"
+      },
+      "romanization": "He 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "和平街",
+      "labels": {
+        "zh-TW": "和平街",
+        "en": "Heping Street",
+        "ja": "ホエプイン通り ストリート",
+        "ko": "허피길"
+      },
+      "romanization": "Heping Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "和豐街",
+      "labels": {
+        "zh-TW": "和豐街",
+        "en": "Hefeng Street",
+        "ja": "ホエフン通り ストリート",
+        "ko": "허뻐길"
+      },
+      "romanization": "Hefeng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "平一路",
+      "labels": {
+        "zh-TW": "平一路",
+        "en": "Ping 1st Road",
+        "ja": "プイン1道路 ロード",
+        "ko": "피1로"
+      },
+      "romanization": "Ping 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "平三路",
+      "labels": {
+        "zh-TW": "平三路",
+        "en": "Ping 3rd Road",
+        "ja": "プイン3道路 ロード",
+        "ko": "피3로"
+      },
+      "romanization": "Ping 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "平二路",
+      "labels": {
+        "zh-TW": "平二路",
+        "en": "Ping 2nd Road",
+        "ja": "プイン2道路 ロード",
+        "ko": "피2로"
+      },
+      "romanization": "Ping 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "彭佳嶼",
+      "labels": {
+        "zh-TW": "彭佳嶼",
+        "en": "Pengjiayu",
+        "ja": "プンジアイウ",
+        "ko": "퍼쟈우"
+      },
+      "romanization": "Pengjiayu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "新豐街",
+      "labels": {
+        "zh-TW": "新豐街",
+        "en": "Xinfeng Street",
+        "ja": "シインフン通り ストリート",
+        "ko": "시뻐길"
+      },
+      "romanization": "Xinfeng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "東海街",
+      "labels": {
+        "zh-TW": "東海街",
+        "en": "East Hai Street",
+        "ja": "ドオンホアイ通り ストリート",
+        "ko": "도햬길"
+      },
+      "romanization": "East Hai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "正榮街",
+      "labels": {
+        "zh-TW": "正榮街",
+        "en": "Zhengrong Street",
+        "ja": "ジンルオン通り ストリート",
+        "ko": "저로길"
+      },
+      "romanization": "Zhengrong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "正濱路",
+      "labels": {
+        "zh-TW": "正濱路",
+        "en": "Zhengbin Road",
+        "ja": "ジンブイン道路 ロード",
+        "ko": "저비로"
+      },
+      "romanization": "Zhengbin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "正義路",
+      "labels": {
+        "zh-TW": "正義路",
+        "en": "Zhengyi Road",
+        "ja": "ジンイイ道路 ロード",
+        "ko": "저이로"
+      },
+      "romanization": "Zhengyi Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "正豐街",
+      "labels": {
+        "zh-TW": "正豐街",
+        "en": "Zhengfeng Street",
+        "ja": "ジンフン通り ストリート",
+        "ko": "저뻐길"
+      },
+      "romanization": "Zhengfeng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "武昌街",
+      "labels": {
+        "zh-TW": "武昌街",
+        "en": "Wuchang Street",
+        "ja": "ウウチアン通り ストリート",
+        "ko": "우차길"
+      },
+      "romanization": "Wuchang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "漁港一街",
+      "labels": {
+        "zh-TW": "漁港一街",
+        "en": "Yugang 1st Street",
+        "ja": "イウグアン1通り ストリート",
+        "ko": "우가1길"
+      },
+      "romanization": "Yugang 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "漁港三街",
+      "labels": {
+        "zh-TW": "漁港三街",
+        "en": "Yugang 3rd Street",
+        "ja": "イウグアン3通り ストリート",
+        "ko": "우가3길"
+      },
+      "romanization": "Yugang 3rd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "漁港二街",
+      "labels": {
+        "zh-TW": "漁港二街",
+        "en": "Yugang 2nd Street",
+        "ja": "イウグアン2通り ストリート",
+        "ko": "우가2길"
+      },
+      "romanization": "Yugang 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "環港街",
+      "labels": {
+        "zh-TW": "環港街",
+        "en": "Huangang Street",
+        "ja": "ホワングアン通り ストリート",
+        "ko": "훠가길"
+      },
+      "romanization": "Huangang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "祥豐街",
+      "labels": {
+        "zh-TW": "祥豐街",
+        "en": "Xiangfeng Street",
+        "ja": "シヤンフン通り ストリート",
+        "ko": "샤뻐길"
+      },
+      "romanization": "Xiangfeng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "立德路",
+      "labels": {
+        "zh-TW": "立德路",
+        "en": "Lide Road",
+        "ja": "ルイドエ道路 ロード",
+        "ko": "리더로"
+      },
+      "romanization": "Lide Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "義一路",
+      "labels": {
+        "zh-TW": "義一路",
+        "en": "Yi 1st Road",
+        "ja": "イイ1道路 ロード",
+        "ko": "이1로"
+      },
+      "romanization": "Yi 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "義三路",
+      "labels": {
+        "zh-TW": "義三路",
+        "en": "Yi 3rd Road",
+        "ja": "イイ3道路 ロード",
+        "ko": "이3로"
+      },
+      "romanization": "Yi 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "義二路",
+      "labels": {
+        "zh-TW": "義二路",
+        "en": "Yi 2nd Road",
+        "ja": "イイ2道路 ロード",
+        "ko": "이2로"
+      },
+      "romanization": "Yi 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "觀海街",
+      "labels": {
+        "zh-TW": "觀海街",
+        "en": "Guanhai Street",
+        "ja": "グワンホアイ通り ストリート",
+        "ko": "궈햬길"
+      },
+      "romanization": "Guanhai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "調和街",
+      "labels": {
+        "zh-TW": "調和街",
+        "en": "Diaohe Street",
+        "ja": "ドヤオホエ通り ストリート",
+        "ko": "돼허길"
+      },
+      "romanization": "Diaohe Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "中正區",
+      "canonical": "豐稔街",
+      "labels": {
+        "zh-TW": "豐稔街",
+        "en": "Fengren Street",
+        "ja": "フンルエン通り ストリート",
+        "ko": "뻐러길"
+      },
+      "romanization": "Fengren Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "仁一路",
+      "labels": {
+        "zh-TW": "仁一路",
+        "en": "Ren 1st Road",
+        "ja": "ルエン1道路 ロード",
+        "ko": "러1로"
+      },
+      "romanization": "Ren 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "仁三路",
+      "labels": {
+        "zh-TW": "仁三路",
+        "en": "Ren 3rd Road",
+        "ja": "ルエン3道路 ロード",
+        "ko": "러3로"
+      },
+      "romanization": "Ren 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "仁二路",
+      "labels": {
+        "zh-TW": "仁二路",
+        "en": "Ren 2nd Road",
+        "ja": "ルエン2道路 ロード",
+        "ko": "러2로"
+      },
+      "romanization": "Ren 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "仁五路",
+      "labels": {
+        "zh-TW": "仁五路",
+        "en": "Ren 5th Road",
+        "ja": "ルエン5道路 ロード",
+        "ko": "러5로"
+      },
+      "romanization": "Ren 5th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "仁四路",
+      "labels": {
+        "zh-TW": "仁四路",
+        "en": "Ren 4th Road",
+        "ja": "ルエン4道路 ロード",
+        "ko": "러4로"
+      },
+      "romanization": "Ren 4th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "光一路",
+      "labels": {
+        "zh-TW": "光一路",
+        "en": "Guang 1st Road",
+        "ja": "グワン1道路 ロード",
+        "ko": "궈1로"
+      },
+      "romanization": "Guang 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "光二路",
+      "labels": {
+        "zh-TW": "光二路",
+        "en": "Guang 2nd Road",
+        "ja": "グワン2道路 ロード",
+        "ko": "궈2로"
+      },
+      "romanization": "Guang 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "公園街",
+      "labels": {
+        "zh-TW": "公園街",
+        "en": "Gongyuan Street",
+        "ja": "グオンイワン通り ストリート",
+        "ko": "고워길"
+      },
+      "romanization": "Gongyuan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "劉銘傳路",
+      "labels": {
+        "zh-TW": "劉銘傳路",
+        "en": "Liumingchuan Road",
+        "ja": "ルウムインチワン道路 ロード",
+        "ko": "루미춰로"
+      },
+      "romanization": "Liumingchuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "南新街",
+      "labels": {
+        "zh-TW": "南新街",
+        "en": "South Xin Street",
+        "ja": "ヌアンシイン通り ストリート",
+        "ko": "나시길"
+      },
+      "romanization": "South Xin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "南榮路",
+      "labels": {
+        "zh-TW": "南榮路",
+        "en": "South Rong Road",
+        "ja": "ヌアンルオン道路 ロード",
+        "ko": "나로로"
+      },
+      "romanization": "South Rong Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "孝一路",
+      "labels": {
+        "zh-TW": "孝一路",
+        "en": "Xiao 1st Road",
+        "ja": "シヤオ1道路 ロード",
+        "ko": "쇄1로"
+      },
+      "romanization": "Xiao 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "孝三路",
+      "labels": {
+        "zh-TW": "孝三路",
+        "en": "Xiao 3rd Road",
+        "ja": "シヤオ3道路 ロード",
+        "ko": "쇄3로"
+      },
+      "romanization": "Xiao 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "孝二路",
+      "labels": {
+        "zh-TW": "孝二路",
+        "en": "Xiao 2nd Road",
+        "ja": "シヤオ2道路 ロード",
+        "ko": "쇄2로"
+      },
+      "romanization": "Xiao 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "孝四路",
+      "labels": {
+        "zh-TW": "孝四路",
+        "en": "Xiao 4th Road",
+        "ja": "シヤオ4道路 ロード",
+        "ko": "쇄4로"
+      },
+      "romanization": "Xiao 4th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "崇安街",
+      "labels": {
+        "zh-TW": "崇安街",
+        "en": "Chongan Street",
+        "ja": "チオンアン通り ストリート",
+        "ko": "초아길"
+      },
+      "romanization": "Chongan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "延平街",
+      "labels": {
+        "zh-TW": "延平街",
+        "en": "Yanping Street",
+        "ja": "イアンプイン通り ストリート",
+        "ko": "아피길"
+      },
+      "romanization": "Yanping Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "復興街",
+      "labels": {
+        "zh-TW": "復興街",
+        "en": "Fuxing Street",
+        "ja": "フウシイン通り ストリート",
+        "ko": "뿌시길"
+      },
+      "romanization": "Fuxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "忠一路",
+      "labels": {
+        "zh-TW": "忠一路",
+        "en": "Zhong 1st Road",
+        "ja": "ジオン1道路 ロード",
+        "ko": "조1로"
+      },
+      "romanization": "Zhong 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "忠三路",
+      "labels": {
+        "zh-TW": "忠三路",
+        "en": "Zhong 3rd Road",
+        "ja": "ジオン3道路 ロード",
+        "ko": "조3로"
+      },
+      "romanization": "Zhong 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "忠二路",
+      "labels": {
+        "zh-TW": "忠二路",
+        "en": "Zhong 2nd Road",
+        "ja": "ジオン2道路 ロード",
+        "ko": "조2로"
+      },
+      "romanization": "Zhong 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "忠四路",
+      "labels": {
+        "zh-TW": "忠四路",
+        "en": "Zhong 4th Road",
+        "ja": "ジオン4道路 ロード",
+        "ko": "조4로"
+      },
+      "romanization": "Zhong 4th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛一路",
+      "labels": {
+        "zh-TW": "愛一路",
+        "en": "Ai 1st Road",
+        "ja": "イ1道路 ロード",
+        "ko": "이1로"
+      },
+      "romanization": "Ai 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛七路",
+      "labels": {
+        "zh-TW": "愛七路",
+        "en": "Ai 7th Road",
+        "ja": "イ7道路 ロード",
+        "ko": "이7로"
+      },
+      "romanization": "Ai 7th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛三路",
+      "labels": {
+        "zh-TW": "愛三路",
+        "en": "Ai 3rd Road",
+        "ja": "イ3道路 ロード",
+        "ko": "이3로"
+      },
+      "romanization": "Ai 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛九路",
+      "labels": {
+        "zh-TW": "愛九路",
+        "en": "Ai 9th Road",
+        "ja": "イ9道路 ロード",
+        "ko": "이9로"
+      },
+      "romanization": "Ai 9th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛二路",
+      "labels": {
+        "zh-TW": "愛二路",
+        "en": "Ai 2nd Road",
+        "ja": "イ2道路 ロード",
+        "ko": "이2로"
+      },
+      "romanization": "Ai 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛五路",
+      "labels": {
+        "zh-TW": "愛五路",
+        "en": "Ai 5th Road",
+        "ja": "イ5道路 ロード",
+        "ko": "이5로"
+      },
+      "romanization": "Ai 5th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛六路",
+      "labels": {
+        "zh-TW": "愛六路",
+        "en": "Ai 6th Road",
+        "ja": "イ6道路 ロード",
+        "ko": "이6로"
+      },
+      "romanization": "Ai 6th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "愛四路",
+      "labels": {
+        "zh-TW": "愛四路",
+        "en": "Ai 4th Road",
+        "ja": "イ4道路 ロード",
+        "ko": "이4로"
+      },
+      "romanization": "Ai 4th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "成功一路",
+      "labels": {
+        "zh-TW": "成功一路",
+        "en": "Chenggong 1st Road",
+        "ja": "チングオン1道路 ロード",
+        "ko": "처고1로"
+      },
+      "romanization": "Chenggong 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "曲水街",
+      "labels": {
+        "zh-TW": "曲水街",
+        "en": "Qushui Street",
+        "ja": "チウスイ通り ストリート",
+        "ko": "추수길"
+      },
+      "romanization": "Qushui Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "港西街",
+      "labels": {
+        "zh-TW": "港西街",
+        "en": "Gang West Street",
+        "ja": "グアンシイ通り ストリート",
+        "ko": "가시길"
+      },
+      "romanization": "Gang West Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "獅球路",
+      "labels": {
+        "zh-TW": "獅球路",
+        "en": "Shiqiu Road",
+        "ja": "シイチウ道路 ロード",
+        "ko": "시추로"
+      },
+      "romanization": "Shiqiu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "精一路",
+      "labels": {
+        "zh-TW": "精一路",
+        "en": "Jing 1st Road",
+        "ja": "ジイン1道路 ロード",
+        "ko": "지1로"
+      },
+      "romanization": "Jing 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "自來街",
+      "labels": {
+        "zh-TW": "自來街",
+        "en": "Zilai Street",
+        "ja": "ズイルアイ通り ストリート",
+        "ko": "지럐길"
+      },
+      "romanization": "Zilai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "華一街",
+      "labels": {
+        "zh-TW": "華一街",
+        "en": "Hua 1st Street",
+        "ja": "ホア1通り ストリート",
+        "ko": "화1길"
+      },
+      "romanization": "Hua 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "華三街",
+      "labels": {
+        "zh-TW": "華三街",
+        "en": "Hua 3rd Street",
+        "ja": "ホア3通り ストリート",
+        "ko": "화3길"
+      },
+      "romanization": "Hua 3rd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "華二街",
+      "labels": {
+        "zh-TW": "華二街",
+        "en": "Hua 2nd Street",
+        "ja": "ホア2通り ストリート",
+        "ko": "화2길"
+      },
+      "romanization": "Hua 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "華五街",
+      "labels": {
+        "zh-TW": "華五街",
+        "en": "Hua 5th Street",
+        "ja": "ホア5通り ストリート",
+        "ko": "화5길"
+      },
+      "romanization": "Hua 5th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "華六街",
+      "labels": {
+        "zh-TW": "華六街",
+        "en": "Hua 6th Street",
+        "ja": "ホア6通り ストリート",
+        "ko": "화6길"
+      },
+      "romanization": "Hua 6th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "華四街",
+      "labels": {
+        "zh-TW": "華四街",
+        "en": "Hua 4th Street",
+        "ja": "ホア4通り ストリート",
+        "ko": "화4길"
+      },
+      "romanization": "Hua 4th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "鐵道街",
+      "labels": {
+        "zh-TW": "鐵道街",
+        "en": "Tiedao Street",
+        "ja": "トエドアオ通り ストリート",
+        "ko": "탸도길"
+      },
+      "romanization": "Tiedao Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "仁愛區",
+      "canonical": "龍安街",
+      "labels": {
+        "zh-TW": "龍安街",
+        "en": "Longan Street",
+        "ja": "ルオンアン通り ストリート",
+        "ko": "로아길"
+      },
+      "romanization": "Longan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "中興路",
+      "labels": {
+        "zh-TW": "中興路",
+        "en": "Zhongxing Road",
+        "ja": "ジオンシイン道路 ロード",
+        "ko": "조시로"
+      },
+      "romanization": "Zhongxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "仁一路",
+      "labels": {
+        "zh-TW": "仁一路",
+        "en": "Ren 1st Road",
+        "ja": "ルエン1道路 ロード",
+        "ko": "러1로"
+      },
+      "romanization": "Ren 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "信一路",
+      "labels": {
+        "zh-TW": "信一路",
+        "en": "Xin 1st Road",
+        "ja": "シイン1道路 ロード",
+        "ko": "시1로"
+      },
+      "romanization": "Xin 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "信二路",
+      "labels": {
+        "zh-TW": "信二路",
+        "en": "Xin 2nd Road",
+        "ja": "シイン2道路 ロード",
+        "ko": "시2로"
+      },
+      "romanization": "Xin 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "六和街",
+      "labels": {
+        "zh-TW": "六和街",
+        "en": "Liuhe Street",
+        "ja": "ルウホエ通り ストリート",
+        "ko": "루허길"
+      },
+      "romanization": "Liuhe Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "培德路",
+      "labels": {
+        "zh-TW": "培德路",
+        "en": "Peide Road",
+        "ja": "プエイドエ道路 ロード",
+        "ko": "펴더로"
+      },
+      "romanization": "Peide Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "壽山路",
+      "labels": {
+        "zh-TW": "壽山路",
+        "en": "Shoushan Road",
+        "ja": "シオウシアン道路 ロード",
+        "ko": "수사로"
+      },
+      "romanization": "Shoushan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "孝東路",
+      "labels": {
+        "zh-TW": "孝東路",
+        "en": "Xiao East Road",
+        "ja": "シヤオドオン道路 ロード",
+        "ko": "쇄도로"
+      },
+      "romanization": "Xiao East Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "崇法街",
+      "labels": {
+        "zh-TW": "崇法街",
+        "en": "Chongfa Street",
+        "ja": "チオンフア通り ストリート",
+        "ko": "초빠길"
+      },
+      "romanization": "Chongfa Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "教孝街",
+      "labels": {
+        "zh-TW": "教孝街",
+        "en": "Jiaoxiao Street",
+        "ja": "ジヤオシヤオ通り ストリート",
+        "ko": "좨쇄길"
+      },
+      "romanization": "Jiaoxiao Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "教忠街",
+      "labels": {
+        "zh-TW": "教忠街",
+        "en": "Jiaozhong Street",
+        "ja": "ジヤオジオン通り ストリート",
+        "ko": "좨조길"
+      },
+      "romanization": "Jiaozhong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "月眉路",
+      "labels": {
+        "zh-TW": "月眉路",
+        "en": "Yuemei Road",
+        "ja": "イエムエイ道路 ロード",
+        "ko": "우며로"
+      },
+      "romanization": "Yuemei Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "東信路",
+      "labels": {
+        "zh-TW": "東信路",
+        "en": "East Xin Road",
+        "ja": "ドオンシイン道路 ロード",
+        "ko": "도시로"
+      },
+      "romanization": "East Xin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "東光路",
+      "labels": {
+        "zh-TW": "東光路",
+        "en": "East Guang Road",
+        "ja": "ドオングワン道路 ロード",
+        "ko": "도궈로"
+      },
+      "romanization": "East Guang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "東峰街",
+      "labels": {
+        "zh-TW": "東峰街",
+        "en": "East Feng Street",
+        "ja": "ドオンフン通り ストリート",
+        "ko": "도뻐길"
+      },
+      "romanization": "East Feng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "東明路",
+      "labels": {
+        "zh-TW": "東明路",
+        "en": "East Ming Road",
+        "ja": "ドオンムイン道路 ロード",
+        "ko": "도미로"
+      },
+      "romanization": "East Ming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "東美一街",
+      "labels": {
+        "zh-TW": "東美一街",
+        "en": "East Mei 1st Street",
+        "ja": "ドオンムエイ1通り ストリート",
+        "ko": "도며1길"
+      },
+      "romanization": "East Mei 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "東美二街",
+      "labels": {
+        "zh-TW": "東美二街",
+        "en": "East Mei 2nd Street",
+        "ja": "ドオンムエイ2通り ストリート",
+        "ko": "도며2길"
+      },
+      "romanization": "East Mei 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "槓子寮路",
+      "labels": {
+        "zh-TW": "槓子寮路",
+        "en": "Gangziliao Road",
+        "ja": "グアンズイルヤオ道路 ロード",
+        "ko": "가지뢔로"
+      },
+      "romanization": "Gangziliao Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "正信路",
+      "labels": {
+        "zh-TW": "正信路",
+        "en": "Zhengxin Road",
+        "ja": "ジンシイン道路 ロード",
+        "ko": "저시로"
+      },
+      "romanization": "Zhengxin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "深溪路",
+      "labels": {
+        "zh-TW": "深溪路",
+        "en": "Shenxi Road",
+        "ja": "シエンシイ道路 ロード",
+        "ko": "서시로"
+      },
+      "romanization": "Shenxi Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "深澳坑路",
+      "labels": {
+        "zh-TW": "深澳坑路",
+        "en": "Shenaokeng Road",
+        "ja": "シエンオクン道路 ロード",
+        "ko": "서오커로"
+      },
+      "romanization": "Shenaokeng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "深美街",
+      "labels": {
+        "zh-TW": "深美街",
+        "en": "Shenmei Street",
+        "ja": "シエンムエイ通り ストリート",
+        "ko": "서며길"
+      },
+      "romanization": "Shenmei Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "福民街",
+      "labels": {
+        "zh-TW": "福民街",
+        "en": "Fumin Street",
+        "ja": "フウムイン通り ストリート",
+        "ko": "뿌미길"
+      },
+      "romanization": "Fumin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "義七路",
+      "labels": {
+        "zh-TW": "義七路",
+        "en": "Yi 7th Road",
+        "ja": "イイ7道路 ロード",
+        "ko": "이7로"
+      },
+      "romanization": "Yi 7th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "義三路",
+      "labels": {
+        "zh-TW": "義三路",
+        "en": "Yi 3rd Road",
+        "ja": "イイ3道路 ロード",
+        "ko": "이3로"
+      },
+      "romanization": "Yi 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "義九路",
+      "labels": {
+        "zh-TW": "義九路",
+        "en": "Yi 9th Road",
+        "ja": "イイ9道路 ロード",
+        "ko": "이9로"
+      },
+      "romanization": "Yi 9th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "義五路",
+      "labels": {
+        "zh-TW": "義五路",
+        "en": "Yi 5th Road",
+        "ja": "イイ5道路 ロード",
+        "ko": "이5로"
+      },
+      "romanization": "Yi 5th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "義六路",
+      "labels": {
+        "zh-TW": "義六路",
+        "en": "Yi 6th Road",
+        "ja": "イイ6道路 ロード",
+        "ko": "이6로"
+      },
+      "romanization": "Yi 6th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "義四路",
+      "labels": {
+        "zh-TW": "義四路",
+        "en": "Yi 4th Road",
+        "ja": "イイ4道路 ロード",
+        "ko": "이4로"
+      },
+      "romanization": "Yi 4th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "花源一街",
+      "labels": {
+        "zh-TW": "花源一街",
+        "en": "Huayuan 1st Street",
+        "ja": "ホアイワン1通り ストリート",
+        "ko": "화워1길"
+      },
+      "romanization": "Huayuan 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "花源七街",
+      "labels": {
+        "zh-TW": "花源七街",
+        "en": "Huayuan 7th Street",
+        "ja": "ホアイワン7通り ストリート",
+        "ko": "화워7길"
+      },
+      "romanization": "Huayuan 7th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "花源三街",
+      "labels": {
+        "zh-TW": "花源三街",
+        "en": "Huayuan 3rd Street",
+        "ja": "ホアイワン3通り ストリート",
+        "ko": "화워3길"
+      },
+      "romanization": "Huayuan 3rd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "花源九街",
+      "labels": {
+        "zh-TW": "花源九街",
+        "en": "Huayuan 9th Street",
+        "ja": "ホアイワン9通り ストリート",
+        "ko": "화워9길"
+      },
+      "romanization": "Huayuan 9th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "信義區",
+      "canonical": "花源五街",
+      "labels": {
+        "zh-TW": "花源五街",
+        "en": "Huayuan 5th Street",
+        "ja": "ホアイワン5通り ストリート",
+        "ko": "화워5길"
+      },
+      "romanization": "Huayuan 5th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "八德路",
+      "labels": {
+        "zh-TW": "八德路",
+        "en": "Bade Road",
+        "ja": "ブアドエ道路 ロード",
+        "ko": "바더로"
+      },
+      "romanization": "Bade Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "基金一路",
+      "labels": {
+        "zh-TW": "基金一路",
+        "en": "Jijin 1st Road",
+        "ja": "ジイジイン1道路 ロード",
+        "ko": "지지1로"
+      },
+      "romanization": "Jijin 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "基金三路",
+      "labels": {
+        "zh-TW": "基金三路",
+        "en": "Jijin 3rd Road",
+        "ja": "ジイジイン3道路 ロード",
+        "ko": "지지3로"
+      },
+      "romanization": "Jijin 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "基金二路",
+      "labels": {
+        "zh-TW": "基金二路",
+        "en": "Jijin 2nd Road",
+        "ja": "ジイジイン2道路 ロード",
+        "ko": "지지2로"
+      },
+      "romanization": "Jijin 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "安一路",
+      "labels": {
+        "zh-TW": "安一路",
+        "en": "An 1st Road",
+        "ja": "アン1道路 ロード",
+        "ko": "아1로"
+      },
+      "romanization": "An 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "安和一街",
+      "labels": {
+        "zh-TW": "安和一街",
+        "en": "Anhe 1st Street",
+        "ja": "アンホエ1通り ストリート",
+        "ko": "아허1길"
+      },
+      "romanization": "Anhe 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "安和二街",
+      "labels": {
+        "zh-TW": "安和二街",
+        "en": "Anhe 2nd Street",
+        "ja": "アンホエ2通り ストリート",
+        "ko": "아허2길"
+      },
+      "romanization": "Anhe 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "安樂路",
+      "labels": {
+        "zh-TW": "安樂路",
+        "en": "Anle Road",
+        "ja": "アンルエ道路 ロード",
+        "ko": "아러로"
+      },
+      "romanization": "Anle Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "定國街",
+      "labels": {
+        "zh-TW": "定國街",
+        "en": "Dingguo Street",
+        "ja": "ドイングオ通り ストリート",
+        "ko": "디궈길"
+      },
+      "romanization": "Dingguo Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "崇德路",
+      "labels": {
+        "zh-TW": "崇德路",
+        "en": "Chongde Road",
+        "ja": "チオンドエ道路 ロード",
+        "ko": "초더로"
+      },
+      "romanization": "Chongde Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "新西街",
+      "labels": {
+        "zh-TW": "新西街",
+        "en": "Xin West Street",
+        "ja": "シインシイ通り ストリート",
+        "ko": "시시길"
+      },
+      "romanization": "Xin West Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "樂一路",
+      "labels": {
+        "zh-TW": "樂一路",
+        "en": "Le 1st Road",
+        "ja": "ルエ1道路 ロード",
+        "ko": "러1로"
+      },
+      "romanization": "Le 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "樂利三街",
+      "labels": {
+        "zh-TW": "樂利三街",
+        "en": "Leli 3rd Street",
+        "ja": "ルエルイ3通り ストリート",
+        "ko": "러리3길"
+      },
+      "romanization": "Leli 3rd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "樂利二街",
+      "labels": {
+        "zh-TW": "樂利二街",
+        "en": "Leli 2nd Street",
+        "ja": "ルエルイ2通り ストリート",
+        "ko": "러리2길"
+      },
+      "romanization": "Leli 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "武崙街",
+      "labels": {
+        "zh-TW": "武崙街",
+        "en": "Wulun Street",
+        "ja": "ウウルウン通り ストリート",
+        "ko": "우루길"
+      },
+      "romanization": "Wulun Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "武嶺街",
+      "labels": {
+        "zh-TW": "武嶺街",
+        "en": "Wuling Street",
+        "ja": "ウウルイン通り ストリート",
+        "ko": "우리길"
+      },
+      "romanization": "Wuling Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "武聖街",
+      "labels": {
+        "zh-TW": "武聖街",
+        "en": "Wusheng Street",
+        "ja": "ウウシン通り ストリート",
+        "ko": "우서길"
+      },
+      "romanization": "Wusheng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "武訓街",
+      "labels": {
+        "zh-TW": "武訓街",
+        "en": "Wuxun Street",
+        "ja": "ウウシウン通り ストリート",
+        "ko": "우수길"
+      },
+      "romanization": "Wuxun Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "武隆街",
+      "labels": {
+        "zh-TW": "武隆街",
+        "en": "Wulong Street",
+        "ja": "ウウルオン通り ストリート",
+        "ko": "우로길"
+      },
+      "romanization": "Wulong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "湖海路",
+      "labels": {
+        "zh-TW": "湖海路",
+        "en": "Huhai Road",
+        "ja": "ホウホアイ道路 ロード",
+        "ko": "후햬로"
+      },
+      "romanization": "Huhai Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "安樂區",
+      "canonical": "麥金路",
+      "labels": {
+        "zh-TW": "麥金路",
+        "en": "Maijin Road",
+        "ja": "ムアイジイン道路 ロード",
+        "ko": "먜지로"
+      },
+      "romanization": "Maijin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "八堵路",
+      "labels": {
+        "zh-TW": "八堵路",
+        "en": "Badu Road",
+        "ja": "ブアドウ道路 ロード",
+        "ko": "바두로"
+      },
+      "romanization": "Badu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "國安路",
+      "labels": {
+        "zh-TW": "國安路",
+        "en": "Guoan Road",
+        "ja": "グオアン道路 ロード",
+        "ko": "궈아로"
+      },
+      "romanization": "Guoan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "寧靜街",
+      "labels": {
+        "zh-TW": "寧靜街",
+        "en": "Zhujing Street",
+        "ja": "ジウジイン通り ストリート",
+        "ko": "주지길"
+      },
+      "romanization": "Zhujing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "尚仁街",
+      "labels": {
+        "zh-TW": "尚仁街",
+        "en": "Shangren Street",
+        "ja": "シアンルエン通り ストリート",
+        "ko": "사러길"
+      },
+      "romanization": "Shangren Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "暖中路",
+      "labels": {
+        "zh-TW": "暖中路",
+        "en": "Nuanzhong Road",
+        "ja": "ヌワンジオン道路 ロード",
+        "ko": "눠조로"
+      },
+      "romanization": "Nuanzhong Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "暖暖街",
+      "labels": {
+        "zh-TW": "暖暖街",
+        "en": "Nuannuan Street",
+        "ja": "ヌワンヌワン通り ストリート",
+        "ko": "눠눠길"
+      },
+      "romanization": "Nuannuan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "暖碇路",
+      "labels": {
+        "zh-TW": "暖碇路",
+        "en": "Nuanding Road",
+        "ja": "ヌワンドイン道路 ロード",
+        "ko": "눠디로"
+      },
+      "romanization": "Nuanding Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "東勢街",
+      "labels": {
+        "zh-TW": "東勢街",
+        "en": "East Shi Street",
+        "ja": "ドオンシイ通り ストリート",
+        "ko": "도시길"
+      },
+      "romanization": "East Shi Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "東碇路",
+      "labels": {
+        "zh-TW": "東碇路",
+        "en": "East Ding Road",
+        "ja": "ドオンドイン道路 ロード",
+        "ko": "도디로"
+      },
+      "romanization": "East Ding Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "水源路",
+      "labels": {
+        "zh-TW": "水源路",
+        "en": "Shuiyuan Road",
+        "ja": "スイイワン道路 ロード",
+        "ko": "수워로"
+      },
+      "romanization": "Shuiyuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "源遠路",
+      "labels": {
+        "zh-TW": "源遠路",
+        "en": "Yuanyuan Road",
+        "ja": "イワンイワン道路 ロード",
+        "ko": "워워로"
+      },
+      "romanization": "Yuanyuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "碇內街",
+      "labels": {
+        "zh-TW": "碇內街",
+        "en": "Dingnei Street",
+        "ja": "ドインヌエイ通り ストリート",
+        "ko": "디녀길"
+      },
+      "romanization": "Dingnei Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "興隆街",
+      "labels": {
+        "zh-TW": "興隆街",
+        "en": "Xinglong Street",
+        "ja": "シインルオン通り ストリート",
+        "ko": "시로길"
+      },
+      "romanization": "Xinglong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "過港路",
+      "labels": {
+        "zh-TW": "過港路",
+        "en": "Guogang Road",
+        "ja": "グオグアン道路 ロード",
+        "ko": "궈가로"
+      },
+      "romanization": "Guogang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "金山街",
+      "labels": {
+        "zh-TW": "金山街",
+        "en": "Jinshan Street",
+        "ja": "ジインシアン通り ストリート",
+        "ko": "지사길"
+      },
+      "romanization": "Jinshan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "基隆市",
+      "district": "暖暖區",
+      "canonical": "金華街",
+      "labels": {
+        "zh-TW": "金華街",
+        "en": "Jinhua Street",
+        "ja": "ジインホア通り ストリート",
+        "ko": "지화길"
+      },
+      "romanization": "Jinhua Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    }
+  ]
+}

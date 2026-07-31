@@ -13,12 +13,26 @@ def read(path: str) -> str:
 
 def test_road_display_pipeline_is_versioned_truthful_and_preserves_canonical_values() -> None:
     roads = read("frontend_next/lib/road-labels.ts")
+    phonetics = read("frontend_next/lib/road-phonetics.ts")
     page = read("frontend_next/app/page.tsx")
-    assert 'ROAD_LABEL_PIPELINE_VERSION = "road-display-v1"' in roads
-    assert "Official road name (" in roads
+    assert 'ROAD_LABEL_PIPELINE_VERSION = "road-display-v2"' in roads
+    assert "offline deterministic transliteration" in roads
+    assert "Official road name (" not in roads
+    assert "ROAD_PHONETICS" in phonetics
+    assert "ROAD_PHONETICS" in roads
     assert "hash" not in roads.lower()
     assert 'value={item}' in page
     assert "getLocalizedRoadLabel(item, locale)" in page
+
+
+def test_road_catalog_is_generated_and_reviewable_without_browser_bundle_import() -> None:
+    manifest = (ROOT / "data/road-display-catalog-v2/manifest.json").read_text(encoding="utf-8")
+    generator = read("scripts/generate_road_display_artifacts.py")
+    assert '"schema_version": "road-display-v2"' in manifest
+    assert 'source": "data/taiwan_roads.csv"' in manifest
+    assert "SCOPED_ROAD_KEYS_TOTAL" in generator
+    assert "sourceVersion" in generator
+    assert "road-display-catalog-v2" not in read("frontend_next/lib/road-labels.ts")
 
 
 def test_admin_labels_use_explicit_four_locale_artifact_without_fake_fallbacks() -> None:
@@ -57,6 +71,9 @@ def test_playwright_matrix_is_maintained_and_uses_a_local_production_server() ->
     assert '"start"' in runner
     assert "trace: \"on-first-retry\"" in config
     assert "screenshot: \"only-on-failure\"" in config
+    assert 'name: "chromium"' in config
+    assert 'name: "chrome"' in config
+    assert 'channel: "chrome"' in config
     assert (FRONTEND / "e2e/fixtures.ts").exists()
     assert (FRONTEND / "e2e/i18n.spec.ts").exists()
     assert (FRONTEND / "e2e/navigation.spec.ts").exists()

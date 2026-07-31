@@ -1,0 +1,3977 @@
+{
+  "schema_version": "road-display-v2",
+  "county": "澎湖縣",
+  "records": [
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "三塊厝",
+      "labels": {
+        "zh-TW": "三塊厝",
+        "en": "Sankuaicuo",
+        "ja": "スアンクアイツオ",
+        "ko": "사콰춰"
+      },
+      "romanization": "Sankuaicuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "下宮",
+      "labels": {
+        "zh-TW": "下宮",
+        "en": "Xiagong",
+        "ja": "シアグオン",
+        "ko": "샤고"
+      },
+      "romanization": "Xiagong",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "下茄埕",
+      "labels": {
+        "zh-TW": "下茄埕",
+        "en": "Xiaqiecheng",
+        "ja": "シアチエチン",
+        "ko": "샤챠처"
+      },
+      "romanization": "Xiaqiecheng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "南滬",
+      "labels": {
+        "zh-TW": "南滬",
+        "en": "South Hu",
+        "ja": "ヌアンホウ",
+        "ko": "나후"
+      },
+      "romanization": "South Hu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "南滬崎頭",
+      "labels": {
+        "zh-TW": "南滬崎頭",
+        "en": "South Huqitou",
+        "ja": "ヌアンホウチイトオウ",
+        "ko": "나후치투"
+      },
+      "romanization": "South Huqitou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "古合",
+      "labels": {
+        "zh-TW": "古合",
+        "en": "Guhe",
+        "ja": "グウホエ",
+        "ko": "구허"
+      },
+      "romanization": "Guhe",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "城內",
+      "labels": {
+        "zh-TW": "城內",
+        "en": "Chengnei",
+        "ja": "チンヌエイ",
+        "ko": "처녀"
+      },
+      "romanization": "Chengnei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "埔內",
+      "labels": {
+        "zh-TW": "埔內",
+        "en": "Bunei",
+        "ja": "ブウヌエイ",
+        "ko": "부녀"
+      },
+      "romanization": "Bunei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "尖山腳",
+      "labels": {
+        "zh-TW": "尖山腳",
+        "en": "Jianshanjiao",
+        "ja": "ジイェンシアンジヤオ",
+        "ko": "쟈사좨"
+      },
+      "romanization": "Jianshanjiao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "山脚仔",
+      "labels": {
+        "zh-TW": "山脚仔",
+        "en": "Shanjiaozi",
+        "ja": "シアンジヤオズイ",
+        "ko": "사좨지"
+      },
+      "romanization": "Shanjiaozi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "山頂",
+      "labels": {
+        "zh-TW": "山頂",
+        "en": "Shanding",
+        "ja": "シアンドイン",
+        "ko": "사디"
+      },
+      "romanization": "Shanding",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "東崎頭",
+      "labels": {
+        "zh-TW": "東崎頭",
+        "en": "East Qitou",
+        "ja": "ドオンチイトオウ",
+        "ko": "도치투"
+      },
+      "romanization": "East Qitou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "淮美",
+      "labels": {
+        "zh-TW": "淮美",
+        "en": "Huaimei",
+        "ja": "ホアイムエイ",
+        "ko": "화며"
+      },
+      "romanization": "Huaimei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "田墘",
+      "labels": {
+        "zh-TW": "田墘",
+        "en": "Tianqi",
+        "ja": "トイェンチイ",
+        "ko": "탸치"
+      },
+      "romanization": "Tianqi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "西北灣",
+      "labels": {
+        "zh-TW": "西北灣",
+        "en": "West North Wan",
+        "ja": "シイブエイウアン",
+        "ko": "시벼아"
+      },
+      "romanization": "West North Wan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "西南",
+      "labels": {
+        "zh-TW": "西南",
+        "en": "West South",
+        "ja": "シイヌアン",
+        "ko": "시나"
+      },
+      "romanization": "West South",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "西埔",
+      "labels": {
+        "zh-TW": "西埔",
+        "en": "West Bu",
+        "ja": "シイブウ",
+        "ko": "시부"
+      },
+      "romanization": "West Bu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "西崎頭",
+      "labels": {
+        "zh-TW": "西崎頭",
+        "en": "West Qitou",
+        "ja": "シイチイトオウ",
+        "ko": "시치투"
+      },
+      "romanization": "West Qitou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "頂茄埕",
+      "labels": {
+        "zh-TW": "頂茄埕",
+        "en": "Dingqiecheng",
+        "ja": "ドインチエチン",
+        "ko": "디챠처"
+      },
+      "romanization": "Dingqiecheng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "頂隙",
+      "labels": {
+        "zh-TW": "頂隙",
+        "en": "Dingxi",
+        "ja": "ドインシイ",
+        "ko": "디시"
+      },
+      "romanization": "Dingxi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "七美鄉",
+      "canonical": "𩵺崎頭",
+      "labels": {
+        "zh-TW": "𩵺崎頭",
+        "en": "𩵺Qitou",
+        "ja": "𩵺チイトオウ",
+        "ko": "𩵺치투"
+      },
+      "romanization": "𩵺Qitou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "望安鄉",
+      "canonical": "將軍澳",
+      "labels": {
+        "zh-TW": "將軍澳",
+        "en": "Jiangjunao",
+        "ja": "ジヤンジウンオ",
+        "ko": "쟈주오"
+      },
+      "romanization": "Jiangjunao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "望安鄉",
+      "canonical": "望安",
+      "labels": {
+        "zh-TW": "望安",
+        "en": "Wangan",
+        "ja": "ウアンアン",
+        "ko": "아아"
+      },
+      "romanization": "Wangan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "望安鄉",
+      "canonical": "東吉",
+      "labels": {
+        "zh-TW": "東吉",
+        "en": "East Ji",
+        "ja": "ドオンジイ",
+        "ko": "도지"
+      },
+      "romanization": "East Ji",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "望安鄉",
+      "canonical": "東嶼坪",
+      "labels": {
+        "zh-TW": "東嶼坪",
+        "en": "East Yuping",
+        "ja": "ドオンイウプイン",
+        "ko": "도우피"
+      },
+      "romanization": "East Yuping",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "望安鄉",
+      "canonical": "水垵",
+      "labels": {
+        "zh-TW": "水垵",
+        "en": "Shuian",
+        "ja": "スイアン",
+        "ko": "수아"
+      },
+      "romanization": "Shuian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "望安鄉",
+      "canonical": "花宅",
+      "labels": {
+        "zh-TW": "花宅",
+        "en": "Huazhai",
+        "ja": "ホアジアイ",
+        "ko": "화쟤"
+      },
+      "romanization": "Huazhai",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "望安鄉",
+      "canonical": "花嶼",
+      "labels": {
+        "zh-TW": "花嶼",
+        "en": "Huayu",
+        "ja": "ホアイウ",
+        "ko": "화우"
+      },
+      "romanization": "Huayu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "中寮",
+      "labels": {
+        "zh-TW": "中寮",
+        "en": "Zhongliao",
+        "ja": "ジオンルヤオ",
+        "ko": "조뢔"
+      },
+      "romanization": "Zhongliao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "北寮",
+      "labels": {
+        "zh-TW": "北寮",
+        "en": "North Liao",
+        "ja": "ブエイルヤオ",
+        "ko": "벼뢔"
+      },
+      "romanization": "North Liao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "南寮",
+      "labels": {
+        "zh-TW": "南寮",
+        "en": "South Liao",
+        "ja": "ヌアンルヤオ",
+        "ko": "나뢔"
+      },
+      "romanization": "South Liao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "土地公前",
+      "labels": {
+        "zh-TW": "土地公前",
+        "en": "Tudigongqian",
+        "ja": "トウドイグオンチイェン",
+        "ko": "투디고챠"
+      },
+      "romanization": "Tudigongqian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "大城北",
+      "labels": {
+        "zh-TW": "大城北",
+        "en": "Dacheng North",
+        "ja": "ドアチンブエイ",
+        "ko": "다처벼"
+      },
+      "romanization": "Dacheng North",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "太武",
+      "labels": {
+        "zh-TW": "太武",
+        "en": "Taiwu",
+        "ja": "トアイウウ",
+        "ko": "턔우"
+      },
+      "romanization": "Taiwu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "尖山",
+      "labels": {
+        "zh-TW": "尖山",
+        "en": "Jianshan",
+        "ja": "ジイェンシアン",
+        "ko": "쟈사"
+      },
+      "romanization": "Jianshan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "東石",
+      "labels": {
+        "zh-TW": "東石",
+        "en": "East Shi",
+        "ja": "ドオンシイ",
+        "ko": "도시"
+      },
+      "romanization": "East Shi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "林投",
+      "labels": {
+        "zh-TW": "林投",
+        "en": "Lintou",
+        "ja": "ルイントオウ",
+        "ko": "리투"
+      },
+      "romanization": "Lintou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "沙港",
+      "labels": {
+        "zh-TW": "沙港",
+        "en": "Shagang",
+        "ja": "シアグアン",
+        "ko": "사가"
+      },
+      "romanization": "Shagang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "港子尾",
+      "labels": {
+        "zh-TW": "港子尾",
+        "en": "Gangziwei",
+        "ja": "グアンズイウエイ",
+        "ko": "가지여"
+      },
+      "romanization": "Gangziwei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "港底",
+      "labels": {
+        "zh-TW": "港底",
+        "en": "Gangdi",
+        "ja": "グアンドイ",
+        "ko": "가디"
+      },
+      "romanization": "Gangdi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "湖東",
+      "labels": {
+        "zh-TW": "湖東",
+        "en": "Hu East",
+        "ja": "ホウドオン",
+        "ko": "후도"
+      },
+      "romanization": "Hu East",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "湖西",
+      "labels": {
+        "zh-TW": "湖西",
+        "en": "Hu West",
+        "ja": "ホウシイ",
+        "ko": "후시"
+      },
+      "romanization": "Hu West",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "潭邊",
+      "labels": {
+        "zh-TW": "潭邊",
+        "en": "Tanbian",
+        "ja": "トアンブイェン",
+        "ko": "타뱌"
+      },
+      "romanization": "Tanbian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "白猿坑",
+      "labels": {
+        "zh-TW": "白猿坑",
+        "en": "Baiyuankeng",
+        "ja": "ブアイイワンクン",
+        "ko": "뱨워커"
+      },
+      "romanization": "Baiyuankeng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "紅羅𦋐",
+      "labels": {
+        "zh-TW": "紅羅𦋐",
+        "en": "Hongluo𦋐",
+        "ja": "ホオンルオ𦋐",
+        "ko": "호뤄𦋐"
+      },
+      "romanization": "Hongluo𦋐",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "良文港",
+      "labels": {
+        "zh-TW": "良文港",
+        "en": "Liangwengang",
+        "ja": "ルヤンウエングアン",
+        "ko": "랴어가"
+      },
+      "romanization": "Liangwengang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "菓葉",
+      "labels": {
+        "zh-TW": "菓葉",
+        "en": "Guoxie",
+        "ja": "グオシエ",
+        "ko": "궈샤"
+      },
+      "romanization": "Guoxie",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "西寮",
+      "labels": {
+        "zh-TW": "西寮",
+        "en": "West Liao",
+        "ja": "シイルヤオ",
+        "ko": "시뢔"
+      },
+      "romanization": "West Liao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "西溪",
+      "labels": {
+        "zh-TW": "西溪",
+        "en": "West Xi",
+        "ja": "シイシイ",
+        "ko": "시시"
+      },
+      "romanization": "West Xi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "隘門",
+      "labels": {
+        "zh-TW": "隘門",
+        "en": "Aimen",
+        "ja": "イムエン",
+        "ko": "이머"
+      },
+      "romanization": "Aimen",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "青螺",
+      "labels": {
+        "zh-TW": "青螺",
+        "en": "Qingluo",
+        "ja": "チインルオ",
+        "ko": "치뤄"
+      },
+      "romanization": "Qingluo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "湖西鄉",
+      "canonical": "鼎灣",
+      "labels": {
+        "zh-TW": "鼎灣",
+        "en": "Dingwan",
+        "ja": "ドインウアン",
+        "ko": "디아"
+      },
+      "romanization": "Dingwan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "中屯",
+      "labels": {
+        "zh-TW": "中屯",
+        "en": "Zhongtun",
+        "ja": "ジオントウン",
+        "ko": "조투"
+      },
+      "romanization": "Zhongtun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "吉貝",
+      "labels": {
+        "zh-TW": "吉貝",
+        "en": "Jibei",
+        "ja": "ジイブエイ",
+        "ko": "지벼"
+      },
+      "romanization": "Jibei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "員貝",
+      "labels": {
+        "zh-TW": "員貝",
+        "en": "Yuanbei",
+        "ja": "イワンブエイ",
+        "ko": "워벼"
+      },
+      "romanization": "Yuanbei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "大赤崁",
+      "labels": {
+        "zh-TW": "大赤崁",
+        "en": "Dachikan",
+        "ja": "ドアチイクアン",
+        "ko": "다치카"
+      },
+      "romanization": "Dachikan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "小赤崁",
+      "labels": {
+        "zh-TW": "小赤崁",
+        "en": "Xiaochikan",
+        "ja": "シヤオチイクアン",
+        "ko": "쇄치카"
+      },
+      "romanization": "Xiaochikan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "岐頭",
+      "labels": {
+        "zh-TW": "岐頭",
+        "en": "Qitou",
+        "ja": "チイトオウ",
+        "ko": "치투"
+      },
+      "romanization": "Qitou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "後寮",
+      "labels": {
+        "zh-TW": "後寮",
+        "en": "Houliao",
+        "ja": "ホオウルヤオ",
+        "ko": "후뢔"
+      },
+      "romanization": "Houliao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "港子",
+      "labels": {
+        "zh-TW": "港子",
+        "en": "Gangzi",
+        "ja": "グアンズイ",
+        "ko": "가지"
+      },
+      "romanization": "Gangzi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "瓦硐",
+      "labels": {
+        "zh-TW": "瓦硐",
+        "en": "Watong",
+        "ja": "ウアトオン",
+        "ko": "아토"
+      },
+      "romanization": "Watong",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "講美",
+      "labels": {
+        "zh-TW": "講美",
+        "en": "Jiangmei",
+        "ja": "ジヤンムエイ",
+        "ko": "쟈며"
+      },
+      "romanization": "Jiangmei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "赤崁漁港新村",
+      "labels": {
+        "zh-TW": "赤崁漁港新村",
+        "en": "Chikanyugangxincun",
+        "ja": "チイクアンイウグアンシインツウン",
+        "ko": "치카우가시추"
+      },
+      "romanization": "Chikanyugangxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "通梁",
+      "labels": {
+        "zh-TW": "通梁",
+        "en": "Tongliang",
+        "ja": "トオンルヤン",
+        "ko": "토랴"
+      },
+      "romanization": "Tongliang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "通梁國宅社區",
+      "labels": {
+        "zh-TW": "通梁國宅社區",
+        "en": "Tongliangguozhaishequ",
+        "ja": "トオンルヤングオジアイシエチウ",
+        "ko": "토랴궈쟤서추"
+      },
+      "romanization": "Tongliangguozhaishequ",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "鳥嶼",
+      "labels": {
+        "zh-TW": "鳥嶼",
+        "en": "Niaoyu",
+        "ja": "ヌヤオイウ",
+        "ko": "놰우"
+      },
+      "romanization": "Niaoyu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "白沙鄉",
+      "canonical": "鳥嶼漁港新村",
+      "labels": {
+        "zh-TW": "鳥嶼漁港新村",
+        "en": "Niaoyuyugangxincun",
+        "ja": "ヌヤオイウイウグアンシインツウン",
+        "ko": "놰우우가시추"
+      },
+      "romanization": "Niaoyuyugangxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "二崁",
+      "labels": {
+        "zh-TW": "二崁",
+        "en": "Erkan",
+        "ja": "アークアン",
+        "ko": "아카"
+      },
+      "romanization": "Erkan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "內垵",
+      "labels": {
+        "zh-TW": "內垵",
+        "en": "Neian",
+        "ja": "ヌエイアン",
+        "ko": "녀아"
+      },
+      "romanization": "Neian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "合界頭",
+      "labels": {
+        "zh-TW": "合界頭",
+        "en": "Hejietou",
+        "ja": "ホエジエトオウ",
+        "ko": "허쟈투"
+      },
+      "romanization": "Hejietou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "外垵",
+      "labels": {
+        "zh-TW": "外垵",
+        "en": "Waian",
+        "ja": "ウアイアン",
+        "ko": "얘아"
+      },
+      "romanization": "Waian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "大池角",
+      "labels": {
+        "zh-TW": "大池角",
+        "en": "Dachijiao",
+        "ja": "ドアチイジヤオ",
+        "ko": "다치좨"
+      },
+      "romanization": "Dachijiao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "小池角",
+      "labels": {
+        "zh-TW": "小池角",
+        "en": "Xiaochijiao",
+        "ja": "シヤオチイジヤオ",
+        "ko": "쇄치좨"
+      },
+      "romanization": "Xiaochijiao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "小門",
+      "labels": {
+        "zh-TW": "小門",
+        "en": "Xiaomen",
+        "ja": "シヤオムエン",
+        "ko": "쇄머"
+      },
+      "romanization": "Xiaomen",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "橫礁",
+      "labels": {
+        "zh-TW": "橫礁",
+        "en": "Hengjiao",
+        "ja": "ホンジヤオ",
+        "ko": "허좨"
+      },
+      "romanization": "Hengjiao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "竹篙灣",
+      "labels": {
+        "zh-TW": "竹篙灣",
+        "en": "Zhugaowan",
+        "ja": "ジウグアオウアン",
+        "ko": "주고아"
+      },
+      "romanization": "Zhugaowan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "西嶼鄉",
+      "canonical": "緝馬灣",
+      "labels": {
+        "zh-TW": "緝馬灣",
+        "en": "Qimawan",
+        "ja": "チイムアウアン",
+        "ko": "치마아"
+      },
+      "romanization": "Qimawan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "三多路",
+      "labels": {
+        "zh-TW": "三多路",
+        "en": "Sanduo Road",
+        "ja": "スアンドオ道路 ロード",
+        "ko": "사둬로"
+      },
+      "romanization": "Sanduo Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "三民路",
+      "labels": {
+        "zh-TW": "三民路",
+        "en": "Sanmin Road",
+        "ja": "スアンムイン道路 ロード",
+        "ko": "사미로"
+      },
+      "romanization": "Sanmin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "中央街",
+      "labels": {
+        "zh-TW": "中央街",
+        "en": "Zhongyang Street",
+        "ja": "ジオンイアン通り ストリート",
+        "ko": "조아길"
+      },
+      "romanization": "Zhongyang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "中山路",
+      "labels": {
+        "zh-TW": "中山路",
+        "en": "Zhongshan Road",
+        "ja": "ジオンシアン道路 ロード",
+        "ko": "조사로"
+      },
+      "romanization": "Zhongshan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "中正路",
+      "labels": {
+        "zh-TW": "中正路",
+        "en": "Zhongzheng Road",
+        "ja": "ジオンジン道路 ロード",
+        "ko": "조저로"
+      },
+      "romanization": "Zhongzheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "中興路",
+      "labels": {
+        "zh-TW": "中興路",
+        "en": "Zhongxing Road",
+        "ja": "ジオンシイン道路 ロード",
+        "ko": "조시로"
+      },
+      "romanization": "Zhongxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "中華路",
+      "labels": {
+        "zh-TW": "中華路",
+        "en": "Zhonghua Road",
+        "ja": "ジオンホア道路 ロード",
+        "ko": "조화로"
+      },
+      "romanization": "Zhonghua Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "五福路",
+      "labels": {
+        "zh-TW": "五福路",
+        "en": "Wufu Road",
+        "ja": "ウウフウ道路 ロード",
+        "ko": "우뿌로"
+      },
+      "romanization": "Wufu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "井子垵",
+      "labels": {
+        "zh-TW": "井子垵",
+        "en": "Jingzian",
+        "ja": "ジインズイアン",
+        "ko": "지지아"
+      },
+      "romanization": "Jingzian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "仁愛路",
+      "labels": {
+        "zh-TW": "仁愛路",
+        "en": "Renai Road",
+        "ja": "ルエンイ道路 ロード",
+        "ko": "러이로"
+      },
+      "romanization": "Renai Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "介壽路",
+      "labels": {
+        "zh-TW": "介壽路",
+        "en": "Jieshou Road",
+        "ja": "ジエシオウ道路 ロード",
+        "ko": "쟈수로"
+      },
+      "romanization": "Jieshou Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "保安街",
+      "labels": {
+        "zh-TW": "保安街",
+        "en": "Baoan Street",
+        "ja": "ブアオアン通り ストリート",
+        "ko": "보아길"
+      },
+      "romanization": "Baoan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "信義路",
+      "labels": {
+        "zh-TW": "信義路",
+        "en": "Xinyi Road",
+        "ja": "シインイイ道路 ロード",
+        "ko": "시이로"
+      },
+      "romanization": "Xinyi Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "光復路",
+      "labels": {
+        "zh-TW": "光復路",
+        "en": "Guangfu Road",
+        "ja": "グワンフウ道路 ロード",
+        "ko": "궈뿌로"
+      },
+      "romanization": "Guangfu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "光復路台電新村",
+      "labels": {
+        "zh-TW": "光復路台電新村",
+        "en": "Guangfulutaidianxincun",
+        "ja": "グワンフウルウトアイドイェンシインツウン",
+        "ko": "궈뿌루턔댜시추"
+      },
+      "romanization": "Guangfulutaidianxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "光明路",
+      "labels": {
+        "zh-TW": "光明路",
+        "en": "Guangming Road",
+        "ja": "グワンムイン道路 ロード",
+        "ko": "궈미로"
+      },
+      "romanization": "Guangming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "光榮街",
+      "labels": {
+        "zh-TW": "光榮街",
+        "en": "Guangrong Street",
+        "ja": "グワンルオン通り ストリート",
+        "ko": "궈로길"
+      },
+      "romanization": "Guangrong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "光武街",
+      "labels": {
+        "zh-TW": "光武街",
+        "en": "Guangwu Street",
+        "ja": "グワンウウ通り ストリート",
+        "ko": "궈우길"
+      },
+      "romanization": "Guangwu Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "光華",
+      "labels": {
+        "zh-TW": "光華",
+        "en": "Guanghua",
+        "ja": "グワンホア",
+        "ko": "궈화"
+      },
+      "romanization": "Guanghua",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "六合路",
+      "labels": {
+        "zh-TW": "六合路",
+        "en": "Liuhe Road",
+        "ja": "ルウホエ道路 ロード",
+        "ko": "루허로"
+      },
+      "romanization": "Liuhe Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "前寮",
+      "labels": {
+        "zh-TW": "前寮",
+        "en": "Qianliao",
+        "ja": "チイェンルヤオ",
+        "ko": "챠뢔"
+      },
+      "romanization": "Qianliao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "北辰街",
+      "labels": {
+        "zh-TW": "北辰街",
+        "en": "North Chen Street",
+        "ja": "ブエイチエン通り ストリート",
+        "ko": "벼처길"
+      },
+      "romanization": "North Chen Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "双頭掛",
+      "labels": {
+        "zh-TW": "双頭掛",
+        "en": "Shuangtougua",
+        "ja": "シワントオウグア",
+        "ko": "숴투과"
+      },
+      "romanization": "Shuangtougua",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "吉慶路",
+      "labels": {
+        "zh-TW": "吉慶路",
+        "en": "Jiqing Road",
+        "ja": "ジイチイン道路 ロード",
+        "ko": "지치로"
+      },
+      "romanization": "Jiqing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "吉海路",
+      "labels": {
+        "zh-TW": "吉海路",
+        "en": "Jihai Road",
+        "ja": "ジイホアイ道路 ロード",
+        "ko": "지햬로"
+      },
+      "romanization": "Jihai Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "吉港路",
+      "labels": {
+        "zh-TW": "吉港路",
+        "en": "Jigang Road",
+        "ja": "ジイグアン道路 ロード",
+        "ko": "지가로"
+      },
+      "romanization": "Jigang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "同和路",
+      "labels": {
+        "zh-TW": "同和路",
+        "en": "Tonghe Road",
+        "ja": "トオンホエ道路 ロード",
+        "ko": "토허로"
+      },
+      "romanization": "Tonghe Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "啟明街",
+      "labels": {
+        "zh-TW": "啟明街",
+        "en": "Qiming Street",
+        "ja": "チイムイン通り ストリート",
+        "ko": "치미길"
+      },
+      "romanization": "Qiming Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "四維路",
+      "labels": {
+        "zh-TW": "四維路",
+        "en": "Siwei Road",
+        "ja": "スイウエイ道路 ロード",
+        "ko": "시여로"
+      },
+      "romanization": "Siwei Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "坡南",
+      "labels": {
+        "zh-TW": "坡南",
+        "en": "Po South",
+        "ja": "プオヌアン",
+        "ko": "포나"
+      },
+      "romanization": "Po South",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "大仁街",
+      "labels": {
+        "zh-TW": "大仁街",
+        "en": "Daren Street",
+        "ja": "ドアルエン通り ストリート",
+        "ko": "다러길"
+      },
+      "romanization": "Daren Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "大勇街",
+      "labels": {
+        "zh-TW": "大勇街",
+        "en": "Dayong Street",
+        "ja": "ドアイオン通り ストリート",
+        "ko": "다오길"
+      },
+      "romanization": "Dayong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "大智街",
+      "labels": {
+        "zh-TW": "大智街",
+        "en": "Dazhi Street",
+        "ja": "ドアジイ通り ストリート",
+        "ko": "다지길"
+      },
+      "romanization": "Dazhi Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "大案山",
+      "labels": {
+        "zh-TW": "大案山",
+        "en": "Daanshan",
+        "ja": "ドアアンシアン",
+        "ko": "다아사"
+      },
+      "romanization": "Daanshan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "大賢街",
+      "labels": {
+        "zh-TW": "大賢街",
+        "en": "Daxian Street",
+        "ja": "ドアシイェン通り ストリート",
+        "ko": "다샤길"
+      },
+      "romanization": "Daxian Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "宅脚嶼",
+      "labels": {
+        "zh-TW": "宅脚嶼",
+        "en": "Zhaijiaoyu",
+        "ja": "ジアイジヤオイウ",
+        "ko": "쟤좨우"
+      },
+      "romanization": "Zhaijiaoyu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "嵵裡",
+      "labels": {
+        "zh-TW": "嵵裡",
+        "en": "Li",
+        "ja": "ルイ",
+        "ko": "리"
+      },
+      "romanization": "Li",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "建國路",
+      "labels": {
+        "zh-TW": "建國路",
+        "en": "Jianguo Road",
+        "ja": "ジイェングオ道路 ロード",
+        "ko": "쟈궈로"
+      },
+      "romanization": "Jianguo Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "後窟潭",
+      "labels": {
+        "zh-TW": "後窟潭",
+        "en": "Houkutan",
+        "ja": "ホオウクウトアン",
+        "ko": "후쿠타"
+      },
+      "romanization": "Houkutan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "復國路",
+      "labels": {
+        "zh-TW": "復國路",
+        "en": "Fuguo Road",
+        "ja": "フウグオ道路 ロード",
+        "ko": "뿌궈로"
+      },
+      "romanization": "Fuguo Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "忠孝路",
+      "labels": {
+        "zh-TW": "忠孝路",
+        "en": "Zhongxiao Road",
+        "ja": "ジオンシヤオ道路 ロード",
+        "ko": "조쇄로"
+      },
+      "romanization": "Zhongxiao Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "惠安一路",
+      "labels": {
+        "zh-TW": "惠安一路",
+        "en": "Huian 1st Road",
+        "ja": "ホイアン1道路 ロード",
+        "ko": "후아1로"
+      },
+      "romanization": "Huian 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "惠安路",
+      "labels": {
+        "zh-TW": "惠安路",
+        "en": "Huian Road",
+        "ja": "ホイアン道路 ロード",
+        "ko": "후아로"
+      },
+      "romanization": "Huian Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "惠民一路",
+      "labels": {
+        "zh-TW": "惠民一路",
+        "en": "Huimin 1st Road",
+        "ja": "ホイムイン1道路 ロード",
+        "ko": "후미1로"
+      },
+      "romanization": "Huimin 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "惠民新村",
+      "labels": {
+        "zh-TW": "惠民新村",
+        "en": "Huiminxincun",
+        "ja": "ホイムインシインツウン",
+        "ko": "후미시추"
+      },
+      "romanization": "Huiminxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "惠民路",
+      "labels": {
+        "zh-TW": "惠民路",
+        "en": "Huimin Road",
+        "ja": "ホイムイン道路 ロード",
+        "ko": "후미로"
+      },
+      "romanization": "Huimin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "成功街",
+      "labels": {
+        "zh-TW": "成功街",
+        "en": "Chenggong Street",
+        "ja": "チングオン通り ストリート",
+        "ko": "처고길"
+      },
+      "romanization": "Chenggong Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "敬業街",
+      "labels": {
+        "zh-TW": "敬業街",
+        "en": "Jingye Street",
+        "ja": "ジインイエ通り ストリート",
+        "ko": "지어길"
+      },
+      "romanization": "Jingye Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文光路",
+      "labels": {
+        "zh-TW": "文光路",
+        "en": "Wenguang Road",
+        "ja": "ウエングワン道路 ロード",
+        "ko": "어궈로"
+      },
+      "romanization": "Wenguang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文前街",
+      "labels": {
+        "zh-TW": "文前街",
+        "en": "Wenqian Street",
+        "ja": "ウエンチイェン通り ストリート",
+        "ko": "어챠길"
+      },
+      "romanization": "Wenqian Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文化路",
+      "labels": {
+        "zh-TW": "文化路",
+        "en": "Wenhua Road",
+        "ja": "ウエンホア道路 ロード",
+        "ko": "어화로"
+      },
+      "romanization": "Wenhua Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文城三路",
+      "labels": {
+        "zh-TW": "文城三路",
+        "en": "Wencheng 3rd Road",
+        "ja": "ウエンチン3道路 ロード",
+        "ko": "어처3로"
+      },
+      "romanization": "Wencheng 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文學路",
+      "labels": {
+        "zh-TW": "文學路",
+        "en": "Wenxue Road",
+        "ja": "ウエンシエ道路 ロード",
+        "ko": "어수로"
+      },
+      "romanization": "Wenxue Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文安路",
+      "labels": {
+        "zh-TW": "文安路",
+        "en": "Wenan Road",
+        "ja": "ウエンアン道路 ロード",
+        "ko": "어아로"
+      },
+      "romanization": "Wenan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文山路",
+      "labels": {
+        "zh-TW": "文山路",
+        "en": "Wenshan Road",
+        "ja": "ウエンシアン道路 ロード",
+        "ko": "어사로"
+      },
+      "romanization": "Wenshan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文康街",
+      "labels": {
+        "zh-TW": "文康街",
+        "en": "Wenkang Street",
+        "ja": "ウエンクアン通り ストリート",
+        "ko": "어카길"
+      },
+      "romanization": "Wenkang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文德路",
+      "labels": {
+        "zh-TW": "文德路",
+        "en": "Wende Road",
+        "ja": "ウエンドエ道路 ロード",
+        "ko": "어더로"
+      },
+      "romanization": "Wende Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文昌街",
+      "labels": {
+        "zh-TW": "文昌街",
+        "en": "Wenchang Street",
+        "ja": "ウエンチアン通り ストリート",
+        "ko": "어차길"
+      },
+      "romanization": "Wenchang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文明路",
+      "labels": {
+        "zh-TW": "文明路",
+        "en": "Wenming Road",
+        "ja": "ウエンムイン道路 ロード",
+        "ko": "어미로"
+      },
+      "romanization": "Wenming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文林街",
+      "labels": {
+        "zh-TW": "文林街",
+        "en": "Wenlin Street",
+        "ja": "ウエンルイン通り ストリート",
+        "ko": "어리길"
+      },
+      "romanization": "Wenlin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "文石路",
+      "labels": {
+        "zh-TW": "文石路",
+        "en": "Wenshi Road",
+        "ja": "ウエンシイ道路 ロード",
+        "ko": "어시로"
+      },
+      "romanization": "Wenshi Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新店北路",
+      "labels": {
+        "zh-TW": "新店北路",
+        "en": "Xindian North Road",
+        "ja": "シインドイェンブエイ道路 ロード",
+        "ko": "시댜벼로"
+      },
+      "romanization": "Xindian North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新店路",
+      "labels": {
+        "zh-TW": "新店路",
+        "en": "Xindian Road",
+        "ja": "シインドイェン道路 ロード",
+        "ko": "시댜로"
+      },
+      "romanization": "Xindian Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新復路",
+      "labels": {
+        "zh-TW": "新復路",
+        "en": "Xinfu Road",
+        "ja": "シインフウ道路 ロード",
+        "ko": "시뿌로"
+      },
+      "romanization": "Xinfu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新明路",
+      "labels": {
+        "zh-TW": "新明路",
+        "en": "Xinming Road",
+        "ja": "シインムイン道路 ロード",
+        "ko": "시미로"
+      },
+      "romanization": "Xinming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新村路",
+      "labels": {
+        "zh-TW": "新村路",
+        "en": "Xincun Road",
+        "ja": "シインツウン道路 ロード",
+        "ko": "시추로"
+      },
+      "romanization": "Xincun Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新營路",
+      "labels": {
+        "zh-TW": "新營路",
+        "en": "Xinying Road",
+        "ja": "シインイイン道路 ロード",
+        "ko": "시이로"
+      },
+      "romanization": "Xinying Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新生路",
+      "labels": {
+        "zh-TW": "新生路",
+        "en": "Xinsheng Road",
+        "ja": "シインシン道路 ロード",
+        "ko": "시서로"
+      },
+      "romanization": "Xinsheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "新興路",
+      "labels": {
+        "zh-TW": "新興路",
+        "en": "Xinxing Road",
+        "ja": "シインシイン道路 ロード",
+        "ko": "시시로"
+      },
+      "romanization": "Xinxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "明遠路",
+      "labels": {
+        "zh-TW": "明遠路",
+        "en": "Mingyuan Road",
+        "ja": "ムインイワン道路 ロード",
+        "ko": "미워로"
+      },
+      "romanization": "Mingyuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "朝陽路",
+      "labels": {
+        "zh-TW": "朝陽路",
+        "en": "Zhaoyang Road",
+        "ja": "ジアオイアン道路 ロード",
+        "ko": "조아로"
+      },
+      "romanization": "Zhaoyang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "東文澳",
+      "labels": {
+        "zh-TW": "東文澳",
+        "en": "East Wenao",
+        "ja": "ドオンウエンオ",
+        "ko": "도어오"
+      },
+      "romanization": "East Wenao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "東衛",
+      "labels": {
+        "zh-TW": "東衛",
+        "en": "East Wei",
+        "ja": "ドオンウエイ",
+        "ko": "도여"
+      },
+      "romanization": "East Wei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "林森路",
+      "labels": {
+        "zh-TW": "林森路",
+        "en": "Linsen Road",
+        "ja": "ルインスエン道路 ロード",
+        "ko": "리서로"
+      },
+      "romanization": "Linsen Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "桶盤",
+      "labels": {
+        "zh-TW": "桶盤",
+        "en": "Tongpan",
+        "ja": "トオンプアン",
+        "ko": "토파"
+      },
+      "romanization": "Tongpan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "樂群街",
+      "labels": {
+        "zh-TW": "樂群街",
+        "en": "Lequn Street",
+        "ja": "ルエチウン通り ストリート",
+        "ko": "러추길"
+      },
+      "romanization": "Lequn Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "樹德路",
+      "labels": {
+        "zh-TW": "樹德路",
+        "en": "Shude Road",
+        "ja": "シウドエ道路 ロード",
+        "ko": "수더로"
+      },
+      "romanization": "Shude Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "正義街",
+      "labels": {
+        "zh-TW": "正義街",
+        "en": "Zhengyi Street",
+        "ja": "ジンイイ通り ストリート",
+        "ko": "저이길"
+      },
+      "romanization": "Zhengyi Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "民富街",
+      "labels": {
+        "zh-TW": "民富街",
+        "en": "Minfu Street",
+        "ja": "ムインフウ通り ストリート",
+        "ko": "미뿌길"
+      },
+      "romanization": "Minfu Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "民族路",
+      "labels": {
+        "zh-TW": "民族路",
+        "en": "Minzu Road",
+        "ja": "ムインズウ道路 ロード",
+        "ko": "미주로"
+      },
+      "romanization": "Minzu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "民樂街",
+      "labels": {
+        "zh-TW": "民樂街",
+        "en": "Minle Street",
+        "ja": "ムインルエ通り ストリート",
+        "ko": "미러길"
+      },
+      "romanization": "Minle Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "民權路",
+      "labels": {
+        "zh-TW": "民權路",
+        "en": "Minquan Road",
+        "ja": "ムインチワン道路 ロード",
+        "ko": "미춰로"
+      },
+      "romanization": "Minquan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "民生路",
+      "labels": {
+        "zh-TW": "民生路",
+        "en": "Minsheng Road",
+        "ja": "ムインシン道路 ロード",
+        "ko": "미서로"
+      },
+      "romanization": "Minsheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "民福路",
+      "labels": {
+        "zh-TW": "民福路",
+        "en": "Minfu Road",
+        "ja": "ムインフウ道路 ロード",
+        "ko": "미뿌로"
+      },
+      "romanization": "Minfu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "民裕街",
+      "labels": {
+        "zh-TW": "民裕街",
+        "en": "Minyu Street",
+        "ja": "ムインイウ通り ストリート",
+        "ko": "미우길"
+      },
+      "romanization": "Minyu Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "水源路",
+      "labels": {
+        "zh-TW": "水源路",
+        "en": "Shuiyuan Road",
+        "ja": "スイイワン道路 ロード",
+        "ko": "수워로"
+      },
+      "romanization": "Shuiyuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永和街",
+      "labels": {
+        "zh-TW": "永和街",
+        "en": "Yonghe Street",
+        "ja": "イオンホエ通り ストリート",
+        "ko": "오허길"
+      },
+      "romanization": "Yonghe Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永壽街",
+      "labels": {
+        "zh-TW": "永壽街",
+        "en": "Yongshou Street",
+        "ja": "イオンシオウ通り ストリート",
+        "ko": "오수길"
+      },
+      "romanization": "Yongshou Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永安街",
+      "labels": {
+        "zh-TW": "永安街",
+        "en": "Yongan Street",
+        "ja": "イオンアン通り ストリート",
+        "ko": "오아길"
+      },
+      "romanization": "Yongan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永平街",
+      "labels": {
+        "zh-TW": "永平街",
+        "en": "Yongping Street",
+        "ja": "イオンプイン通り ストリート",
+        "ko": "오피길"
+      },
+      "romanization": "Yongping Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永泰街",
+      "labels": {
+        "zh-TW": "永泰街",
+        "en": "Yongtai Street",
+        "ja": "イオントアイ通り ストリート",
+        "ko": "오턔길"
+      },
+      "romanization": "Yongtai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永福街",
+      "labels": {
+        "zh-TW": "永福街",
+        "en": "Yongfu Street",
+        "ja": "イオンフウ通り ストリート",
+        "ko": "오뿌길"
+      },
+      "romanization": "Yongfu Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永興街",
+      "labels": {
+        "zh-TW": "永興街",
+        "en": "Yongxing Street",
+        "ja": "イオンシイン通り ストリート",
+        "ko": "오시길"
+      },
+      "romanization": "Yongxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "永順街",
+      "labels": {
+        "zh-TW": "永順街",
+        "en": "Yongshun Street",
+        "ja": "イオンシウン通り ストリート",
+        "ko": "오수길"
+      },
+      "romanization": "Yongshun Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "治平路",
+      "labels": {
+        "zh-TW": "治平路",
+        "en": "Zhiping Road",
+        "ja": "ジイプイン道路 ロード",
+        "ko": "지피로"
+      },
+      "romanization": "Zhiping Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "海埔路",
+      "labels": {
+        "zh-TW": "海埔路",
+        "en": "Haibu Road",
+        "ja": "ホアイブウ道路 ロード",
+        "ko": "햬부로"
+      },
+      "romanization": "Haibu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "海安街",
+      "labels": {
+        "zh-TW": "海安街",
+        "en": "Haian Street",
+        "ja": "ホアイアン通り ストリート",
+        "ko": "햬아길"
+      },
+      "romanization": "Haian Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "漁工新村",
+      "labels": {
+        "zh-TW": "漁工新村",
+        "en": "Yugongxincun",
+        "ja": "イウグオンシインツウン",
+        "ko": "우고시추"
+      },
+      "romanization": "Yugongxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "漁隆路",
+      "labels": {
+        "zh-TW": "漁隆路",
+        "en": "Yulong Road",
+        "ja": "イウルオン道路 ロード",
+        "ko": "우로로"
+      },
+      "romanization": "Yulong Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "烏崁",
+      "labels": {
+        "zh-TW": "烏崁",
+        "en": "Wukan",
+        "ja": "ウウクアン",
+        "ko": "우카"
+      },
+      "romanization": "Wukan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "珠江",
+      "labels": {
+        "zh-TW": "珠江",
+        "en": "Zhujiang",
+        "ja": "ジウジヤン",
+        "ko": "주쟈"
+      },
+      "romanization": "Zhujiang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "石泉",
+      "labels": {
+        "zh-TW": "石泉",
+        "en": "Shiquan",
+        "ja": "シイチワン",
+        "ko": "시춰"
+      },
+      "romanization": "Shiquan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "經國路",
+      "labels": {
+        "zh-TW": "經國路",
+        "en": "Jingguo Road",
+        "ja": "ジイングオ道路 ロード",
+        "ko": "지궈로"
+      },
+      "romanization": "Jingguo Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "縣府新村",
+      "labels": {
+        "zh-TW": "縣府新村",
+        "en": "Xianfuxincun",
+        "ja": "シイェンフウシインツウン",
+        "ko": "샤뿌시추"
+      },
+      "romanization": "Xianfuxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "聖東路",
+      "labels": {
+        "zh-TW": "聖東路",
+        "en": "Sheng East Road",
+        "ja": "シンドオン道路 ロード",
+        "ko": "서도로"
+      },
+      "romanization": "Sheng East Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "臨海路",
+      "labels": {
+        "zh-TW": "臨海路",
+        "en": "Linhai Road",
+        "ja": "ルインホアイ道路 ロード",
+        "ko": "리햬로"
+      },
+      "romanization": "Linhai Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "自強街",
+      "labels": {
+        "zh-TW": "自強街",
+        "en": "Ziqiang Street",
+        "ja": "ズイチヤン通り ストリート",
+        "ko": "지챠길"
+      },
+      "romanization": "Ziqiang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "自立路",
+      "labels": {
+        "zh-TW": "自立路",
+        "en": "Zili Road",
+        "ja": "ズイルイ道路 ロード",
+        "ko": "지리로"
+      },
+      "romanization": "Zili Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "興港北街",
+      "labels": {
+        "zh-TW": "興港北街",
+        "en": "Xinggang North Street",
+        "ja": "シイングアンブエイ通り ストリート",
+        "ko": "시가벼길"
+      },
+      "romanization": "Xinggang North Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "興港南街",
+      "labels": {
+        "zh-TW": "興港南街",
+        "en": "Xinggang South Street",
+        "ja": "シイングアンヌアン通り ストリート",
+        "ko": "시가나길"
+      },
+      "romanization": "Xinggang South Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "莒光村",
+      "labels": {
+        "zh-TW": "莒光村",
+        "en": "Juguangcun",
+        "ja": "ジウグワンツウン",
+        "ko": "주궈추"
+      },
+      "romanization": "Juguangcun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "菜園",
+      "labels": {
+        "zh-TW": "菜園",
+        "en": "Caiyuan",
+        "ja": "ツアイイワン",
+        "ko": "챼워"
+      },
+      "romanization": "Caiyuan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "虎井",
+      "labels": {
+        "zh-TW": "虎井",
+        "en": "Hujing",
+        "ja": "ホウジイン",
+        "ko": "후지"
+      },
+      "romanization": "Hujing",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "西文澳",
+      "labels": {
+        "zh-TW": "西文澳",
+        "en": "West Wenao",
+        "ja": "シイウエンオ",
+        "ko": "시어오"
+      },
+      "romanization": "West Wenao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "西衛",
+      "labels": {
+        "zh-TW": "西衛",
+        "en": "West Wei",
+        "ja": "シイウエイ",
+        "ko": "시여"
+      },
+      "romanization": "West Wei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "貿商街",
+      "labels": {
+        "zh-TW": "貿商街",
+        "en": "Maoshang Street",
+        "ja": "ムアオシアン通り ストリート",
+        "ko": "모사길"
+      },
+      "romanization": "Maoshang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "重慶街",
+      "labels": {
+        "zh-TW": "重慶街",
+        "en": "Zhongqing Street",
+        "ja": "ジオンチイン通り ストリート",
+        "ko": "조치길"
+      },
+      "romanization": "Zhongqing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "金龍路",
+      "labels": {
+        "zh-TW": "金龍路",
+        "en": "Jinlong Road",
+        "ja": "ジインルオン道路 ロード",
+        "ko": "지로로"
+      },
+      "romanization": "Jinlong Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鎖港一路",
+      "labels": {
+        "zh-TW": "鎖港一路",
+        "en": "Suogang 1st Road",
+        "ja": "スオグアン1道路 ロード",
+        "ko": "숴가1로"
+      },
+      "romanization": "Suogang 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鎖港七路",
+      "labels": {
+        "zh-TW": "鎖港七路",
+        "en": "Suogang 7th Road",
+        "ja": "スオグアン7道路 ロード",
+        "ko": "숴가7로"
+      },
+      "romanization": "Suogang 7th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鎖港三路",
+      "labels": {
+        "zh-TW": "鎖港三路",
+        "en": "Suogang 3rd Road",
+        "ja": "スオグアン3道路 ロード",
+        "ko": "숴가3로"
+      },
+      "romanization": "Suogang 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鎖港二路",
+      "labels": {
+        "zh-TW": "鎖港二路",
+        "en": "Suogang 2nd Road",
+        "ja": "スオグアン2道路 ロード",
+        "ko": "숴가2로"
+      },
+      "romanization": "Suogang 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鎖港五路",
+      "labels": {
+        "zh-TW": "鎖港五路",
+        "en": "Suogang 5th Road",
+        "ja": "スオグアン5道路 ロード",
+        "ko": "숴가5로"
+      },
+      "romanization": "Suogang 5th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鎖港六路",
+      "labels": {
+        "zh-TW": "鎖港六路",
+        "en": "Suogang 6th Road",
+        "ja": "スオグアン6道路 ロード",
+        "ko": "숴가6로"
+      },
+      "romanization": "Suogang 6th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鎖管港",
+      "labels": {
+        "zh-TW": "鎖管港",
+        "en": "Suoguangang",
+        "ja": "スオグワングアン",
+        "ko": "숴궈가"
+      },
+      "romanization": "Suoguangang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鐵線尾",
+      "labels": {
+        "zh-TW": "鐵線尾",
+        "en": "Tiexianwei",
+        "ja": "トエシイェンウエイ",
+        "ko": "탸샤여"
+      },
+      "romanization": "Tiexianwei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "陽明路",
+      "labels": {
+        "zh-TW": "陽明路",
+        "en": "Yangming Road",
+        "ja": "イアンムイン道路 ロード",
+        "ko": "아미로"
+      },
+      "romanization": "Yangming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "頂新三路",
+      "labels": {
+        "zh-TW": "頂新三路",
+        "en": "Dingxin 3rd Road",
+        "ja": "ドインシイン3道路 ロード",
+        "ko": "디시3로"
+      },
+      "romanization": "Dingxin 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "頂新二路",
+      "labels": {
+        "zh-TW": "頂新二路",
+        "en": "Dingxin 2nd Road",
+        "ja": "ドインシイン2道路 ロード",
+        "ko": "디시2로"
+      },
+      "romanization": "Dingxin 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "頂新六路",
+      "labels": {
+        "zh-TW": "頂新六路",
+        "en": "Dingxin 6th Road",
+        "ja": "ドインシイン6道路 ロード",
+        "ko": "디시6로"
+      },
+      "romanization": "Dingxin 6th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "風櫃尾",
+      "labels": {
+        "zh-TW": "風櫃尾",
+        "en": "Fengguiwei",
+        "ja": "フングイウエイ",
+        "ko": "뻐구여"
+      },
+      "romanization": "Fengguiwei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "澎湖縣",
+      "district": "馬公市",
+      "canonical": "鷄母塢",
+      "labels": {
+        "zh-TW": "鷄母塢",
+        "en": "Jimuwu",
+        "ja": "ジイムウウウ",
+        "ko": "지무우"
+      },
+      "romanization": "Jimuwu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    }
+  ]
+}
