@@ -62,6 +62,20 @@ def test_semantic_coverage_rejects_fake_numeric_templates():
         assert not _label_is_semantic("unknown", label, "en")
 
 
+def test_deployed_screenshot_numeric_placeholders_are_absent_from_admin_artifact():
+    artifact = LABELS.read_text(encoding="utf-8")
+    placeholders = (
+        "Taiwan administrative area 9176", "Taiwan administrative area 2479",
+        "Taiwan administrative area 1729", "Taiwan administrative area 9348",
+        "Taiwan administrative area 1987", "Taiwan administrative area 3937",
+        "Taiwan administrative area 1974", "Taiwan administrative area 3873",
+        "Taiwan administrative area 4662", "Taiwan administrative area 9608",
+        "Taiwan administrative area 7022", "Taiwan administrative area 6163",
+        "Taiwan administrative area 2449",
+    )
+    assert all(placeholder not in artifact for placeholder in placeholders)
+
+
 def test_representative_counties_have_complete_expected_english_names():
     artifact = json.loads(LABELS.read_text(encoding="utf-8"))
     by_value = {entry["value"]: entry for entry in artifact["entries"]}
