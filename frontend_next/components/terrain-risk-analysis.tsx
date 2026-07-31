@@ -9,6 +9,7 @@ import type { LocationMarketDisplayStatus } from "@/lib/location-market-journey"
 import { buildTerrainReferenceEvidence, terrainReferenceStateLabel, type TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getSurfaceCopy, type TerrainSurfaceCopy } from "@/lib/surface-copy";
+import { OfficialDataStatusCard } from "@/components/official-data-status-card";
 
 // Static UI contract vocabulary remains here for existing source-level regression checks;
 // runtime rendering always reads the selected locale from surface-copy.
@@ -109,6 +110,7 @@ function TerrainRiskResults({ result, copy, onReferenceAttach }: { result: Terra
     {result.risk_factors.length > 0 ? <ListCard title={copy.riskFactors} items={result.risk_factors.map((item) => `${item.title}: ${item.message}`)} /> : <Notice>{copy.noRiskFactors}</Notice>}
     <ListCard title={copy.recommended} items={result.recommended_checks} />
     <RiskSourceTransparency result={result} copy={copy} />
+    {result.official_data_sources && <OfficialDataStatusCard sources={result.official_data_sources} />}
     <details className="min-w-0 rounded-xl border border-stone-200 bg-white"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-slate-700">{copy.layersDisclosure}</summary><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[680px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">{copy.layer}</th><th>{copy.status}</th><th>{copy.vintage}</th><th>{copy.limitation}</th><th>{copy.external}</th></tr></thead><tbody>{result.map_layers.map((layer) => <tr key={layer.key} className="border-t border-stone-100"><td className="p-2">{layer.label}</td><td>{copy.states[layer.status] ?? layer.status}</td><td>{layer.data_vintage || copy.noDate}</td><td>{layer.limitation || copy.noLimit}</td><td>{layer.external_view_url ? <a className="font-bold text-cyan-700 underline" href={layer.external_view_url} target="_blank" rel="noreferrer">{copy.externalLink}</a> : copy.noExternal}</td></tr>)}</tbody></table></div></details>
     {result.missing_sources.length > 0 && <Notice tone="warning">{copy.missingSources}: {result.missing_sources.join(", ")}</Notice>}<p className="text-[10px] leading-5 text-amber-700">{copy.warning}</p>
   </div>;

@@ -53,3 +53,6 @@ kept under `docs/archive/` and must not be used as current product guidance.
 ## Historical archive
 
 - [Archive policy and index](archive/README.md) - completed plans, old audits, demo material, and superseded examples.
+# Official data setup
+
+- [Official Terrain and Tax data provider setup](official-data-provider-setup.md)

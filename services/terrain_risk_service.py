@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Iterable
 
 from services.map_service import search_location
+from services.official_data_registry import provider_registry
 from services.terrain_risk_providers import (
     ArdswcSlopeHazardProvider,
     GeologyCloudProvider,
@@ -99,6 +100,7 @@ def analyze_terrain_risk(
         "recommended_checks": _recommended_checks(overall, missing_sources),
         "map_layers": _map_layers(terrain, hazards, layers),
         "source_transparency": _source_transparency(terrain, hazards, layers),
+        "official_data_sources": provider_registry("terrain"),
         "data_quality": data_quality,
         "disclaimer": DISCLAIMER,
     }
@@ -156,7 +158,7 @@ def _safe_terrain(provider: Any, resolved: dict[str, Any], radius_m: int) -> dic
         return {
             **_terrain_unavailable(),
             "status": "error",
-            "explanation": f"地形來源查詢失敗：{type(exc).__name__}。請稍後重試或改至官方圖台確認。",
+            "explanation": "地形來源暫時不可用，請稍後重試或改至官方圖台確認。",
             "source": source_meta("NLSC 國土測繪中心地形圖資", "內政部國土測繪中心", "https://maps.nlsc.gov.tw/", "error"),
         }
 
@@ -164,8 +166,8 @@ def _safe_terrain(provider: Any, resolved: dict[str, Any], radius_m: int) -> dic
 def _safe_hazard(provider: Any, resolved: dict[str, Any], radius_m: int, key: str) -> dict[str, Any]:
     try:
         return provider.analyze(resolved["latitude"], resolved["longitude"], radius_m)
-    except Exception as exc:
-        return {**_hazard_unavailable(key), "status": "error", "explanation": f"{LAYER_LABELS[key]}來源查詢失敗：{type(exc).__name__}。"}
+    except Exception:
+        return {**_hazard_unavailable(key), "status": "error", "explanation": f"{LAYER_LABELS[key]}來源暫時不可用。"}
 
 
 def _safe_hazard_group(provider: Any, resolved: dict[str, Any], radius_m: int, keys: Iterable[str]) -> dict[str, Any]:
@@ -177,8 +179,8 @@ def _safe_hazard_group(provider: Any, resolved: dict[str, Any], radius_m: int, k
             if "include_layers" not in str(exc):
                 raise
             result = provider.analyze(resolved["latitude"], resolved["longitude"], radius_m)
-    except Exception as exc:
-        return {key: {**_hazard_unavailable(key), "status": "error", "explanation": f"{LAYER_LABELS[key]}來源查詢失敗：{type(exc).__name__}。"} for key in keys}
+    except Exception:
+        return {key: {**_hazard_unavailable(key), "status": "error", "explanation": f"{LAYER_LABELS[key]}來源暫時不可用。"} for key in keys}
     return {key: result.get(key, _hazard_unavailable(key)) for key in keys}
 
 

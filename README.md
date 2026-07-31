@@ -241,3 +241,6 @@ valuation trust boundaries, property-case privacy, deployment declarations,
 and frontend recovery/accessibility surfaces. It does not call production,
 providers, a database, or an importer. Use
 `--skip-tests --skip-frontend-build` for contract-only validation.
+# Official data integration
+
+See [docs/official-data-provider-setup.md](docs/official-data-provider-setup.md) for the verified source boundary, offline validation commands, and credential guidance.
