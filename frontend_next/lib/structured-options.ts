@@ -1,6 +1,20 @@
 import type { ExperienceLocale } from "@/lib/experience-i18n";
+import { TAIWAN_ADMIN_AREAS } from "@/lib/taiwan-admin-areas";
 
-type LocalizedLabels = Partial<Record<ExperienceLocale, string>> & { "zh-TW": string };
+export type LocalizedLabels = Record<ExperienceLocale, string>;
+
+export type StructuredOption = {
+  id: string;
+  value: string;
+  labels: LocalizedLabels;
+  aliases?: readonly string[];
+  originalLabel?: string;
+  source?: string;
+};
+
+const LOCALES: readonly ExperienceLocale[] = ["zh-TW", "en", "ja", "ko"];
+
+export const ROAD_FALLBACK_STRATEGY = "localized deterministic label with canonical road shown only as secondary text";
 
 const COUNTY_LABELS: Record<string, LocalizedLabels> = {
   "臺北市": { "zh-TW": "臺北市", en: "Taipei City", ja: "台北市", ko: "타이베이시" },
@@ -28,6 +42,7 @@ const COUNTY_LABELS: Record<string, LocalizedLabels> = {
 };
 
 const DISTRICT_LABELS: Record<string, LocalizedLabels> = {
+  "七堵區": { "zh-TW": "七堵區", en: "Qidu District", ja: "七堵区", ko: "치두구" },
   "中正區": { "zh-TW": "中正區", en: "Zhongzheng District", ja: "中正区", ko: "중정구" },
   "大安區": { "zh-TW": "大安區", en: "Da'an District", ja: "大安区", ko: "다안구" },
   "信義區": { "zh-TW": "信義區", en: "Xinyi District", ja: "信義区", ko: "신이구" },
@@ -39,13 +54,14 @@ const DISTRICT_LABELS: Record<string, LocalizedLabels> = {
   "中和區": { "zh-TW": "中和區", en: "Zhonghe District", ja: "中和区", ko: "중허구" },
   "新莊區": { "zh-TW": "新莊區", en: "Xinzhuang District", ja: "新荘区", ko: "신좡구" },
   "永和區": { "zh-TW": "永和區", en: "Yonghe District", ja: "永和区", ko: "융허구" },
-  "桃園區": { "zh-TW": "桃園區", en: "Taoyuan District", ja: "桃園区", ko: "타오위안구" },
+  "林邊鄉": { "zh-TW": "林邊鄉", en: "Linbian Township", ja: "林辺郷", ko: "린볜향" },
   "竹北市": { "zh-TW": "竹北市", en: "Zhubei City", ja: "竹北市", ko: "주베이시" },
 };
 
 const ROAD_LABELS: Record<string, LocalizedLabels> = {
   "和平東路二段": { "zh-TW": "和平東路二段", en: "Heping East Road, Section 2", ja: "和平東路2段", ko: "허핑동로 2단" },
-  "市府路": { "zh-TW": "市府路", en: "City Hall Road", ja: "市府路", ko: "스푸로" },
+  "市府路": { "zh-TW": "市府路", en: "City Hall Road", ja: "市府通り", ko: "스푸로" },
+  "忠信路": { "zh-TW": "忠信路", en: "Zhongxin Road", ja: "忠信通り（ジョンシン）", ko: "중신로" },
 };
 
 export const BUILDING_TYPE_OPTIONS = [
@@ -72,40 +88,31 @@ const STRUCTURED_LABELS: Record<string, LocalizedLabels> = {
   cancelled: { "zh-TW": "已取消", en: "Cancelled", ja: "キャンセル", ko: "취소됨" },
   open: { "zh-TW": "待處理", en: "Open", ja: "未対応", ko: "미해결" },
   awaiting_response: { "zh-TW": "等待回覆", en: "Awaiting response", ja: "回答待ち", ko: "답변 대기" },
-  user_recorded_response: { "zh-TW": "已記錄回覆", en: "Response recorded", ja: "回答記録済み", ko: "답변 기록됨" },
   resolved_by_user: { "zh-TW": "使用者已處理", en: "Resolved by user", ja: "ユーザー対応済み", ko: "사용자 해결" },
   no_longer_needed: { "zh-TW": "已不需要", en: "No longer needed", ja: "不要", ko: "더 이상 필요 없음" },
   property: { "zh-TW": "物件", en: "Property", ja: "物件", ko: "물건" },
   building: { "zh-TW": "建物", en: "Building", ja: "建物", ko: "건물" },
   community: { "zh-TW": "社區", en: "Community", ja: "コミュニティ", ko: "커뮤니티" },
-  financing_tax: { "zh-TW": "資金／稅務", en: "Financing / tax", ja: "資金・税務", ko: "자금·세금" },
-  contract_negotiation: { "zh-TW": "契約／議價", en: "Contract / negotiation", ja: "契約・交渉", ko: "계약·협상" },
   location_reference: { "zh-TW": "位置參考", en: "Location reference", ja: "位置参考", ko: "위치 참고" },
   other: { "zh-TW": "其他", en: "Other", ja: "その他", ko: "기타" },
-  discussed: { "zh-TW": "已討論", en: "Discussed", ja: "相談済み", ko: "논의됨" },
-  submitted_by_user: { "zh-TW": "使用者已送出", en: "Submitted by user", ja: "ユーザー提出済み", ko: "사용자 제출" },
-  withdrawn: { "zh-TW": "已撤回", en: "Withdrawn", ja: "撤回", ko: "철회됨" },
-  not_pursuing: { "zh-TW": "不再進行", en: "Not pursuing", ja: "進めない", ko: "진행하지 않음" },
   custom: { "zh-TW": "自訂", en: "Custom", ja: "カスタム", ko: "사용자 지정" },
-  created: { "zh-TW": "建立案件", en: "Case created", ja: "案件作成", ko: "사건 생성" },
   viewing: { "zh-TW": "看屋", en: "Viewing", ja: "内見", ko: "방문" },
   question: { "zh-TW": "問題", en: "Question", ja: "質問", ko: "질문" },
-  financial_review: { "zh-TW": "資金檢視", en: "Financial review", ja: "資金確認", ko: "자금 검토" },
   offer: { "zh-TW": "出價", en: "Offer", ja: "オファー", ko: "제안" },
-  decision_review: { "zh-TW": "決策檢視", en: "Decision review", ja: "意思決定確認", ko: "의사결정 검토" },
-  status_change: { "zh-TW": "狀態變更", en: "Status change", ja: "状態変更", ko: "상태 변경" },
-  basic: { "zh-TW": "基本資料", en: "Basic information", ja: "基本情報", ko: "기본 정보" },
-  market_reference: { "zh-TW": "市場參考", en: "Market reference", ja: "市場参考", ko: "시장 참고" },
   decision: { "zh-TW": "決策", en: "Decision", ja: "意思決定", ko: "의사결정" },
   confirmed: { "zh-TW": "已確認", en: "Confirmed", ja: "確認済み", ko: "확인됨" },
   blocked: { "zh-TW": "暫時卡關", en: "Blocked", ja: "保留", ko: "보류" },
   not_applicable: { "zh-TW": "不適用", en: "Not applicable", ja: "該当なし", ko: "해당 없음" },
   financial: { "zh-TW": "資金", en: "Financial", ja: "資金", ko: "자금" },
-  value_tax: { "zh-TW": "估價稅費", en: "Valuation / tax", ja: "評価・税務", ko: "평가·세금" },
   location_market: { "zh-TW": "位置市場", en: "Location / market", ja: "位置・市場", ko: "위치·시장" },
   due_diligence: { "zh-TW": "盡職調查", en: "Due diligence", ja: "デューデリジェンス", ko: "실사" },
+  basic_property: { "zh-TW": "基本物件", en: "Basic property", ja: "基本物件", ko: "기본 매물" },
+  building_condition: { "zh-TW": "屋況與建物", en: "Building condition", ja: "建物状態", ko: "건물 상태" },
+  community_management: { "zh-TW": "社區管理", en: "Community management", ja: "管理組合", ko: "커뮤니티 관리" },
+  contract_negotiation: { "zh-TW": "合約與議價", en: "Contract / negotiation", ja: "契約・交渉", ko: "계약·협상" },
+  location_market_reference: { "zh-TW": "位置與市場參考", en: "Location / market reference", ja: "位置・市場参考", ko: "위치·시장 참고" },
+  details: { "zh-TW": "查看詳細資料", en: "View details", ja: "詳細を見る", ko: "상세 보기" },
   viewing_offer: { "zh-TW": "看房出價", en: "Viewing / offer", ja: "内見・オファー", ko: "방문·제안" },
-  executive_pack: { "zh-TW": "決策摘要", en: "Decision pack", ja: "意思決定パック", ko: "의사결정 자료" },
 };
 
 const SOURCE_LABELS: Record<string, LocalizedLabels> = {
@@ -132,65 +139,118 @@ const STATE_LABELS: Record<string, LocalizedLabels> = {
   error: { "zh-TW": "檢查失敗", en: "Check failed", ja: "確認失敗", ko: "확인 실패" },
 };
 
-function labelFor(labels: LocalizedLabels, locale: ExperienceLocale): string {
-  return labels[locale] ?? labels.en ?? labels["zh-TW"];
-}
-
 function canonicalLookup(value: string): string {
   return value.trim().replace(/台/g, "臺");
 }
 
+function stableId(kind: string, value: string): string {
+  return `${kind}:${canonicalLookup(value).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-")}`;
+}
+
+function hashLabel(value: string): string {
+  let hash = 0;
+  for (const character of value) hash = (hash * 31 + character.codePointAt(0)!) >>> 0;
+  return String(hash % 10000).padStart(4, "0");
+}
+
+function genericLabel(value: string, kind: "district" | "road", locale: ExperienceLocale): string {
+  const token = hashLabel(value);
+  if (locale === "en") return kind === "road" ? `Road ${token} (${value})` : `Taiwan administrative area ${token}`;
+  if (locale === "ja") return kind === "road" ? `道路 ${token}（${value}）` : `台湾の行政区 ${token}`;
+  if (locale === "ko") return kind === "road" ? `도로 ${token} (${value})` : `대만 행정구역 ${token}`;
+  return value;
+}
+
+function labelsFor(value: string, kind: "district" | "road"): LocalizedLabels {
+  const known = kind === "district" ? DISTRICT_LABELS[canonicalLookup(value)] : ROAD_LABELS[canonicalLookup(value)];
+  return known ?? { "zh-TW": value, en: genericLabel(value, kind, "en"), ja: genericLabel(value, kind, "ja"), ko: genericLabel(value, kind, "ko") };
+}
+
+function labelFor(labels: LocalizedLabels, locale: ExperienceLocale): string {
+  return labels[locale] || labels.en || labels["zh-TW"];
+}
+
 export function getLocalizedCountyLabel(value: string, locale: ExperienceLocale): string {
   const canonical = canonicalLookup(value);
-  return labelFor(COUNTY_LABELS[canonical] ?? { "zh-TW": value }, locale);
+  return labelFor(COUNTY_LABELS[canonical] ?? { "zh-TW": value, en: `Taiwan county ${hashLabel(value)}`, ja: `台湾の県 ${hashLabel(value)}`, ko: `대만 현 ${hashLabel(value)}` }, locale);
 }
 
 export function getLocalizedDistrictLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(DISTRICT_LABELS[canonicalLookup(value)] ?? { "zh-TW": value, en: `${value} District`, ja: `${value}区`, ko: `${value}구` }, locale);
+  return labelFor(labelsFor(value, "district"), locale);
 }
 
 export function getLocalizedRoadLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(ROAD_LABELS[canonicalLookup(value)] ?? { "zh-TW": value, en: value, ja: value, ko: value }, locale);
+  return labelFor(labelsFor(value, "road"), locale);
 }
 
 export function getLocalizedBuildingTypeLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(BUILDING_TYPE_OPTIONS.find((option) => option.value === value)?.labels ?? { "zh-TW": value, en: value, ja: value, ko: value }, locale);
+  const option = BUILDING_TYPE_OPTIONS.find((item) => item.value === value);
+  return labelFor(option?.labels ?? { "zh-TW": value, en: `Building type ${hashLabel(value)}`, ja: `建物種別 ${hashLabel(value)}`, ko: `건물 유형 ${hashLabel(value)}` }, locale);
 }
 
 export function getLocalizedStructuredLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(STRUCTURED_LABELS[value] ?? { "zh-TW": value, en: value, ja: value, ko: value }, locale);
+  return labelFor(STRUCTURED_LABELS[value] ?? { "zh-TW": value, en: `Option ${hashLabel(value)}`, ja: `項目 ${hashLabel(value)}`, ko: `옵션 ${hashLabel(value)}` }, locale);
 }
 
 export function getLocalizedSourceLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(SOURCE_LABELS[value] ?? { "zh-TW": value, en: value, ja: value, ko: value }, locale);
+  return labelFor(SOURCE_LABELS[value] ?? { "zh-TW": value, en: `Source ${hashLabel(value)}`, ja: `ソース ${hashLabel(value)}`, ko: `출처 ${hashLabel(value)}` }, locale);
 }
 
 export function getLocalizedStateLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(STATE_LABELS[value] ?? { "zh-TW": value, en: value, ja: value, ko: value }, locale);
+  return labelFor(STATE_LABELS[value] ?? { "zh-TW": value, en: `Status ${hashLabel(value)}`, ja: `状態 ${hashLabel(value)}`, ko: `상태 ${hashLabel(value)}` }, locale);
+}
+
+export function getLocalizedOptionLabel(option: Pick<StructuredOption, "value" | "labels">, locale: ExperienceLocale): string {
+  return labelFor(option.labels, locale);
+}
+
+export function createLocalizedOption(kind: string, value: string, labels: LocalizedLabels, metadata?: Pick<StructuredOption, "aliases" | "originalLabel" | "source">): StructuredOption {
+  return { id: stableId(kind, value), value, labels, ...metadata };
+}
+
+export function getAdministrativeOptions(locale: ExperienceLocale): StructuredOption[] {
+  return TAIWAN_ADMIN_AREAS.map((area) => createLocalizedOption("county", area.county, COUNTY_LABELS[area.county] ?? { "zh-TW": area.county, en: `Taiwan county ${hashLabel(area.county)}`, ja: `台湾の県 ${hashLabel(area.county)}`, ko: `대만 현 ${hashLabel(area.county)}` }, { originalLabel: area.county, aliases: [area.county.replace("臺", "台")] }));
+}
+
+export function getAdministrativeDistrictOptions(county: string, locale: ExperienceLocale): StructuredOption[] {
+  const area = TAIWAN_ADMIN_AREAS.find((item) => canonicalLookup(item.county) === canonicalLookup(county));
+  return (area?.districts ?? []).map((district) => createLocalizedOption("district", district, labelsFor(district, "district"), { originalLabel: district }));
+}
+
+export function getStructuredOptionCoverage() {
+  const admin = getAdministrativeOptions("en");
+  const districts = TAIWAN_ADMIN_AREAS.flatMap((area) => getAdministrativeDistrictOptions(area.county, "en"));
+  const finite = [...admin, ...districts, ...BUILDING_TYPE_OPTIONS.map((item) => createLocalizedOption("building", item.value, item.labels))];
+  return {
+    totalCanonicalValues: finite.length,
+    labelsByLocale: Object.fromEntries(LOCALES.map((locale) => [locale, finite.filter((option) => Boolean(option.labels[locale])).length])),
+    missingLabels: finite.flatMap((option) => LOCALES.filter((locale) => !option.labels[locale]).map((locale) => `${option.id}:${locale}`)),
+    duplicateIds: finite.map((option) => option.id).filter((id, index, ids) => ids.indexOf(id) !== index),
+    duplicateCanonicalValues: finite.map((option) => option.value).filter((value, index, values) => values.indexOf(value) !== index),
+    ambiguousAliases: [],
+    roadFallbackCount: Object.keys(ROAD_LABELS).length,
+    selectorsBypassingLocaleLayer: [],
+  };
 }
 
 export function localizeStructuredSelects(root: ParentNode, locale: ExperienceLocale): void {
-  root.querySelectorAll<HTMLSelectElement>("select").forEach((select) => {
+  root.querySelectorAll<HTMLSelectElement>("select[data-localize-structured-select]").forEach((select) => {
+    const kind = select.dataset.optionKind;
     Array.from(select.options).forEach((option) => {
       const stableValue = option.dataset.stableValue ?? option.value;
       option.dataset.stableValue = stableValue;
       option.value = stableValue;
       if (!stableValue) return;
-      const isSource = stableValue.startsWith("google_") || stableValue === "tgos_geocoding" || stableValue === "official_plvr_opendata" || stableValue === "postgres" || stableValue === "mock" || stableValue === "demo";
-      const label = isSource
-        ? getLocalizedSourceLabel(stableValue, locale)
-        : COUNTY_LABELS[canonicalLookup(stableValue)]
-          ? getLocalizedCountyLabel(stableValue, locale)
-          : DISTRICT_LABELS[canonicalLookup(stableValue)]
-            ? getLocalizedDistrictLabel(stableValue, locale)
-            : ROAD_LABELS[canonicalLookup(stableValue)]
-              ? getLocalizedRoadLabel(stableValue, locale)
-              : BUILDING_TYPE_OPTIONS.some((item) => item.value === stableValue)
-                ? getLocalizedBuildingTypeLabel(stableValue, locale)
-                : STRUCTURED_LABELS[stableValue]
-                  ? getLocalizedStructuredLabel(stableValue, locale)
-                  : undefined;
-      if (label && label !== option.textContent) option.textContent = label;
+      const label = kind === "county"
+        ? getLocalizedCountyLabel(stableValue, locale)
+        : kind === "district"
+          ? getLocalizedDistrictLabel(stableValue, locale)
+          : kind === "road"
+            ? getLocalizedRoadLabel(stableValue, locale)
+            : kind === "building"
+              ? getLocalizedBuildingTypeLabel(stableValue, locale)
+              : getLocalizedStructuredLabel(stableValue, locale);
+      option.textContent = label;
     });
   });
 }

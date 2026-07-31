@@ -63,6 +63,8 @@ import { PropertyCaseTimelineChart } from "@/components/data-visualization/prope
 import { PropertyCaseComparisonWorkbench } from "@/components/data-visualization/property-case-comparison-workbench";
 import { PropertyCaseEvidenceDetails } from "@/components/data-visualization/property-case-evidence-details";
 import { PropertyCaseMissingDataPanel } from "@/components/data-visualization/property-case-missing-data-panel";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { getLocalizedStructuredLabel } from "@/lib/structured-options";
 
 const DECISION_STATUS_OPTIONS: Array<{ value: PropertyDecisionStatus; label: string }> = [
   { value: "draft", label: "草稿" },
@@ -191,6 +193,7 @@ const initialState: CommandCenterState = {
 };
 
 export function PropertyCaseCommandCenter({ caseId, embedded = false, showComparison = true, initialSection = "financial", onSectionChange }: { caseId: string; embedded?: boolean; showComparison?: boolean; initialSection?: WorkspaceSectionId; onSectionChange?: (section: WorkspaceSectionId) => void }) {
+  const { locale } = useExperienceLocale();
   const [state, setState] = useState<CommandCenterState>(initialState);
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState<WorkspaceSectionId>("financial");
   useEffect(() => {
@@ -578,7 +581,7 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
                       </div>
                       <label className="block text-xs font-bold text-slate-500">檢查狀態
                         <select value={item.status} onChange={(event) => updateDueDiligenceItem(item.item_id, { status: event.target.value as DueDiligenceStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
-                          {DUE_DILIGENCE_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{DUE_DILIGENCE_STATUS_LABELS[status]}</option>)}
+                          {DUE_DILIGENCE_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{getLocalizedStructuredLabel(status, locale)}</option>)}
                         </select>
                       </label>
                     </div>
@@ -629,7 +632,7 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
                   <TextField label="參與者備註" value={log.participant_note} onChange={(value) => updateViewingLog(log.id, { participant_note: value })} placeholder="例如：家人、代書、設計師" />
                   <label className="block text-xs font-bold text-slate-500">狀態
                     <select value={log.status} onChange={(event) => updateViewingLog(log.id, { status: event.target.value as ViewingLogStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
-                      {VIEWING_LOG_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{VIEWING_LOG_STATUS_LABELS[status]}</option>)}
+                      {VIEWING_LOG_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{getLocalizedStructuredLabel(status, locale)}</option>)}
                     </select>
                   </label>
                 </div>
@@ -649,12 +652,12 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
                 <div className="grid gap-3 md:grid-cols-3">
                   <label className="block text-xs font-bold text-slate-500">分類
                     <select value={question.category} onChange={(event) => updateViewingQuestion(question.id, { category: event.target.value as ViewingQuestionCategory })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
-                      {VIEWING_QUESTION_CATEGORY_OPTIONS.map((category) => <option key={category} value={category}>{category}</option>)}
+                      {VIEWING_QUESTION_CATEGORY_OPTIONS.map((category) => <option key={category} value={category}>{getLocalizedStructuredLabel(category, locale)}</option>)}
                     </select>
                   </label>
                   <label className="block text-xs font-bold text-slate-500">狀態
                     <select value={question.status} onChange={(event) => updateViewingQuestion(question.id, { status: event.target.value as ViewingQuestionStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
-                      {VIEWING_QUESTION_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{VIEWING_QUESTION_STATUS_LABELS[status]}</option>)}
+                      {VIEWING_QUESTION_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{getLocalizedStructuredLabel(status, locale)}</option>)}
                     </select>
                   </label>
                   <TextField label="目標日期（YYYY-MM-DD）" value={question.target_date} onChange={(value) => updateViewingQuestion(question.id, { target_date: value })} placeholder="YYYY-MM-DD" />
@@ -681,7 +684,7 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
                     <TextField label="預計回覆日期（YYYY-MM-DD）" value={offer.intended_response_date} onChange={(value) => updateOfferPlan(offer.id, { intended_response_date: value })} placeholder="YYYY-MM-DD" />
                     <label className="block text-xs font-bold text-slate-500">狀態
                       <select value={offer.status} onChange={(event) => updateOfferPlan(offer.id, { status: event.target.value as OfferPlanStatus })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
-                        {OFFER_PLAN_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{OFFER_PLAN_STATUS_LABELS[status]}</option>)}
+                        {OFFER_PLAN_STATUS_OPTIONS.map((status) => <option key={status} value={status}>{getLocalizedStructuredLabel(status, locale)}</option>)}
                       </select>
                     </label>
                   </div>
@@ -741,7 +744,7 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
                   <TextField label="事件日期（YYYY-MM-DD）" value={event.event_date} onChange={(value) => updateTimelineEvent(event.id, { event_date: value })} placeholder="YYYY-MM-DD" />
                   <label className="block text-xs font-bold text-slate-500">事件類型
                     <select value={event.event_type} onChange={(input) => updateTimelineEvent(event.id, { event_type: input.target.value as TimelineEventType })} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm text-slate-900">
-                      {TIMELINE_EVENT_TYPE_OPTIONS.map((type) => <option key={type} value={type}>{type}</option>)}
+                      {TIMELINE_EVENT_TYPE_OPTIONS.map((type) => <option key={type} value={type}>{getLocalizedStructuredLabel(type, locale)}</option>)}
                     </select>
                   </label>
                   <label className="block text-xs font-bold text-slate-500">關聯區塊
@@ -808,7 +811,7 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
             <SectionHeading eyebrow="DECISION" title="狀態與下一步" />
             <label className="mt-4 block text-xs font-bold text-slate-500">決策狀態
               <select value={state.decisionStatus} onChange={(event) => update("decisionStatus", event.target.value as PropertyDecisionStatus)} className="mt-1 w-full rounded-xl border border-stone-300 px-3 py-2 text-sm">
-                {DECISION_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                {DECISION_STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{getLocalizedStructuredLabel(option.value, locale)}</option>)}
               </select>
             </label>
             <TextArea label="決策備註" value={state.decisionNote} onChange={(value) => update("decisionNote", value)} placeholder="手動記錄下一步，不自動產生買賣建議。" />

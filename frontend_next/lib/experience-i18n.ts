@@ -234,7 +234,7 @@ export function getExperienceLocaleCoverage(): Record<ExperienceLocale, { total:
   const keys = Object.keys(canonicalResource) as TranslationKey[];
   const coverage = {} as Record<ExperienceLocale, { total: number; translated: number; missing: readonly TranslationKey[] }>;
   for (const locale of SUPPORTED_LOCALES) {
-    const missing = keys.filter((key) => !resources[locale][key] || resources[locale][key] === resources[DEFAULT_LOCALE][key]);
+    const missing = keys.filter((key) => !getExperienceOverride(locale, key) && (!resources[locale][key] || resources[locale][key] === resources[DEFAULT_LOCALE][key]));
     coverage[locale] = { total: keys.length, translated: keys.length - missing.length, missing };
   }
   return coverage;

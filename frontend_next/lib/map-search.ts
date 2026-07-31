@@ -1,4 +1,5 @@
 import type { ExperienceLocale } from "@/lib/experience-i18n";
+import { getAdministrativeDistrictOptions, getAdministrativeOptions, getLocalizedRoadLabel } from "@/lib/structured-options";
 
 type SearchAlias = {
   pattern: RegExp;
@@ -25,9 +26,30 @@ const SEARCH_ALIASES: SearchAlias[] = [
   { pattern: /和平東路二段|和平東路2段/gi, replacement: "和平東路二段" },
 ];
 
-export function normalizeTaiwanPlaceQuery(query: string, _locale: ExperienceLocale): string {
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
+}
+
+function localeAliases(locale: ExperienceLocale): SearchAlias[] {
+  const aliases: SearchAlias[] = [];
+  for (const option of getAdministrativeOptions(locale)) {
+    if (option.labels[locale] !== option.value) aliases.push({ pattern: new RegExp(escapeRegExp(option.labels[locale]), "gi"), replacement: option.value });
+  }
+  for (const area of getAdministrativeOptions("zh-TW")) {
+    for (const option of getAdministrativeDistrictOptions(area.value, locale)) {
+      if (option.labels[locale] !== option.value) aliases.push({ pattern: new RegExp(escapeRegExp(option.labels[locale]), "gi"), replacement: option.value });
+    }
+  }
+  for (const road of ["和平東路二段", "市府路", "忠信路"]) {
+    const label = getLocalizedRoadLabel(road, locale);
+    if (label !== road) aliases.push({ pattern: new RegExp(escapeRegExp(label), "gi"), replacement: road });
+  }
+  return aliases;
+}
+
+export function normalizeTaiwanPlaceQuery(query: string, locale: ExperienceLocale): string {
   let normalized = query.trim().replace(/\s+/g, " ");
-  for (const alias of SEARCH_ALIASES) normalized = normalized.replace(alias.pattern, alias.replacement);
+  for (const alias of [...localeAliases(locale), ...SEARCH_ALIASES]) normalized = normalized.replace(alias.pattern, alias.replacement);
   return normalized.replace(/\s+/g, " ").trim();
 }
 

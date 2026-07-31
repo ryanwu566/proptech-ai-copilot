@@ -618,10 +618,11 @@ export function translateRuntimeCopy(locale: ExperienceLocale, key: RuntimeCopyK
 }
 
 export function getRuntimeCopyCoverage(): Record<ExperienceLocale, { total: number; missing: readonly RuntimeCopyKey[] }> {
+  const hasLocalizedValue = (locale: ExperienceLocale, key: RuntimeCopyKey) => Boolean(getRuntimeCopyOverride(locale, key) ?? resources[locale][key]);
   return {
-    "zh-TW": { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !resources["zh-TW"][key]) },
-    en: { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !resources.en[key]) },
-    ja: { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !resources.ja[key]) },
-    ko: { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !resources.ko[key]) },
+    "zh-TW": { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !hasLocalizedValue("zh-TW", key)) },
+    en: { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !hasLocalizedValue("en", key)) },
+    ja: { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !hasLocalizedValue("ja", key)) },
+    ko: { total: RUNTIME_COPY_KEYS.length, missing: RUNTIME_COPY_KEYS.filter((key) => !hasLocalizedValue("ko", key)) },
   };
 }
