@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:e2e": "set NEXT_PUBLIC_API_BASE_URL=http://e2e.test&& next build",
+    "test:e2e": "npm run build:e2e && node e2e/run-e2e.cjs",
+    "test:e2e:i18n": "npm run build:e2e && node e2e/run-e2e.cjs e2e/i18n.spec.ts",
+    "test:e2e:navigation": "npm run build:e2e && node e2e/run-e2e.cjs e2e/navigation.spec.ts",
+    "test:e2e:speech": "npm run build:e2e && node e2e/run-e2e.cjs e2e/speech.spec.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",
@@ -16,6 +21,7 @@
     "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^22",
     "@types/react": "^19",

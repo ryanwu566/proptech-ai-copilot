@@ -7,7 +7,7 @@ import { DetailDisclosure } from "@/components/detail-disclosure";
 export function PageHeader({ kicker, title, description, action, helpKey }: { kicker?: string; title: string; description: string; action?: ReactNode; helpKey?: HelpKey }) {
   const resolvedHelpKey = helpKey ?? inferHelpKey(title);
   return <div className="flex flex-wrap items-end justify-between gap-4">
-    <div>{kicker && <p className="text-[10px] font-bold tracking-[0.14em] text-cyan-700">{kicker}</p>}<div className="mt-1 flex items-center gap-2"><h1 className="text-[28px] font-bold tracking-[-0.025em] text-slate-950">{title}</h1>{resolvedHelpKey && <HelpTooltip title={HELP_CONTENT[resolvedHelpKey].title}>{HELP_CONTENT[resolvedHelpKey].body}</HelpTooltip>}</div><p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate-500">{description}</p></div>{action}
+    <div data-page-heading data-assistive-label={title} tabIndex={-1} className="outline-none">{kicker && <p className="text-[10px] font-bold tracking-[0.14em] text-cyan-700">{kicker}</p>}<div className="mt-1 flex items-center gap-2"><h1 className="text-[28px] font-bold tracking-[-0.025em] text-slate-950">{title}</h1>{resolvedHelpKey && <HelpTooltip title={HELP_CONTENT[resolvedHelpKey].title}>{HELP_CONTENT[resolvedHelpKey].body}</HelpTooltip>}</div><p className="mt-1.5 max-w-3xl text-sm leading-6 text-slate-500">{description}</p></div>{action}
   </div>;
 }
 
