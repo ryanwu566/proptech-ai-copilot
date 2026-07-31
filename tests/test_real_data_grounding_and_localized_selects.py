@@ -1,6 +1,7 @@
 """Regression checks for truthful surface states and locale-aware selectors."""
 
 from pathlib import Path
+import json
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -13,8 +14,9 @@ def read(path: str) -> str:
 
 def test_structured_option_layer_has_stable_values_and_all_supported_locales() -> None:
     source = read("frontend_next/lib/structured-options.ts")
-    assert '"臺北市": { "zh-TW": "臺北市", en: "Taipei City"' in source
-    assert '"大安區": { "zh-TW": "大安區", en: "Da\'an District"' in source
+    labels = json.loads((ROOT / "frontend_next/lib/taiwan-admin-labels.json").read_text(encoding="utf-8"))
+    assert any(entry["value"] == "臺北市" and entry["labels"]["en"] == "Taipei City" for entry in labels["entries"])
+    assert any(entry["value"] == "大安區" and entry["labels"]["en"] == "Daan District" for entry in labels["entries"])
     assert 'value: "住宅大樓"' in source
     assert "getLocalizedCountyLabel" in source
     assert "getLocalizedDistrictLabel" in source

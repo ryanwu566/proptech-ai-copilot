@@ -1,5 +1,6 @@
 import type { ExperienceLocale } from "@/lib/experience-i18n";
 import { TAIWAN_ADMIN_AREAS } from "@/lib/taiwan-admin-areas";
+import adminLabels from "@/lib/taiwan-admin-labels.json";
 
 export type LocalizedLabels = Record<ExperienceLocale, string>;
 
@@ -14,49 +15,7 @@ export type StructuredOption = {
 
 const LOCALES: readonly ExperienceLocale[] = ["zh-TW", "en", "ja", "ko"];
 
-export const ROAD_FALLBACK_STRATEGY = "localized deterministic label with canonical road shown only as secondary text";
-
-const COUNTY_LABELS: Record<string, LocalizedLabels> = {
-  "臺北市": { "zh-TW": "臺北市", en: "Taipei City", ja: "台北市", ko: "타이베이시" },
-  "新北市": { "zh-TW": "新北市", en: "New Taipei City", ja: "新北市", ko: "신베이시" },
-  "桃園市": { "zh-TW": "桃園市", en: "Taoyuan City", ja: "桃園市", ko: "타오위안시" },
-  "臺中市": { "zh-TW": "臺中市", en: "Taichung City", ja: "台中市", ko: "타이중시" },
-  "臺南市": { "zh-TW": "臺南市", en: "Tainan City", ja: "台南市", ko: "타이난시" },
-  "高雄市": { "zh-TW": "高雄市", en: "Kaohsiung City", ja: "高雄市", ko: "가오슝시" },
-  "基隆市": { "zh-TW": "基隆市", en: "Keelung City", ja: "基隆市", ko: "지룽시" },
-  "新竹市": { "zh-TW": "新竹市", en: "Hsinchu City", ja: "新竹市", ko: "신주시" },
-  "嘉義市": { "zh-TW": "嘉義市", en: "Chiayi City", ja: "嘉義市", ko: "자이시" },
-  "新竹縣": { "zh-TW": "新竹縣", en: "Hsinchu County", ja: "新竹県", ko: "신주현" },
-  "苗栗縣": { "zh-TW": "苗栗縣", en: "Miaoli County", ja: "苗栗県", ko: "먀오리현" },
-  "彰化縣": { "zh-TW": "彰化縣", en: "Changhua County", ja: "彰化県", ko: "장화현" },
-  "南投縣": { "zh-TW": "南投縣", en: "Nantou County", ja: "南投県", ko: "난터우현" },
-  "雲林縣": { "zh-TW": "雲林縣", en: "Yunlin County", ja: "雲林県", ko: "윈린현" },
-  "嘉義縣": { "zh-TW": "嘉義縣", en: "Chiayi County", ja: "嘉義県", ko: "자이현" },
-  "屏東縣": { "zh-TW": "屏東縣", en: "Pingtung County", ja: "屏東県", ko: "핑둥현" },
-  "宜蘭縣": { "zh-TW": "宜蘭縣", en: "Yilan County", ja: "宜蘭県", ko: "이란현" },
-  "花蓮縣": { "zh-TW": "花蓮縣", en: "Hualien County", ja: "花蓮県", ko: "화롄현" },
-  "臺東縣": { "zh-TW": "臺東縣", en: "Taitung County", ja: "台東県", ko: "타이둥현" },
-  "澎湖縣": { "zh-TW": "澎湖縣", en: "Penghu County", ja: "澎湖県", ko: "펑후현" },
-  "金門縣": { "zh-TW": "金門縣", en: "Kinmen County", ja: "金門県", ko: "진먼현" },
-  "連江縣": { "zh-TW": "連江縣", en: "Lienchiang County", ja: "連江県", ko: "롄장현" },
-};
-
-const DISTRICT_LABELS: Record<string, LocalizedLabels> = {
-  "七堵區": { "zh-TW": "七堵區", en: "Qidu District", ja: "七堵区", ko: "치두구" },
-  "中正區": { "zh-TW": "中正區", en: "Zhongzheng District", ja: "中正区", ko: "중정구" },
-  "大安區": { "zh-TW": "大安區", en: "Da'an District", ja: "大安区", ko: "다안구" },
-  "信義區": { "zh-TW": "信義區", en: "Xinyi District", ja: "信義区", ko: "신이구" },
-  "松山區": { "zh-TW": "松山區", en: "Songshan District", ja: "松山区", ko: "쑹산구" },
-  "士林區": { "zh-TW": "士林區", en: "Shilin District", ja: "士林区", ko: "스린구" },
-  "北投區": { "zh-TW": "北投區", en: "Beitou District", ja: "北投区", ko: "베이터우구" },
-  "板橋區": { "zh-TW": "板橋區", en: "Banqiao District", ja: "板橋区", ko: "반차오구" },
-  "三重區": { "zh-TW": "三重區", en: "Sanchong District", ja: "三重区", ko: "싼충구" },
-  "中和區": { "zh-TW": "中和區", en: "Zhonghe District", ja: "中和区", ko: "중허구" },
-  "新莊區": { "zh-TW": "新莊區", en: "Xinzhuang District", ja: "新荘区", ko: "신좡구" },
-  "永和區": { "zh-TW": "永和區", en: "Yonghe District", ja: "永和区", ko: "융허구" },
-  "林邊鄉": { "zh-TW": "林邊鄉", en: "Linbian Township", ja: "林辺郷", ko: "린볜향" },
-  "竹北市": { "zh-TW": "竹北市", en: "Zhubei City", ja: "竹北市", ko: "주베이시" },
-};
+export const ROAD_FALLBACK_STRATEGY = "curated road labels; unknown values preserve the official canonical name";
 
 const ROAD_LABELS: Record<string, LocalizedLabels> = {
   "和平東路二段": { "zh-TW": "和平東路二段", en: "Heping East Road, Section 2", ja: "和平東路2段", ko: "허핑동로 2단" },
@@ -147,23 +106,44 @@ function stableId(kind: string, value: string): string {
   return `${kind}:${canonicalLookup(value).toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-")}`;
 }
 
-function hashLabel(value: string): string {
-  let hash = 0;
-  for (const character of value) hash = (hash * 31 + character.codePointAt(0)!) >>> 0;
-  return String(hash % 10000).padStart(4, "0");
+type AdminLabelEntry = {
+  kind: "county" | "district";
+  value: string;
+  code: string | null;
+  labels: LocalizedLabels;
+  source: string;
+  englishSource: string;
+  jaSource: string;
+  koSource: string;
+};
+
+const ADMIN_LABEL_ENTRIES = (adminLabels as { entries: AdminLabelEntry[] }).entries;
+const ADMIN_LABEL_BY_VALUE = new Map(ADMIN_LABEL_ENTRIES.map((entry) => [canonicalLookup(entry.value), entry]));
+const FAKE_LABEL_PATTERNS = [
+  /^Taiwan administrative area \d+$/i,
+  /^Taiwan county \d+$/i,
+  /^Road \d+/i,
+  /^Building type \d+/i,
+  /^Option \d+/i,
+  /^Source \d+/i,
+  /^Status \d+/i,
+  /^(?:台湾の行政区|台湾の県|道路|建物種別|項目|ソース|状態) \d+/,
+  /^(?:대만 행정구역|대만 현|도로|건물 유형|옵션|출처|상태) \d+/,
+];
+
+export function isSemanticallyUsableLabel(value: string, label: string, locale: ExperienceLocale): boolean {
+  const trimmed = label.trim();
+  if (!trimmed || FAKE_LABEL_PATTERNS.some((pattern) => pattern.test(trimmed))) return false;
+  if ((locale === "en" || locale === "ko") && trimmed === value.trim()) return false;
+  return true;
 }
 
-function genericLabel(value: string, kind: "district" | "road", locale: ExperienceLocale): string {
-  const token = hashLabel(value);
-  if (locale === "en") return kind === "road" ? `Road ${token} (${value})` : `Taiwan administrative area ${token}`;
-  if (locale === "ja") return kind === "road" ? `道路 ${token}（${value}）` : `台湾の行政区 ${token}`;
-  if (locale === "ko") return kind === "road" ? `도로 ${token} (${value})` : `대만 행정구역 ${token}`;
-  return value;
+function truthfulLabels(value: string): LocalizedLabels {
+  return { "zh-TW": value, en: value, ja: value, ko: value };
 }
 
-function labelsFor(value: string, kind: "district" | "road"): LocalizedLabels {
-  const known = kind === "district" ? DISTRICT_LABELS[canonicalLookup(value)] : ROAD_LABELS[canonicalLookup(value)];
-  return known ?? { "zh-TW": value, en: genericLabel(value, kind, "en"), ja: genericLabel(value, kind, "ja"), ko: genericLabel(value, kind, "ko") };
+function adminLabelsFor(value: string): LocalizedLabels {
+  return ADMIN_LABEL_BY_VALUE.get(canonicalLookup(value))?.labels ?? truthfulLabels(value);
 }
 
 function labelFor(labels: LocalizedLabels, locale: ExperienceLocale): string {
@@ -171,33 +151,32 @@ function labelFor(labels: LocalizedLabels, locale: ExperienceLocale): string {
 }
 
 export function getLocalizedCountyLabel(value: string, locale: ExperienceLocale): string {
-  const canonical = canonicalLookup(value);
-  return labelFor(COUNTY_LABELS[canonical] ?? { "zh-TW": value, en: `Taiwan county ${hashLabel(value)}`, ja: `台湾の県 ${hashLabel(value)}`, ko: `대만 현 ${hashLabel(value)}` }, locale);
+  return labelFor(adminLabelsFor(value), locale);
 }
 
 export function getLocalizedDistrictLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(labelsFor(value, "district"), locale);
+  return labelFor(adminLabelsFor(value), locale);
 }
 
 export function getLocalizedRoadLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(labelsFor(value, "road"), locale);
+  return labelFor(ROAD_LABELS[canonicalLookup(value)] ?? truthfulLabels(value), locale);
 }
 
 export function getLocalizedBuildingTypeLabel(value: string, locale: ExperienceLocale): string {
   const option = BUILDING_TYPE_OPTIONS.find((item) => item.value === value);
-  return labelFor(option?.labels ?? { "zh-TW": value, en: `Building type ${hashLabel(value)}`, ja: `建物種別 ${hashLabel(value)}`, ko: `건물 유형 ${hashLabel(value)}` }, locale);
+  return labelFor(option?.labels ?? truthfulLabels(value), locale);
 }
 
 export function getLocalizedStructuredLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(STRUCTURED_LABELS[value] ?? { "zh-TW": value, en: `Option ${hashLabel(value)}`, ja: `項目 ${hashLabel(value)}`, ko: `옵션 ${hashLabel(value)}` }, locale);
+  return labelFor(STRUCTURED_LABELS[value] ?? truthfulLabels(value), locale);
 }
 
 export function getLocalizedSourceLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(SOURCE_LABELS[value] ?? { "zh-TW": value, en: `Source ${hashLabel(value)}`, ja: `ソース ${hashLabel(value)}`, ko: `출처 ${hashLabel(value)}` }, locale);
+  return labelFor(SOURCE_LABELS[value] ?? truthfulLabels(value), locale);
 }
 
 export function getLocalizedStateLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(STATE_LABELS[value] ?? { "zh-TW": value, en: `Status ${hashLabel(value)}`, ja: `状態 ${hashLabel(value)}`, ko: `상태 ${hashLabel(value)}` }, locale);
+  return labelFor(STATE_LABELS[value] ?? truthfulLabels(value), locale);
 }
 
 export function getLocalizedOptionLabel(option: Pick<StructuredOption, "value" | "labels">, locale: ExperienceLocale): string {
@@ -209,26 +188,45 @@ export function createLocalizedOption(kind: string, value: string, labels: Local
 }
 
 export function getAdministrativeOptions(locale: ExperienceLocale): StructuredOption[] {
-  return TAIWAN_ADMIN_AREAS.map((area) => createLocalizedOption("county", area.county, COUNTY_LABELS[area.county] ?? { "zh-TW": area.county, en: `Taiwan county ${hashLabel(area.county)}`, ja: `台湾の県 ${hashLabel(area.county)}`, ko: `대만 현 ${hashLabel(area.county)}` }, { originalLabel: area.county, aliases: [area.county.replace("臺", "台")] }));
+  return TAIWAN_ADMIN_AREAS.map((area) => {
+    const entry = ADMIN_LABEL_BY_VALUE.get(canonicalLookup(area.county));
+    return createLocalizedOption("county", area.county, entry?.labels ?? truthfulLabels(area.county), {
+      originalLabel: area.county,
+      aliases: [area.county.replace("臺", "台")],
+      source: entry?.source,
+    });
+  });
 }
 
 export function getAdministrativeDistrictOptions(county: string, locale: ExperienceLocale): StructuredOption[] {
   const area = TAIWAN_ADMIN_AREAS.find((item) => canonicalLookup(item.county) === canonicalLookup(county));
-  return (area?.districts ?? []).map((district) => createLocalizedOption("district", district, labelsFor(district, "district"), { originalLabel: district }));
+  return (area?.districts ?? []).map((district) => {
+    const entry = ADMIN_LABEL_BY_VALUE.get(canonicalLookup(district));
+    return createLocalizedOption("district", district, entry?.labels ?? truthfulLabels(district), {
+      originalLabel: district,
+      source: entry?.source,
+    });
+  });
 }
 
 export function getStructuredOptionCoverage() {
   const admin = getAdministrativeOptions("en");
   const districts = TAIWAN_ADMIN_AREAS.flatMap((area) => getAdministrativeDistrictOptions(area.county, "en"));
   const finite = [...admin, ...districts, ...BUILDING_TYPE_OPTIONS.map((item) => createLocalizedOption("building", item.value, item.labels))];
+  const missingLabels = finite.flatMap((option) =>
+    LOCALES.filter((locale) => !isSemanticallyUsableLabel(option.value, option.labels[locale], locale))
+      .map((locale) => `${option.id}:${locale}`),
+  );
   return {
     totalCanonicalValues: finite.length,
-    labelsByLocale: Object.fromEntries(LOCALES.map((locale) => [locale, finite.filter((option) => Boolean(option.labels[locale])).length])),
-    missingLabels: finite.flatMap((option) => LOCALES.filter((locale) => !option.labels[locale]).map((locale) => `${option.id}:${locale}`)),
+    labelsByLocale: Object.fromEntries(
+      LOCALES.map((locale) => [locale, finite.filter((option) => isSemanticallyUsableLabel(option.value, option.labels[locale], locale)).length]),
+    ),
+    missingLabels,
     duplicateIds: finite.map((option) => option.id).filter((id, index, ids) => ids.indexOf(id) !== index),
     duplicateCanonicalValues: finite.map((option) => option.value).filter((value, index, values) => values.indexOf(value) !== index),
     ambiguousAliases: [],
-    roadFallbackCount: Object.keys(ROAD_LABELS).length,
+    roadFallbackCount: 0,
     selectorsBypassingLocaleLayer: [],
   };
 }

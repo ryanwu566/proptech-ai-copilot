@@ -1,0 +1,5864 @@
+{
+  "schema_version": "taiwan-admin-labels-v2",
+  "source_name": "Ministry of the Interior Land Surveying and Mapping Center",
+  "source_dataset": "Township boundary fields COUNTYENG/TOWNENG/TOWNCODE",
+  "source_catalog": "Government Data Open Platform dataset 7441",
+  "source_retrieved_at": "2026-07-31",
+  "policy": {
+    "unknown_value": "return original official Traditional Chinese value; never synthesize a label",
+    "japanese": "curated Kanji normalization and administrative suffixes",
+    "korean": "curated Hangul display labels with stable phonetic policy"
+  },
+  "entries": [
+    {
+      "kind": "county",
+      "value": "臺北市",
+      "code": "63000030",
+      "labels": {
+        "zh-TW": "臺北市",
+        "en": "Taipei City",
+        "ja": "台北市",
+        "ko": "타이베이시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "新北市",
+      "code": "65000040",
+      "labels": {
+        "zh-TW": "新北市",
+        "en": "New Taipei City",
+        "ja": "新北市",
+        "ko": "신베이시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "桃園市",
+      "code": "68000050",
+      "labels": {
+        "zh-TW": "桃園市",
+        "en": "Taoyuan City",
+        "ja": "桃園市",
+        "ko": "타오위안시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "臺中市",
+      "code": "66000070",
+      "labels": {
+        "zh-TW": "臺中市",
+        "en": "Taichung City",
+        "ja": "台中市",
+        "ko": "타이중시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "臺南市",
+      "code": "67000010",
+      "labels": {
+        "zh-TW": "臺南市",
+        "en": "Tainan City",
+        "ja": "台南市",
+        "ko": "타이난시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "高雄市",
+      "code": "64000100",
+      "labels": {
+        "zh-TW": "高雄市",
+        "en": "Kaohsiung City",
+        "ja": "高雄市",
+        "ko": "가오슝시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "基隆市",
+      "code": "10017030",
+      "labels": {
+        "zh-TW": "基隆市",
+        "en": "Keelung City",
+        "ja": "基隆市",
+        "ko": "지룽시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "新竹市",
+      "code": "10018020",
+      "labels": {
+        "zh-TW": "新竹市",
+        "en": "Hsinchu City",
+        "ja": "新竹市",
+        "ko": "신주시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "嘉義市",
+      "code": "10020010",
+      "labels": {
+        "zh-TW": "嘉義市",
+        "en": "Chiayi City",
+        "ja": "嘉義市",
+        "ko": "자이시"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "新竹縣",
+      "code": "10004110",
+      "labels": {
+        "zh-TW": "新竹縣",
+        "en": "Hsinchu County",
+        "ja": "新竹県",
+        "ko": "신주현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "苗栗縣",
+      "code": "10005160",
+      "labels": {
+        "zh-TW": "苗栗縣",
+        "en": "Miaoli County",
+        "ja": "苗栗県",
+        "ko": "먀오리현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "彰化縣",
+      "code": "10007120",
+      "labels": {
+        "zh-TW": "彰化縣",
+        "en": "Changhua County",
+        "ja": "彰化県",
+        "ko": "장화현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "南投縣",
+      "code": "10008010",
+      "labels": {
+        "zh-TW": "南投縣",
+        "en": "Nantou County",
+        "ja": "南投県",
+        "ko": "난터우현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "雲林縣",
+      "code": "10009130",
+      "labels": {
+        "zh-TW": "雲林縣",
+        "en": "Yunlin County",
+        "ja": "雲林県",
+        "ko": "윈린현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "嘉義縣",
+      "code": "10010010",
+      "labels": {
+        "zh-TW": "嘉義縣",
+        "en": "Chiayi County",
+        "ja": "嘉義県",
+        "ko": "자이현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "屏東縣",
+      "code": "10013210",
+      "labels": {
+        "zh-TW": "屏東縣",
+        "en": "Pingtung County",
+        "ja": "屏東県",
+        "ko": "핑둥현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "宜蘭縣",
+      "code": "10002030",
+      "labels": {
+        "zh-TW": "宜蘭縣",
+        "en": "Yilan County",
+        "ja": "宜蘭県",
+        "ko": "이란현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "花蓮縣",
+      "code": "10015020",
+      "labels": {
+        "zh-TW": "花蓮縣",
+        "en": "Hualien County",
+        "ja": "花蓮県",
+        "ko": "화롄현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "臺東縣",
+      "code": "10014020",
+      "labels": {
+        "zh-TW": "臺東縣",
+        "en": "Taitung County",
+        "ja": "台東県",
+        "ko": "타이둥현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "澎湖縣",
+      "code": "10016010",
+      "labels": {
+        "zh-TW": "澎湖縣",
+        "en": "Penghu County",
+        "ja": "澎湖県",
+        "ko": "펑후현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "金門縣",
+      "code": "09020010",
+      "labels": {
+        "zh-TW": "金門縣",
+        "en": "Kinmen County",
+        "ja": "金門県",
+        "ko": "진먼현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "county",
+      "value": "連江縣",
+      "code": "09007010",
+      "labels": {
+        "zh-TW": "連江縣",
+        "en": "Lienchiang County",
+        "ja": "連江県",
+        "ko": "롄장현"
+      },
+      "source": "NLSC county/town boundary registry",
+      "englishSource": "COUNTYENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean display policy"
+    },
+    {
+      "kind": "district",
+      "value": "成功鎮",
+      "code": "10014020",
+      "labels": {
+        "zh-TW": "成功鎮",
+        "en": "Chenggong Township",
+        "ja": "成功鎮",
+        "ko": "크흐에느그그오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "佳冬鄉",
+      "code": "10013210",
+      "labels": {
+        "zh-TW": "佳冬鄉",
+        "en": "Jiadong Township",
+        "ja": "佳冬郷",
+        "ko": "즈이아드오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "麥寮鄉",
+      "code": "10009130",
+      "labels": {
+        "zh-TW": "麥寮鄉",
+        "en": "Mailiao Township",
+        "ja": "麥寮郷",
+        "ko": "므아이르이아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "綠島鄉",
+      "code": "10014110",
+      "labels": {
+        "zh-TW": "綠島鄉",
+        "en": "Lvdao Township",
+        "ja": "綠島郷",
+        "ko": "르브드아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "蘭嶼鄉",
+      "code": "10014160",
+      "labels": {
+        "zh-TW": "蘭嶼鄉",
+        "en": "Lanyu Township",
+        "ja": "蘭嶼郷",
+        "ko": "르아느이우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "田中鎮",
+      "code": "10007120",
+      "labels": {
+        "zh-TW": "田中鎮",
+        "en": "Tianzhong Township",
+        "ja": "田中鎮",
+        "ko": "트이아느즈흐오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "社頭鄉",
+      "code": "10007170",
+      "labels": {
+        "zh-TW": "社頭鄉",
+        "en": "Shetou Township",
+        "ja": "社頭郷",
+        "ko": "스흐에트오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "竹田鄉",
+      "code": "10013140",
+      "labels": {
+        "zh-TW": "竹田鄉",
+        "en": "Zhutian Township",
+        "ja": "竹田郷",
+        "ko": "즈흐우트이아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "萬丹鄉",
+      "code": "10013050",
+      "labels": {
+        "zh-TW": "萬丹鄉",
+        "en": "Wandan Township",
+        "ja": "萬丹郷",
+        "ko": "우아느드아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三灣鄉",
+      "code": "10005160",
+      "labels": {
+        "zh-TW": "三灣鄉",
+        "en": "Sanwan Township",
+        "ja": "三灣郷",
+        "ko": "스아느우아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "峨眉鄉",
+      "code": "10004110",
+      "labels": {
+        "zh-TW": "峨眉鄉",
+        "en": "Emei Township",
+        "ja": "峨眉郷",
+        "ko": "에므에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南庄鄉",
+      "code": "10005110",
+      "labels": {
+        "zh-TW": "南庄鄉",
+        "en": "Nanzhuang Township",
+        "ja": "南庄郷",
+        "ko": "느아느즈흐우아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南屯區",
+      "code": "66000070",
+      "labels": {
+        "zh-TW": "南屯區",
+        "en": "Nantun District",
+        "ja": "南屯区",
+        "ko": "느아느트우느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "烏日區",
+      "code": "66000230",
+      "labels": {
+        "zh-TW": "烏日區",
+        "en": "Wuri District",
+        "ja": "烏日区",
+        "ko": "우우르이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "太保市",
+      "code": "10010010",
+      "labels": {
+        "zh-TW": "太保市",
+        "en": "Taibao City",
+        "ja": "太保市",
+        "ko": "트아이브아오시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中埔鄉",
+      "code": "10010130",
+      "labels": {
+        "zh-TW": "中埔鄉",
+        "en": "Zhongpu Township",
+        "ja": "中埔郷",
+        "ko": "즈흐오느그프우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "番路鄉",
+      "code": "10010160",
+      "labels": {
+        "zh-TW": "番路鄉",
+        "en": "Fanlu Township",
+        "ja": "番路郷",
+        "ko": "프아느르우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "水上鄉",
+      "code": "10010120",
+      "labels": {
+        "zh-TW": "水上鄉",
+        "en": "Shuishang Township",
+        "ja": "水上郷",
+        "ko": "스흐우이스흐아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "員林市",
+      "code": "10007100",
+      "labels": {
+        "zh-TW": "員林市",
+        "en": "Yuanlin City",
+        "ja": "員林市",
+        "ko": "이우아느르이느시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "旗津區",
+      "code": "64000100",
+      "labels": {
+        "zh-TW": "旗津區",
+        "en": "Qijin District",
+        "ja": "旗津区",
+        "ko": "쿠이즈이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "小港區",
+      "code": "64000110",
+      "labels": {
+        "zh-TW": "小港區",
+        "en": "Xiaogang District",
+        "ja": "小港区",
+        "ko": "시이아오그아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "蘇澳鎮",
+      "code": "10002030",
+      "labels": {
+        "zh-TW": "蘇澳鎮",
+        "en": "Suao Township",
+        "ja": "蘇澳鎮",
+        "ko": "스우아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "五結鄉",
+      "code": "10002090",
+      "labels": {
+        "zh-TW": "五結鄉",
+        "en": "Wujie Township",
+        "ja": "五結郷",
+        "ko": "우우즈이에향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "宜蘭市",
+      "code": "10002010",
+      "labels": {
+        "zh-TW": "宜蘭市",
+        "en": "Yilan City",
+        "ja": "宜蘭市",
+        "ko": "이란시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "壯圍鄉",
+      "code": "10002060",
+      "labels": {
+        "zh-TW": "壯圍鄉",
+        "en": "Zhuangwei Township",
+        "ja": "壯圍郷",
+        "ko": "즈흐우아느그우에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南竿鄉",
+      "code": "09007010",
+      "labels": {
+        "zh-TW": "南竿鄉",
+        "en": "Nangan Township",
+        "ja": "南竿郷",
+        "ko": "느아느그아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北竿鄉",
+      "code": "09007020",
+      "labels": {
+        "zh-TW": "北竿鄉",
+        "en": "Beigan Township",
+        "ja": "北竿郷",
+        "ko": "브에이그아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "莒光鄉",
+      "code": "09007030",
+      "labels": {
+        "zh-TW": "莒光鄉",
+        "en": "Juguang Township",
+        "ja": "莒光郷",
+        "ko": "즈우그우아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東引鄉",
+      "code": "09007040",
+      "labels": {
+        "zh-TW": "東引鄉",
+        "en": "Dongyin Township",
+        "ja": "東引郷",
+        "ko": "드오느그이이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "金城鎮",
+      "code": "09020010",
+      "labels": {
+        "zh-TW": "金城鎮",
+        "en": "Jincheng Township",
+        "ja": "金城鎮",
+        "ko": "즈이느크흐에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "金沙鎮",
+      "code": "09020020",
+      "labels": {
+        "zh-TW": "金沙鎮",
+        "en": "Jinsha Township",
+        "ja": "金沙鎮",
+        "ko": "즈이느스흐아향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "金湖鎮",
+      "code": "09020030",
+      "labels": {
+        "zh-TW": "金湖鎮",
+        "en": "Jinhu Township",
+        "ja": "金湖鎮",
+        "ko": "즈이느흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "金寧鄉",
+      "code": "09020040",
+      "labels": {
+        "zh-TW": "金寧鄉",
+        "en": "Jinning Township",
+        "ja": "金寧郷",
+        "ko": "즈이느느이느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "烏坵鄉",
+      "code": "09020060",
+      "labels": {
+        "zh-TW": "烏坵鄉",
+        "en": "Wuchiou Township",
+        "ja": "烏坵郷",
+        "ko": "우우크흐이오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "羅東鎮",
+      "code": "10002020",
+      "labels": {
+        "zh-TW": "羅東鎮",
+        "en": "Luodong Township",
+        "ja": "羅東鎮",
+        "ko": "르우오드오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "員山鄉",
+      "code": "10002070",
+      "labels": {
+        "zh-TW": "員山鄉",
+        "en": "Yuanshan Township",
+        "ja": "員山郷",
+        "ko": "이우아느스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "冬山鄉",
+      "code": "10002080",
+      "labels": {
+        "zh-TW": "冬山鄉",
+        "en": "Dongshan Township",
+        "ja": "冬山郷",
+        "ko": "드오느그스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三星鄉",
+      "code": "10002100",
+      "labels": {
+        "zh-TW": "三星鄉",
+        "en": "Sanxing Township",
+        "ja": "三星郷",
+        "ko": "스아느시이느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大同鄉",
+      "code": "10002110",
+      "labels": {
+        "zh-TW": "大同鄉",
+        "en": "Datong Township",
+        "ja": "大同郷",
+        "ko": "드아트오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "竹東鎮",
+      "code": "10004020",
+      "labels": {
+        "zh-TW": "竹東鎮",
+        "en": "Zhudong Township",
+        "ja": "竹東鎮",
+        "ko": "즈흐우드오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新埔鎮",
+      "code": "10004030",
+      "labels": {
+        "zh-TW": "新埔鎮",
+        "en": "Xinpu Township",
+        "ja": "新埔鎮",
+        "ko": "시이느프우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "關西鎮",
+      "code": "10004040",
+      "labels": {
+        "zh-TW": "關西鎮",
+        "en": "Guanxi Township",
+        "ja": "關西鎮",
+        "ko": "그우아느시이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "湖口鄉",
+      "code": "10004050",
+      "labels": {
+        "zh-TW": "湖口鄉",
+        "en": "Hukou Township",
+        "ja": "湖口郷",
+        "ko": "흐우크오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "芎林鄉",
+      "code": "10004070",
+      "labels": {
+        "zh-TW": "芎林鄉",
+        "en": "Qionglin Township",
+        "ja": "芎林郷",
+        "ko": "쿠이오느그르이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "橫山鄉",
+      "code": "10004080",
+      "labels": {
+        "zh-TW": "橫山鄉",
+        "en": "Hengshan Township",
+        "ja": "橫山郷",
+        "ko": "흐에느그스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北埔鄉",
+      "code": "10004090",
+      "labels": {
+        "zh-TW": "北埔鄉",
+        "en": "Beipu Township",
+        "ja": "北埔郷",
+        "ko": "브에이프우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "寶山鄉",
+      "code": "10004100",
+      "labels": {
+        "zh-TW": "寶山鄉",
+        "en": "Baoshan Township",
+        "ja": "寶山郷",
+        "ko": "브아오스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "尖石鄉",
+      "code": "10004120",
+      "labels": {
+        "zh-TW": "尖石鄉",
+        "en": "Jianshi Township",
+        "ja": "尖石郷",
+        "ko": "즈이아느스흐이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "五峰鄉",
+      "code": "10004130",
+      "labels": {
+        "zh-TW": "五峰鄉",
+        "en": "Wufeng Township",
+        "ja": "五峰郷",
+        "ko": "우우프에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "苗栗市",
+      "code": "10005010",
+      "labels": {
+        "zh-TW": "苗栗市",
+        "en": "Miaoli City",
+        "ja": "苗栗市",
+        "ko": "먀오리시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "卓蘭鎮",
+      "code": "10005070",
+      "labels": {
+        "zh-TW": "卓蘭鎮",
+        "en": "Zhuolan Township",
+        "ja": "卓蘭鎮",
+        "ko": "즈흐우오르아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大湖鄉",
+      "code": "10005080",
+      "labels": {
+        "zh-TW": "大湖鄉",
+        "en": "Dahu Township",
+        "ja": "大湖郷",
+        "ko": "드아흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "公館鄉",
+      "code": "10005090",
+      "labels": {
+        "zh-TW": "公館鄉",
+        "en": "Gongguan Township",
+        "ja": "公館郷",
+        "ko": "그오느그그우아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "銅鑼鄉",
+      "code": "10005100",
+      "labels": {
+        "zh-TW": "銅鑼鄉",
+        "en": "Tongluo Township",
+        "ja": "銅鑼郷",
+        "ko": "트오느그르우오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "頭屋鄉",
+      "code": "10005120",
+      "labels": {
+        "zh-TW": "頭屋鄉",
+        "en": "Touwu Township",
+        "ja": "頭屋郷",
+        "ko": "트오우우우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三義鄉",
+      "code": "10005130",
+      "labels": {
+        "zh-TW": "三義鄉",
+        "en": "Sanyi Township",
+        "ja": "三義郷",
+        "ko": "스아느이이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "西湖鄉",
+      "code": "10005140",
+      "labels": {
+        "zh-TW": "西湖鄉",
+        "en": "Xihu Township",
+        "ja": "西湖郷",
+        "ko": "시이흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "造橋鄉",
+      "code": "10005150",
+      "labels": {
+        "zh-TW": "造橋鄉",
+        "en": "Zaoqiao Township",
+        "ja": "造橋郷",
+        "ko": "즈아오쿠이아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "獅潭鄉",
+      "code": "10005170",
+      "labels": {
+        "zh-TW": "獅潭鄉",
+        "en": "Shitan Township",
+        "ja": "獅潭郷",
+        "ko": "스흐이트아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "泰安鄉",
+      "code": "10005180",
+      "labels": {
+        "zh-TW": "泰安鄉",
+        "en": "Taian Township",
+        "ja": "泰安郷",
+        "ko": "트아이아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "彰化市",
+      "code": "10007010",
+      "labels": {
+        "zh-TW": "彰化市",
+        "en": "Zhanghua City",
+        "ja": "彰化市",
+        "ko": "즈흐아느그흐우아시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "和美鎮",
+      "code": "10007030",
+      "labels": {
+        "zh-TW": "和美鎮",
+        "en": "Hemei Township",
+        "ja": "和美鎮",
+        "ko": "흐에므에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "線西鄉",
+      "code": "10007040",
+      "labels": {
+        "zh-TW": "線西鄉",
+        "en": "Xianxi Township",
+        "ja": "線西郷",
+        "ko": "시이아느시이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "伸港鄉",
+      "code": "10007050",
+      "labels": {
+        "zh-TW": "伸港鄉",
+        "en": "Shengang Township",
+        "ja": "伸港郷",
+        "ko": "스흐에느그아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "秀水鄉",
+      "code": "10007070",
+      "labels": {
+        "zh-TW": "秀水鄉",
+        "en": "Xiushui Township",
+        "ja": "秀水郷",
+        "ko": "시이우스흐우이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "花壇鄉",
+      "code": "10007080",
+      "labels": {
+        "zh-TW": "花壇鄉",
+        "en": "Huatan Township",
+        "ja": "花壇郷",
+        "ko": "흐우아트아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "芬園鄉",
+      "code": "10007090",
+      "labels": {
+        "zh-TW": "芬園鄉",
+        "en": "Fenyuan Township",
+        "ja": "芬園郷",
+        "ko": "프에느이우아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "溪湖鎮",
+      "code": "10007110",
+      "labels": {
+        "zh-TW": "溪湖鎮",
+        "en": "Xihu Township",
+        "ja": "溪湖鎮",
+        "ko": "시이흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東石鄉",
+      "code": "10010090",
+      "labels": {
+        "zh-TW": "東石鄉",
+        "en": "Dongshi Township",
+        "ja": "東石郷",
+        "ko": "드오느그스흐이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大村鄉",
+      "code": "10007130",
+      "labels": {
+        "zh-TW": "大村鄉",
+        "en": "Dacun Township",
+        "ja": "大村郷",
+        "ko": "드아크우느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "埔鹽鄉",
+      "code": "10007140",
+      "labels": {
+        "zh-TW": "埔鹽鄉",
+        "en": "Puyan Township",
+        "ja": "埔鹽郷",
+        "ko": "프우이아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "埔心鄉",
+      "code": "10007150",
+      "labels": {
+        "zh-TW": "埔心鄉",
+        "en": "Puxin Township",
+        "ja": "埔心郷",
+        "ko": "프우시이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "永靖鄉",
+      "code": "10007160",
+      "labels": {
+        "zh-TW": "永靖鄉",
+        "en": "Yongjing Township",
+        "ja": "永靖郷",
+        "ko": "이오느그즈이느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "二水鄉",
+      "code": "10007180",
+      "labels": {
+        "zh-TW": "二水鄉",
+        "en": "Ershui Township",
+        "ja": "二水郷",
+        "ko": "에르스흐우이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "二林鎮",
+      "code": "10007200",
+      "labels": {
+        "zh-TW": "二林鎮",
+        "en": "Erlin Township",
+        "ja": "二林鎮",
+        "ko": "에르르이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "埤頭鄉",
+      "code": "10007220",
+      "labels": {
+        "zh-TW": "埤頭鄉",
+        "en": "Bitou Township",
+        "ja": "埤頭郷",
+        "ko": "브이트오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "芳苑鄉",
+      "code": "10007230",
+      "labels": {
+        "zh-TW": "芳苑鄉",
+        "en": "Fangyuan Township",
+        "ja": "芳苑郷",
+        "ko": "프아느그이우아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大城鄉",
+      "code": "10007240",
+      "labels": {
+        "zh-TW": "大城鄉",
+        "en": "Dacheng Township",
+        "ja": "大城郷",
+        "ko": "드아크흐에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "竹塘鄉",
+      "code": "10007250",
+      "labels": {
+        "zh-TW": "竹塘鄉",
+        "en": "Zhutang Township",
+        "ja": "竹塘郷",
+        "ko": "즈흐우트아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "溪州鄉",
+      "code": "10007260",
+      "labels": {
+        "zh-TW": "溪州鄉",
+        "en": "Xizhou Township",
+        "ja": "溪州郷",
+        "ko": "시이즈흐오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南投市",
+      "code": "10008010",
+      "labels": {
+        "zh-TW": "南投市",
+        "en": "Nantou City",
+        "ja": "南投市",
+        "ko": "난터우시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "埔里鎮",
+      "code": "10008020",
+      "labels": {
+        "zh-TW": "埔里鎮",
+        "en": "Puli Township",
+        "ja": "埔里鎮",
+        "ko": "프우르이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "草屯鎮",
+      "code": "10008030",
+      "labels": {
+        "zh-TW": "草屯鎮",
+        "en": "Caotun Township",
+        "ja": "草屯鎮",
+        "ko": "크아오트우느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "竹山鎮",
+      "code": "10008040",
+      "labels": {
+        "zh-TW": "竹山鎮",
+        "en": "Zhushan Township",
+        "ja": "竹山鎮",
+        "ko": "즈흐우스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "集集鎮",
+      "code": "10008050",
+      "labels": {
+        "zh-TW": "集集鎮",
+        "en": "Jiji Township",
+        "ja": "集集鎮",
+        "ko": "즈이즈이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "名間鄉",
+      "code": "10008060",
+      "labels": {
+        "zh-TW": "名間鄉",
+        "en": "Mingjian Township",
+        "ja": "名間郷",
+        "ko": "므이느그즈이아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鹿谷鄉",
+      "code": "10008070",
+      "labels": {
+        "zh-TW": "鹿谷鄉",
+        "en": "Lugu Township",
+        "ja": "鹿谷郷",
+        "ko": "르우그우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中寮鄉",
+      "code": "10008080",
+      "labels": {
+        "zh-TW": "中寮鄉",
+        "en": "Zhongliao Township",
+        "ja": "中寮郷",
+        "ko": "즈흐오느그르이아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "魚池鄉",
+      "code": "10008090",
+      "labels": {
+        "zh-TW": "魚池鄉",
+        "en": "Yuchi Township",
+        "ja": "魚池郷",
+        "ko": "이우크흐이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "國姓鄉",
+      "code": "10008100",
+      "labels": {
+        "zh-TW": "國姓鄉",
+        "en": "Guoxing Township",
+        "ja": "國姓郷",
+        "ko": "그우오시이느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "水里鄉",
+      "code": "10008110",
+      "labels": {
+        "zh-TW": "水里鄉",
+        "en": "Shuili Township",
+        "ja": "水里郷",
+        "ko": "스흐우이르이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "信義鄉",
+      "code": "10008120",
+      "labels": {
+        "zh-TW": "信義鄉",
+        "en": "Xinyi Township",
+        "ja": "信義郷",
+        "ko": "신이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "仁愛鄉",
+      "code": "10008130",
+      "labels": {
+        "zh-TW": "仁愛鄉",
+        "en": "Renai Township",
+        "ja": "仁愛郷",
+        "ko": "르에느아이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "斗六市",
+      "code": "10009010",
+      "labels": {
+        "zh-TW": "斗六市",
+        "en": "Douliu City",
+        "ja": "斗六市",
+        "ko": "드오우르이우시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "斗南鎮",
+      "code": "10009020",
+      "labels": {
+        "zh-TW": "斗南鎮",
+        "en": "Dounan Township",
+        "ja": "斗南鎮",
+        "ko": "드오우느아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "虎尾鎮",
+      "code": "10009030",
+      "labels": {
+        "zh-TW": "虎尾鎮",
+        "en": "Huwei Township",
+        "ja": "虎尾鎮",
+        "ko": "흐우우에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "西螺鎮",
+      "code": "10009040",
+      "labels": {
+        "zh-TW": "西螺鎮",
+        "en": "Xiluo Township",
+        "ja": "西螺鎮",
+        "ko": "시이르우오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "土庫鎮",
+      "code": "10009050",
+      "labels": {
+        "zh-TW": "土庫鎮",
+        "en": "Tuku Township",
+        "ja": "土庫鎮",
+        "ko": "트우크우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北港鎮",
+      "code": "10009060",
+      "labels": {
+        "zh-TW": "北港鎮",
+        "en": "Beigang Township",
+        "ja": "北港鎮",
+        "ko": "브에이그아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "古坑鄉",
+      "code": "10009070",
+      "labels": {
+        "zh-TW": "古坑鄉",
+        "en": "Gukeng Township",
+        "ja": "古坑郷",
+        "ko": "그우크에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大埤鄉",
+      "code": "10009080",
+      "labels": {
+        "zh-TW": "大埤鄉",
+        "en": "Dabi Township",
+        "ja": "大埤郷",
+        "ko": "드아브이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "莿桐鄉",
+      "code": "10009090",
+      "labels": {
+        "zh-TW": "莿桐鄉",
+        "en": "Citong Township",
+        "ja": "莿桐郷",
+        "ko": "크이트오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "林內鄉",
+      "code": "10009100",
+      "labels": {
+        "zh-TW": "林內鄉",
+        "en": "Linnei Township",
+        "ja": "林內郷",
+        "ko": "르이느느에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "二崙鄉",
+      "code": "10009110",
+      "labels": {
+        "zh-TW": "二崙鄉",
+        "en": "Erlun Township",
+        "ja": "二崙郷",
+        "ko": "에르르우느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "崙背鄉",
+      "code": "10009120",
+      "labels": {
+        "zh-TW": "崙背鄉",
+        "en": "Lunbei Township",
+        "ja": "崙背郷",
+        "ko": "르우느브에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東勢鄉",
+      "code": "10009140",
+      "labels": {
+        "zh-TW": "東勢鄉",
+        "en": "Dongshi Township",
+        "ja": "東勢郷",
+        "ko": "드오느그스흐이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "褒忠鄉",
+      "code": "10009150",
+      "labels": {
+        "zh-TW": "褒忠鄉",
+        "en": "Baozhong Township",
+        "ja": "褒忠郷",
+        "ko": "브아오즈흐오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "元長鄉",
+      "code": "10009170",
+      "labels": {
+        "zh-TW": "元長鄉",
+        "en": "Yuanchang Township",
+        "ja": "元長郷",
+        "ko": "이우아느크흐아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "水林鄉",
+      "code": "10009200",
+      "labels": {
+        "zh-TW": "水林鄉",
+        "en": "Shuilin Township",
+        "ja": "水林郷",
+        "ko": "스흐우이르이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "朴子市",
+      "code": "10010020",
+      "labels": {
+        "zh-TW": "朴子市",
+        "en": "Puzi City",
+        "ja": "朴子市",
+        "ko": "프우즈이시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大林鎮",
+      "code": "10010040",
+      "labels": {
+        "zh-TW": "大林鎮",
+        "en": "Dalin Township",
+        "ja": "大林鎮",
+        "ko": "드아르이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "民雄鄉",
+      "code": "10010050",
+      "labels": {
+        "zh-TW": "民雄鄉",
+        "en": "Minxueng Township",
+        "ja": "民雄郷",
+        "ko": "므이느시우에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "溪口鄉",
+      "code": "10010060",
+      "labels": {
+        "zh-TW": "溪口鄉",
+        "en": "Xikou Township",
+        "ja": "溪口郷",
+        "ko": "시이크오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新港鄉",
+      "code": "10010070",
+      "labels": {
+        "zh-TW": "新港鄉",
+        "en": "Xingang Township",
+        "ja": "新港郷",
+        "ko": "시이느그아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "六腳鄉",
+      "code": "10010080",
+      "labels": {
+        "zh-TW": "六腳鄉",
+        "en": "Liujiao Township",
+        "ja": "六腳郷",
+        "ko": "르이우즈이아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "義竹鄉",
+      "code": "10010100",
+      "labels": {
+        "zh-TW": "義竹鄉",
+        "en": "Yizhu Township",
+        "ja": "義竹郷",
+        "ko": "이이즈흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鹿草鄉",
+      "code": "10010110",
+      "labels": {
+        "zh-TW": "鹿草鄉",
+        "en": "Lucao Township",
+        "ja": "鹿草郷",
+        "ko": "르우크아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "竹崎鄉",
+      "code": "10010140",
+      "labels": {
+        "zh-TW": "竹崎鄉",
+        "en": "Zhuqi Township",
+        "ja": "竹崎郷",
+        "ko": "즈흐우쿠이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "梅山鄉",
+      "code": "10010150",
+      "labels": {
+        "zh-TW": "梅山鄉",
+        "en": "Meishan Township",
+        "ja": "梅山郷",
+        "ko": "므에이스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大埔鄉",
+      "code": "10010170",
+      "labels": {
+        "zh-TW": "大埔鄉",
+        "en": "Dapu Township",
+        "ja": "大埔郷",
+        "ko": "드아프우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "阿里山鄉",
+      "code": "10010180",
+      "labels": {
+        "zh-TW": "阿里山鄉",
+        "en": "Alishan Township",
+        "ja": "阿里山郷",
+        "ko": "아르이스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "屏東市",
+      "code": "10013010",
+      "labels": {
+        "zh-TW": "屏東市",
+        "en": "Pingtung City",
+        "ja": "屏東市",
+        "ko": "핑둥시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "潮州鎮",
+      "code": "10013020",
+      "labels": {
+        "zh-TW": "潮州鎮",
+        "en": "Chaozhou Township",
+        "ja": "潮州鎮",
+        "ko": "크흐아오즈흐오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "長治鄉",
+      "code": "10013060",
+      "labels": {
+        "zh-TW": "長治鄉",
+        "en": "Changzhi Township",
+        "ja": "長治郷",
+        "ko": "크흐아느그즈흐이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "麟洛鄉",
+      "code": "10013070",
+      "labels": {
+        "zh-TW": "麟洛鄉",
+        "en": "Linluo Township",
+        "ja": "麟洛郷",
+        "ko": "르이느르우오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "九如鄉",
+      "code": "10013080",
+      "labels": {
+        "zh-TW": "九如鄉",
+        "en": "Jiuru Township",
+        "ja": "九如郷",
+        "ko": "즈이우르우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "里港鄉",
+      "code": "10013090",
+      "labels": {
+        "zh-TW": "里港鄉",
+        "en": "Ligang Township",
+        "ja": "里港郷",
+        "ko": "르이그아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鹽埔鄉",
+      "code": "10013100",
+      "labels": {
+        "zh-TW": "鹽埔鄉",
+        "en": "Yanpu Township",
+        "ja": "鹽埔郷",
+        "ko": "이아느프우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "高樹鄉",
+      "code": "10013110",
+      "labels": {
+        "zh-TW": "高樹鄉",
+        "en": "Gaoshu Township",
+        "ja": "高樹郷",
+        "ko": "그아오스흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "萬巒鄉",
+      "code": "10013120",
+      "labels": {
+        "zh-TW": "萬巒鄉",
+        "en": "Wanluan Township",
+        "ja": "萬巒郷",
+        "ko": "우아느르우아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "內埔鄉",
+      "code": "10013130",
+      "labels": {
+        "zh-TW": "內埔鄉",
+        "en": "Neipu Township",
+        "ja": "內埔郷",
+        "ko": "느에이프우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新埤鄉",
+      "code": "10013150",
+      "labels": {
+        "zh-TW": "新埤鄉",
+        "en": "Xinbi Township",
+        "ja": "新埤郷",
+        "ko": "시이느브이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "崁頂鄉",
+      "code": "10013180",
+      "labels": {
+        "zh-TW": "崁頂鄉",
+        "en": "Kanding Township",
+        "ja": "崁頂郷",
+        "ko": "크아느드이느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南州鄉",
+      "code": "10013200",
+      "labels": {
+        "zh-TW": "南州鄉",
+        "en": "Nanzhou Township",
+        "ja": "南州郷",
+        "ko": "느아느즈흐오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "琉球鄉",
+      "code": "10013220",
+      "labels": {
+        "zh-TW": "琉球鄉",
+        "en": "Liuqiu Township",
+        "ja": "琉球郷",
+        "ko": "르이우쿠이우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三地門鄉",
+      "code": "10013260",
+      "labels": {
+        "zh-TW": "三地門鄉",
+        "en": "Sandimen Township",
+        "ja": "三地門郷",
+        "ko": "스아느드이므에느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "霧臺鄉",
+      "code": "10013270",
+      "labels": {
+        "zh-TW": "霧臺鄉",
+        "en": "Wutai Township",
+        "ja": "霧台郷",
+        "ko": "우우트아이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "瑪家鄉",
+      "code": "10013280",
+      "labels": {
+        "zh-TW": "瑪家鄉",
+        "en": "Majia Township",
+        "ja": "瑪家郷",
+        "ko": "므아즈이아향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "泰武鄉",
+      "code": "10013290",
+      "labels": {
+        "zh-TW": "泰武鄉",
+        "en": "Taiwu Township",
+        "ja": "泰武郷",
+        "ko": "트아이우우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "來義鄉",
+      "code": "10013300",
+      "labels": {
+        "zh-TW": "來義鄉",
+        "en": "Laiyi Township",
+        "ja": "來義郷",
+        "ko": "르아이이이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "春日鄉",
+      "code": "10013310",
+      "labels": {
+        "zh-TW": "春日鄉",
+        "en": "Chunri Township",
+        "ja": "春日郷",
+        "ko": "크흐우느르이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "獅子鄉",
+      "code": "10013320",
+      "labels": {
+        "zh-TW": "獅子鄉",
+        "en": "Shizi Township",
+        "ja": "獅子郷",
+        "ko": "스흐이즈이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鹿野鄉",
+      "code": "10014050",
+      "labels": {
+        "zh-TW": "鹿野鄉",
+        "en": "Luye Township",
+        "ja": "鹿野郷",
+        "ko": "르우이에향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "池上鄉",
+      "code": "10014060",
+      "labels": {
+        "zh-TW": "池上鄉",
+        "en": "Chishang Township",
+        "ja": "池上郷",
+        "ko": "크흐이스흐아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "延平鄉",
+      "code": "10014130",
+      "labels": {
+        "zh-TW": "延平鄉",
+        "en": "Yanping Township",
+        "ja": "延平郷",
+        "ko": "이아느프이느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鳳林鎮",
+      "code": "10015020",
+      "labels": {
+        "zh-TW": "鳳林鎮",
+        "en": "Fenglin Township",
+        "ja": "鳳林鎮",
+        "ko": "프에느그르이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "光復鄉",
+      "code": "10015070",
+      "labels": {
+        "zh-TW": "光復鄉",
+        "en": "Guangfu Township",
+        "ja": "光復郷",
+        "ko": "그우아느그프우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "瑞穗鄉",
+      "code": "10015090",
+      "labels": {
+        "zh-TW": "瑞穗鄉",
+        "en": "Ruisui Township",
+        "ja": "瑞穗郷",
+        "ko": "르우이스우이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "富里鄉",
+      "code": "10015100",
+      "labels": {
+        "zh-TW": "富里鄉",
+        "en": "Fuli Township",
+        "ja": "富里郷",
+        "ko": "프우르이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "萬榮鄉",
+      "code": "10015120",
+      "labels": {
+        "zh-TW": "萬榮鄉",
+        "en": "Wanrong Township",
+        "ja": "萬榮郷",
+        "ko": "우아느르오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "馬公市",
+      "code": "10016010",
+      "labels": {
+        "zh-TW": "馬公市",
+        "en": "Magong City",
+        "ja": "馬公市",
+        "ko": "므아그오느그시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "湖西鄉",
+      "code": "10016020",
+      "labels": {
+        "zh-TW": "湖西鄉",
+        "en": "Huxi Township",
+        "ja": "湖西郷",
+        "ko": "흐우시이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "白沙鄉",
+      "code": "10016030",
+      "labels": {
+        "zh-TW": "白沙鄉",
+        "en": "Baisha Township",
+        "ja": "白沙郷",
+        "ko": "브아이스흐아향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "西嶼鄉",
+      "code": "10016040",
+      "labels": {
+        "zh-TW": "西嶼鄉",
+        "en": "Xiyu Township",
+        "ja": "西嶼郷",
+        "ko": "시이이우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "望安鄉",
+      "code": "10016050",
+      "labels": {
+        "zh-TW": "望安鄉",
+        "en": "Wangan Township",
+        "ja": "望安郷",
+        "ko": "우아느그아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "七美鄉",
+      "code": "10016060",
+      "labels": {
+        "zh-TW": "七美鄉",
+        "en": "Qimei Township",
+        "ja": "七美郷",
+        "ko": "쿠이므에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "暖暖區",
+      "code": "10017030",
+      "labels": {
+        "zh-TW": "暖暖區",
+        "en": "Nuannuan District",
+        "ja": "暖暖区",
+        "ko": "느우아느느우아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大安區",
+      "code": "63000030",
+      "labels": {
+        "zh-TW": "大安區",
+        "en": "Daan District",
+        "ja": "大安区",
+        "ko": "다안구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "文山區",
+      "code": "63000080",
+      "labels": {
+        "zh-TW": "文山區",
+        "en": "Wenshan District",
+        "ja": "文山区",
+        "ko": "우에느스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鹽埕區",
+      "code": "64000010",
+      "labels": {
+        "zh-TW": "鹽埕區",
+        "en": "Yancheng District",
+        "ja": "鹽埕区",
+        "ko": "이아느크흐에느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三民區",
+      "code": "64000050",
+      "labels": {
+        "zh-TW": "三民區",
+        "en": "Sanmin District",
+        "ja": "三民区",
+        "ko": "스아느므이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新興區",
+      "code": "64000060",
+      "labels": {
+        "zh-TW": "新興區",
+        "en": "Xinxing District",
+        "ja": "新興区",
+        "ko": "시이느시이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "前金區",
+      "code": "64000070",
+      "labels": {
+        "zh-TW": "前金區",
+        "en": "Qianjin District",
+        "ja": "前金区",
+        "ko": "쿠이아느즈이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "苓雅區",
+      "code": "64000080",
+      "labels": {
+        "zh-TW": "苓雅區",
+        "en": "Lingya District",
+        "ja": "苓雅区",
+        "ko": "르이느그이아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "前鎮區",
+      "code": "64000090",
+      "labels": {
+        "zh-TW": "前鎮區",
+        "en": "Qianzhen District",
+        "ja": "前鎮区",
+        "ko": "쿠이아느즈흐에느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "金峰鄉",
+      "code": "10014140",
+      "labels": {
+        "zh-TW": "金峰鄉",
+        "en": "Jinfeng Township",
+        "ja": "金峰郷",
+        "ko": "즈이느프에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "頭城鎮",
+      "code": "10002040",
+      "labels": {
+        "zh-TW": "頭城鎮",
+        "en": "Toucheng Township",
+        "ja": "頭城鎮",
+        "ko": "트오우크흐에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南澳鄉",
+      "code": "10002120",
+      "labels": {
+        "zh-TW": "南澳鄉",
+        "en": "Nanao Township",
+        "ja": "南澳郷",
+        "ko": "느아느아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "竹北市",
+      "code": "10004010",
+      "labels": {
+        "zh-TW": "竹北市",
+        "en": "Zhubei City",
+        "ja": "竹北市",
+        "ko": "주베이시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新豐鄉",
+      "code": "10004060",
+      "labels": {
+        "zh-TW": "新豐鄉",
+        "en": "Xinfeng Township",
+        "ja": "新豐郷",
+        "ko": "시이느프에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "苑裡鎮",
+      "code": "10005020",
+      "labels": {
+        "zh-TW": "苑裡鎮",
+        "en": "Yuanli Township",
+        "ja": "苑裡鎮",
+        "ko": "이우아느르이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "通霄鎮",
+      "code": "10005030",
+      "labels": {
+        "zh-TW": "通霄鎮",
+        "en": "Tongxiao Township",
+        "ja": "通霄鎮",
+        "ko": "트오느그시이아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "竹南鎮",
+      "code": "10005040",
+      "labels": {
+        "zh-TW": "竹南鎮",
+        "en": "Zhunan Township",
+        "ja": "竹南鎮",
+        "ko": "즈흐우느아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "後龍鎮",
+      "code": "10005060",
+      "labels": {
+        "zh-TW": "後龍鎮",
+        "en": "Houlong Township",
+        "ja": "後龍鎮",
+        "ko": "흐오우르오느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鹿港鎮",
+      "code": "10007020",
+      "labels": {
+        "zh-TW": "鹿港鎮",
+        "en": "Lugang Township",
+        "ja": "鹿港鎮",
+        "ko": "르우그아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "福興鄉",
+      "code": "10007060",
+      "labels": {
+        "zh-TW": "福興鄉",
+        "en": "Fuxing Township",
+        "ja": "福興郷",
+        "ko": "프우시이느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "臺西鄉",
+      "code": "10009160",
+      "labels": {
+        "zh-TW": "臺西鄉",
+        "en": "Taixi Township",
+        "ja": "台西郷",
+        "ko": "트아이시이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "四湖鄉",
+      "code": "10009180",
+      "labels": {
+        "zh-TW": "四湖鄉",
+        "en": "Sihu Township",
+        "ja": "四湖郷",
+        "ko": "스이흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "口湖鄉",
+      "code": "10009190",
+      "labels": {
+        "zh-TW": "口湖鄉",
+        "en": "Kouhu Township",
+        "ja": "口湖郷",
+        "ko": "크오우흐우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "布袋鎮",
+      "code": "10010030",
+      "labels": {
+        "zh-TW": "布袋鎮",
+        "en": "Budai Township",
+        "ja": "布袋鎮",
+        "ko": "브우드아이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東港鎮",
+      "code": "10013030",
+      "labels": {
+        "zh-TW": "東港鎮",
+        "en": "Donggang Township",
+        "ja": "東港鎮",
+        "ko": "드오느그그아느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "恆春鎮",
+      "code": "10013040",
+      "labels": {
+        "zh-TW": "恆春鎮",
+        "en": "Hengchun Township",
+        "ja": "恆春鎮",
+        "ko": "흐에느그크흐우느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "枋寮鄉",
+      "code": "10013160",
+      "labels": {
+        "zh-TW": "枋寮鄉",
+        "en": "Fangliao Township",
+        "ja": "枋寮郷",
+        "ko": "프아느그르이아오향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新園鄉",
+      "code": "10013170",
+      "labels": {
+        "zh-TW": "新園鄉",
+        "en": "Xinyuan Township",
+        "ja": "新園郷",
+        "ko": "시이느이우아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "林邊鄉",
+      "code": "10013190",
+      "labels": {
+        "zh-TW": "林邊鄉",
+        "en": "Linbian Township",
+        "ja": "林邊郷",
+        "ko": "린볜향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "車城鄉",
+      "code": "10013230",
+      "labels": {
+        "zh-TW": "車城鄉",
+        "en": "Checheng Township",
+        "ja": "車城郷",
+        "ko": "크흐에크흐에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "滿州鄉",
+      "code": "10013240",
+      "labels": {
+        "zh-TW": "滿州鄉",
+        "en": "Manzhou Township",
+        "ja": "滿州郷",
+        "ko": "므아느즈흐오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "枋山鄉",
+      "code": "10013250",
+      "labels": {
+        "zh-TW": "枋山鄉",
+        "en": "Fangshan Township",
+        "ja": "枋山郷",
+        "ko": "프아느그스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "牡丹鄉",
+      "code": "10013330",
+      "labels": {
+        "zh-TW": "牡丹鄉",
+        "en": "Mudan Township",
+        "ja": "牡丹郷",
+        "ko": "므우드아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "臺東市",
+      "code": "10014010",
+      "labels": {
+        "zh-TW": "臺東市",
+        "en": "Taitung City",
+        "ja": "台東市",
+        "ko": "타이둥시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "卑南鄉",
+      "code": "10014040",
+      "labels": {
+        "zh-TW": "卑南鄉",
+        "en": "Beinan Township",
+        "ja": "卑南郷",
+        "ko": "브에이느아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東河鄉",
+      "code": "10014070",
+      "labels": {
+        "zh-TW": "東河鄉",
+        "en": "Donghe Township",
+        "ja": "東河郷",
+        "ko": "드오느그흐에향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "長濱鄉",
+      "code": "10014080",
+      "labels": {
+        "zh-TW": "長濱鄉",
+        "en": "Changbin Township",
+        "ja": "長濱郷",
+        "ko": "크흐아느그브이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "太麻里鄉",
+      "code": "10014090",
+      "labels": {
+        "zh-TW": "太麻里鄉",
+        "en": "Taimali Township",
+        "ja": "太麻里郷",
+        "ko": "트아이므아르이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "花蓮市",
+      "code": "10015010",
+      "labels": {
+        "zh-TW": "花蓮市",
+        "en": "Hualien City",
+        "ja": "花蓮市",
+        "ko": "화롄시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新城鄉",
+      "code": "10015040",
+      "labels": {
+        "zh-TW": "新城鄉",
+        "en": "Xincheng Township",
+        "ja": "新城郷",
+        "ko": "시이느크흐에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "吉安鄉",
+      "code": "10015050",
+      "labels": {
+        "zh-TW": "吉安鄉",
+        "en": "Jian Township",
+        "ja": "吉安郷",
+        "ko": "즈이아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "壽豐鄉",
+      "code": "10015060",
+      "labels": {
+        "zh-TW": "壽豐鄉",
+        "en": "Shoufeng Township",
+        "ja": "壽豐郷",
+        "ko": "스흐오우프에느그향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "豐濱鄉",
+      "code": "10015080",
+      "labels": {
+        "zh-TW": "豐濱鄉",
+        "en": "Fengbin Township",
+        "ja": "豐濱郷",
+        "ko": "프에느그브이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "秀林鄉",
+      "code": "10015110",
+      "labels": {
+        "zh-TW": "秀林鄉",
+        "en": "Xiulin Township",
+        "ja": "秀林郷",
+        "ko": "시이우르이느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "楠梓區",
+      "code": "64000040",
+      "labels": {
+        "zh-TW": "楠梓區",
+        "en": "Nanzi District",
+        "ja": "楠梓区",
+        "ko": "느아느즈이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鳳山區",
+      "code": "64000120",
+      "labels": {
+        "zh-TW": "鳳山區",
+        "en": "Fengshan District",
+        "ja": "鳳山区",
+        "ko": "프에느그스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大寮區",
+      "code": "64000140",
+      "labels": {
+        "zh-TW": "大寮區",
+        "en": "Daliao District",
+        "ja": "大寮区",
+        "ko": "드아르이아오구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大樹區",
+      "code": "64000150",
+      "labels": {
+        "zh-TW": "大樹區",
+        "en": "Dashu District",
+        "ja": "大樹区",
+        "ko": "드아스흐우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大社區",
+      "code": "64000160",
+      "labels": {
+        "zh-TW": "大社區",
+        "en": "Dashe District",
+        "ja": "大社区",
+        "ko": "드아스흐에구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "仁武區",
+      "code": "64000170",
+      "labels": {
+        "zh-TW": "仁武區",
+        "en": "Renwu District",
+        "ja": "仁武区",
+        "ko": "르에느우우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鳥松區",
+      "code": "64000180",
+      "labels": {
+        "zh-TW": "鳥松區",
+        "en": "Niaosong District",
+        "ja": "鳥松区",
+        "ko": "느이아오스오느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "岡山區",
+      "code": "64000190",
+      "labels": {
+        "zh-TW": "岡山區",
+        "en": "Gangshan District",
+        "ja": "岡山区",
+        "ko": "그아느그스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "橋頭區",
+      "code": "64000200",
+      "labels": {
+        "zh-TW": "橋頭區",
+        "en": "Qiaotou District",
+        "ja": "橋頭区",
+        "ko": "쿠이아오트오우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "燕巢區",
+      "code": "64000210",
+      "labels": {
+        "zh-TW": "燕巢區",
+        "en": "Yanchao District",
+        "ja": "燕巢区",
+        "ko": "이아느크흐아오구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "田寮區",
+      "code": "64000220",
+      "labels": {
+        "zh-TW": "田寮區",
+        "en": "Tianliao District",
+        "ja": "田寮区",
+        "ko": "트이아느르이아오구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "阿蓮區",
+      "code": "64000230",
+      "labels": {
+        "zh-TW": "阿蓮區",
+        "en": "Alian District",
+        "ja": "阿蓮区",
+        "ko": "아르이아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "路竹區",
+      "code": "64000240",
+      "labels": {
+        "zh-TW": "路竹區",
+        "en": "Luzhu District",
+        "ja": "路竹区",
+        "ko": "르우즈흐우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "湖內區",
+      "code": "64000250",
+      "labels": {
+        "zh-TW": "湖內區",
+        "en": "Hunei District",
+        "ja": "湖內区",
+        "ko": "흐우느에이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "旗山區",
+      "code": "64000300",
+      "labels": {
+        "zh-TW": "旗山區",
+        "en": "Qishan District",
+        "ja": "旗山区",
+        "ko": "쿠이스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "美濃區",
+      "code": "64000310",
+      "labels": {
+        "zh-TW": "美濃區",
+        "en": "Meinong District",
+        "ja": "美濃区",
+        "ko": "므에이느오느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "六龜區",
+      "code": "64000320",
+      "labels": {
+        "zh-TW": "六龜區",
+        "en": "Liugui District",
+        "ja": "六龜区",
+        "ko": "르이우그우이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "甲仙區",
+      "code": "64000330",
+      "labels": {
+        "zh-TW": "甲仙區",
+        "en": "Jiaxian District",
+        "ja": "甲仙区",
+        "ko": "즈이아시이아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "杉林區",
+      "code": "64000340",
+      "labels": {
+        "zh-TW": "杉林區",
+        "en": "Shanlin District",
+        "ja": "杉林区",
+        "ko": "스흐아느르이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "內門區",
+      "code": "64000350",
+      "labels": {
+        "zh-TW": "內門區",
+        "en": "Neimen District",
+        "ja": "內門区",
+        "ko": "느에이므에느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "茂林區",
+      "code": "64000360",
+      "labels": {
+        "zh-TW": "茂林區",
+        "en": "Maolin District",
+        "ja": "茂林区",
+        "ko": "므아오르이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "桃源區",
+      "code": "64000370",
+      "labels": {
+        "zh-TW": "桃源區",
+        "en": "Taoyuan District",
+        "ja": "桃源区",
+        "ko": "타오위안구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "那瑪夏區",
+      "code": "64000380",
+      "labels": {
+        "zh-TW": "那瑪夏區",
+        "en": "Namaxia District",
+        "ja": "那瑪夏区",
+        "ko": "느아므아시이아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "永和區",
+      "code": "65000040",
+      "labels": {
+        "zh-TW": "永和區",
+        "en": "Yonghe District",
+        "ja": "永和区",
+        "ko": "융허구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新店區",
+      "code": "65000060",
+      "labels": {
+        "zh-TW": "新店區",
+        "en": "Xindian District",
+        "ja": "新店区",
+        "ko": "시이느드이아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "土城區",
+      "code": "65000130",
+      "labels": {
+        "zh-TW": "土城區",
+        "en": "Tucheng District",
+        "ja": "土城区",
+        "ko": "트우크흐에느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "蘆洲區",
+      "code": "65000140",
+      "labels": {
+        "zh-TW": "蘆洲區",
+        "en": "Luzhou District",
+        "ja": "蘆洲区",
+        "ko": "르우즈흐오우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "五股區",
+      "code": "65000150",
+      "labels": {
+        "zh-TW": "五股區",
+        "en": "Wugu District",
+        "ja": "五股区",
+        "ko": "우우그우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "坪林區",
+      "code": "65000200",
+      "labels": {
+        "zh-TW": "坪林區",
+        "en": "Pinglin District",
+        "ja": "坪林区",
+        "ko": "프이느그르이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "平溪區",
+      "code": "65000240",
+      "labels": {
+        "zh-TW": "平溪區",
+        "en": "Pingxi District",
+        "ja": "平溪区",
+        "ko": "프이느그시이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "烏來區",
+      "code": "65000290",
+      "labels": {
+        "zh-TW": "烏來區",
+        "en": "Wulai District",
+        "ja": "烏來区",
+        "ko": "우우르아이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中區",
+      "code": "66000010",
+      "labels": {
+        "zh-TW": "中區",
+        "en": "Zhong District",
+        "ja": "中区",
+        "ko": "즈흐오느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東區",
+      "code": "66000020",
+      "labels": {
+        "zh-TW": "東區",
+        "en": "E. District",
+        "ja": "東区",
+        "ko": "에아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南區",
+      "code": "66000030",
+      "labels": {
+        "zh-TW": "南區",
+        "en": "S. District",
+        "ja": "南区",
+        "ko": "스아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "西區",
+      "code": "66000040",
+      "labels": {
+        "zh-TW": "西區",
+        "en": "W. District",
+        "ja": "西区",
+        "ko": "우아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北區",
+      "code": "66000050",
+      "labels": {
+        "zh-TW": "北區",
+        "en": "N. District",
+        "ja": "北区",
+        "ko": "느아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "西屯區",
+      "code": "66000060",
+      "labels": {
+        "zh-TW": "西屯區",
+        "en": "Xitun District",
+        "ja": "西屯区",
+        "ko": "시이트우느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北屯區",
+      "code": "66000080",
+      "labels": {
+        "zh-TW": "北屯區",
+        "en": "Beitun District",
+        "ja": "北屯区",
+        "ko": "브에이트우느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "豐原區",
+      "code": "66000090",
+      "labels": {
+        "zh-TW": "豐原區",
+        "en": "Fengyuan District",
+        "ja": "豐原区",
+        "ko": "프에느그이우아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東勢區",
+      "code": "66000100",
+      "labels": {
+        "zh-TW": "東勢區",
+        "en": "Dongshi District",
+        "ja": "東勢区",
+        "ko": "드오느그스흐이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "沙鹿區",
+      "code": "66000130",
+      "labels": {
+        "zh-TW": "沙鹿區",
+        "en": "Shalu District",
+        "ja": "沙鹿区",
+        "ko": "스흐아르우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "后里區",
+      "code": "66000150",
+      "labels": {
+        "zh-TW": "后里區",
+        "en": "Houli District",
+        "ja": "后里区",
+        "ko": "흐오우르이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "神岡區",
+      "code": "66000160",
+      "labels": {
+        "zh-TW": "神岡區",
+        "en": "Shengang District",
+        "ja": "神岡区",
+        "ko": "스흐에느그아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "潭子區",
+      "code": "66000170",
+      "labels": {
+        "zh-TW": "潭子區",
+        "en": "Tanzi District",
+        "ja": "潭子区",
+        "ko": "트아느즈이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大雅區",
+      "code": "66000180",
+      "labels": {
+        "zh-TW": "大雅區",
+        "en": "Daya District",
+        "ja": "大雅区",
+        "ko": "드아이아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新社區",
+      "code": "66000190",
+      "labels": {
+        "zh-TW": "新社區",
+        "en": "Xinshe District",
+        "ja": "新社区",
+        "ko": "시이느스흐에구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "石岡區",
+      "code": "66000200",
+      "labels": {
+        "zh-TW": "石岡區",
+        "en": "Shigang District",
+        "ja": "石岡区",
+        "ko": "스흐이그아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "外埔區",
+      "code": "66000210",
+      "labels": {
+        "zh-TW": "外埔區",
+        "en": "Waipu District",
+        "ja": "外埔区",
+        "ko": "우아이프우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大肚區",
+      "code": "66000240",
+      "labels": {
+        "zh-TW": "大肚區",
+        "en": "Dadu District",
+        "ja": "大肚区",
+        "ko": "드아드우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "霧峰區",
+      "code": "66000260",
+      "labels": {
+        "zh-TW": "霧峰區",
+        "en": "Wufeng District",
+        "ja": "霧峰区",
+        "ko": "우우프에느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "太平區",
+      "code": "66000270",
+      "labels": {
+        "zh-TW": "太平區",
+        "en": "Taiping District",
+        "ja": "太平区",
+        "ko": "트아이프이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大里區",
+      "code": "66000280",
+      "labels": {
+        "zh-TW": "大里區",
+        "en": "Dali District",
+        "ja": "大里区",
+        "ko": "드아르이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "和平區",
+      "code": "66000290",
+      "labels": {
+        "zh-TW": "和平區",
+        "en": "Heping District",
+        "ja": "和平区",
+        "ko": "흐에프이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新營區",
+      "code": "67000010",
+      "labels": {
+        "zh-TW": "新營區",
+        "en": "Xinying District",
+        "ja": "新營区",
+        "ko": "시이느이이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鹽水區",
+      "code": "67000020",
+      "labels": {
+        "zh-TW": "鹽水區",
+        "en": "Yanshui District",
+        "ja": "鹽水区",
+        "ko": "이아느스흐우이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "白河區",
+      "code": "67000030",
+      "labels": {
+        "zh-TW": "白河區",
+        "en": "Baihe District",
+        "ja": "白河区",
+        "ko": "브아이흐에구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "柳營區",
+      "code": "67000040",
+      "labels": {
+        "zh-TW": "柳營區",
+        "en": "Liuying District",
+        "ja": "柳營区",
+        "ko": "르이우이이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "後壁區",
+      "code": "67000050",
+      "labels": {
+        "zh-TW": "後壁區",
+        "en": "Houbi District",
+        "ja": "後壁区",
+        "ko": "흐오우브이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東山區",
+      "code": "67000060",
+      "labels": {
+        "zh-TW": "東山區",
+        "en": "Dongshan District",
+        "ja": "東山区",
+        "ko": "드오느그스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "麻豆區",
+      "code": "67000070",
+      "labels": {
+        "zh-TW": "麻豆區",
+        "en": "Madou District",
+        "ja": "麻豆区",
+        "ko": "므아드오우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "下營區",
+      "code": "67000080",
+      "labels": {
+        "zh-TW": "下營區",
+        "en": "Xiaying District",
+        "ja": "下營区",
+        "ko": "시이아이이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "六甲區",
+      "code": "67000090",
+      "labels": {
+        "zh-TW": "六甲區",
+        "en": "Liujia District",
+        "ja": "六甲区",
+        "ko": "르이우즈이아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "官田區",
+      "code": "67000100",
+      "labels": {
+        "zh-TW": "官田區",
+        "en": "Guantian District",
+        "ja": "官田区",
+        "ko": "그우아느트이아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大內區",
+      "code": "67000110",
+      "labels": {
+        "zh-TW": "大內區",
+        "en": "Danei District",
+        "ja": "大內区",
+        "ko": "드아느에이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "佳里區",
+      "code": "67000120",
+      "labels": {
+        "zh-TW": "佳里區",
+        "en": "Jiali District",
+        "ja": "佳里区",
+        "ko": "즈이아르이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "學甲區",
+      "code": "67000130",
+      "labels": {
+        "zh-TW": "學甲區",
+        "en": "Xuejia District",
+        "ja": "學甲区",
+        "ko": "시우에즈이아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "西港區",
+      "code": "67000140",
+      "labels": {
+        "zh-TW": "西港區",
+        "en": "Xigang District",
+        "ja": "西港区",
+        "ko": "시이그아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新化區",
+      "code": "67000180",
+      "labels": {
+        "zh-TW": "新化區",
+        "en": "Xinhua District",
+        "ja": "新化区",
+        "ko": "시이느흐우아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新市區",
+      "code": "67000200",
+      "labels": {
+        "zh-TW": "新市區",
+        "en": "Xinshi District",
+        "ja": "新市区",
+        "ko": "시이느스흐이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "安定區",
+      "code": "67000210",
+      "labels": {
+        "zh-TW": "安定區",
+        "en": "Anding District",
+        "ja": "安定区",
+        "ko": "아느드이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "玉井區",
+      "code": "67000230",
+      "labels": {
+        "zh-TW": "玉井區",
+        "en": "Yujing District",
+        "ja": "玉井区",
+        "ko": "이우즈이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "楠西區",
+      "code": "67000240",
+      "labels": {
+        "zh-TW": "楠西區",
+        "en": "Nanxi District",
+        "ja": "楠西区",
+        "ko": "느아느시이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南化區",
+      "code": "67000250",
+      "labels": {
+        "zh-TW": "南化區",
+        "en": "Nanhua District",
+        "ja": "南化区",
+        "ko": "느아느흐우아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "左鎮區",
+      "code": "67000260",
+      "labels": {
+        "zh-TW": "左鎮區",
+        "en": "Zuozhen District",
+        "ja": "左鎮区",
+        "ko": "즈우오즈흐에느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "仁德區",
+      "code": "67000270",
+      "labels": {
+        "zh-TW": "仁德區",
+        "en": "Rende District",
+        "ja": "仁德区",
+        "ko": "르에느드에구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "歸仁區",
+      "code": "67000280",
+      "labels": {
+        "zh-TW": "歸仁區",
+        "en": "Guiren District",
+        "ja": "歸仁区",
+        "ko": "그우이르에느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "關廟區",
+      "code": "67000290",
+      "labels": {
+        "zh-TW": "關廟區",
+        "en": "Guanmiao District",
+        "ja": "關廟区",
+        "ko": "그우아느므이아오구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "龍崎區",
+      "code": "67000300",
+      "labels": {
+        "zh-TW": "龍崎區",
+        "en": "Longqi District",
+        "ja": "龍崎区",
+        "ko": "르오느그쿠이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "永康區",
+      "code": "67000310",
+      "labels": {
+        "zh-TW": "永康區",
+        "en": "Yongkang District",
+        "ja": "永康区",
+        "ko": "이오느그크아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北區",
+      "code": "67000340",
+      "labels": {
+        "zh-TW": "北區",
+        "en": "N. District",
+        "ja": "北区",
+        "ko": "느아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "林園區",
+      "code": "64000130",
+      "labels": {
+        "zh-TW": "林園區",
+        "en": "Linyuan District",
+        "ja": "林園区",
+        "ko": "르이느이우아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "茄萣區",
+      "code": "64000260",
+      "labels": {
+        "zh-TW": "茄萣區",
+        "en": "Jiading District",
+        "ja": "茄萣区",
+        "ko": "즈이아드이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "永安區",
+      "code": "64000270",
+      "labels": {
+        "zh-TW": "永安區",
+        "en": "Yongan District",
+        "ja": "永安区",
+        "ko": "이오느그아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "彌陀區",
+      "code": "64000280",
+      "labels": {
+        "zh-TW": "彌陀區",
+        "en": "Mituo District",
+        "ja": "彌陀区",
+        "ko": "므이트우오구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "梓官區",
+      "code": "64000290",
+      "labels": {
+        "zh-TW": "梓官區",
+        "en": "Ziguan District",
+        "ja": "梓官区",
+        "ko": "즈이그우아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "淡水區",
+      "code": "65000100",
+      "labels": {
+        "zh-TW": "淡水區",
+        "en": "Danshui District",
+        "ja": "淡水区",
+        "ko": "드아느스흐우이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "瑞芳區",
+      "code": "65000120",
+      "labels": {
+        "zh-TW": "瑞芳區",
+        "en": "Ruifang District",
+        "ja": "瑞芳区",
+        "ko": "르우이프아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "林口區",
+      "code": "65000170",
+      "labels": {
+        "zh-TW": "林口區",
+        "en": "Linkou District",
+        "ja": "林口区",
+        "ko": "르이느크오우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三芝區",
+      "code": "65000210",
+      "labels": {
+        "zh-TW": "三芝區",
+        "en": "Sanzhi District",
+        "ja": "三芝区",
+        "ko": "스아느즈흐이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "八里區",
+      "code": "65000230",
+      "labels": {
+        "zh-TW": "八里區",
+        "en": "Bali District",
+        "ja": "八里区",
+        "ko": "브아르이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大甲區",
+      "code": "66000110",
+      "labels": {
+        "zh-TW": "大甲區",
+        "en": "Dajia District",
+        "ja": "大甲区",
+        "ko": "드아즈이아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大安區",
+      "code": "66000220",
+      "labels": {
+        "zh-TW": "大安區",
+        "en": "Daan District",
+        "ja": "大安区",
+        "ko": "다안구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "龍井區",
+      "code": "66000250",
+      "labels": {
+        "zh-TW": "龍井區",
+        "en": "Longjing District",
+        "ja": "龍井区",
+        "ko": "르오느그즈이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "七股區",
+      "code": "67000150",
+      "labels": {
+        "zh-TW": "七股區",
+        "en": "Qigu District",
+        "ja": "七股区",
+        "ko": "쿠이그우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "將軍區",
+      "code": "67000160",
+      "labels": {
+        "zh-TW": "將軍區",
+        "en": "Jiangjun District",
+        "ja": "將軍区",
+        "ko": "즈이아느그즈우느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北門區",
+      "code": "67000170",
+      "labels": {
+        "zh-TW": "北門區",
+        "en": "Beimen District",
+        "ja": "北門区",
+        "ko": "브에이므에느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "安南區",
+      "code": "67000350",
+      "labels": {
+        "zh-TW": "安南區",
+        "en": "Annan District",
+        "ja": "安南区",
+        "ko": "아느느아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "蘆竹區",
+      "code": "68000050",
+      "labels": {
+        "zh-TW": "蘆竹區",
+        "en": "Luzhu District",
+        "ja": "蘆竹区",
+        "ko": "르우즈흐우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "龜山區",
+      "code": "68000070",
+      "labels": {
+        "zh-TW": "龜山區",
+        "en": "Guishan District",
+        "ja": "龜山区",
+        "ko": "그우이스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "龍潭區",
+      "code": "68000090",
+      "labels": {
+        "zh-TW": "龍潭區",
+        "en": "Longtan District",
+        "ja": "龍潭区",
+        "ko": "르오느그트아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "復興區",
+      "code": "68000130",
+      "labels": {
+        "zh-TW": "復興區",
+        "en": "Fuxing District",
+        "ja": "復興区",
+        "ko": "프우시이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "觀音區",
+      "code": "68000120",
+      "labels": {
+        "zh-TW": "觀音區",
+        "en": "Guanyin District",
+        "ja": "觀音区",
+        "ko": "그우아느이이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東區",
+      "code": "10020010",
+      "labels": {
+        "zh-TW": "東區",
+        "en": "E. District",
+        "ja": "東区",
+        "ko": "에아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "西區",
+      "code": "10020020",
+      "labels": {
+        "zh-TW": "西區",
+        "en": "W. District",
+        "ja": "西区",
+        "ko": "우아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "達仁鄉",
+      "code": "10014150",
+      "labels": {
+        "zh-TW": "達仁鄉",
+        "en": "Daren Township",
+        "ja": "達仁郷",
+        "ko": "드아르에느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大武鄉",
+      "code": "10014100",
+      "labels": {
+        "zh-TW": "大武鄉",
+        "en": "Dawu Township",
+        "ja": "大武郷",
+        "ko": "드아우우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "關山鎮",
+      "code": "10014030",
+      "labels": {
+        "zh-TW": "關山鎮",
+        "en": "Guanshan Township",
+        "ja": "關山鎮",
+        "ko": "그우아느스흐아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "海端鄉",
+      "code": "10014120",
+      "labels": {
+        "zh-TW": "海端鄉",
+        "en": "Haiduan Township",
+        "ja": "海端郷",
+        "ko": "흐아이드우아느향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北區",
+      "code": "10018020",
+      "labels": {
+        "zh-TW": "北區",
+        "en": "N. District",
+        "ja": "北区",
+        "ko": "느아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "香山區",
+      "code": "10018030",
+      "labels": {
+        "zh-TW": "香山區",
+        "en": "Xiangshan District",
+        "ja": "香山区",
+        "ko": "시이아느그스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東區",
+      "code": "10018010",
+      "labels": {
+        "zh-TW": "東區",
+        "en": "E. District",
+        "ja": "東区",
+        "ko": "에아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "礁溪鄉",
+      "code": "10002050",
+      "labels": {
+        "zh-TW": "礁溪鄉",
+        "en": "Jiaoxi Township",
+        "ja": "礁溪郷",
+        "ko": "즈이아오시이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "玉里鎮",
+      "code": "10015030",
+      "labels": {
+        "zh-TW": "玉里鎮",
+        "en": "Yuli Township",
+        "ja": "玉里鎮",
+        "ko": "이우르이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "卓溪鄉",
+      "code": "10015130",
+      "labels": {
+        "zh-TW": "卓溪鄉",
+        "en": "Zhuoxi Township",
+        "ja": "卓溪郷",
+        "ko": "즈흐우오시이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "頭份市",
+      "code": "10005050",
+      "labels": {
+        "zh-TW": "頭份市",
+        "en": "Toufen City",
+        "ja": "頭份市",
+        "ko": "트오우프에느시"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "清水區",
+      "code": "66000120",
+      "labels": {
+        "zh-TW": "清水區",
+        "en": "Qingshui District",
+        "ja": "清水区",
+        "ko": "쿠이느그스흐우이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "梧棲區",
+      "code": "66000140",
+      "labels": {
+        "zh-TW": "梧棲區",
+        "en": "Wuqi District",
+        "ja": "梧棲区",
+        "ko": "우우쿠이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "烈嶼鄉",
+      "code": "09020050",
+      "labels": {
+        "zh-TW": "烈嶼鄉",
+        "en": "Lieyu Township",
+        "ja": "烈嶼郷",
+        "ko": "르이에이우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南區",
+      "code": "67000330",
+      "labels": {
+        "zh-TW": "南區",
+        "en": "S. District",
+        "ja": "南区",
+        "ko": "스아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "東區",
+      "code": "67000320",
+      "labels": {
+        "zh-TW": "東區",
+        "en": "E. District",
+        "ja": "東区",
+        "ko": "에아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "安平區",
+      "code": "67000360",
+      "labels": {
+        "zh-TW": "安平區",
+        "en": "Anping District",
+        "ja": "安平区",
+        "ko": "아느프이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中西區",
+      "code": "67000370",
+      "labels": {
+        "zh-TW": "中西區",
+        "en": "Zhongxi District",
+        "ja": "中西区",
+        "ko": "즈흐오느그시이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大溪區",
+      "code": "68000030",
+      "labels": {
+        "zh-TW": "大溪區",
+        "en": "Daxi District",
+        "ja": "大溪区",
+        "ko": "드아시이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "八德區",
+      "code": "68000080",
+      "labels": {
+        "zh-TW": "八德區",
+        "en": "Bade District",
+        "ja": "八德区",
+        "ko": "브아드에구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中壢區",
+      "code": "68000020",
+      "labels": {
+        "zh-TW": "中壢區",
+        "en": "Zhongli District",
+        "ja": "中壢区",
+        "ko": "즈흐오느그르이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "桃園區",
+      "code": "68000010",
+      "labels": {
+        "zh-TW": "桃園區",
+        "en": "Taoyuan District",
+        "ja": "桃園区",
+        "ko": "타오위안구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大園區",
+      "code": "68000060",
+      "labels": {
+        "zh-TW": "大園區",
+        "en": "Dayuan District",
+        "ja": "大園区",
+        "ko": "드아이우아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新屋區",
+      "code": "68000110",
+      "labels": {
+        "zh-TW": "新屋區",
+        "en": "Xinwu District",
+        "ja": "新屋区",
+        "ko": "시이느우우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "楊梅區",
+      "code": "68000040",
+      "labels": {
+        "zh-TW": "楊梅區",
+        "en": "Yangmei District",
+        "ja": "楊梅区",
+        "ko": "이아느그므에이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "七堵區",
+      "code": "10017020",
+      "labels": {
+        "zh-TW": "七堵區",
+        "en": "Qidu District",
+        "ja": "七堵区",
+        "ko": "치두구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "仁愛區",
+      "code": "10017040",
+      "labels": {
+        "zh-TW": "仁愛區",
+        "en": "Renai District",
+        "ja": "仁愛区",
+        "ko": "르에느아이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "信義區",
+      "code": "10017070",
+      "labels": {
+        "zh-TW": "信義區",
+        "en": "Xinyi District",
+        "ja": "信義区",
+        "ko": "신이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中正區",
+      "code": "10017010",
+      "labels": {
+        "zh-TW": "中正區",
+        "en": "Zhongzheng District",
+        "ja": "中正区",
+        "ko": "중정구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中山區",
+      "code": "10017050",
+      "labels": {
+        "zh-TW": "中山區",
+        "en": "Zhongshan District",
+        "ja": "中山区",
+        "ko": "즈흐오느그스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "安樂區",
+      "code": "10017060",
+      "labels": {
+        "zh-TW": "安樂區",
+        "en": "Anle District",
+        "ja": "安樂区",
+        "ko": "아느르에구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三峽區",
+      "code": "65000090",
+      "labels": {
+        "zh-TW": "三峽區",
+        "en": "Sanxia District",
+        "ja": "三峽区",
+        "ko": "스아느시이아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鶯歌區",
+      "code": "65000080",
+      "labels": {
+        "zh-TW": "鶯歌區",
+        "en": "Yingge District",
+        "ja": "鶯歌区",
+        "ko": "이이느그그에구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中和區",
+      "code": "65000030",
+      "labels": {
+        "zh-TW": "中和區",
+        "en": "Zhonghe District",
+        "ja": "中和区",
+        "ko": "중허구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "樹林區",
+      "code": "65000070",
+      "labels": {
+        "zh-TW": "樹林區",
+        "en": "Shulin District",
+        "ja": "樹林区",
+        "ko": "스흐우르이느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "深坑區",
+      "code": "65000180",
+      "labels": {
+        "zh-TW": "深坑區",
+        "en": "Shenkeng District",
+        "ja": "深坑区",
+        "ko": "스흐에느크에느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "板橋區",
+      "code": "65000010",
+      "labels": {
+        "zh-TW": "板橋區",
+        "en": "Banqiao District",
+        "ja": "板橋区",
+        "ko": "반차오구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "石碇區",
+      "code": "65000190",
+      "labels": {
+        "zh-TW": "石碇區",
+        "en": "Shiding District",
+        "ja": "石碇区",
+        "ko": "스흐이드이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "新莊區",
+      "code": "65000050",
+      "labels": {
+        "zh-TW": "新莊區",
+        "en": "Xinzhuang District",
+        "ja": "新莊区",
+        "ko": "신좡구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "泰山區",
+      "code": "65000160",
+      "labels": {
+        "zh-TW": "泰山區",
+        "en": "Taishan District",
+        "ja": "泰山区",
+        "ko": "트아이스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "三重區",
+      "code": "65000020",
+      "labels": {
+        "zh-TW": "三重區",
+        "en": "Sanzhong District",
+        "ja": "三重区",
+        "ko": "스아느즈흐오느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "雙溪區",
+      "code": "65000250",
+      "labels": {
+        "zh-TW": "雙溪區",
+        "en": "Shuangxi District",
+        "ja": "雙溪区",
+        "ko": "스흐우아느그시이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "貢寮區",
+      "code": "65000260",
+      "labels": {
+        "zh-TW": "貢寮區",
+        "en": "Gongliao District",
+        "ja": "貢寮区",
+        "ko": "그오느그르이아오구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "汐止區",
+      "code": "65000110",
+      "labels": {
+        "zh-TW": "汐止區",
+        "en": "Xizhi District",
+        "ja": "汐止区",
+        "ko": "시이즈흐이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "萬里區",
+      "code": "65000280",
+      "labels": {
+        "zh-TW": "萬里區",
+        "en": "Wanli District",
+        "ja": "萬里区",
+        "ko": "우아느르이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "金山區",
+      "code": "65000270",
+      "labels": {
+        "zh-TW": "金山區",
+        "en": "Jinshan District",
+        "ja": "金山区",
+        "ko": "즈이느스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "石門區",
+      "code": "65000220",
+      "labels": {
+        "zh-TW": "石門區",
+        "en": "Shimen District",
+        "ja": "石門区",
+        "ko": "스흐이므에느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北斗鎮",
+      "code": "10007190",
+      "labels": {
+        "zh-TW": "北斗鎮",
+        "en": "Beidou Township",
+        "ja": "北斗鎮",
+        "ko": "브에이드오우향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "田尾鄉",
+      "code": "10007210",
+      "labels": {
+        "zh-TW": "田尾鄉",
+        "en": "Tianwei Township",
+        "ja": "田尾郷",
+        "ko": "트이아느우에이향"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "信義區",
+      "code": "63000020",
+      "labels": {
+        "zh-TW": "信義區",
+        "en": "Xinyi District",
+        "ja": "信義区",
+        "ko": "신이구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "萬華區",
+      "code": "63000070",
+      "labels": {
+        "zh-TW": "萬華區",
+        "en": "Wanhua District",
+        "ja": "萬華区",
+        "ko": "우아느흐우아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中正區",
+      "code": "63000050",
+      "labels": {
+        "zh-TW": "中正區",
+        "en": "Zhongzheng District",
+        "ja": "中正区",
+        "ko": "중정구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "南港區",
+      "code": "63000090",
+      "labels": {
+        "zh-TW": "南港區",
+        "en": "Nangang District",
+        "ja": "南港区",
+        "ko": "느아느그아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "松山區",
+      "code": "63000010",
+      "labels": {
+        "zh-TW": "松山區",
+        "en": "Songshan District",
+        "ja": "松山区",
+        "ko": "쑹산구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "大同區",
+      "code": "63000060",
+      "labels": {
+        "zh-TW": "大同區",
+        "en": "Datong District",
+        "ja": "大同区",
+        "ko": "드아트오느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "中山區",
+      "code": "63000040",
+      "labels": {
+        "zh-TW": "中山區",
+        "en": "Zhongshan District",
+        "ja": "中山区",
+        "ko": "즈흐오느그스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "內湖區",
+      "code": "63000100",
+      "labels": {
+        "zh-TW": "內湖區",
+        "en": "Neihu District",
+        "ja": "內湖区",
+        "ko": "느에이흐우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "士林區",
+      "code": "63000110",
+      "labels": {
+        "zh-TW": "士林區",
+        "en": "Shilin District",
+        "ja": "士林区",
+        "ko": "스린구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "北投區",
+      "code": "63000120",
+      "labels": {
+        "zh-TW": "北投區",
+        "en": "Beitou District",
+        "ja": "北投区",
+        "ko": "베이터우구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "善化區",
+      "code": "67000190",
+      "labels": {
+        "zh-TW": "善化區",
+        "en": "Shanhua District",
+        "ja": "善化区",
+        "ko": "스흐아느흐우아구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "山上區",
+      "code": "67000220",
+      "labels": {
+        "zh-TW": "山上區",
+        "en": "Shanshang District",
+        "ja": "山上区",
+        "ko": "스흐아느스흐아느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "平鎮區",
+      "code": "68000100",
+      "labels": {
+        "zh-TW": "平鎮區",
+        "en": "Pingzhen District",
+        "ja": "平鎮区",
+        "ko": "프이느그즈흐에느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "鼓山區",
+      "code": "64000020",
+      "labels": {
+        "zh-TW": "鼓山區",
+        "en": "Gushan District",
+        "ja": "鼓山区",
+        "ko": "그우스흐아느구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    },
+    {
+      "kind": "district",
+      "value": "左營區",
+      "code": "64000030",
+      "labels": {
+        "zh-TW": "左營區",
+        "en": "Zuoying District",
+        "ja": "左營区",
+        "ko": "즈우오이이느그구"
+      },
+      "source": "NLSC township boundary registry",
+      "englishSource": "TOWNENG normalized from official registry",
+      "jaSource": "curated Japanese administrative suffix policy",
+      "koSource": "curated Korean phonetic display policy"
+    }
+  ]
+}
