@@ -1,6 +1,7 @@
 import type { ExperienceLocale } from "@/lib/experience-i18n";
 import { TAIWAN_ADMIN_AREAS } from "@/lib/taiwan-admin-areas";
 import adminLabels from "@/lib/taiwan-admin-labels.json";
+import { getLocalizedRoadDisplayLabel } from "@/lib/road-labels";
 
 export type LocalizedLabels = Record<ExperienceLocale, string>;
 
@@ -15,13 +16,7 @@ export type StructuredOption = {
 
 const LOCALES: readonly ExperienceLocale[] = ["zh-TW", "en", "ja", "ko"];
 
-export const ROAD_FALLBACK_STRATEGY = "curated road labels; unknown values preserve the official canonical name";
-
-const ROAD_LABELS: Record<string, LocalizedLabels> = {
-  "和平東路二段": { "zh-TW": "和平東路二段", en: "Heping East Road, Section 2", ja: "和平東路2段", ko: "허핑동로 2단" },
-  "市府路": { "zh-TW": "市府路", en: "City Hall Road", ja: "市府通り", ko: "스푸로" },
-  "忠信路": { "zh-TW": "忠信路", en: "Zhongxin Road", ja: "忠信通り（ジョンシン）", ko: "중신로" },
-};
+export const ROAD_FALLBACK_STRATEGY = "localized official-name fallback";
 
 export const BUILDING_TYPE_OPTIONS = [
   { value: "住宅大樓", labels: { "zh-TW": "住宅大樓", en: "Apartment building", ja: "集合住宅", ko: "아파트형 주택" } },
@@ -146,20 +141,27 @@ function adminLabelsFor(value: string): LocalizedLabels {
   return ADMIN_LABEL_BY_VALUE.get(canonicalLookup(value))?.labels ?? truthfulLabels(value);
 }
 
+function cleanAdminLabel(value: string, label: string, locale: ExperienceLocale): string {
+  const parts = label.trim().split(/\s+/u);
+  const collapsed = parts.length > 1 && parts.every((part) => part === parts[0]) ? parts[0] : label.trim();
+  if (locale !== "ja") return collapsed;
+  return collapsed.replace(/邊/gu, "辺").replace(/區$/gu, "区").replace(/鄉$/gu, "郷").replace(/縣$/gu, "県");
+}
+
 function labelFor(labels: LocalizedLabels, locale: ExperienceLocale): string {
   return labels[locale] || labels.en || labels["zh-TW"];
 }
 
 export function getLocalizedCountyLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(adminLabelsFor(value), locale);
+  return cleanAdminLabel(value, labelFor(adminLabelsFor(value), locale), locale);
 }
 
 export function getLocalizedDistrictLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(adminLabelsFor(value), locale);
+  return cleanAdminLabel(value, labelFor(adminLabelsFor(value), locale), locale);
 }
 
 export function getLocalizedRoadLabel(value: string, locale: ExperienceLocale): string {
-  return labelFor(ROAD_LABELS[canonicalLookup(value)] ?? truthfulLabels(value), locale);
+  return getLocalizedRoadDisplayLabel(value, locale);
 }
 
 export function getLocalizedBuildingTypeLabel(value: string, locale: ExperienceLocale): string {

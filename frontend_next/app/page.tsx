@@ -75,7 +75,10 @@ export default function Home() {
       applying = false;
     };
     localize();
-    const observer = new MutationObserver(localize);
+    const observer = new MutationObserver((records) => {
+      const hasStructuredSelect = records.some((record) => Array.from(record.addedNodes).some((node) => node instanceof Element && (node.matches("select[data-localize-structured-select]") || Boolean(node.querySelector("select[data-localize-structured-select]")))));
+      if (hasStructuredSelect) localize();
+    });
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [locale]);
@@ -279,6 +282,7 @@ function MapInsight() {
   const [district, setDistrict] = useState("");
   const [road, setRoad] = useState("");
   const [roadLoading, setRoadLoading] = useState(true);
+  const roadRequestRef = useRef(0);
 
   useEffect(() => {
     api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: copy("map.healthUnavailable") }));
@@ -309,19 +313,35 @@ function MapInsight() {
   }
 
   async function selectCity(value: string) {
+    const requestId = ++roadRequestRef.current;
     setCity(value);
     setDistrict("");
     setRoad("");
     setRoads([]);
     setRoadLoading(true);
-    try { setDistricts((await api.roadDistricts(value)).districts); } finally { setRoadLoading(false); }
+    try {
+      const data = await api.roadDistricts(value);
+      if (requestId === roadRequestRef.current) setDistricts(data.districts);
+    } catch {
+      if (requestId === roadRequestRef.current) setDistricts([]);
+    } finally {
+      if (requestId === roadRequestRef.current) setRoadLoading(false);
+    }
   }
 
   async function selectDistrict(value: string) {
+    const requestId = ++roadRequestRef.current;
     setDistrict(value);
     setRoad("");
     setRoadLoading(true);
-    try { setRoads((await api.roads(city, value)).roads); } finally { setRoadLoading(false); }
+    try {
+      const data = await api.roads(city, value);
+      if (requestId === roadRequestRef.current) setRoads(data.roads);
+    } catch {
+      if (requestId === roadRequestRef.current) setRoads([]);
+    } finally {
+      if (requestId === roadRequestRef.current) setRoadLoading(false);
+    }
   }
 
   function locateQuick() {
@@ -347,7 +367,7 @@ function MapInsight() {
       <details open className="min-w-0 border-t border-stone-200 bg-white xl:open xl:max-h-[720px] xl:overflow-y-auto xl:border-l xl:border-t-0">
         <summary className="cursor-pointer border-b border-stone-200 px-4 py-3 text-xs font-bold text-slate-900 xl:hidden">{copy("map.nearby")}</summary>
         <aside className="min-w-0 p-4">
-          <div className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.safe_message ?? copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
+          <div data-assistive-panel className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.mode === "google" ? getLocalizedSourceLabel("google_places", locale) : copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
           {result ? <>
             <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-[10px] font-bold tracking-wider text-cyan-700">{copy("map.nearby")}</p><h2 className="mt-1 break-words text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || copy("map.empty")}</h2><p className="mt-1 text-[9px] text-slate-500">{result.score_summary}</p></div><div className="shrink-0 text-right"><p className="text-4xl font-bold text-cyan-800">{result.livability_score}</p><span className="rounded-full bg-white px-2 py-1 text-[9px] font-bold text-cyan-800">{result.livability_level}</span></div></div><div className="mt-2 flex gap-1"><SourceBadge source={result.source} /></div></div>
             <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.city")}</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>{copy("action.open")} {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{categoryLabels[group.category] ?? group.label} {group.count}</button>)}</div>
@@ -386,7 +406,7 @@ function LegacyMapInsight() {
         <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-xl border border-white/80 bg-white/92 px-3 py-2 shadow-md backdrop-blur-md"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><strong className="text-slate-800">{location?.formatted_address || query}</strong><span className="text-slate-500">{copy("map.city")}:</span><SourceBadge source={location?.source ?? "mock"} /><span className="text-slate-500">POI:</span><SourceBadge source={result.source} /><span className="text-slate-500">{copy("map.radius")} {result.radius_m}m</span></div><MapLegend labels={categoryLabels} /><details className="mt-1 text-[8px] text-slate-400"><summary className="cursor-pointer font-bold">{copy("map.nearby")}</summary><p className="mt-1">{copy("map.radius")} {result.radius_m}m</p></details></div>
       </div>
       <aside className="min-w-0 border-t border-stone-200 bg-white p-4 xl:max-h-[720px] xl:overflow-y-auto xl:border-l xl:border-t-0">
-        <div className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.safe_message ?? copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
+        <div data-assistive-panel className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.mode === "google" ? getLocalizedSourceLabel("google_places", locale) : copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
         <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-bold tracking-wider text-cyan-700">{copy("map.nearby")}</p><h2 className="mt-1 text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || copy("map.empty")}</h2><p className="mt-1 text-[9px] text-slate-500">{result.score_summary}</p></div><div className="text-right"><p className="text-4xl font-bold text-cyan-800">{result.livability_score}</p><span className="rounded-full bg-white px-2 py-1 text-[9px] font-bold text-cyan-800">{result.livability_level}</span></div></div><div className="mt-2 flex gap-1"><SourceBadge source={result.source} /></div></div>
         <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.city")}</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>{copy("action.open")} {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{categoryLabels[group.category] ?? group.label} {group.count}</button>)}</div>
         <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("location.results")}</h3><div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">{result.category_scores.map((metric) => <CategoryMetric key={metric.category} metric={metric} />)}</div><ScoringCriteria criteria={result.scoring_criteria} labels={categoryLabels} />
@@ -447,8 +467,8 @@ function PlaceList({ categories, selected, onSelect }: { categories: NearbyCateg
 }
 
 function PlaceCard({ place, label, selected, onSelect }: { place: NearbyPlace; label: string; selected: boolean; onSelect: (place: NearbyPlace) => void }) {
-  const { copy } = useExperienceLocale();
-  return <button onClick={() => onSelect(place)} className={`w-full rounded-lg border p-2.5 text-left transition ${selected ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100" : "border-stone-200 bg-white hover:border-cyan-200"}`}><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-bold text-slate-800">{place.name}</p><div className="mt-1 flex flex-wrap items-center gap-1.5"><span className="rounded-full bg-cyan-50 px-1.5 py-0.5 text-[8px] font-bold text-cyan-700">{label}</span><span className="text-[9px] font-bold text-slate-500">{Math.round(place.distance_m)} m</span>{place.rating && <span className="text-[9px] font-bold text-amber-600">★ {place.rating} ({place.user_rating_count})</span>}</div></div><span className="shrink-0 text-[8px] font-bold text-emerald-700">{place.opening_status_label}</span></div><p className="mt-1.5 truncate text-[9px] text-slate-400">{place.address}</p><p className="mt-1 text-[8px] font-bold text-slate-400">{place.source === "google_places" ? `Google Places · ${place.opening_hours_source}` : copy("map.sourceNote")}</p></button>;
+  const { copy, locale } = useExperienceLocale();
+  return <button type="button" data-assistive-label={place.name} onClick={() => onSelect(place)} className={`w-full rounded-lg border p-2.5 text-left transition ${selected ? "border-cyan-500 bg-cyan-50 ring-2 ring-cyan-100" : "border-stone-200 bg-white hover:border-cyan-200"}`}><div className="flex items-start justify-between gap-2"><div className="min-w-0"><p className="truncate text-xs font-bold text-slate-800">{place.name}</p><div className="mt-1 flex flex-wrap items-center gap-1.5"><span className="rounded-full bg-cyan-50 px-1.5 py-0.5 text-[8px] font-bold text-cyan-700">{label}</span><span className="text-[9px] font-bold text-slate-500">{Math.round(place.distance_m)} m</span>{place.rating && <span className="text-[9px] font-bold text-amber-600">★ {place.rating} ({place.user_rating_count})</span>}</div></div><span className="shrink-0 text-[8px] font-bold text-emerald-700">{place.opening_status_label}</span></div><p className="mt-1.5 truncate text-[9px] text-slate-400">{place.address}</p><p className="mt-1 text-[8px] font-bold text-slate-400">{place.source === "google_places" ? getLocalizedSourceLabel("google_places", locale) : copy("map.sourceNote")}</p></button>;
 }
 
 function marketDisplayJourneyStatus(result: MarketResult): LocationMarketDisplayStatus {

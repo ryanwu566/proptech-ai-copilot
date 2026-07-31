@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
-import { browserSpeechLocale, hasSpeakableSummary, type ReadAloudState, type SafeSpeechSummary } from "@/lib/safe-speech";
+import { browserSpeechLocale, hasSpeakableSummary, selectSpeechVoice, type ReadAloudState, type SafeSpeechSummary } from "@/lib/safe-speech";
 
 type SpeechVoiceLike = SpeechSynthesisVoice;
 
@@ -42,12 +42,11 @@ export function ReadAloudControls({ summary }: { summary: SafeSpeechSummary }) {
     if (!synthesis) { setState("unavailable"); return; }
     if (!hasSpeakableSummary(summary)) { setState("error"); return; }
     const language = browserSpeechLocale(locale);
-    const voice = voices.find((candidate) => candidate.lang.toLowerCase() === language.toLowerCase() || candidate.lang.toLowerCase().startsWith(`${language.toLowerCase()}-`));
-    if (!voice) { setState("voice_missing"); return; }
+    const voice = selectSpeechVoice(voices, locale);
     synthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(summary.visibleText);
     utterance.lang = language;
-    utterance.voice = voice;
+    if (voice) utterance.voice = voice;
     utterance.onstart = () => setState("speaking");
     utterance.onpause = () => setState("paused");
     utterance.onresume = () => setState("speaking");
