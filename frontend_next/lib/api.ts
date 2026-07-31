@@ -275,6 +275,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export const api = {
   demoCases: () => request<TaxCase[]>("/demo-cases"),
   runTaxOracleCase: (taxCase: TaxCase) => request<TaxResult>("/taxoracle/analyze", { method: "POST", body: JSON.stringify(taxCase) }),
+  taxOracleSources: () => request<Record<string, unknown>>("/taxoracle/sources"),
   analyzeTax: (taxCase: TaxCase) => request<TaxResult>("/taxoracle/analyze", { method: "POST", body: JSON.stringify(taxCase) }),
   history: () => request<Record<string, string | number>[]>("/history"),
   marketStatus: () => request<MarketRegionCatalog>("/market-insights/status"),
