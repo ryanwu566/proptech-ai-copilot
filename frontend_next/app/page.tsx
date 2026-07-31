@@ -57,13 +57,27 @@ import { getSafePriceContext, type JourneyAffordabilityContext, type PriceJourne
 import { hasSearchablePlaceQuery, normalizeTaiwanPlaceQuery } from "@/lib/map-search";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { RuntimeCopyKey } from "@/lib/runtime-copy";
+import { getLocalizedCountyLabel, getLocalizedDistrictLabel, getLocalizedRoadLabel, getLocalizedSourceLabel, getLocalizedStateLabel, localizeStructuredSelects } from "@/lib/structured-options";
 
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
 type ResultTab = "原因" | "規則追蹤" | "補件清單" | "五年列管" | "AI 說明";
 
 export default function Home() {
-  const { t } = useExperienceLocale();
+  const { t, locale } = useExperienceLocale();
+  useEffect(() => {
+    let applying = false;
+    const localize = () => {
+      if (applying) return;
+      applying = true;
+      localizeStructuredSelects(document, locale);
+      applying = false;
+    };
+    localize();
+    const observer = new MutationObserver(localize);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [locale]);
   const [page, setPage] = useState<AppPage>("儀表板");
   const [requestedCase, setRequestedCase] = useState("");
   const [journeyPropertyContext, setJourneyPropertyContext] = useState<JourneyPropertyContext>(() => getSafeJourneyPropertyContext(undefined));
@@ -179,7 +193,12 @@ function SectionTitle({ title, note }: { title: string; note: string }) {
   return <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-4 gap-y-1"><h2 className="text-base font-bold text-slate-950">{title}</h2><p className="break-words text-xs text-slate-500">{note}</p></div>;
 }
 
-function TaxOracle({ requestedCase, embedded = false, onResult }: { requestedCase: string; embedded?: boolean; onResult?: (result: TaxResult) => void }) {
+function TaxOracle(props: { requestedCase: string; embedded?: boolean; onResult?: (result: TaxResult) => void }) {
+  const { locale } = useExperienceLocale();
+  return <div className="space-y-3"><Notice tone="warning">{getLocalizedStateLabel("reference_only", locale)}. {locale === "en" ? "Tax output is an advisory reference, not an official ruling." : locale === "ja" ? "税務結果は参考情報であり、公式な判断ではありません。" : locale === "ko" ? "세금 결과는 참고용이며 공식 판정이 아닙니다." : "稅務結果僅供參考，不是官方核定。"}</Notice><LegacyTaxOracle {...props} /></div>;
+}
+
+function LegacyTaxOracle({ requestedCase, embedded = false, onResult }: { requestedCase: string; embedded?: boolean; onResult?: (result: TaxResult) => void }) {
   const [cases, setCases] = useState<TaxCase[]>([]), [selectedCase, setSelectedCase] = useState(""), [customInput, setCustomInput] = useState<TaxCase>(emptyCustomTaxCase()), [result, setResult] = useState<TaxResult>(), [error, setError] = useState(""), [loading, setLoading] = useState(true), [isRunning, setIsRunning] = useState(false), [tab, setTab] = useState<ResultTab>("原因");
   useEffect(() => { api.demoCases().then((rows) => { setCases(rows); setSelectedCase(requestedCase && rows.some((r) => r.case_id === requestedCase) ? requestedCase : rows[0]?.case_id ?? ""); }).catch(() => setError("範例案件暫時無法載入，仍可使用自訂案件。請稍後再試。")).finally(() => setLoading(false)); }, [requestedCase]);
   const taxCase = selectedCase === "CUSTOM" ? customInput : cases.find((item) => item.case_id === selectedCase);
@@ -344,7 +363,7 @@ function MapInsight() {
 }
 
 function LegacyMapInsight() {
-  const { copy } = useExperienceLocale();
+  const { copy, locale } = useExperienceLocale();
   const categoryKeys = ["transport", "school", "park", "medical", "shopping", "food"];
   const categoryLabels: Record<string, string> = { transport: copy("location.transit"), school: copy("location.education"), park: copy("location.green"), medical: copy("location.medical"), shopping: copy("location.convenience"), food: copy("location.convenience") };
   const [query, setQuery] = useState("台北市大安區和平東路二段"), [location, setLocation] = useState<MapSearchResult>(), [result, setResult] = useState<MapNearbyResult>(), [health, setHealth] = useState<GoogleHealth>(), [active, setActive] = useState<string[]>(categoryKeys), [selectedPlace, setSelectedPlace] = useState<NearbyPlace>(), [loading, setLoading] = useState(true), [error, setError] = useState("");
@@ -378,8 +397,20 @@ function LegacyMapInsight() {
     </div> : <MapLoadingSkeleton />}</div>;
 }
 
-function MapSearchPanel({ mode, setMode, query, setQuery, onManual, onQuick, loading, roadLoading, cities, districts, roads, city, district, road, setCity, setDistrict, setRoad }: { mode: "quick" | "manual"; setMode: (mode: "quick" | "manual") => void; query: string; setQuery: (value: string) => void; onManual: () => void; onQuick: () => void; loading: boolean; roadLoading: boolean; cities: string[]; districts: string[]; roads: string[]; city: string; district: string; road: string; setCity: (value: string) => void; setDistrict: (value: string) => void; setRoad: (value: string) => void }) {
-  const { copy } = useExperienceLocale();
+type MapSearchPanelProps = { mode: "quick" | "manual"; setMode: (mode: "quick" | "manual") => void; query: string; setQuery: (value: string) => void; onManual: () => void; onQuick: () => void; loading: boolean; roadLoading: boolean; cities: string[]; districts: string[]; roads: string[]; city: string; district: string; road: string; setCity: (value: string) => void; setDistrict: (value: string) => void; setRoad: (value: string) => void };
+
+function MapSearchPanel({ mode, setMode, query, setQuery, onManual, onQuick, loading, roadLoading, cities, districts, roads, city, district, road, setCity, setDistrict, setRoad }: MapSearchPanelProps) {
+  return <LocalizedMapSearchPanel mode={mode} setMode={setMode} query={query} setQuery={setQuery} onManual={onManual} onQuick={onQuick} loading={loading} roadLoading={roadLoading} cities={cities} districts={districts} roads={roads} city={city} district={district} road={road} setCity={setCity} setDistrict={setDistrict} setRoad={setRoad} />;
+}
+
+function LocalizedMapSearchPanel({ mode, setMode, query, setQuery, onManual, onQuick, loading, roadLoading, cities, districts, roads, city, district, road, setCity, setDistrict, setRoad }: MapSearchPanelProps) {
+  const { copy, locale } = useExperienceLocale();
+  const selectClass = "min-w-0 rounded-lg border border-stone-200 bg-white px-2 py-2 text-[11px] outline-none focus:ring-2 focus:ring-cyan-200 disabled:bg-stone-100";
+  return <div className="absolute left-2 right-2 top-2 z-[500] rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(720px,calc(100%-2rem))]"><div className="mb-2 flex w-fit rounded-lg bg-stone-100 p-0.5"><button onClick={() => setMode("quick")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "quick" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.quickMode")}</button><button onClick={() => setMode("manual")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "manual" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.manualMode")}</button></div>{mode === "quick" ? <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]"><select aria-label={copy("common.selectCounty")} value={city} disabled={roadLoading} onChange={(e) => setCity(e.target.value)} className={selectClass}><option value="">{copy("common.selectCounty")}</option>{cities.map((item) => <option key={item} value={item}>{getLocalizedCountyLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectDistrict")} value={district} disabled={!city || roadLoading} onChange={(e) => setDistrict(e.target.value)} className={selectClass}><option value="">{copy("common.selectDistrict")}</option>{districts.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectRoad")} value={road} disabled={!district || roadLoading} onChange={(e) => setRoad(e.target.value)} className={selectClass}><option value="">{copy("common.selectRoad")}</option>{roads.map((item) => <option key={item} value={item}>{getLocalizedRoadLabel(item, locale)}</option>)}</select><Button onClick={onQuick} disabled={!city || !district || !road || loading || roadLoading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("action.loading") : copy("action.open")}</Button></div> : <form onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex flex-col gap-2 sm:flex-row"><input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder={copy("map.searchPlaceholder")} /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("map.searching") : copy("map.search")}</Button></form>}</div>;
+}
+
+function LegacyMapSearchPanel({ mode, setMode, query, setQuery, onManual, onQuick, loading, roadLoading, cities, districts, roads, city, district, road, setCity, setDistrict, setRoad }: MapSearchPanelProps) {
+  const { copy, locale } = useExperienceLocale();
   const selectClass = "min-w-0 rounded-lg border border-stone-200 bg-white px-2 py-2 text-[11px] outline-none focus:ring-2 focus:ring-cyan-200 disabled:bg-stone-100";
   return <div className="absolute left-2 right-2 top-2 z-[500] rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(720px,calc(100%-2rem))]"><div className="mb-2 flex w-fit rounded-lg bg-stone-100 p-0.5"><button onClick={() => setMode("quick")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "quick" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.quickMode")}</button><button onClick={() => setMode("manual")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "manual" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.manualMode")}</button></div>{mode === "quick" ? <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]"><select value={city} disabled={roadLoading} onChange={(e) => setCity(e.target.value)} className={selectClass}><option value="">{copy("common.selectCounty")}</option>{cities.map((item) => <option key={item}>{item}</option>)}</select><select value={district} disabled={!city || roadLoading} onChange={(e) => setDistrict(e.target.value)} className={selectClass}><option value="">{copy("common.selectDistrict")}</option>{districts.map((item) => <option key={item}>{item}</option>)}</select><select value={road} disabled={!district || roadLoading} onChange={(e) => setRoad(e.target.value)} className={selectClass}><option value="">{copy("common.selectRoad")}</option>{roads.map((item) => <option key={item}>{item}</option>)}</select><Button onClick={onQuick} disabled={!city || !district || !road || loading || roadLoading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("action.loading") : copy("action.open")}</Button></div> : <form onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex flex-col gap-2 sm:flex-row"><input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder={copy("map.searchPlaceholder")} /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("map.searching") : copy("map.search")}</Button></form>}</div>;
 }
@@ -403,9 +434,10 @@ function MapLoadingSkeleton() {
 }
 
 function SourceBadge({ source }: { source: string }) {
+  const { locale } = useExperienceLocale();
   const isGoogle = source.startsWith("google");
   const isTgos = source === "tgos_geocoding";
-  const label = source === "google_geocoding" ? "Google Geocoding" : source === "google_places" ? "Google Places" : isTgos ? "TGOS" : "展示資料";
+  const label = getLocalizedSourceLabel(source, locale);
   return <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold ${isGoogle ? "bg-blue-100 text-blue-700" : isTgos ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{label}</span>;
 }
 
@@ -429,7 +461,7 @@ function marketDisplayJourneyStatus(result: MarketResult): LocationMarketDisplay
 }
 
 function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDistrict = "", onStatusChange, onResult }: { onMap: () => void; embedded?: boolean; initialCounty?: string; initialDistrict?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: MarketResult | null) => void }) {
-  const { copy } = useExperienceLocale();
+  const { copy, locale } = useExperienceLocale();
   const [county, setCounty] = useState(initialCounty);
   const [district, setDistrict] = useState(initialDistrict);
   const [result, setResult] = useState<MarketResult>();
@@ -529,13 +561,13 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
         <label className="text-xs text-slate-500">{copy("common.selectCounty")}
           <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
             <option value="">{copy("common.selectCounty")}</option>
-            {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{item}</option>)}
+            {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{getLocalizedCountyLabel(item, locale)}</option>)}
           </select>
         </label>
         <label className="text-xs text-slate-500">{copy("common.selectDistrict")}
           <select value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
             <option value="">{canonicalCounty ? copy("common.selectDistrict") : copy("common.selectCounty")}</option>
-            {districtOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+            {districtOptions.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}
           </select>
         </label>
         <div className="flex items-end"><button type="button" onClick={query} disabled={querying || !canonicalCounty} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? copy("action.loading") : copy("action.search")}</button></div>
@@ -576,6 +608,11 @@ function MarketInsightVisualResult({ result, model, onMap, availableResult, noDa
 }
 
 function AegisCredit() {
+  const { locale } = useExperienceLocale();
+  return <div className="space-y-3"><Notice tone="warning">{getLocalizedStateLabel("heuristic", locale)} · {getLocalizedStateLabel("reference_only", locale)}. {locale === "en" ? "Inputs and results are a reference scenario, not a lending decision." : locale === "ja" ? "入力と結果は参考シナリオであり、融資判断ではありません。" : locale === "ko" ? "입력과 결과는 참고 시나리오이며 대출 심사가 아닙니다." : "輸入與結果為參考情境，不是核貸判定。"}</Notice><LegacyAegisCredit /></div>;
+}
+
+function LegacyAegisCredit() {
   const [result,setResult]=useState<{risk_score:number;signal_color:string;traces:string[]}>(), [rate,setRate]=useState<MortgageRateReference>(), [banks,setBanks]=useState<BankInstitution[]>([]), [bankCode,setBankCode]=useState(""), [bankRate,setBankRate]=useState<BankRateResult>(), [loading,setLoading]=useState(false), [rateLoading,setRateLoading]=useState(true), [error,setError]=useState("");
   const [holdingPrefill,setHoldingPrefill]=useState<HoldingCostPrefill>();
   useEffect(()=>{Promise.all([api.mortgageRate().then(setRate),api.bankInstitutions().then(async(data)=>{setBanks(data.institutions);const code=data.institutions[0]?.bank_code??"";setBankCode(code);if(code)setBankRate(await api.bankMortgageRates(code));})]).catch(()=>setError("市場利率參考暫時無法載入，風險分析仍可正常使用。")).finally(()=>setRateLoading(false));},[]);

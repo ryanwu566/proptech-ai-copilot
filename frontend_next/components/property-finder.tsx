@@ -14,6 +14,7 @@ import { PropertySearchSampleChart } from "@/components/data-visualization/prope
 import { PropertySearchEvidenceSummary } from "@/components/data-visualization/property-search-evidence-summary";
 import { VisualDataUnavailableState } from "@/components/data-visualization/visual-data-unavailable-state";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { BUILDING_TYPE_OPTIONS, getLocalizedBuildingTypeLabel } from "@/lib/structured-options";
 
 
 
@@ -26,7 +27,7 @@ export type PropertyFinderSelection = {
 };
 
 export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult, embedded = false }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void; initialResult?: PropertySearchResult; embedded?: boolean }) {
-  const { copy } = useExperienceLocale();
+  const { copy, locale } = useExperienceLocale();
   const [city, setCity] = useState("");
   const [districtText, setDistrictText] = useState("");
   const [budgetMin, setBudgetMin] = useState<number | "">("");
@@ -93,7 +94,7 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
       <NumberInput label={copy("finder.budgetMax")} value={budgetMax} onChange={setBudgetMax} />
       <NumberInput label={copy("finder.areaMin")} value={areaMin} onChange={setAreaMin} />
       <NumberInput label={copy("finder.areaMax")} value={areaMax} onChange={setAreaMax} />
-      <label className="text-xs text-slate-500">{copy("finder.buildingType")}<select className={`${inputClass} mt-1`} value={buildingType} onChange={(event) => setBuildingType(event.target.value)}><option value="">{copy("finder.unlimited")}</option><option>住宅大樓</option><option>華廈</option><option>公寓</option><option>套房</option></select></label>
+      <label className="text-xs text-slate-500">{copy("finder.buildingType")}<select className={`${inputClass} mt-1`} value={buildingType} onChange={(event) => setBuildingType(event.target.value)}><option value="">{copy("finder.unlimited")}</option>{BUILDING_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{getLocalizedBuildingTypeLabel(option.value, locale)}</option>)}</select></label>
       <NumberInput label={copy("finder.ageMax")} value={ageMax} onChange={setAgeMax} />
     </div>
     <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
