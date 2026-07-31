@@ -94,7 +94,7 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
       <NumberInput label={copy("finder.budgetMax")} value={budgetMax} onChange={setBudgetMax} />
       <NumberInput label={copy("finder.areaMin")} value={areaMin} onChange={setAreaMin} />
       <NumberInput label={copy("finder.areaMax")} value={areaMax} onChange={setAreaMax} />
-      <label className="text-xs text-slate-500">{copy("finder.buildingType")}<select className={`${inputClass} mt-1`} value={buildingType} onChange={(event) => setBuildingType(event.target.value)}><option value="">{copy("finder.unlimited")}</option>{BUILDING_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{getLocalizedBuildingTypeLabel(option.value, locale)}</option>)}</select></label>
+      <label className="text-xs text-slate-500">{copy("finder.buildingType")}<select data-localize-structured-select data-option-kind="building" className={`${inputClass} mt-1`} value={buildingType} onChange={(event) => setBuildingType(event.target.value)}><option value="">{copy("finder.unlimited")}</option>{BUILDING_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{getLocalizedBuildingTypeLabel(option.value, locale)}</option>)}</select></label>
       <NumberInput label={copy("finder.ageMax")} value={ageMax} onChange={setAgeMax} />
     </div>
     <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
