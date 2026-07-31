@@ -1,0 +1,4205 @@
+{
+  "schema_version": "road-display-v2",
+  "county": "金門縣",
+  "records": [
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "九井路",
+      "labels": {
+        "zh-TW": "九井路",
+        "en": "Jiujing Road",
+        "ja": "ジウジイン道路 ロード",
+        "ko": "주지로"
+      },
+      "romanization": "Jiujing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "八青一路",
+      "labels": {
+        "zh-TW": "八青一路",
+        "en": "Baqing 1st Road",
+        "ja": "ブアチイン1道路 ロード",
+        "ko": "바치1로"
+      },
+      "romanization": "Baqing 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "八青三路",
+      "labels": {
+        "zh-TW": "八青三路",
+        "en": "Baqing 3rd Road",
+        "ja": "ブアチイン3道路 ロード",
+        "ko": "바치3로"
+      },
+      "romanization": "Baqing 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "八青路",
+      "labels": {
+        "zh-TW": "八青路",
+        "en": "Baqing Road",
+        "ja": "ブアチイン道路 ロード",
+        "ko": "바치로"
+      },
+      "romanization": "Baqing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "東林",
+      "labels": {
+        "zh-TW": "東林",
+        "en": "East Lin",
+        "ja": "ドオンルイン",
+        "ko": "도리"
+      },
+      "romanization": "East Lin",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "東林北街",
+      "labels": {
+        "zh-TW": "東林北街",
+        "en": "East Lin North Street",
+        "ja": "ドオンルインブエイ通り ストリート",
+        "ko": "도리벼길"
+      },
+      "romanization": "East Lin North Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "東林街",
+      "labels": {
+        "zh-TW": "東林街",
+        "en": "East Lin Street",
+        "ja": "ドオンルイン通り ストリート",
+        "ko": "도리길"
+      },
+      "romanization": "East Lin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "烈新二路",
+      "labels": {
+        "zh-TW": "烈新二路",
+        "en": "Liexin 2nd Road",
+        "ja": "ルエシイン2道路 ロード",
+        "ko": "랴시2로"
+      },
+      "romanization": "Liexin 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "紅山路",
+      "labels": {
+        "zh-TW": "紅山路",
+        "en": "Hongshan Road",
+        "ja": "ホオンシアン道路 ロード",
+        "ko": "호사로"
+      },
+      "romanization": "Hongshan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "烈嶼鄉",
+      "canonical": "羅厝",
+      "labels": {
+        "zh-TW": "羅厝",
+        "en": "Luocuo",
+        "ja": "ルオツオ",
+        "ko": "뤄춰"
+      },
+      "romanization": "Luocuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "中環路",
+      "labels": {
+        "zh-TW": "中環路",
+        "en": "Zhonghuan Road",
+        "ja": "ジオンホワン道路 ロード",
+        "ko": "조훠로"
+      },
+      "romanization": "Zhonghuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "中興市場",
+      "labels": {
+        "zh-TW": "中興市場",
+        "en": "Zhongxingshichang",
+        "ja": "ジオンシインシイチアン",
+        "ko": "조시시차"
+      },
+      "romanization": "Zhongxingshichang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "中興路",
+      "labels": {
+        "zh-TW": "中興路",
+        "en": "Zhongxing Road",
+        "ja": "ジオンシイン道路 ロード",
+        "ko": "조시로"
+      },
+      "romanization": "Zhongxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "伯玉路",
+      "labels": {
+        "zh-TW": "伯玉路",
+        "en": "Boyu Road",
+        "ja": "ブオイウ道路 ロード",
+        "ko": "보우로"
+      },
+      "romanization": "Boyu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "光前路",
+      "labels": {
+        "zh-TW": "光前路",
+        "en": "Guangqian Road",
+        "ja": "グワンチイェン道路 ロード",
+        "ko": "궈챠로"
+      },
+      "romanization": "Guangqian Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "前水頭",
+      "labels": {
+        "zh-TW": "前水頭",
+        "en": "Qianshuitou",
+        "ja": "チイェンスイトオウ",
+        "ko": "챠수투"
+      },
+      "romanization": "Qianshuitou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "古區",
+      "labels": {
+        "zh-TW": "古區",
+        "en": "Guqu",
+        "ja": "グウチウ",
+        "ko": "구추"
+      },
+      "romanization": "Guqu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "吳厝",
+      "labels": {
+        "zh-TW": "吳厝",
+        "en": "Wucuo",
+        "ja": "ウウツオ",
+        "ko": "우춰"
+      },
+      "romanization": "Wucuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "夏墅",
+      "labels": {
+        "zh-TW": "夏墅",
+        "en": "Xiashu",
+        "ja": "シアシウ",
+        "ko": "샤수"
+      },
+      "romanization": "Xiashu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "大古崗",
+      "labels": {
+        "zh-TW": "大古崗",
+        "en": "Dagugang",
+        "ja": "ドアグウグアン",
+        "ko": "다구가"
+      },
+      "romanization": "Dagugang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "官裡",
+      "labels": {
+        "zh-TW": "官裡",
+        "en": "Guanli",
+        "ja": "グワンルイ",
+        "ko": "궈리"
+      },
+      "romanization": "Guanli",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "官路邊",
+      "labels": {
+        "zh-TW": "官路邊",
+        "en": "Guanlubian",
+        "ja": "グワンルウブイェン",
+        "ko": "궈루뱌"
+      },
+      "romanization": "Guanlubian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "富康一村",
+      "labels": {
+        "zh-TW": "富康一村",
+        "en": "Fukangyicun",
+        "ja": "フウクアンイイツウン",
+        "ko": "뿌카이추"
+      },
+      "romanization": "Fukangyicun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "小古崗",
+      "labels": {
+        "zh-TW": "小古崗",
+        "en": "Xiaogugang",
+        "ja": "シヤオグウグアン",
+        "ko": "쇄구가"
+      },
+      "romanization": "Xiaogugang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "小西門",
+      "labels": {
+        "zh-TW": "小西門",
+        "en": "Xiao West Men",
+        "ja": "シヤオシイムエン",
+        "ko": "쇄시머"
+      },
+      "romanization": "Xiao West Men",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "山前",
+      "labels": {
+        "zh-TW": "山前",
+        "en": "Shanqian",
+        "ja": "シアンチイェン",
+        "ko": "사챠"
+      },
+      "romanization": "Shanqian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "庵前",
+      "labels": {
+        "zh-TW": "庵前",
+        "en": "Anqian",
+        "ja": "アンチイェン",
+        "ko": "아챠"
+      },
+      "romanization": "Anqian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "後豐港",
+      "labels": {
+        "zh-TW": "後豐港",
+        "en": "Houfenggang",
+        "ja": "ホオウフングアン",
+        "ko": "후뻐가"
+      },
+      "romanization": "Houfenggang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "新豐路",
+      "labels": {
+        "zh-TW": "新豐路",
+        "en": "Xinfeng Road",
+        "ja": "シインフン道路 ロード",
+        "ko": "시뻐로"
+      },
+      "romanization": "Xinfeng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "東沙",
+      "labels": {
+        "zh-TW": "東沙",
+        "en": "East Sha",
+        "ja": "ドオンシア",
+        "ko": "도사"
+      },
+      "romanization": "East Sha",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "東社",
+      "labels": {
+        "zh-TW": "東社",
+        "en": "East She",
+        "ja": "ドオンシエ",
+        "ko": "도서"
+      },
+      "romanization": "East She",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "林湖路",
+      "labels": {
+        "zh-TW": "林湖路",
+        "en": "Linhu Road",
+        "ja": "ルインホウ道路 ロード",
+        "ko": "리후로"
+      },
+      "romanization": "Linhu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "桃園路",
+      "labels": {
+        "zh-TW": "桃園路",
+        "en": "Taoyuan Road",
+        "ja": "トアオイワン道路 ロード",
+        "ko": "토워로"
+      },
+      "romanization": "Taoyuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "模範街",
+      "labels": {
+        "zh-TW": "模範街",
+        "en": "Mofan Street",
+        "ja": "ムオフアン通り ストリート",
+        "ko": "모빠길"
+      },
+      "romanization": "Mofan Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "歐厝",
+      "labels": {
+        "zh-TW": "歐厝",
+        "en": "Oucuo",
+        "ja": "ウツオ",
+        "ko": "우춰"
+      },
+      "romanization": "Oucuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "歐濱路",
+      "labels": {
+        "zh-TW": "歐濱路",
+        "en": "Oubin Road",
+        "ja": "ウブイン道路 ロード",
+        "ko": "우비로"
+      },
+      "romanization": "Oubin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "民族路",
+      "labels": {
+        "zh-TW": "民族路",
+        "en": "Minzu Road",
+        "ja": "ムインズウ道路 ロード",
+        "ko": "미주로"
+      },
+      "romanization": "Minzu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "民權路",
+      "labels": {
+        "zh-TW": "民權路",
+        "en": "Minquan Road",
+        "ja": "ムインチワン道路 ロード",
+        "ko": "미춰로"
+      },
+      "romanization": "Minquan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "民生路",
+      "labels": {
+        "zh-TW": "民生路",
+        "en": "Minsheng Road",
+        "ja": "ムインシン道路 ロード",
+        "ko": "미서로"
+      },
+      "romanization": "Minsheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "泗湖",
+      "labels": {
+        "zh-TW": "泗湖",
+        "en": "Sihu",
+        "ja": "スイホウ",
+        "ko": "시후"
+      },
+      "romanization": "Sihu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "浯江北堤路",
+      "labels": {
+        "zh-TW": "浯江北堤路",
+        "en": "Wujiang North Di Road",
+        "ja": "ウウジヤンブエイドイ道路 ロード",
+        "ko": "우쟈벼디로"
+      },
+      "romanization": "Wujiang North Di Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "浯江街",
+      "labels": {
+        "zh-TW": "浯江街",
+        "en": "Wujiang Street",
+        "ja": "ウウジヤン通り ストリート",
+        "ko": "우쟈길"
+      },
+      "romanization": "Wujiang Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "浯江路",
+      "labels": {
+        "zh-TW": "浯江路",
+        "en": "Wujiang Road",
+        "ja": "ウウジヤン道路 ロード",
+        "ko": "우쟈로"
+      },
+      "romanization": "Wujiang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "浴井",
+      "labels": {
+        "zh-TW": "浴井",
+        "en": "Yujing",
+        "ja": "イウジイン",
+        "ko": "우지"
+      },
+      "romanization": "Yujing",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠埔北路",
+      "labels": {
+        "zh-TW": "珠埔北路",
+        "en": "Zhubu North Road",
+        "ja": "ジウブウブエイ道路 ロード",
+        "ko": "주부벼로"
+      },
+      "romanization": "Zhubu North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠埔東路",
+      "labels": {
+        "zh-TW": "珠埔東路",
+        "en": "Zhubu East Road",
+        "ja": "ジウブウドオン道路 ロード",
+        "ko": "주부도로"
+      },
+      "romanization": "Zhubu East Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠山",
+      "labels": {
+        "zh-TW": "珠山",
+        "en": "Zhushan",
+        "ja": "ジウシアン",
+        "ko": "주사"
+      },
+      "romanization": "Zhushan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠水路",
+      "labels": {
+        "zh-TW": "珠水路",
+        "en": "Zhushui Road",
+        "ja": "ジウスイ道路 ロード",
+        "ko": "주수로"
+      },
+      "romanization": "Zhushui Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠浦北路",
+      "labels": {
+        "zh-TW": "珠浦北路",
+        "en": "Zhupu North Road",
+        "ja": "ジウプウブエイ道路 ロード",
+        "ko": "주푸벼로"
+      },
+      "romanization": "Zhupu North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠浦南路",
+      "labels": {
+        "zh-TW": "珠浦南路",
+        "en": "Zhupu South Road",
+        "ja": "ジウプウヌアン道路 ロード",
+        "ko": "주푸나로"
+      },
+      "romanization": "Zhupu South Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠浦東路",
+      "labels": {
+        "zh-TW": "珠浦東路",
+        "en": "Zhupu East Road",
+        "ja": "ジウプウドオン道路 ロード",
+        "ko": "주푸도로"
+      },
+      "romanization": "Zhupu East Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "珠浦西路",
+      "labels": {
+        "zh-TW": "珠浦西路",
+        "en": "Zhupu West Road",
+        "ja": "ジウプウシイ道路 ロード",
+        "ko": "주푸시로"
+      },
+      "romanization": "Zhupu West Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "環島北路",
+      "labels": {
+        "zh-TW": "環島北路",
+        "en": "Huandao North Road",
+        "ja": "ホワンドアオブエイ道路 ロード",
+        "ko": "훠도벼로"
+      },
+      "romanization": "Huandao North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "環島南路",
+      "labels": {
+        "zh-TW": "環島南路",
+        "en": "Huandao South Road",
+        "ja": "ホワンドアオヌアン道路 ロード",
+        "ko": "훠도나로"
+      },
+      "romanization": "Huandao South Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "環島西路",
+      "labels": {
+        "zh-TW": "環島西路",
+        "en": "Huandao West Road",
+        "ja": "ホワンドアオシイ道路 ロード",
+        "ko": "훠도시로"
+      },
+      "romanization": "Huandao West Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "莒光大橋路",
+      "labels": {
+        "zh-TW": "莒光大橋路",
+        "en": "Juguangdaqiao Road",
+        "ja": "ジウグワンドアチヤオ道路 ロード",
+        "ko": "주궈다쵀로"
+      },
+      "romanization": "Juguangdaqiao Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "莒光路",
+      "labels": {
+        "zh-TW": "莒光路",
+        "en": "Juguang Road",
+        "ja": "ジウグワン道路 ロード",
+        "ko": "주궈로"
+      },
+      "romanization": "Juguang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "菜市場路",
+      "labels": {
+        "zh-TW": "菜市場路",
+        "en": "Caishichang Road",
+        "ja": "ツアイシイチアン道路 ロード",
+        "ko": "챼시차로"
+      },
+      "romanization": "Caishichang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "西海路",
+      "labels": {
+        "zh-TW": "西海路",
+        "en": "West Hai Road",
+        "ja": "シイホアイ道路 ロード",
+        "ko": "시햬로"
+      },
+      "romanization": "West Hai Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "西湖路",
+      "labels": {
+        "zh-TW": "西湖路",
+        "en": "West Hu Road",
+        "ja": "シイホウ道路 ロード",
+        "ko": "시후로"
+      },
+      "romanization": "West Hu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "謝厝",
+      "labels": {
+        "zh-TW": "謝厝",
+        "en": "Xiecuo",
+        "ja": "シエツオ",
+        "ko": "샤춰"
+      },
+      "romanization": "Xiecuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "賢城路",
+      "labels": {
+        "zh-TW": "賢城路",
+        "en": "Xiancheng Road",
+        "ja": "シイェンチン道路 ロード",
+        "ko": "샤처로"
+      },
+      "romanization": "Xiancheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "賢聚",
+      "labels": {
+        "zh-TW": "賢聚",
+        "en": "Xianju",
+        "ja": "シイェンジウ",
+        "ko": "샤주"
+      },
+      "romanization": "Xianju",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "金城新莊",
+      "labels": {
+        "zh-TW": "金城新莊",
+        "en": "Jinchengxinzhuang",
+        "ja": "ジインチンシインジワン",
+        "ko": "지처시줘"
+      },
+      "romanization": "Jinchengxinzhuang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "金山路",
+      "labels": {
+        "zh-TW": "金山路",
+        "en": "Jinshan Road",
+        "ja": "ジインシアン道路 ロード",
+        "ko": "지사로"
+      },
+      "romanization": "Jinshan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "金豐路",
+      "labels": {
+        "zh-TW": "金豐路",
+        "en": "Jinfeng Road",
+        "ja": "ジインフン道路 ロード",
+        "ko": "지뻐로"
+      },
+      "romanization": "Jinfeng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金城鎮",
+      "canonical": "金門城",
+      "labels": {
+        "zh-TW": "金門城",
+        "en": "Jinmencheng",
+        "ja": "ジインムエンチン",
+        "ko": "지머처"
+      },
+      "romanization": "Jinmencheng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "中堡",
+      "labels": {
+        "zh-TW": "中堡",
+        "en": "Zhongbao",
+        "ja": "ジオンブアオ",
+        "ko": "조보"
+      },
+      "romanization": "Zhongbao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "中山路",
+      "labels": {
+        "zh-TW": "中山路",
+        "en": "Zhongshan Road",
+        "ja": "ジオンシアン道路 ロード",
+        "ko": "조사로"
+      },
+      "romanization": "Zhongshan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "仁愛新邨",
+      "labels": {
+        "zh-TW": "仁愛新邨",
+        "en": "Renaixincun",
+        "ja": "ルエンイシインツウン",
+        "ko": "러이시추"
+      },
+      "romanization": "Renaixincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "伯玉路",
+      "labels": {
+        "zh-TW": "伯玉路",
+        "en": "Boyu Road",
+        "ja": "ブオイウ道路 ロード",
+        "ko": "보우로"
+      },
+      "romanization": "Boyu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "北山",
+      "labels": {
+        "zh-TW": "北山",
+        "en": "North Shan",
+        "ja": "ブエイシアン",
+        "ko": "벼사"
+      },
+      "romanization": "North Shan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "后沙",
+      "labels": {
+        "zh-TW": "后沙",
+        "en": "Housha",
+        "ja": "ホオウシア",
+        "ko": "후사"
+      },
+      "romanization": "Housha",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "嚨口",
+      "labels": {
+        "zh-TW": "嚨口",
+        "en": "Longkou",
+        "ja": "ルオンクオウ",
+        "ko": "로쿠"
+      },
+      "romanization": "Longkou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "埔後",
+      "labels": {
+        "zh-TW": "埔後",
+        "en": "Buhou",
+        "ja": "ブウホオウ",
+        "ko": "부후"
+      },
+      "romanization": "Buhou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "大學路",
+      "labels": {
+        "zh-TW": "大學路",
+        "en": "Daxue Road",
+        "ja": "ドアシエ道路 ロード",
+        "ko": "다수로"
+      },
+      "romanization": "Daxue Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "安岐",
+      "labels": {
+        "zh-TW": "安岐",
+        "en": "Anqi",
+        "ja": "アンチイ",
+        "ko": "아치"
+      },
+      "romanization": "Anqi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "寧湖路",
+      "labels": {
+        "zh-TW": "寧湖路",
+        "en": "Zhuhu Road",
+        "ja": "ジウホウ道路 ロード",
+        "ko": "주후로"
+      },
+      "romanization": "Zhuhu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "慈湖路",
+      "labels": {
+        "zh-TW": "慈湖路",
+        "en": "Cihu Road",
+        "ja": "ツイホウ道路 ロード",
+        "ko": "치후로"
+      },
+      "romanization": "Cihu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "昔果山",
+      "labels": {
+        "zh-TW": "昔果山",
+        "en": "Xiguoshan",
+        "ja": "シイグオシアン",
+        "ko": "시궈사"
+      },
+      "romanization": "Xiguoshan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "東觀路",
+      "labels": {
+        "zh-TW": "東觀路",
+        "en": "East Guan Road",
+        "ja": "ドオングワン道路 ロード",
+        "ko": "도궈로"
+      },
+      "romanization": "East Guan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "林堡路",
+      "labels": {
+        "zh-TW": "林堡路",
+        "en": "Linbao Road",
+        "ja": "ルインブアオ道路 ロード",
+        "ko": "리보로"
+      },
+      "romanization": "Linbao Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "林湖路",
+      "labels": {
+        "zh-TW": "林湖路",
+        "en": "Linhu Road",
+        "ja": "ルインホウ道路 ロード",
+        "ko": "리후로"
+      },
+      "romanization": "Linhu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "桃園路",
+      "labels": {
+        "zh-TW": "桃園路",
+        "en": "Taoyuan Road",
+        "ja": "トアオイワン道路 ロード",
+        "ko": "토워로"
+      },
+      "romanization": "Taoyuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "民生路",
+      "labels": {
+        "zh-TW": "民生路",
+        "en": "Minsheng Road",
+        "ja": "ムインシン道路 ロード",
+        "ko": "미서로"
+      },
+      "romanization": "Minsheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "湖峰一街",
+      "labels": {
+        "zh-TW": "湖峰一街",
+        "en": "Hufeng 1st Street",
+        "ja": "ホウフン1通り ストリート",
+        "ko": "후뻐1길"
+      },
+      "romanization": "Hufeng 1st Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "湖峰七街",
+      "labels": {
+        "zh-TW": "湖峰七街",
+        "en": "Hufeng 7th Street",
+        "ja": "ホウフン7通り ストリート",
+        "ko": "후뻐7길"
+      },
+      "romanization": "Hufeng 7th Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "湖峰二街",
+      "labels": {
+        "zh-TW": "湖峰二街",
+        "en": "Hufeng 2nd Street",
+        "ja": "ホウフン2通り ストリート",
+        "ko": "후뻐2길"
+      },
+      "romanization": "Hufeng 2nd Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "湖峰路",
+      "labels": {
+        "zh-TW": "湖峰路",
+        "en": "Hufeng Road",
+        "ja": "ホウフン道路 ロード",
+        "ko": "후뻐로"
+      },
+      "romanization": "Hufeng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "環島北路",
+      "labels": {
+        "zh-TW": "環島北路",
+        "en": "Huandao North Road",
+        "ja": "ホワンドアオブエイ道路 ロード",
+        "ko": "훠도벼로"
+      },
+      "romanization": "Huandao North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "環島南路",
+      "labels": {
+        "zh-TW": "環島南路",
+        "en": "Huandao South Road",
+        "ja": "ホワンドアオヌアン道路 ロード",
+        "ko": "훠도나로"
+      },
+      "romanization": "Huandao South Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "環島西路",
+      "labels": {
+        "zh-TW": "環島西路",
+        "en": "Huandao West Road",
+        "ja": "ホワンドアオシイ道路 ロード",
+        "ko": "훠도시로"
+      },
+      "romanization": "Huandao West Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "瓊安路",
+      "labels": {
+        "zh-TW": "瓊安路",
+        "en": "Qiongan Road",
+        "ja": "チヨンアン道路 ロード",
+        "ko": "초아로"
+      },
+      "romanization": "Qiongan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "盤果路",
+      "labels": {
+        "zh-TW": "盤果路",
+        "en": "Panguo Road",
+        "ja": "プアングオ道路 ロード",
+        "ko": "파궈로"
+      },
+      "romanization": "Panguo Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "金山路",
+      "labels": {
+        "zh-TW": "金山路",
+        "en": "Jinshan Road",
+        "ja": "ジインシアン道路 ロード",
+        "ko": "지사로"
+      },
+      "romanization": "Jinshan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "頂堡",
+      "labels": {
+        "zh-TW": "頂堡",
+        "en": "Dingbao",
+        "ja": "ドインブアオ",
+        "ko": "디보"
+      },
+      "romanization": "Dingbao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金寧鄉",
+      "canonical": "頂林路",
+      "labels": {
+        "zh-TW": "頂林路",
+        "en": "Dinglin Road",
+        "ja": "ドインルイン道路 ロード",
+        "ko": "디리로"
+      },
+      "romanization": "Dinglin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "三民路",
+      "labels": {
+        "zh-TW": "三民路",
+        "en": "Sanmin Road",
+        "ja": "スアンムイン道路 ロード",
+        "ko": "사미로"
+      },
+      "romanization": "Sanmin Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "下塘頭",
+      "labels": {
+        "zh-TW": "下塘頭",
+        "en": "Xiatangtou",
+        "ja": "シアトアントオウ",
+        "ko": "샤타투"
+      },
+      "romanization": "Xiatangtou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "中興街",
+      "labels": {
+        "zh-TW": "中興街",
+        "en": "Zhongxing Street",
+        "ja": "ジオンシイン通り ストリート",
+        "ko": "조시길"
+      },
+      "romanization": "Zhongxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "中蘭",
+      "labels": {
+        "zh-TW": "中蘭",
+        "en": "Zhonglan",
+        "ja": "ジオンルアン",
+        "ko": "조라"
+      },
+      "romanization": "Zhonglan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "五福街",
+      "labels": {
+        "zh-TW": "五福街",
+        "en": "Wufu Street",
+        "ja": "ウウフウ通り ストリート",
+        "ko": "우뿌길"
+      },
+      "romanization": "Wufu Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "仁愛街",
+      "labels": {
+        "zh-TW": "仁愛街",
+        "en": "Renai Street",
+        "ja": "ルエンイ通り ストリート",
+        "ko": "러이길"
+      },
+      "romanization": "Renai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "何厝",
+      "labels": {
+        "zh-TW": "何厝",
+        "en": "Hecuo",
+        "ja": "ホエツオ",
+        "ko": "허춰"
+      },
+      "romanization": "Hecuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "何庴",
+      "labels": {
+        "zh-TW": "何庴",
+        "en": "Heji",
+        "ja": "ホエジイ",
+        "ko": "허지"
+      },
+      "romanization": "Heji",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "保生新村",
+      "labels": {
+        "zh-TW": "保生新村",
+        "en": "Baoshengxincun",
+        "ja": "ブアオシンシインツウン",
+        "ko": "보서시추"
+      },
+      "romanization": "Baoshengxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "信義街",
+      "labels": {
+        "zh-TW": "信義街",
+        "en": "Xinyi Street",
+        "ja": "シインイイ通り ストリート",
+        "ko": "시이길"
+      },
+      "romanization": "Xinyi Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "信義路",
+      "labels": {
+        "zh-TW": "信義路",
+        "en": "Xinyi Road",
+        "ja": "シインイイ道路 ロード",
+        "ko": "시이로"
+      },
+      "romanization": "Xinyi Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "光華路",
+      "labels": {
+        "zh-TW": "光華路",
+        "en": "Guanghua Road",
+        "ja": "グワンホア道路 ロード",
+        "ko": "궈화로"
+      },
+      "romanization": "Guanghua Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "劉澳",
+      "labels": {
+        "zh-TW": "劉澳",
+        "en": "Liuao",
+        "ja": "ルウオ",
+        "ko": "루오"
+      },
+      "romanization": "Liuao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "勝利路",
+      "labels": {
+        "zh-TW": "勝利路",
+        "en": "Shengli Road",
+        "ja": "シンルイ道路 ロード",
+        "ko": "서리로"
+      },
+      "romanization": "Shengli Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "博愛街",
+      "labels": {
+        "zh-TW": "博愛街",
+        "en": "Boai Street",
+        "ja": "ブオイ通り ストリート",
+        "ko": "보이길"
+      },
+      "romanization": "Boai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "后宅",
+      "labels": {
+        "zh-TW": "后宅",
+        "en": "Houzhai",
+        "ja": "ホオウジアイ",
+        "ko": "후쟤"
+      },
+      "romanization": "Houzhai",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "后水頭",
+      "labels": {
+        "zh-TW": "后水頭",
+        "en": "Houshuitou",
+        "ja": "ホオウスイトオウ",
+        "ko": "후수투"
+      },
+      "romanization": "Houshuitou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "后浦頭",
+      "labels": {
+        "zh-TW": "后浦頭",
+        "en": "Houputou",
+        "ja": "ホオウプウトオウ",
+        "ko": "후푸투"
+      },
+      "romanization": "Houputou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "后珩",
+      "labels": {
+        "zh-TW": "后珩",
+        "en": "Houheng",
+        "ja": "ホオウホン",
+        "ko": "후허"
+      },
+      "romanization": "Houheng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "呂厝",
+      "labels": {
+        "zh-TW": "呂厝",
+        "en": "Lucuo",
+        "ja": "ルウツオ",
+        "ko": "루춰"
+      },
+      "romanization": "Lucuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "和平街",
+      "labels": {
+        "zh-TW": "和平街",
+        "en": "Heping Street",
+        "ja": "ホエプイン通り ストリート",
+        "ko": "허피길"
+      },
+      "romanization": "Heping Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "和平路",
+      "labels": {
+        "zh-TW": "和平路",
+        "en": "Heping Road",
+        "ja": "ホエプイン道路 ロード",
+        "ko": "허피로"
+      },
+      "romanization": "Heping Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "國中路",
+      "labels": {
+        "zh-TW": "國中路",
+        "en": "Guozhong Road",
+        "ja": "グオジオン道路 ロード",
+        "ko": "궈조로"
+      },
+      "romanization": "Guozhong Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "塘頭",
+      "labels": {
+        "zh-TW": "塘頭",
+        "en": "Tangtou",
+        "ja": "トアントオウ",
+        "ko": "타투"
+      },
+      "romanization": "Tangtou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "大地",
+      "labels": {
+        "zh-TW": "大地",
+        "en": "Dadi",
+        "ja": "ドアドイ",
+        "ko": "다디"
+      },
+      "romanization": "Dadi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "官澳",
+      "labels": {
+        "zh-TW": "官澳",
+        "en": "Guanao",
+        "ja": "グワンオ",
+        "ko": "궈오"
+      },
+      "romanization": "Guanao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "富康二村",
+      "labels": {
+        "zh-TW": "富康二村",
+        "en": "Fukangercun",
+        "ja": "フウクアンアーツウン",
+        "ko": "뿌카아추"
+      },
+      "romanization": "Fukangercun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "山后",
+      "labels": {
+        "zh-TW": "山后",
+        "en": "Shanhou",
+        "ja": "シアンホオウ",
+        "ko": "사후"
+      },
+      "romanization": "Shanhou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "山西",
+      "labels": {
+        "zh-TW": "山西",
+        "en": "Shan West",
+        "ja": "シアンシイ",
+        "ko": "사시"
+      },
+      "romanization": "Shan West",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "建東農場",
+      "labels": {
+        "zh-TW": "建東農場",
+        "en": "Jian East Nongchang",
+        "ja": "ジイェンドオンヌオンチアン",
+        "ko": "쟈도노차"
+      },
+      "romanization": "Jian East Nongchang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "復興街",
+      "labels": {
+        "zh-TW": "復興街",
+        "en": "Fuxing Street",
+        "ja": "フウシイン通り ストリート",
+        "ko": "뿌시길"
+      },
+      "romanization": "Fuxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "復興路",
+      "labels": {
+        "zh-TW": "復興路",
+        "en": "Fuxing Road",
+        "ja": "フウシイン道路 ロード",
+        "ko": "뿌시로"
+      },
+      "romanization": "Fuxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "德明路",
+      "labels": {
+        "zh-TW": "德明路",
+        "en": "Deming Road",
+        "ja": "ドエムイン道路 ロード",
+        "ko": "더미로"
+      },
+      "romanization": "Deming Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "忠孝新邨",
+      "labels": {
+        "zh-TW": "忠孝新邨",
+        "en": "Zhongxiaoxincun",
+        "ja": "ジオンシヤオシインツウン",
+        "ko": "조쇄시추"
+      },
+      "romanization": "Zhongxiaoxincun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "成功路",
+      "labels": {
+        "zh-TW": "成功路",
+        "en": "Chenggong Road",
+        "ja": "チングオン道路 ロード",
+        "ko": "처고로"
+      },
+      "romanization": "Chenggong Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "文化路",
+      "labels": {
+        "zh-TW": "文化路",
+        "en": "Wenhua Road",
+        "ja": "ウエンホア道路 ロード",
+        "ko": "어화로"
+      },
+      "romanization": "Wenhua Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "斗門",
+      "labels": {
+        "zh-TW": "斗門",
+        "en": "Doumen",
+        "ja": "ドオウムエン",
+        "ko": "두머"
+      },
+      "romanization": "Doumen",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "新前墩",
+      "labels": {
+        "zh-TW": "新前墩",
+        "en": "Xinqiandun",
+        "ja": "シインチイェンドウン",
+        "ko": "시챠두"
+      },
+      "romanization": "Xinqiandun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "新興",
+      "labels": {
+        "zh-TW": "新興",
+        "en": "Xinxing",
+        "ja": "シインシイン",
+        "ko": "시시"
+      },
+      "romanization": "Xinxing",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "新興街",
+      "labels": {
+        "zh-TW": "新興街",
+        "en": "Xinxing Street",
+        "ja": "シインシイン通り ストリート",
+        "ko": "시시길"
+      },
+      "romanization": "Xinxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東埔",
+      "labels": {
+        "zh-TW": "東埔",
+        "en": "East Bu",
+        "ja": "ドオンブウ",
+        "ko": "도부"
+      },
+      "romanization": "East Bu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東山",
+      "labels": {
+        "zh-TW": "東山",
+        "en": "East Shan",
+        "ja": "ドオンシアン",
+        "ko": "도사"
+      },
+      "romanization": "East Shan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東山前",
+      "labels": {
+        "zh-TW": "東山前",
+        "en": "East Shanqian",
+        "ja": "ドオンシアンチイェン",
+        "ko": "도사챠"
+      },
+      "romanization": "East Shanqian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東店",
+      "labels": {
+        "zh-TW": "東店",
+        "en": "East Dian",
+        "ja": "ドオンドイェン",
+        "ko": "도댜"
+      },
+      "romanization": "East Dian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東沙尾",
+      "labels": {
+        "zh-TW": "東沙尾",
+        "en": "East Shawei",
+        "ja": "ドオンシアウエイ",
+        "ko": "도사여"
+      },
+      "romanization": "East Shawei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東溪",
+      "labels": {
+        "zh-TW": "東溪",
+        "en": "East Xi",
+        "ja": "ドオンシイ",
+        "ko": "도시"
+      },
+      "romanization": "East Xi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東珩",
+      "labels": {
+        "zh-TW": "東珩",
+        "en": "East Heng",
+        "ja": "ドオンホン",
+        "ko": "도허"
+      },
+      "romanization": "East Heng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "東蕭",
+      "labels": {
+        "zh-TW": "東蕭",
+        "en": "East Xiao",
+        "ja": "ドオンシヤオ",
+        "ko": "도쇄"
+      },
+      "romanization": "East Xiao",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "沙美",
+      "labels": {
+        "zh-TW": "沙美",
+        "en": "Shamei",
+        "ja": "シアムエイ",
+        "ko": "사며"
+      },
+      "romanization": "Shamei",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "沙青路",
+      "labels": {
+        "zh-TW": "沙青路",
+        "en": "Shaqing Road",
+        "ja": "シアチイン道路 ロード",
+        "ko": "사치로"
+      },
+      "romanization": "Shaqing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "洋山",
+      "labels": {
+        "zh-TW": "洋山",
+        "en": "Yangshan",
+        "ja": "イアンシアン",
+        "ko": "아사"
+      },
+      "romanization": "Yangshan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "浦邊",
+      "labels": {
+        "zh-TW": "浦邊",
+        "en": "Pubian",
+        "ja": "プウブイェン",
+        "ko": "푸뱌"
+      },
+      "romanization": "Pubian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "浯坑",
+      "labels": {
+        "zh-TW": "浯坑",
+        "en": "Wukeng",
+        "ja": "ウウクン",
+        "ko": "우커"
+      },
+      "romanization": "Wukeng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "玉章路",
+      "labels": {
+        "zh-TW": "玉章路",
+        "en": "Yuzhang Road",
+        "ja": "イウジアン道路 ロード",
+        "ko": "우자로"
+      },
+      "romanization": "Yuzhang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "環島北路",
+      "labels": {
+        "zh-TW": "環島北路",
+        "en": "Huandao North Road",
+        "ja": "ホワンドアオブエイ道路 ロード",
+        "ko": "훠도벼로"
+      },
+      "romanization": "Huandao North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "環島東路",
+      "labels": {
+        "zh-TW": "環島東路",
+        "en": "Huandao East Road",
+        "ja": "ホワンドアオドオン道路 ロード",
+        "ko": "훠도도로"
+      },
+      "romanization": "Huandao East Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "田墩",
+      "labels": {
+        "zh-TW": "田墩",
+        "en": "Tiandun",
+        "ja": "トイェンドウン",
+        "ko": "탸두"
+      },
+      "romanization": "Tiandun",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "田浦",
+      "labels": {
+        "zh-TW": "田浦",
+        "en": "Tianpu",
+        "ja": "トイェンプウ",
+        "ko": "탸푸"
+      },
+      "romanization": "Tianpu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "碧山",
+      "labels": {
+        "zh-TW": "碧山",
+        "en": "Bishan",
+        "ja": "ブイシアン",
+        "ko": "비사"
+      },
+      "romanization": "Bishan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "第一富康農莊",
+      "labels": {
+        "zh-TW": "第一富康農莊",
+        "en": "Diyifukangnongzhuang",
+        "ja": "ドイイイフウクアンヌオンジワン",
+        "ko": "디이뿌카노줘"
+      },
+      "romanization": "Diyifukangnongzhuang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "第二富康農莊",
+      "labels": {
+        "zh-TW": "第二富康農莊",
+        "en": "Dierfukangnongzhuang",
+        "ja": "ドイアーフウクアンヌオンジワン",
+        "ko": "디아뿌카노줘"
+      },
+      "romanization": "Dierfukangnongzhuang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "英坑",
+      "labels": {
+        "zh-TW": "英坑",
+        "en": "Yingkeng",
+        "ja": "イインクン",
+        "ko": "이커"
+      },
+      "romanization": "Yingkeng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "蔡厝",
+      "labels": {
+        "zh-TW": "蔡厝",
+        "en": "Caicuo",
+        "ja": "ツアイツオ",
+        "ko": "챼춰"
+      },
+      "romanization": "Caicuo",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "西吳",
+      "labels": {
+        "zh-TW": "西吳",
+        "en": "West Wu",
+        "ja": "シイウウ",
+        "ko": "시우"
+      },
+      "romanization": "West Wu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "西園",
+      "labels": {
+        "zh-TW": "西園",
+        "en": "West Yuan",
+        "ja": "シイイワン",
+        "ko": "시워"
+      },
+      "romanization": "West Yuan",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "西園路",
+      "labels": {
+        "zh-TW": "西園路",
+        "en": "West Yuan Road",
+        "ja": "シイイワン道路 ロード",
+        "ko": "시워로"
+      },
+      "romanization": "West Yuan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "西山前",
+      "labels": {
+        "zh-TW": "西山前",
+        "en": "West Shanqian",
+        "ja": "シイシアンチイェン",
+        "ko": "시사챠"
+      },
+      "romanization": "West Shanqian",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "長福里",
+      "labels": {
+        "zh-TW": "長福里",
+        "en": "Changfuli",
+        "ja": "チアンフウルイ",
+        "ko": "차뿌리"
+      },
+      "romanization": "Changfuli",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "陽沙路",
+      "labels": {
+        "zh-TW": "陽沙路",
+        "en": "Yangsha Road",
+        "ja": "イアンシア道路 ロード",
+        "ko": "아사로"
+      },
+      "romanization": "Yangsha Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "陽翟",
+      "labels": {
+        "zh-TW": "陽翟",
+        "en": "Yangdi",
+        "ja": "イアンドイ",
+        "ko": "아디"
+      },
+      "romanization": "Yangdi",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "陽翟新興街",
+      "labels": {
+        "zh-TW": "陽翟新興街",
+        "en": "Yangdixinxing Street",
+        "ja": "イアンドイシインシイン通り ストリート",
+        "ko": "아디시시길"
+      },
+      "romanization": "Yangdixinxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "青嶼",
+      "labels": {
+        "zh-TW": "青嶼",
+        "en": "Qingyu",
+        "ja": "チインイウ",
+        "ko": "치우"
+      },
+      "romanization": "Qingyu",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "高坑",
+      "labels": {
+        "zh-TW": "高坑",
+        "en": "Gaokeng",
+        "ja": "グアオクン",
+        "ko": "고커"
+      },
+      "romanization": "Gaokeng",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "高陽路",
+      "labels": {
+        "zh-TW": "高陽路",
+        "en": "Gaoyang Road",
+        "ja": "グアオイアン道路 ロード",
+        "ko": "고아로"
+      },
+      "romanization": "Gaoyang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金沙鎮",
+      "canonical": "博愛街",
+      "labels": {
+        "zh-TW": "博愛街",
+        "en": "博Ai Street",
+        "ja": "博イ通り ストリート",
+        "ko": "博이길"
+      },
+      "romanization": "博Ai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "三多路",
+      "labels": {
+        "zh-TW": "三多路",
+        "en": "Sanduo Road",
+        "ja": "スアンドオ道路 ロード",
+        "ko": "사둬로"
+      },
+      "romanization": "Sanduo Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "下莊中興路",
+      "labels": {
+        "zh-TW": "下莊中興路",
+        "en": "Xiazhuangzhongxing Road",
+        "ja": "シアジワンジオンシイン道路 ロード",
+        "ko": "샤줘조시로"
+      },
+      "romanization": "Xiazhuangzhongxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "下莊光武路",
+      "labels": {
+        "zh-TW": "下莊光武路",
+        "en": "Xiazhuangguangwu Road",
+        "ja": "シアジワングワンウウ道路 ロード",
+        "ko": "샤줘궈우로"
+      },
+      "romanization": "Xiazhuangguangwu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "下莊新生街",
+      "labels": {
+        "zh-TW": "下莊新生街",
+        "en": "Xiazhuangxinsheng Street",
+        "ja": "シアジワンシインシン通り ストリート",
+        "ko": "샤줘시서길"
+      },
+      "romanization": "Xiazhuangxinsheng Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "中山路",
+      "labels": {
+        "zh-TW": "中山路",
+        "en": "Zhongshan Road",
+        "ja": "ジオンシアン道路 ロード",
+        "ko": "조사로"
+      },
+      "romanization": "Zhongshan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "中正路",
+      "labels": {
+        "zh-TW": "中正路",
+        "en": "Zhongzheng Road",
+        "ja": "ジオンジン道路 ロード",
+        "ko": "조저로"
+      },
+      "romanization": "Zhongzheng Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "中興路",
+      "labels": {
+        "zh-TW": "中興路",
+        "en": "Zhongxing Road",
+        "ja": "ジオンシイン道路 ロード",
+        "ko": "조시로"
+      },
+      "romanization": "Zhongxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "伯玉路",
+      "labels": {
+        "zh-TW": "伯玉路",
+        "en": "Boyu Road",
+        "ja": "ブオイウ道路 ロード",
+        "ko": "보우로"
+      },
+      "romanization": "Boyu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "前港路",
+      "labels": {
+        "zh-TW": "前港路",
+        "en": "Qiangang Road",
+        "ja": "チイェングアン道路 ロード",
+        "ko": "챠가로"
+      },
+      "romanization": "Qiangang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "南機路",
+      "labels": {
+        "zh-TW": "南機路",
+        "en": "South Ji Road",
+        "ja": "ヌアンジイ道路 ロード",
+        "ko": "나지로"
+      },
+      "romanization": "South Ji Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "國順街",
+      "labels": {
+        "zh-TW": "國順街",
+        "en": "Guoshun Street",
+        "ja": "グオシウン通り ストリート",
+        "ko": "궈수길"
+      },
+      "romanization": "Guoshun Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "塔后",
+      "labels": {
+        "zh-TW": "塔后",
+        "en": "Tahou",
+        "ja": "トアホオウ",
+        "ko": "타후"
+      },
+      "romanization": "Tahou",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "士校路",
+      "labels": {
+        "zh-TW": "士校路",
+        "en": "Shixiao Road",
+        "ja": "シイシヤオ道路 ロード",
+        "ko": "시쇄로"
+      },
+      "romanization": "Shixiao Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "太湖路",
+      "labels": {
+        "zh-TW": "太湖路",
+        "en": "Taihu Road",
+        "ja": "トアイホウ道路 ロード",
+        "ko": "턔후로"
+      },
+      "romanization": "Taihu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "少康路",
+      "labels": {
+        "zh-TW": "少康路",
+        "en": "Shaokang Road",
+        "ja": "シアオクアン道路 ロード",
+        "ko": "소카로"
+      },
+      "romanization": "Shaokang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "尚義機場",
+      "labels": {
+        "zh-TW": "尚義機場",
+        "en": "Shangyijichang",
+        "ja": "シアンイイジイチアン",
+        "ko": "사이지차"
+      },
+      "romanization": "Shangyijichang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "山外街",
+      "labels": {
+        "zh-TW": "山外街",
+        "en": "Shanwai Street",
+        "ja": "シアンウアイ通り ストリート",
+        "ko": "사얘길"
+      },
+      "romanization": "Shanwai Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "工二路",
+      "labels": {
+        "zh-TW": "工二路",
+        "en": "Gong 2nd Road",
+        "ja": "グオン2道路 ロード",
+        "ko": "고2로"
+      },
+      "romanization": "Gong 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "市港一路",
+      "labels": {
+        "zh-TW": "市港一路",
+        "en": "Shigang 1st Road",
+        "ja": "シイグアン1道路 ロード",
+        "ko": "시가1로"
+      },
+      "romanization": "Shigang 1st Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "市港三路",
+      "labels": {
+        "zh-TW": "市港三路",
+        "en": "Shigang 3rd Road",
+        "ja": "シイグアン3道路 ロード",
+        "ko": "시가3로"
+      },
+      "romanization": "Shigang 3rd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "市港二路",
+      "labels": {
+        "zh-TW": "市港二路",
+        "en": "Shigang 2nd Road",
+        "ja": "シイグアン2道路 ロード",
+        "ko": "시가2로"
+      },
+      "romanization": "Shigang 2nd Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "市港五路",
+      "labels": {
+        "zh-TW": "市港五路",
+        "en": "Shigang 5th Road",
+        "ja": "シイグアン5道路 ロード",
+        "ko": "시가5로"
+      },
+      "romanization": "Shigang 5th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "市港六路",
+      "labels": {
+        "zh-TW": "市港六路",
+        "en": "Shigang 6th Road",
+        "ja": "シイグアン6道路 ロード",
+        "ko": "시가6로"
+      },
+      "romanization": "Shigang 6th Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "市港路",
+      "labels": {
+        "zh-TW": "市港路",
+        "en": "Shigang Road",
+        "ja": "シイグアン道路 ロード",
+        "ko": "시가로"
+      },
+      "romanization": "Shigang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "建華",
+      "labels": {
+        "zh-TW": "建華",
+        "en": "Jianhua",
+        "ja": "ジイェンホア",
+        "ko": "쟈화"
+      },
+      "romanization": "Jianhua",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "復國路",
+      "labels": {
+        "zh-TW": "復國路",
+        "en": "Fuguo Road",
+        "ja": "フウグオ道路 ロード",
+        "ko": "뿌궈로"
+      },
+      "romanization": "Fuguo Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "復興西路",
+      "labels": {
+        "zh-TW": "復興西路",
+        "en": "Fuxing West Road",
+        "ja": "フウシインシイ道路 ロード",
+        "ko": "뿌시시로"
+      },
+      "romanization": "Fuxing West Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "復興路",
+      "labels": {
+        "zh-TW": "復興路",
+        "en": "Fuxing Road",
+        "ja": "フウシイン道路 ロード",
+        "ko": "뿌시로"
+      },
+      "romanization": "Fuxing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "新興街",
+      "labels": {
+        "zh-TW": "新興街",
+        "en": "Xinxing Street",
+        "ja": "シインシイン通り ストリート",
+        "ko": "시시길"
+      },
+      "romanization": "Xinxing Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "林森路",
+      "labels": {
+        "zh-TW": "林森路",
+        "en": "Linsen Road",
+        "ja": "ルインスエン道路 ロード",
+        "ko": "리서로"
+      },
+      "romanization": "Linsen Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "柏村路",
+      "labels": {
+        "zh-TW": "柏村路",
+        "en": "Bocun Road",
+        "ja": "ブオツウン道路 ロード",
+        "ko": "보추로"
+      },
+      "romanization": "Bocun Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "武德新莊自強路",
+      "labels": {
+        "zh-TW": "武德新莊自強路",
+        "en": "Wudexinzhuangziqiang Road",
+        "ja": "ウウドエシインジワンズイチヤン道路 ロード",
+        "ko": "우더시줘지챠로"
+      },
+      "romanization": "Wudexinzhuangziqiang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "玉章路",
+      "labels": {
+        "zh-TW": "玉章路",
+        "en": "Yuzhang Road",
+        "ja": "イウジアン道路 ロード",
+        "ko": "우자로"
+      },
+      "romanization": "Yuzhang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "環島北路",
+      "labels": {
+        "zh-TW": "環島北路",
+        "en": "Huandao North Road",
+        "ja": "ホワンドアオブエイ道路 ロード",
+        "ko": "훠도벼로"
+      },
+      "romanization": "Huandao North Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "環島南路",
+      "labels": {
+        "zh-TW": "環島南路",
+        "en": "Huandao South Road",
+        "ja": "ホワンドアオヌアン道路 ロード",
+        "ko": "훠도나로"
+      },
+      "romanization": "Huandao South Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "環島東路",
+      "labels": {
+        "zh-TW": "環島東路",
+        "en": "Huandao East Road",
+        "ja": "ホワンドアオドオン道路 ロード",
+        "ko": "훠도도로"
+      },
+      "romanization": "Huandao East Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "瓊安路",
+      "labels": {
+        "zh-TW": "瓊安路",
+        "en": "Qiongan Road",
+        "ja": "チヨンアン道路 ロード",
+        "ko": "초아로"
+      },
+      "romanization": "Qiongan Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "瓊徑路",
+      "labels": {
+        "zh-TW": "瓊徑路",
+        "en": "Qiongjing Road",
+        "ja": "チヨンジイン道路 ロード",
+        "ko": "초지로"
+      },
+      "romanization": "Qiongjing Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "瓊林",
+      "labels": {
+        "zh-TW": "瓊林",
+        "en": "Qionglin",
+        "ja": "チヨンルイン",
+        "ko": "초리"
+      },
+      "romanization": "Qionglin",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "瓊林街",
+      "labels": {
+        "zh-TW": "瓊林街",
+        "en": "Qionglin Street",
+        "ja": "チヨンルイン通り ストリート",
+        "ko": "초리길"
+      },
+      "romanization": "Qionglin Street",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "瓊義路",
+      "labels": {
+        "zh-TW": "瓊義路",
+        "en": "Qiongyi Road",
+        "ja": "チヨンイイ道路 ロード",
+        "ko": "초이로"
+      },
+      "romanization": "Qiongyi Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "經武路",
+      "labels": {
+        "zh-TW": "經武路",
+        "en": "Jingwu Road",
+        "ja": "ジインウウ道路 ロード",
+        "ko": "지우로"
+      },
+      "romanization": "Jingwu Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "自強路",
+      "labels": {
+        "zh-TW": "自強路",
+        "en": "Ziqiang Road",
+        "ja": "ズイチヤン道路 ロード",
+        "ko": "지챠로"
+      },
+      "romanization": "Ziqiang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "菜市場",
+      "labels": {
+        "zh-TW": "菜市場",
+        "en": "Caishichang",
+        "ja": "ツアイシイチアン",
+        "ko": "챼시차"
+      },
+      "romanization": "Caishichang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "裕民農莊",
+      "labels": {
+        "zh-TW": "裕民農莊",
+        "en": "Yuminnongzhuang",
+        "ja": "イウムインヌオンジワン",
+        "ko": "우미노줘"
+      },
+      "romanization": "Yuminnongzhuang",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "赤東路",
+      "labels": {
+        "zh-TW": "赤東路",
+        "en": "Chi East Road",
+        "ja": "チイドオン道路 ロード",
+        "ko": "치도로"
+      },
+      "romanization": "Chi East Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "金港路",
+      "labels": {
+        "zh-TW": "金港路",
+        "en": "Jingang Road",
+        "ja": "ジイングアン道路 ロード",
+        "ko": "지가로"
+      },
+      "romanization": "Jingang Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "雙瓊路",
+      "labels": {
+        "zh-TW": "雙瓊路",
+        "en": "Shuangqiong Road",
+        "ja": "シワンチヨン道路 ロード",
+        "ko": "숴초로"
+      },
+      "romanization": "Shuangqiong Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    },
+    {
+      "county": "金門縣",
+      "district": "金湖鎮",
+      "canonical": "黃海路",
+      "labels": {
+        "zh-TW": "黃海路",
+        "en": "Huanghai Road",
+        "ja": "ホワンホアイ道路 ロード",
+        "ko": "훠햬로"
+      },
+      "romanization": "Huanghai Road",
+      "source": "offline Unidecode build artifact",
+      "sourceVersion": "road-display-v2",
+      "derivation": {
+        "en": "offline_romanization",
+        "ja": "offline_transliteration",
+        "ko": "offline_transliteration"
+      }
+    }
+  ]
+}

@@ -122,7 +122,56 @@ const ko: ExperienceOverride = {
   "trust.noPurchase": "이 도구는 근거와 확인 사항을 정리하며 구매를 권고하지 않습니다.",
 };
 
-const overrides: Partial<Record<ExperienceLocale, ExperienceOverride>> = { ja, ko };
+const jaProduction: ExperienceOverride = {
+  "app.openMenu": "メニューを開く",
+  "app.closeMenu": "メニューを閉じる",
+  "app.tour": "プロダクトツアー",
+  "app.currentView": "現在の画面",
+  "app.language": "言語",
+  "nav.core": "基本機能",
+  "nav.tools": "ツール",
+  "nav.analysis": "分析",
+  "nav.system": "システム",
+  "nav.status": "システム状態",
+  "nav.ready": "利用可能",
+  "page.dashboard": "ダッシュボード",
+  "page.tax": "TaxOracle 税務確認",
+  "page.market": "市場インサイト",
+  "page.map": "地図インサイト",
+  "page.valuation": "価格査定",
+  "page.credit": "Aegis-Credit ローン計算",
+  "page.terrain": "地形・災害リスク",
+  "page.history": "保存案件",
+  "journey.openTool": "ツールを開く",
+};
+
+const koProduction: ExperienceOverride = {
+  "app.openMenu": "메뉴 열기",
+  "app.closeMenu": "메뉴 닫기",
+  "app.tour": "제품 둘러보기",
+  "app.currentView": "현재 화면",
+  "app.language": "언어",
+  "nav.core": "기본 기능",
+  "nav.tools": "도구",
+  "nav.analysis": "분석",
+  "nav.system": "시스템",
+  "nav.status": "시스템 상태",
+  "nav.ready": "사용 가능",
+  "page.dashboard": "대시보드",
+  "page.tax": "TaxOracle 세무 확인",
+  "page.market": "시장 인사이트",
+  "page.map": "지도 인사이트",
+  "page.valuation": "가격 추정",
+  "page.credit": "Aegis-Credit 대출 계산",
+  "page.terrain": "지형·재해 위험",
+  "page.history": "저장한 사례",
+  "journey.openTool": "도구 열기",
+};
+
+const overrides: Partial<Record<ExperienceLocale, ExperienceOverride>> = {
+  ja: { ...ja, ...jaProduction },
+  ko: { ...ko, ...koProduction },
+};
 
 export function getExperienceOverride(locale: ExperienceLocale, key: string) {
   return overrides[locale]?.[key];

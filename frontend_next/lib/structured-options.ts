@@ -16,7 +16,7 @@ export type StructuredOption = {
 
 const LOCALES: readonly ExperienceLocale[] = ["zh-TW", "en", "ja", "ko"];
 
-export const ROAD_FALLBACK_STRATEGY = "localized official-name fallback";
+export const ROAD_FALLBACK_STRATEGY = "offline deterministic transliteration";
 
 export const BUILDING_TYPE_OPTIONS = [
   { value: "住宅大樓", labels: { "zh-TW": "住宅大樓", en: "Apartment building", ja: "集合住宅", ko: "아파트형 주택" } },
