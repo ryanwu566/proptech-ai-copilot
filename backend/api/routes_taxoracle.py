@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from backend.repositories.sqlite_repo import get_tax_analysis, list_tax_analyses
 from models.schemas import TaxCase
+from services.official_tax_rules import tax_source_status
 router = APIRouter(tags=["taxoracle"])
 
 
@@ -32,6 +33,13 @@ class TaxCaseRequest(BaseModel):
         """Convert validated HTTP input into the domain dataclass."""
 
         return TaxCase(**self.model_dump())
+
+
+@router.get("/taxoracle/sources")
+def get_tax_source_status() -> dict[str, object]:
+    """Return version/status metadata; no personal tax records are queried."""
+
+    return tax_source_status()
 
 
 @router.get("/demo-cases")

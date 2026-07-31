@@ -40,6 +40,7 @@ import { getValuationDisplayState, getValuationTrendDisplayState } from "@/lib/v
 import { buildValuationVisualModel } from "@/lib/valuation-visualization";
 import { ValuationVisualPanel } from "@/components/data-visualization/valuation-visual-panel";
 import { TaxDecisionVisualPanel } from "@/components/data-visualization/tax-decision-visual-panel";
+import { OfficialTaxRuleStatusCard } from "@/components/official-data-status-card";
 import { ValuationResultBoundary } from "@/components/valuation-result-boundary";
 import { buildViewingDecision, type ViewingDecision } from "@/lib/viewing-decision";
 import { TAIWAN_COUNTIES, getDistrictsForCounty, normalizeTaiwanCounty, normalizeTaiwanDistrict } from "@/lib/taiwan-admin-areas";
@@ -240,7 +241,7 @@ function CustomTaxCaseForm({value,onChange}:{value:TaxCase;onChange:(value:TaxCa
 function TaxSummary({ result, taxCase, isRunning }: { result?: TaxResult; taxCase?: TaxCase; isRunning: boolean }) {
   const [downloading, setDownloading] = useState(false), [error, setError] = useState("");
   async function download() { if (!taxCase) return; setDownloading(true); setError(""); try { await downloadTaxReport(taxCase); } catch { setError("報告目前無法下載，請稍後再試。" ); } finally { setDownloading(false); } }
-  return !result ? <ResultSummaryPanel className="lg:sticky lg:top-16"><div className="p-5">{isRunning ? <LoadingState label="正在檢核 TX001–TX009..." /> : <><EmptyState title="等待稅務快篩" detail="請先選擇案件，然後按開始稅務快篩；完成後會顯示資格、規則原因與報告入口。" /><Button disabled className="mt-3 w-full">請先完成稅務快篩才能輸出報告</Button></>}</div></ResultSummaryPanel> : <TaxDecisionVisualPanel result={result} taxCase={taxCase} downloading={downloading} error={error} onDownload={download} />;
+  return !result ? <ResultSummaryPanel className="lg:sticky lg:top-16"><div className="p-5">{isRunning ? <LoadingState label="正在檢核 TX001–TX009..." /> : <><EmptyState title="等待稅務快篩" detail="請先選擇案件，然後按開始稅務快篩；完成後會顯示資格、規則原因與報告入口。" /><Button disabled className="mt-3 w-full">請先完成稅務快篩才能輸出報告</Button></>}</div></ResultSummaryPanel> : <div className="space-y-3"><TaxDecisionVisualPanel result={result} taxCase={taxCase} downloading={downloading} error={error} onDownload={download} /><OfficialTaxRuleStatusCard trace={result.official_rule_trace} /></div>;
 }
 
 function RiskGauge({ score, signal }: { score: number; signal: string }) { const color = signal === "green" ? "#10b981" : signal === "yellow" ? "#f59e0b" : "#f43f5e"; return <div role="img" aria-label={`稅務風險分數 ${score} 分，訊號 ${signal}`} className="grid place-items-center"><div className="grid h-32 w-32 place-items-center rounded-full" style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #e7e5e4 0deg)` }}><div className="grid h-24 w-24 place-items-center rounded-full bg-white text-center"><div><p className="text-3xl font-bold text-slate-950">{score}</p><p className="text-[9px] font-bold text-slate-400">風險分數／100</p></div></div></div><p className="mt-2 text-xs text-slate-700">訊號：{signal}；不代表法律判斷或安全保證。</p></div>; }

@@ -7,10 +7,18 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
+from services.official_data_registry import public_source_status
 from services.terrain_risk_service import TerrainRiskLocationError, analyze_terrain_risk
 
 
 router = APIRouter(prefix="/terrain-risk", tags=["terrain-risk"])
+
+
+@router.get("/sources")
+def get_terrain_source_status() -> dict[str, object]:
+    """Return source metadata without querying or claiming provider availability."""
+
+    return public_source_status("terrain")
 
 
 class TerrainRiskRequest(BaseModel):

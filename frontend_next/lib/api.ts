@@ -45,6 +45,16 @@ export type TaxResult = {
   ai_explanation: { headline: string; customer_script: string; source: string };
   disclaimer: string;
   case_input: TaxCase;
+  official_rule_trace?: {
+    rule_version: string;
+    jurisdiction: string;
+    effective_date: string | null;
+    source_name: string;
+    source_status: string;
+    calculation_kind: string;
+    limitation: string;
+  };
+  tax_output_boundary?: "preliminary_screening_only";
 };
 
 export type MarketResult = {
@@ -177,6 +187,20 @@ export type TerrainRiskSourceTransparencyLayer = {
   data_updated_at: string;
   caveat: string;
 };
+export type OfficialDataSourceStatus = {
+  provider_id: string;
+  agency: string;
+  dataset_name: string;
+  access_mode: string;
+  authentication_mode: string;
+  coverage: string;
+  published_version: string | null;
+  effective_date: string | null;
+  fetched_at: string | null;
+  freshness_status: string;
+  runtime_status: string;
+  limitation_summary: string;
+};
 export type TerrainHazardLayer = { key: string; label: string; status: TerrainRiskLayerStatus; level: TerrainRiskLevel; matched: boolean; distance_m: number | null; value: string | number | null; explanation: string; source?: TerrainRiskSource };
 export type TerrainRiskResult = {
   input: Record<string, string | number | string[] | null | undefined>;
@@ -189,6 +213,7 @@ export type TerrainRiskResult = {
   recommended_checks: string[];
   map_layers: { key: string; label: string; status: string; source_url?: string; external_view_url?: string; data_vintage?: string; data_quality?: string; limitation?: string }[];
   source_transparency?: { notice: string; layers: TerrainRiskSourceTransparencyLayer[] };
+  official_data_sources?: OfficialDataSourceStatus[];
   data_quality: { status: "good" | "limited" | "unavailable"; warnings: string[]; checked_at: string };
   disclaimer: string;
 };

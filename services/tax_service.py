@@ -7,6 +7,7 @@ from typing import Any
 
 from backend.repositories.sqlite_repo import save_tax_analysis
 from models.schemas import TaxCase
+from services.official_tax_rules import build_tax_rule_trace
 from rules.tax_rules import evaluate_tax_case
 from services.llm_service import generate_ai_explanation
 
@@ -18,6 +19,8 @@ def analyze_tax_case(case: TaxCase, persist: bool = True) -> dict[str, Any]:
     payload = result.to_dict()
     payload["ai_explanation"] = generate_ai_explanation(payload)
     payload["case_input"] = asdict(case)
+    payload["official_rule_trace"] = build_tax_rule_trace(payload["case_input"])
+    payload["tax_output_boundary"] = "preliminary_screening_only"
     if persist:
         save_tax_analysis(case.case_id, case.client_name, payload)
     return payload
