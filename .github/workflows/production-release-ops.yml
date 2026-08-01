@@ -1,0 +1,107 @@
+name: Production Release Operations Gate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-release-ops-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend_next/package-lock.json
+      - name: Install dependencies
+        run: |
+          python -m pip install -r backend/requirements.txt "pytest>=8,<9"
+          npm ci --prefix frontend_next
+      - name: Run complete Python suite
+        run: python -m pytest -q --basetemp "${RUNNER_TEMP}/production-release-pytest"
+      - name: Build frontend
+        run: npm --prefix frontend_next run build
+      - name: Run release gate
+        run: python scripts/release_quality_gate.py --skip-tests --skip-frontend-build
+      - name: Run production operations gate
+        run: python scripts/production_ops_gate.py
+      - name: Run production-safe smoke
+        run: python scripts/production_smoke.py
+
+  migration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: proptech_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d proptech_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        run: python -m pip install -r backend/requirements.txt "pytest>=8,<9"
+      - name: Validate Postgres migrations in a rollback transaction
+        run: python scripts/validate_postgres_migration.py --database-url "postgresql://postgres@127.0.0.1:5432/proptech_test"
+      - name: Run migration and backup contract tests
+        run: python -m pytest -q tests/test_production_postgres_ops.py --basetemp "${RUNNER_TEMP}/production-ops-pytest"
+
+  browser:
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend_next/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend_next
+      - name: Install Chromium
+        run: npm --prefix frontend_next exec -- playwright install chromium --with-deps
+      - name: Run browser locale and mobile matrix
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://e2e.test
+        run: npm --prefix frontend_next run test:e2e -- --workers=1

@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from services.pilot_evidence import PilotEvidenceStore
+from services.production_config import database_url
 from services.security import PersistenceConfigurationError, is_serverless_runtime
 
 
@@ -25,14 +26,14 @@ class PilotEvidencePersistence(Protocol):
 
 def configured_persistence(*, environ: dict[str, str] | None = None, default_path: str | Path | None = None) -> dict[str, str | bool]:
     values = environ if environ is not None else os.environ
-    database_url = values.get(PILOT_DATABASE_URL_ENV, "").strip()
+    configured_url = database_url(values)
     path = values.get(PILOT_DATABASE_PATH_ENV, "").strip()
     runtime = values.get("APP_ENV", "development").strip().lower()
     serverless = is_serverless_runtime(values)
     production = runtime in {"production", "preview"} or serverless
-    if production and not database_url:
+    if production and not configured_url:
         return {"status": "unavailable", "adapter": "none", "durable": False, "production": production, "serverless": serverless}
-    if database_url:
+    if configured_url:
         return {"status": "configured", "adapter": "postgres", "durable": True, "production": production, "serverless": serverless}
     return {"status": "configured", "adapter": "sqlite", "durable": False, "production": production, "serverless": serverless, "path_configured": bool(path or default_path)}
 
@@ -43,7 +44,7 @@ def build_pilot_store(*, default_path: str | Path, environ: dict[str, str] | Non
     if choice["adapter"] == "postgres":
         from services.pilot_evidence_postgres import PostgresPilotEvidenceStore
 
-        return PostgresPilotEvidenceStore(values[PILOT_DATABASE_URL_ENV])
+        return PostgresPilotEvidenceStore(database_url(values))
     if choice["status"] != "configured":
         raise PersistenceConfigurationError("durable pilot persistence is not configured")
     path = values.get(PILOT_DATABASE_PATH_ENV, "").strip() or str(default_path)

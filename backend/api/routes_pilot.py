@@ -24,6 +24,8 @@ from services.pilot_evidence import (
 )
 from services.observability import build_observation, normalize_correlation_id, sanitize_client_error
 from services.pilot_persistence import build_pilot_store, configured_persistence
+from services.postgres_runtime import check_connection
+from services.production_config import database_url, load_runtime_configuration
 from services.security import (
     CSRF_COOKIE_NAME,
     SESSION_COOKIE_NAME,
@@ -351,10 +353,21 @@ def pilot_source_status() -> dict[str, Any]:
 def pilot_readiness() -> dict[str, Any]:
     from backend.db import DB_PATH
 
+    config = load_runtime_configuration()
     persistence = configured_persistence(default_path=DB_PATH)
-    return build_readiness(database_available=persistence["status"] == "configured", admin_configured=_admin_authorized(os.getenv(PILOT_ADMIN_TOKEN_ENV, ""))) | {
+    database_probe = "not_run"
+    database_available = persistence["status"] == "configured"
+    if config.production_like:
+        database_probe = check_connection(database_url()) if config.database_status == "configured" else "unavailable"
+        database_available = database_probe == "available"
+    result = build_readiness(database_available=database_available, admin_configured=_admin_authorized(os.getenv(PILOT_ADMIN_TOKEN_ENV, ""))) | {
         "persistence": {key: persistence[key] for key in ("status", "adapter", "durable", "production", "serverless") if key in persistence},
+        "runtime": config.safe_report(),
+        "database_probe": database_probe,
     }
+    if config.production_like and not (config.ready and database_available):
+        raise HTTPException(status_code=503, detail="Production readiness requirements are unavailable.")
+    return result
 
 
 @router.get("/liveness")
