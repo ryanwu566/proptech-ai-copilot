@@ -3,7 +3,7 @@
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { TranslationKey } from "@/lib/experience-i18n";
 
-export type AppPage = "儀表板" | "TaxOracle" | "Market Insight Lite" | "Map Insight Lite" | "房價估算" | "Aegis-Credit Lite" | "Terrain Risk" | "歷史案件";
+export type AppPage = "儀表板" | "TaxOracle" | "Market Insight Lite" | "Map Insight Lite" | "房價估算" | "Aegis-Credit Lite" | "Terrain Risk" | "歷史案件" | "Closed Pilot" | "Professional Review";
 
 type NavigationGroup = { labelKey: TranslationKey; items: { page: AppPage; labelKey: TranslationKey }[] };
 const groups: NavigationGroup[] = [

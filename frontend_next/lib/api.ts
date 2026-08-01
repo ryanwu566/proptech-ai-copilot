@@ -32,6 +32,22 @@ export type TaxCase = {
   exceptional_circumstances: boolean;
 };
 
+export type PilotAccessResponse = { session_id: string; session_token: string; mode: "closed_pilot"; consent_version: string };
+export type PilotEvidenceSummary = {
+  pilot_sessions_started: number;
+  pilot_sessions_completed: number;
+  feedback_response_count: number;
+  median_observed_completion_seconds: number | null;
+  sample_size: number;
+  small_sample_warning: boolean;
+  sample_notice: string;
+  paying_customers: number;
+  willingness_to_pay: string;
+  professional_review: string;
+  publishable_testimonials: number;
+  test_fixtures_excluded: boolean;
+};
+
 export type RuleTrace = { code: string; title: string; outcome: string; detail: string; risk_points: number };
 export type TaxResult = {
   eligibility_status: "eligible" | "manual_review" | "not_eligible";
@@ -308,6 +324,14 @@ export const api = {
   valuation: (payload: Record<string, string | number>) => request<ValuationResult>("/valuation/estimate", { method: "POST", body: JSON.stringify(payload) }),
   valuationTrend: (payload: Record<string, string | number | number[]>) => request<ValuationTrendResult>("/valuation/trend", { method: "POST", body: JSON.stringify(payload) }),
   propertySearch: (payload: Record<string, string | number | string[] | undefined>) => request<PropertySearchResult>("/valuation/property-search", { method: "POST", body: JSON.stringify(payload) }),
+  pilotAccess: (payload: { campaign_id: string; pilot_code: string; locale: string; device_class: string; viewport_class: string; workflow_id: string }) => request<PilotAccessResponse>("/pilot/access", { method: "POST", body: JSON.stringify(payload) }),
+  pilotConsent: (sessionId: string, token: string, payload: { participation: boolean; interaction_metrics: boolean; written_feedback: boolean; follow_up_contact: boolean; publication: boolean }) => request<Record<string, string>>( `/pilot/sessions/${encodeURIComponent(sessionId)}/consent`, { method: "POST", headers: { "X-Pilot-Session-Token": token }, body: JSON.stringify(payload) }),
+  pilotProfile: (sessionId: string, token: string, payload: Record<string, string>) => request<Record<string, unknown>>(`/pilot/sessions/${encodeURIComponent(sessionId)}/profile`, { method: "POST", headers: { "X-Pilot-Session-Token": token }, body: JSON.stringify(payload) }),
+  pilotEvent: (sessionId: string, token: string, payload: { event_type: string; idempotency_key: string; metadata?: Record<string, unknown> }) => request<Record<string, unknown>>(`/pilot/sessions/${encodeURIComponent(sessionId)}/events`, { method: "POST", headers: { "X-Pilot-Session-Token": token }, body: JSON.stringify(payload) }),
+  pilotFeedback: (sessionId: string, token: string, payload: Record<string, unknown>) => request<Record<string, unknown>>(`/pilot/sessions/${encodeURIComponent(sessionId)}/feedback`, { method: "POST", headers: { "X-Pilot-Session-Token": token }, body: JSON.stringify(payload) }),
+  pilotComplete: (sessionId: string, token: string) => request<Record<string, unknown>>(`/pilot/sessions/${encodeURIComponent(sessionId)}/complete`, { method: "POST", headers: { "X-Pilot-Session-Token": token } }),
+  pilotPublicEvidence: () => request<PilotEvidenceSummary>("/pilot/public-evidence"),
+  pilotReadiness: () => request<Record<string, unknown>>("/pilot/readiness"),
 };
 
 export async function downloadTaxReport(taxCase: TaxCase) {

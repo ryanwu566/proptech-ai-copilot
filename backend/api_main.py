@@ -21,6 +21,7 @@ from backend.api.routes_road import router as road_router
 from backend.api.routes_taxoracle import router as taxoracle_router
 from backend.api.routes_terrain_risk import router as terrain_risk_router
 from backend.api.routes_valuation import router as valuation_router
+from backend.api.routes_pilot import router as pilot_router
 
 
 DEFAULT_DEV_CORS_ORIGINS = ("http://localhost:3000", "http://127.0.0.1:3000")
@@ -73,3 +74,4 @@ app.include_router(road_router)
 app.include_router(mortgage_rates_router)
 app.include_router(lite_router)
 app.include_router(valuation_router)
+app.include_router(pilot_router)
