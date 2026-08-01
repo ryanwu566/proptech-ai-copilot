@@ -82,3 +82,17 @@ def test_deletion_dry_run_is_explicit_and_scoped() -> None:
     assert result and result["dry_run"] is True
     assert result["affected_record_counts"]["pilot_sessions"] == 1
     assert store.delete_session(session["session_id"], session["session_token"])
+
+
+def test_publication_requires_consent_and_review_then_supports_revocation() -> None:
+    store, session = store_with_session()
+    session_id, token = session["session_id"], session["session_token"]
+    store.save_consent(session_id, token, {"participation": True, "interaction_metrics": True, "written_feedback": True, "follow_up_contact": False, "publication": True})
+    payload = {"task_completion": "completed", "result_clarity": 4, "source_clarity": 4, "limitation_clarity": 4, "entry_ease": 4, "meeting_usefulness": 4, "trust_level": 4, "reuse_likelihood": 4}
+    store.save_feedback(session_id, token, payload)
+    assert not store.approve_publication(session_id)
+    assert store.mark_feedback_reviewed(session_id)
+    assert store.approve_publication(session_id)
+    assert store.aggregate_public_evidence()["publishable_testimonials"] == 1
+    assert store.revoke_publication(session_id)
+    assert store.aggregate_public_evidence()["publishable_testimonials"] == 0

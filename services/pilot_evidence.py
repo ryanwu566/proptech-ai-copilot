@@ -223,6 +223,7 @@ class PilotEvidenceStore:
     def __init__(self, path: str | Path = ":memory:") -> None:
         self.path = str(path)
         self._connection: sqlite3.Connection | None = None
+        self._file_connections: list[sqlite3.Connection] = []
         self.initialize()
 
     def connection(self) -> sqlite3.Connection:
@@ -230,10 +231,21 @@ class PilotEvidenceStore:
             if self._connection is None:
                 self._connection = sqlite3.connect(":memory:", check_same_thread=False)
                 self._connection.row_factory = sqlite3.Row
+                self._connection.execute("PRAGMA foreign_keys=ON")
             return self._connection
         connection = sqlite3.connect(self.path, check_same_thread=False)
         connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA foreign_keys=ON")
+        self._file_connections.append(connection)
         return connection
+
+    def close(self) -> None:
+        if self._connection is not None:
+            self._connection.close()
+            self._connection = None
+        for connection in self._file_connections:
+            connection.close()
+        self._file_connections.clear()
 
     def initialize(self) -> None:
         with self.connection() as connection:
@@ -346,8 +358,9 @@ class PilotEvidenceStore:
             if session is None:
                 return None
             consent = connection.execute("SELECT participation, interaction_metrics, written_feedback, follow_up_contact, publication, version FROM pilot_consents WHERE session_id=?", (session_id,)).fetchone()
+            profile = connection.execute("SELECT profile_json, created_at, updated_at FROM pilot_profiles WHERE session_id=?", (session_id,)).fetchone()
             feedback = connection.execute("SELECT task_completion, result_clarity, source_clarity, limitation_clarity, entry_ease, meeting_usefulness, trust_level, reuse_likelihood, most_confusing_step, missing_capability, current_alternative, decision_maker_role, privacy_concern, required_integration, free_text, willingness_to_pay_json FROM pilot_feedback WHERE session_id=?", (session_id,)).fetchone()
-            return {"session": {"session_id": session["session_id"], "workflow_id": session["workflow_id"], "locale": session["locale"], "device_class": session["device_class"], "completion_status": session["completion_status"], "consent_version": session["consent_version"]}, "consent": dict(consent) if consent else None, "feedback": dict(feedback) if feedback else None}
+            return {"session": {"session_id": session["session_id"], "workflow_id": session["workflow_id"], "locale": session["locale"], "device_class": session["device_class"], "completion_status": session["completion_status"], "consent_version": session["consent_version"]}, "consent": dict(consent) if consent else None, "profile": dict(profile) if profile else None, "feedback": dict(feedback) if feedback else None}
 
     def deletion_dry_run(self, session_id: str, session_token: str) -> dict[str, Any] | None:
         with self.connection() as connection:
@@ -370,6 +383,7 @@ class PilotEvidenceStore:
         with self.connection() as connection:
             sessions = connection.execute("SELECT COUNT(*) AS count, SUM(CASE WHEN completion_status='completed' THEN 1 ELSE 0 END) AS completed FROM pilot_sessions WHERE is_test_fixture=0").fetchone()
             feedback_count = connection.execute("SELECT COUNT(*) FROM pilot_feedback f JOIN pilot_sessions s ON s.session_id=f.session_id WHERE s.is_test_fixture=0").fetchone()[0]
+            publishable_count = connection.execute("SELECT COUNT(*) FROM pilot_feedback f JOIN pilot_sessions s ON s.session_id=f.session_id JOIN pilot_consents c ON c.session_id=f.session_id WHERE s.is_test_fixture=0 AND c.publication=1 AND f.verification_status IN ('internally_reviewed','externally_verified') AND f.publication_status IN ('anonymized_quote_allowed','attribution_allowed','published')").fetchone()[0]
             durations = connection.execute("SELECT started_at, completed_at FROM pilot_sessions WHERE is_test_fixture=0 AND completion_status='completed' AND completed_at IS NOT NULL").fetchall()
             times: list[float] = []
             for row in durations:
@@ -379,7 +393,7 @@ class PilotEvidenceStore:
                     continue
             count = int(sessions["count"] or 0)
             completed = int(sessions["completed"] or 0)
-            return {"pilot_sessions_started": count, "pilot_sessions_completed": completed, "feedback_response_count": feedback_count, "median_observed_completion_seconds": median(times) if times else None, "sample_size": completed, "small_sample_warning": count < SMALL_SAMPLE_THRESHOLD, "sample_notice": PUBLIC_NOTICE if count < SMALL_SAMPLE_THRESHOLD else "", "paying_customers": 0, "willingness_to_pay": NO_VALIDATED_PRICING, "professional_review": "pending", "publishable_testimonials": 0, "source": "canonical pilot evidence records", "test_fixtures_excluded": True}
+            return {"pilot_sessions_started": count, "pilot_sessions_completed": completed, "feedback_response_count": feedback_count, "median_observed_completion_seconds": median(times) if times else None, "sample_size": completed, "small_sample_warning": count < SMALL_SAMPLE_THRESHOLD, "sample_notice": PUBLIC_NOTICE if count < SMALL_SAMPLE_THRESHOLD else "", "paying_customers": 0, "willingness_to_pay": NO_VALIDATED_PRICING, "professional_review": "pending", "publishable_testimonials": int(publishable_count), "source": "canonical pilot evidence records", "test_fixtures_excluded": True}
 
     def safe_export(self, *, campaign_id: str | None = None, fmt: str = "json") -> str:
         aggregate = self.aggregate_public_evidence()
@@ -402,6 +416,26 @@ class PilotEvidenceStore:
         with self.connection() as connection:
             connection.execute("INSERT INTO professional_reviews(review_id, reviewer_role, reviewer_display_name, qualification, qualification_verification_status, consent_to_display_name, reviewed_capability, reviewed_rule_version, reviewed_product_version, review_scope, outcome, notes, required_changes, reviewed_at, publication_status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'private', ?, ?)", (review_id, safe_text(payload.get("reviewer_role", "other"), limit=80), safe_text(payload.get("reviewer_display_name", ""), limit=120), safe_text(payload.get("qualification", ""), limit=200), "unverified", int(bool(payload.get("consent_to_display_name"))), safe_text(payload.get("reviewed_capability", ""), limit=120), safe_text(payload.get("reviewed_rule_version", ""), limit=80), PRODUCT_VERSION, safe_text(payload.get("review_scope", ""), limit=500), payload["outcome"], safe_text(payload.get("notes", ""), limit=1000), safe_text(payload.get("required_changes", ""), limit=1000), now, now, now))
         return review_id
+
+    def approve_publication(self, session_id: str) -> bool:
+        with self.connection() as connection:
+            row = connection.execute("SELECT c.publication, f.verification_status FROM pilot_consents c JOIN pilot_feedback f ON f.session_id=c.session_id WHERE c.session_id=?", (session_id,)).fetchone()
+            if row is None or not row["publication"] or row["verification_status"] not in {"internally_reviewed", "externally_verified"}:
+                return False
+            connection.execute("UPDATE pilot_feedback SET publication_status='anonymized_quote_allowed', updated_at=? WHERE session_id=?", (utc_now(), session_id))
+            return True
+
+    def revoke_publication(self, session_id: str) -> bool:
+        with self.connection() as connection:
+            updated = connection.execute("UPDATE pilot_feedback SET publication_status='revoked', updated_at=? WHERE session_id=?", (utc_now(), session_id)).rowcount
+            return bool(updated)
+
+    def mark_feedback_reviewed(self, session_id: str, verification_status: str = "internally_reviewed") -> bool:
+        if verification_status not in {"internally_reviewed", "externally_verified", "rejected", "superseded"}:
+            raise ValueError("invalid verification status")
+        with self.connection() as connection:
+            updated = connection.execute("UPDATE pilot_feedback SET verification_status=?, updated_at=? WHERE session_id=?", (verification_status, utc_now(), session_id)).rowcount
+            return bool(updated)
 
 
 def build_readiness(*, database_available: bool = True, admin_configured: bool = False) -> dict[str, Any]:

@@ -78,3 +78,53 @@ review evidence, approve quotations, and decide whether any aggregate is fit
 for publication. Until then the public Evidence Center must state zero completed
 pilot sessions, zero paying customers, willingness to pay not validated,
 professional review pending, and no publishable testimonials.
+
+## Exact local release-candidate commands
+
+Run these commands from the repository root. They use a disposable local
+database for migration checks and do not contact production services:
+
+```powershell
+python scripts/validate_pilot_environment.py
+python scripts/validate_pilot_evidence_migration.py
+python -m pytest -q tests/test_pilot_observability.py tests/test_pilot_environment.py tests/test_pilot_migration_validation.py tests/test_pilot_api.py tests/test_pilot_evidence.py
+npm.cmd --prefix frontend_next run build
+python scripts/check_frontend_bundle_budget.py
+npm.cmd --prefix frontend_next run build:e2e
+Set-Location frontend_next
+node e2e/run-e2e.cjs e2e/pilot-evidence.spec.ts --project=chromium
+node e2e/run-e2e.cjs e2e/pilot-evidence.spec.ts --project=chrome
+Set-Location ..
+python scripts/pilot_release_quality_gate.py --execute
+```
+
+The browser suite covers rejected access, the participant workflow, the
+publication-consent boundary, four locale entry smoke, and 360/390/430 pixel
+overflow checks. The production gate reports `pass`, `failed`, and `not_run`
+separately; a required browser or build check that was not run is not a pass.
+
+## Environment activation and rollback
+
+1. Run `python scripts/validate_pilot_environment.py` before enabling a pilot.
+2. Configure `PILOT_EVIDENCE_DB_PATH`, `PILOT_ADMIN_TOKEN`, and
+   `PILOT_REVIEW_TOKEN` only in the server runtime secret store.
+3. Run the migration validator against a disposable database, then apply the
+   additive migration through the reviewed database operator process.
+4. Create a campaign with the protected admin API and disable it with the
+   same boundary after the pilot window.
+5. Export aggregate evidence only after review and publication approval.
+6. For a participant request, run the deletion dry-run, confirm the bounded
+   counts, then delete that participant session. Repeat requests return the
+   existing unavailable state rather than targeting another participant.
+7. Revoke publication before any re-review or incident response when evidence
+   must be withdrawn. A revoked record is not eligible for public output.
+8. Rotate the admin and review tokens in the server secret store, then rerun
+   the readiness command. Never place them in the browser, bundle, URL, or
+   issue text.
+9. To roll back the application, deploy the previous release and keep the
+   additive evidence tables intact until the retention decision is approved.
+   Disable the pilot administration boundary during rollback. Do not delete
+   tables as an application rollback step.
+10. After recovery, rerun the environment, migration, browser, and bundle
+    checks, confirm fixtures remain excluded, and check professional-review
+    rule/product versions for stale status before re-enabling access.

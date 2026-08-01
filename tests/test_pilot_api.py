@@ -47,3 +47,14 @@ def test_professional_review_is_not_public_or_enabled_without_server_configurati
     assert response.status_code == 503
     status_response = client.get("/professional-review/status")
     assert status_response.json()["public_endorsement"] is False
+
+
+def test_correlation_header_and_client_error_endpoint_are_bounded() -> None:
+    response = client.get("/liveness", headers={"X-Correlation-ID": "pilot-api-123"})
+    assert response.status_code == 200
+    assert response.headers["X-Correlation-ID"] == "pilot-api-123"
+    accepted = client.post("/client-errors", headers={"X-Correlation-ID": "pilot-api-123"}, json={"error_code": "render_failure", "route": "/pilot", "boundary": "error-boundary", "pilot_mode": "closed_pilot"})
+    assert accepted.status_code == 202
+    assert accepted.json()["support_reference"] == "pilot-api-123"
+    rejected = client.post("/client-errors", json={"error_code": "render_failure", "raw_error": "not accepted"})
+    assert rejected.status_code == 422

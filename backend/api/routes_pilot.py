@@ -20,6 +20,7 @@ from services.pilot_evidence import (
     event_metadata,
     safe_text,
 )
+from services.observability import build_observation, normalize_correlation_id, sanitize_client_error
 
 
 router = APIRouter(tags=["pilot-evidence"])
@@ -161,6 +162,15 @@ class ProfessionalReviewRequest(BaseModel):
         return value
 
 
+class ClientErrorRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    error_code: str = Field(default="client_error", max_length=80)
+    route: str = Field(default="unknown", max_length=120)
+    boundary: str = Field(default="unknown", max_length=40)
+    pilot_mode: str = Field(default="normal", max_length=40)
+
+
 @router.get("/pilot/modes")
 def pilot_modes() -> dict[str, Any]:
     return {"modes": list(PILOT_MODES), "default": "normal", "pilot_modes_require_explicit_entry": True}
@@ -297,6 +307,16 @@ def professional_review_status() -> dict[str, Any]:
     return {"status": "pending", "publication_status": "private", "qualification_verification": "not_configured", "public_endorsement": False}
 
 
+@router.post("/client-errors", status_code=202)
+def report_client_error(request: Request, payload: ClientErrorRequest) -> dict[str, Any]:
+    _rate_limit(request, "client-errors")
+    correlation_id = normalize_correlation_id(request.headers.get("X-Correlation-ID"))
+    safe = sanitize_client_error(payload.error_code, payload.route, payload.boundary)
+    observation = build_observation(correlation_id=correlation_id, route=safe["route"], method="CLIENT", status_code=500, duration_ms=0, pilot_mode=payload.pilot_mode, error_code=safe["error_code"])
+    # Deliberately return only a support reference and categorical acceptance.
+    return {"status": "accepted", "support_reference": observation["correlation_id"], "recorded_fields": ["correlation_id", "route", "error_code", "boundary", "pilot_mode"]}
+
+
 @router.post("/pilot/admin/campaigns", status_code=201)
 def create_pilot_campaign(payload: PilotAccessRequest, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
     if not _admin_authorized(x_pilot_admin_token):
@@ -323,3 +343,34 @@ def export_admin_evidence(fmt: str = "json", x_pilot_admin_token: str | None = H
         raise HTTPException(status_code=422, detail="Unsupported export format.")
     media_type = {"json": "application/json", "csv": "text/csv", "html": "text/html"}[fmt]
     return Response(content=get_pilot_store().safe_export(fmt=fmt), media_type=media_type, headers={"X-Evidence-Export": "aggregate-only"})
+
+
+@router.post("/pilot/admin/evidence/{session_id}/review")
+def review_pilot_feedback(session_id: str, verification_status: str = "internally_reviewed", x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    if not _admin_authorized(x_pilot_admin_token):
+        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+    try:
+        reviewed = get_pilot_store().mark_feedback_reviewed(session_id, verification_status)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="Review status is invalid.")
+    if not reviewed:
+        raise HTTPException(status_code=404, detail="Pilot evidence is unavailable.")
+    return {"status": "reviewed", "publication_status": "private", "public_endorsement": False}
+
+
+@router.post("/pilot/admin/evidence/{session_id}/approve-publication")
+def approve_pilot_publication(session_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    if not _admin_authorized(x_pilot_admin_token):
+        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+    if not get_pilot_store().approve_publication(session_id):
+        raise HTTPException(status_code=409, detail="Publication prerequisites are not met.")
+    return {"status": "approved", "publication_status": "anonymized_quote_allowed", "public_endorsement": False}
+
+
+@router.post("/pilot/admin/evidence/{session_id}/revoke-publication")
+def revoke_pilot_publication(session_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    if not _admin_authorized(x_pilot_admin_token):
+        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+    if not get_pilot_store().revoke_publication(session_id):
+        raise HTTPException(status_code=404, detail="Pilot evidence is unavailable.")
+    return {"status": "revoked", "publication_status": "revoked", "public_endorsement": False}

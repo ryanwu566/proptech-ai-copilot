@@ -332,6 +332,7 @@ export const api = {
   pilotComplete: (sessionId: string, token: string) => request<Record<string, unknown>>(`/pilot/sessions/${encodeURIComponent(sessionId)}/complete`, { method: "POST", headers: { "X-Pilot-Session-Token": token } }),
   pilotPublicEvidence: () => request<PilotEvidenceSummary>("/pilot/public-evidence"),
   pilotReadiness: () => request<Record<string, unknown>>("/pilot/readiness"),
+  reportClientError: (payload: { error_code: string; route: string; boundary: string; pilot_mode: string }) => request<{ status: string; support_reference: string }>("/client-errors", { method: "POST", body: JSON.stringify(payload) }),
 };
 
 export async function downloadTaxReport(taxCase: TaxCase) {
