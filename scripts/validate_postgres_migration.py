@@ -26,16 +26,17 @@ MIGRATIONS = (
     ROOT / "database" / "migrations" / "005_add_pilot_security_indexes.sql",
     ROOT / "database" / "migrations" / "006_add_tax_analysis_history.sql",
     ROOT / "database" / "migrations" / "007_add_schema_migration_ledger.sql",
+    ROOT / "database" / "migrations" / "008_add_official_market_pipeline.sql",
 )
-REQUIRED_TABLES = {"pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events", "pilot_feedback", "professional_reviews", "tax_analysis_history"}
-REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id", "idx_schema_migration_ledger_applied_at"}
+REQUIRED_TABLES = {"pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events", "pilot_feedback", "professional_reviews", "tax_analysis_history", "official_market_releases", "official_market_artifacts", "market_transactions", "market_transaction_quality_events", "market_region_period_aggregates", "market_region_coverage", "market_import_runs", "market_import_checkpoints"}
+REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id", "idx_schema_migration_ledger_applied_at", "idx_market_transactions_region_period", "idx_market_aggregates_region_period"}
 
 
 def _static_contract() -> dict[str, str]:
     if not all(path.is_file() for path in MIGRATIONS):
         return {"status": "fail", "migration": "missing"}
     joined = "\n".join(path.read_text(encoding="utf-8") for path in MIGRATIONS).lower()
-    required = ("references", "on delete cascade", "create index", "tax_analysis_history", "jsonb", "schema_migration_ledger", "schema_version")
+    required = ("references", "on delete cascade", "create index", "tax_analysis_history", "jsonb", "schema_migration_ledger", "schema_version", "official_market_releases", "market_region_period_aggregates", "market_import_checkpoints")
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
     return {"status": "pass", "migration": "static_contract_pass"}

@@ -105,6 +105,16 @@ export type MarketResult = {
   source_file_hash?: string | null;
   aggregation_method?: string | null;
   history: { period: string | null; average_unit_price: number | null; transaction_count: number }[];
+  median_unit_price_ntd_sqm?: number | null;
+  mean_unit_price_ntd_sqm?: number | null;
+  lower_quartile_unit_price_ntd_sqm?: number | null;
+  upper_quartile_unit_price_ntd_sqm?: number | null;
+  median_total_price_ntd?: number | null;
+  median_area_sqm?: number | null;
+  sample_status?: "sufficient" | "limited" | "insufficient" | "no_data" | "unavailable";
+  aggregation_version?: string | null;
+  source_release_id?: string | null;
+  freshness_status?: "current" | "update_available" | "importing" | "stale" | "failed_latest_update" | "unknown" | "configuration_required";
 };
 export type MarketRegion = { city: string; county?: string; district: string; period?: string | null; data_status?: MarketResult["data_status"] };
 export type MarketRegionCatalog = {
@@ -312,6 +322,10 @@ export const api = {
     request<MarketRegionCatalog>(`/market-insights/regions${county ? `?county=${encodeURIComponent(county)}` : ""}`),
   marketInsight: (county: string, district?: string, period?: string | null, signal?: AbortSignal) =>
     request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ county, district, period }), signal }),
+  marketMethodology: () => request<Record<string, unknown>>("/market-insights/methodology"),
+  marketReleases: () => request<Record<string, unknown>>("/market-insights/releases"),
+  marketComparables: (payload: { county: string; district: string; transaction_type?: string; limit?: number }) =>
+    request<Record<string, unknown>>("/market-insights/comparables", { method: "POST", body: JSON.stringify(payload) }),
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
   mapGoogleHealth: () => request<GoogleHealth>("/map/google-health"),

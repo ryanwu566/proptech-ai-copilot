@@ -20,6 +20,9 @@ MARKET_QUERY_SAFE_FIELDS = (
     "source_updated_at", "coverage_status", "data_status", "caveat", "disclaimer",
     "source_file_hash", "aggregation_method", "history", "trend", "livability_score",
     "esg_lite_score", "poi_breakdown", "sdg11_note",
+    "median_unit_price_ntd_sqm", "mean_unit_price_ntd_sqm", "lower_quartile_unit_price_ntd_sqm",
+    "upper_quartile_unit_price_ntd_sqm", "median_total_price_ntd", "median_area_sqm", "sample_status",
+    "aggregation_version", "source_release_id", "freshness_status",
 )
 MARKET_REFRESH_UNAVAILABLE_MESSAGE = "市場讀取模型暫時無法刷新，請稍後再試。"
 MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE = "市場讀取模型刷新設定尚未完成。"
@@ -53,6 +56,31 @@ class MarketCoverageReconcileRequest(BaseModel):
         if not normalized.valid or normalized.district:
             raise ValueError("invalid county")
         return normalized.county
+
+
+class MarketComparableRequest(BaseModel):
+    """Bounded aggregate/comparable query; raw address and arbitrary SQL are forbidden."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    county: str
+    district: str
+    transaction_type: str = "existing_sale"
+    limit: int = 10
+
+    @field_validator("limit")
+    @classmethod
+    def bound_limit(cls, value: int) -> int:
+        if value < 1 or value > 10:
+            raise ValueError("limit out of range")
+        return value
+
+    @field_validator("transaction_type")
+    @classmethod
+    def allowed_type(cls, value: str) -> str:
+        if value not in {"existing_sale", "presale", "rental"}:
+            raise ValueError("unsupported transaction type")
+        return value
 
 
 @router.get("/market-insights/status")
@@ -89,6 +117,27 @@ def get_market_insights() -> dict[str, Any]:
     from services.market_insight_service import get_market_catalog
 
     return get_market_catalog()
+
+
+@router.get("/market-insights/methodology")
+def get_market_insight_methodology() -> dict[str, Any]:
+    from services.official_market_query import methodology
+
+    return methodology()
+
+
+@router.get("/market-insights/releases")
+def get_market_insight_releases() -> dict[str, Any]:
+    from services.official_market_query import release_status
+
+    return release_status()
+
+
+@router.post("/market-insights/comparables")
+def post_market_insight_comparables(request: MarketComparableRequest) -> dict[str, Any]:
+    from services.official_market_query import query_comparables
+
+    return query_comparables(request.county, request.district, request.transaction_type, request.limit)
 
 
 @router.post("/market-insights/query")
