@@ -20,6 +20,7 @@ import tempfile
 import urllib.parse
 import urllib.request
 import zipfile
+from html.parser import HTMLParser
 from dataclasses import asdict, dataclass, field
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -174,6 +175,19 @@ class PipelineSummary:
     reason_counts: dict[str, int] = field(default_factory=dict)
 
 
+class _OfficialLinkParser(HTMLParser):
+    def __init__(self) -> None:
+        super().__init__()
+        self.links: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() != "a":
+            return
+        href = dict(attrs).get("href")
+        if href:
+            self.links.append(href)
+
+
 def load_source_registry(path: Path) -> list[SourceSpec]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, dict) or not isinstance(payload.get("sources"), list):
@@ -215,6 +229,28 @@ def validate_redirect_chain(urls: Iterable[str], allowed_hosts: Iterable[str]) -
         return True
     except ValueError:
         return False
+
+
+def discover_official_release(source: SourceSpec, *, max_page_bytes: int = 2 * 1024 * 1024) -> DiscoveryResult:
+    """Discover a public release link without accepting arbitrary HTML URLs."""
+    try:
+        safe_url = validate_official_url(source.discovery_url, [urllib.parse.urlparse(source.discovery_url).hostname or ""])
+        request = urllib.request.Request(safe_url, headers={"Accept": "text/html"})
+        with urllib.request.urlopen(request, timeout=20) as response:
+            content_type = str(response.headers.get("Content-Type") or "").lower()
+            if "html" not in content_type:
+                return DiscoveryResult("source_changed", source_id=source.source_id, reason_code="discovery_content_type_invalid")
+            payload = response.read(max_page_bytes + 1)
+        if len(payload) > max_page_bytes:
+            return DiscoveryResult("validation_failed", source_id=source.source_id, reason_code="discovery_size_limit")
+        parser = _OfficialLinkParser()
+        parser.feed(payload.decode("utf-8", errors="replace"))
+        candidates = [link for link in parser.links if link.lower().split("?", 1)[0].endswith((".zip", ".csv", ".json"))]
+        if not candidates:
+            return DiscoveryResult("configuration_required", source_id=source.source_id, reason_code="official_release_requires_authorized_download")
+        return DiscoveryResult("new_release_available", source_id=source.source_id, reason_code="release_link_discovered")
+    except Exception:
+        return DiscoveryResult("source_unavailable", source_id=source.source_id, reason_code="official_discovery_unavailable")
 
 
 def sha256_file(path: Path) -> str:

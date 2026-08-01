@@ -154,3 +154,23 @@ def test_discovery_does_not_call_release_missing() -> None:
     assert pipeline.discover_release(None, None).status == "source_unavailable"
     assert pipeline.discover_release("release", {"release_id": "release"}).status == "already_imported"
     assert pipeline.discover_release("old", {"release_id": "new"}).status == "new_release_available"
+
+
+def test_official_discovery_without_public_archive_is_configuration_required(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Response:
+        headers = {"Content-Type": "text/html"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return None
+
+        def read(self, _limit: int) -> bytes:
+            return b"<html><body>authorized download</body></html>"
+
+    monkeypatch.setattr(pipeline.urllib.request, "urlopen", lambda request, timeout: Response())
+    source = load_source_registry(ROOT / "config" / "official-market-sources.json")[0]
+    result = pipeline.discover_official_release(source)
+    assert result.status == "configuration_required"
+    assert result.reason_code == "official_release_requires_authorized_download"
