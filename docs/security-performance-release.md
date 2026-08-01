@@ -164,6 +164,10 @@ copied into fixtures.
 
 ## Load-test envelope
 
+The supported local smoke envelope is 1, 5, 10, and 20 concurrent virtual
+users. It is a bounded correctness and regression check, not a high-scale
+capacity claim.
+
 ## Load, Lighthouse, and browser acceptance
 
 Use only local or explicitly created preview environments with synthetic test
@@ -173,6 +177,33 @@ responses. Run Lighthouse mobile and desktop for the public routes, then the
 existing Playwright Chromium/Chrome, four-locale, mobile 360/390/430,
 console/page/network checks. A missing preview credential or durable database
 is an environment requirement, not a passed production claim.
+
+The repository currently has two Next routes: `/` and `/cases/[caseId]`.
+Competition, TaxOracle, map, pilot, and evidence are homepage surfaces rather
+than separate URLs, so the local browser report measures those surfaces on `/`
+and labels them `homepage_surface`; it does not turn a 404 into a performance
+claim. `scripts/measure_browser_performance.cjs` is a reproducible
+Playwright-equivalent rubric: it records transferred bytes, request count,
+TTFB, DOMContentLoaded, load, LCP, CLS, a TBT/INP proxy, accessibility and
+security-header checks for three desktop and mobile samples. It is explicitly
+not a Lighthouse score. `scripts/measure_memory_regressions.cjs` repeats the
+homepage/case navigation five times and reports warm listener, heap, and speech
+queue deltas.
+
+The remaining local commands are intentionally bounded and provider-free:
+
+```text
+python scripts/analyze_next_bundle.py
+python scripts/benchmark_local_api.py --samples 30
+python scripts/benchmark_pilot_sqlite.py --samples 30
+python scripts/run_bounded_load.py --loops 5
+```
+
+`benchmark_pilot_sqlite.py` seeds only a disposable SQLite file with 20
+campaigns, 1,000 sessions, 10,000 events, 500 feedback rows, and 20 review
+rows. It reports query plans, index usage, p50/p95, lock errors, and transaction
+errors; no synthetic row is written to production evidence. The bounded load
+stages are local ASGI smoke measurements, not a high-scale readiness claim.
 
 ## Residual risks
 
@@ -185,12 +216,15 @@ release blockers rather than silently passing checks.
 
 The local gate distinguishes `pass`, `failed`, `not_run`, and `environment
 required`. Local security tests, migration validation, the frontend build,
-bundle/route budgets, and browser acceptance must pass before a release
-candidate. Human actions remain: configure a strong session signing key and
-durable pilot database, apply reviewed migrations, run dependency advisories
-against the approved network mirror, verify HSTS/CSP and cookie behavior on a
-real HTTPS preview, capture performance/load/Lighthouse measurements, and
-review residual advisories before deployment.
+bundle/route budgets, API/SQLite/load smoke, and browser-equivalent acceptance
+must pass before a release candidate. Python dependency advisories run in the
+network-enabled CI job with `pip-audit -r backend/requirements.txt --strict`;
+the local workstation must not claim an advisory result when its vulnerability
+service is unreachable. Human actions remain: configure a strong session
+signing key and durable pilot database, apply reviewed migrations, verify
+HSTS/CSP and cookie behavior on a real HTTPS preview, capture approved
+Lighthouse/load/API/DB measurements, and review residual advisories before
+deployment.
 
 Rollback is an application redeploy to the previous version. Keep additive
 tables until retention and deletion review is complete; disable pilot admin
