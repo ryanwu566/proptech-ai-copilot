@@ -13,6 +13,7 @@ kept under `docs/archive/` and must not be used as current product guidance.
 - [Competition release](competition-release.md) - TaxOracle/Holding Cost MVP positioning, demo boundaries, and capability truth.
 - [Competition evidence pack](competition-evidence-pack.md) - reproducible judge flow and non-fabricated validation record.
 - [Pilot release runbook](pilot-release-runbook.md) - closed-pilot consent, evidence, review, export, deletion, and release operations.
+- [Security and performance release](security-performance-release.md) - threat model, persistence boundary, security controls, performance budgets, and release gate.
 - [Customer interview pack](customer-interview-pack.md) - neutral questions for collecting real pilot evidence.
 - [Professional review pack](professional-review-pack.md) - versioned review scope and non-endorsement checklist.
 

@@ -5,9 +5,11 @@ from __future__ import annotations
 import os
 import secrets
 import time
+import json
 from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Request, Response, status
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from services.pilot_evidence import (
@@ -21,6 +23,15 @@ from services.pilot_evidence import (
     safe_text,
 )
 from services.observability import build_observation, normalize_correlation_id, sanitize_client_error
+from services.pilot_persistence import build_pilot_store, configured_persistence
+from services.security import (
+    CSRF_COOKIE_NAME,
+    SESSION_COOKIE_NAME,
+    ScopedSessionManager,
+    constant_time_secret_equals,
+    require_same_origin,
+    validate_secret_strength,
+)
 
 
 router = APIRouter(tags=["pilot-evidence"])
@@ -29,6 +40,7 @@ PILOT_ADMIN_TOKEN_ENV = "PILOT_ADMIN_TOKEN"
 PILOT_REVIEW_TOKEN_ENV = "PILOT_REVIEW_TOKEN"
 _store: PilotEvidenceStore | None = None
 _rate_buckets: dict[str, list[float]] = {}
+_session_manager: ScopedSessionManager | None = None
 
 
 def get_pilot_store() -> PilotEvidenceStore:
@@ -36,13 +48,17 @@ def get_pilot_store() -> PilotEvidenceStore:
     if _store is None:
         from backend.db import DB_PATH
 
-        _store = PilotEvidenceStore(os.getenv(PILOT_DB_PATH_ENV, str(DB_PATH)))
+        try:
+            _store = build_pilot_store(default_path=DB_PATH)
+        except ValueError:
+            raise HTTPException(status_code=503, detail="Pilot persistence is unavailable.")
     return _store
 
 
 def reset_pilot_store_for_tests(store: PilotEvidenceStore | None = None) -> None:
-    global _store
+    global _store, _session_manager
     _store = store
+    _session_manager = None
 
 
 def _rate_limit(request: Request, bucket: str) -> None:
@@ -63,12 +79,74 @@ def _session_token(value: str | None) -> str:
 
 def _admin_authorized(token: str | None) -> bool:
     configured = os.getenv(PILOT_ADMIN_TOKEN_ENV, "").strip()
-    return bool(configured and token and secrets.compare_digest(token, configured))
+    return len(configured) >= 16 and constant_time_secret_equals(token, configured)
 
 
 def _review_authorized(token: str | None) -> bool:
-    configured = os.getenv(PILOT_REVIEW_TOKEN_ENV, "").strip() or os.getenv(PILOT_ADMIN_TOKEN_ENV, "").strip()
-    return bool(configured and token and secrets.compare_digest(token, configured))
+    configured = os.getenv(PILOT_REVIEW_TOKEN_ENV, "").strip()
+    return len(configured) >= 16 and constant_time_secret_equals(token, configured)
+
+
+def _origins() -> list[str]:
+    configured = os.getenv("CORS_ALLOWED_ORIGINS", "").strip() or os.getenv("CORS_ORIGINS", "").strip()
+    values = [item.strip().rstrip("/") for item in configured.split(",") if item.strip() and item.strip() != "*"]
+    return values or ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+
+def _session_manager_for_runtime() -> ScopedSessionManager | None:
+    global _session_manager
+    key = os.getenv("PILOT_SESSION_SIGNING_KEY", "").strip()
+    if not key:
+        return None
+    if _session_manager is None:
+        try:
+            _session_manager = ScopedSessionManager(key)
+        except ValueError:
+            return None
+    return _session_manager
+
+
+def _cookie_role(request: Request, role: str) -> bool:
+    manager = _session_manager_for_runtime()
+    return bool(manager and manager.verify(request.cookies.get(SESSION_COOKIE_NAME), role=role))
+
+
+def _require_admin(request: Request, token: str | None) -> None:
+    cookie = _cookie_role(request, "administrator")
+    if cookie:
+        require_same_origin(request, _origins(), cookie_authenticated=True)
+        return
+    if not _admin_authorized(token):
+        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+    require_same_origin(request, _origins())
+
+
+def _require_reviewer(request: Request, token: str | None) -> None:
+    cookie = _cookie_role(request, "reviewer")
+    if cookie:
+        require_same_origin(request, _origins(), cookie_authenticated=True)
+        return
+    if not _review_authorized(token):
+        raise HTTPException(status_code=503, detail="Professional review mode is not configured.")
+    require_same_origin(request, _origins())
+
+
+def _issue_session(request: Request, *, role: str, bootstrap: str | None) -> Response:
+    expected = os.getenv(PILOT_ADMIN_TOKEN_ENV if role == "administrator" else PILOT_REVIEW_TOKEN_ENV, "").strip()
+    if len(expected) < 16 or not constant_time_secret_equals(bootstrap, expected):
+        raise HTTPException(status_code=503, detail="Session bootstrap is unavailable.")
+    require_same_origin(request, _origins())
+    manager = _session_manager_for_runtime()
+    if manager is None:
+        raise HTTPException(status_code=503, detail="Scoped sessions are not configured.")
+    session = manager.issue(role)
+    csrf = secrets.token_urlsafe(24)
+    response = JSONResponse({"status": "authenticated", "role": role, "expires_in_seconds": 900, "csrf_required": True})
+    production = os.getenv("APP_ENV", "development").strip().lower() in {"production", "preview"}
+    path = "/pilot/admin" if role == "administrator" else "/professional-review"
+    response.set_cookie(SESSION_COOKIE_NAME, session, max_age=900, httponly=True, secure=production, samesite="strict", path=path)
+    response.set_cookie(CSRF_COOKIE_NAME, csrf, max_age=900, httponly=False, secure=production, samesite="strict", path=path)
+    return response
 
 
 class PilotAccessRequest(BaseModel):
@@ -271,7 +349,12 @@ def pilot_source_status() -> dict[str, Any]:
 
 @router.get("/pilot/readiness")
 def pilot_readiness() -> dict[str, Any]:
-    return build_readiness(database_available=True, admin_configured=bool(os.getenv(PILOT_ADMIN_TOKEN_ENV, "").strip()))
+    from backend.db import DB_PATH
+
+    persistence = configured_persistence(default_path=DB_PATH)
+    return build_readiness(database_available=persistence["status"] == "configured", admin_configured=_admin_authorized(os.getenv(PILOT_ADMIN_TOKEN_ENV, ""))) | {
+        "persistence": {key: persistence[key] for key in ("status", "adapter", "durable", "production", "serverless") if key in persistence},
+    }
 
 
 @router.get("/liveness")
@@ -295,9 +378,8 @@ def release_version() -> dict[str, str]:
 
 
 @router.post("/professional-review", status_code=201)
-def submit_professional_review(payload: ProfessionalReviewRequest, x_pilot_review_token: str | None = Header(default=None)) -> dict[str, Any]:
-    if not _review_authorized(x_pilot_review_token):
-        raise HTTPException(status_code=503, detail="Professional review mode is not configured.")
+def submit_professional_review(request: Request, payload: ProfessionalReviewRequest, x_pilot_review_token: str | None = Header(default=None)) -> dict[str, Any]:
+    _require_reviewer(request, x_pilot_review_token)
     review_id = get_pilot_store().add_professional_review(payload.model_dump())
     return {"status": "received", "review_id": review_id, "publication_status": "private", "public_endorsement": False}
 
@@ -317,10 +399,35 @@ def report_client_error(request: Request, payload: ClientErrorRequest) -> dict[s
     return {"status": "accepted", "support_reference": observation["correlation_id"], "recorded_fields": ["correlation_id", "route", "error_code", "boundary", "pilot_mode"]}
 
 
+@router.post("/pilot/admin/session")
+def create_admin_session(request: Request, x_pilot_admin_bootstrap: str | None = Header(default=None)) -> Response:
+    return _issue_session(request, role="administrator", bootstrap=x_pilot_admin_bootstrap)
+
+
+@router.post("/pilot/reviewer/session")
+def create_reviewer_session(request: Request, x_pilot_review_bootstrap: str | None = Header(default=None)) -> Response:
+    return _issue_session(request, role="reviewer", bootstrap=x_pilot_review_bootstrap)
+
+
+@router.post("/pilot/session/logout")
+def logout_pilot_session(request: Request) -> Response:
+    require_same_origin(request, _origins(), cookie_authenticated=bool(request.cookies.get(SESSION_COOKIE_NAME)))
+    manager = _session_manager_for_runtime()
+    if manager:
+        manager.revoke(request.cookies.get(SESSION_COOKIE_NAME))
+    response = JSONResponse({"status": "signed_out"})
+    response.delete_cookie(SESSION_COOKIE_NAME, path="/")
+    response.delete_cookie(CSRF_COOKIE_NAME, path="/")
+    response.delete_cookie(SESSION_COOKIE_NAME, path="/pilot/admin")
+    response.delete_cookie(SESSION_COOKIE_NAME, path="/professional-review")
+    response.delete_cookie(CSRF_COOKIE_NAME, path="/pilot/admin")
+    response.delete_cookie(CSRF_COOKIE_NAME, path="/professional-review")
+    return response
+
+
 @router.post("/pilot/admin/campaigns", status_code=201)
-def create_pilot_campaign(payload: PilotAccessRequest, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
-    if not _admin_authorized(x_pilot_admin_token):
-        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+def create_pilot_campaign(request: Request, payload: PilotAccessRequest, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    _require_admin(request, x_pilot_admin_token)
     # The access code is accepted only over the protected admin boundary and
     # is never returned or logged by this endpoint.
     get_pilot_store().create_campaign(payload.campaign_id, payload.pilot_code)
@@ -328,17 +435,15 @@ def create_pilot_campaign(payload: PilotAccessRequest, x_pilot_admin_token: str 
 
 
 @router.post("/pilot/admin/campaigns/{campaign_id}/disable")
-def disable_pilot_campaign(campaign_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
-    if not _admin_authorized(x_pilot_admin_token):
-        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+def disable_pilot_campaign(request: Request, campaign_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    _require_admin(request, x_pilot_admin_token)
     get_pilot_store().disable_campaign(campaign_id)
     return {"status": "disabled", "campaign_id": campaign_id}
 
 
 @router.get("/pilot/admin/evidence/export")
-def export_admin_evidence(fmt: str = "json", x_pilot_admin_token: str | None = Header(default=None)) -> Response:
-    if not _admin_authorized(x_pilot_admin_token):
-        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+def export_admin_evidence(request: Request, fmt: str = "json", x_pilot_admin_token: str | None = Header(default=None)) -> Response:
+    _require_admin(request, x_pilot_admin_token)
     if fmt not in {"json", "csv", "html"}:
         raise HTTPException(status_code=422, detail="Unsupported export format.")
     media_type = {"json": "application/json", "csv": "text/csv", "html": "text/html"}[fmt]
@@ -346,9 +451,8 @@ def export_admin_evidence(fmt: str = "json", x_pilot_admin_token: str | None = H
 
 
 @router.post("/pilot/admin/evidence/{session_id}/review")
-def review_pilot_feedback(session_id: str, verification_status: str = "internally_reviewed", x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
-    if not _admin_authorized(x_pilot_admin_token):
-        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+def review_pilot_feedback(request: Request, session_id: str, verification_status: str = "internally_reviewed", x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    _require_admin(request, x_pilot_admin_token)
     try:
         reviewed = get_pilot_store().mark_feedback_reviewed(session_id, verification_status)
     except ValueError:
@@ -359,18 +463,16 @@ def review_pilot_feedback(session_id: str, verification_status: str = "internall
 
 
 @router.post("/pilot/admin/evidence/{session_id}/approve-publication")
-def approve_pilot_publication(session_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
-    if not _admin_authorized(x_pilot_admin_token):
-        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+def approve_pilot_publication(request: Request, session_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    _require_admin(request, x_pilot_admin_token)
     if not get_pilot_store().approve_publication(session_id):
         raise HTTPException(status_code=409, detail="Publication prerequisites are not met.")
     return {"status": "approved", "publication_status": "anonymized_quote_allowed", "public_endorsement": False}
 
 
 @router.post("/pilot/admin/evidence/{session_id}/revoke-publication")
-def revoke_pilot_publication(session_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
-    if not _admin_authorized(x_pilot_admin_token):
-        raise HTTPException(status_code=503, detail="Pilot administration is not configured.")
+def revoke_pilot_publication(request: Request, session_id: str, x_pilot_admin_token: str | None = Header(default=None)) -> dict[str, Any]:
+    _require_admin(request, x_pilot_admin_token)
     if not get_pilot_store().revoke_publication(session_id):
         raise HTTPException(status_code=404, detail="Pilot evidence is unavailable.")
     return {"status": "revoked", "publication_status": "revoked", "public_endorsement": False}

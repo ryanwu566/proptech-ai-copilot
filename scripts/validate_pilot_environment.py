@@ -6,6 +6,8 @@ import os
 import json
 
 from services.pilot_evidence import build_readiness
+from services.pilot_persistence import configured_persistence
+from services.security import MIN_SESSION_SIGNING_KEY_LENGTH, is_serverless_runtime
 
 
 def _configuration_status(value: str | None, *, minimum_length: int = 16) -> str:
@@ -19,15 +21,22 @@ def _configuration_status(value: str | None, *, minimum_length: int = 16) -> str
 
 def report() -> dict[str, object]:
     database_status = _configuration_status(os.getenv("PILOT_EVIDENCE_DB_PATH"), minimum_length=1)
+    durable_database_status = _configuration_status(os.getenv("PILOT_EVIDENCE_DATABASE_URL"), minimum_length=1)
     admin_status = _configuration_status(os.getenv("PILOT_ADMIN_TOKEN"))
     review_status = _configuration_status(os.getenv("PILOT_REVIEW_TOKEN"))
+    session_status = _configuration_status(os.getenv("PILOT_SESSION_SIGNING_KEY"), minimum_length=MIN_SESSION_SIGNING_KEY_LENGTH)
+    persistence = configured_persistence()
     return {
         "database_path_configured": database_status == "configured",
+        "durable_database_configured": durable_database_status == "configured",
         "admin_configured": admin_status == "configured",
         "review_configured": review_status == "configured",
-        "configuration_status": {"database": database_status, "admin": admin_status, "review": review_status},
-        "readiness": build_readiness(database_available=database_status != "malformed", admin_configured=admin_status == "configured"),
+        "session_configured": session_status == "configured",
+        "configuration_status": {"database": database_status, "durable_database": durable_database_status, "admin": admin_status, "review": review_status, "session": session_status},
+        "persistence": {key: persistence[key] for key in ("status", "adapter", "durable", "production", "serverless") if key in persistence},
+        "readiness": build_readiness(database_available=persistence["status"] == "configured" and database_status != "malformed", admin_configured=admin_status == "configured"),
         "secrets_output": False,
+        "serverless_without_durable_store": is_serverless_runtime() and durable_database_status != "configured",
     }
 
 
