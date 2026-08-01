@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import json
 import zipfile
+from dataclasses import replace
 from datetime import date
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from services.official_plvr_market_pipeline import (
     score_comparables,
     sqm_to_ping,
     validate_official_url,
+    validate_public_resource_url,
     validate_redirect_chain,
 )
 
@@ -33,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_source_registry_is_official_metadata_only() -> None:
     sources = load_source_registry(ROOT / "config" / "official-market-sources.json")
-    assert len(sources) == 3
+    assert len(sources) == 2
     assert all(source.trust_level == "official" for source in sources)
     assert all("token" not in source.discovery_url.lower() for source in sources)
 
@@ -46,6 +48,18 @@ def test_official_url_allowlist_rejects_unsafe_urls(url: str) -> None:
 
 def test_official_url_allowlist_accepts_official_https() -> None:
     assert validate_official_url("https://plvr.land.moi.gov.tw/public", ["plvr.land.moi.gov.tw"]).startswith("https://")
+
+
+def test_registry_accepts_query_filename_public_download_route() -> None:
+    source = load_source_registry(ROOT / "config" / "official-market-sources.json")[0]
+    assert "/Download?" in source.public_resource_url
+    assert validate_public_resource_url(source.public_resource_url, source).startswith("https://plvr.land.moi.gov.tw/Download?")
+
+
+def test_registry_rejects_unexpected_public_resource_query() -> None:
+    source = load_source_registry(ROOT / "config" / "official-market-sources.json")[0]
+    with pytest.raises(ValueError):
+        validate_public_resource_url(source.public_resource_url + "&token=fixture", source)
 
 
 def test_redirect_chain_must_remain_official() -> None:
@@ -156,7 +170,7 @@ def test_discovery_does_not_call_release_missing() -> None:
     assert pipeline.discover_release("old", {"release_id": "new"}).status == "new_release_available"
 
 
-def test_official_discovery_without_public_archive_is_configuration_required(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_official_discovery_without_public_archive_is_resource_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
     class Response:
         headers = {"Content-Type": "text/html"}
 
@@ -170,7 +184,7 @@ def test_official_discovery_without_public_archive_is_configuration_required(mon
             return b"<html><body>authorized download</body></html>"
 
     monkeypatch.setattr(pipeline.urllib.request, "urlopen", lambda request, timeout: Response())
-    source = load_source_registry(ROOT / "config" / "official-market-sources.json")[0]
+    source = replace(load_source_registry(ROOT / "config" / "official-market-sources.json")[0], public_resource_url="", fallback_resource_urls=())
     result = pipeline.discover_official_release(source)
-    assert result.status == "configuration_required"
-    assert result.reason_code == "official_release_requires_authorized_download"
+    assert result.status == "resource_unavailable"
+    assert result.reason_code == "public_resource_not_discovered"

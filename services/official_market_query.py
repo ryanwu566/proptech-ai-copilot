@@ -9,7 +9,7 @@ from services.taiwan_admin_registry import normalize_market_region
 
 
 SAFE_QUERY_FIELDS = (
-    "county", "district", "period", "transaction_type", "sample_status", "transaction_count",
+    "county", "district", "period", "transaction_type", "sample_status", "transaction_count", "source_name",
     "valid_comparable_count", "median_unit_price_ntd_sqm", "mean_unit_price_ntd_sqm",
     "lower_quartile_unit_price_ntd_sqm", "upper_quartile_unit_price_ntd_sqm", "median_total_price_ntd",
     "median_area_sqm", "total_transaction_value_ntd", "source_release_id", "source_updated_at",

@@ -16,8 +16,11 @@ import os
 import re
 import shutil
 import statistics
+import socket
+import ssl
 import tempfile
 import urllib.parse
+import urllib.error
 import urllib.request
 import zipfile
 from html.parser import HTMLParser
@@ -36,6 +39,8 @@ COMPARABLE_VERSION = "bounded-similarity-v1"
 DISCOVERY_STATUSES = {
     "new_release_available", "already_imported", "source_unavailable",
     "source_changed", "schema_changed", "validation_failed", "configuration_required",
+    "resource_discovered", "resource_unchanged", "metadata_unavailable_resource_known", "metadata_changed",
+    "resource_unavailable", "archive_invalid", "network_unavailable",
 }
 FRESHNESS_STATUSES = {
     "current", "update_available", "importing", "stale", "failed_latest_update", "unknown", "configuration_required",
@@ -99,6 +104,17 @@ class SourceSpec:
     geographic_scope: str
     trust_level: str
     known_limitations: tuple[str, ...]
+    metadata_url: str = ""
+    public_resource_url: str = ""
+    fallback_resource_urls: tuple[str, ...] = ()
+    accepted_content_types: tuple[str, ...] = ("application/zip", "application/octet-stream", "binary/octet-stream")
+    official_hosts: tuple[str, ...] = ()
+    dataset_id: str | None = None
+    filename_query_parameter: str | None = None
+    publication_schedule: str | None = None
+    source_priority: int = 1
+    expected_archive_signature: tuple[str, ...] = ("PK\\x03\\x04", "PK\\x05\\x06", "PK\\x07\\x08")
+    transaction_types: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -207,6 +223,21 @@ def load_source_registry(path: Path) -> list[SourceSpec]:
             discovery_url=str(raw["discovery_url"]), expected_archive_type=str(raw["expected_archive_type"]),
             enabled=bool(raw["enabled"]), priority=int(raw["priority"]), geographic_scope=str(raw["geographic_scope"]),
             trust_level=str(raw["trust_level"]), known_limitations=tuple(str(v) for v in raw["known_limitations"]),
+            metadata_url=str(raw.get("metadata_url") or ""), public_resource_url=str(raw.get("public_resource_url") or ""),
+            fallback_resource_urls=tuple(str(v) for v in raw.get("fallback_resource_urls", []) if str(v).strip()),
+            accepted_content_types=tuple(str(v).lower() for v in raw.get("accepted_content_types", ["application/zip", "application/octet-stream", "binary/octet-stream"])),
+            official_hosts=tuple(str(v).lower() for v in raw.get("official_hosts", [parsed.hostname])),
+            dataset_id=str(raw.get("dataset_id") or "") or None,
+            filename_query_parameter=str(raw.get("filename_query_parameter") or "") or None,
+            publication_schedule=str(raw.get("publication_schedule") or "") or None,
+            source_priority=int(raw.get("source_priority", raw["priority"])),
+            expected_archive_signature=tuple(
+                str(value) for value in raw.get(
+                    "expected_archive_signature",
+                    ["PK\\x03\\x04", "PK\\x05\\x06", "PK\\x07\\x08"],
+                )
+            ),
+            transaction_types=tuple(str(value) for value in raw.get("transaction_types", [raw["transaction_type"]])),
         ))
     return sorted(sources, key=lambda item: (not item.enabled, item.priority, item.source_id))
 
@@ -231,8 +262,74 @@ def validate_redirect_chain(urls: Iterable[str], allowed_hosts: Iterable[str]) -
         return False
 
 
+def validate_public_resource_url(url: str, source: SourceSpec) -> str:
+    """Validate a registry-owned PLVR resource, including query filenames."""
+    safe = validate_official_url(url, source.official_hosts or [urllib.parse.urlparse(source.discovery_url).hostname or ""])
+    parsed = urllib.parse.urlparse(safe)
+    allowed_paths = {"/opendata/lvr_landAcsv.zip", "/Download"}
+    if parsed.path not in allowed_paths:
+        raise ValueError("resource_path_rejected")
+    query = urllib.parse.parse_qs(parsed.query, keep_blank_values=True)
+    if parsed.path == "/Download":
+        if set(query) - {source.filename_query_parameter or "fileName", "type"}:
+            raise ValueError("resource_query_rejected")
+        filename = (query.get(source.filename_query_parameter or "fileName") or [""])[0]
+        if filename not in {"lvr_landcsv.zip", "lvr_landAcsv.zip"}:
+            raise ValueError("resource_filename_rejected")
+    elif query:
+        raise ValueError("resource_query_rejected")
+    return safe
+
+
+def resolve_resource_from_metadata(source: SourceSpec, *, max_bytes: int = 2 * 1024 * 1024) -> str | None:
+    """Read only the official catalog page and keep only PLVR-hosted links."""
+    if not source.metadata_url:
+        return None
+    try:
+        catalog_url = validate_official_url(source.metadata_url, ["data.gov.tw"])
+        request = urllib.request.Request(catalog_url, headers={"Accept": "text/html, application/json"})
+        with urllib.request.urlopen(request, timeout=20) as response:
+            payload = response.read(max_bytes + 1)
+        if len(payload) > max_bytes:
+            return None
+        text = payload.decode("utf-8", errors="replace")
+        urls = re.findall(r"https://plvr\.land\.moi\.gov\.tw[^\"'\\s<>]+", text)
+        for url in urls:
+            try:
+                return validate_public_resource_url(url.replace("&amp;", "&"), source)
+            except ValueError:
+                continue
+    except Exception:
+        return None
+    return None
+
+
+def resolve_public_resource(source: SourceSpec) -> tuple[str, str]:
+    metadata_resource = resolve_resource_from_metadata(source)
+    if metadata_resource:
+        return metadata_resource, "official_metadata_catalog"
+    metadata_unavailable = bool(source.metadata_url)
+    candidates = [
+        (source.public_resource_url, "metadata_unavailable_resource_known" if metadata_unavailable else "registry_public_resource"),
+        *[(url, "registry_fallback") for url in source.fallback_resource_urls],
+    ]
+    for candidate, strategy in candidates:
+        if not candidate:
+            continue
+        try:
+            return validate_public_resource_url(candidate, source), strategy
+        except ValueError:
+            continue
+    raise ValueError("resource_unavailable")
+
+
 def discover_official_release(source: SourceSpec, *, max_page_bytes: int = 2 * 1024 * 1024) -> DiscoveryResult:
     """Discover a public release link without accepting arbitrary HTML URLs."""
+    try:
+        _resource_url, strategy = resolve_public_resource(source)
+        return DiscoveryResult("resource_discovered", source_id=source.source_id, reason_code=strategy)
+    except ValueError:
+        pass
     try:
         safe_url = validate_official_url(source.discovery_url, [urllib.parse.urlparse(source.discovery_url).hostname or ""])
         request = urllib.request.Request(safe_url, headers={"Accept": "text/html"})
@@ -245,12 +342,19 @@ def discover_official_release(source: SourceSpec, *, max_page_bytes: int = 2 * 1
             return DiscoveryResult("validation_failed", source_id=source.source_id, reason_code="discovery_size_limit")
         parser = _OfficialLinkParser()
         parser.feed(payload.decode("utf-8", errors="replace"))
-        candidates = [link for link in parser.links if link.lower().split("?", 1)[0].endswith((".zip", ".csv", ".json"))]
+        candidates: list[str] = []
+        for link in parser.links:
+            try:
+                candidate = urllib.parse.urljoin(safe_url, link)
+                validate_public_resource_url(candidate, source)
+                candidates.append(candidate)
+            except ValueError:
+                continue
         if not candidates:
-            return DiscoveryResult("configuration_required", source_id=source.source_id, reason_code="official_release_requires_authorized_download")
-        return DiscoveryResult("new_release_available", source_id=source.source_id, reason_code="release_link_discovered")
+            return DiscoveryResult("resource_unavailable", source_id=source.source_id, reason_code="public_resource_not_discovered")
+        return DiscoveryResult("resource_discovered", source_id=source.source_id, reason_code="page_resource_discovered")
     except Exception:
-        return DiscoveryResult("source_unavailable", source_id=source.source_id, reason_code="official_discovery_unavailable")
+        return DiscoveryResult("network_unavailable", source_id=source.source_id, reason_code="official_discovery_network_unavailable")
 
 
 def sha256_file(path: Path) -> str:
@@ -269,6 +373,8 @@ def download_official_archive(
     expected_sha256: str | None = None,
     max_bytes: int = DEFAULT_LIMITS["max_archive_bytes"],
     timeout: tuple[int, int] = (20, 120),
+    accepted_content_types: Iterable[str] | None = None,
+    expected_archive_signatures: Iterable[bytes] | None = None,
 ) -> dict[str, Any]:
     """Download atomically; callers must supply an official allowlist host."""
     safe_url = validate_official_url(url, allowed_hosts)
@@ -279,6 +385,14 @@ def download_official_archive(
     try:
         request = urllib.request.Request(safe_url, headers={"Accept": "application/zip, application/octet-stream"})
         with urllib.request.urlopen(request, timeout=timeout[1]) as response, temp_path.open("wb") as handle:
+            validate_official_url(response.geturl(), allowed_hosts)
+            content_type = str(response.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+            accepted = {str(value).lower().split(";", 1)[0].strip() for value in (accepted_content_types or ("application/zip", "application/octet-stream", "binary/octet-stream"))}
+            if not content_type or content_type not in accepted:
+                raise ValueError("content_type_invalid")
+            content_length = str(response.headers.get("Content-Length") or "").strip()
+            if content_length.isdigit() and int(content_length) > max_bytes:
+                raise ValueError("archive_size_limit")
             total = 0
             while True:
                 chunk = response.read(1024 * 1024)
@@ -288,14 +402,36 @@ def download_official_archive(
                 if total > max_bytes:
                     raise ValueError("archive_size_limit")
                 handle.write(chunk)
+        if total <= 0:
+            raise ValueError("archive_empty")
+        with temp_path.open("rb") as handle:
+            signature = handle.read(4)
+        signatures = set(expected_archive_signatures or (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08"))
+        if signature not in signatures:
+            raise ValueError("archive_signature_invalid")
         checksum = sha256_file(temp_path)
         if expected_sha256 and checksum.lower() != expected_sha256.lower():
             raise ValueError("archive_checksum_mismatch")
         temp_path.replace(destination)
-        return {"status": "downloaded", "bytes": total, "sha256": checksum}
+        return {"status": "downloaded", "bytes": total, "sha256": checksum, "content_type": content_type}
+    except urllib.error.HTTPError as exc:
+        temp_path.unlink(missing_ok=True)
+        return {"status": "resource_unavailable", "reason_code": f"http_status_{exc.code}"}
+    except (socket.gaierror, urllib.error.URLError):
+        temp_path.unlink(missing_ok=True)
+        return {"status": "network_unavailable", "reason_code": "dns_or_transport_failure"}
+    except (TimeoutError, socket.timeout):
+        temp_path.unlink(missing_ok=True)
+        return {"status": "network_unavailable", "reason_code": "timeout"}
+    except ssl.SSLError:
+        temp_path.unlink(missing_ok=True)
+        return {"status": "network_unavailable", "reason_code": "tls_failure"}
+    except ValueError as exc:
+        temp_path.unlink(missing_ok=True)
+        return {"status": "archive_invalid", "reason_code": str(exc)}
     except Exception:
         temp_path.unlink(missing_ok=True)
-        return {"status": "source_unavailable", "reason_code": "download_failed"}
+        return {"status": "resource_unavailable", "reason_code": "download_failed"}
 
 
 def inspect_zip_archive(path: Path, *, limits: Mapping[str, int] = DEFAULT_LIMITS) -> dict[str, Any]:
@@ -649,5 +785,36 @@ def publish_release(connection: Any, *, release: Mapping[str, Any], transactions
         return {"status": "published", "release_id": release_id}
     except Exception:
         raise
+    finally:
+        cursor.close()
+
+
+def rollback_release(connection: Any, *, release_id: str) -> dict[str, Any]:
+    """Atomically reactivate a previously published release.
+
+    Rollback is deliberately explicit and release-id based. It never accepts
+    a URL, raw transaction payload, or arbitrary SQL from an operator.
+    """
+    clean_release_id = str(release_id or "").strip()
+    if not clean_release_id or len(clean_release_id) > 160:
+        raise ValueError("release_id_invalid")
+    cursor = connection.cursor()
+    try:
+        cursor.execute("select pg_advisory_xact_lock(hashtext(%s))", ["official-plvr-market-import"])
+        cursor.execute(
+            "select status from official_market_releases where release_id = %s for update",
+            [clean_release_id],
+        )
+        row = cursor.fetchone()
+        if not row or str(row[0] if not isinstance(row, dict) else row.get("status")) not in {"published", "rolled_back"}:
+            raise ValueError("release_not_rollbackable")
+        cursor.execute("update official_market_releases set is_active = false where is_active")
+        cursor.execute(
+            "update official_market_releases set is_active = true, status = 'published' where release_id = %s",
+            [clean_release_id],
+        )
+        if cursor.rowcount != 1:
+            raise ValueError("release_not_found")
+        return {"status": "rolled_back", "release_id": clean_release_id}
     finally:
         cursor.close()

@@ -10,6 +10,7 @@ import type {
 } from "@/lib/api";
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { ValuationInputs } from "@/lib/valuation-share";
+import type { MarketInsightSnapshot } from "@/lib/market-insight-snapshot";
 import {
   buildDueDiligenceReadiness,
   normalizeDueDiligenceItems,
@@ -90,6 +91,7 @@ export type PropertyCaseDraftInput = {
   terrainRisk?: TerrainRiskResult;
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
+  marketInsightSnapshot?: MarketInsightSnapshot;
 };
 
 export type PropertyCaseDraft = {
@@ -165,6 +167,7 @@ export type PropertyCaseDraft = {
     missing_required: string[];
     unavailable_or_incomplete: string[];
   };
+  market_insight_snapshot?: MarketInsightSnapshot;
 };
 
 export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new Date().toISOString()): PropertyCaseDraft {
@@ -292,6 +295,7 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
       missing_required: missingRequired,
       unavailable_or_incomplete: unavailableOrIncomplete,
     },
+    market_insight_snapshot: input.marketInsightSnapshot,
   };
 }
 

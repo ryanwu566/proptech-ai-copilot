@@ -32,3 +32,27 @@ failure states, never “no new data”.
 The public read model is aggregate-only. It reports sample sufficiency,
 coverage, source, freshness, and methodology. It is not an appraisal and does
 not make a purchase recommendation.
+
+## Bounded public-resource canary
+
+The current PLVR Open Data ZIP routes are public resources. The registry first
+checks the official data.gov.tw catalog, then uses the registry-owned public
+route, and finally parses an official PLVR page. No owner download credential
+is required for these routes. Only the exact allowlisted host, path, query
+filename, ZIP signature, size limit, archive structure, and transaction schema
+are accepted.
+
+Run the bounded canary from PowerShell without passing a URL or secret:
+
+```powershell
+python scripts/plvr_market_pipeline.py canary `
+  --source moi_plvr_combined_current `
+  --max-parse-rows 200 `
+  --output-report .local/market-canary-report.json
+```
+
+The report contains only safe release metadata and aggregate counts. Temporary
+raw staging is removed when the command completes; `--retain-staging` is an
+explicit operator-only troubleshooting option. A network or transport failure
+must remain a network failure and must not be interpreted as an authorization
+requirement or as proof that data is missing.

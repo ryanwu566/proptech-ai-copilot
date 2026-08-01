@@ -29,6 +29,7 @@ import { EvidenceSummary } from "@/components/data-visualization/evidence-summar
 import { FreshnessIndicator } from "@/components/data-visualization/freshness-indicator";
 import { TrendLineChart } from "@/components/data-visualization/trend-line-chart";
 import { VolumeBarChart } from "@/components/data-visualization/volume-bar-chart";
+import { MarketInsightEvidencePanel } from "@/components/data-visualization/market-insight-evidence-panel";
 import { buildValuationShareUrl, buildValuationSummaryHtml, parseValuationShareParams, valuationSummaryFilename, ValuationInputs } from "@/lib/valuation-share";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { buildWorkflowStatus, markTaxOracleCompleted, markWorkflowReportCompleted, OPEN_TAXORACLE_EVENT, readWorkflowSession, type WorkflowStatus } from "@/lib/workflow-status";
@@ -636,6 +637,7 @@ function MarketInsightVisualResult({ result, model, onMap, availableResult, noDa
       <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? noDataMessage : copy("common.unavailable")}</p>
     </SectionCard>
     {isAvailable ? <>
+      <MarketInsightEvidencePanel result={result} model={model} />
       <div className="grid gap-3 md:grid-cols-3">
         <DataMetricCard label={copy("valuation.unitPrice")} value={model.metrics.medianUnitPrice ?? model.metrics.averageUnitPrice} suffix="" status={model.state} note={result.period ?? undefined} />
         <DataMetricCard label={copy("common.count")} value={model.metrics.transactionVolume} status={model.state} />

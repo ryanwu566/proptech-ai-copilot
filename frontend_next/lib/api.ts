@@ -115,6 +115,15 @@ export type MarketResult = {
   aggregation_version?: string | null;
   source_release_id?: string | null;
   freshness_status?: "current" | "update_available" | "importing" | "stale" | "failed_latest_update" | "unknown" | "configuration_required";
+  period_change?: number | null;
+  year_over_year_change?: number | null;
+  price_distribution?: { label: string; count: number }[];
+  building_type_distribution?: { label: string; count: number }[];
+  age_band_distribution?: { label: string; count: number }[];
+  inclusion_count?: number | null;
+  exclusion_count?: number | null;
+  methodology?: string | null;
+  latest_imported_at?: string | null;
 };
 export type MarketRegion = { city: string; county?: string; district: string; period?: string | null; data_status?: MarketResult["data_status"] };
 export type MarketRegionCatalog = {

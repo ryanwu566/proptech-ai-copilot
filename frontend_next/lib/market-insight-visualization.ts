@@ -10,6 +10,8 @@ export type MarketHistoryPoint = {
   transaction_count: number;
 };
 
+export type MarketDistributionPoint = { label: string; count: number };
+
 export type EvidenceKey = "source_name" | "source_updated_at" | "period" | "transaction_count" | "record_count" | "coverage_status" | "data_status" | "aggregation_method" | "caveat" | "disclaimer";
 
 export type EvidenceItem = {
@@ -25,10 +27,14 @@ export type MarketInsightVisualModel = {
   metrics: {
     averageUnitPrice: number | null;
     medianUnitPrice: number | null;
+    medianTotalPrice: number | null;
     transactionVolume: number | null;
     recordCount: number | null;
   };
   history: MarketHistoryPoint[];
+  priceDistribution: MarketDistributionPoint[];
+  buildingTypeDistribution: MarketDistributionPoint[];
+  ageBandDistribution: MarketDistributionPoint[];
   evidence: EvidenceItem[];
   chartTextSummary: string;
 };
@@ -60,6 +66,16 @@ export function sanitizeMarketHistory(result: MarketResult | undefined): MarketH
     if (!period || !isPositiveFinite(point.average_unit_price) || !isPositiveFinite(point.transaction_count)) return [];
     return [{ period, average_unit_price: point.average_unit_price, transaction_count: point.transaction_count }];
   });
+}
+
+export function sanitizeMarketDistribution(result: MarketResult | undefined, field: "price_distribution" | "building_type_distribution" | "age_band_distribution"): MarketDistributionPoint[] {
+  if (!result || getMarketDisplayState(result) !== "available" || !Array.isArray(result[field])) return [];
+  return result[field].flatMap((point) => {
+    const label = safeText(point?.label);
+    const count = Number(point?.count);
+    if (!label || !Number.isInteger(count) || count <= 0 || count > 2_000_000) return [];
+    return [{ label, count }];
+  }).slice(0, 12);
 }
 
 export function formatMarketMetric(value: number | null | undefined, suffix = ""): string {
@@ -105,6 +121,7 @@ export function buildMarketInsightVisualModel(result: MarketResult | undefined):
   const metrics = {
     averageUnitPrice: state === "available" && result && isPositiveFinite(result.average_unit_price) ? result.average_unit_price : null,
     medianUnitPrice: state === "available" && result && isPositiveFinite(result.median_unit_price_ntd_sqm) ? result.median_unit_price_ntd_sqm : null,
+    medianTotalPrice: state === "available" && result && isPositiveFinite(result.median_total_price_ntd) ? result.median_total_price_ntd : null,
     transactionVolume: state === "available" && result && isPositiveFinite(result.transaction_volume) ? result.transaction_volume : null,
     recordCount: state === "available" && result && isPositiveFinite(result.record_count ?? result.transaction_count)
       ? (result.record_count ?? result.transaction_count ?? null)
@@ -116,6 +133,9 @@ export function buildMarketInsightVisualModel(result: MarketResult | undefined):
     coverage: result ? mapCoverage(result) : "unknown",
     metrics,
     history,
+    priceDistribution: sanitizeMarketDistribution(result, "price_distribution"),
+    buildingTypeDistribution: sanitizeMarketDistribution(result, "building_type_distribution"),
+    ageBandDistribution: sanitizeMarketDistribution(result, "age_band_distribution"),
     evidence: buildEvidenceItems(result),
     chartTextSummary: buildChartTextSummary(history),
   };

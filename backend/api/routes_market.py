@@ -23,6 +23,8 @@ MARKET_QUERY_SAFE_FIELDS = (
     "median_unit_price_ntd_sqm", "mean_unit_price_ntd_sqm", "lower_quartile_unit_price_ntd_sqm",
     "upper_quartile_unit_price_ntd_sqm", "median_total_price_ntd", "median_area_sqm", "sample_status",
     "aggregation_version", "source_release_id", "freshness_status",
+    "period_change", "year_over_year_change", "price_distribution", "building_type_distribution",
+    "age_band_distribution", "inclusion_count", "exclusion_count", "methodology", "latest_imported_at",
 )
 MARKET_REFRESH_UNAVAILABLE_MESSAGE = "市場讀取模型暫時無法刷新，請稍後再試。"
 MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE = "市場讀取模型刷新設定尚未完成。"
