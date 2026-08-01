@@ -61,12 +61,13 @@ def _publish(connection, release_id: str, prices: list[float]) -> None:
         source_release_id=release_id,
         source_updated_at="2025-02-01",
     )
-    result = publish_release(
-        connection,
-        release={"release_id": release_id, "source_id": "synthetic-official-fixture", "schema_version": "fixture-v1", "archive_sha256": f"sha-{release_id}"},
-        transactions=transactions,
-        aggregates=aggregates,
-    )
+    with connection.transaction():
+        result = publish_release(
+            connection,
+            release={"release_id": release_id, "source_id": "synthetic-official-fixture", "schema_version": "fixture-v1", "archive_sha256": f"sha-{release_id}"},
+            transactions=transactions,
+            aggregates=aggregates,
+        )
     assert result["status"] == "published"
 
 
@@ -97,7 +98,7 @@ def test_disposable_postgres_market_release_lifecycle() -> None:
             assert cursor.fetchone()[0] == "release-b"
 
         with pytest.raises(Exception):
-            with connection:
+            with connection.transaction():
                 publish_release(
                     connection,
                     release={"release_id": "release-c", "source_id": "synthetic-official-fixture"},
@@ -108,7 +109,7 @@ def test_disposable_postgres_market_release_lifecycle() -> None:
             cursor.execute("select release_id from official_market_releases where is_active")
             assert cursor.fetchone()[0] == "release-b"
 
-        with connection:
+        with connection.transaction():
             result = rollback_release(connection, release_id="release-a")
             assert result["status"] == "rolled_back"
         with connection.cursor() as cursor:
