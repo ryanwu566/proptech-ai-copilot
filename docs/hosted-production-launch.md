@@ -37,6 +37,9 @@ frontend deployment.
 7. Run `HOSTED_FRONTEND_URL=<frontend-origin> npm --prefix frontend_next run test:e2e:hosted`.
 8. Preserve the generated release evidence and rollback checkpoint.
 
+Follow the complete numbered [owner launch checklist](hosted-owner-launch-checklist.md)
+and generate the non-secret pack with `scripts/generate_release_evidence.py`.
+
 The placeholders above are command-shape placeholders only. Do not put their
 values in source, logs, tickets, screenshots, or chat.
 

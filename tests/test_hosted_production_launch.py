@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from backend.api_main import app
 from scripts import production_smoke
+from scripts.generate_release_evidence import build_evidence
 from services.postgres_runtime import connect
 from services.production_config import load_runtime_configuration
 
@@ -102,3 +103,10 @@ def test_docs_define_owner_action_and_truthful_pending_state() -> None:
     assert "COMPLETE_REQUIRES_OWNER_ACTION" in launch
     assert "managed PostgreSQL" in rollback
     assert "pending" in evidence
+
+
+def test_release_evidence_generator_is_non_secret_and_allowlisted() -> None:
+    payload = build_evidence(release_id="release-1", commit="abc123", schema_version="schema-007", local_status="ci_verified", owner_actions=["configure-preview"])
+    assert payload["privacy"] == {"secrets_included": False, "raw_payloads_included": False, "customer_data_included": False}
+    assert payload["validation"]["preview"] == "pending"
+    assert "hosted-owner-launch-checklist.md" in (ROOT / "docs/hosted-production-launch.md").read_text(encoding="utf-8")
