@@ -48,20 +48,28 @@ def _statements(path: Path) -> list[str]:
 
 
 def _execute_disposable(database_url: str) -> dict[str, str]:
+    class _RollbackValidation(Exception):
+        pass
+
+    class _SchemaContractFailure(Exception):
+        pass
+
     with connect(database_url) as connection:
-        connection.execute("BEGIN")
         try:
-            for path in MIGRATIONS:
-                for statement in _statements(path):
-                    connection.execute(statement)
-            tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
-            indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
-            foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
-            if not REQUIRED_TABLES.issubset(tables) or not REQUIRED_INDEXES.issubset(indexes) or foreign_key_count < 4:
-                return {"status": "fail", "migration": "schema_contract_failed"}
+            with connection.transaction():
+                for path in MIGRATIONS:
+                    for statement in _statements(path):
+                        connection.execute(statement)
+                tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
+                indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
+                foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
+                if not REQUIRED_TABLES.issubset(tables) or not REQUIRED_INDEXES.issubset(indexes) or foreign_key_count < 4:
+                    raise _SchemaContractFailure
+                raise _RollbackValidation
+        except _RollbackValidation:
             return {"status": "pass", "migration": "postgres_transaction_rolled_back", "foreign_keys": "pass", "indexes": "pass", "ledger": "pass"}
-        finally:
-            connection.rollback()
+        except _SchemaContractFailure:
+            return {"status": "fail", "migration": "schema_contract_failed"}
 
 
 def validate(database_url: str | None = None) -> dict[str, Any]:

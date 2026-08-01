@@ -22,6 +22,13 @@ from services.postgres_runtime import connect
 from scripts.validate_postgres_migration import MIGRATIONS, REQUIRED_INDEXES, REQUIRED_TABLES, _statements
 
 SAFE_RELEASE = re.compile(r"^[A-Za-z0-9._:-]{1,80}$")
+LEDGER_MIGRATION = next(path for path in MIGRATIONS if path.stem == "007_add_schema_migration_ledger")
+
+
+class _SafeMigrationFailure(RuntimeError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
 
 
 def _checksum(path: Path) -> str:
@@ -41,6 +48,45 @@ def _verify(connection) -> dict[str, str]:
     return {"status": "pass", "check": "tables_indexes_foreign_keys"}
 
 
+def _ensure_ledger(connection) -> None:
+    for statement in _statements(LEDGER_MIGRATION):
+        connection.execute(statement)
+    columns = {
+        row[0]
+        for row in connection.execute(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'schema_migration_ledger'"
+        ).fetchall()
+    }
+    required_columns = {"migration_id", "schema_version", "applied_at", "release_version", "checksum"}
+    if not required_columns.issubset(columns):
+        raise _SafeMigrationFailure("migration_ledger_schema_invalid")
+    primary_key = connection.execute(
+        "SELECT constraint_name FROM information_schema.table_constraints WHERE table_schema = 'public' AND table_name = 'schema_migration_ledger' AND constraint_type = 'PRIMARY KEY'"
+    ).fetchone()
+    if primary_key is None:
+        raise _SafeMigrationFailure("migration_ledger_schema_invalid")
+
+
+def _apply_migrations(connection, *, release_version: str) -> None:
+    _ensure_ledger(connection)
+    for path in MIGRATIONS:
+        checksum = _checksum(path)
+        recorded = connection.execute(
+            "SELECT checksum FROM schema_migration_ledger WHERE migration_id = %s",
+            (path.stem,),
+        ).fetchone()
+        if recorded is not None:
+            if recorded[0] != checksum:
+                raise _SafeMigrationFailure("migration_checksum_drift")
+            continue
+        for statement in _statements(path):
+            connection.execute(statement)
+        connection.execute(
+            "INSERT INTO schema_migration_ledger (migration_id, schema_version, release_version, checksum) VALUES (%s, %s, %s, %s)",
+            (path.stem, "schema-008", release_version, checksum),
+        )
+
+
 def apply(database_url: str | None, *, release_version: str = "unconfigured", dry_run: bool = False) -> dict[str, object]:
     if not all(path.is_file() for path in MIGRATIONS):
         return {"status": "failed", "reason": "migration_files_missing"}
@@ -50,20 +96,14 @@ def apply(database_url: str | None, *, release_version: str = "unconfigured", dr
         return {"status": "ready", "migration_count": len(MIGRATIONS), "mode": "dry_run" if dry_run else "database_required"}
     try:
         with connect(database_url) as connection:
-            connection.execute("BEGIN")
-            for path in MIGRATIONS:
-                for statement in _statements(path):
-                    connection.execute(statement)
-                connection.execute(
-                    "INSERT INTO schema_migration_ledger (migration_id, schema_version, release_version, checksum) VALUES (%s, %s, %s, %s) ON CONFLICT (migration_id) DO UPDATE SET schema_version = EXCLUDED.schema_version, release_version = EXCLUDED.release_version, checksum = EXCLUDED.checksum",
-                    (path.stem, "schema-007", release_version, _checksum(path)),
-                )
-            verification = _verify(connection)
-            if verification["status"] != "pass":
-                connection.rollback()
-                return {"status": "failed", "reason": "schema_verification_failed"}
-            connection.commit()
+            with connection.transaction():
+                _apply_migrations(connection, release_version=release_version)
+                verification = _verify(connection)
+                if verification["status"] != "pass":
+                    raise _SafeMigrationFailure("schema_verification_failed")
             return {"status": "pass", "migration_count": len(MIGRATIONS), "ledger": "applied", "verification": verification["check"]}
+    except _SafeMigrationFailure as exc:
+        return {"status": "unavailable", "reason": exc.reason}
     except Exception:
         return {"status": "unavailable", "reason": "database_migration_unavailable"}
 
