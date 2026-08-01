@@ -195,11 +195,12 @@ def _privacy_contract() -> tuple[str, str | None]:
 def _deployment_contract() -> tuple[str, str | None]:
     render = _read("render.yaml")
     api = _read("frontend_next/lib/api.ts")
+    origin = _read("frontend_next/lib/api-origin.ts")
     package = json.loads(_read("frontend_next/package.json"))
     scripts = package.get("scripts", {})
     if not _has_all(render, "runtime: python", "uvicorn backend.api_main:app", "healthCheckPath: /health", "VALUATION_DATABASE_URL"):
         return "fail", "deployment_contract_invalid"
-    if not _has_all(api, "NEXT_PUBLIC_API_BASE_URL", "productionLocalhostConfigured", 'isDevelopment ? localApiBase : ""'):
+    if not _has_all(api, "NEXT_PUBLIC_API_BASE_URL", "resolveApiOrigin", "allowRelativeProxy") or not _has_all(origin, "Production API origin must use HTTPS", "A localhost API origin is not allowed"):
         return "fail", "production_localhost_fallback"
     if "build" not in scripts:
         return "fail", "deployment_contract_invalid"

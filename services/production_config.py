@@ -23,6 +23,9 @@ APP_RUNTIME_ENV = "APP_RUNTIME"
 CORS_ALLOWED_ORIGINS_ENV = "CORS_ALLOWED_ORIGINS"
 PUBLIC_APP_BASE_URL_ENV = "PUBLIC_APP_BASE_URL"
 RELEASE_VERSION_ENV = "RELEASE_VERSION"
+API_CONTRACT_VERSION_ENV = "API_CONTRACT_VERSION"
+SCHEMA_VERSION_ENV = "SCHEMA_VERSION"
+MAINTENANCE_MODE_ENV = "MAINTENANCE_MODE"
 
 PRODUCTION_MODES = frozenset({"production", "preview"})
 
@@ -41,18 +44,28 @@ def _postgres_status(value: str | None) -> str:
     if not value:
         return "not_configured"
     parsed = urlsplit(value)
-    if parsed.scheme not in {"postgres", "postgresql"} or not parsed.hostname:
+    try:
+        _ = parsed.port
+    except ValueError:
+        return "malformed"
+    if parsed.scheme not in {"postgres", "postgresql"} or not parsed.hostname or parsed.username is None and parsed.password is not None:
         return "malformed"
     return "configured"
 
 
-def _origin_status(value: str | None) -> str:
+def _origin_status(value: str | None, *, reject_local: bool = False) -> str:
     values = [item.strip().rstrip("/") for item in (value or "").split(",") if item.strip()]
     if not values or any(item == "*" for item in values):
         return "not_configured" if not values else "malformed"
     for item in values:
         parsed = urlsplit(item)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"}:
+        try:
+            port = parsed.port
+        except ValueError:
+            return "malformed"
+        host = (parsed.hostname or "").lower().rstrip(".")
+        is_local = host in {"localhost", "localhost.localdomain", "127.0.0.1", "::1"}
+        if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.username or parsed.password or not host or parsed.path not in {"", "/"} or parsed.query or parsed.fragment or (reject_local and is_local):
             return "malformed"
     return "configured"
 
@@ -62,9 +75,18 @@ def _base_url_status(value: str | None) -> str:
     if not value:
         return "not_configured"
     parsed = urlsplit(value)
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"}:
+    try:
+        _ = parsed.port
+    except ValueError:
+        return "malformed"
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.username or parsed.password or parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
         return "malformed"
     return "configured"
+
+
+def _maintenance_status(value: str | None) -> str:
+    value = (value or "").strip().lower()
+    return "enabled" if value in {"1", "true", "yes", "on"} else "disabled"
 
 
 def _database_url(values: Mapping[str, str]) -> tuple[str, str]:
@@ -87,6 +109,9 @@ class RuntimeConfiguration:
     cors_status: str
     public_base_url_status: str
     release_version_status: str
+    api_contract_version_status: str
+    schema_version_status: str
+    maintenance_status: str
     serverless: bool
 
     @property
@@ -116,6 +141,9 @@ class RuntimeConfiguration:
             "cors_origins": self.cors_status,
             "public_base_url": self.public_base_url_status,
             "release_version": self.release_version_status,
+            "api_contract_version": self.api_contract_version_status,
+            "schema_version": self.schema_version_status,
+            "maintenance": self.maintenance_status,
             "ready": self.ready,
         }
 
@@ -125,6 +153,7 @@ def load_runtime_configuration(environ: Mapping[str, str] | None = None) -> Runt
     mode = values.get(APP_ENV_ENV, "development").strip().lower() or "development"
     runtime = values.get(APP_RUNTIME_ENV, "").strip().lower()
     database_url, database_source = _database_url(values)
+    serverless = is_serverless_runtime(dict(values))
     return RuntimeConfiguration(
         mode=mode,
         runtime=runtime,
@@ -133,10 +162,13 @@ def load_runtime_configuration(environ: Mapping[str, str] | None = None) -> Runt
         session_secret_status=_status(values.get("PILOT_SESSION_SIGNING_KEY"), minimum_length=MIN_SESSION_SIGNING_KEY_LENGTH),
         admin_token_status=_status(values.get("PILOT_ADMIN_TOKEN")),
         reviewer_token_status=_status(values.get("PILOT_REVIEW_TOKEN")),
-        cors_status=_origin_status(values.get(CORS_ALLOWED_ORIGINS_ENV)),
+        cors_status=_origin_status(values.get(CORS_ALLOWED_ORIGINS_ENV), reject_local=mode in PRODUCTION_MODES or serverless),
         public_base_url_status=_base_url_status(values.get(PUBLIC_APP_BASE_URL_ENV)),
         release_version_status=_status(values.get(RELEASE_VERSION_ENV)),
-        serverless=is_serverless_runtime(dict(values)),
+        api_contract_version_status=_status(values.get(API_CONTRACT_VERSION_ENV)),
+        schema_version_status=_status(values.get(SCHEMA_VERSION_ENV)),
+        maintenance_status=_maintenance_status(values.get(MAINTENANCE_MODE_ENV)),
+        serverless=serverless,
     )
 
 

@@ -21,4 +21,6 @@ def test_render_and_frontend_contracts_remain_declared() -> None:
     assert "healthCheckPath: /health" in render
     assert "VALUATION_DATABASE_URL" in render
     assert "NEXT_PUBLIC_API_BASE_URL" in api
-    assert "productionLocalhostConfigured" in api
+    origin = (ROOT / "frontend_next/lib/api-origin.ts").read_text(encoding="utf-8")
+    assert "resolveApiOrigin" in api
+    assert "Production API origin must use HTTPS" in origin

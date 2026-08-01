@@ -31,6 +31,7 @@ from backend.api.routes_performance import router as performance_router
 from services.observability import build_observation, normalize_correlation_id
 from services.production_config import assert_startup_configuration
 from services.security import safe_origin, security_headers
+from services.production_config import MAINTENANCE_MODE_ENV
 
 
 DEFAULT_DEV_CORS_ORIGINS = ("http://localhost:3000", "http://127.0.0.1:3000")
@@ -43,8 +44,8 @@ def parse_cors_allowed_origins(raw: str) -> list[str]:
 
     origins = []
     for item in raw.split(","):
-        origin = item.strip().rstrip("/")
-        if origin and origin != "*" and origin not in origins:
+        origin = safe_origin(item.strip())
+        if origin and origin not in origins:
             origins.append(origin)
     return origins
 
@@ -98,6 +99,13 @@ async def privacy_safe_observability(request: Request, call_next):
         response = JSONResponse(status_code=403, content={"status": "error", "message": "Request origin is not allowed.", "support_reference": correlation_id})
         response.headers["X-Correlation-ID"] = correlation_id
         for name, value in security_headers(private=request.url.path.startswith("/pilot")).items():
+            response.headers.setdefault(name, value)
+        return response
+    maintenance = os.getenv(MAINTENANCE_MODE_ENV, "").strip().lower() in {"1", "true", "yes", "on"}
+    if maintenance and request.method in {"POST", "PUT", "PATCH", "DELETE"} and not request.url.path.startswith(("/health", "/liveness", "/readiness", "/release-version", "/source-status", "/compatibility")):
+        response = JSONResponse(status_code=503, content={"status": "maintenance", "message": "服務正在維護中，請稍後再試。"})
+        response.headers["X-Correlation-ID"] = correlation_id
+        for name, value in security_headers(production=os.getenv("APP_ENV", "development").strip().lower() in {"production", "preview"}, private=True).items():
             response.headers.setdefault(name, value)
         return response
     try:

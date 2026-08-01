@@ -14,8 +14,22 @@ services:
         sync: false
       - key: PILOT_EVIDENCE_DATABASE_URL
         sync: false
-      - key: PUBLIC_APP_BASE_URL
-        sync: false
+          - key: PUBLIC_APP_BASE_URL
+            sync: false
+          - key: BACKEND_PUBLIC_URL
+            sync: false
+          - key: API_CONTRACT_VERSION
+            value: api-contract-v1
+          - key: SCHEMA_VERSION
+            value: schema-007
+          - key: RELEASE_COMMIT_SHA
+            sync: false
+          - key: BUILD_TIMESTAMP
+            sync: false
+          - key: POSTGRES_SSLMODE
+            sync: false
+          - key: MAINTENANCE_MODE
+            value: "false"
       - key: PILOT_SESSION_SIGNING_KEY
         sync: false
       - key: PILOT_ADMIN_TOKEN

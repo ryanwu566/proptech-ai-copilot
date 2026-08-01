@@ -21,16 +21,21 @@ if str(ROOT) not in sys.path:
 from services.postgres_runtime import connect
 
 
-MIGRATIONS = (ROOT / "database" / "migrations" / "004_add_pilot_evidence.sql", ROOT / "database" / "migrations" / "005_add_pilot_security_indexes.sql", ROOT / "database" / "migrations" / "006_add_tax_analysis_history.sql")
+MIGRATIONS = (
+    ROOT / "database" / "migrations" / "004_add_pilot_evidence.sql",
+    ROOT / "database" / "migrations" / "005_add_pilot_security_indexes.sql",
+    ROOT / "database" / "migrations" / "006_add_tax_analysis_history.sql",
+    ROOT / "database" / "migrations" / "007_add_schema_migration_ledger.sql",
+)
 REQUIRED_TABLES = {"pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events", "pilot_feedback", "professional_reviews", "tax_analysis_history"}
-REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id"}
+REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id", "idx_schema_migration_ledger_applied_at"}
 
 
 def _static_contract() -> dict[str, str]:
     if not all(path.is_file() for path in MIGRATIONS):
         return {"status": "fail", "migration": "missing"}
     joined = "\n".join(path.read_text(encoding="utf-8") for path in MIGRATIONS).lower()
-    required = ("references", "on delete cascade", "create index", "tax_analysis_history", "jsonb")
+    required = ("references", "on delete cascade", "create index", "tax_analysis_history", "jsonb", "schema_migration_ledger", "schema_version")
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
     return {"status": "pass", "migration": "static_contract_pass"}
@@ -53,7 +58,7 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
             foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
             if not REQUIRED_TABLES.issubset(tables) or not REQUIRED_INDEXES.issubset(indexes) or foreign_key_count < 4:
                 return {"status": "fail", "migration": "schema_contract_failed"}
-            return {"status": "pass", "migration": "postgres_transaction_rolled_back", "foreign_keys": "pass", "indexes": "pass"}
+            return {"status": "pass", "migration": "postgres_transaction_rolled_back", "foreign_keys": "pass", "indexes": "pass", "ledger": "pass"}
         finally:
             connection.rollback()
 

@@ -1,0 +1,42 @@
+name: Hosted Production Smoke
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run bounded hosted smoke
+        env:
+          FRONTEND_PRODUCTION_URL: ${{ secrets.FRONTEND_PRODUCTION_URL }}
+          BACKEND_PRODUCTION_URL: ${{ secrets.BACKEND_PRODUCTION_URL }}
+          PRODUCTION_SMOKE_TOKEN: ${{ secrets.PRODUCTION_SMOKE_TOKEN }}
+          EXPECTED_RELEASE_VERSION: ${{ secrets.EXPECTED_RELEASE_VERSION }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FRONTEND_PRODUCTION_URL}" ] || [ -z "${BACKEND_PRODUCTION_URL}" ]; then
+            echo "HOSTED_SMOKE=configuration_required"
+            exit 1
+          fi
+          python scripts/production_smoke.py \
+            --frontend-url "${FRONTEND_PRODUCTION_URL}" \
+            --backend-url "${BACKEND_PRODUCTION_URL}" \
+            --expected-environment production \
+            --expected-release "${EXPECTED_RELEASE_VERSION:-unconfigured}" \
+            --smoke-token "${PRODUCTION_SMOKE_TOKEN:-}" \
+            --timeout 20
