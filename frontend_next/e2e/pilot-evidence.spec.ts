@@ -161,6 +161,7 @@ for (const width of MOBILE_WIDTHS) {
     const { errors } = await openPilot(page);
     await expect(page.getByTestId("closed-pilot")).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await page.screenshot({ path: `test-results/pilot-mobile-${width}.png`, fullPage: true });
     expect(errors).toEqual([]);
   });
 }
