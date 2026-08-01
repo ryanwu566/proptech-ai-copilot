@@ -66,7 +66,13 @@ def test_playwright_matrix_is_maintained_and_uses_a_local_production_server() ->
     for script in ("test:e2e", "test:e2e:i18n", "test:e2e:navigation", "test:e2e:speech"):
         assert f'"{script}"' in package
     assert "@playwright/test" in package
-    assert '"build:e2e"' in package
+    assert '"build:e2e": "node scripts/build-e2e.mjs"' in package
+    build_script = read("frontend_next/scripts/build-e2e.mjs")
+    assert "process.env" in build_script
+    assert 'NEXT_PUBLIC_APP_ENV: "test"' in build_script
+    assert '"http://e2e.test"' in build_script
+    assert "spawnSync" in build_script
+    assert "stdio: \"inherit\"" in build_script
     assert "node_modules/next/dist/bin/next" in runner
     assert '"start"' in runner
     assert "trace: \"on-first-retry\"" in config

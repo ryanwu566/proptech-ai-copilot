@@ -27,6 +27,7 @@ const districts: Record<string, string[]> = {
 export const test = base.extend({
   page: async ({ page }, use, testInfo) => {
     const diagnostics: string[] = [];
+    const unexpectedE2eRequests: string[] = [];
     page.on("console", (message) => { if (message.type() === "error" || message.type() === "warning") diagnostics.push(`console:${message.type()}:${message.text()}`); });
     page.on("pageerror", (error) => diagnostics.push(`pageerror:${error.message}`));
     page.on("request", (request) => { const path = new URL(request.url()).pathname; if (path.startsWith("/roads/") || path.startsWith("/map/")) diagnostics.push(`request:${path}`); });
@@ -36,6 +37,67 @@ export const test = base.extend({
       window.localStorage.setItem("proptech_onboarding_seen", "true");
       window.localStorage.setItem("proptech_onboarding_version", "2");
     });
+    await page.route("http://e2e.test/**", async (route) => {
+      const url = new URL(route.request().url());
+      unexpectedE2eRequests.push(`${route.request().method()} ${url.origin}${url.pathname}`);
+      await route.abort("failed");
+    });
+    await page.route("**/demo-cases", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([{
+        case_id: "E2E-CASE-001",
+        client_name: "示範案件",
+        sold_self_occupied: true,
+        residency_condition_met: true,
+        purchase_within_reasonable_period: true,
+        purchased_self_occupied: true,
+        same_owner: true,
+        land_value_available: true,
+        required_docs_complete: true,
+        enters_five_year_monitoring: false,
+        exceptional_circumstances: false,
+      }]),
+    }));
+    await page.route("**/mortgage-rates/latest", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        source: "mock",
+        source_name: "E2E fixture",
+        period: "test-period",
+        reference_rate: 1.5,
+        rate_type: "reference",
+        available_fields: [],
+        notes: ["Test-only fixture."],
+        fetched_at: "2025-01-01T00:00:00Z",
+      }),
+    }));
+    await page.route("**/bank-rates/institutions", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        source: "mock",
+        institution_count: 1,
+        institutions: [{ bank_code: "E2E", bank_name: "示範銀行" }],
+        updated_at: "2025-01-01T00:00:00Z",
+        notes: ["Test-only fixture."],
+      }),
+    }));
+    await page.route("**/bank-rates/mortgage**", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        source: "mock",
+        bank_code: "E2E",
+        bank_name: "示範銀行",
+        items: [],
+        summary_rate: 1.5,
+        summary_label: "E2E fixture",
+        notes: ["Test-only fixture."],
+        fetched_at: "2025-01-01T00:00:00Z",
+      }),
+    }));
     await page.route("**/map/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable", source: "mock", matched: false }) }));
     await page.route("**/location/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable" }) }));
     await page.route("**/market-insights/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable", coverage_status: "unknown", regions: [] }) }));
@@ -68,6 +130,7 @@ export const test = base.extend({
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city, district, roads, message: "Roads available." }) });
     });
     await use(page);
+    expect(unexpectedE2eRequests, `Unexpected unhandled E2E API requests in ${testInfo.title}`).toEqual([]);
     if (testInfo.status !== testInfo.expectedStatus) await testInfo.attach("runtime-diagnostics", { body: diagnostics.join("\n") || "no captured runtime diagnostics", contentType: "text/plain" });
   },
 });
