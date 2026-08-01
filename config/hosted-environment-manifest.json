@@ -1,0 +1,26 @@
+{
+  "schema_version": "hosted-environment-manifest-v1",
+  "variables": [
+    {"name": "APP_ENV", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "APP_RUNTIME", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "DATABASE_URL", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "CORS_ALLOWED_ORIGINS", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "PUBLIC_APP_BASE_URL", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "BACKEND_PUBLIC_URL", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "NEXT_PUBLIC_API_BASE_URL", "scope": "frontend", "visibility": "public", "required": true, "preview": true, "production": true, "rotation": "redeploy"},
+    {"name": "PILOT_SESSION_SIGNING_KEY", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "invalidate-sessions-and-restart"},
+    {"name": "PILOT_ADMIN_TOKEN", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "PILOT_REVIEW_TOKEN", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "API_CONTRACT_VERSION", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "redeploy"},
+    {"name": "SCHEMA_VERSION", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "migration-and-redeploy"},
+    {"name": "RELEASE_VERSION", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "redeploy"},
+    {"name": "MAINTENANCE_MODE", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "GOOGLE_MAPS_API_KEY", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "TGOS_APP_ID", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "TGOS_API_KEY", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "TDX_CLIENT_ID", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "TDX_CLIENT_SECRET", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
+    {"name": "COMMUTE_REFRESH_TOKEN", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"}
+  ],
+  "guards": ["no-server-only-client-import", "no-placeholder-production-secret", "no-localhost-production-origin", "preview-production-secrets-must-be-distinct"]
+}

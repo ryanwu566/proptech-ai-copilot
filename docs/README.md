@@ -42,6 +42,13 @@ kept under `docs/archive/` and must not be used as current product guidance.
 
 ## Deployment and operations
 
+- [Hosted production launch](hosted-production-launch.md) - authoritative hosted release architecture, owner actions, and truth boundaries.
+- [Hosted environment setup](hosted-environment-setup.md) - frontend/backend variables, CORS, cookies, and maintenance contract.
+- [Hosted migration runbook](hosted-migration-runbook.md) - PostgreSQL migration ledger, verification, and checkpoint procedure.
+- [Hosted rollback runbook](hosted-rollback-runbook.md) - frontend/backend/schema/outage recovery boundaries.
+- [Production release evidence](production-release-evidence.md) - non-secret evidence fields and pending-state semantics.
+- [Hosted owner launch checklist](hosted-owner-launch-checklist.md) - exact preview/production handoff sequence and stop conditions.
+
 - [Production backend deployment](production-backend-deployment-v1.md) - current Render and Vercel configuration contract; values remain deployment-managed.
 - [Commute snapshot operations](commute-snapshot-operations-v1.md) - manual protected refresh procedure and memory-only limitation.
 - [PLVR historical import guide](plvr_historical_import_guide.md) - controlled offline import and dry-run procedure.

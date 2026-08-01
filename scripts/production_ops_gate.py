@@ -40,9 +40,9 @@ def evaluate() -> dict[str, object]:
         "required_files": not missing,
         "postgres_required": 'key: DATABASE_URL' in render and "production_like" in config,
         "fail_closed": "raise RuntimeError" in config and "production_like" in config,
-        "migration": "006_add_tax_analysis_history.sql" in (ROOT / "scripts/validate_postgres_migration.py").read_text(encoding="utf-8"),
+        "migration": "006_add_tax_analysis_history.sql" in (ROOT / "scripts/validate_postgres_migration.py").read_text(encoding="utf-8") and "007_add_schema_migration_ledger.sql" in (ROOT / "scripts/validate_postgres_migration.py").read_text(encoding="utf-8"),
         "workflow": "workflow_dispatch:" in workflow and "pull_request:" in workflow and "push:" not in workflow and "secrets." not in workflow,
-        "privacy": "does not contact Render" in (ROOT / "scripts/production_smoke.py").read_text(encoding="utf-8"),
+        "privacy": "provider-free" in (ROOT / "scripts/production_smoke.py").read_text(encoding="utf-8") and "external_provider_called" in (ROOT / "scripts/production_smoke.py").read_text(encoding="utf-8"),
     }
     status = "pass" if all(checks.values()) and not missing else "fail"
     return {"status": status, "checks": checks, "missing": missing}

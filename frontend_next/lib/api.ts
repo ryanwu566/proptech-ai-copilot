@@ -1,11 +1,23 @@
-const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "");
-const isDevelopment = process.env.NODE_ENV === "development";
-const productionLocalhostConfigured = Boolean(
-  configuredApiBase && !isDevelopment && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(configuredApiBase),
-);
-const localApiBase = ["http://localhost", "8000"].join(":");
+import { resolveApiOrigin } from "./api-origin";
 
-export const API_BASE = productionLocalhostConfigured ? "" : configuredApiBase || (isDevelopment ? localApiBase : "");
+const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+const configuredEnvironment = process.env.NEXT_PUBLIC_APP_ENV;
+const apiEnvironment = configuredEnvironment === "preview" || configuredEnvironment === "test" || configuredEnvironment === "production"
+  ? configuredEnvironment
+  : process.env.NODE_ENV === "development" ? "development" : "production";
+
+export const API_BASE = (() => {
+  try {
+    return resolveApiOrigin({
+      configuredOrigin: configuredApiBase,
+      environment: apiEnvironment,
+      allowRelativeProxy: configuredEnvironment === "test",
+    });
+  } catch {
+    // Keep static builds renderable; apiUrl reports the actionable runtime error.
+    return "";
+  }
+})();
 
 function apiUrl(path: string): string {
   if (!API_BASE) {

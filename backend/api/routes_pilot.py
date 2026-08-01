@@ -37,6 +37,8 @@ from services.security import (
 
 
 router = APIRouter(tags=["pilot-evidence"])
+API_CONTRACT_VERSION = "api-contract-v1"
+SCHEMA_VERSION = "schema-007"
 PILOT_DB_PATH_ENV = "PILOT_EVIDENCE_DB_PATH"
 PILOT_ADMIN_TOKEN_ENV = "PILOT_ADMIN_TOKEN"
 PILOT_REVIEW_TOKEN_ENV = "PILOT_REVIEW_TOKEN"
@@ -387,7 +389,38 @@ def source_status() -> dict[str, Any]:
 
 @router.get("/release-version")
 def release_version() -> dict[str, str]:
-    return {"product_version": "0.1.0", "pilot_evidence_version": "pilot-evidence-v1", "rule_version": "existing-rule-contracts", "frontend_build_version": "runtime-reported"}
+    config = load_runtime_configuration()
+
+    def safe_metadata(name: str, default: str) -> str:
+        value = os.getenv(name, "").strip()
+        if not value or len(value) > 80 or any(char not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._:-" for char in value):
+            return default
+        return value
+
+    return {
+        "product_version": "0.1.0",
+        "release_version": safe_metadata("RELEASE_VERSION", "unconfigured"),
+        "commit_sha": safe_metadata("RELEASE_COMMIT_SHA", "unconfigured"),
+        "build_timestamp": safe_metadata("BUILD_TIMESTAMP", "unconfigured"),
+        "environment": config.mode,
+        "api_contract_version": API_CONTRACT_VERSION,
+        "schema_version": safe_metadata("SCHEMA_VERSION", SCHEMA_VERSION),
+        "schema_compatibility": "declared",
+        "frontend_backend_compatibility": "api-contract-v1",
+        "pilot_evidence_version": "pilot-evidence-v1",
+        "rule_version": "existing-rule-contracts",
+        "frontend_build_version": "runtime-reported",
+    }
+
+
+@router.get("/compatibility")
+def compatibility() -> dict[str, str]:
+    return {
+        "status": "compatible",
+        "api_contract_version": API_CONTRACT_VERSION,
+        "minimum_frontend_contract_version": API_CONTRACT_VERSION,
+        "schema_version": SCHEMA_VERSION,
+    }
 
 
 @router.post("/professional-review", status_code=201)
