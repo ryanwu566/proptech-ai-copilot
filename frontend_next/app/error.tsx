@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { reportClientError } from "@/lib/client-error-reporting";
 
 export default function Error({ reset }: { error: Error; reset: () => void }) {
-  useEffect(() => undefined, []);
+  useEffect(() => { reportClientError("render_failure", "app-error-boundary"); }, []);
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-xl flex-col justify-center gap-4 px-6 py-12">
       <div role="alert" className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-950">

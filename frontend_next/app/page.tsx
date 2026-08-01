@@ -61,6 +61,7 @@ import type { RuntimeCopyKey } from "@/lib/runtime-copy";
 import { getLocalizedCountyLabel, getLocalizedDistrictLabel, getLocalizedRoadLabel, getLocalizedSourceLabel, getLocalizedStateLabel, localizeStructuredSelects } from "@/lib/structured-options";
 import { CompetitionTaxOracleDemo } from "@/components/competition-taxoracle-demo";
 import { capabilities, COMPETITION_NOTICE, getCompetitionCopy } from "@/lib/competition-release";
+import { PilotEvidenceCenter, ProfessionalReviewCenter } from "@/components/pilot-evidence-center";
 
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="地圖載入中..." /> });
@@ -118,14 +119,16 @@ export default function Home() {
     if (action.type === "stop_read_aloud") window.dispatchEvent(new Event("proptech:stop-read-aloud"));
     if (action.type === "repeat_summary") window.dispatchEvent(new Event("proptech:repeat-read-aloud"));
   };
-  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <><CompetitionMvpBanner onDemo={() => setPage("Competition Demo" as AppPage)} onEvidence={() => setPage("Evidence Center" as AppPage)} /><GuidedPropertyJourney renderStep={renderJourneyStep} /></> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <><CompetitionMvpBanner onDemo={() => setPage("Competition Demo" as AppPage)} onEvidence={() => setPage("Evidence Center" as AppPage)} onPilot={() => setPage("Closed Pilot")} /><GuidedPropertyJourney renderStep={renderJourneyStep} /></> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (caseId?: string) => void, requestedCase: string) {
   if (page === ("Competition Demo" as AppPage)) return <CompetitionTaxOracleDemo onEvidence={() => setPage("Evidence Center" as AppPage)} onPrivacy={() => setPage("Privacy" as AppPage)} onTerms={() => setPage("Terms" as AppPage)} />;
-  if (page === ("Evidence Center" as AppPage)) return <EvidenceCenter onBack={() => setPage("Competition Demo" as AppPage)} />;
+  if (page === ("Evidence Center" as AppPage)) return <EvidenceCenter onBack={() => setPage("Competition Demo" as AppPage)} onPilot={() => setPage("Closed Pilot")} />;
   if (page === ("Privacy" as AppPage)) return <PublicPolicyPage kind="privacy" onBack={() => setPage("Competition Demo" as AppPage)} />;
   if (page === ("Terms" as AppPage)) return <PublicPolicyPage kind="terms" onBack={() => setPage("Competition Demo" as AppPage)} />;
+  if (page === "Closed Pilot") return <PilotEvidenceCenter />;
+  if (page === "Professional Review") return <ProfessionalReviewCenter />;
   if (page === "TaxOracle") return <TaxOracle requestedCase={requestedCase} />;
   if (page === "Market Insight Lite") return <MarketInsight onMap={() => setPage("Map Insight Lite")} />;
   if (page === "Map Insight Lite") return <MapInsight />;
@@ -136,10 +139,10 @@ function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (c
   return <Dashboard setPage={setPage} openTax={openTax} />;
 }
 
-function EvidenceCenter({ onBack }: { onBack: () => void }) {
+function EvidenceCenter({ onBack, onPilot }: { onBack: () => void; onPilot: () => void }) {
   const { locale } = useExperienceLocale();
   const copy = getCompetitionCopy(locale);
-  return <div className="space-y-5" data-testid="evidence-center"><PageHeader kicker="Evidence" title={copy.evidence} description="A canonical capability matrix distinguishes implemented, tested, source-dependent and planned surfaces." /><div className="grid gap-3 md:grid-cols-2">{capabilities.map((item) => <article key={item.id} className="rounded-xl border border-stone-200 bg-white p-4"><div className="flex items-start justify-between gap-3"><h2 className="text-sm font-bold text-slate-950">{item.name}</h2><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${item.implementation === "planned" ? "bg-stone-100 text-slate-600" : "bg-cyan-50 text-cyan-800"}`}>{item.implementation}</span></div><p className="mt-2 text-xs leading-5 text-slate-600">Role: {item.role}; browser: {item.browser}; source: {item.source}; validation: {item.validation}; production: {item.production}.</p><p className="mt-2 text-xs leading-5 text-slate-500">{item.limitation}</p></article>)}</div><div className="grid gap-4 lg:grid-cols-2"><section className="rounded-xl border border-stone-200 bg-white p-4"><h2 className="font-bold text-slate-950">Method and evidence record</h2><p className="mt-2 text-sm leading-6 text-slate-600">Calculations use existing deterministic services. Rule IDs, version, source status, missing facts and limitations are shown with each result. Customer interviews, paid pilots, accuracy and time-saving evidence are not yet validated.</p></section><section className="rounded-xl border border-stone-200 bg-white p-4"><h2 className="font-bold text-slate-950">Human review boundary</h2><p className="mt-2 text-sm leading-6 text-slate-600">Tax professionals, banks, appraisers, lawyers and relevant government agencies remain the source of final decisions. No feature here produces a purchase recommendation.</p></section></div><Button secondary onClick={onBack}>{copy.primary}</Button></div>;
+  return <div className="space-y-5" data-testid="evidence-center"><PageHeader kicker="Evidence" title={copy.evidence} description="A canonical capability matrix distinguishes implemented, tested, source-dependent and planned surfaces." /><div className="grid gap-3 md:grid-cols-2">{capabilities.map((item) => <article key={item.id} className="rounded-xl border border-stone-200 bg-white p-4"><div className="flex items-start justify-between gap-3"><h2 className="text-sm font-bold text-slate-950">{item.name}</h2><span className={`rounded-full px-2 py-1 text-[10px] font-bold ${item.implementation === "planned" ? "bg-stone-100 text-slate-600" : "bg-cyan-50 text-cyan-800"}`}>{item.implementation}</span></div><p className="mt-2 text-xs leading-5 text-slate-600">Role: {item.role}; browser: {item.browser}; source: {item.source}; validation: {item.validation}; production: {item.production}.</p><p className="mt-2 text-xs leading-5 text-slate-500">{item.limitation}</p></article>)}</div><div className="grid gap-4 lg:grid-cols-2"><section className="rounded-xl border border-stone-200 bg-white p-4"><h2 className="font-bold text-slate-950">Method and evidence record</h2><p className="mt-2 text-sm leading-6 text-slate-600">Calculations use existing deterministic services. Rule IDs, version, source status, missing facts and limitations are shown with each result. Customer interviews, paid pilots, accuracy and time-saving evidence are not yet validated.</p></section><section className="rounded-xl border border-stone-200 bg-white p-4"><h2 className="font-bold text-slate-950">Human review boundary</h2><p className="mt-2 text-sm leading-6 text-slate-600">Tax professionals, banks, appraisers, lawyers and relevant government agencies remain the source of final decisions. No feature here produces a purchase recommendation.</p></section></div><div className="flex flex-wrap gap-2"><Button onClick={onPilot}>Join closed pilot</Button><Button secondary onClick={onBack}>{copy.primary}</Button></div></div>;
 }
 
 function PublicPolicyPage({ kind, onBack }: { kind: "privacy" | "terms"; onBack: () => void }) {
@@ -163,7 +166,7 @@ function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; ope
   function startGuidedDemo(){window.sessionStorage.setItem(GUIDED_DEMO_PENDING_KEY,"true");openViewingFlow("immersive-workspace");}
   function exportSavedCase(saved:SavedCase){if(!saved.data.valuation)return;const html=buildValuationSummaryHtml(saved.data.inputs,saved.data.valuation,saved.data.trend,saved.data.propertySearch,saved.data.loan,saved.data.holdingCost,saved.data.locationInsight,saved.data.terrainReference);const url=URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"})),link=document.createElement("a");link.href=url;link.download=valuationSummaryFilename();link.click();URL.revokeObjectURL(url);}
   return <div className="space-y-6">
-    <CompetitionMvpBanner onDemo={() => setPage("Competition Demo" as AppPage)} onEvidence={() => setPage("Evidence Center" as AppPage)} />
+    <CompetitionMvpBanner onDemo={() => setPage("Competition Demo" as AppPage)} onEvidence={() => setPage("Evidence Center" as AppPage)} onPilot={() => setPage("Closed Pilot")} />
     <HeroIntro onStart={() => openViewingFlow("property-finder")} onWorkspace={() => openViewingFlow("immersive-workspace")} reportReady={reportReady} onReport={() => openViewingFlow("decision-report")} workflowStatus={workflowStatus} />
     <details id="secondary-entry-points" className="rounded-2xl border border-stone-200 bg-white shadow-sm">
       <summary className="cursor-pointer px-5 py-4 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500">其他進入方式與工具</summary>
@@ -176,10 +179,10 @@ function Dashboard({ setPage, openTax }: { setPage: (page: AppPage) => void; ope
   </div>;
 }
 
-function CompetitionMvpBanner({ onDemo, onEvidence }: { onDemo: () => void; onEvidence: () => void }) {
+function CompetitionMvpBanner({ onDemo, onEvidence, onPilot }: { onDemo: () => void; onEvidence: () => void; onPilot: () => void }) {
   const { locale } = useExperienceLocale();
   const copy = getCompetitionCopy(locale);
-  return <section data-testid="competition-mvp-banner" className="rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 shadow-sm sm:p-5"><div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[10px] font-bold tracking-[0.16em] text-cyan-800">{copy.eyebrow}</p><h2 className="mt-1 text-xl font-black text-slate-950">{copy.title}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">{copy.description}</p><p className="mt-2 text-xs font-semibold text-amber-800">{copy.boundary}</p></div><div className="flex shrink-0 flex-col gap-2 sm:flex-row"><span data-testid="competition-demo-start"><Button onClick={onDemo}>{copy.primary}</Button></span><Button secondary onClick={onEvidence}>{copy.evidence}</Button></div></div></section>;
+  return <section data-testid="competition-mvp-banner" className="rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 shadow-sm sm:p-5"><div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div><p className="text-[10px] font-bold tracking-[0.16em] text-cyan-800">{copy.eyebrow}</p><h2 className="mt-1 text-xl font-black text-slate-950">{copy.title}</h2><p className="mt-2 max-w-3xl text-sm leading-6 text-slate-700">{copy.description}</p><p className="mt-2 text-xs font-semibold text-amber-800">{copy.boundary}</p></div><div className="flex shrink-0 flex-col gap-2 sm:flex-row"><span data-testid="competition-demo-start"><Button onClick={onDemo}>{copy.primary}</Button></span><Button secondary onClick={onEvidence}>{copy.evidence}</Button><Button secondary onClick={onPilot}>Join closed pilot</Button></div></div></section>;
 }
 
 function DecisionFlowEntry({ onStart, onDemo }: { onStart: () => void; onDemo: () => void }) {
