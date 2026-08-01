@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "build:e2e": "set NEXT_PUBLIC_API_BASE_URL=http://e2e.test&& set NEXT_PUBLIC_APP_ENV=test&& next build",
+    "build:e2e": "node scripts/build-e2e.mjs",
     "test:e2e": "npm run build:e2e && node e2e/run-e2e.cjs",
     "test:e2e:i18n": "npm run build:e2e && node e2e/run-e2e.cjs e2e/i18n.spec.ts",
     "test:e2e:navigation": "npm run build:e2e && node e2e/run-e2e.cjs e2e/navigation.spec.ts",

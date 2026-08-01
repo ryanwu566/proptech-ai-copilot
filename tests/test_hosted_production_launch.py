@@ -96,6 +96,14 @@ def test_migration_ledger_and_safe_workflow_contract_exist() -> None:
     assert "set -x" not in workflow
 
 
+def test_permissions_policy_omits_unsupported_bluetooth_directive() -> None:
+    config = (ROOT / "frontend_next/next.config.mjs").read_text(encoding="utf-8")
+    assert "Permissions-Policy" in config
+    assert "bluetooth" not in config.lower()
+    assert "camera=()" in config
+    assert "geolocation=()" in config
+
+
 def test_docs_define_owner_action_and_truthful_pending_state() -> None:
     launch = (ROOT / "docs/hosted-production-launch.md").read_text(encoding="utf-8")
     rollback = (ROOT / "docs/hosted-rollback-runbook.md").read_text(encoding="utf-8")

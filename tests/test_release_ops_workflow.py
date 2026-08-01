@@ -25,3 +25,9 @@ def test_workflow_has_postgres_migration_and_release_gates_without_secrets() -> 
     assert "secrets." not in WORKFLOW
     assert "PILOT_ADMIN_TOKEN" not in WORKFLOW
     assert "DATABASE_URL" not in WORKFLOW
+
+
+def test_browser_job_declares_cross_platform_e2e_environment() -> None:
+    assert "NEXT_PUBLIC_API_BASE_URL: http://e2e.test" in WORKFLOW
+    assert "NEXT_PUBLIC_APP_ENV: test" in WORKFLOW
+    assert 'run: npm --prefix frontend_next run test:e2e -- --workers=1' in WORKFLOW

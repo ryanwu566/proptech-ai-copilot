@@ -22,3 +22,5 @@ data/processed/
 .DS_Store
 
 .tmp/
+.local/
+.market-staging/

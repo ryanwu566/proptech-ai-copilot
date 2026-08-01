@@ -26,16 +26,17 @@ MIGRATIONS = (
     ROOT / "database" / "migrations" / "005_add_pilot_security_indexes.sql",
     ROOT / "database" / "migrations" / "006_add_tax_analysis_history.sql",
     ROOT / "database" / "migrations" / "007_add_schema_migration_ledger.sql",
+    ROOT / "database" / "migrations" / "008_add_official_market_pipeline.sql",
 )
-REQUIRED_TABLES = {"pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events", "pilot_feedback", "professional_reviews", "tax_analysis_history"}
-REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id", "idx_schema_migration_ledger_applied_at"}
+REQUIRED_TABLES = {"pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events", "pilot_feedback", "professional_reviews", "tax_analysis_history", "official_market_releases", "official_market_artifacts", "market_transactions", "market_transaction_quality_events", "market_region_period_aggregates", "market_region_coverage", "market_import_runs", "market_import_checkpoints"}
+REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id", "idx_schema_migration_ledger_applied_at", "idx_market_transactions_region_period", "idx_market_aggregates_region_period"}
 
 
 def _static_contract() -> dict[str, str]:
     if not all(path.is_file() for path in MIGRATIONS):
         return {"status": "fail", "migration": "missing"}
     joined = "\n".join(path.read_text(encoding="utf-8") for path in MIGRATIONS).lower()
-    required = ("references", "on delete cascade", "create index", "tax_analysis_history", "jsonb", "schema_migration_ledger", "schema_version")
+    required = ("references", "on delete cascade", "create index", "tax_analysis_history", "jsonb", "schema_migration_ledger", "schema_version", "official_market_releases", "market_region_period_aggregates", "market_import_checkpoints")
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
     return {"status": "pass", "migration": "static_contract_pass"}
@@ -47,20 +48,28 @@ def _statements(path: Path) -> list[str]:
 
 
 def _execute_disposable(database_url: str) -> dict[str, str]:
+    class _RollbackValidation(Exception):
+        pass
+
+    class _SchemaContractFailure(Exception):
+        pass
+
     with connect(database_url) as connection:
-        connection.execute("BEGIN")
         try:
-            for path in MIGRATIONS:
-                for statement in _statements(path):
-                    connection.execute(statement)
-            tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
-            indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
-            foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
-            if not REQUIRED_TABLES.issubset(tables) or not REQUIRED_INDEXES.issubset(indexes) or foreign_key_count < 4:
-                return {"status": "fail", "migration": "schema_contract_failed"}
+            with connection.transaction():
+                for path in MIGRATIONS:
+                    for statement in _statements(path):
+                        connection.execute(statement)
+                tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
+                indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
+                foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
+                if not REQUIRED_TABLES.issubset(tables) or not REQUIRED_INDEXES.issubset(indexes) or foreign_key_count < 4:
+                    raise _SchemaContractFailure
+                raise _RollbackValidation
+        except _RollbackValidation:
             return {"status": "pass", "migration": "postgres_transaction_rolled_back", "foreign_keys": "pass", "indexes": "pass", "ledger": "pass"}
-        finally:
-            connection.rollback()
+        except _SchemaContractFailure:
+            return {"status": "fail", "migration": "schema_contract_failed"}
 
 
 def validate(database_url: str | None = None) -> dict[str, Any]:

@@ -711,6 +711,25 @@ def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], s
         "caveat": _optional_text(row.get("caveat")) or status["caveat"],
         "disclaimer": _optional_text(row.get("caveat")) or status["caveat"],
         "aggregation_method": _optional_text(row.get("aggregation_method")) or PLVR_AGGREGATION_METHOD,
+        "median_unit_price_ntd_sqm": _float_value(row.get("median_unit_price_ntd_sqm")),
+        "mean_unit_price_ntd_sqm": _float_value(row.get("mean_unit_price_ntd_sqm")),
+        "lower_quartile_unit_price_ntd_sqm": _float_value(row.get("lower_quartile_unit_price_ntd_sqm")),
+        "upper_quartile_unit_price_ntd_sqm": _float_value(row.get("upper_quartile_unit_price_ntd_sqm")),
+        "median_total_price_ntd": _float_value(row.get("median_total_price_ntd")),
+        "median_area_sqm": _float_value(row.get("median_area_sqm")),
+        "sample_status": _optional_text(row.get("sample_status")),
+        "aggregation_version": _optional_text(row.get("aggregation_version")),
+        "source_release_id": _optional_text(row.get("source_release_id")),
+        "freshness_status": _optional_text(row.get("freshness_status")),
+        "period_change": _float_value(row.get("period_change")),
+        "year_over_year_change": _float_value(row.get("year_over_year_change")),
+        "price_distribution": _safe_distribution(row.get("price_distribution")),
+        "building_type_distribution": _safe_distribution(row.get("building_type_distribution")),
+        "age_band_distribution": _safe_distribution(row.get("age_band_distribution")),
+        "inclusion_count": _int_value(row.get("inclusion_count")),
+        "exclusion_count": _int_value(row.get("exclusion_count")),
+        "methodology": _optional_text(row.get("methodology")),
+        "latest_imported_at": _date_time_text(row.get("latest_imported_at")),
         "history": history,
         "summary": "此為官方實價登錄行政區期別彙整資料，僅供市場背景參考。",
         "trend": [],
@@ -719,6 +738,20 @@ def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], s
         "poi_breakdown": {},
         "sdg11_note": "",
     }
+
+
+def _safe_distribution(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    safe: list[dict[str, Any]] = []
+    for item in value[:12]:
+        if not isinstance(item, dict):
+            continue
+        label = _optional_text(item.get("label"))
+        count = _int_value(item.get("count"))
+        if label and count > 0:
+            safe.append({"label": label[:160], "count": count})
+    return safe
 
 
 def _history_item(row: dict[str, Any]) -> dict[str, Any]:

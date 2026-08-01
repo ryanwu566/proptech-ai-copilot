@@ -1,0 +1,44 @@
+name: Market PostgreSQL E2E
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  market-postgres-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: market_e2e
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d market_e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: python -m pip install -r backend/requirements.txt "pytest>=8,<9"
+      - name: Run synthetic official market release lifecycle
+        env:
+          MARKET_E2E_POSTGRES: "1"
+          MARKET_E2E_POSTGRES_HOST: 127.0.0.1
+          MARKET_E2E_POSTGRES_PORT: "5432"
+        run: python -m pytest -q tests/test_market_postgres_e2e.py --basetemp "${RUNNER_TEMP}/market-postgres-e2e"

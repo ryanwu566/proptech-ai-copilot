@@ -69,3 +69,10 @@ kept under `docs/archive/` and must not be used as current product guidance.
 # Official data setup
 
 - [Official Terrain and Tax data provider setup](official-data-provider-setup.md)
+# Official market data
+
+- `official-plvr-data-pipeline.md`: secure official PLVR acquisition and publication phases.
+- `market-insight-methodology.md`: median-first aggregates, sample sufficiency, and bounded comparables.
+- `market-data-operations.md`: operator workflow, retention, rollback, and scheduling.
+- `market-data-security.md`: archive, CSV, privacy, and import security boundaries.
+- `market-data-production-launch.md`: fail-closed launch gate and owner actions.
