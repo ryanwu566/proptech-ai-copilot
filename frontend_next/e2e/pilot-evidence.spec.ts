@@ -149,6 +149,7 @@ test("professional review browser boundary rejects anonymous access and exposes 
 for (const locale of LOCALES) {
   test(`pilot invitation and completion surface is available in ${locale}`, async ({ page }) => {
     const { errors } = await openPilot(page, locale);
+    await completeParticipantFlow(page);
     expect(await page.getByTestId("closed-pilot").getAttribute("data-testid")).toBe("closed-pilot");
     expect(errors).toEqual([]);
   });
