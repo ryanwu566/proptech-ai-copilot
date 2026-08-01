@@ -24,6 +24,7 @@ export type MarketInsightVisualModel = {
   coverage: VisualCoverageStatus;
   metrics: {
     averageUnitPrice: number | null;
+    medianUnitPrice: number | null;
     transactionVolume: number | null;
     recordCount: number | null;
   };
@@ -103,6 +104,7 @@ export function buildMarketInsightVisualModel(result: MarketResult | undefined):
   const history = sanitizeMarketHistory(result);
   const metrics = {
     averageUnitPrice: state === "available" && result && isPositiveFinite(result.average_unit_price) ? result.average_unit_price : null,
+    medianUnitPrice: state === "available" && result && isPositiveFinite(result.median_unit_price_ntd_sqm) ? result.median_unit_price_ntd_sqm : null,
     transactionVolume: state === "available" && result && isPositiveFinite(result.transaction_volume) ? result.transaction_volume : null,
     recordCount: state === "available" && result && isPositiveFinite(result.record_count ?? result.transaction_count)
       ? (result.record_count ?? result.transaction_count ?? null)

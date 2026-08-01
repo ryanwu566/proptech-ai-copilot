@@ -637,10 +637,11 @@ function MarketInsightVisualResult({ result, model, onMap, availableResult, noDa
     </SectionCard>
     {isAvailable ? <>
       <div className="grid gap-3 md:grid-cols-3">
-        <DataMetricCard label={copy("valuation.unitPrice")} value={model.metrics.averageUnitPrice} suffix="" status={model.state} note={result.period ?? undefined} />
+        <DataMetricCard label={copy("valuation.unitPrice")} value={model.metrics.medianUnitPrice ?? model.metrics.averageUnitPrice} suffix="" status={model.state} note={result.period ?? undefined} />
         <DataMetricCard label={copy("common.count")} value={model.metrics.transactionVolume} status={model.state} />
         <DataMetricCard label={copy("common.records")} value={model.metrics.recordCount} status={model.state} />
       </div>
+      <p className="text-xs text-slate-500">{copy("common.dataLimit")} · {result.sample_status ?? "unknown"}</p>
       <SectionCard title={copy("valuation.trend")}><TrendLineChart data={model.history} status={model.state} textSummary={model.chartTextSummary} /></SectionCard>
       <SectionCard title={copy("common.count")}><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
       {evidenceDisclosure}
