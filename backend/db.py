@@ -5,6 +5,8 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from services.postgres_runtime import check_connection
+from services.production_config import database_url, load_runtime_configuration
 
 DB_PATH = Path(__file__).resolve().parents[1] / "data" / "proptech.db"
 
@@ -39,10 +41,14 @@ def initialize_database() -> None:
 
 
 def health_check() -> dict[str, str]:
-    """Verify that SQLite can initialize and answer a basic query."""
+    """Verify the configured persistence boundary without writing in production."""
+
+    config = load_runtime_configuration()
+    if config.production_like:
+        status = check_connection(database_url()) if config.database_status == "configured" else "unavailable"
+        return {"database": status, "durable": "yes" if status == "available" else "no"}
 
     initialize_database()
     with get_connection() as connection:
         connection.execute("SELECT 1").fetchone()
-    return {"database": "ok", "path": str(DB_PATH)}
-
+    return {"database": "ok", "durable": "no"}

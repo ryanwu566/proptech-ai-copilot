@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from typing import Any, Callable
 
 from services.pilot_evidence import CONSENT_VERSION, EVENT_TYPES, NO_VALIDATED_PRICING, PUBLIC_NOTICE, REVIEW_OUTCOMES, SMALL_SAMPLE_THRESHOLD, event_metadata, hash_secret, safe_text
+from services.postgres_runtime import connect as connect_postgres
 
 
 def utc_now() -> str:
@@ -33,10 +34,9 @@ class PostgresPilotEvidenceStore:
     def _connect(self):
         if self._connection_factory:
             return self._connection_factory(self.database_url)
-        import psycopg
         from psycopg.rows import dict_row
 
-        return psycopg.connect(self.database_url, connect_timeout=10, prepare_threshold=None, row_factory=dict_row)
+        return connect_postgres(self.database_url, row_factory=dict_row)
 
     def close(self) -> None:
         return None

@@ -6,10 +6,31 @@ import json
 from typing import Any
 
 from backend.db import get_connection, initialize_database
+from services.production_config import database_url, load_runtime_configuration
+from services.security import PersistenceConfigurationError
+
+
+def _postgres_repository():
+    config = load_runtime_configuration()
+    configured_url = database_url()
+    if config.production_like and config.database_status != "configured":
+        raise PersistenceConfigurationError("durable production database is unavailable")
+    if configured_url:
+        if config.database_status != "configured":
+            raise PersistenceConfigurationError("configured database is malformed")
+        from backend.repositories.postgres_repo import PostgresTaxHistoryRepository
+
+        return PostgresTaxHistoryRepository(configured_url)
+    return None
 
 
 def save_tax_analysis(case_id: str, client_name: str, result: dict[str, Any]) -> None:
     """Persist one structured TaxOracle result."""
+
+    postgres = _postgres_repository()
+    if postgres is not None:
+        postgres.save(case_id, client_name, result)
+        return
 
     initialize_database()
     with get_connection() as connection:
@@ -33,6 +54,10 @@ def save_tax_analysis(case_id: str, client_name: str, result: dict[str, Any]) ->
 def list_tax_analyses(limit: int = 20) -> list[dict[str, Any]]:
     """Return recent TaxOracle analyses."""
 
+    postgres = _postgres_repository()
+    if postgres is not None:
+        return postgres.list(limit)
+
     initialize_database()
     with get_connection() as connection:
         rows = connection.execute(
@@ -47,6 +72,10 @@ def list_tax_analyses(limit: int = 20) -> list[dict[str, Any]]:
 
 def get_tax_analysis(analysis_id: int) -> dict[str, Any] | None:
     """Return one stored structured result for history detail views."""
+
+    postgres = _postgres_repository()
+    if postgres is not None:
+        return postgres.get(analysis_id)
 
     initialize_database()
     with get_connection() as connection:

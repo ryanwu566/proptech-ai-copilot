@@ -6,6 +6,7 @@ import os
 import json
 import logging
 import time
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -28,6 +29,7 @@ from backend.api.routes_valuation import router as valuation_router
 from backend.api.routes_pilot import router as pilot_router
 from backend.api.routes_performance import router as performance_router
 from services.observability import build_observation, normalize_correlation_id
+from services.production_config import assert_startup_configuration
 from services.security import safe_origin, security_headers
 
 
@@ -54,10 +56,19 @@ def configured_cors_origins() -> list[str]:
     return parsed or list(DEFAULT_DEV_CORS_ORIGINS)
 
 
+@asynccontextmanager
+async def app_lifespan(_app: FastAPI):
+    """Validate production configuration before accepting requests."""
+
+    assert_startup_configuration()
+    yield
+
+
 app = FastAPI(
     title="PropTech AI Copilot API",
     description="Productized demo API using deterministic TaxOracle rules and offline mock data.",
     version="0.1.0",
+    lifespan=app_lifespan,
 )
 
 app.add_middleware(
