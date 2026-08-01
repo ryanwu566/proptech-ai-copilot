@@ -51,7 +51,7 @@ def hash_secret(value: str) -> str:
 
 def safe_text(value: str, *, limit: int) -> str:
     text = str(value or "")
-    if any(ord(char) < 32 and char not in "\t\n\r" for char in text):
+    if any(ord(char) < 32 for char in text):
         raise ValueError("control characters are not allowed")
     return text.strip()[:limit]
 
@@ -60,6 +60,15 @@ def sanitize_feedback_text(value: str) -> str:
     """Bound and neutralize feedback before storage; output is escaped at render time."""
 
     return safe_text(value, limit=2000)
+
+
+def safe_csv_cell(value: Any) -> str:
+    """Prevent spreadsheet formula execution in CSV exports."""
+
+    text = str(value if value is not None else "")
+    if text.startswith(("=", "+", "-", "@", "\t", "\r")):
+        return "'" + text
+    return text
 
 
 def event_metadata(value: dict[str, Any] | None) -> dict[str, Any]:
@@ -216,6 +225,9 @@ CREATE INDEX IF NOT EXISTS idx_pilot_sessions_campaign ON pilot_sessions(campaig
 CREATE INDEX IF NOT EXISTS idx_pilot_events_session ON pilot_events(session_id);
 CREATE INDEX IF NOT EXISTS idx_pilot_events_type ON pilot_events(event_type);
 CREATE INDEX IF NOT EXISTS idx_pilot_feedback_publication ON pilot_feedback(publication_status, verification_status);
+CREATE INDEX IF NOT EXISTS idx_pilot_sessions_completion_updated ON pilot_sessions(completion_status, updated_at);
+CREATE INDEX IF NOT EXISTS idx_pilot_events_idempotency ON pilot_events(session_id, idempotency_key);
+CREATE INDEX IF NOT EXISTS idx_professional_reviews_publication ON professional_reviews(publication_status, reviewed_at);
 """
 
 
@@ -401,7 +413,7 @@ class PilotEvidenceStore:
             output = io.StringIO()
             writer = csv.DictWriter(output, fieldnames=sorted(aggregate))
             writer.writeheader()
-            writer.writerow(aggregate)
+            writer.writerow({key: safe_csv_cell(value) for key, value in aggregate.items()})
             return output.getvalue()
         if fmt == "html":
             rows = "".join(f"<tr><th>{html.escape(str(key))}</th><td>{html.escape(str(value))}</td></tr>" for key, value in aggregate.items())

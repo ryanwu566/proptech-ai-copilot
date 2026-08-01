@@ -8,8 +8,13 @@ foreign-key cascades, indexes, fixture isolation, and participant deletion.
 from __future__ import annotations
 
 import json
+import sys
 import tempfile
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from services.pilot_evidence import PilotEvidenceStore
 
@@ -27,7 +32,7 @@ def validate() -> dict[str, str]:
         if not REQUIRED_TABLES.issubset(tables):
             store.close()
             return {"status": "fail", "reason": "required_table_missing"}
-        if not {"idx_pilot_sessions_campaign", "idx_pilot_events_session", "idx_pilot_feedback_publication"}.issubset(indexes):
+        if not {"idx_pilot_sessions_campaign", "idx_pilot_events_session", "idx_pilot_feedback_publication", "idx_pilot_sessions_completion_updated", "idx_pilot_events_idempotency", "idx_professional_reviews_publication"}.issubset(indexes):
             store.close()
             return {"status": "fail", "reason": "required_index_missing"}
         store.create_campaign("private-a", "code-a")
