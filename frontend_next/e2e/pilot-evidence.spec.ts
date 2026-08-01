@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 const LOCALES = ["zh-TW", "en", "ja", "ko"];
 const MOBILE_WIDTHS = [360, 390, 430];
 
-async function mockPilotApi(page: Page, options: { rejectAccess?: boolean; publication?: boolean } = {}) {
+async function mockPilotApi(page: Page, options: { rejectAccess?: boolean; networkFailure?: boolean; publication?: boolean } = {}) {
   let eventCount = 0;
   let accessCount = 0;
   let publicationApproved = false;
@@ -11,6 +11,7 @@ async function mockPilotApi(page: Page, options: { rejectAccess?: boolean; publi
   await page.route("**/client-errors", (route) => route.fulfill({ status: 202, contentType: "application/json", body: JSON.stringify({ status: "accepted", support_reference: "e2e-support-reference" }) }));
   await page.route("**/pilot/access", (route) => {
     if (options.rejectAccess) return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ detail: "Pilot access is unavailable." }) });
+    if (options.networkFailure) return route.abort("failed");
     accessCount += 1;
     return route.fulfill({ status: 201, contentType: "application/json", headers: cors, body: JSON.stringify({ session_id: `e2e-session-${accessCount}`, session_token: `e2e-session-token-${accessCount}`, mode: "closed_pilot", consent_version: "pilot-consent-v1" }) });
   });
@@ -86,6 +87,17 @@ test("invalid pilot access stays generic and creates no session", async ({ page 
   await expect(pilot.getByRole("alert")).toBeVisible();
   expect(await pilot.locator("input[type=checkbox]").count()).toBe(0);
   expect(errors.filter((item) => !item.includes("status of 404"))).toEqual([]);
+});
+
+test("network failure shows a bounded degraded state without an infinite spinner", async ({ page }) => {
+  const { errors } = await openPilot(page, "en", { networkFailure: true });
+  const pilot = page.getByTestId("closed-pilot");
+  await pilot.locator("input").nth(0).fill("network-failure");
+  await pilot.locator("input").nth(1).fill("bounded-code");
+  await pilot.locator("button").first().click();
+  await expect(pilot.getByRole("alert")).toBeVisible();
+  expect(await pilot.locator("button").first().isEnabled()).toBe(true);
+  expect(errors.filter((item) => !item.includes("net::ERR_FAILED"))).toEqual([]);
 });
 
 test("publication remains private until approval and disappears after revocation", async ({ page }) => {
