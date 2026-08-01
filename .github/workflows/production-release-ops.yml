@@ -102,4 +102,6 @@ jobs:
       - name: Install Chromium
         run: npm --prefix frontend_next exec -- playwright install chromium --with-deps
       - name: Run browser locale and mobile matrix
+        env:
+          NEXT_PUBLIC_API_BASE_URL: http://e2e.test
         run: npm --prefix frontend_next run test:e2e -- --workers=1
