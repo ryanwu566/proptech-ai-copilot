@@ -1253,12 +1253,12 @@ limit %s
 """
 
 DIRECT_HISTORY_DISTRICT_SQL = _DIRECT_HISTORY_SELECT.format(
-    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    valid_where=_VALID_PLVR_WHERE,
     district_filter="and trim(district) = %s",
 )
 
 DIRECT_HISTORY_COUNTY_SQL = _DIRECT_HISTORY_SELECT.format(
-    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    valid_where=_VALID_PLVR_WHERE,
     district_filter="",
 )
 
@@ -1272,12 +1272,12 @@ where {valid_where}
 """
 
 DIRECT_COVERAGE_DISTRICT_SQL = _DIRECT_COVERAGE_SELECT.format(
-    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    valid_where=_VALID_PLVR_WHERE,
     district_filter="and trim(district) = %s",
 )
 
 DIRECT_COVERAGE_COUNTY_SQL = _DIRECT_COVERAGE_SELECT.format(
-    valid_where=_VALID_PLVR_WHERE_FORMAT,
+    valid_where=_VALID_PLVR_WHERE,
     district_filter="",
 )
 

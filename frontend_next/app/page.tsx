@@ -19,7 +19,7 @@ import { CaseManager } from "@/components/case-manager";
 import { CASE_CLEARED_EVENT, CASE_LOADED_EVENT, type SavedCase } from "@/lib/case-storage";
 import { Badge, Button, EmptyState, Notice } from "@/components/ui";
 import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTile, PageHeader, ResultSummaryPanel, SectionCard } from "@/components/product-ui";
-import { api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import { api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketRequestError, MarketRequestReason, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { getMarketDisplayState } from "@/lib/market-result-state";
 import { buildMarketInsightVisualModel } from "@/lib/market-insight-visualization";
 import { DataMetricCard } from "@/components/data-visualization/data-metric-card";
@@ -516,7 +516,9 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
   const [result, setResult] = useState<MarketResult>();
   const [querying, setQuerying] = useState(false);
   const [error, setError] = useState("");
+  const [marketFailureReason, setMarketFailureReason] = useState<MarketRequestReason | null>(null);
   const marketQuerySeq = useRef(0);
+  const marketRequestController = useRef<AbortController | undefined>(undefined);
   const canonicalCounty = normalizeTaiwanCounty(county);
   const canonicalDistrict = normalizeTaiwanDistrict(canonicalCounty, district);
   const districtOptions = getDistrictsForCounty(canonicalCounty);
@@ -530,48 +532,50 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     }
     const queryId = marketQuerySeq.current + 1;
     marketQuerySeq.current = queryId;
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 12000);
     setQuerying(true);
     onStatusChange?.("loading");
     setError("");
+    setMarketFailureReason(null);
     setResult(undefined);
+    let nextResult: MarketResult | undefined;
     try {
-      const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal);
+      let attempt = 0;
+      while (attempt < 2) {
+        attempt += 1;
+        const controller = new AbortController();
+        marketRequestController.current = controller;
+        const timeout = window.setTimeout(() => controller.abort("market_request_timeout"), 20000);
+        try {
+          nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal);
+          break;
+        } catch (caught) {
+          const reason = caught instanceof MarketRequestError ? caught.reasonCode : "market_request_unknown_failure";
+          const retryable = reason === "market_request_timeout" || reason === "market_request_connection_failed";
+          if (!(attempt < 2 && retryable && marketQuerySeq.current === queryId)) throw caught;
+        } finally {
+          window.clearTimeout(timeout);
+        }
+      }
+      if (!nextResult) throw new MarketRequestError("market_request_unknown_failure");
       if (marketQuerySeq.current === queryId) { setResult(nextResult); onResult?.(nextResult); onStatusChange?.(marketDisplayJourneyStatus(nextResult)); }
     } catch (caught) {
       if (marketQuerySeq.current === queryId) {
-        setError(caught instanceof Error && caught.name === "AbortError" ? copy("common.unavailable") : copy("common.unavailable"));
-        const unavailableResult: MarketResult = {
-          city: canonicalCounty,
-          county: canonicalCounty,
-          district: canonicalDistrict,
-          period: null,
-          average_unit_price: null,
-          avg_price_per_ping: null,
-          transaction_count: null,
-          transaction_volume: null,
-          record_count: null,
-          summary: copy("common.unavailable"),
-          source_name: null,
-          source_updated_at: null,
-          coverage_status: "coverage_unknown",
-          data_status: "unavailable",
-          caveat: copy("common.dataLimit"),
-          disclaimer: "僅供市場背景參考，不影響估價、貸款、稅務、法律或看房結論。",
-          history: [],
-        };
-        setResult(unavailableResult);
-        onResult?.(unavailableResult);
+        const reasonCode = caught instanceof MarketRequestError ? caught.reasonCode : "market_request_unknown_failure";
+        setMarketFailureReason(reasonCode);
+        setError(copy("common.unavailable"));
+        setResult(undefined);
+        onResult?.(null);
         onStatusChange?.("unavailable");
       }
     } finally {
-      window.clearTimeout(timeout);
+      if (marketRequestController.current?.signal.aborted || marketQuerySeq.current === queryId) marketRequestController.current = undefined;
       if (marketQuerySeq.current === queryId) setQuerying(false);
     }
   }
 
   function updateCounty(value: string) {
+    marketRequestController.current?.abort("market_request_cancelled");
+    marketRequestController.current = undefined;
     marketQuerySeq.current += 1;
     setCounty(normalizeTaiwanCounty(value));
     setDistrict("");
@@ -579,15 +583,19 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     onResult?.(null);
     onStatusChange?.("not_started");
     setError("");
+    setMarketFailureReason(null);
   }
 
   function updateDistrict(value: string) {
+    marketRequestController.current?.abort("market_request_cancelled");
+    marketRequestController.current = undefined;
     marketQuerySeq.current += 1;
     setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
     setResult(undefined);
     onResult?.(null);
     onStatusChange?.("not_started");
     setError("");
+    setMarketFailureReason(null);
   }
 
   const marketDisplayState = getMarketDisplayState(result);
@@ -604,7 +612,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
   return <div className="space-y-5">
     {!embedded && <PageHeader kicker={copy("valuation.kicker")} title="Market Insight" description={copy("valuation.help")} action={<Button secondary onClick={onMap}>{copy("location.map")}</Button>} />}
     {!embedded && <HelpCallout>{copy("valuation.help")}</HelpCallout>}
-    {error && <ErrorState message={error} />}
+    {error && <div data-market-failure-reason={marketFailureReason ?? undefined}><ErrorState message={error} /></div>}
     <SectionCard title={copy("action.search")} description={copy("map.help")}>
       <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
         <label className="text-xs text-slate-500">{copy("common.selectCounty")}
@@ -635,6 +643,7 @@ function MarketInsightVisualResult({ result, model, onMap, availableResult, noDa
     <SectionCard title={copy("valuation.title")} description={copy("valuation.help")}>
       <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} /><FreshnessIndicator status={model.freshness} /></div>
       <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? noDataMessage : copy("common.unavailable")}</p>
+      {isAvailable && <p className="mt-2 text-xs leading-5 text-slate-500">{result.source_name ?? copy("common.optional")} {result.source_updated_at ?? copy("common.optional")}</p>}
     </SectionCard>
     {isAvailable ? <>
       <MarketInsightEvidencePanel result={result} model={model} />

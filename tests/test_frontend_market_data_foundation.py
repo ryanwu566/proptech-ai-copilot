@@ -34,7 +34,12 @@ def test_market_insight_queries_only_on_button_click_without_catalog_scan() -> N
     assert "AbortController" in component
     assert "marketQuerySeq.current === queryId" in component
     assert "if (querying) return" in component
-    assert "setTimeout(() => controller.abort(), 12000)" in component
+    assert "controller.abort(\"market_request_timeout\")" in component
+    assert "attempt < 2" in component
+    assert "market_request_connection_failed" in component
+    assert "market_request_timeout" in component
+    assert 'abort("market_request_cancelled")' in component
+    assert "marketQuerySeq.current === queryId" in component
 
 
 def test_market_insight_has_canonical_county_and_dependent_district_selectors() -> None:
@@ -60,6 +65,7 @@ def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
     assert 'copy("common.unavailable")' in component
     assert 'copy("common.dataLimit")' in component
     assert "nonAvailableEvidence" in component
+    assert "data-market-failure-reason" in component
     assert "record_count ?? result.transaction_count ?? 0" not in component
     assert "livability_score" not in component
     assert "esg_lite_score" not in component
@@ -81,6 +87,17 @@ def test_market_api_contract_has_direct_query_endpoint_and_history() -> None:
     assert "/market-insights/query" in API
     assert "marketInsight: (county: string, district?: string" in API
     assert "signal?: AbortSignal" in API
+    for reason in (
+        "market_request_cors_failed",
+        "market_request_origin_rejected",
+        "market_request_timeout",
+        "market_request_connection_failed",
+        "market_request_http_error",
+        "market_response_contract_invalid",
+        "market_request_unknown_failure",
+    ):
+        assert reason in API
+    assert "MarketRequestError" in API
     assert "history:" in API
     assert "livability_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]
     assert "esg_lite_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]
