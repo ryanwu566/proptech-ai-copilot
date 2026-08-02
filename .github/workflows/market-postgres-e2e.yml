@@ -47,4 +47,21 @@ jobs:
         run: |
           set -euo pipefail
           python -m pytest -q tests/test_market_postgres_e2e.py tests/test_market_direct_query_postgres.py --basetemp "${RUNNER_TEMP}/market-postgres-e2e" --junitxml "${RUNNER_TEMP}/market-postgres-e2e.xml"
-          python -c "import xml.etree.ElementTree as ET; root = ET.parse('${RUNNER_TEMP}/market-postgres-e2e.xml').getroot(); skipped = int(root.attrib.get('skipped', '0')); raise SystemExit('required market PostgreSQL test skipped') if skipped else None"
+          python - <<'PY'
+          import os
+          import xml.etree.ElementTree as ET
+
+          report_path = os.path.join(
+              os.environ["RUNNER_TEMP"],
+              "market-postgres-e2e.xml",
+          )
+          root = ET.parse(report_path).getroot()
+          skipped = int(root.attrib.get("skipped", "0"))
+
+          if skipped:
+              raise SystemExit(
+                  f"required market PostgreSQL tests skipped: {skipped}"
+              )
+
+          print("required market PostgreSQL skip guard passed")
+          PY

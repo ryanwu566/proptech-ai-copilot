@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -31,6 +32,7 @@ MIGRATIONS = (
 )
 REQUIRED_TABLES = {"pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events", "pilot_feedback", "professional_reviews", "tax_analysis_history", "official_market_releases", "official_market_artifacts", "market_transactions", "market_transaction_quality_events", "market_region_period_aggregates", "official_market_region_coverage", "market_import_runs", "market_import_checkpoints"}
 REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id", "idx_schema_migration_ledger_applied_at", "idx_market_transactions_region_period", "idx_market_aggregates_region_period", "idx_official_market_region_coverage_region_period"}
+_DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
 
 def _static_contract() -> dict[str, str]:
@@ -43,9 +45,127 @@ def _static_contract() -> dict[str, str]:
     return {"status": "pass", "migration": "static_contract_pass"}
 
 
+def _split_sql(sql: str) -> list[str]:
+    statements: list[str] = []
+    buffer: list[str] = []
+    index = 0
+    single_quote = False
+    double_quote = False
+    dollar_quote: str | None = None
+    length = len(sql)
+
+    def flush() -> None:
+        statement = "".join(buffer).strip()
+        if statement:
+            statements.append(statement)
+        buffer.clear()
+
+    while index < length:
+        character = sql[index]
+
+        if dollar_quote is not None:
+            if sql.startswith(dollar_quote, index):
+                buffer.append(dollar_quote)
+                index += len(dollar_quote)
+                dollar_quote = None
+            else:
+                buffer.append(character)
+                index += 1
+            continue
+
+        if single_quote:
+            buffer.append(character)
+            if character == "'":
+                if index + 1 < length and sql[index + 1] == "'":
+                    buffer.append(sql[index + 1])
+                    index += 2
+                else:
+                    single_quote = False
+                    index += 1
+            elif character == "\\" and index + 1 < length:
+                buffer.append(sql[index + 1])
+                index += 2
+            else:
+                index += 1
+            continue
+
+        if double_quote:
+            buffer.append(character)
+            if character == '"':
+                if index + 1 < length and sql[index + 1] == '"':
+                    buffer.append(sql[index + 1])
+                    index += 2
+                else:
+                    double_quote = False
+                    index += 1
+            else:
+                index += 1
+            continue
+
+        if sql.startswith("--", index):
+            index += 2
+            while index < length and sql[index] != "\n":
+                index += 1
+            buffer.append("\n")
+            if index < length:
+                index += 1
+            continue
+
+        if sql.startswith("/*", index):
+            index += 2
+            depth = 1
+            while index < length and depth:
+                if sql.startswith("/*", index):
+                    depth += 1
+                    index += 2
+                elif sql.startswith("*/", index):
+                    depth -= 1
+                    index += 2
+                else:
+                    index += 1
+            if depth:
+                raise ValueError("unterminated block comment")
+            buffer.append(" ")
+            continue
+
+        if character == "'":
+            single_quote = True
+            buffer.append(character)
+            index += 1
+            continue
+
+        if character == '"':
+            double_quote = True
+            buffer.append(character)
+            index += 1
+            continue
+
+        if character == "$":
+            match = _DOLLAR_QUOTE_START.match(sql, index)
+            if match is not None:
+                dollar_quote = match.group(0)
+                buffer.append(dollar_quote)
+                index = match.end()
+                continue
+
+        if character == ";":
+            flush()
+        else:
+            buffer.append(character)
+        index += 1
+
+    if single_quote:
+        raise ValueError("unterminated single-quoted string")
+    if double_quote:
+        raise ValueError("unterminated double-quoted identifier")
+    if dollar_quote is not None:
+        raise ValueError("unterminated dollar-quoted string")
+    flush()
+    return statements
+
+
 def _statements(path: Path) -> list[str]:
-    sql = "\n".join(line for line in path.read_text(encoding="utf-8").splitlines() if not line.strip().startswith("--"))
-    return [part.strip() for part in sql.split(";") if part.strip()]
+    return _split_sql(path.read_text(encoding="utf-8"))
 
 
 def _execute_disposable(database_url: str) -> dict[str, str]:

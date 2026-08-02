@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from scripts import apply_production_migrations as migration_runner
+from scripts import validate_postgres_migration as migration_validator
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -154,3 +155,84 @@ def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     assert "idx_official_market_region_coverage_region_period" in forward
     assert migration_runner.MIGRATIONS[-1].name == "009_separate_official_market_region_coverage.sql"
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
+
+
+def _statements(tmp_path: Path, sql: str) -> list[str]:
+    path = tmp_path / "synthetic.sql"
+    path.write_text(sql, encoding="utf-8")
+    return migration_validator._statements(path)
+
+
+def test_statement_splitter_keeps_untagged_dollar_quoted_block(tmp_path: Path) -> None:
+    statements = _statements(
+        tmp_path,
+        """DO $$
+BEGIN
+    PERFORM 1;
+    PERFORM 2;
+END
+$$;
+CREATE TABLE example_table (id integer);
+""",
+    )
+
+    assert len(statements) == 2
+    assert "PERFORM 2;" in statements[0]
+    assert statements[1].startswith("CREATE TABLE example_table")
+
+
+def test_statement_splitter_keeps_tagged_dollar_quoted_block(tmp_path: Path) -> None:
+    statements = _statements(
+        tmp_path,
+        """DO $migration$
+BEGIN
+    PERFORM 1;
+END
+$migration$;
+""",
+    )
+
+    assert len(statements) == 1
+    assert statements[0].startswith("DO $migration$")
+    assert statements[0].endswith("$migration$")
+
+
+def test_statement_splitter_ignores_semicolons_in_strings_and_escaped_quotes(tmp_path: Path) -> None:
+    statements = _statements(
+        tmp_path,
+        "INSERT INTO examples (value) VALUES ('a;b'), ('it''s;valid');",
+    )
+
+    assert len(statements) == 1
+    assert "it''s;valid" in statements[0]
+
+
+def test_statement_splitter_ignores_semicolons_in_comments(tmp_path: Path) -> None:
+    statements = _statements(
+        tmp_path,
+        """-- comment with a semicolon ;
+CREATE TABLE comment_table (id integer);
+/* block comment with a semicolon ; */
+CREATE INDEX comment_index ON comment_table (id);
+""",
+    )
+
+    assert len(statements) == 2
+    assert statements[0].startswith("CREATE TABLE comment_table")
+    assert statements[1].startswith("CREATE INDEX comment_index")
+
+
+def test_migration_009_keeps_do_block_and_rename_as_one_statement() -> None:
+    path = ROOT / "database/migrations/009_separate_official_market_region_coverage.sql"
+    statements = migration_validator._statements(path)
+
+    assert len(statements) == 3
+    assert "alter table public.market_region_coverage rename to official_market_region_coverage" in statements[0].lower()
+    assert not any(statement.strip().lower().startswith("alter table") for statement in statements[1:])
+
+
+def test_all_registered_migrations_split_into_non_empty_statements() -> None:
+    for path in migration_validator.MIGRATIONS:
+        statements = migration_validator._statements(path)
+        assert statements, path.name
+        assert all(statement.strip() for statement in statements)
