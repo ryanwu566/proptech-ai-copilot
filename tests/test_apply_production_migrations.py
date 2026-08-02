@@ -25,6 +25,7 @@ class _FakeConnection:
         self.ledger = dict(ledger or {})
         self.fail_on = fail_on
         self.sql: list[str] = []
+        self.schema_versions: dict[str, str] = {}
         self.transaction_committed = False
         self.transaction_rolled_back = False
         self._ledger_snapshot: dict[str, str] | None = None
@@ -62,6 +63,7 @@ class _FakeConnection:
             return _Result([("schema_migration_ledger_pkey",)])
         if normalized.startswith("insert into schema_migration_ledger"):
             assert params is not None
+            self.schema_versions[str(params[0])] = str(params[1])
             self.ledger[str(params[0])] = str(params[3])
             return _Result([])
         if normalized.startswith("select table_name"):
@@ -107,6 +109,16 @@ def test_rerunning_migrations_is_idempotent_and_preserves_checksums(monkeypatch)
     assert set(connection.ledger) == {path.stem for path in migration_runner.MIGRATIONS}
 
 
+def test_migration_schema_versions_follow_file_numbers(monkeypatch) -> None:
+    connection = _FakeConnection()
+
+    result = _run(monkeypatch, connection)
+
+    assert result["status"] == "pass"
+    assert connection.schema_versions["008_add_official_market_pipeline"] == "schema-008"
+    assert connection.schema_versions["009_separate_official_market_region_coverage"] == "schema-009"
+
+
 def test_checksum_drift_fails_without_applying_other_migrations(monkeypatch) -> None:
     first_migration = migration_runner.MIGRATIONS[0].stem
     connection = _FakeConnection(ledger={first_migration: "unexpected-checksum"})
@@ -130,12 +142,15 @@ def test_failed_migration_rolls_back_ledger_records(monkeypatch) -> None:
 
 def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     legacy = (ROOT / "database/migrations/003_add_market_region_coverage.sql").read_text(encoding="utf-8")
-    official = (ROOT / "database/migrations/008_add_official_market_pipeline.sql").read_text(encoding="utf-8")
+    published = (ROOT / "database/migrations/008_add_official_market_pipeline.sql").read_text(encoding="utf-8")
+    forward = (ROOT / "database/migrations/009_separate_official_market_region_coverage.sql").read_text(encoding="utf-8")
 
     assert "create table if not exists market_region_coverage (" in legacy
     assert "valid_market_candidate_count" in legacy
-    assert "create table if not exists official_market_region_coverage (" in official
-    assert "release_id text not null references official_market_releases" in official
-    assert "create table if not exists market_region_coverage (" not in official
-    assert "idx_official_market_region_coverage_region_period" in official
+    assert "create table if not exists market_region_coverage (" in published
+    assert "create table if not exists official_market_region_coverage (" in forward
+    assert "release_id text not null references official_market_releases" in forward
+    assert "create table if not exists market_region_coverage (" not in forward
+    assert "idx_official_market_region_coverage_region_period" in forward
+    assert migration_runner.MIGRATIONS[-1].name == "009_separate_official_market_region_coverage.sql"
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES

@@ -93,7 +93,7 @@ create table if not exists market_region_period_aggregates (
 
 create index if not exists idx_market_aggregates_region_period on market_region_period_aggregates (county, district, period desc);
 
-create table if not exists official_market_region_coverage (
+create table if not exists market_region_coverage (
     release_id text not null references official_market_releases(release_id) on delete restrict,
     county text not null,
     district text not null,
@@ -103,9 +103,6 @@ create table if not exists official_market_region_coverage (
     source_updated_at date,
     primary key (release_id, county, district)
 );
-
-create index if not exists idx_official_market_region_coverage_region_period
-    on official_market_region_coverage (county, district, latest_period desc);
 
 create table if not exists market_import_runs (
     import_run_id uuid primary key,
