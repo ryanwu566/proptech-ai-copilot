@@ -377,6 +377,22 @@ def test_direct_query_sql_uses_only_plvr_transaction_table() -> None:
     assert "real_price_transactions" in REFRESH_TEMP_AGGREGATES_SQL
 
 
+def test_direct_query_sql_has_canonical_city_normalization() -> None:
+    sql_constants = [
+        DIRECT_SUMMARY_DISTRICT_LATEST_SQL,
+        DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL,
+        DIRECT_SUMMARY_COUNTY_LATEST_SQL,
+        DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL,
+        DIRECT_HISTORY_DISTRICT_SQL,
+        DIRECT_HISTORY_COUNTY_SQL,
+    ]
+
+    for sql in sql_constants:
+        assert "replace(trim(city), '臺', '台')" in sql
+        assert "'??" not in sql
+        assert "\ufffd" not in sql
+
+
 def test_status_and_catalog_return_safe_read_model_metadata() -> None:
     repo = FakeReadModelRepository()
 
@@ -558,6 +574,23 @@ def test_direct_query_source_exception_is_unavailable_not_no_data() -> None:
     assert "history:unexpected" not in repo.calls
     assert "status" not in repo.calls
     assert "refresh" not in repo.calls
+
+
+def test_direct_query_failure_logs_only_safe_categories(caplog) -> None:
+    class CoverageFailureRepository(FakeReadModelRepository):
+        def coverage(self, county: str, district: str) -> dict[str, Any]:
+            raise RuntimeError("private SQL and address details must not leak")
+
+    with caplog.at_level("WARNING", logger="proptech.market"):
+        result = get_market_summary("臺北市", "信義區", repository=CoverageFailureRepository())
+
+    assert result["data_status"] == "unavailable"
+    message = " ".join(record.getMessage() for record in caplog.records)
+    assert '"operation":"coverage"' in message
+    assert '"exception_class":"RuntimeError"' in message
+    assert '"reason_code":"market_coverage_query_unavailable"' in message
+    assert "private SQL" not in message
+    assert "臺北市" not in message
 
 
 def test_unknown_coverage_is_unavailable_without_source_query() -> None:
