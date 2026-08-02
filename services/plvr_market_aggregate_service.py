@@ -10,12 +10,17 @@ from __future__ import annotations
 
 import math
 import os
+import json
+import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from typing import Any, Protocol
 
 from services.market_data_foundation import MARKET_DATA_CAVEAT, market_unavailable_response
 from services.taiwan_admin_registry import audit_region_coverage, iter_taiwan_regions, normalize_market_region
+
+
+logger = logging.getLogger("proptech.market")
 
 
 OFFICIAL_PLVR_SOURCE = "official_plvr_opendata"
@@ -406,11 +411,20 @@ def get_market_summary(
         return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
     try:
         coverage = _coverage_for_region(repo, county, district)
-        if coverage["coverage_status"] != "covered":
-            return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status=coverage["coverage_status"], source_updated_at=coverage.get("source_updated_at")))
+    except Exception as exc:
+        _log_repository_failure("coverage", exc, "market_coverage_query_unavailable")
+        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
+    if coverage["coverage_status"] != "covered":
+        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status=coverage["coverage_status"], source_updated_at=coverage.get("source_updated_at")))
+    try:
         row = repo.summary(county, district, period)
+    except Exception as exc:
+        _log_repository_failure("summary", exc, "market_summary_query_unavailable")
+        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
+    try:
         history = repo.history(county, district, limit=6) if row else []
-    except Exception:
+    except Exception as exc:
+        _log_repository_failure("history", exc, "market_history_query_unavailable")
         return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
     if not isinstance(row, dict):
         return _no_data_summary(county, district, _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
@@ -928,6 +942,20 @@ def _optional_text(value: Any) -> str | None:
     return text or None
 
 
+def _log_repository_failure(operation: str, exc: Exception, reason_code: str, support_reference: str | None = None) -> None:
+    """Log only bounded categories; never include SQL, parameters, or raw errors."""
+
+    safe_operation = operation if operation in {"coverage", "summary", "history"} else "unknown"
+    safe_exception_class = type(exc).__name__[:80] or "Exception"
+    payload = {
+        "operation": safe_operation,
+        "exception_class": safe_exception_class,
+        "support_reference": _optional_text(support_reference),
+        "reason_code": reason_code[:80],
+    }
+    logger.warning("market_repository_failure %s", json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":")))
+
+
 def _date_text(value: Any) -> str | None:
     if isinstance(value, datetime):
         return value.date().isoformat()
@@ -1162,7 +1190,7 @@ _VALID_PLVR_WHERE_FORMAT = _VALID_PLVR_WHERE.replace("{", "{{").replace("}", "}}
 
 _DIRECT_SUMMARY_SELECT = f"""
 select
-  replace(trim(city), '??, '??) as county,
+  replace(trim(city), '臺', '台') as county,
   {{district_expression}} as district,
   transaction_period as period,
   round(avg(unit_price_per_ping)::numeric, 2) as average_unit_price,
@@ -1175,10 +1203,10 @@ select
   '{PLVR_AGGREGATION_METHOD}'::text as aggregation_method
 from real_price_transactions
 where {_VALID_PLVR_WHERE_FORMAT}
-  and replace(trim(city), '??, '??) = %s
+  and replace(trim(city), '臺', '台') = %s
   {{district_filter}}
   {{period_filter}}
-group by replace(trim(city), '??, '??), {{district_group}}, transaction_period
+group by replace(trim(city), '臺', '台'), {{district_group}}, transaction_period
 order by transaction_period desc
 limit 1
 """
@@ -1217,7 +1245,7 @@ select transaction_period as period,
        count(*)::integer as transaction_count
 from real_price_transactions
 where {valid_where}
-  and replace(trim(city), '??, '??) = %s
+  and replace(trim(city), '臺', '台') = %s
   {district_filter}
 group by transaction_period
 order by transaction_period desc
