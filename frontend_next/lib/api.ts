@@ -125,6 +125,80 @@ export type MarketResult = {
   methodology?: string | null;
   latest_imported_at?: string | null;
 };
+
+export const MARKET_REQUEST_REASON_CODES = [
+  "market_request_cors_failed",
+  "market_request_origin_rejected",
+  "market_request_timeout",
+  "market_request_connection_failed",
+  "market_request_http_error",
+  "market_response_contract_invalid",
+  "market_request_unknown_failure",
+] as const;
+export type MarketRequestReason = (typeof MARKET_REQUEST_REASON_CODES)[number];
+
+const MARKET_REQUEST_TIMEOUT_REASON = "market_request_timeout";
+
+export class MarketRequestError extends Error {
+  readonly reasonCode: MarketRequestReason;
+  readonly httpStatus?: number;
+
+  constructor(reasonCode: MarketRequestReason, httpStatus?: number) {
+    super("Market data is temporarily unavailable.");
+    this.name = "MarketRequestError";
+    this.reasonCode = reasonCode;
+    this.httpStatus = httpStatus;
+  }
+}
+
+function isMarketResult(value: unknown): value is MarketResult {
+  if (!value || typeof value !== "object") return false;
+  const result = value as Partial<MarketResult>;
+  return typeof result.city === "string"
+    && typeof result.district === "string"
+    && typeof result.summary === "string"
+    && typeof result.caveat === "string"
+    && typeof result.disclaimer === "string"
+    && typeof result.data_status === "string"
+    && typeof result.coverage_status === "string"
+    && Array.isArray(result.history);
+}
+
+async function marketInsightRequest(county: string, district?: string, period?: string | null, signal?: AbortSignal): Promise<MarketResult> {
+  try {
+    const response = await fetch(apiUrl("/market-insights/query"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ county, district, period }),
+      signal,
+    });
+    if (!response.ok) {
+      throw new MarketRequestError(
+        response.status === 403 ? "market_request_origin_rejected" : "market_request_http_error",
+        response.status,
+      );
+    }
+    let payload: unknown;
+    try {
+      payload = await response.json();
+    } catch {
+      throw new MarketRequestError("market_response_contract_invalid");
+    }
+    if (!isMarketResult(payload)) throw new MarketRequestError("market_response_contract_invalid");
+    return payload;
+  } catch (error) {
+    if (error instanceof MarketRequestError) throw error;
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new MarketRequestError(signal?.reason === MARKET_REQUEST_TIMEOUT_REASON ? "market_request_timeout" : "market_request_unknown_failure");
+    }
+    if (error instanceof TypeError) {
+      const offline = typeof navigator !== "undefined" && navigator.onLine === false;
+      throw new MarketRequestError(offline ? "market_request_connection_failed" : "market_request_cors_failed");
+    }
+    throw new MarketRequestError("market_request_unknown_failure");
+  }
+}
+
 export type MarketRegion = { city: string; county?: string; district: string; period?: string | null; data_status?: MarketResult["data_status"] };
 export type MarketRegionCatalog = {
   read_model_status: "ready" | "missing" | "stale" | "unavailable";
@@ -330,7 +404,7 @@ export const api = {
   marketRegions: (county?: string) =>
     request<MarketRegionCatalog>(`/market-insights/regions${county ? `?county=${encodeURIComponent(county)}` : ""}`),
   marketInsight: (county: string, district?: string, period?: string | null, signal?: AbortSignal) =>
-    request<MarketResult>("/market-insights/query", { method: "POST", body: JSON.stringify({ county, district, period }), signal }),
+    marketInsightRequest(county, district, period, signal),
   marketMethodology: () => request<Record<string, unknown>>("/market-insights/methodology"),
   marketReleases: () => request<Record<string, unknown>>("/market-insights/releases"),
   marketComparables: (payload: { county: string; district: string; transaction_type?: string; limit?: number }) =>

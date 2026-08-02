@@ -108,6 +108,9 @@ def test_production_direct_query_sql_against_disposable_postgres(monkeypatch) ->
     assert coverage["coverage_status"] == "covered"
     assert summary is not None
     assert history
+    assert len(history) >= 2
+    assert summary["period"] == "2025-02"
+    assert summary["period"] in {row["period"] for row in history}
     assert summary["county"] == "台北市"
     assert summary["transaction_count"] > 0
     assert summary["average_unit_price"] > 0

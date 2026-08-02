@@ -8,6 +8,7 @@ from backend.api_main import DEFAULT_DEV_CORS_ORIGINS, configured_cors_origins, 
 ROOT = Path(__file__).resolve().parents[1]
 RENDER = (ROOT / "render.yaml").read_text(encoding="utf-8")
 API_TS = (ROOT / "frontend_next" / "lib" / "api.ts").read_text(encoding="utf-8")
+API_MAIN = (ROOT / "backend" / "api_main.py").read_text(encoding="utf-8")
 DOCS = (ROOT / "docs" / "production-backend-deployment-v1.md").read_text(encoding="utf-8")
 
 
@@ -48,9 +49,57 @@ def test_cors_defaults_to_localhost_only_when_no_allowlist(monkeypatch) -> None:
 
 
 def test_cors_prefers_production_allowlist_variable(monkeypatch) -> None:
-    monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://frontend.example")
+    monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://frontend.example/")
     monkeypatch.setenv("CORS_ORIGINS", "https://legacy.example")
     assert configured_cors_origins() == ["https://frontend.example"]
+
+
+def test_cors_preflight_and_post_use_explicit_credentials_contract() -> None:
+    from fastapi import FastAPI
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.testclient import TestClient
+
+    assert "allow_credentials=True" in API_MAIN
+    assert '"POST"' in API_MAIN
+    assert '"OPTIONS"' in API_MAIN
+    assert '"Content-Type"' in API_MAIN
+
+    test_app = FastAPI()
+    test_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["https://frontend.example"],
+        allow_credentials=True,
+        allow_methods=["POST"],
+        allow_headers=["Content-Type"],
+    )
+
+    @test_app.post("/market-insights/query")
+    def query() -> dict[str, str]:
+        return {"status": "ok"}
+
+    with TestClient(test_app) as client:
+        preflight = client.options(
+            "/market-insights/query",
+            headers={
+                "Origin": "https://frontend.example",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+        post = client.post(
+            "/market-insights/query",
+            headers={"Origin": "https://frontend.example", "Content-Type": "application/json"},
+            json={},
+        )
+
+    assert preflight.status_code == 200
+    assert preflight.headers["access-control-allow-origin"] == "https://frontend.example"
+    assert preflight.headers["access-control-allow-credentials"] == "true"
+    assert "POST" in preflight.headers["access-control-allow-methods"]
+    assert post.status_code == 200
+    assert post.headers["access-control-allow-origin"] == "https://frontend.example"
+    assert post.headers["access-control-allow-credentials"] == "true"
+    assert post.headers["access-control-allow-origin"] != "*"
 
 
 def test_frontend_api_base_fails_closed_in_production() -> None:

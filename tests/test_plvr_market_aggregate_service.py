@@ -389,6 +389,35 @@ def test_direct_query_sql_has_canonical_city_normalization() -> None:
 
     for sql in sql_constants:
         assert "replace(trim(city), '臺', '台')" in sql
+
+
+def test_direct_query_sql_uses_single_stage_period_regex() -> None:
+    from services.plvr_market_aggregate_service import (
+        DIRECT_COVERAGE_COUNTY_SQL,
+        DIRECT_COVERAGE_DISTRICT_SQL,
+        DIRECT_HISTORY_COUNTY_SQL,
+        DIRECT_HISTORY_DISTRICT_SQL,
+        DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL,
+        DIRECT_SUMMARY_COUNTY_LATEST_SQL,
+        DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL,
+        DIRECT_SUMMARY_DISTRICT_LATEST_SQL,
+    )
+
+    for sql in (
+        DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL,
+        DIRECT_SUMMARY_COUNTY_LATEST_SQL,
+        DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL,
+        DIRECT_SUMMARY_DISTRICT_LATEST_SQL,
+        DIRECT_HISTORY_COUNTY_SQL,
+        DIRECT_HISTORY_DISTRICT_SQL,
+        DIRECT_COVERAGE_COUNTY_SQL,
+        DIRECT_COVERAGE_DISTRICT_SQL,
+    ):
+        assert r"\d{4}" in sql
+        assert r"\d{{4}}" not in sql
+        assert r"\d{{2}}" not in sql
+        assert "??" not in sql
+        assert "\ufffd" not in sql
         assert "'??" not in sql
         assert "\ufffd" not in sql
 

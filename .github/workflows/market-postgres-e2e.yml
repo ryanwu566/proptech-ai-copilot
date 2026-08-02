@@ -41,4 +41,10 @@ jobs:
           MARKET_E2E_POSTGRES: "1"
           MARKET_E2E_POSTGRES_HOST: 127.0.0.1
           MARKET_E2E_POSTGRES_PORT: "5432"
-        run: python -m pytest -q tests/test_market_postgres_e2e.py --basetemp "${RUNNER_TEMP}/market-postgres-e2e"
+          MARKET_DIRECT_QUERY_POSTGRES: "1"
+          MARKET_DIRECT_QUERY_POSTGRES_HOST: 127.0.0.1
+          MARKET_DIRECT_QUERY_POSTGRES_PORT: "5432"
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_market_postgres_e2e.py tests/test_market_direct_query_postgres.py --basetemp "${RUNNER_TEMP}/market-postgres-e2e" --junitxml "${RUNNER_TEMP}/market-postgres-e2e.xml"
+          python -c "import xml.etree.ElementTree as ET; root = ET.parse('${RUNNER_TEMP}/market-postgres-e2e.xml').getroot(); skipped = int(root.attrib.get('skipped', '0')); raise SystemExit('required market PostgreSQL test skipped') if skipped else None"
