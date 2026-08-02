@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from pathlib import Path
 
 from scripts import apply_production_migrations as migration_runner
+
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class _Result:
@@ -122,3 +126,16 @@ def test_failed_migration_rolls_back_ledger_records(monkeypatch) -> None:
     assert result == {"status": "unavailable", "reason": "database_migration_unavailable"}
     assert connection.transaction_rolled_back is True
     assert connection.ledger == {}
+
+
+def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
+    legacy = (ROOT / "database/migrations/003_add_market_region_coverage.sql").read_text(encoding="utf-8")
+    official = (ROOT / "database/migrations/008_add_official_market_pipeline.sql").read_text(encoding="utf-8")
+
+    assert "create table if not exists market_region_coverage (" in legacy
+    assert "valid_market_candidate_count" in legacy
+    assert "create table if not exists official_market_region_coverage (" in official
+    assert "release_id text not null references official_market_releases" in official
+    assert "create table if not exists market_region_coverage (" not in official
+    assert "idx_official_market_region_coverage_region_period" in official
+    assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
