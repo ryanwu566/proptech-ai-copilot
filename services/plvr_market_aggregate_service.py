@@ -638,16 +638,28 @@ def _safe_region_labels(value: Any) -> list[str]:
 def _status_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
     if not raw:
         return _missing_status()
-    data_status = _data_status(raw.get("data_status"))
-    coverage_status = _coverage_status(raw.get("coverage_status"))
     refresh_status = _optional_text(raw.get("refresh_status"))
     latest_period = _optional_text(raw.get("latest_period"))
     earliest_period = _optional_text(raw.get("earliest_period"))
     aggregate_count = _int_value(raw.get("aggregate_region_count"))
+    raw_data_status = raw.get("data_status")
+    if raw_data_status is None:
+        data_status = (
+            "available"
+            if refresh_status == "ready" and aggregate_count > 0 and latest_period
+            else "unavailable"
+        )
+    else:
+        data_status = _data_status(raw_data_status)
+    coverage_status = _coverage_status(raw.get("coverage_status"))
     built_at = _date_time_text(raw.get("built_at"))
     read_model_status = "ready"
-    if refresh_status != "ready" or data_status != "available" or aggregate_count <= 0 or not latest_period:
-        read_model_status = "missing" if aggregate_count <= 0 else "unavailable"
+    if refresh_status != "ready":
+        read_model_status = "unavailable"
+    elif aggregate_count <= 0:
+        read_model_status = "missing"
+    elif not latest_period or data_status != "available":
+        read_model_status = "unavailable"
     return {
         "read_model_status": read_model_status,
         "data_status": data_status,
@@ -1076,7 +1088,15 @@ create table if not exists market_read_model_metadata (
 READ_MODEL_STATUS_SQL = """
 select read_model_version, refresh_status, coverage_status, source_name, source_updated_at,
        earliest_period, latest_period, available_county_count, available_district_count,
-       aggregate_region_count, built_at, caveat
+       aggregate_region_count,
+       case
+         when refresh_status = 'ready'
+          and aggregate_region_count > 0
+          and latest_period is not null
+         then 'available'
+         else 'unavailable'
+       end as data_status,
+       built_at, caveat
 from market_read_model_metadata
 where read_model_version = 'v1'
 limit 1

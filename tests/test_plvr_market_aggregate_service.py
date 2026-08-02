@@ -56,11 +56,17 @@ class FakeReadModelRepository:
         raise_error: bool = False,
         invalid_summary: bool = False,
         coverage_status: str = "covered",
+        refresh_status: str = "ready",
+        aggregate_count: int = 7,
+        latest_period: str | None = "2025-07",
     ) -> None:
         self.empty = empty
         self.raise_error = raise_error
         self.invalid_summary = invalid_summary
         self.coverage_status = coverage_status
+        self.refresh_status = refresh_status
+        self.aggregate_count = aggregate_count
+        self.latest_period = latest_period
         self.calls: list[str] = []
 
     def status(self) -> dict[str, Any]:
@@ -70,18 +76,17 @@ class FakeReadModelRepository:
         if self.empty:
             return {}
         return {
-            "refresh_status": "ready",
+            "refresh_status": self.refresh_status,
             "coverage_status": "partial",
             "source_name": "Official PLVR OpenData aggregate",
             "source_updated_at": "2025-03-05",
             "earliest_period": "2025-01",
-            "latest_period": "2025-07",
+            "latest_period": self.latest_period,
             "available_county_count": 1,
             "available_district_count": 2,
-            "aggregate_region_count": 7,
+            "aggregate_region_count": self.aggregate_count,
             "built_at": "2025-03-06T00:00:00+00:00",
             "caveat": "market caveat",
-            "data_status": "available",
         }
 
     def catalog(self) -> list[dict[str, Any]]:
@@ -379,10 +384,45 @@ def test_status_and_catalog_return_safe_read_model_metadata() -> None:
     catalog = get_market_catalog(repo)
 
     assert status["read_model_status"] == "ready"
+    assert status["data_status"] == "available"
+    assert status["coverage_status"] == "partial"
     assert catalog["available_counties"] == ["臺北市"]
     assert catalog["available_county_count"] == 1
     assert "raw_payload" not in catalog
     assert "database_url" not in catalog
+
+
+def test_ready_metadata_derives_available_without_physical_data_status() -> None:
+    raw_status = FakeReadModelRepository().status()
+
+    assert "data_status" not in raw_status
+    status = get_market_status(FakeReadModelRepository())
+
+    assert status["read_model_status"] == "ready"
+    assert status["data_status"] == "available"
+
+
+def test_zero_aggregate_metadata_is_missing_and_unavailable() -> None:
+    status = get_market_status(FakeReadModelRepository(aggregate_count=0))
+
+    assert status["read_model_status"] == "missing"
+    assert status["data_status"] == "unavailable"
+    assert get_market_catalog(FakeReadModelRepository(aggregate_count=0))["available_counties"] == []
+
+
+def test_non_ready_refresh_metadata_is_unavailable() -> None:
+    status = get_market_status(FakeReadModelRepository(refresh_status="running"))
+
+    assert status["read_model_status"] == "unavailable"
+    assert status["data_status"] == "unavailable"
+
+
+def test_future_period_is_preserved_without_claiming_currentness() -> None:
+    status = get_market_status(FakeReadModelRepository(latest_period="2026-10"))
+
+    assert status["read_model_status"] == "ready"
+    assert status["data_status"] == "available"
+    assert status["latest_period"] == "2026-10"
 
 
 def test_regions_filter_by_county() -> None:
