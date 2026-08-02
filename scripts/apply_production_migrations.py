@@ -35,6 +35,11 @@ def _checksum(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def _schema_version(path: Path) -> str:
+    match = re.match(r"^(\d+)_", path.name)
+    return f"schema-{match.group(1)}" if match else "schema-unknown"
+
+
 def _verify(connection) -> dict[str, str]:
     tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
     indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
@@ -83,7 +88,7 @@ def _apply_migrations(connection, *, release_version: str) -> None:
             connection.execute(statement)
         connection.execute(
             "INSERT INTO schema_migration_ledger (migration_id, schema_version, release_version, checksum) VALUES (%s, %s, %s, %s)",
-            (path.stem, "schema-008", release_version, checksum),
+            (path.stem, _schema_version(path), release_version, checksum),
         )
 
 

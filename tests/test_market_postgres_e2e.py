@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 from datetime import date
+from pathlib import Path
 
 import pytest
 
@@ -26,11 +27,88 @@ pytestmark = pytest.mark.skipif(
     reason="disposable PostgreSQL service is not enabled",
 )
 
+ROOT = Path(__file__).resolve().parents[1]
+
 
 def _database_url() -> str:
     host = os.getenv("MARKET_E2E_POSTGRES_HOST", "127.0.0.1")
     port = os.getenv("MARKET_E2E_POSTGRES_PORT", "5432")
     return f"postgresql://postgres@{host}:{port}/market_e2e"
+
+
+def _apply_migration_file(cursor, filename: str) -> None:
+    cursor.execute((ROOT / "database" / "migrations" / filename).read_text(encoding="utf-8"))
+
+
+def _table_columns(cursor, table_name: str) -> set[str]:
+    cursor.execute(
+        """
+        select column_name
+        from information_schema.columns
+        where table_schema = 'public' and table_name = %s
+        """,
+        (table_name,),
+    )
+    return {row[0] for row in cursor.fetchall()}
+
+
+class _RollbackSchemaContract(Exception):
+    pass
+
+
+def test_market_coverage_schema_contract_is_non_destructive_and_idempotent() -> None:
+    import psycopg
+
+    database_url = _database_url()
+    try:
+        connection = psycopg.connect(database_url, prepare_threshold=None)
+    except psycopg.Error as exc:
+        pytest.skip(f"disposable PostgreSQL unavailable: {type(exc).__name__}")
+
+    with connection:
+        try:
+            with connection.transaction():
+                with connection.cursor() as cursor:
+                    cursor.execute("drop table if exists official_market_region_coverage")
+                    cursor.execute("drop table if exists market_region_coverage")
+
+                    _apply_migration_file(cursor, "003_add_market_region_coverage.sql")
+                    _apply_migration_file(cursor, "008_add_official_market_pipeline.sql")
+                    _apply_migration_file(cursor, "009_separate_official_market_region_coverage.sql")
+
+                    legacy_columns = _table_columns(cursor, "market_region_coverage")
+                    official_columns = _table_columns(cursor, "official_market_region_coverage")
+                    assert "valid_market_candidate_count" in legacy_columns
+                    assert "release_id" not in legacy_columns
+                    assert {"release_id", "latest_period", "record_count"}.issubset(official_columns)
+                    assert "valid_market_candidate_count" not in official_columns
+
+                    cursor.execute("drop table official_market_region_coverage")
+                    cursor.execute("drop table market_region_coverage")
+                    _apply_migration_file(cursor, "008_add_official_market_pipeline.sql")
+                    cursor.execute(
+                        "insert into official_market_releases (release_id, source_id, status) values (%s, %s, %s)",
+                        ("synthetic-coverage-release", "synthetic-coverage-source", "published"),
+                    )
+                    cursor.execute(
+                        """
+                        insert into market_region_coverage (
+                            release_id, county, district, coverage_status, latest_period,
+                            record_count, source_updated_at
+                        ) values (%s, %s, %s, %s, %s, %s, %s)
+                        """,
+                        ("synthetic-coverage-release", "Synthetic County", "Synthetic District", "covered", "2025-02", 3, "2025-03-01"),
+                    )
+                    _apply_migration_file(cursor, "009_separate_official_market_region_coverage.sql")
+                    cursor.execute("select record_count from official_market_region_coverage")
+                    assert cursor.fetchone()[0] == 3
+
+                    _apply_migration_file(cursor, "009_separate_official_market_region_coverage.sql")
+                    cursor.execute("select count(*) from official_market_region_coverage")
+                    assert cursor.fetchone()[0] == 1
+                raise _RollbackSchemaContract
+        except _RollbackSchemaContract:
+            pass
 
 
 def _transaction(index: int, price: float, release_id: str) -> NormalizedTransaction:
