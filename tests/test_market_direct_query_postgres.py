@@ -30,6 +30,13 @@ def _apply_sql_file(cursor, path: Path) -> None:
     cursor.execute(path.read_text(encoding="utf-8"))
 
 
+def _execute_fixture_insert(cursor, sql: str, values: tuple[object, ...]) -> None:
+    expected_arity = sql.count("%s")
+    if len(values) != expected_arity:
+        raise AssertionError(f"synthetic transaction fixture arity mismatch: expected {expected_arity}")
+    cursor.execute(sql, values)
+
+
 def test_production_direct_query_sql_against_disposable_postgres(monkeypatch) -> None:
     import psycopg
 
@@ -43,7 +50,8 @@ def test_production_direct_query_sql_against_disposable_postgres(monkeypatch) ->
             _apply_sql_file(cursor, root / "database" / "migrations" / "003_add_market_region_coverage.sql")
             cursor.execute("delete from market_region_coverage")
             cursor.execute("delete from real_price_transactions")
-            cursor.execute(
+            _execute_fixture_insert(
+                cursor,
                 """
                 insert into real_price_transactions (
                     transaction_period, city, district, road, address_text, building_type,
@@ -57,13 +65,14 @@ def test_production_direct_query_sql_against_disposable_postgres(monkeypatch) ->
                     "synthetic-direct-query-1", datetime(2025, 2, 1, tzinfo=timezone.utc),
                 ),
             )
-            cursor.execute(
+            _execute_fixture_insert(
+                cursor,
                 """
                 insert into real_price_transactions (
                     transaction_period, city, district, road, address_text, building_type,
                     area_ping, building_age_years, floor, total_floor, unit_price_per_ping,
                     total_price, lat, lng, source, raw_note, dedupe_key, imported_at
-                ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ) values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     "2025-02", COUNTY, DISTRICT, "合成道路", "", "合成建物",
