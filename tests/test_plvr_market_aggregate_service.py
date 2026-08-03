@@ -20,6 +20,7 @@ from services.plvr_market_aggregate_service import (
     MarketReadModelRefreshFailure,
     MarketCoverageReconcileFailure,
     MARKET_COVERAGE_METADATA_SCHEMA_SQL,
+    MARKET_COVERAGE_METADATA_DISTRICT_SQL,
     MARKET_COVERAGE_METADATA_UPSERT_SQL,
     PostgresMarketReadModelRepository,
     READ_MODEL_CATALOG_SQL,
@@ -228,9 +229,10 @@ class PhaseRefreshRepository(PostgresMarketReadModelRepository):
 
 
 class CoverageSourceCursor:
-    def __init__(self, *, failure: str | None = None, valid_count: int = 1) -> None:
+    def __init__(self, *, failure: str | None = None, valid_count: int = 1, metadata_row: dict[str, Any] | None = None) -> None:
         self.failure = failure
         self.valid_count = valid_count
+        self.metadata_row = metadata_row
         self.row: dict[str, Any] | None = None
         self.source_count = 0
         self.source_params: list[list[Any]] = []
@@ -244,6 +246,9 @@ class CoverageSourceCursor:
 
     def execute(self, sql: str, params: list[Any] | None = None) -> None:
         if sql == MARKET_COVERAGE_METADATA_SCHEMA_SQL:
+            return
+        if sql == MARKET_COVERAGE_METADATA_DISTRICT_SQL and self.metadata_row is not None:
+            self.row = self.metadata_row
             return
         if sql == DIRECT_COVERAGE_DISTRICT_SQL:
             if self.failure == "source":
@@ -283,9 +288,9 @@ class CoverageSourceConnection:
 
 
 class CoverageSourceRepository(PostgresMarketReadModelRepository):
-    def __init__(self, *, failure: str | None = None, valid_count: int = 1) -> None:
+    def __init__(self, *, failure: str | None = None, valid_count: int = 1, metadata_row: dict[str, Any] | None = None) -> None:
         super().__init__("unused")
-        cursor = CoverageSourceCursor(failure=failure, valid_count=valid_count)
+        cursor = CoverageSourceCursor(failure=failure, valid_count=valid_count, metadata_row=metadata_row)
         object.__setattr__(self, "cursor_instance", cursor)
         object.__setattr__(self, "connection", CoverageSourceConnection(cursor))
 
@@ -914,6 +919,26 @@ def test_postgres_coverage_reconcile_source_failure_is_degraded_without_upsert()
     assert repo.cursor_instance.upsert_params == []
     assert "reason_code" not in result
     assert "source detail" not in str(result)
+
+
+def test_direct_coverage_rechecks_source_when_metadata_is_stale_or_unknown() -> None:
+    repo = CoverageSourceRepository(
+        valid_count=2,
+        metadata_row={
+            "coverage_status": "coverage_unknown",
+            "valid_market_candidate_count": 0,
+            "source_updated_at": "2025-03-05",
+        },
+    )
+
+    result = repo.coverage("臺北市", "信義區")
+
+    assert result == {
+        "coverage_status": "covered",
+        "valid_market_candidate_count": 2,
+        "source_updated_at": "2025-03-05",
+    }
+    assert repo.cursor_instance.source_count == 1
 
 
 def test_postgres_coverage_reconcile_upsert_failure_is_degraded_without_raw_error() -> None:

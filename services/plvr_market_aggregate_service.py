@@ -187,19 +187,30 @@ class PostgresMarketReadModelRepository:
                     cursor.execute(MARKET_COVERAGE_METADATA_COUNTY_SQL, [normalized_county])
                 metadata_row = dict(cursor.fetchone() or {})
                 if metadata_row:
-                    return {
-                        "coverage_status": _direct_coverage_status(metadata_row.get("coverage_status")),
+                    metadata_status = _direct_coverage_status(metadata_row.get("coverage_status"))
+                    metadata_result = {
+                        "coverage_status": metadata_status,
                         "valid_market_candidate_count": _int_value(metadata_row.get("valid_market_candidate_count")),
                         "source_updated_at": _date_text(metadata_row.get("source_updated_at")),
                     }
+                    if metadata_status == "covered":
+                        return metadata_result
                 if clean_district:
                     cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [normalized_county, clean_district])
                 else:
                     cursor.execute(DIRECT_COVERAGE_COUNTY_SQL, [normalized_county])
                 row = dict(cursor.fetchone() or {})
                 valid_count = _int_value(row.get("valid_market_candidate_count"))
+                if valid_count > 0:
+                    return {
+                        "coverage_status": "covered",
+                        "valid_market_candidate_count": valid_count,
+                        "source_updated_at": _date_text(row.get("source_updated_at")),
+                    }
+                if metadata_row:
+                    return metadata_result
                 return {
-                    "coverage_status": "covered" if valid_count > 0 else "coverage_unknown",
+                    "coverage_status": "coverage_unknown",
                     "valid_market_candidate_count": valid_count,
                     "source_updated_at": _date_text(row.get("source_updated_at")),
                 }
