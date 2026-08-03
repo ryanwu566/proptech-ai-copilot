@@ -27,7 +27,8 @@ def test_market_insight_queries_only_on_button_click_without_catalog_scan() -> N
     assert "api.marketCatalog()" not in component
     assert "api.marketRegions" not in component
     assert "api.marketStatus" not in component
-    assert "onClick={query}" in component
+    assert "onSubmit={submitQuery}" in component
+    assert 'type="submit"' in component
     assert "useEffect" not in component
     assert "api.marketInsight(first.city" not in component
     assert "api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal)" in component
@@ -49,7 +50,7 @@ def test_market_insight_has_canonical_county_and_dependent_district_selectors() 
     assert 'copy("common.selectDistrict")' in component
     assert "<select value={canonicalCounty}" in component
     assert "<select value={canonicalDistrict}" in component
-    assert "disabled={!canonicalCounty}" in component
+    assert "!canonicalCounty || !canonicalDistrict" in component
     assert "setDistrict(\"\")" in component
     assert "marketQuerySeq.current += 1" in component
     assert 'setError(`${copy("common.selectCounty")}。`)' in component
