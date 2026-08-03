@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import math
 import os
+import json
+import logging
+import uuid
 from typing import Any
 
 from fastapi import APIRouter, Header, Response, status
 from pydantic import BaseModel, ConfigDict, field_validator
 
 router = APIRouter(tags=["market-insight"])
+logger = logging.getLogger("proptech.market")
 MARKET_READ_MODEL_REFRESH_TOKEN_ENV = "MARKET_READ_MODEL_REFRESH_TOKEN"
 MARKET_REFRESH_503_FIELDS = ("status", "data_status", "coverage_status", "built_at", "message", "reason_code")
 MARKET_NO_DATA_SUMMARY = "目前此區域尚無足夠的官方 PLVR 市場資料。"
@@ -25,6 +29,7 @@ MARKET_QUERY_SAFE_FIELDS = (
     "aggregation_version", "source_release_id", "freshness_status",
     "period_change", "year_over_year_change", "price_distribution", "building_type_distribution",
     "age_band_distribution", "inclusion_count", "exclusion_count", "methodology", "latest_imported_at",
+    "reason_code", "support_reference",
 )
 MARKET_REFRESH_UNAVAILABLE_MESSAGE = "市場讀取模型暫時無法刷新，請稍後再試。"
 MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE = "市場讀取模型刷新設定尚未完成。"
@@ -148,29 +153,87 @@ def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
 
     from services.market_insight_service import get_market_summary
 
+    support_reference = _new_market_support_reference()
     county = request.county or request.city or ""
     if not county.strip():
-        return _safe_market_unavailable(county, request.district, "coverage_unknown")
+        return _safe_market_unavailable(
+            county,
+            request.district,
+            "coverage_unknown",
+            "market_region_invalid",
+            support_reference,
+        )
     try:
         result = get_market_summary(county, request.district, request.period)
-    except Exception:
-        return _safe_market_unavailable(county, request.district, "coverage_unknown")
-    return _safe_market_query_result(result, county, request.district)
+    except Exception as exc:
+        logger.exception(
+            "market_query_unavailable %s",
+            json.dumps(
+                {
+                    "event": "query_unavailable",
+                    "support_reference": support_reference,
+                    "operation": "route",
+                    "reason_code": "market_unknown_safe_failure",
+                    "exception_class": type(exc).__name__[:80] or "Exception",
+                    "normalized_county": county.strip(),
+                    "normalized_district": request.district.strip(),
+                },
+                ensure_ascii=True,
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
+        )
+        return _safe_market_unavailable(
+            county,
+            request.district,
+            "coverage_unknown",
+            "market_unknown_safe_failure",
+            support_reference,
+        )
+    return _safe_market_query_result(result, county, request.district, support_reference)
 
 
-def _safe_market_query_result(raw: Any, county: str, district: str) -> dict[str, Any]:
+def _safe_market_query_result(
+    raw: Any,
+    county: str,
+    district: str,
+    fallback_support_reference: str | None = None,
+) -> dict[str, Any]:
     """Allowlist and validate the public Market Insight result contract."""
 
+    from services.plvr_market_aggregate_service import safe_market_query_reason_code
+
+    support_reference = _safe_market_support_reference(
+        raw.get("support_reference") if isinstance(raw, dict) else None,
+        fallback_support_reference,
+    )
     if not isinstance(raw, dict):
-        return _safe_market_unavailable(county, district, "coverage_unknown")
+        return _safe_market_unavailable(
+            county,
+            district,
+            "coverage_unknown",
+            "market_result_contract_invalid",
+            support_reference,
+        )
 
     coverage_status = _safe_market_coverage(raw.get("coverage_status"))
     data_status = raw.get("data_status")
+    raw_reason_code = raw.get("reason_code")
     if coverage_status == "covered":
         if data_status == "available" and _market_result_has_valid_metrics(raw):
-            return {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
-        return _safe_market_no_data(raw, county, district)
-    return _safe_market_unavailable(county, district, coverage_status)
+            result = {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+            result["support_reference"] = support_reference
+            if raw_reason_code:
+                result["reason_code"] = safe_market_query_reason_code(raw_reason_code)
+            return result
+        reason_code = (
+            safe_market_query_reason_code(raw_reason_code)
+            if raw_reason_code
+            else ("market_summary_missing" if data_status == "no_data" else "market_result_contract_invalid")
+        )
+        return _safe_market_no_data(raw, county, district, reason_code, support_reference)
+    reason_code = safe_market_query_reason_code(raw_reason_code) if raw_reason_code else "market_coverage_not_confirmed"
+    return _safe_market_unavailable(county, district, coverage_status, reason_code, support_reference)
 
 
 def _market_result_has_valid_metrics(result: dict[str, Any]) -> bool:
@@ -206,7 +269,15 @@ def _safe_market_coverage(value: Any) -> str:
     return "coverage_unknown"
 
 
-def _safe_market_no_data(raw: dict[str, Any], county: str, district: str) -> dict[str, Any]:
+def _safe_market_no_data(
+    raw: dict[str, Any],
+    county: str,
+    district: str,
+    reason_code: str = "market_summary_missing",
+    support_reference: str | None = None,
+) -> dict[str, Any]:
+    from services.plvr_market_aggregate_service import safe_market_query_reason_code
+
     result = {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
     result.update(
         {
@@ -222,12 +293,21 @@ def _safe_market_no_data(raw: dict[str, Any], county: str, district: str) -> dic
             "data_status": "no_data",
             "summary": MARKET_NO_DATA_SUMMARY,
             "history": [],
+            "reason_code": safe_market_query_reason_code(reason_code),
+            "support_reference": _safe_market_support_reference(raw.get("support_reference"), support_reference),
         }
     )
     return result
 
 
-def _safe_market_unavailable(county: str, district: str, coverage_status: str) -> dict[str, Any]:
+def _safe_market_unavailable(
+    county: str,
+    district: str,
+    coverage_status: str,
+    reason_code: str = "market_unknown_safe_failure",
+    support_reference: str | None = None,
+) -> dict[str, Any]:
+    from services.plvr_market_aggregate_service import safe_market_query_reason_code
     from services.market_data_foundation import market_unavailable_response
 
     result = market_unavailable_response(city=county, district=district)
@@ -242,9 +322,23 @@ def _safe_market_unavailable(county: str, district: str, coverage_status: str) -
             "data_status": "unavailable",
             "summary": MARKET_UNAVAILABLE_SUMMARY,
             "history": [],
+            "reason_code": safe_market_query_reason_code(reason_code),
+            "support_reference": _safe_market_support_reference(None, support_reference),
         }
     )
     return {key: result.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+
+
+def _new_market_support_reference() -> str:
+    return uuid.uuid4().hex[:16]
+
+
+def _safe_market_support_reference(value: Any, fallback: str | None = None) -> str:
+    for candidate in (value, fallback):
+        text = str(candidate or "").strip().lower()
+        if len(text) == 16 and all(char in "0123456789abcdef" for char in text):
+            return text
+    return _new_market_support_reference()
 
 
 @router.post("/market-insights/refresh")

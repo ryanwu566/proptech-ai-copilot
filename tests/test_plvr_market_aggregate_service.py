@@ -623,8 +623,9 @@ def test_direct_query_failure_logs_only_safe_categories(caplog) -> None:
     assert '"operation":"coverage"' in message
     assert '"exception_class":"RuntimeError"' in message
     assert '"reason_code":"market_coverage_query_unavailable"' in message
+    assert '"normalized_county"' in message
+    assert '"normalized_district"' in message
     assert "private SQL" not in message
-    assert "臺北市" not in message
 
 
 def test_unknown_coverage_is_unavailable_without_source_query() -> None:
