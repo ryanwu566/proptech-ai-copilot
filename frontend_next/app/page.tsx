@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { HelpCallout } from "@/components/help-callout";
 import { HeroIntro } from "@/components/hero-intro";
@@ -530,6 +530,11 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
       setResult(undefined);
       return;
     }
+    if (!canonicalDistrict) {
+      setError(`${copy("common.selectDistrict")}。`);
+      setResult(undefined);
+      return;
+    }
     const queryId = marketQuerySeq.current + 1;
     marketQuerySeq.current = queryId;
     setQuerying(true);
@@ -573,6 +578,11 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     }
   }
 
+  async function submitQuery(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await query();
+  }
+
   function updateCounty(value: string) {
     marketRequestController.current?.abort("market_request_cancelled");
     marketRequestController.current = undefined;
@@ -614,7 +624,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     {!embedded && <HelpCallout>{copy("valuation.help")}</HelpCallout>}
     {error && <div data-market-failure-reason={marketFailureReason ?? undefined}><ErrorState message={error} /></div>}
     <SectionCard title={copy("action.search")} description={copy("map.help")}>
-      <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+      <form onSubmit={submitQuery} aria-busy={querying} data-testid="market-insight-search-form" className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
         <label className="text-xs text-slate-500">{copy("common.selectCounty")}
           <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
             <option value="">{copy("common.selectCounty")}</option>
@@ -627,8 +637,8 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
             {districtOptions.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}
           </select>
         </label>
-        <div className="flex items-end"><button type="button" onClick={query} disabled={querying || !canonicalCounty} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? copy("action.loading") : copy("action.search")}</button></div>
-      </div>
+        <div className="flex items-end"><button type="submit" data-testid="market-insight-search-button" disabled={querying || !canonicalCounty || !canonicalDistrict} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? copy("action.loading") : copy("action.search")}</button></div>
+      </form>
       {querying && <div className="mt-3"><LoadingState label={copy("action.loading")} /></div>}
       <p className="mt-3 text-xs leading-5 text-slate-500">{copy("common.dataLimit")}</p>
     </SectionCard>
