@@ -8,10 +8,12 @@ or prepared read model tables.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 import math
 import os
 import json
 import logging
+import uuid
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from typing import Any, Protocol
@@ -63,6 +65,19 @@ COVERAGE_RECONCILE_REASON_CODES = {
     "coverage_reconcile_unknown_safe_failure",
 }
 
+MARKET_QUERY_REASON_CODES = {
+    "market_runtime_not_configured",
+    "market_region_invalid",
+    "market_coverage_query_unavailable",
+    "market_coverage_not_confirmed",
+    "market_summary_query_unavailable",
+    "market_history_query_unavailable",
+    "market_summary_missing",
+    "market_history_invalid",
+    "market_result_contract_invalid",
+    "market_unknown_safe_failure",
+}
+
 
 class MarketReadModelRefreshFailure(RuntimeError):
     """Internal refresh failure with a safe public reason code."""
@@ -88,6 +103,25 @@ class MarketCoverageReconcileFailure(RuntimeError):
 
     def __init__(self, reason_code: str) -> None:
         self.reason_code = safe_market_coverage_reconcile_reason_code(reason_code)
+        super().__init__(self.reason_code)
+
+
+class MarketQueryFailure(RuntimeError):
+    """Internal direct-query failure with a safe reason and phase."""
+
+    def __init__(self, reason_code: str, phase: str) -> None:
+        self.reason_code = safe_market_query_reason_code(reason_code)
+        self.phase = phase if phase in {
+            "connection",
+            "cursor",
+            "transaction_read_only",
+            "statement_timeout",
+            "coverage_sql",
+            "summary_sql",
+            "history_sql",
+            "row_conversion",
+            "result_contract",
+        } else "query"
         super().__init__(self.reason_code)
 
 
@@ -145,12 +179,11 @@ class PostgresMarketReadModelRepository:
                 return [dict(row) for row in cursor.fetchall()]
 
     def summary(self, county: str, district: str, period: str | None = None) -> dict[str, Any] | None:
-        with self._connect() as connection:
-            with connection.cursor() as cursor:
-                _set_read_only(cursor)
-                normalized_county = _normalize_county(county)
-                clean_district = district.strip()
-                clean_period = (period or "").strip()
+        with _market_query_cursor(self, "market_summary_query_unavailable") as cursor:
+            normalized_county = _normalize_county(county)
+            clean_district = district.strip()
+            clean_period = (period or "").strip()
+            try:
                 if clean_district and clean_period:
                     cursor.execute(DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL, [normalized_county, clean_district, clean_period])
                 elif clean_district:
@@ -159,61 +192,78 @@ class PostgresMarketReadModelRepository:
                     cursor.execute(DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL, [normalized_county, clean_period])
                 else:
                     cursor.execute(DIRECT_SUMMARY_COUNTY_LATEST_SQL, [normalized_county])
+            except Exception as exc:
+                raise MarketQueryFailure("market_summary_query_unavailable", "summary_sql") from exc
+            try:
                 row = cursor.fetchone()
                 return dict(row) if row else None
+            except Exception as exc:
+                raise MarketQueryFailure("market_summary_query_unavailable", "row_conversion") from exc
 
     def history(self, county: str, district: str, limit: int = 6) -> list[dict[str, Any]]:
-        with self._connect() as connection:
-            with connection.cursor() as cursor:
-                _set_read_only(cursor)
-                normalized_county = _normalize_county(county)
-                clean_district = district.strip()
-                clean_limit = max(1, min(int(limit), 6))
+        with _market_query_cursor(self, "market_history_query_unavailable") as cursor:
+            normalized_county = _normalize_county(county)
+            clean_district = district.strip()
+            clean_limit = max(1, min(int(limit), 6))
+            try:
                 if clean_district:
                     cursor.execute(DIRECT_HISTORY_DISTRICT_SQL, [normalized_county, clean_district, clean_limit])
                 else:
                     cursor.execute(DIRECT_HISTORY_COUNTY_SQL, [normalized_county, clean_limit])
+            except Exception as exc:
+                raise MarketQueryFailure("market_history_query_unavailable", "history_sql") from exc
+            try:
                 return [dict(row) for row in cursor.fetchall()]
+            except Exception as exc:
+                raise MarketQueryFailure("market_history_query_unavailable", "row_conversion") from exc
 
     def coverage(self, county: str, district: str) -> dict[str, Any]:
-        with self._connect() as connection:
-            with connection.cursor() as cursor:
-                _set_read_only(cursor)
-                normalized_county = _normalize_county(county)
-                clean_district = district.strip()
+        with _market_query_cursor(self, "market_coverage_query_unavailable") as cursor:
+            normalized_county = _normalize_county(county)
+            clean_district = district.strip()
+            try:
                 if clean_district:
                     cursor.execute(MARKET_COVERAGE_METADATA_DISTRICT_SQL, [normalized_county, clean_district])
                 else:
                     cursor.execute(MARKET_COVERAGE_METADATA_COUNTY_SQL, [normalized_county])
                 metadata_row = dict(cursor.fetchone() or {})
-                if metadata_row:
-                    metadata_status = _direct_coverage_status(metadata_row.get("coverage_status"))
-                    metadata_result = {
-                        "coverage_status": metadata_status,
-                        "valid_market_candidate_count": _int_value(metadata_row.get("valid_market_candidate_count")),
-                        "source_updated_at": _date_text(metadata_row.get("source_updated_at")),
-                    }
-                    if metadata_status == "covered":
-                        return metadata_result
+            except Exception as exc:
+                raise MarketQueryFailure("market_coverage_query_unavailable", "coverage_sql") from exc
+            if metadata_row:
+                metadata_status = _direct_coverage_status(metadata_row.get("coverage_status"))
+                metadata_result = {
+                    "coverage_status": metadata_status,
+                    "valid_market_candidate_count": _int_value(metadata_row.get("valid_market_candidate_count")),
+                    "source_updated_at": _date_text(metadata_row.get("source_updated_at")),
+                }
+                if metadata_status == "covered":
+                    return metadata_result
+            try:
                 if clean_district:
                     cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [normalized_county, clean_district])
                 else:
                     cursor.execute(DIRECT_COVERAGE_COUNTY_SQL, [normalized_county])
                 row = dict(cursor.fetchone() or {})
+            except Exception as exc:
+                raise MarketQueryFailure("market_coverage_query_unavailable", "coverage_sql") from exc
+            try:
                 valid_count = _int_value(row.get("valid_market_candidate_count"))
-                if valid_count > 0:
-                    return {
-                        "coverage_status": "covered",
-                        "valid_market_candidate_count": valid_count,
-                        "source_updated_at": _date_text(row.get("source_updated_at")),
-                    }
-                if metadata_row:
-                    return metadata_result
+                source_updated_at = _date_text(row.get("source_updated_at"))
+            except Exception as exc:
+                raise MarketQueryFailure("market_coverage_query_unavailable", "row_conversion") from exc
+            if valid_count > 0:
                 return {
-                    "coverage_status": "coverage_unknown",
+                    "coverage_status": "covered",
                     "valid_market_candidate_count": valid_count,
-                    "source_updated_at": _date_text(row.get("source_updated_at")),
+                    "source_updated_at": source_updated_at,
                 }
+            if metadata_row:
+                return metadata_result
+            return {
+                "coverage_status": "coverage_unknown",
+                "valid_market_candidate_count": valid_count,
+                "source_updated_at": source_updated_at,
+            }
 
     def refresh(self) -> dict[str, Any]:
         built_at = datetime.now(timezone.utc)
@@ -353,6 +403,36 @@ class PostgresMarketReadModelRepository:
         )
 
 
+@contextmanager
+def _market_query_cursor(repository: PostgresMarketReadModelRepository, reason_code: str):
+    """Open a read-only query cursor while preserving the failing phase."""
+
+    try:
+        connection = repository._connect()
+    except Exception as exc:
+        raise MarketQueryFailure(reason_code, "connection") from exc
+    try:
+        with connection:
+            try:
+                cursor = connection.cursor()
+            except Exception as exc:
+                raise MarketQueryFailure(reason_code, "cursor") from exc
+            with cursor:
+                try:
+                    cursor.execute("set transaction read only")
+                except Exception as exc:
+                    raise MarketQueryFailure(reason_code, "transaction_read_only") from exc
+                try:
+                    cursor.execute("set local statement_timeout = '15s'")
+                except Exception as exc:
+                    raise MarketQueryFailure(reason_code, "statement_timeout") from exc
+                yield cursor
+    except MarketQueryFailure:
+        raise
+    except Exception as exc:
+        raise MarketQueryFailure(reason_code, "query") from exc
+
+
 def get_market_status(repository: MarketReadModelRepository | None = None) -> dict[str, Any]:
     """Return safe Market Insight status metadata from the read model."""
 
@@ -414,34 +494,272 @@ def get_market_summary(
 ) -> dict[str, Any]:
     """Return one direct county/district aggregate and recent real history."""
 
+    support_reference = _new_support_reference()
     repo = repository or _repository_from_env()
     normalized = normalize_market_region(county, district)
     county = normalized.county
     district = normalized.district
-    if repo is None or not normalized.valid:
-        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
+    _log_market_query_event(
+        "query_started",
+        support_reference=support_reference,
+        operation="query",
+        county=county,
+        district=district,
+    )
+    if repo is None:
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            "market_runtime_not_configured",
+        )
+    if not normalized.valid:
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            "market_region_invalid",
+        )
     try:
+        _log_market_query_event(
+            "coverage_started",
+            support_reference=support_reference,
+            operation="coverage",
+            county=county,
+            district=district,
+        )
         coverage = _coverage_for_region(repo, county, district)
+        _log_market_query_event(
+            "coverage_resolved",
+            support_reference=support_reference,
+            operation="coverage",
+            county=county,
+            district=district,
+            reason_code=None,
+            coverage_status=coverage.get("coverage_status"),
+        )
+    except MarketQueryFailure as exc:
+        _log_repository_failure(
+            "coverage",
+            exc,
+            exc.reason_code,
+            support_reference,
+            county=county,
+            district=district,
+            phase=exc.phase,
+        )
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            exc.reason_code,
+        )
     except Exception as exc:
-        _log_repository_failure("coverage", exc, "market_coverage_query_unavailable")
-        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
+        _log_repository_failure(
+            "coverage",
+            exc,
+            "market_coverage_query_unavailable",
+            support_reference,
+            county=county,
+            district=district,
+        )
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            "market_coverage_query_unavailable",
+        )
     if coverage["coverage_status"] != "covered":
-        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status=coverage["coverage_status"], source_updated_at=coverage.get("source_updated_at")))
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(
+                data_status="unavailable",
+                coverage_status=coverage["coverage_status"],
+                source_updated_at=coverage.get("source_updated_at"),
+            ),
+            support_reference,
+            "market_coverage_not_confirmed",
+        )
     try:
+        _log_market_query_event(
+            "summary_started",
+            support_reference=support_reference,
+            operation="summary",
+            county=county,
+            district=district,
+        )
         row = repo.summary(county, district, period)
+        _log_market_query_event(
+            "summary_resolved",
+            support_reference=support_reference,
+            operation="summary",
+            county=county,
+            district=district,
+            has_row=isinstance(row, dict),
+        )
+    except MarketQueryFailure as exc:
+        _log_repository_failure(
+            "summary",
+            exc,
+            exc.reason_code,
+            support_reference,
+            county=county,
+            district=district,
+            phase=exc.phase,
+        )
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            exc.reason_code,
+        )
     except Exception as exc:
-        _log_repository_failure("summary", exc, "market_summary_query_unavailable")
-        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
+        _log_repository_failure(
+            "summary",
+            exc,
+            "market_summary_query_unavailable",
+            support_reference,
+            county=county,
+            district=district,
+        )
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            "market_summary_query_unavailable",
+        )
     try:
+        _log_market_query_event(
+            "history_started",
+            support_reference=support_reference,
+            operation="history",
+            county=county,
+            district=district,
+        )
         history = repo.history(county, district, limit=6) if row else []
+        _log_market_query_event(
+            "history_resolved",
+            support_reference=support_reference,
+            operation="history",
+            county=county,
+            district=district,
+            history_count=len(history) if isinstance(history, list) else None,
+        )
+    except MarketQueryFailure as exc:
+        _log_repository_failure(
+            "history",
+            exc,
+            exc.reason_code,
+            support_reference,
+            county=county,
+            district=district,
+            phase=exc.phase,
+        )
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            exc.reason_code,
+        )
     except Exception as exc:
-        _log_repository_failure("history", exc, "market_history_query_unavailable")
-        return _unavailable_summary(county, district, _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"))
+        _log_repository_failure(
+            "history",
+            exc,
+            "market_history_query_unavailable",
+            support_reference,
+            county=county,
+            district=district,
+        )
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            "market_history_query_unavailable",
+        )
     if not isinstance(row, dict):
-        return _no_data_summary(county, district, _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
+        result = _no_data_summary(
+            county,
+            district,
+            _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")),
+        )
+        _log_market_query_event(
+            "query_unavailable",
+            support_reference=support_reference,
+            operation="summary",
+            county=county,
+            district=district,
+            reason_code="market_summary_missing",
+        )
+        return _with_query_diagnostics(result, support_reference, "market_summary_missing")
     if not isinstance(history, list):
-        return _no_data_summary(county, district, _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
-    return _summary_from_row(row, history, _direct_query_status(coverage_status="covered", source_updated_at=coverage.get("source_updated_at")))
+        result = _no_data_summary(
+            county,
+            district,
+            _direct_query_status(data_status="no_data", coverage_status="covered", source_updated_at=coverage.get("source_updated_at")),
+        )
+        _log_market_query_event(
+            "query_unavailable",
+            support_reference=support_reference,
+            operation="history",
+            county=county,
+            district=district,
+            reason_code="market_history_invalid",
+        )
+        return _with_query_diagnostics(result, support_reference, "market_history_invalid")
+
+    try:
+        result = _summary_from_row(
+            row,
+            history,
+            _direct_query_status(coverage_status="covered", source_updated_at=coverage.get("source_updated_at")),
+        )
+    except Exception as exc:
+        _log_repository_failure(
+            "result_contract",
+            exc,
+            "market_result_contract_invalid",
+            support_reference,
+            county=county,
+            district=district,
+            phase="result_contract",
+        )
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            "market_result_contract_invalid",
+        )
+    if result.get("data_status") == "available":
+        _log_market_query_event(
+            "result_contract_checked",
+            support_reference=support_reference,
+            operation="result_contract",
+            county=county,
+            district=district,
+            contract_valid=True,
+        )
+        return _with_query_diagnostics(result, support_reference)
+
+    reason_code = "market_summary_missing" if str(row.get("data_status") or "").strip() == "no_data" else "market_result_contract_invalid"
+    _log_market_query_event(
+        "query_unavailable",
+        support_reference=support_reference,
+        operation="result_contract",
+        county=county,
+        district=district,
+        reason_code=reason_code,
+    )
+    return _with_query_diagnostics(result, support_reference, reason_code)
 
 
 def refresh_market_read_model(repository: MarketReadModelRepository | None = None) -> dict[str, Any]:
@@ -878,6 +1196,94 @@ def _direct_query_status(
     }
 
 
+def _new_support_reference() -> str:
+    """Return a request reference that contains no user or infrastructure data."""
+
+    return uuid.uuid4().hex[:16]
+
+
+def _with_query_diagnostics(
+    result: dict[str, Any],
+    support_reference: str,
+    reason_code: str | None = None,
+) -> dict[str, Any]:
+    safe_result = dict(result)
+    safe_result["support_reference"] = support_reference
+    if reason_code:
+        safe_result["reason_code"] = safe_market_query_reason_code(reason_code)
+    return safe_result
+
+
+def _query_unavailable(
+    county: str,
+    district: str,
+    status: dict[str, Any],
+    support_reference: str,
+    reason_code: str,
+) -> dict[str, Any]:
+    _log_market_query_event(
+        "query_unavailable",
+        support_reference=support_reference,
+        operation="query",
+        county=county,
+        district=district,
+        reason_code=reason_code,
+    )
+    return _with_query_diagnostics(
+        _unavailable_summary(county, district, status),
+        support_reference,
+        reason_code,
+    )
+
+
+def _log_market_query_event(
+    event: str,
+    *,
+    support_reference: str,
+    operation: str,
+    county: str,
+    district: str,
+    reason_code: str | None = None,
+    **details: Any,
+) -> None:
+    safe_events = {
+        "query_started",
+        "coverage_started",
+        "coverage_resolved",
+        "summary_started",
+        "summary_resolved",
+        "history_started",
+        "history_resolved",
+        "result_contract_checked",
+        "query_unavailable",
+    }
+    safe_operations = {"query", "coverage", "summary", "history", "result_contract"}
+    payload: dict[str, Any] = {
+        "event": event if event in safe_events else "query_unavailable",
+        "support_reference": support_reference[:32],
+        "operation": operation if operation in safe_operations else "query",
+        "reason_code": safe_market_query_reason_code(reason_code) if reason_code else None,
+        "exception_class": None,
+        "normalized_county": _optional_text(county),
+        "normalized_district": _optional_text(district),
+    }
+    for key in ("coverage_status", "has_row", "history_count", "contract_valid"):
+        if key in details:
+            payload[key] = details[key]
+    line = json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    if payload["event"] == "query_unavailable":
+        logger.warning("market_query_event %s", line)
+    else:
+        logger.info("market_query_event %s", line)
+
+
+def safe_market_query_reason_code(reason_code: Any) -> str:
+    """Return an allowlisted public reason code for query failures."""
+
+    text = str(reason_code or "").strip()
+    return text if text in MARKET_QUERY_REASON_CODES else "market_unknown_safe_failure"
+
+
 def safe_market_refresh_reason_code(reason_code: Any) -> str:
     """Return an allowlisted public reason code for refresh failures."""
 
@@ -953,18 +1359,44 @@ def _optional_text(value: Any) -> str | None:
     return text or None
 
 
-def _log_repository_failure(operation: str, exc: Exception, reason_code: str, support_reference: str | None = None) -> None:
+def _log_repository_failure(
+    operation: str,
+    exc: Exception,
+    reason_code: str,
+    support_reference: str | None = None,
+    *,
+    county: str = "",
+    district: str = "",
+    phase: str = "query",
+) -> None:
     """Log only bounded categories; never include SQL, parameters, or raw errors."""
 
-    safe_operation = operation if operation in {"coverage", "summary", "history"} else "unknown"
-    safe_exception_class = type(exc).__name__[:80] or "Exception"
+    safe_operation = operation if operation in {"coverage", "summary", "history", "result_contract"} else "unknown"
+    root_exception = exc.__cause__ or exc
+    safe_exception_class = type(root_exception).__name__[:80] or "Exception"
     payload = {
         "operation": safe_operation,
         "exception_class": safe_exception_class,
         "support_reference": _optional_text(support_reference),
-        "reason_code": reason_code[:80],
+        "reason_code": safe_market_query_reason_code(reason_code),
+        "phase": phase if phase in {
+            "connection",
+            "cursor",
+            "transaction_read_only",
+            "statement_timeout",
+            "coverage_sql",
+            "summary_sql",
+            "history_sql",
+            "row_conversion",
+            "result_contract",
+        } else "query",
+        "normalized_county": _optional_text(county),
+        "normalized_district": _optional_text(district),
     }
-    logger.warning("market_repository_failure %s", json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":")))
+    logger.exception(
+        "market_repository_failure %s",
+        json.dumps(payload, ensure_ascii=True, sort_keys=True, separators=(",", ":")),
+    )
 
 
 def _date_text(value: Any) -> str | None:
