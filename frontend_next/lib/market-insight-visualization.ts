@@ -20,6 +20,41 @@ export type EvidenceItem = {
   value: string;
 };
 
+export const MARKET_METRIC_PRESENTATION_CONTRACT = {
+  averageUnitPrice: {
+    sourceField: "average_unit_price",
+    unit: "wan_ntd_per_ping",
+    converted: false,
+  },
+  medianUnitPrice: {
+    sourceField: "median_unit_price_ntd_sqm",
+    unit: "ntd_per_square_meter",
+    converted: false,
+  },
+  transactionCount: {
+    sourceFields: ["transaction_count", "transaction_volume"],
+    periodScope: "result.period",
+  },
+} as const;
+
+export type MarketMetricPresentation = {
+  averageUnitPrice: number | null;
+  transactionCount: number | null;
+  period: string | null;
+  medianUnitPrice: number | null;
+  meanUnitPriceNtdSqm: number | null;
+  medianTotalPrice: number | null;
+  periodChange: number | null;
+  yearOverYearChange: number | null;
+  inclusionCount: number | null;
+  exclusionCount: number | null;
+  sampleStatus: string | null;
+  freshnessStatus: string | null;
+  sourceName: string | null;
+  sourceUpdatedAt: string | null;
+  coverageStatus: MarketResult["coverage_status"] | null;
+};
+
 export type MarketInsightVisualModel = {
   state: MarketDisplayState;
   freshness: VisualFreshnessStatus;
@@ -43,8 +78,17 @@ function isPositiveFinite(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
 function safeText(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function optionalStatus(value: unknown): string | null {
+  const status = safeText(value);
+  return status && status !== "unknown" && status !== "unavailable" ? status : null;
 }
 
 function readFreshness(result: MarketResult): VisualFreshnessStatus {
@@ -57,6 +101,32 @@ function mapCoverage(result: MarketResult): VisualCoverageStatus {
   if (result.coverage_status === "not_covered") return "not_covered";
   if (result.coverage_status === "partial") return "partial";
   return "unknown";
+}
+
+export function getMarketMetricPresentation(result: MarketResult): MarketMetricPresentation {
+  const isAvailable = getMarketDisplayState(result) === "available";
+  const transactionCount = isPositiveFinite(result.transaction_count)
+    ? result.transaction_count
+    : isPositiveFinite(result.transaction_volume)
+      ? result.transaction_volume
+      : null;
+  return {
+    averageUnitPrice: isAvailable && isPositiveFinite(result.average_unit_price) ? result.average_unit_price : null,
+    transactionCount: isAvailable ? transactionCount : null,
+    period: isAvailable ? safeText(result.period) : null,
+    medianUnitPrice: isAvailable && isPositiveFinite(result.median_unit_price_ntd_sqm) ? result.median_unit_price_ntd_sqm : null,
+    meanUnitPriceNtdSqm: isAvailable && isPositiveFinite(result.mean_unit_price_ntd_sqm) ? result.mean_unit_price_ntd_sqm : null,
+    medianTotalPrice: isAvailable && isPositiveFinite(result.median_total_price_ntd) ? result.median_total_price_ntd : null,
+    periodChange: isAvailable && isFiniteNumber(result.period_change) ? result.period_change : null,
+    yearOverYearChange: isAvailable && isFiniteNumber(result.year_over_year_change) ? result.year_over_year_change : null,
+    inclusionCount: isAvailable && Number.isInteger(result.inclusion_count) && isPositiveFinite(result.inclusion_count) ? result.inclusion_count : null,
+    exclusionCount: isAvailable && Number.isInteger(result.exclusion_count) && isPositiveFinite(result.exclusion_count) ? result.exclusion_count : null,
+    sampleStatus: isAvailable ? optionalStatus(result.sample_status) : null,
+    freshnessStatus: isAvailable ? optionalStatus(result.freshness_status) : null,
+    sourceName: isAvailable ? safeText(result.source_name) : null,
+    sourceUpdatedAt: isAvailable ? safeText(result.source_updated_at) : null,
+    coverageStatus: isAvailable ? result.coverage_status : null,
+  };
 }
 
 export function sanitizeMarketHistory(result: MarketResult | undefined): MarketHistoryPoint[] {
@@ -105,7 +175,7 @@ export function buildEvidenceItems(result: MarketResult | undefined): EvidenceIt
 
 export function buildChartTextSummary(history: MarketHistoryPoint[]): string {
   if (history.length < 2) return "目前沒有足夠的有效期別資料可繪製趨勢。";
-  return `已顯示 ${history.length} 個有效期別的平均單價與交易量趨勢。`;
+  return `已顯示 ${history.length} 個有效期別的平均單價（萬元／坪）與交易筆數（筆）趨勢。`;
 }
 
 export function selectChartLabelIndexes(count: number): number[] {
@@ -118,11 +188,12 @@ export function selectChartLabelIndexes(count: number): number[] {
 export function buildMarketInsightVisualModel(result: MarketResult | undefined): MarketInsightVisualModel {
   const state = getMarketDisplayState(result);
   const history = sanitizeMarketHistory(result);
+  const presentation = result ? getMarketMetricPresentation(result) : null;
   const metrics = {
-    averageUnitPrice: state === "available" && result && isPositiveFinite(result.average_unit_price) ? result.average_unit_price : null,
-    medianUnitPrice: state === "available" && result && isPositiveFinite(result.median_unit_price_ntd_sqm) ? result.median_unit_price_ntd_sqm : null,
-    medianTotalPrice: state === "available" && result && isPositiveFinite(result.median_total_price_ntd) ? result.median_total_price_ntd : null,
-    transactionVolume: state === "available" && result && isPositiveFinite(result.transaction_volume) ? result.transaction_volume : null,
+    averageUnitPrice: presentation?.averageUnitPrice ?? null,
+    medianUnitPrice: presentation?.medianUnitPrice ?? null,
+    medianTotalPrice: presentation?.medianTotalPrice ?? null,
+    transactionVolume: presentation?.transactionCount ?? null,
     recordCount: state === "available" && result && isPositiveFinite(result.record_count ?? result.transaction_count)
       ? (result.record_count ?? result.transaction_count ?? null)
       : null,

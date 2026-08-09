@@ -62,7 +62,7 @@ test("search button submits one market query and renders available data", async 
 
   releaseResponse();
   await expect(searchButton).toBeEnabled();
-  await expect(page.getByText("90,000").last()).toBeVisible();
+  await expect(page.getByTestId("market-primary-metrics").getByText("90,000", { exact: true })).toBeVisible();
   expect(requestCount).toBe(1);
 });
 

@@ -22,7 +22,6 @@ import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTil
 import { api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketRequestError, MarketRequestReason, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { getMarketDisplayState } from "@/lib/market-result-state";
 import { buildMarketInsightVisualModel } from "@/lib/market-insight-visualization";
-import { DataMetricCard } from "@/components/data-visualization/data-metric-card";
 import { DataStatusBadge } from "@/components/data-visualization/data-status-badge";
 import { EvidenceDetails } from "@/components/data-visualization/evidence-details";
 import { EvidenceSummary } from "@/components/data-visualization/evidence-summary";
@@ -651,18 +650,12 @@ function MarketInsightVisualResult({ result, model, onMap, availableResult, noDa
   const isAvailable = model.state === "available" && availableResult;
   return <div className="space-y-5">
     <SectionCard title={copy("valuation.title")} description={copy("valuation.help")}>
-      <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} /><FreshnessIndicator status={model.freshness} /></div>
+      <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} />{model.freshness !== "unknown" && <FreshnessIndicator status={model.freshness} />}</div>
       <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? noDataMessage : copy("common.unavailable")}</p>
       {isAvailable && <p className="mt-2 text-xs leading-5 text-slate-500">{result.source_name ?? copy("common.optional")} {result.source_updated_at ?? copy("common.optional")}</p>}
     </SectionCard>
     {isAvailable ? <>
       <MarketInsightEvidencePanel result={result} model={model} />
-      <div className="grid gap-3 md:grid-cols-3">
-        <DataMetricCard label={copy("valuation.unitPrice")} value={model.metrics.medianUnitPrice ?? model.metrics.averageUnitPrice} suffix="" status={model.state} note={result.period ?? undefined} />
-        <DataMetricCard label={copy("common.count")} value={model.metrics.transactionVolume} status={model.state} />
-        <DataMetricCard label={copy("common.records")} value={model.metrics.recordCount} status={model.state} />
-      </div>
-      <p className="text-xs text-slate-500">{copy("common.dataLimit")} · {result.sample_status ?? "unknown"}</p>
       <SectionCard title={copy("valuation.trend")}><TrendLineChart data={model.history} status={model.state} textSummary={model.chartTextSummary} /></SectionCard>
       <SectionCard title={copy("common.count")}><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
       {evidenceDisclosure}

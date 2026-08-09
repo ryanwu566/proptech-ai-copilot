@@ -73,7 +73,9 @@ def test_market_page_uses_conclusion_first_visual_disclosure() -> None:
     assert "canonicalDistrict" in section
     assert "setResult(undefined)" in section
     assert "querying" in section
-    assert "DataMetricCard" in page
+    assert "MarketInsightEvidencePanel" in page
+    visual_result = page.split("function MarketInsightVisualResult", 1)[1].split("function AegisCredit", 1)[0]
+    assert "DataMetricCard" not in visual_result
     assert "TrendLineChart" in page
     assert "VolumeBarChart" in page
     assert "EvidenceSummary" in page
