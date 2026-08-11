@@ -68,7 +68,9 @@ test("direct-query metrics keep their real units and hide unsupported analysis",
   await expect(metrics.getByText("平均單價（萬元／坪）", { exact: true })).toBeVisible();
   await expect(metrics.getByText("33.21", { exact: true })).toBeVisible();
   await expect(metrics.getByText("本期交易筆數", { exact: true })).toBeVisible();
-  await expect(metrics.getByText("4", { exact: true })).toBeVisible();
+  await expect(metrics.getByText("4 筆", { exact: true })).toBeVisible();
+  await expect(metrics.getByText("資料期別", { exact: true })).toBeVisible();
+  await expect(metrics.getByText("2026-05", { exact: true })).toBeVisible();
 
   const metadata = page.getByTestId("market-source-metadata");
   await expect(metadata).toContainText("資料期別: 2026-05");

@@ -117,7 +117,7 @@ def _market_contract() -> tuple[str, str | None]:
         return "fail", "market_contract_invalid"
     if not _has_all(service, "average_unit_price", "transaction_count", "source_name", "source_updated_at", "trend"):
         return "fail", "market_contract_invalid"
-    if not _has_all(page, "availableResult", 'copy("common.noData")', 'copy("common.dataLimit")'):
+    if not _has_all(page, 'setUiState(displayState)', 'labels.noData', 'labels.unavailable', '"network_error"', 'copy("common.dataLimit")'):
         return "fail", "market_contract_invalid"
     return "pass", None
 
@@ -125,7 +125,12 @@ def _market_contract() -> tuple[str, str | None]:
 def _market_insight_contract() -> tuple[str, str | None]:
     page = _read("frontend_next/app/page.tsx")
     api = _read("frontend_next/lib/api.ts")
-    if not _has_all(page, "Market Insight", "coverage_status", "data_status", "source_updated_at"):
+    evidence = _read("frontend_next/components/data-visualization/market-insight-evidence-panel.tsx")
+    if not _has_all(page, "Market Insight", "MarketInsightVisualResult", '"network_error"'):
+        return "fail", "market_contract_invalid"
+    if not _has_all(evidence, "coverageStatus", "sourceUpdatedAt", "presentation.period"):
+        return "fail", "market_contract_invalid"
+    if not _has_all(api, "coverage_status", "data_status", "source_updated_at"):
         return "fail", "market_contract_invalid"
     if "/market-insights/query" not in api or "marketInsight" not in api:
         return "fail", "market_contract_invalid"

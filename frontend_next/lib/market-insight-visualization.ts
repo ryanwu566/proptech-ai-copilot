@@ -12,6 +12,17 @@ export type MarketHistoryPoint = {
 
 export type MarketDistributionPoint = { label: string; count: number };
 
+export type MarketTrendStats = {
+  periodCount: number;
+  latest: MarketHistoryPoint | null;
+  previous: MarketHistoryPoint | null;
+  periodChange: number | null;
+  averageUnitPrice: number | null;
+  maxPoint: MarketHistoryPoint | null;
+  minPoint: MarketHistoryPoint | null;
+  totalTransactions: number | null;
+};
+
 export type EvidenceKey = "source_name" | "source_updated_at" | "period" | "transaction_count" | "record_count" | "coverage_status" | "data_status" | "aggregation_method" | "caveat" | "disclaimer";
 
 export type EvidenceItem = {
@@ -67,6 +78,7 @@ export type MarketInsightVisualModel = {
     recordCount: number | null;
   };
   history: MarketHistoryPoint[];
+  trendStats: MarketTrendStats;
   priceDistribution: MarketDistributionPoint[];
   buildingTypeDistribution: MarketDistributionPoint[];
   ageBandDistribution: MarketDistributionPoint[];
@@ -135,7 +147,57 @@ export function sanitizeMarketHistory(result: MarketResult | undefined): MarketH
     const period = safeText(point.period);
     if (!period || !isPositiveFinite(point.average_unit_price) || !isPositiveFinite(point.transaction_count)) return [];
     return [{ period, average_unit_price: point.average_unit_price, transaction_count: point.transaction_count }];
-  });
+  }).slice(0, 6);
+}
+
+export function buildMarketTrendStats(history: readonly MarketHistoryPoint[]): MarketTrendStats {
+  const points = history.flatMap((point) => {
+    const period = safeText(point.period);
+    const validAverage = isFiniteNumber(point.average_unit_price) && point.average_unit_price >= 0;
+    const validCount = Number.isInteger(point.transaction_count) && point.transaction_count >= 0;
+    if (!period || !validAverage || !validCount) return [];
+    return [{
+      period,
+      average_unit_price: point.average_unit_price,
+      transaction_count: point.transaction_count,
+    }];
+  }).slice(0, 6);
+  const latest = points[0] ?? null;
+  const previous = points[1] ?? null;
+  const periodChange = latest && previous && previous.average_unit_price > 0
+    ? (latest.average_unit_price - previous.average_unit_price) / previous.average_unit_price
+    : null;
+  if (!points.length) {
+    return {
+      periodCount: 0,
+      latest: null,
+      previous: null,
+      periodChange: null,
+      averageUnitPrice: null,
+      maxPoint: null,
+      minPoint: null,
+      totalTransactions: null,
+    };
+  }
+  const totalUnitPrice = points.reduce((sum, point) => sum + point.average_unit_price, 0);
+  const totalTransactions = points.reduce((sum, point) => sum + point.transaction_count, 0);
+  const maxPoint = points.reduce((current, point) => point.average_unit_price > current.average_unit_price ? point : current);
+  const minPoint = points.reduce((current, point) => point.average_unit_price < current.average_unit_price ? point : current);
+  return {
+    periodCount: points.length,
+    latest,
+    previous,
+    periodChange,
+    averageUnitPrice: totalUnitPrice / points.length,
+    maxPoint,
+    minPoint,
+    totalTransactions,
+  };
+}
+
+export function formatMarketPeriodChange(value: number | null | undefined): string {
+  if (!isFiniteNumber(value)) return "—";
+  return `${value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%`;
 }
 
 export function sanitizeMarketDistribution(result: MarketResult | undefined, field: "price_distribution" | "building_type_distribution" | "age_band_distribution"): MarketDistributionPoint[] {
@@ -204,6 +266,7 @@ export function buildMarketInsightVisualModel(result: MarketResult | undefined):
     coverage: result ? mapCoverage(result) : "unknown",
     metrics,
     history,
+    trendStats: buildMarketTrendStats(history),
     priceDistribution: sanitizeMarketDistribution(result, "price_distribution"),
     buildingTypeDistribution: sanitizeMarketDistribution(result, "building_type_distribution"),
     ageBandDistribution: sanitizeMarketDistribution(result, "age_band_distribution"),

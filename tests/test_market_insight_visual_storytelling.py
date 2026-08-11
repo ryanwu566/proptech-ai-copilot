@@ -49,10 +49,11 @@ def test_charts_have_safe_empty_states_and_no_chart_dependency() -> None:
     volume = (VISUAL_DIR / "volume-bar-chart.tsx").read_text(encoding="utf-8")
     for source in [trend, volume]:
         assert "status !== \"available\"" in source
-        assert "data.length < 2" in source
+        assert "data.length === 0" in source
         assert "role=\"img\"" in source
         assert "<title>" in source
         assert "<desc>" in source
+        assert "tabIndex={0}" in source
         assert "recharts" not in source.lower()
         assert "chart.js" not in source.lower()
         assert "overflow-x-auto" not in source
@@ -86,8 +87,27 @@ def test_non_available_states_keep_evidence_disclosure() -> None:
     page = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
     section = page.split("function MarketInsight(", 1)[1].split("function LegacyMarketInsightOriginal", 1)[0]
     helper = VISUAL_HELPER.read_text(encoding="utf-8")
-    assert 'visualModel.state !== "available"' in section
     assert "EvidenceSummary items={visualModel.evidence}" in section
     assert "EvidenceDetails items={visualModel.evidence}" in section
     assert '"caveat"' in helper
     assert '"disclaimer"' in helper
+
+
+def test_market_analysis_contract_is_deterministic_and_localized() -> None:
+    helper = VISUAL_HELPER.read_text(encoding="utf-8")
+    copy = (ROOT / "frontend_next" / "lib" / "market-insight-copy.ts").read_text(encoding="utf-8")
+    page = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+    assert "buildMarketTrendStats" in helper
+    assert ".slice(0, 6)" in helper
+    assert "previous.average_unit_price > 0" in helper
+    assert "Date(" not in helper
+    assert "Math.random" not in helper
+    for locale in ['"zh-TW"', "en:", "ja:", "ko:"]:
+        assert locale in copy
+    for state in ['"initial"', '"loading"', '"available"', '"no_data"', '"unavailable"', '"network_error"']:
+        assert state in page
+    assert "market_request_timeout" in page
+    assert "market_request_connection_failed" in page
+    assert "market_request_cors_failed" in page
+    assert "forecast" not in helper.lower()
+    assert "prediction" not in helper.lower()

@@ -63,6 +63,10 @@ test("search button submits one market query and renders available data", async 
   releaseResponse();
   await expect(searchButton).toBeEnabled();
   await expect(page.getByTestId("market-primary-metrics").getByText("90,000", { exact: true })).toBeVisible();
+  const priceTrend = page.getByTestId("market-price-trend");
+  await expect(priceTrend).toContainText("目前只有 1 個有效期別，暫無足夠資料形成趨勢。");
+  await expect(priceTrend.locator("polyline")).toHaveCount(0);
+  await expect(priceTrend.locator("circle")).toHaveCount(1);
   expect(requestCount).toBe(1);
 });
 
