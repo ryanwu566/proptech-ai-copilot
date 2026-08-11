@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 import os
+from datetime import date, datetime
 from typing import Any
 
+from services.plvr_data_integrity import (
+    current_transaction_period,
+    first_day_after_current_period,
+    is_publishable_transaction_period,
+)
 from services.taiwan_admin_registry import normalize_market_region
 
 
@@ -26,10 +32,19 @@ def _connect():
     return psycopg.connect(database_url, connect_timeout=5, prepare_threshold=None)
 
 
-def query_aggregate(county: str, district: str = "", period: str | None = None, transaction_type: str = "existing_sale") -> dict[str, Any]:
+def query_aggregate(
+    county: str,
+    district: str = "",
+    period: str | None = None,
+    transaction_type: str = "existing_sale",
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     normalized = normalize_market_region(county, district)
     if not normalized.valid:
         return {"data_status": "unavailable", "coverage_status": "coverage_unknown", "reason": "invalid_region"}
+    if period and not is_publishable_transaction_period(period, as_of=as_of):
+        return {"data_status": "unavailable", "coverage_status": "coverage_unknown", "reason": "future_period_excluded"}
     connection = _connect()
     if connection is None:
         return {"data_status": "unavailable", "coverage_status": "coverage_unknown", "reason": "configuration_required"}
@@ -37,8 +52,19 @@ def query_aggregate(county: str, district: str = "", period: str | None = None, 
         with connection:
             with connection.cursor() as cursor:
                 cursor.execute("set transaction read only")
-                sql = "select " + ", ".join(SAFE_QUERY_FIELDS) + " from market_region_period_aggregates where county = %s and (%s = '' or district = %s) and (%s is null or period = %s) and transaction_type = %s order by period desc limit 1"
-                cursor.execute(sql, [normalized.county, normalized.district, normalized.district, period, period, transaction_type])
+                sql = "select " + ", ".join(SAFE_QUERY_FIELDS) + " from market_region_period_aggregates where county = %s and (%s = '' or district = %s) and period <= %s and (%s is null or period = %s) and transaction_type = %s order by period desc limit 1"
+                cursor.execute(
+                    sql,
+                    [
+                        normalized.county,
+                        normalized.district,
+                        normalized.district,
+                        current_transaction_period(as_of),
+                        period,
+                        period,
+                        transaction_type,
+                    ],
+                )
                 row = cursor.fetchone()
                 if not row:
                     return {"data_status": "no_data", "coverage_status": "covered", "county": normalized.county, "district": normalized.district}
@@ -50,7 +76,14 @@ def query_aggregate(county: str, district: str = "", period: str | None = None, 
         connection.close()
 
 
-def query_comparables(county: str, district: str, transaction_type: str = "existing_sale", limit: int = 10) -> dict[str, Any]:
+def query_comparables(
+    county: str,
+    district: str,
+    transaction_type: str = "existing_sale",
+    limit: int = 10,
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     normalized = normalize_market_region(county, district)
     if not normalized.valid:
         return {"data_status": "unavailable", "coverage_status": "coverage_unknown", "comparables": []}
@@ -62,7 +95,7 @@ def query_comparables(county: str, district: str, transaction_type: str = "exist
         with connection:
             with connection.cursor() as cursor:
                 cursor.execute("set transaction read only")
-                cursor.execute("select county, district, transaction_date, area_sqm, total_price_ntd, unit_price_ntd_sqm, unit_price_ntd_ping, building_type, special_transaction_flags, release_id from market_transactions where county = %s and district = %s and transaction_type = %s and validation_status in ('valid','valid_with_warning') order by transaction_date desc nulls last limit %s", [normalized.county, normalized.district, transaction_type, bounded_limit])
+                cursor.execute("select county, district, transaction_date, area_sqm, total_price_ntd, unit_price_ntd_sqm, unit_price_ntd_ping, building_type, special_transaction_flags, release_id from market_transactions where county = %s and district = %s and transaction_type = %s and validation_status in ('valid','valid_with_warning') and transaction_date < %s order by transaction_date desc nulls last limit %s", [normalized.county, normalized.district, transaction_type, first_day_after_current_period(as_of), bounded_limit])
                 rows = cursor.fetchall()
                 return {"data_status": "available" if rows else "no_data", "coverage_status": "covered", "comparables": [
                     {"county": row[0], "district": row[1], "transaction_month": row[2].strftime("%Y-%m") if row[2] else None, "area_sqm": row[3], "total_price_ntd": row[4], "unit_price_ntd_sqm": row[5], "unit_price_ntd_ping": row[6], "building_type": row[7], "special_transaction_flags": row[8] if isinstance(row[8], list) else [], "source_release_id": row[9], "limitation": "Comparable reference only; not an appraisal."}

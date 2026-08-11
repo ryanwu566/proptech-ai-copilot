@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from services.plvr_import_service import OFFICIAL_SOURCE, build_dedupe_key, city_from_filename, is_sale_transaction_csv, normalize_rows, read_csv_rows
+from services.plvr_data_integrity import normalized_row_integrity_reason
 
 REPORT_SCHEMA_VERSION = "plvr-import-readiness-v1"
 QUALITY_REASON_CODES = {
@@ -483,7 +484,18 @@ def _write_rows(
     args: argparse.Namespace,
     city_filters: list[str],
     district_filters: list[str],
+    *,
+    as_of: Any = None,
 ) -> dict[str, Any]:
+    rejected = Counter(
+        reason
+        for row in rows
+        if (reason := normalized_row_integrity_reason(row, as_of=as_of)) is not None
+    )
+    if rejected:
+        safe_reasons = ",".join(f"{reason}:{count}" for reason, count in sorted(rejected.items()))
+        raise ValueError(f"PLVR write guard rejected rows ({safe_reasons})")
+
     import psycopg
     from psycopg.rows import dict_row
 

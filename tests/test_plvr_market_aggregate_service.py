@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from services.plvr_market_aggregate_service import (
@@ -229,9 +229,17 @@ class PhaseRefreshRepository(PostgresMarketReadModelRepository):
 
 
 class CoverageSourceCursor:
-    def __init__(self, *, failure: str | None = None, valid_count: int = 1, metadata_row: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        failure: str | None = None,
+        valid_count: int = 1,
+        future_count: int = 0,
+        metadata_row: dict[str, Any] | None = None,
+    ) -> None:
         self.failure = failure
         self.valid_count = valid_count
+        self.future_count = future_count
         self.metadata_row = metadata_row
         self.row: dict[str, Any] | None = None
         self.source_count = 0
@@ -257,6 +265,7 @@ class CoverageSourceCursor:
             self.source_params.append(list(params or []))
             self.row = {
                 "valid_market_candidate_count": self.valid_count,
+                "excluded_future_period_count": self.future_count,
                 "source_updated_at": "2025-03-05",
             }
             return
@@ -288,9 +297,21 @@ class CoverageSourceConnection:
 
 
 class CoverageSourceRepository(PostgresMarketReadModelRepository):
-    def __init__(self, *, failure: str | None = None, valid_count: int = 1, metadata_row: dict[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        failure: str | None = None,
+        valid_count: int = 1,
+        future_count: int = 0,
+        metadata_row: dict[str, Any] | None = None,
+    ) -> None:
         super().__init__("unused")
-        cursor = CoverageSourceCursor(failure=failure, valid_count=valid_count, metadata_row=metadata_row)
+        cursor = CoverageSourceCursor(
+            failure=failure,
+            valid_count=valid_count,
+            future_count=future_count,
+            metadata_row=metadata_row,
+        )
         object.__setattr__(self, "cursor_instance", cursor)
         object.__setattr__(self, "connection", CoverageSourceConnection(cursor))
 
@@ -375,7 +396,7 @@ def test_direct_query_sql_uses_only_plvr_transaction_table() -> None:
     assert "real_price_transactions" in direct_query_sql
     assert "market_district_period_aggregates" not in direct_query_sql
     assert "market_read_model_metadata" not in direct_query_sql
-    assert "max(imported_at)::date as source_updated_at" in direct_coverage_sql
+    assert "max(imported_at) filter (where transaction_period <= %s)::date as source_updated_at" in direct_coverage_sql
     assert "transaction_date" not in direct_coverage_sql
     assert "market_district_period_aggregates" in read_model_sql
     assert "market_read_model_metadata" in read_model_sql
@@ -467,12 +488,15 @@ def test_non_ready_refresh_metadata_is_unavailable() -> None:
     assert status["data_status"] == "unavailable"
 
 
-def test_future_period_is_preserved_without_claiming_currentness() -> None:
-    status = get_market_status(FakeReadModelRepository(latest_period="2026-10"))
+def test_future_period_metadata_is_not_exposed_as_available() -> None:
+    status = get_market_status(
+        FakeReadModelRepository(latest_period="2026-10"),
+        as_of=date(2026, 8, 11),
+    )
 
-    assert status["read_model_status"] == "ready"
-    assert status["data_status"] == "available"
-    assert status["latest_period"] == "2026-10"
+    assert status["read_model_status"] == "unavailable"
+    assert status["data_status"] == "unavailable"
+    assert status["latest_period"] is None
 
 
 def test_regions_filter_by_county() -> None:
@@ -886,8 +910,9 @@ def test_postgres_coverage_reconcile_normalizes_source_county_and_preserves_meta
     assert result["processed_region_count"] == 12
     assert result["covered_region_count"] == 12
     assert repo.cursor_instance.source_count == 12
-    assert repo.cursor_instance.source_params[0][0] == "台北市"
-    assert repo.cursor_instance.source_params[0][1] == "中正區"
+    assert len(repo.cursor_instance.source_params[0][3]) == 368
+    assert repo.cursor_instance.source_params[0][-2] == "台北市"
+    assert repo.cursor_instance.source_params[0][-1] == "中正區"
     assert repo.cursor_instance.upsert_params[0][0] == "臺北市"
     assert repo.cursor_instance.upsert_params[0][1] == "中正區"
     assert repo.connection.committed is True
@@ -939,6 +964,24 @@ def test_direct_coverage_rechecks_source_when_metadata_is_stale_or_unknown() -> 
         "valid_market_candidate_count": 2,
         "source_updated_at": "2025-03-05",
     }
+    assert repo.cursor_instance.source_count == 1
+
+
+def test_direct_coverage_does_not_treat_future_only_rows_as_covered() -> None:
+    repo = CoverageSourceRepository(
+        valid_count=0,
+        future_count=1,
+        metadata_row={
+            "coverage_status": "covered",
+            "valid_market_candidate_count": 1,
+            "source_updated_at": "2026-06-07",
+        },
+    )
+
+    result = repo.coverage("臺北市", "南港區")
+
+    assert result["coverage_status"] == "coverage_unknown"
+    assert result["valid_market_candidate_count"] == 0
     assert repo.cursor_instance.source_count == 1
 
 
