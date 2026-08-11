@@ -29,6 +29,13 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable, Iterator, Mapping
 
+from services.plvr_data_integrity import (
+    FUTURE_TRANSACTION_PERIOD,
+    INVALID_CITY_DISTRICT_PAIR,
+    is_future_transaction_period,
+    is_publishable_transaction_date,
+    is_publishable_transaction_period,
+)
 from services.taiwan_admin_registry import normalize_market_region
 
 
@@ -581,13 +588,18 @@ def _fingerprint(values: Iterable[Any]) -> str:
 
 
 def normalize_transaction_row(
-    row: Mapping[str, Any], *, source_id: str, release_id: str, imported_at: str | None = None,
+    row: Mapping[str, Any],
+    *,
+    source_id: str,
+    release_id: str,
+    imported_at: str | None = None,
+    as_of: date | datetime | None = None,
 ) -> NormalizedTransaction:
     county_value = _read_alias(row, "county")
     district_value = _read_alias(row, "district")
     normalized = normalize_market_region(county_value, district_value)
     if not normalized.valid:
-        raise ValueError("region_invalid")
+        raise ValueError(INVALID_CITY_DISTRICT_PAIR)
     transaction_date = parse_roc_date(_read_alias(row, "transaction_date"))
     area = _number(_read_alias(row, "area_sqm"))
     total = _number(_read_alias(row, "total_price_ntd"))
@@ -602,6 +614,8 @@ def normalize_transaction_row(
     reasons: list[str] = []
     if transaction_date is None:
         reasons.append("transaction_date_missing")
+    elif is_future_transaction_period(transaction_date.strftime("%Y-%m"), as_of=as_of):
+        reasons.append(FUTURE_TRANSACTION_PERIOD)
     if area is None or area <= 0:
         reasons.append("area_invalid")
     if total is None or total <= 0:
@@ -633,7 +647,14 @@ def parse_csv_rows(path: Path, *, max_rows: int = DEFAULT_LIMITS["max_rows"]) ->
             yield {str(key): str(value or "") for key, value in row.items() if key is not None}
 
 
-def normalize_rows(rows: Iterable[Mapping[str, Any]], *, source_id: str, release_id: str, imported_at: str | None = None) -> tuple[list[NormalizedTransaction], PipelineSummary]:
+def normalize_rows(
+    rows: Iterable[Mapping[str, Any]],
+    *,
+    source_id: str,
+    release_id: str,
+    imported_at: str | None = None,
+    as_of: date | datetime | None = None,
+) -> tuple[list[NormalizedTransaction], PipelineSummary]:
     accepted: list[NormalizedTransaction] = []
     seen: set[str] = set()
     counts: dict[str, int] = {}
@@ -641,7 +662,13 @@ def normalize_rows(rows: Iterable[Mapping[str, Any]], *, source_id: str, release
     for row in rows:
         input_rows += 1
         try:
-            item = normalize_transaction_row(row, source_id=source_id, release_id=release_id, imported_at=imported_at)
+            item = normalize_transaction_row(
+                row,
+                source_id=source_id,
+                release_id=release_id,
+                imported_at=imported_at,
+                as_of=as_of,
+            )
             parsed_rows += 1
         except ValueError as exc:
             quarantined += 1
@@ -676,10 +703,17 @@ def sample_status(count: int) -> str:
 def aggregate_transactions(
     transactions: Iterable[NormalizedTransaction], *, source_name: str, source_release_id: str,
     source_updated_at: str | None, coverage_status: str = "partial", transaction_type: str = "existing_sale",
+    as_of: date | datetime | None = None,
 ) -> list[dict[str, Any]]:
     grouped: dict[tuple[str, str, str], list[NormalizedTransaction]] = {}
     for item in transactions:
-        if item.validation_status == "quarantined" or item.transaction_type != transaction_type or not item.transaction_date or not item.unit_price_ntd_sqm:
+        if (
+            item.validation_status == "quarantined"
+            or item.transaction_type != transaction_type
+            or not item.transaction_date
+            or not item.unit_price_ntd_sqm
+            or not is_publishable_transaction_date(item.transaction_date, as_of=as_of)
+        ):
             continue
         period = item.transaction_date.strftime("%Y-%m")
         grouped.setdefault((item.county, item.district, period), []).append(item)
@@ -704,13 +738,26 @@ def aggregate_transactions(
     return result
 
 
-def score_comparables(target: NormalizedTransaction, candidates: Iterable[NormalizedTransaction], *, limit: int = 10) -> list[dict[str, Any]]:
-    if target.transaction_type not in {"existing_sale", "presale"}:
+def score_comparables(
+    target: NormalizedTransaction,
+    candidates: Iterable[NormalizedTransaction],
+    *,
+    limit: int = 10,
+    as_of: date | datetime | None = None,
+) -> list[dict[str, Any]]:
+    if (
+        target.transaction_type not in {"existing_sale", "presale"}
+        or not is_publishable_transaction_date(target.transaction_date, as_of=as_of)
+    ):
         return []
     bounded_limit = max(1, min(int(limit), 10))
     scored: list[tuple[float, NormalizedTransaction, list[str]]] = []
     for candidate in candidates:
-        if candidate.validation_status == "quarantined" or candidate.transaction_type != target.transaction_type:
+        if (
+            candidate.validation_status == "quarantined"
+            or candidate.transaction_type != target.transaction_type
+            or not is_publishable_transaction_date(candidate.transaction_date, as_of=as_of)
+        ):
             continue
         score = 0.0
         reasons: list[str] = []
@@ -756,13 +803,33 @@ def discover_release(current_release_id: str | None, candidate: Mapping[str, Any
     return DiscoveryResult("new_release_available", release_id=release_id, publication_date=str(candidate.get("publication_date") or "") or None, schema_version=str(candidate.get("schema_version") or "") or None)
 
 
-def publish_release(connection: Any, *, release: Mapping[str, Any], transactions: Iterable[NormalizedTransaction], aggregates: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
+def publish_release(
+    connection: Any,
+    *,
+    release: Mapping[str, Any],
+    transactions: Iterable[NormalizedTransaction],
+    aggregates: Iterable[Mapping[str, Any]],
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     """Publish one validated release atomically on a caller-owned connection.
 
     The caller controls commit/rollback. The active flag changes only after all
     transaction and aggregate inserts succeed, so a failed transaction keeps
     the previous active release visible.
     """
+    transaction_rows = list(transactions)
+    aggregate_rows = list(aggregates)
+    if any(
+        not is_publishable_transaction_date(item.transaction_date, as_of=as_of)
+        for item in transaction_rows
+    ):
+        raise ValueError(FUTURE_TRANSACTION_PERIOD)
+    if any(
+        not is_publishable_transaction_period(aggregate.get("period"), as_of=as_of)
+        for aggregate in aggregate_rows
+    ):
+        raise ValueError(FUTURE_TRANSACTION_PERIOD)
+
     release_id = str(release["release_id"])
     source_id = str(release["source_id"])
     cursor = connection.cursor()
@@ -772,12 +839,12 @@ def publish_release(connection: Any, *, release: Mapping[str, Any], transactions
             "insert into official_market_releases (release_id, source_id, publication_date, schema_version, archive_sha256, status, is_active) values (%s,%s,%s,%s,%s,'validated',false) on conflict (release_id) do update set schema_version=excluded.schema_version, archive_sha256=excluded.archive_sha256, status='validated'",
             [release_id, source_id, release.get("publication_date"), release.get("schema_version"), release.get("archive_sha256")],
         )
-        for item in transactions:
+        for item in transaction_rows:
             cursor.execute(
                 "insert into market_transactions (transaction_id, release_id, source_id, source_record_id, transaction_type, county, district, transaction_date, area_sqm, total_price_ntd, unit_price_ntd_sqm, unit_price_ntd_ping, parking_area_sqm, parking_price_ntd, building_type, special_transaction_flags, validation_status, dedupe_fingerprint) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) on conflict (transaction_id) do nothing",
                 [item.transaction_id, release_id, item.source_id, item.source_record_id, item.transaction_type, item.county, item.district, item.transaction_date, item.area_sqm, item.total_price_ntd, item.unit_price_ntd_sqm, item.unit_price_ntd_ping, item.parking_area_sqm, item.parking_price_ntd, item.building_type, json.dumps(list(item.special_transaction_flags)), item.validation_status, item.dedupe_fingerprint],
             )
-        for aggregate in aggregates:
+        for aggregate in aggregate_rows:
             values = [aggregate.get(field) for field in ("county", "district", "period", "transaction_type", "sample_status", "transaction_count", "valid_comparable_count", "median_unit_price_ntd_sqm", "mean_unit_price_ntd_sqm", "lower_quartile_unit_price_ntd_sqm", "upper_quartile_unit_price_ntd_sqm", "minimum_unit_price_ntd_sqm", "maximum_unit_price_ntd_sqm", "median_total_price_ntd", "median_area_sqm", "total_transaction_value_ntd", "aggregation_version", "source_updated_at", "coverage_status", "data_status")]
             cursor.execute("insert into market_region_period_aggregates (release_id, county, district, period, transaction_type, sample_status, transaction_count, valid_comparable_count, median_unit_price_ntd_sqm, mean_unit_price_ntd_sqm, lower_quartile_unit_price_ntd_sqm, upper_quartile_unit_price_ntd_sqm, minimum_unit_price_ntd_sqm, maximum_unit_price_ntd_sqm, median_total_price_ntd, median_area_sqm, total_transaction_value_ntd, aggregation_version, source_updated_at, coverage_status, data_status) values (%s," + ",".join(["%s"] * len(values)) + ") on conflict do nothing", [release_id, *values])
         cursor.execute("update official_market_releases set is_active = false where is_active")

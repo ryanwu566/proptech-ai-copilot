@@ -19,6 +19,13 @@ from datetime import date, datetime, timezone
 from typing import Any, Protocol
 
 from services.market_data_foundation import MARKET_DATA_CAVEAT, market_unavailable_response
+from services.plvr_data_integrity import (
+    canonical_region_storage_keys,
+    current_transaction_period,
+    is_future_transaction_period,
+    is_publishable_transaction_period,
+    normalized_storage_key,
+)
 from services.taiwan_admin_registry import audit_region_coverage, iter_taiwan_regions, normalize_market_region
 
 
@@ -156,42 +163,61 @@ class PostgresMarketReadModelRepository:
 
     database_url: str
     connect_timeout: int = 5
+    as_of: date | datetime | None = None
 
     def status(self) -> dict[str, Any]:
         with self._connect() as connection:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
-                cursor.execute(READ_MODEL_STATUS_SQL)
+                cursor.execute(
+                    READ_MODEL_STATUS_SQL,
+                    [list(canonical_region_storage_keys()), current_transaction_period(self.as_of)],
+                )
                 return dict(cursor.fetchone() or {})
 
     def catalog(self) -> list[dict[str, Any]]:
         with self._connect() as connection:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
-                cursor.execute(READ_MODEL_CATALOG_SQL)
+                cursor.execute(
+                    READ_MODEL_CATALOG_SQL,
+                    [list(canonical_region_storage_keys()), current_transaction_period(self.as_of)],
+                )
                 return [dict(row) for row in cursor.fetchall()]
 
     def regions(self, county: str) -> list[dict[str, Any]]:
         with self._connect() as connection:
             with connection.cursor() as cursor:
                 _set_read_only(cursor)
-                cursor.execute(READ_MODEL_REGIONS_SQL, [_normalize_county(county)])
+                cursor.execute(
+                    READ_MODEL_REGIONS_SQL,
+                    [
+                        list(canonical_region_storage_keys()),
+                        current_transaction_period(self.as_of),
+                        _normalize_county(county),
+                    ],
+                )
                 return [dict(row) for row in cursor.fetchall()]
 
     def summary(self, county: str, district: str, period: str | None = None) -> dict[str, Any] | None:
         with _market_query_cursor(self, "market_summary_query_unavailable") as cursor:
             normalized_county = _normalize_county(county)
-            clean_district = district.strip()
+            clean_district = normalized_storage_key(district)
             clean_period = (period or "").strip()
+            base_params: list[Any] = [
+                list(canonical_region_storage_keys()),
+                current_transaction_period(self.as_of),
+                normalized_county,
+            ]
             try:
                 if clean_district and clean_period:
-                    cursor.execute(DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL, [normalized_county, clean_district, clean_period])
+                    cursor.execute(DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL, [*base_params, clean_district, clean_period])
                 elif clean_district:
-                    cursor.execute(DIRECT_SUMMARY_DISTRICT_LATEST_SQL, [normalized_county, clean_district])
+                    cursor.execute(DIRECT_SUMMARY_DISTRICT_LATEST_SQL, [*base_params, clean_district])
                 elif clean_period:
-                    cursor.execute(DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL, [normalized_county, clean_period])
+                    cursor.execute(DIRECT_SUMMARY_COUNTY_FOR_PERIOD_SQL, [*base_params, clean_period])
                 else:
-                    cursor.execute(DIRECT_SUMMARY_COUNTY_LATEST_SQL, [normalized_county])
+                    cursor.execute(DIRECT_SUMMARY_COUNTY_LATEST_SQL, base_params)
             except Exception as exc:
                 raise MarketQueryFailure("market_summary_query_unavailable", "summary_sql") from exc
             try:
@@ -203,13 +229,18 @@ class PostgresMarketReadModelRepository:
     def history(self, county: str, district: str, limit: int = 6) -> list[dict[str, Any]]:
         with _market_query_cursor(self, "market_history_query_unavailable") as cursor:
             normalized_county = _normalize_county(county)
-            clean_district = district.strip()
+            clean_district = normalized_storage_key(district)
             clean_limit = max(1, min(int(limit), 6))
+            base_params: list[Any] = [
+                list(canonical_region_storage_keys()),
+                current_transaction_period(self.as_of),
+                normalized_county,
+            ]
             try:
                 if clean_district:
-                    cursor.execute(DIRECT_HISTORY_DISTRICT_SQL, [normalized_county, clean_district, clean_limit])
+                    cursor.execute(DIRECT_HISTORY_DISTRICT_SQL, [*base_params, clean_district, clean_limit])
                 else:
-                    cursor.execute(DIRECT_HISTORY_COUNTY_SQL, [normalized_county, clean_limit])
+                    cursor.execute(DIRECT_HISTORY_COUNTY_SQL, [*base_params, clean_limit])
             except Exception as exc:
                 raise MarketQueryFailure("market_history_query_unavailable", "history_sql") from exc
             try:
@@ -220,34 +251,42 @@ class PostgresMarketReadModelRepository:
     def coverage(self, county: str, district: str) -> dict[str, Any]:
         with _market_query_cursor(self, "market_coverage_query_unavailable") as cursor:
             normalized_county = _normalize_county(county)
-            clean_district = district.strip()
+            metadata_district = district.strip()
+            clean_district = normalized_storage_key(district)
+            ceiling = current_transaction_period(self.as_of)
             try:
-                if clean_district:
-                    cursor.execute(MARKET_COVERAGE_METADATA_DISTRICT_SQL, [normalized_county, clean_district])
+                if metadata_district:
+                    cursor.execute(MARKET_COVERAGE_METADATA_DISTRICT_SQL, [normalized_county, metadata_district])
                 else:
                     cursor.execute(MARKET_COVERAGE_METADATA_COUNTY_SQL, [normalized_county])
                 metadata_row = dict(cursor.fetchone() or {})
             except Exception as exc:
                 raise MarketQueryFailure("market_coverage_query_unavailable", "coverage_sql") from exc
+            metadata_result: dict[str, Any] | None = None
             if metadata_row:
-                metadata_status = _direct_coverage_status(metadata_row.get("coverage_status"))
                 metadata_result = {
-                    "coverage_status": metadata_status,
+                    "coverage_status": _direct_coverage_status(metadata_row.get("coverage_status")),
                     "valid_market_candidate_count": _int_value(metadata_row.get("valid_market_candidate_count")),
                     "source_updated_at": _date_text(metadata_row.get("source_updated_at")),
                 }
-                if metadata_status == "covered":
-                    return metadata_result
             try:
+                source_params: list[Any] = [
+                    ceiling,
+                    ceiling,
+                    ceiling,
+                    list(canonical_region_storage_keys()),
+                    normalized_county,
+                ]
                 if clean_district:
-                    cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [normalized_county, clean_district])
+                    cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [*source_params, clean_district])
                 else:
-                    cursor.execute(DIRECT_COVERAGE_COUNTY_SQL, [normalized_county])
+                    cursor.execute(DIRECT_COVERAGE_COUNTY_SQL, source_params)
                 row = dict(cursor.fetchone() or {})
             except Exception as exc:
                 raise MarketQueryFailure("market_coverage_query_unavailable", "coverage_sql") from exc
             try:
                 valid_count = _int_value(row.get("valid_market_candidate_count"))
+                excluded_future_count = _int_value(row.get("excluded_future_period_count"))
                 source_updated_at = _date_text(row.get("source_updated_at"))
             except Exception as exc:
                 raise MarketQueryFailure("market_coverage_query_unavailable", "row_conversion") from exc
@@ -257,7 +296,13 @@ class PostgresMarketReadModelRepository:
                     "valid_market_candidate_count": valid_count,
                     "source_updated_at": source_updated_at,
                 }
-            if metadata_row:
+            if excluded_future_count > 0:
+                return {
+                    "coverage_status": "coverage_unknown",
+                    "valid_market_candidate_count": 0,
+                    "source_updated_at": source_updated_at,
+                }
+            if metadata_result is not None:
                 return metadata_result
             return {
                 "coverage_status": "coverage_unknown",
@@ -274,7 +319,10 @@ class PostgresMarketReadModelRepository:
                 _run_refresh_phase("read_model_initialization_unavailable", lambda: cursor.execute(READ_MODEL_SCHEMA_SQL))
 
                 def build_source_aggregates() -> None:
-                    cursor.execute(REFRESH_TEMP_AGGREGATES_SQL, [built_at])
+                    cursor.execute(
+                        REFRESH_TEMP_AGGREGATES_SQL,
+                        [built_at, list(canonical_region_storage_keys()), current_transaction_period(self.as_of)],
+                    )
                     cursor.execute(READ_MODEL_NEXT_AGGREGATE_COUNT_SQL)
                     aggregate_count = _int_value((cursor.fetchone() or {}).get("aggregate_count"))
                     if aggregate_count <= 0:
@@ -343,7 +391,18 @@ class PostgresMarketReadModelRepository:
                     counts: list[dict[str, Any]] = []
                     for region in county_regions:
                         try:
-                            cursor.execute(DIRECT_COVERAGE_DISTRICT_SQL, [_normalize_county(region.county), region.district])
+                            ceiling = current_transaction_period(self.as_of)
+                            cursor.execute(
+                                DIRECT_COVERAGE_DISTRICT_SQL,
+                                [
+                                    ceiling,
+                                    ceiling,
+                                    ceiling,
+                                    list(canonical_region_storage_keys()),
+                                    _normalize_county(region.county),
+                                    normalized_storage_key(region.district),
+                                ],
+                            )
                             coverage = dict(cursor.fetchone() or {})
                             valid_count = _int_value(coverage.get("valid_market_candidate_count"))
                             source_updated_at = _date_text(coverage.get("source_updated_at"))
@@ -433,7 +492,11 @@ def _market_query_cursor(repository: PostgresMarketReadModelRepository, reason_c
         raise MarketQueryFailure(reason_code, "query") from exc
 
 
-def get_market_status(repository: MarketReadModelRepository | None = None) -> dict[str, Any]:
+def get_market_status(
+    repository: MarketReadModelRepository | None = None,
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     """Return safe Market Insight status metadata from the read model."""
 
     repo = repository or _repository_from_env()
@@ -443,14 +506,18 @@ def get_market_status(repository: MarketReadModelRepository | None = None) -> di
         raw = repo.status()
     except Exception:
         return _unavailable_status()
-    return _status_from_raw(raw)
+    return _status_from_raw(raw, as_of=as_of)
 
 
-def get_market_catalog(repository: MarketReadModelRepository | None = None) -> dict[str, Any]:
+def get_market_catalog(
+    repository: MarketReadModelRepository | None = None,
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     """Return read model catalog metadata and available counties."""
 
     repo = repository or _repository_from_env()
-    status = get_market_status(repo)
+    status = get_market_status(repo, as_of=as_of)
     if repo is None or status["read_model_status"] != "ready":
         return {**status, "available_counties": []}
     try:
@@ -460,11 +527,16 @@ def get_market_catalog(repository: MarketReadModelRepository | None = None) -> d
     return {**status, "available_counties": [county for county in counties if county]}
 
 
-def list_market_regions(county: str = "", repository: MarketReadModelRepository | None = None) -> dict[str, Any]:
+def list_market_regions(
+    county: str = "",
+    repository: MarketReadModelRepository | None = None,
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     """Return read model districts for one county."""
 
     repo = repository or _repository_from_env()
-    status = get_market_status(repo)
+    status = get_market_status(repo, as_of=as_of)
     county = county.strip()
     if repo is None or status["read_model_status"] != "ready" or not county:
         return {**status, "regions": []}
@@ -481,7 +553,9 @@ def list_market_regions(county: str = "", repository: MarketReadModelRepository 
             "data_status": "available",
         }
         for row in rows
-        if _optional_text(row.get("county")) and _optional_text(row.get("district"))
+        if _optional_text(row.get("county"))
+        and _optional_text(row.get("district"))
+        and is_publishable_transaction_period(row.get("latest_period"), as_of=as_of)
     ]
     return {**status, "regions": regions}
 
@@ -491,6 +565,8 @@ def get_market_summary(
     district: str = "",
     period: str | None = None,
     repository: MarketReadModelRepository | None = None,
+    *,
+    as_of: date | datetime | None = None,
 ) -> dict[str, Any]:
     """Return one direct county/district aggregate and recent real history."""
 
@@ -521,6 +597,14 @@ def get_market_summary(
             _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
             support_reference,
             "market_region_invalid",
+        )
+    if period and not is_publishable_transaction_period(period, as_of=as_of):
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+            support_reference,
+            "market_summary_missing",
         )
     try:
         _log_market_query_event(
@@ -716,11 +800,31 @@ def get_market_summary(
         )
         return _with_query_diagnostics(result, support_reference, "market_history_invalid")
 
+    if is_future_transaction_period(row.get("period"), as_of=as_of):
+        return _query_unavailable(
+            county,
+            district,
+            _direct_query_status(
+                data_status="unavailable",
+                coverage_status="coverage_unknown",
+                source_updated_at=coverage.get("source_updated_at"),
+            ),
+            support_reference,
+            "market_summary_missing",
+        )
+    history = [
+        item
+        for item in history
+        if not isinstance(item, dict)
+        or not is_future_transaction_period(item.get("period"), as_of=as_of)
+    ]
+
     try:
         result = _summary_from_row(
             row,
             history,
             _direct_query_status(coverage_status="covered", source_updated_at=coverage.get("source_updated_at")),
+            as_of=as_of,
         )
     except Exception as exc:
         _log_repository_failure(
@@ -978,13 +1082,23 @@ def _safe_region_labels(value: Any) -> list[str]:
     return labels
 
 
-def _status_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
+def _status_from_raw(
+    raw: dict[str, Any],
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     if not raw:
         return _missing_status()
     refresh_status = _optional_text(raw.get("refresh_status"))
     latest_period = _optional_text(raw.get("latest_period"))
     earliest_period = _optional_text(raw.get("earliest_period"))
     aggregate_count = _int_value(raw.get("aggregate_region_count"))
+    future_period_excluded = False
+    if latest_period and not is_publishable_transaction_period(latest_period, as_of=as_of):
+        future_period_excluded = True
+        latest_period = None
+        earliest_period = None
+        aggregate_count = 0
     raw_data_status = raw.get("data_status")
     if raw_data_status is None:
         data_status = (
@@ -998,6 +1112,8 @@ def _status_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
     built_at = _date_time_text(raw.get("built_at"))
     read_model_status = "ready"
     if refresh_status != "ready":
+        read_model_status = "unavailable"
+    elif future_period_excluded:
         read_model_status = "unavailable"
     elif aggregate_count <= 0:
         read_model_status = "missing"
@@ -1018,7 +1134,13 @@ def _status_from_raw(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], status: dict[str, Any]) -> dict[str, Any]:
+def _summary_from_row(
+    row: dict[str, Any],
+    history_rows: list[dict[str, Any]],
+    status: dict[str, Any],
+    *,
+    as_of: date | datetime | None = None,
+) -> dict[str, Any]:
     if not isinstance(row, dict) or not isinstance(history_rows, list):
         return _no_data_summary(
             _optional_text(row.get("county")) if isinstance(row, dict) else "",
@@ -1029,6 +1151,12 @@ def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], s
     coverage_status = _direct_coverage_status(row.get("coverage_status") or status.get("coverage_status"))
     county = _optional_text(row.get("county")) or ""
     district = _optional_text(row.get("district")) or ""
+    if not is_publishable_transaction_period(row.get("period"), as_of=as_of):
+        return _unavailable_summary(
+            county,
+            district,
+            {**status, "data_status": "unavailable", "coverage_status": "coverage_unknown"},
+        )
     if coverage_status != "covered":
         return _unavailable_summary(county, district, {**status, "data_status": "unavailable", "coverage_status": coverage_status})
     if data_status != "available":
@@ -1048,7 +1176,11 @@ def _summary_from_row(row: dict[str, Any], history_rows: list[dict[str, Any]], s
         or not source_name
     ):
         return _no_data_summary(county, district, {**status, "data_status": "no_data"})
-    history = [_history_item(item) for item in history_rows[:6]]
+    history = [
+        _history_item(item)
+        for item in history_rows
+        if not is_future_transaction_period(item.get("period"), as_of=as_of)
+    ][:6]
     return {
         "city": county,
         "county": county,
@@ -1557,19 +1689,38 @@ create table if not exists market_read_model_metadata (
 """
 
 READ_MODEL_STATUS_SQL = """
-select read_model_version, refresh_status, coverage_status, source_name, source_updated_at,
-       earliest_period, latest_period, available_county_count, available_district_count,
-       aggregate_region_count,
+with eligible as (
+  select min(period)::varchar(7) as earliest_period,
+         max(period)::varchar(7) as latest_period,
+         max(source_updated_at)::date as source_updated_at,
+         count(distinct county)::integer as available_county_count,
+         count(distinct (county, district))::integer as available_district_count,
+         count(*)::integer as aggregate_region_count
+  from market_district_period_aggregates
+  where data_status = 'available'
+    and (
+      replace(regexp_replace(trim(county), '\\s+', '', 'g'), '臺', '台') || '|' ||
+      replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台')
+    ) = any(%s)
+    and period <= %s
+)
+select metadata.read_model_version, metadata.refresh_status,
+       case when eligible.aggregate_region_count > 0 then metadata.coverage_status else 'unknown' end as coverage_status,
+       metadata.source_name, eligible.source_updated_at,
+       eligible.earliest_period, eligible.latest_period,
+       eligible.available_county_count, eligible.available_district_count,
+       eligible.aggregate_region_count,
        case
-         when refresh_status = 'ready'
-          and aggregate_region_count > 0
-          and latest_period is not null
+         when metadata.refresh_status = 'ready'
+          and eligible.aggregate_region_count > 0
+          and eligible.latest_period is not null
          then 'available'
          else 'unavailable'
        end as data_status,
-       built_at, caveat
-from market_read_model_metadata
-where read_model_version = 'v1'
+       metadata.built_at, metadata.caveat
+from market_read_model_metadata metadata
+cross join eligible
+where metadata.read_model_version = 'v1'
 limit 1
 """
 
@@ -1577,6 +1728,11 @@ READ_MODEL_CATALOG_SQL = """
 select distinct county
 from market_district_period_aggregates
 where data_status = 'available'
+  and (
+    replace(regexp_replace(trim(county), '\\s+', '', 'g'), '臺', '台') || '|' ||
+    replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台')
+  ) = any(%s)
+  and period <= %s
 order by county
 """
 
@@ -1584,6 +1740,11 @@ READ_MODEL_REGIONS_SQL = """
 select county, district, max(period) as latest_period
 from market_district_period_aggregates
 where data_status = 'available'
+  and (
+    replace(regexp_replace(trim(county), '\\s+', '', 'g'), '臺', '台') || '|' ||
+    replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台')
+  ) = any(%s)
+  and period <= %s
   and replace(trim(county), '臺', '台') = %s
 group by county, district
 order by district
@@ -1595,6 +1756,7 @@ select county, district, period, average_unit_price, transaction_count, record_c
 from market_district_period_aggregates
 where replace(trim(county), '臺', '台') = %s
   and trim(district) = %s
+  and period <= %s
 order by period desc
 limit 1
 """
@@ -1606,6 +1768,7 @@ from market_district_period_aggregates
 where replace(trim(county), '臺', '台') = %s
   and trim(district) = %s
   and period = %s
+  and period <= %s
 limit 1
 """
 
@@ -1615,11 +1778,12 @@ from market_district_period_aggregates
 where replace(trim(county), '臺', '台') = %s
   and trim(district) = %s
   and data_status = 'available'
+  and period <= %s
 order by period desc
 limit %s
 """
 
-_VALID_PLVR_WHERE = """
+_VALID_PLVR_BASE_WHERE = """
 source = 'official_plvr_opendata'
 and nullif(trim(city), '') is not null
 and nullif(trim(district), '') is not null
@@ -1628,8 +1792,14 @@ and unit_price_per_ping > 0
 and unit_price_per_ping <= 500
 and total_price > 0
 and area_ping > 0
+and (
+  replace(regexp_replace(trim(city), '\\s+', '', 'g'), '臺', '台') || '|' ||
+  replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台')
+) = any(%s)
 """
+_VALID_PLVR_WHERE = _VALID_PLVR_BASE_WHERE + "and transaction_period <= %s\n"
 _VALID_PLVR_WHERE_FORMAT = _VALID_PLVR_WHERE.replace("{", "{{").replace("}", "}}")
+_VALID_PLVR_BASE_WHERE_FORMAT = _VALID_PLVR_BASE_WHERE.replace("{", "{{").replace("}", "}}")
 
 _DIRECT_SUMMARY_SELECT = f"""
 select
@@ -1656,14 +1826,14 @@ limit 1
 
 DIRECT_SUMMARY_DISTRICT_LATEST_SQL = _DIRECT_SUMMARY_SELECT.format(
     district_expression="trim(district)",
-    district_filter="and trim(district) = %s",
+    district_filter="and replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台') = %s",
     period_filter="",
     district_group="trim(district)",
 )
 
 DIRECT_SUMMARY_DISTRICT_FOR_PERIOD_SQL = _DIRECT_SUMMARY_SELECT.format(
     district_expression="trim(district)",
-    district_filter="and trim(district) = %s",
+    district_filter="and replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台') = %s",
     period_filter="and transaction_period = %s",
     district_group="trim(district)",
 )
@@ -1697,7 +1867,7 @@ limit %s
 
 DIRECT_HISTORY_DISTRICT_SQL = _DIRECT_HISTORY_SELECT.format(
     valid_where=_VALID_PLVR_WHERE,
-    district_filter="and trim(district) = %s",
+    district_filter="and replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台') = %s",
 )
 
 DIRECT_HISTORY_COUNTY_SQL = _DIRECT_HISTORY_SELECT.format(
@@ -1706,8 +1876,9 @@ DIRECT_HISTORY_COUNTY_SQL = _DIRECT_HISTORY_SELECT.format(
 )
 
 _DIRECT_COVERAGE_SELECT = """
-select count(*)::integer as valid_market_candidate_count,
-       max(imported_at)::date as source_updated_at
+select count(*) filter (where transaction_period <= %s)::integer as valid_market_candidate_count,
+       count(*) filter (where transaction_period > %s)::integer as excluded_future_period_count,
+       max(imported_at) filter (where transaction_period <= %s)::date as source_updated_at
 from real_price_transactions
 where {valid_where}
   and replace(trim(city), '臺', '台') = %s
@@ -1715,12 +1886,12 @@ where {valid_where}
 """
 
 DIRECT_COVERAGE_DISTRICT_SQL = _DIRECT_COVERAGE_SELECT.format(
-    valid_where=_VALID_PLVR_WHERE,
-    district_filter="and trim(district) = %s",
+    valid_where=_VALID_PLVR_BASE_WHERE,
+    district_filter="and replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台') = %s",
 )
 
 DIRECT_COVERAGE_COUNTY_SQL = _DIRECT_COVERAGE_SELECT.format(
-    valid_where=_VALID_PLVR_WHERE,
+    valid_where=_VALID_PLVR_BASE_WHERE,
     district_filter="",
 )
 

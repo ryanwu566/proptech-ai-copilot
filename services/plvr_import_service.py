@@ -6,9 +6,16 @@ import csv
 import hashlib
 import re
 from collections import Counter
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, Iterable
+
+from services.plvr_data_integrity import (
+    FUTURE_TRANSACTION_PERIOD,
+    INVALID_CITY_DISTRICT_PAIR,
+    is_future_transaction_period,
+)
+from services.taiwan_admin_registry import normalize_market_region
 
 
 PING_PER_SQM = 0.3025
@@ -116,6 +123,7 @@ def normalize_rows(
     since: str = "",
     until: str = "",
     limit: int | None = None,
+    as_of: date | datetime | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Normalize rows and return accepted rows plus a transparent QC report."""
 
@@ -130,7 +138,11 @@ def normalize_rows(
     total = 0
     for row in rows:
         total += 1
-        normalized, reason = normalize_row(row, city_hint=str(row.get("__plvr_city_hint") or city_hint))
+        normalized, reason = normalize_row(
+            row,
+            city_hint=str(row.get("__plvr_city_hint") or city_hint),
+            as_of=as_of,
+        )
         if reason:
             exclusions[reason] += 1
             continue
@@ -172,11 +184,30 @@ def normalize_rows(
     }
 
 
-def normalize_row(row: dict[str, Any], *, city_hint: str = "") -> tuple[dict[str, Any] | None, str | None]:
+def normalize_row(
+    row: dict[str, Any],
+    *,
+    city_hint: str = "",
+    as_of: date | datetime | None = None,
+) -> tuple[dict[str, Any] | None, str | None]:
     """Normalize one official row, returning an exclusion reason when invalid."""
 
     address = _text(row, "address_text")
-    city = _text(row, "city") or city_hint.strip() or _city_from_address(address)
+    explicit_city = _text(row, "city")
+    hint_city = city_hint.strip()
+    address_city = _city_from_address(address)
+    # A row-level city is authoritative. When it is absent, conflicting
+    # filename/scope and address evidence must fail closed for shared names.
+    if not explicit_city and hint_city and address_city:
+        hint_region = normalize_market_region(hint_city)
+        address_region = normalize_market_region(address_city)
+        if (
+            hint_region.valid
+            and address_region.valid
+            and hint_region.county != address_region.county
+        ):
+            return None, INVALID_CITY_DISTRICT_PAIR
+    city = explicit_city or hint_city or address_city
     district = _text(row, "district")
     road = parse_road(address)
     period = roc_date_to_period(_text(row, "transaction_date"))
@@ -188,8 +219,13 @@ def normalize_row(row: dict[str, Any], *, city_hint: str = "") -> tuple[dict[str
         return None, "non_building_transaction"
     if not city or not district or not road:
         return None, "missing_location"
+    region = normalize_market_region(city, district)
+    if not region.valid or not region.district:
+        return None, INVALID_CITY_DISTRICT_PAIR
     if not period:
         return None, "invalid_transaction_date"
+    if is_future_transaction_period(period, as_of=as_of):
+        return None, FUTURE_TRANSACTION_PERIOD
     if area_sqm <= 0:
         return None, "invalid_area"
     if total_price_ntd <= 0:
@@ -204,8 +240,8 @@ def normalize_row(row: dict[str, Any], *, city_hint: str = "") -> tuple[dict[str
     building_type = _text(row, "building_type") or "未分類"
     normalized = {
         "transaction_period": period,
-        "city": city,
-        "district": district,
+        "city": city.strip(),
+        "district": district.strip(),
         "road": road,
         "address_text": address,
         "building_type": building_type,
