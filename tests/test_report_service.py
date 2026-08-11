@@ -44,7 +44,7 @@ def test_html_report_contains_required_sections() -> None:
 
 def test_tax_analysis_can_be_reloaded_from_history() -> None:
     case = make_case("HISTORY-001")
-    analyze_tax_case(case)
+    analyze_tax_case(case, persist=True)
     row = next(row for row in list_tax_analyses() if row["case_id"] == case.case_id)
     stored = get_tax_analysis(row["id"])
     assert stored is not None

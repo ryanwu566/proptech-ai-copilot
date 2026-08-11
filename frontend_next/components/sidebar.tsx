@@ -3,13 +3,12 @@
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { TranslationKey } from "@/lib/experience-i18n";
 
-export type AppPage = "儀表板" | "TaxOracle" | "Market Insight Lite" | "Map Insight Lite" | "房價估算" | "Aegis-Credit Lite" | "Terrain Risk" | "歷史案件" | "Closed Pilot" | "Professional Review";
+export type AppPage = "儀表板" | "TaxOracle" | "Market Insight Lite" | "Map Insight Lite" | "房價估算" | "Aegis-Credit Lite" | "Terrain Risk" | "Closed Pilot" | "Professional Review";
 
 type NavigationGroup = { labelKey: TranslationKey; items: { page: AppPage; labelKey: TranslationKey }[] };
 const groups: NavigationGroup[] = [
   { labelKey: "nav.core", items: [{ page: "儀表板", labelKey: "page.dashboard" }] },
   { labelKey: "nav.analysis", items: [{ page: "Map Insight Lite", labelKey: "page.map" }] },
-  { labelKey: "nav.system", items: [{ page: "歷史案件", labelKey: "page.history" }] },
   { labelKey: "nav.tools", items: [
     { page: "房價估算", labelKey: "page.valuation" },
     { page: "Terrain Risk", labelKey: "page.terrain" },

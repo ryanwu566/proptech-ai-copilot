@@ -9,7 +9,6 @@ import pandas as pd
 import streamlit as st
 
 from backend.db import health_check
-from backend.repositories.sqlite_repo import get_tax_analysis, list_tax_analyses
 from models.schemas import DISCLAIMER, TaxCase
 from rules.legal_risk_rules import summarize_legal_risk
 from rules.mortgage_rules import evaluate_mortgage_risk
@@ -121,11 +120,9 @@ def dashboard() -> None:
     cases = demo_cases()
     if cases is None:
         return
-    history_rows = list_tax_analyses()
-    cols = st.columns(3)
+    cols = st.columns(2)
     cols[0].metric("TaxOracle Demo Cases", len(cases))
-    cols[1].metric("歷史分析", len(history_rows))
-    cols[2].metric("系統狀態", "Ready")
+    cols[1].metric("系統狀態", "Ready")
     st.subheader("Demo Mode / 競賽展示模式")
     st.info("三步驟完成展示：1. 選擇 demo case → 2. 執行 TaxOracle 分析 → 3. 下載 HTML report")
     buttons = st.columns(3)
@@ -247,7 +244,7 @@ def tax_oracle() -> None:
     if submitted:
         try:
             case = TaxCase(case_id=case_id, client_name=client_name, **values)
-            st.session_state["latest_tax_result"] = analyze_tax_case(case)
+            st.session_state["latest_tax_result"] = analyze_tax_case(case, persist=False)
         except Exception as exc:
             st.error(f"分析失敗，請確認輸入資料後重試。詳細資訊：{exc}")
     if "latest_tax_result" in st.session_state:
@@ -333,27 +330,6 @@ def lex_prop() -> None:
     st.info("展示版，不代表正式判斷。只比對 city、district、road_masked、community，不輸出完整門牌、姓名或個資。")
 
 
-def history() -> None:
-    """Render history rows and reload stored structured results."""
-
-    render_hero("History", "SQLite 保存的 TaxOracle 分析紀錄")
-    rows = list_tax_analyses()
-    if not rows:
-        st.info("尚無歷史案件。請先至 TaxOracle 執行分析。")
-        return
-    st.dataframe(rows, width="stretch", hide_index=True)
-    options = {f"#{row['id']} {row['client_name']} / {row['case_id']}": row["id"] for row in rows}
-    selected_label = st.selectbox("選擇歷史案件", list(options))
-    if st.button("重新載入歷史分析"):
-        record = get_tax_analysis(options[selected_label])
-        if record is None:
-            st.error("找不到該筆歷史案件，請重新整理頁面。")
-        else:
-            st.session_state["history_tax_result"] = record["payload"]
-    if "history_tax_result" in st.session_state:
-        render_tax_result(st.session_state["history_tax_result"])
-
-
 def main() -> None:
     """Configure and run the Streamlit application."""
 
@@ -370,7 +346,6 @@ def main() -> None:
         "Market Insight Lite": market_insight,
         "Aegis-Credit": aegis_credit,
         "LexProp": lex_prop,
-        "歷史案件": history,
     }
     with st.sidebar:
         st.header("PropTech AI Copilot")

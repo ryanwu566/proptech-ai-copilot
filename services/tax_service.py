@@ -12,8 +12,8 @@ from rules.tax_rules import evaluate_tax_case
 from services.llm_service import generate_ai_explanation
 
 
-def analyze_tax_case(case: TaxCase, persist: bool = True) -> dict[str, Any]:
-    """Run deterministic analysis, attach explanation, and optionally persist."""
+def analyze_tax_case(case: TaxCase, persist: bool = False) -> dict[str, Any]:
+    """Run deterministic analysis and persist only through explicit opt-in."""
 
     result = evaluate_tax_case(case)
     payload = result.to_dict()
