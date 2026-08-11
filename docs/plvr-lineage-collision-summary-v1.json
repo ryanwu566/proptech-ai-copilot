@@ -1,0 +1,241 @@
+{
+  "schema_version": "plvr-lineage-collision-resolution-v1",
+  "planner_version": "phase-2b-1.5-v1",
+  "production_snapshot_at": "2026-08-11T15:33:34+08:00",
+  "production_reverified_at": "2026-08-11T15:41:34+08:00",
+  "main_commit_sha": "8511576e2de1e4a17433056f5323793e22b5767d",
+  "baseline": {
+    "official_rows": 451672,
+    "canonical_valid_rows": 325585,
+    "canonical_invalid_rows": 126087,
+    "future_rows": 1,
+    "aggregate_rows": 11018,
+    "future_aggregate_rows": 1
+  },
+  "lineage_inventory": {
+    "transaction_primary_key": {
+      "field": "real_price_transactions.id",
+      "coverage_count": 451672,
+      "coverage_percent": 100.0,
+      "immutable_source_identity": false,
+      "purpose": "stable database row locator with optimistic preconditions"
+    },
+    "source": {
+      "field": "real_price_transactions.source",
+      "coverage_count": 451672,
+      "coverage_percent": 100.0,
+      "authoritative": false,
+      "reason": "provider label does not identify an artifact or raw row"
+    },
+    "imported_at": {
+      "field": "real_price_transactions.imported_at",
+      "coverage_count": 451672,
+      "coverage_percent": 100.0,
+      "exact_import_run_timestamp_match_count": 154,
+      "exact_match_invalid_row_count": 0,
+      "authoritative": false
+    },
+    "dedupe_key": {
+      "field": "real_price_transactions.dedupe_key",
+      "coverage_count": 451672,
+      "coverage_percent": 100.0,
+      "distinct_count": 451672,
+      "sha256_shaped_count": 451672,
+      "algorithm_version_persisted": false,
+      "official_transaction_id_persisted": false
+    },
+    "raw_note": {
+      "field": "real_price_transactions.raw_note",
+      "non_blank_count": 0,
+      "coverage_percent": 0.0,
+      "authoritative": false
+    },
+    "import_runs": {
+      "table": "valuation_import_runs",
+      "run_count": 57,
+      "completed_run_count": 57,
+      "json_note_count": 56,
+      "notes_with_file_summaries": 56,
+      "all_file_summary_runs_are_multi_file": true,
+      "file_summary_entry_count": 5113,
+      "distinct_city_hint_count": 22,
+      "artifact_hash_present": false,
+      "release_id_present": false,
+      "transaction_foreign_key_present": false,
+      "authoritative": false
+    },
+    "official_pipeline_tables_in_production": false,
+    "source_artifact_found_in_repo_or_local_project_data": false,
+    "artifact_recovery_status": "AUTHORITATIVE_ARTIFACT_UNAVAILABLE"
+  },
+  "invalid_row_lineage": {
+    "COMPLETE": 0,
+    "PARTIAL": 126087,
+    "MISSING": 0,
+    "CONFLICTING": 0,
+    "partial_reason": "source, imported_at, and opaque dedupe metadata exist, but no invalid row deterministically joins to an import run, artifact, official file, or official transaction identity"
+  },
+  "repair_ready_cohorts": {
+    "AUTHORITATIVE_UPDATE_READY": 0,
+    "PROVABLE_DUPLICATE_READY": 0,
+    "AUTHORITATIVE_REIMPORT_READY": 0,
+    "total_scoped_ready": 0
+  },
+  "remaining": {
+    "supporting_only": 109236,
+    "ambiguous": 5870,
+    "unresolved": 10981,
+    "no_collision_supporting_only": 51689
+  },
+  "collision_resolution": {
+    "total": 57547,
+    "exact_duplicate": {
+      "total": 57350,
+      "DUPLICATE_IDENTITY_A": 0,
+      "DUPLICATE_IDENTITY_B": 0,
+      "DUPLICATE_IDENTITY_C": 57350,
+      "DUPLICATE_IDENTITY_CONFLICT": 0,
+      "PROVABLE_DUPLICATE_READY": 0,
+      "PROBABLE_DUPLICATE_ONLY": 57350,
+      "CONFLICTING_LINEAGE": 0,
+      "UNRESOLVED": 0
+    },
+    "natural_key": {
+      "total": 3,
+      "cases": [
+        {
+          "case_reference": "phase2b1-natural-collision-01",
+          "current_geography": "not_committed_in_aggregate_only_phase2b1_artifact",
+          "proposed_geography": "not_committed_in_aggregate_only_phase2b1_artifact",
+          "collision_target": "runtime_counterpart_not_materialized",
+          "differing_field_categories": [
+            "building_age_or_floor_identity"
+          ],
+          "lineage": "PARTIAL",
+          "safest_disposition": "UNRESOLVED_COLLISION"
+        },
+        {
+          "case_reference": "phase2b1-natural-collision-02",
+          "current_geography": "not_committed_in_aggregate_only_phase2b1_artifact",
+          "proposed_geography": "not_committed_in_aggregate_only_phase2b1_artifact",
+          "collision_target": "runtime_counterpart_not_materialized",
+          "differing_field_categories": [
+            "building_age_or_floor_identity"
+          ],
+          "lineage": "PARTIAL",
+          "safest_disposition": "UNRESOLVED_COLLISION"
+        },
+        {
+          "case_reference": "phase2b1-natural-collision-03",
+          "current_geography": "not_committed_in_aggregate_only_phase2b1_artifact",
+          "proposed_geography": "not_committed_in_aggregate_only_phase2b1_artifact",
+          "collision_target": "runtime_counterpart_not_materialized",
+          "differing_field_categories": [
+            "building_age_or_floor_identity"
+          ],
+          "lineage": "PARTIAL",
+          "safest_disposition": "UNRESOLVED_COLLISION"
+        }
+      ],
+      "ready_count": 0
+    },
+    "dedupe_or_ambiguous": {
+      "total": 194,
+      "identity_shape": {
+        "same_official_identity": 0,
+        "probable_duplicate": 191,
+        "key_only_collision": 3,
+        "conflicting_transaction": 0
+      },
+      "safety_disposition": {
+        "ready": 0,
+        "ambiguous": 191,
+        "unresolved": 3
+      },
+      "breakdown_method": "Phase 2B-1 collision totals reconciled against a SELECT-only natural-fact counterpart count of 57544; no official identity is persisted"
+    }
+  },
+  "dedupe_forensics": {
+    "git_history_algorithms": [
+      "legacy_official_id_or_fact_hash",
+      "geography_sensitive_v2"
+    ],
+    "production_algorithm_version_field_present": false,
+    "production_original_transaction_id_present": false,
+    "current_no_serial_v2_reconstruction_match_count": 0,
+    "foreign_key_reference_count": 0,
+    "database_stable_row_locator": "real_price_transactions.id",
+    "optimistic_identity": "id + source + current geography + dedupe_key + before_hash",
+    "DEDUPE_REBUILD_AUTHORITATIVE": 0,
+    "DEDUPE_REBUILD_DERIVABLE": 0,
+    "DEDUPE_LEGACY_UNKNOWN": 126087,
+    "DEDUPE_COLLISION": 0,
+    "blocked_count": 126087
+  },
+  "batch_signatures": [
+    {
+      "import_date": "2026-06-07",
+      "invalid_rows": 115113,
+      "classification": "MIXED_BAD_BATCH",
+      "authoritative_artifact_link": false
+    },
+    {
+      "import_date": "2026-06-08",
+      "invalid_rows": 10974,
+      "classification": "PARTIAL_LINEAGE_BATCH",
+      "authoritative_artifact_link": false
+    }
+  ],
+  "top_mapping_lineage": {
+    "shared_import_date": "2026-06-07",
+    "invalid_rows_with_exact_import_run_timestamp_match": 0,
+    "shared_artifact_proven": false,
+    "single_bad_import_run_proven": false,
+    "conclusion": "strong batch corruption signature, but not authoritative row or artifact lineage"
+  },
+  "future_row": {
+    "region": "Taipei City / Nangang District",
+    "period": "2026-10",
+    "classification": "UNRESOLVED",
+    "exact_import_run_timestamp_match": false,
+    "raw_note_present": false,
+    "official_artifact_present": false,
+    "recommended_action": "retain and exclude from publishable output pending authoritative artifact recovery; do not delete"
+  },
+  "scoped_manifest": {
+    "schema_version": "plvr-scoped-repair-cohort-v1",
+    "planner_mode": "read_only",
+    "baseline": {
+      "production_snapshot_at": "2026-08-11T15:33:34+08:00",
+      "main_commit_sha": "8511576e2de1e4a17433056f5323793e22b5767d",
+      "official_row_count": 451672,
+      "invalid_row_count": 126087
+    },
+    "baseline_hash": "49165c39a934cfce1aed2b3c384905eb91c355cf39d09196402b712f3e9e7086",
+    "entries": [],
+    "row_count": 0,
+    "contains_raw_addresses": false,
+    "contains_credentials": false,
+    "manifest_sha256": "a13b8740c19215f2590ad44761341910a17d3e34047971fc5f78f1f4345c0a0c"
+  },
+  "scoped_simulation": {
+    "baseline_transactions": 451672,
+    "repair_ready_rows": 0,
+    "update_candidates": 0,
+    "duplicate_removal_candidates": 0,
+    "reimport_candidates": 0,
+    "projected_transaction_rows": 451672,
+    "projected_invalid_rows": 126087,
+    "remaining_collisions": 57547,
+    "future_rows_remaining": 1,
+    "affected_aggregate_scopes": 0
+  },
+  "production_safety": {
+    "mode": "SELECT_ONLY",
+    "rows_changed": 0,
+    "migration_applied": false,
+    "import_executed": false,
+    "aggregate_rebuilt": false
+  },
+  "gate": "NOT_READY_FOR_ANY_PHASE_2B2"
+}
