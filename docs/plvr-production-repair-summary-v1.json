@@ -1,0 +1,121 @@
+{
+  "as_of_period": "2026-08",
+  "baseline": {
+    "aggregate_rows": 11018,
+    "canonical_invalid_rows": 126087,
+    "canonical_valid_rows": 325585,
+    "future_aggregate_rows": 1,
+    "future_rows": 1,
+    "invalid_rate_percent": 27.9156,
+    "official_rows": 451672
+  },
+  "collision_classification": {
+    "AMBIGUOUS_COLLISION": 194,
+    "EXACT_DUPLICATE_AFTER_REPAIR": 57350,
+    "NATURAL_KEY_COLLISION": 3,
+    "NO_COLLISION": 51689,
+    "total_collision_candidates": 57547
+  },
+  "decision_gate": {
+    "blockers": [
+      "row_level_source_artifact_or_import_run_lineage_is_not_persisted",
+      "collision_disposition_requires_operator_approval",
+      "dedupe_key_cannot_be_reconstructed_authoritatively",
+      "future_source_semantics_are_unresolved"
+    ],
+    "status": "NOT_READY_FOR_PHASE_2B2"
+  },
+  "dedupe_dependency": {
+    "foreign_key_references_found": false,
+    "geography_in_key": true,
+    "regeneration_status": "blocked_without_authoritative_source_identifier",
+    "source_transaction_identifier_persisted": false,
+    "unique_index": "source_and_dedupe_key"
+  },
+  "future": {
+    "aggregate_lineage_matches": true,
+    "classification": "UNRESOLVED",
+    "future_aggregate_rows": 1,
+    "future_transaction_rows": 1,
+    "period": "2026-10",
+    "recommended_action": "quarantine_pending_authoritative_source_verification",
+    "region": "Taipei City / Nangang District",
+    "source": "official_plvr_opendata"
+  },
+  "geography_classification": {
+    "AMBIGUOUS": 5870,
+    "REPAIR_WITH_SUPPORTING_EVIDENCE": 109236,
+    "SAFE_AUTOMATIC_REPAIR": 0,
+    "SOURCE_CORRUPT_OR_UNRESOLVED": 10981
+  },
+  "grouping": {
+    "affected_target_period_scopes": 2149,
+    "by_import_run": {
+      "status": "unavailable_no_row_level_link"
+    },
+    "by_import_date": [
+      {
+        "ambiguous": 5870,
+        "date": "2026-06-07",
+        "supporting": 109236,
+        "unresolved": 7
+      },
+      {
+        "ambiguous": 0,
+        "date": "2026-06-08",
+        "supporting": 0,
+        "unresolved": 10974
+      }
+    ],
+    "by_source": [
+      {
+        "count": 126087,
+        "source": "official_plvr_opendata"
+      }
+    ],
+    "largest_period_groups": [
+      {"count": 8299, "period": "2024-03"},
+      {"count": 7657, "period": "2024-07"},
+      {"count": 7504, "period": "2024-01"},
+      {"count": 7427, "period": "2024-06"},
+      {"count": 7250, "period": "2024-04"},
+      {"count": 6402, "period": "2024-05"},
+      {"count": 6162, "period": "2025-03"}
+    ],
+    "top_mappings": [
+      {"count": 5056, "current": "Tainan City / Zhongli District", "proposed": "Taoyuan City / Zhongli District"},
+      {"count": 5003, "current": "Tainan City / Taoyuan District", "proposed": "Taoyuan City / Taoyuan District"},
+      {"count": 4574, "current": "Tainan City / Sanmin District", "proposed": "Kaohsiung City / Sanmin District"},
+      {"count": 4514, "current": "Tainan City / Beitun District", "proposed": "Taichung City / Beitun District"},
+      {"count": 3786, "current": "Tainan City / Fengshan District", "proposed": "Kaohsiung City / Fengshan District"},
+      {"count": 3707, "current": "Tainan City / Nanzi District", "proposed": "Kaohsiung City / Nanzi District"},
+      {"count": 3613, "current": "Tainan City / Xitun District", "proposed": "Taichung City / Xitun District"},
+      {"count": 2864, "current": "Tainan City / Guishan District", "proposed": "Taoyuan City / Guishan District"},
+      {"count": 2843, "current": "Tainan City / Zuoying District", "proposed": "Kaohsiung City / Zuoying District"}
+    ]
+  },
+  "manifest": {
+    "committed_row_level_manifest": false,
+    "contains_credentials": false,
+    "contains_raw_addresses": false,
+    "materialization": "runtime_only_access_controlled",
+    "row_count_if_materialized": 126087
+  },
+  "planner_mode": "select_only_dry_run",
+  "production_rows_changed": 0,
+  "production_snapshot_at": "2026-08-11T13:49:33+08:00",
+  "production_reverified_at": "2026-08-11T14:32:35+08:00",
+  "reconciliation": {
+    "aggregate_rows_after_without_deduplication": 7729,
+    "aggregate_rows_before": 11018,
+    "canonical_valid_rows_after_without_deduplication": 434821,
+    "canonical_valid_rows_before": 325585,
+    "future_rows_after": 1,
+    "publishable_canonical_rows_after": 434820,
+    "remaining_invalid_rows": 16851,
+    "transaction_rows_after": 451672,
+    "transaction_rows_before": 451672
+  },
+  "schema_version": "plvr-production-repair-plan-v1",
+  "summary_checksum": "4d62e96536d41f59411acd2683c3b066f4512fa2c9c9ff1841a843f1bd2d64df"
+}
