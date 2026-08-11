@@ -13,7 +13,8 @@ def test_market_visual_model_preserves_safe_states() -> None:
     assert '"unavailable"' in state_helper
     assert "getMarketDisplayState" in helper
     assert 'model.state === "no_data"' in page
-    assert "noDataMessage" in page
+    assert "labels.noData" in page
+    assert '"network_error"' in page
     assert "evidenceDisclosure" in page
 
 def test_partial_and_stale_states_are_disclosed_without_claiming_freshness() -> None:

@@ -100,6 +100,8 @@ export type MarketResult = {
   source_updated_at: string | null;
   coverage_status: "covered" | "not_covered" | "coverage_unknown" | "nationwide" | "partial" | "unknown";
   data_status: "available" | "no_data" | "unavailable" | "incomplete" | "invalid";
+  reason_code?: string | null;
+  support_reference?: string | null;
   caveat: string;
   disclaimer: string;
   source_file_hash?: string | null;

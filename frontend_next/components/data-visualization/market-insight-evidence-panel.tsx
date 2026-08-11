@@ -1,9 +1,10 @@
 import type { MarketResult } from "@/lib/api";
-import { getMarketMetricPresentation, type MarketInsightVisualModel, type MarketDistributionPoint } from "@/lib/market-insight-visualization";
+import { formatMarketPeriodChange, getMarketMetricPresentation, type MarketInsightVisualModel, type MarketDistributionPoint } from "@/lib/market-insight-visualization";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { DetailDisclosure } from "@/components/detail-disclosure";
 import { MetricTile } from "@/components/product-ui";
 import { buildMarketInsightSnapshot } from "@/lib/market-insight-snapshot";
+import { formatMarketCopy, getMarketInsightCopy, type MarketInsightCopy } from "@/lib/market-insight-copy";
 
 type Locale = "zh-TW" | "en" | "ja" | "ko";
 
@@ -55,6 +56,12 @@ function formatChange(value: number | null | undefined): string {
   return typeof value === "number" && Number.isFinite(value) ? `${value > 0 ? "+" : ""}${(value * 100).toFixed(1)}%` : "—";
 }
 
+function formatDerivedNumber(value: number | null | undefined, locale: Locale): string {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "—";
+}
+
 function DistributionTable({ title, items }: { title: string; items: MarketDistributionPoint[] }) {
   if (!items.length) return null;
   const total = items.reduce((sum, item) => sum + item.count, 0);
@@ -71,9 +78,12 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
   const { locale: rawLocale } = useExperienceLocale();
   const locale = (rawLocale in LABELS ? rawLocale : "zh-TW") as Locale;
   const labels = LABELS[locale];
+  const analysisLabels = getMarketInsightCopy(locale);
   const presentation = getMarketMetricPresentation(result);
+  const stats = model.trendStats;
   const snapshot = buildMarketInsightSnapshot(result);
-  const hasAnalysisMetadata = presentation.periodChange !== null
+  const hasAnalysisMetadata = presentation.medianUnitPrice !== null
+    || presentation.medianTotalPrice !== null
     || presentation.yearOverYearChange !== null
     || presentation.inclusionCount !== null
     || presentation.exclusionCount !== null;
@@ -89,15 +99,25 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
     || model.buildingTypeDistribution.length > 0
     || model.ageBandDistribution.length > 0;
   return <div className="space-y-4">
-    <div data-testid="market-primary-metrics" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div data-testid="market-primary-metrics" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {presentation.averageUnitPrice !== null && <MetricTile label={labels.averageDirect} value={formatNumber(presentation.averageUnitPrice, locale)} />}
-      {presentation.transactionCount !== null && <MetricTile label={labels.count} value={formatNumber(presentation.transactionCount, locale)} note={presentation.period ? `${labels.period}：${presentation.period}` : undefined} />}
-      {presentation.medianUnitPrice !== null && <MetricTile label={labels.median} value={formatNumber(presentation.medianUnitPrice, locale)} />}
-      {presentation.medianTotalPrice !== null && <MetricTile label={labels.medianTotal} value={formatNumber(presentation.medianTotalPrice, locale)} />}
+      {presentation.transactionCount !== null && <MetricTile label={labels.count} value={`${formatNumber(presentation.transactionCount, locale)} ${labels.countUnit}`} />}
+      {presentation.period && <MetricTile label={labels.period} value={presentation.period} />}
     </div>
+    {stats.periodCount > 0 && <section data-testid="market-derived-stats" aria-label={analysisLabels.summary} className="rounded-xl border border-stone-200 bg-stone-50 p-3">
+      <h3 className="text-xs font-bold text-slate-800">{analysisLabels.summary}</h3>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {stats.periodChange !== null && <MetaField label={analysisLabels.periodComparison} value={formatMarketPeriodChange(stats.periodChange)} />}
+        {stats.averageUnitPrice !== null && <MetaField label={stats.periodCount === 6 ? analysisLabels.recentAverageSix : formatMarketCopy(analysisLabels.recentAverageN, { count: stats.periodCount })} value={`${formatDerivedNumber(stats.averageUnitPrice, locale)} ${analysisLabels.unitWanPerPing}`} />}
+        {stats.maxPoint && <MetaField label={analysisLabels.highestAverage} value={`${formatDerivedNumber(stats.maxPoint.average_unit_price, locale)} ${analysisLabels.unitWanPerPing} · ${stats.maxPoint.period}`} />}
+        {stats.minPoint && <MetaField label={analysisLabels.lowestAverage} value={`${formatDerivedNumber(stats.minPoint.average_unit_price, locale)} ${analysisLabels.unitWanPerPing} · ${stats.minPoint.period}`} />}
+        {stats.totalTransactions !== null && <MetaField label={stats.periodCount === 6 ? analysisLabels.recentTransactionsSix : formatMarketCopy(analysisLabels.recentTransactionsN, { count: stats.periodCount })} value={`${formatNumber(stats.totalTransactions, locale)} ${analysisLabels.countUnit}`} />}
+      </div>
+    </section>}
     <button type="button" onClick={() => window.print()} className="rounded-lg border border-cyan-700 px-3 py-2 text-xs font-bold text-cyan-800 hover:bg-cyan-50 print:hidden">{labels.print}</button>
     {hasAnalysisMetadata && <div className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
-      {presentation.periodChange !== null && <MetaField label={labels.change} value={formatChange(presentation.periodChange)} />}
+      {presentation.medianUnitPrice !== null && <MetaField label={labels.median} value={formatNumber(presentation.medianUnitPrice, locale)} />}
+      {presentation.medianTotalPrice !== null && <MetaField label={labels.medianTotal} value={formatNumber(presentation.medianTotalPrice, locale)} />}
       {presentation.yearOverYearChange !== null && <MetaField label={labels.yoy} value={formatChange(presentation.yearOverYearChange)} />}
       {presentation.inclusionCount !== null && <MetaField label={labels.included} value={formatNumber(presentation.inclusionCount, locale)} />}
       {presentation.exclusionCount !== null && <MetaField label={labels.excluded} value={formatNumber(presentation.exclusionCount, locale)} />}
@@ -106,7 +126,7 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
       {presentation.period && <p><strong>{labels.period}:</strong> {presentation.period}</p>}
       {presentation.sourceName && <p><strong>{labels.source}:</strong> {presentation.sourceName}</p>}
       {presentation.sourceUpdatedAt && <p><strong>{labels.sourceUpdated}:</strong> {presentation.sourceUpdatedAt}</p>}
-      {presentation.coverageStatus && <p><strong>{labels.coverage}:</strong> {formatCoverage(presentation.coverageStatus, labels)}</p>}
+      {presentation.coverageStatus && <p><strong>{labels.coverage}:</strong> {formatCoverage(presentation.coverageStatus, analysisLabels)}</p>}
       {presentation.freshnessStatus && <p><strong>{labels.freshness}:</strong> {presentation.freshnessStatus}</p>}
       {presentation.sampleStatus && <p><strong>{labels.sample}:</strong> {presentation.sampleStatus}</p>}
     </div>}
@@ -114,6 +134,7 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
       <h4 id="market-history-heading" className="text-xs font-bold text-slate-800">{labels.history}</h4>
       <div className="mt-2 max-w-full overflow-x-auto">
         <table data-testid="market-history-table" className="w-full min-w-[480px] text-left text-xs">
+          <caption className="sr-only">{analysisLabels.history}</caption>
           <thead><tr className="bg-stone-50"><th className="p-2">{labels.period}</th><th className="p-2">{labels.historyAverage}</th><th className="p-2">{labels.historyCount}</th></tr></thead>
           <tbody>{model.history.map((point) => <tr key={point.period} className="border-t border-stone-100"><td className="p-2">{point.period}</td><td className="p-2">{formatNumber(point.average_unit_price, locale)}</td><td className="p-2">{formatNumber(point.transaction_count, locale)} {labels.countUnit}</td></tr>)}</tbody>
         </table>
@@ -150,7 +171,7 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
       {presentation.medianTotalPrice !== null && <p>{labels.medianTotal}: {formatNumber(presentation.medianTotalPrice, locale)}</p>}
       {presentation.sourceName && <p>{labels.source}: {presentation.sourceName}</p>}
       {presentation.sourceUpdatedAt && <p>{labels.sourceUpdated}: {presentation.sourceUpdatedAt}</p>}
-      {presentation.coverageStatus && <p>{labels.coverage}: {formatCoverage(presentation.coverageStatus, labels)}</p>}
+      {presentation.coverageStatus && <p>{labels.coverage}: {formatCoverage(presentation.coverageStatus, analysisLabels)}</p>}
       {presentation.freshnessStatus && <p>{labels.freshness}: {presentation.freshnessStatus}</p>}
       {presentation.sampleStatus && <p>{labels.sample}: {presentation.sampleStatus}</p>}
       <p>{result.disclaimer || labels.boundary}</p>
@@ -162,8 +183,10 @@ function MetaField({ label, value }: { label: string; value: string }) {
   return <div className="rounded-lg border border-stone-200 bg-white p-3"><p className="text-[10px] font-bold text-slate-500">{label}</p><p className="mt-1 font-bold text-slate-900">{value}</p></div>;
 }
 
-function formatCoverage(status: MarketResult["coverage_status"], labels: MarketLabels): string {
-  return status === "covered" || status === "nationwide" ? labels.covered : status.replaceAll("_", " ");
+function formatCoverage(status: MarketResult["coverage_status"], labels: MarketInsightCopy): string {
+  if (status === "covered" || status === "nationwide") return labels.covered;
+  if (status === "not_covered") return labels.notCovered;
+  return labels.coverageUnknown;
 }
 
 function regionLabel(locale: Locale): string {

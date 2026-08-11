@@ -31,13 +31,13 @@ def test_market_insight_queries_only_on_button_click_without_catalog_scan() -> N
     assert 'type="submit"' in component
     assert "useEffect" not in component
     assert "api.marketInsight(first.city" not in component
-    assert "api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal)" in component
+    assert "api.marketInsight(canonicalCounty, canonicalDistrict, undefined, controller.signal)" in component
     assert "AbortController" in component
     assert "marketQuerySeq.current === queryId" in component
     assert "if (querying) return" in component
     assert "controller.abort(\"market_request_timeout\")" in component
-    assert "attempt < 2" in component
-    assert "market_request_connection_failed" in component
+    assert "attempt < 2" not in component
+    assert "market_request_connection_failed" in PAGE
     assert "market_request_timeout" in component
     assert 'abort("market_request_cancelled")' in component
     assert "marketQuerySeq.current === queryId" in component
@@ -53,24 +53,24 @@ def test_market_insight_has_canonical_county_and_dependent_district_selectors() 
     assert "!canonicalCounty || !canonicalDistrict" in component
     assert "setDistrict(\"\")" in component
     assert "marketQuerySeq.current += 1" in component
-    assert 'setError(`${copy("common.selectCounty")}。`)' in component
+    assert 'setUiState("initial")' in component
 
 
 def test_market_insight_unavailable_state_hides_fake_metrics() -> None:
     component = _market_insight_component()
 
-    assert "getMarketDisplayState(result)" in component
-    assert 'marketDisplayState === "available"' in component
-    assert 'marketDisplayState === "no_data"' in component
-    assert 'copy("common.noData")' in component
-    assert 'copy("common.unavailable")' in component
+    assert "getMarketDisplayState(nextResult)" in component
+    assert 'setUiState(displayState)' in component
+    assert '"no_data"' in PAGE
+    assert 'labels.noData' in PAGE
+    assert 'labels.unavailable' in PAGE
+    assert '"network_error"' in PAGE
     assert 'copy("common.dataLimit")' in component
-    assert "nonAvailableEvidence" in component
     assert "data-market-failure-reason" in component
     assert "record_count ?? result.transaction_count ?? 0" not in component
     assert "livability_score" not in component
     assert "esg_lite_score" not in component
-    assert "trend" not in component
+    assert "forecast" not in component.lower()
 
 
 def test_market_insight_adds_no_browser_storage_or_url_state() -> None:

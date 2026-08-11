@@ -22,6 +22,7 @@ import { CaseCard, DecisionHero, ErrorState, LoadingState, MetricTile, ModuleTil
 import { api, BankInstitution, BankRateResult, downloadTaxReport, GoogleHealth, HoldingCostResult, LoanCalculationResult, MapNearbyResult, MapSearchResult, MarketRegion, MarketRegionCatalog, MarketRequestError, MarketRequestReason, MarketResult, MortgageRateReference, NearbyCategory, NearbyPlace, PropertySearchResult, TaxCase, TaxResult, ValuationDataStatus, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { getMarketDisplayState } from "@/lib/market-result-state";
 import { buildMarketInsightVisualModel } from "@/lib/market-insight-visualization";
+import { getMarketInsightCopy } from "@/lib/market-insight-copy";
 import { DataStatusBadge } from "@/components/data-visualization/data-status-badge";
 import { EvidenceDetails } from "@/components/data-visualization/evidence-details";
 import { EvidenceSummary } from "@/components/data-visualization/evidence-summary";
@@ -508,13 +509,28 @@ function marketDisplayJourneyStatus(result: MarketResult): LocationMarketDisplay
   return getMarketDisplayState(result) === "available" ? "available" : "unavailable";
 }
 
+type MarketInsightUiState = "initial" | "loading" | "available" | "no_data" | "unavailable" | "network_error";
+
+function isMarketNetworkFailure(reason: MarketRequestReason): boolean {
+  return reason === "market_request_cors_failed"
+    || reason === "market_request_timeout"
+    || reason === "market_request_connection_failed";
+}
+
+function safeMarketSupportReference(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const reference = value.trim();
+  return /^[A-Za-z0-9_-]{1,64}$/.test(reference) ? reference : null;
+}
+
 function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDistrict = "", onStatusChange, onResult }: { onMap: () => void; embedded?: boolean; initialCounty?: string; initialDistrict?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: MarketResult | null) => void }) {
   const { copy, locale } = useExperienceLocale();
+  const marketCopy = getMarketInsightCopy(locale);
   const [county, setCounty] = useState(initialCounty);
   const [district, setDistrict] = useState(initialDistrict);
   const [result, setResult] = useState<MarketResult>();
   const [querying, setQuerying] = useState(false);
-  const [error, setError] = useState("");
+  const [uiState, setUiState] = useState<MarketInsightUiState>("initial");
   const [marketFailureReason, setMarketFailureReason] = useState<MarketRequestReason | null>(null);
   const marketQuerySeq = useRef(0);
   const marketRequestController = useRef<AbortController | undefined>(undefined);
@@ -525,54 +541,45 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
   async function query() {
     if (querying) return;
     if (!canonicalCounty) {
-      setError(`${copy("common.selectCounty")}。`);
       setResult(undefined);
+      setUiState("initial");
       return;
     }
     if (!canonicalDistrict) {
-      setError(`${copy("common.selectDistrict")}。`);
       setResult(undefined);
+      setUiState("initial");
       return;
     }
     const queryId = marketQuerySeq.current + 1;
     marketQuerySeq.current = queryId;
     setQuerying(true);
+    setUiState("loading");
     onStatusChange?.("loading");
-    setError("");
     setMarketFailureReason(null);
     setResult(undefined);
-    let nextResult: MarketResult | undefined;
+    const controller = new AbortController();
+    marketRequestController.current = controller;
+    const timeout = window.setTimeout(() => controller.abort("market_request_timeout"), 20000);
     try {
-      let attempt = 0;
-      while (attempt < 2) {
-        attempt += 1;
-        const controller = new AbortController();
-        marketRequestController.current = controller;
-        const timeout = window.setTimeout(() => controller.abort("market_request_timeout"), 20000);
-        try {
-          nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict || undefined, undefined, controller.signal);
-          break;
-        } catch (caught) {
-          const reason = caught instanceof MarketRequestError ? caught.reasonCode : "market_request_unknown_failure";
-          const retryable = reason === "market_request_timeout" || reason === "market_request_connection_failed";
-          if (!(attempt < 2 && retryable && marketQuerySeq.current === queryId)) throw caught;
-        } finally {
-          window.clearTimeout(timeout);
-        }
-      }
-      if (!nextResult) throw new MarketRequestError("market_request_unknown_failure");
-      if (marketQuerySeq.current === queryId) { setResult(nextResult); onResult?.(nextResult); onStatusChange?.(marketDisplayJourneyStatus(nextResult)); }
+      const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict, undefined, controller.signal);
+      if (marketQuerySeq.current !== queryId) return;
+      const displayState = getMarketDisplayState(nextResult);
+      setResult(nextResult);
+      setUiState(displayState);
+      onResult?.(nextResult);
+      onStatusChange?.(marketDisplayJourneyStatus(nextResult));
     } catch (caught) {
       if (marketQuerySeq.current === queryId) {
         const reasonCode = caught instanceof MarketRequestError ? caught.reasonCode : "market_request_unknown_failure";
         setMarketFailureReason(reasonCode);
-        setError(copy("common.unavailable"));
+        setUiState(isMarketNetworkFailure(reasonCode) ? "network_error" : "unavailable");
         setResult(undefined);
         onResult?.(null);
         onStatusChange?.("unavailable");
       }
     } finally {
-      if (marketRequestController.current?.signal.aborted || marketQuerySeq.current === queryId) marketRequestController.current = undefined;
+      window.clearTimeout(timeout);
+      if (marketRequestController.current === controller) marketRequestController.current = undefined;
       if (marketQuerySeq.current === queryId) setQuerying(false);
     }
   }
@@ -591,7 +598,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     setResult(undefined);
     onResult?.(null);
     onStatusChange?.("not_started");
-    setError("");
+    setUiState("initial");
     setMarketFailureReason(null);
   }
 
@@ -603,25 +610,15 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     setResult(undefined);
     onResult?.(null);
     onStatusChange?.("not_started");
-    setError("");
+    setUiState("initial");
     setMarketFailureReason(null);
   }
 
-  const marketDisplayState = getMarketDisplayState(result);
-  const availableResult = marketDisplayState === "available";
-  const noDataResult = marketDisplayState === "no_data";
-  const noDataMessage = copy("common.noData");
-  const unavailableMessage = copy("common.unavailable");
-  const noAvailableDataMessage = copy("common.noData");
-  const unavailableStateMessage = copy("common.unavailable");
   const visualModel = buildMarketInsightVisualModel(result);
   const evidenceDisclosure = <><EvidenceSummary items={visualModel.evidence} /><EvidenceDetails items={visualModel.evidence} /></>;
-  const visualStateNonAvailable = visualModel.state !== "available";
-  const nonAvailableEvidence = !availableResult && visualStateNonAvailable ? evidenceDisclosure : null;
   return <div className="space-y-5">
     {!embedded && <PageHeader kicker={copy("valuation.kicker")} title="Market Insight" description={copy("valuation.help")} action={<Button secondary onClick={onMap}>{copy("location.map")}</Button>} />}
     {!embedded && <HelpCallout>{copy("valuation.help")}</HelpCallout>}
-    {error && <div data-market-failure-reason={marketFailureReason ?? undefined}><ErrorState message={error} /></div>}
     <SectionCard title={copy("action.search")} description={copy("map.help")}>
       <form onSubmit={submitQuery} aria-busy={querying} data-testid="market-insight-search-form" className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
         <label className="text-xs text-slate-500">{copy("common.selectCounty")}
@@ -636,37 +633,48 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
             {districtOptions.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}
           </select>
         </label>
-        <div className="flex items-end"><button type="submit" data-testid="market-insight-search-button" disabled={querying || !canonicalCounty || !canonicalDistrict} className="inline-flex items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? copy("action.loading") : copy("action.search")}</button></div>
+        <div className="flex items-end"><button type="submit" data-testid="market-insight-search-button" disabled={querying || !canonicalCounty || !canonicalDistrict} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? marketCopy.loading : copy("action.search")}</button></div>
       </form>
-      {querying && <div className="mt-3"><LoadingState label={copy("action.loading")} /></div>}
+      {uiState === "initial" && <p data-testid="market-insight-initial" role="status" className="mt-3 rounded-lg bg-stone-50 p-3 text-sm text-slate-600">{marketCopy.initial}</p>}
+      {uiState === "loading" && <div data-testid="market-insight-loading" aria-live="polite" className="mt-3"><LoadingState label={marketCopy.loading} /></div>}
+      {uiState === "network_error" && <div data-testid="market-insight-network-error" role="alert" data-market-failure-reason={marketFailureReason ?? undefined} className="mt-3"><ErrorState message={marketCopy.networkError} /></div>}
+      {uiState === "unavailable" && !result && <div data-testid="market-insight-unavailable" role="alert" data-market-failure-reason={marketFailureReason ?? undefined} className="mt-3"><ErrorState message={marketCopy.unavailable} /></div>}
       <p className="mt-3 text-xs leading-5 text-slate-500">{copy("common.dataLimit")}</p>
     </SectionCard>
-    {result && <MarketInsightVisualResult result={result} model={visualModel} onMap={onMap} availableResult={availableResult} noDataResult={noDataResult} noDataMessage={noDataMessage} evidenceDisclosure={availableResult ? evidenceDisclosure : nonAvailableEvidence} />}
+    {result && <MarketInsightVisualResult result={result} model={visualModel} uiState={uiState} evidenceDisclosure={evidenceDisclosure} />}
   </div>;
 }
 
-function MarketInsightVisualResult({ result, model, onMap, availableResult, noDataResult, noDataMessage, evidenceDisclosure }: { result: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; onMap: () => void; availableResult: boolean; noDataResult: boolean; noDataMessage: string; evidenceDisclosure: ReactNode }) {
-  const { copy } = useExperienceLocale();
-  const isAvailable = model.state === "available" && availableResult;
-  return <div className="space-y-5">
-    <SectionCard title={copy("valuation.title")} description={copy("valuation.help")}>
-      <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} />{model.freshness !== "unknown" && <FreshnessIndicator status={model.freshness} />}</div>
-      <p className="mt-3 text-sm leading-6 text-slate-700">{isAvailable ? result.summary : model.state === "no_data" ? noDataMessage : copy("common.unavailable")}</p>
-      {isAvailable && <p className="mt-2 text-xs leading-5 text-slate-500">{result.source_name ?? copy("common.optional")} {result.source_updated_at ?? copy("common.optional")}</p>}
-    </SectionCard>
-    {isAvailable ? <>
-      <MarketInsightEvidencePanel result={result} model={model} />
-      <SectionCard title={copy("valuation.trend")}><TrendLineChart data={model.history} status={model.state} textSummary={model.chartTextSummary} /></SectionCard>
-      <SectionCard title={copy("common.count")}><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
-      {evidenceDisclosure}
-      <Notice tone="warning">{result.caveat}</Notice>
-    </> : <>
-      <SectionCard title={model.state === "no_data" && noDataResult ? copy("common.noData") : copy("common.unavailable")}>
-        <p className="text-sm leading-6 text-slate-700">{result.caveat}</p>
-        <p className="mt-2 text-xs leading-5 text-amber-800">{copy("common.dataLimit")}</p>
+function MarketInsightVisualResult({ result, model, uiState, evidenceDisclosure }: { result: MarketResult; model: ReturnType<typeof buildMarketInsightVisualModel>; uiState: MarketInsightUiState; evidenceDisclosure: ReactNode }) {
+  const { locale } = useExperienceLocale();
+  const labels = getMarketInsightCopy(locale);
+  const isAvailable = uiState === "available" && model.state === "available";
+  const supportReference = safeMarketSupportReference(result.support_reference);
+  if (!isAvailable) {
+    const noData = uiState === "no_data" || model.state === "no_data";
+    const message = noData ? labels.noData : labels.unavailable;
+    return <div className="space-y-5" data-testid={noData ? "market-insight-no-data" : "market-insight-unavailable"}>
+      <SectionCard title={noData ? labels.noData : labels.unavailable}>
+        <div role={noData ? "status" : "alert"} className="text-sm leading-6 text-slate-700">{message}</div>
+        {!noData && supportReference && <p className="mt-2 text-xs font-medium text-slate-600">{labels.supportReference}: <code>{supportReference}</code></p>}
+        {result.caveat && result.caveat !== message && <p className="mt-3 text-xs leading-5 text-amber-900">{result.caveat}</p>}
+        <p className="mt-3 text-xs leading-5 text-slate-500">{result.disclaimer || labels.boundary}</p>
       </SectionCard>
       {evidenceDisclosure}
-    </>}
+    </div>;
+  }
+  return <div className="space-y-5" data-testid="market-insight-available">
+    <SectionCard title={labels.summary} description={labels.boundary}>
+      <div className="flex flex-wrap items-center gap-2"><DataStatusBadge status={model.state} /><DataStatusBadge status={model.coverage} />{model.freshness !== "unknown" && <FreshnessIndicator status={model.freshness} />}</div>
+      <p className="mt-3 text-sm leading-6 text-slate-700">{result.summary}</p>
+    </SectionCard>
+    <MarketInsightEvidencePanel result={result} model={model} />
+    <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+      <SectionCard title={labels.priceTrend}><TrendLineChart data={model.history} status={model.state} /></SectionCard>
+      <SectionCard title={labels.volumeTrend}><VolumeBarChart data={model.history} status={model.state} /></SectionCard>
+    </div>
+    {evidenceDisclosure}
+    <Notice tone="warning">{result.caveat || labels.boundary}</Notice>
   </div>;
 }
 
