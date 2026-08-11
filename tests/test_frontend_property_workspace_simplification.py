@@ -22,9 +22,11 @@ def test_workspace_has_exact_primary_steps_and_progressive_sections() -> None:
     assert "CapabilityPills" in PAGE
 
 
-def test_top_level_navigation_is_reduced_to_four_groups() -> None:
-    for label in ('labelKey: "nav.core"', 'labelKey: "nav.analysis"', 'labelKey: "nav.system"', 'labelKey: "nav.tools"'):
+def test_top_level_navigation_is_reduced_without_public_tax_history() -> None:
+    for label in ('labelKey: "nav.core"', 'labelKey: "nav.analysis"', 'labelKey: "nav.tools"'):
         assert label in SIDEBAR
+    assert 'labelKey: "nav.system"' not in SIDEBAR
+    assert 'page: "歷史案件"' not in SIDEBAR
     for old_group in ('label: "案件決策"', 'label: "區域洞察"', 'label: "風險模組"', 'label: "紀錄"'):
         assert old_group not in SIDEBAR
 

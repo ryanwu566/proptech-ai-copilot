@@ -8,7 +8,6 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from backend.repositories.sqlite_repo import get_tax_analysis, list_tax_analyses
 from models.schemas import TaxCase
 from services.official_tax_rules import tax_source_status
 router = APIRouter(tags=["taxoracle"])
@@ -57,11 +56,11 @@ def get_demo_cases() -> list[dict[str, Any]]:
 
 @router.post("/taxoracle/analyze")
 def post_taxoracle_analysis(request: TaxCaseRequest) -> dict[str, Any]:
-    """Run the existing deterministic TaxOracle service and persist history."""
+    """Run an intentionally non-persistent public TaxOracle analysis."""
 
     from services.tax_service import analyze_tax_case
 
-    return analyze_tax_case(request.to_tax_case())
+    return analyze_tax_case(request.to_tax_case(), persist=False)
 
 
 @router.post("/taxoracle/report", response_class=HTMLResponse)
@@ -76,21 +75,19 @@ def post_taxoracle_report(request: TaxCaseRequest) -> str:
     return generate_tax_html_report(case, result)
 
 
-@router.get("/history")
-def get_history() -> list[dict[str, Any]]:
-    """Return recent persisted TaxOracle analyses."""
+@router.get("/history", include_in_schema=False)
+def get_history() -> None:
+    """Hide stored Tax history until authenticated owner scoping exists."""
 
-    return list_tax_analyses()
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
-@router.get("/history/{analysis_id}")
-def get_history_detail(analysis_id: int) -> dict[str, Any]:
-    """Return one persisted TaxOracle result for frontend review."""
+@router.get("/history/{analysis_id}", include_in_schema=False)
+def get_history_detail(analysis_id: int) -> None:
+    """Return the same generic response for every anonymous history lookup."""
 
-    result = get_tax_analysis(analysis_id)
-    if result is None:
-        raise HTTPException(status_code=404, detail="找不到該筆歷史案件。")
-    return result
+    del analysis_id
+    raise HTTPException(status_code=404, detail="Not Found")
 
 
 def _normalize_demo_case(record: dict[str, Any]) -> dict[str, Any]:

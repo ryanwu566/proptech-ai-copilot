@@ -67,10 +67,10 @@ def test_locale_switching_does_not_add_storage_or_locale_triggered_search() -> N
 def test_shared_surfaces_have_localized_runtime_entry_points() -> None:
     for key in ("location.title", "commute.title", "loan.title", "tax.title", "case.title"):
         assert key in RUNTIME_OVERRIDES
-    for key in ("page.terrain", "page.history", "journey.location.title", "trust.referenceOnly"):
+    for key in ("page.terrain", "journey.location.title", "trust.referenceOnly"):
         assert key in EXPERIENCE_OVERRIDES
     assert "function TerrainRiskPage()" in PAGE
-    assert "function History()" in PAGE
+    assert "function History()" not in PAGE
 
 
 def test_viewing_decision_logic_and_components_remain_untouched() -> None:

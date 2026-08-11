@@ -136,7 +136,6 @@ function renderPage(page: AppPage, setPage: (page: AppPage) => void, openTax: (c
   if (page === "房價估算") return <ValuationPage onMap={() => setPage("Map Insight Lite")} />;
   if (page === "Aegis-Credit Lite") return <AegisCredit />;
   if (page === "Terrain Risk") return <TerrainRiskPage />;
-  if (page === "歷史案件") return <History />;
   return <Dashboard setPage={setPage} openTax={openTax} />;
 }
 
@@ -770,16 +769,3 @@ function LegacyTerrainRiskPage() {
   return <SupportPage kicker="風險模組" title="地勢與災害風險分析" description="用官方公開圖資，初步檢查坡度、淹水、坡地災害與地質敏感風險。" error="" help="這不是正式地質調查或建築結構鑑定，只是買房前的公開資料初步檢查。"><TerrainRiskAnalysis /></SupportPage>;
 }
 function SupportPage({ kicker, title, description, error, help, children }: { kicker: string; title: string; description: string; error: string; help: string; children: ReactNode }) { return <div className="space-y-6"><PageHeader kicker={kicker} title={title} description={description} /><HelpCallout>{help}</HelpCallout>{error && <ErrorState message={error} />}{children}</div>; }
-
-function History() {
-  const { t, copy } = useExperienceLocale();
-  const [rows, setRows] = useState<Record<string, string | number>[]>([]), [loading, setLoading] = useState(true), [error, setError] = useState("");
-  useEffect(() => { api.history().then(setRows).catch(() => setError(copy("common.unavailable"))).finally(() => setLoading(false)); }, [copy]);
-  return <div className="space-y-6"><PageHeader kicker={t("page.history")} title={copy("case.title")} description={copy("case.description")} />{error && <ErrorState message={error} />}{loading ? <LoadingState /> : <section className="max-w-full overflow-x-auto border border-slate-200 bg-white"><table className="w-full min-w-[720px] text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="px-4 py-3">{copy("case.title")}</th><th>{copy("case.address")}</th><th>{copy("case.status")}</th><th>{copy("tour.risk")}</th><th>{copy("case.status")}</th><th>{copy("common.updated")}</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 font-bold">{row.case_id}</td><td>{row.client_name}</td><td><Badge value={String(row.eligibility_status)} /></td><td className="font-bold">{row.risk_score}</td><td><Badge value={String(row.signal_color)} /></td><td className="text-slate-500">{row.created_at}</td></tr>)}</tbody></table></section>}</div>;
-}
-
-function LegacyHistory() {
-  const [rows,setRows]=useState<Record<string,string|number>[]>([]), [loading,setLoading]=useState(true), [error,setError]=useState("");
-  useEffect(()=>{api.history().then(setRows).catch(()=>setError("歷史資料暫時無法載入，請稍後再試。" )).finally(()=>setLoading(false));},[]);
-  return <div className="space-y-6"><PageHeader kicker="紀錄" title="歷史案件" description="查看已完成的 TaxOracle 分析結果。" />{error&&<ErrorState message={error}/>} {loading?<LoadingState/>:<section className="overflow-x-auto border border-slate-200 bg-white"><table className="w-full min-w-[720px] text-left text-xs"><thead className="bg-slate-50 text-slate-500"><tr><th className="px-4 py-3">案件</th><th>客戶</th><th>資格</th><th>分數</th><th>燈號</th><th>建立時間</th></tr></thead><tbody>{rows.map((row)=><tr key={row.id} className="border-t border-slate-100"><td className="px-4 py-3 font-bold">{row.case_id}</td><td>{row.client_name}</td><td><Badge value={String(row.eligibility_status)}/></td><td className="font-bold">{row.risk_score}</td><td><Badge value={String(row.signal_color)}/></td><td className="text-slate-500">{row.created_at}</td></tr>)}</tbody></table></section>}</div>;
-}
