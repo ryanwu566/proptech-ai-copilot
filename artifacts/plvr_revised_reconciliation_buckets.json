@@ -1,0 +1,209 @@
+{
+  "clean_buckets": {
+    "DUPLICATED_IN_PROD": 134,
+    "MISSING_FROM_PROD": 196796,
+    "PRESENT_AUTHORITATIVELY": 157608,
+    "PRESENT_BUT_PROD_CORRUPT": 1,
+    "PRESENT_BY_STRONG_FACT": 162196,
+    "SOURCE_CONFLICT": 0,
+    "UNCLASSIFIED": 460
+  },
+  "clean_unclassified_reasons": {
+    "BOUNDED_FACT_GROUP_AMBIGUITY": 460
+  },
+  "conflicts": {
+    "auxiliary_fields_checked": [
+      "building_age_years"
+    ],
+    "auxiliary_resolution_note": "building_age_years did not uniquely distinguish any candidate",
+    "bounded_for_design": true,
+    "classification": {
+      "INSUFFICIENT_EVIDENCE": 439,
+      "RESOLVED_BY_AUTHORITATIVE_IDENTITY": 0,
+      "RESOLVED_BY_SOURCE_LINEAGE": 0,
+      "RESOLVED_BY_UNIQUE_AUXILIARY_FACTS": 0,
+      "SOURCE_REVISION_AMBIGUITY": 19,
+      "TRUE_DUPLICATE_AMBIGUITY": 0
+    },
+    "group_count": 193,
+    "group_topology": [
+      {
+        "clean_rows_per_group": 2,
+        "group_count": 2,
+        "production_rows": 2,
+        "production_rows_per_group": 1,
+        "source_artifacts_per_group": 2,
+        "source_identities_per_group": 2
+      },
+      {
+        "clean_rows_per_group": 2,
+        "group_count": 148,
+        "production_rows": 296,
+        "production_rows_per_group": 2,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 2
+      },
+      {
+        "clean_rows_per_group": 2,
+        "group_count": 7,
+        "production_rows": 14,
+        "production_rows_per_group": 2,
+        "source_artifacts_per_group": 2,
+        "source_identities_per_group": 2
+      },
+      {
+        "clean_rows_per_group": 3,
+        "group_count": 21,
+        "production_rows": 63,
+        "production_rows_per_group": 3,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 3
+      },
+      {
+        "clean_rows_per_group": 3,
+        "group_count": 1,
+        "production_rows": 3,
+        "production_rows_per_group": 3,
+        "source_artifacts_per_group": 2,
+        "source_identities_per_group": 3
+      },
+      {
+        "clean_rows_per_group": 4,
+        "group_count": 8,
+        "production_rows": 32,
+        "production_rows_per_group": 4,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 4
+      },
+      {
+        "clean_rows_per_group": 5,
+        "group_count": 2,
+        "production_rows": 10,
+        "production_rows_per_group": 5,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 5
+      },
+      {
+        "clean_rows_per_group": 6,
+        "group_count": 1,
+        "production_rows": 6,
+        "production_rows_per_group": 6,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 6
+      },
+      {
+        "clean_rows_per_group": 8,
+        "group_count": 1,
+        "production_rows": 8,
+        "production_rows_per_group": 8,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 8
+      },
+      {
+        "clean_rows_per_group": 10,
+        "group_count": 1,
+        "production_rows": 10,
+        "production_rows_per_group": 10,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 10
+      },
+      {
+        "clean_rows_per_group": 14,
+        "group_count": 1,
+        "production_rows": 14,
+        "production_rows_per_group": 14,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 14
+      }
+    ],
+    "materially_unresolved_rows": 458,
+    "multi_artifact_groups": 10,
+    "multi_artifact_production_rows": 19,
+    "production_rows": 458,
+    "resolved_rows": 0,
+    "single_artifact_groups": 183,
+    "single_artifact_production_rows": 439,
+    "unique_auxiliary_resolutions": 0
+  },
+  "conservation": {
+    "clean_conserved": true,
+    "clean_expected": 517195,
+    "clean_sum": 517195,
+    "invalid_geography_expected": 126087,
+    "invalid_geography_sum": 126087,
+    "production_conserved": true,
+    "production_expected": 451672,
+    "production_only_expected": 5017,
+    "production_only_sum": 5017,
+    "production_sum": 451672
+  },
+  "duplicate_breakdown": {
+    "AUTHORITATIVE_DUPLICATE": 0,
+    "DUPLICATE_CLEAN_TRANSACTIONS": 134,
+    "DUPLICATE_EXCESS_ROWS": 134,
+    "DUPLICATE_GROUPS": 134,
+    "GROUP_SIZE_DISTRIBUTION": {
+      "2": 134
+    },
+    "PROBABLE_LEGACY_DUPLICATE": 0,
+    "STRONG_FACT_DUPLICATE": 268,
+    "TIER_C_1_TO_1": 162196,
+    "TIER_C_1_TO_MANY": 268
+  },
+  "future_row": {
+    "artifact_id": "moi-plvr-sale-season-115S1",
+    "production_count": 1,
+    "publishable_status": "excluded",
+    "status": "STRONG_FACT_FUTURE_SOURCE_MATCH"
+  },
+  "historical_cohorts": {
+    "historical_109236": {
+      "design_blocking": false,
+      "historical_count": 109236,
+      "predicate_source": "phase2b_original_repair_planner",
+      "reproduced_count": 109236,
+      "same_snapshot_row_count": 126087,
+      "status": "REPRODUCIBLE"
+    },
+    "historical_57350": {
+      "aggregate_only_adjustment_without_row_membership": 194,
+      "design_blocking": false,
+      "execution_blocking": true,
+      "historical_count": 57350,
+      "reproduced_broad_collision_count": 57544,
+      "status": "PARTIALLY_REPRODUCIBLE"
+    }
+  },
+  "invalid_geography": {
+    "CLEAN_SOURCE_MISSING": 6,
+    "CONFLICTING_GEOGRAPHY_CANDIDATES": 367,
+    "LEGACY_IMPORT_TRANSFORMATION_ERROR": 114740,
+    "RECOVERED_AUTHORITATIVE_CITY_LEVEL": 10974
+  },
+  "main_sha": "23b5520b06207641c661dc9d25776b47cc2103f5",
+  "matching_semantics": {
+    "A": "AUTHORITATIVE_OFFICIAL_IDENTITY",
+    "B": "AUTHORITATIVE_RECONSTRUCTED_SOURCE_IDENTITY",
+    "C_ONE_TO_MANY": "STRONG_FACT_DUPLICATE",
+    "C_ONE_TO_ONE": "STRONG_FACT_MATCH_NOT_DUPLICATE",
+    "D": "PROBABLE_LEGACY_ONLY_NOT_AUTHORITATIVE"
+  },
+  "production_buckets": {
+    "AUTHORITATIVE_MATCH": 157608,
+    "CONFLICTING": 458,
+    "DUPLICATE": 268,
+    "FUTURE_ANOMALY": 1,
+    "GEOGRAPHY_CORRUPT_MATCH": 1,
+    "NOT_IN_CLEAN_SOURCE": 131140,
+    "STRONG_FACT_MATCH": 162196,
+    "UNCLASSIFIED": 0
+  },
+  "production_only_5017": {
+    "IDENTITY_LOSS": 5,
+    "INSUFFICIENT_EVIDENCE": 15,
+    "LEGACY_IMPORT_TRANSFORMATION_ERROR": 4988,
+    "SOURCE_RECORD_NOT_REACQUIRED": 9
+  },
+  "production_snapshot_sha256": "d18823a8e9953fd78598f3aa428b43e302dd1af1ce6d6338ca4ceabbaa6b9d33",
+  "schema_version": "plvr-revised-reconciliation-buckets-v1"
+}

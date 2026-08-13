@@ -1,0 +1,479 @@
+{
+  "aggregate_attribution": {
+    "absolute_total_value_delta_by_status": {
+      "FULLY_EXPLAINED": 511885933.08,
+      "PARTIALLY_EXPLAINED": 5739175.37
+    },
+    "absolute_transaction_count_delta_by_status": {
+      "FULLY_EXPLAINED": 348773,
+      "PARTIALLY_EXPLAINED": 3161
+    },
+    "attribution_matrix_scope_counts": {
+      "CANONICAL_GEOGRAPHY_SEMANTICS": 206,
+      "CLEAN_MISSING_FROM_PROD": 5671,
+      "CONFLICTING_IDENTITY": 105,
+      "FUTURE_EXCLUSION": 0,
+      "INSUFFICIENT_EVIDENCE": 8,
+      "INVALID_GEOGRAPHY": 1,
+      "OTHER_KNOWN": 0,
+      "PRODUCTION_ONLY_BAD_IMPORT": 3435,
+      "PRODUCTION_ONLY_OUTSIDE_WINDOW": 72,
+      "SOURCE_RECORD_NOT_REACQUIRED": 8,
+      "SOURCE_SCOPE_DIFFERENCE": 0,
+      "STRONG_FACT_DUPLICATE": 18,
+      "UNEXPLAINED": 0
+    },
+    "average_unit_price_delta_by_status": {
+      "FULLY_EXPLAINED": {
+        "maximum_absolute_delta": 470.99,
+        "mean_absolute_delta": 17.3538,
+        "median_absolute_delta": 18.21
+      },
+      "PARTIALLY_EXPLAINED": {
+        "maximum_absolute_delta": 12.15,
+        "mean_absolute_delta": 1.1616,
+        "median_absolute_delta": 0.41
+      }
+    },
+    "exact_scopes": 3883,
+    "fully_explained_scopes": 9121,
+    "materiality": {
+      "golden_latest_unexplained": false,
+      "result": "IMMATERIAL_BOUNDED",
+      "rule": "material if unexplained scopes exceed 0.1% of mismatched scopes, or any unexplained golden latest-period scope exists",
+      "threshold_percent": 0.1,
+      "unexplained_scope_percent": 0.0
+    },
+    "mismatched_scope_percent": 70.4152,
+    "mismatched_scopes": 9242,
+    "partially_explained_scopes": 121,
+    "production_aggregate_scopes": 11017,
+    "scope_percentages": {
+      "FULLY_EXPLAINED": 98.6908,
+      "PARTIALLY_EXPLAINED": 1.3092,
+      "UNEXPLAINED": 0.0
+    },
+    "shadow_aggregate_scopes": 9606,
+    "status_conserved": true,
+    "unexplained_scopes": 0
+  },
+  "clean_buckets": {
+    "DUPLICATED_IN_PROD": 134,
+    "MISSING_FROM_PROD": 196796,
+    "PRESENT_AUTHORITATIVELY": 157608,
+    "PRESENT_BUT_PROD_CORRUPT": 1,
+    "PRESENT_BY_STRONG_FACT": 162196,
+    "SOURCE_CONFLICT": 0,
+    "UNCLASSIFIED": 460
+  },
+  "clean_rows": 517195,
+  "clean_unclassified_reasons": {
+    "BOUNDED_FACT_GROUP_AMBIGUITY": 460
+  },
+  "conflicts": {
+    "auxiliary_fields_checked": [
+      "building_age_years"
+    ],
+    "auxiliary_resolution_note": "building_age_years did not uniquely distinguish any candidate",
+    "bounded_for_design": true,
+    "classification": {
+      "INSUFFICIENT_EVIDENCE": 439,
+      "RESOLVED_BY_AUTHORITATIVE_IDENTITY": 0,
+      "RESOLVED_BY_SOURCE_LINEAGE": 0,
+      "RESOLVED_BY_UNIQUE_AUXILIARY_FACTS": 0,
+      "SOURCE_REVISION_AMBIGUITY": 19,
+      "TRUE_DUPLICATE_AMBIGUITY": 0
+    },
+    "group_count": 193,
+    "group_topology": [
+      {
+        "clean_rows_per_group": 2,
+        "group_count": 2,
+        "production_rows": 2,
+        "production_rows_per_group": 1,
+        "source_artifacts_per_group": 2,
+        "source_identities_per_group": 2
+      },
+      {
+        "clean_rows_per_group": 2,
+        "group_count": 148,
+        "production_rows": 296,
+        "production_rows_per_group": 2,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 2
+      },
+      {
+        "clean_rows_per_group": 2,
+        "group_count": 7,
+        "production_rows": 14,
+        "production_rows_per_group": 2,
+        "source_artifacts_per_group": 2,
+        "source_identities_per_group": 2
+      },
+      {
+        "clean_rows_per_group": 3,
+        "group_count": 21,
+        "production_rows": 63,
+        "production_rows_per_group": 3,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 3
+      },
+      {
+        "clean_rows_per_group": 3,
+        "group_count": 1,
+        "production_rows": 3,
+        "production_rows_per_group": 3,
+        "source_artifacts_per_group": 2,
+        "source_identities_per_group": 3
+      },
+      {
+        "clean_rows_per_group": 4,
+        "group_count": 8,
+        "production_rows": 32,
+        "production_rows_per_group": 4,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 4
+      },
+      {
+        "clean_rows_per_group": 5,
+        "group_count": 2,
+        "production_rows": 10,
+        "production_rows_per_group": 5,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 5
+      },
+      {
+        "clean_rows_per_group": 6,
+        "group_count": 1,
+        "production_rows": 6,
+        "production_rows_per_group": 6,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 6
+      },
+      {
+        "clean_rows_per_group": 8,
+        "group_count": 1,
+        "production_rows": 8,
+        "production_rows_per_group": 8,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 8
+      },
+      {
+        "clean_rows_per_group": 10,
+        "group_count": 1,
+        "production_rows": 10,
+        "production_rows_per_group": 10,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 10
+      },
+      {
+        "clean_rows_per_group": 14,
+        "group_count": 1,
+        "production_rows": 14,
+        "production_rows_per_group": 14,
+        "source_artifacts_per_group": 1,
+        "source_identities_per_group": 14
+      }
+    ],
+    "materially_unresolved_rows": 458,
+    "multi_artifact_groups": 10,
+    "multi_artifact_production_rows": 19,
+    "production_rows": 458,
+    "resolved_rows": 0,
+    "single_artifact_groups": 183,
+    "single_artifact_production_rows": 439,
+    "unique_auxiliary_resolutions": 0
+  },
+  "conservation": {
+    "clean_conserved": true,
+    "clean_expected": 517195,
+    "clean_sum": 517195,
+    "invalid_geography_expected": 126087,
+    "invalid_geography_sum": 126087,
+    "production_conserved": true,
+    "production_expected": 451672,
+    "production_only_expected": 5017,
+    "production_only_sum": 5017,
+    "production_sum": 451672
+  },
+  "cutover_design_blockers": [],
+  "cutover_execution_blockers": [
+    "no_approved_shadow_cutover_plan",
+    "production_mutation_not_authorized",
+    "rollback_and_validation_procedure_not_designed",
+    "bounded_identity_ambiguities_require_execution_policy",
+    "historical_57350_row_membership_not_reproducible"
+  ],
+  "duplicate_breakdown": {
+    "AUTHORITATIVE_DUPLICATE": 0,
+    "DUPLICATE_CLEAN_TRANSACTIONS": 134,
+    "DUPLICATE_EXCESS_ROWS": 134,
+    "DUPLICATE_GROUPS": 134,
+    "GROUP_SIZE_DISTRIBUTION": {
+      "2": 134
+    },
+    "PROBABLE_LEGACY_DUPLICATE": 0,
+    "STRONG_FACT_DUPLICATE": 268,
+    "TIER_C_1_TO_1": 162196,
+    "TIER_C_1_TO_MANY": 268
+  },
+  "future_row": {
+    "artifact_id": "moi-plvr-sale-season-115S1",
+    "production_count": 1,
+    "publishable_status": "excluded",
+    "status": "STRONG_FACT_FUTURE_SOURCE_MATCH"
+  },
+  "gate": "READY_FOR_SHADOW_CUTOVER_DESIGN",
+  "golden_regions": [
+    {
+      "aggregate_total_value_delta": -938754.05,
+      "aggregate_transaction_count_delta": -221,
+      "all_differences_fully_explained": false,
+      "county": "臺北市",
+      "district": "中正區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -221,
+      "mismatched_scope_count": 27,
+      "production_transaction_count": 2611,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 2832
+    },
+    {
+      "aggregate_total_value_delta": -661297.07,
+      "aggregate_transaction_count_delta": -91,
+      "all_differences_fully_explained": false,
+      "county": "臺北市",
+      "district": "南港區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -91,
+      "mismatched_scope_count": 22,
+      "production_transaction_count": 1862,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 1953
+    },
+    {
+      "aggregate_total_value_delta": -5675153.62,
+      "aggregate_transaction_count_delta": -3201,
+      "all_differences_fully_explained": true,
+      "county": "臺中市",
+      "district": "北屯區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -3201,
+      "mismatched_scope_count": 33,
+      "production_transaction_count": 7323,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 10524
+    },
+    {
+      "aggregate_total_value_delta": -4670860.96,
+      "aggregate_transaction_count_delta": -4321,
+      "all_differences_fully_explained": false,
+      "county": "桃園市",
+      "district": "平鎮區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -4321,
+      "mismatched_scope_count": 35,
+      "production_transaction_count": 745,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 5066
+    },
+    {
+      "aggregate_total_value_delta": -18570307.32,
+      "aggregate_transaction_count_delta": -12233,
+      "all_differences_fully_explained": false,
+      "county": "桃園市",
+      "district": "中壢區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -12233,
+      "mismatched_scope_count": 35,
+      "production_transaction_count": 2347,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 14580
+    },
+    {
+      "aggregate_total_value_delta": -2876121.68,
+      "aggregate_transaction_count_delta": -2389,
+      "all_differences_fully_explained": false,
+      "county": "高雄市",
+      "district": "小港區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -2389,
+      "mismatched_scope_count": 34,
+      "production_transaction_count": 1463,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 3852
+    },
+    {
+      "aggregate_total_value_delta": -8034118.25,
+      "aggregate_transaction_count_delta": -6126,
+      "all_differences_fully_explained": false,
+      "county": "高雄市",
+      "district": "三民區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -6126,
+      "mismatched_scope_count": 35,
+      "production_transaction_count": 4162,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 10288
+    }
+  ],
+  "historical_cohorts": {
+    "historical_109236": {
+      "design_blocking": false,
+      "historical_count": 109236,
+      "predicate_source": "phase2b_original_repair_planner",
+      "reproduced_count": 109236,
+      "same_snapshot_row_count": 126087,
+      "status": "REPRODUCIBLE"
+    },
+    "historical_57350": {
+      "aggregate_only_adjustment_without_row_membership": 194,
+      "design_blocking": false,
+      "execution_blocking": true,
+      "historical_count": 57350,
+      "reproduced_broad_collision_count": 57544,
+      "status": "PARTIALLY_REPRODUCIBLE"
+    }
+  },
+  "invalid_geography": {
+    "CLEAN_SOURCE_MISSING": 6,
+    "CONFLICTING_GEOGRAPHY_CANDIDATES": 367,
+    "LEGACY_IMPORT_TRANSFORMATION_ERROR": 114740,
+    "RECOVERED_AUTHORITATIVE_CITY_LEVEL": 10974
+  },
+  "main_sha": "23b5520b06207641c661dc9d25776b47cc2103f5",
+  "matching_semantics": {
+    "A": "AUTHORITATIVE_OFFICIAL_IDENTITY",
+    "B": "AUTHORITATIVE_RECONSTRUCTED_SOURCE_IDENTITY",
+    "C_ONE_TO_MANY": "STRONG_FACT_DUPLICATE",
+    "C_ONE_TO_ONE": "STRONG_FACT_MATCH_NOT_DUPLICATE",
+    "D": "PROBABLE_LEGACY_ONLY_NOT_AUTHORITATIVE"
+  },
+  "production_buckets": {
+    "AUTHORITATIVE_MATCH": 157608,
+    "CONFLICTING": 458,
+    "DUPLICATE": 268,
+    "FUTURE_ANOMALY": 1,
+    "GEOGRAPHY_CORRUPT_MATCH": 1,
+    "NOT_IN_CLEAN_SOURCE": 131140,
+    "STRONG_FACT_MATCH": 162196,
+    "UNCLASSIFIED": 0
+  },
+  "production_only_5017": {
+    "IDENTITY_LOSS": 5,
+    "INSUFFICIENT_EVIDENCE": 15,
+    "LEGACY_IMPORT_TRANSFORMATION_ERROR": 4988,
+    "SOURCE_RECORD_NOT_REACQUIRED": 9
+  },
+  "production_rows": 451672,
+  "production_safety": {
+    "migrations": 0,
+    "mode": "LOCAL_CACHE_ONLY_AFTER_VERIFIED_READ_ONLY_SNAPSHOT",
+    "rows_changed": 0,
+    "schema_changes": 0,
+    "writes": 0
+  },
+  "production_snapshot_sha256": "d18823a8e9953fd78598f3aa428b43e302dd1af1ce6d6338ca4ceabbaa6b9d33",
+  "production_transaction_read_only": "on",
+  "risk_matrix": [
+    {
+      "blocks_design": false,
+      "blocks_execution": false,
+      "clean_shadow_authoritative": true,
+      "cohort": "strong_fact_one_to_one",
+      "evidence_quality": "strong",
+      "manual_review_required": false,
+      "production_assessment": "production identity incomplete; facts correspond one-to-one",
+      "production_percent": 35.9101,
+      "recommended_treatment": "pair during cutover using clean authoritative identity",
+      "row_count": 162196
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "strong_fact_duplicates",
+      "evidence_quality": "strong topology",
+      "manual_review_required": true,
+      "production_assessment": "production contains multiplicity beyond clean transaction",
+      "production_percent": 0.0593,
+      "recommended_treatment": "deduplicate only in a future shadow replacement plan",
+      "row_count": 268
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "production_only",
+      "evidence_quality": "mixed",
+      "manual_review_required": true,
+      "production_assessment": "mostly transformed legacy geography or outside source window",
+      "production_percent": 29.0343,
+      "recommended_treatment": "exclude or replace by explicit subtype during execution",
+      "row_count": 131140
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "conflicting_identity",
+      "evidence_quality": "bounded ambiguity",
+      "manual_review_required": true,
+      "production_assessment": "individual production identity cannot be selected safely",
+      "production_percent": 0.1014,
+      "recommended_treatment": "replace the bounded group from clean source; no row repair",
+      "row_count": 458
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "clean_missing_from_production",
+      "evidence_quality": "authoritative clean lineage",
+      "manual_review_required": false,
+      "production_assessment": "production is incomplete relative to clean shadow",
+      "production_percent": 43.5706,
+      "recommended_treatment": "include through shadow replacement",
+      "row_count": 196796
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "clean_bounded_fact_group_ambiguity",
+      "evidence_quality": "bounded exact-fact group ambiguity",
+      "manual_review_required": true,
+      "production_assessment": "individual production-to-clean permutation is not identifiable",
+      "production_percent": 0.1018,
+      "recommended_treatment": "replace each bounded group from authoritative clean membership",
+      "row_count": 460
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": false,
+      "clean_shadow_authoritative": true,
+      "cohort": "future_anomaly",
+      "evidence_quality": "strong fact source match",
+      "manual_review_required": false,
+      "production_assessment": "future source row is real but not publishable",
+      "production_percent": 0.0002,
+      "recommended_treatment": "retain excluded from publishable output",
+      "row_count": 1
+    }
+  ],
+  "schema_version": "plvr-residual-cohort-resolution-v1"
+}

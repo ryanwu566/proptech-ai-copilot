@@ -1,0 +1,99 @@
+{
+  "cutover_design_blockers": [],
+  "cutover_execution_blockers": [
+    "no_approved_shadow_cutover_plan",
+    "production_mutation_not_authorized",
+    "rollback_and_validation_procedure_not_designed",
+    "bounded_identity_ambiguities_require_execution_policy",
+    "historical_57350_row_membership_not_reproducible"
+  ],
+  "gate": "READY_FOR_SHADOW_CUTOVER_DESIGN",
+  "main_sha": "23b5520b06207641c661dc9d25776b47cc2103f5",
+  "risk_matrix": [
+    {
+      "blocks_design": false,
+      "blocks_execution": false,
+      "clean_shadow_authoritative": true,
+      "cohort": "strong_fact_one_to_one",
+      "evidence_quality": "strong",
+      "manual_review_required": false,
+      "production_assessment": "production identity incomplete; facts correspond one-to-one",
+      "production_percent": 35.9101,
+      "recommended_treatment": "pair during cutover using clean authoritative identity",
+      "row_count": 162196
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "strong_fact_duplicates",
+      "evidence_quality": "strong topology",
+      "manual_review_required": true,
+      "production_assessment": "production contains multiplicity beyond clean transaction",
+      "production_percent": 0.0593,
+      "recommended_treatment": "deduplicate only in a future shadow replacement plan",
+      "row_count": 268
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "production_only",
+      "evidence_quality": "mixed",
+      "manual_review_required": true,
+      "production_assessment": "mostly transformed legacy geography or outside source window",
+      "production_percent": 29.0343,
+      "recommended_treatment": "exclude or replace by explicit subtype during execution",
+      "row_count": 131140
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "conflicting_identity",
+      "evidence_quality": "bounded ambiguity",
+      "manual_review_required": true,
+      "production_assessment": "individual production identity cannot be selected safely",
+      "production_percent": 0.1014,
+      "recommended_treatment": "replace the bounded group from clean source; no row repair",
+      "row_count": 458
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "clean_missing_from_production",
+      "evidence_quality": "authoritative clean lineage",
+      "manual_review_required": false,
+      "production_assessment": "production is incomplete relative to clean shadow",
+      "production_percent": 43.5706,
+      "recommended_treatment": "include through shadow replacement",
+      "row_count": 196796
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": true,
+      "clean_shadow_authoritative": true,
+      "cohort": "clean_bounded_fact_group_ambiguity",
+      "evidence_quality": "bounded exact-fact group ambiguity",
+      "manual_review_required": true,
+      "production_assessment": "individual production-to-clean permutation is not identifiable",
+      "production_percent": 0.1018,
+      "recommended_treatment": "replace each bounded group from authoritative clean membership",
+      "row_count": 460
+    },
+    {
+      "blocks_design": false,
+      "blocks_execution": false,
+      "clean_shadow_authoritative": true,
+      "cohort": "future_anomaly",
+      "evidence_quality": "strong fact source match",
+      "manual_review_required": false,
+      "production_assessment": "future source row is real but not publishable",
+      "production_percent": 0.0002,
+      "recommended_treatment": "retain excluded from publishable output",
+      "row_count": 1
+    }
+  ],
+  "schema_version": "plvr-cutover-risk-matrix-v1"
+}

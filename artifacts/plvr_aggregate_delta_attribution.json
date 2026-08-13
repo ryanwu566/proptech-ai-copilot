@@ -1,0 +1,170 @@
+{
+  "aggregate_attribution": {
+    "absolute_total_value_delta_by_status": {
+      "FULLY_EXPLAINED": 511885933.08,
+      "PARTIALLY_EXPLAINED": 5739175.37
+    },
+    "absolute_transaction_count_delta_by_status": {
+      "FULLY_EXPLAINED": 348773,
+      "PARTIALLY_EXPLAINED": 3161
+    },
+    "attribution_matrix_scope_counts": {
+      "CANONICAL_GEOGRAPHY_SEMANTICS": 206,
+      "CLEAN_MISSING_FROM_PROD": 5671,
+      "CONFLICTING_IDENTITY": 105,
+      "FUTURE_EXCLUSION": 0,
+      "INSUFFICIENT_EVIDENCE": 8,
+      "INVALID_GEOGRAPHY": 1,
+      "OTHER_KNOWN": 0,
+      "PRODUCTION_ONLY_BAD_IMPORT": 3435,
+      "PRODUCTION_ONLY_OUTSIDE_WINDOW": 72,
+      "SOURCE_RECORD_NOT_REACQUIRED": 8,
+      "SOURCE_SCOPE_DIFFERENCE": 0,
+      "STRONG_FACT_DUPLICATE": 18,
+      "UNEXPLAINED": 0
+    },
+    "average_unit_price_delta_by_status": {
+      "FULLY_EXPLAINED": {
+        "maximum_absolute_delta": 470.99,
+        "mean_absolute_delta": 17.3538,
+        "median_absolute_delta": 18.21
+      },
+      "PARTIALLY_EXPLAINED": {
+        "maximum_absolute_delta": 12.15,
+        "mean_absolute_delta": 1.1616,
+        "median_absolute_delta": 0.41
+      }
+    },
+    "exact_scopes": 3883,
+    "fully_explained_scopes": 9121,
+    "materiality": {
+      "golden_latest_unexplained": false,
+      "result": "IMMATERIAL_BOUNDED",
+      "rule": "material if unexplained scopes exceed 0.1% of mismatched scopes, or any unexplained golden latest-period scope exists",
+      "threshold_percent": 0.1,
+      "unexplained_scope_percent": 0.0
+    },
+    "mismatched_scope_percent": 70.4152,
+    "mismatched_scopes": 9242,
+    "partially_explained_scopes": 121,
+    "production_aggregate_scopes": 11017,
+    "scope_percentages": {
+      "FULLY_EXPLAINED": 98.6908,
+      "PARTIALLY_EXPLAINED": 1.3092,
+      "UNEXPLAINED": 0.0
+    },
+    "shadow_aggregate_scopes": 9606,
+    "status_conserved": true,
+    "unexplained_scopes": 0
+  },
+  "golden_regions": [
+    {
+      "aggregate_total_value_delta": -938754.05,
+      "aggregate_transaction_count_delta": -221,
+      "all_differences_fully_explained": false,
+      "county": "臺北市",
+      "district": "中正區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -221,
+      "mismatched_scope_count": 27,
+      "production_transaction_count": 2611,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 2832
+    },
+    {
+      "aggregate_total_value_delta": -661297.07,
+      "aggregate_transaction_count_delta": -91,
+      "all_differences_fully_explained": false,
+      "county": "臺北市",
+      "district": "南港區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -91,
+      "mismatched_scope_count": 22,
+      "production_transaction_count": 1862,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 1953
+    },
+    {
+      "aggregate_total_value_delta": -5675153.62,
+      "aggregate_transaction_count_delta": -3201,
+      "all_differences_fully_explained": true,
+      "county": "臺中市",
+      "district": "北屯區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -3201,
+      "mismatched_scope_count": 33,
+      "production_transaction_count": 7323,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 10524
+    },
+    {
+      "aggregate_total_value_delta": -4670860.96,
+      "aggregate_transaction_count_delta": -4321,
+      "all_differences_fully_explained": false,
+      "county": "桃園市",
+      "district": "平鎮區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -4321,
+      "mismatched_scope_count": 35,
+      "production_transaction_count": 745,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 5066
+    },
+    {
+      "aggregate_total_value_delta": -18570307.32,
+      "aggregate_transaction_count_delta": -12233,
+      "all_differences_fully_explained": false,
+      "county": "桃園市",
+      "district": "中壢區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -12233,
+      "mismatched_scope_count": 35,
+      "production_transaction_count": 2347,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 14580
+    },
+    {
+      "aggregate_total_value_delta": -2876121.68,
+      "aggregate_transaction_count_delta": -2389,
+      "all_differences_fully_explained": false,
+      "county": "高雄市",
+      "district": "小港區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -2389,
+      "mismatched_scope_count": 34,
+      "production_transaction_count": 1463,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 3852
+    },
+    {
+      "aggregate_total_value_delta": -8034118.25,
+      "aggregate_transaction_count_delta": -6126,
+      "all_differences_fully_explained": false,
+      "county": "高雄市",
+      "district": "三民區",
+      "history_length": 35,
+      "latest_period_fully_explained": true,
+      "latest_publishable_period": "2026-07",
+      "membership_delta": -6126,
+      "mismatched_scope_count": 35,
+      "production_transaction_count": 4162,
+      "shadow_internally_consistent": true,
+      "shadow_transaction_count": 10288
+    }
+  ],
+  "main_sha": "23b5520b06207641c661dc9d25776b47cc2103f5",
+  "production_snapshot_sha256": "d18823a8e9953fd78598f3aa428b43e302dd1af1ce6d6338ca4ceabbaa6b9d33",
+  "schema_version": "plvr-aggregate-delta-attribution-v1"
+}
