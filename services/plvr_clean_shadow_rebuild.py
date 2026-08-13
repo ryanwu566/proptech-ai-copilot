@@ -33,9 +33,11 @@ import httpx
 from services.plvr_data_integrity import (
     FUTURE_TRANSACTION_PERIOD,
     INVALID_CITY_DISTRICT_PAIR,
+    OFFICIAL_CITY_LEVEL_GEOGRAPHIES,
     current_transaction_period,
     normalized_row_integrity_reason,
 )
+from services.plvr_coverage_closure import build_coverage_report
 from services.plvr_import_service import (
     ENCODINGS,
     FIELD_ALIASES,
@@ -68,8 +70,8 @@ OFFICIAL_HISTORY_URL = (
     "https://plvr.land.moi.gov.tw/DownloadHistory?type=history&fileName={release}"
 )
 MANIFEST_SCHEMA_VERSION = "plvr-authoritative-artifact-manifest-v1"
-SHADOW_SCHEMA_VERSION = "plvr-clean-shadow-v1"
-NORMALIZER_VERSION = "plvr-normalizer-v2-canonical-guard"
+SHADOW_SCHEMA_VERSION = "plvr-clean-shadow-v2"
+NORMALIZER_VERSION = "plvr-normalizer-v3-source-geography"
 DEDUPE_ALGORITHM_VERSION = "plvr-dedupe-v2"
 MAX_ARTIFACT_BYTES = 512 * 1024 * 1024
 SHADOW_WRITE_BATCH_SIZE = 1000
@@ -538,6 +540,7 @@ def build_clean_shadow(
                             city_hint = city_from_filename(extracted)
                             source_batch: list[dict[str, Any]] = []
                             candidate_batch: list[dict[str, Any]] = []
+                            forensic_batch: list[dict[str, Any]] = []
                             for row_number, source_row in enumerate(rows, start=3):
                                 raw_rows += 1
                                 result = _normalize_shadow_row(
@@ -556,13 +559,18 @@ def build_clean_shadow(
                                 source_batch.append(result)
                                 if result["status"] == "candidate":
                                     candidate_batch.append(result)
+                                elif result["status"] == "forensic":
+                                    forensic_batch.append(result)
                                 if len(source_batch) >= SHADOW_WRITE_BATCH_SIZE:
                                     _insert_source_rows(connection, source_batch)
                                     _insert_candidates(connection, candidate_batch)
+                                    _insert_forensic_transactions(connection, forensic_batch)
                                     source_batch.clear()
                                     candidate_batch.clear()
+                                    forensic_batch.clear()
                             _insert_source_rows(connection, source_batch)
                             _insert_candidates(connection, candidate_batch)
+                            _insert_forensic_transactions(connection, forensic_batch)
                             extracted.unlink(missing_ok=True)
                             connection.commit()
                 connection.commit()
@@ -594,7 +602,9 @@ def build_clean_shadow(
         "duplicate_source_identities": duplicate_source_identities,
         "business_duplicates": finalization["business_duplicates"],
         "source_identity_conflicts": finalization["source_identity_conflicts"],
+        "source_identity_revisions_resolved": finalization["source_identity_revisions_resolved"],
         "cities": finalization["cities"],
+        "geographic_units": finalization["geographic_units"],
         "period_min": finalization["period_min"],
         "period_max": finalization["period_max"],
         "coverage": finalization["coverage"],
@@ -791,8 +801,9 @@ def load_clean_rows(shadow_path: Path) -> list[dict[str, Any]]:
             """
             select source_identity, source_row_hash, official_transaction_id,
                    official_transfer_id, business_dedupe_key, transaction_period,
-                   city, district, road, address_text, building_type, area_ping,
-                   total_price, unit_price_per_ping, source
+                   city, district, geographic_unit_kind, road, address_text,
+                   building_type, area_ping, total_price, unit_price_per_ping,
+                   source, production_fact_hash, revision_anchor_hash
             from shadow_transactions
             """
         ).fetchall()
@@ -808,12 +819,12 @@ def shadow_dataset_checksum(shadow_path: Path) -> str:
             (
                 "shadow_transactions",
                 "source_row_hash, source_identity, business_dedupe_key, transaction_period, city, district, "
-                "road, building_type, area_ping, total_price, unit_price_per_ping",
+                "geographic_unit_kind, road, building_type, area_ping, total_price, unit_price_per_ping",
                 "source_identity, source_row_hash",
             ),
             (
                 "shadow_market_aggregates",
-                "county, district, period, average_unit_price, transaction_count, aggregation_method",
+                "county, district, geographic_unit_kind, period, average_unit_price, transaction_count, aggregation_method",
                 "county, district, period",
             ),
         ):
@@ -834,7 +845,11 @@ def replacement_readiness_gate(
     artifacts = shadow_report.get("artifacts") or {}
     if int(artifacts.get("rejected_or_missing") or 0) > 0:
         return "NOT_READY_FOR_SHADOW_CUTOVER_DESIGN"
-    if float(coverage.get("complete_percent") or 0) < 100:
+    if float(
+        coverage.get("expected_official_coverage_percent")
+        or coverage.get("complete_percent")
+        or 0
+    ) < 100:
         return "NOT_READY_FOR_SHADOW_CUTOVER_DESIGN"
     if int(shadow_report.get("source_identity_conflicts") or 0) > 0:
         return "NOT_READY_FOR_SHADOW_CUTOVER_DESIGN"
@@ -914,16 +929,49 @@ def _normalize_shadow_row(
     explicit_city = _raw_value(raw_row, FIELD_ALIASES["city"])
     if explicit_city and not same_city(explicit_city, city_hint):
         return {**base, "status": "rejected", "reason_code": INVALID_CITY_DISTRICT_PAIR}
-    normalized, reason = normalize_row(dict(raw_row), city_hint=city_hint, as_of=as_of)
+    normalized, reason = normalize_row(
+        dict(raw_row),
+        city_hint=city_hint,
+        as_of=as_of,
+        allow_official_city_level=True,
+        allow_future_forensic=True,
+    )
     if reason or normalized is None:
         return {**base, "status": "rejected", "reason_code": reason or "normalization_unavailable"}
+    unit_kind = str(normalized.get("geographic_unit_kind") or "district")
     region = normalize_market_region(city_hint, str(normalized.get("district") or ""))
-    if not region.valid or not region.district:
+    valid_city_level = (
+        unit_kind == "city_level"
+        and region.valid
+        and not region.district
+        and region.county in OFFICIAL_CITY_LEVEL_GEOGRAPHIES
+    )
+    if (not region.valid or not region.district) and not valid_city_level:
         return {**base, "status": "rejected", "reason_code": INVALID_CITY_DISTRICT_PAIR}
     normalized["city"] = region.county
-    normalized["district"] = region.district
+    normalized["district"] = "" if valid_city_level else region.district
+    normalized["geographic_unit_kind"] = "city_level" if valid_city_level else "district"
     normalized["dedupe_key"] = build_dedupe_key(normalized, official_id or transfer_id)
-    integrity_reason = normalized_row_integrity_reason(normalized, as_of=as_of)
+    integrity_reason = normalized_row_integrity_reason(
+        normalized,
+        as_of=as_of,
+        allow_official_city_level=True,
+    )
+    business_fact_hash = _normalized_business_fact_hash(normalized)
+    normalized_fields = {
+        **base,
+        **normalized,
+        "business_dedupe_key": str(normalized["dedupe_key"]),
+        "business_fact_hash": business_fact_hash,
+        "production_fact_hash": _production_fact_hash(normalized),
+        "revision_anchor_hash": _revision_anchor_hash(normalized),
+    }
+    if integrity_reason == FUTURE_TRANSACTION_PERIOD:
+        return {
+            **normalized_fields,
+            "status": "forensic",
+            "reason_code": FUTURE_TRANSACTION_PERIOD,
+        }
     if integrity_reason:
         return {**base, "status": "rejected", "reason_code": integrity_reason}
     period = str(normalized["transaction_period"])
@@ -931,14 +979,10 @@ def _normalize_shadow_row(
         return {**base, "status": "rejected", "reason_code": "outside_rebuild_window_before"}
     if period > until:
         return {**base, "status": "rejected", "reason_code": "outside_rebuild_window_after"}
-    business_fact_hash = _normalized_business_fact_hash(normalized)
     return {
-        **base,
-        **normalized,
+        **normalized_fields,
         "status": "candidate",
         "reason_code": "",
-        "business_dedupe_key": str(normalized["dedupe_key"]),
-        "business_fact_hash": business_fact_hash,
     }
 
 
@@ -993,6 +1037,7 @@ def _create_shadow_schema(connection: sqlite3.Connection) -> None:
             transaction_period text not null,
             city text not null,
             district text not null,
+            geographic_unit_kind text not null,
             road text not null,
             address_text text not null default '',
             building_type text not null,
@@ -1005,6 +1050,8 @@ def _create_shadow_schema(connection: sqlite3.Connection) -> None:
             source text not null,
             business_dedupe_key text not null,
             business_fact_hash text not null,
+            production_fact_hash text not null,
+            revision_anchor_hash text not null,
             normalizer_version text not null,
             dedupe_algorithm_version text not null,
             normalized_at text not null
@@ -1013,10 +1060,14 @@ def _create_shadow_schema(connection: sqlite3.Connection) -> None:
             on shadow_candidate_transactions(source_identity);
         create index idx_shadow_candidate_business_key
             on shadow_candidate_transactions(business_dedupe_key);
+        create index idx_shadow_candidate_production_fact
+            on shadow_candidate_transactions(production_fact_hash);
         create table shadow_source_conflicts (
             source_identity text primary key,
             conflicting_fact_count integer not null,
-            candidate_row_count integer not null
+            candidate_row_count integer not null,
+            revision_anchor_count integer not null,
+            resolution_status text not null
         );
         create table shadow_transactions as select * from shadow_candidate_transactions where 0;
         create unique index uq_shadow_transaction_source_row_hash
@@ -1025,9 +1076,18 @@ def _create_shadow_schema(connection: sqlite3.Connection) -> None:
             on shadow_transactions(business_dedupe_key);
         create index idx_shadow_transaction_region_period
             on shadow_transactions(city, district, transaction_period);
+        create index idx_shadow_transaction_production_fact
+            on shadow_transactions(production_fact_hash);
+        create table shadow_forensic_transactions as
+            select *, '' as forensic_reason from shadow_candidate_transactions where 0;
+        create index idx_shadow_forensic_business_key
+            on shadow_forensic_transactions(business_dedupe_key);
+        create index idx_shadow_forensic_production_fact
+            on shadow_forensic_transactions(production_fact_hash);
         create table shadow_market_aggregates (
             county text not null,
             district text not null,
+            geographic_unit_kind text not null,
             period text not null,
             average_unit_price real,
             transaction_count integer not null,
@@ -1042,6 +1102,7 @@ def _create_shadow_schema(connection: sqlite3.Connection) -> None:
         create table shadow_coverage_matrix (
             county text not null,
             district text not null,
+            geographic_unit_kind text not null,
             period text not null,
             coverage_status text not null,
             reason_code text not null,
@@ -1111,16 +1172,48 @@ def _insert_candidates(
         "artifact_id", "artifact_sequence", "artifact_sha256", "artifact_filename",
         "source_filename", "source_row_number", "source_row_hash", "source_identity",
         "source_agency", "official_transaction_id", "official_transfer_id",
-        "raw_transaction_date", "transaction_period", "city", "district", "road",
+        "raw_transaction_date", "transaction_period", "city", "district",
+        "geographic_unit_kind", "road",
         "address_text", "building_type", "area_ping", "building_age_years", "floor",
         "total_floor", "unit_price_per_ping", "total_price", "source",
-        "business_dedupe_key", "business_fact_hash", "normalizer_version",
+        "business_dedupe_key", "business_fact_hash", "production_fact_hash",
+        "revision_anchor_hash", "normalizer_version",
         "dedupe_algorithm_version", "normalized_at",
     )
     placeholders = ", ".join("?" for _ in columns)
     connection.executemany(
         f"insert into shadow_candidate_transactions ({', '.join(columns)}) values ({placeholders})",
         [tuple(row.get(column) for column in columns) for row in rows],
+    )
+
+
+def _insert_forensic_transactions(
+    connection: sqlite3.Connection,
+    rows: Sequence[Mapping[str, Any]],
+) -> None:
+    if not rows:
+        return
+    columns = (
+        "artifact_id", "artifact_sequence", "artifact_sha256", "artifact_filename",
+        "source_filename", "source_row_number", "source_row_hash", "source_identity",
+        "source_agency", "official_transaction_id", "official_transfer_id",
+        "raw_transaction_date", "transaction_period", "city", "district",
+        "geographic_unit_kind", "road", "address_text", "building_type", "area_ping",
+        "building_age_years", "floor", "total_floor", "unit_price_per_ping", "total_price",
+        "source", "business_dedupe_key", "business_fact_hash", "production_fact_hash",
+        "revision_anchor_hash", "normalizer_version", "dedupe_algorithm_version",
+        "normalized_at", "forensic_reason",
+    )
+    placeholders = ", ".join("?" for _ in columns)
+    connection.executemany(
+        f"insert into shadow_forensic_transactions ({', '.join(columns)}) values ({placeholders})",
+        [
+            tuple(
+                row.get("reason_code") if column == "forensic_reason" else row.get(column)
+                for column in columns
+            )
+            for row in rows
+        ],
     )
 
 
@@ -1134,9 +1227,15 @@ def _finalize_shadow(
     connection.executescript(
         """
         insert into shadow_source_conflicts (
-            source_identity, conflicting_fact_count, candidate_row_count
+            source_identity, conflicting_fact_count, candidate_row_count,
+            revision_anchor_count, resolution_status
         )
-        select source_identity, count(distinct business_fact_hash), count(*)
+        select source_identity, count(distinct business_fact_hash), count(*),
+               count(distinct revision_anchor_hash),
+               case when count(distinct revision_anchor_hash) = 1
+                    then 'RESOLVED_OFFICIAL_REVISION'
+                    else 'UNRESOLVED'
+               end
         from shadow_candidate_transactions
         where official_transaction_id <> '' or official_transfer_id <> ''
         group by source_identity
@@ -1146,56 +1245,91 @@ def _finalize_shadow(
         select artifact_id, artifact_sequence, artifact_sha256, artifact_filename,
                source_filename, source_row_number, source_row_hash, source_identity,
                source_agency, official_transaction_id, official_transfer_id,
-               raw_transaction_date, transaction_period, city, district, road,
-               address_text, building_type, area_ping, building_age_years, floor,
-               total_floor, unit_price_per_ping, total_price, source,
-               business_dedupe_key, business_fact_hash, normalizer_version,
+               raw_transaction_date, transaction_period, city, district,
+               geographic_unit_kind, road, address_text, building_type, area_ping,
+               building_age_years, floor, total_floor, unit_price_per_ping,
+               total_price, source, business_dedupe_key, business_fact_hash,
+               production_fact_hash, revision_anchor_hash, normalizer_version,
                dedupe_algorithm_version, normalized_at
         from (
             select candidate.*,
                    row_number() over (
-                       partition by business_dedupe_key
+                       partition by case
+                           when exists (
+                               select 1 from shadow_source_conflicts conflict
+                               where conflict.source_identity = candidate.source_identity
+                                 and conflict.resolution_status = 'RESOLVED_OFFICIAL_REVISION'
+                           ) then 'source:' || source_identity
+                           else 'business:' || business_dedupe_key
+                       end
                        order by artifact_sequence desc, source_row_hash
                    ) as business_rank
             from shadow_candidate_transactions candidate
             where not exists (
                 select 1 from shadow_source_conflicts conflict
                 where conflict.source_identity = candidate.source_identity
+                  and conflict.resolution_status = 'UNRESOLVED'
             )
         ) ranked
         where business_rank = 1;
         """
     )
+    coverage = _build_coverage_matrix(connection, manifest_entries, since, until)
     connection.execute(
         """
         insert into shadow_market_aggregates (
-            county, district, period, average_unit_price, transaction_count,
-            record_count, source_name, coverage_status, data_status,
-            aggregation_method, built_at
+            county, district, geographic_unit_kind, period, average_unit_price,
+            transaction_count, record_count, source_name, coverage_status,
+            data_status, aggregation_method, built_at
         )
-        select city, district, transaction_period,
+        select city, district, geographic_unit_kind, transaction_period,
                round(avg(unit_price_per_ping), 2), count(*), count(*), ?,
-               'partial', 'available', ?, ?
+               coalesce((
+                   select matrix.coverage_status
+                   from shadow_coverage_matrix matrix
+                   where matrix.county = shadow_transactions.city
+                     and matrix.period = shadow_transactions.transaction_period
+                   limit 1
+               ), 'PARTIAL'),
+               'available', ?, ?
         from shadow_transactions
-        group by city, district, transaction_period
+        group by city, district, geographic_unit_kind, transaction_period
         """,
         (PLVR_MARKET_SOURCE_NAME, PLVR_AGGREGATION_METHOD, built_at),
     )
-    coverage = _build_coverage_matrix(connection, manifest_entries, since, until)
     candidate_count = int(connection.execute("select count(*) from shadow_candidate_transactions").fetchone()[0])
     accepted = int(connection.execute("select count(*) from shadow_transactions").fetchone()[0])
-    conflict_rows = int(
+    unresolved_conflict_rows = int(
         connection.execute(
             """
             select count(*) from shadow_candidate_transactions candidate
             where exists (
                 select 1 from shadow_source_conflicts conflict
                 where conflict.source_identity = candidate.source_identity
+                  and conflict.resolution_status = 'UNRESOLVED'
             )
             """
         ).fetchone()[0]
     )
-    conflicts = int(connection.execute("select count(*) from shadow_source_conflicts").fetchone()[0])
+    revision_rows_superseded = int(
+        connection.execute(
+            """
+            select coalesce(sum(candidate_row_count - 1), 0)
+            from shadow_source_conflicts
+            where resolution_status = 'RESOLVED_OFFICIAL_REVISION'
+            """
+        ).fetchone()[0]
+    )
+    conflicts = int(
+        connection.execute(
+            "select count(*) from shadow_source_conflicts where resolution_status = 'UNRESOLVED'"
+        ).fetchone()[0]
+    )
+    revisions = int(
+        connection.execute(
+            "select count(*) from shadow_source_conflicts where resolution_status = 'RESOLVED_OFFICIAL_REVISION'"
+        ).fetchone()[0]
+    )
     aggregate_row = connection.execute(
         """
         select count(*), count(distinct county), count(distinct county || '|' || district),
@@ -1204,11 +1338,21 @@ def _finalize_shadow(
         """
     ).fetchone()
     cities = [row[0] for row in connection.execute("select distinct city from shadow_transactions order by city")]
+    geographic_units = int(
+        connection.execute(
+            "select count(distinct city || '|' || district || '|' || geographic_unit_kind) from shadow_transactions"
+        ).fetchone()[0]
+    )
     return {
         "accepted_transaction_rows": accepted,
-        "business_duplicates": max(0, candidate_count - conflict_rows - accepted),
+        "business_duplicates": max(
+            0,
+            candidate_count - unresolved_conflict_rows - revision_rows_superseded - accepted,
+        ),
         "source_identity_conflicts": conflicts,
+        "source_identity_revisions_resolved": revisions,
         "cities": cities,
+        "geographic_units": geographic_units,
         "period_min": aggregate_row[3],
         "period_max": aggregate_row[4],
         "coverage": coverage,
@@ -1229,42 +1373,39 @@ def _build_coverage_matrix(
     since: str,
     until: str,
 ) -> dict[str, Any]:
-    periods = list(_iter_periods(since, until))
-    verified = [entry for entry in manifest_entries if entry.get("verification_status") == "VERIFIED"]
-    required_count = len(manifest_entries)
-    complete_through = _latest_settled_period(verified)
-    counts: Counter[str] = Counter()
-    for region in iter_taiwan_regions():
-        city_artifacts = [
-            entry
-            for entry in verified
-            if region.county.replace("臺", "台")
-            in {str(city).replace("臺", "台") for city in (entry.get("coverage_cities") or ())}
-        ]
-        for period in periods:
-            if not city_artifacts:
-                status, reason = "MISSING", "no_authoritative_artifact_for_city"
-            elif len(city_artifacts) < required_count:
-                status, reason = "PARTIAL", "required_artifact_gap"
-            elif complete_through and period <= complete_through:
-                status, reason = "COMPLETE", "all_required_release_artifacts_verified"
-            else:
-                status, reason = "PARTIAL", "latest_period_not_settled_by_complete_season"
-            connection.execute(
-                "insert into shadow_coverage_matrix values (?, ?, ?, ?, ?)",
-                (region.county, region.district, period, status, reason),
-            )
-            counts[status] += 1
-    total = sum(counts.values())
+    report = build_coverage_report({"artifacts": list(manifest_entries)}, since=since, until=until)
+    for cell in report["matrix"]:
+        region = normalize_market_region(str(cell["city"]))
+        if not region.valid:
+            raise ShadowRebuildError("coverage_city_not_canonical")
+        connection.execute(
+            "insert into shadow_coverage_matrix values (?, ?, ?, ?, ?, ?)",
+            (
+                region.county,
+                "",
+                "city_scope",
+                cell["period"],
+                cell["coverage_state"],
+                cell["reason_code"],
+            ),
+        )
+    counts = report["counts"]
     return {
         "complete": counts["COMPLETE"],
         "partial": counts["PARTIAL"],
         "missing": counts["MISSING"],
-        "not_expected": counts["NOT_EXPECTED"],
-        "total": total,
-        "complete_percent": round((counts["COMPLETE"] / total * 100), 2) if total else 0.0,
-        "complete_through": complete_through,
-        "basis": "verified nationwide artifact release scope; recent unsettled periods remain partial",
+        "not_expected": counts["NOT_YET_EXPECTED"],
+        "not_yet_expected": counts["NOT_YET_EXPECTED"],
+        "not_applicable": counts["NOT_APPLICABLE"],
+        "total": report["calendar_scope_count"],
+        "complete_percent": report["expected_official_coverage_percent"],
+        "raw_calendar_coverage_percent": report["raw_calendar_coverage_percent"],
+        "expected_official_coverage_percent": report["expected_official_coverage_percent"],
+        "expected_scope_count": report["expected_scope_count"],
+        "complete_through": report["complete_through"],
+        "expected_release_ceiling": report["expected_release_ceiling"],
+        "basis": report["basis"],
+        "artifact_scope_audit": report["artifact_scope_audit"],
     }
 
 
@@ -1284,9 +1425,17 @@ def _shadow_integrity_report(connection: sqlite3.Connection, as_of: date) -> dic
         (current_transaction_period(as_of), OFFICIAL_SOURCE),
     ).fetchone()
     invalid_geography = 0
-    for city, district in connection.execute("select distinct city, district from shadow_transactions"):
+    for city, district, unit_kind in connection.execute(
+        "select distinct city, district, geographic_unit_kind from shadow_transactions"
+    ):
         region = normalize_market_region(str(city), str(district))
-        invalid_geography += int(not region.valid or not region.district)
+        valid_city_level = (
+            str(unit_kind) == "city_level"
+            and region.valid
+            and not region.district
+            and region.county in OFFICIAL_CITY_LEVEL_GEOGRAPHIES
+        )
+        invalid_geography += int((not region.valid or not region.district) and not valid_city_level)
     future_aggregates = int(
         connection.execute(
             "select count(*) from shadow_market_aggregates where period > ?",
@@ -1515,6 +1664,8 @@ def _normalized_business_fact_hash(row: Mapping[str, Any]) -> str:
             "area_ping": f"{float(row.get('area_ping') or 0):.2f}",
             "total_price": f"{float(row.get('total_price') or 0):.2f}",
             "unit_price_per_ping": f"{float(row.get('unit_price_per_ping') or 0):.2f}",
+            "floor": int(row.get("floor") or 0),
+            "total_floor": int(row.get("total_floor") or 0),
         }
     )
 
@@ -1530,6 +1681,27 @@ def _production_fact_hash(row: Mapping[str, Any]) -> str:
             "area_ping": f"{float(row.get('area_ping') or 0):.2f}",
             "total_price": f"{float(row.get('total_price') or 0):.2f}",
             "unit_price_per_ping": f"{float(row.get('unit_price_per_ping') or 0):.2f}",
+            "floor": int(row.get("floor") or 0),
+            "total_floor": int(row.get("total_floor") or 0),
+        }
+    )
+
+
+def _revision_anchor_hash(row: Mapping[str, Any]) -> str:
+    """Bind immutable transaction facts while allowing official corrections."""
+
+    return _hash_payload(
+        {
+            "source": str(row.get("source") or OFFICIAL_SOURCE),
+            "transaction_period": str(row.get("transaction_period") or "").strip(),
+            "city": str(row.get("city") or "").replace("臺", "台").strip(),
+            "district": str(row.get("district") or "").strip(),
+            "address_fingerprint": hashlib.sha256(
+                re.sub(r"\s+", "", str(row.get("address_text") or "")).encode("utf-8")
+            ).hexdigest(),
+            "building_type": re.sub(r"\s+", "", str(row.get("building_type") or "")),
+            "floor": int(row.get("floor") or 0),
+            "total_floor": int(row.get("total_floor") or 0),
         }
     )
 

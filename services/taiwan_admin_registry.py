@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -52,6 +53,7 @@ def expected_region_count(path: Path | None = None) -> int:
     return len(iter_taiwan_regions(path))
 
 
+@lru_cache(maxsize=4096)
 def normalize_market_region(
     county: str,
     district: str = "",
@@ -98,6 +100,7 @@ def audit_region_coverage(
     }
 
 
+@lru_cache(maxsize=16)
 def _county_aliases(path: Path | None = None) -> dict[str, str]:
     aliases: dict[str, str] = {}
     for area in load_taiwan_admin_areas(path):
@@ -113,6 +116,7 @@ def _county_aliases(path: Path | None = None) -> dict[str, str]:
     return aliases
 
 
+@lru_cache(maxsize=512)
 def _district_aliases(county: str, path: Path | None = None) -> dict[str, str]:
     aliases: dict[str, str] = {}
     for area in load_taiwan_admin_areas(path):

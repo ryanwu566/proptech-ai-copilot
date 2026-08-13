@@ -1,0 +1,189 @@
+{
+  "schema_version": "plvr-coverage-reconciliation-summary-v1",
+  "baseline": {
+    "branch": "fix/plvr-reconciliation-coverage-closure",
+    "main_sha": "8fb8158beabd98f5a656bb1f2d6009f3d6b87243",
+    "rebuild_as_of_date": "2026-08-11",
+    "rebuild_window": {
+      "since": "2023-09",
+      "until": "2026-08"
+    }
+  },
+  "source": {
+    "artifact_count": 17,
+    "verified_artifact_count": 17,
+    "verified_bytes": 253796255,
+    "manifest_sha256": "18203c6347cd2e7c0fd4f274ec1c6e6b3f49cef8d4f890099a01ccacb9d0aa06",
+    "full_artifact_count": 14,
+    "partial_by_official_release_count": 3
+  },
+  "coverage": {
+    "basis": "verified artifact release metadata and embedded official package scope",
+    "expected_release_ceiling": "2026-07",
+    "complete_through": "2026-05",
+    "raw_calendar_coverage_percent": 91.67,
+    "expected_official_coverage_percent": 94.29,
+    "COMPLETE": 726,
+    "PARTIAL": 44,
+    "MISSING": 0,
+    "NOT_YET_EXPECTED": 22,
+    "NOT_APPLICABLE": 0,
+    "recent_periods": {
+      "2026-06": "PARTIAL",
+      "2026-07": "PARTIAL",
+      "2026-08": "NOT_YET_EXPECTED"
+    }
+  },
+  "geography_findings": {
+    "新竹市": {
+      "status": "SOURCE_PROVEN_CITY_LEVEL",
+      "source_rows": 22080,
+      "accepted_rows": 9856,
+      "geographic_units": 1,
+      "fabricated_districts": 0
+    },
+    "嘉義市": {
+      "status": "SOURCE_PROVEN_CITY_LEVEL",
+      "source_rows": 10819,
+      "accepted_rows": 5552,
+      "geographic_units": 1,
+      "fabricated_districts": 0
+    },
+    "連江縣": {
+      "status": "SOURCE_PRESENT_ZERO_ACCEPTED_BUILDING_TRANSACTIONS",
+      "source_rows": 314,
+      "accepted_rows": 0,
+      "missing_location_rows": 167,
+      "non_building_rows": 147,
+      "partial_incremental_releases_omitting_member": 3
+    }
+  },
+  "clean_shadow": {
+    "schema_version": "plvr-clean-shadow-v2",
+    "shadow_dataset_sha256": "2ee0cf968d769a9dd8261031f3f13f6d7c5fcb4c0c33316a22120070806cef57",
+    "raw_rows": 1106777,
+    "accepted_rows": 517195,
+    "cities_with_accepted_rows": 21,
+    "geographic_units": 325,
+    "period_min": "2023-09",
+    "period_max": "2026-07",
+    "aggregate_rows": 9606,
+    "duplicate_source_identity_excess_rows": 10,
+    "business_duplicates": 0,
+    "resolved_official_revision_groups": 2,
+    "unresolved_source_identity_conflicts": 0,
+    "exclusion_reasons": {
+      "abnormal_unit_price": 600,
+      "future_transaction_period": 3,
+      "invalid_area": 174,
+      "invalid_total_price": 2,
+      "missing_location": 29384,
+      "non_building_transaction": 271713,
+      "outside_rebuild_window_before": 287704
+    }
+  },
+  "lineage": {
+    "rows_with_artifact_hash": 517195,
+    "rows_with_source_row_hash": 517195,
+    "rows_with_official_id": 517195,
+    "rows_missing_identity": 0,
+    "canonical_invalid_accepted_rows": 0,
+    "publishable_future_rows": 0,
+    "publishable_future_aggregates": 0
+  },
+  "future_forensic": {
+    "clean_source_rows": 3,
+    "periods": [
+      "2026-10",
+      "2027-06",
+      "2031-08"
+    ],
+    "classification": "SOURCE_CONFIRMED_FUTURE_DATE_EXCLUDED",
+    "production_future_row_count": 1,
+    "production_identity_match": "unavailable_without_row_level_runtime",
+    "publishable_status": "excluded"
+  },
+  "production_observation": {
+    "snapshot_at": "2026-08-13T06:08:16.113928Z",
+    "mode": "SELECT_ONLY_AGGREGATE_OBSERVATION",
+    "official_transaction_rows": 451672,
+    "aggregate_rows": 11018,
+    "future_transaction_rows": 1,
+    "future_aggregate_rows": 1,
+    "earliest_period": "2023-07",
+    "latest_period": "2026-10",
+    "rows_changed": 0
+  },
+  "production_row_level_reconciliation": {
+    "status": "UNAVAILABLE_ROW_LEVEL_RUNTIME",
+    "reason_code": "production_read_runtime_not_configured",
+    "classified_rows": null,
+    "classification_percent": null,
+    "PROD_AUTHORITATIVE_MATCH": null,
+    "PROD_GEOGRAPHY_CORRUPT_MATCH": null,
+    "PROD_PROVABLE_DUPLICATE": null,
+    "PROD_PROBABLE_DUPLICATE": null,
+    "PROD_NOT_IN_CLEAN_SOURCE": null,
+    "PROD_FUTURE_ANOMALY": null,
+    "PROD_CONFLICTING": null,
+    "PROD_UNCLASSIFIED": null
+  },
+  "clean_reconciliation": {
+    "CLEAN_PRESENT_CORRECTLY": null,
+    "CLEAN_PRESENT_BUT_PROD_CORRUPT": null,
+    "CLEAN_MISSING_FROM_PROD": null,
+    "CLEAN_DUPLICATED_IN_PROD": null,
+    "CLEAN_SOURCE_CONFLICT": null,
+    "CLEAN_UNCLASSIFIED": null
+  },
+  "legacy_cohorts": {
+    "invalid_geography": {
+      "latest_baseline": 126087,
+      "authoritative_resolved": null,
+      "probable": null,
+      "no_match": null,
+      "conflict": null,
+      "unclassified": null
+    },
+    "supporting_geography_candidates": {
+      "latest_baseline": 109236,
+      "authoritative_confirmed": null,
+      "probable_only": null,
+      "no_source_match": null,
+      "conflicting": null,
+      "unclassified": null
+    },
+    "probable_duplicates": {
+      "latest_baseline": 57350,
+      "provable_duplicate": null,
+      "probable_duplicate": null,
+      "not_duplicate": null,
+      "no_match": null,
+      "conflicting": null
+    }
+  },
+  "aggregate_reconciliation": {
+    "production_aggregate_rows": 11018,
+    "shadow_aggregate_rows": 9606,
+    "changed_scopes": "unavailable_without_row_level_snapshot",
+    "golden_regions_passed": 7,
+    "golden_regions_total": 7
+  },
+  "production_safety": {
+    "select_only": true,
+    "writes": 0,
+    "migrations": 0,
+    "rows_changed": 0,
+    "cutover_performed": false
+  },
+  "gate": {
+    "status": "NOT_READY_FOR_SHADOW_CUTOVER_DESIGN",
+    "blockers": [
+      "production_row_level_reconciliation_unavailable",
+      "expected_authoritative_coverage_partial",
+      "production_only_rows_not_quantified",
+      "clean_only_rows_not_quantified",
+      "legacy_geography_and_duplicate_cohorts_not_authoritatively_reclassified"
+    ]
+  }
+}

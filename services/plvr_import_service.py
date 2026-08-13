@@ -13,6 +13,7 @@ from typing import Any, Iterable
 from services.plvr_data_integrity import (
     FUTURE_TRANSACTION_PERIOD,
     INVALID_CITY_DISTRICT_PAIR,
+    OFFICIAL_CITY_LEVEL_GEOGRAPHIES,
     is_future_transaction_period,
 )
 from services.taiwan_admin_registry import normalize_market_region
@@ -189,6 +190,8 @@ def normalize_row(
     *,
     city_hint: str = "",
     as_of: date | datetime | None = None,
+    allow_official_city_level: bool = False,
+    allow_future_forensic: bool = False,
 ) -> tuple[dict[str, Any] | None, str | None]:
     """Normalize one official row, returning an exclusion reason when invalid."""
 
@@ -219,12 +222,19 @@ def normalize_row(
         return None, "non_building_transaction"
     if not city or not district or not road:
         return None, "missing_location"
-    region = normalize_market_region(city, district)
-    if not region.valid or not region.district:
+    county_only = normalize_market_region(city)
+    city_level = (
+        allow_official_city_level
+        and county_only.valid
+        and county_only.county in OFFICIAL_CITY_LEVEL_GEOGRAPHIES
+        and district.replace("臺", "台") == county_only.county.replace("臺", "台")
+    )
+    region = county_only if city_level else normalize_market_region(city, district)
+    if not region.valid or (not region.district and not city_level):
         return None, INVALID_CITY_DISTRICT_PAIR
     if not period:
         return None, "invalid_transaction_date"
-    if is_future_transaction_period(period, as_of=as_of):
+    if is_future_transaction_period(period, as_of=as_of) and not allow_future_forensic:
         return None, FUTURE_TRANSACTION_PERIOD
     if area_sqm <= 0:
         return None, "invalid_area"
@@ -241,7 +251,8 @@ def normalize_row(
     normalized = {
         "transaction_period": period,
         "city": city.strip(),
-        "district": district.strip(),
+        "district": "" if city_level else district.strip(),
+        "geographic_unit_kind": "city_level" if city_level else "district",
         "road": road,
         "address_text": address,
         "building_type": building_type,

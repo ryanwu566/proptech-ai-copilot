@@ -16,6 +16,7 @@ PERIOD_PATTERN = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 INVALID_CITY_DISTRICT_PAIR = "invalid_city_district_pair"
 FUTURE_TRANSACTION_PERIOD = "future_transaction_period"
 INVALID_TRANSACTION_PERIOD = "invalid_transaction_period"
+OFFICIAL_CITY_LEVEL_GEOGRAPHIES = frozenset({"新竹市", "嘉義市"})
 
 
 def taipei_as_of_date(as_of: date | datetime | None = None) -> date:
@@ -81,11 +82,20 @@ def normalized_row_integrity_reason(
     row: dict[str, Any],
     *,
     as_of: date | datetime | None = None,
+    allow_official_city_level: bool = False,
 ) -> str | None:
     """Return a stable write-block reason for a normalized storage row."""
 
     region = normalize_market_region(str(row.get("city") or ""), str(row.get("district") or ""))
-    if not region.valid or not region.district:
+    unit_kind = str(row.get("geographic_unit_kind") or "district")
+    city_level = (
+        allow_official_city_level
+        and unit_kind == "city_level"
+        and region.valid
+        and not region.district
+        and region.county in OFFICIAL_CITY_LEVEL_GEOGRAPHIES
+    )
+    if (not region.valid or not region.district) and not city_level:
         return INVALID_CITY_DISTRICT_PAIR
     period = str(row.get("transaction_period") or "").strip()
     if not is_valid_transaction_period(period):
