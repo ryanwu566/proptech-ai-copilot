@@ -24,7 +24,9 @@ from services.plvr_production_reconciliation import (
     capture_production_snapshot,
     reconcile_snapshots,
     reconciliation_gate,
+    safe_reconciliation_artifacts,
 )
+from services.production_config import database_url, load_runtime_configuration
 
 
 DEFAULT_RUNTIME_ROOT = ROOT / "data" / "processed" / "plvr" / "phase2c5"
@@ -43,10 +45,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--summary-output", type=Path, default=DEFAULT_RUNTIME_ROOT / "reconciliation-summary.json")
     parser.add_argument("--since", default="2023-09")
     parser.add_argument("--until", default="2026-08")
-    parser.add_argument("--database-url-env", default="VALUATION_DATABASE_URL")
+    parser.add_argument(
+        "--database-url-env",
+        choices=("DATABASE_URL", "PILOT_EVIDENCE_DATABASE_URL"),
+        default="",
+    )
     parser.add_argument("--production-access", default="select-only")
     parser.add_argument("--page-size", type=int, default=DEFAULT_PAGE_SIZE)
     parser.add_argument("--main-sha", default="")
+    parser.add_argument("--safe-artifacts-dir", type=Path)
     return parser
 
 
@@ -60,17 +67,24 @@ def main(argv: list[str] | None = None) -> int:
             raise ReconciliationError("artifact_manifest_checksum_mismatch")
         shadow_summary = _read_json(args.shadow_summary)
         coverage = build_coverage_report(manifest, since=args.since, until=args.until)
-        database_url = os.getenv(args.database_url_env, "").strip()
-        if not database_url:
+        config = load_runtime_configuration()
+        configured_database_url = (
+            os.getenv(args.database_url_env, "").strip()
+            if args.database_url_env
+            else database_url()
+        )
+        database_source = args.database_url_env or config.database_source
+        if not configured_database_url:
             raise ReconciliationError("production_read_runtime_not_configured")
         main_sha = args.main_sha.strip() or _current_head()
-        source = ReadOnlyPostgresProductionSource(database_url)
+        source = ReadOnlyPostgresProductionSource(configured_database_url)
         capture_production_snapshot(
             source,
             args.snapshot_db,
             allowed_root=DEFAULT_RUNTIME_ROOT,
             main_sha=main_sha,
             clean_manifest_sha256=str(manifest["manifest_sha256"]),
+            clean_shadow_sha256=str(shadow_summary.get("shadow_dataset_sha256") or ""),
             page_size=args.page_size,
         )
         report = reconcile_snapshots(
@@ -85,10 +99,16 @@ def main(argv: list[str] | None = None) -> int:
             clean_manifest_sha256=str(manifest["manifest_sha256"]),
         )
         gate, blockers = reconciliation_gate(shadow_summary, report)
+        report["production_runtime"] = {
+            "database_source": database_source,
+            "database_status": "configured",
+        }
         report["gate"] = gate
         report["blockers"] = blockers
         _write_summary(args.summary_output, report)
-    except (OSError, ValueError, ReconciliationError) as error:
+        if args.safe_artifacts_dir:
+            _write_safe_artifacts(args.safe_artifacts_dir, report)
+    except Exception as error:
         print("PLVR_RECONCILIATION_STATUS=blocked")
         print(f"REASON_CODE={_safe_reason(error)}")
         return 2
@@ -118,6 +138,25 @@ def _write_summary(path: Path, report: Mapping[str, Any]) -> None:
         os.replace(temporary, path)
     finally:
         temporary.unlink(missing_ok=True)
+
+
+def _write_safe_artifacts(root: Path, report: Mapping[str, Any]) -> None:
+    resolved_root = root.resolve()
+    repository_artifacts = (ROOT / "artifacts").resolve()
+    if resolved_root != repository_artifacts:
+        raise ReconciliationError("safe_artifact_output_outside_repository_artifacts")
+    root.mkdir(parents=True, exist_ok=True)
+    for filename, payload in safe_reconciliation_artifacts(report).items():
+        path = root / filename
+        temporary = path.with_suffix(path.suffix + ".partial")
+        try:
+            temporary.write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            os.replace(temporary, path)
+        finally:
+            temporary.unlink(missing_ok=True)
 
 
 def _current_head() -> str:

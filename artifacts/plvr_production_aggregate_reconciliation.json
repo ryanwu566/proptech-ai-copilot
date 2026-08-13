@@ -1,0 +1,73 @@
+{
+  "aggregate_delta_context": {
+    "attribution_status": "MATERIAL_DELTAS_REQUIRE_FURTHER_EXPLANATION",
+    "clean_missing_from_production": 197256,
+    "future_excluded_rows": 1,
+    "geography_corrupt_rows": 1,
+    "probable_duplicate_candidates": 162464,
+    "production_only_rows": 131140,
+    "provable_duplicate_rows": 0
+  },
+  "aggregate_reconciliation": {
+    "changed_scope_delta_summary": {
+      "average_unit_price_max_absolute_delta": 84.96,
+      "average_unit_price_mean_absolute_delta": 2.6,
+      "total_transaction_value_absolute_delta_sum": 143764410.05,
+      "transaction_count_absolute_delta_sum": 98204
+    },
+    "golden_regions": [
+      {
+        "county": "臺北市",
+        "district": "中正區",
+        "history_length": 35,
+        "latest_period": "2026-07"
+      },
+      {
+        "county": "臺北市",
+        "district": "南港區",
+        "history_length": 35,
+        "latest_period": "2026-07"
+      },
+      {
+        "county": "臺中市",
+        "district": "北屯區",
+        "history_length": 35,
+        "latest_period": "2026-07"
+      },
+      {
+        "county": "桃園市",
+        "district": "平鎮區",
+        "history_length": 35,
+        "latest_period": "2026-07"
+      },
+      {
+        "county": "桃園市",
+        "district": "中壢區",
+        "history_length": 35,
+        "latest_period": "2026-07"
+      },
+      {
+        "county": "高雄市",
+        "district": "小港區",
+        "history_length": 35,
+        "latest_period": "2026-07"
+      },
+      {
+        "county": "高雄市",
+        "district": "三民區",
+        "history_length": 35,
+        "latest_period": "2026-07"
+      }
+    ],
+    "materiality_threshold": null,
+    "materially_changed_scopes": 2551,
+    "production_aggregate_rows": 11017,
+    "production_only_scopes": 5528,
+    "shadow_aggregate_rows": 9606,
+    "shadow_only_scopes": 4117,
+    "unchanged_scopes": 2938
+  },
+  "main_sha": "619771335d757ed24d9baa3103f636d932e752d6",
+  "production_snapshot_sha256": "d18823a8e9953fd78598f3aa428b43e302dd1af1ce6d6338ca4ceabbaa6b9d33",
+  "schema_version": "plvr-production-aggregate-reconciliation-v1"
+}

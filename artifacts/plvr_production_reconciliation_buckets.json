@@ -1,0 +1,239 @@
+{
+  "clean": {
+    "CLEAN_DUPLICATED_IN_PROD": 134,
+    "CLEAN_MISSING_FROM_PROD": 197256,
+    "CLEAN_PRESENT_BUT_PROD_CORRUPT": 1,
+    "CLEAN_PRESENT_CORRECTLY": 157608,
+    "CLEAN_SOURCE_CONFLICT": 0,
+    "CLEAN_UNCLASSIFIED": 162196
+  },
+  "clean_only_analysis": {
+    "DIFFERENT_DEDUPE": 0,
+    "LEGITIMATE_PROD_MISSING": 0,
+    "PREVIOUS_IMPORT_SCOPE_GAP": 170016,
+    "SOURCE_NEWER_THAN_PROD": 27240,
+    "UNRESOLVED": 0
+  },
+  "conservation": {
+    "clean_bucket_sum": 517195,
+    "clean_expected": 517195,
+    "clean_only_conserved": true,
+    "clean_only_expected": 197256,
+    "clean_only_subtype_sum": 197256,
+    "clean_rows_conserved": true,
+    "production_bucket_sum": 451672,
+    "production_expected": 451672,
+    "production_only_conserved": true,
+    "production_only_expected": 131140,
+    "production_only_subtype_sum": 131140,
+    "production_rows_conserved": true
+  },
+  "duplicate_topology": {
+    "authoritative_one_clean_to_one_prod": 157609,
+    "authoritative_one_clean_to_three_plus_prod": 0,
+    "authoritative_one_clean_to_two_prod": 0,
+    "duplicate_rows": 162464,
+    "duplicate_rows_with_invalid_geography": 0,
+    "probable_duplicate_excess_rows": 134,
+    "probable_duplicate_groups": 134,
+    "probable_evidence_tiers": [
+      "C"
+    ],
+    "probable_one_clean_to_one_prod": 162197,
+    "probable_one_clean_to_three_plus_prod": 0,
+    "probable_one_clean_to_two_prod": 134,
+    "provable_duplicate_excess_rows": 0,
+    "provable_duplicate_groups": 0,
+    "provable_evidence_tiers": [
+      "A",
+      "B"
+    ]
+  },
+  "future_row": {
+    "classification": "PROD_FUTURE_UNRESOLVED",
+    "clean_source_evidence_count": 0,
+    "identity_match": false,
+    "identity_tiers": [
+      "C"
+    ],
+    "production_match_count": 1,
+    "publishable_status": "excluded",
+    "raw_source_periods": [
+      "2026-10"
+    ],
+    "source_artifact_ids": [
+      "moi-plvr-sale-season-115S1"
+    ]
+  },
+  "invalid_geography_cohort": {
+    "CONFLICTING": 0,
+    "FUTURE_ANOMALY": 0,
+    "GEOGRAPHY_CORRUPT_MATCH": 0,
+    "NOT_IN_CLEAN_SOURCE": 115113,
+    "PROBABLE_DUPLICATE": 0,
+    "PROVABLE_DUPLICATE": 0,
+    "UNCLASSIFIED": 10974,
+    "baseline_difference": 0,
+    "baseline_difference_reason": "CURRENT_PREDICATE_MATCHES_HISTORICAL_BASELINE",
+    "current_observed_baseline": 126087,
+    "historical_baseline": 126087
+  },
+  "legacy_duplicate_cohort": {
+    "CONFLICTING": 363,
+    "NOT_ACTUALLY_DUPLICATE": 74,
+    "NO_CLEAN_MATCH": 57596,
+    "PROBABLE_DUPLICATE": 186,
+    "PROVABLE_DUPLICATE": 0,
+    "UNRESOLVED": 0,
+    "baseline_difference": 869,
+    "baseline_difference_reason": "CURRENT_FULL_SNAPSHOT_RECOMPUTATION_DIFFERS_FROM_HISTORICAL_FROZEN_COUNT",
+    "current_observed_baseline": 58219,
+    "historical_baseline": 57350
+  },
+  "legacy_geography_cohort": {
+    "AUTHORITATIVE_CONFIRMED": 129679,
+    "CONFLICTING": 365,
+    "NO_SOURCE_MATCH": 119033,
+    "PROBABLE_ONLY": 141800,
+    "UNCLASSIFIED": 1,
+    "baseline_difference": 281642,
+    "baseline_difference_reason": "CURRENT_FULL_SNAPSHOT_PREDICATE_DIFFERS_FROM_HISTORICAL_EXTRACTION",
+    "current_observed_baseline": 390878,
+    "historical_baseline": 109236
+  },
+  "main_sha": "619771335d757ed24d9baa3103f636d932e752d6",
+  "matching_tiers": {
+    "A": {
+      "classification": "AUTHORITATIVE",
+      "fields": [
+        "persisted_official_identity_key",
+        "clean_official_transaction_identity"
+      ]
+    },
+    "B": {
+      "classification": "AUTHORITATIVE",
+      "fields": [
+        "production_fact_hash",
+        "reconstructed_official_transaction_identity"
+      ]
+    },
+    "C": {
+      "classification": "STRONG_FACT_MATCH",
+      "fields": [
+        "canonical_geography",
+        "transaction_period",
+        "address_fingerprint",
+        "road",
+        "building_type",
+        "area",
+        "total_price",
+        "unit_price",
+        "floor",
+        "total_floor"
+      ]
+    },
+    "D": {
+      "classification": "PROBABLE_ONLY",
+      "fields": [
+        "legacy_natural_key"
+      ],
+      "used_for_authoritative_classification": false
+    }
+  },
+  "production": {
+    "PROD_AUTHORITATIVE_MATCH": 157608,
+    "PROD_CONFLICTING": 458,
+    "PROD_FUTURE_ANOMALY": 1,
+    "PROD_GEOGRAPHY_CORRUPT_MATCH": 1,
+    "PROD_NOT_IN_CLEAN_SOURCE": 131140,
+    "PROD_PROBABLE_DUPLICATE": 162464,
+    "PROD_PROVABLE_DUPLICATE": 0,
+    "PROD_UNCLASSIFIED": 0
+  },
+  "production_bucket_evidence": {
+    "PROD_AUTHORITATIVE_MATCH": {
+      "evidence_tiers": {
+        "A": 145235,
+        "B": 12373
+      },
+      "percentage": 34.89,
+      "representative_reason_codes": {
+        "official_dedupe_identity": 145235,
+        "official_identity_reconstructed": 12373
+      },
+      "row_count": 157608
+    },
+    "PROD_CONFLICTING": {
+      "evidence_tiers": {
+        "C": 458
+      },
+      "percentage": 0.1,
+      "representative_reason_codes": {
+        "multiple_fact_candidates": 458
+      },
+      "row_count": 458
+    },
+    "PROD_FUTURE_ANOMALY": {
+      "evidence_tiers": {
+        "C": 1
+      },
+      "percentage": 0.0,
+      "representative_reason_codes": {
+        "PROD_FUTURE_UNRESOLVED": 1
+      },
+      "row_count": 1
+    },
+    "PROD_GEOGRAPHY_CORRUPT_MATCH": {
+      "evidence_tiers": {
+        "B": 1
+      },
+      "percentage": 0.0,
+      "representative_reason_codes": {
+        "official_identity_reconstructed": 1
+      },
+      "row_count": 1
+    },
+    "PROD_NOT_IN_CLEAN_SOURCE": {
+      "evidence_tiers": {
+        "NONE": 131140
+      },
+      "percentage": 29.03,
+      "representative_reason_codes": {
+        "no_clean_match": 131140
+      },
+      "row_count": 131140
+    },
+    "PROD_PROBABLE_DUPLICATE": {
+      "evidence_tiers": {
+        "C": 162464
+      },
+      "percentage": 35.97,
+      "representative_reason_codes": {
+        "exact_business_facts_only": 162464
+      },
+      "row_count": 162464
+    },
+    "PROD_PROVABLE_DUPLICATE": {
+      "evidence_tiers": {},
+      "percentage": 0.0,
+      "representative_reason_codes": {},
+      "row_count": 0
+    },
+    "PROD_UNCLASSIFIED": {
+      "evidence_tiers": {},
+      "percentage": 0.0,
+      "representative_reason_codes": {},
+      "row_count": 0
+    }
+  },
+  "production_only_analysis": {
+    "FUTURE": 0,
+    "OUTSIDE_REBUILD_WINDOW": 11010,
+    "PROBABLE_BAD_IMPORT": 115113,
+    "SOURCE_COVERAGE_GAP": 0,
+    "UNRESOLVED": 5017,
+    "UNSUPPORTED_TRANSACTION_TYPE": 0
+  },
+  "production_snapshot_sha256": "d18823a8e9953fd78598f3aa428b43e302dd1af1ce6d6338ca4ceabbaa6b9d33",
+  "schema_version": "plvr-production-reconciliation-buckets-v1"
+}
