@@ -1,0 +1,52 @@
+{
+  "schema_version": "plvr-cutover-approval-matrix-v1",
+  "mode": "DESIGN_ONLY",
+  "phase_2d_grants_no_execution_authority": true,
+  "approvals": [
+    {
+      "id": "A_CREATE_PRODUCTION_SCHEMA_OBJECTS",
+      "scope": "create additive generation metadata, transaction, aggregate, coverage, and pointer objects",
+      "independent": true,
+      "authorized": false,
+      "stop_point": "stop before any production schema statement",
+      "required_evidence": "reviewed forward migration, rollback-safe schema review, PostgreSQL integration tests, and operator approval",
+      "phase_2d_policy": "NOT_AUTHORIZED"
+    },
+    {
+      "id": "B_WRITE_AUTHORITATIVE_ROWS",
+      "scope": "register an inactive generation and load authoritative generation-scoped transaction rows",
+      "independent": true,
+      "authorized": false,
+      "stop_point": "stop before generation registration or first candidate batch",
+      "required_evidence": "approval A completed, manifest frozen, loader dry run passed, capacity reviewed, and write owner approval",
+      "phase_2d_policy": "NOT_AUTHORIZED"
+    },
+    {
+      "id": "C_BUILD_CANDIDATE_AGGREGATES",
+      "scope": "build generation-scoped aggregates and coverage from the inactive authoritative candidate",
+      "independent": true,
+      "authorized": false,
+      "stop_point": "stop before any candidate aggregate write",
+      "required_evidence": "candidate transaction gates passed and aggregate owner approval",
+      "phase_2d_policy": "NOT_AUTHORIZED"
+    },
+    {
+      "id": "D_SWITCH_PRODUCTION_READERS",
+      "scope": "atomically move the active generation pointer after shadow comparison",
+      "independent": true,
+      "authorized": false,
+      "stop_point": "stop before locking or updating the active pointer",
+      "required_evidence": "all hard gates passed, rollback rehearsed, blue-green comparison accepted, incident owner present, and read-switch approval",
+      "phase_2d_policy": "NOT_AUTHORIZED"
+    },
+    {
+      "id": "E_RETIRE_OR_DELETE_LEGACY_GENERATIONS",
+      "scope": "retire or delete legacy data only in a separate later phase after retention review",
+      "independent": true,
+      "authorized": false,
+      "stop_point": "stop before retirement flag or any legacy deletion",
+      "required_evidence": "completed observation period, backup and audit retention confirmed, separate change request, and deletion-specific approval",
+      "phase_2d_policy": "PROHIBITED"
+    }
+  ]
+}

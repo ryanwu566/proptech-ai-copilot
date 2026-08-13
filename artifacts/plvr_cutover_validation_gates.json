@@ -1,0 +1,139 @@
+{
+  "schema_version": "plvr-cutover-validation-gates-v1",
+  "mode": "DESIGN_ONLY",
+  "baseline_kind": "FROZEN_PHASE_2C7_CANDIDATE",
+  "baseline_manifest_sha256": "18203c6347cd2e7c0fd4f274ec1c6e6b3f49cef8d4f890099a01ccacb9d0aa06",
+  "gates": [
+    {
+      "id": "transaction_row_count",
+      "expected_baseline": "517195",
+      "allowed_delta": "exact for frozen manifest; for a newer approved manifest, equal its validated accepted-row count",
+      "fail_closed_rule": "block when loaded count, distinct identity count, and manifest accepted count do not all agree"
+    },
+    {
+      "id": "canonical_geography_invalid_count",
+      "expected_baseline": "0",
+      "allowed_delta": "0",
+      "fail_closed_rule": "any invalid canonical geography blocks validation"
+    },
+    {
+      "id": "future_publishable_row_count",
+      "expected_baseline": "0",
+      "allowed_delta": "0",
+      "fail_closed_rule": "any publishable period after the approved ceiling blocks validation"
+    },
+    {
+      "id": "lineage_missing_count",
+      "expected_baseline": "0",
+      "allowed_delta": "0",
+      "fail_closed_rule": "every accepted row must have artifact hash, source row hash, source identity, and generation identity"
+    },
+    {
+      "id": "source_conflict_count",
+      "expected_baseline": "0 unresolved accepted-source conflicts",
+      "allowed_delta": "0 unresolved conflicts in publishable membership",
+      "fail_closed_rule": "unresolved official source revisions cannot enter the candidate generation"
+    },
+    {
+      "id": "duplicate_authoritative_identity_count",
+      "expected_baseline": "0",
+      "allowed_delta": "0",
+      "fail_closed_rule": "any duplicate authoritative identity or source row hash blocks validation"
+    },
+    {
+      "id": "period_range",
+      "expected_baseline": "2023-09 through 2026-07",
+      "allowed_delta": "later upper bound only when supported by a newer approved source manifest; lower bound change requires explicit retention approval",
+      "fail_closed_rule": "range must equal the approved manifest scope and contain no publishable future period"
+    },
+    {
+      "id": "city_coverage",
+      "expected_baseline": "21 canonical cities",
+      "allowed_delta": "no loss for the frozen manifest; newer release differences require source-scope evidence",
+      "fail_closed_rule": "unexpected city loss or noncanonical city blocks validation"
+    },
+    {
+      "id": "geographic_unit_coverage",
+      "expected_baseline": "325 canonical district or supported city-level units",
+      "allowed_delta": "no loss for the frozen manifest; additions require canonical registry membership or approved city-level semantics",
+      "fail_closed_rule": "unexpected unit loss, alias duplication, or unsupported unit blocks validation"
+    },
+    {
+      "id": "aggregate_scope_count",
+      "expected_baseline": "9606",
+      "allowed_delta": "exact for frozen manifest; newer approved manifests must reconcile scope changes to transaction membership and coverage matrix",
+      "fail_closed_rule": "aggregate scopes must be regenerated from and linked to exactly one candidate generation"
+    },
+    {
+      "id": "aggregate_unexplained_scope_count",
+      "expected_baseline": "0",
+      "allowed_delta": "0 material unexplained scopes and no unexplained golden latest-period scope",
+      "fail_closed_rule": "apply the Phase 2C.7 materiality rule and block any material unexplained result"
+    },
+    {
+      "id": "golden_region_validation",
+      "expected_baseline": "7/7",
+      "allowed_delta": "0 failed regions",
+      "fail_closed_rule": "every golden region must pass history, latest-period, future, aggregate, valuation, Market Insight, source, and freshness checks"
+    },
+    {
+      "id": "valuation_smoke",
+      "expected_baseline": "all evidence-sufficient golden fixtures return official actionable or explicit no-data states without demo fallback",
+      "allowed_delta": "0 unexpected unavailable states and 0 fabricated fallback states",
+      "fail_closed_rule": "query failure, schema error, generation mismatch, or false official labeling blocks validation"
+    },
+    {
+      "id": "market_insight_smoke",
+      "expected_baseline": "all golden fixtures return generation-consistent summary and 35-period history where baseline evidence exists",
+      "allowed_delta": "period growth only from a newer approved manifest; no unexplained missing history",
+      "fail_closed_rule": "query failure, zero-result regression, schema error, or aggregate-generation mismatch blocks validation"
+    },
+    {
+      "id": "read_model_status",
+      "expected_baseline": "candidate validated, inactive, 517195 transactions, 9606 aggregates, latest period 2026-07, rollback available",
+      "allowed_delta": "counts and period may follow a newer approved manifest only after all preceding gates pass",
+      "fail_closed_rule": "status disagreement with database generation metadata blocks read-switch approval"
+    }
+  ],
+  "golden_regions": [
+    {
+      "county": "臺北市",
+      "district": "中正區"
+    },
+    {
+      "county": "臺北市",
+      "district": "南港區"
+    },
+    {
+      "county": "臺中市",
+      "district": "北屯區"
+    },
+    {
+      "county": "桃園市",
+      "district": "平鎮區"
+    },
+    {
+      "county": "桃園市",
+      "district": "中壢區"
+    },
+    {
+      "county": "高雄市",
+      "district": "小港區"
+    },
+    {
+      "county": "高雄市",
+      "district": "三民區"
+    }
+  ],
+  "golden_region_requirements": [
+    "nonempty_authoritative_history",
+    "latest_period_matches_candidate_ceiling",
+    "future_publishable_count_zero",
+    "transaction_count_within_manifest_explained_range",
+    "aggregate_matches_same_generation_transactions",
+    "valuation_query_has_safe_evidence_state",
+    "market_insight_query_has_safe_evidence_state",
+    "source_and_freshness_metadata_present",
+    "no_fabricated_fallback_labeled_official"
+  ]
+}

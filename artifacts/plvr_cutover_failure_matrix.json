@@ -1,0 +1,141 @@
+{
+  "schema_version": "plvr-cutover-failure-matrix-v1",
+  "mode": "DESIGN_ONLY",
+  "failure_modes": [
+    {
+      "id": "candidate_table_creation_failure",
+      "detection": "forward migration transaction fails or schema contract validation differs",
+      "impact": "candidate preparation cannot start; live reads remain on legacy generation",
+      "automatic_response": "rollback schema transaction and mark operation failed",
+      "manual_response": "review migration evidence before a new independently approved attempt",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "partial_load",
+      "detection": "checkpoint, row count, or rolling manifest hash differs",
+      "impact": "candidate remains incomplete and inactive",
+      "automatic_response": "stop batches and keep generation nonvalidated",
+      "manual_response": "resume from last verified checkpoint or abandon candidate generation",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "duplicate_load",
+      "detection": "generation identity or source-row uniqueness constraint fails",
+      "impact": "affected batch aborts; candidate cannot validate",
+      "automatic_response": "rollback batch and stop loader",
+      "manual_response": "reconcile manifest and loader checkpoint without overwriting existing rows",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "manifest_mismatch",
+      "detection": "manifest or artifact hash differs from frozen generation metadata",
+      "impact": "lineage cannot be proven",
+      "automatic_response": "fail generation and prohibit additional load",
+      "manual_response": "reacquire or approve a new generation; never mutate frozen metadata",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "row_count_mismatch",
+      "detection": "loaded, distinct identity, manifest, or expected baseline counts disagree",
+      "impact": "candidate completeness is unknown",
+      "automatic_response": "block validation and activation",
+      "manual_response": "inspect checkpoint and safe aggregate diagnostics",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "schema_mismatch",
+      "detection": "reader contract or generation schema assertion fails",
+      "impact": "candidate readers may error or misinterpret data",
+      "automatic_response": "block shadow comparison or trigger rollback if already switched",
+      "manual_response": "deploy a reviewed forward compatibility repair",
+      "user_visible": "possible only after switch",
+      "rollback_required": "yes if active"
+    },
+    {
+      "id": "aggregate_rebuild_failure",
+      "detection": "aggregate job aborts, count is incomplete, or generation linkage fails",
+      "impact": "candidate remains inactive",
+      "automatic_response": "mark aggregate phase failed and retain transaction candidate",
+      "manual_response": "repair aggregate job and rebuild the same inactive generation idempotently",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "green_read_failure",
+      "detection": "shadow valuation, Market Insight, coverage, or status query fails",
+      "impact": "candidate cannot receive traffic",
+      "automatic_response": "fail closed and keep live pointer unchanged",
+      "manual_response": "inspect safe reason code and generation-specific telemetry",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "blue_green_disagreement",
+      "detection": "comparison yields unexpected value delta, missing data, or schema error",
+      "impact": "candidate correctness is not sufficiently explained",
+      "automatic_response": "block read-switch approval",
+      "manual_response": "classify and resolve the difference without changing live data",
+      "user_visible": false,
+      "rollback_required": false
+    },
+    {
+      "id": "vercel_frontend_deployment_mismatch",
+      "detection": "frontend contract version does not support generation-aware backend response",
+      "impact": "frontend may reject or misstate otherwise valid results",
+      "automatic_response": "block switch during preflight or rollback if detected post-switch",
+      "manual_response": "align approved frontend and backend contract versions",
+      "user_visible": "possible",
+      "rollback_required": "yes if active behavior is affected"
+    },
+    {
+      "id": "render_backend_deployment_mismatch",
+      "detection": "running backend commit or contract version lacks generation-aware repositories",
+      "impact": "read pointer may be ignored or inconsistently applied",
+      "automatic_response": "block read-switch approval",
+      "manual_response": "deploy the approved backend and repeat smoke checks",
+      "user_visible": "possible",
+      "rollback_required": "yes if switch already occurred"
+    },
+    {
+      "id": "connection_pool_stale_state",
+      "detection": "requests report generation mismatch after pointer commit",
+      "impact": "mixed blue and green results may be observed",
+      "automatic_response": "trigger rollback; generation selection must not use session state",
+      "manual_response": "invalidate bounded caches or restart affected backend instances, then verify pointer reads",
+      "user_visible": true,
+      "rollback_required": true
+    },
+    {
+      "id": "active_generation_switch_failure",
+      "detection": "pointer update transaction fails or post-commit generation IDs disagree",
+      "impact": "switch is absent or indeterminate",
+      "automatic_response": "transaction rollback; if commit is indeterminate, fail health until active pointer is verified",
+      "manual_response": "verify committed pointer and restore recorded prior generation when necessary",
+      "user_visible": "possible",
+      "rollback_required": "when committed state is not the prior pointer"
+    },
+    {
+      "id": "post_switch_acceptance_failure",
+      "detection": "health, golden regions, coverage, valuation, future guard, or Market Insight acceptance fails",
+      "impact": "users may receive incorrect or unavailable results",
+      "automatic_response": "immediately restore prior generation pointer",
+      "manual_response": "verify rollback and preserve candidate for forensic analysis",
+      "user_visible": true,
+      "rollback_required": true
+    },
+    {
+      "id": "rollback_failure",
+      "detection": "prior pointer cannot be restored or post-rollback verification fails",
+      "impact": "service integrity cannot be guaranteed",
+      "automatic_response": "enter fail-closed maintenance state for affected data surfaces",
+      "manual_response": "incident owner restores the prior pointer using reviewed break-glass procedure; no bulk row restore",
+      "user_visible": true,
+      "rollback_required": true
+    }
+  ]
+}
