@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Iterator, Mapping, Sequence
@@ -24,18 +25,26 @@ from services.plvr_production_reconciliation import (
     _production_fact_hash,
     capture_production_snapshot,
     reconcile_snapshots,
+    reconciliation_gate,
+    safe_reconciliation_artifacts,
 )
 from scripts.reconcile_plvr_shadow_with_production import main as reconciliation_main
+from services.production_config import database_url, load_runtime_configuration
 
 
 class FakeStream:
     snapshot_at = "2026-08-13T00:00:00+00:00"
+    transaction_isolation = "repeatable read"
+    transaction_read_only = "on"
+    database_identified = True
+    user_identified = True
 
     def __init__(
         self,
         pages: Sequence[Sequence[Mapping[str, Any]]],
         *,
         expected_count: int | None = None,
+        closing_count: int | None = None,
         fail_after_pages: int | None = None,
     ) -> None:
         self.pages = pages
@@ -43,6 +52,7 @@ class FakeStream:
             sum(len(page) for page in pages) if expected_count is None else expected_count
         )
         self.fail_after_pages = fail_after_pages
+        self.closing_count = self.expected_count if closing_count is None else closing_count
         self.closed = False
 
     def __iter__(self) -> Iterator[Sequence[Mapping[str, Any]]]:
@@ -50,6 +60,9 @@ class FakeStream:
             if self.fail_after_pages is not None and index >= self.fail_after_pages:
                 raise OSError("simulated snapshot interruption")
             yield page
+
+    def validate_stationary(self) -> int:
+        return self.closing_count
 
     def close(self) -> None:
         self.closed = True
@@ -208,6 +221,25 @@ def test_snapshot_rejects_unsorted_or_count_mismatched_pages(tmp_path: Path) -> 
             max_attempts=1,
         )
 
+
+def test_snapshot_fails_closed_when_repeatable_read_count_is_non_stationary(
+    tmp_path: Path,
+) -> None:
+    rows = [_production_row(1), _production_row(2)]
+    stream = FakeStream((rows,), closing_count=3)
+
+    with pytest.raises(ReconciliationError, match="SNAPSHOT_NON_STATIONARY"):
+        capture_production_snapshot(
+            FakeSource([stream]),
+            tmp_path / "non-stationary.sqlite3",
+            allowed_root=tmp_path,
+            main_sha="main-sha",
+            clean_manifest_sha256="manifest-sha",
+        )
+
+    assert stream.closed is True
+    assert not (tmp_path / "non-stationary.sqlite3").exists()
+
     mismatch = FakeStream(([_production_row(1)],), expected_count=2)
     with pytest.raises(ReconciliationError, match="production_snapshot_unavailable"):
         capture_production_snapshot(
@@ -264,6 +296,13 @@ def test_postgres_stream_enforces_read_only_transaction_and_closes_resources(
                 self.current = page if int(params[1]) < 1 else []
 
         def fetchone(self) -> dict[str, Any]:
+            latest = self.sql[-1]
+            if latest == "show transaction_read_only":
+                return {"transaction_read_only": "on"}
+            if latest == "show transaction_isolation":
+                return {"transaction_isolation": "repeatable read"}
+            if "current_database()" in latest:
+                return {"database_identified": True, "user_identified": True}
             return {
                 "count": 1,
                 "transaction_timestamp": datetime(2026, 8, 13, tzinfo=UTC),
@@ -340,6 +379,54 @@ def test_postgres_stream_closes_connection_when_initialization_fails(
 
     assert connection.cursor_instance.closed is True
     assert connection.closed is True
+
+
+def test_postgres_stream_fails_closed_when_server_does_not_confirm_read_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class Cursor:
+        closed = False
+
+        def execute(self, _sql: str, _params: Sequence[Any] | None = None) -> None:
+            return None
+
+        def fetchone(self) -> dict[str, Any]:
+            return {"transaction_read_only": "off"}
+
+        def close(self) -> None:
+            self.closed = True
+
+    class Connection:
+        read_only = False
+        closed = False
+        cursor_instance = Cursor()
+
+        def cursor(self, **_kwargs: Any) -> Cursor:
+            return self.cursor_instance
+
+        def close(self) -> None:
+            self.closed = True
+
+    connection = Connection()
+    monkeypatch.setattr(psycopg, "connect", lambda *_args, **_kwargs: connection)
+
+    with pytest.raises(ReconciliationError, match="production_transaction_not_read_only"):
+        _PostgresSnapshotStream("not-output", page_size=10)
+
+    assert connection.cursor_instance.closed is True
+    assert connection.closed is True
+
+
+def test_production_configuration_detection_never_returns_secret_value() -> None:
+    secret = "postgresql://user:password@example.invalid/database"
+    environment = {"DATABASE_URL": secret, "APP_ENV": "production"}
+
+    report = load_runtime_configuration(environment).safe_report()
+
+    assert report["database"] == "configured"
+    assert report["database_source"] == "DATABASE_URL"
+    assert secret not in json.dumps(report)
+    assert database_url(environment) == secret
 
 
 def test_production_sql_guard_rejects_every_write_class() -> None:
@@ -519,11 +606,45 @@ def test_row_level_reconciliation_classifies_strict_evidence_and_keeps_summary_s
     assert report["clean"][CleanBucket.DUPLICATED_IN_PROD.value] == 1
     assert report["clean"][CleanBucket.PRESENT_BUT_PROD_CORRUPT.value] == 1
     assert report["clean"][CleanBucket.MISSING_FROM_PROD.value] == 2
-    assert report["clean"][CleanBucket.SOURCE_CONFLICT.value] == 3
+    assert report["clean"][CleanBucket.SOURCE_CONFLICT.value] == 0
+    assert report["conservation"] == {
+        "production_expected": 9,
+        "production_bucket_sum": 9,
+        "production_rows_conserved": True,
+        "clean_expected": 5,
+        "clean_bucket_sum": 5,
+        "clean_rows_conserved": True,
+        "production_only_expected": 2,
+        "production_only_subtype_sum": 2,
+        "production_only_conserved": True,
+        "clean_only_expected": 2,
+        "clean_only_subtype_sum": 2,
+        "clean_only_conserved": True,
+    }
+    assert report["duplicate_topology"] == {
+        "authoritative_one_clean_to_one_prod": 3,
+        "authoritative_one_clean_to_two_prod": 1,
+        "authoritative_one_clean_to_three_plus_prod": 0,
+        "provable_duplicate_groups": 1,
+        "provable_duplicate_excess_rows": 1,
+        "probable_one_clean_to_one_prod": 1,
+        "probable_one_clean_to_two_prod": 0,
+        "probable_one_clean_to_three_plus_prod": 0,
+        "probable_duplicate_groups": 0,
+        "probable_duplicate_excess_rows": 0,
+        "provable_evidence_tiers": ["A", "B"],
+        "probable_evidence_tiers": ["C"],
+        "duplicate_rows": 2,
+        "duplicate_rows_with_invalid_geography": 0,
+    }
     assert report["future_row"] == {
         "classification": "PROD_FUTURE_SOURCE_CONFIRMED",
         "production_match_count": 1,
         "clean_source_evidence_count": 1,
+        "identity_match": True,
+        "identity_tiers": ["A"],
+        "source_artifact_ids": ["moi-plvr-sale-season-115S1"],
+        "raw_source_periods": ["2026-10"],
         "publishable_status": "excluded",
     }
     serialized = json.dumps(report, ensure_ascii=False)
@@ -536,6 +657,21 @@ def test_row_level_reconciliation_classifies_strict_evidence_and_keeps_summary_s
         "migrations": 0,
         "rows_changed": 0,
     }
+    report["production_runtime"] = {
+        "database_source": "DATABASE_URL",
+        "database_status": "configured",
+    }
+    safe_artifacts = safe_reconciliation_artifacts(report)
+    safe_serialized = json.dumps(safe_artifacts, ensure_ascii=False).lower()
+    assert set(safe_artifacts) == {
+        "plvr_production_reconciliation_summary.json",
+        "plvr_production_reconciliation_buckets.json",
+        "plvr_production_aggregate_reconciliation.json",
+    }
+    assert "address_text" not in safe_serialized
+    assert "database_url" not in safe_serialized
+    assert "postgresql://" not in safe_serialized
+    assert "忠孝東路" not in safe_serialized
     connection = sqlite3.connect(reconciliation_path)
     try:
         evidence = {
@@ -582,3 +718,64 @@ def test_reconciliation_cli_rejects_write_mode_before_opening_inputs(
         "PLVR_RECONCILIATION_STATUS=blocked",
         "REASON_CODE=production_access_must_be_select_only",
     ]
+
+
+def test_raw_production_snapshot_path_is_ignored_and_not_tracked() -> None:
+    repository = Path(__file__).resolve().parents[1]
+    snapshot = "data/processed/plvr/phase2c5/production-snapshot.sqlite3"
+    ignored = subprocess.run(
+        ["git", "check-ignore", "--quiet", "--", snapshot],
+        cwd=repository,
+        check=False,
+    )
+    tracked = subprocess.run(
+        ["git", "ls-files", "--", snapshot],
+        cwd=repository,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert ignored.returncode == 0
+    assert tracked.stdout.strip() == ""
+
+
+def test_cutover_gate_fails_closed_for_material_residuals() -> None:
+    gate, blockers = reconciliation_gate(
+        {
+            "coverage": {"missing": 0},
+            "source_identity_conflicts": 0,
+            "lineage": {"rows_missing_identity": 0},
+        },
+        {
+            "production_snapshot": {
+                "snapshot_stationary": True,
+                "transaction_read_only": "on",
+            },
+            "production_safety": {"writes": 0, "rows_changed": 0},
+            "conservation": {
+                "production_rows_conserved": True,
+                "clean_rows_conserved": True,
+            },
+            "production": {
+                ProductionBucket.PROBABLE_DUPLICATE.value: 2,
+                ProductionBucket.PROVABLE_DUPLICATE.value: 0,
+            },
+            "clean": {CleanBucket.UNCLASSIFIED.value: 2},
+            "duplicate_topology": {"duplicate_rows": 2},
+            "future_row": {"classification": "PROD_FUTURE_UNRESOLVED"},
+            "aggregate_reconciliation": {"materially_changed_scopes": 1},
+            "legacy_geography_cohort": {"baseline_difference": 1},
+            "legacy_duplicate_cohort": {"baseline_difference": 1},
+            "production_only_analysis": {"UNRESOLVED": 0},
+            "clean_only_analysis": {"UNRESOLVED": 0},
+        },
+    )
+    assert gate == "NOT_READY_FOR_SHADOW_CUTOVER_DESIGN"
+    assert set(blockers) >= {
+        "clean_rows_unclassified",
+        "probable_duplicate_candidates_unresolved",
+        "future_anomaly_identity_unresolved",
+        "aggregate_deltas_require_explanation",
+        "historical_supporting_cohort_membership_not_reproducible",
+        "historical_duplicate_cohort_membership_not_reproducible",
+    }

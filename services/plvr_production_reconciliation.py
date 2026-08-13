@@ -63,8 +63,14 @@ class ReconciliationError(RuntimeError):
 class SnapshotStream(Protocol):
     snapshot_at: str
     expected_count: int
+    transaction_isolation: str
+    transaction_read_only: str
+    database_identified: bool
+    user_identified: bool
 
     def __iter__(self) -> Iterator[Sequence[Mapping[str, Any]]]: ...
+
+    def validate_stationary(self) -> int: ...
 
     def close(self) -> None: ...
 
@@ -85,10 +91,28 @@ class SnapshotMetadata:
     snapshot_sha256: str
     main_sha: str
     clean_manifest_sha256: str
+    clean_shadow_sha256: str
+    closing_production_count: int
+    snapshot_stationary: bool
+    transaction_isolation: str
+    transaction_read_only: str
+    database_identified: bool
+    user_identified: bool
 
 
 class _PostgresSnapshotStream:
-    COUNT_SQL = "select count(*)::bigint, transaction_timestamp() from real_price_transactions where source = %s"
+    COUNT_SQL = """
+    select count(*)::bigint as count, transaction_timestamp() as transaction_timestamp
+    from real_price_transactions where source = %s
+    """
+    FINAL_COUNT_SQL = """
+    select count(*)::bigint as count
+    from real_price_transactions where source = %s
+    """
+    IDENTITY_SQL = """
+    select current_database() is not null as database_identified,
+           current_user is not null as user_identified
+    """
     PAGE_SQL = """
     select id, transaction_period, city, district, road, address_text,
            building_type, area_ping, building_age_years, floor, total_floor,
@@ -101,6 +125,8 @@ class _PostgresSnapshotStream:
 
     def __init__(self, database_url: str, *, page_size: int) -> None:
         _assert_production_select(self.COUNT_SQL)
+        _assert_production_select(self.FINAL_COUNT_SQL)
+        _assert_production_select(self.IDENTITY_SQL)
         _assert_production_select(self.PAGE_SQL)
         import psycopg
         from psycopg.rows import dict_row
@@ -118,6 +144,22 @@ class _PostgresSnapshotStream:
             self._connection.read_only = True
             self._cursor = self._connection.cursor()
             self._cursor.execute("set transaction isolation level repeatable read, read only")
+            self._cursor.execute("show transaction_read_only")
+            self.transaction_read_only = str(
+                self._cursor.fetchone()["transaction_read_only"]
+            ).lower()
+            if self.transaction_read_only != "on":
+                raise ReconciliationError("production_transaction_not_read_only")
+            self._cursor.execute("show transaction_isolation")
+            self.transaction_isolation = str(
+                self._cursor.fetchone()["transaction_isolation"]
+            ).lower()
+            if self.transaction_isolation != "repeatable read":
+                raise ReconciliationError("production_transaction_not_repeatable_read")
+            self._cursor.execute(self.IDENTITY_SQL)
+            identity = self._cursor.fetchone()
+            self.database_identified = bool(identity["database_identified"])
+            self.user_identified = bool(identity["user_identified"])
             self._cursor.execute(self.COUNT_SQL, [OFFICIAL_SOURCE])
             row = self._cursor.fetchone()
             self.expected_count = int(row["count"])
@@ -158,6 +200,10 @@ class _PostgresSnapshotStream:
             self._last_id = previous
             yield rows
 
+    def validate_stationary(self) -> int:
+        self._cursor.execute(self.FINAL_COUNT_SQL, [OFFICIAL_SOURCE])
+        return int(self._cursor.fetchone()["count"])
+
     def close(self) -> None:
         if self._closed:
             return
@@ -190,6 +236,7 @@ def capture_production_snapshot(
     allowed_root: Path,
     main_sha: str,
     clean_manifest_sha256: str,
+    clean_shadow_sha256: str = "",
     page_size: int = DEFAULT_PAGE_SIZE,
     max_attempts: int = 2,
 ) -> SnapshotMetadata:
@@ -242,6 +289,9 @@ def capture_production_snapshot(
                     connection.commit()
                 if count != int(stream.expected_count):
                     raise ReconciliationError("production_snapshot_count_mismatch")
+                closing_count = int(stream.validate_stationary())
+                if closing_count != int(stream.expected_count):
+                    raise ReconciliationError("SNAPSHOT_NON_STATIONARY")
                 checksum = digest.hexdigest()
                 metadata = SnapshotMetadata(
                     snapshot_at=stream.snapshot_at,
@@ -254,6 +304,13 @@ def capture_production_snapshot(
                     snapshot_sha256=checksum,
                     main_sha=main_sha,
                     clean_manifest_sha256=clean_manifest_sha256,
+                    clean_shadow_sha256=clean_shadow_sha256,
+                    closing_production_count=closing_count,
+                    snapshot_stationary=True,
+                    transaction_isolation=stream.transaction_isolation,
+                    transaction_read_only=stream.transaction_read_only,
+                    database_identified=stream.database_identified,
+                    user_identified=stream.user_identified,
                 )
                 connection.execute(
                     "insert into snapshot_metadata values (?, ?)",
@@ -274,6 +331,12 @@ def capture_production_snapshot(
         except Exception as error:
             last_error = error
             temporary.unlink(missing_ok=True)
+            if isinstance(error, ReconciliationError) and str(error) in {
+                "SNAPSHOT_NON_STATIONARY",
+                "production_transaction_not_read_only",
+                "production_transaction_not_repeatable_read",
+            }:
+                raise
     raise ReconciliationError("production_snapshot_unavailable") from last_error
 
 
@@ -336,15 +399,90 @@ def reconcile_snapshots(
         temporary.unlink(missing_ok=True)
 
 
+def safe_reconciliation_artifacts(
+    report: Mapping[str, Any],
+) -> dict[str, dict[str, Any]]:
+    """Return commit-safe summaries without production row payloads."""
+
+    summary = json.loads(_canonical_json(report))
+    if "production_runtime" in summary:
+        summary["production_runtime"] = {
+            "database_status": (summary.get("production_runtime") or {}).get(
+                "database_status"
+            )
+        }
+    buckets = {
+        "schema_version": "plvr-production-reconciliation-buckets-v1",
+        "main_sha": report.get("main_sha"),
+        "production_snapshot_sha256": (
+            report.get("production_snapshot") or {}
+        ).get("snapshot_sha256"),
+        "matching_tiers": report.get("matching_tiers"),
+        "production": report.get("production"),
+        "production_bucket_evidence": report.get("production_bucket_evidence"),
+        "clean": report.get("clean"),
+        "conservation": report.get("conservation"),
+        "invalid_geography_cohort": report.get("invalid_geography_cohort"),
+        "legacy_geography_cohort": report.get("legacy_geography_cohort"),
+        "legacy_duplicate_cohort": report.get("legacy_duplicate_cohort"),
+        "duplicate_topology": report.get("duplicate_topology"),
+        "production_only_analysis": report.get("production_only_analysis"),
+        "clean_only_analysis": report.get("clean_only_analysis"),
+        "future_row": report.get("future_row"),
+    }
+    aggregates = {
+        "schema_version": "plvr-production-aggregate-reconciliation-v1",
+        "main_sha": report.get("main_sha"),
+        "production_snapshot_sha256": (
+            report.get("production_snapshot") or {}
+        ).get("snapshot_sha256"),
+        "aggregate_reconciliation": report.get("aggregate_reconciliation"),
+        "aggregate_delta_context": report.get("aggregate_delta_context"),
+    }
+    payloads = {
+        "plvr_production_reconciliation_summary.json": summary,
+        "plvr_production_reconciliation_buckets.json": buckets,
+        "plvr_production_aggregate_reconciliation.json": aggregates,
+    }
+    serialized = _canonical_json(payloads).lower()
+    for forbidden in (
+        "database_url",
+        "password",
+        "raw production",
+        "address_text",
+        "full_address",
+        "postgresql://",
+    ):
+        if forbidden in serialized:
+            raise ReconciliationError("unsafe_reconciliation_artifact")
+    return payloads
+
+
 def reconciliation_gate(
     shadow_report: Mapping[str, Any],
     reconciliation: Mapping[str, Any],
 ) -> tuple[str, list[str]]:
     blockers: list[str] = []
     coverage = shadow_report.get("coverage") or {}
+    snapshot = reconciliation.get("production_snapshot") or {}
+    conservation = reconciliation.get("conservation") or {}
     production = reconciliation.get("production") or {}
     clean = reconciliation.get("clean") or {}
-    if float(coverage.get("expected_official_coverage_percent") or 0) < 100:
+    safety = reconciliation.get("production_safety") or {}
+    topology = reconciliation.get("duplicate_topology") or {}
+    aggregates = reconciliation.get("aggregate_reconciliation") or {}
+    future = reconciliation.get("future_row") or {}
+    if not bool(snapshot.get("snapshot_stationary")):
+        blockers.append("production_snapshot_not_stationary")
+    if str(snapshot.get("transaction_read_only") or "").lower() != "on":
+        blockers.append("production_transaction_not_read_only")
+    if int(safety.get("writes") or 0) or int(safety.get("rows_changed") or 0):
+        blockers.append("production_mutation_detected")
+    if not bool(conservation.get("production_rows_conserved")):
+        blockers.append("production_bucket_conservation_failed")
+    if not bool(conservation.get("clean_rows_conserved")):
+        blockers.append("clean_bucket_conservation_failed")
+    if int(coverage.get("missing") or 0) > 0:
         blockers.append("expected_authoritative_coverage_incomplete")
     if int(shadow_report.get("source_identity_conflicts") or 0):
         blockers.append("source_identity_conflicts_unresolved")
@@ -358,6 +496,37 @@ def reconciliation_gate(
         blockers.append("clean_only_rows_unresolved")
     if int(clean.get(CleanBucket.SOURCE_CONFLICT.value) or 0):
         blockers.append("clean_source_conflicts_unresolved")
+    if int(clean.get(CleanBucket.UNCLASSIFIED.value) or 0):
+        blockers.append("clean_rows_unclassified")
+    if int(topology.get("duplicate_rows") or 0) > int(
+        production.get(ProductionBucket.PROVABLE_DUPLICATE.value) or 0
+    ):
+        blockers.append("probable_duplicate_candidates_unresolved")
+    if str(future.get("classification") or "") != "PROD_FUTURE_SOURCE_CONFIRMED":
+        blockers.append("future_anomaly_identity_unresolved")
+    if any(
+        int(aggregates.get(key) or 0)
+        for key in (
+            "materially_changed_scopes",
+            "production_only_scopes",
+            "shadow_only_scopes",
+        )
+    ):
+        blockers.append("aggregate_deltas_require_explanation")
+    if int(
+        (reconciliation.get("legacy_geography_cohort") or {}).get(
+            "baseline_difference"
+        )
+        or 0
+    ):
+        blockers.append("historical_supporting_cohort_membership_not_reproducible")
+    if int(
+        (reconciliation.get("legacy_duplicate_cohort") or {}).get(
+            "baseline_difference"
+        )
+        or 0
+    ):
+        blockers.append("historical_duplicate_cohort_membership_not_reproducible")
     if int((shadow_report.get("lineage") or {}).get("rows_missing_identity") or 0):
         blockers.append("shadow_lineage_incomplete")
     return (
@@ -682,6 +851,7 @@ def _classify_clean_rows(connection: sqlite3.Connection) -> None:
                ) as duplicates
         from clean_index clean
         left join production_classification prod on prod.clean_id = clean.clean_id
+        where clean.source_conflict = 0 and clean.forensic_reason = ''
         group by clean.clean_id, clean.source_conflict, clean.forensic_reason
         order by clean.clean_id
         """
@@ -721,6 +891,7 @@ def _build_reconciliation_report(
     clean_counts = _count_by(output, "clean_classification", "bucket")
     production_total = sum(production_counts.values())
     clean_publishable = int(shadow.execute("select count(*) from shadow_transactions").fetchone()[0])
+    clean_total = sum(clean_counts.values())
     invalid = _invalid_cohort(output)
     legacy_geography = _legacy_geography_cohort(output)
     legacy_duplicates = _legacy_duplicate_cohort(output)
@@ -730,15 +901,12 @@ def _build_reconciliation_report(
         "production_only_reason",
         where="bucket = 'PROD_NOT_IN_CLEAN_SOURCE'",
     )
-    production_only["FUTURE"] = production_counts.get(
-        ProductionBucket.FUTURE_ANOMALY.value, 0
-    )
     for key in (
         "SOURCE_COVERAGE_GAP",
         "OUTSIDE_REBUILD_WINDOW",
         "PROBABLE_BAD_IMPORT",
         "UNSUPPORTED_TRANSACTION_TYPE",
-        "CLEAN_SOURCE_MISSING",
+        "FUTURE",
         "UNRESOLVED",
     ):
         production_only.setdefault(key, 0)
@@ -746,6 +914,22 @@ def _build_reconciliation_report(
     topology = _duplicate_topology(output)
     aggregates = _aggregate_reconciliation(shadow, production, expected_release_ceiling)
     snapshot = _snapshot_metadata(production)
+    expected_production = int(snapshot["production_total_count"])
+    production_only_total = sum(production_only.values())
+    clean_only_total = sum(clean_only.values())
+    expected_production_only = production_counts.get(
+        ProductionBucket.NOT_IN_CLEAN_SOURCE.value, 0
+    )
+    expected_clean_only = clean_counts.get(CleanBucket.MISSING_FROM_PROD.value, 0)
+    if production_total != expected_production:
+        raise ReconciliationError("production_bucket_conservation_failed")
+    if clean_total != clean_publishable:
+        raise ReconciliationError("clean_bucket_conservation_failed")
+    if production_only_total != expected_production_only:
+        raise ReconciliationError("production_only_subtype_conservation_failed")
+    if clean_only_total != expected_clean_only:
+        raise ReconciliationError("clean_only_subtype_conservation_failed")
+    evidence = _production_bucket_evidence(output, production_total)
     report: dict[str, Any] = {
         "schema_version": RECONCILIATION_SCHEMA_VERSION,
         "main_sha": main_sha,
@@ -753,9 +937,47 @@ def _build_reconciliation_report(
         "production_snapshot": snapshot,
         "production": {bucket.value: production_counts.get(bucket.value, 0) for bucket in ProductionBucket},
         "clean": {bucket.value: clean_counts.get(bucket.value, 0) for bucket in CleanBucket},
+        "production_bucket_evidence": evidence,
+        "matching_tiers": {
+            "A": {
+                "classification": "AUTHORITATIVE",
+                "fields": ["persisted_official_identity_key", "clean_official_transaction_identity"],
+            },
+            "B": {
+                "classification": "AUTHORITATIVE",
+                "fields": ["production_fact_hash", "reconstructed_official_transaction_identity"],
+            },
+            "C": {
+                "classification": "STRONG_FACT_MATCH",
+                "fields": [
+                    "canonical_geography", "transaction_period", "address_fingerprint",
+                    "road", "building_type", "area", "total_price", "unit_price",
+                    "floor", "total_floor",
+                ],
+            },
+            "D": {
+                "classification": "PROBABLE_ONLY",
+                "fields": ["legacy_natural_key"],
+                "used_for_authoritative_classification": False,
+            },
+        },
+        "conservation": {
+            "production_expected": expected_production,
+            "production_bucket_sum": production_total,
+            "production_rows_conserved": production_total == expected_production,
+            "clean_expected": clean_publishable,
+            "clean_bucket_sum": clean_total,
+            "clean_rows_conserved": clean_total == clean_publishable,
+            "production_only_expected": expected_production_only,
+            "production_only_subtype_sum": production_only_total,
+            "production_only_conserved": production_only_total == expected_production_only,
+            "clean_only_expected": expected_clean_only,
+            "clean_only_subtype_sum": clean_only_total,
+            "clean_only_conserved": clean_only_total == expected_clean_only,
+        },
         "quality": {
             "classified_rows": production_total,
-            "classification_percent": _percent(production_total, int(snapshot["production_total_count"])),
+            "classification_percent": _percent(production_total, expected_production),
             "authoritative_matched_percent": _percent(
                 production_counts.get(ProductionBucket.AUTHORITATIVE_MATCH.value, 0)
                 + production_counts.get(ProductionBucket.GEOGRAPHY_CORRUPT_MATCH.value, 0)
@@ -763,10 +985,11 @@ def _build_reconciliation_report(
                 production_total,
             ),
             "invalid_geography_authoritative_resolved_percent": _percent(
-                invalid["AUTHORITATIVE_GEOGRAPHY_CORRUPT"], invalid["latest_baseline"]
+                invalid["GEOGRAPHY_CORRUPT_MATCH"], invalid["current_observed_baseline"]
             ),
             "legacy_duplicate_provably_resolved_percent": _percent(
-                legacy_duplicates["PROVABLE_DUPLICATE"], legacy_duplicates["latest_baseline"]
+                legacy_duplicates["PROVABLE_DUPLICATE"],
+                legacy_duplicates["current_observed_baseline"],
             ),
             "production_only_unresolved_percent": _percent(
                 production_only.get("UNRESOLVED", 0),
@@ -785,6 +1008,27 @@ def _build_reconciliation_report(
         "clean_only_analysis": clean_only,
         "future_row": _future_analysis(output),
         "aggregate_reconciliation": aggregates,
+        "aggregate_delta_context": {
+            "attribution_status": "MATERIAL_DELTAS_REQUIRE_FURTHER_EXPLANATION",
+            "geography_corrupt_rows": production_counts.get(
+                ProductionBucket.GEOGRAPHY_CORRUPT_MATCH.value, 0
+            ),
+            "probable_duplicate_candidates": production_counts.get(
+                ProductionBucket.PROBABLE_DUPLICATE.value, 0
+            ),
+            "provable_duplicate_rows": production_counts.get(
+                ProductionBucket.PROVABLE_DUPLICATE.value, 0
+            ),
+            "production_only_rows": production_counts.get(
+                ProductionBucket.NOT_IN_CLEAN_SOURCE.value, 0
+            ),
+            "clean_missing_from_production": clean_counts.get(
+                CleanBucket.MISSING_FROM_PROD.value, 0
+            ),
+            "future_excluded_rows": production_counts.get(
+                ProductionBucket.FUTURE_ANOMALY.value, 0
+            ),
+        },
         "coverage": {
             "raw_calendar_coverage_percent": coverage_report.get("raw_calendar_coverage_percent"),
             "expected_official_coverage_percent": coverage_report.get("expected_official_coverage_percent"),
@@ -893,55 +1137,85 @@ def _same_geography(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
     )
 
 
-def _invalid_cohort(connection: sqlite3.Connection) -> dict[str, int]:
+def _invalid_cohort(connection: sqlite3.Connection) -> dict[str, Any]:
     rows = connection.execute(
         "select bucket, count(*) from production_classification where canonical_invalid = 1 group by bucket"
     ).fetchall()
     counts = {str(row[0]): int(row[1]) for row in rows}
-    baseline = sum(counts.values())
+    unclassified = counts.get(ProductionBucket.UNCLASSIFIED.value, 0) + counts.get(
+        ProductionBucket.AUTHORITATIVE_MATCH.value, 0
+    )
+    historical_baseline = 126_087
+    current_observed_baseline = sum(counts.values())
     return {
-        "latest_baseline": baseline,
-        "AUTHORITATIVE_GEOGRAPHY_CORRUPT": counts.get(ProductionBucket.GEOGRAPHY_CORRUPT_MATCH.value, 0),
-        "PROBABLE_GEOGRAPHY_CORRUPT": counts.get(ProductionBucket.PROBABLE_DUPLICATE.value, 0),
-        "NO_CLEAN_MATCH": counts.get(ProductionBucket.NOT_IN_CLEAN_SOURCE.value, 0),
+        "historical_baseline": historical_baseline,
+        "current_observed_baseline": current_observed_baseline,
+        "baseline_difference": current_observed_baseline - historical_baseline,
+        "baseline_difference_reason": "CURRENT_PREDICATE_MATCHES_HISTORICAL_BASELINE",
+        "GEOGRAPHY_CORRUPT_MATCH": counts.get(ProductionBucket.GEOGRAPHY_CORRUPT_MATCH.value, 0),
+        "PROVABLE_DUPLICATE": counts.get(ProductionBucket.PROVABLE_DUPLICATE.value, 0),
+        "PROBABLE_DUPLICATE": counts.get(ProductionBucket.PROBABLE_DUPLICATE.value, 0),
+        "NOT_IN_CLEAN_SOURCE": counts.get(ProductionBucket.NOT_IN_CLEAN_SOURCE.value, 0),
+        "FUTURE_ANOMALY": counts.get(ProductionBucket.FUTURE_ANOMALY.value, 0),
         "CONFLICTING": counts.get(ProductionBucket.CONFLICTING.value, 0),
-        "UNCLASSIFIED": counts.get(ProductionBucket.UNCLASSIFIED.value, 0),
+        "UNCLASSIFIED": unclassified,
     }
 
 
-def _legacy_geography_cohort(connection: sqlite3.Connection) -> dict[str, int]:
+def _legacy_geography_cohort(connection: sqlite3.Connection) -> dict[str, Any]:
     rows = connection.execute(
         "select bucket, count(*) from production_classification where legacy_supporting = 1 group by bucket"
     ).fetchall()
     counts = {str(row[0]): int(row[1]) for row in rows}
+    historical_baseline = 109_236
+    current_observed_baseline = sum(counts.values())
     return {
-        "latest_baseline": sum(counts.values()),
-        "AUTHORITATIVE_CONFIRMED": counts.get(ProductionBucket.GEOGRAPHY_CORRUPT_MATCH.value, 0),
+        "historical_baseline": historical_baseline,
+        "current_observed_baseline": current_observed_baseline,
+        "baseline_difference": current_observed_baseline - historical_baseline,
+        "baseline_difference_reason": (
+            "CURRENT_FULL_SNAPSHOT_PREDICATE_DIFFERS_FROM_HISTORICAL_EXTRACTION"
+        ),
+        "AUTHORITATIVE_CONFIRMED": (
+            counts.get(ProductionBucket.AUTHORITATIVE_MATCH.value, 0)
+            + counts.get(ProductionBucket.GEOGRAPHY_CORRUPT_MATCH.value, 0)
+            + counts.get(ProductionBucket.PROVABLE_DUPLICATE.value, 0)
+        ),
         "PROBABLE_ONLY": counts.get(ProductionBucket.PROBABLE_DUPLICATE.value, 0),
         "NO_SOURCE_MATCH": counts.get(ProductionBucket.NOT_IN_CLEAN_SOURCE.value, 0),
         "CONFLICTING": counts.get(ProductionBucket.CONFLICTING.value, 0),
-        "UNCLASSIFIED": counts.get(ProductionBucket.UNCLASSIFIED.value, 0),
+        "UNCLASSIFIED": counts.get(ProductionBucket.UNCLASSIFIED.value, 0)
+        + counts.get(ProductionBucket.FUTURE_ANOMALY.value, 0),
     }
 
 
-def _legacy_duplicate_cohort(connection: sqlite3.Connection) -> dict[str, int]:
+def _legacy_duplicate_cohort(connection: sqlite3.Connection) -> dict[str, Any]:
     rows = connection.execute(
         "select bucket, count(*) from production_classification where legacy_duplicate_candidate = 1 group by bucket"
     ).fetchall()
     counts = {str(row[0]): int(row[1]) for row in rows}
+    historical_baseline = 57_350
+    current_observed_baseline = sum(counts.values())
     return {
-        "latest_baseline": sum(counts.values()),
+        "historical_baseline": historical_baseline,
+        "current_observed_baseline": current_observed_baseline,
+        "baseline_difference": current_observed_baseline - historical_baseline,
+        "baseline_difference_reason": (
+            "CURRENT_FULL_SNAPSHOT_RECOMPUTATION_DIFFERS_FROM_HISTORICAL_FROZEN_COUNT"
+        ),
         "PROVABLE_DUPLICATE": counts.get(ProductionBucket.PROVABLE_DUPLICATE.value, 0),
         "PROBABLE_DUPLICATE": counts.get(ProductionBucket.PROBABLE_DUPLICATE.value, 0),
-        "NOT_DUPLICATE": counts.get(ProductionBucket.AUTHORITATIVE_MATCH.value, 0)
+        "NOT_ACTUALLY_DUPLICATE": counts.get(ProductionBucket.AUTHORITATIVE_MATCH.value, 0)
         + counts.get(ProductionBucket.GEOGRAPHY_CORRUPT_MATCH.value, 0),
         "NO_CLEAN_MATCH": counts.get(ProductionBucket.NOT_IN_CLEAN_SOURCE.value, 0),
         "CONFLICTING": counts.get(ProductionBucket.CONFLICTING.value, 0),
+        "UNRESOLVED": counts.get(ProductionBucket.UNCLASSIFIED.value, 0)
+        + counts.get(ProductionBucket.FUTURE_ANOMALY.value, 0),
     }
 
 
-def _duplicate_topology(connection: sqlite3.Connection) -> dict[str, int]:
-    multiplicities = [
+def _duplicate_topology(connection: sqlite3.Connection) -> dict[str, Any]:
+    authoritative_multiplicities = [
         int(row[0])
         for row in connection.execute(
             """
@@ -951,12 +1225,70 @@ def _duplicate_topology(connection: sqlite3.Connection) -> dict[str, int]:
             """
         )
     ]
+    probable_multiplicities = [
+        int(row[0])
+        for row in connection.execute(
+            """
+            select count(*) from production_classification
+            where clean_id is not null and evidence_tier = 'C'
+            group by clean_id
+            """
+        )
+    ]
+    duplicate_rows = int(
+        connection.execute(
+            """
+            select count(*)
+            from production_classification
+            where bucket in ('PROD_PROVABLE_DUPLICATE', 'PROD_PROBABLE_DUPLICATE')
+            """
+        ).fetchone()[0]
+    )
+    duplicate_rows_with_invalid_geography = int(
+        connection.execute(
+            """
+            select count(*)
+            from production_classification
+            where bucket in ('PROD_PROVABLE_DUPLICATE', 'PROD_PROBABLE_DUPLICATE')
+              and canonical_invalid = 1
+            """
+        ).fetchone()[0]
+    )
     return {
-        "one_clean_to_one_prod": sum(value == 1 for value in multiplicities),
-        "one_clean_to_two_prod": sum(value == 2 for value in multiplicities),
-        "one_clean_to_three_plus_prod": sum(value >= 3 for value in multiplicities),
-        "duplicate_groups": sum(value > 1 for value in multiplicities),
-        "duplicate_excess_rows": sum(max(0, value - 1) for value in multiplicities),
+        "authoritative_one_clean_to_one_prod": sum(
+            value == 1 for value in authoritative_multiplicities
+        ),
+        "authoritative_one_clean_to_two_prod": sum(
+            value == 2 for value in authoritative_multiplicities
+        ),
+        "authoritative_one_clean_to_three_plus_prod": sum(
+            value >= 3 for value in authoritative_multiplicities
+        ),
+        "provable_duplicate_groups": sum(
+            value > 1 for value in authoritative_multiplicities
+        ),
+        "provable_duplicate_excess_rows": sum(
+            max(0, value - 1) for value in authoritative_multiplicities
+        ),
+        "probable_one_clean_to_one_prod": sum(
+            value == 1 for value in probable_multiplicities
+        ),
+        "probable_one_clean_to_two_prod": sum(
+            value == 2 for value in probable_multiplicities
+        ),
+        "probable_one_clean_to_three_plus_prod": sum(
+            value >= 3 for value in probable_multiplicities
+        ),
+        "probable_duplicate_groups": sum(
+            value > 1 for value in probable_multiplicities
+        ),
+        "probable_duplicate_excess_rows": sum(
+            max(0, value - 1) for value in probable_multiplicities
+        ),
+        "provable_evidence_tiers": ["A", "B"],
+        "probable_evidence_tiers": ["C"],
+        "duplicate_rows": duplicate_rows,
+        "duplicate_rows_with_invalid_geography": duplicate_rows_with_invalid_geography,
     }
 
 
@@ -993,12 +1325,73 @@ def _future_analysis(connection: sqlite3.Connection) -> dict[str, Any]:
     ).fetchall()
     confirmed = sum(int(row[2]) for row in rows if str(row[0]) == "PROD_FUTURE_SOURCE_CONFIRMED")
     total = sum(int(row[2]) for row in rows)
+    evidence_tiers = sorted({str(row[1]) for row in rows if str(row[1]) not in {"", "NONE"}})
+    artifacts = [
+        str(row[0])
+        for row in connection.execute(
+            """
+            select distinct clean.artifact_id
+            from production_classification production
+            join clean_index clean on clean.clean_id = production.clean_id
+            where production.bucket = 'PROD_FUTURE_ANOMALY'
+              and clean.forensic_reason <> ''
+            order by clean.artifact_id
+            """
+        )
+    ]
+    source_periods = [
+        str(row[0])
+        for row in connection.execute(
+            """
+            select distinct clean.transaction_period
+            from production_classification production
+            join clean_index clean on clean.clean_id = production.clean_id
+            where production.bucket = 'PROD_FUTURE_ANOMALY'
+              and clean.forensic_reason <> ''
+            order by clean.transaction_period
+            """
+        )
+    ]
     return {
         "classification": "PROD_FUTURE_SOURCE_CONFIRMED" if confirmed == total and total else "PROD_FUTURE_UNRESOLVED",
         "production_match_count": total,
         "clean_source_evidence_count": confirmed,
+        "identity_match": bool(confirmed and confirmed == total),
+        "identity_tiers": evidence_tiers,
+        "source_artifact_ids": artifacts,
+        "raw_source_periods": source_periods,
         "publishable_status": "excluded",
     }
+
+
+def _production_bucket_evidence(
+    connection: sqlite3.Connection, production_total: int
+) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for bucket in ProductionBucket:
+        rows = connection.execute(
+            """
+            select evidence_tier, detail, count(*)
+            from production_classification
+            where bucket = ?
+            group by evidence_tier, detail
+            order by count(*) desc, evidence_tier, detail
+            """,
+            (bucket.value,),
+        ).fetchall()
+        count = sum(int(row[2]) for row in rows)
+        tiers: Counter[str] = Counter()
+        reasons: dict[str, int] = {}
+        for tier, detail, row_count in rows:
+            tiers[str(tier)] += int(row_count)
+            reasons[str(detail)] = int(row_count)
+        result[bucket.value] = {
+            "row_count": count,
+            "percentage": _percent(count, production_total),
+            "evidence_tiers": dict(sorted(tiers.items())),
+            "representative_reason_codes": dict(list(reasons.items())[:5]),
+        }
+    return result
 
 
 def _aggregate_reconciliation(
@@ -1012,7 +1405,7 @@ def _aggregate_reconciliation(
             """
             select city, district, transaction_period, count(*),
                    round(avg(unit_price_per_ping), 2), round(avg(total_price), 2),
-                   round(avg(area_ping), 2)
+                   round(avg(area_ping), 2), round(sum(total_price), 2)
             from shadow_transactions
             group by city, district, transaction_period
             """
@@ -1024,7 +1417,7 @@ def _aggregate_reconciliation(
             """
             select city, district, transaction_period, count(*),
                    round(avg(unit_price_per_ping), 2), round(avg(total_price), 2),
-                   round(avg(area_ping), 2)
+                   round(avg(area_ping), 2), round(sum(total_price), 2)
             from snapshot_transactions
             where transaction_period <= ?
             group by city, district, transaction_period
@@ -1033,6 +1426,9 @@ def _aggregate_reconciliation(
         )
     }
     unchanged = changed = production_only = shadow_only = 0
+    count_abs_delta = 0
+    unit_price_abs_deltas: list[float] = []
+    total_value_abs_delta = 0.0
     for key in set(shadow_rows) | set(production_rows):
         left, right = production_rows.get(key), shadow_rows.get(key)
         if left is None:
@@ -1043,6 +1439,9 @@ def _aggregate_reconciliation(
             unchanged += 1
         else:
             changed += 1
+            count_abs_delta += abs(int(left[0]) - int(right[0]))
+            unit_price_abs_deltas.append(abs(float(left[1] or 0) - float(right[1] or 0)))
+            total_value_abs_delta += abs(float(left[4] or 0) - float(right[4] or 0))
     golden = []
     for county, district in (
         ("臺北市", "中正區"), ("臺北市", "南港區"), ("臺中市", "北屯區"),
@@ -1065,6 +1464,20 @@ def _aggregate_reconciliation(
         "production_only_scopes": production_only,
         "shadow_only_scopes": shadow_only,
         "materiality_threshold": None,
+        "changed_scope_delta_summary": {
+            "transaction_count_absolute_delta_sum": count_abs_delta,
+            "average_unit_price_mean_absolute_delta": round(
+                sum(unit_price_abs_deltas) / len(unit_price_abs_deltas), 2
+            )
+            if unit_price_abs_deltas
+            else 0.0,
+            "average_unit_price_max_absolute_delta": round(
+                max(unit_price_abs_deltas), 2
+            )
+            if unit_price_abs_deltas
+            else 0.0,
+            "total_transaction_value_absolute_delta_sum": round(total_value_abs_delta, 2),
+        },
         "golden_regions": golden,
     }
 
@@ -1193,6 +1606,13 @@ def asdict_without_none(value: SnapshotMetadata) -> dict[str, Any]:
             "snapshot_sha256": value.snapshot_sha256,
             "main_sha": value.main_sha,
             "clean_manifest_sha256": value.clean_manifest_sha256,
+            "clean_shadow_sha256": value.clean_shadow_sha256,
+            "closing_production_count": value.closing_production_count,
+            "snapshot_stationary": value.snapshot_stationary,
+            "transaction_isolation": value.transaction_isolation,
+            "transaction_read_only": value.transaction_read_only,
+            "database_identified": value.database_identified,
+            "user_identified": value.user_identified,
         }.items()
         if item is not None
     }
