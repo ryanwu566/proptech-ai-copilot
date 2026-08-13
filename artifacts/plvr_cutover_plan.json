@@ -1,0 +1,452 @@
+{
+  "schema_version": "plvr-shadow-cutover-plan-v1",
+  "mode": "DESIGN_ONLY",
+  "base_main_sha": "93679c25a7c34779c7b397010406ca09448d7e50",
+  "gate_input": "READY_FOR_SHADOW_CUTOVER_DESIGN",
+  "current_live_model": {
+    "transaction_storage": {
+      "table": "real_price_transactions",
+      "primary_key": "id",
+      "official_source_filter": "official_plvr_opendata",
+      "official_identity": "source plus nullable dedupe_key",
+      "reader_indexes": [
+        "idx_real_price_city_district_road",
+        "idx_real_price_city_district",
+        "idx_real_price_transaction_period",
+        "idx_market_direct_query_city_period",
+        "idx_market_direct_query_city_district_period"
+      ]
+    },
+    "market_read_paths": {
+      "summary_history_coverage": "direct aggregate queries over real_price_transactions",
+      "status_catalog_regions": "market_district_period_aggregates",
+      "coverage_metadata": "market_region_coverage"
+    },
+    "production_transaction_rows": 451672,
+    "production_aggregate_scopes": 11017,
+    "valuation_read_path": "PostgresValuationProvider over real_price_transactions",
+    "official_release_pipeline": {
+      "transactions": "market_transactions",
+      "aggregates": "market_region_period_aggregates",
+      "coverage": "official_market_region_coverage",
+      "active_release_metadata": "official_market_releases.is_active",
+      "current_reader_routing": "not used by the live valuation or direct Market Insight readers"
+    },
+    "generation_aware_view_present": false,
+    "migration_ledger": "schema_migration_ledger",
+    "migration_range": "001 through 009",
+    "runtime": "Render FastAPI with PostgreSQL provider selected by server-side configuration",
+    "fallback_behavior": "official runtime failures return unavailable; demo valuation data requires explicit demo mode"
+  },
+  "target_generation_model": {
+    "generation_metadata": "plvr_dataset_generations",
+    "transaction_storage": "plvr_generation_transactions",
+    "aggregate_storage": "plvr_generation_market_aggregates",
+    "coverage_storage": "plvr_generation_region_coverage",
+    "active_pointer_table": "plvr_active_dataset",
+    "active_pointer": {
+      "dataset_key": "official_plvr",
+      "transaction_binding": "generation_id",
+      "aggregate_binding": "same_generation_id",
+      "single_row_atomic_switch": true,
+      "rollback_pointer_recorded": true
+    },
+    "generation_states": [
+      "registered",
+      "loading",
+      "loaded",
+      "aggregating",
+      "validated",
+      "active",
+      "inactive",
+      "failed"
+    ],
+    "invariants": [
+      "transaction_and_aggregate_generation_match",
+      "candidate_cannot_be_active_before_validation",
+      "failed_candidate_remains_inactive",
+      "legacy_generation_is_preserved",
+      "one_active_generation_per_dataset",
+      "generation_manifest_is_immutable_after_validation"
+    ],
+    "authoritative_candidate_rows": 517195,
+    "authoritative_candidate_aggregate_scopes": 9606
+  },
+  "selected_switch_mechanism": "metadata_backed_active_generation_id",
+  "switch_strategy_evaluation": [
+    {
+      "strategy": "configuration_controlled_generation_selector",
+      "atomicity": "low across independently deployed readers",
+      "rollback_speed": "deployment or configuration propagation dependent",
+      "migration_risk": "low",
+      "pool_behavior": "safe but configuration may differ across instances",
+      "render_compatibility": "configuration propagation and instance restart dependent",
+      "supabase_postgres_compatibility": "compatible but selector is outside the database transaction",
+      "deploy_coupling": "high",
+      "testability": "medium",
+      "observability": "medium",
+      "schema_complexity": "low",
+      "selected": false
+    },
+    {
+      "strategy": "stable_sql_view",
+      "atomicity": "high for one view replacement transaction",
+      "rollback_speed": "fast",
+      "migration_risk": "medium due to view dependencies and permissions",
+      "pool_behavior": "possible cached-plan and permission considerations",
+      "render_compatibility": "compatible after reader deployment",
+      "supabase_postgres_compatibility": "compatible; view permissions and security-invoker behavior require review",
+      "deploy_coupling": "low",
+      "testability": "high",
+      "observability": "medium",
+      "schema_complexity": "medium",
+      "selected": false
+    },
+    {
+      "strategy": "metadata_backed_active_generation_id",
+      "atomicity": "high through one pointer-row transaction",
+      "rollback_speed": "fast pointer reversal",
+      "migration_risk": "medium and additive",
+      "pool_behavior": "no session state; each query resolves committed pointer",
+      "render_compatibility": "compatible with persistent FastAPI instances and pooled connections",
+      "supabase_postgres_compatibility": "native transactional row update with additive tables and no session selector",
+      "deploy_coupling": "low after generation-aware readers are deployed",
+      "testability": "high",
+      "observability": "high",
+      "schema_complexity": "medium",
+      "selected": true
+    },
+    {
+      "strategy": "physical_table_rename_swap",
+      "atomicity": "high for DDL transaction",
+      "rollback_speed": "fast but operationally risky",
+      "migration_risk": "high due to dependencies and locks",
+      "pool_behavior": "higher stale-plan and relation-cache risk",
+      "render_compatibility": "possible backend restart or cache invalidation risk",
+      "supabase_postgres_compatibility": "transactional DDL is supported but lock and dependency risk is high",
+      "deploy_coupling": "medium",
+      "testability": "medium",
+      "observability": "low",
+      "schema_complexity": "low",
+      "selected": false
+    },
+    {
+      "strategy": "application_repository_provider_switch",
+      "atomicity": "low across processes without a shared pointer",
+      "rollback_speed": "deployment dependent",
+      "migration_risk": "low",
+      "pool_behavior": "safe",
+      "render_compatibility": "requires coordinated deployment across instances",
+      "supabase_postgres_compatibility": "compatible but cannot by itself guarantee one database snapshot across readers",
+      "deploy_coupling": "high",
+      "testability": "high",
+      "observability": "medium",
+      "schema_complexity": "low",
+      "selected": false
+    }
+  ],
+  "target_transaction_contract": {
+    "required_columns": [
+      "generation_id",
+      "transaction_identity",
+      "artifact_sha256",
+      "source_row_hash",
+      "source_identity",
+      "official_transaction_id",
+      "official_transfer_id",
+      "transaction_period",
+      "canonical_city",
+      "canonical_district",
+      "geographic_unit_kind",
+      "road",
+      "address_text",
+      "building_type",
+      "area_ping",
+      "building_age_years",
+      "floor",
+      "total_floor",
+      "unit_price_per_ping",
+      "total_price",
+      "source_name",
+      "business_dedupe_key",
+      "publishability_status",
+      "source_release",
+      "normalized_at"
+    ],
+    "primary_key": [
+      "generation_id",
+      "transaction_identity"
+    ],
+    "uniqueness": [
+      "generation_id plus source_row_hash is unique",
+      "generation_id plus business_dedupe_key is unique for accepted publishable membership",
+      "one selected revision per authoritative source_identity per generation",
+      "no ambiguous legacy production identifier is promoted to authoritative identity"
+    ],
+    "future_policy": "future source evidence remains forensic and publishability_status is excluded",
+    "reader_compatibility": "generation-aware repository maps canonical fields to current valuation and Market Insight contracts",
+    "restricted_fields": [
+      "address_text"
+    ]
+  },
+  "ambiguity_policy": [
+    {
+      "cohort": "strong_fact_duplicate_production_rows",
+      "rows": 268,
+      "groups": 134,
+      "treatment": "IGNORE_OLD_AND_REPLACE_FROM_CLEAN",
+      "manual_review_required": false
+    },
+    {
+      "cohort": "conflicting_production_rows",
+      "rows": 458,
+      "treatment": "RETAIN_FOR_FORENSICS_ONLY",
+      "manual_review_required": true
+    },
+    {
+      "cohort": "bounded_clean_fact_group_ambiguities",
+      "rows": 460,
+      "treatment": "IGNORE_OLD_AND_REPLACE_FROM_CLEAN",
+      "manual_review_required": true
+    },
+    {
+      "cohort": "production_only_rows",
+      "rows": 131140,
+      "treatment": "PRESERVE_IN_LEGACY_GENERATION",
+      "manual_review_required": false
+    },
+    {
+      "cohort": "authoritative_clean_rows_missing_from_production",
+      "rows": 196796,
+      "treatment": "IGNORE_OLD_AND_REPLACE_FROM_CLEAN",
+      "manual_review_required": false
+    },
+    {
+      "cohort": "future_2026_10_row",
+      "rows": 1,
+      "treatment": "EXCLUDE_FROM_PUBLISHABLE",
+      "manual_review_required": false
+    },
+    {
+      "cohort": "historical_57350_partially_reproducible",
+      "rows": 57350,
+      "treatment": "RETAIN_FOR_FORENSICS_ONLY",
+      "manual_review_required": true
+    }
+  ],
+  "load_design": {
+    "generation_id_format": "plvr-<manifest-prefix>-<period-ceiling>-<sequence>",
+    "batch_strategy": "adaptive batches beginning at 5000 rows with a reviewed upper bound of 10000",
+    "transaction_boundaries": "one committed batch plus immutable checkpoint; generation remains inactive",
+    "staging_strategy": "generation-scoped target rows with no writes to legacy tables",
+    "idempotency_key": "generation_id plus source_row_hash",
+    "restartability": "resume only after checkpoint count and rolling hash match",
+    "conflict_handling": "fail the batch on identity or dedupe conflict; never overwrite silently",
+    "manifest_validation": "exact manifest SHA and every artifact SHA verified before first batch and at finalization",
+    "row_count_validation": "frozen candidate expects 517195; newer releases require an approved manifest-derived baseline",
+    "lineage_validation": "artifact hash, source row hash, and authoritative source identity required for every accepted row",
+    "geography_validation": "canonical registry membership or explicitly supported city-level unit",
+    "future_guard": "period after approved ceiling cannot have publishability_status=publishable",
+    "activation_guard": "loading, loaded, aggregating, or failed generations cannot be active"
+  },
+  "aggregate_design": {
+    "source": "only plvr_generation_transactions rows for the same candidate generation",
+    "aggregate_key": [
+      "generation_id",
+      "canonical_city",
+      "canonical_district",
+      "geographic_unit_kind",
+      "transaction_period"
+    ],
+    "period_ceiling": "approved generation latest_publishable_period",
+    "eligibility": "publishable official building-sale rows with canonical geography and positive bounded price and area facts",
+    "metrics": [
+      "average_unit_price",
+      "transaction_count",
+      "record_count",
+      "total_transaction_value"
+    ],
+    "minimum_sample_semantics": "preserve current safe availability and coverage states; never synthesize zero as evidence",
+    "freshness": "source_updated_at, built_at, manifest SHA, and generation ID",
+    "expected_frozen_scope_count": 9606,
+    "visibility": "candidate aggregates are invisible to normal reads until the same generation pointer is activated",
+    "copy_production_aggregates": false
+  },
+  "dual_read_plan": {
+    "live_label": "LIVE_BLUE",
+    "candidate_label": "CANDIDATE_GREEN",
+    "user_facing_switch": false,
+    "comparison_surfaces": [
+      "Market Insight summary and history",
+      "valuation comparables and result state",
+      "coverage status",
+      "valuation data-status",
+      "Market Insight status and catalog",
+      "seven golden regions"
+    ],
+    "difference_classes": [
+      "EXPECTED_CORRECTION",
+      "EXPECTED_ADDITIONAL_COVERAGE",
+      "EXPECTED_DUPLICATE_REMOVAL",
+      "EXPECTED_FUTURE_EXCLUSION",
+      "UNEXPECTED_VALUE_DELTA",
+      "UNEXPECTED_MISSING_DATA",
+      "UNEXPECTED_SCHEMA_ERROR"
+    ],
+    "fail_closed": "any unexpected class blocks read-switch approval",
+    "sampling": "all golden regions plus deterministic county-district-period fixtures and bounded production request replay without exposing row payloads"
+  },
+  "rollback": {
+    "mechanism": "atomic restoration of the previously recorded active generation ID",
+    "expected_time": "pointer reversal within one transaction; complete verification target under 5 minutes",
+    "requires_row_restore": false,
+    "preserve_failed_candidate": true,
+    "cache_behavior": "no session-level generation cache; bounded application caches must include generation ID and be invalidated after commit",
+    "post_rollback_verification": [
+      "active generation equals rollback pointer",
+      "transaction and aggregate generation IDs match",
+      "health and status endpoints resolve",
+      "seven golden regions return prior live behavior"
+    ],
+    "triggers": [
+      "health failure",
+      "SQL or schema error",
+      "unexpected zero result",
+      "golden-region failure",
+      "material unexplained market delta",
+      "unexpected valuation evidence unavailable",
+      "coverage regression",
+      "future period leakage",
+      "transaction and aggregate generation mismatch"
+    ]
+  },
+  "observability": {
+    "safe_fields": [
+      "active_generation",
+      "candidate_generation",
+      "transaction_count",
+      "aggregate_scope_count",
+      "latest_publishable_period",
+      "canonical_invalid_count",
+      "future_publishable_count",
+      "lineage_missing_count",
+      "health_status",
+      "golden_region_status",
+      "shadow_comparison_status",
+      "cutover_timestamp",
+      "rollback_available"
+    ],
+    "raw_rows_exposed": false,
+    "source_payloads_exposed": false
+  },
+  "runbook": {
+    "point_of_no_user_visible_change": "approve_read_switch:completed",
+    "first_user_visible_change": "atomic_active_generation_switch:transaction_commit",
+    "cutover_commit_point": "atomic_active_generation_switch:transaction_commit",
+    "steps": [
+      {
+        "sequence": 10,
+        "id": "verify_design_inputs",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 20,
+        "id": "approve_schema_objects",
+        "authorization": "A_CREATE_PRODUCTION_SCHEMA_OBJECTS"
+      },
+      {
+        "sequence": 30,
+        "id": "create_generation_schema_objects",
+        "authorization": "A_CREATE_PRODUCTION_SCHEMA_OBJECTS"
+      },
+      {
+        "sequence": 40,
+        "id": "register_inactive_candidate_generation",
+        "authorization": "B_WRITE_AUTHORITATIVE_ROWS"
+      },
+      {
+        "sequence": 50,
+        "id": "approve_authoritative_load",
+        "authorization": "B_WRITE_AUTHORITATIVE_ROWS"
+      },
+      {
+        "sequence": 60,
+        "id": "load_checkpointed_candidate_transactions",
+        "authorization": "B_WRITE_AUTHORITATIVE_ROWS"
+      },
+      {
+        "sequence": 70,
+        "id": "validate_candidate_transactions",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 80,
+        "id": "approve_candidate_aggregate_build",
+        "authorization": "C_BUILD_CANDIDATE_AGGREGATES"
+      },
+      {
+        "sequence": 90,
+        "id": "build_generation_scoped_aggregates",
+        "authorization": "C_BUILD_CANDIDATE_AGGREGATES"
+      },
+      {
+        "sequence": 100,
+        "id": "validate_candidate_aggregates",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 110,
+        "id": "run_shadow_comparison",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 120,
+        "id": "define_and_verify_rollback",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 130,
+        "id": "capture_rollback_pointer",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 140,
+        "id": "approve_read_switch",
+        "authorization": "D_SWITCH_PRODUCTION_READERS"
+      },
+      {
+        "sequence": 150,
+        "id": "atomic_active_generation_switch",
+        "authorization": "D_SWITCH_PRODUCTION_READERS"
+      },
+      {
+        "sequence": 160,
+        "id": "post_switch_acceptance",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 170,
+        "id": "observe_cutover_window",
+        "authorization": "none_read_only"
+      },
+      {
+        "sequence": 180,
+        "id": "retire_legacy_generation_separate_phase",
+        "authorization": "E_RETIRE_OR_DELETE_LEGACY_GENERATIONS",
+        "phase_2d_policy": "PROHIBITED"
+      }
+    ]
+  },
+  "safety": {
+    "production_writes": 0,
+    "production_ddl": 0,
+    "production_dml": 0,
+    "migrations_executed": 0,
+    "candidate_rows_loaded": 0,
+    "aggregate_rebuilds": 0,
+    "read_path_switches": 0,
+    "legacy_rows_deleted": 0,
+    "execution_authorized": false
+  },
+  "production_cutover_performed": false
+}
