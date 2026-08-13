@@ -1,0 +1,5779 @@
+{
+  "artifact_scope_audit": [
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-112S3",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "112S3"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-112S4",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "112S4"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-113S1",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "113S1"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-113S2",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "113S2"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-113S3",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "113S3"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-113S4",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "113S4"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-114S1",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "114S1"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-114S2",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "114S2"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-114S3",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "114S3"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-114S4",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "114S4"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-115S1",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "115S1"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-season-115S2",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "season",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "115S2"
+    },
+    {
+      "actual_city_count": 21,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-history-20260701",
+      "can_reacquire_full_artifact": false,
+      "classification": "PARTIAL_BY_OFFICIAL_RELEASE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "history",
+      "omitted_city_members": [
+        "連江縣"
+      ],
+      "reason": "official_embedded_manifest_omits_city_member",
+      "release": "20260701"
+    },
+    {
+      "actual_city_count": 21,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-history-20260711",
+      "can_reacquire_full_artifact": false,
+      "classification": "PARTIAL_BY_OFFICIAL_RELEASE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "history",
+      "omitted_city_members": [
+        "連江縣"
+      ],
+      "reason": "official_embedded_manifest_omits_city_member",
+      "release": "20260711"
+    },
+    {
+      "actual_city_count": 21,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-history-20260721",
+      "can_reacquire_full_artifact": false,
+      "classification": "PARTIAL_BY_OFFICIAL_RELEASE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "history",
+      "omitted_city_members": [
+        "連江縣"
+      ],
+      "reason": "official_embedded_manifest_omits_city_member",
+      "release": "20260721"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-history-20260801",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "history",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "20260801"
+    },
+    {
+      "actual_city_count": 22,
+      "alternate_authoritative_source": false,
+      "artifact_id": "moi-plvr-sale-current-20260811",
+      "can_reacquire_full_artifact": false,
+      "classification": "COMPLETE",
+      "expected_scope": "official_embedded_manifest",
+      "kind": "current",
+      "omitted_city_members": [],
+      "reason": "all_embedded_manifest_city_members_verified",
+      "release": "20260811"
+    }
+  ],
+  "basis": "verified artifact release metadata and embedded official package scope",
+  "calendar_scope_count": 792,
+  "complete_through": "2026-05",
+  "counts": {
+    "COMPLETE": 726,
+    "MISSING": 0,
+    "NOT_APPLICABLE": 0,
+    "NOT_YET_EXPECTED": 22,
+    "PARTIAL": 44
+  },
+  "expected_official_coverage_percent": 94.29,
+  "expected_release_ceiling": "2026-07",
+  "expected_scope_count": 770,
+  "main_sha": "8fb8158beabd98f5a656bb1f2d6009f3d6b87243",
+  "manifest_sha256": "18203c6347cd2e7c0fd4f274ec1c6e6b3f49cef8d4f890099a01ccacb9d0aa06",
+  "matrix": [
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "南投縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台中市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台北市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台南市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "台東縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "嘉義市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "嘉義縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "基隆市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "宜蘭縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "屏東縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "彰化縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "新北市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "新竹市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "新竹縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "桃園市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "澎湖縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "花蓮縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "苗栗縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "連江縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "金門縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "雲林縣",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "112S4",
+      "period": "2023-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2023-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S1",
+      "period": "2024-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S2",
+      "period": "2024-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S3",
+      "period": "2024-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "113S4",
+      "period": "2024-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2024-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S1",
+      "period": "2025-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S2",
+      "period": "2025-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-06",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-07",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S3",
+      "period": "2025-08",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-09",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-10",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "114S4",
+      "period": "2025-11",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2025-12",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-01",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S1",
+      "period": "2026-02",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-03",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-04",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "COMPLETE",
+      "evidence_release": "115S2",
+      "period": "2026-05",
+      "reason_code": "complete_season_scope_verified"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-06",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "PARTIAL",
+      "evidence_release": "20260811",
+      "period": "2026-07",
+      "reason_code": "recent_period_not_settled_by_complete_season"
+    },
+    {
+      "city": "高雄市",
+      "coverage_state": "NOT_YET_EXPECTED",
+      "evidence_release": "2026-07",
+      "period": "2026-08",
+      "reason_code": "beyond_latest_official_release"
+    }
+  ],
+  "raw_calendar_coverage_percent": 91.67,
+  "schema_version": "plvr-expected-official-coverage-v1",
+  "since": "2023-09",
+  "until": "2026-08"
+}

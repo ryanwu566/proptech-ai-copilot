@@ -922,8 +922,34 @@
       "zip_entry_count": 94
     }
   ],
+  "coverage_contract": {
+    "basis": "verified artifact release metadata and embedded official package scope",
+    "calendar_window": {
+      "since": "2023-09",
+      "until": "2026-08"
+    },
+    "complete_through": "2026-05",
+    "expected_official_availability_ceiling": "2026-07",
+    "expected_city_member_count": 22,
+    "geographic_unit_contract": {
+      "city_level": [
+        "新竹市",
+        "嘉義市"
+      ],
+      "district": "canonical registry district"
+    },
+    "not_yet_expected_periods": [
+      "2026-08"
+    ],
+    "partial_artifact_reason_code": "PARTIAL_BY_OFFICIAL_RELEASE",
+    "partial_artifact_releases": [
+      "20260701",
+      "20260711",
+      "20260721"
+    ]
+  },
   "generated_at": "2026-08-11T08:55:59.115153+00:00",
-  "manifest_sha256": "d439ed84862460617f50e5056d665f98fb6e15e76f0527fa6bc74a4779bea61b",
+  "manifest_sha256": "18203c6347cd2e7c0fd4f274ec1c6e6b3f49cef8d4f890099a01ccacb9d0aa06",
   "official_source_page": "https://data.gov.tw/dataset/25119",
   "schema_version": "plvr-authoritative-artifact-manifest-v1",
   "source_agency": "Ministry of the Interior, Department of Land Administration"
