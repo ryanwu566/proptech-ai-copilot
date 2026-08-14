@@ -1,0 +1,255 @@
+{
+  "gates": [
+    {
+      "blocking_status": "clear",
+      "description": "transaction row count",
+      "evidence": {
+        "actual": 517195,
+        "expected": 517195
+      },
+      "gate_id": "transaction_row_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "canonical geography invalid count",
+      "evidence": {
+        "actual": 0,
+        "expected": 0
+      },
+      "gate_id": "canonical_geography_invalid_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "future publishable row count",
+      "evidence": {
+        "actual": 0,
+        "expected": 0
+      },
+      "gate_id": "future_publishable_row_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "lineage missing count",
+      "evidence": {
+        "actual": 0,
+        "expected": 0
+      },
+      "gate_id": "lineage_missing_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "source conflict count",
+      "evidence": {
+        "actual": 0,
+        "expected": 0
+      },
+      "gate_id": "source_conflict_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "duplicate authoritative identity count",
+      "evidence": {
+        "actual": 0,
+        "expected": 0
+      },
+      "gate_id": "duplicate_authoritative_identity_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "period range",
+      "evidence": {
+        "actual": [
+          "2023-09",
+          "2026-07"
+        ],
+        "expected": [
+          "2023-09",
+          "2026-07"
+        ]
+      },
+      "gate_id": "period_range",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "city coverage",
+      "evidence": {
+        "actual": 21,
+        "expected": 21
+      },
+      "gate_id": "city_coverage",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "geographic unit coverage",
+      "evidence": {
+        "actual": 325,
+        "expected": 325
+      },
+      "gate_id": "geographic_unit_coverage",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "aggregate scope count",
+      "evidence": {
+        "actual": 9606,
+        "expected": 9606
+      },
+      "gate_id": "aggregate_scope_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "aggregate unexplained scope count",
+      "evidence": {
+        "actual": 0,
+        "expected": 0
+      },
+      "gate_id": "aggregate_unexplained_scope_count",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "golden region validation",
+      "evidence": {
+        "actual": 7,
+        "expected": 7
+      },
+      "gate_id": "golden_region_validation",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "valuation smoke",
+      "evidence": {
+        "expected": 7,
+        "passed_regions": 7
+      },
+      "gate_id": "valuation_smoke",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "market insight smoke",
+      "evidence": {
+        "expected": 7,
+        "passed_regions": 7
+      },
+      "gate_id": "market_insight_smoke",
+      "result": "PASS"
+    },
+    {
+      "blocking_status": "clear",
+      "description": "read model status",
+      "evidence": {
+        "candidate_active": false,
+        "candidate_state": "validated",
+        "expected_state": "validated_inactive"
+      },
+      "gate_id": "read_model_status",
+      "result": "PASS"
+    }
+  ],
+  "golden_regions": [
+    {
+      "county": "臺北市",
+      "district": "中正區",
+      "expected_history_length": 35,
+      "expected_transaction_count": 2832,
+      "history_length": 35,
+      "latest_publishable_period": "2026-07",
+      "lineage_passed": true,
+      "market_insight_read_passed": true,
+      "passed": true,
+      "transaction_count": 2832,
+      "valuation_read_passed": true
+    },
+    {
+      "county": "臺北市",
+      "district": "南港區",
+      "expected_history_length": 35,
+      "expected_transaction_count": 1953,
+      "history_length": 35,
+      "latest_publishable_period": "2026-07",
+      "lineage_passed": true,
+      "market_insight_read_passed": true,
+      "passed": true,
+      "transaction_count": 1953,
+      "valuation_read_passed": true
+    },
+    {
+      "county": "臺中市",
+      "district": "北屯區",
+      "expected_history_length": 35,
+      "expected_transaction_count": 10524,
+      "history_length": 35,
+      "latest_publishable_period": "2026-07",
+      "lineage_passed": true,
+      "market_insight_read_passed": true,
+      "passed": true,
+      "transaction_count": 10524,
+      "valuation_read_passed": true
+    },
+    {
+      "county": "桃園市",
+      "district": "平鎮區",
+      "expected_history_length": 35,
+      "expected_transaction_count": 5066,
+      "history_length": 35,
+      "latest_publishable_period": "2026-07",
+      "lineage_passed": true,
+      "market_insight_read_passed": true,
+      "passed": true,
+      "transaction_count": 5066,
+      "valuation_read_passed": true
+    },
+    {
+      "county": "桃園市",
+      "district": "中壢區",
+      "expected_history_length": 35,
+      "expected_transaction_count": 14580,
+      "history_length": 35,
+      "latest_publishable_period": "2026-07",
+      "lineage_passed": true,
+      "market_insight_read_passed": true,
+      "passed": true,
+      "transaction_count": 14580,
+      "valuation_read_passed": true
+    },
+    {
+      "county": "高雄市",
+      "district": "小港區",
+      "expected_history_length": 35,
+      "expected_transaction_count": 3852,
+      "history_length": 35,
+      "latest_publishable_period": "2026-07",
+      "lineage_passed": true,
+      "market_insight_read_passed": true,
+      "passed": true,
+      "transaction_count": 3852,
+      "valuation_read_passed": true
+    },
+    {
+      "county": "高雄市",
+      "district": "三民區",
+      "expected_history_length": 35,
+      "expected_transaction_count": 10288,
+      "history_length": 35,
+      "latest_publishable_period": "2026-07",
+      "lineage_passed": true,
+      "market_insight_read_passed": true,
+      "passed": true,
+      "transaction_count": 10288,
+      "valuation_read_passed": true
+    }
+  ],
+  "schema_version": "plvr-cutover-rehearsal-gates-v1"
+}
