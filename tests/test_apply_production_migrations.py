@@ -118,6 +118,7 @@ def test_migration_schema_versions_follow_file_numbers(monkeypatch) -> None:
     assert result["status"] == "pass"
     assert connection.schema_versions["008_add_official_market_pipeline"] == "schema-008"
     assert connection.schema_versions["009_separate_official_market_region_coverage"] == "schema-009"
+    assert connection.schema_versions["010_add_plvr_generation_schema"] == "schema-010"
 
 
 def test_checksum_drift_fails_without_applying_other_migrations(monkeypatch) -> None:
@@ -153,8 +154,9 @@ def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     assert "release_id text not null references official_market_releases" in forward
     assert "create table if not exists market_region_coverage (" not in forward
     assert "idx_official_market_region_coverage_region_period" in forward
-    assert migration_runner.MIGRATIONS[-1].name == "009_separate_official_market_region_coverage.sql"
+    assert migration_runner.MIGRATIONS[-1].name == "010_add_plvr_generation_schema.sql"
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
+    assert "plvr_dataset_generations" in migration_runner.REQUIRED_TABLES
 
 
 def _statements(tmp_path: Path, sql: str) -> list[str]:
