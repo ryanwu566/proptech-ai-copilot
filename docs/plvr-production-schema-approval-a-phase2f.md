@@ -29,12 +29,36 @@ The sanitized read-only preflight confirmed:
 - the custom `schema_migration_ledger` table is not present.
 
 The repository's normal migration runner creates and writes
-`schema_migration_ledger` and would attempt every unrecorded migration. Approval
-A expressly excludes ledger DML and unrelated pending migration execution.
-Therefore production execution is blocked until a separate authorization
-defines the bounded ledger operation or another reviewed, ledger-consistent
-application procedure. Migration 010 must not be applied ad hoc around that
-control.
+`schema_migration_ledger` and would attempt every unrecorded migration. The
+Phase 2F-A1 audit therefore established an explicit metadata baseline instead
+of invoking that runner. Migrations 004-006 and 008-009 were proven absent and
+were neither executed nor recorded as applied.
+
+## Production Approval A execution
+
+Phase 2F-A2 completed the bounded production operation in one transaction:
+
+- created `schema_migration_ledger` from migration 007;
+- recorded the independently proven 001, both 002, 003, and 007 baselines;
+- applied only migration 010;
+- recorded migration 010 with its reviewed checksum;
+- committed exactly six migration metadata rows.
+
+Post-commit read-only validation confirmed all six generation tables, three
+security-invoker active views, six explicit indexes, lifecycle constraints,
+foreign keys, RLS, guard functions, and triggers. Every generation table and
+active view remained empty, and no active dataset pointer was created.
+
+The legacy official PLVR count remained `451672`, the total
+`real_price_transactions` count remained `451744`, and the maximum publishable
+period remained `2026-05`. No business-data DML, destructive operation, reader
+switch, or user-visible data-path change occurred.
+
+Validation results:
+
+- targeted Phase 2F tests: 15 passed;
+- relevant PLVR/Market/PostgreSQL tests: 465 passed, 3 skipped, 1 warning;
+- full Python suite: 1206 passed, 3 skipped, 1 warning.
 
 ## Local validation
 
@@ -46,7 +70,7 @@ coexistence with a legacy table. The transaction is always rolled back.
 
 ## Remaining approvals
 
-- Approval A production execution remains pending the ledger authorization.
+- Approval A additive production schema execution is complete.
 - Approval B candidate transaction loading is not authorized.
 - Approval C aggregate and coverage building is not authorized.
 - Approval D active-pointer and reader switching is not authorized.
