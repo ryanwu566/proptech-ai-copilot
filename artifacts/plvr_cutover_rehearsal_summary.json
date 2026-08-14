@@ -1,0 +1,149 @@
+{
+  "blue_generation_id": "official-plvr-blue-phase2e",
+  "blue_load": {
+    "attempted_rows": 451672,
+    "complete": true,
+    "completed_batches": 46,
+    "duplicate_rows": 0,
+    "elapsed_seconds": 142.635994,
+    "final_rows": 451672,
+    "inserted_rows": 451672
+  },
+  "blue_simulation_mode": "FULL_BLUE_SIMULATION",
+  "cutover_switch": {
+    "active_generation_id": "official-plvr-green-18203c6347cd",
+    "duration_seconds": 0.041923100005078595,
+    "previous_generation_id": "official-plvr-blue-phase2e"
+  },
+  "database": {
+    "database_name": "plvr_cutover_dryrun",
+    "database_user": "plvr_dryrun",
+    "host_class": "localhost",
+    "postgres_version": "PostgreSQL 17.10 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit"
+  },
+  "dual_read_status": "PASS",
+  "failure_injection_passed": true,
+  "golden_regions_passed": 7,
+  "golden_regions_total": 7,
+  "green_coverage": {
+    "expected_scope_count": 770,
+    "missing_scope_count": 0,
+    "official_coverage_percent": 94.29,
+    "passed": true,
+    "status_counts": {
+      "COMPLETE": 726,
+      "NOT_YET_EXPECTED": 22,
+      "PARTIAL": 44
+    }
+  },
+  "green_final_load": {
+    "attempted_rows": 527195,
+    "complete": true,
+    "completed_batches": 52,
+    "duplicate_rows": 10000,
+    "elapsed_seconds": 204.546545,
+    "final_rows": 517195,
+    "inserted_rows": 517195
+  },
+  "green_generation_id": "official-plvr-green-18203c6347cd",
+  "green_metrics": {
+    "aggregate_count": 9606,
+    "aggregate_mismatches": 0,
+    "cities": 21,
+    "geographic_units": 325,
+    "period_max": "2026-07",
+    "period_min": "2023-09",
+    "transaction_count": 517195
+  },
+  "green_partial_load": {
+    "attempted_rows": 30000,
+    "complete": false,
+    "completed_batches": 3,
+    "duplicate_rows": 0,
+    "elapsed_seconds": 10.679544,
+    "final_rows": 30000,
+    "inserted_rows": 30000
+  },
+  "hard_gates_passed": 15,
+  "hard_gates_total": 15,
+  "idempotency_passed": true,
+  "mode": "isolated_dry_run",
+  "post_switch_acceptance": {
+    "active_generation_id": "official-plvr-green-18203c6347cd",
+    "aggregate_count": 9606,
+    "aggregate_generation_id": "official-plvr-green-18203c6347cd",
+    "coverage_count": 792,
+    "coverage_generation_id": "official-plvr-green-18203c6347cd",
+    "future_publishable_count": 0,
+    "latest_aggregate_period": "2026-07",
+    "latest_transaction_period": "2026-07",
+    "mixed_generation_count": 0,
+    "status": "PASS",
+    "transaction_count": 517195,
+    "transaction_generation_id": "official-plvr-green-18203c6347cd"
+  },
+  "production_approvals_executed": [],
+  "production_connection_attempts": 0,
+  "production_ddl": 0,
+  "production_dml": 0,
+  "production_pointer_switch": false,
+  "production_writes": 0,
+  "resume_passed": true,
+  "rollback": {
+    "active_generation_id": "official-plvr-blue-phase2e",
+    "duration_seconds": 0.018657699998584576,
+    "previous_generation_id": "official-plvr-green-18203c6347cd"
+  },
+  "rollback_acceptance": {
+    "active_generation_id": "official-plvr-blue-phase2e",
+    "aggregate_count": 11017,
+    "aggregate_generation_id": "official-plvr-blue-phase2e",
+    "coverage_count": 792,
+    "coverage_generation_id": "official-plvr-blue-phase2e",
+    "future_publishable_count": 0,
+    "latest_aggregate_period": "2026-05",
+    "latest_transaction_period": "2026-05",
+    "mixed_generation_count": 0,
+    "status": "PASS",
+    "transaction_count": 451671,
+    "transaction_generation_id": "official-plvr-blue-phase2e"
+  },
+  "schema_version": "plvr-cutover-rehearsal-summary-v1",
+  "sources": {
+    "blue_period_max": "2026-10",
+    "blue_period_min": "2023-07",
+    "blue_snapshot_sha256": "d18823a8e9953fd78598f3aa428b43e302dd1af1ce6d6338ca4ceabbaa6b9d33",
+    "blue_transactions": 451672,
+    "green_aggregates": 9606,
+    "green_canonical_invalid": 0,
+    "green_cities": 21,
+    "green_dataset_sha256": "2ee0cf968d769a9dd8261031f3f13f6d7c5fcb4c0c33316a22120070806cef57",
+    "green_future_publishable": 0,
+    "green_geographic_units": 325,
+    "green_missing_lineage": 0,
+    "green_period_max": "2026-07",
+    "green_period_min": "2023-09",
+    "green_transactions": 517195,
+    "green_unresolved_conflicts": 0,
+    "manifest_sha256": "18203c6347cd2e7c0fd4f274ec1c6e6b3f49cef8d4f890099a01ccacb9d0aa06"
+  },
+  "switch_forward": {
+    "active_generation_id": "official-plvr-green-18203c6347cd",
+    "duration_seconds": 0.019226099997467827,
+    "previous_generation_id": "official-plvr-blue-phase2e"
+  },
+  "switch_forward_acceptance": {
+    "active_generation_id": "official-plvr-green-18203c6347cd",
+    "aggregate_count": 9606,
+    "aggregate_generation_id": "official-plvr-green-18203c6347cd",
+    "coverage_count": 792,
+    "coverage_generation_id": "official-plvr-green-18203c6347cd",
+    "future_publishable_count": 0,
+    "latest_aggregate_period": "2026-07",
+    "latest_transaction_period": "2026-07",
+    "mixed_generation_count": 0,
+    "status": "PASS",
+    "transaction_count": 517195,
+    "transaction_generation_id": "official-plvr-green-18203c6347cd"
+  }
+}

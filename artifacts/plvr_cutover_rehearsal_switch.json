@@ -1,0 +1,25 @@
+{
+  "acceptance": {
+    "active_generation_id": "official-plvr-green-18203c6347cd",
+    "aggregate_count": 9606,
+    "aggregate_generation_id": "official-plvr-green-18203c6347cd",
+    "coverage_count": 792,
+    "coverage_generation_id": "official-plvr-green-18203c6347cd",
+    "future_publishable_count": 0,
+    "latest_aggregate_period": "2026-07",
+    "latest_transaction_period": "2026-07",
+    "mixed_generation_count": 0,
+    "status": "PASS",
+    "transaction_count": 517195,
+    "transaction_generation_id": "official-plvr-green-18203c6347cd"
+  },
+  "after": "official-plvr-green-18203c6347cd",
+  "atomic": true,
+  "before": "official-plvr-blue-phase2e",
+  "result": {
+    "active_generation_id": "official-plvr-green-18203c6347cd",
+    "duration_seconds": 0.041923100005078595,
+    "previous_generation_id": "official-plvr-blue-phase2e"
+  },
+  "schema_version": "plvr-cutover-rehearsal-switch-v1"
+}

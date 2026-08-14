@@ -1,0 +1,22 @@
+{
+  "duplicate_replay_rows": 10000,
+  "failure_checks": {
+    "aggregate_transaction_rollback": true,
+    "failed_generation_activation_rejected": true,
+    "loaded_before_aggregate_activation_rejected": true,
+    "manifest_immutable_after_freeze": true,
+    "partial_load_activation_rejected": true,
+    "pointer_transaction_rollback": true,
+    "pre_switch_pointer_unchanged": true,
+    "registered_before_load_activation_rejected": true
+  },
+  "idempotency_checks": {
+    "aggregate_count_stable": true,
+    "aggregate_fingerprint_stable": true,
+    "completed_load_noop": true,
+    "coverage_count_stable": true,
+    "duplicate_batch_inserted_zero": true,
+    "single_active_pointer": true
+  },
+  "schema_version": "plvr-cutover-rehearsal-failure-injection-v1"
+}
