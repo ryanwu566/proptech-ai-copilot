@@ -29,9 +29,31 @@ MIGRATIONS = (
     ROOT / "database" / "migrations" / "007_add_schema_migration_ledger.sql",
     ROOT / "database" / "migrations" / "008_add_official_market_pipeline.sql",
     ROOT / "database" / "migrations" / "009_separate_official_market_region_coverage.sql",
+    ROOT / "database" / "migrations" / "010_add_plvr_generation_schema.sql",
 )
-REQUIRED_TABLES = {"pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events", "pilot_feedback", "professional_reviews", "tax_analysis_history", "official_market_releases", "official_market_artifacts", "market_transactions", "market_transaction_quality_events", "market_region_period_aggregates", "official_market_region_coverage", "market_import_runs", "market_import_checkpoints"}
-REQUIRED_INDEXES = {"idx_pilot_sessions_campaign", "idx_pilot_events_idempotency", "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id", "idx_schema_migration_ledger_applied_at", "idx_market_transactions_region_period", "idx_market_aggregates_region_period", "idx_official_market_region_coverage_region_period"}
+REQUIRED_TABLES = {
+    "pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events",
+    "pilot_feedback", "professional_reviews", "tax_analysis_history",
+    "official_market_releases", "official_market_artifacts", "market_transactions",
+    "market_transaction_quality_events", "market_region_period_aggregates",
+    "official_market_region_coverage", "market_import_runs", "market_import_checkpoints",
+    "plvr_dataset_generations", "plvr_generation_transactions",
+    "plvr_generation_market_aggregates", "plvr_generation_region_coverage",
+    "plvr_active_dataset", "plvr_generation_load_checkpoints",
+}
+REQUIRED_INDEXES = {
+    "idx_pilot_sessions_campaign", "idx_pilot_events_idempotency",
+    "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id",
+    "idx_schema_migration_ledger_applied_at", "idx_market_transactions_region_period",
+    "idx_market_aggregates_region_period",
+    "idx_official_market_region_coverage_region_period",
+    "idx_plvr_dataset_generations_state",
+    "idx_plvr_generation_transactions_region_period",
+    "idx_plvr_generation_transactions_business_key",
+    "idx_plvr_generation_market_aggregates_region_period",
+    "idx_plvr_generation_region_coverage_region_period",
+    "idx_plvr_generation_load_checkpoints_updated_at",
+}
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
 
@@ -39,7 +61,12 @@ def _static_contract() -> dict[str, str]:
     if not all(path.is_file() for path in MIGRATIONS):
         return {"status": "fail", "migration": "missing"}
     joined = "\n".join(path.read_text(encoding="utf-8") for path in MIGRATIONS).lower()
-    required = ("references", "on delete cascade", "create index", "tax_analysis_history", "jsonb", "schema_migration_ledger", "schema_version", "official_market_releases", "market_region_period_aggregates", "market_import_checkpoints")
+    required = (
+        "references", "on delete cascade", "create index", "tax_analysis_history",
+        "jsonb", "schema_migration_ledger", "schema_version", "official_market_releases",
+        "market_region_period_aggregates", "market_import_checkpoints",
+        "plvr_dataset_generations", "plvr_active_dataset",
+    )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
     return {"status": "pass", "migration": "static_contract_pass"}
