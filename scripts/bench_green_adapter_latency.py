@@ -118,6 +118,18 @@ def main() -> int:
     print()
 
     # ----------------------------------------------------------------
+    # Pool warmup: one unmeasured call to initialize lazy pool + min connection
+    # ----------------------------------------------------------------
+    print("Pool warmup (unmeasured)...")
+    try:
+        warmup_rows = query_green_comparables(test_cases[0])
+        print(f"  warmup OK: {len(warmup_rows)} rows")
+    except Exception as exc:
+        print(f"ERROR: Pool warmup failed: {type(exc).__name__}")
+        return 1
+    print()
+
+    # ----------------------------------------------------------------
     # Benchmark: 120 interleaved calls (seed=42)
     # ----------------------------------------------------------------
     random.seed(42)
