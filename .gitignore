@@ -24,3 +24,6 @@ data/processed/
 .tmp/
 .local/
 .market-staging/
+
+# Shadow A/B benchmark artifacts (runtime output, never committed)
+artifacts/
