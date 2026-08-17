@@ -5,6 +5,9 @@ This script runs ONCE at startup, prints results to deployment logs, then exits.
 It directly calls the GREEN adapter (query_green_comparables) — NOT the full
 valuation estimate endpoint. No BLUE provider, no market insight, no writes.
 
+The adapter uses a psycopg_pool.ConnectionPool (min=1, max=3) for connection
+reuse. This benchmark measures production-representative pooled behavior.
+
 Required environment:
     COMPACT_GREEN_DATABASE_URL  — GREEN database connection
 
@@ -122,7 +125,7 @@ def main() -> int:
     schedule = [random.choice(test_cases) for _ in range(NUM_SAMPLES)]
 
     print(f"Running {NUM_SAMPLES} measured calls...")
-    print("Each call: fresh psycopg.connect() + SET READ ONLY + SQL + fetch + map")
+    print("Each call: pooled connection checkout + SET READ ONLY + SQL + fetch + map")
     print()
 
     durations_ms: list[float] = []
