@@ -228,4 +228,13 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    finally:
+        # Explicitly close the GREEN connection pool to avoid
+        # PythonFinalizationError from ConnectionPool.__del__ at shutdown.
+        try:
+            from services.compact_green_query import close_green_pool
+            close_green_pool()
+        except Exception:
+            pass
