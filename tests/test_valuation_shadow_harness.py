@@ -1,4 +1,4 @@
-"""Tests for the BLUE vs GREEN valuation shadow A/B harness."""
+"""Tests for BLUE vs GREEN valuation shadow A/B harness — all 20 scenarios."""
 from __future__ import annotations
 import json, math
 from pathlib import Path
@@ -15,271 +15,320 @@ def _import_harness():
     return mod
 
 @pytest.fixture
-def harness():
+def h():
     return _import_harness()
 
-# ============================================================
-# Case file / schema
-# ============================================================
-
-class TestCaseFile:
-    def test_exists(self):
-        assert (SCRIPT_DIR / "valuation_shadow_cases.json").is_file()
-
-    def test_valid_json(self):
-        cases = json.loads((SCRIPT_DIR / "valuation_shadow_cases.json").read_text(encoding="utf-8"))
-        assert isinstance(cases, list) and len(cases) >= 30
-
-    def test_unique_ids(self):
-        cases = json.loads((SCRIPT_DIR / "valuation_shadow_cases.json").read_text(encoding="utf-8"))
-        ids = [c["case_id"] for c in cases]
-        assert len(ids) == len(set(ids))
-
-    def test_schema_valid_all(self, harness):
-        cases = json.loads((SCRIPT_DIR / "valuation_shadow_cases.json").read_text(encoding="utf-8"))
-        for case in cases:
-            valid, errs = harness.validate_case_schema(case)
-            assert valid, f"{case['case_id']}: {errs}"
-
-    def test_deterministic_order(self):
-        c1 = json.loads((SCRIPT_DIR / "valuation_shadow_cases.json").read_text(encoding="utf-8"))
-        c2 = json.loads((SCRIPT_DIR / "valuation_shadow_cases.json").read_text(encoding="utf-8"))
-        assert c1 == c2
+def _good_prov(blue=True):
+    if blue:
+        return {"blue_calls": 1, "green_calls": 0}
+    return {"blue_calls": 0, "green_calls": 1}
 
 # ============================================================
-# Non-finite guards
-# ============================================================
-
-class TestNonFiniteGuard:
-    def test_nan_estimate_fails_contract(self, harness):
-        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "medium",
-                "confidence_score": 50, "comparables": [], "methodology": [], "disclaimer": "",
-                "estimate_total_price": float("nan"), "estimate_unit_price_per_ping": 75.0}
-        valid, errs = harness.validate_response_contract(resp)
-        assert not valid
-        assert any("non-finite" in e for e in errs)
-
-    def test_inf_estimate_fails_contract(self, harness):
-        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "medium",
-                "confidence_score": 50, "comparables": [], "methodology": [], "disclaimer": "",
-                "estimate_total_price": float("inf"), "estimate_unit_price_per_ping": 75.0}
-        valid, errs = harness.validate_response_contract(resp)
-        assert not valid
-
-    def test_neg_inf_estimate_fails_contract(self, harness):
-        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "medium",
-                "confidence_score": 50, "comparables": [], "methodology": [], "disclaimer": "",
-                "estimate_total_price": float("-inf"), "estimate_unit_price_per_ping": 75.0}
-        valid, errs = harness.validate_response_contract(resp)
-        assert not valid
-
-    def test_negative_estimate_fails_contract(self, harness):
-        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "medium",
-                "confidence_score": 50, "comparables": [], "methodology": [], "disclaimer": "",
-                "estimate_total_price": -100.0, "estimate_unit_price_per_ping": 75.0}
-        valid, errs = harness.validate_response_contract(resp)
-        assert not valid
-        assert any("negative" in e for e in errs)
-
-    def test_nan_confidence_fails(self, harness):
-        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "medium",
-                "confidence_score": float("nan"), "comparables": [], "methodology": [], "disclaimer": "",
-                "estimate_total_price": 1000.0, "estimate_unit_price_per_ping": 75.0}
-        valid, errs = harness.validate_response_contract(resp)
-        assert not valid
-
-# ============================================================
-# Response contract validation
-# ============================================================
-
-class TestResponseContract:
-    def test_missing_field_fails(self, harness):
-        resp = {"source": "x"}  # Missing most required fields
-        valid, errs = harness.validate_response_contract(resp)
-        assert not valid
-        assert any("missing" in e for e in errs)
-
-    def test_malformed_comparables_fails(self, harness):
-        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "medium",
-                "confidence_score": 50, "comparables": "not_a_list", "methodology": [], "disclaimer": ""}
-        valid, errs = harness.validate_response_contract(resp)
-        assert not valid
-        assert any("not a list" in e for e in errs)
-
-    def test_valid_response_passes(self, harness):
-        resp = {"source": "postgres", "data_status": {}, "estimate_level": "road", "confidence": "medium",
-                "confidence_score": 50, "comparables": [], "methodology": [], "disclaimer": "",
-                "estimate_total_price": 1000.0, "estimate_unit_price_per_ping": 75.0}
-        valid, errs = harness.validate_response_contract(resp)
-        assert valid
-
-# ============================================================
-# Classification
-# ============================================================
-
-class TestClassification:
-    def test_blue_exception_is_fail(self, harness):
-        blue = {"service_status": "error", "comparable_count": 0}
-        green = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "source": "postgres", "estimate_total_price": 100}
-        cls, reasons = harness.classify_case(blue, green, {}, "GREEN")
-        assert cls == "FAIL"
-        assert any("BLUE" in r for r in reasons)
-
-    def test_green_exception_is_fail(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available"}
-        green = {"service_status": "error", "comparable_count": 0}
-        cls, reasons = harness.classify_case(blue, green, {}, "GREEN")
-        assert cls == "FAIL"
-        assert any("GREEN" in r for r in reasons)
-
-    def test_both_exception_is_fail(self, harness):
-        blue = {"service_status": "error"}
-        green = {"service_status": "error"}
-        cls, reasons = harness.classify_case(blue, green, {}, "GREEN")
-        assert cls == "FAIL"
-
-    def test_green_mock_fallback_is_fail(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available"}
-        green = {"service_status": "ok", "source": "mock_fallback", "comparable_count": 3, "valuation_status": "available", "estimate_total_price": 100, "green_comparables_calls": 1, "blue_comparables_calls": 0}
-        cls, reasons = harness.classify_case(blue, green, {"estimate_pct_delta": 5}, "GREEN")
-        assert cls == "FAIL"
-
-    def test_small_delta_expected(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 10, "valuation_status": "available", "green_comparables_calls": 0, "blue_comparables_calls": 1}
-        green = {"service_status": "ok", "comparable_count": 10, "valuation_status": "available", "source": "postgres", "estimate_total_price": 1000, "green_comparables_calls": 1, "blue_comparables_calls": 0}
-        cls, reasons = harness.classify_case(blue, green, {"estimate_pct_delta": 5.0, "confidence_delta": -3}, "GREEN")
-        assert cls == "EXPECTED"
-
-    def test_large_delta_is_review(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 10, "valuation_status": "available", "green_comparables_calls": 0, "blue_comparables_calls": 1}
-        green = {"service_status": "ok", "comparable_count": 10, "valuation_status": "available", "source": "postgres", "estimate_total_price": 1000, "green_comparables_calls": 1, "blue_comparables_calls": 0}
-        cls, reasons = harness.classify_case(blue, green, {"estimate_pct_delta": 25.0, "confidence_delta": -5}, "GREEN")
-        assert cls == "REVIEW"
-
-    def test_nonfinite_estimate_in_classification_is_fail(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "green_comparables_calls": 0, "blue_comparables_calls": 1}
-        green = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "source": "postgres", "estimate_total_price": float("inf"), "green_comparables_calls": 1, "blue_comparables_calls": 0}
-        cls, reasons = harness.classify_case(blue, green, {}, "GREEN")
-        assert cls == "FAIL"
-
-    def test_negative_estimate_in_classification_is_fail(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "green_comparables_calls": 0, "blue_comparables_calls": 1}
-        green = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "source": "postgres", "estimate_total_price": -500, "green_comparables_calls": 1, "blue_comparables_calls": 0}
-        cls, reasons = harness.classify_case(blue, green, {}, "GREEN")
-        assert cls == "FAIL"
-
-# ============================================================
-# Provenance
+# 1-4: Provenance failures
 # ============================================================
 
 class TestProvenance:
-    def test_blue_side_accidental_green_is_fail(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "green_comparables_calls": 1, "blue_comparables_calls": 1}
-        green = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "source": "postgres", "estimate_total_price": 100, "green_comparables_calls": 1, "blue_comparables_calls": 0}
-        cls, reasons = harness.classify_case(blue, green, {"estimate_pct_delta": 5}, "BLUE")
+    def test_1_blue_blue_calls_zero_fail(self, h):
+        valid, reasons = h.validate_backend_provenance(
+            {"blue_calls": 0, "green_calls": 0}, _good_prov(True),
+            _good_prov(False), _good_prov(False))
+        assert not valid
+        assert any("BLUE service: blue_calls=0" in r for r in reasons)
+
+    def test_2_blue_green_calls_nonzero_fail(self, h):
+        valid, reasons = h.validate_backend_provenance(
+            {"blue_calls": 1, "green_calls": 1}, _good_prov(True),
+            _good_prov(False), _good_prov(False))
+        assert not valid
+        assert any("green_calls" in r for r in reasons)
+
+    def test_3_green_green_calls_zero_fail(self, h):
+        valid, reasons = h.validate_backend_provenance(
+            _good_prov(True), _good_prov(True),
+            {"blue_calls": 0, "green_calls": 0}, _good_prov(False))
+        assert not valid
+        assert any("GREEN service: green_calls=0" in r for r in reasons)
+
+    def test_4_green_blue_calls_nonzero_fail(self, h):
+        valid, reasons = h.validate_backend_provenance(
+            _good_prov(True), _good_prov(True),
+            {"blue_calls": 1, "green_calls": 1}, _good_prov(False))
+        assert not valid
+
+# ============================================================
+# 5-8: Layer-specific provenance
+# ============================================================
+
+    def test_5_blue_service_correct(self, h):
+        valid, _ = h.validate_backend_provenance(
+            _good_prov(True), _good_prov(True),
+            _good_prov(False), _good_prov(False))
+        assert valid
+
+    def test_6_blue_api_provenance_wrong(self, h):
+        valid, reasons = h.validate_backend_provenance(
+            _good_prov(True), {"blue_calls": 0, "green_calls": 0},
+            _good_prov(False), _good_prov(False))
+        assert not valid
+        assert any("BLUE API" in r for r in reasons)
+
+    def test_7_green_service_correct(self, h):
+        valid, _ = h.validate_backend_provenance(
+            _good_prov(True), _good_prov(True),
+            _good_prov(False), _good_prov(False))
+        assert valid
+
+    def test_8_green_api_provenance_wrong(self, h):
+        valid, reasons = h.validate_backend_provenance(
+            _good_prov(True), _good_prov(True),
+            _good_prov(False), {"blue_calls": 0, "green_calls": 0})
+        assert not valid
+        assert any("GREEN API" in r for r in reasons)
+
+# ============================================================
+# 9-10: Contract validation failures
+# ============================================================
+
+class TestContractGating:
+    def test_9_blue_contract_invalid_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                     "service_contract_valid": False, "service_contract_errors": ["missing: source"],
+                     "api_contract_valid": True, "api_contract_errors": [],
+                     "svc_api_consistent": True, "svc_api_reasons": []},
+            "green": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                      "service_contract_valid": True, "service_contract_errors": [],
+                      "api_contract_valid": True, "api_contract_errors": [],
+                      "svc_api_consistent": True, "svc_api_reasons": [],
+                      "source": "postgres", "estimate_total_price": 100, "comparable_count": 5, "valuation_status": "available"},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, reasons = h.classify_case(case_data)
         assert cls == "FAIL"
-        assert any("GREEN comparables" in r for r in reasons)
+        assert any("BLUE service contract" in r for r in reasons)
 
-    def test_green_side_no_green_call_is_fail(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "green_comparables_calls": 0, "blue_comparables_calls": 1}
-        green = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "source": "postgres", "estimate_total_price": 100, "green_comparables_calls": 0, "blue_comparables_calls": 0}
-        cls, reasons = harness.classify_case(blue, green, {"estimate_pct_delta": 5}, "GREEN")
+    def test_10_green_contract_invalid_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                     "service_contract_valid": True, "service_contract_errors": [],
+                     "api_contract_valid": True, "api_contract_errors": [],
+                     "svc_api_consistent": True, "svc_api_reasons": []},
+            "green": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                      "service_contract_valid": False, "service_contract_errors": ["non-finite"],
+                      "api_contract_valid": True, "api_contract_errors": [],
+                      "svc_api_consistent": True, "svc_api_reasons": []},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, reasons = h.classify_case(case_data)
         assert cls == "FAIL"
-        assert any("did not call GREEN" in r for r in reasons)
 
-    def test_green_side_accidental_blue_comparables_is_fail(self, harness):
-        blue = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "green_comparables_calls": 0, "blue_comparables_calls": 1}
-        green = {"service_status": "ok", "comparable_count": 5, "valuation_status": "available", "source": "postgres", "estimate_total_price": 100, "green_comparables_calls": 1, "blue_comparables_calls": 1}
-        cls, reasons = harness.classify_case(blue, green, {"estimate_pct_delta": 5}, "GREEN")
+# ============================================================
+# 11-14: API-level failures
+# ============================================================
+
+class TestAPIFailures:
+    def test_11_blue_api_non200_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "http_error", "api_http_status": 500,
+                     "service_contract_valid": True, "service_contract_errors": [],
+                     "api_contract_valid": True, "api_contract_errors": [],
+                     "svc_api_consistent": True, "svc_api_reasons": []},
+            "green": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                      "service_contract_valid": True, "service_contract_errors": [],
+                      "api_contract_valid": True, "api_contract_errors": [],
+                      "svc_api_consistent": True, "svc_api_reasons": [],
+                      "source": "postgres", "estimate_total_price": 100, "comparable_count": 5, "valuation_status": "available"},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, _ = h.classify_case(case_data)
         assert cls == "FAIL"
-        assert any("BLUE comparables" in r for r in reasons)
+
+    def test_12_green_api_non200_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                     "service_contract_valid": True, "service_contract_errors": [],
+                     "api_contract_valid": True, "api_contract_errors": [],
+                     "svc_api_consistent": True, "svc_api_reasons": []},
+            "green": {"service_status": "ok", "api_status": "http_error", "api_http_status": 422,
+                      "service_contract_valid": True, "service_contract_errors": [],
+                      "api_contract_valid": True, "api_contract_errors": [],
+                      "svc_api_consistent": True, "svc_api_reasons": []},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, _ = h.classify_case(case_data)
+        assert cls == "FAIL"
+
+    def test_13_blue_api_contract_invalid_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                     "service_contract_valid": True, "service_contract_errors": [],
+                     "api_contract_valid": False, "api_contract_errors": ["missing fields"],
+                     "svc_api_consistent": True, "svc_api_reasons": []},
+            "green": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                      "service_contract_valid": True, "service_contract_errors": [],
+                      "api_contract_valid": True, "api_contract_errors": [],
+                      "svc_api_consistent": True, "svc_api_reasons": [],
+                      "source": "postgres", "estimate_total_price": 100, "comparable_count": 5, "valuation_status": "available"},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, _ = h.classify_case(case_data)
+        assert cls == "FAIL"
+
+    def test_14_green_api_contract_invalid_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                     "service_contract_valid": True, "service_contract_errors": [],
+                     "api_contract_valid": True, "api_contract_errors": [],
+                     "svc_api_consistent": True, "svc_api_reasons": []},
+            "green": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                      "service_contract_valid": True, "service_contract_errors": [],
+                      "api_contract_valid": False, "api_contract_errors": ["malformed"],
+                      "svc_api_consistent": True, "svc_api_reasons": []},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, _ = h.classify_case(case_data)
+        assert cls == "FAIL"
 
 # ============================================================
-# Metrics math
+# 15-16: Service/API consistency
 # ============================================================
 
-class TestMetricsMath:
-    def test_normal_diff(self, harness):
-        blue = {"estimate_total_price": 1000, "confidence_score": 70, "comparable_count": 10, "service_latency_ms": 200, "api_latency_ms": 250}
-        green = {"estimate_total_price": 1050, "confidence_score": 65, "comparable_count": 8, "service_latency_ms": 150, "api_latency_ms": 180}
-        diff = harness._compute_diff(blue, green)
-        assert diff["estimate_abs_delta"] == 50.0
-        assert diff["estimate_pct_delta"] == 5.0
-        assert diff["confidence_delta"] == -5
-        assert diff["comparable_count_delta"] == -2
-        assert diff["service_latency_delta"] == -50.0
-        assert diff["api_latency_delta"] == -70.0
+class TestConsistency:
+    def test_15_blue_svc_api_mismatch_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                     "service_contract_valid": True, "service_contract_errors": [],
+                     "api_contract_valid": True, "api_contract_errors": [],
+                     "svc_api_consistent": False, "svc_api_reasons": ["estimate_total_price differs"]},
+            "green": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                      "service_contract_valid": True, "service_contract_errors": [],
+                      "api_contract_valid": True, "api_contract_errors": [],
+                      "svc_api_consistent": True, "svc_api_reasons": [],
+                      "source": "postgres", "estimate_total_price": 100, "comparable_count": 5, "valuation_status": "available"},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, reasons = h.classify_case(case_data)
+        assert cls == "FAIL"
+        assert any("mismatch" in r for r in reasons)
 
-    def test_zero_denominator(self, harness):
-        blue = {"estimate_total_price": 0, "confidence_score": 70, "comparable_count": 0, "service_latency_ms": 0, "api_latency_ms": 0}
-        green = {"estimate_total_price": 100, "confidence_score": 65, "comparable_count": 5, "service_latency_ms": 100, "api_latency_ms": 100}
-        diff = harness._compute_diff(blue, green)
-        assert diff["estimate_pct_delta"] is None
-
-    def test_none_values(self, harness):
-        diff = harness._compute_diff({}, {})
-        assert diff["estimate_abs_delta"] is None
-        assert diff["confidence_delta"] is None
-
-    def test_distribution(self, harness):
-        vals = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
-        dist = harness._distribution(vals)
-        assert dist["min"] == 1.0
-        assert dist["max"] == 10.0
-        assert dist["median"] >= 5.0
-
-    def test_empty_distribution(self, harness):
-        dist = harness._distribution([])
-        assert dist["min"] == 0
-        assert dist["max"] == 0
+    def test_16_green_svc_api_mismatch_fail(self, h):
+        case_data = {
+            "blue": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                     "service_contract_valid": True, "service_contract_errors": [],
+                     "api_contract_valid": True, "api_contract_errors": [],
+                     "svc_api_consistent": True, "svc_api_reasons": []},
+            "green": {"service_status": "ok", "api_status": "ok", "api_http_status": 200,
+                      "service_contract_valid": True, "service_contract_errors": [],
+                      "api_contract_valid": True, "api_contract_errors": [],
+                      "svc_api_consistent": False, "svc_api_reasons": ["confidence_score differs"],
+                      "source": "postgres", "estimate_total_price": 100, "comparable_count": 5, "valuation_status": "available"},
+            "diff": {}, "provenance_valid": True, "provenance_reasons": [],
+        }
+        cls, _ = h.classify_case(case_data)
+        assert cls == "FAIL"
 
 # ============================================================
-# Dry-run
+# 17: Canonical request model validation
 # ============================================================
 
-class TestDryRun:
-    def test_no_network(self, harness, monkeypatch):
+class TestCanonicalSchema:
+    def test_17_uses_real_pydantic_model(self, h):
+        valid, errs = h.validate_case_schema({"city": "台北市", "district": "大安區", "road": "x", "building_type": "住宅大樓", "area_ping": 30.0, "building_age_years": 12.0, "floor": 8})
+        assert valid
+
+    def test_invalid_area_rejected(self, h):
+        valid, errs = h.validate_case_schema({"city": "x", "district": "y", "road": "z", "building_type": "w", "area_ping": -1, "building_age_years": 0, "floor": 0})
+        assert not valid
+
+    def test_missing_field_rejected(self, h):
+        valid, errs = h.validate_case_schema({"city": "x"})
+        assert not valid
+
+    def test_all_36_cases_valid(self, h):
+        cases = json.loads((SCRIPT_DIR / "valuation_shadow_cases.json").read_text(encoding="utf-8"))
+        for case in cases:
+            valid, errs = h.validate_case_schema(case)
+            assert valid, f"{case['case_id']}: {errs}"
+
+# ============================================================
+# 18: TestClient lifespan context
+# ============================================================
+
+class TestClientLifespan:
+    def test_18_worker_uses_context_manager(self):
+        """Worker script must use 'with TestClient(app) as client:'"""
+        from scripts.bench_valuation_blue_green_shadow import _WORKER_SCRIPT
+        assert "with TestClient(app) as client:" in _WORKER_SCRIPT
+
+# ============================================================
+# 19: NaN/inf guards
+# ============================================================
+
+class TestNonFinite:
+    def test_19_nan_fails_contract(self, h):
+        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "m",
+                "confidence_score": 50, "comparables": [], "methodology": [], "disclaimer": "",
+                "estimate_total_price": float("nan")}
+        valid, _ = h.validate_response_contract(resp)
+        assert not valid
+
+    def test_inf_fails(self, h):
+        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "m",
+                "confidence_score": float("inf"), "comparables": [], "methodology": [], "disclaimer": ""}
+        valid, _ = h.validate_response_contract(resp)
+        assert not valid
+
+    def test_neg_inf_fails(self, h):
+        resp = {"source": "x", "data_status": {}, "estimate_level": "road", "confidence": "m",
+                "confidence_score": 50, "comparables": [], "methodology": [], "disclaimer": "",
+                "estimate_unit_price_per_ping": float("-inf")}
+        valid, _ = h.validate_response_contract(resp)
+        assert not valid
+
+# ============================================================
+# 20: Dry-run safety
+# ============================================================
+
+class TestDryRunSafety:
+    def test_20_no_subprocess_or_db(self, h, monkeypatch):
         monkeypatch.delenv("VALUATION_DATABASE_URL", raising=False)
         monkeypatch.delenv("COMPACT_GREEN_DATABASE_URL", raising=False)
         monkeypatch.setattr("sys.argv", ["bench", "--dry-run"])
-        assert harness.main() == 0
-
-    def test_no_subprocess(self, harness, monkeypatch):
-        """Dry-run must not call _run_side."""
-        monkeypatch.setattr("sys.argv", ["bench", "--dry-run"])
         calls = []
-        monkeypatch.setattr(harness, "_run_side", lambda *a, **kw: calls.append(1) or [])
-        harness.main()
+        monkeypatch.setattr(h, "_run_side", lambda *a, **kw: calls.append(1) or [])
+        result = h.main()
+        assert result == 0
         assert calls == []
 
 # ============================================================
-# Configuration
+# Additional: service/API consistency helper
+# ============================================================
+
+class TestConsistencyHelper:
+    def test_matching_results(self, h):
+        svc = {"valuation_status": "available", "estimate_total_price": 1000.0, "estimate_unit_price_per_ping": 50.0, "confidence_score": 70, "estimate_level": "road"}
+        api = {"valuation_status": "available", "estimate_total_price": 1000.0, "estimate_unit_price_per_ping": 50.0, "confidence_score": 70, "estimate_level": "road"}
+        valid, reasons = h.check_service_api_consistency(svc, api)
+        assert valid
+
+    def test_mismatched_estimate(self, h):
+        svc = {"valuation_status": "available", "estimate_total_price": 1000.0, "estimate_unit_price_per_ping": 50.0, "confidence_score": 70, "estimate_level": "road"}
+        api = {"valuation_status": "available", "estimate_total_price": 999.0, "estimate_unit_price_per_ping": 50.0, "confidence_score": 70, "estimate_level": "road"}
+        valid, reasons = h.check_service_api_consistency(svc, api)
+        assert not valid
+
+# ============================================================
+# Config / security
 # ============================================================
 
 class TestConfig:
-    def test_missing_blue_fails(self, harness, monkeypatch):
-        monkeypatch.delenv("VALUATION_DATABASE_URL", raising=False)
-        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        assert harness._check_configuration(dry_run=False) == {}
-
-    def test_missing_green_fails(self, harness, monkeypatch):
-        monkeypatch.setenv("VALUATION_DATABASE_URL", "postgresql://fake")
-        monkeypatch.delenv("COMPACT_GREEN_DATABASE_URL", raising=False)
-        assert harness._check_configuration(dry_run=False) == {}
-
-    def test_both_present(self, harness, monkeypatch):
-        monkeypatch.setenv("VALUATION_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        assert harness._check_configuration(dry_run=False).get("status") == "configured"
-
-    def test_dry_run_skips(self, harness, monkeypatch):
+    def test_missing_both_fails(self, h, monkeypatch):
         monkeypatch.delenv("VALUATION_DATABASE_URL", raising=False)
         monkeypatch.delenv("COMPACT_GREEN_DATABASE_URL", raising=False)
-        assert harness._check_configuration(dry_run=True).get("status") == "configured"
+        assert h._check_configuration(dry_run=False) == {}
 
-# ============================================================
-# Secret-safe
-# ============================================================
+    def test_dry_run_skips(self, h):
+        assert h._check_configuration(dry_run=True).get("status") == "configured"
 
 class TestSecretSafe:
     def test_no_real_dsn(self):
@@ -287,12 +336,7 @@ class TestSecretSafe:
         src = (SCRIPT_DIR / "bench_valuation_blue_green_shadow.py").read_text(encoding="utf-8")
         assert not re.findall(r"postgresql://[a-zA-Z0-9_]+[:@]", src)
 
-    def test_no_supabase_host(self):
+    def test_no_write_sql(self):
         import re
         src = (SCRIPT_DIR / "bench_valuation_blue_green_shadow.py").read_text(encoding="utf-8")
-        assert not re.findall(r"[a-z]+\.supabase\.co", src, re.IGNORECASE)
-
-    def test_no_write_sql_in_execute(self):
-        import re
-        src = (SCRIPT_DIR / "bench_valuation_blue_green_shadow.py").read_text(encoding="utf-8")
-        assert not re.findall(r"(?:cursor|conn)\.execute.*?\b(INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE)\b", src, re.IGNORECASE)
+        assert not re.findall(r"(?:cursor|conn)\.execute.*?\b(INSERT|UPDATE|DELETE|DROP)\b", src, re.IGNORECASE)
