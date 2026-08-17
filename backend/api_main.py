@@ -63,6 +63,10 @@ async def app_lifespan(_app: FastAPI):
 
     assert_startup_configuration()
     yield
+    # Shutdown: close GREEN connection pool if it was initialized.
+    # Safe no-op if pool was never created (PLVR_DATA_BACKEND != green).
+    from services.compact_green_query import close_green_pool
+    close_green_pool()
 
 
 app = FastAPI(

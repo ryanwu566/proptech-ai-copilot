@@ -114,6 +114,21 @@ def _reset_pool() -> None:
             _pool = None
 
 
+def close_green_pool() -> None:
+    """Explicitly close the GREEN connection pool for clean shutdown.
+
+    Safe to call at any time:
+    - If pool was never initialized, this is a no-op.
+    - If pool is already closed, this is a no-op.
+    - Does NOT create a pool. Does NOT touch BLUE.
+    - Thread-safe relative to pool initialization.
+
+    Call this during application shutdown (e.g., FastAPI lifespan teardown)
+    to avoid PythonFinalizationError from ConnectionPool.__del__.
+    """
+    _reset_pool()
+
+
 # ---------------------------------------------------------------------------
 # Geography cache — loaded once, thread-safe
 # ---------------------------------------------------------------------------

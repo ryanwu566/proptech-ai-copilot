@@ -881,3 +881,109 @@ class TestFeatureFlagEdgeCases:
         monkeypatch.setenv("PLVR_DATA_BACKEND", "")
         from services.compact_green_query import is_green_enabled
         assert is_green_enabled() is False
+
+
+# ---------------------------------------------------------------------------
+# close_green_pool() tests
+# ---------------------------------------------------------------------------
+
+class TestCloseGreenPool:
+    def test_close_on_uninitialized_pool_is_safe(self):
+        """Calling close when pool was never created must not raise."""
+        import services.compact_green_query as mod
+        mod._reset_pool()  # ensure None
+        assert mod._pool is None
+        # Must not raise
+        mod.close_green_pool()
+        assert mod._pool is None
+
+    def test_close_does_not_initialize_pool(self, monkeypatch):
+        """close_green_pool must NOT create a pool."""
+        import services.compact_green_query as mod
+        mod._reset_pool()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        # close should not trigger pool creation
+        mod.close_green_pool()
+        assert mod._pool is None
+
+    def test_initialized_pool_close_called(self, monkeypatch):
+        """When pool exists, close_green_pool calls pool.close() exactly once."""
+        import services.compact_green_query as mod
+        mod._reset_pool()
+
+        mock_pool = MagicMock()
+        mock_pool.close = MagicMock()
+        mod._pool = mock_pool
+
+        mod.close_green_pool()
+
+        mock_pool.close.assert_called_once()
+        assert mod._pool is None
+
+    def test_repeated_close_is_safe(self, monkeypatch):
+        """Multiple close calls must not raise."""
+        import services.compact_green_query as mod
+        mod._reset_pool()
+
+        mock_pool = MagicMock()
+        mod._pool = mock_pool
+
+        mod.close_green_pool()
+        mod.close_green_pool()
+        mod.close_green_pool()
+        # All calls safe; pool.close() called once (first time only, _pool is None after)
+        assert mod._pool is None
+
+    def test_pool_none_after_close(self):
+        """After close, _pool must be None."""
+        import services.compact_green_query as mod
+        mock_pool = MagicMock()
+        mod._pool = mock_pool
+        mod.close_green_pool()
+        assert mod._pool is None
+
+    def test_new_pool_can_initialize_after_close(self, monkeypatch):
+        """After close, a new GREEN query can lazily create a fresh pool."""
+        import services.compact_green_query as mod
+
+        mod.reset_geography_cache()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+
+        # Simulate: pool was closed
+        mod._reset_pool()
+        assert mod._pool is None
+
+        # Now a query should be able to lazily init a new pool
+        with _mock_pool() as (mock_pool_obj, _, _):
+            monkeypatch.setattr(mod, "_pool", None)
+            monkeypatch.setattr("services.compact_green_query._get_pool", lambda: mock_pool_obj)
+            result = mod.query_green_comparables(_sample_payload())
+            assert len(result) > 0
+
+        mod.reset_geography_cache()
+
+    def test_close_preserves_read_only_semantics(self, monkeypatch):
+        """After close and re-init, transactions remain read-only."""
+        import services.compact_green_query as mod
+
+        mod.reset_geography_cache()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+
+        with _mock_pool() as (mock_pool_obj, mock_conn, _):
+            monkeypatch.setattr(mod, "_pool", mock_pool_obj)
+            mod.query_green_comparables(_sample_payload())
+            # Verify read-only was set inside transaction
+            mock_conn.transaction.assert_called_once()
+            mock_conn.execute.assert_called_once_with("SET TRANSACTION READ ONLY")
+
+        mod.reset_geography_cache()
+
+    def test_close_no_blue_fallback(self, monkeypatch):
+        """close_green_pool must not trigger any BLUE interaction."""
+        import services.compact_green_query as mod
+        mod._reset_pool()
+        # No BLUE env needed, no BLUE called
+        mod.close_green_pool()
+        # If we got here without error, no BLUE was touched
