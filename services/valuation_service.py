@@ -181,11 +181,21 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     if isinstance(provider, UnavailableValuationProvider):
         return empty_estimate_result(data_status, status="unavailable", reason_code="provider_unavailable", result_origin="none", provider_source=provider.source)
     try:
-        all_rows = list(provider.query_comparables(payload) if isinstance(provider, PostgresValuationProvider) else provider.load_transactions())
+        from services.compact_green_query import is_green_enabled, query_green_comparables, CompactGreenQueryError
+        _use_green_comparables = is_green_enabled() and isinstance(provider, PostgresValuationProvider)
+    except ImportError:
+        _use_green_comparables = False
+    try:
+        if _use_green_comparables:
+            all_rows = query_green_comparables(payload)
+        elif isinstance(provider, PostgresValuationProvider):
+            all_rows = list(provider.query_comparables(payload))
+        else:
+            all_rows = list(provider.load_transactions())
     except Exception:
         return empty_estimate_result(data_status, status="unavailable", reason_code="provider_query_failed", result_origin="none", provider_source=provider.source)
-    all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider))
-    query_metadata = provider.last_query_metadata if isinstance(provider, PostgresValuationProvider) else {
+    all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider) or _use_green_comparables)
+    query_metadata = provider.last_query_metadata if isinstance(provider, PostgresValuationProvider) and not _use_green_comparables else {
         "provider_active": provider.source,
         "candidate_pool_size": len(all_rows),
         "query_scope": "local_provider",
