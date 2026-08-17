@@ -66,7 +66,11 @@ def _fake_green_row(period_code: int = 318, **overrides: Any) -> dict[str, Any]:
 
 @contextmanager
 def _mock_pool(rows=None):
-    """Context manager providing a mock pool that returns fake rows."""
+    """Context manager providing a mock pool that returns fake rows.
+
+    The mock correctly simulates the transaction lifecycle:
+    pool.connection() -> connection.transaction() -> connection.execute(SET RO) -> cursor.execute(SQL)
+    """
     if rows is None:
         rows = [_fake_green_row()]
 
@@ -78,6 +82,12 @@ def _mock_pool(rows=None):
     mock_conn = MagicMock()
     mock_conn.cursor.return_value = mock_cursor
     mock_conn.execute = MagicMock()
+
+    # transaction() must be a context manager
+    mock_tx = MagicMock()
+    mock_tx.__enter__ = MagicMock(return_value=mock_tx)
+    mock_tx.__exit__ = MagicMock(return_value=False)
+    mock_conn.transaction.return_value = mock_tx
 
     @contextmanager
     def connection_ctx():
@@ -297,7 +307,46 @@ class TestQueryUsesPool:
 # ---------------------------------------------------------------------------
 
 class TestReadOnlyBeforeSelect:
-    def test_set_transaction_read_only(self, monkeypatch):
+    def test_set_transaction_read_only_inside_transaction(self, monkeypatch):
+        """Verify SET TRANSACTION READ ONLY and SELECT are inside conn.transaction()."""
+        import services.compact_green_query as mod
+
+        mod.reset_geography_cache()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+
+        call_order = []
+
+        with _mock_pool() as (mock_pool_obj, mock_conn, mock_cursor):
+            # Track call order to prove nesting
+            mock_conn.transaction.return_value.__enter__ = MagicMock(
+                side_effect=lambda: call_order.append("tx_enter")
+            )
+            mock_conn.transaction.return_value.__exit__ = MagicMock(return_value=False)
+            mock_conn.execute = MagicMock(
+                side_effect=lambda sql: call_order.append(f"execute:{sql}")
+            )
+            mock_cursor.execute = MagicMock(
+                side_effect=lambda sql, params=None: call_order.append("cursor_execute")
+            )
+            mock_cursor.fetchall.return_value = [_fake_green_row()]
+
+            monkeypatch.setattr(mod, "_pool", mock_pool_obj)
+            mod.query_green_comparables(_sample_payload())
+
+        # Verify order: transaction entered BEFORE read-only and query
+        assert "tx_enter" in call_order
+        tx_idx = call_order.index("tx_enter")
+        ro_idx = call_order.index("execute:SET TRANSACTION READ ONLY")
+        query_idx = call_order.index("cursor_execute")
+        assert tx_idx < ro_idx < query_idx, (
+            f"Expected tx_enter < SET RO < cursor_execute, got order: {call_order}"
+        )
+
+        mod.reset_geography_cache()
+
+    def test_transaction_context_manager_used(self, monkeypatch):
+        """Verify conn.transaction() is called (not just conn.execute)."""
         import services.compact_green_query as mod
 
         mod.reset_geography_cache()
@@ -308,8 +357,8 @@ class TestReadOnlyBeforeSelect:
             monkeypatch.setattr(mod, "_pool", mock_pool_obj)
             mod.query_green_comparables(_sample_payload())
 
-            # connection.execute("SET TRANSACTION READ ONLY") must be called
-            mock_conn.execute.assert_called_once_with("SET TRANSACTION READ ONLY")
+            # connection.transaction() must have been called
+            mock_conn.transaction.assert_called_once()
 
         mod.reset_geography_cache()
 
@@ -357,6 +406,12 @@ class TestQueryExceptionSafe:
         mock_conn.cursor.return_value = mock_cursor
         mock_conn.execute = MagicMock()
 
+        # transaction() context manager — __exit__ will be called with exception info
+        mock_tx = MagicMock()
+        mock_tx.__enter__ = MagicMock(return_value=mock_tx)
+        mock_tx.__exit__ = MagicMock(return_value=False)  # propagate exception
+        mock_conn.transaction.return_value = mock_tx
+
         @contextmanager
         def bad_connection():
             yield mock_conn
@@ -367,6 +422,62 @@ class TestQueryExceptionSafe:
 
         with pytest.raises(CompactGreenQueryError, match="GREEN query failed"):
             mod.query_green_comparables(_sample_payload())
+
+        # Verify transaction __exit__ was called (rollback path)
+        mock_tx.__exit__.assert_called_once()
+
+        mod.reset_geography_cache()
+
+    def test_next_checkout_not_left_in_failed_state(self, monkeypatch):
+        """After a failed query, next pool checkout gets a clean connection."""
+        import services.compact_green_query as mod
+        from services.compact_green_query import CompactGreenQueryError
+
+        mod.reset_geography_cache()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+
+        call_count = {"n": 0}
+
+        # First call fails, second succeeds
+        def make_connection_ctx():
+            @contextmanager
+            def connection_ctx():
+                call_count["n"] += 1
+                mock_conn = MagicMock()
+                mock_cursor = MagicMock()
+                mock_cursor.__enter__ = MagicMock(return_value=mock_cursor)
+                mock_cursor.__exit__ = MagicMock(return_value=False)
+
+                mock_tx = MagicMock()
+                mock_tx.__enter__ = MagicMock(return_value=mock_tx)
+                mock_tx.__exit__ = MagicMock(return_value=False)
+                mock_conn.transaction.return_value = mock_tx
+
+                if call_count["n"] == 1:
+                    mock_cursor.execute.side_effect = RuntimeError("first call fails")
+                else:
+                    mock_cursor.execute.side_effect = None
+                    mock_cursor.fetchall.return_value = [_fake_green_row()]
+
+                mock_conn.cursor.return_value = mock_cursor
+                mock_conn.execute = MagicMock()
+                yield mock_conn
+
+            return connection_ctx
+
+        mock_pool_obj = MagicMock()
+        mock_pool_obj.connection = make_connection_ctx()
+        monkeypatch.setattr(mod, "_pool", mock_pool_obj)
+
+        # First call should fail
+        with pytest.raises(CompactGreenQueryError):
+            mod.query_green_comparables(_sample_payload())
+
+        # Second call with fresh connection mock
+        mock_pool_obj.connection = make_connection_ctx()
+        result = mod.query_green_comparables(_sample_payload())
+        assert len(result) == 1  # second call succeeds
 
         mod.reset_geography_cache()
 

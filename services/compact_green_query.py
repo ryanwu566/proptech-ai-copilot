@@ -342,10 +342,14 @@ def query_green_comparables(payload: dict[str, Any]) -> list[dict[str, Any]]:
     try:
         pool = _get_pool()
         with pool.connection() as connection:
-            connection.execute("SET TRANSACTION READ ONLY")
-            with connection.cursor() as cursor:
-                cursor.execute(_VALUATION_COMPARABLES_SQL, params)
-                rows = cursor.fetchall()
+            # With autocommit=True, we must use an explicit transaction block
+            # to ensure SET TRANSACTION READ ONLY and the SELECT execute within
+            # the SAME PostgreSQL transaction.
+            with connection.transaction():
+                connection.execute("SET TRANSACTION READ ONLY")
+                with connection.cursor() as cursor:
+                    cursor.execute(_VALUATION_COMPARABLES_SQL, params)
+                    rows = cursor.fetchall()
     except CompactGreenQueryError:
         raise
     except Exception as exc:
