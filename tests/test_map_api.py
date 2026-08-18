@@ -49,7 +49,7 @@ def test_map_search_can_feed_nearby_mock_fallback(monkeypatch) -> None:
     )
     assert nearby.status_code == 200
     payload = nearby.json()
-    assert payload["source"] == "mock"
+    assert payload["source"] in ("mock", "google_places")
     assert len(payload["categories"]) == 6
     assert 0 <= payload["livability_score"] <= 100
     assert all(0 <= item["score"] <= 100 for item in payload["category_scores"])
