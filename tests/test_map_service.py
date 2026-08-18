@@ -187,11 +187,26 @@ def test_google_geocoding_parses_newtaipei_district(monkeypatch) -> None:
     assert result["district"] == "板橋區"
 
 
-def test_google_geocoding_prefers_level_3_over_level_2_when_both_present(monkeypatch) -> None:
-    """If both level_2 and level_3 exist, prefer level_3 as district."""
+def test_google_geocoding_prefers_level_2_over_level_3_for_taiwan(monkeypatch) -> None:
+    """Taiwan product: level_2 is district; level_3 is fallback only when level_2 absent."""
+    components = [
+        {"long_name": "Some SubDistrict", "types": ["administrative_area_level_3", "political"]},
+        {"long_name": "大安區", "types": ["administrative_area_level_2", "political"]},
+        {"long_name": "臺北市", "types": ["administrative_area_level_1", "political"]},
+    ]
+    fake = _FakeResponse(components)
+    monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *a, **kw: fake)
+    adapter = GoogleGeocodingAdapter(api_key="test-key")
+    result = adapter.search("test address", [])
+    assert result is not None
+    assert result["district"] == "大安區"  # level_2 wins for Taiwan
+    assert result["city"] == "臺北市"
+
+
+def test_google_geocoding_falls_back_to_level_3_when_level_2_absent(monkeypatch) -> None:
+    """If level_2 is absent, level_3 is used as fallback."""
     components = [
         {"long_name": "Some District", "types": ["administrative_area_level_3", "political"]},
-        {"long_name": "Some Region", "types": ["administrative_area_level_2", "political"]},
         {"long_name": "Some City", "types": ["administrative_area_level_1", "political"]},
     ]
     fake = _FakeResponse(components)

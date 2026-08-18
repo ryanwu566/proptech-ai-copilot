@@ -59,7 +59,8 @@ class GoogleGeocodingAdapter:
             # Parse city and district from address_components.
             # Taiwan (region=tw) uses administrative_area_level_1 for city (e.g. 臺北市)
             # and administrative_area_level_2 for district (e.g. 大安區).
-            # Other regions may use level_3 for district; check both with precedence.
+            # This product targets Taiwan; prefer level_2 for district.
+            # Fall back to level_3 only when level_2 is absent.
             city = ""
             district = ""
             level_2 = ""
@@ -72,8 +73,8 @@ class GoogleGeocodingAdapter:
                     level_2 = component.get("long_name", "")
                 elif "administrative_area_level_3" in types:
                     level_3 = component.get("long_name", "")
-            # Prefer level_3 if present (some regions); fall back to level_2 (Taiwan)
-            district = level_3 or level_2
+            # Taiwan: level_2 is district; level_3 is fallback for other regions
+            district = level_2 or level_3
             return {
                 "id": f"google-{result.get('place_id', 'location')}",
                 "city": city,
