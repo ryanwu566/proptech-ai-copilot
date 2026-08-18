@@ -56,15 +56,24 @@ class GoogleGeocodingAdapter:
             result = response.json().get("results", [])[0]
             location = result["geometry"]["location"]
             self.last_error = ""
-            # Parse city and district from address_components
+            # Parse city and district from address_components.
+            # Taiwan (region=tw) uses administrative_area_level_1 for city (e.g. 臺北市)
+            # and administrative_area_level_2 for district (e.g. 大安區).
+            # Other regions may use level_3 for district; check both with precedence.
             city = ""
             district = ""
+            level_2 = ""
+            level_3 = ""
             for component in result.get("address_components", []):
                 types = component.get("types", [])
                 if "administrative_area_level_1" in types:
                     city = component.get("long_name", "")
+                elif "administrative_area_level_2" in types:
+                    level_2 = component.get("long_name", "")
                 elif "administrative_area_level_3" in types:
-                    district = component.get("long_name", "")
+                    level_3 = component.get("long_name", "")
+            # Prefer level_3 if present (some regions); fall back to level_2 (Taiwan)
+            district = level_3 or level_2
             return {
                 "id": f"google-{result.get('place_id', 'location')}",
                 "city": city,
