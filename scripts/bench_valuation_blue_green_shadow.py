@@ -350,7 +350,7 @@ with TestClient(app) as client:
 
         outputs.append({"service": svc_out, "api": api_out, "service_provenance": svc_prov, "api_provenance": api_prov})
 
-print(json.dumps(outputs, ensure_ascii=False, default=str))
+print(json.dumps(outputs, ensure_ascii=True, default=str))
 '''
 
 

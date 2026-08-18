@@ -340,3 +340,64 @@ class TestSecretSafe:
         import re
         src = (SCRIPT_DIR / "bench_valuation_blue_green_shadow.py").read_text(encoding="utf-8")
         assert not re.findall(r"(?:cursor|conn)\.execute.*?\b(INSERT|UPDATE|DELETE|DROP)\b", src, re.IGNORECASE)
+
+
+# ============================================================
+# Unicode stdout transport regression (CP950 / ensure_ascii)
+# ============================================================
+
+class TestUnicodeTransport:
+    """Regression: Worker stdout crashed on Windows CP950 with U+E01C in result.
+
+    The worker subprocess prints JSON to stdout which the parent reads as text.
+    On Windows with CP950 locale, characters outside the codepage cannot be printed
+    unless ensure_ascii=True is used in json.dumps for stdout transport.
+
+    This test verifies the harness worker output line uses ensure_ascii=True,
+    which guarantees all non-ASCII characters are escaped to \\uXXXX form.
+    """
+
+    def test_worker_stdout_uses_ensure_ascii_true(self):
+        """The _WORKER_SCRIPT must use ensure_ascii=True for stdout JSON."""
+        src = (SCRIPT_DIR / "bench_valuation_blue_green_shadow.py").read_text(encoding="utf-8")
+        # Find the worker script's print(json.dumps(...)) line
+        # It must contain ensure_ascii=True (not False or absent)
+        import re
+        # Match the print statement in _WORKER_SCRIPT that outputs results
+        worker_print_match = re.search(
+            r"print\(json\.dumps\(outputs,\s*ensure_ascii=True",
+            src,
+        )
+        assert worker_print_match is not None, (
+            "Worker stdout print must use ensure_ascii=True to prevent "
+            "UnicodeEncodeError on non-UTF8 locales (e.g., Windows CP950)"
+        )
+
+    def test_ensure_ascii_encodes_private_use_char(self):
+        """U+E01C (private use area) must survive JSON roundtrip with ensure_ascii=True."""
+        # This is the exact character that caused the original CP950 crash
+        data = {"address_text": "某路段\ue01c號", "status": "ok"}
+        encoded = json.dumps(data, ensure_ascii=True, default=str)
+        # ensure_ascii=True escapes non-ASCII to \\uXXXX
+        assert "\\u" in encoded
+        # Roundtrip must preserve the original character
+        decoded = json.loads(encoded)
+        assert decoded["address_text"] == "某路段\ue01c號"
+
+    def test_ensure_ascii_encodes_cjk_supplement(self):
+        """CJK characters beyond BMP must also survive the transport."""
+        data = {"road": "台北市\U00020000路"}  # CJK Unified Ideograph Extension B
+        encoded = json.dumps(data, ensure_ascii=True, default=str)
+        decoded = json.loads(encoded)
+        assert decoded["road"] == data["road"]
+
+    def test_file_writes_preserve_unicode(self):
+        """Artifact file writes must keep ensure_ascii=False for human-readable Chinese."""
+        src = (SCRIPT_DIR / "bench_valuation_blue_green_shadow.py").read_text(encoding="utf-8")
+        import re
+        # The summary/cases/diagnostics file writes should use ensure_ascii=False
+        file_writes = re.findall(r"write_text\(json\.dumps\(.+?ensure_ascii=(\w+)", src)
+        file_writes += re.findall(r"f\.write\(json\.dumps\(.+?ensure_ascii=(\w+)", src)
+        assert all(v == "False" for v in file_writes), (
+            f"File artifact writes should use ensure_ascii=False for readability, got: {file_writes}"
+        )
