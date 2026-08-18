@@ -175,7 +175,7 @@ class TestPoolInitOnFirstQuery:
 
         reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         with _mock_pool() as (mock_pool_obj, mock_conn, mock_cursor):
             monkeypatch.setattr(mod, "_pool", None)
@@ -198,7 +198,7 @@ class TestPoolReuse:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         with _mock_pool() as (mock_pool_obj, _, _):
             monkeypatch.setattr(mod, "_pool", mock_pool_obj)
@@ -287,7 +287,7 @@ class TestQueryUsesPool:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         connect_calls = {"n": 0}
 
@@ -313,7 +313,7 @@ class TestReadOnlyBeforeSelect:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         call_order = []
 
@@ -351,7 +351,7 @@ class TestReadOnlyBeforeSelect:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         with _mock_pool() as (mock_pool_obj, mock_conn, mock_cursor):
             monkeypatch.setattr(mod, "_pool", mock_pool_obj)
@@ -373,7 +373,7 @@ class TestSuccessfulCheckout:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         with _mock_pool() as (mock_pool_obj, _, _):
             monkeypatch.setattr(mod, "_pool", mock_pool_obj)
@@ -395,7 +395,7 @@ class TestQueryExceptionSafe:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         mock_cursor = MagicMock()
         mock_cursor.execute.side_effect = RuntimeError("simulated DB error")
@@ -435,7 +435,7 @@ class TestQueryExceptionSafe:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         call_count = {"n": 0}
 
@@ -561,7 +561,7 @@ class TestGeographyCacheLoadsOnce:
 
         def fake_load(url):
             call_count["n"] += 1
-            return ({("台北市", "大安區"): 1, ("新北市", "板橋區"): 2}, 318)
+            return ({("臺北市", "大安區"): 1, ("新北市", "板橋區"): 2}, 318)
 
         monkeypatch.setattr(mod, "_load_geography_cache", fake_load)
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
@@ -586,7 +586,7 @@ class TestMaxPeriod318:
 
         reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         get_geography_cache()
         assert get_max_period_code() == 318
@@ -848,7 +848,7 @@ class TestWallClockRegression:
 
         reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         get_geography_cache()
         # Even if current month is 2026-08 (code 319), we use 318 from data
@@ -948,7 +948,7 @@ class TestCloseGreenPool:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         # Simulate: pool was closed
         mod._reset_pool()
@@ -969,7 +969,7 @@ class TestCloseGreenPool:
 
         mod.reset_geography_cache()
         monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
-        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("台北市", "大安區"): 1}, 318))
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
 
         with _mock_pool() as (mock_pool_obj, mock_conn, _):
             monkeypatch.setattr(mod, "_pool", mock_pool_obj)
@@ -987,3 +987,109 @@ class TestCloseGreenPool:
         # No BLUE env needed, no BLUE called
         mod.close_green_pool()
         # If we got here without error, no BLUE was touched
+
+
+# ---------------------------------------------------------------------------
+# City normalization regression tests (台→臺 fix)
+# ---------------------------------------------------------------------------
+
+class TestCityNormalization:
+    """Regression: GREEN DB uses official 臺 form; normalization must map 台→臺."""
+
+    def test_tai_to_official_taipei(self):
+        """台北市 must normalize to 臺北市."""
+        from services.compact_green_query import _normalize_city
+        assert _normalize_city("台北市") == "臺北市"
+
+    def test_already_official_taipei(self):
+        """臺北市 is already official form and must remain unchanged."""
+        from services.compact_green_query import _normalize_city
+        assert _normalize_city("臺北市") == "臺北市"
+
+    def test_tai_to_official_taichung(self):
+        """台中市 must normalize to 臺中市."""
+        from services.compact_green_query import _normalize_city
+        assert _normalize_city("台中市") == "臺中市"
+
+    def test_tai_to_official_tainan(self):
+        """台南市 must normalize to 臺南市."""
+        from services.compact_green_query import _normalize_city
+        assert _normalize_city("台南市") == "臺南市"
+
+    def test_non_tai_city_unchanged(self):
+        """Cities without 台/臺 character must remain unchanged."""
+        from services.compact_green_query import _normalize_city
+        assert _normalize_city("新北市") == "新北市"
+        assert _normalize_city("高雄市") == "高雄市"
+        assert _normalize_city("桃園市") == "桃園市"
+
+    def test_whitespace_stripped(self):
+        """Leading/trailing whitespace must be stripped."""
+        from services.compact_green_query import _normalize_city
+        assert _normalize_city("  台北市  ") == "臺北市"
+        assert _normalize_city(" 新北市 ") == "新北市"
+
+    def test_query_resolves_tai_input_against_official_cache(self, monkeypatch):
+        """query_green_comparables with 台-input must match 臺-keyed cache."""
+        import services.compact_green_query as mod
+
+        mod.reset_geography_cache()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        # Cache uses official 臺 form (as loaded from real GREEN DB)
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺中市", "西屯區"): 5}, 318))
+
+        with _mock_pool() as (mock_pool_obj, mock_conn, mock_cursor):
+            monkeypatch.setattr(mod, "_pool", mock_pool_obj)
+            # Input uses common 台 form
+            payload = {
+                "city": "台中市", "district": "西屯區", "road": "台灣大道四段",
+                "building_type": "住宅大樓", "area_ping": 25.0, "building_age_years": 8.0,
+            }
+            result = mod.query_green_comparables(payload)
+            assert len(result) > 0  # Did not raise "district not found"
+
+        mod.reset_geography_cache()
+
+    def test_sql_params_use_official_city_form(self, monkeypatch):
+        """SQL parameters sent to GREEN must contain 臺 form, not 台."""
+        import services.compact_green_query as mod
+
+        mod.reset_geography_cache()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺南市", "安平區"): 3}, 318))
+
+        with _mock_pool() as (mock_pool_obj, mock_conn, mock_cursor):
+            monkeypatch.setattr(mod, "_pool", mock_pool_obj)
+            payload = {
+                "city": "台南市", "district": "安平區", "road": "安平路",
+                "building_type": "住宅大樓", "area_ping": 20.0, "building_age_years": 5.0,
+            }
+            mod.query_green_comparables(payload)
+
+            # Inspect the SQL params passed to cursor.execute
+            cursor_call_args = mock_cursor.execute.call_args
+            sql_params = cursor_call_args[0][1]  # second positional arg = params dict
+            assert sql_params["city"] == "臺南市", (
+                f"SQL city param must be official form 臺南市, got: {sql_params['city']}"
+            )
+
+        mod.reset_geography_cache()
+
+    def test_cache_miss_with_wrong_normalization_raises(self, monkeypatch):
+        """If cache only has 臺 keys and input is 台 without normalization, it would fail."""
+        import services.compact_green_query as mod
+
+        mod.reset_geography_cache()
+        monkeypatch.setenv("COMPACT_GREEN_DATABASE_URL", "postgresql://fake")
+        # Cache uses official 臺 form only
+        monkeypatch.setattr(mod, "_load_geography_cache", lambda url: ({("臺北市", "大安區"): 1}, 318))
+
+        with _mock_pool() as (mock_pool_obj, mock_conn, mock_cursor):
+            monkeypatch.setattr(mod, "_pool", mock_pool_obj)
+            # Input uses 台 — normalization must fix this
+            payload = _sample_payload()  # uses city="台北市"
+            # This must succeed (normalization converts 台→臺 for lookup)
+            result = mod.query_green_comparables(payload)
+            assert len(result) > 0
+
+        mod.reset_geography_cache()

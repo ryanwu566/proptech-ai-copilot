@@ -312,8 +312,8 @@ ORDER BY
 
 
 def _normalize_city(value: str) -> str:
-    """Normalize Taiwan city character variants."""
-    return value.strip().replace("臺", "台")
+    """Normalize Taiwan city character variants to official GREEN DB form (臺)."""
+    return value.strip().replace("台", "臺")
 
 
 def query_green_comparables(payload: dict[str, Any]) -> list[dict[str, Any]]:
