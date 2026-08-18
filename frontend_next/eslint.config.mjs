@@ -26,8 +26,10 @@ export default [
     },
   },
   {
-    // Error boundary files cannot use <Link> because they render outside the router context
-    files: ["app/error.tsx", "app/global-error.tsx", "app/not-found.tsx"],
+    // Error boundary files and full-page-reload navigation links cannot use <Link>
+    // because they either render outside the router context or intentionally trigger
+    // a full page load to reset client state.
+    files: ["app/error.tsx", "app/global-error.tsx", "app/not-found.tsx", "components/property-case-command-center.tsx"],
     rules: {
       "@next/next/no-html-link-for-pages": "off",
     },

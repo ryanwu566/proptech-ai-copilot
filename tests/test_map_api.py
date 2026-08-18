@@ -34,6 +34,10 @@ def test_map_search_and_insight_endpoints() -> None:
 
 def test_map_search_can_feed_nearby_mock_fallback(monkeypatch) -> None:
     monkeypatch.delenv("GOOGLE_MAPS_API_KEY", raising=False)
+    # Disable the module-level cached Google adapters to force mock path
+    import services.map_service as _map_svc
+    from services.adapters.google_places_adapter import GooglePlacesAdapter
+    monkeypatch.setattr(_map_svc, "DEFAULT_GOOGLE_PLACES_ADAPTER", GooglePlacesAdapter(api_key=""))
     search = client.post("/map/search", json={"query": "台北市大安區和平東路二段"})
     assert search.json()["source"] == "mock"
     center = search.json()["center"]
@@ -49,7 +53,7 @@ def test_map_search_can_feed_nearby_mock_fallback(monkeypatch) -> None:
     )
     assert nearby.status_code == 200
     payload = nearby.json()
-    assert payload["source"] in ("mock", "google_places")
+    assert payload["source"] == "mock"
     assert len(payload["categories"]) == 6
     assert 0 <= payload["livability_score"] <= 100
     assert all(0 <= item["score"] <= 100 for item in payload["category_scores"])

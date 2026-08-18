@@ -83,3 +83,79 @@ def test_official_estimate_response_has_no_provider_internals(monkeypatch) -> No
     assert result["is_actionable"] is True
     assert len(result["comparables"]) >= 3
     assert set(result["source_details"]) <= {"provider_active", "candidate_pool_size", "query_scope", "requested_city", "requested_district", "requested_road", "db_rows_returned", "query_status"}
+
+
+# ---------------------------------------------------------------------------
+# DEFECT-007: area_ping upper bound validation (residential scope: <= 500 坪)
+# ---------------------------------------------------------------------------
+# Rationale: This is a residential property valuation tool. Taiwan residential
+# properties range from ~10 to ~150 坪 (even the largest luxury penthouses
+# rarely exceed 200 坪). 500 坪 provides generous headroom while rejecting
+# absurd values that produce meaningless estimates.
+# ---------------------------------------------------------------------------
+
+
+def test_area_ping_normal_residential_accepted() -> None:
+    """Normal residential area (30 坪) must be accepted."""
+    p = payload()
+    p["area_ping"] = 30
+    response = client.post("/valuation/estimate", json=p)
+    assert response.status_code == 200
+
+
+def test_area_ping_upper_boundary_accepted() -> None:
+    """Exact upper boundary (500 坪) must be accepted."""
+    p = payload()
+    p["area_ping"] = 500
+    response = client.post("/valuation/estimate", json=p)
+    assert response.status_code == 200
+
+
+def test_area_ping_above_boundary_rejected() -> None:
+    """Value immediately above boundary (500.1 坪) must be rejected with 422."""
+    p = payload()
+    p["area_ping"] = 500.1
+    response = client.post("/valuation/estimate", json=p)
+    assert response.status_code == 422
+
+
+def test_area_ping_absurd_value_rejected() -> None:
+    """Absurd value (99999 坪) must be rejected with 422."""
+    p = payload()
+    p["area_ping"] = 99999
+    response = client.post("/valuation/estimate", json=p)
+    assert response.status_code == 422
+
+
+def test_area_ping_zero_rejected() -> None:
+    """Zero area must be rejected (gt=0)."""
+    p = payload()
+    p["area_ping"] = 0
+    response = client.post("/valuation/estimate", json=p)
+    assert response.status_code == 422
+
+
+def test_area_ping_negative_rejected() -> None:
+    """Negative area must be rejected."""
+    p = payload()
+    p["area_ping"] = -5
+    response = client.post("/valuation/estimate", json=p)
+    assert response.status_code == 422
+
+
+def test_valuation_trend_area_ping_boundary() -> None:
+    """Trend endpoint uses the same area_ping bound."""
+    trend_payload = {
+        "city": "Taipei City",
+        "district": "Central District",
+        "road": "Example Road",
+        "building_type": "Apartment",
+        "area_ping": 500,
+        "building_age_years": 15,
+        "floor": 8,
+    }
+    response = client.post("/valuation/trend", json=trend_payload)
+    assert response.status_code == 200
+    trend_payload["area_ping"] = 501
+    response = client.post("/valuation/trend", json=trend_payload)
+    assert response.status_code == 422

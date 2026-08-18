@@ -28,24 +28,42 @@ def test_production_startup_fails_closed_without_required_database(monkeypatch) 
 
 
 def test_readiness_does_not_expose_config_details_in_production(monkeypatch) -> None:
-    """In production mode, /readiness must not reveal config-status fields."""
+    """In production mode, /readiness must not reveal config-status reconnaissance fields.
+
+    Uses monkeypatch to force a fully-ready production state so the endpoint
+    returns HTTP 200 deterministically — not 503.
+    """
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("DATABASE_URL", "postgresql://db.example.invalid/app")
     monkeypatch.setenv("PILOT_SESSION_SIGNING_KEY", "s" * 32)
     monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://frontend.example")
     monkeypatch.setenv("PUBLIC_APP_BASE_URL", "https://frontend.example")
     monkeypatch.setenv("PILOT_ADMIN_TOKEN", "admin-test-token")
+    # Mock database connectivity so endpoint reaches HTTP 200 path
+    monkeypatch.setattr(
+        "backend.api.routes_pilot.check_connection", lambda url: "available"
+    )
     with TestClient(app) as client:
         response = client.get("/readiness")
-    # In production, even if 503, the runtime block should be minimal
-    body = response.json() if response.status_code == 200 else {}
-    if response.status_code == 200:
-        runtime = body.get("runtime", {})
-        # Must NOT contain these reconnaissance-useful fields
-        for sensitive_key in ("session_secret", "admin_token", "reviewer_token", "database_source"):
-            assert sensitive_key not in runtime, (
-                f"/readiness exposed '{sensitive_key}' in production mode"
-            )
+    assert response.status_code == 200, (
+        f"Expected 200 for fully-ready production config, got {response.status_code}"
+    )
+    runtime = response.json().get("runtime", {})
+    # Production runtime must contain ONLY these minimal public fields
+    allowed_keys = {"mode", "ready"}
+    assert set(runtime.keys()) == allowed_keys, (
+        f"Production runtime should expose only {allowed_keys}, got {set(runtime.keys())}"
+    )
+    # Explicitly verify no sensitive reconnaissance fields
+    for sensitive_key in (
+        "session_secret", "admin_token", "reviewer_token",
+        "database", "database_source", "cors_origins",
+        "public_base_url", "release_version", "api_contract_version",
+        "schema_version", "maintenance", "runtime", "production_like", "serverless",
+    ):
+        assert sensitive_key not in runtime, (
+            f"/readiness exposed '{sensitive_key}' in production mode"
+        )
 
 
 def test_readiness_exposes_full_config_in_development() -> None:
