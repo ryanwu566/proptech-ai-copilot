@@ -272,7 +272,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         "source_details": {**_source_details(provider), **query_metadata},
         "estimate_total_price": round(mid * area, 1),
         "estimate_unit_price_per_ping": mid,
-        "price_range": {"low": round(p25 * area, 1), "mid": round(mid * area, 1), "high": round(p75 * area, 1)},
+        "price_range": {"low": round(min(p25, mid) * area, 1), "mid": round(mid * area, 1), "high": round(max(p75, mid) * area, 1)},
         "unit_price_distribution": {"weighted_mean": round(weighted_mean, 1), "weighted_median": round(weighted_median, 1), "p25": round(p25, 1), "p75": round(p75, 1)},
         "confidence": confidence,
         "confidence_score": confidence_score,
