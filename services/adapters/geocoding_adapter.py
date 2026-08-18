@@ -56,10 +56,19 @@ class GoogleGeocodingAdapter:
             result = response.json().get("results", [])[0]
             location = result["geometry"]["location"]
             self.last_error = ""
+            # Parse city and district from address_components
+            city = ""
+            district = ""
+            for component in result.get("address_components", []):
+                types = component.get("types", [])
+                if "administrative_area_level_1" in types:
+                    city = component.get("long_name", "")
+                elif "administrative_area_level_3" in types:
+                    district = component.get("long_name", "")
             return {
                 "id": f"google-{result.get('place_id', 'location')}",
-                "city": "",
-                "district": "",
+                "city": city,
+                "district": district,
                 "road": result.get("formatted_address", query),
                 "formatted_address": result.get("formatted_address", query),
                 "place_id": result.get("place_id", ""),

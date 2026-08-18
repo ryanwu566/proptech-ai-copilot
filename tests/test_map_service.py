@@ -1,6 +1,6 @@
 """Map Insight Lite mock service tests."""
 
-from services.adapters.geocoding_adapter import GoogleGeocodingAdapter
+from services.adapters.geocoding_adapter import GoogleGeocodingAdapter, MockGeocodingAdapter
 from services.adapters.google_places_adapter import GooglePlacesAdapter
 from services.map_service import (
     build_livability_scoring,
@@ -20,7 +20,7 @@ def test_map_regions_and_categories_load() -> None:
 
 
 def test_mock_address_search_matches_road() -> None:
-    result = search_location("台北市大安區和平東路二段")
+    result = search_location("台北市大安區和平東路二段", adapter=MockGeocodingAdapter())
     assert result["matched"] is True
     assert result["district"] == "大安區"
     assert result["source"] == "mock"

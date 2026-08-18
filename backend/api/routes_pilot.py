@@ -364,9 +364,13 @@ def pilot_readiness() -> dict[str, Any]:
         database_available = database_probe == "available"
     result = build_readiness(database_available=database_available, admin_configured=_admin_authorized(os.getenv(PILOT_ADMIN_TOKEN_ENV, ""))) | {
         "persistence": {key: persistence[key] for key in ("status", "adapter", "durable", "production", "serverless") if key in persistence},
-        "runtime": config.safe_report(),
         "database_probe": database_probe,
     }
+    # In production mode, expose only operational readiness — not internal config state.
+    if config.production_like:
+        result["runtime"] = {"mode": config.mode, "ready": config.ready}
+    else:
+        result["runtime"] = config.safe_report()
     if config.production_like and not (config.ready and database_available):
         raise HTTPException(status_code=503, detail="Production readiness requirements are unavailable.")
     return result

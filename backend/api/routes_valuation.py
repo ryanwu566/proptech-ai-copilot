@@ -15,7 +15,7 @@ class ValuationRequest(BaseModel):
     district: str
     road: str
     building_type: str
-    area_ping: float = Field(gt=0)
+    area_ping: float = Field(gt=0, le=500, description="建物面積（坪）")
     building_age_years: float = Field(ge=0)
     floor: int = Field(ge=0)
     lat: float | None = None
@@ -28,7 +28,7 @@ class ValuationTrendRequest(BaseModel):
     district: str
     road: str
     building_type: str
-    area_ping: float = Field(gt=0)
+    area_ping: float = Field(gt=0, le=500, description="建物面積（坪）")
     building_age_years: float = Field(ge=0)
     horizon_months: list[int] = Field(default_factory=lambda: [6, 12, 36])
 
