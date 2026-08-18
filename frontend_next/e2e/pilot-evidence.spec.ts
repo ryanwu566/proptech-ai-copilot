@@ -29,7 +29,7 @@ async function mockPilotApi(page: Page, options: { rejectAccess?: boolean; netwo
   return { eventCount: () => eventCount, accessCount: () => accessCount };
 }
 
-async function openPilot(page: Page, locale = "en", options: { rejectAccess?: boolean; publication?: boolean } = {}) {
+async function openPilot(page: Page, locale = "en", options: { rejectAccess?: boolean; networkFailure?: boolean; publication?: boolean } = {}) {
   await page.addInitScript(({ locale }) => {
     localStorage.setItem("proptech_onboarding_seen", "true");
     localStorage.setItem("proptech_onboarding_version", "2");
