@@ -82,9 +82,10 @@ def test_sample_has_three_demo_regions_with_at_least_twenty_rows_each() -> None:
 # Regression: price_range ordering invariant (mid below P25 / above P75)
 # ---------------------------------------------------------------------------
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
 from services.valuation_result_contract import validate_official_result
+import services.valuation_service as _vs
 
 
 def _fake_postgres_provider(rows, monkeypatch):
@@ -137,133 +138,165 @@ _PAYLOAD_PINGTUNG = {
 
 
 def test_price_range_ordered_when_mid_below_p25(monkeypatch) -> None:
-    """When weighted mid < p25, price_range low must still be <= mid <= high.
+    """When weighted mid < p25, price_range low must equal estimate and ordering holds.
 
     Regression: shadow case pingtung-pingtung-ziyou had low > mid because
     the weighted average fell below the unweighted P25.
+
+    We patch _weighted_mean/_weighted_median to force mid < P25, which accurately
+    simulates the real-world condition where the full scoring system produces
+    a weighted central estimate below the unweighted 25th percentile.
     """
-    # Construct comparables where weighted mid will be pulled below unweighted P25.
-    # A few low-scoring rows with very low prices (high weight) + many higher-priced rows
-    # will create a weighted mean below P25.
-    rows = [
-        # High-similarity row (same road, close area/age) with LOW price
-        _official_row(22.0, area=28.0, age=10.0),
-        _official_row(23.0, area=28.5, age=10.0),
-        _official_row(24.0, area=27.5, age=11.0),
-        # Lower-similarity rows with HIGHER prices that form the P25-P75 band
-        _official_row(30.0, area=35.0, age=5.0),
-        _official_row(31.0, area=36.0, age=5.0),
-        _official_row(32.0, area=37.0, age=4.0),
-        _official_row(33.0, area=38.0, age=6.0),
-        _official_row(34.0, area=34.0, age=7.0),
-        _official_row(35.0, area=40.0, age=3.0),
-        _official_row(36.0, area=42.0, age=2.0),
-    ]
+    # 10 same-road rows with evenly-spaced prices 30..48
+    rows = [_official_row(30.0 + i * 2, area=28.0, age=10.0) for i in range(10)]
     _fake_postgres_provider(rows, monkeypatch)
+
+    # Patch weighted functions to return values below P25 of [30,32,...,48]
+    # P25 = sorted[2.25] = 34 + 0.25*(36-34) = 34.5
+    monkeypatch.setattr(_vs, "_weighted_mean", lambda rows: 28.0)
+    monkeypatch.setattr(_vs, "_weighted_median", lambda rows: 29.0)
+
     result = estimate_property(_PAYLOAD_PINGTUNG)
 
-    assert result["valuation_status"] in ("available", "demo")
+    # Must produce an available result
+    assert result["valuation_status"] == "available"
+
+    # Prove the edge condition is exercised: mid < p25
+    dist = result["unit_price_distribution"]
+    mid = result["estimate_unit_price_per_ping"]
+    assert mid < dist["p25"], (
+        f"Edge condition NOT exercised: mid={mid} must be < p25={dist['p25']}"
+    )
+
+    # Public price_range must be ordered
     pr = result["price_range"]
     assert pr["low"] <= pr["mid"] <= pr["high"], (
         f"price_range ordering violated: low={pr['low']} mid={pr['mid']} high={pr['high']}"
     )
-    # Estimator mid must be the actual estimate (not clamped)
-    assert result["estimate_total_price"] == pr["mid"]
+
+    # When mid < p25, range_low = mid * area (not p25 * area)
+    area = 28.0
+    assert pr["low"] == round(mid * area, 1), (
+        f"range low should be mid*area={round(mid * area, 1)}, got {pr['low']}"
+    )
+    assert pr["mid"] == result["estimate_total_price"]
 
 
 def test_price_range_ordered_when_mid_above_p75(monkeypatch) -> None:
-    """When weighted mid > p75, price_range high must still be >= mid.
+    """When weighted mid > p75, price_range high must equal estimate and ordering holds.
 
-    Symmetric case: high-similarity rows have HIGH prices pulling weighted mid above P75.
+    Symmetric case: high-similarity comparables have high prices pulling
+    weighted mid above P75 of the unweighted distribution.
     """
-    rows = [
-        # High-similarity row (same road, close area/age) with HIGH price
-        _official_row(50.0, area=28.0, age=10.0),
-        _official_row(52.0, area=28.5, age=10.0),
-        _official_row(53.0, area=27.5, age=11.0),
-        # Lower-similarity rows with LOWER prices that form the P25-P75 band
-        _official_row(30.0, area=40.0, age=2.0),
-        _official_row(31.0, area=42.0, age=3.0),
-        _official_row(32.0, area=38.0, age=4.0),
-        _official_row(33.0, area=36.0, age=5.0),
-        _official_row(34.0, area=35.0, age=6.0),
-        _official_row(28.0, area=44.0, age=1.0),
-        _official_row(29.0, area=45.0, age=2.0),
-    ]
+    # 10 same-road rows with evenly-spaced prices 15..42
+    rows = [_official_row(15.0 + i * 3, area=28.0, age=10.0) for i in range(10)]
     _fake_postgres_provider(rows, monkeypatch)
+
+    # Patch weighted functions to return values above P75 of [15,18,...,42]
+    # P75 = sorted[6.75] = 36 + 0.75*(39-36) = 38.25... let me verify
+    # sorted = [15,18,21,24,27,30,33,36,39,42], position=(9)*0.75=6.75
+    # sorted[6]=33, sorted[7]=36, P75 = 33 + 0.75*(36-33) = 35.25
+    monkeypatch.setattr(_vs, "_weighted_mean", lambda rows: 40.0)
+    monkeypatch.setattr(_vs, "_weighted_median", lambda rows: 42.0)
+
     result = estimate_property(_PAYLOAD_PINGTUNG)
 
-    assert result["valuation_status"] in ("available", "demo")
+    # Must produce an available result
+    assert result["valuation_status"] == "available"
+
+    # Prove the edge condition is exercised: mid > p75
+    dist = result["unit_price_distribution"]
+    mid = result["estimate_unit_price_per_ping"]
+    assert mid > dist["p75"], (
+        f"Edge condition NOT exercised: mid={mid} must be > p75={dist['p75']}"
+    )
+
+    # Public price_range must be ordered
     pr = result["price_range"]
     assert pr["low"] <= pr["mid"] <= pr["high"], (
         f"price_range ordering violated: low={pr['low']} mid={pr['mid']} high={pr['high']}"
     )
-    assert result["estimate_total_price"] == pr["mid"]
+
+    # When mid > p75, range_high = mid * area (not p75 * area)
+    area = 28.0
+    assert pr["high"] == round(mid * area, 1), (
+        f"range high should be mid*area={round(mid * area, 1)}, got {pr['high']}"
+    )
+    assert pr["mid"] == result["estimate_total_price"]
 
 
 def test_price_range_normal_mid_between_p25_p75(monkeypatch) -> None:
-    """Normal case: mid is between P25 and P75, existing semantics unchanged."""
+    """Normal case: mid between P25/P75, standard range semantics preserved."""
     rows = [_official_row(30.0 + i, area=28.0 + i * 0.5, age=10.0) for i in range(10)]
     _fake_postgres_provider(rows, monkeypatch)
     result = estimate_property(_PAYLOAD_PINGTUNG)
 
-    assert result["valuation_status"] in ("available", "demo")
-    pr = result["price_range"]
-    assert pr["low"] <= pr["mid"] <= pr["high"]
-    assert result["estimate_total_price"] == pr["mid"]
-    # unit_price_distribution preserves raw P25/P75 regardless of mid position
+    assert result["valuation_status"] == "available"
+
+    # Prove normal condition holds: p25 <= mid <= p75
     dist = result["unit_price_distribution"]
-    assert "p25" in dist and "p75" in dist
-    assert dist["p25"] <= dist["p75"]
+    mid = result["estimate_unit_price_per_ping"]
+    assert dist["p25"] <= mid <= dist["p75"], (
+        f"Normal condition NOT met: p25={dist['p25']} mid={mid} p75={dist['p75']}"
+    )
+
+    # Standard semantics: low ≈ p25*area, mid = estimate, high ≈ p75*area
+    # (tolerance of 2.0 accounts for intermediate rounding of p25/p75)
+    pr = result["price_range"]
+    area = float(_PAYLOAD_PINGTUNG["area_ping"])
+    assert abs(pr["low"] - dist["p25"] * area) < 2.0, (
+        f"low={pr['low']} should be ~p25*area={dist['p25'] * area}"
+    )
+    assert pr["mid"] == result["estimate_total_price"]
+    assert abs(pr["high"] - dist["p75"] * area) < 2.0, (
+        f"high={pr['high']} should be ~p75*area={dist['p75'] * area}"
+    )
+    assert pr["low"] <= pr["mid"] <= pr["high"]
 
 
 def test_validate_official_result_accepts_ordered_range(monkeypatch) -> None:
-    """validate_official_result must accept a result with properly ordered price_range."""
-    rows = [
-        _official_row(22.0, area=28.0, age=10.0),
-        _official_row(23.0, area=28.5, age=10.0),
-        _official_row(24.0, area=27.5, age=11.0),
-        _official_row(30.0, area=35.0, age=5.0),
-        _official_row(31.0, area=36.0, age=5.0),
-        _official_row(32.0, area=37.0, age=4.0),
-        _official_row(33.0, area=38.0, age=6.0),
-        _official_row(34.0, area=34.0, age=7.0),
-        _official_row(35.0, area=40.0, age=3.0),
-        _official_row(36.0, area=42.0, age=2.0),
-    ]
+    """validate_official_result must accept a result with mid < p25 after fix."""
+    rows = [_official_row(30.0 + i * 2, area=28.0, age=10.0) for i in range(10)]
     _fake_postgres_provider(rows, monkeypatch)
+
+    # Force mid below P25
+    monkeypatch.setattr(_vs, "_weighted_mean", lambda rows: 28.0)
+    monkeypatch.setattr(_vs, "_weighted_median", lambda rows: 29.0)
+
     result = estimate_property(_PAYLOAD_PINGTUNG)
 
-    # The result should pass validation (not be rejected as invalid)
-    if result["valuation_status"] == "available":
-        assert validate_official_result(result), (
-            f"validate_official_result rejected ordered result: {result['price_range']}"
-        )
+    # Must be available (not rejected)
+    assert result["valuation_status"] == "available", (
+        f"Expected available, got {result['valuation_status']} "
+        f"reason={result.get('valuation_reason_code')}"
+    )
+    assert validate_official_result(result), (
+        f"validate_official_result rejected result with price_range={result['price_range']}"
+    )
 
 
 def test_estimator_mid_not_clamped(monkeypatch) -> None:
     """The estimator's mid value must NOT be clamped to P25/P75 bounds."""
-    rows = [
-        _official_row(22.0, area=28.0, age=10.0),
-        _official_row(23.0, area=28.5, age=10.0),
-        _official_row(24.0, area=27.5, age=11.0),
-        _official_row(30.0, area=35.0, age=5.0),
-        _official_row(31.0, area=36.0, age=5.0),
-        _official_row(32.0, area=37.0, age=4.0),
-        _official_row(33.0, area=38.0, age=6.0),
-        _official_row(34.0, area=34.0, age=7.0),
-        _official_row(35.0, area=40.0, age=3.0),
-        _official_row(36.0, area=42.0, age=2.0),
-    ]
+    rows = [_official_row(30.0 + i * 2, area=28.0, age=10.0) for i in range(10)]
     _fake_postgres_provider(rows, monkeypatch)
+
+    # Force mid well below P25 — verifies mid reflects actual weighted estimate
+    monkeypatch.setattr(_vs, "_weighted_mean", lambda rows: 28.0)
+    monkeypatch.setattr(_vs, "_weighted_median", lambda rows: 29.0)
+
     result = estimate_property(_PAYLOAD_PINGTUNG)
 
-    if result["valuation_status"] == "available":
-        # mid should reflect the actual weighted estimate, which may differ from p25/p75
-        dist = result["unit_price_distribution"]
-        mid_per_ping = result["estimate_unit_price_per_ping"]
-        # The mid is the average of weighted_mean and weighted_median
-        expected_mid = round((dist["weighted_mean"] + dist["weighted_median"]) / 2, 1)
-        assert mid_per_ping == expected_mid, (
-            f"mid was clamped: got {mid_per_ping}, expected {expected_mid}"
-        )
+    assert result["valuation_status"] == "available"
+
+    # mid should reflect the actual weighted estimate (average of patched values)
+    dist = result["unit_price_distribution"]
+    mid_per_ping = result["estimate_unit_price_per_ping"]
+    expected_mid = round((dist["weighted_mean"] + dist["weighted_median"]) / 2, 1)
+    assert mid_per_ping == expected_mid, (
+        f"mid was clamped: got {mid_per_ping}, expected {expected_mid} "
+        f"(weighted_mean={dist['weighted_mean']}, weighted_median={dist['weighted_median']})"
+    )
+    # Confirm mid is actually below P25 (not clamped up)
+    assert mid_per_ping < dist["p25"], (
+        f"mid should be below p25 (unclamped): mid={mid_per_ping}, p25={dist['p25']}"
+    )
