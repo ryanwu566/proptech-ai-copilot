@@ -148,3 +148,28 @@ def test_hosted_environment_manifest_contains_metadata_only() -> None:
     names = {item["name"] for item in manifest["variables"]}
     assert {"DATABASE_URL", "NEXT_PUBLIC_API_BASE_URL", "CORS_ALLOWED_ORIGINS"} <= names
     assert all("value" not in item for item in manifest["variables"])
+
+
+def test_render_yaml_is_structurally_valid() -> None:
+    """render.yaml must parse as valid YAML with correct envVars list structure."""
+    import yaml
+
+    data = yaml.safe_load(RENDER)
+    assert isinstance(data, dict)
+    services = data.get("services")
+    assert isinstance(services, list) and len(services) >= 1
+    service = services[0]
+    assert service.get("healthCheckPath") == "/health"
+    env_vars = service.get("envVars")
+    assert isinstance(env_vars, list)
+    # Every entry must be a dict with a 'key' string
+    for entry in env_vars:
+        assert isinstance(entry, dict), f"envVars entry is not a dict: {entry}"
+        assert "key" in entry, f"envVars entry missing 'key': {entry}"
+        assert isinstance(entry["key"], str)
+
+
+def test_render_blueprint_declares_green_valuation_variables() -> None:
+    """PLVR_DATA_BACKEND and COMPACT_GREEN_DATABASE_URL must be in blueprint."""
+    for name in ("PLVR_DATA_BACKEND", "COMPACT_GREEN_DATABASE_URL", "VALUATION_DATABASE_URL"):
+        assert f"key: {name}" in RENDER, f"{name} missing from render.yaml"
