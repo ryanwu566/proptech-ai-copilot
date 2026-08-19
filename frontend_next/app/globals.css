@@ -6,6 +6,8 @@
 html { background: #f7f5f0; }
 body { margin: 0; overflow-x: hidden; background: #f7f5f0; color: #172033; font-family: Arial, "Noto Sans TC", sans-serif; }
 img, svg { max-width: 100%; }
+.leaflet-container img { max-width: none !important; max-height: none !important; }
+.leaflet-container svg { max-width: none !important; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
 button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #0891b2; outline-offset: 2px; }
