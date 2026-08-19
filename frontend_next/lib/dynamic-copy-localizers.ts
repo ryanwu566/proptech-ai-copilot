@@ -112,3 +112,83 @@ export function localizeWizardStepTitle(stepId: BuyingWizardStepId, locale: Expe
 export function localizeWizardStepGuide(stepId: BuyingWizardStepId, locale: ExperienceLocale): string {
   return translateRuntimeCopy(locale, STEP_KEYS[stepId].guide);
 }
+
+
+// ─── Risk Summary ───────────────────────────────────────────────────────────
+
+export type RiskSignal = "green" | "yellow" | "red" | "unknown";
+
+const SIGNAL_LABEL_KEYS: Record<RiskSignal, RuntimeCopyKey> = {
+  green: "riskSummary.labelGreen",
+  yellow: "riskSummary.labelYellow",
+  red: "riskSummary.labelRed",
+  unknown: "riskSummary.labelUnknown",
+};
+
+const SIGNAL_SUGGESTION_KEYS: Record<RiskSignal, RuntimeCopyKey> = {
+  green: "riskSummary.suggestionGreen",
+  yellow: "riskSummary.suggestionYellow",
+  red: "riskSummary.suggestionRed",
+  unknown: "riskSummary.suggestionUnknown",
+};
+
+export function localizeRiskSignalLabel(signal: RiskSignal, locale: ExperienceLocale): string {
+  return translateRuntimeCopy(locale, SIGNAL_LABEL_KEYS[signal]);
+}
+
+export function localizeRiskSuggestion(signal: RiskSignal, locale: ExperienceLocale): string {
+  return translateRuntimeCopy(locale, SIGNAL_SUGGESTION_KEYS[signal]);
+}
+
+type PriceStatus = "undervalued" | "reasonable" | "overpriced" | "unknown";
+const PRICE_LABEL_KEYS: Record<PriceStatus, RuntimeCopyKey> = {
+  unknown: "riskSummary.priceUnknown",
+  undervalued: "riskSummary.priceUndervalued",
+  overpriced: "riskSummary.priceOverpriced",
+  reasonable: "riskSummary.priceReasonable",
+};
+const PRICE_EXPLANATION_KEYS: Record<PriceStatus, RuntimeCopyKey> = {
+  unknown: "riskSummary.priceUnknownExplanation",
+  undervalued: "riskSummary.priceUndervaluedExplanation",
+  overpriced: "riskSummary.priceOverpricedExplanation",
+  reasonable: "riskSummary.priceReasonableExplanation",
+};
+
+export function localizePriceLabel(status: PriceStatus, locale: ExperienceLocale): string {
+  return translateRuntimeCopy(locale, PRICE_LABEL_KEYS[status]);
+}
+
+export function localizePriceExplanation(status: PriceStatus, locale: ExperienceLocale, params?: Record<string, string | number>): string {
+  return translateRuntimeCopy(locale, PRICE_EXPLANATION_KEYS[status], params);
+}
+
+const FACTOR_TITLE_KEYS: Record<string, RuntimeCopyKey> = {
+  loan: "riskSummary.titleLoan",
+  holding: "riskSummary.titleHolding",
+  location: "riskSummary.titleLocation",
+  "risk-facilities": "riskSummary.titleRiskFacilities",
+  price: "riskSummary.titlePrice",
+  confidence: "riskSummary.titleConfidence",
+};
+
+export function localizeFactorTitle(key: string, locale: ExperienceLocale): string {
+  return FACTOR_TITLE_KEYS[key] ? translateRuntimeCopy(locale, FACTOR_TITLE_KEYS[key]) : key;
+}
+
+export function localizeFactorMessage(key: string, level: string, locale: ExperienceLocale, params?: Record<string, string | number>): string {
+  if ((key === "loan" || key === "holding") && params?.ratio !== undefined) {
+    if (level === "high") return translateRuntimeCopy(locale, "riskSummary.burdenHigh", params);
+    if (level === "medium") return translateRuntimeCopy(locale, "riskSummary.burdenCaution", params);
+    return translateRuntimeCopy(locale, "riskSummary.burdenHealthy", params);
+  }
+  if (key === "location" && params?.score !== undefined) {
+    if (level === "high") return translateRuntimeCopy(locale, "riskSummary.locationLow", params);
+    if (level === "medium") return translateRuntimeCopy(locale, "riskSummary.locationMedium", params);
+    return translateRuntimeCopy(locale, "riskSummary.locationGood", params);
+  }
+  if (key === "risk-facilities" && params?.count !== undefined) {
+    return translateRuntimeCopy(locale, "riskSummary.riskFacilityWarning", params);
+  }
+  // Fallback: return raw message for keys not yet mapped (e.g. price explanation)
+  return params?.message as string ?? key;
+}
