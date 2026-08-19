@@ -1,7 +1,15 @@
+import pytest
 from datetime import UTC, datetime
 
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
 
+
+@pytest.fixture(autouse=True)
+def _reset_provider_cache():
+    """Ensure each test starts with a clean data-status cache."""
+    PostgresValuationProvider.reset_data_status_cache()
+    yield
+    PostgresValuationProvider.reset_data_status_cache()
 
 class FakeCursor:
     def __init__(self, official: int, sample: int) -> None:
