@@ -29,7 +29,7 @@ def test_price_and_burden_rules_are_explicit() -> None:
 
 
 def test_risk_panel_and_workspace_integration_exist() -> None:
-    for text in ("風險總評", "開價合理性", "主要加分因素", "主要風險因素", "尚需補查", "下一步建議"):
+    for text in ("risk.heading", "risk.priceReasonableness", "risk.positiveFactors", "risk.riskFactors", "risk.missingChecks", "risk.nextSteps"):
         assert text in PANEL
     assert "RiskSummaryPanel" in WORKSPACE
     assert "buildRiskSummary" in WORKSPACE
@@ -46,4 +46,4 @@ def test_html_summary_contains_risk_summary_and_disclaimer() -> None:
 def test_risk_summary_does_not_claim_black_box_or_formal_advice() -> None:
     combined = f"{LIB}\n{PANEL}"
     assert "black-box" not in combined.lower()
-    assert "正式鑑價、銀行核貸或投資建議" in PANEL
+    assert "正式鑑價、銀行核貸或投資建議" in PANEL or 'copy("risk.boundary")' in PANEL

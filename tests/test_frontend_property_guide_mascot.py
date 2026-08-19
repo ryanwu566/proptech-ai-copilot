@@ -12,10 +12,11 @@ GUIDED_DEMO = (ROOT / "frontend_next" / "components" / "guided-demo-runner.tsx")
 
 def test_original_yellow_assistant_is_present_and_uses_plain_language() -> None:
     assert "PropertyGuideMascot" in WORKSPACE
-    assert "mascot.name" in source or "黃色看房助手" in MASCOT
+    assert '"mascot.name"' in MASCOT or "黃色看房助手" in MASCOT
+    # Mascot uses copy keys for start guide and localizeWizardStepGuide for step-specific guides
+    assert 'copy("intro.scene1")' in MASCOT
+    assert "localizeWizardStepGuide" in MASCOT
     for text in (
-        "第一次用可以先看動畫",
-        "看到 ? 可以點開",
         "先不用想太多，填預算和地點就好",
         "這一步是看價格合不合理",
         "買得起不只看總價，還要看月付和持有成本",

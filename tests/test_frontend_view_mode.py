@@ -52,5 +52,5 @@ def test_major_technical_tables_use_disclosure() -> None:
 
 def test_mascot_explains_current_mode() -> None:
     assert "useViewMode" in MASCOT
-    assert "mascot.beginnerMode" in source or "我會先幫你看重點，細節先收起來" in MASCOT
-    assert "現在會顯示完整分析細節" in MASCOT
+    assert 'copy("mascot.beginnerMode")' in MASCOT
+    assert 'copy("mascot.proMode")' in MASCOT

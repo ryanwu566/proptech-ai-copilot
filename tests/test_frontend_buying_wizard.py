@@ -13,8 +13,8 @@ DEMO = (ROOT / "frontend_next" / "components" / "guided-demo-runner.tsx").read_t
 
 
 def test_home_has_three_task_oriented_entry_cards() -> None:
-    for label in ("我想判斷一間房值不值得看", "我想快速看一次示範", "我想比較幾個候選物件"):
-        assert label in ENTRIES
+    for key in ("workflow.entryBuyingTitle", "workflow.entryDemoTitle", "workflow.entryCompareTitle"):
+        assert f'copy("{key}")' in ENTRIES
     for handler in ("onStartBuying", "onGuidedDemo", "onOpenCompare", "onOpenTax", "onOpenAdvanced"):
         assert handler in ENTRIES
         assert handler in PAGE
@@ -42,7 +42,7 @@ def test_completed_steps_and_advanced_tools_are_retained() -> None:
     assert "summaries" in WIZARD
     assert "isWizardStepCompleted" in WIZARD
     assert "wizardSummaries" in WORKSPACE
-    assert "Map Insight / GeoMap" in PAGE
+    assert "Map Insight / GeoMap" in PAGE or 'copy("dashboard.mapModule")' in PAGE
     assert 'setPage("Map Insight Lite")' in PAGE
     assert "GuidedDemoRunner" in WORKSPACE
     assert "一鍵 Demo 流程" in DEMO

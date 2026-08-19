@@ -21,8 +21,10 @@ def test_loan_calculator_form_and_api_client_exist() -> None:
         assert f'copy("{key}")' in COMPONENT
 
 def test_loan_results_and_sensitivity_are_visible() -> None:
-    for text in ("頭期款", "貸款金額", "每月月付", "總還款", "總利息", "收入負擔狀態", "利率敏感度"):
+    for text in ("頭期款", "每月月付", "總還款"):
         assert text in COMPONENT
+    for key in ("viz.loanPanelAmount", "viz.loanPanelInterest", "viz.affordabilityStatusLabel", "viz.loanSensitivityTitle"):
+        assert f'copy("{key}")' in COMPONENT
     assert "overflow-x-auto" in COMPONENT
     assert "min-w-[620px]" in COMPONENT
     assert "grid gap-3 sm:grid-cols-2" in COMPONENT

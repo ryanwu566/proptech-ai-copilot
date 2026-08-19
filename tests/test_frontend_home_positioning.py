@@ -17,8 +17,8 @@ def test_home_explains_the_problem_and_final_outcome() -> None:
 
 
 def test_primary_entries_are_user_tasks_with_real_handlers() -> None:
-    for task in ("我想判斷一間房值不值得看", "我想快速看一次示範", "我想比較幾個候選物件"):
-        assert task in ENTRIES
+    for key in ("workflow.entryBuyingTitle", "workflow.entryDemoTitle", "workflow.entryCompareTitle"):
+        assert f'copy("{key}")' in ENTRIES
     for handler in ("onStartBuying", "onGuidedDemo", "onOpenCompare"):
         assert handler in ENTRIES
         assert handler in PAGE
@@ -27,8 +27,8 @@ def test_primary_entries_are_user_tasks_with_real_handlers() -> None:
 
 
 def test_tax_and_advanced_tools_are_secondary_but_retained() -> None:
-    assert "workflow.entryTaxButton" in source or "我要做稅務快篩" in ENTRIES
-    assert "我要看更多工具" in ENTRIES
+    assert 'copy("workflow.entryTaxButton")' in ENTRIES or "我要做稅務快篩" in ENTRIES
+    assert 'copy("workflow.entryAdvancedButton")' in ENTRIES or "我要看更多工具" in ENTRIES
     assert 'id="advanced-tools"' in PAGE
     assert "Map Insight / GeoMap" in RUNTIME_COPY or "Map Insight / GeoMap" in PAGE
     assert "TaxOracle" in PAGE

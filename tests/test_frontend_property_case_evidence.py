@@ -34,6 +34,6 @@ def test_evidence_and_storage_do_not_expose_raw_provider_fields() -> None:
 
 
 def test_partial_and_official_report_paths_are_separate() -> None:
-    assert "目前為部分資料摘要" in REPORT
+    assert 'copy("comparison.insufficientData")' in REPORT or "目前為部分資料摘要" in REPORT
     assert "comparisonStatus === \"ready\"" in REPORT
-    assert "不會被視為 0、低風險或完成" in REPORT
+    assert 'copy("comparison.partialNote")' in REPORT or "不會被視為 0、低風險或完成" in REPORT
