@@ -5,7 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend_next"
-PAGE = (FRONTEND / "app" / "page.tsx").read_text(encoding="utf-8")
+PAGE = (FRONTEND / "app" / "page.tsx").read_text(encoding="utf-8") + (FRONTEND / "lib" / "runtime-copy.ts").read_text(encoding="utf-8")
 FINDER = (FRONTEND / "components" / "property-finder.tsx").read_text(encoding="utf-8")
 LOCATION = (FRONTEND / "components" / "location-insight.tsx").read_text(encoding="utf-8")
 COMMUTE = (FRONTEND / "components" / "commute-livability-card.tsx").read_text(encoding="utf-8")

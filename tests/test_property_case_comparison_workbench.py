@@ -48,7 +48,7 @@ def test_comparison_shows_known_fields_and_missing_data() -> None:
         "missingDataCount",
     ):
         assert field in HELPER or field in WORKBENCH
-    assert "未提供" in WORKBENCH
+    assert "未提供" in WORKBENCH or "viz.caseComparisonNotProvided" in WORKBENCH
 
 
 def test_comparison_does_not_add_rank_score_winner_or_recommendation() -> None:
@@ -73,4 +73,4 @@ def test_comparison_keeps_market_commute_and_terrain_out_of_decision_fields() ->
 def test_comparison_notice_is_conservative() -> None:
     assert "資料不足，僅比較已知欄位" in HELPER
     assert "不產生排名或購買建議" in HELPER
-    assert "資料不足" in WORKBENCH
+    assert "資料不足" in WORKBENCH or "viz.caseComparisonPartialNote" in WORKBENCH

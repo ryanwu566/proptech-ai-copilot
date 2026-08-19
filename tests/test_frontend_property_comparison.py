@@ -33,7 +33,7 @@ def test_report_is_built_from_existing_comparison_result_only() -> None:
 
 def test_report_export_uses_browser_print_not_new_pdf_api() -> None:
     assert "window.print()" in PRINT_REPORT
-    assert "列印／另存 PDF" in PRINT_REPORT
+    assert 'copy("comparison.printButton")' in PRINT_REPORT or "列印／另存 PDF" in PRINT_REPORT
     assert "new Blob" not in PRINT_REPORT
     assert "download" not in PRINT_REPORT
 

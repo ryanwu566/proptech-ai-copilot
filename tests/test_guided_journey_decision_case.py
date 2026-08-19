@@ -30,12 +30,12 @@ def test_decision_stage_orders_context_status_readiness_and_attention() -> None:
     positions = [render_body.index(name) for name in order]
     assert positions == sorted(positions)
     assert "ATTENTION FIRST" in ATTENTION
-    assert "前往處理" in ATTENTION
+    assert "前往處理" in ATTENTION or "journey.attentionNavigate" in ATTENTION
 
 
 def test_case_creation_and_saved_case_opening_are_explicit() -> None:
     assert 'activeAction === "new"' in STAGE
     assert 'activeAction === "saved"' in STAGE
-    assert "不會自動建立或選取案件" in (ROOT / "frontend_next/components/guided-journey/decision-case-action-selector.tsx").read_text(encoding="utf-8")
+    assert "不會自動建立或選取案件" in (ROOT / "frontend_next/components/guided-journey/decision-case-action-selector.tsx").read_text(encoding="utf-8") or "journey.caseActionDesc" in (ROOT / "frontend_next/components/guided-journey/decision-case-action-selector.tsx").read_text(encoding="utf-8")
     assert 'renderSavedCases={() => <CaseManager listOnly />}' in PAGE
     assert 'renderCommandCenter={() => <PropertyCaseCommandCenter embedded' in PAGE
