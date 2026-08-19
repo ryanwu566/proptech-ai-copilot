@@ -25,6 +25,7 @@ class Connection:
 
 
 def test_provider_exposes_freshness_and_cache_expires(monkeypatch):
+    PostgresValuationProvider.reset_data_status_cache()
     connection = Connection()
     monkeypatch.setattr(PostgresValuationProvider, "_connect", lambda self: connection)
     provider = PostgresValuationProvider("postgresql://test")
@@ -35,11 +36,19 @@ def test_provider_exposes_freshness_and_cache_expires(monkeypatch):
     assert first is second
     assert first["freshness_status"] in {"fresh", "aging"}
     assert first["freshness_user_message"]
-    tick[0] = 61.0
-    assert provider.data_status()["freshness_status"] in {"fresh", "aging"}
+    # Verify a NEW instance with same URL reuses the cache
+    provider2 = PostgresValuationProvider("postgresql://test")
+    provider2._clock = lambda: tick[0]
+    assert provider2.data_status() is first
+    # After TTL expiry, cache refreshes
+    tick[0] = 121.0
+    provider._clock = lambda: tick[0]
+    refreshed = provider.data_status()
+    assert refreshed["freshness_status"] in {"fresh", "aging"}
 
 
 def test_provider_failure_is_unavailable_without_raw_error(monkeypatch):
+    PostgresValuationProvider.reset_data_status_cache()
     monkeypatch.setattr(PostgresValuationProvider, "_connect", lambda self: (_ for _ in ()).throw(RuntimeError("sensitive db detail")))
     status = PostgresValuationProvider("postgresql://test").data_status()
     assert status["freshness_status"] == "unavailable"

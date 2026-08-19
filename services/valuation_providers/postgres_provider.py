@@ -29,16 +29,22 @@ class PostgresValuationProvider:
     is_full_taiwan = False
     _availability_cache: dict[str, tuple[float, bool]] = {}
     availability_cache_seconds = 60
+    # Shared data-status cache: keyed by database_url → (timestamp, result)
+    # This survives across provider instances created per-request.
+    _data_status_cache: dict[str, tuple[float, dict[str, Any]]] = {}
+    data_status_cache_seconds = 120
 
     def __init__(self, database_url: str, connect_timeout: int = 3) -> None:
         self.database_url = database_url
         self.connect_timeout = connect_timeout
         self.is_demo_data = True
-        self._last_status: dict[str, Any] | None = None
-        self._status_cached_at = 0.0
-        self.status_cache_seconds = 60
         self._clock = time.monotonic
         self.last_query_metadata: dict[str, Any] = {}
+
+    @classmethod
+    def reset_data_status_cache(cls) -> None:
+        """Clear the shared data-status cache (for testing)."""
+        cls._data_status_cache.clear()
 
     def available(self) -> bool:
         """Test connectivity only when provider selection is first requested."""
@@ -198,8 +204,11 @@ class PostgresValuationProvider:
     def data_status(self) -> dict[str, Any]:
         """Summarize indexed coverage and official/sample composition."""
 
-        if self._last_status and self._clock() - self._status_cached_at < self.status_cache_seconds:
-            return self._last_status
+        # Check shared class-level cache keyed by database URL
+        cached = self._data_status_cache.get(self.database_url)
+        if cached and self._clock() - cached[0] < self.data_status_cache_seconds:
+            self.is_demo_data = cached[1].get("is_demo_data", True)
+            return cached[1]
         try:
             current_period = datetime.now(UTC).strftime("%Y-%m")
             trend_window_start = _shift_month(current_period, -35)
@@ -268,7 +277,7 @@ class PostgresValuationProvider:
                 newest_effective_period=summary.get("effective_trend_period_max"),
                 provider_available=True,
             )
-            self._last_status = {
+            status = {
                 "active_source": self.source,
                 "is_demo_data": self.is_demo_data,
                 "is_full_taiwan": False,
@@ -313,8 +322,8 @@ class PostgresValuationProvider:
                 "user_message": USER_MESSAGE,
                 **freshness,
             }
-            self._status_cached_at = self._clock()
-            return self._last_status
+            self._data_status_cache[self.database_url] = (self._clock(), status)
+            return status
         except Exception:
             return {
                 "active_source": self.source,
