@@ -6,7 +6,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 TAX_VISUAL = (ROOT / "frontend_next" / "components" / "data-visualization" / "tax-decision-visual-panel.tsx").read_text(encoding="utf-8")
-PAGE += TAX_VISUAL
+RUNTIME_COPY = (ROOT / "frontend_next" / "lib" / "runtime-copy.ts").read_text(encoding="utf-8")
+PAGE += TAX_VISUAL + RUNTIME_COPY
 API = (ROOT / "frontend_next" / "lib" / "api.ts").read_text(encoding="utf-8")
 STEPPER = (ROOT / "frontend_next" / "components" / "workflow-stepper.tsx").read_text(encoding="utf-8")
 

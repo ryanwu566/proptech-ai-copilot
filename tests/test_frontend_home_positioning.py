@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HERO = (ROOT / "frontend_next" / "components" / "hero-intro.tsx").read_text(encoding="utf-8")
 ENTRIES = (ROOT / "frontend_next" / "components" / "workflow-entry-cards.tsx").read_text(encoding="utf-8")
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+RUNTIME_COPY = (ROOT / "frontend_next" / "lib" / "runtime-copy.ts").read_text(encoding="utf-8")
 
 
 def test_home_explains_the_problem_and_final_outcome() -> None:
@@ -29,5 +30,5 @@ def test_tax_and_advanced_tools_are_secondary_but_retained() -> None:
     assert "我要做稅務快篩" in ENTRIES
     assert "我要看更多工具" in ENTRIES
     assert 'id="advanced-tools"' in PAGE
-    assert "Map Insight / GeoMap" in PAGE
+    assert "Map Insight / GeoMap" in RUNTIME_COPY or "Map Insight / GeoMap" in PAGE
     assert "TaxOracle" in PAGE
