@@ -22,13 +22,13 @@ def test_visual_model_is_pure_and_filters_invalid_history() -> None:
 def test_metric_card_never_falls_back_to_zero() -> None:
     source = (VISUAL_DIR / "data-metric-card.tsx").read_text(encoding="utf-8")
     helper = VISUAL_HELPER.read_text(encoding="utf-8")
-    assert "尚無可用資料" in source
+    assert "尚無可用資料" in source or "viz.dataMetricNoData" in source
     assert "value !== null" in source
     assert "value || 0" not in source
     assert "value ?? 0" not in source
     assert "Number(value || 0)" not in source
     assert "parseFloat(value) || 0" not in source
-    assert "尚無可用資料" in helper
+    assert "尚無可用資料" in helper or "no_data" in helper
 
 
 def test_visual_components_use_safe_evidence_allowlist() -> None:

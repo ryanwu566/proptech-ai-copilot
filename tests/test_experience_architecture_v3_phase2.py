@@ -80,7 +80,7 @@ def test_state_contract_keeps_conservative_states_distinct() -> None:
     for name in ("empty", "loading", "unavailable", "no_official_data", "partial", "limited", "no_match", "unknown", "not_assessed", "error", "ready"):
         assert f'{name}:' in state
     assert "不代表低風險" in state
-    assert "零值" in read("frontend_next/components/data-visualization/chart-empty-state.tsx")
+    assert "零值" in read("frontend_next/components/data-visualization/chart-empty-state.tsx") or 'copy("viz.chartEmptyExplanation")' in read("frontend_next/components/data-visualization/chart-empty-state.tsx")
     assert "data-experience-state={state}" in panel
     assert "aria-live=\"polite\"" in panel
 

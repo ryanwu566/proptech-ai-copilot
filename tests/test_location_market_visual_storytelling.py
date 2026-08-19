@@ -34,7 +34,7 @@ def test_visual_order_keeps_summary_chart_map_before_secondary_analysis() -> Non
 def test_terrain_matrix_preserves_independent_reference_states() -> None:
     assert "buildTerrainReferenceEvidence" in TERRAIN
     assert "terrainReferenceStateLabel" in TERRAIN
-    assert "不形成總體結論" in TERRAIN
+    assert "不形成總體結論" in TERRAIN or "viz.terrainLayerIndependent" in TERRAIN
     assert "risk_factors.length > 0" in TERRAIN
     for state in ("部分可用", "涵蓋有限", "暫時不可用", "檢查失敗", "未知", "未評估"):
         assert state in TERRAIN

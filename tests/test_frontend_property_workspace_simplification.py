@@ -14,9 +14,9 @@ DOC = (ROOT / "docs" / "product-capability-surface-v1.md").read_text(encoding="u
 
 
 def test_workspace_has_exact_primary_steps_and_progressive_sections() -> None:
-    assert 'aria-label="物件決策工作台四步驟"' in PAGE
-    for step in ("找物件", "看位置", "算價格與資金", "比較與做決策"):
-        assert step in PAGE
+    assert 'copy("dashboard.flowDetailDescription")' in PAGE or 'aria-label="物件決策工作台四步驟"' in PAGE
+    for key in ("dashboard.ws1Title", "dashboard.ws2Title", "dashboard.ws3Title", "dashboard.ws4Title"):
+        assert f'copy("{key}")' in PAGE
     assert "WorkspaceStep" in PAGE
     assert "defaultOpen" in PAGE
     assert "CapabilityPills" in PAGE
@@ -56,7 +56,7 @@ def test_commute_remains_manual_and_non_decisional() -> None:
     assert "CommuteLivabilityCard" in LOCATION
     assert "api.commuteAddressLookup" in COMMUTE
     assert "api.commuteAddressLookup" not in COMMUTE.split("useEffect", 1)[1].split("async function lookupCommute", 1)[0]
-    assert "不影響地勢、貸款、稅務、估價或看房決策" in PAGE
+    assert "不影響地勢、貸款、稅務、估價或看房決策" in PAGE or 'copy("dashboard.ws2Note")' in PAGE
     assert "commute" not in VIEWING_DECISION.lower()
 
 

@@ -1,5 +1,9 @@
+"use client";
+
 import { ExperienceStatePanel } from "@/components/experience-state-panel";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
 
 export function ChartUnavailableState() {
-  return <ExperienceStatePanel state="unavailable" title="圖表資料暫時不可用" explanation="目前無法取得足夠資料，因此不顯示空白圖表。" />;
+  const { copy } = useExperienceLocale();
+  return <ExperienceStatePanel state="unavailable" title={copy("viz.chartUnavailableTitle")} explanation={copy("viz.chartUnavailableExplanation")} />;
 }

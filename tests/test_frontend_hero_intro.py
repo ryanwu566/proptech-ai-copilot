@@ -42,9 +42,9 @@ def test_hero_animation_is_local_and_reduced_motion_safe() -> None:
 
 def test_friendly_walkthrough_has_five_scenes_and_controls() -> None:
     assert "FriendlyIntroWalkthrough" in HERO
-    for scene in ("先告訴我你想看哪裡、預算多少", "用實價登錄幫你找可負擔路段", "看價格、月付和持有成本", "檢查附近生活機能與區位", "紅黃綠燈號和看屋報告"):
-        assert scene in WALKTHROUGH
-    assert "略過介紹" in WALKTHROUGH
-    assert "重新播放介紹" in WALKTHROUGH
+    for key in ("intro.scene1", "intro.scene2", "intro.scene3", "intro.scene4", "intro.scene5"):
+        assert f'copy("{key}")' in WALKTHROUGH
+    assert 'copy("intro.skipButton")' in WALKTHROUGH or "略過介紹" in WALKTHROUGH
+    assert 'copy("intro.replayButton")' in WALKTHROUGH or "重新播放介紹" in WALKTHROUGH
     assert "prefers-reduced-motion: reduce" in WALKTHROUGH
     assert "if (!playing || reducedMotion) return" in WALKTHROUGH

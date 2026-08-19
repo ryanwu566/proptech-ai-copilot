@@ -10,9 +10,10 @@ export type RiskSummary = {
     status: "undervalued" | "reasonable" | "overpriced" | "unknown";
     label: string;
     explanation: string;
+    params?: Record<string, string | number>;
   };
-  riskFactors: Array<{ key: string; level: "low" | "medium" | "high"; title: string; message: string }>;
-  positiveFactors: Array<{ key: string; title: string; message: string }>;
+  riskFactors: Array<{ key: string; level: "low" | "medium" | "high"; title: string; message: string; params?: Record<string, string | number> }>;
+  positiveFactors: Array<{ key: string; title: string; message: string; params?: Record<string, string | number> }>;
   missingChecks: string[];
   nextActions: string[];
   dataConfidence: "high" | "medium" | "low" | "unknown";
@@ -47,19 +48,19 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   addLocationPriceSupport(location, riskFactors, positiveFactors, missingChecks);
   const terrainReference = buildTerrainReferenceEvidence(inputs.terrainRisk);
 
-  if (!valuation) missingChecks.push("完成估價，確認估價區間與資料信心");
-  if (comparisonPrice === undefined) missingChecks.push("帶入物件開價或成交樣本總價");
-  if (!loan) missingChecks.push("完成貸款月付試算");
-  else if (loan.income_burden_ratio === null) missingChecks.push("補入月收入，確認貸款負擔率");
-  if (!holding) missingChecks.push("完成每月持有成本試算");
-  else if (holding.income_burden_ratio === null) missingChecks.push("補入月收入，確認總持有成本負擔率");
-  if (!location) missingChecks.push("完成區位分析並實地確認生活圈");
-  if (!trend) missingChecks.push("補查市場趨勢與價格波動");
-  if (!propertySearch) missingChecks.push("使用找房雷達比較其他可負擔路段");
+  if (!valuation) missingChecks.push("riskSummary.missingValuation");
+  if (comparisonPrice === undefined) missingChecks.push("riskSummary.missingPrice");
+  if (!loan) missingChecks.push("riskSummary.missingLoan");
+  else if (loan.income_burden_ratio === null) missingChecks.push("riskSummary.missingIncome");
+  if (!holding) missingChecks.push("riskSummary.missingHolding");
+  else if (holding.income_burden_ratio === null) missingChecks.push("riskSummary.missingHoldingIncome");
+  if (!location) missingChecks.push("riskSummary.missingLocation");
+  if (!trend) missingChecks.push("riskSummary.missingTrend");
+  if (!propertySearch) missingChecks.push("riskSummary.missingPropertySearch");
   if (!location || location.data_quality.missing_sources.some((source) => /risk|嫌惡|風險/i.test(source))) {
-    missingChecks.push("補查嫌惡設施與周邊環境風險");
+    missingChecks.push("riskSummary.missingRiskFacility");
   }
-  if (location?.data_quality.status !== "good") missingChecks.push("確認區位資料限制與定位結果");
+  if (location?.data_quality.status !== "good") missingChecks.push("riskSummary.missingLocationQuality");
 
   const completedCoreModules = [loan, holding, location].filter(Boolean).length;
   const hasEnoughData = Boolean(valuation) && completedCoreModules >= 2;
@@ -76,20 +77,15 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   );
   const overallScore = hasEnoughData ? weightedScore : null;
   const overallSignal = signalFor(overallScore);
-  const overallLabel = { green: "可進一步看屋", yellow: "需謹慎評估", red: "暫不建議", unknown: "資料不足" }[overallSignal];
-  const decisionSuggestion = {
-    green: "目前條件相對健康，可安排實地看屋並確認屋況。",
-    yellow: "可進一步看屋，但建議補查風險並保留議價空間。",
-    red: "目前負擔或價格風險偏高，建議先比較其他路段。",
-    unknown: "資料尚不足，請先完成估價、貸款或區位分析。",
-  }[overallSignal];
+  const overallLabel = `riskSummary.label${capitalize(overallSignal)}`;
+  const decisionSuggestion = `riskSummary.suggestion${capitalize(overallSignal)}`;
 
-  if (overallSignal === "green") nextActions.push("安排實地看屋，確認屋況、噪音與社區管理");
-  if (overallSignal === "yellow") nextActions.push("針對主要風險補查，並保留議價空間");
-  if (overallSignal === "red") nextActions.push("先比較其他路段或降低總價與負擔條件");
+  if (overallSignal === "green") nextActions.push("riskSummary.nextGreen");
+  if (overallSignal === "yellow") nextActions.push("riskSummary.nextYellow");
+  if (overallSignal === "red") nextActions.push("riskSummary.nextRed");
   if (overallSignal === "unknown") nextActions.push(...missingChecks.slice(0, 3));
-  if (priceReasonableness.status === "overpriced") nextActions.push("以估價區間與可比成交作為議價依據");
-  if (location) nextActions.push("實地確認交通尖峰、噪音與嫌惡設施");
+  if (priceReasonableness.status === "overpriced") nextActions.push("riskSummary.nextOverpriced");
+  if (location) nextActions.push("riskSummary.nextLocation");
 
   return {
     overallSignal, overallLabel, overallScore, decisionSuggestion, priceReasonableness,
@@ -102,11 +98,15 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   };
 }
 
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 function assessPrice(price: number | undefined, valuation?: ValuationResult): RiskSummary["priceReasonableness"] {
-  if (price === undefined || !valuation) return { status: "unknown", label: "尚未完成", explanation: "需要物件開價與估價區間才能比較。" };
-  if (price < valuation.price_range.low * 0.95) return { status: "undervalued", label: "低於估價區間", explanation: `帶入價格 ${price.toLocaleString()} 萬，低於估價下緣 5% 以上，仍需確認屋況與交易條件。` };
-  if (price > valuation.price_range.high * 1.05) return { status: "overpriced", label: "高於估價區間", explanation: `帶入價格 ${price.toLocaleString()} 萬，高於估價上緣 5% 以上，建議保留議價空間。` };
-  return { status: "reasonable", label: "接近合理區間", explanation: `帶入價格 ${price.toLocaleString()} 萬，位於估價區間內或接近區間邊界。` };
+  if (price === undefined || !valuation) return { status: "unknown", label: "riskSummary.priceUnknown", explanation: "riskSummary.priceUnknownExplanation" };
+  if (price < valuation.price_range.low * 0.95) return { status: "undervalued", label: "riskSummary.priceUndervalued", explanation: "riskSummary.priceUndervaluedExplanation", params: { price: price.toLocaleString() } };
+  if (price > valuation.price_range.high * 1.05) return { status: "overpriced", label: "riskSummary.priceOverpriced", explanation: "riskSummary.priceOverpricedExplanation", params: { price: price.toLocaleString() } };
+  return { status: "reasonable", label: "riskSummary.priceReasonable", explanation: "riskSummary.priceReasonableExplanation", params: { price: price.toLocaleString() } };
 }
 
 function assessDataConfidence(valuation?: ValuationResult): RiskSummary["dataConfidence"] {
@@ -126,49 +126,50 @@ function assessBurden(
   if (ratio === null || ratio === undefined) return 45;
   const lowLimit = kind === "loan" ? 0.3 : 0.35;
   const mediumLimit = kind === "loan" ? 0.4 : 0.45;
-  const title = kind === "loan" ? "貸款負擔" : "持有成本負擔";
+  const title = kind === "loan" ? "riskSummary.titleLoan" : "riskSummary.titleHolding";
+  const ratioPercent = (ratio * 100).toFixed(1);
   if (ratio <= lowLimit) {
-    positives.push({ key: kind, title, message: `負擔率 ${(ratio * 100).toFixed(1)}%，目前在較健康範圍。` });
+    positives.push({ key: kind, title, message: "riskSummary.burdenHealthy", params: { ratio: ratioPercent } });
     return 90;
   }
   if (ratio <= mediumLimit) {
-    risks.push({ key: kind, level: "medium", title, message: `負擔率 ${(ratio * 100).toFixed(1)}%，需保留生活與緊急預備金。` });
+    risks.push({ key: kind, level: "medium", title, message: "riskSummary.burdenCaution", params: { ratio: ratioPercent } });
     return 65;
   }
-  risks.push({ key: kind, level: "high", title, message: `負擔率 ${(ratio * 100).toFixed(1)}%，目前負擔偏重。` });
+  risks.push({ key: kind, level: "high", title, message: "riskSummary.burdenHigh", params: { ratio: ratioPercent } });
   return 25;
 }
 
 function assessLocation(location: LocationInsightResult | undefined, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"]): number {
   if (!location || location.location_score === null) return 45;
-  if (location.location_score >= 75) positives.push({ key: "location", title: "區位條件", message: `區位總分 ${location.location_score}，生活圈條件具支持性。` });
-  else if (location.location_score < 55) risks.push({ key: "location", level: "high", title: "區位條件", message: `區位總分 ${location.location_score}，建議確認是否符合日常需求。` });
-  else risks.push({ key: "location", level: "medium", title: "區位條件", message: `區位總分 ${location.location_score}，優缺點需實地確認。` });
-  if (location.poi_summary.risk_facility_count > 0) risks.push({ key: "risk-facilities", level: "high", title: "周邊風險設施", message: `生活圈資料顯示 ${location.poi_summary.risk_facility_count} 個風險設施，需實地確認。` });
+  if (location.location_score >= 75) positives.push({ key: "location", title: "riskSummary.titleLocation", message: "riskSummary.locationGood", params: { score: location.location_score } });
+  else if (location.location_score < 55) risks.push({ key: "location", level: "high", title: "riskSummary.titleLocation", message: "riskSummary.locationLow", params: { score: location.location_score } });
+  else risks.push({ key: "location", level: "medium", title: "riskSummary.titleLocation", message: "riskSummary.locationMedium", params: { score: location.location_score } });
+  if (location.poi_summary.risk_facility_count > 0) risks.push({ key: "risk-facilities", level: "high", title: "riskSummary.titleRiskFacilities", message: "riskSummary.riskFacilityWarning", params: { count: location.poi_summary.risk_facility_count } });
   return location.location_score;
 }
 
 function addPriceFactors(price: RiskSummary["priceReasonableness"], risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"]) {
-  if (price.status === "overpriced") risks.push({ key: "price", level: "high", title: "開價合理性", message: price.explanation });
-  if (price.status === "reasonable") positives.push({ key: "price", title: "開價合理性", message: price.explanation });
-  if (price.status === "undervalued") positives.push({ key: "price", title: "價格低於估價區間", message: price.explanation });
+  if (price.status === "overpriced") risks.push({ key: "price", level: "high", title: "riskSummary.titlePrice", message: price.explanation, params: { ...price.params, _messageKey: price.explanation } });
+  if (price.status === "reasonable") positives.push({ key: "price", title: "riskSummary.titlePrice", message: price.explanation, params: { ...price.params, _messageKey: price.explanation } });
+  if (price.status === "undervalued") positives.push({ key: "price", title: "riskSummary.titlePrice", message: price.explanation, params: { ...price.params, _messageKey: price.explanation } });
 }
 
 function addConfidenceFactors(confidence: RiskSummary["dataConfidence"], valuation: ValuationResult | undefined, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"]) {
-  if (confidence === "high") positives.push({ key: "confidence", title: "估價資料信心", message: `估價信心 ${valuation?.confidence_score} 分且採官方資料。` });
-  if (confidence === "low") risks.push({ key: "confidence", level: "high", title: "估價資料信心", message: "估價信心偏低或含展示樣本，價格判斷需保守。" });
-  if (confidence === "medium") risks.push({ key: "confidence", level: "medium", title: "估價資料信心", message: "估價信心中等，建議補看可比成交與資料限制。" });
+  if (confidence === "high") positives.push({ key: "confidence", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceHighMessage", params: { confidence: valuation?.confidence_score ?? 0 } });
+  if (confidence === "low") risks.push({ key: "confidence", level: "high", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceLowMessage" });
+  if (confidence === "medium") risks.push({ key: "confidence", level: "medium", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceMediumMessage" });
 }
 
 function addLocationPriceSupport(location: LocationInsightResult | undefined, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"], missing: string[]) {
   if (!location || location.valuation_context.supports_price_reasonableness === "unknown") {
-    missing.push("確認區位條件是否支持目前開價");
+    missing.push("riskSummary.missingLocationQuality");
     return;
   }
   if (location.valuation_context.supports_price_reasonableness) {
-    positives.push({ key: "location-price", title: "區位支持價格", message: location.valuation_context.explanation });
+    positives.push({ key: "location-price", title: "riskSummary.titleLocationSupportsPrice", message: location.valuation_context.explanation });
   } else {
-    risks.push({ key: "location-price", level: "medium", title: "區位未支持價格", message: location.valuation_context.explanation });
+    risks.push({ key: "location-price", level: "medium", title: "riskSummary.titleLocationNotSupportsPrice", message: location.valuation_context.explanation });
   }
 }
 
