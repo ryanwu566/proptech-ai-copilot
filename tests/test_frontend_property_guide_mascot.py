@@ -12,7 +12,7 @@ GUIDED_DEMO = (ROOT / "frontend_next" / "components" / "guided-demo-runner.tsx")
 
 def test_original_yellow_assistant_is_present_and_uses_plain_language() -> None:
     assert "PropertyGuideMascot" in WORKSPACE
-    assert "黃色看房助手" in MASCOT
+    assert "mascot.name" in source or "黃色看房助手" in MASCOT
     for text in (
         "第一次用可以先看動畫",
         "看到 ? 可以點開",

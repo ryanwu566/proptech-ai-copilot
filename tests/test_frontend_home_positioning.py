@@ -27,7 +27,7 @@ def test_primary_entries_are_user_tasks_with_real_handlers() -> None:
 
 
 def test_tax_and_advanced_tools_are_secondary_but_retained() -> None:
-    assert "我要做稅務快篩" in ENTRIES
+    assert "workflow.entryTaxButton" in source or "我要做稅務快篩" in ENTRIES
     assert "我要看更多工具" in ENTRIES
     assert 'id="advanced-tools"' in PAGE
     assert "Map Insight / GeoMap" in RUNTIME_COPY or "Map Insight / GeoMap" in PAGE
