@@ -5,7 +5,7 @@ export type ViewingDecisionStatus = "ready_to_view" | "needs_more_data" | "clari
 
 export type ViewingDecision = {
   status: ViewingDecisionStatus;
-  label: "可安排看屋" | "建議補資料後再判斷" | "先釐清風險再看屋";
+  label: string;
   reasons: string[];
   missingCriticalData: string[];
   nextAction: {
@@ -35,8 +35,8 @@ const criticalChecks: Array<{ key: keyof ViewingDecisionInputs; label: string; t
 ];
 
 export function buildViewingDecision(input: ViewingDecisionInputs): ViewingDecision {
-  const completedData = criticalChecks.filter((item) => hasUsableCriticalData(item.key, input)).map((item) => item.label);
-  const missingCriticalData = criticalChecks.filter((item) => !hasUsableCriticalData(item.key, input)).map((item) => item.label);
+  const completedData = criticalChecks.filter((item) => hasUsableCriticalData(item.key, input)).map((item) => item.key);
+  const missingCriticalData = criticalChecks.filter((item) => !hasUsableCriticalData(item.key, input)).map((item) => item.key);
   const highRiskSources = collectHighRiskSources(input);
   const hasKnownHighRisk =
     input.riskSummary?.overallSignal === "red"
@@ -52,44 +52,44 @@ export function buildViewingDecision(input: ViewingDecisionInputs): ViewingDecis
   if (hasKnownHighRisk) {
     return {
       status: "clarify_risk_first",
-      label: "先釐清風險再看屋",
-      reasons: (highRiskSources.length ? highRiskSources : ["已有高風險訊號，建議先釐清再決定是否約看。"]).slice(0, 3),
+      label: "clarify_risk_first",
+      reasons: (highRiskSources.length ? highRiskSources : ["high_risk_default"]).slice(0, 3),
       missingCriticalData,
       nextAction: firstHighRiskTarget,
       completedData,
-      riskSources: highRiskSources.length ? highRiskSources : ["已有高風險訊號，需先釐清。"],
-      ruleNotes: baseRuleNotes(),
+      riskSources: highRiskSources.length ? highRiskSources : ["high_risk_default"],
+      ruleNotes: ["rule_check_risk", "rule_check_data", "rule_unknown_not_low"],
     };
   }
 
   if (missingCriticalData.length > 0 && firstMissing) {
     return {
       status: "needs_more_data",
-      label: "建議補資料後再判斷",
+      label: "needs_more_data",
       reasons: [
-        `尚缺 ${missingCriticalData.slice(0, 3).join("、")}。`,
-        "缺資料不會被視為低風險，建議先補齊再決定是否約看。",
+        `missing:${missingCriticalData.slice(0, 3).join(",")}`,
+        "missing_not_low_risk",
       ],
       missingCriticalData,
-      nextAction: { label: firstMissing.action, targetId: firstMissing.targetId },
+      nextAction: { label: firstMissing.key, targetId: firstMissing.targetId },
       completedData,
       riskSources: [],
-      ruleNotes: baseRuleNotes(),
+      ruleNotes: ["rule_check_risk", "rule_check_data", "rule_unknown_not_low"],
     };
   }
 
   return {
     status: "ready_to_view",
-    label: "可安排看屋",
+    label: "ready_to_view",
     reasons: [
-      "核心分析已完成，且目前沒有已知高風險訊號。",
-      "可進一步約看，但仍需現場確認屋況、噪音、管理與周邊環境。",
+      "ready_no_high_risk",
+      "ready_on_site",
     ],
     missingCriticalData: [],
-    nextAction: { label: "查看看屋決策報告", targetId: "decision-report" },
+    nextAction: { label: "view_report", targetId: "decision-report" },
     completedData,
     riskSources: [],
-    ruleNotes: baseRuleNotes(),
+    ruleNotes: ["rule_check_risk", "rule_check_data", "rule_unknown_not_low"],
   };
 }
 
@@ -99,28 +99,22 @@ function hasUsableCriticalData(key: keyof ViewingDecisionInputs, input: ViewingD
 
 function collectHighRiskSources(input: ViewingDecisionInputs) {
   const sources: string[] = [];
-  if (input.riskSummary?.overallSignal === "red") sources.push("風險總評出現紅燈，建議先釐清主要風險。");
+  if (input.riskSummary?.overallSignal === "red") sources.push("red_signal");
   for (const item of input.riskSummary?.riskFactors ?? []) {
-    if (item.level === "high") sources.push(`高風險項目：${item.title}。`);
+    if (item.level === "high") sources.push(`high_item:${item.title}`);
   }
-  if (input.loan?.affordability_level === "risky") sources.push("貸款月付負擔偏高，需先確認收入與核貸條件。");
-  if (input.holding?.affordability_level === "risky") sources.push("每月持有成本負擔偏高，需先確認總支出是否可承受。");
-  if (input.location?.poi_summary.risk_facility_count && input.location.poi_summary.risk_facility_count > 0) sources.push("區位分析顯示附近有風險設施，建議先實地確認。");
-  if (input.taxOracleResult?.signal_color === "red" || input.taxOracleResult?.eligibility_status === "not_eligible") sources.push("TaxOracle 稅務快篩顯示高風險，建議先釐清稅務條件。");
+  if (input.loan?.affordability_level === "risky") sources.push("loan_risky");
+  if (input.holding?.affordability_level === "risky") sources.push("holding_risky");
+  if (input.location?.poi_summary.risk_facility_count && input.location.poi_summary.risk_facility_count > 0) sources.push("location_facility");
+  if (input.taxOracleResult?.signal_color === "red" || input.taxOracleResult?.eligibility_status === "not_eligible") sources.push("tax_high");
   return [...new Set(sources)];
 }
 
 function firstHighRiskAction(input: ViewingDecisionInputs) {
-  if (input.location?.poi_summary.risk_facility_count && input.location.poi_summary.risk_facility_count > 0) return { label: "查看區位分析", targetId: "location-insight-calculator" };
-  if (input.loan?.affordability_level === "risky") return { label: "重新檢查貸款月付", targetId: "loan-calculator" };
-  if (input.holding?.affordability_level === "risky") return { label: "重新檢查持有成本", targetId: "holding-cost-calculator" };
-  return { label: "查看風險總評", targetId: "risk-summary" };
+  if (input.location?.poi_summary.risk_facility_count && input.location.poi_summary.risk_facility_count > 0) return { label: "check_location", targetId: "location-insight-calculator" };
+  if (input.loan?.affordability_level === "risky") return { label: "check_loan", targetId: "loan-calculator" };
+  if (input.holding?.affordability_level === "risky") return { label: "check_holding", targetId: "holding-cost-calculator" };
+  return { label: "check_risk", targetId: "risk-summary" };
 }
 
-function baseRuleNotes() {
-  return [
-    "先看既有風險摘要與已知高風險。",
-    "再檢查估價、貸款、持有成本、區位與地勢風險是否完成。",
-    "資料不足、unknown 或 unavailable 不會被推論為低風險。",
-  ];
-}
+// Rule notes are now handled by the component localizer (localizeRuleNotes)

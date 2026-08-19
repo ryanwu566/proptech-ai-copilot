@@ -5,6 +5,7 @@ import { Button } from "@/components/ui";
 import { useViewMode } from "@/lib/view-mode";
 import type { ViewingDecision } from "@/lib/viewing-decision";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { localizeViewingDecisionLabel, localizeDecisionReasons, localizeRuleNotes, localizeCriticalCheckLabel, localizeNextActionLabel, localizeRiskSource } from "@/lib/dynamic-copy-localizers";
 
 const toneClass: Record<ViewingDecision["status"], string> = {
   ready_to_view: "border-emerald-200 bg-emerald-50 text-emerald-950",
@@ -13,28 +14,37 @@ const toneClass: Record<ViewingDecision["status"], string> = {
 };
 
 export function ViewingDecisionPanel({ decision, onNext }: { decision: ViewingDecision; onNext: (targetId: string) => void }) {
-  const { copy } = useExperienceLocale();
+  const { copy, locale } = useExperienceLocale();
   const [viewMode] = useViewMode();
-  const reasons = viewMode === "beginner" ? decision.reasons.slice(0, 2) : decision.reasons.slice(0, 3);
+  const localizedLabel = localizeViewingDecisionLabel(decision.status, locale);
+  const localizedMissing = decision.missingCriticalData.map((item) => localizeCriticalCheckLabel(item, locale));
+  const localizedReasons = localizeDecisionReasons(decision.status, locale, localizedMissing);
+  const localizedRuleNotes = localizeRuleNotes(locale);
+  const localizedRiskSources = decision.riskSources.map((src) => {
+    if (src.startsWith("high_item:")) return localizeRiskSource("high_item", locale, { title: src.replace("high_item:", "") });
+    return localizeRiskSource(src, locale);
+  });
+  const localizedNextAction = localizeNextActionLabel(decision.nextAction.label, locale);
+  const reasons = viewMode === "beginner" ? localizedReasons.slice(0, 2) : localizedReasons.slice(0, 3);
   return <section id="viewing-decision" className={`min-w-0 scroll-mt-20 rounded-xl border p-4 ${toneClass[decision.status]}`} aria-label={copy("viewing.heading")}>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
         <p className="text-[10px] font-bold tracking-[0.16em] opacity-70">VIEWING DECISION</p>
         <h2 className="mt-1 text-xl font-extrabold">{copy("viewing.heading")}</h2>
-        <p className="mt-2 text-lg font-black">{decision.label}</p>
+        <p className="mt-2 text-lg font-black">{localizedLabel}</p>
       </div>
-      <Button className="w-full sm:w-auto" onClick={() => onNext(decision.nextAction.targetId)}>{decision.nextAction.label}</Button>
+      <Button className="w-full sm:w-auto" onClick={() => onNext(decision.nextAction.targetId)}>{localizedNextAction}</Button>
     </div>
     <ul className="mt-3 space-y-1 text-xs leading-5">
       {reasons.map((reason) => <li key={reason}>• {reason}</li>)}
     </ul>
-    {decision.missingCriticalData.length > 0 && <p className="mt-3 rounded-lg bg-white/70 px-3 py-2 text-[11px] font-bold">{copy("viewing.missingLabel")}: {decision.missingCriticalData.join(", ")}</p>}
+    {localizedMissing.length > 0 && <p className="mt-3 rounded-lg bg-white/70 px-3 py-2 text-[11px] font-bold">{copy("viewing.missingLabel")}: {localizedMissing.join(", ")}</p>}
     {viewMode === "pro" && <div className="mt-3">
       <DetailDisclosure title={copy("viewing.detailTitle")}>
         <div className="grid gap-3 text-xs leading-5 md:grid-cols-3">
-          <InfoBlock title={copy("viewing.completedData")} items={decision.completedData} empty={copy("viewing.noCompletedData")} />
-          <InfoBlock title={copy("viewing.riskSources")} items={decision.riskSources} empty={copy("viewing.noRiskSources")} />
-          <InfoBlock title={copy("viewing.ruleNotes")} items={decision.ruleNotes} />
+          <InfoBlock title={copy("viewing.completedData")} items={decision.completedData.map(k => localizeCriticalCheckLabel(k, locale))} empty={copy("viewing.noCompletedData")} />
+          <InfoBlock title={copy("viewing.riskSources")} items={localizedRiskSources} empty={copy("viewing.noRiskSources")} />
+          <InfoBlock title={copy("viewing.ruleNotes")} items={localizedRuleNotes} />
         </div>
       </DetailDisclosure>
     </div>}

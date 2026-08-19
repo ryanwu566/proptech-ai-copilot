@@ -86,6 +86,17 @@ export const RUNTIME_COPY_KEYS = [
   "badge.green", "badge.yellow", "badge.red", "badge.eligible", "badge.manualReview", "badge.notEligible", "badge.passed", "badge.manualReviewRequired", "badge.failed",
   "comparison.kicker", "comparison.title", "comparison.printButton", "comparison.summaryTitle", "comparison.topCandidate", "comparison.noRanking", "comparison.differencesTitle", "comparison.missingTitle", "comparison.missingNone", "comparison.nextStepsTitle", "comparison.generated",
   "comparison.insufficientData", "comparison.selectRange", "comparison.partialTitle", "comparison.partialNote",
+  "decision.readyToView", "decision.needsMoreData", "decision.clarifyRiskFirst",
+  "decision.reasonHighRisk", "decision.reasonMissingData", "decision.reasonMissingNotLowRisk", "decision.reasonReadyNoHighRisk", "decision.reasonReadyOnSite",
+  "decision.criticalValuation", "decision.criticalLoan", "decision.criticalHolding", "decision.criticalLocation",
+  "decision.actionValuation", "decision.actionLoan", "decision.actionHolding", "decision.actionLocation",
+  "decision.actionViewReport", "decision.actionCheckLocation", "decision.actionCheckLoan", "decision.actionCheckHolding", "decision.actionCheckRisk",
+  "decision.riskRedSignal", "decision.riskLoanRisky", "decision.riskHoldingRisky", "decision.riskLocationFacility", "decision.riskTaxHigh", "decision.riskHighItem",
+  "decision.ruleCheckRisk", "decision.ruleCheckData", "decision.ruleUnknownNotLow",
+  "decision.missingPrefix",
+  "wizardStep.propertySearch", "wizardStep.valuation", "wizardStep.affordability", "wizardStep.location", "wizardStep.risk", "wizardStep.report", "wizardStep.tax",
+  "wizardStep.propertySearchTitle", "wizardStep.valuationTitle", "wizardStep.affordabilityTitle", "wizardStep.locationTitle", "wizardStep.riskTitle", "wizardStep.reportTitle", "wizardStep.taxTitle",
+  "wizardStep.propertySearchGuide", "wizardStep.valuationGuide", "wizardStep.affordabilityGuide", "wizardStep.locationGuide", "wizardStep.riskGuide", "wizardStep.reportGuide", "wizardStep.taxGuide",
 ] as const;
 
 export type RuntimeCopyKey = (typeof RUNTIME_COPY_KEYS)[number];
@@ -177,6 +188,17 @@ const zhTW: RuntimeResource = {
   "badge.green": "通過", "badge.yellow": "需複核", "badge.red": "未通過", "badge.eligible": "符合資格", "badge.manualReview": "需人工複核", "badge.notEligible": "不符合資格", "badge.passed": "通過", "badge.manualReviewRequired": "需人工複核", "badge.failed": "未通過",
   "comparison.kicker": "案件比較", "comparison.title": "比較報告", "comparison.printButton": "列印比較報告", "comparison.summaryTitle": "比較摘要", "comparison.topCandidate": "最佳候選", "comparison.noRanking": "目前資料不足以排名。", "comparison.differencesTitle": "主要差異", "comparison.missingTitle": "比較中的待補資料", "comparison.missingNone": "無待補資料。", "comparison.nextStepsTitle": "比較後下一步", "comparison.generated": "報告產生時間",
   "comparison.insufficientData": "比較資料不足", "comparison.selectRange": "選擇 2–3 件案件進行比較", "comparison.partialTitle": "部分比較", "comparison.partialNote": "部分案件資料不完整，比較結果可能受限。",
+  "decision.readyToView": "可安排看屋", "decision.needsMoreData": "建議補資料後再判斷", "decision.clarifyRiskFirst": "先釐清風險再看屋",
+  "decision.reasonHighRisk": "已有高風險訊號，建議先釐清再決定是否約看。", "decision.reasonMissingData": "尚缺 {{items}}。", "decision.reasonMissingNotLowRisk": "缺資料不會被視為低風險，建議先補齊再決定是否約看。", "decision.reasonReadyNoHighRisk": "核心分析已完成，且目前沒有已知高風險訊號。", "decision.reasonReadyOnSite": "可進一步約看，但仍需現場確認屋況、噪音、管理與周邊環境。",
+  "decision.criticalValuation": "合理價格區間", "decision.criticalLoan": "貸款月付", "decision.criticalHolding": "每月持有成本", "decision.criticalLocation": "生活機能與區位",
+  "decision.actionValuation": "先完成合理價格估算", "decision.actionLoan": "先試算每月房貸", "decision.actionHolding": "先估算每月總支出", "decision.actionLocation": "先分析生活機能與區位",
+  "decision.actionViewReport": "查看看屋決策報告", "decision.actionCheckLocation": "查看區位分析", "decision.actionCheckLoan": "重新檢查貸款月付", "decision.actionCheckHolding": "重新檢查持有成本", "decision.actionCheckRisk": "查看風險總評",
+  "decision.riskRedSignal": "風險總評出現紅燈，建議先釐清主要風險。", "decision.riskLoanRisky": "貸款月付負擔偏高，需先確認收入與核貸條件。", "decision.riskHoldingRisky": "每月持有成本負擔偏高，需先確認總支出是否可承受。", "decision.riskLocationFacility": "區位分析顯示附近有風險設施，建議先實地確認。", "decision.riskTaxHigh": "TaxOracle 稅務快篩顯示高風險，建議先釐清稅務條件。", "decision.riskHighItem": "高風險項目：{{title}}。",
+  "decision.ruleCheckRisk": "先看既有風險摘要與已知高風險。", "decision.ruleCheckData": "再檢查估價、貸款、持有成本、區位與地勢風險是否完成。", "decision.ruleUnknownNotLow": "資料不足、unknown 或 unavailable 不會被推論為低風險。",
+  "decision.missingPrefix": "尚缺",
+  "wizardStep.propertySearch": "找房雷達", "wizardStep.valuation": "估價與趨勢", "wizardStep.affordability": "貸款與持有成本", "wizardStep.location": "區位分析", "wizardStep.risk": "風險總評", "wizardStep.report": "看屋決策報告", "wizardStep.tax": "TaxOracle 稅務快篩",
+  "wizardStep.propertySearchTitle": "先找出你預算內可能買得到的路段", "wizardStep.valuationTitle": "確認這個路段的合理價格", "wizardStep.affordabilityTitle": "看看月付與持有成本撐不撐得住", "wizardStep.locationTitle": "檢查生活機能與區位條件", "wizardStep.riskTitle": "看紅黃綠燈號，判斷是否值得看屋", "wizardStep.reportTitle": "產出可分享的看屋報告", "wizardStep.taxTitle": "補做稅務快篩",
+  "wizardStep.propertySearchGuide": "先不用想太多，填預算和地點就好。", "wizardStep.valuationGuide": "這一步是看價格合不合理。", "wizardStep.affordabilityGuide": "買得起不只看總價，還要看月付和持有成本。", "wizardStep.locationGuide": "看看附近生活機能，區位不理想可以直接換路段。", "wizardStep.riskGuide": "綠燈不是保證能買，紅燈也不是絕對不能買，它是提醒你要不要繼續花時間。", "wizardStep.reportGuide": "把重點整理成報告，方便和家人或客戶討論。", "wizardStep.taxGuide": "最後再補查交易條件可能涉及的稅務風險。",
 };
 
 const en: RuntimeResource = {
@@ -264,6 +286,17 @@ const en: RuntimeResource = {
   "badge.green": "Passed", "badge.yellow": "Review needed", "badge.red": "Failed", "badge.eligible": "Eligible", "badge.manualReview": "Manual review needed", "badge.notEligible": "Not eligible", "badge.passed": "Passed", "badge.manualReviewRequired": "Manual review required", "badge.failed": "Failed",
   "comparison.kicker": "Case comparison", "comparison.title": "Comparison report", "comparison.printButton": "Print comparison report", "comparison.summaryTitle": "Comparison summary", "comparison.topCandidate": "Top candidate", "comparison.noRanking": "Insufficient data to rank.", "comparison.differencesTitle": "Key differences", "comparison.missingTitle": "Missing data in comparison", "comparison.missingNone": "No missing data.", "comparison.nextStepsTitle": "Next steps after comparison", "comparison.generated": "Report generated at",
   "comparison.insufficientData": "Insufficient comparison data", "comparison.selectRange": "Select 2–3 cases to compare", "comparison.partialTitle": "Partial comparison", "comparison.partialNote": "Some cases have incomplete data; comparison results may be limited.",
+  "decision.readyToView": "Ready to schedule a viewing", "decision.needsMoreData": "More data needed before deciding", "decision.clarifyRiskFirst": "Clarify risks before scheduling a viewing",
+  "decision.reasonHighRisk": "High-risk signals detected; clarify before deciding whether to view.", "decision.reasonMissingData": "Missing: {{items}}.", "decision.reasonMissingNotLowRisk": "Missing data is not treated as low risk; complete the analysis before deciding.", "decision.reasonReadyNoHighRisk": "Core analysis complete with no known high-risk signals.", "decision.reasonReadyOnSite": "A viewing can be arranged, but on-site confirmation of condition, noise, management and surroundings is still needed.",
+  "decision.criticalValuation": "Price range estimate", "decision.criticalLoan": "Loan payment", "decision.criticalHolding": "Monthly holding cost", "decision.criticalLocation": "Livability and location",
+  "decision.actionValuation": "Complete the price estimate first", "decision.actionLoan": "Calculate monthly payment first", "decision.actionHolding": "Estimate total monthly cost first", "decision.actionLocation": "Analyze livability and location first",
+  "decision.actionViewReport": "View the viewing decision report", "decision.actionCheckLocation": "Review location analysis", "decision.actionCheckLoan": "Review loan payment", "decision.actionCheckHolding": "Review holding cost", "decision.actionCheckRisk": "View risk summary",
+  "decision.riskRedSignal": "Risk summary shows a red signal; clarify the main risk first.", "decision.riskLoanRisky": "Loan payment burden is high; confirm income and approval conditions.", "decision.riskHoldingRisky": "Monthly holding cost is high; confirm total affordability.", "decision.riskLocationFacility": "Location analysis shows nearby risk facilities; on-site confirmation suggested.", "decision.riskTaxHigh": "TaxOracle shows high tax risk; clarify tax conditions first.", "decision.riskHighItem": "High-risk item: {{title}}.",
+  "decision.ruleCheckRisk": "Review existing risk summary and known high-risk items.", "decision.ruleCheckData": "Check whether valuation, loan, holding cost, location and terrain are complete.", "decision.ruleUnknownNotLow": "Insufficient data, unknown, or unavailable is not inferred as low risk.",
+  "decision.missingPrefix": "Missing",
+  "wizardStep.propertySearch": "Property search", "wizardStep.valuation": "Valuation and trends", "wizardStep.affordability": "Loan and holding cost", "wizardStep.location": "Location analysis", "wizardStep.risk": "Risk summary", "wizardStep.report": "Viewing decision report", "wizardStep.tax": "TaxOracle tax screening",
+  "wizardStep.propertySearchTitle": "Find roads you can afford", "wizardStep.valuationTitle": "Confirm a reasonable price for this road", "wizardStep.affordabilityTitle": "Check if the monthly payment and holding cost are sustainable", "wizardStep.locationTitle": "Review livability and location conditions", "wizardStep.riskTitle": "See the traffic-light signal and decide whether to view", "wizardStep.reportTitle": "Generate a shareable viewing report", "wizardStep.taxTitle": "Run a supplementary tax screening",
+  "wizardStep.propertySearchGuide": "Just enter your budget and location to start.", "wizardStep.valuationGuide": "This step checks whether the price is reasonable.", "wizardStep.affordabilityGuide": "Affordability is not just the total price — check monthly payment and holding cost too.", "wizardStep.locationGuide": "Review nearby livability; switch roads if the location is not ideal.", "wizardStep.riskGuide": "Green does not guarantee a purchase; red does not mean never. It reminds you whether to spend more time.", "wizardStep.reportGuide": "Organize key points into a report for discussion with family or clients.", "wizardStep.taxGuide": "Run a supplementary check on possible tax risks for the transaction.",
 };
 
 const ja: RuntimeResource = {
@@ -708,6 +741,17 @@ const ja: RuntimeResource = {
   "badge.green": "合格", "badge.yellow": "要確認", "badge.red": "不合格", "badge.eligible": "適格", "badge.manualReview": "手動確認が必要", "badge.notEligible": "不適格", "badge.passed": "合格", "badge.manualReviewRequired": "手動確認が必要", "badge.failed": "不合格",
   "comparison.kicker": "案件比較", "comparison.title": "比較レポート", "comparison.printButton": "比較レポートを印刷", "comparison.summaryTitle": "比較サマリー", "comparison.topCandidate": "最有力候補", "comparison.noRanking": "ランク付けに十分なデータがありません。", "comparison.differencesTitle": "主な違い", "comparison.missingTitle": "比較中の不足データ", "comparison.missingNone": "不足データなし。", "comparison.nextStepsTitle": "比較後の次のステップ", "comparison.generated": "レポート生成時刻",
   "comparison.insufficientData": "比較データ不足", "comparison.selectRange": "2〜3 件の案件を選んで比較", "comparison.partialTitle": "部分比較", "comparison.partialNote": "一部の案件はデータ不完全で比較結果が限定される場合があります。",
+  "decision.readyToView": "内見予約が可能", "decision.needsMoreData": "追加データが必要", "decision.clarifyRiskFirst": "リスクを確認してから内見",
+  "decision.reasonHighRisk": "高リスク信号を検出。内見前に確認してください。", "decision.reasonMissingData": "不足：{{items}}。", "decision.reasonMissingNotLowRisk": "データ不足は低リスクとみなしません。分析を完了してから判断してください。", "decision.reasonReadyNoHighRisk": "コア分析が完了し、既知の高リスク信号はありません。", "decision.reasonReadyOnSite": "内見を手配できますが、現地での状態・騒音・管理・周辺の確認が必要です。",
+  "decision.criticalValuation": "適正価格帯", "decision.criticalLoan": "ローン月額", "decision.criticalHolding": "月間維持費", "decision.criticalLocation": "生活利便性と立地",
+  "decision.actionValuation": "まず価格推定を完了", "decision.actionLoan": "まず月額を試算", "decision.actionHolding": "まず総月額を見積り", "decision.actionLocation": "まず生活利便性を分析",
+  "decision.actionViewReport": "内見判断レポートを見る", "decision.actionCheckLocation": "立地分析を確認", "decision.actionCheckLoan": "ローン月額を確認", "decision.actionCheckHolding": "維持費を確認", "decision.actionCheckRisk": "リスク総評を見る",
+  "decision.riskRedSignal": "リスク総評が赤信号。主要リスクを確認してください。", "decision.riskLoanRisky": "ローン負担が高い。収入と承認条件を確認してください。", "decision.riskHoldingRisky": "維持費負担が高い。総負担を確認してください。", "decision.riskLocationFacility": "近隣にリスク施設あり。現地確認を推奨。", "decision.riskTaxHigh": "TaxOracle が高税務リスク。税務条件を確認してください。", "decision.riskHighItem": "高リスク項目：{{title}}。",
+  "decision.ruleCheckRisk": "既存のリスク総評と既知の高リスクを確認。", "decision.ruleCheckData": "評価・ローン・維持費・立地・地形が完了か確認。", "decision.ruleUnknownNotLow": "データ不足・不明・利用不可は低リスクと推論しません。",
+  "decision.missingPrefix": "不足",
+  "wizardStep.propertySearch": "物件検索", "wizardStep.valuation": "評価とトレンド", "wizardStep.affordability": "ローンと維持費", "wizardStep.location": "立地分析", "wizardStep.risk": "リスク総評", "wizardStep.report": "内見判断レポート", "wizardStep.tax": "TaxOracle 税務",
+  "wizardStep.propertySearchTitle": "予算内で購入可能な道路を探す", "wizardStep.valuationTitle": "この道路の適正価格を確認", "wizardStep.affordabilityTitle": "月額と維持費が持続可能か確認", "wizardStep.locationTitle": "生活利便性と立地条件を確認", "wizardStep.riskTitle": "信号を見て内見するか判断", "wizardStep.reportTitle": "共有可能な内見レポートを作成", "wizardStep.taxTitle": "補足的に税務スクリーニングを実行",
+  "wizardStep.propertySearchGuide": "まず予算と場所を入力するだけです。", "wizardStep.valuationGuide": "このステップで価格が妥当か確認します。", "wizardStep.affordabilityGuide": "購入可否は総額だけでなく月額と維持費も重要です。", "wizardStep.locationGuide": "周辺の生活機能を確認。立地が合わなければ別の道路に変更できます。", "wizardStep.riskGuide": "緑は購入保証ではなく、赤は絶対不可ではありません。時間をかけるか判断する目安です。", "wizardStep.reportGuide": "要点をレポートにまとめ、家族やお客様と相談しやすくします。", "wizardStep.taxGuide": "最後に取引条件の税務リスクを補足確認します。",
 };
 
 const ko: RuntimeResource = {
@@ -1152,6 +1196,17 @@ const ko: RuntimeResource = {
   "badge.green": "통과", "badge.yellow": "검토 필요", "badge.red": "미통과", "badge.eligible": "적격", "badge.manualReview": "수동 검토 필요", "badge.notEligible": "부적격", "badge.passed": "통과", "badge.manualReviewRequired": "수동 검토 필요", "badge.failed": "미통과",
   "comparison.kicker": "사례 비교", "comparison.title": "비교 보고서", "comparison.printButton": "비교 보고서 인쇄", "comparison.summaryTitle": "비교 요약", "comparison.topCandidate": "최우수 후보", "comparison.noRanking": "순위를 매길 데이터가 부족합니다.", "comparison.differencesTitle": "주요 차이점", "comparison.missingTitle": "비교 중 누락 데이터", "comparison.missingNone": "누락 데이터 없음.", "comparison.nextStepsTitle": "비교 후 다음 단계", "comparison.generated": "보고서 생성 시각",
   "comparison.insufficientData": "비교 데이터 부족", "comparison.selectRange": "2~3건의 사례를 선택하여 비교", "comparison.partialTitle": "부분 비교", "comparison.partialNote": "일부 사례의 데이터가 불완전하여 비교 결과가 제한될 수 있습니다.",
+  "decision.readyToView": "방문 예약 가능", "decision.needsMoreData": "추가 데이터 필요", "decision.clarifyRiskFirst": "위험 확인 후 방문",
+  "decision.reasonHighRisk": "고위험 신호 감지. 방문 전에 확인하세요.", "decision.reasonMissingData": "누락: {{items}}.", "decision.reasonMissingNotLowRisk": "데이터 부족은 저위험으로 간주하지 않습니다. 분석 완료 후 판단하세요.", "decision.reasonReadyNoHighRisk": "핵심 분석이 완료되었으며 알려진 고위험 신호가 없습니다.", "decision.reasonReadyOnSite": "방문을 예약할 수 있지만, 현장에서 상태·소음·관리·주변 환경을 확인하세요.",
+  "decision.criticalValuation": "적정 가격대", "decision.criticalLoan": "대출 월액", "decision.criticalHolding": "월 유지비", "decision.criticalLocation": "생활 편의와 입지",
+  "decision.actionValuation": "먼저 가격 추정을 완료", "decision.actionLoan": "먼저 월 상환액 계산", "decision.actionHolding": "먼저 총 월 비용 추정", "decision.actionLocation": "먼저 생활 편의 분석",
+  "decision.actionViewReport": "방문 판단 보고서 보기", "decision.actionCheckLocation": "입지 분석 확인", "decision.actionCheckLoan": "대출 월액 확인", "decision.actionCheckHolding": "유지비 확인", "decision.actionCheckRisk": "위험 요약 보기",
+  "decision.riskRedSignal": "위험 요약 적색 신호. 주요 위험을 확인하세요.", "decision.riskLoanRisky": "대출 부담 높음. 소득과 승인 조건 확인 필요.", "decision.riskHoldingRisky": "유지비 부담 높음. 총 부담 확인 필요.", "decision.riskLocationFacility": "주변 위험 시설 감지. 현장 확인 권장.", "decision.riskTaxHigh": "TaxOracle 고위험 세무. 세무 조건 확인 필요.", "decision.riskHighItem": "고위험 항목: {{title}}.",
+  "decision.ruleCheckRisk": "기존 위험 요약과 고위험 항목을 확인.", "decision.ruleCheckData": "평가·대출·유지비·입지·지형 완료 여부 확인.", "decision.ruleUnknownNotLow": "데이터 부족·알 수 없음·이용 불가는 저위험으로 추론하지 않습니다.",
+  "decision.missingPrefix": "누락",
+  "wizardStep.propertySearch": "매물 검색", "wizardStep.valuation": "평가와 추세", "wizardStep.affordability": "대출과 유지비", "wizardStep.location": "입지 분석", "wizardStep.risk": "위험 요약", "wizardStep.report": "방문 판단 보고서", "wizardStep.tax": "TaxOracle 세무",
+  "wizardStep.propertySearchTitle": "예산 범위 내 구매 가능한 도로 찾기", "wizardStep.valuationTitle": "이 도로의 적정 가격 확인", "wizardStep.affordabilityTitle": "월 상환액과 유지비가 감당 가능한지 확인", "wizardStep.locationTitle": "생활 편의와 입지 조건 확인", "wizardStep.riskTitle": "신호를 보고 방문할지 판단", "wizardStep.reportTitle": "공유 가능한 방문 보고서 생성", "wizardStep.taxTitle": "보충 세무 확인 실행",
+  "wizardStep.propertySearchGuide": "예산과 위치만 입력하면 됩니다.", "wizardStep.valuationGuide": "이 단계에서 가격이 합리적인지 확인합니다.", "wizardStep.affordabilityGuide": "감당 여부는 총가격뿐 아니라 월액과 유지비도 중요합니다.", "wizardStep.locationGuide": "주변 생활 편의를 확인하고, 입지가 맞지 않으면 다른 도로로 전환하세요.", "wizardStep.riskGuide": "초록은 구매 보장이 아니고, 빨강은 절대 불가가 아닙니다. 시간을 더 쓸지 판단하는 기준입니다.", "wizardStep.reportGuide": "핵심을 보고서로 정리하여 가족이나 고객과 논의하세요.", "wizardStep.taxGuide": "마지막으로 거래 조건의 세무 위험을 보충 확인합니다.",
 };
 
 const resources: Record<ExperienceLocale, RuntimeResource> = { "zh-TW": zhTW, en, ja, ko };
