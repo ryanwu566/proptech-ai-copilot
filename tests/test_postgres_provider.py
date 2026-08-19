@@ -41,7 +41,7 @@ def test_provider_exposes_freshness_and_cache_expires(monkeypatch):
     provider2._clock = lambda: tick[0]
     assert provider2.data_status() is first
     # After TTL expiry, cache refreshes
-    tick[0] = 121.0
+    tick[0] = 1801.0
     provider._clock = lambda: tick[0]
     refreshed = provider.data_status()
     assert refreshed["freshness_status"] in {"fresh", "aging"}

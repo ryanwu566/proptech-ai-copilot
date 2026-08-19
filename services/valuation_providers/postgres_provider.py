@@ -32,7 +32,7 @@ class PostgresValuationProvider:
     # Shared data-status cache: keyed by database_url → (timestamp, result)
     # This survives across provider instances created per-request.
     _data_status_cache: dict[str, tuple[float, dict[str, Any]]] = {}
-    data_status_cache_seconds = 120
+    data_status_cache_seconds = 1800  # 30 minutes; data updates monthly
 
     def __init__(self, database_url: str, connect_timeout: int = 3) -> None:
         self.database_url = database_url
