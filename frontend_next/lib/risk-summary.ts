@@ -150,15 +150,15 @@ function assessLocation(location: LocationInsightResult | undefined, risks: Risk
 }
 
 function addPriceFactors(price: RiskSummary["priceReasonableness"], risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"]) {
-  if (price.status === "overpriced") risks.push({ key: "price", level: "high", title: "riskSummary.titlePrice", message: price.explanation, params: price.params });
-  if (price.status === "reasonable") positives.push({ key: "price", title: "riskSummary.titlePrice", message: price.explanation, params: price.params });
-  if (price.status === "undervalued") positives.push({ key: "price", title: "riskSummary.titlePrice", message: price.explanation, params: price.params });
+  if (price.status === "overpriced") risks.push({ key: "price", level: "high", title: "riskSummary.titlePrice", message: price.explanation, params: { ...price.params, _messageKey: price.explanation } });
+  if (price.status === "reasonable") positives.push({ key: "price", title: "riskSummary.titlePrice", message: price.explanation, params: { ...price.params, _messageKey: price.explanation } });
+  if (price.status === "undervalued") positives.push({ key: "price", title: "riskSummary.titlePrice", message: price.explanation, params: { ...price.params, _messageKey: price.explanation } });
 }
 
 function addConfidenceFactors(confidence: RiskSummary["dataConfidence"], valuation: ValuationResult | undefined, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"]) {
-  if (confidence === "high") positives.push({ key: "confidence", title: "riskSummary.titleConfidence", message: "riskSummary.burdenHealthy", params: { ratio: String(valuation?.confidence_score ?? 0) } });
-  if (confidence === "low") risks.push({ key: "confidence", level: "high", title: "riskSummary.titleConfidence", message: "risk.confidenceLow" });
-  if (confidence === "medium") risks.push({ key: "confidence", level: "medium", title: "riskSummary.titleConfidence", message: "risk.confidenceMedium" });
+  if (confidence === "high") positives.push({ key: "confidence", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceHighMessage", params: { confidence: valuation?.confidence_score ?? 0 } });
+  if (confidence === "low") risks.push({ key: "confidence", level: "high", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceLowMessage" });
+  if (confidence === "medium") risks.push({ key: "confidence", level: "medium", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceMediumMessage" });
 }
 
 function addLocationPriceSupport(location: LocationInsightResult | undefined, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"], missing: string[]) {
@@ -167,9 +167,9 @@ function addLocationPriceSupport(location: LocationInsightResult | undefined, ri
     return;
   }
   if (location.valuation_context.supports_price_reasonableness) {
-    positives.push({ key: "location-price", title: "riskSummary.titleLocation", message: location.valuation_context.explanation });
+    positives.push({ key: "location-price", title: "riskSummary.titleLocationSupportsPrice", message: location.valuation_context.explanation });
   } else {
-    risks.push({ key: "location-price", level: "medium", title: "riskSummary.titleLocation", message: location.valuation_context.explanation });
+    risks.push({ key: "location-price", level: "medium", title: "riskSummary.titleLocationNotSupportsPrice", message: location.valuation_context.explanation });
   }
 }
 

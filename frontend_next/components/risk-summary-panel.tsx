@@ -39,8 +39,8 @@ export function RiskSummaryPanel({ summary }: { summary: RiskSummary }) {
     <div className="p-4"><DetailDisclosure title={copy("risk.sourceTitle")}><div className="grid min-w-0 gap-3 md:grid-cols-2">
       <SummaryBlock title={copy("risk.priceReasonableness")} items={[`${localizedPriceLabel}: ${localizedPriceExplanation}`]} noEmpty={copy("risk.noPositive")} />
       <SummaryBlock title={copy("risk.dataConfidence")} items={[confidenceLabelFn(summary.dataConfidence)]} noEmpty={copy("risk.noPositive")} />
-      <SummaryBlock title={copy("risk.positiveFactors")} items={summary.positiveFactors.map((item) => `${localizeFactorTitle(item.key, locale)}: ${localizeFactorMessage(item.key, "positive", locale, item.params)}`)} noEmpty={copy("risk.noPositive")} />
-      <SummaryBlock title={copy("risk.riskFactors")} items={summary.riskFactors.map((item) => `${localizeFactorTitle(item.key, locale)}: ${localizeFactorMessage(item.key, item.level, locale, item.params)}`)} noEmpty={copy("risk.noRisk")} />
+      <SummaryBlock title={copy("risk.positiveFactors")} items={summary.positiveFactors.map((item) => `${localizeFactorTitle(item.key, locale, item.title)}: ${localizeFactorMessage(item.key, "positive", locale, item.params)}`)} noEmpty={copy("risk.noPositive")} />
+      <SummaryBlock title={copy("risk.riskFactors")} items={summary.riskFactors.map((item) => `${localizeFactorTitle(item.key, locale, item.title)}: ${localizeFactorMessage(item.key, item.level, locale, item.params)}`)} noEmpty={copy("risk.noRisk")} />
       <SummaryBlock title={copy("risk.missingChecks")} items={localizeItems(summary.missingChecks)} noEmpty={copy("risk.noMissing")} />
       <SummaryBlock title={copy("risk.nextSteps")} items={localizeItems(summary.nextActions)} noEmpty={copy("risk.noNextSteps")} />
       <div className="md:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-3">

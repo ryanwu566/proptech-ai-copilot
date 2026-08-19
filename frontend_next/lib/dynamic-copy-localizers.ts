@@ -169,26 +169,64 @@ const FACTOR_TITLE_KEYS: Record<string, RuntimeCopyKey> = {
   "risk-facilities": "riskSummary.titleRiskFacilities",
   price: "riskSummary.titlePrice",
   confidence: "riskSummary.titleConfidence",
+  "location-price": "riskSummary.titleLocation",
 };
 
-export function localizeFactorTitle(key: string, locale: ExperienceLocale): string {
-  return FACTOR_TITLE_KEYS[key] ? translateRuntimeCopy(locale, FACTOR_TITLE_KEYS[key]) : key;
+export function localizeFactorTitle(key: string, locale: ExperienceLocale, titleKey?: string): string {
+  // If the producer provided a specific title key, use it directly
+  if (titleKey && titleKey.startsWith("riskSummary.")) {
+    return translateRuntimeCopy(locale, titleKey as RuntimeCopyKey);
+  }
+  return FACTOR_TITLE_KEYS[key] ? translateRuntimeCopy(locale, FACTOR_TITLE_KEYS[key]) : translateRuntimeCopy(locale, "common.noData");
 }
 
 export function localizeFactorMessage(key: string, level: string, locale: ExperienceLocale, params?: Record<string, string | number>): string {
+  // Loan and holding: burden ratio messages
   if ((key === "loan" || key === "holding") && params?.ratio !== undefined) {
     if (level === "high") return translateRuntimeCopy(locale, "riskSummary.burdenHigh", params);
     if (level === "medium") return translateRuntimeCopy(locale, "riskSummary.burdenCaution", params);
     return translateRuntimeCopy(locale, "riskSummary.burdenHealthy", params);
   }
+  // Location: location score messages
   if (key === "location" && params?.score !== undefined) {
     if (level === "high") return translateRuntimeCopy(locale, "riskSummary.locationLow", params);
     if (level === "medium") return translateRuntimeCopy(locale, "riskSummary.locationMedium", params);
     return translateRuntimeCopy(locale, "riskSummary.locationGood", params);
   }
+  // Risk facilities: warning with count
   if (key === "risk-facilities" && params?.count !== undefined) {
     return translateRuntimeCopy(locale, "riskSummary.riskFacilityWarning", params);
   }
-  // Fallback: return raw message for keys not yet mapped (e.g. price explanation)
-  return params?.message as string ?? key;
+  // Confidence: confidence-specific messages (never burden)
+  if (key === "confidence") {
+    if (level === "positive" || level === "low" || level === "medium" || level === "high") {
+      if (params?.confidence !== undefined) return translateRuntimeCopy(locale, "riskSummary.confidenceHighMessage", params);
+      if (level === "high") return translateRuntimeCopy(locale, "riskSummary.confidenceLowMessage", params);
+      if (level === "medium") return translateRuntimeCopy(locale, "riskSummary.confidenceMediumMessage", params);
+    }
+    // For positive factors with confidence param
+    if (params?.confidence !== undefined) return translateRuntimeCopy(locale, "riskSummary.confidenceHighMessage", params);
+    return translateRuntimeCopy(locale, "riskSummary.confidenceMediumMessage", params);
+  }
+  // Price: use price explanation keys
+  if (key === "price" && params?.price !== undefined) {
+    const messageKey = params._messageKey as string | undefined;
+    if (messageKey && messageKey.startsWith("riskSummary.")) {
+      return translateRuntimeCopy(locale, messageKey as RuntimeCopyKey, params);
+    }
+    if (level === "high") return translateRuntimeCopy(locale, "riskSummary.priceOverpricedExplanation", params);
+    return translateRuntimeCopy(locale, "riskSummary.priceReasonableExplanation", params);
+  }
+  // Location-price: the message is a raw explanation from the API
+  if (key === "location-price") {
+    // The message field is the API explanation string — pass through safely
+    // Title localization handles the distinction (supports/not supports)
+    return params?.message as string ?? translateRuntimeCopy(locale, "riskSummary.titleLocation");
+  }
+  // Generic fallback: try treating message as a runtime copy key
+  if (params?.message && typeof params.message === "string" && params.message.startsWith("riskSummary.")) {
+    return translateRuntimeCopy(locale, params.message as RuntimeCopyKey, params);
+  }
+  // Safe generic fallback: return translated title rather than raw key
+  return translateRuntimeCopy(locale, "common.noData");
 }
