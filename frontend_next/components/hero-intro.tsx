@@ -13,8 +13,8 @@ const outcomeCards: { titleKey: TranslationKey; detailKey: TranslationKey }[] = 
 ];
 
 export function HeroIntro({ onStart, onWorkspace, reportReady = false, onReport, workflowStatus }: { onStart: () => void; onWorkspace: () => void; reportReady?: boolean; onReport: () => void; workflowStatus?: WorkflowStatus }) {
-  const { t } = useExperienceLocale();
-  const primaryLabel = workflowStatus?.completedSteps.length ? `${t("hero.continue")}: ${workflowStatus.nextActionLabel}` : t("hero.primary");
+  const { t, copy } = useExperienceLocale();
+  const primaryLabel = workflowStatus?.completedSteps.length ? `${t("hero.continue")}: ${copy(workflowStatus.nextActionLabel as any)}` : t("hero.primary");
   return <section id="hero" className="relative min-w-0 overflow-hidden rounded-3xl border border-cyan-200/70 bg-slate-950 px-4 py-6 text-white shadow-xl sm:px-7 sm:py-8 lg:px-10 lg:py-10">
     <div className="hero-grid pointer-events-none absolute inset-0 opacity-35" />
     <div className="hero-orb pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cyan-400/25 blur-3xl motion-reduce:animate-none" />

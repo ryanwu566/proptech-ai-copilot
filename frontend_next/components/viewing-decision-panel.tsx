@@ -21,7 +21,11 @@ export function ViewingDecisionPanel({ decision, onNext }: { decision: ViewingDe
   const localizedReasons = localizeDecisionReasons(decision.status, locale, localizedMissing);
   const localizedRuleNotes = localizeRuleNotes(locale);
   const localizedRiskSources = decision.riskSources.map((src) => {
-    if (src.startsWith("high_item:")) return localizeRiskSource("high_item", locale, { title: src.replace("high_item:", "") });
+    if (src.startsWith("high_item:")) {
+      const rawTitle = src.replace("high_item:", "");
+      const translatedTitle = copy(rawTitle as any) ?? rawTitle;
+      return localizeRiskSource("high_item", locale, { title: translatedTitle });
+    }
     return localizeRiskSource(src, locale);
   });
   const localizedNextAction = localizeNextActionLabel(decision.nextAction.label, locale);

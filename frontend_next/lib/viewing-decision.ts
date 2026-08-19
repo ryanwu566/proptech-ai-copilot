@@ -27,11 +27,11 @@ export type ViewingDecisionInputs = {
   taxOracleResult?: TaxResult;
 };
 
-const criticalChecks: Array<{ key: keyof ViewingDecisionInputs; label: string; targetId: string; action: string }> = [
-  { key: "valuation", label: "合理價格區間", targetId: "valuation-calculator", action: "先完成合理價格估算" },
-  { key: "loan", label: "貸款月付", targetId: "loan-calculator", action: "先試算每月房貸" },
-  { key: "holding", label: "每月持有成本", targetId: "holding-cost-calculator", action: "先估算每月總支出" },
-  { key: "location", label: "生活機能與區位", targetId: "location-insight-calculator", action: "先分析生活機能與區位" },
+const criticalChecks: Array<{ key: keyof ViewingDecisionInputs; targetId: string }> = [
+  { key: "valuation", targetId: "valuation-calculator" },
+  { key: "loan", targetId: "loan-calculator" },
+  { key: "holding", targetId: "holding-cost-calculator" },
+  { key: "location", targetId: "location-insight-calculator" },
 ];
 
 export function buildViewingDecision(input: ViewingDecisionInputs): ViewingDecision {
