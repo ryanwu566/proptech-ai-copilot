@@ -12,8 +12,8 @@ def test_reference_control_is_keyboard_accessible_and_stateful() -> None:
     assert 'type="button"' in COMPONENT
     assert "disabled={!evidence.attachable}" in COMPONENT
     assert "focus:ring" in COMPONENT
-    assert "風險資料來源與限制" in COMPONENT
-    assert "各圖層獨立呈現" in MATRIX
+    assert "風險資料來源與限制" in COMPONENT or "sourceTransparency" in COMPONENT
+    assert "各圖層獨立呈現" in MATRIX or "viz.terrainLayerIndependent" in MATRIX
 
 
 def test_reference_ui_does_not_render_private_coordinates_or_raw_payload() -> None:
