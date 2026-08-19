@@ -124,3 +124,125 @@ def test_google_health_without_key_is_safe_mock(monkeypatch) -> None:
     assert result["google_key_configured"] is False
     assert result["mode"] == "mock"
     assert result["safe_message"] == "目前使用展示資料"
+
+
+# ---------------------------------------------------------------------------
+# Taiwan Google Geocoding district parsing regression tests
+# ---------------------------------------------------------------------------
+
+
+class _FakeResponse:
+    """Minimal httpx.Response mock for geocoding tests."""
+
+    def __init__(self, address_components, formatted_address="test address"):
+        self._json = {
+            "results": [{
+                "geometry": {"location": {"lat": 25.025, "lng": 121.543}},
+                "address_components": address_components,
+                "formatted_address": formatted_address,
+                "place_id": "test-place-id",
+            }]
+        }
+        self.status_code = 200
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._json
+
+
+def test_google_geocoding_parses_taiwan_district_from_level_2(monkeypatch) -> None:
+    """Taiwan uses administrative_area_level_2 for district (e.g. 大安區)."""
+    components = [
+        {"long_name": "和平東路二段", "types": ["route"]},
+        {"long_name": "大安區", "types": ["administrative_area_level_2", "political"]},
+        {"long_name": "臺北市", "types": ["administrative_area_level_1", "political"]},
+        {"long_name": "台灣", "types": ["country", "political"]},
+        {"long_name": "106", "types": ["postal_code"]},
+    ]
+    fake = _FakeResponse(components, "106台灣臺北市大安區和平東路二段")
+    monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *a, **kw: fake)
+    adapter = GoogleGeocodingAdapter(api_key="test-key")
+    result = adapter.search("台北市大安區和平東路二段", [])
+    assert result is not None
+    assert result["city"] == "臺北市"
+    assert result["district"] == "大安區"
+
+
+def test_google_geocoding_parses_newtaipei_district(monkeypatch) -> None:
+    """New Taipei districts also use administrative_area_level_2."""
+    components = [
+        {"long_name": "文化路二段", "types": ["route"]},
+        {"long_name": "板橋區", "types": ["administrative_area_level_2", "political"]},
+        {"long_name": "新北市", "types": ["administrative_area_level_1", "political"]},
+        {"long_name": "台灣", "types": ["country", "political"]},
+    ]
+    fake = _FakeResponse(components)
+    monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *a, **kw: fake)
+    adapter = GoogleGeocodingAdapter(api_key="test-key")
+    result = adapter.search("新北市板橋區文化路二段", [])
+    assert result is not None
+    assert result["city"] == "新北市"
+    assert result["district"] == "板橋區"
+
+
+def test_google_geocoding_prefers_level_2_over_level_3_for_taiwan(monkeypatch) -> None:
+    """Taiwan product: level_2 is district; level_3 is fallback only when level_2 absent."""
+    components = [
+        {"long_name": "Some SubDistrict", "types": ["administrative_area_level_3", "political"]},
+        {"long_name": "大安區", "types": ["administrative_area_level_2", "political"]},
+        {"long_name": "臺北市", "types": ["administrative_area_level_1", "political"]},
+    ]
+    fake = _FakeResponse(components)
+    monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *a, **kw: fake)
+    adapter = GoogleGeocodingAdapter(api_key="test-key")
+    result = adapter.search("test address", [])
+    assert result is not None
+    assert result["district"] == "大安區"  # level_2 wins for Taiwan
+    assert result["city"] == "臺北市"
+
+
+def test_google_geocoding_falls_back_to_level_3_when_level_2_absent(monkeypatch) -> None:
+    """If level_2 is absent, level_3 is used as fallback."""
+    components = [
+        {"long_name": "Some District", "types": ["administrative_area_level_3", "political"]},
+        {"long_name": "Some City", "types": ["administrative_area_level_1", "political"]},
+    ]
+    fake = _FakeResponse(components)
+    monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *a, **kw: fake)
+    adapter = GoogleGeocodingAdapter(api_key="test-key")
+    result = adapter.search("test address", [])
+    assert result is not None
+    assert result["district"] == "Some District"
+    assert result["city"] == "Some City"
+
+
+def test_google_geocoding_district_empty_when_no_district_component(monkeypatch) -> None:
+    """District remains empty when no level_2 or level_3 component exists."""
+    components = [
+        {"long_name": "Some City", "types": ["administrative_area_level_1", "political"]},
+        {"long_name": "Some Country", "types": ["country", "political"]},
+    ]
+    fake = _FakeResponse(components)
+    monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *a, **kw: fake)
+    adapter = GoogleGeocodingAdapter(api_key="test-key")
+    result = adapter.search("test address", [])
+    assert result is not None
+    assert result["district"] == ""
+    assert result["city"] == "Some City"
+
+
+def test_google_geocoding_city_still_parses_from_level_1(monkeypatch) -> None:
+    """City parsing from administrative_area_level_1 remains correct."""
+    components = [
+        {"long_name": "臺中市", "types": ["administrative_area_level_1", "political"]},
+        {"long_name": "西屯區", "types": ["administrative_area_level_2", "political"]},
+    ]
+    fake = _FakeResponse(components)
+    monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *a, **kw: fake)
+    adapter = GoogleGeocodingAdapter(api_key="test-key")
+    result = adapter.search("臺中市西屯區", [])
+    assert result is not None
+    assert result["city"] == "臺中市"
+    assert result["district"] == "西屯區"
