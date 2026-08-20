@@ -39,6 +39,7 @@ export function LocationMarketStage({ propertyContext, initialLocationResult, in
   useEffect(() => { setMarketDisplayStatus(initialMarketStatus); }, [initialMarketStatus]);
 
   function updatePropertyContext(next: LocationInsightPrefill) {
+    const addressChanged = next.address !== undefined && next.address.trim() !== (propertyContext.addressSummary ?? "").trim();
     const nextContext = getSafeJourneyPropertyContext({
       ...propertyContext,
       city: next.city ?? propertyContext.city,
@@ -47,11 +48,11 @@ export function LocationMarketStage({ propertyContext, initialLocationResult, in
       addressSummary: next.address ?? propertyContext.addressSummary,
       buildingType: next.building_type ?? propertyContext.buildingType,
       areaPing: next.area_ping ?? propertyContext.areaPing,
-      askingPriceWan: next.property_price ?? propertyContext.askingPriceWan,
+      askingPriceWan: addressChanged ? undefined : next.property_price ?? propertyContext.askingPriceWan,
       sourceLabel: copy("common.source"),
       selectionStatus: "partial",
     });
-    onPropertyContextChange?.(nextContext);
+    onPropertyContextChange?.(addressChanged ? { ...nextContext, askingPriceWan: undefined } : nextContext);
   }
 
   function updateLocationResult(result: LocationInsightResult | null) {

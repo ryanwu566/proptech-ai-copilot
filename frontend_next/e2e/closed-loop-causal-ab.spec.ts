@@ -462,6 +462,7 @@ test("address change invalidates location, terrain, market, valuation and afford
   await expect(page.getByTestId("decision-evidence-location")).not.toContainText("Controlled terrain reference");
   await expect(page.getByTestId("decision-evidence-location")).not.toContainText("2026-06");
   await expect(page.getByTestId("decision-evidence-price")).not.toContainText("2,100");
+  await expect(page.getByTestId("decision-evidence-price")).not.toContainText("2,000");
   await expect(page.getByTestId("decision-monthly-payment")).not.toContainText("60,000");
 });
 
