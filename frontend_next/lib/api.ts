@@ -326,9 +326,23 @@ export type OfficialDataSourceStatus = {
   limitation_summary: string;
 };
 export type TerrainHazardLayer = { key: string; label: string; status: TerrainRiskLayerStatus; level: TerrainRiskLevel; matched: boolean; distance_m: number | null; value: string | number | null; explanation: string; source?: TerrainRiskSource };
+export type CadastralEvidence = {
+  status: "available" | "reference_only" | "not_configured" | "unavailable";
+  mode: "wmts" | "raster" | "point_reference_only";
+  provider: "NLSC";
+  provider_name?: string;
+  center: { lat: number; lng: number };
+  raster_status?: "verified_public" | "verified_configured" | "not_configured" | "not_proven" | "unavailable";
+  vector_status?: "verified" | "not_configured" | "not_proven";
+  tile_url_template?: string;
+  attribution?: string;
+  source_url?: string;
+  limitation: string;
+  checked_at: string;
+};
 export type TerrainRiskResult = {
   input: Record<string, string | number | string[] | null | undefined>;
-  resolved_location: { address_label?: string; latitude?: number; longitude?: number; geocoding_confidence?: string };
+  resolved_location: { address_label?: string; latitude?: number; longitude?: number; geocoding_confidence?: string; geocoding_source?: "google_geocoding" | "tgos_geocoding" | "mock" | "provided_coordinates" | "unknown" };
   overall: { level: TerrainRiskLevel; label: string; summary: string; confidence: "high" | "medium" | "low" | "unknown" };
   terrain: { status: TerrainRiskLayerStatus; slope_value?: number | null; slope_class?: string | null; elevation_m?: number | null; explanation: string; source?: TerrainRiskSource };
   hazards: Record<"landslide" | "debris_flow" | "flood" | "geological_sensitivity" | "liquefaction" | "active_fault", TerrainHazardLayer>;
@@ -336,6 +350,7 @@ export type TerrainRiskResult = {
   missing_sources: string[];
   recommended_checks: string[];
   map_layers: { key: string; label: string; status: string; source_url?: string; external_view_url?: string; data_vintage?: string; data_quality?: string; limitation?: string }[];
+  cadastral_evidence?: CadastralEvidence;
   source_transparency?: { notice: string; layers: TerrainRiskSourceTransparencyLayer[] };
   official_data_sources?: OfficialDataSourceStatus[];
   data_quality: { status: "good" | "limited" | "unavailable"; warnings: string[]; checked_at: string };

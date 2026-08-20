@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, type LocationInsightResult, type TerrainHazardLayer, type TerrainRiskResult, type TerrainRiskSourceTransparencyLayer } from "@/lib/api";
+import { api, type CadastralEvidence, type LocationInsightResult, type TerrainHazardLayer, type TerrainRiskResult, type TerrainRiskSourceTransparencyLayer } from "@/lib/api";
 import { AnalysisProgress, type AnalysisProgressPhase } from "@/components/analysis-progress";
+import { TerrainCadastralEvidence } from "@/components/terrain-cadastral-evidence";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, SectionCard } from "@/components/product-ui";
@@ -23,6 +24,25 @@ export const TERRAIN_REFERENCE_EVIDENCE_EVENT = "proptech:terrain-reference-evid
 
 export type TerrainRiskPrefill = { address?: string; city?: string; district?: string; road?: string; latitude?: number; longitude?: number; radius_m?: number };
 const DEFAULT_LAYERS = ["terrain", "landslide", "debris_flow", "flood", "geological_sensitivity", "liquefaction", "active_fault"];
+
+function cadastralEvidenceFor(result: TerrainRiskResult): CadastralEvidence {
+  if (result.cadastral_evidence) return result.cadastral_evidence;
+  return {
+    status: "not_configured",
+    mode: "point_reference_only",
+    provider: "NLSC",
+    provider_name: "內政部國土測繪中心",
+    center: {
+      lat: Number(result.resolved_location.latitude),
+      lng: Number(result.resolved_location.longitude),
+    },
+    raster_status: "not_configured",
+    vector_status: "not_configured",
+    source_url: "https://maps.nlsc.gov.tw/S09SOA/homePage.action?Language=ZH",
+    limitation: "POINT_REFERENCE_ONLY",
+    checked_at: result.data_quality.checked_at,
+  };
+}
 
 export function prefillTerrainRisk(prefill: TerrainRiskPrefill) {
   window.dispatchEvent(new CustomEvent<TerrainRiskPrefill>(TERRAIN_RISK_PREFILL_EVENT, { detail: prefill }));
@@ -117,6 +137,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
 
 function TerrainRiskResults({ result, copy, onReferenceAttach }: { result: TerrainRiskResult; copy: TerrainSurfaceCopy; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
   const hazards = Object.values(result.hazards); const evidence = buildTerrainReferenceEvidence(result); const evidenceByLayer = new Map(evidence.layers.map((layer) => [layer.layer_id, layer]));
+  const cadastralEvidence = cadastralEvidenceFor(result);
   const requested = Array.isArray(result.input.include_layers) ? result.input.include_layers as string[] : DEFAULT_LAYERS;
   const statuses = requested.map((layer) => layer === "terrain" ? result.terrain.status : result.hazards[layer as keyof typeof result.hazards]?.status ?? "unavailable");
   const completeness = { checked: statuses.length, usable: statuses.filter((status) => status === "available").length, limited: statuses.filter((status) => status === "limited").length, unavailable: statuses.filter((status) => status === "unavailable" || status === "error").length };
@@ -128,7 +149,10 @@ function TerrainRiskResults({ result, copy, onReferenceAttach }: { result: Terra
   return <div className="min-w-0 space-y-4">
     <section data-testid="terrain-data-completeness" className="rounded-xl border border-slate-200 bg-slate-950 p-4 text-white"><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-200">{copy.resultKicker}</p><h3 className="mt-1 text-xl font-extrabold">{copy.dataCompleteness}</h3><div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4"><CompletenessCount label={copy.checked} value={completeness.checked} /><CompletenessCount label={copy.usable} value={completeness.usable} /><CompletenessCount label={copy.limitedCount} value={completeness.limited} /><CompletenessCount label={copy.unavailableCount} value={completeness.unavailable} /></div><p className="mt-3 text-xs leading-5 text-slate-300">{copy.sourceFallbackNotice}</p></section>
     <section data-testid="terrain-priority-follow-up" className={`rounded-xl border p-4 ${result.risk_factors.length > 0 ? "border-rose-200 bg-rose-50" : "border-amber-200 bg-amber-50"}`}><p className="text-xs font-black text-slate-900">{copy.priorityFollowUp}</p><ul className="mt-2 space-y-1 text-xs leading-5 text-slate-700">{priorityItems.map((item) => <li key={item}>• {item}</li>)}</ul></section>
-    <section><h3 className="text-xs font-black uppercase tracking-wider text-slate-800">{copy.actualEvidence}</h3><div className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><TerrainEvidenceCard result={result} copy={copy} />{hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} state={evidenceByLayer.get(hazard.key)?.state ?? "unknown"} copy={copy} />)}</div></section>
+    <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.92fr)] xl:items-start">
+      <section className="min-w-0"><h3 className="text-xs font-black uppercase tracking-wider text-slate-800">{copy.actualEvidence}</h3><div className="mt-2 grid gap-3 sm:grid-cols-2"><TerrainEvidenceCard result={result} copy={copy} />{hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} state={evidenceByLayer.get(hazard.key)?.state ?? "unknown"} copy={copy} />)}</div></section>
+      <TerrainCadastralEvidence evidence={cadastralEvidence} radiusM={Number(result.input.radius_m ?? 500)} coordinateSource={result.resolved_location.geocoding_source ?? "unknown"} copy={copy} />
+    </div>
     <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4"><p className="text-xs font-bold text-cyan-950">{copy.referenceTitle}</p><p className="mt-2 text-xs leading-5 text-cyan-950">{copy.sourceFallbackNotice}</p><button type="button" className="mt-3 rounded-lg border border-cyan-700 bg-white px-3 py-2 text-xs font-bold text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" disabled={!evidence.attachable} onClick={() => { onReferenceAttach?.(evidence); window.dispatchEvent(new CustomEvent<TerrainReferenceEvidence>(TERRAIN_REFERENCE_EVIDENCE_EVENT, { detail: evidence })); }}>{evidence.attachable ? copy.attach : copy.attachDisabled}</button>{!evidence.attachable && <p className="mt-2 text-[11px] text-amber-800">{copy.attachDisabled}</p>}<p className="mt-2 text-[11px] text-slate-600">{copy.referenceState}: {copy.states[evidence.status] ?? copy.unknown}</p></div>
     <ListCard title={copy.recommended} items={result.recommended_checks} />
     <RiskSourceTransparency result={result} copy={copy} />

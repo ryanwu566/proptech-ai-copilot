@@ -8,6 +8,7 @@ import logging
 import time
 from typing import Any, Callable, Iterable
 
+from services.cadastral_evidence import build_cadastral_evidence
 from services.map_service import search_location
 from services.official_data_registry import provider_registry
 from services.terrain_risk_providers import (
@@ -137,6 +138,11 @@ def analyze_terrain_risk(
         "missing_sources": missing_sources,
         "recommended_checks": _recommended_checks(overall, missing_sources),
         "map_layers": _map_layers(terrain, hazards, layers),
+        "cadastral_evidence": build_cadastral_evidence(
+            resolved["latitude"],
+            resolved["longitude"],
+            checked_at=data_quality["checked_at"],
+        ),
         "source_transparency": _source_transparency(terrain, hazards, layers),
         "official_data_sources": provider_registry("terrain"),
         "data_quality": data_quality,
@@ -184,6 +190,7 @@ def _resolve_location(
             "latitude": latitude,
             "longitude": longitude,
             "geocoding_confidence": "provided_coordinates",
+            "geocoding_source": "provided_coordinates",
         }
     if not query:
         return None
@@ -196,6 +203,7 @@ def _resolve_location(
         "latitude": float(center["lat"]),
         "longitude": float(center["lng"]),
         "geocoding_confidence": found.get("confidence", "unknown"),
+        "geocoding_source": found.get("source", "unknown"),
     }
 
 
