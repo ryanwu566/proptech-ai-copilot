@@ -48,28 +48,30 @@ async function setup(page: import("@playwright/test").Page, requestCtx: import("
 
 async function fill(page: import("@playwright/test").Page, v: { income: number; debt: number; cash: number; properties: number; mortgages: number; price: number }) {
   const f = page.getByTestId("aegis-scenario-form");
-  await f.getByRole("spinbutton", { name: "月收入", exact: true }).fill(String(v.income));
-  await f.getByRole("spinbutton", { name: "每月負債", exact: true }).fill(String(v.debt));
-  await f.getByRole("spinbutton", { name: "可用現金", exact: true }).fill(String(v.cash));
-  await f.getByRole("spinbutton", { name: "名下房屋數", exact: true }).fill(String(v.properties));
-  await f.getByRole("spinbutton", { name: "既有房貸數", exact: true }).fill(String(v.mortgages));
-  await f.getByRole("spinbutton", { name: "物件價格", exact: true }).fill(String(v.price));
+  // aria-labels are now localized — use the zh-TW defaults since tests run in zh-TW by default
+  // For other locales, the form container still works by field position within fieldsets
+  await f.locator("fieldset").nth(0).locator("input[type='number']").nth(0).fill(String(v.income));
+  await f.locator("fieldset").nth(0).locator("input[type='number']").nth(1).fill(String(v.debt));
+  await f.locator("fieldset").nth(1).locator("input[type='number']").nth(0).fill(String(v.cash));
+  await f.locator("fieldset").nth(1).locator("input[type='number']").nth(1).fill(String(v.properties));
+  await f.locator("fieldset").nth(1).locator("input[type='number']").nth(2).fill(String(v.mortgages));
+  await f.locator("fieldset").nth(2).locator("input[type='number']").nth(0).fill(String(v.price));
 }
 
 async function assertValues(page: import("@playwright/test").Page, v: { income: string; debt: string; cash: string; properties: string; mortgages: string; price: string }) {
   const f = page.getByTestId("aegis-scenario-form");
-  await expect(f.getByRole("spinbutton", { name: "月收入", exact: true })).toHaveValue(v.income);
-  await expect(f.getByRole("spinbutton", { name: "每月負債", exact: true })).toHaveValue(v.debt);
-  await expect(f.getByRole("spinbutton", { name: "可用現金", exact: true })).toHaveValue(v.cash);
-  await expect(f.getByRole("spinbutton", { name: "名下房屋數", exact: true })).toHaveValue(v.properties);
-  await expect(f.getByRole("spinbutton", { name: "既有房貸數", exact: true })).toHaveValue(v.mortgages);
-  await expect(f.getByRole("spinbutton", { name: "物件價格", exact: true })).toHaveValue(v.price);
+  await expect(f.locator("fieldset").nth(0).locator("input[type='number']").nth(0)).toHaveValue(v.income);
+  await expect(f.locator("fieldset").nth(0).locator("input[type='number']").nth(1)).toHaveValue(v.debt);
+  await expect(f.locator("fieldset").nth(1).locator("input[type='number']").nth(0)).toHaveValue(v.cash);
+  await expect(f.locator("fieldset").nth(1).locator("input[type='number']").nth(1)).toHaveValue(v.properties);
+  await expect(f.locator("fieldset").nth(1).locator("input[type='number']").nth(2)).toHaveValue(v.mortgages);
+  await expect(f.locator("fieldset").nth(2).locator("input[type='number']").nth(0)).toHaveValue(v.price);
 }
 
 async function submitAndWait(page: import("@playwright/test").Page) {
   const t0 = Date.now();
-  await page.getByRole("button", { name: "執行房貸風險分析" }).click();
-  await expect(page.locator("text=風險分數").first()).toBeVisible({ timeout: 45000 });
+  await page.getByRole("button", { name: /執行房貸風險分析|Run risk analysis|リスク分析を実行|위험 분석 실행/ }).click();
+  await expect(page.locator("text=風險分數").or(page.locator("text=Risk score")).or(page.locator("text=リスクスコア")).or(page.locator("text=위험 점수")).first()).toBeVisible({ timeout: 45000 });
   return Date.now() - t0;
 }
 
@@ -282,12 +284,13 @@ test.describe("Aegis — Locale Verification", () => {
   const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
   const EXPECTED_CTA: Record<string, string> = { "zh-TW": "執行房貸風險分析", en: "Run risk analysis", ja: "リスク分析を実行", ko: "위험 분석 실행" };
   const EXPECTED_GROUP: Record<string, string> = { "zh-TW": "收入與負債", en: "Income and debt", ja: "収入と負債", ko: "소득과 부채" };
+  const EXPECTED_SCORE_LABEL: Record<string, string> = { "zh-TW": "風險分數", en: "Risk score", ja: "リスクスコア", ko: "위험 점수" };
+  const CHINESE_FRONTEND_LABELS = ["買方情境評估", "收入與負債", "資產與房貸", "目標物件", "月收入", "每月負債", "可用現金", "名下房屋數", "既有房貸數", "物件價格", "執行房貸風險分析", "風險分數", "風險狀態", "風險提示", "對客戶說明建議"];
 
   for (const locale of LOCALES) {
-    test(`${locale}: form labels and CTA localized`, async ({ page, request: requestCtx }) => {
+    test(`${locale}: form labels, CTA, groups, accessible names localized`, async ({ page, request: requestCtx }) => {
       await setup(page, requestCtx);
 
-      // Switch locale
       if (locale !== "zh-TW") {
         const localeSelect = page.locator("select[aria-label]").first();
         await localeSelect.selectOption(locale);
@@ -296,23 +299,33 @@ test.describe("Aegis — Locale Verification", () => {
 
       const form = page.getByTestId("aegis-scenario-form");
       await expect(form).toBeVisible();
+      const formText = await form.innerText();
 
       // Group heading localized
-      const formText = await form.innerText();
       expect(formText, `Group heading in ${locale}`).toContain(EXPECTED_GROUP[locale]);
 
       // CTA localized
       const cta = page.getByRole("button", { name: EXPECTED_CTA[locale] });
       await expect(cta).toBeVisible();
 
-      // No raw i18n keys
+      // No raw aegis.* keys
       expect(formText).not.toMatch(/aegis\.\w+/);
 
-      // For EN/JA/KO: no inappropriate Chinese form labels
+      // For EN/JA/KO: no Chinese frontend labels
       if (locale !== "zh-TW") {
-        expect(formText).not.toContain("收入與負債");
-        expect(formText).not.toContain("資產與房貸");
-        expect(formText).not.toContain("目標物件");
+        for (const label of CHINESE_FRONTEND_LABELS) {
+          expect(formText, `No Chinese label "${label}" in ${locale}`).not.toContain(label);
+        }
+      }
+
+      // Trigger validation — check message is localized
+      await form.locator("fieldset").nth(0).locator("input[type='number']").nth(0).fill("0");
+      await cta.click();
+      const alert = page.locator("p[role='alert']");
+      await expect(alert).toBeVisible({ timeout: 2000 });
+      const alertText = await alert.innerText();
+      if (locale !== "zh-TW") {
+        expect(alertText).not.toContain("月收入必須大於");
       }
     });
   }
