@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { api, type CadastralEvidence, type LocationInsightResult, type TerrainHazardLayer, type TerrainRiskResult, type TerrainRiskSourceTransparencyLayer } from "@/lib/api";
+import { api, ApiRequestError, type CadastralEvidence, type LocationInsightResult, type ParcelGeometryEvidence, type TerrainHazardLayer, type TerrainRiskResult, type TerrainRiskSourceTransparencyLayer } from "@/lib/api";
 import { AnalysisProgress, type AnalysisProgressPhase } from "@/components/analysis-progress";
 import { TerrainCadastralEvidence } from "@/components/terrain-cadastral-evidence";
 import { HelpTooltip } from "@/components/help-tooltip";
@@ -11,6 +11,7 @@ import type { LocationMarketDisplayStatus } from "@/lib/location-market-journey"
 import { buildTerrainReferenceEvidence, terrainReferenceStateLabel, type TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getSurfaceCopy, type TerrainSurfaceCopy } from "@/lib/surface-copy";
+import { getParcelGeometryCopy, type ParcelGeometryCopy } from "@/lib/parcel-geometry-copy";
 import { OfficialDataStatusCard } from "@/components/official-data-status-card";
 
 // Static UI contract vocabulary remains here for existing source-level regression checks;
@@ -51,6 +52,7 @@ export function prefillTerrainRisk(prefill: TerrainRiskPrefill) {
 export function TerrainRiskAnalysis({ location, compactFromLocation = false, resetKey, onStatusChange, onResult, onReferenceAttach }: { location?: LocationInsightResult; compactFromLocation?: boolean; resetKey?: string; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: TerrainRiskResult | null) => void; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
   const { locale } = useExperienceLocale();
   const copy = getSurfaceCopy(locale).terrain;
+  const parcelCopy = getParcelGeometryCopy(locale);
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [district, setDistrict] = useState("");
@@ -63,13 +65,29 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState<AnalysisProgressPhase>("idle");
+  const [parcelEvidence, setParcelEvidence] = useState<ParcelGeometryEvidence>();
+  const [parcelFileName, setParcelFileName] = useState("");
+  const [parcelPhase, setParcelPhase] = useState<"idle" | "reading" | "validating" | "ready" | "error">("idle");
+  const [parcelError, setParcelError] = useState("");
+  const [parcelErrorCode, setParcelErrorCode] = useState("");
   const requestRef = useRef(0);
+  const uploadRequestRef = useRef(0);
+  const uploadAbortRef = useRef<AbortController | null>(null);
   const inputKey = compactFromLocation
     ? [location?.resolved_location?.address_label, location?.resolved_location?.latitude, location?.resolved_location?.longitude, radius, layers.join(",")].join("|")
     : [address, city, district, road, latitude, longitude, radius, layers.join(",")].join("|");
   const previousInputKey = useRef(inputKey);
+  const locationIdentityKey = compactFromLocation
+    ? [location?.resolved_location?.address_label, location?.resolved_location?.latitude, location?.resolved_location?.longitude].join("|")
+    : [address, city, district, road, latitude, longitude].join("|");
+  const previousLocationIdentityKey = useRef(locationIdentityKey);
 
-  useEffect(() => { requestRef.current += 1; setLoading(false); setResult(undefined); setError(""); setProgress("idle"); onResult?.(null); onStatusChange?.("not_started"); }, [resetKey, onResult, onStatusChange]);
+  useEffect(() => {
+    requestRef.current += 1; uploadRequestRef.current += 1; uploadAbortRef.current?.abort();
+    setLoading(false); setResult(undefined); setError(""); setProgress("idle");
+    setParcelEvidence(undefined); setParcelFileName(""); setParcelPhase("idle"); setParcelError(""); setParcelErrorCode("");
+    onResult?.(null); onStatusChange?.("not_started");
+  }, [resetKey, onResult, onStatusChange]);
   useEffect(() => {
     if (previousInputKey.current === inputKey) return;
     previousInputKey.current = inputKey;
@@ -81,6 +99,12 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     onResult?.(null);
     onStatusChange?.("not_started");
   }, [inputKey, onResult, onStatusChange]);
+  useEffect(() => {
+    if (previousLocationIdentityKey.current === locationIdentityKey) return;
+    previousLocationIdentityKey.current = locationIdentityKey;
+    uploadRequestRef.current += 1; uploadAbortRef.current?.abort();
+    setParcelEvidence(undefined); setParcelFileName(""); setParcelPhase("idle"); setParcelError(""); setParcelErrorCode("");
+  }, [locationIdentityKey]);
   useEffect(() => { if (result && progress === "rendering") setProgress("complete"); }, [result, progress]);
   useEffect(() => {
     function applyPrefill(event: Event) {
@@ -101,6 +125,40 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     if (!location?.resolved_location) return;
     setAddress(location.resolved_location.address_label ?? ""); setLatitude(location.resolved_location.latitude); setLongitude(location.resolved_location.longitude);
   }
+  function activeCoordinates(): { latitude: number; longitude: number } | undefined {
+    const resolved = compactFromLocation ? location?.resolved_location : undefined;
+    const activeLatitude = resolved?.latitude ?? (latitude === "" ? undefined : latitude);
+    const activeLongitude = resolved?.longitude ?? (longitude === "" ? undefined : longitude);
+    return activeLatitude === undefined || activeLongitude === undefined ? undefined : { latitude: activeLatitude, longitude: activeLongitude };
+  }
+  async function uploadParcel(file: File) {
+    const uploadId = ++uploadRequestRef.current;
+    uploadAbortRef.current?.abort();
+    const controller = new AbortController();
+    uploadAbortRef.current = controller;
+    setParcelEvidence(undefined); setParcelFileName(file.name); setParcelError(""); setParcelErrorCode("");
+    if (file.size > 10 * 1024 * 1024) {
+      setParcelPhase("error"); setParcelError(copyUploadError("FILE_TOO_LARGE", parcelCopy)); setParcelErrorCode("FILE_TOO_LARGE"); return;
+    }
+    try {
+      setParcelPhase("reading");
+      const bytes = await file.arrayBuffer();
+      if (uploadId !== uploadRequestRef.current) return;
+      setParcelPhase("validating");
+      const requestFile = new File([bytes], file.name, { type: file.type, lastModified: file.lastModified });
+      const next = await api.uploadParcelGeometry(requestFile, activeCoordinates(), controller.signal);
+      if (uploadId !== uploadRequestRef.current) return;
+      setParcelEvidence(next); setParcelPhase("ready");
+    } catch (caught) {
+      if (uploadId !== uploadRequestRef.current || (caught instanceof DOMException && caught.name === "AbortError")) return;
+      const code = caught instanceof ApiRequestError ? caught.code ?? "PARSE_FAILED" : "PARSE_FAILED";
+      setParcelErrorCode(code); setParcelError(copyUploadError(code, parcelCopy)); setParcelPhase("error");
+    }
+  }
+  function removeParcel() {
+    uploadRequestRef.current += 1; uploadAbortRef.current?.abort();
+    setParcelEvidence(undefined); setParcelFileName(""); setParcelPhase("idle"); setParcelError(""); setParcelErrorCode("");
+  }
   async function analyze() {
     const requestId = ++requestRef.current;
     setLoading(true); setError(""); setProgress("accepted");
@@ -114,7 +172,14 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
       const next = await request;
       if (requestId !== requestRef.current) return;
       setProgress("received");
-      setResult(next); setProgress("rendering"); onResult?.(next); window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next })); window.dispatchEvent(new Event("proptech:workflow-status-updated"));
+      setResult(next); setProgress("rendering"); onResult?.(next);
+      if (parcelEvidence?.geometry && parcelEvidence.location_geometry_consistency === "NOT_CHECKED" && next.resolved_location.latitude !== undefined && next.resolved_location.longitude !== undefined) {
+        const uploadId = uploadRequestRef.current;
+        void api.parcelGeometryConsistency(parcelEvidence.geometry, next.resolved_location.latitude, next.resolved_location.longitude).then((consistency) => {
+          if (uploadId === uploadRequestRef.current) setParcelEvidence((current) => current ? { ...current, ...consistency } : current);
+        }).catch(() => undefined);
+      }
+      window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next })); window.dispatchEvent(new Event("proptech:workflow-status-updated"));
     } catch (caught) { if (requestId === requestRef.current) { setError((caught as Error).message); setProgress("idle"); onResult?.(null); onStatusChange?.("unavailable"); } }
     finally { if (requestId === requestRef.current) setLoading(false); }
   }
@@ -141,6 +206,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
               <div className="grid gap-2 sm:grid-cols-3"><label className="text-xs text-slate-500">{copy.latitude}<input type="number" step="0.000001" className={inputClass} value={compactFromLocation ? location?.resolved_location?.latitude ?? "" : latitude} readOnly={compactFromLocation} onChange={(event) => setLatitude(event.target.value === "" ? "" : Number(event.target.value))} /></label><label className="text-xs text-slate-500">{copy.longitude}<input type="number" step="0.000001" className={inputClass} value={compactFromLocation ? location?.resolved_location?.longitude ?? "" : longitude} readOnly={compactFromLocation} onChange={(event) => setLongitude(event.target.value === "" ? "" : Number(event.target.value))} /></label><label className="text-xs text-slate-500">{copy.radius}<input type="number" min="100" max="2000" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label></div>
               <div className="grid grid-cols-1 gap-2 text-[11px] text-slate-600 sm:grid-cols-2">{DEFAULT_LAYERS.map((layer) => <label key={layer} className="flex items-center gap-2 rounded-lg border border-stone-200 bg-white px-2 py-1.5"><input type="checkbox" checked={layers.includes(layer)} onChange={() => setLayers((rows) => rows.includes(layer) ? rows.filter((item) => item !== layer) : [...rows, layer])} />{copy.layers[layer] ?? layer}</label>)}</div>
               {!compactFromLocation && <Button secondary disabled={!location?.resolved_location} onClick={useLocationPosition}>{copy.useLocation}</Button>}
+              <ParcelUploadControl evidence={parcelEvidence} fileName={parcelFileName} phase={parcelPhase} error={parcelError} errorCode={parcelErrorCode} copy={parcelCopy} onUpload={uploadParcel} onRemove={removeParcel} />
             </div>
           </details>
           <Button className="w-full" disabled={loading || !canAnalyze} onClick={analyze}>{loading ? copy.analyzing : compactFromLocation ? copy.compactAnalyze : copy.analyze}</Button>
@@ -148,13 +214,54 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
           {!canAnalyze && <p className="text-[10px] leading-5 text-amber-700">{compactFromLocation ? copy.compactMissing : copy.standaloneMissing}</p>}
           {error && <ErrorState message={error} />}
         </div>
-        <div className="min-w-0">{!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500"><p>{copy.empty}<br /><span className="text-xs">{copy.emptyDetail}</span></p></div> : <TerrainRiskResults result={result} copy={copy} onReferenceAttach={onReferenceAttach} />}</div>
+        <div className="min-w-0">{!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500"><p>{copy.empty}<br /><span className="text-xs">{copy.emptyDetail}</span></p></div> : <TerrainRiskResults result={result} parcelEvidence={parcelEvidence} copy={copy} parcelCopy={parcelCopy} onReferenceAttach={onReferenceAttach} />}</div>
       </div>
     </SectionCard>
   </section>;
 }
 
-function TerrainRiskResults({ result, copy, onReferenceAttach }: { result: TerrainRiskResult; copy: TerrainSurfaceCopy; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
+function copyUploadError(code: string, copy: ParcelGeometryCopy): string {
+  if (code === "UNKNOWN_CRS") return copy.unknownCrs;
+  if (code === "FILE_TOO_LARGE") return `${copy.invalidFile} ${copy.supported}`;
+  return copy.invalidFile;
+}
+
+function ParcelUploadControl({ evidence, fileName, phase, error, errorCode, copy, onUpload, onRemove }: {
+  evidence?: ParcelGeometryEvidence; fileName: string; phase: "idle" | "reading" | "validating" | "ready" | "error";
+  error: string; errorCode: string; copy: ParcelGeometryCopy; onUpload: (file: File) => Promise<void>; onRemove: () => void;
+}) {
+  const consistency = evidence?.location_geometry_consistency;
+  const consistencyCopy = consistency === "CONSISTENT" ? copy.consistent : consistency === "POSSIBLE_MISMATCH" ? copy.mismatch : copy.notChecked;
+  return <section data-testid="parcel-upload-control" className="min-w-0 rounded-xl border border-cyan-200 bg-white p-3">
+    <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+      <div className="min-w-0"><p className="text-xs font-black text-slate-900">{copy.uploadTitle}</p><p className="mt-1 text-[10px] leading-5 text-slate-600">{copy.supported}</p></div>
+      {evidence && <span className="rounded-full bg-cyan-100 px-2 py-1 text-[10px] font-black text-cyan-950">{copy.userProvided}</span>}
+    </div>
+    <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2">
+      <label htmlFor="parcel-geometry-upload" className="max-w-full cursor-pointer rounded-lg bg-slate-900 px-3 py-2 text-center text-xs font-bold text-white focus-within:ring-2 focus-within:ring-cyan-600 focus-within:ring-offset-2">
+        {evidence || fileName ? copy.replace : copy.choose}
+        <input id="parcel-geometry-upload" data-testid="parcel-geometry-file-input" className="sr-only" type="file" accept=".geojson,.json,.kml,.zip,application/geo+json,application/vnd.google-earth.kml+xml,application/zip" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ""; if (file) void onUpload(file); }} />
+      </label>
+      {(evidence || fileName) && <button type="button" data-testid="remove-parcel-geometry" className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800" onClick={onRemove}>{copy.remove}</button>}
+    </div>
+    {fileName && <p data-testid="parcel-upload-filename" className="mt-2 break-all text-[10px] font-semibold text-slate-600">{fileName}</p>}
+    {phase !== "idle" && <div data-testid="parcel-upload-progress" aria-live="polite" className={`mt-2 rounded-lg px-2.5 py-2 text-[11px] font-bold ${phase === "error" ? "bg-rose-50 text-rose-800" : "bg-cyan-50 text-cyan-900"}`}>
+      {phase === "reading" ? copy.reading : phase === "validating" ? copy.validating : phase === "ready" ? copy.ready : error}
+      {phase === "error" && errorCode && <code className="ml-2 rounded bg-white/80 px-1 py-0.5 text-[9px]">{errorCode}</code>}
+    </div>}
+    {evidence && <div data-testid="parcel-upload-summary" className="mt-3 space-y-1 rounded-lg border border-cyan-100 bg-cyan-50 p-2.5 text-[11px] leading-5 text-cyan-950">
+      <p className="font-black">{evidence.geometry_type} · {copy.spatialAvailable}</p>
+      {evidence.area_m2 !== undefined && <p>{copy.computedArea}: <strong>{evidence.area_m2.toLocaleString()} m²</strong></p>}
+      <p>{copy.computedAreaDisclaimer}</p>
+      {evidence.geometry_validity === "REPAIRED" && <p className="font-bold text-amber-800">{copy.repaired}</p>}
+      <p data-testid="parcel-location-consistency" className={consistency === "POSSIBLE_MISMATCH" ? "font-bold text-rose-800" : "text-slate-700"}>{consistencyCopy}</p>
+    </div>}
+    <p className="mt-2 text-[10px] leading-5 text-amber-800">{copy.legalDisclaimer}</p>
+    <p className="mt-1 text-[10px] leading-5 text-slate-500">{copy.reupload}</p>
+  </section>;
+}
+
+function TerrainRiskResults({ result, parcelEvidence, copy, parcelCopy, onReferenceAttach }: { result: TerrainRiskResult; parcelEvidence?: ParcelGeometryEvidence; copy: TerrainSurfaceCopy; parcelCopy: ParcelGeometryCopy; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
   const hazards = Object.values(result.hazards); const evidence = buildTerrainReferenceEvidence(result); const evidenceByLayer = new Map(evidence.layers.map((layer) => [layer.layer_id, layer]));
   const cadastralEvidence = cadastralEvidenceFor(result);
   const requested = Array.isArray(result.input.include_layers) ? result.input.include_layers as string[] : DEFAULT_LAYERS;
@@ -170,7 +277,7 @@ function TerrainRiskResults({ result, copy, onReferenceAttach }: { result: Terra
     <section data-testid="terrain-priority-follow-up" className={`rounded-xl border p-4 ${result.risk_factors.length > 0 ? "border-rose-200 bg-rose-50" : "border-amber-200 bg-amber-50"}`}><p className="text-xs font-black text-slate-900">{copy.priorityFollowUp}</p><ul className="mt-2 space-y-1 text-xs leading-5 text-slate-700">{priorityItems.map((item) => <li key={item}>• {item}</li>)}</ul></section>
     <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.92fr)] xl:items-start">
       <section className="min-w-0"><h3 className="text-xs font-black uppercase tracking-wider text-slate-800">{copy.actualEvidence}</h3><div className="mt-2 grid gap-3 sm:grid-cols-2"><TerrainEvidenceCard result={result} copy={copy} />{hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} state={evidenceByLayer.get(hazard.key)?.state ?? "unknown"} copy={copy} />)}</div></section>
-      <TerrainCadastralEvidence evidence={cadastralEvidence} radiusM={Number(result.input.radius_m ?? 500)} coordinateSource={result.resolved_location.geocoding_source ?? "unknown"} copy={copy} />
+      <TerrainCadastralEvidence evidence={cadastralEvidence} parcelEvidence={parcelEvidence ?? result.parcel_geometry_evidence} landsect={result.landsect_context} radiusM={Number(result.input.radius_m ?? 500)} coordinateSource={result.resolved_location.geocoding_source ?? "unknown"} copy={copy} parcelCopy={parcelCopy} />
     </div>
     <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4"><p className="text-xs font-bold text-cyan-950">{copy.referenceTitle}</p><p className="mt-2 text-xs leading-5 text-cyan-950">{copy.sourceFallbackNotice}</p><button type="button" className="mt-3 rounded-lg border border-cyan-700 bg-white px-3 py-2 text-xs font-bold text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" disabled={!evidence.attachable} onClick={() => { onReferenceAttach?.(evidence); window.dispatchEvent(new CustomEvent<TerrainReferenceEvidence>(TERRAIN_REFERENCE_EVIDENCE_EVENT, { detail: evidence })); }}>{evidence.attachable ? copy.attach : copy.attachDisabled}</button>{!evidence.attachable && <p className="mt-2 text-[11px] text-amber-800">{copy.attachDisabled}</p>}<p className="mt-2 text-[11px] text-slate-600">{copy.referenceState}: {copy.states[evidence.status] ?? copy.unknown}</p></div>
     <ListCard title={copy.recommended} items={result.recommended_checks} />

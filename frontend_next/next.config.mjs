@@ -25,7 +25,7 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), geolocation=(), payment=(), usb=(), serial=(), microphone=(self)" },
   { key: "X-Frame-Options", value: "DENY" },
-  { key: "Content-Security-Policy", value: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com; connect-src 'self'${apiConnectSource}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'` },
+  { key: "Content-Security-Policy", value: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://wmts.nlsc.gov.tw; connect-src 'self'${apiConnectSource}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'` },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-site" },
 ];
