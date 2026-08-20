@@ -77,8 +77,11 @@ def test_terrain_risk_endpoint_exists_and_returns_stable_contract() -> None:
     response = client.post("/terrain-risk/analyze", json={"latitude": 25.026, "longitude": 121.543})
     assert response.status_code == 200
     payload = response.json()
-    assert {"input", "resolved_location", "overall", "terrain", "hazards", "risk_factors", "missing_sources", "recommended_checks", "map_layers", "data_quality", "disclaimer"} <= set(payload)
+    assert {"input", "resolved_location", "overall", "terrain", "hazards", "risk_factors", "missing_sources", "recommended_checks", "map_layers", "cadastral_evidence", "data_quality", "disclaimer"} <= set(payload)
     assert payload["overall"]["level"] in {"low", "medium", "high", "unknown"}
+    assert payload["cadastral_evidence"]["mode"] == "point_reference_only"
+    assert payload["cadastral_evidence"]["status"] == "not_configured"
+    assert "tile_url_template" not in payload["cadastral_evidence"]
     assert "不代表建築結構鑑定" in payload["disclaimer"]
 
 

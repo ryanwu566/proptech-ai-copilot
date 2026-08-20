@@ -133,6 +133,8 @@ def test_terrain_is_not_a_decision_or_score_input() -> None:
     assert "terrainRisk: attachedTerrainRisk" not in WORKSPACE
     assert "TERRAIN_REFERENCE_EVIDENCE_EVENT" in WORKSPACE
     assert "sessionStorage.getItem(TERRAIN_RISK" not in WORKSPACE
+    assert "cadastral_evidence" not in RISK
+    assert "cadastral_evidence" not in VIEWING
 
 
 def test_stored_schema_is_explicit_and_does_not_overload_terrain_result() -> None:

@@ -7,7 +7,7 @@ from services.terrain_risk_service import TerrainRiskLocationError, analyze_terr
 
 
 def searcher(query: str) -> dict:
-    return {"matched": True, "center": {"lat": 25.026, "lng": 121.543}, "formatted_address": query, "confidence": "mock"}
+    return {"matched": True, "center": {"lat": 25.026, "lng": 121.543}, "formatted_address": query, "confidence": "mock", "source": "mock"}
 
 
 class TerrainProvider:
@@ -158,6 +158,8 @@ def layer(key: str, label: str, status: str, level: str, matched: bool) -> dict:
 def test_coordinates_take_priority() -> None:
     result = analyze_terrain_risk(latitude=25.0, longitude=121.5, providers=providers(), searcher=lambda query: (_ for _ in ()).throw(AssertionError("should not geocode")))
     assert result["resolved_location"]["geocoding_confidence"] == "provided_coordinates"
+    assert result["resolved_location"]["geocoding_source"] == "provided_coordinates"
+    assert result["cadastral_evidence"]["center"] == {"lat": 25.0, "lng": 121.5}
     assert result["hazards"]["flood"]["matched"] is True
     assert result["overall"]["level"] == "medium"
 
@@ -165,6 +167,7 @@ def test_coordinates_take_priority() -> None:
 def test_address_uses_geocoding_fallback() -> None:
     result = analyze_terrain_risk(city="台北市", district="大安區", road="和平東路二段", searcher=searcher, providers=providers())
     assert result["resolved_location"]["address_label"] == "台北市大安區和平東路二段"
+    assert result["resolved_location"]["geocoding_source"] == "mock"
     assert result["data_quality"]["status"] == "good"
 
 
