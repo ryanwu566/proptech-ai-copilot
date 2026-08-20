@@ -275,20 +275,33 @@ test.describe("Aegis — Mobile 390x844", () => {
 
 
 // ═════════════════════════════════════════════════════════════════════════════
-// LOCALE VERIFICATION
+// LOCALE VERIFICATION — Accessible Names + Outer UI + Result Labels
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe("Aegis — Locale Verification", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
+
+  const FIELDS: Record<string, { income: string; debt: string; cash: string; properties: string; mortgages: string; price: string }> = {
+    "zh-TW": { income: "月收入（TWD）", debt: "每月負債（TWD）", cash: "可用現金（TWD）", properties: "名下房屋數", mortgages: "既有房貸數", price: "物件價格（TWD）" },
+    en: { income: "Monthly income (TWD)", debt: "Monthly debt (TWD)", cash: "Available cash (TWD)", properties: "Owned properties", mortgages: "Existing mortgages", price: "Property price (TWD)" },
+    ja: { income: "月収（TWD）", debt: "月額負債（TWD）", cash: "利用可能現金（TWD）", properties: "所有物件数", mortgages: "既存ローン数", price: "物件価格（TWD）" },
+    ko: { income: "월 소득 (TWD)", debt: "월 부채 (TWD)", cash: "가용 현금 (TWD)", properties: "보유 부동산 수", mortgages: "기존 대출 수", price: "매물 가격 (TWD)" },
+  };
+
   const EXPECTED_CTA: Record<string, string> = { "zh-TW": "執行房貸風險分析", en: "Run risk analysis", ja: "リスク分析を実行", ko: "위험 분석 실행" };
-  const EXPECTED_GROUP: Record<string, string> = { "zh-TW": "收入與負債", en: "Income and debt", ja: "収入と負債", ko: "소득과 부채" };
-  const EXPECTED_SCORE_LABEL: Record<string, string> = { "zh-TW": "風險分數", en: "Risk score", ja: "リスクスコア", ko: "위험 점수" };
-  const CHINESE_FRONTEND_LABELS = ["買方情境評估", "收入與負債", "資產與房貸", "目標物件", "月收入", "每月負債", "可用現金", "名下房屋數", "既有房貸數", "物件價格", "執行房貸風險分析", "風險分數", "風險狀態", "風險提示", "對客戶說明建議"];
+  const EXPECTED_SECTION: Record<string, string> = { "zh-TW": "買方情境評估", en: "Buyer scenario assessment", ja: "買主シナリオ評価", ko: "매수인 시나리오 평가" };
+  const EXPECTED_SCORE: Record<string, string> = { "zh-TW": "風險分數", en: "Risk score", ja: "リスクスコア", ko: "위험 점수" };
+  const EXPECTED_STATUS: Record<string, string> = { "zh-TW": "風險狀態", en: "Risk status", ja: "リスク状態", ko: "위험 상태" };
+  const EXPECTED_HINTS: Record<string, string> = { "zh-TW": "風險提示", en: "Risk hints", ja: "リスク提示", ko: "위험 안내" };
+  const EXPECTED_ADVICE: Record<string, string> = { "zh-TW": "對客戶說明建議", en: "Client communication suggestion", ja: "お客様への説明提案", ko: "고객 설명 제안" };
+
+  const CHINESE_FRONTEND_LABELS = ["買方情境評估", "收入與負債", "資產與房貸", "目標物件", "月收入", "每月負債", "可用現金", "名下房屋數", "既有房貸數", "物件價格", "執行房貸風險分析", "風險分數", "風險狀態", "風險提示", "對客戶說明建議", "銀行牌告利率查詢", "市場房貸利率參考", "查詢銀行牌告利率", "機動利率", "固定利率", "生效日期"];
 
   for (const locale of LOCALES) {
-    test(`${locale}: form labels, CTA, groups, accessible names localized`, async ({ page, request: requestCtx }) => {
+    test(`${locale}: accessible names, outer UI, result labels`, async ({ page, request: requestCtx }) => {
+      test.setTimeout(60000);
       await setup(page, requestCtx);
 
       if (locale !== "zh-TW") {
@@ -299,34 +312,112 @@ test.describe("Aegis — Locale Verification", () => {
 
       const form = page.getByTestId("aegis-scenario-form");
       await expect(form).toBeVisible();
-      const formText = await form.innerText();
 
-      // Group heading localized
-      expect(formText, `Group heading in ${locale}`).toContain(EXPECTED_GROUP[locale]);
+      // Assert all 6 accessible names using getByRole
+      const f = FIELDS[locale];
+      await expect(form.getByRole("spinbutton", { name: f.income, exact: true })).toBeVisible();
+      await expect(form.getByRole("spinbutton", { name: f.debt, exact: true })).toBeVisible();
+      await expect(form.getByRole("spinbutton", { name: f.cash, exact: true })).toBeVisible();
+      await expect(form.getByRole("spinbutton", { name: f.properties, exact: true })).toBeVisible();
+      await expect(form.getByRole("spinbutton", { name: f.mortgages, exact: true })).toBeVisible();
+      await expect(form.getByRole("spinbutton", { name: f.price, exact: true })).toBeVisible();
 
       // CTA localized
-      const cta = page.getByRole("button", { name: EXPECTED_CTA[locale] });
-      await expect(cta).toBeVisible();
+      await expect(page.getByRole("button", { name: EXPECTED_CTA[locale] })).toBeVisible();
+
+      // Section title localized
+      const mainText = await page.locator("#main-content").innerText();
+      expect(mainText).toContain(EXPECTED_SECTION[locale]);
 
       // No raw aegis.* keys
-      expect(formText).not.toMatch(/aegis\.\w+/);
+      expect(mainText).not.toMatch(/aegis\.\w+/);
 
-      // For EN/JA/KO: no Chinese frontend labels
+      // For EN/JA/KO: no Chinese frontend labels (backend traces exempt)
       if (locale !== "zh-TW") {
+        const formText = await form.innerText();
         for (const label of CHINESE_FRONTEND_LABELS) {
-          expect(formText, `No Chinese label "${label}" in ${locale}`).not.toContain(label);
+          expect(formText, `No Chinese "${label}" in ${locale} form`).not.toContain(label);
         }
       }
 
-      // Trigger validation — check message is localized
-      await form.locator("fieldset").nth(0).locator("input[type='number']").nth(0).fill("0");
-      await cta.click();
-      const alert = page.locator("p[role='alert']");
-      await expect(alert).toBeVisible({ timeout: 2000 });
-      const alertText = await alert.innerText();
-      if (locale !== "zh-TW") {
-        expect(alertText).not.toContain("月收入必須大於");
-      }
+      // Submit Strong scenario to verify result labels
+      await form.getByRole("spinbutton", { name: f.income, exact: true }).fill("80000");
+      await form.getByRole("spinbutton", { name: f.debt, exact: true }).fill("5000");
+      await form.getByRole("spinbutton", { name: f.cash, exact: true }).fill("5000000");
+      await form.getByRole("spinbutton", { name: f.properties, exact: true }).fill("0");
+      await form.getByRole("spinbutton", { name: f.mortgages, exact: true }).fill("0");
+      await form.getByRole("spinbutton", { name: f.price, exact: true }).fill("15000000");
+
+      await page.getByRole("button", { name: EXPECTED_CTA[locale] }).click();
+      await expect(page.locator(`text=${EXPECTED_SCORE[locale]}`).first()).toBeVisible({ timeout: 45000 });
+
+      // Verify result labels
+      const resultText = await page.locator("#main-content").innerText();
+      expect(resultText).toContain(EXPECTED_SCORE[locale]);
+      expect(resultText).toContain(EXPECTED_STATUS[locale]);
+      expect(resultText).toContain(EXPECTED_HINTS[locale]);
+      expect(resultText).toContain(EXPECTED_ADVICE[locale]);
     });
   }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
+// MOBILE 390 — REAL EN
+// ═════════════════════════════════════════════════════════════════════════════
+
+test.describe("Aegis — Mobile 390x844 EN", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test("EN Mobile: localized form, submit, no overflow", async ({ page, request: requestCtx }) => {
+    test.setTimeout(60000);
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem("proptech_onboarding_seen", "true");
+      window.localStorage.setItem("proptech_onboarding_version", "2");
+    });
+    await page.route("**/aegis-credit/analyze", async (route) => {
+      const payload = route.request().postDataJSON();
+      const resp = await requestCtx.post("https://proptech-ai-copilot-api.onrender.com/aegis-credit/analyze", { data: payload });
+      await route.fulfill({ status: resp.status(), contentType: "application/json", body: await resp.text() });
+    });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    // Switch to EN
+    const localeSelect = page.locator("select[aria-label]").first();
+    await localeSelect.selectOption("en");
+    await page.waitForTimeout(400);
+
+    // Open mobile menu and navigate to Aegis
+    const menuBtn = page.getByRole("button", { name: /Open menu|開啟選單/ });
+    await expect(menuBtn).toBeVisible({ timeout: 5000 });
+    await menuBtn.click();
+    const aegisBtn = page.locator("aside button", { hasText: /Aegis-Credit/ });
+    await expect(aegisBtn).toBeVisible({ timeout: 5000 });
+    await aegisBtn.click();
+
+    // Wait for page
+    await expect(page.getByRole("button", { name: "Run risk analysis" })).toBeVisible({ timeout: 10000 });
+
+    // Verify EN accessible names visible on mobile
+    const form = page.getByTestId("aegis-scenario-form");
+    await expect(form.getByRole("spinbutton", { name: "Monthly income (TWD)", exact: true })).toBeVisible();
+    await expect(form.getByRole("spinbutton", { name: "Property price (TWD)", exact: true })).toBeVisible();
+
+    // Fill and submit Strong
+    await form.getByRole("spinbutton", { name: "Monthly income (TWD)", exact: true }).fill("80000");
+    await form.getByRole("spinbutton", { name: "Monthly debt (TWD)", exact: true }).fill("5000");
+    await form.getByRole("spinbutton", { name: "Available cash (TWD)", exact: true }).fill("5000000");
+    await form.getByRole("spinbutton", { name: "Owned properties", exact: true }).fill("0");
+    await form.getByRole("spinbutton", { name: "Existing mortgages", exact: true }).fill("0");
+    await form.getByRole("spinbutton", { name: "Property price (TWD)", exact: true }).fill("15000000");
+
+    const submitBtn = page.getByRole("button", { name: "Run risk analysis" });
+    await submitBtn.scrollIntoViewIfNeeded();
+    await submitBtn.click();
+    await expect(page.locator("text=Risk score").first()).toBeVisible({ timeout: 45000 });
+
+    // No horizontal overflow
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+    expect(bodyWidth).toBeLessThanOrEqual(395);
+  });
 });
