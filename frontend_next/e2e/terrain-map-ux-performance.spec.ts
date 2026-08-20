@@ -86,6 +86,35 @@ async function openTool(page: import("@playwright/test").Page, name: "Terrain Ri
   await page.locator("aside").getByRole("button", { name, exact: true }).click();
 }
 
+async function startProgressTracking(page: import("@playwright/test").Page, testId: string) {
+  await page.evaluate((id) => {
+    const trackedWindow = window as typeof window & { __analysisProgressValues?: number[]; __analysisProgressObserver?: MutationObserver };
+    trackedWindow.__analysisProgressValues = [];
+    trackedWindow.__analysisProgressObserver?.disconnect();
+    const record = () => {
+      const progressbar = document.querySelector(`[data-testid="${id}"] [role="progressbar"]`);
+      const value = Number(progressbar?.getAttribute("aria-valuenow"));
+      const values = trackedWindow.__analysisProgressValues ?? [];
+      if (Number.isFinite(value) && values.at(-1) !== value) values.push(value);
+      trackedWindow.__analysisProgressValues = values;
+    };
+    const observer = new MutationObserver(record);
+    observer.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["aria-valuenow"] });
+    trackedWindow.__analysisProgressObserver = observer;
+  }, testId);
+}
+
+async function expectMonotonicCompletion(page: import("@playwright/test").Page) {
+  const values = await page.evaluate(() => {
+    const trackedWindow = window as typeof window & { __analysisProgressValues?: number[]; __analysisProgressObserver?: MutationObserver };
+    trackedWindow.__analysisProgressObserver?.disconnect();
+    return trackedWindow.__analysisProgressValues ?? [];
+  });
+  expect(values.some((value) => value < 100)).toBeTruthy();
+  expect(values.at(-1)).toBe(100);
+  expect(values.every((value, index) => index === 0 || value >= values[index - 1])).toBeTruthy();
+}
+
 test("Terrain buyer-first progress and evidence hierarchy are honest", async ({ page }) => {
   let releaseResponse!: () => void;
   const responseGate = new Promise<void>((resolve) => { releaseResponse = resolve; });
@@ -98,6 +127,7 @@ test("Terrain buyer-first progress and evidence hierarchy are honest", async ({ 
   await expect(advanced).not.toHaveAttribute("open", "");
   await expect(page.getByRole("spinbutton", { name: "緯度" })).not.toBeVisible();
   await address.fill("台北市大安區和平東路二段");
+  await startProgressTracking(page, "terrain-analysis-progress");
 
   const started = Date.now();
   await page.getByRole("button", { name: "開始地勢／災害檢查" }).click();
@@ -114,6 +144,7 @@ test("Terrain buyer-first progress and evidence hierarchy are honest", async ({ 
   const floodCard = page.locator("div", { hasText: "淹水潛勢" }).filter({ hasText: "暫時不可用" }).last();
   await expect(floodCard).toBeVisible();
   await expect(floodCard).not.toContainText("較低風險");
+  await expectMonotonicCompletion(page);
 });
 
 test("Map performs one geocode and preserves partial real categories", async ({ page }) => {
@@ -132,6 +163,7 @@ test("Map performs one geocode and preserves partial real categories", async ({ 
   await expect(input).toBeVisible();
   await expect(page.getByTestId("map-advanced-settings")).not.toHaveAttribute("open", "");
   await input.fill("台北市大安區和平東路二段");
+  await startProgressTracking(page, "map-analysis-progress");
   await page.getByRole("button", { name: "搜尋位置" }).click();
   const progress = page.getByTestId("map-analysis-progress");
   await expect(progress).toBeVisible({ timeout: 500 });
@@ -143,6 +175,7 @@ test("Map performs one geocode and preserves partial real categories", async ({ 
   await expect(page.getByText("測試捷運站").first()).toBeVisible();
   await expect(page.getByText("Google Places").first()).toBeVisible();
   expect(geocodingCalls).toBe(1);
+  await expectMonotonicCompletion(page);
 });
 
 for (const tool of ["Terrain Risk", "Map Insight"] as const) {

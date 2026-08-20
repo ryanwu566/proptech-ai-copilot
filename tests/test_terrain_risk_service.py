@@ -1,6 +1,7 @@
 """Terrain risk service tests."""
 
 import time
+import threading
 
 from services.terrain_risk_service import TerrainRiskLocationError, analyze_terrain_risk
 
@@ -57,13 +58,24 @@ class FailingProvider:
 
 
 class SlowProvider:
-    def __init__(self, wrapped, delay_seconds: float = 0.5):
+    def __init__(self, wrapped, delay_seconds: float = 0.5, concurrency_probe: dict | None = None, probe_lock=None):
         self.wrapped = wrapped
         self.delay_seconds = delay_seconds
+        self.concurrency_probe = concurrency_probe
+        self.probe_lock = probe_lock
 
     def analyze(self, *args, **kwargs):
-        time.sleep(self.delay_seconds)
-        return self.wrapped.analyze(*args, **kwargs)
+        if self.concurrency_probe is not None and self.probe_lock is not None:
+            with self.probe_lock:
+                self.concurrency_probe["active"] += 1
+                self.concurrency_probe["max_active"] = max(self.concurrency_probe["max_active"], self.concurrency_probe["active"])
+        try:
+            time.sleep(self.delay_seconds)
+            return self.wrapped.analyze(*args, **kwargs)
+        finally:
+            if self.concurrency_probe is not None and self.probe_lock is not None:
+                with self.probe_lock:
+                    self.concurrency_probe["active"] -= 1
 
 
 class UnavailableTerrainProvider:
@@ -173,11 +185,13 @@ def test_provider_failure_does_not_crash() -> None:
 
 
 def test_provider_groups_run_concurrently_and_report_timing() -> None:
+    probe = {"active": 0, "max_active": 0}
+    probe_lock = threading.Lock()
     slow = {
-        "terrain": SlowProvider(TerrainProvider()),
-        "slope_hazard": SlowProvider(SlopeHazardProvider()),
-        "flood": SlowProvider(FloodProvider()),
-        "geology": SlowProvider(GeologyProvider()),
+        "terrain": SlowProvider(TerrainProvider(), concurrency_probe=probe, probe_lock=probe_lock),
+        "slope_hazard": SlowProvider(SlopeHazardProvider(), concurrency_probe=probe, probe_lock=probe_lock),
+        "flood": SlowProvider(FloodProvider(), concurrency_probe=probe, probe_lock=probe_lock),
+        "geology": SlowProvider(GeologyProvider(), concurrency_probe=probe, probe_lock=probe_lock),
     }
     started = time.perf_counter()
     result = analyze_terrain_risk(latitude=25, longitude=121, providers=slow)
@@ -187,6 +201,8 @@ def test_provider_groups_run_concurrently_and_report_timing() -> None:
     assert result["hazards"]["flood"]["matched"] is True
     assert result["timing_ms"]["total_terrain_ms"] < 1300
     assert all(result["timing_ms"][key] >= 450 for key in ("terrain_provider_ms", "slope_provider_ms", "flood_provider_ms", "geology_provider_ms"))
+    assert probe["max_active"] == 4
+    assert probe["active"] == 0
 
 
 def test_one_provider_error_preserves_other_three_groups() -> None:
@@ -196,6 +212,19 @@ def test_one_provider_error_preserves_other_three_groups() -> None:
     assert result["hazards"]["landslide"]["status"] == "available"
     assert result["hazards"]["geological_sensitivity"]["status"] == "available"
     assert result["hazards"]["flood"]["status"] == "error"
+
+
+def test_two_provider_errors_preserve_the_other_groups() -> None:
+    result = analyze_terrain_risk(
+        latitude=25,
+        longitude=121,
+        providers=providers(terrain=FailingProvider(), flood=FailingProvider()),
+    )
+
+    assert result["terrain"]["status"] == "error"
+    assert result["hazards"]["flood"]["status"] == "error"
+    assert result["hazards"]["landslide"]["status"] == "available"
+    assert result["hazards"]["geological_sensitivity"]["status"] == "available"
 
 
 def test_unavailable_sources_do_not_create_low_risk_with_fake_providers() -> None:

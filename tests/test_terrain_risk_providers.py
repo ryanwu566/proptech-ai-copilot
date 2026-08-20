@@ -1,6 +1,7 @@
 """Terrain risk provider contract tests."""
 
 import time
+import threading
 
 from services.terrain_risk_providers import (
     ArdswcSlopeHazardProvider,
@@ -114,18 +115,35 @@ def test_debris_affect_overlap_returns_high() -> None:
 
 
 def test_nine_tiles_are_fetched_with_bounded_parallelism() -> None:
+    probe = {"active": 0, "max_active": 0}
+    probe_lock = threading.Lock()
+
+    def tracked_get(url: str, timeout: float) -> bytes:
+        with probe_lock:
+            probe["active"] += 1
+            probe["max_active"] = max(probe["max_active"], probe["active"])
+        try:
+            time.sleep(0.15)
+            return b"tile"
+        finally:
+            with probe_lock:
+                probe["active"] -= 1
+
     provider = ArdswcSlopeHazardProvider(
-        http_get=lambda url, timeout: (time.sleep(0.15) or b"tile"),
+        http_get=tracked_get,
         decoder=lambda payload, tile: [],
+        tile_workers=99,
         use_cache=False,
     )
-    tiles = [TileCoord(14, index, 0) for index in range(9)]
+    tiles = [TileCoord(14, index, 0) for index in range(15)]
     started = time.perf_counter()
     result = provider._query_mvt_layer("debris_flow", tiles, 25.026, 121.543, 100)
     elapsed = time.perf_counter() - started
 
     assert elapsed < 0.8
     assert result["status"] == "available"
+    assert probe["max_active"] == 6
+    assert probe["active"] == 0
 
 
 def test_tile_cache_hit_avoids_duplicate_fetch() -> None:

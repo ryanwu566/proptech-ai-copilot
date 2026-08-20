@@ -32,16 +32,6 @@ def test_terrain_risk_displays_required_layers_and_official_links() -> None:
     assert "HELP_CONTENT.terrainRisk" in COMPONENT
 
 
-def test_terrain_buyer_first_controls_progress_and_result_hierarchy() -> None:
-    assert 'data-testid="terrain-advanced-settings"' in COMPONENT
-    assert '<details data-testid="terrain-advanced-settings"' in COMPONENT
-    assert 'testId="terrain-analysis-progress"' in COMPONENT
-    assert 'data-testid="terrain-data-completeness"' in COMPONENT
-    assert 'data-testid="terrain-priority-follow-up"' in COMPONENT
-    assert "setTimeout" not in COMPONENT
-    assert "DEFAULT_LAYERS" in COMPONENT
-
-
 def test_terrain_risk_is_integrated_with_location_and_safe_report() -> None:
     assert "TerrainRiskAnalysis" in LOCATION
     assert "location={result}" in LOCATION
