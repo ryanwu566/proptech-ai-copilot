@@ -297,7 +297,12 @@ test.describe("Aegis — Locale Verification", () => {
   const EXPECTED_HINTS: Record<string, string> = { "zh-TW": "風險提示", en: "Risk hints", ja: "リスク提示", ko: "위험 안내" };
   const EXPECTED_ADVICE: Record<string, string> = { "zh-TW": "對客戶說明建議", en: "Client communication suggestion", ja: "お客様への説明提案", ko: "고객 설명 제안" };
 
-  const CHINESE_FRONTEND_LABELS = ["買方情境評估", "收入與負債", "資產與房貸", "目標物件", "月收入", "每月負債", "可用現金", "名下房屋數", "既有房貸數", "物件價格", "執行房貸風險分析", "風險分數", "風險狀態", "風險提示", "對客戶說明建議", "銀行牌告利率查詢", "市場房貸利率參考", "查詢銀行牌告利率", "機動利率", "固定利率", "生效日期"];
+  const EXPECTED_PAGE_TITLE: Record<string, string> = { "zh-TW": "房貸風險展示", en: "Mortgage risk demo", ja: "住宅ローンリスクデモ", ko: "주택 대출 위험 데모" };
+  const EXPECTED_BANK_RATE: Record<string, string> = { "zh-TW": "銀行牌告利率查詢", en: "Bank posted rate lookup", ja: "銀行公示金利照会", ko: "은행 공시 금리 조회" };
+  const EXPECTED_MORTGAGE_RATE: Record<string, string> = { "zh-TW": "市場房貸利率參考", en: "Market mortgage rate reference", ja: "市場住宅ローン金利参考", ko: "시장 주택 대출 금리 참고" };
+  const EXPECTED_VALIDATION: Record<string, string> = { "zh-TW": "月收入必須大於 0", en: "Monthly income must be greater than 0", ja: "月収は0より大きい必要があります", ko: "월 소득은 0보다 커야 합니다" };
+
+  const CHINESE_FRONTEND_LABELS = ["買方情境評估", "收入與負債", "資產與房貸", "目標物件", "執行房貸風險分析", "風險分數", "風險狀態", "風險提示", "對客戶說明建議", "銀行牌告利率查詢", "市場房貸利率參考", "查詢銀行牌告利率", "機動利率", "固定利率", "生效日期", "五大銀行月資料"];
 
   for (const locale of LOCALES) {
     test(`${locale}: accessible names, outer UI, result labels`, async ({ page, request: requestCtx }) => {
@@ -329,16 +334,31 @@ test.describe("Aegis — Locale Verification", () => {
       const mainText = await page.locator("#main-content").innerText();
       expect(mainText).toContain(EXPECTED_SECTION[locale]);
 
+      // Outer page title
+      expect(mainText).toContain(EXPECTED_PAGE_TITLE[locale]);
+
+      // Bank rate panel title
+      expect(mainText).toContain(EXPECTED_BANK_RATE[locale]);
+
+      // Mortgage rate panel title
+      expect(mainText).toContain(EXPECTED_MORTGAGE_RATE[locale]);
+
       // No raw aegis.* keys
       expect(mainText).not.toMatch(/aegis\.\w+/);
 
       // For EN/JA/KO: no Chinese frontend labels (backend traces exempt)
       if (locale !== "zh-TW") {
-        const formText = await form.innerText();
         for (const label of CHINESE_FRONTEND_LABELS) {
-          expect(formText, `No Chinese "${label}" in ${locale} form`).not.toContain(label);
+          expect(mainText, `No Chinese "${label}" in ${locale}`).not.toContain(label);
         }
       }
+
+      // Validation per locale: income=0 → localized message
+      await form.getByRole("spinbutton", { name: f.income, exact: true }).fill("0");
+      await page.getByRole("button", { name: EXPECTED_CTA[locale] }).click();
+      const alert = page.locator("p[role='alert']");
+      await expect(alert).toBeVisible({ timeout: 2000 });
+      expect(await alert.innerText()).toBe(EXPECTED_VALIDATION[locale]);
 
       // Submit Strong scenario to verify result labels
       await form.getByRole("spinbutton", { name: f.income, exact: true }).fill("80000");
