@@ -277,6 +277,46 @@ def test_market_query_preserves_unavailable_state(monkeypatch) -> None:
     assert payload["history"] == []
 
 
+def test_market_query_preserves_partial_safe_evidence_without_zero_fill(monkeypatch) -> None:
+    from services import market_insight_service
+
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_summary",
+        lambda *_args, **_kwargs: {
+            "city": "Demo County",
+            "county": "Demo County",
+            "district": "North",
+            "period": "2026-06",
+            "average_unit_price": 68.5,
+            "avg_price_per_ping": 68.5,
+            "transaction_count": None,
+            "transaction_volume": None,
+            "record_count": 3,
+            "history": [{"period": "2026-06", "average_unit_price": 68.5, "transaction_count": 3}],
+            "summary": "partial aggregate",
+            "source_name": "Official PLVR aggregate",
+            "source_updated_at": "2026-07-01",
+            "coverage_status": "partial",
+            "data_status": "incomplete",
+            "sample_status": "limited",
+            "caveat": "Some fields are unavailable.",
+            "disclaimer": "Regional reference only.",
+        },
+    )
+
+    response = client.post("/market-insights/query", json={"county": "Demo County", "district": "North"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["data_status"] == "incomplete"
+    assert payload["coverage_status"] == "partial"
+    assert payload["average_unit_price"] == 68.5
+    assert payload["transaction_count"] is None
+    assert payload["record_count"] == 3
+    assert payload["sample_status"] == "limited"
+
+
 def test_market_query_available_requires_complete_positive_contract(monkeypatch) -> None:
     from services import market_insight_service
 

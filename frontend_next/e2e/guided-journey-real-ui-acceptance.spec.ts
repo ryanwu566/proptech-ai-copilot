@@ -119,7 +119,7 @@ test.describe("Guided Journey — 5-Step DOM Verification", () => {
 test.describe("Step 1 — Property Context", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("Step 1 is active by default with property tool card", async ({ page }) => {
+  test("Step 1 is active by default with the real property finder", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await waitForJourney(page);
 
@@ -127,13 +127,11 @@ test.describe("Step 1 — Property Context", () => {
     const step1Btn = page.locator("nav button[aria-current='step']", { hasText: "建立物件情境" }).first();
     await expect(step1Btn).toBeVisible();
 
-    // Property tool card visible
-    const toolCard = page.getByRole("button", { name: "開始輸入物件資料" });
-    await expect(toolCard).toBeVisible();
-
-    // Next step button available
-    const nextBtn = page.getByRole("button", { name: /查看位置|位置與生活機能/ });
-    await expect(nextBtn).toBeVisible();
+    // The real finder is embedded directly; continuing still requires an explicit result action.
+    const finder = page.locator("#property-finder");
+    await expect(finder).toBeVisible();
+    await expect(finder.getByRole("button", { name: "搜尋看屋方向" })).toBeVisible();
+    await expect(page.locator("#journey-stage-location")).toHaveCount(0);
   });
 });
 

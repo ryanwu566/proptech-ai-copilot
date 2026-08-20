@@ -102,6 +102,27 @@ export const test = base.extend({
     await page.route("**/location/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable" }) }));
     await page.route("**/market-insights/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable", coverage_status: "unknown", regions: [] }) }));
     await page.route("**/valuation/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable" }) }));
+    await page.route("**/valuation/data-status", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+      active_source: "unknown",
+      is_demo_data: false,
+      is_full_taiwan: false,
+      data_composition: "official",
+      official_records_count: 0,
+      sample_records_count: 0,
+      coverage: { cities: [], districts: [], roads_count: 0, records_count: 0 },
+      last_updated: null,
+      update_frequency_note: "No release is available in this test state.",
+      source_note: "Valuation source is unavailable.",
+      user_message: "Valuation data is unavailable.",
+      freshness_status: "unavailable",
+      freshness_reason_code: "UNAVAILABLE",
+      freshness_as_of: null,
+      latest_import_at: null,
+      latest_import_age_days: null,
+      newest_effective_period_lag_months: null,
+      operator_attention_required: false,
+      freshness_user_message: "Valuation freshness is unavailable.",
+    }) }));
     await page.route("**/tax/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable" }) }));
     await page.route("**/loan/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable" }) }));
     await page.route("**/holding-cost/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable" }) }));

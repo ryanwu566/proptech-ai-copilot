@@ -167,7 +167,7 @@ test.describe("buildMarketTrendStats", () => {
   });
 });
 
-test("happy path sends one POST and renders loading, analysis, charts, and history", async ({ page }) => {
+test("limited-sample path sends one POST and renders cautious analysis, charts, and history", async ({ page }) => {
   await openMarketInsight(page);
   await expect(page.getByTestId("market-insight-initial")).toHaveText("請選擇縣市與行政區後查詢市場資料。");
   await expect(page.getByTestId("market-insight-unavailable")).toHaveCount(0);
@@ -197,7 +197,8 @@ test("happy path sends one POST and renders loading, analysis, charts, and histo
   expect(requestCount).toBe(1);
 
   releaseResponse();
-  await expect(page.getByTestId("market-insight-available")).toBeVisible();
+  await expect(page.getByTestId("market-insight-low_sample")).toBeVisible();
+  await expect(page.getByTestId("market-state-guidance")).toContainText("樣本有限");
   await expect(button).toBeEnabled();
   const primary = page.getByTestId("market-primary-metrics");
   await expect(primary).toContainText("33.21");
@@ -230,21 +231,94 @@ test("Enter on the submit button sends exactly one POST", async ({ page }) => {
   const button = page.getByTestId("market-insight-search-button");
   await button.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByTestId("market-insight-available")).toBeVisible();
+  await expect(page.getByTestId("market-insight-low_sample")).toBeVisible();
   expect(requestCount).toBe(1);
 });
 
-test("network failure has a distinct safe state and one request", async ({ page }) => {
+test("normal official sample renders the available state with provenance", async ({ page }) => {
+  await openMarketInsight(page);
+  await selectRegion(page);
+  await page.route("**/market-insights/query", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ...AVAILABLE_RESULT, transaction_count: 20, transaction_volume: 20, record_count: 20, sample_status: "sufficient", freshness_status: "current" }),
+  }));
+  await page.getByTestId("market-insight-search-button").click();
+  await expect(page.getByTestId("market-insight-available")).toBeVisible();
+  await expect(page.getByTestId("market-primary-metrics")).toContainText("20 筆");
+  await expect(page.getByTestId("market-source-metadata")).toContainText("Official PLVR OpenData aggregate");
+});
+
+test("stale official evidence remains visible with an explicit vintage warning", async ({ page }) => {
+  await openMarketInsight(page);
+  await selectRegion(page);
+  await page.route("**/market-insights/query", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ ...AVAILABLE_RESULT, transaction_count: 20, transaction_volume: 20, record_count: 20, sample_status: "sufficient", freshness_status: "stale" }),
+  }));
+  await page.getByTestId("market-insight-search-button").click();
+  await expect(page.getByTestId("market-insight-stale")).toBeVisible();
+  await expect(page.getByTestId("market-state-guidance")).toContainText("資料期別較早");
+  await expect(page.getByTestId("market-primary-metrics")).toContainText("33.21");
+  await expect(page.getByTestId("market-source-metadata")).toContainText("2026-06-07");
+});
+
+test("a second query clears the first result until the replacement response arrives", async ({ page }) => {
+  await openMarketInsight(page);
+  await selectRegion(page);
+  let requestCount = 0;
+  let releaseSecond!: () => void;
+  const secondResponseGate = new Promise<void>((resolve) => { releaseSecond = resolve; });
+  await page.route("**/market-insights/query", async (route) => {
+    requestCount += 1;
+    if (requestCount === 2) await secondResponseGate;
+    const average = requestCount === 1 ? 31.11 : 45.67;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...AVAILABLE_RESULT,
+        average_unit_price: average,
+        avg_price_per_ping: average,
+        transaction_count: 20,
+        transaction_volume: 20,
+        record_count: 20,
+        sample_status: "sufficient",
+      }),
+    });
+  });
+  const button = page.getByTestId("market-insight-search-button");
+  await button.click();
+  await expect(page.getByTestId("market-primary-metrics")).toContainText("31.11");
+  await button.click();
+  await expect(page.getByTestId("market-insight-loading")).toBeVisible();
+  await expect(page.getByTestId("market-primary-metrics")).toHaveCount(0);
+  await expect(page.getByText("31.11", { exact: false })).toHaveCount(0);
+  releaseSecond();
+  await expect(page.getByTestId("market-primary-metrics")).toContainText("45.67");
+  await expect(page.getByText("31.11", { exact: false })).toHaveCount(0);
+  expect(requestCount).toBe(2);
+});
+
+test("network failure has a distinct safe state and retry replaces it with real evidence", async ({ page }) => {
   await openMarketInsight(page);
   await selectRegion(page);
   let requestCount = 0;
   await page.route("**/market-insights/query", async (route) => {
     requestCount += 1;
-    await route.abort("failed").catch(() => undefined);
+    if (requestCount === 1) {
+      await route.abort("failed").catch(() => undefined);
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...AVAILABLE_RESULT, transaction_count: 20, transaction_volume: 20, record_count: 20, sample_status: "sufficient" }) });
   });
   await page.getByTestId("market-insight-search-button").click();
   await expect(page.getByTestId("market-insight-network-error")).toContainText("目前無法連線至市場資料服務，請稍後重試。");
-  expect(requestCount).toBe(1);
+  await page.getByTestId("market-insight-retry").click();
+  await expect(page.getByTestId("market-insight-available")).toContainText("33.21");
+  await expect(page.getByTestId("market-insight-network-error")).toHaveCount(0);
+  expect(requestCount).toBe(2);
 });
 
 test("backend unavailable shows the safe message and bounded support reference", async ({ page }) => {
@@ -290,6 +364,33 @@ test("no-data response does not render fake zero metrics", async ({ page }) => {
   await page.getByTestId("market-insight-search-button").click();
   await expect(page.getByTestId("market-insight-no-data")).toContainText("目前此區域尚無足夠的官方市場資料。");
   await expect(page.getByTestId("market-primary-metrics")).toHaveCount(0);
+});
+
+test("partial response preserves real metrics and marks missing metrics honestly", async ({ page }) => {
+  await openMarketInsight(page);
+  await selectRegion(page);
+  await page.route("**/market-insights/query", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ...AVAILABLE_RESULT,
+        data_status: "incomplete",
+        coverage_status: "partial",
+        transaction_count: null,
+        transaction_volume: null,
+        record_count: 4,
+        sample_status: "limited",
+        summary: "Some official aggregate fields are unavailable.",
+      }),
+    });
+  });
+  await page.getByTestId("market-insight-search-button").click();
+  await expect(page.getByTestId("market-insight-partial")).toBeVisible();
+  await expect(page.getByTestId("market-state-guidance")).toBeVisible();
+  await expect(page.getByTestId("market-primary-metrics")).toContainText("33.21");
+  await expect(page.getByTestId("market-primary-metrics")).not.toContainText("0 筆");
+  await expect(page.getByTestId("market-source-metadata")).toContainText("Official PLVR OpenData aggregate");
 });
 
 test("mobile analysis remains readable without page-level horizontal overflow", async ({ page }) => {
