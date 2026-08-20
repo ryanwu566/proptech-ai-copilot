@@ -31,17 +31,17 @@ export function prefillLocationInsight(prefill: LocationInsightPrefill) {
   window.dispatchEvent(new CustomEvent<LocationInsightPrefill>(LOCATION_INSIGHT_PREFILL_EVENT, { detail: prefill }));
 }
 
-export function LocationInsight({ onMap, onContextChange, onResult, embeddedJourney = false }: { onMap?: () => void; onContextChange?: (context: LocationInsightPrefill) => void; onResult?: (result: LocationInsightResult | null) => void; embeddedJourney?: boolean }) {
+export function LocationInsight({ onMap, onContextChange, onResult, initialContext, initialResult, embeddedJourney = false }: { onMap?: () => void; onContextChange?: (context: LocationInsightPrefill) => void; onResult?: (result: LocationInsightResult | null) => void; initialContext?: LocationInsightPrefill; initialResult?: LocationInsightResult; embeddedJourney?: boolean }) {
   const { copy } = useExperienceLocale();
-  const [city, setCity] = useState("台北市");
-  const [district, setDistrict] = useState("大安區");
-  const [road, setRoad] = useState("和平東路二段");
-  const [address, setAddress] = useState("");
+  const [city, setCity] = useState(initialContext?.city ?? "台北市");
+  const [district, setDistrict] = useState(initialContext?.district ?? "大安區");
+  const [road, setRoad] = useState(initialContext?.road ?? "和平東路二段");
+  const [address, setAddress] = useState(initialContext?.address ?? "");
   const [radius, setRadius] = useState(800);
-  const [propertyPrice, setPropertyPrice] = useState<number | "">("");
-  const [areaPing, setAreaPing] = useState<number | "">("");
-  const [buildingType, setBuildingType] = useState("");
-  const [result, setResult] = useState<LocationInsightResult>();
+  const [propertyPrice, setPropertyPrice] = useState<number | "">(initialContext?.property_price ?? "");
+  const [areaPing, setAreaPing] = useState<number | "">(initialContext?.area_ping ?? "");
+  const [buildingType, setBuildingType] = useState(initialContext?.building_type ?? "");
+  const [result, setResult] = useState<LocationInsightResult | undefined>(initialResult);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -51,6 +51,19 @@ export function LocationInsight({ onMap, onContextChange, onResult, embeddedJour
     onResult?.(null);
     window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
   }
+
+  useEffect(() => {
+    if (!initialContext) return;
+    setCity(initialContext.city ?? "");
+    setDistrict(initialContext.district ?? "");
+    setRoad(initialContext.road ?? "");
+    setAddress(initialContext.address ?? [initialContext.city, initialContext.district, initialContext.road].filter(Boolean).join(""));
+    setPropertyPrice(initialContext.property_price ?? "");
+    setAreaPing(initialContext.area_ping ?? "");
+    setBuildingType(initialContext.building_type ?? "");
+  }, [initialContext]);
+
+  useEffect(() => { setResult(initialResult); }, [initialResult]);
 
   useEffect(() => {
     function applyPrefill(event: Event) {
@@ -155,10 +168,10 @@ function FlowBadge({ label, active }: { label: string; active?: boolean }) {
 function LocationResults({ result }: { result: LocationInsightResult }) {
   const { copy } = useExperienceLocale();
   if (result.data_quality.status === "unavailable") {
-    return <div className="space-y-3"><Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
+    return <div data-testid="location-result" className="space-y-3"><Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
   }
   const scoreLabels: [keyof LocationInsightResult["category_scores"], string][] = [["transit_score", copy("location.transit")], ["convenience_score", copy("location.convenience")], ["education_score", copy("location.education")], ["green_space_score", copy("location.green")], ["medical_score", copy("location.medical")], ["risk_score", copy("location.risk")]];
-  return <div className="min-w-0 space-y-4">
+  return <div data-testid="location-result" className="min-w-0 space-y-4">
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><MetricTile label={copy("location.score")} value={result.location_score ?? copy("common.noData")} note={result.resolved_location?.address_label} />{scoreLabels.map(([key, label]) => <MetricTile key={key} label={`${label}`} value={result.category_scores[key]} />)}</div>
     <div className="grid gap-3 sm:grid-cols-2"><ListCard title={copy("location.strengths")} items={result.strengths} /><ListCard title={copy("location.weaknesses")} items={result.weaknesses} /></div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{Object.entries(result.poi_summary).map(([key, value]) => <MetricTile key={key} label={poiLabel(key, copy)} value={`${value}`} />)}</div>

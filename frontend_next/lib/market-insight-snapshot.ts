@@ -25,7 +25,9 @@ function safeText(value: unknown): string | null {
 }
 
 export function buildMarketInsightSnapshot(result: MarketResult, generatedAt = new Date().toISOString()): MarketInsightSnapshot | null {
-  if (result.data_status !== "available" || result.coverage_status !== "covered") return null;
+  const hasEvidenceStatus = result.data_status === "available" || result.data_status === "incomplete";
+  const hasUsableCoverage = result.coverage_status === "covered" || result.coverage_status === "partial" || result.coverage_status === "nationwide";
+  if (!hasEvidenceStatus || !hasUsableCoverage) return null;
   const county = safeText(result.county || result.city);
   const district = safeText(result.district);
   if (!county || !district) return null;

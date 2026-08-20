@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, type HoldingCostResult } from "@/lib/api";
 import { Button } from "@/components/ui";
 import { ErrorState, SectionCard } from "@/components/product-ui";
@@ -19,7 +19,7 @@ export const HOLDING_COST_PREFILL_EVENT = "proptech:holding-cost-prefill";
 export const HOLDING_COST_SESSION_KEY = "proptech:holding-cost-result";
 export const HOLDING_COST_RESULT_EVENT = "proptech:holding-cost-result-ready";
 
-export function HoldingCostCalculator({ prefill, onResult, embedded = false }: { prefill?: HoldingCostPrefill; onResult?: (result: HoldingCostResult) => void; embedded?: boolean }) {
+export function HoldingCostCalculator({ prefill, initialResult, onResult, embedded = false }: { prefill?: HoldingCostPrefill; initialResult?: HoldingCostResult; onResult?: (result: HoldingCostResult | undefined) => void; embedded?: boolean }) {
   const { locale } = useExperienceLocale();
   const copy = getSurfaceCopy(locale).holding;
   const [propertyPrice, setPropertyPrice] = useState<number | "">(prefill?.property_price ?? (embedded ? "" : 2000));
@@ -29,6 +29,19 @@ export function HoldingCostCalculator({ prefill, onResult, embedded = false }: {
   const [managementFee, setManagementFee] = useState(80); const [repairReserve, setRepairReserve] = useState(50);
   const [homeTaxRate, setHomeTaxRate] = useState(0.0012); const [landTaxRate, setLandTaxRate] = useState(0.001); const [annualInsurance, setAnnualInsurance] = useState(3000);
   const [result, setResult] = useState<HoldingCostResult>(); const [loading, setLoading] = useState(false); const [error, setError] = useState("");
+  const inputKey = [propertyPrice, loanMonthlyPayment, monthlyIncome, areaPing, managementFee, repairReserve, homeTaxRate, landTaxRate, annualInsurance].join("|");
+  const previousInputKey = useRef(inputKey);
+
+  useEffect(() => {
+    if (previousInputKey.current === inputKey) return;
+    previousInputKey.current = inputKey;
+    setResult(undefined);
+    setError("");
+    window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY);
+    onResult?.(undefined);
+  }, [inputKey, onResult]);
+
+  useEffect(() => { setResult(initialResult); }, [initialResult]);
 
   useEffect(() => { if (!prefill) return; setPropertyPrice(prefill.property_price); setLoanMonthlyPayment(prefill.loan_monthly_payment ?? 0); setMonthlyIncome(prefill.monthly_income ?? ""); setAreaPing(prefill.area_ping ?? ""); setResult(undefined); window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY); }, [prefill]);
   useEffect(() => { function applyEvent(event: Event) { const detail = (event as CustomEvent<HoldingCostPrefill>).detail; if (!detail?.property_price) return; setPropertyPrice(detail.property_price); setLoanMonthlyPayment(detail.loan_monthly_payment ?? 0); setMonthlyIncome(detail.monthly_income ?? ""); setAreaPing(detail.area_ping ?? ""); setResult(undefined); window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY); } window.addEventListener(HOLDING_COST_PREFILL_EVENT, applyEvent); return () => window.removeEventListener(HOLDING_COST_PREFILL_EVENT, applyEvent); }, []);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { HoldingCostCalculator, HoldingCostPrefill } from "@/components/holding-cost-calculator";
 import { LocationInsight } from "@/components/location-insight";
 import { api, LoanCalculationResult } from "@/lib/api";
@@ -24,7 +24,7 @@ export function LoanCalculator({
 }: {
   propertyPriceWan?: number;
   initialResult?: LoanCalculationResult;
-  onResult?: (result: LoanCalculationResult) => void;
+  onResult?: (result: LoanCalculationResult | undefined) => void;
   onHoldingCost?: (result: LoanCalculationResult) => void;
   onLocationMap?: () => void;
   embedded?: boolean;
@@ -40,6 +40,16 @@ export function LoanCalculator({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [holdingPrefill, setHoldingPrefill] = useState<HoldingCostPrefill | undefined>(propertyPriceWan ? { property_price: propertyPriceWan } : undefined);
+  const inputKey = [propertyPrice, downPaymentRatio, annualInterestRate, loanYears, gracePeriodYears, monthlyIncome].join("|");
+  const previousInputKey = useRef(inputKey);
+
+  useEffect(() => {
+    if (previousInputKey.current === inputKey) return;
+    previousInputKey.current = inputKey;
+    setResult(undefined);
+    setError("");
+    onResult?.(undefined);
+  }, [inputKey, onResult]);
 
   useEffect(() => {
     if (propertyPriceWan && propertyPriceWan > 0) {
@@ -49,9 +59,7 @@ export function LoanCalculator({
     }
   }, [propertyPriceWan]);
 
-  useEffect(() => {
-    if (initialResult) setResult(initialResult);
-  }, [initialResult]);
+  useEffect(() => { setResult(initialResult); }, [initialResult]);
 
   useEffect(() => {
     function applyDemoResult(event: Event) {
@@ -116,7 +124,7 @@ export function LoanCalculator({
 
 function LoanResults({ result, onHoldingCost }: { result: LoanCalculationResult; onHoldingCost?: (result: LoanCalculationResult) => void }) {
   const model = buildLoanVisualModel(result);
-  return <LoanVisualPanel model={model} onHoldingCost={onHoldingCost ? () => onHoldingCost(result) : undefined} />;
+  return <div data-testid="loan-result"><LoanVisualPanel model={model} onHoldingCost={onHoldingCost ? () => onHoldingCost(result) : undefined} /></div>;
 }
 
 function LoanNumberField({ label, value, onChange, min, max, step }: { label: string; value: number | ""; onChange: (value: number) => void; min: number; max?: number; step?: number }) {

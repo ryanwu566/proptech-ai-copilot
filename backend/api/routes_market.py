@@ -219,10 +219,27 @@ def _safe_market_query_result(
     coverage_status = _safe_market_coverage(raw.get("coverage_status"))
     data_status = raw.get("data_status")
     raw_reason_code = raw.get("reason_code")
-    if coverage_status == "covered":
+    if coverage_status in {"covered", "partial"}:
         if data_status == "available" and _market_result_has_valid_metrics(raw):
             result = {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+            result["coverage_status"] = coverage_status
             result["support_reference"] = support_reference
+            if raw_reason_code:
+                result["reason_code"] = safe_market_query_reason_code(raw_reason_code)
+            return result
+        if data_status in {"available", "incomplete"} and _market_result_has_partial_evidence(raw):
+            result = {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+            result.update(
+                {
+                    "city": raw.get("city") or county,
+                    "county": raw.get("county") or county,
+                    "district": raw.get("district") or district,
+                    "coverage_status": coverage_status,
+                    "data_status": "incomplete",
+                    "support_reference": support_reference,
+                    "history": raw.get("history") if isinstance(raw.get("history"), list) else [],
+                }
+            )
             if raw_reason_code:
                 result["reason_code"] = safe_market_query_reason_code(raw_reason_code)
             return result
@@ -256,13 +273,32 @@ def _market_result_has_valid_metrics(result: dict[str, Any]) -> bool:
     )
 
 
+def _market_result_has_partial_evidence(result: dict[str, Any]) -> bool:
+    if not bool(str(result.get("source_name") or "").strip()):
+        return False
+    if not isinstance(result.get("history"), list):
+        return False
+    candidates = (
+        result.get("average_unit_price"),
+        result.get("avg_price_per_ping"),
+        result.get("transaction_count"),
+        result.get("transaction_volume"),
+        result.get("record_count"),
+        result.get("median_unit_price_ntd_sqm"),
+        result.get("median_total_price_ntd"),
+    )
+    return any(_positive_finite_number(value) for value in candidates)
+
+
 def _positive_finite_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
 
 
 def _safe_market_coverage(value: Any) -> str:
     text = str(value or "").strip()
-    if text in {"covered", "partial", "nationwide"}:
+    if text in {"covered", "partial"}:
+        return text
+    if text == "nationwide":
         return "covered"
     if text == "not_covered":
         return text

@@ -1,9 +1,11 @@
-import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, MarketResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { BuyingWizardStep } from "@/lib/buying-wizard-status";
 import type { ValuationInputs } from "@/lib/valuation-share";
 import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/property-case-evidence";
 import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
+import type { JourneyPriceBasis } from "@/lib/closed-loop-journey";
+import type { JourneyPropertyContext } from "@/lib/location-market-journey";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -21,6 +23,14 @@ export type SavedCaseData = {
   loan?: LoanCalculationResult;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
+  marketInsight?: MarketResult;
+  journeyContext?: {
+    version: 1;
+    propertyContext: JourneyPropertyContext;
+    priceBasis: JourneyPriceBasis;
+    activePriceWan?: number;
+    manualPriceWan?: number;
+  };
   /** Legacy input only; new saved cases use terrainReference. */
   terrainRisk?: TerrainRiskResult;
   terrainReference?: StoredTerrainReferenceEvidenceV1;

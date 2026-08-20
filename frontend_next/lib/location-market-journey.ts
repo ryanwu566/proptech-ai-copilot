@@ -7,6 +7,8 @@ export type JourneyPropertyContext = {
   addressSummary?: string;
   buildingType?: string;
   areaPing?: number;
+  buildingAgeYears?: number;
+  floor?: number;
   askingPriceWan?: number;
   sourceLabel: string;
   selectionStatus: "not_selected" | "selected" | "partial";
@@ -65,6 +67,8 @@ export function getSafeJourneyPropertyContext(input: Partial<JourneyPropertyCont
     ...(addressSummary ? { addressSummary } : {}),
     ...(safeText(input?.buildingType) ? { buildingType: safeText(input?.buildingType) } : {}),
     ...(safeNumber(input?.areaPing) !== undefined ? { areaPing: safeNumber(input?.areaPing) } : {}),
+    ...(safeNumber(input?.buildingAgeYears) !== undefined ? { buildingAgeYears: safeNumber(input?.buildingAgeYears) } : {}),
+    ...(safeNumber(input?.floor) !== undefined ? { floor: safeNumber(input?.floor) } : {}),
     ...(safeNumber(input?.askingPriceWan) !== undefined ? { askingPriceWan: safeNumber(input?.askingPriceWan) } : {}),
     sourceLabel: safeText(input?.sourceLabel) ?? "使用者輸入",
     selectionStatus,

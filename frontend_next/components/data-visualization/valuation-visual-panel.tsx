@@ -12,9 +12,9 @@ export function ValuationVisualPanel({ model }: { model: ValuationVisualModel })
   const { copy, locale } = useExperienceLocale();
   // Missing data must never be rendered as zero or low risk: 不以零值或低風險代替缺失資料。
   if (!model.actionable) {
-    return <VisualDataUnavailableState message={copy("valuation.emptyDetail")} state={model.state === "no_data" || model.state === "demo" ? "no_official_data" : "unavailable"} />;
+    return <div data-testid="valuation-result"><VisualDataUnavailableState message={copy("valuation.emptyDetail")} state={model.state === "no_data" || model.state === "demo" ? "no_official_data" : "unavailable"} /></div>;
   }
-  return <div className="min-w-0 space-y-4">
+  return <div data-testid="valuation-result" className="min-w-0 space-y-4">
     <div className="flex flex-wrap items-center gap-2 text-xs"><span className="rounded-full bg-cyan-50 px-2 py-1 font-bold text-cyan-800">{getLocalizedStateLabel("source_backed", locale)}</span><span className="text-slate-500">{copy("valuation.help")}</span></div>
     <ValuationEvidenceSummary model={model} />
     <details className="min-w-0 rounded-xl border border-stone-200 bg-white">

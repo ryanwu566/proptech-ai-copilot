@@ -67,9 +67,10 @@ function actionAvailable(result: ValuationResult | undefined): boolean {
 export function getSafePriceContext(input: { propertyContext: JourneyPropertyContext; result?: ValuationResult; askingPriceWan?: number }): JourneyPriceContext {
   const actionable = actionAvailable(input.result);
   const result = input.result;
+  const askingPriceWan = finitePositive(input.askingPriceWan) ? input.askingPriceWan : input.propertyContext.askingPriceWan;
   return {
     propertyContext: input.propertyContext,
-    ...(finitePositive(input.askingPriceWan) ? { askingPriceWan: input.askingPriceWan } : {}),
+    ...(finitePositive(askingPriceWan) ? { askingPriceWan } : {}),
     ...(finitePositive(input.propertyContext.areaPing) ? { propertyAreaPing: input.propertyContext.areaPing } : {}),
     officialValuationStatus: valuationStatus(result),
     ...(actionable && result && finitePositive(result.estimate_total_price) ? { officialEstimateWan: result.estimate_total_price } : {}),

@@ -24,9 +24,12 @@ export type PropertyFinderSelection = {
   road: string;
   building_type: string;
   area_ping: number;
+  building_age_years?: number;
+  floor?: number;
+  asking_price_wan: number;
 };
 
-export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult, embedded = false }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void; initialResult?: PropertySearchResult; embedded?: boolean }) {
+export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult, embedded = false }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number, selection: PropertyFinderSelection) => void; onUseForHoldingCost: (priceWan: number, areaPing: number, selection: PropertyFinderSelection) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void; initialResult?: PropertySearchResult; embedded?: boolean }) {
   const { copy, locale } = useExperienceLocale();
   const [city, setCity] = useState("");
   const [districtText, setDistrictText] = useState("");
@@ -111,7 +114,7 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
   </SectionCard></div>{!embedded && <ImmersiveViewingWorkspace propertySearch={result}/>}</div>;
 }
 
-function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight }: { result: PropertySearchResult; onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number) => void; onUseForHoldingCost: (priceWan: number, areaPing: number) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void }) {
+function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight }: { result: PropertySearchResult; onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number, selection: PropertyFinderSelection) => void; onUseForHoldingCost: (priceWan: number, areaPing: number, selection: PropertyFinderSelection) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void }) {
   const { copy } = useExperienceLocale();
   const visualModel = buildPropertySearchVisualModel(result);
   if (visualModel.state !== "available") return <div className="mt-5"><VisualDataUnavailableState message={visualModel.state === "no_data" ? copy("finder.noData") : copy("common.unavailable")} /><PropertySearchEvidenceSummary model={visualModel} /></div>;
@@ -128,10 +131,10 @@ function PropertyFinderResults({ result, onUseForValuation, onUseForLoan, onUseF
     </div>
     {visualModel.state === "available" ? <div className="grid min-w-0 gap-4 lg:grid-cols-2"><PropertySearchPriceRangeChart title={copy("valuation.range")} data={visualModel.districtRanges} /><PropertySearchPriceRangeChart title={copy("valuation.range")} data={visualModel.roadRanges} /><PropertySearchSampleChart data={visualModel.districtRanges} /><PropertySearchEvidenceSummary model={visualModel} /></div> : <VisualDataUnavailableState message={copy("common.unavailable")} />}
     <FinderTable title={copy("finder.roads")} minWidth="min-w-[820px]" headers={[copy("finder.districts"), copy("common.selectRoad"), copy("common.count"), copy("valuation.mid"), copy("finder.areaMin"), copy("finder.buildingType"), copy("action.open")] }>
-      {result.road_suggestions.map((item) => { const selection=suggestionSelection(item); return <tr key={`${item.city}-${item.district}-${item.road}`} className="border-t border-stone-100"><td className="p-2">{item.city} {item.district}</td><td>{item.road}</td><td>{item.sample_count}</td><td>{item.median_total_price.toLocaleString()} 萬</td><td>{item.median_area_ping} 坪</td><td>{item.common_building_type}</td><td><FinderActions onValuation={() => onUseForValuation(selection)} onLoan={() => onUseForLoan(item.median_total_price)} onHoldingCost={() => onUseForHoldingCost(item.median_total_price, item.median_area_ping)} onLocation={() => onUseForLocationInsight(selection,item.median_total_price)} /></td></tr>; })}
+      {result.road_suggestions.map((item) => { const selection=suggestionSelection(item); return <tr key={`${item.city}-${item.district}-${item.road}`} className="border-t border-stone-100"><td className="p-2">{item.city} {item.district}</td><td>{item.road}</td><td>{item.sample_count}</td><td>{item.median_total_price.toLocaleString()} 萬</td><td>{item.median_area_ping} 坪</td><td>{item.common_building_type}</td><td><FinderActions onValuation={() => onUseForValuation(selection)} onLoan={() => onUseForLoan(item.median_total_price, selection)} onHoldingCost={() => onUseForHoldingCost(item.median_total_price, item.median_area_ping, selection)} onLocation={() => onUseForLocationInsight(selection,item.median_total_price)} /></td></tr>; })}
     </FinderTable>
     <FinderTable title={copy("finder.transactions")} minWidth="min-w-[980px]" headers={[copy("common.period"), copy("finder.districts"), copy("common.selectRoad"), copy("finder.buildingType"), copy("finder.areaMin"), copy("valuation.estimateTotal"), copy("valuation.unitPrice"), copy("common.source"), copy("action.open")] }>
-      {result.matched_transactions.map((item, index) => { const selection=transactionSelection(item); return <tr key={`${item.transaction_period}-${item.road}-${index}`} className="border-t border-stone-100"><td className="whitespace-nowrap p-2">{item.transaction_period}</td><td>{item.city} {item.district}</td><td>{item.road}</td><td>{item.building_type}</td><td>{item.area_ping}</td><td>{item.total_price.toLocaleString()} 萬</td><td>{item.unit_price_per_ping} 萬</td><td><span className="whitespace-nowrap rounded-full bg-cyan-50 px-2 py-1 font-bold text-cyan-800">{item.source_label}</span></td><td><FinderActions onValuation={() => onUseForValuation(selection)} onLoan={() => onUseForLoan(item.total_price)} onHoldingCost={() => onUseForHoldingCost(item.total_price, item.area_ping)} onLocation={() => onUseForLocationInsight(selection,item.total_price)} /></td></tr>; })}
+      {result.matched_transactions.map((item, index) => { const selection=transactionSelection(item); return <tr key={`${item.transaction_period}-${item.road}-${index}`} className="border-t border-stone-100"><td className="whitespace-nowrap p-2">{item.transaction_period}</td><td>{item.city} {item.district}</td><td>{item.road}</td><td>{item.building_type}</td><td>{item.area_ping}</td><td>{item.total_price.toLocaleString()} 萬</td><td>{item.unit_price_per_ping} 萬</td><td><span className="whitespace-nowrap rounded-full bg-cyan-50 px-2 py-1 font-bold text-cyan-800">{item.source_label}</span></td><td><FinderActions onValuation={() => onUseForValuation(selection)} onLoan={() => onUseForLoan(item.total_price, selection)} onHoldingCost={() => onUseForHoldingCost(item.total_price, item.area_ping, selection)} onLocation={() => onUseForLocationInsight(selection,item.total_price)} /></td></tr>; })}
     </FinderTable>
     <Notice tone="warning">{result.disclaimer}</Notice>
   </div>;
@@ -153,9 +156,9 @@ function NumberInput({ label, value, onChange }: { label: string; value: number 
 }
 
 function suggestionSelection(item: PropertySearchSuggestion): PropertyFinderSelection {
-  return { city: item.city, district: item.district, road: item.road ?? "", building_type: item.common_building_type, area_ping: item.median_area_ping };
+  return { city: item.city, district: item.district, road: item.road ?? "", building_type: item.common_building_type, area_ping: item.median_area_ping, asking_price_wan: item.median_total_price };
 }
 
 function transactionSelection(item: PropertySearchTransaction): PropertyFinderSelection {
-  return { city: item.city, district: item.district, road: item.road, building_type: item.building_type, area_ping: item.area_ping };
+  return { city: item.city, district: item.district, road: item.road, building_type: item.building_type, area_ping: item.area_ping, building_age_years: item.building_age_years, floor: item.floor, asking_price_wan: item.total_price };
 }

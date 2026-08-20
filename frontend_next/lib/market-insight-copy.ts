@@ -40,6 +40,10 @@ export type MarketInsightCopy = {
   noData: string;
   unavailable: string;
   networkError: string;
+  lowSample: string;
+  partialData: string;
+  staleData: string;
+  retry: string;
   supportReference: string;
   distributions: string;
   priceDistribution: string;
@@ -96,6 +100,10 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     noData: "目前此區域尚無足夠的官方市場資料。",
     unavailable: "市場資料暫時無法使用，請稍後再試。",
     networkError: "目前無法連線至市場資料服務，請稍後重試。",
+    lowSample: "樣本有限，僅供區域參考；請擴大期間或範圍再確認。",
+    partialData: "部分市場指標可用；缺少的欄位保持未提供，不會補零。",
+    staleData: "資料期別較早，請先確認更新時間再使用。",
+    retry: "重新查詢",
     supportReference: "參考代碼",
     distributions: "資料分布",
     priceDistribution: "價格分布",
@@ -150,6 +158,10 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     noData: "This area does not currently have enough official market data.",
     unavailable: "Market data is temporarily unavailable. Please try again later.",
     networkError: "The market data service cannot be reached. Please try again later.",
+    lowSample: "The sample is limited and is regional reference only. Confirm with a wider period or area.",
+    partialData: "Some market metrics are available. Missing fields remain unavailable and are not filled with zero.",
+    staleData: "The data is older. Confirm the update date before using it.",
+    retry: "Retry query",
     supportReference: "Reference code",
     distributions: "Distributions",
     priceDistribution: "Price distribution",
@@ -204,6 +216,10 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     noData: "この地域には現在、十分な公式市場データがありません。",
     unavailable: "市場データは一時的に利用できません。後でもう一度お試しください。",
     networkError: "市場データサービスに接続できません。後でもう一度お試しください。",
+    lowSample: "標本数が限られた地域参考情報です。期間または範囲を広げて確認してください。",
+    partialData: "一部の市場指標のみ利用できます。不足項目をゼロで補いません。",
+    staleData: "データ期間が古いため、更新日を確認してから利用してください。",
+    retry: "再検索",
     supportReference: "参照コード",
     distributions: "分布",
     priceDistribution: "価格分布",
@@ -258,6 +274,10 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     noData: "현재 이 지역에는 충분한 공식 시장 데이터가 없습니다.",
     unavailable: "시장 데이터를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.",
     networkError: "시장 데이터 서비스에 연결할 수 없습니다. 잠시 후 다시 시도하세요.",
+    lowSample: "표본이 제한된 지역 참고 자료입니다. 기간 또는 범위를 넓혀 확인하세요.",
+    partialData: "일부 시장 지표만 사용할 수 있습니다. 누락된 항목을 0으로 채우지 않습니다.",
+    staleData: "자료 기간이 오래되었으므로 업데이트 날짜를 먼저 확인하세요.",
+    retry: "다시 조회",
     supportReference: "참조 코드",
     distributions: "분포",
     priceDistribution: "가격 분포",

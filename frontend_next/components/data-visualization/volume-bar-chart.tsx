@@ -1,12 +1,12 @@
 import { selectChartLabelIndexes, type MarketHistoryPoint } from "@/lib/market-insight-visualization";
-import type { MarketDisplayState } from "@/lib/market-result-state";
+import { marketStateHasEvidence, type MarketDisplayState } from "@/lib/market-result-state";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { formatMarketCopy, getMarketInsightCopy } from "@/lib/market-insight-copy";
 
 export function VolumeBarChart({ data, status }: { data: MarketHistoryPoint[]; status: MarketDisplayState }) {
   const { locale } = useExperienceLocale();
   const labels = getMarketInsightCopy(locale);
-  if (status !== "available" || data.length === 0) {
+  if (!marketStateHasEvidence(status) || data.length === 0) {
     return <p data-testid="market-volume-trend-empty" role="status" className="rounded-lg bg-stone-50 p-4 text-sm text-slate-600">{labels.chartNoHistory}</p>;
   }
   const max = Math.max(...data.map((point) => point.transaction_count));

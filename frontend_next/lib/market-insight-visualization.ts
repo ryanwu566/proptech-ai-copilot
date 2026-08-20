@@ -1,5 +1,5 @@
 import type { MarketResult } from "./api";
-import { getMarketDisplayState, type MarketDisplayState } from "./market-result-state";
+import { getMarketDisplayState, marketStateHasEvidence, type MarketDisplayState } from "./market-result-state";
 
 export type VisualFreshnessStatus = "fresh" | "aging" | "stale" | "unknown";
 export type VisualCoverageStatus = "covered" | "not_covered" | "partial" | "unknown";
@@ -116,7 +116,7 @@ function mapCoverage(result: MarketResult): VisualCoverageStatus {
 }
 
 export function getMarketMetricPresentation(result: MarketResult): MarketMetricPresentation {
-  const isAvailable = getMarketDisplayState(result) === "available";
+  const isAvailable = marketStateHasEvidence(getMarketDisplayState(result));
   const transactionCount = isPositiveFinite(result.transaction_count)
     ? result.transaction_count
     : isPositiveFinite(result.transaction_volume)
@@ -142,7 +142,7 @@ export function getMarketMetricPresentation(result: MarketResult): MarketMetricP
 }
 
 export function sanitizeMarketHistory(result: MarketResult | undefined): MarketHistoryPoint[] {
-  if (!result || getMarketDisplayState(result) !== "available" || !Array.isArray(result.history)) return [];
+  if (!result || !marketStateHasEvidence(getMarketDisplayState(result)) || !Array.isArray(result.history)) return [];
   return result.history.flatMap((point) => {
     const period = safeText(point.period);
     if (!period || !isPositiveFinite(point.average_unit_price) || !isPositiveFinite(point.transaction_count)) return [];
@@ -201,7 +201,7 @@ export function formatMarketPeriodChange(value: number | null | undefined): stri
 }
 
 export function sanitizeMarketDistribution(result: MarketResult | undefined, field: "price_distribution" | "building_type_distribution" | "age_band_distribution"): MarketDistributionPoint[] {
-  if (!result || getMarketDisplayState(result) !== "available" || !Array.isArray(result[field])) return [];
+  if (!result || !marketStateHasEvidence(getMarketDisplayState(result)) || !Array.isArray(result[field])) return [];
   return result[field].flatMap((point) => {
     const label = safeText(point?.label);
     const count = Number(point?.count);
@@ -256,7 +256,7 @@ export function buildMarketInsightVisualModel(result: MarketResult | undefined):
     medianUnitPrice: presentation?.medianUnitPrice ?? null,
     medianTotalPrice: presentation?.medianTotalPrice ?? null,
     transactionVolume: presentation?.transactionCount ?? null,
-    recordCount: state === "available" && result && isPositiveFinite(result.record_count ?? result.transaction_count)
+    recordCount: marketStateHasEvidence(state) && result && isPositiveFinite(result.record_count ?? result.transaction_count)
       ? (result.record_count ?? result.transaction_count ?? null)
       : null,
   };
