@@ -9,6 +9,8 @@ import time
 from typing import Any, Callable, Iterable
 
 from services.cadastral_evidence import build_cadastral_evidence
+from services.landsect_context import build_landsect_context
+from services.parcel_geometry import PointReferenceProvider
 from services.map_service import search_location
 from services.official_data_registry import provider_registry
 from services.terrain_risk_providers import (
@@ -143,6 +145,10 @@ def analyze_terrain_risk(
             resolved["longitude"],
             checked_at=data_quality["checked_at"],
         ),
+        "parcel_geometry_evidence": PointReferenceProvider().resolve(
+            latitude=resolved["latitude"], longitude=resolved["longitude"], checked_at=data_quality["checked_at"],
+        ),
+        "landsect_context": build_landsect_context(checked_at=data_quality["checked_at"]),
         "source_transparency": _source_transparency(terrain, hazards, layers),
         "official_data_sources": provider_registry("terrain"),
         "data_quality": data_quality,

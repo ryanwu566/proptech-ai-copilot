@@ -363,6 +363,38 @@ export type CadastralEvidence = {
   limitation: string;
   checked_at: string;
 };
+export type ParcelGeoJsonGeometry = { type: string; coordinates?: unknown; geometries?: ParcelGeoJsonGeometry[] };
+export type ParcelGeometryEvidence = {
+  status: "verified_official" | "user_provided" | "point_reference_only" | "invalid" | "unavailable";
+  source: "nlsc" | "uploaded_geojson" | "uploaded_kml" | "uploaded_shapefile" | "point_reference";
+  geometry_type: "Polygon" | "MultiPolygon" | "Point";
+  geometry?: ParcelGeoJsonGeometry;
+  centroid?: { lat: number; lng: number };
+  bbox?: [number, number, number, number];
+  crs_original?: string;
+  crs_normalized: "EPSG:4326";
+  area_m2?: number;
+  area_semantics: "computed_geometry_area" | "not_available";
+  legal_boundary: boolean;
+  can_spatial_intersect: boolean;
+  geometry_validity: "VALID" | "REPAIRED" | "INVALID";
+  limitation: string;
+  source_label: string;
+  checked_at: string;
+  location_geometry_consistency?: "CONSISTENT" | "POSSIBLE_MISMATCH" | "NOT_CHECKED";
+  timing_ms?: { parse_ms: number; geometry_validation_ms: number };
+};
+export type LandsectContext = {
+  status: "VERIFIED_PUBLIC" | "NOT_PROVEN" | "UNAVAILABLE";
+  semantics: "SECTION_CONTEXT_NOT_PARCEL_BOUNDARY";
+  provider: "NLSC";
+  layer: "LANDSECT";
+  tile_url_template?: string;
+  attribution?: string;
+  source_url?: string;
+  limitation: string;
+  checked_at: string;
+};
 export type TerrainRiskResult = {
   input: Record<string, string | number | string[] | null | undefined>;
   resolved_location: { address_label?: string; latitude?: number; longitude?: number; geocoding_confidence?: string; geocoding_source?: "google_geocoding" | "tgos_geocoding" | "mock" | "provided_coordinates" | "unknown" };
@@ -374,6 +406,8 @@ export type TerrainRiskResult = {
   recommended_checks: string[];
   map_layers: { key: string; label: string; status: string; source_url?: string; external_view_url?: string; data_vintage?: string; data_quality?: string; limitation?: string }[];
   cadastral_evidence?: CadastralEvidence;
+  parcel_geometry_evidence?: ParcelGeometryEvidence;
+  landsect_context?: LandsectContext;
   source_transparency?: { notice: string; layers: TerrainRiskSourceTransparencyLayer[] };
   official_data_sources?: OfficialDataSourceStatus[];
   data_quality: { status: "good" | "limited" | "unavailable"; warnings: string[]; checked_at: string };
@@ -425,13 +459,24 @@ export type MapNearbyResult = {
   disclaimer: string;
 };
 
+export class ApiRequestError extends Error {
+  constructor(message: string, public readonly code?: string, public readonly status?: number) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
+    const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
     const response = await fetch(apiUrl(path), {
       ...init,
-      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+      headers: { ...(isFormData ? {} : { "Content-Type": "application/json" }), ...(init?.headers ?? {}) },
     });
     if (!response.ok) {
+      const payload = await response.json().catch(() => null) as { detail?: string | { code?: string; message?: string } } | null;
+      const detail = payload?.detail;
+      if (detail && typeof detail === "object") throw new ApiRequestError(detail.message ?? "The file could not be processed.", detail.code, response.status);
       if (response.status === 404) throw new Error("後端尚未部署最新資料服務，請稍後再試。");
       if (response.status >= 500) throw new Error("資料暫時無法載入，請稍後再試。");
       throw new Error("資料請求未完成，請確認輸入後再試。");
@@ -478,6 +523,14 @@ export const api = {
   locationInsight: (payload: Record<string, string | number | boolean | undefined>) => request<LocationInsightResult>("/location/insight", { method: "POST", body: JSON.stringify(payload) }),
   commuteAddressLookup: (payload: { address: string }) => request<CommuteAddressLookupResult>("/commute/address-lookup", { method: "POST", body: JSON.stringify(payload) }),
   terrainRiskAnalyze: (payload: Record<string, string | number | string[] | undefined>) => request<TerrainRiskResult>("/terrain-risk/analyze", { method: "POST", body: JSON.stringify(payload) }),
+  uploadParcelGeometry: (file: File, coordinates?: { latitude: number; longitude: number }, signal?: AbortSignal) => {
+    const body = new FormData();
+    body.append("file", file);
+    if (coordinates) { body.append("latitude", String(coordinates.latitude)); body.append("longitude", String(coordinates.longitude)); }
+    return request<ParcelGeometryEvidence>("/parcel-geometry/upload", { method: "POST", body, signal });
+  },
+  parcelGeometryConsistency: (geometry: ParcelGeoJsonGeometry, latitude: number, longitude: number) =>
+    request<{ location_geometry_consistency: ParcelGeometryEvidence["location_geometry_consistency"] }>("/parcel-geometry/consistency", { method: "POST", body: JSON.stringify({ geometry, latitude, longitude }) }),
   valuationDataStatus: () => request<ValuationDataStatus>("/valuation/data-status"),
   valuation: (payload: Record<string, string | number>) => request<ValuationResult>("/valuation/estimate", { method: "POST", body: JSON.stringify(payload) }),
   valuationTrend: (payload: Record<string, string | number | number[]>) => request<ValuationTrendResult>("/valuation/trend", { method: "POST", body: JSON.stringify(payload) }),

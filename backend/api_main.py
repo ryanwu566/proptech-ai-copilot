@@ -28,6 +28,7 @@ from backend.api.routes_terrain_risk import router as terrain_risk_router
 from backend.api.routes_valuation import router as valuation_router
 from backend.api.routes_pilot import router as pilot_router
 from backend.api.routes_performance import router as performance_router
+from backend.api.routes_parcel_geometry import router as parcel_geometry_router
 from services.observability import build_observation, normalize_correlation_id
 from services.production_config import assert_startup_configuration
 from services.security import safe_origin, security_headers
@@ -92,7 +93,8 @@ async def privacy_safe_observability(request: Request, call_next):
     correlation_id = normalize_correlation_id(request.headers.get("X-Correlation-ID"))
     started = time.monotonic()
     content_length = request.headers.get("content-length")
-    if content_length and content_length.isdigit() and int(content_length) > 1_000_000:
+    request_body_limit = 11_000_000 if request.url.path == "/parcel-geometry/upload" else 1_000_000
+    if content_length and content_length.isdigit() and int(content_length) > request_body_limit:
         response = JSONResponse(status_code=413, content={"status": "error", "message": "Request body is too large.", "support_reference": correlation_id})
         response.headers["X-Correlation-ID"] = correlation_id
         for name, value in security_headers(private=True).items():
@@ -120,7 +122,7 @@ async def privacy_safe_observability(request: Request, call_next):
         response = JSONResponse(status_code=500, content={"status": "error", "message": "The request could not be completed.", "support_reference": correlation_id})
     response.headers["X-Correlation-ID"] = correlation_id
     production = os.getenv("APP_ENV", "development").strip().lower() in {"production", "preview"}
-    private = request.url.path.startswith("/pilot") or request.url.path.startswith("/professional-review") or request.url.path.startswith("/client-errors")
+    private = request.url.path.startswith("/pilot") or request.url.path.startswith("/professional-review") or request.url.path.startswith("/client-errors") or request.url.path.startswith("/parcel-geometry")
     for name, value in security_headers(production=production, private=private).items():
         response.headers.setdefault(name, value)
     if response.status_code >= 400:
@@ -143,3 +145,4 @@ app.include_router(lite_router)
 app.include_router(valuation_router)
 app.include_router(pilot_router)
 app.include_router(performance_router)
+app.include_router(parcel_geometry_router)
