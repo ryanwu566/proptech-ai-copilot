@@ -384,6 +384,15 @@ export type ParcelGeometryEvidence = {
   location_geometry_consistency?: "CONSISTENT" | "POSSIBLE_MISMATCH" | "NOT_CHECKED";
   timing_ms?: { parse_ms: number; geometry_validation_ms: number };
 };
+export type ParcelSpatialAnalysis = {
+  claim_type: "GEOMETRIC_INTERSECTION" | "NO_GEOMETRY_AVAILABLE";
+  geometry_available: boolean;
+  intersects?: boolean;
+  intersection_area_m2?: number;
+  intersection_ratio?: number;
+  nearest_distance_m?: number;
+  timing_ms: { spatial_intersection_ms: number };
+};
 export type LandsectContext = {
   status: "VERIFIED_PUBLIC" | "NOT_PROVEN" | "UNAVAILABLE";
   semantics: "SECTION_CONTEXT_NOT_PARCEL_BOUNDARY";
@@ -408,6 +417,7 @@ export type TerrainRiskResult = {
   cadastral_evidence?: CadastralEvidence;
   parcel_geometry_evidence?: ParcelGeometryEvidence;
   landsect_context?: LandsectContext;
+  hazard_geometries?: Record<string, ParcelGeoJsonGeometry | null>;
   source_transparency?: { notice: string; layers: TerrainRiskSourceTransparencyLayer[] };
   official_data_sources?: OfficialDataSourceStatus[];
   data_quality: { status: "good" | "limited" | "unavailable"; warnings: string[]; checked_at: string };
@@ -531,6 +541,8 @@ export const api = {
   },
   parcelGeometryConsistency: (geometry: ParcelGeoJsonGeometry, latitude: number, longitude: number) =>
     request<{ location_geometry_consistency: ParcelGeometryEvidence["location_geometry_consistency"] }>("/parcel-geometry/consistency", { method: "POST", body: JSON.stringify({ geometry, latitude, longitude }) }),
+  parcelSpatialAnalyze: (parcelGeometry: ParcelGeoJsonGeometry, hazardGeometry: ParcelGeoJsonGeometry | null) =>
+    request<ParcelSpatialAnalysis>("/parcel-geometry/spatial-analyze", { method: "POST", body: JSON.stringify({ parcel_geometry: parcelGeometry, hazard_geometry: hazardGeometry }) }),
   valuationDataStatus: () => request<ValuationDataStatus>("/valuation/data-status"),
   valuation: (payload: Record<string, string | number>) => request<ValuationResult>("/valuation/estimate", { method: "POST", body: JSON.stringify(payload) }),
   valuationTrend: (payload: Record<string, string | number | number[]>) => request<ValuationTrendResult>("/valuation/trend", { method: "POST", body: JSON.stringify(payload) }),

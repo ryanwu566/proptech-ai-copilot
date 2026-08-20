@@ -33,7 +33,7 @@ function uploadedEvidence(name: string) {
   };
 }
 
-function terrainResult({ landsect = true } = {}) {
+function terrainResult({ landsect = true, hazardGeometry = false } = {}) {
   const hazards = Object.fromEntries(hazardKeys.map((key) => [key, {
     key, label: key, status: "unavailable", level: "unknown", matched: false, distance_m: null,
     value: null, explanation: "No hazard geometry is available.",
@@ -48,6 +48,7 @@ function terrainResult({ landsect = true } = {}) {
     map_layers: [{ key: "terrain", label: "Terrain", status: "unavailable" }],
     cadastral_evidence: { status: "not_configured", mode: "point_reference_only", provider: "NLSC", center: { lat: 25.0305, lng: 121.5505 }, raster_status: "not_configured", vector_status: "not_configured", limitation: "POINT_REFERENCE_ONLY", checked_at: "2026-08-20T00:00:00Z" },
     parcel_geometry_evidence: pointEvidence(),
+    hazard_geometries: hazardGeometry ? { flood: { type: "Polygon", coordinates: polygonA } } : {},
     landsect_context: landsect ? {
       status: "VERIFIED_PUBLIC", semantics: "SECTION_CONTEXT_NOT_PARCEL_BOUNDARY", provider: "NLSC", layer: "LANDSECT",
       tile_url_template: "/e2e-landsect/{z}/{x}/{y}.png", attribution: "NLSC LANDSECT fixture",
@@ -60,10 +61,11 @@ function terrainResult({ landsect = true } = {}) {
   };
 }
 
-async function prepare(page: import("@playwright/test").Page, options: { landsect?: boolean; tileFailure?: boolean } = {}) {
+async function prepare(page: import("@playwright/test").Page, options: { landsect?: boolean; tileFailure?: boolean; hazardGeometry?: boolean } = {}) {
   await page.route("https://*.tile.openstreetmap.org/**", (route) => route.fulfill({ status: 200, contentType: "image/png", body: png }));
   await page.route("**/e2e-landsect/**", (route) => options.tileFailure ? route.abort("timedout") : route.fulfill({ status: 200, contentType: "image/png", body: png }));
-  await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(terrainResult({ landsect: options.landsect ?? true })) }));
+  await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(terrainResult({ landsect: options.landsect ?? true, hazardGeometry: options.hazardGeometry ?? false })) }));
+  await page.route("**/parcel-geometry/spatial-analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ claim_type: "GEOMETRIC_INTERSECTION", geometry_available: true, intersects: true, intersection_area_m2: 11250, intersection_ratio: 1, nearest_distance_m: 0, timing_ms: { spatial_intersection_ms: 3.2 } }) }));
   await page.goto("/", { waitUntil: "networkidle" });
   await page.locator("select").first().selectOption("en");
   const terrainButton = page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true });
@@ -108,7 +110,7 @@ test("address-only remains point reference and LANDSECT failure is non-blocking"
 });
 
 test("actual GeoJSON upload shows progress, replaces A with B, warns mismatch, and removes without refresh", async ({ page }) => {
-  await prepare(page);
+  await prepare(page, { hazardGeometry: true });
   await installUploadFixture(page, 250);
   await analyze(page);
   const input = page.getByTestId("parcel-geometry-file-input");
@@ -116,6 +118,8 @@ test("actual GeoJSON upload shows progress, replaces A with B, warns mismatch, a
   await expect(page.getByTestId("parcel-upload-progress")).toContainText("Validating");
   await expect(page.getByTestId("parcel-upload-progress")).not.toContainText("Geometry loaded");
   await expect(page.getByTestId("parcel-upload-summary")).toBeVisible();
+  await expect(page.getByTestId("parcel-spatial-claim")).toContainText("GEOMETRIC_INTERSECTION");
+  await expect(page.getByTestId("parcel-spatial-claim")).toContainText("11,250 m²");
   const polygonPath = page.locator('path[stroke="#0891b2"]');
   await expect(polygonPath).toHaveCount(1);
   const firstPath = await polygonPath.getAttribute("d");
@@ -140,6 +144,7 @@ test("invalid upload recovers and KML, SHP ZIP, and unknown CRS use real file in
 
   await input.setInputFiles({ name: "parcel.kml", mimeType: "application/vnd.google-earth.kml+xml", buffer: Buffer.from("<kml><Polygon/></kml>") });
   await expect(page.getByTestId("parcel-upload-summary")).toContainText("Polygon");
+  await expect(page.getByTestId("parcel-spatial-no-geometry")).toContainText("NO_GEOMETRY_AVAILABLE");
   await expect(page.getByTestId("parcel-upload-filename")).toHaveText("parcel.kml");
 
   await input.setInputFiles({ name: "parcel.zip", mimeType: "application/zip", buffer: Buffer.from("PK fixture") });

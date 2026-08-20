@@ -8,6 +8,7 @@ export type ParcelGeometryCopy = {
   notChecked: string; reupload: string; repaired: string; landsectLimitation: string;
   markerLegend: string; uploadLegend: string; officialLegend: string; sectionLegend: string;
   radiusLegend: string; spatialAvailable: string;
+  geometricIntersection: string; noGeometryAvailable: string; intersectionArea: string; nearestDistance: string;
 };
 
 const copy: Record<ExperienceLocale, ParcelGeometryCopy> = {
@@ -21,6 +22,7 @@ const copy: Record<ExperienceLocale, ParcelGeometryCopy> = {
     mismatch: "地址點位可能與上傳幾何不一致，請確認檔案與物件是否相符。", consistent: "地址點位位於或接近上傳幾何。", notChecked: "尚未檢查地址與幾何的一致性。",
     reupload: "重新載入此案例時需再次上傳 GIS 檔案。", repaired: "幾何拓撲已修復，使用前請核對圖形。", landsectLimitation: "LANDSECT 僅提供官方段籍圖背景，不是宗地界線。",
     markerLegend: "分析地址點位", uploadLegend: "使用者上傳幾何", officialLegend: "官方宗地向量（未設定）", sectionLegend: "LANDSECT 段籍背景", radiusLegend: "分析半徑（非界址）", spatialAvailable: "可進行幾何空間分析",
+    geometricIntersection: "幾何交集", noGeometryAvailable: "災害來源未提供實際幾何，因此不宣稱空間交集。", intersectionArea: "交集面積", nearestDistance: "最近幾何距離",
   },
   en: {
     uploadTitle: "Upload parcel GIS geometry (optional)", supported: "GeoJSON, KML, or SHP ZIP, up to 10 MB. SHP ZIP must include .shp, .shx, .dbf, and .prj.",
@@ -32,6 +34,7 @@ const copy: Record<ExperienceLocale, ParcelGeometryCopy> = {
     mismatch: "The address marker may not match the uploaded geometry. Confirm the file belongs to this property.", consistent: "The address marker is inside or near the uploaded geometry.", notChecked: "Address-to-geometry consistency has not been checked.",
     reupload: "Re-upload the GIS file after reopening this case.", repaired: "Geometry topology was repaired; review the rendered shape before use.", landsectLimitation: "LANDSECT is official cadastral section map context, not a parcel boundary.",
     markerLegend: "Analyzed address marker", uploadLegend: "User-uploaded geometry", officialLegend: "Official parcel vector (not configured)", sectionLegend: "LANDSECT section context", radiusLegend: "Analysis radius (not a boundary)", spatialAvailable: "Geometric spatial analysis available",
+    geometricIntersection: "Geometric intersection", noGeometryAvailable: "The hazard source has no actual geometry, so no spatial-intersection claim is made.", intersectionArea: "Intersection area", nearestDistance: "Nearest geometry distance",
   },
   ja: {
     uploadTitle: "土地 GIS ジオメトリをアップロード（任意）", supported: "GeoJSON、KML、SHP ZIP（最大 10 MB）。SHP ZIP には .shp、.shx、.dbf、.prj が必要です。",
@@ -41,6 +44,7 @@ const copy: Record<ExperienceLocale, ParcelGeometryCopy> = {
     invalidFile: "ファイルを解析できないか、ジオメトリが無効です。", unknownCrs: "SHP の CRS を識別できません。有効な .prj を含めてください。", mismatch: "住所地点とアップロード形状が一致しない可能性があります。対象物件を確認してください。", consistent: "住所地点はアップロード形状の内部または近くです。", notChecked: "住所と形状の整合性は未確認です。",
     reupload: "ケースを再度開いた後は GIS ファイルを再アップロードしてください。", repaired: "ジオメトリのトポロジーを修復しました。利用前に形状を確認してください。", landsectLimitation: "LANDSECT は公式の地籍セクション背景であり、筆界ではありません。",
     markerLegend: "分析住所地点", uploadLegend: "ユーザーアップロード形状", officialLegend: "公式筆ベクター（未設定）", sectionLegend: "LANDSECT セクション背景", radiusLegend: "分析半径（境界ではない）", spatialAvailable: "幾何学的空間分析が可能",
+    geometricIntersection: "幾何学的交差", noGeometryAvailable: "災害ソースに実際の形状がないため、空間交差を主張しません。", intersectionArea: "交差面積", nearestDistance: "最短形状距離",
   },
   ko: {
     uploadTitle: "토지 GIS 지오메트리 업로드(선택)", supported: "GeoJSON, KML, SHP ZIP(최대 10 MB). SHP ZIP에는 .shp, .shx, .dbf, .prj가 필요합니다.",
@@ -50,6 +54,7 @@ const copy: Record<ExperienceLocale, ParcelGeometryCopy> = {
     invalidFile: "파일을 해석할 수 없거나 지오메트리가 유효하지 않습니다.", unknownCrs: "SHP CRS를 확인할 수 없습니다. 유효한 .prj를 포함하세요.", mismatch: "주소 점과 업로드 형상이 일치하지 않을 수 있습니다. 해당 부동산의 파일인지 확인하세요.", consistent: "주소 점이 업로드 형상 내부 또는 가까이에 있습니다.", notChecked: "주소와 형상의 일치 여부를 확인하지 않았습니다.",
     reupload: "사례를 다시 열면 GIS 파일을 다시 업로드해야 합니다.", repaired: "지오메트리 위상을 복구했습니다. 사용 전에 표시된 형상을 확인하세요.", landsectLimitation: "LANDSECT는 공식 지적 구획 지도 배경이며 필지 경계가 아닙니다.",
     markerLegend: "분석 주소 점", uploadLegend: "사용자 업로드 형상", officialLegend: "공식 필지 벡터(미설정)", sectionLegend: "LANDSECT 구획 배경", radiusLegend: "분석 반경(경계 아님)", spatialAvailable: "기하학적 공간 분석 가능",
+    geometricIntersection: "기하학적 교차", noGeometryAvailable: "재해 출처에 실제 형상이 없어 공간 교차를 주장하지 않습니다.", intersectionArea: "교차 면적", nearestDistance: "최근접 형상 거리",
   },
 };
 
