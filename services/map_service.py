@@ -13,10 +13,11 @@ from typing import Any
 import httpx
 
 from services.adapters.geocoding_adapter import GeocodingAdapter, GoogleGeocodingAdapter, MockGeocodingAdapter
-from services.adapters.google_places_adapter import GooglePlacesAdapter, distance_meters
+from services.adapters.google_places_adapter import GooglePlacesAdapter, distance_meters, is_valid_place_type
 from services.adapters.tgos_geocoding_adapter import TgosGeocodingAdapter
 from services.adapters.poi_adapter import MockPoiAdapter, PoiAdapter
 from services.adapters.traffic_adapter import MockTrafficAdapter, TrafficAdapter
+from services.geocoding_acceptance import evaluate_geocoding_acceptance, unavailable_geocoding_acceptance
 
 
 DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "mock_map_points.json"
@@ -90,15 +91,19 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     if region is None:
         geocoding_ms = round((time.perf_counter() - started) * 1000)
         LOGGER.info("map_geocoding timing_ms=%s matched=false source=unavailable", geocoding_ms)
+        acceptance = unavailable_geocoding_acceptance(query)
         return {
             "query": query, "matched": False, "center": None, "city": "", "district": "", "road": "",
             "source": "mock", "source_chain": source_chain, "formatted_address": "", "place_id": "", "confidence": "mock",
             "location_note": "找不到符合的展示資料定位。", "disclaimer": SEARCH_DISCLAIMER,
             "geocoding_ms": geocoding_ms,
+            **acceptance,
+            "geocoding_acceptance": acceptance,
         }
     formatted_address = region.get("formatted_address") or f"{region.get('city', '')}{region.get('district', '')}{region.get('road', '')}"
     geocoding_ms = round((time.perf_counter() - started) * 1000)
     LOGGER.info("map_geocoding timing_ms=%s matched=true source=%s", geocoding_ms, source)
+    acceptance = evaluate_geocoding_acceptance(query, region, source)
     return {
         "query": query,
         "matched": True,
@@ -110,8 +115,16 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
         "source_chain": source_chain,
         "formatted_address": formatted_address,
         "place_id": region.get("place_id", ""),
-        "confidence": "high" if source == "google_geocoding" else "medium" if source == "tgos_geocoding" else "mock",
-        "location_note": (
+        "confidence": (
+            "high"
+            if source == "google_geocoding" and acceptance["accepted_for_analysis"]
+            else "medium"
+            if source == "tgos_geocoding" and acceptance["accepted_for_analysis"]
+            else "low"
+            if not acceptance["accepted_for_analysis"]
+            else "mock"
+        ),
+        "location_note": acceptance["message"] if not acceptance["accepted_for_analysis"] else (
             "Google Geocoding 定位結果。"
             if source == "google_geocoding"
             else "TGOS 定位結果；周遭設施來源另行標示。"
@@ -120,6 +133,8 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
         ),
         "geocoding_ms": geocoding_ms,
         "disclaimer": SEARCH_DISCLAIMER,
+        **acceptance,
+        "geocoding_acceptance": acceptance,
     }
 
 
@@ -233,9 +248,34 @@ def get_nearby_places(
             for category in requested
         }
 
-    scoring = build_livability_scoring(grouped, radius_m)
-    counts = "、".join(f"{row['label']} {row['count']} 處" for row in grouped)
+    quality_stats = {"input_place_count": sum(row["count"] for row in grouped), "accepted_place_count": sum(row["count"] for row in grouped), "rejected_type_count": 0, "deduplicated_count": 0}
+    if source == "google_places":
+        grouped, quality_stats = _filter_and_dedupe_google_places(grouped)
+        for group in grouped:
+            status = category_status.get(group["category"])
+            if status is not None:
+                status.update({
+                    "input_count": group.get("input_count", group["count"]),
+                    "accepted_count": group["count"],
+                    "rejected_type_count": group.get("rejected_type_count", 0),
+                    "deduplicated_count": group.get("deduplicated_count", 0),
+                })
     partial = source == "google_places" and bool(failed_categories)
+    evidence_quality_status = (
+        "fallback"
+        if source == "mock"
+        else "partial"
+        if partial or quality_stats["rejected_type_count"] or quality_stats["deduplicated_count"]
+        else "high"
+    )
+    scoring = build_livability_scoring(grouped, radius_m, evidence_quality_status)
+    counts = "、".join(f"{row['label']} {row['count']} 處" for row in grouped)
+    evidence_quality = {
+        "status": evidence_quality_status,
+        **quality_stats,
+        "score_factor": scoring["evidence_quality_factor"],
+        "score_ceiling": scoring["score_ceiling"],
+    }
     nearby_total_ms = round((time.perf_counter() - total_started) * 1000)
     response = {
         "center": {"lat": lat, "lng": lng},
@@ -245,6 +285,7 @@ def get_nearby_places(
         "fallback": source == "mock",
         "failed_categories": failed_categories,
         "category_status": category_status,
+        "evidence_quality": evidence_quality,
         "provider_timing_ms": provider_timing_ms,
         "nearby_total_ms": nearby_total_ms,
         "categories": grouped,
@@ -264,6 +305,11 @@ def get_nearby_places(
                 {"range": "300-800m", "weight": "medium"},
                 {"range": "800m+", "weight": "excluded"},
             ],
+            "quality_adjustment": {
+                "status": evidence_quality_status,
+                "factor": scoring["evidence_quality_factor"],
+                "score_ceiling": scoring["score_ceiling"],
+            },
             "disclaimer": NEARBY_DISCLAIMER,
         },
         "summary": scoring["summary"] or f"{radius_m} 公尺生活圈共涵蓋 {counts}；分數僅用於比較周遭設施完整度。",
@@ -303,9 +349,11 @@ def calculate_livability_score(categories: list[dict[str, Any]], radius_m: int) 
     return int(build_livability_scoring(categories, radius_m)["livability_score"])
 
 
-def build_livability_scoring(categories: list[dict[str, Any]], radius_m: int) -> dict[str, Any]:
+def build_livability_scoring(categories: list[dict[str, Any]], radius_m: int, evidence_quality_status: str = "unassessed") -> dict[str, Any]:
     """Score category coverage using both POI count and tiered walking distance."""
 
+    quality_factor = {"high": 0.95, "partial": 0.78, "fallback": 0.65}.get(evidence_quality_status, 1.0)
+    score_ceiling = {"high": 95, "partial": 78, "fallback": 65}.get(evidence_quality_status, 100)
     total = 0.0
     category_score_map: dict[str, int] = {}
     category_metrics: list[dict[str, Any]] = []
@@ -315,7 +363,8 @@ def build_livability_scoring(categories: list[dict[str, Any]], radius_m: int) ->
         places = [place for place in group["places"] if place.get("distance_m", radius_m + 1) <= min(radius_m, 800)]
         all_places.extend({**place, "category": place.get("category", category)} for place in places)
         proximity_units = sum(_distance_weight(float(place["distance_m"])) for place in places)
-        category_score = max(0, min(100, round(min(proximity_units / 4, 1) * 100)))
+        raw_category_score = max(0, min(100, round(min(proximity_units / 4, 1) * 100)))
+        category_score = round(raw_category_score * quality_factor)
         category_score_map[category] = category_score
         nearest_distance = min((int(place["distance_m"]) for place in places), default=None)
         level = _score_level(category_score)
@@ -348,7 +397,7 @@ def build_livability_scoring(categories: list[dict[str, Any]], radius_m: int) ->
     weak_text = "與".join(weakest) if weakest else "其他生活設施"
     summary = f"此區{strength_text}密度較高，適合展示生活便利性；{weak_text}資源可再搭配實地確認。"
     recommendation = f"若用於客戶溝通，可強調本區步行範圍內的{strength_text}機能，並將{weak_text}列為看屋時的補充確認項目。"
-    overall = max(0, min(100, round(total)))
+    overall = max(0, min(score_ceiling, round(total)))
     level = _score_level(overall)
     return {
         "livability_score": overall,
@@ -359,7 +408,9 @@ def build_livability_scoring(categories: list[dict[str, Any]], radius_m: int) ->
         "nearest_places": nearest,
         "summary": summary,
         "recommendation_text": recommendation,
-        "score_explanation": "分數依設施類別權重、數量與距離估算；300 公尺內權重最高，300–800 公尺採中等權重，800 公尺外不計。",
+        "score_explanation": f"分數依通過類型驗證與去重後的設施、距離及類別權重估算；證據品質為 {evidence_quality_status}，套用 {quality_factor:.2f} 品質係數與 {score_ceiling} 分上限。",
+        "evidence_quality_factor": quality_factor,
+        "score_ceiling": score_ceiling,
     }
 
 
@@ -403,6 +454,55 @@ def _category_result(category: str, places: list[dict[str, Any]], source: str | 
     if availability is not None:
         result["availability"] = availability
     return result
+
+
+def _filter_and_dedupe_google_places(groups: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    """Validate category types and keep each physical place once in request order."""
+
+    seen: set[str] = set()
+    cleaned: list[dict[str, Any]] = []
+    totals = {"input_place_count": 0, "accepted_place_count": 0, "rejected_type_count": 0, "deduplicated_count": 0}
+    for group in groups:
+        category = group["category"]
+        accepted: list[dict[str, Any]] = []
+        input_count = len(group.get("places", []))
+        rejected = 0
+        deduplicated = 0
+        totals["input_place_count"] += input_count
+        for place in group.get("places", []):
+            if not is_valid_place_type(category, place.get("types")):
+                rejected += 1
+                continue
+            identity = _place_identity(place)
+            if identity in seen:
+                deduplicated += 1
+                continue
+            seen.add(identity)
+            accepted.append({**place, "category": category})
+        totals["rejected_type_count"] += rejected
+        totals["deduplicated_count"] += deduplicated
+        totals["accepted_place_count"] += len(accepted)
+        cleaned.append({
+            **group,
+            "count": len(accepted),
+            "places": accepted,
+            "input_count": input_count,
+            "rejected_type_count": rejected,
+            "deduplicated_count": deduplicated,
+        })
+    return cleaned, totals
+
+
+def _place_identity(place: dict[str, Any]) -> str:
+    place_id = str(place.get("place_id") or "").strip()
+    if place_id:
+        return f"id:{place_id}"
+    try:
+        return f"coord:{float(place['lat']):.5f},{float(place['lng']):.5f}"
+    except (KeyError, TypeError, ValueError):
+        name = "".join(str(place.get("name") or "").lower().split())
+        address = "".join(str(place.get("address") or "").lower().split())
+        return f"text:{name}|{address}"
 
 
 def _mock_places(lat: float, lng: float, radius_m: int, category: str) -> list[dict[str, Any]]:

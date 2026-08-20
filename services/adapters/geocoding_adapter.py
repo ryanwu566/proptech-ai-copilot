@@ -65,6 +65,8 @@ class GoogleGeocodingAdapter:
             district = ""
             level_2 = ""
             level_3 = ""
+            route = ""
+            street_number = ""
             for component in result.get("address_components", []):
                 types = component.get("types", [])
                 if "administrative_area_level_1" in types:
@@ -73,13 +75,17 @@ class GoogleGeocodingAdapter:
                     level_2 = component.get("long_name", "")
                 elif "administrative_area_level_3" in types:
                     level_3 = component.get("long_name", "")
+                if "route" in types:
+                    route = component.get("long_name", "")
+                if "street_number" in types:
+                    street_number = component.get("long_name", "")
             # Taiwan: level_2 is district; level_3 is fallback for other regions
             district = level_2 or level_3
             return {
                 "id": f"google-{result.get('place_id', 'location')}",
                 "city": city,
                 "district": district,
-                "road": result.get("formatted_address", query),
+                "road": route or result.get("formatted_address", query),
                 "formatted_address": result.get("formatted_address", query),
                 "place_id": result.get("place_id", ""),
                 "center": {"lat": float(location["lat"]), "lng": float(location["lng"])},
@@ -87,6 +93,13 @@ class GoogleGeocodingAdapter:
                 "area_summary": f"{result.get('formatted_address', query)} 周遭生活機能查詢。",
                 "poi_summary": "周遭設施將由 Google Places 或 mock fallback 提供。",
                 "poi_layers": [],
+                "geocoding_metadata": {
+                    "provider_types": list(result.get("types", [])),
+                    "location_type": result.get("geometry", {}).get("location_type", ""),
+                    "partial_match": bool(result.get("partial_match")),
+                    "route": route,
+                    "street_number": street_number,
+                },
             }
         except httpx.TimeoutException:
             self.last_error = "Google Geocoding 回應逾時"

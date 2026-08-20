@@ -28,11 +28,17 @@ FIELD_MASK = ",".join(
 )
 CATEGORY_TYPES = {
     "transport": ["transit_station", "bus_station", "subway_station", "train_station"],
-    "school": ["school", "university"],
-    "park": ["park"],
-    "medical": ["hospital", "doctor", "pharmacy"],
+    "school": ["school", "primary_school", "secondary_school", "university"],
+    "park": ["park", "national_park"],
+    "medical": ["hospital", "doctor", "medical_clinic", "dentist", "pharmacy"],
     "shopping": ["shopping_mall", "supermarket", "convenience_store"],
     "food": ["restaurant", "cafe"],
+}
+CATEGORY_ACCEPTED_TYPES = {
+    **CATEGORY_TYPES,
+    "transport": [*CATEGORY_TYPES["transport"], "bus_stop", "light_rail_station"],
+    "school": [*CATEGORY_TYPES["school"], "preschool"],
+    "park": [*CATEGORY_TYPES["park"], "garden"],
 }
 
 
@@ -103,7 +109,8 @@ class GooglePlacesAdapter:
         }
         response = self._get_client().post(PLACES_URL, json=payload, headers=headers)
         response.raise_for_status()
-        places = [self._normalize(row, lat, lng, category) for row in response.json().get("places", [])]
+        normalized = [self._normalize(row, lat, lng, category) for row in response.json().get("places", [])]
+        places = [place for place in normalized if is_valid_place_type(category, place.get("types"))]
         with self._cache_lock:
             self._cache[cache_key] = (time.monotonic(), places)
         return places
@@ -160,6 +167,15 @@ class GooglePlacesAdapter:
             "category": category,
             "source": "google_places",
         }
+
+
+def is_valid_place_type(category: str, types: Any) -> bool:
+    """Require an explicit category-compatible Google place type."""
+
+    if category not in CATEGORY_ACCEPTED_TYPES or not isinstance(types, list):
+        return False
+    normalized = {str(item).strip().lower() for item in types if item}
+    return bool(normalized.intersection(CATEGORY_ACCEPTED_TYPES[category]))
 
 
 def normalize_opening_status(row: dict[str, Any]) -> dict[str, str]:

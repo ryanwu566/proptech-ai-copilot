@@ -531,6 +531,74 @@ test("saved case round-trip restores journey identity, evidence and selected pri
   await expect(page.getByTestId("decision-monthly-payment")).toContainText("60,000");
 });
 
+test("valuation clears stale evidence and ignores a late A estimate after B wins", async ({ page }) => {
+  await registerJourneyApis(page);
+  await hydrateJourney(page);
+  await goToStep(page, "price");
+  let releaseLateA!: () => void;
+  const lateAGate = new Promise<void>((resolve) => { releaseLateA = resolve; });
+  let calls = 0;
+  await page.route("**/valuation/estimate", async (route) => {
+    calls += 1;
+    const currentCall = calls;
+    const payload = route.request().postDataJSON() as { area_ping?: number };
+    if (currentCall === 1) await lateAGate;
+    const mid = currentCall === 1 ? 2_500 : 2_900;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(valuationResult(mid, Number(payload.area_ping || 30))) });
+  });
+
+  const valuation = page.locator("#valuation-calculator");
+  const area = valuation.locator("input[type=number]").first();
+  const estimate = valuation.getByRole("button", { name: "Estimate price" });
+  await area.fill("35");
+  await expect(page.getByTestId("valuation-result")).toHaveCount(0);
+  await estimate.click();
+  await expect(page.getByTestId("valuation-result")).toHaveCount(0);
+  await area.fill("40");
+  await expect(estimate).toBeEnabled();
+  await estimate.click();
+  await expect(page.getByTestId("valuation-result").first()).toContainText("2,900");
+  releaseLateA();
+  await page.waitForTimeout(100);
+  await expect(page.getByTestId("valuation-result").first()).toContainText("2,900");
+  await expect(page.getByTestId("valuation-result").first()).not.toContainText("2,500");
+  expect(calls).toBe(2);
+});
+
+test("loan clears stale payment and ignores a late A calculation after B wins", async ({ page }) => {
+  await registerJourneyApis(page);
+  await hydrateJourney(page);
+  await goToStep(page, "affordability");
+  let releaseLateA!: () => void;
+  const lateAGate = new Promise<void>((resolve) => { releaseLateA = resolve; });
+  let calls = 0;
+  await page.route("**/loan/calculate", async (route) => {
+    calls += 1;
+    const currentCall = calls;
+    const payload = route.request().postDataJSON() as { property_price?: number; monthly_income?: number };
+    if (currentCall === 1) await lateAGate;
+    const payment = currentCall === 1 ? 61_000 : 71_000;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(loanResult(Number(payload.property_price || 2_000), Number(payload.monthly_income || 12), payment)) });
+  });
+
+  const loan = page.locator("#loan-calculator");
+  const income = loan.getByLabel("Monthly income (TWD ten-thousands, optional)");
+  const calculate = loan.getByRole("button", { name: "Calculate monthly payment" });
+  await income.fill("13");
+  await expect(page.getByTestId("loan-result")).toHaveCount(0);
+  await calculate.click();
+  await expect(page.getByTestId("loan-result")).toHaveCount(0);
+  await income.fill("20");
+  await expect(calculate).toBeEnabled();
+  await calculate.click();
+  await expect(page.getByTestId("loan-result")).toContainText("71,000");
+  releaseLateA();
+  await page.waitForTimeout(100);
+  await expect(page.getByTestId("loan-result")).toContainText("71,000");
+  await expect(page.getByTestId("loan-result")).not.toContainText("61,000");
+  expect(calls).toBe(2);
+});
+
 test("390px closed loop has no page-level overflow and renders decision evidence", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await registerJourneyApis(page);

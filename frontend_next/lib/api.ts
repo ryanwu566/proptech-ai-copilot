@@ -220,6 +220,19 @@ export type MarketRegionCatalog = {
 
 export type MapPoint = { name: string; lat: number; lng: number; score_weight: number };
 export type MapPoiLayer = { category: string; label: string; points: MapPoint[] };
+export type GeocodingMatchQuality = "EXACT_OR_ACCEPTABLE" | "PARTIAL_MATCH" | "AMBIGUOUS" | "INSUFFICIENT_SPECIFICITY" | "MISMATCH";
+export type GeocodingAcceptance = {
+  original_query: string;
+  normalized_address: string;
+  resolved_lat: number | null;
+  resolved_lng: number | null;
+  geocoding_source: string;
+  match_quality: GeocodingMatchQuality;
+  accepted_for_analysis: boolean;
+  requires_confirmation: boolean;
+  mismatch_reasons: string[];
+  message: string;
+};
 export type MapSearchResult = {
   query: string;
   matched: boolean;
@@ -231,10 +244,20 @@ export type MapSearchResult = {
   source_chain: ("google_geocoding" | "tgos_geocoding" | "mock")[];
   formatted_address: string;
   place_id: string;
-  confidence: "high" | "medium" | "mock";
+  confidence: "high" | "medium" | "low" | "mock";
   location_note: string;
   geocoding_ms?: number;
   disclaimer: string;
+  original_query?: string;
+  normalized_address?: string;
+  resolved_lat?: number | null;
+  resolved_lng?: number | null;
+  geocoding_source?: string;
+  match_quality?: GeocodingMatchQuality;
+  accepted_for_analysis?: boolean;
+  requires_confirmation?: boolean;
+  mismatch_reasons?: string[];
+  geocoding_acceptance?: GeocodingAcceptance;
 };
 export type GoogleHealth = {
   google_key_configured: boolean;
@@ -296,7 +319,7 @@ export type BankInstitution = { bank_code: string; bank_name: string };
 export type BankRateResult = { source: "central_bank_opendata" | "mock"; bank_code: string; bank_name: string; items: { rate_name: string; rate_type: string; fixed_rate: number | null; variable_rate: number | null; effective_date: string; raw_rate_name: string }[]; summary_rate: number | null; summary_label: string; notes: string[]; fetched_at: string };
 export type LoanCalculationResult = { property_price_wan: number; down_payment_ratio: number; down_payment_wan: number; loan_amount_wan: number; annual_interest_rate: number; loan_years: number; grace_period_years: number; monthly_income_wan: number | null; monthly_payment: number; grace_period_monthly_payment: number | null; post_grace_monthly_payment: number | null; total_payment: number; total_interest: number; income_burden_ratio: number | null; affordability_level: "comfortable" | "manageable" | "tight" | "risky" | "unknown"; affordability_message: string; sensitivity: { annual_interest_rate: number; monthly_payment: number; total_interest: number; difference_from_base: number }[]; disclaimer: string };
 export type HoldingCostResult = { input: { property_price_wan: number; loan_monthly_payment: number; monthly_income_wan: number | null; area_ping: number | null; management_fee_per_ping: number; repair_reserve_per_ping: number; annual_home_tax_rate: number; annual_land_tax_rate: number; annual_insurance: number; include_tax_estimate: boolean }; property_price_wan: number; loan_monthly_payment: number; monthly_management_fee: number; monthly_repair_reserve: number; monthly_tax_estimate: number; annual_home_tax_estimate: number; annual_land_tax_estimate: number; monthly_insurance: number; monthly_total_holding_cost: number; annual_total_holding_cost: number; income_burden_ratio: number | null; affordability_level: "comfortable" | "manageable" | "tight" | "risky" | "unknown"; affordability_message: string; cost_breakdown: { key: string; label: string; monthly_amount: number }[]; disclaimer: string };
-export type LocationInsightResult = { input: Record<string, string | number | boolean | null>; resolved_location: { address_label: string; latitude: number; longitude: number; geocoding_confidence: string } | null; radius_m: number; location_score: number | null; category_scores: { transit_score: number; convenience_score: number; education_score: number; green_space_score: number; medical_score: number; risk_score: number }; poi_summary: { transit_count: number; convenience_count: number; school_count: number; park_count: number; medical_count: number; risk_facility_count: number }; nearest_pois: { category: string; name: string; distance_m: number; source: string }[]; strengths: string[]; weaknesses: string[]; buyer_fit: { self_use_family: string; commuter: string; investor: string; elderly: string }; valuation_context: { supports_price_reasonableness: boolean | "unknown"; explanation: string }; data_quality: { status: "good" | "limited" | "unavailable"; missing_sources: string[]; warnings: string[] }; scoring_method: { weights: Record<string, number>; explanation: string }; disclaimer: string };
+export type LocationInsightResult = { input: Record<string, string | number | boolean | null>; resolved_location: { address_label: string; latitude: number; longitude: number; geocoding_confidence: string } | null; geocoding_acceptance?: GeocodingAcceptance | null; radius_m: number; location_score: number | null; category_scores: { transit_score: number; convenience_score: number; education_score: number; green_space_score: number; medical_score: number; risk_score: number }; poi_summary: { transit_count: number; convenience_count: number; school_count: number; park_count: number; medical_count: number; risk_facility_count: number }; nearest_pois: { category: string; name: string; distance_m: number; source: string }[]; strengths: string[]; weaknesses: string[]; buyer_fit: { self_use_family: string; commuter: string; investor: string; elderly: string }; valuation_context: { supports_price_reasonableness: boolean | "unknown"; explanation: string }; data_quality: { status: "good" | "limited" | "unavailable"; missing_sources: string[]; warnings: string[] }; scoring_method: { weights: Record<string, number>; explanation: string }; disclaimer: string };
 export type CommuteAddressLookupResult = { status: "resolved" | "unresolved" | "unavailable"; source: "tdx" | "none"; station_name: string | null; line_ids: string[]; distance_meters: number | null; source_updated_at: string | null; snapshot_generated_at: string | null; message: string };
 export type TerrainRiskLayerStatus = "available" | "limited" | "unavailable" | "error" | "skipped";
 export type TerrainRiskLevel = "low" | "medium" | "high" | "unknown";
@@ -378,7 +401,8 @@ export type MapNearbyResult = {
   partial?: boolean;
   fallback?: boolean;
   failed_categories?: string[];
-  category_status?: Record<string, { status: "available" | "error" | "fallback"; source: "google_places" | "mock" | "unavailable"; timing_ms: number }>;
+  category_status?: Record<string, { status: "available" | "error" | "fallback"; source: "google_places" | "mock" | "unavailable"; timing_ms: number; input_count?: number; accepted_count?: number; rejected_type_count?: number; deduplicated_count?: number }>;
+  evidence_quality?: { status: "high" | "partial" | "fallback"; input_place_count: number; accepted_place_count: number; rejected_type_count: number; deduplicated_count: number; score_factor: number; score_ceiling: number };
   provider_timing_ms?: Record<string, number>;
   nearby_total_ms?: number;
   categories: NearbyCategory[];
@@ -394,6 +418,7 @@ export type MapNearbyResult = {
     radius_m: number;
     category_weights: Record<string, number>;
     distance_bands: { range: string; weight: "high" | "medium" | "excluded" }[];
+    quality_adjustment?: { status: "high" | "partial" | "fallback"; factor: number; score_ceiling: number };
     disclaimer: string;
   };
   summary: string;

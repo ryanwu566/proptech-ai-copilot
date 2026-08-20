@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, LocationInsightResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
@@ -9,6 +9,7 @@ import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
 import { CommuteLivabilityCard } from "@/components/commute-livability-card";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { RuntimeCopyKey } from "@/lib/runtime-copy";
+import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 
 
 
@@ -44,9 +45,12 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
   const [result, setResult] = useState<LocationInsightResult | undefined>(initialResult);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const requestRef = useRef(0);
 
   function invalidateLocationFlow() {
+    requestRef.current += 1;
     setResult(undefined);
+    setLoading(false);
     setError("");
     onResult?.(null);
     window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
@@ -95,8 +99,11 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
       setError(copy("location.empty"));
       return;
     }
+    const requestId = ++requestRef.current;
     setLoading(true);
     setError("");
+    setResult(undefined);
+    onResult?.(null);
     try {
       const next = await api.locationInsight({
         city, district, road, address, radius_m: radius,
@@ -105,14 +112,15 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
         building_type: buildingType,
         use_existing_poi_sources: true,
       });
+      if (requestId !== requestRef.current) return;
       setResult(next);
       onResult?.(next);
       window.sessionStorage.setItem(LOCATION_INSIGHT_SESSION_KEY, JSON.stringify(next));
       window.dispatchEvent(new CustomEvent<LocationInsightResult>(LOCATION_INSIGHT_RESULT_EVENT, { detail: next }));
     } catch (caught) {
-      setError(copy("location.error"));
+      if (requestId === requestRef.current) setError(copy("location.error"));
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   }
 
@@ -168,7 +176,7 @@ function FlowBadge({ label, active }: { label: string; active?: boolean }) {
 function LocationResults({ result }: { result: LocationInsightResult }) {
   const { copy } = useExperienceLocale();
   if (result.data_quality.status === "unavailable") {
-    return <div data-testid="location-result" className="space-y-3"><Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
+    return <div data-testid="location-result" className="space-y-3">{result.geocoding_acceptance && <GeocodingAcceptanceNotice acceptance={result.geocoding_acceptance} />}<Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
   }
   const scoreLabels: [keyof LocationInsightResult["category_scores"], string][] = [["transit_score", copy("location.transit")], ["convenience_score", copy("location.convenience")], ["education_score", copy("location.education")], ["green_space_score", copy("location.green")], ["medical_score", copy("location.medical")], ["risk_score", copy("location.risk")]];
   return <div data-testid="location-result" className="min-w-0 space-y-4">

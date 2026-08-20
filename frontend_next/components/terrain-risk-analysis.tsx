@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api, type CadastralEvidence, type LocationInsightResult, type TerrainHazardLayer, type TerrainRiskResult, type TerrainRiskSourceTransparencyLayer } from "@/lib/api";
 import { AnalysisProgress, type AnalysisProgressPhase } from "@/components/analysis-progress";
 import { TerrainCadastralEvidence } from "@/components/terrain-cadastral-evidence";
@@ -63,20 +63,36 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [progress, setProgress] = useState<AnalysisProgressPhase>("idle");
+  const requestRef = useRef(0);
+  const inputKey = compactFromLocation
+    ? [location?.resolved_location?.address_label, location?.resolved_location?.latitude, location?.resolved_location?.longitude, radius, layers.join(",")].join("|")
+    : [address, city, district, road, latitude, longitude, radius, layers.join(",")].join("|");
+  const previousInputKey = useRef(inputKey);
 
-  useEffect(() => { setResult(undefined); setError(""); setProgress("idle"); onResult?.(null); onStatusChange?.("not_started"); }, [resetKey, onResult, onStatusChange]);
+  useEffect(() => { requestRef.current += 1; setLoading(false); setResult(undefined); setError(""); setProgress("idle"); onResult?.(null); onStatusChange?.("not_started"); }, [resetKey, onResult, onStatusChange]);
+  useEffect(() => {
+    if (previousInputKey.current === inputKey) return;
+    previousInputKey.current = inputKey;
+    requestRef.current += 1;
+    setLoading(false);
+    setResult(undefined);
+    setError("");
+    setProgress("idle");
+    onResult?.(null);
+    onStatusChange?.("not_started");
+  }, [inputKey, onResult, onStatusChange]);
   useEffect(() => { if (result && progress === "rendering") setProgress("complete"); }, [result, progress]);
   useEffect(() => {
     function applyPrefill(event: Event) {
       const detail = (event as CustomEvent<TerrainRiskPrefill>).detail;
       setAddress(detail.address ?? ""); setCity(detail.city ?? ""); setDistrict(detail.district ?? ""); setRoad(detail.road ?? "");
-      setLatitude(detail.latitude ?? ""); setLongitude(detail.longitude ?? ""); setRadius(detail.radius_m ?? 500); setResult(undefined);
+      requestRef.current += 1; setLoading(false); setLatitude(detail.latitude ?? ""); setLongitude(detail.longitude ?? ""); setRadius(detail.radius_m ?? 500); setResult(undefined);
     }
     window.addEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
     return () => window.removeEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
   }, []);
   useEffect(() => {
-    function applyResult(event: Event) { setResult((event as CustomEvent<TerrainRiskResult>).detail); setProgress("rendering"); }
+    function applyResult(event: Event) { requestRef.current += 1; setLoading(false); setResult((event as CustomEvent<TerrainRiskResult>).detail); setProgress("rendering"); }
     window.addEventListener(TERRAIN_RISK_RESULT_EVENT, applyResult);
     return () => window.removeEventListener(TERRAIN_RISK_RESULT_EVENT, applyResult);
   }, []);
@@ -86,7 +102,9 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     setAddress(location.resolved_location.address_label ?? ""); setLatitude(location.resolved_location.latitude); setLongitude(location.resolved_location.longitude);
   }
   async function analyze() {
+    const requestId = ++requestRef.current;
     setLoading(true); setError(""); setProgress("accepted");
+    setResult(undefined); onResult?.(null);
     try {
       onStatusChange?.("loading");
       const resolved = location?.resolved_location;
@@ -94,10 +112,11 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
       setProgress("dispatched");
       setProgress("waiting");
       const next = await request;
+      if (requestId !== requestRef.current) return;
       setProgress("received");
       setResult(next); setProgress("rendering"); onResult?.(next); window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next })); window.dispatchEvent(new Event("proptech:workflow-status-updated"));
-    } catch (caught) { setError((caught as Error).message); setProgress("idle"); onResult?.(null); onStatusChange?.("unavailable"); }
-    finally { setLoading(false); }
+    } catch (caught) { if (requestId === requestRef.current) { setError((caught as Error).message); setProgress("idle"); onResult?.(null); onStatusChange?.("unavailable"); } }
+    finally { if (requestId === requestRef.current) setLoading(false); }
   }
 
   const canAnalyze = compactFromLocation ? Boolean(location?.resolved_location) : Boolean(address.trim() || road.trim() || (latitude !== "" && longitude !== ""));

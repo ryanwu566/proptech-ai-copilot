@@ -178,6 +178,164 @@ test("Map performs one geocode and preserves partial real categories", async ({ 
   await expectMonotonicCompletion(page);
 });
 
+test("Map blocks rejected geocoding before POI analysis until explicit confirmation", async ({ page }) => {
+  let nearbyCalls = 0;
+  await page.route("**/map/search", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      query: "花蓮 富世291號",
+      matched: true,
+      center: { lat: 24.151, lng: 121.621 },
+      city: "花蓮縣",
+      district: "秀林鄉",
+      road: "富世",
+      source: "tgos_geocoding",
+      source_chain: ["google_geocoding", "tgos_geocoding", "mock"],
+      formatted_address: "花蓮縣秀林鄉富世135號",
+      place_id: "",
+      confidence: "low",
+      location_note: "門牌不一致，必須先確認。",
+      disclaimer: "定位參考。",
+      geocoding_acceptance: {
+        original_query: "花蓮 富世291號",
+        normalized_address: "花蓮縣秀林鄉富世135號",
+        resolved_lat: 24.151,
+        resolved_lng: 121.621,
+        geocoding_source: "tgos_geocoding",
+        match_quality: "MISMATCH",
+        accepted_for_analysis: false,
+        requires_confirmation: true,
+        mismatch_reasons: ["house_number_mismatch"],
+        message: "門牌不一致；請確認或修正定位後再分析。",
+      },
+    }),
+  }));
+  await page.route("**/map/nearby", (route) => {
+    nearbyCalls += 1;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(mapResult) });
+  });
+  await openTool(page, "Map Insight");
+
+  await page.getByRole("textbox", { name: "輸入地址、地標或路段" }).fill("花蓮 富世291號");
+  await page.getByRole("button", { name: "搜尋位置" }).click();
+  const gate = page.getByTestId("geocoding-acceptance-gate");
+  await expect(gate).toContainText("花蓮 富世291號");
+  await expect(gate).toContainText("花蓮縣秀林鄉富世135號");
+  await expect(gate).toContainText("MISMATCH");
+  expect(nearbyCalls).toBe(0);
+  await expect(page.getByText("測試捷運站")).toHaveCount(0);
+
+  await page.getByTestId("confirm-geocoding-match").click();
+  await expect(page.getByText("測試捷運站").first()).toBeVisible();
+  expect(nearbyCalls).toBe(1);
+});
+
+test("Map clears old evidence and ignores a late A response after B wins", async ({ page }) => {
+  let releaseLateA!: () => void;
+  const lateAGate = new Promise<void>((resolve) => { releaseLateA = resolve; });
+  let nearbyCalls = 0;
+  await page.route("**/map/search", async (route) => {
+    const payload = route.request().postDataJSON() as { query: string };
+    const isLateA = payload.query.includes("和平東路");
+    if (isLateA) await lateAGate;
+    const label = isLateA ? "LATE-A-RESOLVED" : payload.query.includes("市府路") ? "B-WINNER-RESOLVED" : "BASE-RESOLVED";
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        query: payload.query,
+        matched: true,
+        center: { lat: isLateA ? 25.026 : 25.034, lng: isLateA ? 121.543 : 121.565 },
+        city: "臺北市",
+        district: isLateA ? "大安區" : "信義區",
+        road: "",
+        source: "google_geocoding",
+        source_chain: ["google_geocoding", "tgos_geocoding", "mock"],
+        formatted_address: label,
+        place_id: label,
+        confidence: "high",
+        location_note: "Controlled accepted geocode.",
+        disclaimer: "定位參考。",
+        geocoding_acceptance: {
+          original_query: payload.query,
+          normalized_address: label,
+          resolved_lat: isLateA ? 25.026 : 25.034,
+          resolved_lng: isLateA ? 121.543 : 121.565,
+          geocoding_source: "google_geocoding",
+          match_quality: "EXACT_OR_ACCEPTABLE",
+          accepted_for_analysis: true,
+          requires_confirmation: false,
+          mismatch_reasons: [],
+          message: "可進行分析。",
+        },
+      }),
+    });
+  });
+  await page.route("**/map/nearby", (route) => {
+    nearbyCalls += 1;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(mapResult) });
+  });
+  await openTool(page, "Map Insight");
+
+  const input = page.getByRole("textbox", { name: "輸入地址、地標或路段" });
+  await input.fill("臺北市信義區松仁路BASE");
+  await page.getByRole("button", { name: "搜尋位置" }).click();
+  await expect(page.getByText("BASE-RESOLVED").first()).toBeVisible();
+
+  await input.fill("臺北市大安區和平東路A");
+  await page.getByRole("button", { name: "搜尋位置" }).click();
+  await expect(page.getByText("BASE-RESOLVED")).toHaveCount(0);
+  await input.fill("臺北市信義區市府路B");
+  await expect(page.getByRole("button", { name: "搜尋位置" })).toBeEnabled();
+  await page.getByRole("button", { name: "搜尋位置" }).click();
+  await expect(page.getByText("B-WINNER-RESOLVED").first()).toBeVisible();
+  releaseLateA();
+  await page.waitForTimeout(100);
+  await expect(page.getByText("B-WINNER-RESOLVED").first()).toBeVisible();
+  await expect(page.getByText("LATE-A-RESOLVED")).toHaveCount(0);
+  expect(nearbyCalls).toBe(2);
+});
+
+test("Terrain clears old evidence and ignores a late request after inputs change", async ({ page }) => {
+  let releaseLate!: () => void;
+  const lateGate = new Promise<void>((resolve) => { releaseLate = resolve; });
+  let callCount = 0;
+  await page.route("**/terrain-risk/analyze", async (route) => {
+    callCount += 1;
+    const currentCall = callCount;
+    const payload = route.request().postDataJSON() as { address?: string };
+    if (currentCall === 2) await lateGate;
+    const title = currentCall === 1 ? "BASE-TERRAIN-EVIDENCE" : currentCall === 2 ? "LATE-A-TERRAIN-EVIDENCE" : "B-WINNER-TERRAIN-EVIDENCE";
+    const response = {
+      ...terrainResult,
+      input: { ...terrainResult.input, address: payload.address },
+      resolved_location: { ...terrainResult.resolved_location, address_label: payload.address },
+      risk_factors: [{ key: "controlled", level: "high", title, message: "Controlled browser race fixture.", source_name: "E2E" }],
+    };
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(response) });
+  });
+  await openTool(page, "Terrain Risk");
+
+  const address = page.getByRole("textbox", { name: "物件地址" });
+  const analyze = page.getByRole("button", { name: "開始地勢／災害檢查" });
+  await address.fill("臺北市信義區松仁路BASE");
+  await analyze.click();
+  await expect(page.getByTestId("terrain-priority-follow-up")).toContainText("BASE-TERRAIN-EVIDENCE");
+
+  await analyze.click();
+  await expect(page.getByTestId("terrain-data-completeness")).toHaveCount(0);
+  await address.fill("臺北市信義區市府路B");
+  await expect(analyze).toBeEnabled();
+  await analyze.click();
+  await expect(page.getByTestId("terrain-priority-follow-up")).toContainText("B-WINNER-TERRAIN-EVIDENCE");
+  releaseLate();
+  await page.waitForTimeout(100);
+  await expect(page.getByTestId("terrain-priority-follow-up")).toContainText("B-WINNER-TERRAIN-EVIDENCE");
+  await expect(page.getByText("LATE-A-TERRAIN-EVIDENCE")).toHaveCount(0);
+  expect(callCount).toBe(3);
+});
+
 for (const tool of ["Terrain Risk", "Map Insight"] as const) {
   test(`${tool} has no horizontal overflow at 390x844`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });

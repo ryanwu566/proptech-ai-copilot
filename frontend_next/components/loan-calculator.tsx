@@ -42,10 +42,13 @@ export function LoanCalculator({
   const [holdingPrefill, setHoldingPrefill] = useState<HoldingCostPrefill | undefined>(propertyPriceWan ? { property_price: propertyPriceWan } : undefined);
   const inputKey = [propertyPrice, downPaymentRatio, annualInterestRate, loanYears, gracePeriodYears, monthlyIncome].join("|");
   const previousInputKey = useRef(inputKey);
+  const requestRef = useRef(0);
 
   useEffect(() => {
     if (previousInputKey.current === inputKey) return;
     previousInputKey.current = inputKey;
+    requestRef.current += 1;
+    setLoading(false);
     setResult(undefined);
     setError("");
     onResult?.(undefined);
@@ -74,8 +77,11 @@ export function LoanCalculator({
   }, []);
 
   async function calculate() {
+    const requestId = ++requestRef.current;
     setLoading(true);
     setError("");
+    setResult(undefined);
+    onResult?.(undefined);
     try {
       const next = await api.loanCalculate({
         property_price: propertyPrice === "" ? 0 : propertyPrice,
@@ -86,12 +92,13 @@ export function LoanCalculator({
         monthly_income: monthlyIncome === "" ? undefined : monthlyIncome,
         include_sensitivity: true,
       });
+      if (requestId !== requestRef.current) return;
       setResult(next);
       onResult?.(next);
     } catch {
-      setError(copy("loan.error"));
+      if (requestId === requestRef.current) setError(copy("loan.error"));
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   }
 

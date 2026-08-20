@@ -86,6 +86,12 @@ class TgosGeocodingAdapter:
                 "area_summary": f"{address} 的區域定位結果。",
                 "poi_summary": "定位由 TGOS 提供，周遭設施另由 Google Places 或展示資料補充。",
                 "poi_layers": [],
+                "geocoding_metadata": {
+                    "provider_types": ["street_address"] if any(character.isdigit() for character in address) else ["route"],
+                    "location_type": "ROOFTOP" if "號" in address else "GEOMETRIC_CENTER",
+                    "partial_match": False,
+                    "route": item.get("ROAD", ""),
+                },
             }
         except httpx.TimeoutException:
             self.last_error = "TGOS 暫時無法回應"

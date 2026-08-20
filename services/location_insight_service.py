@@ -32,7 +32,7 @@ def analyze_location(
     searcher = searcher or search_location
     nearby_fetcher = nearby_fetcher or get_nearby_places
     query = address.strip() or "".join(part.strip() for part in (city, district, road) if part.strip())
-    resolved = _resolve_location(query, latitude, longitude, searcher)
+    resolved, geocoding_acceptance = _resolve_location(query, latitude, longitude, searcher)
     input_summary = {
         "city": city, "district": district, "road": road, "address": address,
         "latitude": latitude, "longitude": longitude, "radius_m": radius_m,
@@ -40,7 +40,7 @@ def analyze_location(
         "use_existing_poi_sources": use_existing_poi_sources,
     }
     if resolved is None:
-        return _unavailable_result(input_summary, radius_m)
+        return _unavailable_result(input_summary, radius_m, geocoding_acceptance)
 
     try:
         nearby = nearby_fetcher(resolved["latitude"], resolved["longitude"], radius_m, POI_CATEGORIES) if use_existing_poi_sources else _empty_nearby()
@@ -79,6 +79,7 @@ def analyze_location(
     return {
         "input": input_summary,
         "resolved_location": resolved,
+        "geocoding_acceptance": geocoding_acceptance,
         "radius_m": radius_m,
         "location_score": location_score,
         "category_scores": category_scores,
@@ -105,21 +106,36 @@ def analyze_location(
     }
 
 
-def _resolve_location(query: str, latitude: float | None, longitude: float | None, searcher: Callable[[str], dict[str, Any]]) -> dict[str, Any] | None:
+def _resolve_location(query: str, latitude: float | None, longitude: float | None, searcher: Callable[[str], dict[str, Any]]) -> tuple[dict[str, Any] | None, dict[str, Any] | None]:
     if latitude is not None and longitude is not None:
-        return {"address_label": query or "使用者提供座標", "latitude": latitude, "longitude": longitude, "geocoding_confidence": "provided_coordinates"}
+        acceptance = {
+            "original_query": query,
+            "normalized_address": query or "使用者提供座標",
+            "resolved_lat": latitude,
+            "resolved_lng": longitude,
+            "geocoding_source": "provided_coordinates",
+            "match_quality": "EXACT_OR_ACCEPTABLE",
+            "accepted_for_analysis": True,
+            "requires_confirmation": False,
+            "mismatch_reasons": [],
+            "message": "使用者提供座標，後續證據將綁定此座標。",
+        }
+        return {"address_label": query or "使用者提供座標", "latitude": latitude, "longitude": longitude, "geocoding_confidence": "provided_coordinates"}, acceptance
     if not query:
-        return None
+        return None, None
     found = searcher(query)
+    acceptance = found.get("geocoding_acceptance") if isinstance(found.get("geocoding_acceptance"), dict) else None
+    if acceptance and not acceptance.get("accepted_for_analysis"):
+        return None, acceptance
     center = found.get("center") if found.get("matched") else None
     if not center:
-        return None
+        return None, acceptance
     return {
         "address_label": found.get("formatted_address") or query,
         "latitude": float(center["lat"]),
         "longitude": float(center["lng"]),
         "geocoding_confidence": found.get("confidence", "unknown"),
-    }
+    }, acceptance
 
 
 def _strengths_and_weaknesses(scores: dict[str, int], has_evidence: bool) -> tuple[list[str], list[str]]:
@@ -148,15 +164,16 @@ def _valuation_context(property_price: float | None, area_ping: float | None, lo
     return f"本物件約 {round(property_price / area_ping, 1)} 萬／坪；區位總分 {location_score if location_score is not None else '資料不足'}，仍需搭配可比成交判斷價格。"
 
 
-def _unavailable_result(input_summary: dict[str, Any], radius_m: int) -> dict[str, Any]:
+def _unavailable_result(input_summary: dict[str, Any], radius_m: int, geocoding_acceptance: dict[str, Any] | None = None) -> dict[str, Any]:
+    acceptance_warning = str((geocoding_acceptance or {}).get("message") or "找不到符合的地點，請輸入完整地址、路段或座標。")
     return {
-        "input": input_summary, "resolved_location": None, "radius_m": radius_m, "location_score": None,
+        "input": input_summary, "resolved_location": None, "geocoding_acceptance": geocoding_acceptance, "radius_m": radius_m, "location_score": None,
         "category_scores": {"transit_score": 0, "convenience_score": 0, "education_score": 0, "green_space_score": 0, "medical_score": 0, "risk_score": 50},
         "poi_summary": {"transit_count": 0, "convenience_count": 0, "school_count": 0, "park_count": 0, "medical_count": 0, "risk_facility_count": 0},
         "nearest_pois": [], "strengths": [], "weaknesses": ["目前資料不足，建議改用完整地址或手動查詢。"],
         "buyer_fit": {key: "資料不足" for key in ("self_use_family", "commuter", "investor", "elderly")},
         "valuation_context": {"supports_price_reasonableness": "unknown", "explanation": "定位失敗，無法提供價格合理性補充。"},
-        "data_quality": {"status": "unavailable", "missing_sources": ["geocoding", "poi", "risk_facilities"], "warnings": ["找不到符合的地點，請輸入完整地址、路段或座標。"]},
+        "data_quality": {"status": "unavailable", "missing_sources": ["geocoding", "poi", "risk_facilities"], "warnings": [acceptance_warning]},
         "scoring_method": {"weights": SCORE_WEIGHTS, "explanation": "定位或資料不足，未產生區位總分。"}, "disclaimer": DISCLAIMER,
     }
 

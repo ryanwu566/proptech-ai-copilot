@@ -64,6 +64,7 @@ import { capabilities, COMPETITION_NOTICE, getCompetitionCopy } from "@/lib/comp
 import { PilotEvidenceCenter, ProfessionalReviewCenter } from "@/components/pilot-evidence-center";
 import { createClosedLoopJourneyState, selectJourneyPrice, setJourneyLocationResult, setJourneyMarketResult, setJourneyTerrainResult, setJourneyValuation, updateJourneyProperty, type ClosedLoopJourneyState } from "@/lib/closed-loop-journey";
 import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
+import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false, loading: () => <LoadingState label="" /> });
@@ -395,6 +396,8 @@ function MapInsight() {
   const [road, setRoad] = useState("");
   const [roadLoading, setRoadLoading] = useState(true);
   const roadRequestRef = useRef(0);
+  const mapRequestRef = useRef(0);
+  const [pendingLocation, setPendingLocation] = useState<MapSearchResult>();
 
   useEffect(() => {
     api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: copy("map.healthUnavailable") }));
@@ -402,34 +405,87 @@ function MapInsight() {
   }, []);
   useEffect(() => { if (result && progress === "rendering") setProgress("complete"); }, [result, progress]);
 
+  function changeQuery(value: string) {
+    mapRequestRef.current += 1;
+    setQuery(value);
+    setLoading(false);
+    setError("");
+    setProgress("idle");
+    setLocation(undefined);
+    setResult(undefined);
+    setPendingLocation(undefined);
+    setSelectedPlace(undefined);
+  }
+
   async function search(next = query) {
     const normalized = normalizeTaiwanPlaceQuery(next, locale);
     if (!hasSearchablePlaceQuery(normalized)) {
       setError(copy("map.emptyDetail"));
       return;
     }
+    const requestId = ++mapRequestRef.current;
     setQuery(next);
     setLoading(true);
     setError("");
     setProgress("accepted");
     setSelectedPlace(undefined);
+    setLocation(undefined);
+    setResult(undefined);
+    setPendingLocation(undefined);
     try {
       const locationRequest = api.mapSearch(normalized);
       setProgress("dispatched");
       setProgress("waiting");
       const found = await locationRequest;
+      if (requestId !== mapRequestRef.current) return;
       if (!found.matched || !found.center) throw new Error("not_matched");
       setLocation(found);
+      if (found.geocoding_acceptance && !found.geocoding_acceptance.accepted_for_analysis) {
+        setPendingLocation(found);
+        setProgress("idle");
+        return;
+      }
       const nearby = await api.mapNearby(found.center, categoryKeys);
+      if (requestId !== mapRequestRef.current) return;
       setProgress("received");
       setResult(nearby);
       setProgress("rendering");
     } catch {
-      setError(copy("map.searchError"));
-      setResult(undefined);
-      setProgress("idle");
+      if (requestId === mapRequestRef.current) {
+        setError(copy("map.searchError"));
+        setResult(undefined);
+        setProgress("idle");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === mapRequestRef.current) setLoading(false);
+    }
+  }
+
+  async function confirmPendingGeocoding() {
+    const found = pendingLocation;
+    if (!found?.center) return;
+    const requestId = ++mapRequestRef.current;
+    setLoading(true);
+    setError("");
+    setResult(undefined);
+    setSelectedPlace(undefined);
+    setPendingLocation(undefined);
+    setProgress("accepted");
+    try {
+      setProgress("dispatched");
+      setProgress("waiting");
+      const nearby = await api.mapNearby(found.center, categoryKeys);
+      if (requestId !== mapRequestRef.current) return;
+      setProgress("received");
+      setResult(nearby);
+      setProgress("rendering");
+    } catch {
+      if (requestId === mapRequestRef.current) {
+        setError(copy("map.searchError"));
+        setProgress("idle");
+      }
+    } finally {
+      if (requestId === mapRequestRef.current) setLoading(false);
     }
   }
 
@@ -480,11 +536,12 @@ function MapInsight() {
     <PageHeader kicker={copy("map.kicker")} title={copy("map.title")} description={copy("map.description")} />
     <HelpCallout>{copy("map.help")}</HelpCallout>
     {error && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><ErrorState message={error} /><p className="mt-2 text-[10px] text-amber-700">{copy("map.sourceNote")}</p></div>}
+    {pendingLocation?.geocoding_acceptance && <GeocodingAcceptanceNotice acceptance={pendingLocation.geocoding_acceptance} onConfirm={() => void confirmPendingGeocoding()} />}
     <AnalysisProgress phase={progress} labels={progressLabels} testId="map-analysis-progress" />
     <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(71,85,105,0.12)] xl:grid xl:min-h-[720px] xl:grid-cols-[minmax(0,1fr)_380px]">
       <div className="relative h-[min(72vh,720px)] min-h-[520px] min-w-0 sm:h-[620px] xl:h-auto">
         {result ? <GeoMap center={result.center} zoom={15} categories={categories} selectedPlace={selectedPlace} onSelectPlace={setSelectedPlace} /> : <div className="grid h-full place-items-center bg-gradient-to-br from-stone-100 via-cyan-50 to-stone-200 p-6 text-center"><EmptyState title={copy("map.empty")} detail={copy("map.emptyDetail")} /></div>}
-        <MapSearchPanel mode={searchMode} setMode={setSearchMode} query={query} setQuery={setQuery} onManual={() => void search()} onQuick={locateQuick} loading={loading} roadLoading={roadLoading} cities={cities} districts={districts} roads={roads} city={city} district={district} road={road} setCity={selectCity} setDistrict={selectDistrict} setRoad={setRoad} />
+        <MapSearchPanel mode={searchMode} setMode={setSearchMode} query={query} setQuery={changeQuery} onManual={() => void search()} onQuick={locateQuick} loading={loading} roadLoading={roadLoading} cities={cities} districts={districts} roads={roads} city={city} district={district} road={road} setCity={selectCity} setDistrict={selectDistrict} setRoad={setRoad} />
         {result && <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-xl border border-white/80 bg-white/92 px-3 py-2 shadow-md backdrop-blur-md"><div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px]"><strong className="min-w-0 break-words text-slate-800">{location?.formatted_address || query}</strong><span className="text-slate-500">{copy("map.city")}:</span><SourceBadge source={location?.source ?? "mock"} /><span className="text-slate-500">{copy("map.nearby")}:</span><SourceBadge source={result.source} /><span className="text-slate-500">{copy("map.radius")} {result.radius_m}m</span></div><MapLegend labels={categoryLabels} /></div>}
       </div>
       <details open className="min-w-0 border-t border-stone-200 bg-white xl:open xl:max-h-[720px] xl:overflow-y-auto xl:border-l xl:border-t-0">
@@ -493,6 +550,7 @@ function MapInsight() {
           <div data-assistive-panel className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.mode === "google" ? getLocalizedSourceLabel("google_places", locale) : copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
           {result ? <>
             {result.partial && <div data-testid="map-partial-notice" className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-semibold leading-5 text-amber-900">{copy("map.partialNotice")}</div>}
+            {result.evidence_quality && <div data-testid="map-evidence-quality" className={`mb-3 rounded-lg border px-3 py-2 text-[10px] font-semibold leading-5 ${result.evidence_quality.status === "high" ? "border-cyan-200 bg-cyan-50 text-cyan-900" : "border-amber-200 bg-amber-50 text-amber-900"}`}>{mapEvidenceQualityMessage(locale, result.evidence_quality)}</div>}
             <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-[10px] font-bold tracking-wider text-cyan-700">{copy("map.nearby")}</p><h2 className="mt-1 break-words text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || copy("map.empty")}</h2><p className="mt-1 text-[9px] text-slate-500">{result.score_summary}</p></div><div className="shrink-0 text-right"><p className="text-4xl font-bold text-cyan-800">{result.livability_score}</p><span className="rounded-full bg-white px-2 py-1 text-[9px] font-bold text-cyan-800">{result.livability_level}</span></div></div><div className="mt-2 flex gap-1"><SourceBadge source={result.source} /></div></div>
             <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.city")}</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>{copy("action.open")} {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{categoryLabels[group.category] ?? group.label} {group.count}</button>)}</div>
             <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("location.results")}</h3><div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">{result.category_scores.map((metric) => <CategoryMetric key={metric.category} metric={metric} />)}</div><ScoringCriteria criteria={result.scoring_criteria} labels={categoryLabels} />
@@ -552,7 +610,7 @@ function LocalizedMapSearchPanel({ mode, setMode, query, setQuery, onManual, onQ
   const { copy, locale } = useExperienceLocale();
   const selectClass = "min-w-0 rounded-lg border border-stone-200 bg-white px-2 py-2 text-[11px] outline-none focus:ring-2 focus:ring-cyan-200 disabled:bg-stone-100";
   return <div className="absolute left-2 right-2 top-2 z-[500] min-w-0 rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(720px,calc(100%-2rem))]">
-    <form onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex min-w-0 flex-col gap-2 sm:flex-row"><input aria-label={copy("map.searchPlaceholder")} value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder={copy("map.searchPlaceholder")} /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("map.searching") : copy("map.search")}</Button></form>
+    <form data-testid="map-search-form" onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex min-w-0 flex-col gap-2 sm:flex-row"><input aria-label={copy("map.searchPlaceholder")} value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder={copy("map.searchPlaceholder")} /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("map.searching") : copy("map.search")}</Button></form>
     <details data-testid="map-advanced-settings" data-mode={mode} onToggle={(event) => setMode(event.currentTarget.open ? "quick" : "manual")} className="mt-2 rounded-lg border border-stone-200 bg-stone-50">
       <summary className="cursor-pointer px-3 py-2 text-[10px] font-bold text-slate-600">{copy("map.advanced")}</summary>
       <div className="grid min-w-0 gap-2 border-t border-stone-200 p-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]"><select aria-label={copy("common.selectCounty")} value={city} disabled={roadLoading} onChange={(e) => setCity(e.target.value)} className={selectClass}><option value="">{copy("common.selectCounty")}</option>{cities.map((item) => <option key={item} value={item}>{getLocalizedCountyLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectDistrict")} value={district} disabled={!city || roadLoading} onChange={(e) => setDistrict(e.target.value)} className={selectClass}><option value="">{copy("common.selectDistrict")}</option>{districts.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectRoad")} value={road} disabled={!district || roadLoading} onChange={(e) => setRoad(e.target.value)} className={selectClass}><option value="">{copy("common.selectRoad")}</option>{roads.map((item) => <option key={item} value={item}>{getLocalizedRoadLabel(item, locale)}</option>)}</select><Button onClick={onQuick} disabled={!city || !district || !road || loading || roadLoading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("action.loading") : copy("action.open")}</Button></div>
@@ -571,6 +629,20 @@ function CategoryMetric({ metric }: { metric: MapNearbyResult["category_scores"]
 function ScoringCriteria({ criteria, labels }: { criteria: MapNearbyResult["scoring_criteria"]; labels: Record<string, string> }) {
   const { copy } = useExperienceLocale();
   return <details className="mt-3 rounded-lg border border-stone-200 bg-stone-50 p-2.5"><summary className="cursor-pointer text-[10px] font-bold text-slate-700">{copy("common.dataLimit")}</summary><div className="mt-2 space-y-2 text-[9px] leading-4 text-slate-500"><p>{copy("map.nearbyDescription")} {criteria.radius_m}m.</p><div className="flex flex-wrap gap-1">{Object.entries(criteria.category_weights).map(([key, value]) => <span key={key} className="rounded-full bg-white px-2 py-1">{labels[key]} {value}%</span>)}</div><ul>{criteria.distance_bands.map((band) => <li key={band.range}>{band.range}: {band.weight}</li>)}</ul><p>{criteria.disclaimer}</p></div></details>;
+}
+
+function mapEvidenceQualityMessage(locale: "zh-TW" | "en" | "ja" | "ko", quality: NonNullable<MapNearbyResult["evidence_quality"]>): string {
+  const values = {
+    accepted: quality.accepted_place_count,
+    input: quality.input_place_count,
+    rejected: quality.rejected_type_count,
+    deduplicated: quality.deduplicated_count,
+    ceiling: quality.score_ceiling,
+  };
+  if (locale === "en") return `Evidence quality: ${quality.status}. ${values.accepted}/${values.input} places accepted; ${values.rejected} type mismatches rejected and ${values.deduplicated} duplicates removed. Score ceiling: ${values.ceiling}.`;
+  if (locale === "ja") return `根拠品質: ${quality.status}。候補 ${values.input} 件中 ${values.accepted} 件を採用し、型不一致 ${values.rejected} 件と重複 ${values.deduplicated} 件を除外しました。得点上限: ${values.ceiling}。`;
+  if (locale === "ko") return `근거 품질: ${quality.status}. 후보 ${values.input}개 중 ${values.accepted}개를 사용하고 유형 불일치 ${values.rejected}개와 중복 ${values.deduplicated}개를 제외했습니다. 점수 상한: ${values.ceiling}.`;
+  return `證據品質：${quality.status}。候選 ${values.input} 處中採用 ${values.accepted} 處，排除類型不符 ${values.rejected} 處與重複 ${values.deduplicated} 處；分數上限 ${values.ceiling}。`;
 }
 
 function MapLegend({ labels }: { labels: Record<string, string> }) {
@@ -850,9 +922,12 @@ function ValuationPage({ onMap, embedded = false, initialContext, onResult, onSt
   const [holdingResult,setHoldingResult]=useState<HoldingCostResult>();
   const valuationInputKey = [city, district, road, addressText, type, area, age, floor].join("|");
   const previousValuationInputKey = useRef(valuationInputKey);
+  const valuationRequestRef = useRef(0);
   useEffect(() => {
     if (previousValuationInputKey.current === valuationInputKey) return;
     previousValuationInputKey.current = valuationInputKey;
+    valuationRequestRef.current += 1;
+    setLoading(false);
     setResult(undefined);
     setTrend(undefined);
     onResult?.(undefined);
@@ -890,7 +965,7 @@ function ValuationPage({ onMap, embedded = false, initialContext, onResult, onSt
   function useLoanPrice(priceWan:number){setLoanPriceWan(priceWan);setLoanResult(undefined);setShareNotice("已帶入貸款試算，可確認利率與年限後計算");scrollToWorkflow("loan-calculator");}
   function useHoldingCost(propertyPrice:number,areaPing?:number,loan:LoanCalculationResult|undefined=loanResult){const prefill={property_price:propertyPrice,area_ping:areaPing,loan_monthly_payment:loan?.monthly_payment,monthly_income:loan?.monthly_income_wan};setHoldingPrefill(prefill);prefillHoldingCost(prefill);setHoldingResult(undefined);setShareNotice("已帶入持有成本，可確認管理費與稅費假設後計算");scrollToWorkflow("holding-cost-calculator");}
   function useLocationInsight(selection:PropertyFinderSelection,priceWan:number){prefillLocationInsight({city:selection.city,district:selection.district,road:selection.road,area_ping:selection.area_ping,building_type:selection.building_type,property_price:priceWan});setShareNotice("已帶入區位分析，可按下分析區位");scrollToWorkflow("location-insight-calculator");}
-  async function estimate(){setLoading(true);setError("");setResult(undefined);setTrend(undefined);onResult?.(undefined);onStatusChange?.("loading");try{const payload={city,district,road,address_text:addressText,building_type:type,area_ping:area,building_age_years:age,floor};const next=await api.valuation(payload);setResult(next);setDataStatus(next.data_status);api.valuationTrend({...payload,horizon_months:[6,12,36]}).then(setTrend).catch(()=>setError("估價已完成，但市場趨勢暫時無法載入。"));}catch{setError("估價資料暫時無法取得，請稍後再試。" );onStatusChange?.("unavailable");}finally{setLoading(false);}}
+  async function estimate(){const requestId=++valuationRequestRef.current;setLoading(true);setError("");setResult(undefined);setTrend(undefined);onResult?.(undefined);onStatusChange?.("loading");try{const payload={city,district,road,address_text:addressText,building_type:type,area_ping:area,building_age_years:age,floor};const next=await api.valuation(payload);if(requestId!==valuationRequestRef.current)return;setResult(next);setDataStatus(next.data_status);api.valuationTrend({...payload,horizon_months:[6,12,36]}).then((nextTrend)=>{if(requestId===valuationRequestRef.current)setTrend(nextTrend);}).catch(()=>{if(requestId===valuationRequestRef.current)setError("估價已完成，但市場趨勢暫時無法載入。");});}catch{if(requestId===valuationRequestRef.current){setError("估價資料暫時無法取得，請稍後再試。" );onStatusChange?.("unavailable");}}finally{if(requestId===valuationRequestRef.current)setLoading(false);}}
   const shareInputs:ValuationInputs={city,district,road,building_type:type,area_ping:area,building_age_years:age,floor};
   const valuationVisualModel = buildValuationVisualModel(result, trend);
   const valuationNeedsTrustNotice = Boolean(result && getValuationDisplayState(result).kind !== "available");

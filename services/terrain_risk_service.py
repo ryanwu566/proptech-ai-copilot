@@ -195,6 +195,9 @@ def _resolve_location(
     if not query:
         return None
     found = searcher(query)
+    acceptance = found.get("geocoding_acceptance") if isinstance(found.get("geocoding_acceptance"), dict) else None
+    if acceptance and not acceptance.get("accepted_for_analysis"):
+        return None
     center = found.get("center") if found.get("matched") else None
     if not center:
         return None
