@@ -29,8 +29,9 @@ let jsonOutput = "";
 
 try {
   const env = { ...process.env, E2E_BASE_URL: baseUrl };
+  const cwd = new URL("../frontend_next", import.meta.url).pathname.replace(/^\/([A-Z]:)/, "$1");
   const cmd = `npx playwright test ${testFile} --project=chromium --workers=1 --reporter=json`;
-  jsonOutput = execSync(cmd, { cwd: process.cwd(), env, encoding: "utf-8", timeout: 600000 });
+  jsonOutput = execSync(cmd, { cwd, env, encoding: "utf-8", timeout: 600000 });
 } catch (err) {
   exitCode = err.status || 1;
   jsonOutput = err.stdout || "";
