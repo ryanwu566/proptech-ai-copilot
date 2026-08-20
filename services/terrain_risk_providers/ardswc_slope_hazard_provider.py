@@ -7,8 +7,11 @@ adapters; production can use the optional mapbox-vector-tile dependency.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor, wait
+from contextlib import nullcontext
 import hashlib
 import math
+import threading
 import time
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
@@ -25,7 +28,9 @@ LIMITATION = "官方平台另有較新年度之圖台或下載資料，但本系
 MVT_ZOOM = 14
 MAX_TILE_REQUESTS_PER_MVT_LAYER = 36
 TILE_CACHE_TTL_SECONDS = 600
-REQUEST_TIMEOUT_SECONDS = 4.0
+REQUEST_TIMEOUT_SECONDS = 1.5
+QUERY_BUDGET_SECONDS = 2.5
+MAX_TILE_WORKERS = 6
 EARTH_RADIUS_M = 6378137.0
 
 MVT_LAYERS = {
@@ -69,6 +74,7 @@ HAZARD_TO_MVT = {
 }
 
 _TILE_CACHE: dict[tuple[str, int, int, int], tuple[float, bytes]] = {}
+_TILE_CACHE_LOCK = threading.Lock()
 
 
 @dataclass(frozen=True)
@@ -96,14 +102,18 @@ class ArdswcSlopeHazardProvider:
         zoom: int = MVT_ZOOM,
         max_tiles_per_layer: int = MAX_TILE_REQUESTS_PER_MVT_LAYER,
         timeout_seconds: float = REQUEST_TIMEOUT_SECONDS,
+        tile_workers: int = MAX_TILE_WORKERS,
+        query_budget_seconds: float = QUERY_BUDGET_SECONDS,
         use_cache: bool = True,
     ) -> None:
-        self.http_get = http_get or self._http_get
+        self.http_get = http_get
         self.decoder = decoder or self._decode_mvt
         self.decoder_ready = decoder is not None or _optional_decoder_available()
         self.zoom = zoom
         self.max_tiles_per_layer = max_tiles_per_layer
         self.timeout_seconds = timeout_seconds
+        self.tile_workers = max(1, min(tile_workers, MAX_TILE_WORKERS))
+        self.query_budget_seconds = query_budget_seconds
         self.use_cache = use_cache
 
     def analyze(self, latitude: float, longitude: float, radius_m: int, include_layers: Iterable[str] | None = None) -> dict[str, Any]:
@@ -126,25 +136,79 @@ class ArdswcSlopeHazardProvider:
                 for key in result
             }
 
+        mvt_keys = [mvt_key for hazard_key in ("debris_flow", "landslide") if hazard_key in requested for mvt_key in HAZARD_TO_MVT[hazard_key]]
+        queried_layers = self._query_mvt_layers(mvt_keys, tiles, latitude, longitude, radius_m)
         for hazard_key in ("debris_flow", "landslide"):
             if hazard_key not in requested:
                 continue
-            layer_results = [self._query_mvt_layer(mvt_key, tiles, latitude, longitude, radius_m) for mvt_key in HAZARD_TO_MVT[hazard_key]]
+            layer_results = [queried_layers[mvt_key] for mvt_key in HAZARD_TO_MVT[hazard_key]]
             result[hazard_key] = merge_layer_results(hazard_key, layer_results)
         return result
 
     def _query_mvt_layer(self, mvt_key: str, tiles: list[TileCoord], latitude: float, longitude: float, radius_m: int) -> dict[str, Any]:
+        return self._query_mvt_layers([mvt_key], tiles, latitude, longitude, radius_m)[mvt_key]
+
+    def _query_mvt_layers(
+        self,
+        mvt_keys: list[str],
+        tiles: list[TileCoord],
+        latitude: float,
+        longitude: float,
+        radius_m: int,
+    ) -> dict[str, dict[str, Any]]:
+        jobs = [(mvt_key, tile) for mvt_key in mvt_keys for tile in tiles]
+        outcomes: dict[tuple[str, TileCoord], tuple[list[dict[str, Any]], str | None]] = {}
+        client_context = nullcontext(None) if self.http_get is not None else self._new_client()
+        with client_context as client:
+            executor = ThreadPoolExecutor(max_workers=min(self.tile_workers, len(jobs)), thread_name_prefix="ardswc-tile")
+            futures = {
+                executor.submit(self._fetch_and_decode_tile, mvt_key, tile, client): (mvt_key, tile)
+                for mvt_key, tile in jobs
+            }
+            done, pending = wait(futures, timeout=self.query_budget_seconds)
+            for future in done:
+                mvt_key, tile = futures[future]
+                try:
+                    outcomes[(mvt_key, tile)] = (future.result(), None)
+                except Exception as exc:
+                    outcomes[(mvt_key, tile)] = ([], type(exc).__name__)
+            for future in pending:
+                mvt_key, tile = futures[future]
+                outcomes[(mvt_key, tile)] = ([], "QueryBudgetExceeded")
+                future.cancel()
+            # Keep the shared client alive until already-running requests obey
+            # their per-tile timeout; queued work is cancelled at the budget.
+            executor.shutdown(wait=True, cancel_futures=True)
+
+        return {
+            mvt_key: self._build_mvt_result(mvt_key, tiles, outcomes, latitude, longitude, radius_m)
+            for mvt_key in mvt_keys
+        }
+
+    def _fetch_and_decode_tile(self, mvt_key: str, tile: TileCoord, client: httpx.Client | None) -> list[dict[str, Any]]:
+        payload = self._fetch_tile(mvt_key, tile, client)
+        return self.decoder(payload, tile)
+
+    def _build_mvt_result(
+        self,
+        mvt_key: str,
+        tiles: list[TileCoord],
+        outcomes: dict[tuple[str, TileCoord], tuple[list[dict[str, Any]], str | None]],
+        latitude: float,
+        longitude: float,
+        radius_m: int,
+    ) -> dict[str, Any]:
         config = MVT_LAYERS[mvt_key]
         decoded_features: list[dict[str, Any]] = []
         errors: list[str] = []
         successful_tiles = 0
         for tile in tiles:
-            try:
-                payload = self._fetch_tile(mvt_key, tile)
-                decoded_features.extend(self.decoder(payload, tile))
+            features, error = outcomes[(mvt_key, tile)]
+            if error is None:
+                decoded_features.extend(features)
                 successful_tiles += 1
-            except Exception as exc:
-                errors.append(f"{tile.z}/{tile.y}/{tile.x}: {type(exc).__name__}")
+            else:
+                errors.append(f"{tile.z}/{tile.y}/{tile.x}: {error}")
 
         if successful_tiles == 0:
             return self._mvt_result(mvt_key, "error", False, None, [], f"{config['label']}本次無法完成官方 MVT 比對，請稍後重試或前往官方圖台確認。", errors)
@@ -160,21 +224,40 @@ class ArdswcSlopeHazardProvider:
         explanation = "此官方圖層未比對到明確重疊，仍須搭配其他待補查來源判斷。"
         return self._mvt_result(mvt_key, status, False, None, [], explanation, errors)
 
-    def _fetch_tile(self, mvt_key: str, tile: TileCoord) -> bytes:
+    def _fetch_tile(self, mvt_key: str, tile: TileCoord, client: httpx.Client | None = None) -> bytes:
         cache_key = (mvt_key, tile.z, tile.x, tile.y)
         now = time.monotonic()
-        if self.use_cache and cache_key in _TILE_CACHE:
-            cached_at, payload = _TILE_CACHE[cache_key]
+        with _TILE_CACHE_LOCK:
+            cached = _TILE_CACHE.get(cache_key) if self.use_cache else None
+        if cached:
+            cached_at, payload = cached
             if now - cached_at <= TILE_CACHE_TTL_SECONDS:
                 return payload
         url = MVT_LAYERS[mvt_key]["url"].format(z=tile.z, x=tile.x, y=tile.y)
-        payload = self.http_get(url, self.timeout_seconds)
+        if self.http_get is not None:
+            payload = self.http_get(url, self.timeout_seconds)
+        else:
+            if client is None:
+                with self._new_client() as local_client:
+                    payload = self._http_get(local_client, url)
+            else:
+                payload = self._http_get(client, url)
         if self.use_cache:
-            _TILE_CACHE[cache_key] = (now, payload)
+            with _TILE_CACHE_LOCK:
+                _TILE_CACHE[cache_key] = (time.monotonic(), payload)
         return payload
 
-    def _http_get(self, url: str, timeout_seconds: float) -> bytes:
-        response = httpx.get(url, timeout=timeout_seconds)
+    def _new_client(self) -> httpx.Client:
+        timeout = httpx.Timeout(
+            self.timeout_seconds,
+            connect=min(0.75, self.timeout_seconds),
+            pool=min(0.5, self.timeout_seconds),
+        )
+        return httpx.Client(timeout=timeout)
+
+    @staticmethod
+    def _http_get(client: httpx.Client, url: str) -> bytes:
+        response = client.get(url)
         response.raise_for_status()
         return response.content
 

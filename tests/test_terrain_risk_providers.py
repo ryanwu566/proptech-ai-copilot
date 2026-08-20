@@ -1,5 +1,7 @@
 """Terrain risk provider contract tests."""
 
+import time
+
 from services.terrain_risk_providers import (
     ArdswcSlopeHazardProvider,
     GeologyCloudProvider,
@@ -109,3 +111,55 @@ def test_debris_affect_overlap_returns_high() -> None:
     result = provider.analyze(25.026, 121.543, 100, include_layers=["debris_flow"])
     assert result["debris_flow"]["matched"] is True
     assert result["debris_flow"]["level"] == "high"
+
+
+def test_nine_tiles_are_fetched_with_bounded_parallelism() -> None:
+    provider = ArdswcSlopeHazardProvider(
+        http_get=lambda url, timeout: (time.sleep(0.15) or b"tile"),
+        decoder=lambda payload, tile: [],
+        use_cache=False,
+    )
+    tiles = [TileCoord(14, index, 0) for index in range(9)]
+    started = time.perf_counter()
+    result = provider._query_mvt_layer("debris_flow", tiles, 25.026, 121.543, 100)
+    elapsed = time.perf_counter() - started
+
+    assert elapsed < 0.8
+    assert result["status"] == "available"
+
+
+def test_tile_cache_hit_avoids_duplicate_fetch() -> None:
+    calls = {"count": 0}
+
+    def fake_get(url: str, timeout: float) -> bytes:
+        calls["count"] += 1
+        return b"tile"
+
+    provider = ArdswcSlopeHazardProvider(http_get=fake_get, decoder=lambda payload, tile: [], use_cache=True)
+    tiles = [TileCoord(14, 4242, 2424)]
+    first = provider._query_mvt_layer("debris_flow", tiles, 25.026, 121.543, 100)
+    second = provider._query_mvt_layer("debris_flow", tiles, 25.026, 121.543, 100)
+
+    assert first["status"] == second["status"] == "available"
+    assert first["matched"] is second["matched"] is False
+    assert calls["count"] == 1
+
+
+def test_parallel_tile_completion_preserves_tile_order_and_deduplication() -> None:
+    def fake_get(url: str, timeout: float) -> bytes:
+        x = int(url.rsplit("/", 1)[-1].split(".", 1)[0])
+        time.sleep((3 - x) * 0.03)
+        return str(x).encode()
+
+    def decoder(payload: bytes, tile: TileCoord) -> list[dict]:
+        feature_id = int(payload.decode())
+        return [{
+            "properties": {"OBJECTID": feature_id},
+            "geometry": [[[121.542, 25.025], [121.544, 25.025], [121.544, 25.027], [121.542, 25.027], [121.542, 25.025]]],
+        }]
+
+    provider = ArdswcSlopeHazardProvider(http_get=fake_get, decoder=decoder, use_cache=False)
+    tiles = [TileCoord(14, index, 0) for index in range(4)]
+    result = provider._query_mvt_layer("debris_affect", tiles, 25.026, 121.543, 100)
+
+    assert result["value"]["feature_ids"] == ["OBJECTID:0", "OBJECTID:1", "OBJECTID:2", "OBJECTID:3"]

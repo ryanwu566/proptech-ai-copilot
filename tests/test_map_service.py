@@ -1,5 +1,9 @@
 """Map Insight Lite mock service tests."""
 
+import time
+
+import httpx
+
 from services.adapters.geocoding_adapter import GoogleGeocodingAdapter, MockGeocodingAdapter
 from services.adapters.google_places_adapter import GooglePlacesAdapter
 from services.map_service import (
@@ -75,6 +79,65 @@ def test_nearby_google_error_uses_mock_fallback() -> None:
 
     result = get_nearby_places(25.0254, 121.5434, 800, ["transport"], adapter=FailingGoogleAdapter())
     assert result["source"] == "mock"
+    assert result["fallback"] is True
+    assert result["failed_categories"] == ["transport"]
+
+
+def test_nearby_categories_run_concurrently() -> None:
+    class SlowGoogleAdapter:
+        available = True
+
+        def nearby(self, *args, **kwargs):
+            time.sleep(0.5)
+            return []
+
+    categories = ["transport", "school", "park", "medical", "shopping", "food"]
+    started = time.perf_counter()
+    result = get_nearby_places(25.0254, 121.5434, 800, categories, adapter=SlowGoogleAdapter())
+    elapsed = time.perf_counter() - started
+
+    assert elapsed < 1.3
+    assert result["nearby_total_ms"] < 1300
+    assert [group["category"] for group in result["categories"]] == categories
+    assert result["source"] == "google_places"
+    assert result["partial"] is False
+
+
+def test_one_google_category_failure_preserves_successful_groups() -> None:
+    class PartialGoogleAdapter:
+        available = True
+
+        def nearby(self, lat, lng, radius_m, category, language_code):
+            if category == "medical":
+                raise httpx.TimeoutException("medical timed out")
+            return []
+
+    categories = ["transport", "school", "park", "medical", "shopping", "food"]
+    result = get_nearby_places(25.0254, 121.5434, 800, categories, adapter=PartialGoogleAdapter())
+
+    assert result["source"] == "google_places"
+    assert result["partial"] is True
+    assert result["fallback"] is False
+    assert result["failed_categories"] == ["medical"]
+    assert [group["category"] for group in result["categories"]] == ["transport", "school", "park", "shopping", "food"]
+    assert all(group["source"] == "google_places" for group in result["categories"])
+    assert result["category_status"]["medical"]["status"] == "error"
+
+
+def test_all_google_categories_failing_uses_clearly_marked_fallback() -> None:
+    class FailingGoogleAdapter:
+        available = True
+
+        def nearby(self, *args, **kwargs):
+            raise httpx.TimeoutException("down")
+
+    categories = ["transport", "school", "park", "medical", "shopping", "food"]
+    result = get_nearby_places(25.0254, 121.5434, 800, categories, adapter=FailingGoogleAdapter())
+
+    assert result["source"] == "mock"
+    assert result["fallback"] is True
+    assert result["failed_categories"] == categories
+    assert all(group["source"] == "mock" and group["availability"] == "fallback" for group in result["categories"])
 
 
 def test_each_mock_region_has_complete_nearby_places() -> None:

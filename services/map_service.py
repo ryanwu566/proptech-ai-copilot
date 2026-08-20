@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import atexit
+from concurrent.futures import ThreadPoolExecutor
 import json
+import logging
 import time
 from pathlib import Path
 from typing import Any
@@ -32,6 +35,10 @@ CATEGORY_WEIGHTS = {"transport": 25, "food": 20, "shopping": 20, "school": 15, "
 DEFAULT_GOOGLE_PLACES_ADAPTER = GooglePlacesAdapter()
 GOOGLE_HEALTH_CACHE: tuple[float, dict[str, Any]] | None = None
 GOOGLE_HEALTH_TTL_SECONDS = 300
+MAX_CATEGORY_WORKERS = 6
+LOGGER = logging.getLogger(__name__)
+
+atexit.register(DEFAULT_GOOGLE_PLACES_ADAPTER.close)
 
 
 def load_map_data() -> dict[str, Any]:
@@ -64,6 +71,7 @@ def list_poi_categories() -> list[dict[str, str]]:
 def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict[str, Any]:
     """Use Google, TGOS, then bundled mock geocoding."""
 
+    started = time.perf_counter()
     regions = load_map_data()["regions"]
     source_chain = ["google_geocoding", "tgos_geocoding", "mock"]
     source = "mock"
@@ -78,12 +86,17 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     if region is None and adapter is None:
         region = MockGeocodingAdapter().search(query, regions)
     if region is None:
+        geocoding_ms = round((time.perf_counter() - started) * 1000)
+        LOGGER.info("map_geocoding timing_ms=%s matched=false source=unavailable", geocoding_ms)
         return {
             "query": query, "matched": False, "center": None, "city": "", "district": "", "road": "",
             "source": "mock", "source_chain": source_chain, "formatted_address": "", "place_id": "", "confidence": "mock",
             "location_note": "找不到符合的展示資料定位。", "disclaimer": SEARCH_DISCLAIMER,
+            "geocoding_ms": geocoding_ms,
         }
     formatted_address = region.get("formatted_address") or f"{region.get('city', '')}{region.get('district', '')}{region.get('road', '')}"
+    geocoding_ms = round((time.perf_counter() - started) * 1000)
+    LOGGER.info("map_geocoding timing_ms=%s matched=true source=%s", geocoding_ms, source)
     return {
         "query": query,
         "matched": True,
@@ -103,6 +116,7 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
             if source == "tgos_geocoding"
             else "展示資料定位，座標僅供操作示範。"
         ),
+        "geocoding_ms": geocoding_ms,
         "disclaimer": SEARCH_DISCLAIMER,
     }
 
@@ -181,30 +195,56 @@ def get_nearby_places(
 ) -> dict[str, Any]:
     """Return Google Places nearby results or a normalized mock fallback."""
 
+    total_started = time.perf_counter()
     supported = [category for category in categories if category in CATEGORY_LABELS]
     requested = supported or list(CATEGORY_LABELS)
     google = adapter or DEFAULT_GOOGLE_PLACES_ADAPTER
     grouped: list[dict[str, Any]] = []
     source = "google_places" if google.available else "mock"
+    failed_categories: list[str] = []
+    provider_timing_ms: dict[str, int] = {}
+    category_status: dict[str, dict[str, str | int]] = {}
 
     if google.available:
-        try:
-            for category in requested:
-                places = google.nearby(lat, lng, radius_m, category, language_code)
-                grouped.append(_category_result(category, places))
-        except (httpx.HTTPError, KeyError, ValueError, TypeError):
-            grouped = []
+        with ThreadPoolExecutor(max_workers=min(MAX_CATEGORY_WORKERS, len(requested)), thread_name_prefix="map-category") as executor:
+            futures = [(category, executor.submit(_timed_nearby_call, google, lat, lng, radius_m, category, language_code)) for category in requested]
+            # Read futures in request order so response order stays deterministic.
+            for category, future in futures:
+                try:
+                    places, elapsed_ms = future.result()
+                    provider_timing_ms[category] = elapsed_ms
+                    grouped.append(_category_result(category, places, source="google_places", availability="available"))
+                    category_status[category] = {"status": "available", "source": "google_places", "timing_ms": elapsed_ms}
+                except Exception as exc:
+                    failed_categories.append(category)
+                    elapsed_ms = int(getattr(exc, "provider_timing_ms", 0))
+                    provider_timing_ms[category] = elapsed_ms
+                    category_status[category] = {"status": "error", "source": "unavailable", "timing_ms": elapsed_ms}
+
+        if not grouped:
             source = "mock"
 
     if source == "mock":
-        grouped = [_category_result(category, _mock_places(lat, lng, radius_m, category)) for category in requested]
+        grouped = [_category_result(category, _mock_places(lat, lng, radius_m, category), source="mock", availability="fallback") for category in requested]
+        category_status = {
+            category: {"status": "fallback", "source": "mock", "timing_ms": provider_timing_ms.get(category, 0)}
+            for category in requested
+        }
 
     scoring = build_livability_scoring(grouped, radius_m)
     counts = "、".join(f"{row['label']} {row['count']} 處" for row in grouped)
-    return {
+    partial = source == "google_places" and bool(failed_categories)
+    nearby_total_ms = round((time.perf_counter() - total_started) * 1000)
+    response = {
         "center": {"lat": lat, "lng": lng},
         "radius_m": radius_m,
         "source": source,
+        "partial": partial,
+        "fallback": source == "mock",
+        "failed_categories": failed_categories,
+        "category_status": category_status,
+        "provider_timing_ms": provider_timing_ms,
+        "nearby_total_ms": nearby_total_ms,
         "categories": grouped,
         "livability_score": scoring["livability_score"],
         "livability_level": scoring["livability_level"],
@@ -227,6 +267,32 @@ def get_nearby_places(
         "summary": scoring["summary"] or f"{radius_m} 公尺生活圈共涵蓋 {counts}；分數僅用於比較周遭設施完整度。",
         "disclaimer": NEARBY_DISCLAIMER,
     }
+    LOGGER.info(
+        "map_nearby timing_ms=%s categories=%s failed_categories=%s source=%s partial=%s",
+        nearby_total_ms,
+        requested,
+        failed_categories,
+        source,
+        partial,
+    )
+    return response
+
+
+def _timed_nearby_call(
+    adapter: GooglePlacesAdapter,
+    lat: float,
+    lng: float,
+    radius_m: int,
+    category: str,
+    language_code: str,
+) -> tuple[list[dict[str, Any]], int]:
+    started = time.perf_counter()
+    try:
+        places = adapter.nearby(lat, lng, radius_m, category, language_code)
+    except Exception as exc:
+        setattr(exc, "provider_timing_ms", round((time.perf_counter() - started) * 1000))
+        raise
+    return places, round((time.perf_counter() - started) * 1000)
 
 
 def calculate_livability_score(categories: list[dict[str, Any]], radius_m: int) -> int:
@@ -328,8 +394,13 @@ def _distance_weight(distance_m: float) -> float:
     return 0.0
 
 
-def _category_result(category: str, places: list[dict[str, Any]]) -> dict[str, Any]:
-    return {"category": category, "label": CATEGORY_LABELS[category], "count": len(places), "places": places}
+def _category_result(category: str, places: list[dict[str, Any]], source: str | None = None, availability: str | None = None) -> dict[str, Any]:
+    result: dict[str, Any] = {"category": category, "label": CATEGORY_LABELS[category], "count": len(places), "places": places}
+    if source is not None:
+        result["source"] = source
+    if availability is not None:
+        result["availability"] = availability
+    return result
 
 
 def _mock_places(lat: float, lng: float, radius_m: int, category: str) -> list[dict[str, Any]]:

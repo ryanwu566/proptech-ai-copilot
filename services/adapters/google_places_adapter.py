@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 import os
+import threading
 import time
 from typing import Any
 
@@ -49,10 +50,14 @@ def distance_meters(lat1: float, lng1: float, lat2: float, lng2: float) -> int:
 class GooglePlacesAdapter:
     """Fetch and normalize nearby places without exposing the API key."""
 
-    def __init__(self, api_key: str | None = None, timeout_seconds: float = 5.0) -> None:
+    def __init__(self, api_key: str | None = None, timeout_seconds: float = 3.5, client: httpx.Client | None = None) -> None:
         self.api_key = (api_key if api_key is not None else os.getenv("GOOGLE_MAPS_API_KEY", "")).strip()
         self.timeout_seconds = timeout_seconds
         self._cache: dict[tuple[Any, ...], tuple[float, list[dict[str, Any]]]] = {}
+        self._cache_lock = threading.Lock()
+        self._client_lock = threading.Lock()
+        self._client = client
+        self._owns_client = client is None
         self.cache_ttl_seconds = 600
 
     @property
@@ -74,7 +79,8 @@ class GooglePlacesAdapter:
         if not self.available:
             return []
         cache_key = (round(lat, 5), round(lng, 5), radius_m, category, language_code)
-        cached = self._cache.get(cache_key)
+        with self._cache_lock:
+            cached = self._cache.get(cache_key)
         if cached and time.monotonic() - cached[0] < self.cache_ttl_seconds:
             return cached[1]
 
@@ -95,12 +101,43 @@ class GooglePlacesAdapter:
             "X-Goog-Api-Key": self.api_key,
             "X-Goog-FieldMask": FIELD_MASK,
         }
-        with httpx.Client(timeout=self.timeout_seconds) as client:
-            response = client.post(PLACES_URL, json=payload, headers=headers)
-            response.raise_for_status()
+        response = self._get_client().post(PLACES_URL, json=payload, headers=headers)
+        response.raise_for_status()
         places = [self._normalize(row, lat, lng, category) for row in response.json().get("places", [])]
-        self._cache[cache_key] = (time.monotonic(), places)
+        with self._cache_lock:
+            self._cache[cache_key] = (time.monotonic(), places)
         return places
+
+    def _get_client(self) -> httpx.Client:
+        # A single client reuses connections and is safe for the bounded map
+        # category worker pool. Lazy creation avoids opening a client for
+        # adapters without a key and for cache-only access.
+        if self._client is None:
+            with self._client_lock:
+                if self._client is None:
+                    timeout = httpx.Timeout(
+                        self.timeout_seconds,
+                        connect=min(1.5, self.timeout_seconds),
+                        pool=min(1.0, self.timeout_seconds),
+                    )
+                    self._client = httpx.Client(timeout=timeout)
+        return self._client
+
+    def close(self) -> None:
+        """Close an internally owned client; injected clients remain caller-owned."""
+
+        if not self._owns_client:
+            return
+        with self._client_lock:
+            client, self._client = self._client, None
+        if client is not None:
+            client.close()
+
+    def __enter__(self) -> "GooglePlacesAdapter":
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        self.close()
 
     @staticmethod
     def _normalize(row: dict[str, Any], center_lat: float, center_lng: float, category: str) -> dict[str, Any]:

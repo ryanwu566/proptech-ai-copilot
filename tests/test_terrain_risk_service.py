@@ -1,5 +1,7 @@
 """Terrain risk service tests."""
 
+import time
+
 from services.terrain_risk_service import TerrainRiskLocationError, analyze_terrain_risk
 
 
@@ -52,6 +54,16 @@ class GeologyProvider:
 class FailingProvider:
     def analyze(self, *args, **kwargs):
         raise RuntimeError("provider down")
+
+
+class SlowProvider:
+    def __init__(self, wrapped, delay_seconds: float = 0.5):
+        self.wrapped = wrapped
+        self.delay_seconds = delay_seconds
+
+    def analyze(self, *args, **kwargs):
+        time.sleep(self.delay_seconds)
+        return self.wrapped.analyze(*args, **kwargs)
 
 
 class UnavailableTerrainProvider:
@@ -158,6 +170,32 @@ def test_provider_failure_does_not_crash() -> None:
     assert result["hazards"]["flood"]["status"] == "error"
     assert any("淹水" in item or "flood" in item for item in result["missing_sources"])
     assert result["disclaimer"]
+
+
+def test_provider_groups_run_concurrently_and_report_timing() -> None:
+    slow = {
+        "terrain": SlowProvider(TerrainProvider()),
+        "slope_hazard": SlowProvider(SlopeHazardProvider()),
+        "flood": SlowProvider(FloodProvider()),
+        "geology": SlowProvider(GeologyProvider()),
+    }
+    started = time.perf_counter()
+    result = analyze_terrain_risk(latitude=25, longitude=121, providers=slow)
+    elapsed = time.perf_counter() - started
+
+    assert elapsed < 1.3
+    assert result["hazards"]["flood"]["matched"] is True
+    assert result["timing_ms"]["total_terrain_ms"] < 1300
+    assert all(result["timing_ms"][key] >= 450 for key in ("terrain_provider_ms", "slope_provider_ms", "flood_provider_ms", "geology_provider_ms"))
+
+
+def test_one_provider_error_preserves_other_three_groups() -> None:
+    result = analyze_terrain_risk(latitude=25, longitude=121, providers=providers(flood=FailingProvider()))
+
+    assert result["terrain"]["status"] == "available"
+    assert result["hazards"]["landslide"]["status"] == "available"
+    assert result["hazards"]["geological_sensitivity"]["status"] == "available"
+    assert result["hazards"]["flood"]["status"] == "error"
 
 
 def test_unavailable_sources_do_not_create_low_risk_with_fake_providers() -> None:

@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+import logging
+import time
 from typing import Any, Callable, Iterable
 
 from services.map_service import search_location
@@ -36,6 +39,8 @@ LAYER_LABELS = {
     "active_fault": "活動斷層",
 }
 TRANSPARENCY_NOTICE = "地勢與災害資料僅供看房風險參考，資料不足或暫時不可用不代表沒有風險。"
+MAX_PROVIDER_WORKERS = 4
+LOGGER = logging.getLogger(__name__)
 
 
 class TerrainRiskLocationError(ValueError):
@@ -54,10 +59,13 @@ def analyze_terrain_risk(
     searcher: Callable[[str], dict[str, Any]] | None = None,
     providers: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    total_started = time.perf_counter()
     if radius_m < 100 or radius_m > 2000:
         raise ValueError("radius_m must be between 100 and 2000")
     layers = _normalize_layers(include_layers)
+    resolution_started = time.perf_counter()
     resolved = _resolve_location(address, city, district, road, latitude, longitude, searcher or search_location)
+    address_resolution_ms = _elapsed_ms(resolution_started)
     if resolved is None:
         raise TerrainRiskLocationError("無法定位此地址，請改用完整地址或提供座標後再分析地勢與災害風險。")
 
@@ -65,20 +73,50 @@ def analyze_terrain_risk(
     terrain = _terrain_unavailable()
     hazards = {key: _hazard_skipped(key) if key not in layers else _hazard_unavailable(key) for key in DEFAULT_LAYERS if key != "terrain"}
 
-    if "terrain" in layers:
-        terrain = _safe_terrain(provider_map["terrain"], resolved, radius_m)
     slope_layers = tuple(key for key in ("landslide", "debris_flow") if key in layers)
+    geology_layers = tuple(key for key in ("geological_sensitivity", "liquefaction", "active_fault") if key in layers)
+    provider_jobs: list[tuple[str, Callable[[], Any]]] = []
+    if "terrain" in layers:
+        provider_jobs.append(("terrain", lambda: _safe_terrain(provider_map["terrain"], resolved, radius_m)))
     if slope_layers:
-        hazards.update(_safe_hazard_group(provider_map["slope_hazard"], resolved, radius_m, slope_layers))
+        provider_jobs.append(("slope_hazard", lambda: _safe_hazard_group(provider_map["slope_hazard"], resolved, radius_m, slope_layers)))
     if "flood" in layers:
-        hazards["flood"] = _safe_hazard(provider_map["flood"], resolved, radius_m, "flood")
-    if any(key in layers for key in ("geological_sensitivity", "liquefaction", "active_fault")):
-        hazards.update(_safe_hazard_group(provider_map["geology"], resolved, radius_m, ("geological_sensitivity", "liquefaction", "active_fault")))
+        provider_jobs.append(("flood", lambda: _safe_hazard(provider_map["flood"], resolved, radius_m, "flood")))
+    if geology_layers:
+        provider_jobs.append(("geology", lambda: _safe_hazard_group(provider_map["geology"], resolved, radius_m, geology_layers)))
+
+    provider_results: dict[str, Any] = {}
+    provider_timing_ms: dict[str, int | None] = {key: None for key in ("terrain", "slope_hazard", "flood", "geology")}
+    if provider_jobs:
+        with ThreadPoolExecutor(max_workers=min(MAX_PROVIDER_WORKERS, len(provider_jobs)), thread_name_prefix="terrain-provider") as executor:
+            futures = [(name, executor.submit(_timed_provider_call, call)) for name, call in provider_jobs]
+            # Consume in stable provider order even though the calls run concurrently.
+            for name, future in futures:
+                provider_results[name], provider_timing_ms[name] = future.result()
+
+    if "terrain" in provider_results:
+        terrain = provider_results["terrain"]
+    if "slope_hazard" in provider_results:
+        hazards.update(provider_results["slope_hazard"])
+    if "flood" in provider_results:
+        hazards["flood"] = provider_results["flood"]
+    if "geology" in provider_results:
+        hazards.update(provider_results["geology"])
 
     risk_factors = _risk_factors(terrain, hazards, layers)
     missing_sources = _missing_sources(terrain, hazards, layers)
     data_quality = _data_quality(terrain, hazards, layers, missing_sources)
     overall = _overall(risk_factors, data_quality, layers)
+
+    timing_ms = {
+        "address_resolution_ms": address_resolution_ms,
+        "terrain_provider_ms": provider_timing_ms["terrain"],
+        "slope_provider_ms": provider_timing_ms["slope_hazard"],
+        "flood_provider_ms": provider_timing_ms["flood"],
+        "geology_provider_ms": provider_timing_ms["geology"],
+        "total_terrain_ms": _elapsed_ms(total_started),
+    }
+    LOGGER.info("terrain_analysis timing_ms=%s layers=%s data_quality=%s", timing_ms, layers, data_quality["status"])
 
     return {
         "input": {
@@ -102,8 +140,18 @@ def analyze_terrain_risk(
         "source_transparency": _source_transparency(terrain, hazards, layers),
         "official_data_sources": provider_registry("terrain"),
         "data_quality": data_quality,
+        "timing_ms": timing_ms,
         "disclaimer": DISCLAIMER,
     }
+
+
+def _elapsed_ms(started: float) -> int:
+    return round((time.perf_counter() - started) * 1000)
+
+
+def _timed_provider_call(call: Callable[[], Any]) -> tuple[Any, int]:
+    started = time.perf_counter()
+    return call(), _elapsed_ms(started)
 
 
 def _default_providers() -> dict[str, Any]:

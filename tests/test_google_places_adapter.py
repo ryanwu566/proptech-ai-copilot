@@ -48,3 +48,33 @@ def test_operational_is_not_claimed_as_open_now() -> None:
     assert result["opening_status"] == "operational"
     assert result["opening_status_label"] == "店家正常營運"
     assert result["opening_status_label"] != "目前營業中"
+
+
+def test_injected_http_client_is_reused_and_remains_caller_owned() -> None:
+    class Response:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"places": []}
+
+    class Client:
+        def __init__(self):
+            self.calls = 0
+            self.closed = False
+
+        def post(self, *args, **kwargs):
+            self.calls += 1
+            return Response()
+
+        def close(self):
+            self.closed = True
+
+    client = Client()
+    adapter = GooglePlacesAdapter(api_key="test", client=client)
+    adapter.nearby(25.033, 121.5654, 800, "food")
+    adapter.nearby(25.033, 121.5654, 800, "park")
+    adapter.close()
+
+    assert client.calls == 2
+    assert client.closed is False
