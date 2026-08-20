@@ -74,31 +74,34 @@ async function submitAndWait(page: import("@playwright/test").Page) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// VALIDATION
+// VALIDATION — Complete 8-case matrix
 // ═════════════════════════════════════════════════════════════════════════════
 
 test.describe("Aegis — Validation", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("Invalid income=0 shows error, no request", async ({ page, request: requestCtx }) => {
-    await setup(page, requestCtx);
-    await fill(page, { income: 0, debt: 5000, cash: 5000000, properties: 0, mortgages: 0, price: 15000000 });
-    let requestSent = false;
-    page.on("request", (r) => { if (r.url().includes("/aegis-credit/analyze")) requestSent = true; });
-    await page.getByRole("button", { name: "執行房貸風險分析" }).click();
-    await expect(page.locator("p[role='alert']")).toBeVisible({ timeout: 2000 });
-    expect(requestSent).toBe(false);
-  });
+  const INVALID_CASES = [
+    { name: "income=0", values: { income: 0, debt: 5000, cash: 5000000, properties: 0, mortgages: 0, price: 15000000 } },
+    { name: "debt=-1", values: { income: 80000, debt: -1, cash: 5000000, properties: 0, mortgages: 0, price: 15000000 } },
+    { name: "cash=-1", values: { income: 80000, debt: 5000, cash: -1, properties: 0, mortgages: 0, price: 15000000 } },
+    { name: "propertyCount=-1", values: { income: 80000, debt: 5000, cash: 5000000, properties: -1, mortgages: 0, price: 15000000 } },
+    { name: "propertyCount=1.5", values: { income: 80000, debt: 5000, cash: 5000000, properties: 1.5, mortgages: 0, price: 15000000 } },
+    { name: "mortgageCount=-1", values: { income: 80000, debt: 5000, cash: 5000000, properties: 0, mortgages: -1, price: 15000000 } },
+    { name: "mortgageCount=1.5", values: { income: 80000, debt: 5000, cash: 5000000, properties: 0, mortgages: 1.5, price: 15000000 } },
+    { name: "price=0", values: { income: 80000, debt: 5000, cash: 5000000, properties: 0, mortgages: 0, price: 0 } },
+  ] as const;
 
-  test("Invalid property_price=0 shows error, no request", async ({ page, request: requestCtx }) => {
-    await setup(page, requestCtx);
-    await fill(page, { income: 80000, debt: 5000, cash: 5000000, properties: 0, mortgages: 0, price: 0 });
-    let requestSent = false;
-    page.on("request", (r) => { if (r.url().includes("/aegis-credit/analyze")) requestSent = true; });
-    await page.getByRole("button", { name: "執行房貸風險分析" }).click();
-    await expect(page.locator("p[role='alert']")).toBeVisible({ timeout: 2000 });
-    expect(requestSent).toBe(false);
-  });
+  for (const { name, values } of INVALID_CASES) {
+    test(`Invalid ${name}: shows error, no request`, async ({ page, request: requestCtx }) => {
+      await setup(page, requestCtx);
+      await fill(page, values);
+      let requestSent = false;
+      page.on("request", (r) => { if (r.url().includes("/aegis-credit/analyze")) requestSent = true; });
+      await page.getByRole("button", { name: /執行房貸風險分析|Run risk analysis|リスク分析を実行|위험 분석 실행/ }).click();
+      await expect(page.locator("p[role='alert']")).toBeVisible({ timeout: 2000 });
+      expect(requestSent).toBe(false);
+    });
+  }
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -266,4 +269,51 @@ test.describe("Aegis — Mobile 390x844", () => {
     const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
     expect(bodyWidth).toBeLessThanOrEqual(395);
   });
+});
+
+
+// ═════════════════════════════════════════════════════════════════════════════
+// LOCALE VERIFICATION
+// ═════════════════════════════════════════════════════════════════════════════
+
+test.describe("Aegis — Locale Verification", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
+  const EXPECTED_CTA: Record<string, string> = { "zh-TW": "執行房貸風險分析", en: "Run risk analysis", ja: "リスク分析を実行", ko: "위험 분석 실행" };
+  const EXPECTED_GROUP: Record<string, string> = { "zh-TW": "收入與負債", en: "Income and debt", ja: "収入と負債", ko: "소득과 부채" };
+
+  for (const locale of LOCALES) {
+    test(`${locale}: form labels and CTA localized`, async ({ page, request: requestCtx }) => {
+      await setup(page, requestCtx);
+
+      // Switch locale
+      if (locale !== "zh-TW") {
+        const localeSelect = page.locator("select[aria-label]").first();
+        await localeSelect.selectOption(locale);
+        await page.waitForTimeout(400);
+      }
+
+      const form = page.getByTestId("aegis-scenario-form");
+      await expect(form).toBeVisible();
+
+      // Group heading localized
+      const formText = await form.innerText();
+      expect(formText, `Group heading in ${locale}`).toContain(EXPECTED_GROUP[locale]);
+
+      // CTA localized
+      const cta = page.getByRole("button", { name: EXPECTED_CTA[locale] });
+      await expect(cta).toBeVisible();
+
+      // No raw i18n keys
+      expect(formText).not.toMatch(/aegis\.\w+/);
+
+      // For EN/JA/KO: no inappropriate Chinese form labels
+      if (locale !== "zh-TW") {
+        expect(formText).not.toContain("收入與負債");
+        expect(formText).not.toContain("資產與房貸");
+        expect(formText).not.toContain("目標物件");
+      }
+    });
+  }
 });
