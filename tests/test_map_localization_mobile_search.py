@@ -51,6 +51,18 @@ def test_mobile_map_first_and_desktop_side_panel_are_explicit() -> None:
     assert "overflow-x-auto" not in component
 
 
+def test_map_address_first_progress_partial_state_and_single_geocode_flow() -> None:
+    component = _map_insight()
+    assert 'testId="map-analysis-progress"' in component
+    assert 'data-testid="map-partial-notice"' in component
+    assert 'data-testid="map-advanced-settings"' in PAGE
+    assert 'setProgress("waiting")' in component
+    assert 'setProgress("rendering")' in component
+    assert component.count("api.mapSearch(") == 1
+    assert "api.mapNearby(found.center" in component
+    assert "api.mapSearch(found" not in component
+
+
 def test_locale_switching_does_not_add_storage_or_locale_triggered_search() -> None:
     component = _map_insight()
     assert "localStorage" not in component

@@ -10,6 +10,7 @@ import { HoldingCostCalculator, HoldingCostPrefill, HOLDING_COST_SESSION_KEY, pr
 import { LoanCalculator } from "@/components/loan-calculator";
 import { LOCATION_INSIGHT_SESSION_KEY, prefillLocationInsight } from "@/components/location-insight";
 import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
+import { AnalysisProgress, type AnalysisProgressPhase } from "@/components/analysis-progress";
 import { publishWorkspaceContext, WORKSPACE_CONTEXT_SESSION_KEY, type WorkspaceContext } from "@/components/immersive-viewing-workspace";
 import { PropertyFinder, PropertyFinderSelection } from "@/components/property-finder";
 import { AppPage } from "@/components/sidebar";
@@ -314,7 +315,8 @@ function MapInsight() {
   const [selectedPlace, setSelectedPlace] = useState<NearbyPlace>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [searchMode, setSearchMode] = useState<"quick" | "manual">("quick");
+  const [searchMode, setSearchMode] = useState<"quick" | "manual">("manual");
+  const [progress, setProgress] = useState<AnalysisProgressPhase>("idle");
   const [cities, setCities] = useState<string[]>([]);
   const [districts, setDistricts] = useState<string[]>([]);
   const [roads, setRoads] = useState<string[]>([]);
@@ -328,6 +330,7 @@ function MapInsight() {
     api.mapGoogleHealth().then(setHealth).catch(() => setHealth({ google_key_configured: false, geocoding_enabled: false, places_enabled: false, last_error: "", mode: "mock", safe_message: copy("map.healthUnavailable") }));
     api.roadCities().then((data) => setCities(data.cities)).finally(() => setRoadLoading(false));
   }, []);
+  useEffect(() => { if (result && progress === "rendering") setProgress("complete"); }, [result, progress]);
 
   async function search(next = query) {
     const normalized = normalizeTaiwanPlaceQuery(next, locale);
@@ -338,15 +341,23 @@ function MapInsight() {
     setQuery(next);
     setLoading(true);
     setError("");
+    setProgress("accepted");
     setSelectedPlace(undefined);
     try {
-      const found = await api.mapSearch(normalized);
+      const locationRequest = api.mapSearch(normalized);
+      setProgress("dispatched");
+      setProgress("waiting");
+      const found = await locationRequest;
       if (!found.matched || !found.center) throw new Error("not_matched");
       setLocation(found);
-      setResult(await api.mapNearby(found.center, categoryKeys));
+      const nearby = await api.mapNearby(found.center, categoryKeys);
+      setProgress("received");
+      setResult(nearby);
+      setProgress("rendering");
     } catch {
       setError(copy("map.searchError"));
       setResult(undefined);
+      setProgress("idle");
     } finally {
       setLoading(false);
     }
@@ -393,11 +404,13 @@ function MapInsight() {
   const categories = result?.categories.filter((group) => active.includes(group.category)) ?? [];
   const allSelected = active.length === categoryKeys.length;
   const totalPlaces = result?.categories.reduce((sum, group) => sum + group.count, 0) ?? 0;
+  const progressLabels = { title: copy("map.progressTitle"), accepted: copy("map.progressAccepted"), dispatched: copy("map.progressDispatched"), waiting: copy("map.progressWaiting"), received: copy("map.progressReceived"), rendering: copy("map.progressRendering"), complete: copy("map.progressComplete") };
 
   return <div id="map-insight" className="scroll-mt-20 space-y-4">
     <PageHeader kicker={copy("map.kicker")} title={copy("map.title")} description={copy("map.description")} />
     <HelpCallout>{copy("map.help")}</HelpCallout>
     {error && <div className="rounded-xl border border-amber-200 bg-amber-50 p-3"><ErrorState message={error} /><p className="mt-2 text-[10px] text-amber-700">{copy("map.sourceNote")}</p></div>}
+    <AnalysisProgress phase={progress} labels={progressLabels} testId="map-analysis-progress" />
     <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_14px_40px_rgba(71,85,105,0.12)] xl:grid xl:min-h-[720px] xl:grid-cols-[minmax(0,1fr)_380px]">
       <div className="relative h-[min(72vh,720px)] min-h-[520px] min-w-0 sm:h-[620px] xl:h-auto">
         {result ? <GeoMap center={result.center} zoom={15} categories={categories} selectedPlace={selectedPlace} onSelectPlace={setSelectedPlace} /> : <div className="grid h-full place-items-center bg-gradient-to-br from-stone-100 via-cyan-50 to-stone-200 p-6 text-center"><EmptyState title={copy("map.empty")} detail={copy("map.emptyDetail")} /></div>}
@@ -409,6 +422,7 @@ function MapInsight() {
         <aside className="min-w-0 p-4">
           <div data-assistive-panel className={`mb-4 rounded-lg px-3 py-2 text-[10px] font-medium ${health?.mode === "google" ? "bg-blue-50 text-blue-700" : "bg-amber-50 text-amber-700"}`}>{health?.mode === "google" ? getLocalizedSourceLabel("google_places", locale) : copy("map.healthUnavailable")} {health?.mode === "google" ? copy("map.sourceNote") : copy("common.dataLimit")}</div>
           {result ? <>
+            {result.partial && <div data-testid="map-partial-notice" className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-[10px] font-semibold leading-5 text-amber-900">{copy("map.partialNotice")}</div>}
             <div className="rounded-xl border border-cyan-100 bg-cyan-50/70 p-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="text-[10px] font-bold tracking-wider text-cyan-700">{copy("map.nearby")}</p><h2 className="mt-1 break-words text-base font-bold text-slate-950">{location?.formatted_address || location?.district || location?.road || copy("map.empty")}</h2><p className="mt-1 text-[9px] text-slate-500">{result.score_summary}</p></div><div className="shrink-0 text-right"><p className="text-4xl font-bold text-cyan-800">{result.livability_score}</p><span className="rounded-full bg-white px-2 py-1 text-[9px] font-bold text-cyan-800">{result.livability_level}</span></div></div><div className="mt-2 flex gap-1"><SourceBadge source={result.source} /></div></div>
             <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("map.city")}</h3><div className="mt-2 flex flex-wrap gap-1.5"><button onClick={() => setActive(allSelected ? [] : categoryKeys)} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${allSelected ? "border-slate-700 bg-slate-800 text-white" : "border-stone-200 bg-white text-slate-500"}`}>{copy("action.open")} {totalPlaces}</button>{result.categories.map((group) => <button key={group.category} onClick={() => setActive((items) => items.includes(group.category) ? items.filter((x) => x !== group.category) : [...items, group.category])} className={`rounded-full border px-2.5 py-1.5 text-[10px] font-bold ${active.includes(group.category) ? "border-cyan-300 bg-cyan-50 text-cyan-800" : "border-stone-200 bg-white text-slate-400"}`}>{categoryLabels[group.category] ?? group.label} {group.count}</button>)}</div>
             <h3 className="mt-5 text-xs font-bold text-slate-900">{copy("location.results")}</h3><div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">{result.category_scores.map((metric) => <CategoryMetric key={metric.category} metric={metric} />)}</div><ScoringCriteria criteria={result.scoring_criteria} labels={categoryLabels} />
@@ -467,7 +481,13 @@ function MapSearchPanel({ mode, setMode, query, setQuery, onManual, onQuick, loa
 function LocalizedMapSearchPanel({ mode, setMode, query, setQuery, onManual, onQuick, loading, roadLoading, cities, districts, roads, city, district, road, setCity, setDistrict, setRoad }: MapSearchPanelProps) {
   const { copy, locale } = useExperienceLocale();
   const selectClass = "min-w-0 rounded-lg border border-stone-200 bg-white px-2 py-2 text-[11px] outline-none focus:ring-2 focus:ring-cyan-200 disabled:bg-stone-100";
-  return <div className="absolute left-2 right-2 top-2 z-[500] rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(720px,calc(100%-2rem))]"><div className="mb-2 flex w-fit rounded-lg bg-stone-100 p-0.5"><button onClick={() => setMode("quick")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "quick" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.quickMode")}</button><button onClick={() => setMode("manual")} className={`rounded-md px-3 py-1.5 text-[10px] font-bold ${mode === "manual" ? "bg-white text-cyan-800 shadow-sm" : "text-slate-500"}`}>{copy("map.manualMode")}</button></div>{mode === "quick" ? <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]"><select aria-label={copy("common.selectCounty")} value={city} disabled={roadLoading} onChange={(e) => setCity(e.target.value)} className={selectClass}><option value="">{copy("common.selectCounty")}</option>{cities.map((item) => <option key={item} value={item}>{getLocalizedCountyLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectDistrict")} value={district} disabled={!city || roadLoading} onChange={(e) => setDistrict(e.target.value)} className={selectClass}><option value="">{copy("common.selectDistrict")}</option>{districts.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectRoad")} value={road} disabled={!district || roadLoading} onChange={(e) => setRoad(e.target.value)} className={selectClass}><option value="">{copy("common.selectRoad")}</option>{roads.map((item) => <option key={item} value={item}>{getLocalizedRoadLabel(item, locale)}</option>)}</select><Button onClick={onQuick} disabled={!city || !district || !road || loading || roadLoading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("action.loading") : copy("action.open")}</Button></div> : <form onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex flex-col gap-2 sm:flex-row"><input value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder={copy("map.searchPlaceholder")} /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("map.searching") : copy("map.search")}</Button></form>}</div>;
+  return <div className="absolute left-2 right-2 top-2 z-[500] min-w-0 rounded-xl border border-white/80 bg-white/95 p-2 shadow-lg backdrop-blur-md sm:left-4 sm:right-auto sm:top-4 sm:w-[min(720px,calc(100%-2rem))]">
+    <form onSubmit={(e) => { e.preventDefault(); onManual(); }} className="flex min-w-0 flex-col gap-2 sm:flex-row"><input aria-label={copy("map.searchPlaceholder")} value={query} onChange={(e) => setQuery(e.target.value)} className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200" placeholder={copy("map.searchPlaceholder")} /><Button disabled={loading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("map.searching") : copy("map.search")}</Button></form>
+    <details data-testid="map-advanced-settings" data-mode={mode} onToggle={(event) => setMode(event.currentTarget.open ? "quick" : "manual")} className="mt-2 rounded-lg border border-stone-200 bg-stone-50">
+      <summary className="cursor-pointer px-3 py-2 text-[10px] font-bold text-slate-600">{copy("map.advanced")}</summary>
+      <div className="grid min-w-0 gap-2 border-t border-stone-200 p-2 sm:grid-cols-[1fr_1fr_1.4fr_auto]"><select aria-label={copy("common.selectCounty")} value={city} disabled={roadLoading} onChange={(e) => setCity(e.target.value)} className={selectClass}><option value="">{copy("common.selectCounty")}</option>{cities.map((item) => <option key={item} value={item}>{getLocalizedCountyLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectDistrict")} value={district} disabled={!city || roadLoading} onChange={(e) => setDistrict(e.target.value)} className={selectClass}><option value="">{copy("common.selectDistrict")}</option>{districts.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}</select><select aria-label={copy("common.selectRoad")} value={road} disabled={!district || roadLoading} onChange={(e) => setRoad(e.target.value)} className={selectClass}><option value="">{copy("common.selectRoad")}</option>{roads.map((item) => <option key={item} value={item}>{getLocalizedRoadLabel(item, locale)}</option>)}</select><Button onClick={onQuick} disabled={!city || !district || !road || loading || roadLoading} className="w-full bg-cyan-700 hover:bg-cyan-800 sm:w-auto">{loading ? copy("action.loading") : copy("action.open")}</Button></div>
+    </details>
+  </div>;
 }
 
 function LegacyMapSearchPanel(props: MapSearchPanelProps) {

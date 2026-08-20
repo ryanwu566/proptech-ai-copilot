@@ -233,6 +233,7 @@ export type MapSearchResult = {
   place_id: string;
   confidence: "high" | "medium" | "mock";
   location_note: string;
+  geocoding_ms?: number;
   disclaimer: string;
 };
 export type GoogleHealth = {
@@ -270,7 +271,7 @@ export type NearbyPlace = {
   category: string;
   source: "google_places" | "mock";
 };
-export type NearbyCategory = { category: string; label: string; count: number; places: NearbyPlace[] };
+export type NearbyCategory = { category: string; label: string; count: number; places: NearbyPlace[]; source?: "google_places" | "mock"; availability?: "available" | "fallback" };
 export type CategoryScore = {
   category: string;
   label: string;
@@ -338,6 +339,7 @@ export type TerrainRiskResult = {
   source_transparency?: { notice: string; layers: TerrainRiskSourceTransparencyLayer[] };
   official_data_sources?: OfficialDataSourceStatus[];
   data_quality: { status: "good" | "limited" | "unavailable"; warnings: string[]; checked_at: string };
+  timing_ms?: { address_resolution_ms: number; terrain_provider_ms: number | null; slope_provider_ms: number | null; flood_provider_ms: number | null; geology_provider_ms: number | null; total_terrain_ms: number };
   disclaimer: string;
 };
 export type ValuationFreshnessStatus = "fresh" | "aging" | "stale" | "unknown" | "no_official_data" | "unavailable";
@@ -358,6 +360,12 @@ export type MapNearbyResult = {
   center: { lat: number; lng: number };
   radius_m: number;
   source: "google_places" | "mock";
+  partial?: boolean;
+  fallback?: boolean;
+  failed_categories?: string[];
+  category_status?: Record<string, { status: "available" | "error" | "fallback"; source: "google_places" | "mock" | "unavailable"; timing_ms: number }>;
+  provider_timing_ms?: Record<string, number>;
+  nearby_total_ms?: number;
   categories: NearbyCategory[];
   livability_score: number;
   livability_level: string;
