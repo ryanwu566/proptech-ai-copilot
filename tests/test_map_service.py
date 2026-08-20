@@ -213,6 +213,46 @@ def test_google_geocoding_is_used_first_when_available(monkeypatch) -> None:
     assert result["place_id"] == "google-101"
 
 
+def test_google_success_does_not_call_tgos(monkeypatch) -> None:
+    google_region = {
+        "city": "臺北市",
+        "district": "信義區",
+        "road": "市府路1號",
+        "formatted_address": "臺北市信義區市府路1號",
+        "place_id": "google-city-hall",
+        "center": {"lat": 25.0375, "lng": 121.5645},
+    }
+    monkeypatch.setattr("services.map_service.GoogleGeocodingAdapter.search", lambda *args, **kwargs: google_region)
+    monkeypatch.setattr(
+        "services.map_service.DEFAULT_TGOS_GEOCODING_ADAPTER.search",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("TGOS must not run after Google succeeds")),
+    )
+
+    result = search_location("臺北市信義區市府路1號")
+
+    assert result["source"] == "google_geocoding"
+    assert result["formatted_address"] == "臺北市信義區市府路1號"
+
+
+def test_tgos_provenance_is_reported_when_google_has_no_result(monkeypatch) -> None:
+    tgos_region = {
+        "city": "臺北市",
+        "district": "信義區",
+        "road": "市府路1號",
+        "formatted_address": "臺北市信義區市府路1號",
+        "place_id": "",
+        "center": {"lat": 25.0375, "lng": 121.5645},
+    }
+    monkeypatch.setattr("services.map_service.GoogleGeocodingAdapter.search", lambda *args, **kwargs: None)
+    monkeypatch.setattr("services.map_service.DEFAULT_TGOS_GEOCODING_ADAPTER.search", lambda *args, **kwargs: tgos_region)
+
+    result = search_location("臺北市信義區市府路1號")
+
+    assert result["source"] == "tgos_geocoding"
+    assert result["confidence"] == "medium"
+    assert "TGOS" in result["location_note"]
+
+
 def test_google_health_without_key_is_safe_mock(monkeypatch) -> None:
     monkeypatch.delenv("GOOGLE_MAPS_API_KEY", raising=False)
     monkeypatch.setattr("services.map_service.GOOGLE_HEALTH_CACHE", None)

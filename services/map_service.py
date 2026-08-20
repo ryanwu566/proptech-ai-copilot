@@ -33,12 +33,14 @@ CATEGORY_LABELS = {
 }
 CATEGORY_WEIGHTS = {"transport": 25, "food": 20, "shopping": 20, "school": 15, "medical": 10, "park": 10}
 DEFAULT_GOOGLE_PLACES_ADAPTER = GooglePlacesAdapter()
+DEFAULT_TGOS_GEOCODING_ADAPTER = TgosGeocodingAdapter()
 GOOGLE_HEALTH_CACHE: tuple[float, dict[str, Any]] | None = None
 GOOGLE_HEALTH_TTL_SECONDS = 300
 MAX_CATEGORY_WORKERS = 6
 LOGGER = logging.getLogger(__name__)
 
 atexit.register(DEFAULT_GOOGLE_PLACES_ADAPTER.close)
+atexit.register(DEFAULT_TGOS_GEOCODING_ADAPTER.close)
 
 
 def load_map_data() -> dict[str, Any]:
@@ -80,7 +82,7 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     if region is not None and isinstance(google, GoogleGeocodingAdapter):
         source = "google_geocoding"
     if region is None and adapter is None:
-        region = TgosGeocodingAdapter().search(query, regions)
+        region = DEFAULT_TGOS_GEOCODING_ADAPTER.search(query, regions)
         if region is not None:
             source = "tgos_geocoding"
     if region is None and adapter is None:
