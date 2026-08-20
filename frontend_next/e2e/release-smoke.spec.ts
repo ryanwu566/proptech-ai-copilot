@@ -136,12 +136,7 @@ test.describe("Release Smoke — Aegis Stale-State", () => {
     await page.goto("/");
     await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
     const form = page.getByTestId("aegis-scenario-form");
-
-    // Skip if real form is not available (old hardcoded architecture)
-    if (!(await form.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(true, "Aegis real form not available on this branch");
-      return;
-    }
+    await expect(form).toBeVisible({ timeout: 10000 });
 
     // Fill stressed scenario
     await form.locator("fieldset").nth(0).locator("input").nth(0).fill("40000");
@@ -160,7 +155,6 @@ test.describe("Release Smoke — Aegis Stale-State", () => {
     await form.locator("fieldset").nth(1).locator("input").nth(1).fill("0");
     await form.locator("fieldset").nth(1).locator("input").nth(2).fill("0");
     await form.locator("fieldset").nth(2).locator("input").nth(0).fill("15000000");
-    // Wait for submit button to be re-enabled after first submission
     const submitBtn = page.getByRole("button", { name: /執行房貸風險分析|Run risk analysis/ });
     await expect(submitBtn).not.toBeDisabled({ timeout: 5000 });
     await submitBtn.click();
