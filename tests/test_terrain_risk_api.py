@@ -78,6 +78,10 @@ def test_terrain_risk_endpoint_exists_and_returns_stable_contract() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert {"input", "resolved_location", "overall", "terrain", "hazards", "risk_factors", "missing_sources", "recommended_checks", "map_layers", "cadastral_evidence", "data_quality", "disclaimer"} <= set(payload)
+    assert payload["parcel_geometry_evidence"]["status"] == "point_reference_only"
+    assert payload["parcel_geometry_evidence"]["legal_boundary"] is False
+    assert payload["landsect_context"]["status"] == "VERIFIED_PUBLIC"
+    assert payload["landsect_context"]["semantics"] == "SECTION_CONTEXT_NOT_PARCEL_BOUNDARY"
     assert payload["overall"]["level"] in {"low", "medium", "high", "unknown"}
     assert payload["cadastral_evidence"]["mode"] == "point_reference_only"
     assert payload["cadastral_evidence"]["status"] == "not_configured"

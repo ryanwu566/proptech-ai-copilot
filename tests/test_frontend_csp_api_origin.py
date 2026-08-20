@@ -85,7 +85,7 @@ def test_csp_preserves_existing_security_directives() -> None:
     assert directives["default-src"] == "'self'"
     assert directives["script-src"] == "'self' 'unsafe-inline'"
     assert directives["style-src"] == "'self' 'unsafe-inline'"
-    assert directives["img-src"] == "'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com"
+    assert directives["img-src"] == "'self' data: blob: https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://wmts.nlsc.gov.tw"
     assert directives["object-src"] == "'none'"
     assert directives["base-uri"] == "'self'"
     assert directives["frame-ancestors"] == "'none'"

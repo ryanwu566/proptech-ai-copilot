@@ -1,6 +1,7 @@
 const { spawn } = require("node:child_process");
 
-const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", "3100"], {
+const port = process.env.E2E_PORT || "3100";
+const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", port], {
   stdio: "inherit",
   windowsHide: true,
 });
@@ -9,7 +10,7 @@ async function waitForServer() {
   const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
     try {
-      const response = await fetch("http://127.0.0.1:3100/");
+      const response = await fetch(`http://127.0.0.1:${port}/`);
       if (response.ok) return;
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 500));

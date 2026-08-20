@@ -7,7 +7,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://127.0.0.1:3100",
+    baseURL: `http://127.0.0.1:${process.env.E2E_PORT ?? "3100"}`,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
