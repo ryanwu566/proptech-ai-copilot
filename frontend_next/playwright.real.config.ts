@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: "real-provider-ui.spec.ts",
+  testMatch: ["real-provider-ui.spec.ts", "market-ui-certification.spec.ts"],
   fullyParallel: false,  // Sequential to respect provider rate limits
   retries: 0,
   reporter: [["list"]],
