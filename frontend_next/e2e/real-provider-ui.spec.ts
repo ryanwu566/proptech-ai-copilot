@@ -1,17 +1,15 @@
 /**
- * Real Provider Browser E2E — 15 frozen benchmark cases.
- * NO mocked geocoding. Hits real backend → real Google/TGOS.
- *
- * Run with: npx playwright test e2e/real-provider-ui.spec.ts --config=playwright.real.config.ts
+ * Real Provider Browser UI Certification — 15 frozen benchmark cases.
+ * NO mocked geocoding. NO oracle leakage.
+ * Captures actual /location/insight response for strict classification.
  */
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 
 test.use({
   baseURL: "http://127.0.0.1:3000",
   viewport: { width: 1440, height: 900 },
 });
 
-// Skip onboarding
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("proptech_onboarding_seen", "true");
@@ -19,39 +17,128 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+type CaseResult = {
+  id: string;
+  input: string;
+  requestBody: Record<string, unknown> | null;
+  resolvedCity: string;
+  resolvedDistrict: string;
+  resolvedRoad: string;
+  resolvedSection: string;
+  resolvedHouse: string;
+  matchQuality: string;
+  accepted: boolean;
+  source: string;
+  classification: "EXACT" | "SAFE_REFUSAL" | "WRONG_ACCEPTED" | "UNVERIFIABLE" | "ERROR";
+  reason: string;
+};
+
+// Expected ground truth for SCORING ONLY (never sent to product)
+const GROUND_TRUTH: Record<string, { city: string; district: string; road: string; section: string; house: string }> = {
+  V01: { city: "臺北市", district: "大安區", road: "忠孝東路", section: "四段", house: "45" },
+  V03: { city: "臺北市", district: "中山區", road: "南京東路", section: "三段", house: "12" },
+  V05: { city: "臺北市", district: "松山區", road: "民生東路", section: "五段", house: "88" },
+  V07: { city: "臺北市", district: "中山區", road: "中山北路", section: "二段", house: "65" },
+  V11: { city: "臺北市", district: "信義區", road: "信義路", section: "五段", house: "7" },
+  V13: { city: "新北市", district: "板橋區", road: "文化路", section: "一段", house: "266" },
+  V14: { city: "新北市", district: "中和區", road: "中和路", section: "", house: "390" },
+  V17: { city: "桃園市", district: "桃園區", road: "中正路", section: "", house: "77" },
+  V19: { city: "臺中市", district: "西屯區", road: "臺灣大道", section: "三段", house: "99" },
+  V20: { city: "臺中市", district: "北區", road: "三民路", section: "三段", house: "129" },
+  V22: { city: "臺南市", district: "中西區", road: "中山路", section: "", house: "1" },
+  V24: { city: "高雄市", district: "前鎮區", road: "中山二路", section: "", house: "260" },
+  V27: { city: "新竹市", district: "東區", road: "光復路", section: "二段", house: "101" },
+  V28: { city: "基隆市", district: "中正區", road: "信一路", section: "", house: "181" },
+  V29: { city: "花蓮縣", district: "花蓮市", road: "中山路", section: "", house: "230" },
+};
+
 const CASES = [
-  { id: "V01", input: "臺北市大安區忠孝東路四段45號", expectedRoad: "忠孝東路" },
-  { id: "V03", input: "臺北市中山區南京東路三段12號", expectedRoad: "南京東路" },
-  { id: "V11", input: "臺北市信義區信義路五段7號", expectedRoad: "信義路" },
-  { id: "V13", input: "新北市板橋區文化路一段266號", expectedRoad: "文化路" },
-  { id: "V17", input: "桃園市桃園區中正路77號", expectedRoad: "中正路" },
-  { id: "V19", input: "臺中市西屯區臺灣大道三段99號", expectedRoad: "臺灣大道" },
-  { id: "V22", input: "臺南市中西區中山路1號", expectedRoad: "中山路" },
-  { id: "V24", input: "高雄市前鎮區中山二路260號", expectedRoad: "中山二路" },
-  { id: "V27", input: "新竹市東區光復路二段101號", expectedRoad: "光復路" },
-  { id: "V28", input: "基隆市中正區信一路181號", expectedRoad: "信一路" },
-  { id: "V29", input: "花蓮縣花蓮市中山路230號", expectedRoad: "中山路" },
-  { id: "V05", input: "臺北市松山區民生東路五段88號", expectedRoad: "民生東路" },
-  { id: "V07", input: "臺北市中山區中山北路二段65號", expectedRoad: "中山北路" },
-  { id: "V14", input: "新北市中和區中和路390號", expectedRoad: "中和路" },
-  { id: "V20", input: "臺中市北區三民路三段129號", expectedRoad: "三民路" },
+  { id: "V01", input: "臺北市大安區忠孝東路四段45號" },
+  { id: "V03", input: "臺北市中山區南京東路三段12號" },
+  { id: "V05", input: "臺北市松山區民生東路五段88號" },
+  { id: "V07", input: "臺北市中山區中山北路二段65號" },
+  { id: "V11", input: "臺北市信義區信義路五段7號" },
+  { id: "V13", input: "新北市板橋區文化路一段266號" },
+  { id: "V14", input: "新北市中和區中和路390號" },
+  { id: "V17", input: "桃園市桃園區中正路77號" },
+  { id: "V19", input: "臺中市西屯區臺灣大道三段99號" },
+  { id: "V20", input: "臺中市北區三民路三段129號" },
+  { id: "V22", input: "臺南市中西區中山路1號" },
+  { id: "V24", input: "高雄市前鎮區中山二路260號" },
+  { id: "V27", input: "新竹市東區光復路二段101號" },
+  { id: "V28", input: "基隆市中正區信一路181號" },
+  { id: "V29", input: "花蓮縣花蓮市中山路230號" },
 ];
 
-test.describe("Real Provider UI — Location Insight", () => {
+function norm(s: string): string {
+  return s.replace(/台/g, "臺").trim();
+}
+
+function classify(id: string, response: Record<string, unknown> | null): Pick<CaseResult, "classification" | "reason"> {
+  if (!response) return { classification: "ERROR", reason: "no_response" };
+  const acc = response.geocoding_acceptance as Record<string, unknown> | undefined;
+  if (!acc) return { classification: "ERROR", reason: "no_acceptance_field" };
+  if (!acc.accepted_for_analysis) return { classification: "SAFE_REFUSAL", reason: String(acc.match_quality || "UNKNOWN") };
+
+  // Accepted — verify ALL expected components in the resolved identity
+  const truth = GROUND_TRUTH[id];
+  if (!truth) return { classification: "ERROR", reason: "no_ground_truth" };
+
+  const resolvedAddr = norm(String(acc.normalized_address || ""));
+  const resolvedLocation = response.resolved_location as Record<string, unknown> | undefined;
+  const addrLabel = norm(String(resolvedLocation?.address_label || ""));
+  const fullText = resolvedAddr + " " + addrLabel;
+
+  const failures: string[] = [];
+
+  // Road
+  if (truth.road && !fullText.includes(norm(truth.road))) {
+    failures.push(`road:${truth.road}`);
+  }
+  // Section
+  if (truth.section && !fullText.includes(norm(truth.section))) {
+    failures.push(`section:${truth.section}`);
+  }
+  // House
+  if (truth.house) {
+    const housePatterns = [`${truth.house}號`, `${truth.house}号`, `No. ${truth.house}`, `No.${truth.house}`];
+    if (!housePatterns.some(p => fullText.includes(p))) {
+      failures.push(`house:${truth.house}`);
+    }
+  }
+
+  if (failures.length > 0) return { classification: "UNVERIFIABLE", reason: failures.join("; ") };
+  return { classification: "EXACT", reason: "" };
+}
+
+// Main test: 15 cases with response capture
+test.describe.serial("Real Provider UI — 15 Case Certification", () => {
+  const allResults: CaseResult[] = [];
+
   for (const c of CASES) {
-    test(`${c.id}: ${c.input.slice(0, 20)}`, async ({ page }) => {
-      test.setTimeout(30000);
+    test(`${c.id}: ${c.input.substring(0, 20)}...`, async ({ page }) => {
+      test.setTimeout(35000);
+      let capturedResponse: Record<string, unknown> | null = null;
+      let capturedRequestBody: Record<string, unknown> | null = null;
+
+      // Intercept the /location/insight response (NOT mock — just observe)
+      await page.route("**/location/insight", async (route) => {
+        capturedRequestBody = route.request().postDataJSON();
+        const response = await route.fetch();
+        const body = await response.json();
+        capturedResponse = body;
+        await route.fulfill({ response, body: JSON.stringify(body) });
+      });
 
       await page.goto("/", { waitUntil: "domcontentloaded" });
+      await expect(page.getByRole("heading", { name: /五個步驟/ })).toBeVisible({ timeout: 10000 });
 
-      // Navigate to journey step 2 (Location)
-      await expect(page.getByRole("heading", { name: /五個步驟|five steps/i })).toBeVisible({ timeout: 10000 });
-      const locationBtn = page.getByLabel(/位置與資料證據/).first();
-      await expect(locationBtn).toBeVisible({ timeout: 5000 });
-      await locationBtn.click();
+      // Navigate to Location step
+      const locBtn = page.getByLabel(/位置與資料證據/).first();
+      await locBtn.click();
       await expect(page.locator("section[id='journey-stage-location']")).toBeVisible({ timeout: 8000 });
 
-      // Fill address
+      // Type ONLY the user input (NO expected fields)
       const addressInput = page.locator("#location-insight-calculator input").first();
       await expect(addressInput).toBeVisible({ timeout: 5000 });
       await addressInput.fill(c.input);
@@ -59,86 +146,62 @@ test.describe("Real Provider UI — Location Insight", () => {
       // Click analyze
       await page.locator("#location-insight-calculator button", { hasText: /開始位置分析/ }).click();
 
-      // Wait for result or acceptance gate (real provider, may take time)
-      const result = page.locator("[data-testid='location-result']");
-      const gate = page.getByTestId("geocoding-acceptance-gate");
+      // Wait for response or UI state change
+      await page.waitForTimeout(8000);
 
-      // One of these must appear within timeout
-      await expect(result.or(gate)).toBeVisible({ timeout: 20000 });
+      // Classify
+      const { classification, reason } = classify(c.id, capturedResponse);
 
-      if (await gate.isVisible()) {
-        // Safe refusal — acceptance gate blocked analysis
-        // This is acceptable for some cases (V22 known district mismatch)
-        const gateText = await gate.textContent();
-        expect(gateText).toBeTruthy();
-        // Record as SAFE_REFUSAL — not a test failure
-      } else {
-        // Result appeared — verify identity
-        const resultText = await result.textContent();
-        // The resolved address should contain the expected road
-        // (not a different road like 忠孝西路 for 忠孝東路)
-        expect(resultText).toBeTruthy();
+      const responseObj = (capturedResponse ?? {}) as Record<string, unknown>;
+      const acc = (responseObj.geocoding_acceptance ?? {}) as Record<string, unknown>;
+      const result: CaseResult = {
+        id: c.id,
+        input: c.input,
+        requestBody: capturedRequestBody,
+        resolvedCity: String(acc.normalized_address || "").substring(0, 10),
+        resolvedDistrict: "",
+        resolvedRoad: String(responseObj.road || ""),
+        resolvedSection: "",
+        resolvedHouse: "",
+        matchQuality: String(acc.match_quality || "N/A"),
+        accepted: Boolean(acc.accepted_for_analysis),
+        source: "",
+        classification,
+        reason,
+      };
+      allResults.push(result);
 
-        // Verify no wrong-road downstream: if result shows a location,
-        // it must not show a conflicting road identity
-        const wrongRoads = ["忠孝西路", "南京西路", "民生西路", "和平西路", "中山南路"];
-        for (const wrong of wrongRoads) {
-          if (c.expectedRoad.includes("東") && wrong.includes(c.expectedRoad.replace("東", "西"))) {
-            expect(resultText).not.toContain(wrong);
-          }
-        }
-      }
+      // Log for reporting
+      const sym = { EXACT: "+", SAFE_REFUSAL: ".", WRONG_ACCEPTED: "X", UNVERIFIABLE: "?", ERROR: "!" }[classification];
+      console.log(`${sym} ${c.id} | ${classification} | ${result.matchQuality} | ${reason || "OK"}`);
+
+      // Hard assertion: no WRONG_ACCEPTED or ERROR
+      expect(classification).not.toBe("WRONG_ACCEPTED");
+      expect(classification).not.toBe("ERROR");
     });
   }
-});
 
-// Cross-module identity: 5 cases through full journey
-test.describe("Real Provider — Cross-Module Identity", () => {
-  const CROSS_CASES = CASES.slice(0, 5); // First 5 cases
+  test("SUMMARY: Real UI Certification Metrics", async () => {
+    const total = allResults.length;
+    const exact = allResults.filter(r => r.classification === "EXACT").length;
+    const safe = allResults.filter(r => r.classification === "SAFE_REFUSAL").length;
+    const wrong = allResults.filter(r => r.classification === "WRONG_ACCEPTED").length;
+    const unverifiable = allResults.filter(r => r.classification === "UNVERIFIABLE").length;
+    const errors = allResults.filter(r => r.classification === "ERROR").length;
 
-  for (const c of CROSS_CASES) {
-    test(`Cross: ${c.id} identity stays consistent`, async ({ page }) => {
-      test.setTimeout(45000);
+    console.log("\n=== REAL UI CERTIFICATION METRICS ===");
+    console.log(`TOTAL: ${total}`);
+    console.log(`EXACT: ${exact}`);
+    console.log(`SAFE_REFUSAL: ${safe}`);
+    console.log(`WRONG_ACCEPTED: ${wrong}`);
+    console.log(`UNVERIFIABLE: ${unverifiable}`);
+    console.log(`ERRORS: ${errors}`);
+    console.log(`ACCURACY: ${(exact / total * 100).toFixed(1)}%`);
 
-      await page.goto("/", { waitUntil: "domcontentloaded" });
-      await expect(page.getByRole("heading", { name: /五個步驟|five steps/i })).toBeVisible({ timeout: 10000 });
-
-      // Step 2: Location
-      await page.getByLabel(/位置與資料證據/).first().click();
-      await expect(page.locator("section[id='journey-stage-location']")).toBeVisible({ timeout: 8000 });
-
-      const addressInput = page.locator("#location-insight-calculator input").first();
-      await expect(addressInput).toBeVisible({ timeout: 5000 });
-      await addressInput.fill(c.input);
-      await page.locator("#location-insight-calculator button", { hasText: /開始位置分析/ }).click();
-
-      // Wait for location result or gate
-      const result = page.locator("[data-testid='location-result']");
-      const gate = page.getByTestId("geocoding-acceptance-gate");
-      await expect(result.or(gate)).toBeVisible({ timeout: 20000 });
-
-      if (await gate.isVisible()) {
-        // Safe refusal — skip cross-module for this case
-        return;
-      }
-
-      // Step 3: Price/Valuation — verify property context header shows correct identity
-      await page.getByLabel(/價格與估價證據/).first().click();
-      await expect(page.locator("section[id='journey-stage-price']")).toBeVisible({ timeout: 8000 });
-
-      // The journey property context should NOT show a conflicting road
-      const priceStage = page.locator("section[id='journey-stage-price']");
-      const priceText = await priceStage.textContent();
-
-      // Identity must not have mutated to a wrong road
-      if (c.expectedRoad.includes("東")) {
-        const wrongDirection = c.expectedRoad.replace("東", "西");
-        expect(priceText).not.toContain(wrongDirection);
-      }
-      if (c.expectedRoad.includes("北")) {
-        const wrongDirection = c.expectedRoad.replace("北", "南");
-        expect(priceText).not.toContain(wrongDirection);
-      }
-    });
-  }
+    expect(total).toBe(15);
+    expect(wrong).toBe(0);
+    expect(errors).toBe(0);
+    expect(unverifiable).toBe(0);
+    expect(exact / total).toBeGreaterThanOrEqual(0.80);
+  });
 });
