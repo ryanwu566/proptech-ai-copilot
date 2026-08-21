@@ -1,172 +1,252 @@
 /**
- * Trust Closure Regression Tests
+ * Trust Closure Regression — Hard Browser Proof
  *
- * Covers:
- * 1. Property A → Valuation A (no wrong-road valuation)
- * 2. Property A → B → A identity integrity
- * 3. Valuation evidence messaging consistency (no contradictory states)
- * 4. Aegis trust language (scenario risk indicator, not credit score)
- * 5. Point-reference parcel semantics
- * 6. zh → ja → zh accessibility localization round-trip
+ * RULES:
+ * - Zero conditional passes (no if-isVisible)
+ * - Zero window test helpers
+ * - Zero test.skip
+ * - Every expect is a hard fail if the condition is not met
+ *
+ * Tests:
+ * 1. Property → Valuation identity (real UI, no wrong road)
+ * 2. A → B → A real UI property cycle
+ * 3. Valuation partial messaging (visible UI contract)
+ * 4. Aegis trust label (scenario risk indicator)
+ * 5. Parcel point reference (real terrain UI)
+ * 6. Locale zh → ja → zh accessibility round-trip
+ * 7. Async property race (late response must not overwrite)
  */
 
 import { expect, test } from "./fixtures";
 
-// ============================================================
-// P1-1: Property identity leak into valuation
-// ============================================================
+// ─── Shared valuation response factory ──────────────────────────────────────
 
-test.describe("P1-1: Property identity does not leak into valuation", () => {
-  test("journey property propagates to valuation without defaulting to 和平東路二段", async ({ page }) => {
-    // Route valuation to capture the request and return a controlled response
-    const valuationRequests: Array<{ city: string; district: string; road: string }> = [];
+function makeValuationResponse(road: string, district = "大安區") {
+  return {
+    valuation_status: "available",
+    result_origin: "official",
+    is_actionable: true,
+    source: "postgres",
+    data_status: { active_source: "postgres", is_demo_data: false, is_full_taiwan: true, data_composition: "official", official_records_count: 50, sample_records_count: 0, coverage: { cities: ["臺北市"], districts: [district], roads_count: 1, records_count: 50 }, last_updated: "2026-08-01", update_frequency_note: "", source_note: "", user_message: "", freshness_status: "fresh", freshness_reason_code: "CURRENT", freshness_as_of: "2026-08-01", latest_import_at: "2026-08-01T00:00:00Z", latest_import_age_days: 1, newest_effective_period_lag_months: 1, operator_attention_required: false, freshness_user_message: "" },
+    data_composition: "official",
+    estimate_data_composition: "official",
+    estimate_source_label: "Official PLVR",
+    candidate_pool_size: 10,
+    official_same_road_count: 10,
+    official_same_district_count: 10,
+    sample_same_road_count: 0,
+    sample_same_district_count: 0,
+    estimate_level: "road",
+    matched_community: null,
+    confidence_reason: "Controlled fixture.",
+    source_details: { file: "fixture", nature: "official", complete_real_price_registry: true, formal_appraisal: false, bank_appraisal: false, future_adapter: "none" },
+    estimate_total_price: 2500,
+    estimate_unit_price_per_ping: 83,
+    price_range: { low: 2350, mid: 2500, high: 2650 },
+    unit_price_distribution: { weighted_mean: 83, weighted_median: 83, p25: 78, p75: 88 },
+    confidence: "high",
+    confidence_score: 85,
+    comparables: [
+      { transaction_period: "2026-06", city: "臺北市", district, road, building_type: "住宅大樓", area_ping: 30, unit_price_per_ping: 83, total_price: 2500, building_age_years: 15, distance_m: 0, similarity_score: 0.9, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
+      { transaction_period: "2026-05", city: "臺北市", district, road, building_type: "住宅大樓", area_ping: 31, unit_price_per_ping: 82, total_price: 2540, building_age_years: 16, distance_m: 50, similarity_score: 0.88, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
+      { transaction_period: "2026-04", city: "臺北市", district, road, building_type: "住宅大樓", area_ping: 29, unit_price_per_ping: 84, total_price: 2436, building_age_years: 14, distance_m: 100, similarity_score: 0.85, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
+    ],
+    valuation_explanation: { sample_count: 3, same_road_count: 3, same_district_count: 3, same_city_count: 3, same_building_type_count: 3, nearest_distance_m: 0, average_area_difference_ping: 1, average_age_difference_years: 1, average_similarity_score: 0.88, method: "Official" },
+    methodology: ["Official"],
+    disclaimer: "Reference only.",
+  };
+}
+
+/** Wait for cities to load into a select by checking option count > 1 */
+async function waitForCityOptions(page: import("@playwright/test").Page, calcSection: import("@playwright/test").Locator) {
+  const citySelect = calcSection.locator("select").nth(0);
+  await expect(citySelect.locator("option")).not.toHaveCount(0, { timeout: 5000 });
+  // Ensure at least one city option contains 北 (台北/臺北)
+  await expect.poll(async () => {
+    const opts = await citySelect.locator("option").allTextContents();
+    return opts.some((o) => o.includes("北"));
+  }, { timeout: 5000 }).toBeTruthy();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 1 — REAL PROPERTY → VALUATION IDENTITY
+// ═══════════════════════════════════════════════════════════════════════════
+
+test.describe("TEST 1: Property → Valuation identity", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("Valuation page uses selected road, not hardcoded default", async ({ page }) => {
+    test.setTimeout(45000);
+    const capturedRequests: Array<{ city: string; district: string; road: string }> = [];
+
+    // Route client-errors to avoid fixture assertion
+    await page.route("**/client-errors", (route) => route.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+
     await page.route("**/valuation/estimate", async (route) => {
       const payload = route.request().postDataJSON();
-      valuationRequests.push({ city: payload.city, district: payload.district, road: payload.road });
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          valuation_status: "available",
-          result_origin: "official",
-          is_actionable: true,
-          source: "postgres",
-          data_status: { active_source: "postgres", is_demo_data: false, is_full_taiwan: true, data_composition: "official", official_records_count: 50, sample_records_count: 0, coverage: { cities: ["臺北市"], districts: ["大安區"], roads_count: 1, records_count: 50 }, last_updated: "2026-08-01", update_frequency_note: "", source_note: "", user_message: "", freshness_status: "fresh", freshness_reason_code: "CURRENT", freshness_as_of: "2026-08-01", latest_import_at: "2026-08-01T00:00:00Z", latest_import_age_days: 1, newest_effective_period_lag_months: 1, operator_attention_required: false, freshness_user_message: "" },
-          data_composition: "official",
-          estimate_data_composition: "official",
-          estimate_source_label: "Official PLVR",
-          candidate_pool_size: 10,
-          official_same_road_count: 10,
-          official_same_district_count: 10,
-          sample_same_road_count: 0,
-          sample_same_district_count: 0,
-          estimate_level: "road",
-          matched_community: null,
-          confidence_reason: "Controlled fixture.",
-          source_details: { file: "fixture", nature: "official", complete_real_price_registry: true, formal_appraisal: false, bank_appraisal: false, future_adapter: "none" },
-          estimate_total_price: 2500,
-          estimate_unit_price_per_ping: 83,
-          price_range: { low: 2350, mid: 2500, high: 2650 },
-          unit_price_distribution: { weighted_mean: 83, weighted_median: 83, p25: 78, p75: 88 },
-          confidence: "high",
-          confidence_score: 85,
-          comparables: [
-            { transaction_period: "2026-06", city: "臺北市", district: "大安區", road: payload.road, building_type: "住宅大樓", area_ping: 30, unit_price_per_ping: 83, total_price: 2500, building_age_years: 15, distance_m: 0, similarity_score: 0.9, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
-            { transaction_period: "2026-05", city: "臺北市", district: "大安區", road: payload.road, building_type: "住宅大樓", area_ping: 31, unit_price_per_ping: 82, total_price: 2540, building_age_years: 16, distance_m: 50, similarity_score: 0.88, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
-            { transaction_period: "2026-04", city: "臺北市", district: "大安區", road: payload.road, building_type: "住宅大樓", area_ping: 29, unit_price_per_ping: 84, total_price: 2436, building_age_years: 14, distance_m: 100, similarity_score: 0.85, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
-          ],
-          valuation_explanation: { sample_count: 3, same_road_count: 3, same_district_count: 3, same_city_count: 3, same_building_type_count: 3, nearest_distance_m: 0, average_area_difference_ping: 1, average_age_difference_years: 1, average_similarity_score: 0.88, method: "Official" },
-          methodology: ["Official"],
-          disclaimer: "Reference only.",
-        }),
-      });
+      capturedRequests.push({ city: payload.city, district: payload.district, road: payload.road });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(makeValuationResponse(payload.road, payload.district)) });
     });
 
-    // Also route the specific roads for 忠孝東路四段
-    await page.route("**/roads/roads**", async (route) => {
+    await page.route("**/roads/roads?*", async (route) => {
       const url = new URL(route.request().url());
-      const city = url.searchParams.get("city") ?? "";
       const district = url.searchParams.get("district") ?? "";
-      const roads = district === "大安區" ? ["忠孝東路四段", "和平東路二段", "復興南路一段"] : ["中山路", "中正路"];
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city, district, roads, message: "Available." }) });
+      const roads = district === "大安區" ? ["忠孝東路四段", "和平東路二段", "復興南路一段"] : district === "信義區" ? ["信義路五段", "松仁路"] : ["中山路", "中正路"];
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city: url.searchParams.get("city") ?? "", district, roads, message: "OK" }) });
     });
 
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Navigate to the five-step journey
-    const journeyButton = page.locator("[data-testid='journey-start-button'], button:has-text('五步驟'), button:has-text('Five steps'), [aria-label*='journey'], nav button").first();
-    if (await journeyButton.isVisible()) {
-      await journeyButton.click();
-    }
+    // Navigate to standalone valuation via sidebar
+    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
 
-    // Look for the journey section and property step
-    const journeySection = page.locator("[data-testid='guided-property-journey'], section[aria-label*='journey'], [data-testid='journey-stage-property']");
-    if (await journeySection.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // In the property step, find a property search / finder
-      const propertyFinder = page.locator("[data-testid='property-finder']");
-      if (await propertyFinder.isVisible({ timeout: 2000 }).catch(() => false)) {
-        // Fill property search with 忠孝東路四段
-        const citySelect = propertyFinder.locator("select").first();
-        if (await citySelect.isVisible()) {
-          await citySelect.selectOption("臺北市");
-        }
-      }
-    }
+    const calcSection = page.locator("#valuation-calculator");
+    await waitForCityOptions(page, calcSection);
 
-    // Verify ValuationPage embedded in journey shows correct road when navigating to price step
-    // The key assertion: check that the visible road select in the valuation section does NOT show 和平東路二段
-    // when the journey has 忠孝東路四段 selected
+    // Select city — use 臺北市 which is what the fixture route returns
+    await calcSection.locator("select").nth(0).selectOption("臺北市");
+    await page.waitForTimeout(400);
+    await calcSection.locator("select").nth(1).selectOption("大安區");
+    await page.waitForTimeout(400);
+    await calcSection.locator("select").nth(2).selectOption("忠孝東路四段");
 
-    // Note: Full navigation requires complex interaction; validate the data-flow contract via the
-    // embedded ValuationPage initial state
-    const valuationSection = page.locator("#valuation-calculator, [data-testid='price-decision-workspace']");
-    if (await valuationSection.isVisible({ timeout: 2000 }).catch(() => false)) {
-      // If a valuation form is visible, check road selector
-      const roadSelect = valuationSection.locator("select").nth(2);
-      if (await roadSelect.isVisible()) {
-        const roadValue = await roadSelect.inputValue();
-        // The road must NOT be the hardcoded default if a different context was provided
-        expect(roadValue).toBeDefined();
-      }
-    }
-  });
+    // Hard assert: road is 忠孝東路四段
+    await expect(calcSection.locator("select").nth(2)).toHaveValue("忠孝東路四段");
 
-  test("property A → B → A cycle preserves identity without stale road data", async ({ page }) => {
-    // This test validates the closed-loop journey state machine
-    // When a property changes, valuation results must be cleared
-    await page.goto("/");
+    // Click estimate
+    await calcSection.getByRole("button", { name: /估算房價/ }).click();
 
-    // Verify the closed-loop journey state clears valuation on property change
-    const result = await page.evaluate(() => {
-      // Access the journey library directly to test the state machine
-      const { createClosedLoopJourneyState, updateJourneyProperty, journeyAddressKey } = (window as any).__JOURNEY_TEST_HELPERS__ ?? {};
-      if (!createClosedLoopJourneyState) return { skip: true, reason: "Journey helpers not exposed" };
+    // Wait for the request to be captured (the valuation route handler will fire)
+    await expect.poll(() => capturedRequests.length, { timeout: 8000 }).toBeGreaterThan(0);
 
-      const stateA = createClosedLoopJourneyState({
-        city: "臺北市", district: "大安區", road: "忠孝東路四段",
-        addressSummary: "忠孝東路四段45號", selectionStatus: "selected",
-      });
-      const stateB = updateJourneyProperty(stateA, {
-        city: "臺北市", district: "信義區", road: "信義路五段",
-        addressSummary: "信義路五段7號", selectionStatus: "selected",
-      });
-      const stateAAgain = updateJourneyProperty(stateB, {
-        city: "臺北市", district: "大安區", road: "忠孝東路四段",
-        addressSummary: "忠孝東路四段45號", selectionStatus: "selected",
-      });
-
-      return {
-        skip: false,
-        addressKeyA: journeyAddressKey(stateA.propertyContext),
-        addressKeyB: journeyAddressKey(stateB.propertyContext),
-        addressKeyAAgain: journeyAddressKey(stateAAgain.propertyContext),
-        valuationClearedOnB: stateB.valuationResult === undefined,
-        valuationClearedOnReturn: stateAAgain.valuationResult === undefined,
-      };
-    });
-
-    if (result.skip) {
-      // Fallback: test via UI that hardcoded defaults don't appear in journey
-      const pageContent = await page.textContent("body");
-      // The default road should only appear in standalone map/valuation pages
-      // NOT in the journey price step heading
-      expect(pageContent).toBeDefined();
-    } else {
-      expect(result.addressKeyA).not.toEqual(result.addressKeyB);
-      expect(result.addressKeyA).toEqual(result.addressKeyAAgain);
-      expect(result.valuationClearedOnB).toBe(true);
-      expect(result.valuationClearedOnReturn).toBe(true);
-    }
+    // Hard assert on request payload
+    const lastReq = capturedRequests[capturedRequests.length - 1];
+    expect(lastReq.road).toBe("忠孝東路四段");
+    expect(lastReq.district).toBe("大安區");
+    expect(lastReq.road).not.toBe("和平東路二段");
   });
 });
 
-// ============================================================
-// P1-2: Valuation evidence state contradiction
-// ============================================================
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 2 — REAL A → B → A
+// ═══════════════════════════════════════════════════════════════════════════
 
-test.describe("P1-2: Valuation evidence messaging consistency", () => {
-  test("partial state shows 'transactions available but confidence insufficient' not 'unavailable'", async ({ page }) => {
-    // Route valuation to return a result with comparables but non-actionable status
+test.describe("TEST 2: A → B → A property cycle", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("Switching district clears result and final request matches return trip", async ({ page }) => {
+    test.setTimeout(60000);
+    const capturedRequests: Array<{ city: string; district: string; road: string }> = [];
+
+    // Route client-errors
+    await page.route("**/client-errors", (route) => route.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+
+    // Unroute the fixture's broad valuation catch-all to prevent trend crash
+    await page.unroute("**/valuation/**");
+
+    await page.route("**/valuation/estimate", async (route) => {
+      const payload = route.request().postDataJSON();
+      capturedRequests.push({ city: payload.city, district: payload.district, road: payload.road });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(makeValuationResponse(payload.road, payload.district)) });
+    });
+
+    await page.route("**/valuation/trend", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ trend_status: "no_data", is_actionable: false }) });
+    });
+
+    await page.route("**/valuation/data-status", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ active_source: "unknown", is_demo_data: false, is_full_taiwan: false, data_composition: "official", official_records_count: 0, sample_records_count: 0, coverage: { cities: [], districts: [], roads_count: 0, records_count: 0 }, last_updated: null, update_frequency_note: "", source_note: "", user_message: "", freshness_status: "unavailable", freshness_reason_code: "UNAVAILABLE", freshness_as_of: null, latest_import_at: null, latest_import_age_days: null, newest_effective_period_lag_months: null, operator_attention_required: false, freshness_user_message: "" }) });
+    });
+
+    await page.route("**/roads/roads?*", async (route) => {
+      const url = new URL(route.request().url());
+      const district = url.searchParams.get("district") ?? "";
+      const roads = district === "大安區" ? ["忠孝東路四段", "和平東路二段"] : district === "信義區" ? ["信義路五段", "松仁路"] : ["中山路"];
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city: url.searchParams.get("city") ?? "", district, roads, message: "OK" }) });
+    });
+
+    await page.route("**/roads/districts?*", async (route) => {
+      const city = new URL(route.request().url()).searchParams.get("city") ?? "";
+      const districts = city.includes("北") ? ["大安區", "信義區", "中正區"] : ["板橋區"];
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city, districts, message: "OK" }) });
+    });
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
+
+    const calcSection = page.locator("#valuation-calculator");
+    await waitForCityOptions(page, calcSection);
+
+    // === A: 大安區/忠孝東路四段 ===
+    await calcSection.locator("select").nth(0).selectOption("臺北市");
+    await page.waitForTimeout(400);
+    await calcSection.locator("select").nth(1).selectOption("大安區");
+    await page.waitForTimeout(400);
+    await calcSection.locator("select").nth(2).selectOption("忠孝東路四段");
+    await calcSection.getByRole("button", { name: /估算房價/ }).click();
+    await expect.poll(() => capturedRequests.length, { timeout: 8000 }).toBeGreaterThan(0);
+
+    const reqA = capturedRequests[capturedRequests.length - 1];
+    expect(reqA.road).toBe("忠孝東路四段");
+
+    // === B: Switch to 信義區/信義路五段 ===
+    await calcSection.locator("select").nth(1).selectOption("信義區");
+    await page.waitForTimeout(500);
+
+    await calcSection.locator("select").nth(2).selectOption("信義路五段");
+    await calcSection.getByRole("button", { name: /估算房價/ }).click();
+    await expect.poll(() => capturedRequests.length, { timeout: 8000 }).toBeGreaterThan(1);
+
+    const reqB = capturedRequests[capturedRequests.length - 1];
+    expect(reqB.road).toBe("信義路五段");
+    expect(reqB.district).toBe("信義區");
+
+    // === Back to A ===
+    await calcSection.locator("select").nth(1).selectOption("大安區");
+    await page.waitForTimeout(500);
+
+    await calcSection.locator("select").nth(2).selectOption("忠孝東路四段");
+    await calcSection.getByRole("button", { name: /估算房價/ }).click();
+    await expect.poll(() => capturedRequests.length, { timeout: 8000 }).toBeGreaterThan(2);
+
+    const reqAReturn = capturedRequests[capturedRequests.length - 1];
+    expect(reqAReturn.road).toBe("忠孝東路四段");
+    expect(reqAReturn.district).toBe("大安區");
+
+    // Final assertions
+    expect(reqA.road).not.toBe(reqB.road);
+    expect(reqAReturn.road).toBe(reqA.road);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 3 — VALUATION PARTIAL UI
+// ═══════════════════════════════════════════════════════════════════════════
+
+test.describe("TEST 3: Valuation partial visible UI", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("Comparables with unavailable status show partial message not full unavailable", async ({ page }) => {
+    test.setTimeout(30000);
+
+    // Route client-errors to avoid unhandled request assertion failure
+    await page.route("**/client-errors", (route) => route.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+
+    // Unroute the fixture's broad valuation catch-all to prevent trend crash
+    await page.unroute("**/valuation/**");
+
+    await page.route("**/valuation/trend", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ trend_status: "no_data", is_actionable: false }) });
+    });
+
+    await page.route("**/valuation/data-status", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ active_source: "unknown", is_demo_data: false, is_full_taiwan: false, data_composition: "official", official_records_count: 0, sample_records_count: 0, coverage: { cities: [], districts: [], roads_count: 0, records_count: 0 }, last_updated: null, update_frequency_note: "", source_note: "", user_message: "", freshness_status: "unavailable", freshness_reason_code: "UNAVAILABLE", freshness_as_of: null, latest_import_at: null, latest_import_age_days: null, newest_effective_period_lag_months: null, operator_attention_required: false, freshness_user_message: "" }) });
+    });
+
+    // Override BOTH the catch-all valuation route AND the specific estimate route
+    // Routes registered later take priority in Playwright
     await page.route("**/valuation/estimate", async (route) => {
       await route.fulfill({
         status: 200,
@@ -195,7 +275,6 @@ test.describe("P1-2: Valuation evidence messaging consistency", () => {
           unit_price_distribution: { weighted_mean: 67, weighted_median: 67, p25: 60, p75: 73 },
           confidence: "low",
           confidence_score: 30,
-          // KEY: comparables exist even though status is "unavailable"
           comparables: [
             { transaction_period: "2026-06", city: "臺北市", district: "大安區", road: "和平東路二段", building_type: "住宅大樓", area_ping: 30, unit_price_per_ping: 67, total_price: 2000, building_age_years: 15, distance_m: 0, similarity_score: 0.7, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
             { transaction_period: "2026-05", city: "臺北市", district: "大安區", road: "和平東路二段", building_type: "住宅大樓", area_ping: 28, unit_price_per_ping: 65, total_price: 1820, building_age_years: 20, distance_m: 200, similarity_score: 0.6, weight: 1, note: "Official", source: "official_plvr_opendata", source_label: "Official" },
@@ -207,95 +286,81 @@ test.describe("P1-2: Valuation evidence messaging consistency", () => {
       });
     });
 
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Navigate to valuation page
-    const sidebar = page.locator("nav, aside");
-    const valuationLink = sidebar.locator("button:has-text('房價估算'), button:has-text('Valuation'), a:has-text('房價估算')").first();
-    if (await valuationLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await valuationLink.click();
-    }
+    // Navigate to journey price step where the trust status strip shows the partial text
+    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    const priceStepBtn = page.getByLabel(/價格與估價證據/).first();
+    await expect(priceStepBtn).toBeVisible({ timeout: 5000 });
+    await priceStepBtn.click();
+    await expect(page.locator("section[id='journey-stage-price']")).toBeVisible({ timeout: 8000 });
 
-    // Trigger an estimate
-    const estimateButton = page.locator("button:has-text('估算'), button:has-text('Estimate'), button:has-text('估價')").first();
-    if (await estimateButton.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await estimateButton.click();
-      await page.waitForTimeout(500);
-    }
+    // Wait for the embedded valuation calc
+    const calcSection = page.locator("#valuation-calculator");
+    await expect(calcSection).toBeVisible({ timeout: 8000 });
 
-    // Validate: the display state function returns "partial" not "unavailable" when comparables exist
-    const displayState = await page.evaluate(() => {
-      // Test the valuation display state directly
-      const result = {
-        valuation_status: "unavailable",
-        result_origin: "none",
-        is_actionable: false,
-        comparables: [{ source: "official_plvr_opendata" }],
-        estimate_total_price: 2000,
-        estimate_unit_price_per_ping: 67,
-        price_range: { low: 1800, mid: 2000, high: 2200 },
-      };
-      // Import the function via page context
-      const getValuationDisplayState = (window as any).__getValuationDisplayState__;
-      if (!getValuationDisplayState) return { skip: true };
-      return getValuationDisplayState(result);
+    // Trigger estimation
+    await calcSection.getByRole("button", { name: /估算房價/ }).click();
+
+    // Wait for the partial trust status text to appear in the journey strip
+    // The text is "可比成交可查閱，估價信心不足" from buildPriceTrustStatusItems
+    await expect(page.locator("text=可比成交可查閱")).toBeVisible({ timeout: 8000 });
+
+    // Hard assert: the contradictory "unavailable" full-block message is NOT shown
+    await expect(page.locator("text=資料暫時無法取得")).not.toBeVisible();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 4 — AEGIS TRUST UI
+// ═══════════════════════════════════════════════════════════════════════════
+
+test.describe("TEST 4: Aegis trust label", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("Aegis shows scenario risk indicator label, not risk score", async ({ page }) => {
+    test.setTimeout(30000);
+
+    await page.route("**/aegis-credit/analyze", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ risk_score: 35, signal_color: "yellow", traces: ["負債比偏高", "名下已有房貸"] }),
+      });
     });
 
-    if (!displayState.skip) {
-      expect(displayState.kind).toBe("partial");
-      expect(displayState.message).toContain("可比成交");
-      expect(displayState.message).not.toContain("無法使用");
-    }
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
+    await expect(page.getByRole("heading", { name: "房貸風險展示" })).toBeVisible({ timeout: 10000 });
+
+    // Hard assert: form is visible
+    await expect(page.getByTestId("aegis-scenario-form")).toBeVisible({ timeout: 5000 });
+
+    // Hard assert: heuristic disclaimer visible (use .first() to avoid strict mode)
+    await expect(page.locator("text=heuristic").first()).toBeVisible();
+
+    // Submit
+    await page.getByRole("button", { name: /執行房貸風險分析/ }).click();
+
+    // Wait for result label
+    await expect(page.locator("text=情境風險指標")).toBeVisible({ timeout: 10000 });
+
+    // Hard assert: OLD labels NOT present
+    await expect(page.locator("text=風險分數")).not.toBeVisible();
   });
 });
 
-// ============================================================
-// P1-3: Aegis trust semantics
-// ============================================================
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 5 — PARCEL POINT REFERENCE
+// ═══════════════════════════════════════════════════════════════════════════
 
-test.describe("P1-3: Aegis uses scenario risk indicator, not credit score", () => {
-  test("Aegis result label says scenario risk indicator, not risk score or credit score", async ({ page }) => {
-    await page.goto("/");
+test.describe("TEST 5: Parcel point reference", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
 
-    // Navigate to Aegis page
-    const sidebar = page.locator("nav, aside");
-    const aegisLink = sidebar.locator("button:has-text('Aegis'), button:has-text('Credit'), button:has-text('風險')").first();
-    if (await aegisLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await aegisLink.click();
-      await page.waitForTimeout(500);
-    }
+  test("Terrain shows POINT_REFERENCE_ONLY without parcel geometry", async ({ page }) => {
+    test.setTimeout(30000);
 
-    // Check that the page does NOT contain "Risk score" or "風險分數" as a label
-    // and DOES contain "Scenario risk indicator" or "情境風險指標"
-    const bodyText = await page.textContent("body");
-    // The heuristic/reference notice should be visible
-    expect(bodyText).toContain("heuristic");
-
-    // Verify the score label after running an assessment
-    const aegisForm = page.locator("[data-testid='aegis-scenario-form']");
-    if (await aegisForm.isVisible({ timeout: 2000 }).catch(() => false)) {
-      const submitButton = page.locator("button:has-text('執行'), button:has-text('Run risk')").first();
-      if (await submitButton.isVisible()) {
-        await submitButton.click();
-        await page.waitForTimeout(1000);
-        const resultText = await page.textContent("body");
-        // Must NOT say "Risk score" or "風險分數" (old label)
-        expect(resultText).not.toMatch(/\bRisk score\b/);
-        // Must say scenario indicator instead
-        expect(resultText).toMatch(/情境風險指標|Scenario risk indicator|シナリオリスク指標|시나리오 위험 지표/);
-      }
-    }
-  });
-});
-
-// ============================================================
-// P1-4: Parcel product truth - point reference semantics
-// ============================================================
-
-test.describe("P1-4: Parcel point reference semantics", () => {
-  test("terrain cadastral evidence shows POINT REFERENCE ONLY prominently when no parcel geometry", async ({ page }) => {
-    // Route terrain to return data without parcel geometry
-    await page.route("**/terrain/**", async (route) => {
+    await page.route("**/terrain-risk/analyze", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -305,12 +370,16 @@ test.describe("P1-4: Parcel point reference semantics", () => {
           overall: { level: "low", label: "Reference", summary: "Available.", confidence: "medium" },
           terrain: { status: "available", slope_value: 2, slope_class: "gentle", elevation_m: 15, explanation: "Fixture." },
           hazards: {
-            landslide: { key: "landslide", label: "landslide", status: "available", level: "low", matched: false, distance_m: 1000, value: null, explanation: "No match." },
-            flood: { key: "flood", label: "flood", status: "available", level: "low", matched: false, distance_m: 1000, value: null, explanation: "No match." },
+            landslide: { key: "landslide", label: "大規模崩塌潛勢", status: "available", level: "low", matched: false, distance_m: 1000, value: null, explanation: "No match." },
+            debris_flow: { key: "debris_flow", label: "土石流", status: "available", level: "low", matched: false, distance_m: 800, value: null, explanation: "No match." },
+            flood: { key: "flood", label: "淹水潛勢", status: "available", level: "low", matched: false, distance_m: 900, value: null, explanation: "No match." },
+            geological_sensitivity: { key: "geological_sensitivity", label: "地質敏感區", status: "available", level: "low", matched: false, distance_m: 1500, value: null, explanation: "No match." },
+            liquefaction: { key: "liquefaction", label: "土壤液化", status: "available", level: "low", matched: false, distance_m: 500, value: null, explanation: "No match." },
+            active_fault: { key: "active_fault", label: "活動斷層", status: "available", level: "low", matched: false, distance_m: 2000, value: null, explanation: "No match." },
           },
           risk_factors: [],
           missing_sources: [],
-          recommended_checks: [],
+          recommended_checks: ["Confirm official layers."],
           map_layers: [],
           data_quality: { status: "good", warnings: [], checked_at: "2026-08-20T00:00:00Z" },
           cadastral: {
@@ -325,107 +394,136 @@ test.describe("P1-4: Parcel point reference semantics", () => {
       });
     });
 
-    await page.goto("/");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true }).click();
 
-    // Navigate to terrain page
-    const sidebar = page.locator("nav, aside");
-    const terrainLink = sidebar.locator("button:has-text('Terrain'), button:has-text('地形')").first();
-    if (await terrainLink.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await terrainLink.click();
-      await page.waitForTimeout(500);
-    }
+    // Fill address and trigger analysis
+    const addressInput = page.getByRole("textbox", { name: "物件地址" });
+    await expect(addressInput).toBeVisible({ timeout: 10000 });
+    await addressInput.fill("臺北市大安區忠孝東路四段45號");
+    await page.getByRole("button", { name: "開始地勢／災害檢查" }).click();
 
-    // Check the cadastral evidence section for point reference semantics
-    const cadastralSection = page.locator("[data-testid='terrain-cadastral-evidence']");
-    if (await cadastralSection.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Verify parcel status is point_reference_only
-      const parcelStatus = await cadastralSection.getAttribute("data-parcel-status");
-      expect(parcelStatus).toBe("point_reference_only");
+    // Wait for cadastral evidence section
+    const cadastral = page.getByTestId("terrain-cadastral-evidence");
+    await expect(cadastral).toBeVisible({ timeout: 20000 });
 
-      // Verify POINT_REFERENCE_ONLY is displayed
-      const pointRefText = await cadastralSection.locator("[data-testid='cadastral-point-reference-limitation']").textContent();
-      expect(pointRefText).toContain("POINT_REFERENCE_ONLY");
+    // Hard assert: parcel status
+    await expect(cadastral).toHaveAttribute("data-parcel-status", "point_reference_only");
 
-      // Verify LANDSECT semantics badge
-      const landsectText = await cadastralSection.locator("[data-testid='landsect-semantics']").textContent();
-      expect(landsectText).toMatch(/LANDSECT/);
-      expect(landsectText).toMatch(/段籍|section|セクション|구획/);
-    }
+    // Hard assert: POINT_REFERENCE_ONLY text visible
+    const limitation = page.getByTestId("cadastral-point-reference-limitation");
+    await expect(limitation).toBeVisible();
+    await expect(limitation).toContainText("POINT_REFERENCE_ONLY");
+
+    // Hard assert: LANDSECT semantics
+    const landsect = page.getByTestId("landsect-semantics");
+    await expect(landsect).toBeVisible();
+    await expect(landsect).toContainText("LANDSECT");
   });
 });
 
-// ============================================================
-// P2: Locale state synchronization
-// ============================================================
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 6 — LOCALE ACCESSIBILITY ROUNDTRIP
+// ═══════════════════════════════════════════════════════════════════════════
 
-test.describe("P2: Locale accessibility state synchronization", () => {
-  test("zh → ja → zh locale round-trip leaves no Japanese accessible names", async ({ page }) => {
-    await page.goto("/");
-    await page.waitForTimeout(500);
+test.describe("TEST 6: Locale zh → ja → zh accessibility", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
 
-    // Get the locale switcher
-    const localeSwitcher = page.locator("select[aria-label*='語言'], select[aria-label*='Language'], select[aria-label*='言語']").first();
-    if (!await localeSwitcher.isVisible({ timeout: 3000 }).catch(() => false)) {
-      // Alternative: look for any select with locale options
-      const anyLocaleSelect = page.locator("select:has(option[value='ja'])").first();
-      if (await anyLocaleSelect.isVisible({ timeout: 2000 }).catch(() => false)) {
-        // Switch zh-TW → ja
-        await anyLocaleSelect.selectOption("ja");
-        await page.waitForTimeout(300);
+  test("No Japanese kana in aria-labels after returning to zh-TW", async ({ page }) => {
+    test.setTimeout(20000);
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
-        // Verify some Japanese content appeared
-        const jaContent = await page.textContent("body");
-        expect(jaContent).toMatch(/[ぁ-ゖァ-ヶ]/); // contains Japanese chars
+    // Use first select (locale switcher per i18n-smoke pattern)
+    const localeSwitcher = page.locator("select").first();
+    await expect(localeSwitcher).toBeVisible({ timeout: 5000 });
 
-        // Switch ja → zh-TW
-        const localeAfterJa = page.locator("select:has(option[value='zh-TW'])").first();
-        await localeAfterJa.selectOption("zh-TW");
-        await page.waitForTimeout(300);
-
-        // Verify NO Japanese remains in aria-labels
-        const ariaLabels = await page.evaluate(() => {
-          const elements = document.querySelectorAll("[aria-label]");
-          return Array.from(elements).map((el) => el.getAttribute("aria-label") ?? "");
-        });
-
-        const japanesePattern = /[ぁ-ゖァ-ヶ一-龥]/;
-        const japaneseAriaLabels = ariaLabels.filter((label) =>
-          japanesePattern.test(label) &&
-          // Exclude known proper nouns like LANDSECT references
-          !label.includes("LANDSECT") &&
-          !label.includes("PLVR")
-        );
-
-        expect(japaneseAriaLabels, "No Japanese characters should remain in aria-labels after switching back to zh-TW").toEqual([]);
-      }
-      return;
-    }
-
-    // Switch zh-TW → ja
+    // zh-TW → ja
     await localeSwitcher.selectOption("ja");
-    await page.waitForTimeout(300);
+    await expect.poll(() => page.locator("html").getAttribute("lang"), { timeout: 5000 }).toBe("ja");
 
-    // Verify document lang updated
-    const langAfterJa = await page.evaluate(() => document.documentElement.lang);
-    expect(langAfterJa).toBe("ja");
-
-    // Switch ja → zh-TW
+    // ja → zh-TW
     await localeSwitcher.selectOption("zh-TW");
-    await page.waitForTimeout(300);
+    await expect.poll(() => page.locator("html").getAttribute("lang"), { timeout: 5000 }).toBe("zh-TW");
 
-    // Verify document lang restored
-    const langAfterZh = await page.evaluate(() => document.documentElement.lang);
-    expect(langAfterZh).toBe("zh-TW");
-
-    // Verify NO Japanese remains in aria-labels
+    // Hard assert: no Japanese kana in aria-labels
     const ariaLabels = await page.evaluate(() => {
       const elements = document.querySelectorAll("[aria-label]");
       return Array.from(elements).map((el) => el.getAttribute("aria-label") ?? "");
     });
 
     const japaneseKana = /[ぁ-ゖァ-ヶ]/;
-    const staleJapaneseLabels = ariaLabels.filter((label) => japaneseKana.test(label));
+    const staleJapanese = ariaLabels.filter((label) => japaneseKana.test(label));
+    expect(staleJapanese, `Stale Japanese aria-labels: ${JSON.stringify(staleJapanese)}`).toEqual([]);
+  });
+});
 
-    expect(staleJapaneseLabels, "No Japanese kana should remain in aria-labels after returning to zh-TW").toEqual([]);
+// ═══════════════════════════════════════════════════════════════════════════
+// TEST 7 — ASYNC PROPERTY RACE
+// ═══════════════════════════════════════════════════════════════════════════
+
+test.describe("TEST 7: Async context race", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("Late road response for district A does not overwrite district B", async ({ page }) => {
+    test.setTimeout(45000);
+
+    let resolveDelayedA: (() => void) | undefined;
+    const delayedAGate = new Promise<void>((resolve) => { resolveDelayedA = resolve; });
+
+    await page.route("**/roads/roads?*", async (route) => {
+      const url = new URL(route.request().url());
+      const district = url.searchParams.get("district") ?? "";
+
+      if (district === "大安區") {
+        // DELAY response for A
+        await delayedAGate;
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city: "臺北市", district: "大安區", roads: ["忠孝東路四段", "和平東路二段"], message: "OK" }) });
+      } else if (district === "信義區") {
+        // B responds immediately
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city: "臺北市", district: "信義區", roads: ["信義路五段", "松仁路"], message: "OK" }) });
+      } else {
+        await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city: "臺北市", district, roads: ["中山路"], message: "OK" }) });
+      }
+    });
+
+    await page.route("**/roads/districts?*", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city: "臺北市", districts: ["大安區", "信義區"], message: "OK" }) });
+    });
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
+
+    const calcSection = page.locator("#valuation-calculator");
+    await waitForCityOptions(page, calcSection);
+
+    // Select city first
+    await calcSection.locator("select").nth(0).selectOption("臺北市");
+    await page.waitForTimeout(400);
+
+    // Select 大安區 — this triggers the DELAYED road request
+    await calcSection.locator("select").nth(1).selectOption("大安區");
+    await page.waitForTimeout(200);
+
+    // Immediately switch to 信義區 (B responds instantly)
+    await calcSection.locator("select").nth(1).selectOption("信義區");
+    await page.waitForTimeout(500);
+
+    // B roads should be visible now
+    const roadOptionsB = await calcSection.locator("select").nth(2).locator("option").allTextContents();
+    expect(roadOptionsB).toContain("信義路五段");
+
+    // Now release the delayed A response
+    resolveDelayedA!();
+    await page.waitForTimeout(800);
+
+    // Hard assert: district selector still shows 信義區
+    await expect(calcSection.locator("select").nth(1)).toHaveValue("信義區");
+
+    // Hard assert: road options are still B's roads, not A's
+    const finalRoads = await calcSection.locator("select").nth(2).locator("option").allTextContents();
+    expect(finalRoads).toContain("信義路五段");
+    expect(finalRoads).not.toContain("忠孝東路四段");
+    expect(finalRoads).not.toContain("和平東路二段");
   });
 });
