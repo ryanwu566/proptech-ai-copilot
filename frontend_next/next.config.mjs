@@ -9,6 +9,11 @@ export function getApiConnectSource() {
     if (url.origin === "http://e2e.test") {
       return " http://e2e.test";
     }
+    // Allow localhost/127.0.0.1 HTTP origins for local development
+    const hostname = url.hostname.toLowerCase();
+    if ((hostname === "localhost" || hostname === "127.0.0.1") && url.protocol === "http:") {
+      return ` ${url.origin}`;
+    }
     if (url.protocol !== "https:") {
       return "";
     }

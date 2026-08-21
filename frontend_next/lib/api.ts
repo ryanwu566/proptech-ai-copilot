@@ -2,7 +2,7 @@ import { resolveApiOrigin } from "./api-origin";
 
 const configuredApiBase = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 const configuredEnvironment = process.env.NEXT_PUBLIC_APP_ENV;
-const apiEnvironment = configuredEnvironment === "preview" || configuredEnvironment === "test" || configuredEnvironment === "production"
+const apiEnvironment = configuredEnvironment === "preview" || configuredEnvironment === "test" || configuredEnvironment === "production" || configuredEnvironment === "development"
   ? configuredEnvironment
   : process.env.NODE_ENV === "development" ? "development" : "production";
 
