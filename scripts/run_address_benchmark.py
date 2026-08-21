@@ -1,16 +1,12 @@
-"""Strict address accuracy benchmark runner.
+"""Strict address accuracy benchmark v2 — NO oracle leakage.
 
-Scoring rules:
-- EXACT_CORRECT: all explicit expected components match resolved
-- SAFE_REFUSAL: not accepted_for_analysis (product correctly blocked)
-- WRONG_ACCEPTED: product accepted but identity doesn't match
-
-Component matching:
-- city: normalized 台→臺 comparison
-- district: exact match when expected
-- road: full road name including direction (東/西/南/北) and section (段)
-- section: 四段 != 三段
-- house_number: must match when both present
+Key rules:
+- NEVER use expected_* fields to construct provider query
+- Input is sent exactly as-is (road_section cases with no city = bare input)
+- Scoring uses expected_* ONLY for post-resolution verification
+- UNVERIFIABLE_ACCEPTED: provider accepted but component cannot be verified
+- Section must be exact (四段 ≠ 三段)
+- House number must match for full_address cases
 """
 import json
 import os
@@ -27,93 +23,138 @@ from services.map_service import search_location
 
 # ─── Normalization ──────────────────────────────────────────────────────────
 
-def normalize(text: str) -> str:
-    """Normalize for comparison: NFKC, lower, 台→臺, strip whitespace."""
-    return unicodedata.normalize("NFKC", text).replace("台", "臺").strip()
+def norm(text: str) -> str:
+    """Normalize: NFKC, 台→臺, strip."""
+    return unicodedata.normalize("NFKC", str(text or "")).replace("台", "臺").strip()
 
 
-_SECTION_RE = re.compile(r"(.*?[路街大道])(一|二|三|四|五|六|七|八|九|十)段")
+_SECTION_RE = re.compile(r"(.*?(?:大道|路|街))((?:一|二|三|四|五|六|七|八|九|十)段)")
 _HOUSE_RE = re.compile(r"(\d+)號")
+_ROAD_RE = re.compile(r"([^\s縣市區鄉鎮]{1,16}(?:大道|路|街)(?:(?:一|二|三|四|五|六|七|八|九|十)段)?)")
 
 
-def parse_road_section(road: str) -> tuple[str, str]:
-    """Split road into (base_road, section). Returns ('忠孝東路', '四段') or (road, '')."""
-    m = _SECTION_RE.match(normalize(road))
+def parse_road_and_section(road: str) -> tuple[str, str, str]:
+    """Returns (full_road_with_section, base_road, section)."""
+    n = norm(road)
+    m = _SECTION_RE.match(n)
     if m:
-        return m.group(1), m.group(2) + "段"
-    return normalize(road), ""
+        return n, m.group(1), m.group(2)
+    return n, n, ""
 
 
-def extract_house_number(text: str) -> str:
-    """Extract house number from address text."""
-    m = _HOUSE_RE.search(text)
+def extract_house(text: str) -> str:
+    m = _HOUSE_RE.search(str(text or ""))
+    return m.group(1) if m else ""
+
+
+def extract_road_from_text(text: str) -> str:
+    """Extract road+section from formatted address text."""
+    n = norm(text)
+    m = _ROAD_RE.search(n)
     return m.group(1) if m else ""
 
 
 # ─── Strict Classification ──────────────────────────────────────────────────
 
 def strict_classify(case: dict, acceptance: dict | None, found: dict | None) -> tuple[str, str]:
-    """Classify strictly. Returns (classification, failure_reason)."""
+    """
+    Returns (classification, reason).
+    Classifications: EXACT_CORRECT, SAFE_REFUSAL, WRONG_ACCEPTED, UNVERIFIABLE_ACCEPTED
+    """
+    # Not accepted → safe refusal
     if not acceptance or not acceptance.get("accepted_for_analysis"):
-        return "SAFE_REFUSAL", acceptance.get("match_quality", "NO_RESULT") if acceptance else "NO_RESULT"
+        quality = acceptance.get("match_quality", "NO_RESULT") if acceptance else "NO_RESULT"
+        return "SAFE_REFUSAL", quality
 
-    # Product accepted this result. Now verify identity match strictly.
-    resolved_addr = normalize(acceptance.get("normalized_address", ""))
-    resolved_city = normalize(found.get("city", "") if found else "")
-    resolved_district = normalize(found.get("district", "") if found else "")
-    resolved_road = normalize(found.get("road", "") if found else "")
+    # Accepted by product. Now verify every expected component strictly.
+    resolved_addr = norm(acceptance.get("normalized_address", ""))
+    resolved_city = norm(found.get("city", "") if found else "")
+    resolved_district = norm(found.get("district", "") if found else "")
+    resolved_road_raw = norm(found.get("road", "") if found else "")
+    # Also try to extract road from formatted address
+    resolved_road_from_addr = extract_road_from_text(resolved_addr)
+    resolved_road = resolved_road_raw or resolved_road_from_addr
 
-    expected_city = normalize(case.get("expected_city", ""))
-    expected_district = normalize(case.get("expected_district", ""))
-    expected_road = normalize(case.get("expected_road", ""))
+    expected_city = norm(case.get("expected_city", ""))
+    expected_district = norm(case.get("expected_district", ""))
+    expected_road = norm(case.get("expected_road", ""))
 
     failures = []
+    unverifiable = []
 
-    # City check
-    if expected_city and resolved_city:
-        if expected_city != resolved_city:
-            failures.append(f"city: expected={expected_city} got={resolved_city}")
+    # CITY — only verify if INPUT contains city
+    input_text = norm(case.get("input", ""))
+    if expected_city and expected_city in input_text:
+        if resolved_city:
+            if expected_city != resolved_city:
+                failures.append(f"city:{expected_city}!={resolved_city}")
+        else:
+            # Try to find city in formatted address
+            if expected_city in resolved_addr:
+                pass  # Verifiable from address text
+            else:
+                unverifiable.append(f"city_unverifiable")
 
-    # District check
-    if expected_district and resolved_district:
-        if expected_district != resolved_district:
-            failures.append(f"district: expected={expected_district} got={resolved_district}")
+    # DISTRICT — only verify if INPUT contains district
+    if expected_district and expected_district in input_text:
+        if resolved_district:
+            if expected_district != resolved_district:
+                failures.append(f"district:{expected_district}!={resolved_district}")
+        else:
+            if expected_district in resolved_addr:
+                pass
+            else:
+                unverifiable.append(f"district_unverifiable")
 
-    # Road check (including section)
+    # ROAD + SECTION
     if expected_road:
-        exp_base, exp_section = parse_road_section(expected_road)
-        res_base, res_section = parse_road_section(resolved_road)
+        exp_full, exp_base, exp_section = parse_road_and_section(expected_road)
+        res_full, res_base, res_section = parse_road_and_section(resolved_road)
 
-        # If resolved_road is empty, try to extract from resolved_addr
-        if not resolved_road:
-            res_base, res_section = parse_road_section(resolved_addr)
-
-        # Road base must match
-        if exp_base and res_base:
+        if res_base:
+            # Road base comparison
             if exp_base != res_base:
-                failures.append(f"road: expected={exp_base} got={res_base}")
-            elif exp_section and res_section and exp_section != res_section:
-                failures.append(f"section: expected={exp_section} got={res_section}")
-            elif exp_section and not res_section:
-                pass  # Resolved lacks section detail — acceptable (lower specificity)
-        elif exp_base and not res_base:
-            # Cannot verify road — check if road appears in resolved address
-            if exp_base not in resolved_addr and expected_road not in resolved_addr:
-                failures.append(f"road_missing: expected={expected_road} not in resolved")
+                failures.append(f"road:{exp_base}!={res_base}")
+            else:
+                # Section comparison
+                if exp_section:
+                    if res_section:
+                        if exp_section != res_section:
+                            failures.append(f"section:{exp_section}!={res_section}")
+                    else:
+                        # Expected section but resolved has none → NOT exact
+                        # Check if section appears in formatted address
+                        if exp_full in resolved_addr:
+                            pass  # Found in formatted address
+                        else:
+                            unverifiable.append(f"section_missing:{exp_section}")
+        else:
+            # No road extracted from resolution
+            if exp_full in resolved_addr or exp_base in resolved_addr:
+                pass
+            else:
+                unverifiable.append(f"road_unverifiable:{expected_road}")
 
-    # House number check
-    input_text = case.get("input", "")
-    expected_house = extract_house_number(input_text)
-    resolved_house = extract_house_number(resolved_addr)
-    if expected_house and resolved_house and expected_house != resolved_house:
-        failures.append(f"house: expected={expected_house} got={resolved_house}")
+    # HOUSE NUMBER (for full_address cases)
+    input_house = extract_house(case.get("input", ""))
+    if input_house:
+        resolved_house = extract_house(resolved_addr)
+        if resolved_house:
+            if input_house != resolved_house:
+                failures.append(f"house:{input_house}!={resolved_house}")
+        else:
+            # Provider returned road-level but input had house number
+            # This is UNVERIFIABLE for building-level exactness
+            unverifiable.append(f"house_unverifiable:{input_house}")
 
     if failures:
         return "WRONG_ACCEPTED", "; ".join(failures)
+    if unverifiable:
+        return "UNVERIFIABLE_ACCEPTED", "; ".join(unverifiable)
     return "EXACT_CORRECT", ""
 
 
-# ─── Main Runner ────────────────────────────────────────────────────────────
+# ─── Main ───────────────────────────────────────────────────────────────────
 
 def run_benchmark():
     benchmark_path = os.path.join(os.path.dirname(__file__), "..", "frontend_next", "e2e", "address-accuracy-benchmark.frozen.json")
@@ -123,38 +164,25 @@ def run_benchmark():
     valid_cases = benchmark["valid_cases"]
     adversarial_cases = benchmark["adversarial_cases"]
 
-    print("=" * 90)
-    print("STRICT ADDRESS ACCURACY BENCHMARK")
-    print("=" * 90)
+    print("=" * 100)
+    print("STRICT ADDRESS BENCHMARK v2 — NO ORACLE LEAKAGE")
+    print("=" * 100)
 
     rows = []
     for case in valid_cases:
-        input_addr = case["input"]
-        # For road_section cases, the product would have city/district context
-        # Construct the query the way LocationInsight does:
-        # query = address.strip() or "".join(city, district, road)
-        if case.get("category") == "road_section" and not any(
-            city in input_addr for city in ["臺北市", "台北市", "新北市", "桃園市", "臺中市", "台中市", "臺南市", "台南市", "高雄市", "新竹市", "基隆市", "花蓮縣"]
-        ):
-            # Product would prepend city + district context
-            product_query = f"{case['expected_city']}{case.get('expected_district', '')}{input_addr}"
-        else:
-            product_query = input_addr
+        # B: NO ORACLE LEAKAGE — send input exactly as-is
+        query = case["input"]
         time.sleep(0.3)
 
         try:
-            found = search_location(product_query)
+            found = search_location(query)
             acceptance = found.get("geocoding_acceptance")
             classification, reason = strict_classify(case, acceptance, found)
 
             rows.append({
                 "id": case["id"],
-                "input": input_addr,
-                "query_used": product_query,
+                "input": query,
                 "category": case.get("category", ""),
-                "expected_city": case.get("expected_city", ""),
-                "expected_district": case.get("expected_district", ""),
-                "expected_road": case.get("expected_road", ""),
                 "resolved_address": acceptance.get("normalized_address", "") if acceptance else "",
                 "resolved_city": found.get("city", ""),
                 "resolved_district": found.get("district", ""),
@@ -163,17 +191,13 @@ def run_benchmark():
                 "match_quality": acceptance.get("match_quality", "") if acceptance else "NO_RESULT",
                 "accepted": acceptance.get("accepted_for_analysis", False) if acceptance else False,
                 "classification": classification,
-                "failure_reason": reason,
-                "mismatch_reasons": acceptance.get("mismatch_reasons", []) if acceptance else [],
+                "reason": reason,
             })
         except Exception as e:
             rows.append({
                 "id": case["id"],
-                "input": input_addr,
+                "input": query,
                 "category": case.get("category", ""),
-                "expected_city": case.get("expected_city", ""),
-                "expected_district": case.get("expected_district", ""),
-                "expected_road": case.get("expected_road", ""),
                 "resolved_address": "",
                 "resolved_city": "",
                 "resolved_district": "",
@@ -182,17 +206,17 @@ def run_benchmark():
                 "match_quality": "ERROR",
                 "accepted": False,
                 "classification": "SAFE_REFUSAL",
-                "failure_reason": str(e),
+                "reason": str(e)[:60],
             })
 
-    # Print table
-    print(f"\n{'ID':<5} {'CAT':<13} {'CLASS':<16} {'SRC':<12} {'MATCH':<12} {'INPUT':<32} {'RESOLVED':<32} {'REASON'}")
-    print("-" * 150)
+    # Print per-case table
+    print(f"\n{'ID':<5} {'CAT':<14} {'CLASS':<22} {'SRC':<10} {'QUALITY':<14} {'REASON'}")
+    print("-" * 100)
     for r in rows:
-        sym = {"EXACT_CORRECT": "+", "SAFE_REFUSAL": ".", "WRONG_ACCEPTED": "X"}[r["classification"]]
-        print(f"{sym}{r['id']:<4} {r['category']:<13} {r['classification']:<16} {r['source']:<12} {r['match_quality']:<12} {r['input'][:31]:<32} {r['resolved_address'][:31]:<32} {r['failure_reason'][:40]}")
+        sym = {"EXACT_CORRECT": "+", "SAFE_REFUSAL": ".", "WRONG_ACCEPTED": "X", "UNVERIFIABLE_ACCEPTED": "?"}[r["classification"]]
+        print(f"{sym}{r['id']:<4} {r['category']:<14} {r['classification']:<22} {r['source']:<10} {r['match_quality']:<14} {r['reason'][:50]}")
 
-    # Stats
+    # Compute stats
     full_addr = [r for r in rows if r["category"] == "full_address"]
     road_sect = [r for r in rows if r["category"] == "road_section"]
 
@@ -200,18 +224,14 @@ def run_benchmark():
     exact = sum(1 for r in rows if r["classification"] == "EXACT_CORRECT")
     safe = sum(1 for r in rows if r["classification"] == "SAFE_REFUSAL")
     wrong = sum(1 for r in rows if r["classification"] == "WRONG_ACCEPTED")
+    unverifiable = sum(1 for r in rows if r["classification"] == "UNVERIFIABLE_ACCEPTED")
 
     fa_total = len(full_addr)
     fa_exact = sum(1 for r in full_addr if r["classification"] == "EXACT_CORRECT")
+    fa_safe = sum(1 for r in full_addr if r["classification"] == "SAFE_REFUSAL")
     rs_total = len(road_sect)
     rs_exact = sum(1 for r in road_sect if r["classification"] == "EXACT_CORRECT")
-
-    # Root causes
-    refusal_reasons = {}
-    for r in rows:
-        if r["classification"] == "SAFE_REFUSAL":
-            cause = r["failure_reason"] or r["match_quality"]
-            refusal_reasons[cause] = refusal_reasons.get(cause, 0) + 1
+    rs_safe = sum(1 for r in road_sect if r["classification"] == "SAFE_REFUSAL")
 
     # Adversarial
     adv_rejected = 0
@@ -228,35 +248,36 @@ def run_benchmark():
             adv_rejected += 1
 
     # Summary
-    print(f"\n{'='*90}")
-    print(f"FULL_ADDRESS_TOTAL     = {fa_total}")
-    print(f"FULL_ADDRESS_EXACT     = {fa_exact}")
-    print(f"FULL_ADDRESS_ACCURACY  = {fa_exact/fa_total:.1%}" if fa_total else "N/A")
-    print(f"ROAD_SECTION_TOTAL     = {rs_total}")
-    print(f"ROAD_SECTION_EXACT     = {rs_exact}")
-    print(f"ROAD_SECTION_ACCURACY  = {rs_exact/rs_total:.1%}" if rs_total else "N/A")
-    print(f"VALID_TOTAL            = {total}")
-    print(f"VALID_EXACT            = {exact}")
-    print(f"VALID_SAFE_REFUSAL     = {safe}")
-    print(f"VALID_WRONG_ACCEPTED   = {wrong}")
-    print(f"OVERALL_ACCURACY       = {exact/total:.1%}" if total else "N/A")
-    print(f"SAFETY_REJECTED        = {adv_rejected}/10")
-    print(f"SAFETY_ACCURACY        = {adv_rejected/10:.0%}")
-    print(f"\nSAFE_REFUSAL_ROOT_CAUSES:")
-    for cause, count in sorted(refusal_reasons.items(), key=lambda x: -x[1]):
-        print(f"  {count:>2}x  {cause}")
-    print(f"\nSAFE_REFUSAL_DETAILS:")
+    print(f"\n{'='*100}")
+    print(f"FULL_ADDRESS_TOTAL       = {fa_total}")
+    print(f"FULL_ADDRESS_EXACT       = {fa_exact}")
+    print(f"FULL_ADDRESS_SAFE_REFUSAL= {fa_safe}")
+    print(f"FULL_ADDRESS_ACCURACY    = {fa_exact/fa_total:.1%}" if fa_total else "N/A")
+    print(f"ROAD_SECTION_TOTAL       = {rs_total}")
+    print(f"ROAD_SECTION_EXACT       = {rs_exact}")
+    print(f"ROAD_SECTION_SAFE_REFUSAL= {rs_safe}")
+    print(f"VALID_TOTAL              = {total}")
+    print(f"EXACT_CORRECT            = {exact}")
+    print(f"SAFE_REFUSAL             = {safe}")
+    print(f"WRONG_ACCEPTED           = {wrong}")
+    print(f"UNVERIFIABLE_ACCEPTED    = {unverifiable}")
+    print(f"OVERALL_ACCURACY         = {exact/total:.1%}" if total else "N/A")
+    print(f"SAFETY_REJECTED          = {adv_rejected}/10")
+    print(f"\nSAFE_REFUSAL_CASES:")
     for r in rows:
         if r["classification"] == "SAFE_REFUSAL":
-            print(f"  {r['id']} | query={r.get('query_used', r['input'])[:40]} | resolved={r['resolved_address'][:30]} | quality={r['match_quality']} | reasons={r.get('mismatch_reasons', [])}")
-    gate = "PASS" if exact/total >= 0.80 and wrong == 0 and adv_rejected == 10 else "FAIL"
+            print(f"  {r['id']} | {r['match_quality']} | {r['reason'][:60]}")
+    print(f"\nUNVERIFIABLE_CASES:")
+    for r in rows:
+        if r["classification"] == "UNVERIFIABLE_ACCEPTED":
+            print(f"  {r['id']} | {r['reason']}")
+
+    gate_pass = exact/total >= 0.80 and fa_exact/fa_total >= 0.90 and wrong == 0 and unverifiable == 0 and adv_rejected == 10
+    gate = "PASS" if gate_pass else "FAIL"
     print(f"\nGATE = {gate}")
-    print(f"{'='*90}")
+    print(f"{'='*100}")
 
-    # Machine-readable line
-    print(f"\n[RESULT] fa_total={fa_total} fa_exact={fa_exact} rs_total={rs_total} rs_exact={rs_exact} total={total} exact={exact} safe={safe} wrong={wrong} accuracy={exact/total:.3f} safety={adv_rejected}/10 gate={gate}")
-
-    return rows
+    print(f"\n[RESULT] total={total} exact={exact} safe={safe} wrong={wrong} unverifiable={unverifiable} accuracy={exact/total:.3f} fa_total={fa_total} fa_exact={fa_exact} fa_accuracy={fa_exact/fa_total:.3f} rs_total={rs_total} rs_exact={rs_exact} safety={adv_rejected}/10 gate={gate}")
 
 
 if __name__ == "__main__":

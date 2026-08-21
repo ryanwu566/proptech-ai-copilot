@@ -72,7 +72,7 @@ def list_poi_categories() -> list[dict[str, str]]:
 
 
 def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict[str, Any]:
-    """Use Google, TGOS, then bundled mock geocoding."""
+    """Use Google, TGOS, then bundled mock geocoding. Multi-provider recovery when Google is rejected."""
 
     started = time.perf_counter()
     regions = load_map_data()["regions"]
@@ -86,6 +86,24 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
         region = DEFAULT_TGOS_GEOCODING_ADAPTER.search(query, regions)
         if region is not None:
             source = "tgos_geocoding"
+
+    # Multi-provider recovery: if Google returned a result but acceptance rejects it, try TGOS
+    if region is not None and source == "google_geocoding" and adapter is None:
+        google_acceptance = evaluate_geocoding_acceptance(query, region, source)
+        if not google_acceptance["accepted_for_analysis"]:
+            tgos_region = DEFAULT_TGOS_GEOCODING_ADAPTER.search(query, regions)
+            if tgos_region is not None:
+                tgos_acceptance = evaluate_geocoding_acceptance(query, tgos_region, "tgos_geocoding")
+                if tgos_acceptance["accepted_for_analysis"]:
+                    # TGOS recovered — use TGOS result
+                    LOGGER.info("multi_provider_recovery query=%s google_quality=%s tgos_quality=%s action=tgos_accepted", query[:30], google_acceptance["match_quality"], tgos_acceptance["match_quality"])
+                    region = tgos_region
+                    source = "tgos_geocoding"
+                else:
+                    LOGGER.info("multi_provider_recovery query=%s google_quality=%s tgos_quality=%s action=both_refused", query[:30], google_acceptance["match_quality"], tgos_acceptance["match_quality"])
+            else:
+                LOGGER.info("multi_provider_recovery query=%s google_quality=%s tgos=unavailable", query[:30], google_acceptance["match_quality"])
+
     if region is None and adapter is None:
         region = MockGeocodingAdapter().search(query, regions)
     if region is None:
