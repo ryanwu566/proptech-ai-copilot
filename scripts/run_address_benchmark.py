@@ -54,44 +54,29 @@ def extract_road_from_text(text: str) -> str:
     return m.group(1) if m else ""
 
 
-# ─── Taiwan postal code → city mapping (first digit) ─────────────────────────
+# ─── Taiwan postal code → city mapping (verified 3-digit only) ────────────────
+# Only codes that unambiguously map to one municipality.
+# First-digit fallback REMOVED: 2→新北市, 3→桃園市, etc. are ambiguous.
 
-_POSTAL_CITY_PREFIX = {
-    "1": "臺北市",     # 100-116
-    "2": "新北市",     # 200-253 (+ some 基隆/宜蘭)
-    "3": "桃園市",     # 300-338 (+ some 新竹)
-    "4": "臺中市",     # 400-439
-    "5": "彰化縣",     # 500-530 (+ 南投)
-    "6": "嘉義市",     # 600-632 (+ 嘉義縣/雲林)
-    "7": "臺南市",     # 700-745
-    "8": "高雄市",     # 800-852
-    "9": "屏東縣",     # 900-947 (+ 花蓮/臺東)
-}
-# More specific 3-digit prefixes for disambiguation
 _POSTAL_CITY_3DIGIT = {
     "100": "臺北市", "103": "臺北市", "104": "臺北市", "105": "臺北市",
     "106": "臺北市", "108": "臺北市", "110": "臺北市", "111": "臺北市",
     "112": "臺北市", "114": "臺北市", "115": "臺北市", "116": "臺北市",
     "200": "基隆市", "201": "基隆市", "202": "基隆市", "203": "基隆市", "204": "基隆市", "205": "基隆市", "206": "基隆市",
-    "300": "新竹市", "302": "新竹縣",
-    "407": "臺中市", "403": "臺中市", "404": "臺中市", "406": "臺中市", "408": "臺中市",
+    "300": "新竹市",
+    "403": "臺中市", "404": "臺中市", "406": "臺中市", "407": "臺中市", "408": "臺中市",
     "700": "臺南市", "701": "臺南市", "702": "臺南市", "704": "臺南市",
     "800": "高雄市", "802": "高雄市", "806": "高雄市", "807": "高雄市",
 }
 
 
 def _verify_city_from_postal_code(resolved_addr: str, expected_city: str) -> bool:
-    """Verify city using Taiwan postal code as independent evidence."""
-    # Extract leading 3-digit postal code from formatted address
+    """Verify city using Taiwan postal code as independent evidence. Only unambiguous 3-digit codes."""
     m = re.match(r"(\d{3})", resolved_addr)
     if not m:
         return False
     code = m.group(1)
-    # Check specific 3-digit mapping first
     city = _POSTAL_CITY_3DIGIT.get(code)
-    if not city:
-        # Fallback to first-digit prefix
-        city = _POSTAL_CITY_PREFIX.get(code[0])
     if city:
         return norm(city) == norm(expected_city)
     return False
