@@ -175,6 +175,9 @@ function FlowBadge({ label, active }: { label: string; active?: boolean }) {
 
 function LocationResults({ result }: { result: LocationInsightResult }) {
   const { copy } = useExperienceLocale();
+  if (result.geocoding_acceptance && !result.geocoding_acceptance.accepted_for_analysis) {
+    return <div data-testid="location-result" className="space-y-3"><GeocodingAcceptanceNotice acceptance={result.geocoding_acceptance} /><Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
+  }
   if (result.data_quality.status === "unavailable") {
     return <div data-testid="location-result" className="space-y-3">{result.geocoding_acceptance && <GeocodingAcceptanceNotice acceptance={result.geocoding_acceptance} />}<Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
   }
