@@ -43,12 +43,12 @@ CATEGORY_ACCEPTED_TYPES = {
 
 # Types that disqualify a place from commercial/urban categories even if it has an accepted type
 CATEGORY_DISALLOWED_TYPES: dict[str, set[str]] = {
-    "transport": {"hiking_area", "tourist_attraction", "campground"},
-    "school": {"hiking_area", "tourist_attraction", "campground", "amusement_park"},
-    "medical": {"hiking_area", "tourist_attraction", "campground"},
-    "shopping": {"hiking_area", "tourist_attraction", "campground", "natural_feature"},
+    "transport": {"hiking_area", "campground"},
+    "school": {"hiking_area", "campground", "amusement_park"},
+    "medical": {"hiking_area", "campground"},
+    "shopping": {"hiking_area", "campground", "natural_feature"},
     "food": {"hiking_area", "campground"},
-    "park": {"hiking_area"},  # hiking_area is NOT a neighborhood park
+    "park": {"hiking_area"},  # hiking_area is NOT a neighborhood park; tourist_attraction IS common for parks
 }
 
 # Name patterns that indicate trail/hiking contamination (multilingual)
@@ -194,13 +194,15 @@ def is_valid_place_type(category: str, types: Any, name: str = "") -> bool:
     disallowed = CATEGORY_DISALLOWED_TYPES.get(category)
     if disallowed and normalized.intersection(disallowed):
         return False
-    # Reject trail/hiking name contamination for non-recreation categories
+    # Reject trail/hiking name contamination for non-park categories
     name_lower = name.lower()
     if any(kw in name_lower for kw in _TRAIL_KEYWORDS):
         if category != "park":
             return False
-        # Even for park category, hiking trails are not neighborhood parks
-        return False
+        # For park: only reject if the name is primarily a trail (no park indicator)
+        park_indicators = {"公園", "park", "garden", "廣場", "綠地", "playground"}
+        if not any(pi in name_lower for pi in park_indicators):
+            return False
     return True
 
 
