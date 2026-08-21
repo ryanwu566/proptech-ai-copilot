@@ -100,7 +100,12 @@ def evaluate_geocoding_acceptance(query: str, region: dict[str, Any], source: st
     if input_specificity >= 2 and resolved_specificity < input_specificity:
         reasons.append("lower_specificity_than_input")
     if location_type in {"APPROXIMATE", "GEOMETRIC_CENTER"} and input_specificity >= 4:
-        reasons.append("approximate_provider_location")
+        # Only flag if structured components don't confirm the exact address identity
+        structured_route = str(metadata.get("route") or "").strip()
+        structured_number = str(metadata.get("street_number") or "").strip()
+        has_structured_identity = bool(structured_route and structured_number)
+        if not has_structured_identity:
+            reasons.append("approximate_provider_location")
 
     english_tokens = re.findall(r"[a-z0-9]{3,}", query_key)
     if len(english_tokens) >= 2:

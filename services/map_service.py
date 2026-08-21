@@ -122,6 +122,16 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     geocoding_ms = round((time.perf_counter() - started) * 1000)
     LOGGER.info("map_geocoding timing_ms=%s matched=true source=%s", geocoding_ms, source)
     acceptance = evaluate_geocoding_acceptance(query, region, source)
+    # Mock geocoding must NEVER be accepted as real location evidence
+    if source == "mock" and acceptance.get("accepted_for_analysis"):
+        acceptance = {
+            **acceptance,
+            "accepted_for_analysis": False,
+            "requires_confirmation": True,
+            "match_quality": "PARTIAL_MATCH",
+            "mismatch_reasons": [*acceptance.get("mismatch_reasons", []), "mock_source_not_real_evidence"],
+            "message": "展示資料定位不是真實位置證據，不可用於正式分析。",
+        }
     return {
         "query": query,
         "matched": True,
