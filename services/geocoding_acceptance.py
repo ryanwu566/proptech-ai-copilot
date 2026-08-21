@@ -74,6 +74,9 @@ def evaluate_geocoding_acceptance(query: str, region: dict[str, Any], source: st
     resolved_section = _first_group(_SECTION, resolved_route or resolved_key)
     if query_section and resolved_section and query_section != resolved_section:
         reasons.append("street_mismatch")
+    elif query_section and not resolved_section:
+        # Query explicitly includes a section but resolved does not — lower specificity
+        reasons.append("lower_specificity_than_input")
 
     query_city = _first_group(_CITY, query_key)
     resolved_city = canonical_address(region.get("city"))
@@ -109,9 +112,17 @@ def evaluate_geocoding_acceptance(query: str, region: dict[str, Any], source: st
     # Skip specificity complaint when structured metadata confirms identity
     meta_route = canonical_address(metadata.get("route") or "")
     meta_number = re.sub(r"[號号]", "", str(metadata.get("street_number") or "")).strip()
-    # Route match is prefix-tolerant (query_route="信義路" matches meta_route="信義路五段")
-    route_matches = bool(meta_route and query_route and (meta_route.startswith(query_route) or query_route.startswith(meta_route) or meta_route == query_route))
-    has_structured_proof = bool(route_matches and (not query_house or meta_number == query_house))
+    # Route match must include section if query has one
+    route_base_matches = bool(meta_route and query_route and (meta_route.startswith(query_route) or query_route.startswith(meta_route) or meta_route == query_route))
+    # Section verification: if query has explicit section, metadata must confirm it
+    section_verified = True
+    if query_section:
+        meta_section = _first_group(_SECTION, meta_route)
+        if meta_section and meta_section != query_section:
+            section_verified = False  # Wrong section
+        elif not meta_section and query_section not in meta_route:
+            section_verified = False  # Section missing from metadata
+    has_structured_proof = bool(route_base_matches and section_verified and (not query_house or meta_number == query_house))
     if input_specificity >= 2 and resolved_specificity < input_specificity and not has_structured_proof:
         reasons.append("lower_specificity_than_input")
     if location_type in {"APPROXIMATE", "GEOMETRIC_CENTER"} and input_specificity >= 4:
@@ -126,7 +137,7 @@ def evaluate_geocoding_acceptance(query: str, region: dict[str, Any], source: st
     # Skip text-similarity checks when structured components prove identity
     structured_route = canonical_address(metadata.get("route") or "")
     structured_number = re.sub(r"[號号]", "", str(metadata.get("street_number") or "")).strip()
-    structured_confirms_identity = bool(structured_route and query_route and (structured_route.startswith(query_route) or query_route.startswith(structured_route) or structured_route == query_route))
+    structured_confirms_identity = bool(structured_route and query_route and (structured_route.startswith(query_route) or query_route.startswith(structured_route) or structured_route == query_route) and section_verified)
     if not structured_confirms_identity:
         if len(english_tokens) >= 2:
             matched_tokens = sum(token in resolved_key for token in english_tokens)
