@@ -18,6 +18,7 @@ _HOUSE_NUMBER = re.compile(r"(\d+(?:[-之]\d+)?)號")
 _CITY = re.compile(r"([^縣市區鄉鎮\s]{2,4}(?:縣|市))")
 _DISTRICT = re.compile(r"([^縣市區鄉鎮\s]{1,5}(?:區|鄉|鎮))")
 _ROUTE = re.compile(r"([^\s縣市區鄉鎮]{1,16}(?:大道|路|街))")
+_SECTION = re.compile(r"(?:大道|路|街)((?:一|二|三|四|五|六|七|八|九|十)段)")
 _ADMIN_TYPES = {
     "administrative_area_level_1",
     "administrative_area_level_2",
@@ -65,6 +66,12 @@ def evaluate_geocoding_acceptance(query: str, region: dict[str, Any], source: st
     elif query_route and not resolved_route_match:
         reasons.append("street_missing")
 
+    # Section comparison (四段 vs 三段)
+    query_section = _first_group(_SECTION, query_key)
+    resolved_section = _first_group(_SECTION, resolved_route or resolved_key)
+    if query_section and resolved_section and query_section != resolved_section:
+        reasons.append("street_mismatch")
+
     query_city = _first_group(_CITY, query_key)
     resolved_city = canonical_address(region.get("city"))
     if query_city and resolved_city and query_city != resolved_city:
@@ -92,7 +99,7 @@ def evaluate_geocoding_acceptance(query: str, region: dict[str, Any], source: st
     resolved_specificity = _specificity(resolved_key, city=resolved_city, district=resolved_district, route=resolved_route_match)
     if input_specificity >= 2 and resolved_specificity < input_specificity:
         reasons.append("lower_specificity_than_input")
-    if location_type in {"APPROXIMATE", "GEOMETRIC_CENTER"} and input_specificity >= 3:
+    if location_type in {"APPROXIMATE", "GEOMETRIC_CENTER"} and input_specificity >= 4:
         reasons.append("approximate_provider_location")
 
     english_tokens = re.findall(r"[a-z0-9]{3,}", query_key)
