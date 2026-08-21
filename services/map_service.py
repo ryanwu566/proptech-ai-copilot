@@ -498,7 +498,7 @@ def _filter_and_dedupe_google_places(groups: list[dict[str, Any]]) -> tuple[list
         deduplicated = 0
         totals["input_place_count"] += input_count
         for place in group.get("places", []):
-            if not is_valid_place_type(category, place.get("types")):
+            if not is_valid_place_type(category, place.get("types"), place.get("name", "")):
                 rejected += 1
                 continue
             identity = _place_identity(place)

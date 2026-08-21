@@ -41,6 +41,19 @@ CATEGORY_ACCEPTED_TYPES = {
     "park": [*CATEGORY_TYPES["park"], "garden"],
 }
 
+# Types that disqualify a place from commercial/urban categories even if it has an accepted type
+CATEGORY_DISALLOWED_TYPES: dict[str, set[str]] = {
+    "transport": {"hiking_area", "tourist_attraction", "campground"},
+    "school": {"hiking_area", "tourist_attraction", "campground", "amusement_park"},
+    "medical": {"hiking_area", "tourist_attraction", "campground"},
+    "shopping": {"hiking_area", "tourist_attraction", "campground", "natural_feature"},
+    "food": {"hiking_area", "campground"},
+    "park": {"hiking_area"},  # hiking_area is NOT a neighborhood park
+}
+
+# Name patterns that indicate trail/hiking contamination (multilingual)
+_TRAIL_KEYWORDS = {"步道", "登山", "古道", "trail", "hiking", "mountain path"}
+
 
 def distance_meters(lat1: float, lng1: float, lat2: float, lng2: float) -> int:
     """Return the haversine distance between two WGS84 points."""
@@ -110,7 +123,7 @@ class GooglePlacesAdapter:
         response = self._get_client().post(PLACES_URL, json=payload, headers=headers)
         response.raise_for_status()
         normalized = [self._normalize(row, lat, lng, category) for row in response.json().get("places", [])]
-        places = [place for place in normalized if is_valid_place_type(category, place.get("types"))]
+        places = [place for place in normalized if is_valid_place_type(category, place.get("types"), place.get("name", ""))]
         with self._cache_lock:
             self._cache[cache_key] = (time.monotonic(), places)
         return places
@@ -169,13 +182,26 @@ class GooglePlacesAdapter:
         }
 
 
-def is_valid_place_type(category: str, types: Any) -> bool:
-    """Require an explicit category-compatible Google place type."""
+def is_valid_place_type(category: str, types: Any, name: str = "") -> bool:
+    """Require a category-compatible type and reject disqualifying types/names."""
 
     if category not in CATEGORY_ACCEPTED_TYPES or not isinstance(types, list):
         return False
     normalized = {str(item).strip().lower() for item in types if item}
-    return bool(normalized.intersection(CATEGORY_ACCEPTED_TYPES[category]))
+    if not normalized.intersection(CATEGORY_ACCEPTED_TYPES[category]):
+        return False
+    # Reject if place has disqualifying types for this category
+    disallowed = CATEGORY_DISALLOWED_TYPES.get(category)
+    if disallowed and normalized.intersection(disallowed):
+        return False
+    # Reject trail/hiking name contamination for non-recreation categories
+    name_lower = name.lower()
+    if any(kw in name_lower for kw in _TRAIL_KEYWORDS):
+        if category != "park":
+            return False
+        # Even for park category, hiking trails are not neighborhood parks
+        return False
+    return True
 
 
 def normalize_opening_status(row: dict[str, Any]) -> dict[str, str]:
