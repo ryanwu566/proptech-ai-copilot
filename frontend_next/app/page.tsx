@@ -779,6 +779,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     marketRequestController.current?.abort("market_request_cancelled");
     marketRequestController.current = undefined;
     marketQuerySeq.current += 1;
+    setQuerying(false);
     setCounty(normalizeTaiwanCounty(value));
     setDistrict("");
     setResult(undefined);
@@ -792,6 +793,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     marketRequestController.current?.abort("market_request_cancelled");
     marketRequestController.current = undefined;
     marketQuerySeq.current += 1;
+    setQuerying(false);
     setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
     setResult(undefined);
     onResult?.(null);
@@ -808,13 +810,13 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     <SectionCard title={copy("action.search")} description={copy("map.help")}>
       <form onSubmit={submitQuery} aria-busy={querying} data-testid="market-insight-search-form" className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
         <label className="text-xs text-slate-500">{copy("common.selectCounty")}
-          <select value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
+          <select data-testid="market-county-select" value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
             <option value="">{copy("common.selectCounty")}</option>
             {TAIWAN_COUNTIES.map((item) => <option key={item} value={item}>{getLocalizedCountyLabel(item, locale)}</option>)}
           </select>
         </label>
         <label className="text-xs text-slate-500">{copy("common.selectDistrict")}
-          <select value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
+          <select data-testid="market-district-select" value={canonicalDistrict} onChange={(event) => updateDistrict(event.target.value)} disabled={!canonicalCounty} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400">
             <option value="">{canonicalCounty ? copy("common.selectDistrict") : copy("common.selectCounty")}</option>
             {districtOptions.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}
           </select>
