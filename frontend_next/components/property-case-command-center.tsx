@@ -850,7 +850,8 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
 }
 
 function WorkspaceSectionPicker({ active, onSelect }: { active: WorkspaceSectionId; onSelect: (section: WorkspaceSectionId) => void }) {
-  return <section className="rounded-2xl border border-cyan-100 bg-white p-4 shadow-sm" aria-label="案件工作區切換">
+  const { copy } = useExperienceLocale();
+  return <section className="rounded-2xl border border-cyan-100 bg-white p-4 shadow-sm" aria-label={copy("aria.caseWorkspaceSwitcher")}>
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-[10px] font-bold tracking-[0.18em] text-cyan-700">WORKSPACE SECTIONS</p>

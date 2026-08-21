@@ -8,6 +8,7 @@ import { DEMO_STEPS, DemoRunError, GUIDED_DEMO_PENDING_KEY, GUIDED_DEMO_RESULT_E
 import { markTaxOracleCompleted, WORKFLOW_STATUS_EVENT } from "@/lib/workflow-status";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { HELP_CONTENT } from "@/lib/help-content";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
 
 type Props = {
   onMessage?: (message: string) => void;
@@ -17,6 +18,7 @@ type Props = {
 };
 
 export function GuidedDemoRunner({ onMessage, onSave, onExport, canExport = false }: Props) {
+  const { copy } = useExperienceLocale();
   const [steps, setSteps] = useState<DemoStepState[]>(freshSteps);
   const [results, setResults] = useState<DemoResults>();
   const [running, setRunning] = useState(false);
@@ -126,7 +128,7 @@ export function GuidedDemoRunner({ onMessage, onSave, onExport, canExport = fals
   }
 
   const hasProgress = steps.some((step) => step.status === "done");
-  return <section className="min-w-0 rounded-2xl border border-violet-200 bg-violet-50/60 p-4 shadow-sm" aria-label="一鍵 Demo 流程">
+  return <section className="min-w-0 rounded-2xl border border-violet-200 bg-violet-50/60 p-4 shadow-sm" aria-label={copy("aria.guidedDemo")}>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div><p className="text-[10px] font-bold tracking-wider text-violet-700">GUIDED DEMO RUN</p><div className="mt-1 flex items-center gap-2"><h2 className="font-bold text-slate-950">一鍵 Demo 流程</h2><HelpTooltip title={HELP_CONTENT.guidedDemo.title}>{HELP_CONTENT.guidedDemo.body}</HelpTooltip></div><p className="mt-1 text-xs text-slate-600">依序實際呼叫既有 API；失敗時保留已完成結果，可重試或改手動流程。</p></div>
       <div className="flex flex-wrap gap-2">

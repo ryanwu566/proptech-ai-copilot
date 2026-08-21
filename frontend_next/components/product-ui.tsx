@@ -3,6 +3,7 @@ import { Badge, Button } from "@/components/ui";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { HELP_CONTENT, type HelpKey } from "@/lib/help-content";
 import { DetailDisclosure } from "@/components/detail-disclosure";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
 
 export function PageHeader({ kicker, title, description, action, helpKey }: { kicker?: string; title: string; description: string; action?: ReactNode; helpKey?: HelpKey }) {
   const resolvedHelpKey = helpKey ?? inferHelpKey(title);
@@ -29,8 +30,9 @@ export function DecisionHero({ onPrimary, onSecondary }: { onPrimary: () => void
 }
 
 function HeroDecisionFlow() {
+  const { copy } = useExperienceLocale();
   const nodes = [["案件", "選案"], ["稅務", "快篩"], ["地圖", "洞察"], ["估價", "估值"], ["房貸", "利率"], ["報告", "輸出"]];
-  return <div className="mt-5 rounded-xl border border-stone-200 bg-white/70 px-3 py-3 sm:px-4" aria-label="案件決策流程">
+  return <div className="mt-5 rounded-xl border border-stone-200 bg-white/70 px-3 py-3 sm:px-4" aria-label={copy("aria.caseDecisionFlow")}>
     <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-0">{nodes.map(([title, hint], index) => <div key={title} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-0">
       <div className="hero-flow-node flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 sm:flex-col sm:gap-1 sm:text-center" style={{ animationDelay: `${index * 1.5}s` }}><span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-cyan-200 bg-cyan-50 text-[9px] font-bold text-cyan-800">{index + 1}</span><span className="min-w-0"><strong className="block text-[10px] text-slate-700">{title}</strong><span className="block text-[8px] text-slate-400">{hint}</span></span></div>
       {index < nodes.length - 1 && <span className="ml-3 h-3 w-px shrink-0 bg-gradient-to-b from-cyan-300 to-stone-200 sm:ml-0 sm:h-px sm:w-3 sm:bg-gradient-to-r" />}

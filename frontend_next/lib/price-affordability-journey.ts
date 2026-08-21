@@ -57,6 +57,7 @@ function valuationStatus(result: ValuationResult | undefined): PriceJourneyDispl
   if (state.kind === "demo") return "demo";
   if (state.kind === "no_data") return "no_data";
   if (state.kind === "unavailable") return "unavailable";
+  if (state.kind === "partial") return "partial";
   return "available";
 }
 
@@ -88,7 +89,7 @@ export function buildPriceTrustStatusItems(context: JourneyPriceContext, result?
   const comparableText = context.officialComparableCount && context.officialComparableCount > 0 ? `官方可比成交 ${context.officialComparableCount} 筆` : result ? "官方可比成交資料不足" : "尚未取得官方可比成交";
   return [
     { id: "property", label: "物件條件", status: propertyStatus, text: propertyStatus === "not_started" ? "未提供" : propertyStatus === "partial" ? "部分提供" : "已輸入" },
-    { id: "valuation", label: "估價資料狀態", status: context.officialValuationStatus, text: context.officialValuationStatus === "available" || context.officialValuationStatus === "partial" ? "官方資料可用" : context.officialValuationStatus === "demo" ? "展示資料" : context.officialValuationStatus === "no_data" ? "資料不足" : context.officialValuationStatus === "unavailable" ? "資料暫時無法取得" : "尚未估價" },
+    { id: "valuation", label: "估價資料狀態", status: context.officialValuationStatus, text: context.officialValuationStatus === "available" ? "官方資料可用" : context.officialValuationStatus === "partial" ? "可比成交可查閱，估價信心不足" : context.officialValuationStatus === "demo" ? "展示資料" : context.officialValuationStatus === "no_data" ? "資料不足" : context.officialValuationStatus === "unavailable" ? "資料暫時無法取得" : "尚未估價" },
     { id: "comparables", label: "官方可比成交", status: context.officialValuationStatus, text: comparableText },
     { id: "actions", label: "後續操作狀態", status: actionable ? "available" : "not_started", text: actionable ? "可手動帶入貸款或儲存案件" : "尚不可帶入" },
   ];

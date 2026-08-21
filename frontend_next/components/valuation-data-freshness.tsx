@@ -1,6 +1,7 @@
 "use client";
 
 import type { ValuationDataStatus, ValuationFreshnessStatus } from "@/lib/api";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
 
 const LABELS: Record<ValuationFreshnessStatus, string> = {
   fresh: "資料更新狀態正常",
@@ -12,11 +13,12 @@ const LABELS: Record<ValuationFreshnessStatus, string> = {
 };
 
 export function ValuationDataFreshness({ status }: { status: ValuationDataStatus }) {
+  const { copy } = useExperienceLocale();
   const freshnessStatus = status.freshness_status || "unknown";
   const officialCount = typeof status.official_records_count === "number" ? status.official_records_count : null;
   const period = status.newest_effective_period || "尚無可確認的有效期別";
   const importedAt = officialCount && status.latest_import_at ? status.latest_import_at : "尚無可確認的官方匯入時間";
-  return <section aria-label="PLVR 資料新鮮度" className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs text-slate-700">
+  return <section aria-label={copy("aria.plvrFreshness")} className="mt-4 rounded-xl border border-stone-200 bg-stone-50 p-3 text-xs text-slate-700">
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h3 className="font-bold text-slate-900">官方 PLVR 資料新鮮度</h3>
       <span className={freshnessStatus === "fresh" ? "rounded-full bg-emerald-50 px-2 py-1 text-emerald-800" : "rounded-full bg-amber-50 px-2 py-1 text-amber-800"}>{LABELS[freshnessStatus]}</span>

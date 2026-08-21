@@ -74,8 +74,8 @@ export function TerrainCadastralEvidence({
       <EvidenceFact title={copy.cadastralChecked} body={parcelBadge} detail={parcelEvidence?.area_m2 !== undefined ? `${parcelCopy.computedArea}: ${parcelEvidence.area_m2.toLocaleString()} m²` : `${copy.cadastralLastChecked}: ${evidence.checked_at}`} />
       <EvidenceFact title={copy.cadastralStillNeeded} body={consistencyLabel} detail={copy.cadastralManualVerification} />
     </div>
-    <div data-testid="cadastral-point-reference-limitation" className="border-t border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-6 text-amber-950">
-      <strong>{parcelBadge}</strong>{(!parcelEvidence || parcelEvidence.status === "point_reference_only") && <span className="ml-1">{copy.cadastralPointOnly}</span>}<code className="mx-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black">{parcelEvidence?.source_label ?? "POINT_REFERENCE_ONLY"}</code>{parcelEvidence?.limitation ?? copy.cadastralLimitation}
+    <div data-testid="cadastral-point-reference-limitation" className={`border-t px-4 py-3 text-xs leading-6 ${(!parcelEvidence || parcelEvidence.status === "point_reference_only") ? "border-rose-200 bg-rose-50 text-rose-950 font-bold" : "border-amber-200 bg-amber-50 text-amber-950"}`}>
+      <strong className="uppercase">{parcelBadge}</strong>{(!parcelEvidence || parcelEvidence.status === "point_reference_only") && <span className="ml-1">{copy.cadastralPointOnly}</span>}<code className="mx-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black">{parcelEvidence?.source_label ?? "POINT_REFERENCE_ONLY"}</code>{parcelEvidence?.limitation ?? copy.cadastralLimitation}
     </div>
     <div data-testid="parcel-geometry-facts" className="grid gap-2 border-t border-cyan-100 bg-cyan-50 p-4 text-[11px] leading-5 text-cyan-950 sm:grid-cols-2">
       <p>{parcelEvidence?.area_m2 !== undefined ? `${parcelCopy.computedArea}: ${parcelEvidence.area_m2.toLocaleString()} m²` : parcelCopy.pointReference}</p>
