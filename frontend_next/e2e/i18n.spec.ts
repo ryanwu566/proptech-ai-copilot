@@ -2,8 +2,11 @@ import { expect, test } from "./fixtures";
 
 async function openMap(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: /Map Insight|地図|지도/i }).first().click();
-  await expect(page.locator("select").first()).toBeVisible();
+  await page.locator("aside[aria-label='分析工具']").getByRole("button", { name: "Map Insight", exact: true }).click();
+  await expect(page.getByTestId("map-search-form")).toBeVisible();
+  const advanced = page.getByTestId("map-advanced-settings");
+  await advanced.locator("summary").click();
+  await expect(advanced).toHaveAttribute("open", "");
 }
 
 test("four locale runtime changes document language and visible navigation", async ({ page }) => {
@@ -19,12 +22,13 @@ test("four locale runtime changes document language and visible navigation", asy
 
 test("Daxi road options render meaningful names in every locale and preserve canonical values", async ({ page }) => {
   await openMap(page);
-  const locale = page.locator("select").first();
-  const county = page.locator("select").nth(1);
-  const district = page.locator("select").nth(2);
-  const roads = page.locator("select").nth(3);
+  const locale = page.getByTestId("locale-switcher");
+  const advanced = page.getByTestId("map-advanced-settings");
+  const county = advanced.locator('select:has(option[value="桃園市"])');
   await county.selectOption("桃園市");
+  const district = advanced.locator('select:has(option[value="大溪區"])');
   await district.selectOption("大溪區");
+  const roads = advanced.locator('select:has(option[value="三元二街"])');
   await expect(roads.locator("option")).toHaveCount(31);
   const canonical = "三元二街";
   await roads.selectOption(canonical);
@@ -39,9 +43,10 @@ test("Daxi road options render meaningful names in every locale and preserve can
 
 test("localized map open action is rendered and remains responsive", async ({ page }) => {
   await openMap(page);
-  const locale = page.locator("select").first();
+  const locale = page.getByTestId("locale-switcher");
+  const advanced = page.getByTestId("map-advanced-settings");
   for (const [value, label] of [["en", "Open"], ["ja", "開く"], ["ko", "열기"]] as const) {
     await locale.selectOption(value);
-    await expect(page.getByRole("button", { name: label, exact: true })).toBeVisible();
+    await expect(advanced.getByRole("button", { name: label, exact: true })).toBeVisible();
   }
 });

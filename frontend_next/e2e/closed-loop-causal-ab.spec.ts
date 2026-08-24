@@ -365,7 +365,7 @@ test("full happy path carries one property through all five steps", async ({ pag
   started = Date.now();
   await page.locator("#location-insight-calculator").getByRole("button", { name: "Start location analysis" }).click();
   await expect(page.getByTestId("location-result")).toContainText(SELECTED_ADDRESS);
-  await page.locator("#journey-stage-location").getByRole("button", { name: "Review price evidence", exact: true }).click();
+  await page.locator("#journey-stage-location button[data-action-kind='navigation']", { hasText: "Review price evidence" }).click();
   timings.step2 = Date.now() - started;
 
   const valuation = page.locator("#valuation-calculator");
@@ -377,7 +377,7 @@ test("full happy path carries one property through all five steps", async ({ pag
   await expect(page.getByTestId("valuation-result").first()).toBeVisible();
   await page.getByRole("button", { name: /Valuation midpoint/ }).click();
   await expect(page.getByTestId("journey-active-price")).toContainText("2,100");
-  await page.locator("#journey-stage-price").getByRole("button", { name: "Review funding and holding costs", exact: true }).click();
+  await page.locator("#journey-stage-price button[data-action-kind='navigation']", { hasText: "Review funding and holding costs" }).click();
   timings.step3 = Date.now() - started;
 
   started = Date.now();
@@ -385,7 +385,7 @@ test("full happy path carries one property through all five steps", async ({ pag
   await loan.getByLabel("Monthly income (TWD ten-thousands, optional)").fill("12");
   await loan.getByRole("button", { name: "Calculate monthly payment" }).click();
   await expect(page.getByTestId("loan-result")).toContainText("65,000");
-  await page.locator("#journey-stage-affordability").getByRole("button", { name: "Review the viewing decision summary", exact: true }).click();
+  await page.locator("#journey-stage-affordability button[data-action-kind='navigation']", { hasText: "Review the viewing decision summary" }).click();
   timings.step4 = Date.now() - started;
 
   started = Date.now();

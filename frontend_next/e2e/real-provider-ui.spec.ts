@@ -8,8 +8,9 @@
  * - Desktop + Mobile 390 semantic agent flows
  */
 import { test, expect } from "@playwright/test";
+import { realProviderUrl } from "./real-provider";
 
-test.use({ baseURL: "http://127.0.0.1:3000", viewport: { width: 1440, height: 900 } });
+test.use({ viewport: { width: 1440, height: 900 } });
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -104,7 +105,7 @@ async function analyzeAddress(page: import("@playwright/test").Page, address: st
 // ═══════════════════════════════════════════════════════════════════
 // 15-CASE CERTIFICATION
 // ═══════════════════════════════════════════════════════════════════
-test.describe.serial("Real UI 15-Case Certification", () => {
+test.describe.serial("Real UI 15-Case Certification", { tag: "@real-provider" }, () => {
   const results: Array<{ id: string; cl: Classification; reason: string }> = [];
 
   for (const c of CASES) {
@@ -113,7 +114,7 @@ test.describe.serial("Real UI 15-Case Certification", () => {
       let captured: Record<string, unknown> | null = null;
 
       await page.route("**/location/insight", async (route) => {
-        const response = await route.fetch();
+        const response = await route.fetch({ url: realProviderUrl("/location/insight") });
         captured = await response.json();
         await route.fulfill({ response, body: JSON.stringify(captured) });
       });
@@ -173,7 +174,7 @@ test.describe.serial("Real UI 15-Case Certification", () => {
 // GAP 2: CROSS-MODULE FULL CHAIN — 5 Cases
 // Property→Location→Map→Valuation→Market→Decision
 // ═══════════════════════════════════════════════════════════════════
-test.describe.serial("Cross-Module Full Chain — 5 EXACT Cases", () => {
+test.describe.serial("Cross-Module Full Chain — 5 EXACT Cases", { tag: "@real-provider" }, () => {
   const CROSS = CASES.filter(c => c.id !== "V22").slice(0, 5);
 
   for (const c of CROSS) {
@@ -183,7 +184,7 @@ test.describe.serial("Cross-Module Full Chain — 5 EXACT Cases", () => {
 
       // Observe responses without mocking
       await page.route("**/location/insight", async (route) => {
-        const response = await route.fetch();
+        const response = await route.fetch({ url: realProviderUrl("/location/insight") });
         await route.fulfill({ response });
       });
 

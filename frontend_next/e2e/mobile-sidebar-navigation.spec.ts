@@ -11,8 +11,6 @@
  */
 import { test, expect } from "@playwright/test";
 
-test.use({ baseURL: "http://127.0.0.1:3000" });
-
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("proptech_onboarding_seen", "true");
