@@ -29,6 +29,20 @@ def test_hero_ctas_keep_real_navigation_handlers() -> None:
     assert 'openViewingFlow("decision-report")' in PAGE
     assert 'data-action-kind="primary"' in HERO
     assert 'data-action-kind="secondary"' in HERO
+    active_home = PAGE.split("export default function Home()", 1)[1].split("function buildJourneySaveCase", 1)[0]
+    assert 'reportReady={Boolean(journeyState.valuationResult)}' in active_home
+    assert 'onReport={() => openJourneyStep("decision")}' in active_home
+
+
+def test_active_homepage_renders_one_hero_before_the_guided_journey() -> None:
+    home = PAGE.split("export default function Home()", 1)[1].split("function buildJourneySaveCase", 1)[0]
+    assert home.count("<HeroIntro ") == 1
+    assert home.index("<HeroIntro ") < home.index("<GuidedPropertyJourney ")
+    assert 'openJourneyStep("property")' in home
+    journey = (ROOT / "frontend_next" / "components" / "guided-journey" / "guided-property-journey.tsx").read_text(encoding="utf-8")
+    sidebar = (ROOT / "frontend_next" / "components" / "sidebar.tsx").read_text(encoding="utf-8")
+    assert "<h1" not in journey
+    assert "<h1" not in sidebar
 
 
 def test_hero_animation_is_local_and_reduced_motion_safe() -> None:
