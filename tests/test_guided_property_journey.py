@@ -28,9 +28,11 @@ def test_journey_has_exact_five_steps_in_fixed_order() -> None:
 
 
 def test_property_finder_is_the_primary_first_step_entry() -> None:
-    assert 'productLabel="Property Finder · Property Search"' in PAGE
-    assert 'onOpen={() => openViewingFlow("property-finder")}' in PAGE
-    assert "primary" in PAGE.split("if (step === \"property\")", 1)[1].split("if (step === \"location\")", 1)[0]
+    property_stage = PAGE.split('if (step === "property")', 1)[1].split('if (step === "location")', 1)[0]
+    assert "<PropertyFinder embedded" in property_stage
+    assert 'actions.goToTool("location-insight")' in property_stage
+    assert 'actions.goToTool("valuation")' in property_stage
+    assert 'actions.goToTool("loan")' in property_stage
 
 
 def test_only_visited_steps_render_and_hidden_steps_are_not_focusable() -> None:

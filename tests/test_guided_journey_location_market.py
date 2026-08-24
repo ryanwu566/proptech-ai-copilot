@@ -39,7 +39,7 @@ def test_secondary_tools_are_explicit_and_lazy_mounted() -> None:
 
 
 def test_next_step_only_navigates_without_running_valuation() -> None:
-    assert 't("journey.price.next")' in STAGE
+    assert 't("journey.location.next")' in STAGE
     assert "onContinueToPrice" in STAGE
     assert 't("trust.noPurchase")' in STAGE
     assert "api." not in STAGE

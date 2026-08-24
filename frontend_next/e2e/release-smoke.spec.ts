@@ -133,6 +133,17 @@ test.describe("Release Smoke — Five-Step Journey", () => {
 
 test.describe("Release Smoke — Aegis Stale-State", () => {
   test("Aegis A→B replaces previous result", async ({ page }) => {
+    await page.route("**/aegis-credit/analyze", async (route) => {
+      const payload = route.request().postDataJSON();
+      const stressed = payload.monthly_income === 40000;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(stressed
+          ? { risk_score: 70, signal_color: "red", traces: ["E2E_STRESSED_TRACE"] }
+          : { risk_score: 0, signal_color: "green", traces: ["E2E_STRONG_TRACE"] }),
+      });
+    });
     await page.goto("/");
     await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
     const form = page.getByTestId("aegis-scenario-form");
@@ -146,7 +157,8 @@ test.describe("Release Smoke — Aegis Stale-State", () => {
     await form.locator("fieldset").nth(1).locator("input").nth(2).fill("2");
     await form.locator("fieldset").nth(2).locator("input").nth(0).fill("20000000");
     await page.getByRole("button", { name: /執行房貸風險分析|Run risk analysis/ }).click();
-    await page.waitForTimeout(500);
+    const stressedTrace = page.getByRole("listitem").filter({ hasText: "E2E_STRESSED_TRACE" });
+    await expect(stressedTrace).toBeVisible();
 
     // Now fill strong scenario
     await form.locator("fieldset").nth(0).locator("input").nth(0).fill("80000");
@@ -158,7 +170,8 @@ test.describe("Release Smoke — Aegis Stale-State", () => {
     const submitBtn = page.getByRole("button", { name: /執行房貸風險分析|Run risk analysis/ });
     await expect(submitBtn).not.toBeDisabled({ timeout: 5000 });
     await submitBtn.click();
-    await page.waitForTimeout(500);
+    await expect(page.getByRole("listitem").filter({ hasText: "E2E_STRONG_TRACE" })).toBeVisible();
+    await expect(stressedTrace).not.toBeVisible();
   });
 });
 

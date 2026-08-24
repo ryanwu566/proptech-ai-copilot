@@ -1,7 +1,18 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const LOCALES = ["zh-TW", "en", "ja", "ko"];
+const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
 const MOBILE_WIDTHS = [360, 390, 430];
+type Locale = (typeof LOCALES)[number];
+
+const PILOT_LABELS: Record<Locale, {
+  campaign: string; code: string; join: string; participation: string; metrics: string;
+  feedbackConsent: string; publication: string; accept: string; start: string; complete: string; submit: string;
+}> = {
+  "zh-TW": { campaign: "試用活動識別", code: "試用代碼", join: "加入封閉試用", participation: "我同意參與此試用。", metrics: "我同意收集互動與完成時間資料。", feedbackConsent: "我同意提交書面回饋。", publication: "我同意匿名回饋在審核後用於競賽證據。", accept: "接受並繼續", start: "開始試用任務", complete: "完成任務", submit: "提交回饋" },
+  en: { campaign: "Campaign ID", code: "Pilot code", join: "Join the closed pilot", participation: "I agree to participate in this pilot.", metrics: "I agree to interaction and completion-time metrics.", feedbackConsent: "I agree to submit written feedback.", publication: "I allow anonymized feedback to be used in competition evidence after review.", accept: "Accept and continue", start: "Start the pilot task", complete: "Complete task", submit: "Submit feedback" },
+  ja: { campaign: "キャンペーン ID", code: "試用コード", join: "クローズド試用に参加", participation: "この試用への参加に同意します。", metrics: "操作と完了時間の計測に同意します。", feedbackConsent: "書面のフィードバック提出に同意します。", publication: "審査後、匿名フィードバックを競技用資料に使うことに同意します。", accept: "同意して続ける", start: "試用タスクを開始", complete: "タスクを完了", submit: "フィードバックを送信" },
+  ko: { campaign: "캠페인 ID", code: "파일럿 코드", join: "비공개 파일럿 참여", participation: "이 파일럿에 참여하는 데 동의합니다.", metrics: "상호작용 및 완료 시간 측정에 동의합니다.", feedbackConsent: "서면 피드백 제출에 동의합니다.", publication: "검토 후 익명 피드백을 경쟁 자료에 사용하는 데 동의합니다.", accept: "동의하고 계속", start: "파일럿 과제 시작", complete: "과제 완료", submit: "피드백 제출" },
+};
 
 async function mockPilotApi(page: Page, options: { rejectAccess?: boolean; networkFailure?: boolean; publication?: boolean } = {}) {
   let eventCount = 0;
@@ -29,7 +40,7 @@ async function mockPilotApi(page: Page, options: { rejectAccess?: boolean; netwo
   return { eventCount: () => eventCount, accessCount: () => accessCount };
 }
 
-async function openPilot(page: Page, locale = "en", options: { rejectAccess?: boolean; networkFailure?: boolean; publication?: boolean } = {}) {
+async function openPilot(page: Page, locale: Locale = "en", options: { rejectAccess?: boolean; networkFailure?: boolean; publication?: boolean } = {}) {
   await page.addInitScript(({ locale }) => {
     localStorage.setItem("proptech_onboarding_seen", "true");
     localStorage.setItem("proptech_onboarding_version", "2");
@@ -40,33 +51,30 @@ async function openPilot(page: Page, locale = "en", options: { rejectAccess?: bo
   page.on("pageerror", (error) => errors.push(`page:${error.message}`));
   const api = await mockPilotApi(page, options);
   await page.goto("/");
-  if (locale !== "zh-TW") await page.getByRole("combobox").selectOption(locale);
-  await page.getByRole("button", { name: "Join closed pilot" }).first().click();
+  if (locale !== "zh-TW") await page.getByTestId("locale-switcher").selectOption(locale);
+  await page.getByTestId("competition-mvp-banner").getByRole("button", { name: "Join closed pilot", exact: true }).click();
   await expect(page.getByTestId("closed-pilot")).toBeVisible();
   return { errors, api };
 }
 
-async function completeParticipantFlow(page: Page, publication = false) {
+async function completeParticipantFlow(page: Page, locale: Locale = "en", publication = false) {
   const pilot = page.getByTestId("closed-pilot");
-  await pilot.locator("input").nth(0).fill("e2e-campaign");
-  await pilot.locator("input").nth(1).fill("e2e-code");
-  await pilot.locator("button").first().click();
-  await expect(pilot.locator("input[type=checkbox]").first()).toBeVisible();
-  const consent = pilot.locator("input[type=checkbox]");
-  await consent.nth(0).check();
-  await consent.nth(1).check();
-  await consent.nth(2).check();
-  if (publication) await consent.nth(3).check();
-  await pilot.locator("button").first().click();
-  await expect(pilot.locator("input").first()).toBeVisible();
-  await pilot.locator("button").first().click();
+  const labels = PILOT_LABELS[locale];
+  await pilot.getByLabel(labels.campaign, { exact: true }).fill("e2e-campaign");
+  await pilot.getByLabel(labels.code, { exact: true }).fill("e2e-code");
+  await pilot.getByRole("button", { name: labels.join, exact: true }).click();
+  await pilot.getByRole("checkbox", { name: labels.participation, exact: true }).check();
+  await pilot.getByRole("checkbox", { name: labels.metrics, exact: true }).check();
+  await pilot.getByRole("checkbox", { name: labels.feedbackConsent, exact: true }).check();
+  if (publication) await pilot.getByRole("checkbox", { name: labels.publication, exact: true }).check();
+  await pilot.getByRole("button", { name: labels.accept, exact: true }).click();
+  await pilot.getByRole("button", { name: labels.start, exact: true }).click();
   for (let index = 0; index < 3; index += 1) {
-    await expect(pilot.locator("button").first()).toBeVisible();
-    await pilot.locator("button").first().click();
+    await expect(pilot.getByRole("button", { name: labels.complete, exact: true })).toBeVisible();
+    await pilot.getByRole("button", { name: labels.complete, exact: true }).click();
   }
-  await expect(pilot.locator("textarea")).toBeVisible();
-  await pilot.locator("textarea").fill("bounded e2e feedback");
-  await pilot.locator("button").first().click();
+  await pilot.getByRole("textbox", { name: "Optional feedback", exact: true }).fill("bounded e2e feedback");
+  await pilot.getByRole("button", { name: labels.submit, exact: true }).click();
   await expect(pilot.locator('[role="status"]')).toBeVisible();
 }
 
@@ -81,9 +89,9 @@ test("participant workflow completes with private evidence and no browser errors
 test("invalid pilot access stays generic and creates no session", async ({ page }) => {
   const { errors } = await openPilot(page, "en", { rejectAccess: true });
   const pilot = page.getByTestId("closed-pilot");
-  await pilot.locator("input").nth(0).fill("invalid");
-  await pilot.locator("input").nth(1).fill("invalid");
-  await pilot.locator("button").first().click();
+  await pilot.getByLabel(PILOT_LABELS.en.campaign, { exact: true }).fill("invalid");
+  await pilot.getByLabel(PILOT_LABELS.en.code, { exact: true }).fill("invalid");
+  await pilot.getByRole("button", { name: PILOT_LABELS.en.join, exact: true }).click();
   await expect(pilot.getByRole("alert")).toBeVisible();
   expect(await pilot.locator("input[type=checkbox]").count()).toBe(0);
   expect(errors.filter((item) => !item.includes("status of 404"))).toEqual([]);
@@ -92,17 +100,18 @@ test("invalid pilot access stays generic and creates no session", async ({ page 
 test("network failure shows a bounded degraded state without an infinite spinner", async ({ page }) => {
   const { errors } = await openPilot(page, "en", { networkFailure: true });
   const pilot = page.getByTestId("closed-pilot");
-  await pilot.locator("input").nth(0).fill("network-failure");
-  await pilot.locator("input").nth(1).fill("bounded-code");
-  await pilot.locator("button").first().click();
+  await pilot.getByLabel(PILOT_LABELS.en.campaign, { exact: true }).fill("network-failure");
+  await pilot.getByLabel(PILOT_LABELS.en.code, { exact: true }).fill("bounded-code");
+  const join = pilot.getByRole("button", { name: PILOT_LABELS.en.join, exact: true });
+  await join.click();
   await expect(pilot.getByRole("alert")).toBeVisible();
-  expect(await pilot.locator("button").first().isEnabled()).toBe(true);
+  expect(await join.isEnabled()).toBe(true);
   expect(errors.filter((item) => !item.includes("net::ERR_FAILED"))).toEqual([]);
 });
 
 test("publication remains private until approval and disappears after revocation", async ({ page }) => {
   const { errors } = await openPilot(page, "en", { publication: true });
-  await completeParticipantFlow(page, true);
+  await completeParticipantFlow(page, "en", true);
   const states = await page.evaluate(async () => {
     const headers = { "Content-Type": "application/json", "X-Pilot-Admin-Token": "e2e-admin" };
     const get = async (path: string) => (await fetch(`http://e2e.test${path}`, { headers })).json();
@@ -149,7 +158,7 @@ test("professional review browser boundary rejects anonymous access and exposes 
 for (const locale of LOCALES) {
   test(`pilot invitation and completion surface is available in ${locale}`, async ({ page }) => {
     const { errors } = await openPilot(page, locale);
-    await completeParticipantFlow(page);
+    await completeParticipantFlow(page, locale);
     expect(await page.getByTestId("closed-pilot").getAttribute("data-testid")).toBe("closed-pilot");
     expect(errors).toEqual([]);
   });

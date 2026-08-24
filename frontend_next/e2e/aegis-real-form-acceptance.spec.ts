@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { realProviderUrl } from "./real-provider";
 
 /**
  * Aegis-Credit Real Form Acceptance
@@ -13,10 +14,6 @@ import { expect, test } from "@playwright/test";
  * - Real backend response is fulfilled back to browser
  * - Visible UI result verified
  */
-
-const PRODUCTION_API = "https://proptech-ai-copilot-api.onrender.com";
-
-test.use({ baseURL: "http://127.0.0.1:3100" });
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -33,7 +30,7 @@ async function setup(page: import("@playwright/test").Page, requestCtx: import("
   await page.route("**/aegis-credit/analyze", async (route) => {
     const payload = route.request().postDataJSON();
     capturedPayload = payload;
-    const resp = await requestCtx.post(`${PRODUCTION_API}/aegis-credit/analyze`, { data: payload });
+    const resp = await requestCtx.post(realProviderUrl("/aegis-credit/analyze"), { data: payload });
     realStatus = resp.status();
     realBody = await resp.json();
     await route.fulfill({ status: realStatus, contentType: "application/json", body: JSON.stringify(realBody) });
@@ -110,7 +107,7 @@ test.describe("Aegis — Validation", () => {
 // STRONG
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe("Aegis — Strong Real Backend", () => {
+test.describe("Aegis — Strong Real Backend", { tag: "@real-provider" }, () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test("Strong: exact payload, real backend 200, visible green result", async ({ page, request: requestCtx }) => {
@@ -140,7 +137,7 @@ test.describe("Aegis — Strong Real Backend", () => {
 // BORDERLINE
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe("Aegis — Borderline Real Backend", () => {
+test.describe("Aegis — Borderline Real Backend", { tag: "@real-provider" }, () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test("Borderline: exact payload, real backend 200, visible yellow result", async ({ page, request: requestCtx }) => {
@@ -165,7 +162,7 @@ test.describe("Aegis — Borderline Real Backend", () => {
 // STRESSED
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe("Aegis — Stressed Real Backend", () => {
+test.describe("Aegis — Stressed Real Backend", { tag: "@real-provider" }, () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test("Stressed: exact payload, real backend 200, visible red result with multiple causes", async ({ page, request: requestCtx }) => {
@@ -191,7 +188,7 @@ test.describe("Aegis — Stressed Real Backend", () => {
 // RERUN / STALE RESULT
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe("Aegis — Rerun Updates Result", () => {
+test.describe("Aegis — Rerun Updates Result", { tag: "@real-provider" }, () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test("Changing from stressed to strong updates visible result", async ({ page, request: requestCtx }) => {
@@ -234,7 +231,7 @@ test.describe("Aegis — Trust Boundary", () => {
 // MOBILE 390
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe("Aegis — Mobile 390x844", () => {
+test.describe("Aegis — Mobile 390x844", { tag: "@real-provider" }, () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("Mobile: form usable, strong scenario, no overflow", async ({ page, request: requestCtx }) => {
@@ -246,7 +243,7 @@ test.describe("Aegis — Mobile 390x844", () => {
     });
     await page.route("**/aegis-credit/analyze", async (route) => {
       const payload = route.request().postDataJSON();
-      const resp = await requestCtx.post(`${PRODUCTION_API}/aegis-credit/analyze`, { data: payload });
+      const resp = await requestCtx.post(realProviderUrl("/aegis-credit/analyze"), { data: payload });
       await route.fulfill({ status: resp.status(), contentType: "application/json", body: await resp.text() });
     });
     await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -278,7 +275,7 @@ test.describe("Aegis — Mobile 390x844", () => {
 // LOCALE VERIFICATION — Accessible Names + Outer UI + Result Labels
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe("Aegis — Locale Verification", () => {
+test.describe("Aegis — Locale Verification", { tag: "@real-provider" }, () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
@@ -385,7 +382,7 @@ test.describe("Aegis — Locale Verification", () => {
 // MOBILE 390 — REAL EN
 // ═════════════════════════════════════════════════════════════════════════════
 
-test.describe("Aegis — Mobile 390x844 EN", () => {
+test.describe("Aegis — Mobile 390x844 EN", { tag: "@real-provider" }, () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("EN Mobile: localized form, submit, no overflow", async ({ page, request: requestCtx }) => {
@@ -397,7 +394,7 @@ test.describe("Aegis — Mobile 390x844 EN", () => {
     });
     await page.route("**/aegis-credit/analyze", async (route) => {
       const payload = route.request().postDataJSON();
-      const resp = await requestCtx.post("https://proptech-ai-copilot-api.onrender.com/aegis-credit/analyze", { data: payload });
+      const resp = await requestCtx.post(realProviderUrl("/aegis-credit/analyze"), { data: payload });
       await route.fulfill({ status: resp.status(), contentType: "application/json", body: await resp.text() });
     });
     await page.goto("/", { waitUntil: "domcontentloaded" });

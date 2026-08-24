@@ -7,17 +7,13 @@ import { expect, test } from "@playwright/test";
  * Run after deployment to verify critical paths.
  *
  * Usage:
- *   E2E_BASE_URL=https://proptech-ai-copilot.vercel.app npx playwright test e2e/production-smoke.spec.ts
+ *   HOSTED_FRONTEND_URL=https://proptech-ai-copilot.vercel.app npm run test:e2e:hosted
  *
  * All interactions are READ-ONLY / normal user behavior.
  * No destructive actions, no load testing, no security testing.
  */
 
-const BASE = process.env.E2E_BASE_URL || "https://proptech-ai-copilot.vercel.app";
-
-test.use({ baseURL: BASE });
-
-test.describe("Production Smoke", () => {
+test.describe("Production Smoke", { tag: "@hosted" }, () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test.beforeEach(async ({ page }) => {
@@ -65,20 +61,11 @@ test.describe("Production Smoke", () => {
     await expect(page.locator("#main-content")).toContainText(/step|Step|journey/i, { timeout: 5000 });
   });
 
-  test("Mobile 390 no overflow", async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
-    const page = await ctx.newPage();
-    try {
-      await page.addInitScript(() => {
-        window.localStorage.setItem("proptech_onboarding_seen", "true");
-        window.localStorage.setItem("proptech_onboarding_version", "2");
-      });
-      await page.goto("/", { timeout: 30000 });
-      await page.waitForTimeout(1000);
-      const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
-      expect(bodyWidth).toBeLessThanOrEqual(395);
-    } finally {
-      await ctx.close();
-    }
+  test("Mobile 390 no overflow", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { timeout: 30000 });
+    await page.waitForTimeout(1000);
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+    expect(bodyWidth).toBeLessThanOrEqual(395);
   });
 });

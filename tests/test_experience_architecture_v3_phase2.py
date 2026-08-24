@@ -113,9 +113,9 @@ def test_empty_or_unavailable_charts_use_text_states_and_responsive_wrapping() -
     trend = read("frontend_next/components/data-visualization/trend-line-chart.tsx")
     volume = read("frontend_next/components/data-visualization/volume-bar-chart.tsx")
     empty = read("frontend_next/components/data-visualization/chart-empty-state.tsx")
-    assert 'status !== "available" || data.length === 0' in trend
+    assert '!marketStateHasEvidence(status) || data.length === 0' in trend
     assert "data.length === 1" in trend
-    assert 'status !== "available" || data.length === 0' in volume
+    assert '!marketStateHasEvidence(status) || data.length === 0' in volume
     assert "data.length === 1" in volume
     assert "ExperienceStatePanel" in empty
     assert "role=\"img\"" in trend and "<desc>" in trend

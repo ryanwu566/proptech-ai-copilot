@@ -20,8 +20,12 @@ def test_only_explicit_price_actions_transfer_to_followup_tools() -> None:
     assert "onTransferToLoan" in PRICE_STAGE
     assert "onTransferToHolding" in PRICE_STAGE
     assert "actionsAvailable" in PRICE_STAGE
-    assert "setJourneyPricePrefill" in PAGE
-    assert "actions.goToNextStep()" in PAGE
+    price_stage = PAGE.split('if (step === "price")', 1)[1].split('if (step === "affordability")', 1)[0]
+    assert 'onTransferToLoan={(priceWan) =>' in price_stage
+    assert 'onTransferToHolding={(priceWan, areaPing) =>' in price_stage
+    assert 'selectJourneyPrice(current, "valuation", priceWan)' in price_stage
+    assert "actions.goToNextStep()" in price_stage
+    assert "useEffect" not in price_stage
     assert 't("trust.noPurchase")' in PRICE_STAGE
 
 

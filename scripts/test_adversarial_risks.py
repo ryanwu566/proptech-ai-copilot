@@ -10,7 +10,7 @@ from services.geocoding_acceptance import evaluate_geocoding_acceptance
 PASS = 0
 FAIL = 0
 
-def test(name, query, region, expected_accepted, expected_reasons=None):
+def check_case(name, query, region, expected_accepted, expected_reasons=None):
     global PASS, FAIL
     acc = evaluate_geocoding_acceptance(query, region, "google_geocoding")
     ok = acc["accepted_for_analysis"] == expected_accepted
@@ -35,7 +35,7 @@ print("=" * 70)
 # B: City cannot be implied by non-unique district name
 print("\n--- B: Non-unique district must not imply city ---")
 
-test("B1: same district different city must REJECT",
+check_case("B1: same district different city must REJECT",
     "臺北市中正區忠孝西路一段50號",
     {"city": "基隆市", "district": "中正區", "road": "忠孝西路一段",
      "center": {"lat": 25.13, "lng": 121.74},
@@ -43,7 +43,7 @@ test("B1: same district different city must REJECT",
      "geocoding_metadata": {"route": "忠孝西路一段", "street_number": "50", "location_type": "ROOFTOP", "provider_types": [], "partial_match": False}},
     expected_accepted=False, expected_reasons=["city_mismatch"])
 
-test("B2: same district different city (東區) must REJECT",
+check_case("B2: same district different city (東區) must REJECT",
     "臺南市東區東門路二段160號",
     {"city": "臺中市", "district": "東區", "road": "東門路二段",
      "center": {"lat": 24.14, "lng": 120.68},
@@ -54,7 +54,7 @@ test("B2: same district different city (東區) must REJECT",
 # D: District parsing must handle 前鎮區 correctly
 print("\n--- D: District parsing ---")
 
-test("D1: 前鎮區 matches 前鎮區",
+check_case("D1: 前鎮區 matches 前鎮區",
     "高雄市前鎮區中山二路260號",
     {"city": "高雄市", "district": "前鎮區", "road": "中山二路",
      "center": {"lat": 22.6, "lng": 120.3},
@@ -62,7 +62,7 @@ test("D1: 前鎮區 matches 前鎮區",
      "geocoding_metadata": {"route": "中山二路", "street_number": "260", "location_type": "ROOFTOP", "provider_types": [], "partial_match": False}},
     expected_accepted=True)
 
-test("D2: 中西區 mismatches 東區",
+check_case("D2: 中西區 mismatches 東區",
     "臺南市中西區中山路1號",
     {"city": "臺南市", "district": "東區", "road": "中山路",
      "center": {"lat": 22.99, "lng": 120.2},
@@ -73,7 +73,7 @@ test("D2: 中西區 mismatches 東區",
 # E/F: Section missing must NOT be exact
 print("\n--- E/F: Section missing/mismatch ---")
 
-test("E1: 四段 resolved as missing section must NOT accept",
+check_case("E1: 四段 resolved as missing section must NOT accept",
     "臺北市大安區忠孝東路四段45號",
     {"city": "臺北市", "district": "大安區", "road": "忠孝東路",
      "center": {"lat": 25.04, "lng": 121.55},
@@ -81,7 +81,7 @@ test("E1: 四段 resolved as missing section must NOT accept",
      "geocoding_metadata": {"route": "忠孝東路", "street_number": "45", "location_type": "ROOFTOP", "provider_types": [], "partial_match": False}},
     expected_accepted=False)
 
-test("E2: 四段 → 三段 must REJECT",
+check_case("E2: 四段 → 三段 must REJECT",
     "臺北市大安區忠孝東路四段45號",
     {"city": "臺北市", "district": "大安區", "road": "忠孝東路三段",
      "center": {"lat": 25.04, "lng": 121.55},
@@ -89,7 +89,7 @@ test("E2: 四段 → 三段 must REJECT",
      "geocoding_metadata": {"route": "忠孝東路三段", "street_number": "45", "location_type": "ROOFTOP", "provider_types": [], "partial_match": False}},
     expected_accepted=False, expected_reasons=["street_mismatch"])
 
-test("E3: 四段 → 四段 must ACCEPT",
+check_case("E3: 四段 → 四段 must ACCEPT",
     "臺北市大安區忠孝東路四段45號",
     {"city": "臺北市", "district": "大安區", "road": "忠孝東路四段",
      "center": {"lat": 25.04, "lng": 121.55},
@@ -100,7 +100,7 @@ test("E3: 四段 → 四段 must ACCEPT",
 # O: Safety regressions
 print("\n--- O: Safety regressions ---")
 
-test("O1: 東路 → 西路 must REJECT",
+check_case("O1: 東路 → 西路 must REJECT",
     "忠孝東路四段",
     {"city": "臺北市", "district": "中正區", "road": "忠孝西路一段",
      "center": {"lat": 25.04, "lng": 121.52},
@@ -108,7 +108,7 @@ test("O1: 東路 → 西路 must REJECT",
      "geocoding_metadata": {"route": "忠孝西路一段", "street_number": "", "location_type": "GEOMETRIC_CENTER", "provider_types": [], "partial_match": False}},
     expected_accepted=False, expected_reasons=["street_mismatch"])
 
-test("O2: mock source must NOT be accepted for real analysis",
+check_case("O2: mock source must NOT be accepted for real analysis",
     "臺北市大安區和平東路二段",
     {"city": "台北市", "district": "大安區", "road": "和平東路二段",
      "center": {"lat": 25.03, "lng": 121.54},

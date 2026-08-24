@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("hosted public release smoke remains bounded and usable", async ({ page }) => {
+test("hosted public release smoke remains bounded and usable", { tag: "@hosted" }, async ({ page }) => {
   const testName = test.info().title;
   const consoleErrors: string[] = [];
   const pageErrors: string[] = [];

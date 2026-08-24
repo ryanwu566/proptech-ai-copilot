@@ -16,7 +16,7 @@
  */
 import { test, expect } from "@playwright/test";
 
-test.use({ baseURL: "http://127.0.0.1:3000", viewport: { width: 1440, height: 900 } });
+test.use({ viewport: { width: 1440, height: 900 } });
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -468,23 +468,11 @@ test.describe("TASK 8: MOBILE 390 MARKET FLOW", () => {
     // Step 1: Journey page loads
     await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
 
-    // Navigate to Market Insight — on mobile, sidebar might need menu toggle
-    // First try direct sidebar button
+    // Navigate through the user-visible mobile menu with one semantic target.
+    await page.getByRole("button", { name: "開啟選單", exact: true }).click();
     const sidebar = page.locator("aside[aria-label='分析工具']");
-    const sidebarVisible = await sidebar.isVisible().catch(() => false);
-
-    if (!sidebarVisible) {
-      // Try menu toggle button
-      const menuToggle = page.getByRole("button", { name: /選單|menu|toggle/i }).first();
-      if (await menuToggle.isVisible().catch(() => false)) {
-        await menuToggle.click();
-        await page.waitForTimeout(500);
-      }
-    }
-
-    // Try clicking Market Insight button (it may be visible even on mobile)
-    const marketBtn = page.locator("button").filter({ hasText: "Market Insight" }).first();
-    await marketBtn.click({ timeout: 5000 });
+    await expect(sidebar).toBeVisible();
+    await sidebar.getByRole("button", { name: "Market Insight", exact: true }).click();
     await expect(page.getByTestId("market-insight-search-form")).toBeVisible({ timeout: 8000 });
 
     // Execute market search

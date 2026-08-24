@@ -25,9 +25,12 @@ def test_phase3_stages_use_headings_and_native_controls() -> None:
     assert "aria-hidden={activeSecondaryTool !== \"tax\"}" in affordability
 
 
-def test_price_search_and_missing_data_are_disclosures_not_primary_headers() -> None:
+def test_price_workspace_and_missing_data_have_accessible_structure() -> None:
     price = read("price-decision-stage.tsx")
-    assert "<details" in price
+    assert 'aria-labelledby="price-decision-workspace-heading"' in price
+    assert 'id="price-decision-workspace-heading"' in price
+    assert 'data-testid="price-decision-workspace"' in price
     assert "JourneyMissingDataPanel" in price
     assert 't("journey.price.title")' in price
-    assert 't("journey.affordability.next")' in price
+    assert 'onClick={onContinueToAffordability}' in price
+    assert 'type="button"' in price

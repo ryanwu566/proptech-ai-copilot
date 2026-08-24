@@ -5,8 +5,9 @@
  * then verifies identity propagation through Journey stages.
  */
 import { test, expect } from "@playwright/test";
+import { realProviderUrl } from "./real-provider";
 
-test.use({ baseURL: "http://127.0.0.1:3000", viewport: { width: 1440, height: 900 } });
+test.use({ viewport: { width: 1440, height: 900 } });
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -61,8 +62,13 @@ test("PropertyFinder A to B race keeps only the latest row identity", async ({ p
   expect(requests).toBe(2);
 });
 
-test("Real PropertyFinder selection + Journey propagation", async ({ page }) => {
+test("Real PropertyFinder selection + Journey propagation", { tag: "@real-provider" }, async ({ page }) => {
   test.setTimeout(120000);
+
+  await page.route("**/valuation/property-search", async (route) => {
+    const response = await route.fetch({ url: realProviderUrl("/valuation/property-search") });
+    await route.fulfill({ response });
+  });
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: "建立物件情境" })).toBeVisible({ timeout: 10000 });

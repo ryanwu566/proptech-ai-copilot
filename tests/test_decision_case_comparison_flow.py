@@ -5,15 +5,17 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next/app/page.tsx").read_text(encoding="utf-8")
-COMMAND_CENTER = (ROOT / "frontend_next/components/property-case-command-center.tsx").read_text(encoding="utf-8")
 CASE_MANAGER = (ROOT / "frontend_next/components/case-manager.tsx").read_text(encoding="utf-8")
 WORKBENCH = (ROOT / "frontend_next/components/data-visualization/property-case-comparison-workbench.tsx").read_text(encoding="utf-8")
 
 
-def test_embedded_command_center_hides_duplicate_comparison_by_default() -> None:
-    assert 'showComparison={false}' in PAGE
-    assert "showComparison = true" in COMMAND_CENTER
-    assert "{showComparison && <PropertyCaseComparisonWorkbench />" in COMMAND_CENTER
+def test_journey_case_manager_has_one_explicit_comparison_surface() -> None:
+    journey_section = PAGE.split("function renderJourneyStep", 1)[1].split("function Dashboard", 1)[0]
+    assert 'renderCommandCenter={() => <CaseManager current={currentCase} />}' in journey_section
+    assert "PropertyCaseCommandCenter" not in journey_section
+    assert CASE_MANAGER.count("<CaseComparisonPanel") == 1
+    assert "{compareOpen && <CaseComparisonPanel" in CASE_MANAGER
+    assert "disabled={selectedIds.length < 2}" in CASE_MANAGER
 
 
 def test_saved_cases_require_explicit_selection_and_keep_two_to_three_limit() -> None:

@@ -22,7 +22,9 @@ def test_price_step_uses_one_embedded_valuation_workspace_and_explicit_transfers
     assert 't("trust.noPurchase")' in STAGE
 
 
-def test_property_search_is_progressively_disclosed_in_price_stage() -> None:
-    assert "<details" in STAGE
-    assert 't("evidence.details")' in STAGE
-    assert "<PropertyFinder embedded" in PAGE
+def test_price_stage_reuses_selected_property_without_duplicate_search() -> None:
+    price_stage = PAGE.split('if (step === "price")', 1)[1].split('if (step === "affordability")', 1)[0]
+    assert "<ValuationPage embedded" in price_stage
+    assert "<PropertyFinder" not in price_stage
+    assert 'data-testid="price-decision-workspace"' in STAGE
+    assert "JourneyMissingDataPanel" in STAGE
