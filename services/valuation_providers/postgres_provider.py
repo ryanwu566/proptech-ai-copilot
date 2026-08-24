@@ -383,6 +383,7 @@ class PostgresValuationProvider:
         return psycopg.connect(
             self.database_url,
             connect_timeout=self.connect_timeout,
+            options="-c default_transaction_read_only=on -c statement_timeout=10000",
             prepare_threshold=None,
             row_factory=dict_row,
         )

@@ -148,6 +148,8 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
             if source == "google_geocoding" and acceptance["accepted_for_analysis"]
             else "medium"
             if source == "tgos_geocoding" and acceptance["accepted_for_analysis"]
+            else "mock"
+            if source == "mock"
             else "low"
             if not acceptance["accepted_for_analysis"]
             else "mock"

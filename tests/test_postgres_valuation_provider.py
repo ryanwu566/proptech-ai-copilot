@@ -96,4 +96,5 @@ def test_postgres_provider_disables_prepared_statements(monkeypatch) -> None:
     monkeypatch.setattr(psycopg, "connect", fake_connect)
     connection = PostgresValuationProvider("postgresql://test")._connect()
     assert connection is sentinel
+    assert captured["options"] == "-c default_transaction_read_only=on -c statement_timeout=10000"
     assert captured["prepare_threshold"] is None
