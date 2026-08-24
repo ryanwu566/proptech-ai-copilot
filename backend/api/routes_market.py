@@ -10,7 +10,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Header, Response, status
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 router = APIRouter(tags=["market-insight"])
 logger = logging.getLogger("proptech.market")
@@ -90,6 +90,74 @@ class MarketComparableRequest(BaseModel):
         return value
 
 
+class MarketSegmentRequest(BaseModel):
+    """Validated, bounded filters for the read-only PLVR segmentation engine."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    county: str
+    district: str
+    period_months: int = Field(default=36, ge=1, le=120)
+    period_from: str | None = None
+    period_to: str | None = None
+    building_type: str = "住宅大樓"
+    area_min_ping: float = Field(default=30, gt=0, le=500)
+    area_max_ping: float = Field(default=40, gt=0, le=500)
+    age_min_years: float | None = Field(default=None, ge=0, le=200)
+    age_max_years: float | None = Field(default=None, gt=0, le=200)
+    known_age_only: bool = False
+    floor_position: str = ""
+    high_value_only: bool = False
+    high_value_threshold_wan: float = Field(default=3000, ge=1, le=100_000)
+    target_area_ping: float | None = Field(default=None, gt=0, le=500)
+    target_age_years: float | None = Field(default=None, gt=0, le=200)
+
+    @field_validator("building_type")
+    @classmethod
+    def bound_building_type(cls, value: str) -> str:
+        clean = value.strip()
+        if len(clean) > 80:
+            raise ValueError("building_type is too long")
+        return clean
+
+    @field_validator("floor_position")
+    @classmethod
+    def allowed_floor_position(cls, value: str) -> str:
+        clean = value.strip()
+        if clean not in {"", "low", "middle", "high"}:
+            raise ValueError("unsupported floor position")
+        return clean
+
+    @model_validator(mode="after")
+    def validate_filter_relationships(self) -> "MarketSegmentRequest":
+        from services.plvr_data_integrity import is_publishable_transaction_period
+        from services.taiwan_admin_registry import normalize_market_region
+
+        region = normalize_market_region(self.county, self.district)
+        if not region.valid or not region.district:
+            raise ValueError("invalid county/district")
+        self.county = region.county
+        self.district = region.district
+        if self.area_min_ping >= self.area_max_ping:
+            raise ValueError("area_min_ping must be below area_max_ping")
+        if self.age_min_years is not None and self.age_max_years is not None and self.age_min_years > self.age_max_years:
+            raise ValueError("age_min_years must not exceed age_max_years")
+        if bool(self.period_from) != bool(self.period_to):
+            raise ValueError("period_from and period_to are required together")
+        if self.period_from and self.period_to:
+            if not is_publishable_transaction_period(self.period_from) or not is_publishable_transaction_period(self.period_to):
+                raise ValueError("period range is invalid or in the future")
+            if self.period_from > self.period_to:
+                raise ValueError("period_from must not exceed period_to")
+        return self
+
+
+class MarketSegmentComparableRequest(MarketSegmentRequest):
+    """Segmentation filters plus a bounded evidence-row limit."""
+
+    limit: int = Field(default=8, ge=1, le=10)
+
+
 @router.get("/market-insights/status")
 def get_market_insight_status() -> dict[str, Any]:
     """Return safe PLVR market aggregate status metadata."""
@@ -145,6 +213,26 @@ def post_market_insight_comparables(request: MarketComparableRequest) -> dict[st
     from services.official_market_query import query_comparables
 
     return query_comparables(request.county, request.district, request.transaction_type, request.limit)
+
+
+@router.post("/market-insights/segments")
+def post_market_segment(request: MarketSegmentRequest) -> dict[str, Any]:
+    """Return read-only segment statistics from current official PLVR rows."""
+
+    from services.market_segmentation_service import get_market_segment
+
+    return get_market_segment(request.model_dump())
+
+
+@router.post("/market-insights/segment-comparables")
+def post_market_segment_comparables(request: MarketSegmentComparableRequest) -> dict[str, Any]:
+    """Return transparent comparable facts without a synthesized score."""
+
+    from services.market_segmentation_service import get_market_segment_comparables
+
+    payload = request.model_dump()
+    limit = payload.pop("limit")
+    return get_market_segment_comparables(payload, limit=limit)
 
 
 @router.post("/market-insights/query")

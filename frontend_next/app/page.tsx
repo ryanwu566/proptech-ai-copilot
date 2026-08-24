@@ -31,6 +31,7 @@ import { FreshnessIndicator } from "@/components/data-visualization/freshness-in
 import { TrendLineChart } from "@/components/data-visualization/trend-line-chart";
 import { VolumeBarChart } from "@/components/data-visualization/volume-bar-chart";
 import { MarketInsightEvidencePanel } from "@/components/data-visualization/market-insight-evidence-panel";
+import { MarketSegmentationPanel } from "@/components/market-segmentation-panel";
 import { buildValuationShareUrl, buildValuationSummaryHtml, parseValuationShareParams, valuationSummaryFilename, ValuationInputs } from "@/lib/valuation-share";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { buildWorkflowStatus, markTaxOracleCompleted, markWorkflowReportCompleted, OPEN_TAXORACLE_EVENT, readWorkflowSession, type WorkflowStatus } from "@/lib/workflow-status";
@@ -830,6 +831,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
       <p className="mt-3 text-xs leading-5 text-slate-500">{copy("common.dataLimit")}</p>
     </SectionCard>
     {result && <MarketInsightVisualResult result={result} model={visualModel} uiState={uiState} evidenceDisclosure={evidenceDisclosure} />}
+    {result && !embedded && <MarketSegmentationPanel county={canonicalCounty} district={canonicalDistrict} />}
   </div>;
 }
 

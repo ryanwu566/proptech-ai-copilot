@@ -128,6 +128,93 @@ export type MarketResult = {
   latest_imported_at?: string | null;
 };
 
+export type MarketSegmentState = "available" | "low_sample" | "partial" | "no_data" | "unavailable";
+export type MarketSegmentFilters = {
+  county: string;
+  district: string;
+  period_months?: number;
+  period_from?: string | null;
+  period_to?: string | null;
+  building_type?: string;
+  area_min_ping: number;
+  area_max_ping: number;
+  age_min_years?: number | null;
+  age_max_years?: number | null;
+  known_age_only?: boolean;
+  floor_position?: "" | "low" | "middle" | "high";
+  high_value_only?: boolean;
+  high_value_threshold_wan?: number;
+  target_area_ping?: number | null;
+  target_age_years?: number | null;
+};
+export type MarketSegmentResult = {
+  state: MarketSegmentState;
+  data_status: MarketSegmentState;
+  reason_code?: string;
+  county: string;
+  district: string;
+  segment_identity: string;
+  matching_transaction_count: number | null;
+  eligible_transaction_count: number | null;
+  base_transaction_count: number | null;
+  excluded_transaction_count: number | null;
+  known_age_count: number | null;
+  unknown_age_count: number | null;
+  known_floor_count: number | null;
+  unknown_floor_count: number | null;
+  average_unit_price_per_ping: number | null;
+  median_unit_price_per_ping: number | null;
+  p25_unit_price_per_ping: number | null;
+  p75_unit_price_per_ping: number | null;
+  average_total_price_wan: number | null;
+  period_min: string | null;
+  period_max: string | null;
+  filters_applied: MarketSegmentFilters & { period_from: string; period_to: string; building_type: string; high_value_threshold_wan: number };
+  building_type_distribution: { category: string; count: number; raw_values: string[] }[];
+  floor_position_rule: string;
+  source: string;
+  source_updated_at: string | null;
+  sample_state: MarketSegmentState;
+  caveats: string[];
+};
+export type MarketComparableEvidence = {
+  transaction_period: string;
+  county: string;
+  district: string;
+  road: string;
+  location_display: string;
+  building_type: string;
+  raw_building_type: string;
+  area_ping: number | null;
+  floor: number | null;
+  total_floor: number | null;
+  floor_position: "low" | "middle" | "high" | null;
+  approximate_building_age_years: number | null;
+  total_price_wan: number | null;
+  unit_price_per_ping: number | null;
+  area_difference_ping: number | null;
+  age_difference_years: number | null;
+  floor_position_relationship: "same" | "known" | "unknown";
+  period_recency_months: number | null;
+  source: string;
+};
+export type MarketSegmentComparablesResult = {
+  state: MarketSegmentState;
+  data_status: MarketSegmentState;
+  reason_code?: string;
+  county: string;
+  district: string;
+  filters_applied: MarketSegmentResult["filters_applied"];
+  comparable_count: number | null;
+  comparables: MarketComparableEvidence[];
+  ordering_method: string;
+  dedupe_method: string;
+  opaque_similarity_score: false;
+  coordinates_required: false;
+  source: string;
+  caveats: string[];
+};
+
 export const MARKET_REQUEST_REASON_CODES = [
   "market_request_cors_failed",
   "market_request_origin_rejected",
@@ -513,6 +600,10 @@ export const api = {
   marketReleases: () => request<Record<string, unknown>>("/market-insights/releases"),
   marketComparables: (payload: { county: string; district: string; transaction_type?: string; limit?: number }) =>
     request<Record<string, unknown>>("/market-insights/comparables", { method: "POST", body: JSON.stringify(payload) }),
+  marketSegment: (payload: MarketSegmentFilters, signal?: AbortSignal) =>
+    request<MarketSegmentResult>("/market-insights/segments", { method: "POST", body: JSON.stringify(payload), signal }),
+  marketSegmentComparables: (payload: MarketSegmentFilters & { limit?: number }, signal?: AbortSignal) =>
+    request<MarketSegmentComparablesResult>("/market-insights/segment-comparables", { method: "POST", body: JSON.stringify(payload), signal }),
   mapRegions: () => request<{ id: string; city: string; district: string; road: string; center: { lat: number; lng: number } }[]>("/map/regions"),
   mapCategories: () => request<{ category: string; label: string }[]>("/map/poi-categories"),
   mapGoogleHealth: () => request<GoogleHealth>("/map/google-health"),

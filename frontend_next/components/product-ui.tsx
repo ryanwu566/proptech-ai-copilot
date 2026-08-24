@@ -93,9 +93,9 @@ export function MetricTile({ label, value, note }: { label: string; value: React
   return <div className="rounded-xl border border-stone-200 bg-white px-4 py-3"><p className="text-xs font-semibold text-slate-500">{label}</p><div className="mt-1 text-2xl font-bold text-slate-950">{value}</div>{note && <p className="mt-1 text-xs text-slate-400">{note}</p>}</div>;
 }
 
-export function SectionCard({ title, description, children, className = "", helpKey }: { title?: string; description?: string; children: ReactNode; className?: string; helpKey?: HelpKey }) {
+export function SectionCard({ title, description, children, className = "", helpKey, collapsible }: { title?: string; description?: string; children: ReactNode; className?: string; helpKey?: HelpKey; collapsible?: boolean }) {
   const resolvedHelpKey = helpKey ?? (title ? inferHelpKey(title) : undefined);
-  const technicalDetail = title ? ["可比成交", "本次估算依據", "市場趨勢", "估價資料狀態"].some((keyword) => title.includes(keyword)) : false;
+  const technicalDetail = collapsible ?? (title ? ["可比成交", "本次估算依據", "市場趨勢", "估價資料狀態"].some((keyword) => title.includes(keyword)) : false);
   return <section className={`rounded-xl border border-stone-200 bg-white ${className}`}>{title && <div className="border-b border-stone-100 px-4 py-3.5"><div className="flex items-center gap-2"><h2 className="font-bold text-slate-950">{title}</h2>{resolvedHelpKey && <HelpTooltip title={HELP_CONTENT[resolvedHelpKey].title}>{HELP_CONTENT[resolvedHelpKey].body}</HelpTooltip>}</div>{description && <p className="mt-1 text-xs text-slate-500">{description}</p>}</div>}<div className="p-4">{technicalDetail ? <DetailDisclosure title={`查看${title}詳細資料`}>{children}</DetailDisclosure> : children}</div></section>;
 }
 
