@@ -26,6 +26,24 @@ test.describe("Production Smoke", { tag: "@hosted" }, () => {
   test("Homepage loads", async ({ page }) => {
     await page.goto("/", { timeout: 30000 });
     await expect(page.locator("#main-content")).toBeVisible({ timeout: 15000 });
+    const hero = page.locator("#hero");
+    const journey = page.locator("#guided-property-journey");
+    await expect(hero).toHaveCount(1);
+    await expect(hero.getByRole("heading", { level: 1 })).toContainText("不動產智慧分析，加速物件決策");
+    await expect(journey).toBeVisible();
+    expect(await page.evaluate(() => {
+      const heroNode = document.querySelector("#hero");
+      const journeyNode = document.querySelector("#guided-property-journey");
+      return Boolean(heroNode && journeyNode && (heroNode.compareDocumentPosition(journeyNode) & Node.DOCUMENT_POSITION_FOLLOWING));
+    })).toBe(true);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+
+    await page.getByTestId("locale-switcher").selectOption("en");
+    await expect(hero.getByRole("heading", { level: 1 })).toContainText("Real Estate Intelligence for Faster Property Decisions");
+    const primaryCta = hero.getByRole("button", { name: "Analyze a Property" });
+    await expect(primaryCta).toBeVisible();
+    await primaryCta.click();
+    await expect(page.locator("#journey-stage-property")).toBeVisible();
   });
 
   test("Aegis page reachable and form visible", async ({ page }) => {
@@ -65,6 +83,8 @@ test.describe("Production Smoke", { tag: "@hosted" }, () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/", { timeout: 30000 });
     await page.waitForTimeout(1000);
+    await expect(page.locator("#hero")).toHaveCount(1);
+    await expect(page.locator("#guided-property-journey")).toBeVisible();
     const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
     expect(bodyWidth).toBeLessThanOrEqual(395);
   });

@@ -169,7 +169,11 @@ export default function Home() {
     if (action.type === "stop_read_aloud") window.dispatchEvent(new Event("proptech:stop-read-aloud"));
     if (action.type === "repeat_summary") window.dispatchEvent(new Event("proptech:repeat-read-aloud"));
   };
-  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <><CompetitionMvpBanner onDemo={() => setPage("Competition Demo" as AppPage)} onEvidence={() => setPage("Evidence Center" as AppPage)} onPilot={() => setPage("Closed Pilot")} /><GuidedPropertyJourney renderStep={renderJourneyStep} /></> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  function openJourneyStep(step: JourneyStepId) {
+    window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: step }));
+    window.requestAnimationFrame(() => document.getElementById(`journey-stage-${step}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
+  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <div className="space-y-6"><CompetitionMvpBanner onDemo={() => setPage("Competition Demo" as AppPage)} onEvidence={() => setPage("Evidence Center" as AppPage)} onPilot={() => setPage("Closed Pilot")} /><HeroIntro onStart={() => openJourneyStep("property")} onWorkspace={() => openJourneyStep("property")} reportReady={Boolean(journeyState.valuationResult)} onReport={() => openJourneyStep("decision")} /><GuidedPropertyJourney renderStep={renderJourneyStep} /></div> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 function buildJourneySaveCase(state: ClosedLoopJourneyState): SaveCaseInput {

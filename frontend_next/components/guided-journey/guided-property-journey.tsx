@@ -42,10 +42,10 @@ export function GuidedPropertyJourney({ renderStep }: { renderStep: (step: Journ
   };
 
   const activeCopy = getJourneyStepCopy(activeStep, t);
-  return <section aria-label={t("journey.title")} className="space-y-5">
+  return <section id="guided-property-journey" aria-label={t("journey.title")} className="space-y-5">
     <header className="rounded-2xl border border-cyan-200 bg-slate-950 px-4 py-6 text-white shadow-lg sm:px-6 sm:py-8">
       <p className="text-[10px] font-bold tracking-[0.2em] text-cyan-200">{t("journey.eyebrow")}</p>
-      <h1 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">{t("journey.title")}</h1>
+      <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">{t("journey.title")}</h2>
       <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{t("journey.description")}</p>
       <p className="mt-4 text-xs leading-5 text-cyan-100">{t("journey.current")}: {activeCopy.title}</p>
     </header>
