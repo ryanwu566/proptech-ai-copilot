@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { api, PropertySearchResult, PropertySearchSuggestion, PropertySearchTransaction } from "@/lib/api";
 import { Button, EmptyState, Notice } from "@/components/ui";
@@ -29,7 +29,7 @@ export type PropertyFinderSelection = {
   asking_price_wan: number;
 };
 
-export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult, embedded = false }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number, selection: PropertyFinderSelection) => void; onUseForHoldingCost: (priceWan: number, areaPing: number, selection: PropertyFinderSelection) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult) => void; initialResult?: PropertySearchResult; embedded?: boolean }) {
+export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldingCost, onUseForLocationInsight, onResult, initialResult, embedded = false }: { onUseForValuation: (selection: PropertyFinderSelection) => void; onUseForLoan: (priceWan: number, selection: PropertyFinderSelection) => void; onUseForHoldingCost: (priceWan: number, areaPing: number, selection: PropertyFinderSelection) => void; onUseForLocationInsight: (selection: PropertyFinderSelection, priceWan: number) => void; onResult?: (result: PropertySearchResult | undefined) => void; initialResult?: PropertySearchResult; embedded?: boolean }) {
   const { copy, locale } = useExperienceLocale();
   const [city, setCity] = useState("");
   const [districtText, setDistrictText] = useState("");
@@ -43,10 +43,14 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
+  const requestSequence = useRef(0);
+  const requestController = useRef<AbortController | undefined>(undefined);
 
   useEffect(() => {
     if (initialResult) setResult(initialResult);
   }, [initialResult]);
+
+  useEffect(() => () => requestController.current?.abort("property_finder_unmounted"), []);
 
   useEffect(() => {
     function applyDemoResult(event: Event) {
@@ -58,15 +62,33 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
   }, []);
 
   function loadDemoConditions() {
+    invalidateSearchEvidence();
     setCity("台北市"); setDistrictText("大安區"); setBudgetMin(1500); setBudgetMax(2500);
-    setAreaMin(25); setAreaMax(35); setBuildingType("住宅大樓"); setAgeMax(""); setResult(undefined);
+    setAreaMin(25); setAreaMax(35); setBuildingType("住宅大樓"); setAgeMax("");
     setFeedback(`${copy("finder.demo")} — ${copy("finder.search")}`);
+  }
+
+  function invalidateSearchEvidence() {
+    requestController.current?.abort("property_finder_inputs_changed");
+    requestController.current = undefined;
+    requestSequence.current += 1;
+    setLoading(false);
+    setResult(undefined);
+    setError("");
+    onResult?.(undefined);
   }
 
   async function search() {
     if (!budgetMax) return;
+    requestController.current?.abort("property_finder_replaced");
+    const controller = new AbortController();
+    requestController.current = controller;
+    const requestId = requestSequence.current + 1;
+    requestSequence.current = requestId;
     setLoading(true);
     setError("");
+    setResult(undefined);
+    onResult?.(undefined);
     try {
       const next = await api.propertySearch({
         city,
@@ -78,27 +100,29 @@ export function PropertyFinder({ onUseForValuation, onUseForLoan, onUseForHoldin
         building_type: buildingType,
         building_age_max: ageMax || undefined,
         limit: 50,
-      });
+      }, controller.signal);
+      if (requestSequence.current !== requestId) return;
       setResult(next);
       onResult?.(next);
     } catch {
-      setError(copy("finder.error"));
+      if (requestSequence.current === requestId) setError(copy("finder.error"));
     } finally {
-      setLoading(false);
+      if (requestController.current === controller) requestController.current = undefined;
+      if (requestSequence.current === requestId) setLoading(false);
     }
   }
 
   const inputClass = "w-full min-w-0 rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm outline-none transition focus:border-cyan-600 focus:ring-2 focus:ring-cyan-100";
   return <div className="min-w-0 space-y-8"><div id="property-finder" className="scroll-mt-20"><SectionCard title={copy("finder.title")} description={copy("finder.description")}>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <label className="text-xs text-slate-500">{copy("finder.county")}<input className={`${inputClass} mt-1`} value={city} onChange={(event) => setCity(event.target.value)} placeholder={copy("finder.county")} /></label>
-      <label className="text-xs text-slate-500">{copy("finder.district")}<input className={`${inputClass} mt-1`} value={districtText} onChange={(event) => setDistrictText(event.target.value)} placeholder={copy("finder.district")} /></label>
-      <NumberInput label={copy("finder.budgetMin")} value={budgetMin} onChange={setBudgetMin} />
-      <NumberInput label={copy("finder.budgetMax")} value={budgetMax} onChange={setBudgetMax} />
-      <NumberInput label={copy("finder.areaMin")} value={areaMin} onChange={setAreaMin} />
-      <NumberInput label={copy("finder.areaMax")} value={areaMax} onChange={setAreaMax} />
-      <label className="text-xs text-slate-500">{copy("finder.buildingType")}<select data-localize-structured-select data-option-kind="building" className={`${inputClass} mt-1`} value={buildingType} onChange={(event) => setBuildingType(event.target.value)}><option value="">{copy("finder.unlimited")}</option>{BUILDING_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{getLocalizedBuildingTypeLabel(option.value, locale)}</option>)}</select></label>
-      <NumberInput label={copy("finder.ageMax")} value={ageMax} onChange={setAgeMax} />
+      <label className="text-xs text-slate-500">{copy("finder.county")}<input className={`${inputClass} mt-1`} value={city} onChange={(event) => { invalidateSearchEvidence(); setCity(event.target.value); }} placeholder={copy("finder.county")} /></label>
+      <label className="text-xs text-slate-500">{copy("finder.district")}<input className={`${inputClass} mt-1`} value={districtText} onChange={(event) => { invalidateSearchEvidence(); setDistrictText(event.target.value); }} placeholder={copy("finder.district")} /></label>
+      <NumberInput label={copy("finder.budgetMin")} value={budgetMin} onChange={(value) => { invalidateSearchEvidence(); setBudgetMin(value); }} />
+      <NumberInput label={copy("finder.budgetMax")} value={budgetMax} onChange={(value) => { invalidateSearchEvidence(); setBudgetMax(value); }} />
+      <NumberInput label={copy("finder.areaMin")} value={areaMin} onChange={(value) => { invalidateSearchEvidence(); setAreaMin(value); }} />
+      <NumberInput label={copy("finder.areaMax")} value={areaMax} onChange={(value) => { invalidateSearchEvidence(); setAreaMax(value); }} />
+      <label className="text-xs text-slate-500">{copy("finder.buildingType")}<select data-localize-structured-select data-option-kind="building" className={`${inputClass} mt-1`} value={buildingType} onChange={(event) => { invalidateSearchEvidence(); setBuildingType(event.target.value); }}><option value="">{copy("finder.unlimited")}</option>{BUILDING_TYPE_OPTIONS.map((option) => <option key={option.value} value={option.value}>{getLocalizedBuildingTypeLabel(option.value, locale)}</option>)}</select></label>
+      <NumberInput label={copy("finder.ageMax")} value={ageMax} onChange={(value) => { invalidateSearchEvidence(); setAgeMax(value); }} />
     </div>
     <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
       <Button className="w-full sm:w-auto" disabled={loading || !budgetMax} onClick={search}>{loading ? copy("finder.searching") : copy("finder.search")}</Button>
