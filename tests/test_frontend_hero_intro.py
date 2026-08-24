@@ -12,20 +12,23 @@ WALKTHROUGH = (ROOT / "frontend_next" / "components" / "friendly-intro-walkthrou
 
 def test_hero_intro_explains_the_buying_decision_task() -> None:
     assert "HeroIntro" in HERO
-    for key in ("hero.title", "hero.description", "hero.report", "hero.primary"):
+    for key in ("hero.title", "hero.description", "hero.primary", "hero.secondaryCta", "hero.capabilityLabel", "hero.disclaimer"):
         assert f't("{key}")' in HERO
-    assert "outcomeCards" in HERO
+    assert "capabilities" in HERO
+    assert "trustItems" in HERO
     assert "FriendlyIntroWalkthrough" in HERO
 
 
 def test_hero_ctas_keep_real_navigation_handlers() -> None:
-    for handler in ("onStart", "onWorkspace", "onReport"):
+    for handler in ("onStart", "onWorkspace"):
         assert f"onClick={{{handler}}}" in HERO
+    assert "onReport" in HERO
     assert "continueWorkflow" in PAGE
     assert "workflowStatus.nextActionTargetId" in PAGE
     assert 'openViewingFlow("immersive-workspace")' in PAGE
     assert 'openViewingFlow("decision-report")' in PAGE
-    assert "disabled={!reportReady}" in HERO
+    assert 'data-action-kind="primary"' in HERO
+    assert 'data-action-kind="secondary"' in HERO
 
 
 def test_hero_animation_is_local_and_reduced_motion_safe() -> None:

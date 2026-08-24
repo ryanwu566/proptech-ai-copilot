@@ -42,4 +42,6 @@ def test_no_new_persistence_or_automatic_analysis_is_added() -> None:
     assert "localStorage" not in journey_section
     assert "URLSearchParams" not in journey_section
     assert "saveCase(" not in journey_section
-    assert "setItem(" in PAGE.split("const openViewingFlow", 1)[1].split("function renderJourneyStep", 1)[0]
+    legacy_dashboard = PAGE.split("function Dashboard", 1)[1]
+    assert 'window.sessionStorage.setItem("proptech:pending-section", target)' in legacy_dashboard
+    assert "sessionStorage" not in journey_section

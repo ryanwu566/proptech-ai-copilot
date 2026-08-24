@@ -23,13 +23,16 @@ def _market_insight_component() -> str:
 
 def test_market_insight_queries_only_on_button_click_without_catalog_scan() -> None:
     component = _market_insight_component()
+    synchronization = component.split("async function query", 1)[0]
 
     assert "api.marketCatalog()" not in component
     assert "api.marketRegions" not in component
     assert "api.marketStatus" not in component
     assert "onSubmit={submitQuery}" in component
     assert 'type="submit"' in component
-    assert "useEffect" not in component
+    assert "api." not in synchronization
+    assert "query()" not in synchronization
+    assert component.count("api.marketInsight(") == 1
     assert "api.marketInsight(first.city" not in component
     assert "api.marketInsight(canonicalCounty, canonicalDistrict, undefined, controller.signal)" in component
     assert "AbortController" in component
@@ -48,8 +51,11 @@ def test_market_insight_has_canonical_county_and_dependent_district_selectors() 
 
     assert 'copy("common.selectCounty")' in component
     assert 'copy("common.selectDistrict")' in component
-    assert "<select value={canonicalCounty}" in component
-    assert "<select value={canonicalDistrict}" in component
+    assert 'data-testid="market-county-select"' in component
+    assert 'value={canonicalCounty}' in component
+    assert 'data-testid="market-district-select"' in component
+    assert 'value={canonicalDistrict}' in component
+    assert 'disabled={!canonicalCounty}' in component
     assert "!canonicalCounty || !canonicalDistrict" in component
     assert "setDistrict(\"\")" in component
     assert "marketQuerySeq.current += 1" in component
@@ -104,14 +110,19 @@ def test_market_api_contract_has_direct_query_endpoint_and_history() -> None:
     assert "esg_lite_score" not in API.split("export type MarketResult", 1)[1].split("export type MarketRegion", 1)[0]
 
 
-def test_market_display_state_helper_requires_covered_positive_complete_data() -> None:
-    assert 'export type MarketDisplayState = "available" | "no_data" | "unavailable";' in STATE_HELPER
-    assert 'result?.data_status === "available"' in STATE_HELPER
-    assert 'result.coverage_status === "covered"' in STATE_HELPER
+def test_market_display_state_helper_keeps_evidence_states_conservative() -> None:
+    assert 'export type MarketDisplayState = "available" | "low_sample" | "partial" | "no_data" | "unavailable" | "stale";' in STATE_HELPER
+    assert 'result.data_status === "available"' in STATE_HELPER
+    assert 'result.coverage_status === "not_covered"' in STATE_HELPER
+    assert 'result.coverage_status === "coverage_unknown"' in STATE_HELPER
     assert "Number.isFinite" in STATE_HELPER
     assert "result.avg_price_per_ping === result.average_unit_price" in STATE_HELPER
     assert "result.transaction_volume === result.transaction_count" in STATE_HELPER
-    assert 'result?.data_status === "no_data" && result.coverage_status === "covered"' in STATE_HELPER
+    assert 'result?.data_status === "no_data"' in STATE_HELPER
+    assert 'return hasPartialEvidence ? "partial" : "unavailable"' in STATE_HELPER
+    assert 'return "low_sample"' in STATE_HELPER
+    assert 'return "stale"' in STATE_HELPER
+    assert 'state === "available" || state === "low_sample" || state === "partial" || state === "stale"' in STATE_HELPER
     assert "Number(value || 0)" not in STATE_HELPER
     assert "value ?? 0" not in STATE_HELPER
 

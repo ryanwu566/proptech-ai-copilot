@@ -11,9 +11,10 @@ RUNTIME_COPY = (ROOT / "frontend_next" / "lib" / "runtime-copy.ts").read_text(en
 
 
 def test_home_explains_the_problem_and_final_outcome() -> None:
-    for key in ("hero.title", "hero.description", "hero.primary", "hero.report"):
+    for key in ("hero.title", "hero.description", "hero.primary", "hero.secondaryCta", "hero.capabilityLabel", "hero.disclaimer"):
         assert f't("{key}")' in HERO
-    assert "outcomeCards" in HERO
+    assert "capabilities" in HERO
+    assert "trustItems" in HERO
 
 
 def test_primary_entries_are_user_tasks_with_real_handlers() -> None:

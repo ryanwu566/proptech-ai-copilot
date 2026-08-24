@@ -27,5 +27,6 @@ def test_explicit_transfer_language_is_present_without_automatic_analysis() -> N
     stage = (ROOT / "frontend_next/components/guided-journey/location-market-stage.tsx").read_text(encoding="utf-8")
     selector = (ROOT / "frontend_next/components/guided-journey/location-market-tool-selector.tsx").read_text(encoding="utf-8")
     assert 'aria-pressed={activeTool === tool.id}' in selector
-    assert 't("journey.price.next")' in stage
+    assert 't("journey.location.next")' in stage
+    assert "onContinueToPrice(propertyContext)" in stage
     assert 't("trust.noPurchase")' in stage

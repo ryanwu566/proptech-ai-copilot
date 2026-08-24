@@ -48,7 +48,7 @@ def test_charts_have_safe_empty_states_and_no_chart_dependency() -> None:
     trend = (VISUAL_DIR / "trend-line-chart.tsx").read_text(encoding="utf-8")
     volume = (VISUAL_DIR / "volume-bar-chart.tsx").read_text(encoding="utf-8")
     for source in [trend, volume]:
-        assert "status !== \"available\"" in source
+        assert "marketStateHasEvidence(status)" in source
         assert "data.length === 0" in source
         assert "role=\"img\"" in source
         assert "<title>" in source

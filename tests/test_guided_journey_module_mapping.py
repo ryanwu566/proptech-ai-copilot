@@ -42,5 +42,7 @@ def test_mapping_does_not_turn_reference_tools_into_decision_scores() -> None:
 def test_all_five_customer_questions_and_tools_are_visible() -> None:
     for key in ("journey.property.question", "journey.location.question", "journey.price.question", "journey.affordability.question", "journey.decision.question"):
         assert key in HELPER
-    for tool in ("PropertyFinder", "LocationInsight", "MarketInsight", "ValuationPage", "LoanCalculator", "HoldingCostCalculator", "TaxOracle", "PropertyCaseCommandCenter", "CaseManager"):
+    for tool in ("PropertyFinder", "LocationInsight", "MarketInsight", "ValuationPage", "LoanCalculator", "HoldingCostCalculator", "TaxOracle", "DecisionCaseStage", "CaseManager"):
         assert tool in PAGE
+    assert 'renderCommandCenter={() => <CaseManager current={currentCase} />}' in PAGE
+    assert 'renderSavedCases={() => <CaseManager listOnly />}' in PAGE
