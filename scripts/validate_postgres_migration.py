@@ -30,6 +30,7 @@ MIGRATIONS = (
     ROOT / "database" / "migrations" / "008_add_official_market_pipeline.sql",
     ROOT / "database" / "migrations" / "009_separate_official_market_region_coverage.sql",
     ROOT / "database" / "migrations" / "010_add_plvr_generation_schema.sql",
+    ROOT / "database" / "migrations" / "012_security_rls_deny_by_default.sql",
 )
 REQUIRED_TABLES = {
     "pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events",
