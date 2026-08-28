@@ -82,7 +82,7 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
   const { inputs, valuation, trend, loan } = context;
   const riskSummary = buildRiskSummary({ propertySearch: search, valuation, trend, loan, holding: holdingResult, location, terrainRisk });
   const workflowStatus = buildWorkflowStatus({ propertySearch: search, valuation, loan, holding: holdingResult, location, riskSummary, reportCompleted: workflowSession.reportCompleted, taxOracleResult: workflowSession.taxOracleResult });
-  const viewingDecision = buildViewingDecision({ valuation, loan, holding: holdingResult, location, riskSummary, taxOracleResult: workflowSession.taxOracleResult });
+  const viewingDecision = buildViewingDecision({ valuation, loan, holding: holdingResult, location, terrainRisk, riskSummary, taxOracleResult: workflowSession.taxOracleResult });
   const activeWizardStep = getActiveWizardStep(workflowStatus);
   const wizardSummaries: WizardStepSummary = {
     property_search: search ? [`${search.summary.matched_count} ${copy("common.records")}`, `${search.road_suggestions.length} ${copy("finder.roads")}`] : undefined,

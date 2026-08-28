@@ -1,5 +1,6 @@
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { buildTerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
+import { classifyTerrainSafety } from "@/lib/terrain-safety-gate";
 
 export type RiskSummary = {
   overallSignal: "green" | "yellow" | "red" | "unknown";
@@ -47,6 +48,7 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   const locationScore = assessLocation(location, riskFactors, positiveFactors);
   addLocationPriceSupport(location, riskFactors, positiveFactors, missingChecks);
   const terrainReference = buildTerrainReferenceEvidence(inputs.terrainRisk);
+  const terrainSafety = classifyTerrainSafety(inputs.terrainRisk);
 
   if (!valuation) missingChecks.push("riskSummary.missingValuation");
   if (comparisonPrice === undefined) missingChecks.push("riskSummary.missingPrice");
@@ -61,6 +63,14 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
     missingChecks.push("riskSummary.missingRiskFacility");
   }
   if (location?.data_quality.status !== "good") missingChecks.push("riskSummary.missingLocationQuality");
+  // Terrain evidence completeness: surface a gap whenever terrain evidence is
+  // not a positively-established all-clear (known low + sufficient quality).
+  // This includes unknown/unavailable/error/not_assessed/absent (incomplete)
+  // and partial/limited/no_match/medium (caution). Known high is a risk, not a
+  // gap, and is handled by the signal gate below.
+  if (terrainSafety === "incomplete" || terrainSafety === "absent" || terrainSafety === "caution") {
+    missingChecks.push("riskSummary.missingTerrain");
+  }
 
   const completedCoreModules = [loan, holding, location].filter(Boolean).length;
   const hasEnoughData = Boolean(valuation) && completedCoreModules >= 2;
@@ -76,7 +86,13 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
     + completenessScore * 0.05,
   );
   const overallScore = hasEnoughData ? weightedScore : null;
-  const overallSignal = signalFor(overallScore);
+  // Numeric score is preserved conceptually (valuation/price/loan/holding/
+  // location/completeness). The user-facing qualitative signal is then gated on
+  // terrain evidence: known-high terrain forces a risk (red); materially
+  // incomplete or non-all-clear terrain (incomplete/absent/caution) prevents an
+  // unrestricted green by downgrading it to yellow (caution). Known-low terrain
+  // leaves the numeric signal untouched.
+  const overallSignal = gateSignalForTerrain(signalFor(overallScore), terrainSafety);
   const overallLabel = `riskSummary.label${capitalize(overallSignal)}`;
   const decisionSuggestion = `riskSummary.suggestion${capitalize(overallSignal)}`;
 
@@ -178,6 +194,26 @@ function signalFor(score: number | null): RiskSummary["overallSignal"] {
   if (score >= 75) return "green";
   if (score >= 55) return "yellow";
   return "red";
+}
+
+// Terrain evidence gate for the qualitative signal. Priority: known-high
+// terrain is material risk (red, unless already red). Materially incomplete or
+// non-all-clear terrain must not present an unrestricted all-clear, so a green
+// numeric signal is downgraded to yellow (caution); it never upgrades a
+// weaker signal. Known-low terrain and the null/unknown signal pass through.
+function gateSignalForTerrain(
+  signal: RiskSummary["overallSignal"],
+  terrainSafety: import("@/lib/terrain-safety-gate").TerrainSafetyClass,
+): RiskSummary["overallSignal"] {
+  if (terrainSafety === "known_high") {
+    return signal === "unknown" ? "unknown" : "red";
+  }
+  if (terrainSafety === "known_low") {
+    return signal;
+  }
+  // incomplete / absent / caution: prevent unrestricted green only.
+  if (signal === "green") return "yellow";
+  return signal;
 }
 
 function uniqueByKey<T extends { key: string }>(items: T[]): T[] {
