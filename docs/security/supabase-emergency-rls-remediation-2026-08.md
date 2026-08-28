@@ -248,3 +248,38 @@ upgraded, deleted, or migrated. No action taken.
 - Real per-user authorization policies are deferred to VNext Workspace
   architecture; until then, sensitive tables are backend-only (no direct client
   access), which is the correct interim posture.
+
+
+## 17. Live apply & verification attempt — 2026-08-28 (BLOCKED)
+
+A live apply/verification pass (Stage -1 Live Security Gate) was attempted on
+2026-08-28. It could **not** proceed. Result: **NO-GO** for the live gate; the
+repository-side hotfix remains complete and committed at `1bfd39f`.
+
+Blocker (verified, not inferred):
+
+- No connection string in the environment targets project `flyhsjcynreuofbcdxod`.
+  Present values: `DATABASE_URL=postgresql+psycopg://propguard:...@postgres:5432/propguard`
+  (docker-internal dev host, does not resolve) and
+  `PLVR_DRY_RUN_DATABASE_URL=...@127.0.0.1:55432` (connection refused, errno 10061).
+- `VALUATION_DATABASE_URL`, `PILOT_EVIDENCE_DATABASE_URL`,
+  `COMPACT_GREEN_DATABASE_URL`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_URL`,
+  `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `PGPASSWORD`: all empty.
+- `psql` not installed; `supabase` CLI not installed; Docker daemon not running.
+- `db.flyhsjcynreuofbcdxod.supabase.co` does not resolve from this environment.
+  The public REST/pooler hostnames resolve but are unusable without credentials
+  (no DB password, no service_role key, no anon key, no access token).
+
+Because every step of the live gate — preflight role/owner/`current_user`
+inspection, backup checkpoint, `python scripts/apply_production_migrations.py
+--database-url <LIVE>`, `verify_rls_deny_by_default.sql`, anon/authenticated
+attack probes, live backend regression, Advisor re-run, and log review —
+requires authenticated live access that is not available here, none were
+executed. No live results are recorded because none exist; fabricating PASS
+would violate the acceptance rules.
+
+What an operator with live credentials must do is unchanged and fully specified
+in §14 (Operator runbook). Live status for §11 (Advisor after), §12
+(anon/authenticated attack verification), and §13 (exposure/log investigation)
+therefore remains as previously documented: NOT RUN / UNABLE TO DETERMINE until
+the operator completes the runbook.
