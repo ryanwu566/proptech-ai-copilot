@@ -252,6 +252,13 @@ upgraded, deleted, or migrated. No action taken.
 
 ## 17. Live apply & verification attempt — 2026-08-28 (BLOCKED)
 
+> **Historical result only. Superseded by successful operator verification.**
+> This section records the initial Kiro live attempt, which returned NO-GO
+> because the Kiro environment had no live Supabase credentials. It is retained
+> for audit history and must not be treated as the current state. The live gate
+> was subsequently closed by the project operator — see
+> §18 "Final Live Security Closure — 2026-08-28".
+
 A live apply/verification pass (Stage -1 Live Security Gate) was attempted on
 2026-08-28. It could **not** proceed. Result: **NO-GO** for the live gate; the
 repository-side hotfix remains complete and committed at `1bfd39f`.
@@ -283,3 +290,120 @@ in §14 (Operator runbook). Live status for §11 (Advisor after), §12
 (anon/authenticated attack verification), and §13 (exposure/log investigation)
 therefore remains as previously documented: NOT RUN / UNABLE TO DETERMINE until
 the operator completes the runbook.
+
+## 18. Final Live Security Closure — 2026-08-28
+
+The live security gate was completed **externally by the project operator**
+after the blocked Kiro attempt in §17. The results below were verified against
+the live Supabase project and supersede the historical NO-GO. Kiro did not
+re-apply the migration or change the live project; this section reconciles the
+repository documentation with the operator-verified live state.
+
+### 18.1 Migration applied
+
+- Migration `security_rls_deny_by_default` (repository file
+  `database/migrations/012_security_rls_deny_by_default.sql`) was applied to the
+  live project `proptech-valuation-db` (ref `flyhsjcynreuofbcdxod`).
+- Supabase migration history contains:
+  `20260828031611 security_rls_deny_by_default`.
+- Not to be re-applied.
+
+### 18.2 Live preflight (owner / BYPASSRLS)
+
+Verified live before and after application:
+
+- Representative public tables are owned by role `postgres`.
+- The live `postgres` role has `BYPASSRLS = true`.
+- Representative tables have `FORCE RLS = false`.
+- Therefore a plain `ENABLE ROW LEVEL SECURITY` does not block the trusted
+  owner/backend database role from required table access.
+- Representative tables checked: `real_price_transactions`,
+  `market_district_period_aggregates`, `plvr_dataset_generations`,
+  `plvr_generation_transactions`, `tax_analysis_history`, `pilot_sessions`.
+
+This live evidence confirms the repository inference in §2 (owner role bypasses
+non-forced RLS) rather than relying on inference alone.
+
+### 18.3 RLS verification (live)
+
+- Public base tables with RLS disabled: **0 rows**.
+- Therefore `rls_disabled_in_public` ERROR = **0**.
+
+### 18.4 Grants verification (live)
+
+- `anon` / `authenticated` direct public table grants on the protected Data API
+  surface: **0**.
+- No grants were re-added; no convenience policies were created.
+
+### 18.5 Function hardening verification (live)
+
+The following functions now carry `search_path=pg_catalog, public`:
+
+- `plvr_guard_active_generation`
+- `plvr_guard_frozen_generation_manifest`
+- `plvr_guard_generation_derived_row`
+- `plvr_guard_generation_transaction`
+
+The previous `function_search_path_mutable` WARN findings are now cleared.
+
+### 18.6 Unauthorized access verification (live)
+
+- Representative direct Data API role probes against sensitive backend-only
+  tables (e.g. `pilot_contacts`) were **denied** for both `anon` and
+  `authenticated`.
+- Intended posture confirmed: backend-only, deny-by-default, no direct user Data
+  API access. No user-ownership policies were invented.
+
+### 18.7 Trusted owner access preserved (live)
+
+Trusted owner/database access still succeeds after RLS hardening. Verified live
+row visibility included:
+
+- `real_price_transactions` = **451744** rows
+- `market_district_period_aggregates` = **11018** rows
+
+The following representative operational tables were also accessible to the
+trusted owner: `plvr_dataset_generations`, `plvr_generation_transactions`,
+`tax_analysis_history`, `pilot_sessions`. Some currently contain zero rows; zero
+rows is not an access failure. This is evidence that the RLS hardening did not
+block the trusted Postgres owner path. No claim is made beyond these verified
+tables.
+
+### 18.8 Supabase Security Advisor after (live)
+
+- `rls_disabled_in_public` ERROR = **0**.
+- `function_search_path_mutable` WARN = **0**.
+- No remaining Critical/Error sensitive public-exposure finding was observed.
+- Remaining findings are only `rls_enabled_no_policy` at **INFO**, which are
+  intentional: the protected tables are backend-only and deliberately use RLS
+  enabled + no permissive policy (deny-by-default for non-owner roles). No
+  `USING (true)` or other permissive policy was added to remove INFO notices.
+
+### 18.9 Exposure assessment (unchanged)
+
+**Data Exposure Assessment: UNABLE TO DETERMINE.** Historical access cannot be
+conclusively determined from the available evidence. The prior observation that
+sensitive tables had zero rows lowers data-exfiltration impact but does not
+prove absence of unauthorized access. This is deliberately **not** stated as
+"NO BREACH" or "NO EVIDENCE FOUND" absent actual historical API/Postgres/Auth
+log evidence.
+
+### 18.10 Stage -1 final status
+
+```text
+Stage -1 Repository Result: GO
+Stage -1 Live Security Result: GO
+Supabase Security Gate: CLOSED
+```
+
+Overall project gate status:
+
+```text
+Stage 0 Architecture: GO
+Supabase Security: GO
+Terrain Unknown Safety: PENDING
+Stage 1 Authorization: BLOCKED
+```
+
+Stage 1 authorization remains BLOCKED because the Terrain Unknown Safety Gate is
+still pending. This document does not authorize Stage 1.
