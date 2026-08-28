@@ -154,7 +154,8 @@ def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     assert "release_id text not null references official_market_releases" in forward
     assert "create table if not exists market_region_coverage (" not in forward
     assert "idx_official_market_region_coverage_region_period" in forward
-    assert migration_runner.MIGRATIONS[-1].name == "010_add_plvr_generation_schema.sql"
+    assert migration_runner.MIGRATIONS[-1].name == "012_security_rls_deny_by_default.sql"
+    assert any(path.name == "010_add_plvr_generation_schema.sql" for path in migration_runner.MIGRATIONS)
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
     assert "plvr_dataset_generations" in migration_runner.REQUIRED_TABLES
 

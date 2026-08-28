@@ -39,7 +39,9 @@ INDEXES = {
 
 
 def test_generation_schema_migration_is_registered_and_additive_only() -> None:
-    assert MIGRATIONS[-1] == MIGRATION
+    # 010 must remain registered and additive-only. It is no longer required to
+    # be the last entry: the Stage -1 security hotfix appends 012 after it.
+    assert MIGRATION in MIGRATIONS
     statements = _statements(MIGRATION)
     assert statements
     assert all(statement.lstrip().lower().startswith(("create ", "alter ", "comment ")) for statement in statements)
