@@ -19,6 +19,14 @@ kept under `docs/archive/` and must not be used as current product guidance.
 
 ## Architecture and development
 
+- [VNext Stage 0 architecture signoff](vnext/stage-0-architecture-signoff.md) - current GO/NO-GO gate, review answers, owner blockers, and Stage 1 readiness.
+- [VNext architecture overview](vnext/architecture-overview-v1.md) - bounded contexts, dependency direction, core models, modes, feature gates, migration and test strategy.
+- [VNext property identity architecture](vnext/property-identity-architecture-v1.md) - resolution state machine, candidates, graph relations, confirmation, merge and split.
+- [VNext evidence architecture](vnext/evidence-architecture-v1.md) - evidence/provider DTOs, status, freshness, lineage, conflict and AI boundaries.
+- [VNext workspace and security architecture](vnext/workspace-security-architecture-v1.md) - tenant roles, RLS, server-only schemas, private Storage, audit and PostGIS.
+- [VNext data-source registry](vnext/data-source-registry-v1.md) - access/license/coverage feasibility and owner actions; registration is not readiness.
+- [VNext API contract](vnext/api-contract-v1.md) - future `/v1` resource, error, idempotency and audit conventions.
+- [VNext legacy case migration](vnext/legacy-case-migration-v1.md) - optional copy-only SavedCase v1 import and `legacy_unverified` boundary.
 - [Valuation public-service architecture](valuation_public_service_architecture.md) - active PLVR-to-valuation architecture and operational boundaries.
 - [Property Case Decision System](property-case-decision-system-v1.md) - current case model, readiness, comparison, and report boundaries.
 - [Property Case Workspace smoke test](property-case-workspace-smoke-test.md) - executable expectations for case workspace stability.
