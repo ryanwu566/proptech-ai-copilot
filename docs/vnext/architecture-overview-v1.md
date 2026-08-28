@@ -1,7 +1,7 @@
 # VNext Architecture Overview v1
 
-Status: Stage 0 architecture contract; no runtime implementation  
-Date: 2026-08-28  
+Status: Stage 0 architecture contract; no runtime implementation
+Date: 2026-08-28
 Decision authority: `docs/vnext/stage-0-architecture-signoff.md`
 
 ## 1. Scope and source hierarchy
@@ -19,7 +19,9 @@ wins. In particular:
 - The production boundary is Next.js -> FastAPI -> managed PostgreSQL. The frontend has
   no database credentials.
 - The repository does not currently use Supabase Auth or the Supabase Data API. Pilot
-  authorization uses application-defined participant/reviewer/administrator sessions.
+  authorization uses application-defined participant/reviewer/administrator sessions. This
+  describes current code; the VNext architecture decision is Supabase Auth with
+  `auth.users.id` as the canonical user identifier.
 - The reviewed production migration runner registers migrations `004` through `010`.
   Earlier valuation/market migrations and the `011` compact-green schema have separate
   operational paths.
@@ -68,6 +70,22 @@ workspace ownership, durable evidence lineage, server-side activities, or artifa
    navigation visibility alone.
 7. AI synthesizes evidence; it does not own identity, deterministic calculations or
    authoritative facts.
+
+### Authentication and application boundary
+
+- Supabase Auth is the VNext authentication source.
+- `auth.users.id` UUID is the canonical user identifier.
+- FastAPI remains the application API/BFF for both Consumer and Professional modes. It
+  validates the authenticated principal and enforces domain/workspace authorization; VNext
+  does not create a second professional backend.
+- `workspace_members.user_id` references `auth.users.id`. Authorization requires the resource
+  `workspace_id`, an active membership, and an allowed `owner|admin|manager|member|viewer`
+  role.
+- Every future tenant-owned table exposed through a browser-reachable Supabase surface has
+  RLS. `TO authenticated` alone is insufficient; policies also evaluate `(select auth.uid())`
+  and active workspace membership.
+- Documents, contacts, ownership/title data and private CRM notes are server/private-storage
+  surfaces by default, not directly browser-readable base tables.
 
 ## 4. Bounded contexts
 
@@ -141,7 +159,7 @@ keys such as an address or lot number are searchable attributes, never primary k
 - Mutable: role and membership status, only through audited commands.
 - Sensitive: user ID, invitation and membership metadata.
 - Temporal: `invited_at`, `joined_at`, `left_at`, `revoked_at`, `updated_at`.
-- FKs/indexes: restrictive FK to workspace and authenticated user reference; indexes on
+- FKs/indexes: restrictive FK to workspace and `auth.users.id`; indexes on
   `(user_id,status)` and `(workspace_id,status,role)`.
 - Tenant/retention: workspace-scoped; retain tombstone and audit reference after departure.
 
@@ -273,7 +291,8 @@ decision journey rather than a tool catalog.
 
 The future Professional Workspace contains a Context Header, Map Canvas, Evidence Rail,
 Task Panel, Module Detail, Copilot and Activity Timeline. Every module must show the active
-Workspace, Property, Case, evidence freshness and next investigation step.
+Workspace, Property, Case, evidence freshness and next investigation step. It is a coherent
+property/case-centered workflow shell, not an unrelated list of tools.
 
 ## 8. Feature gates
 
@@ -351,7 +370,7 @@ real-provider acceptance with coverage, license, freshness and failure-path evid
 | Current architecture | Problem | Options | Recommended decision | Migration impact |
 | --- | --- | --- | --- | --- |
 | Browser `SavedCase` combines property facts and a decision snapshot | It is not durable identity or evidence | Replace it, mutate it, or adapt it | Keep v1 unchanged; optional import adapter creates an unverified durable Case | No current data rewrite |
-| Custom FastAPI sessions; no Supabase Auth | No authenticated user ID for generic workspace RLS | Keep server-only, adopt Auth, or build another IdP | Owner selects identity provider before persistent Stage 1; contracts use an abstract authenticated principal | Additive membership mapping later |
+| Current custom pilot sessions; no Supabase Auth in runtime | VNext needs one canonical workspace principal without replacing the existing FastAPI BFF | Supabase Auth, another IdP, or custom application principals | **Selected:** Supabase Auth; `workspace_members.user_id -> auth.users.id`; FastAPI validates the principal and remains the shared Consumer/Professional BFF | Additive Auth/membership integration later; no Stage 0 runtime change |
 | Existing server tables mostly in `public`; RLS is inconsistent | Accidental Data API exposure could bypass application assumptions | Retrofit all now or isolate VNext | Keep current server-only; put VNext in private schemas and deny grants | No Stage 0 migration |
 | Current terrain overall level can reach downstream summaries | Unknown-to-safe behavior is not proven impossible | Ignore, rewrite terrain now, or gate signoff | Record as critical pre-existing trust blocker; repair in its approved stage | No Stage 0 behavior change |
 | Migration numbering includes duplicate `002`; runner covers `004`-`010`, while `011` has a separate runbook | A naive glob/order policy is unsafe | Rename history or freeze and allocate | Never rename applied files; publish one authoritative registry before VNext DDL | Documentation/owner action first |

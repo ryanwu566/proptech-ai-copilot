@@ -283,8 +283,9 @@ association interval.
 
 Stage 1 cannot enable `identity_v1` until:
 
-- the missing deep-workflow audit is supplied and reconciled;
-- authentication and persistent workspace principal mapping are decided;
+- the deep-workflow audit is present and reconciled;
+- the Supabase Auth `auth.users.id` to `workspace_members.user_id` principal contract is
+  covered by authorization tests;
 - all state transitions, forbidden operations and idempotency behavior have contract tests;
 - cross-tenant/RLS tests pass on a disposable database;
 - candidate review requires visible human confirmation;

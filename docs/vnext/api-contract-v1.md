@@ -7,9 +7,16 @@ Status: Stage 0 interface/OpenAPI skeleton; no `/v1` route is implemented
 - Base path: `/v1`.
 - JSON request/response uses `snake_case`, UTF-8 and RFC 3339 UTC timestamps.
 - Resource IDs are opaque server-issued UUIDs. Clients must not infer tenancy or type from IDs.
-- Authentication is bearer/session based after the owner selects the principal provider.
-- Every tenant request resolves `workspace_id` from a path/body/context value and verifies it
-  against the authenticated principal. A header alone never grants tenant access.
+- Supabase Auth is the VNext authentication source. The caller supplies a bearer access token;
+  FastAPI remains the primary application API/BFF and resolves the canonical principal from
+  `auth.users.id` UUID after token validation.
+- Every tenant request resolves `workspace_id` from a path/body/context value and verifies
+  `workspace_id + active workspace_members.user_id = auth.users.id + allowed role`. A header
+  alone and `TO authenticated` alone never grant tenant access.
+- Consumer and Professional modes use these same endpoints/domain services. Mode changes
+  presentation, density and allowed modules; it does not create another backend.
+- Documents, contacts, ownership/title data and private CRM notes require purpose-specific
+  FastAPI operations. Their base tables/objects are not directly exposed to the browser.
 - `X-Correlation-ID` may be supplied; the server returns a normalized safe request ID.
 - Mutations require `Idempotency-Key` where specified and support optimistic concurrency with
   a version/ETag for state transitions.
@@ -161,6 +168,7 @@ contains raw input/provider/SQL/exception data.
 | `coverage_unavailable` | 422 or 503 | Source does not cover the input (`422`) or coverage service cannot be determined (`503`) |
 | `ambiguous_identity` | 409 | Confirmation/consequential action blocked by candidate ambiguity |
 | `permission_denied` | 403 | Authenticated principal lacks tenant/resource operation permission |
+| `authentication_required` | 401 | Supabase token is missing, invalid, expired or cannot resolve `auth.users.id` |
 | `stale_evidence` | 409 | Operation requires fresher evidence |
 | `conflicting_evidence` | 409 | Material conflict blocks the requested operation |
 | `unsupported_input` | 422 | Input kind/shape/provider policy is unsupported |
@@ -273,12 +281,19 @@ paths:
       parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
       responses: {'200': {description: Attached}, '409': {description: Resolution/state conflict}, '403': {description: Permission denied}}
 components:
+  securitySchemes:
+    SupabaseBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   parameters:
     IdempotencyKey:
       name: Idempotency-Key
       in: header
       required: true
       schema: {type: string, minLength: 16, maxLength: 128}
+security:
+  - SupabaseBearer: []
 ```
 
 Stage 1 must expand this into executable schemas/examples and contract tests before mounting
