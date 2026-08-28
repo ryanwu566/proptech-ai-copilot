@@ -8,14 +8,16 @@ Production behavior change: **NONE**
 
 ```text
 Stage 0 Architecture Result: GO
+Supabase Security Gate: GO / CLOSED
+Terrain Unknown Safety Gate: PENDING
 Stage 1 Authorization: BLOCKED
 ```
 
 The complete `docs/itaiwan-proptech-deep-workflow-audit-v1.md` was supplied, copied byte-for-byte
 and reconciled against every Stage 0 VNext contract. It introduces no architecture
 contradiction. Authentication/workspace-principal architecture is decided. Supabase production
-security and terrain safety are named external pre-Stage-1 gates rather than unresolved
-architecture questions.
+security is closed. Terrain safety is the sole remaining external pre-Stage-1 gate rather than
+an unresolved architecture question.
 
 No archive document or shortened substitute was used, and no Stage 1 implementation was
 started.
@@ -26,15 +28,15 @@ started.
 NONE
 ```
 
-## External pre-Stage-1 gates
+## External pre-Stage-1 gate status
 
-1. Supabase Security Hotfix on `security/supabase-rls-hotfix` must be `GO`:
-   `REQUIRED PRE-STAGE-1 SECURITY GATE`.
-2. Terrain Unknown Safety Gate on `safety/terrain-unknown-gate` must be `GO`:
-   `REQUIRED PRE-STAGE-1 SAFETY GATE`.
+| Gate | Status | Stage 1 effect |
+| --- | --- | --- |
+| Supabase Security Hotfix | **GO / CLOSED** | Completed by the secured-main remediation and operator live verification; no longer blocks Stage 1. |
+| Terrain Unknown Safety Gate on `safety/terrain-unknown-gate` | **PENDING** | `REQUIRED PRE-STAGE-1 SAFETY GATE`; the only remaining authorization blocker. |
 
-These gates block Stage 1 authorization, but neither is an unresolved Stage 0 architecture
-decision.
+The pending terrain gate blocks Stage 1 authorization, but it is not an unresolved Stage 0
+architecture decision.
 
 ## Authentication and workspace-principal decision
 
@@ -56,8 +58,28 @@ decision.
 - Documents, title and report artifacts use private buckets and short-lived signed URLs or a
   more restrictive server stream; public buckets are forbidden.
 
-This is an architecture decision only. No Auth integration, live Supabase schema, RLS policy,
-security migration or Storage configuration is changed on this branch.
+This is an architecture decision only. This reconciliation introduces no Auth integration,
+live Supabase schema operation, new RLS policy or Storage configuration. The secured-main
+security migration is integrated unchanged and is not applied to a live Supabase project here.
+
+## Security architecture reconciliation
+
+```text
+Security architecture reconciliation: PASS
+```
+
+Migration `012_security_rls_deny_by_default.sql` establishes the current interim posture for
+legacy `public` tables: RLS enabled, no permissive Data API policy, and direct
+`anon`/`authenticated` table privileges revoked while the trusted backend-owner path remains
+available. That deny-default baseline is intentionally not the final VNext authorization
+model.
+
+The final VNext contract remains Supabase Auth `auth.users.id`, active workspace membership,
+role and resource checks, membership-aware RLS for every exposed tenant table, a non-owner
+normal application role, private sensitive data and Storage, and a tightly bounded
+`service_role`. The secured-main remediation explicitly defers those ownership policies to the
+VNext workspace architecture, so the two documents are consistent rather than competing
+security models.
 
 ## Terrain safety transfer
 
@@ -154,7 +176,7 @@ signoff/index were corrected.
 | 11 | Is Consumer behavior unchanged? | Yes | Documentation-only closure. |
 | 12 | Are PLVR/valuation/tax/terrain semantics unchanged? | Yes | No service/schema/data/UI changes. |
 | 13 | Is the supplied audit reconciled? | Yes | Full audit copied with matching hash; all thirteen named architecture directions align. |
-| 14 | May Stage 1 start? | **No** | Both external security/safety gates must reach `GO`; architecture itself is ready. |
+| 14 | May Stage 1 start? | **No** | The terrain safety gate must reach `GO`; the Supabase gate is closed and architecture itself is ready. |
 
 ## Current architecture conflicts resolved by contract
 
@@ -162,13 +184,14 @@ signoff/index were corrected.
 | --- | --- | --- | --- |
 | SavedCase is a browser decision snapshot | It cannot be canonical durable identity | Preserve v1; optional `legacy_unverified` import | none now; additive future rows |
 | Runtime has custom pilot sessions and no Supabase Auth | VNext requires one stable workspace principal | Supabase Auth; `workspace_members.user_id -> auth.users.id`; shared FastAPI BFF | additive future Auth/membership work |
-| Legacy `public` RLS/grants are inconsistent | Data API exposure would violate tenant assumptions | no new exposure; deny-by-default VNext schemas and reviewed projections | owned by the security hotfix/future migrations |
+| Legacy `public` RLS/grants were inconsistent | Data API exposure would violate tenant assumptions | secured-main deny-default baseline now; future exposed VNext resources still require membership-aware RLS | hotfix closed; additive VNext authorization work remains deferred |
 | Terrain level reaches risk summary | Unknown can coexist with a green signal | external safety gate on `safety/terrain-unknown-gate` | no change on this branch |
 | Migration numbering/registration differs across paths | Naive glob/checksum ordering is unsafe | do not rename applied files; freeze a registry before VNext DDL | documentation/owner action before DDL |
 
 ## Validation
 
-Final closure validation was run after the complete audit was copied and reconciled:
+Final combined validation was run after the complete audit reconciliation and the normal
+merge of secured `main` into `vnext-stage-0`:
 
 | Check | Result | Classification |
 | --- | --- | --- |
@@ -176,6 +199,10 @@ Final closure validation was run after the complete audit was copied and reconci
 | Frontend lint | **PASS with 27 warnings** | 0 errors; existing unused-symbol/argument warnings in frontend source |
 | Frontend production build | **PASS** | Next.js 16.2.12 optimized build, TypeScript, page data and static generation completed |
 | Backend tests | **PASS: 1417 passed, 5 skipped, 1 warning** | Hermetic run with external database/provider targets cleared; 5 isolated Postgres checks skipped because targets were not configured; existing FastAPI/Starlette `httpx` deprecation warning |
+| Migration static validation | **PASS** | `static_contract_pass`; database application intentionally not run |
+| Migration dry-run | **PASS / READY** | 8 registered migrations; no database connection or live mutation |
+| Migration 012 registration | **PASS** | File exists exactly once and is registered exactly once as migration 8 of 8 |
+| Protected scope | **PASS** | Migration 012 and both terrain files have the same blobs as secured `main` |
 
 An earlier Stage 0 run reported `1 failed, 1417 passed, 5 skipped` because
 `psycopg_pool` could not be imported. The isolated test now passes and the package is currently
@@ -190,18 +217,31 @@ local target at `127.0.0.1:55432`, causing 2 connection timeouts. The recorded f
 that external target so those tests followed their declared skip contract. These setup attempts
 are not hidden or counted as final application failures.
 
+On the combined rerun, the first typecheck attempt was unable to write
+`frontend_next/tsconfig.tsbuildinfo` because the dedicated worktree was outside the restricted
+command sandbox (`EPERM`). It was rerun with worktree write permission and passed; this was a
+runner setup failure, not a TypeScript failure. Final failed checks: **none**. Live Supabase
+application and disposable-database transactional application were **not run** by design; only
+the requested static validator and migration dry-run were executed.
+
 No dependency file was changed by this documentation work.
 
 ## Changed documentation
 
 - `docs/itaiwan-proptech-deep-workflow-audit-v1.md`
 - `docs/README.md`
+- `docs/vnext/api-contract-v1.md`
 - `docs/vnext/architecture-overview-v1.md`
 - `docs/vnext/data-source-registry-v1.md`
+- `docs/vnext/evidence-architecture-v1.md`
+- `docs/vnext/legacy-case-migration-v1.md`
+- `docs/vnext/property-identity-architecture-v1.md`
 - `docs/vnext/stage-0-architecture-signoff.md`
+- `docs/vnext/workspace-security-architecture-v1.md`
 
-No frontend, backend, service, provider, migration, environment, feature-flag or production
-configuration file is changed by this closure work.
+The reconciliation commit changes documentation only. The synchronized branch also contains
+the secured-main security files unchanged; this closure does not modify frontend, backend,
+service, provider, migration, environment, feature-flag or production configuration behavior.
 
 ## Deferred implementation
 
@@ -220,6 +260,5 @@ configuration file is changed by this closure work.
 
 > **Do not enter Stage 1.**
 
-Stage 0 architecture is ready. Stage 1 remains blocked until both named external
-security/safety gates are `GO`; their acceptance must be recorded before implementation is
-authorized.
+Stage 0 architecture is ready and the Supabase Security Gate is `GO / CLOSED`. Stage 1 remains
+blocked only until the Terrain Unknown Safety Gate is `GO` and its acceptance is recorded.
