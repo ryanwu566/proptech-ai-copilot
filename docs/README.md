@@ -19,6 +19,7 @@ kept under `docs/archive/` and must not be used as current product guidance.
 
 ## Architecture and development
 
+- [iTaiwan deep workflow competitive audit](itaiwan-proptech-deep-workflow-audit-v1.md) - authoritative Stage 0 competitive workflow, architecture, data feasibility, and roadmap input.
 - [VNext Stage 0 architecture signoff](vnext/stage-0-architecture-signoff.md) - current GO/NO-GO gate, review answers, owner blockers, and Stage 1 readiness.
 - [VNext architecture overview](vnext/architecture-overview-v1.md) - bounded contexts, dependency direction, core models, modes, feature gates, migration and test strategy.
 - [VNext property identity architecture](vnext/property-identity-architecture-v1.md) - resolution state machine, candidates, graph relations, confirmation, merge and split.

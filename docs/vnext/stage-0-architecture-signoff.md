@@ -7,30 +7,31 @@ Production behavior change: **NONE**
 ## Current result
 
 ```text
-Stage 0 Architecture Result: NO-GO
+Stage 0 Architecture Result: GO
 Stage 1 Authorization: BLOCKED
 ```
 
-Authentication and workspace-principal architecture is decided. Terrain safety is a named
-external pre-Stage-1 gate rather than an undecided architecture question. The remaining
-architecture blocker is the required primary input
-`docs/itaiwan-proptech-deep-workflow-audit-v1.md`: it is not present in the supplied attachment,
-working tree, Git history or local refs, so reconciliation cannot truthfully be signed off.
+The complete `docs/itaiwan-proptech-deep-workflow-audit-v1.md` was supplied, copied byte-for-byte
+and reconciled against every Stage 0 VNext contract. It introduces no architecture
+contradiction. Authentication/workspace-principal architecture is decided. Supabase production
+security and terrain safety are named external pre-Stage-1 gates rather than unresolved
+architecture questions.
 
-No archive document was substituted, no missing audit was reconstructed from the Stage 0
-prompt, and no Stage 1 implementation was started.
+No archive document or shortened substitute was used, and no Stage 1 implementation was
+started.
 
 ## Architecture blockers
 
-1. The complete iTaiwan PropTech deep workflow audit must be supplied at
-   `docs/itaiwan-proptech-deep-workflow-audit-v1.md` and reconciled against `docs/vnext/*`.
-
-This section becomes `NONE` only after that primary input is present and reviewed.
+```text
+NONE
+```
 
 ## External pre-Stage-1 gates
 
-1. Supabase Security Hotfix on `security/supabase-rls-hotfix` must be `GO`.
-2. Terrain Unknown Safety Gate on `safety/terrain-unknown-gate` must be `GO`.
+1. Supabase Security Hotfix on `security/supabase-rls-hotfix` must be `GO`:
+   `REQUIRED PRE-STAGE-1 SECURITY GATE`.
+2. Terrain Unknown Safety Gate on `safety/terrain-unknown-gate` must be `GO`:
+   `REQUIRED PRE-STAGE-1 SAFETY GATE`.
 
 These gates block Stage 1 authorization, but neither is an unresolved Stage 0 architecture
 decision.
@@ -73,6 +74,32 @@ REQUIRED PRE-STAGE-1 SAFETY GATE
 This branch does not modify `frontend_next/lib/risk-summary.ts`,
 `frontend_next/lib/terrain-reference-evidence.ts`, terrain scoring, production behavior or
 provider semantics.
+
+## Competitive workflow audit reconciliation
+
+Source: `docs/itaiwan-proptech-deep-workflow-audit-v1.md`
+
+Source/copy SHA-256: `E3AA1F8C0C0DF06114372A4B8A3E2763F0BB7F898BFDDA760FAE8C9F78E29409`
+
+| Audit direction | Reconciliation result | Contract evidence |
+| --- | --- | --- |
+| `PropertyEntity != Case` | Aligned | Separate IDs, lifecycles, purposes and optional confirmed attachment. |
+| Candidate-based resolution | Aligned | Normalization -> provider Evidence -> candidates/conflicts -> confirmation. |
+| Human confirmation for ambiguity | Aligned | `ambiguous` blocks title/CRM/merge; confirmation requires selected candidate and actor. |
+| Address/parcel/building/listing cardinality | Aligned | Typed many-to-many graph; no generic one-to-one constraint. |
+| Typed temporal relations | Aligned | Relation type/source/confidence/evidence plus `valid_from`/`valid_to` and supersession. |
+| Durable Evidence/provenance | Aligned | Immutable versions with source, time, coverage, status, quality, license and lineage. |
+| Consumer + Professional backend | Aligned | Shared FastAPI BFF, domain services and tenant model; presentation and permissions differ. |
+| Task-oriented Professional Workspace | Aligned | Context Header, Map Canvas, Evidence Rail, Task Panel, Module Detail, Copilot and Timeline; not a tool list. |
+| AI authority boundary | Aligned | AI reads/cites/drafts only and cannot mutate identity, Evidence or authoritative facts. |
+| Deterministic intelligence | Aligned | Valuation, finance, tax and risk calculations remain authoritative/versioned inputs to synthesis. |
+| Listing acquisition | Aligned | Partner/allowlist/license gate; no unlicensed scraping or cross-brand aggregation. |
+| Direct title procurement | Aligned | Partner/legal/privacy/consent/cost/audit gate; private artifacts only. |
+| Unknown/unavailable | Aligned | Explicit Evidence states; never rewritten as safe, zero, none, complete or available. |
+
+No genuine inconsistency required rewriting the existing identity, Evidence, security, API or
+legacy migration contracts. Only stale references to the previously missing audit and this
+signoff/index were corrected.
 
 ## Architecture decisions
 
@@ -126,8 +153,8 @@ provider semantics.
 | 10 | Does legacy SavedCase continue to work? | Yes | No code/storage change; optional future copy-only import. |
 | 11 | Is Consumer behavior unchanged? | Yes | Documentation-only closure. |
 | 12 | Are PLVR/valuation/tax/terrain semantics unchanged? | Yes | No service/schema/data/UI changes. |
-| 13 | Is the supplied audit reconciled? | **No - Critical** | The required audit file was not supplied. |
-| 14 | May Stage 1 start? | **No** | Audit reconciliation and both external gates must be complete. |
+| 13 | Is the supplied audit reconciled? | Yes | Full audit copied with matching hash; all thirteen named architecture directions align. |
+| 14 | May Stage 1 start? | **No** | Both external security/safety gates must reach `GO`; architecture itself is ready. |
 
 ## Current architecture conflicts resolved by contract
 
@@ -141,28 +168,36 @@ provider semantics.
 
 ## Validation
 
-Closure validation is recorded after all documentation inputs are present. Until the missing
-audit is supplied, the final closure rerun is:
+Final closure validation was run after the complete audit was copied and reconciled:
 
 | Check | Result | Classification |
 | --- | --- | --- |
-| Frontend typecheck | NOT RUN | Final closure rerun pending |
-| Frontend lint | NOT RUN | Final closure rerun pending |
-| Frontend production build | NOT RUN | Final closure rerun pending |
-| Backend tests | NOT RUN | Final closure rerun pending |
+| Frontend typecheck | **PASS** | `tsc --noEmit`; no errors |
+| Frontend lint | **PASS with 27 warnings** | 0 errors; existing unused-symbol/argument warnings in frontend source |
+| Frontend production build | **PASS** | Next.js 16.2.12 optimized build, TypeScript, page data and static generation completed |
+| Backend tests | **PASS: 1417 passed, 5 skipped, 1 warning** | Hermetic run with external database/provider targets cleared; 5 isolated Postgres checks skipped because targets were not configured; existing FastAPI/Starlette `httpx` deprecation warning |
 
 An earlier Stage 0 run reported `1 failed, 1417 passed, 5 skipped` because
 `psycopg_pool` could not be imported. The isolated test now passes and the package is currently
-installed, so the earlier result is **UNVERIFIED PRE-EXISTING**, not `PASS` and not yet a
-reproducible baseline classification. No dependency file was changed by this documentation
-work.
+installed, so that historical result remains **UNVERIFIED PRE-EXISTING** and is not
+retroactively claimed as proven. The current full run is the result reported above.
+
+The dedicated worktree initially lacked `node_modules`: the first typecheck could not start and
+17 Node-backed Python tests could not import TypeScript. `npm ci` installed 217 packages from
+the committed lockfile with 0 reported vulnerabilities; it changed no dependency manifest or
+lockfile. A subsequent backend attempt inherited `PLVR_DRY_RUN_DATABASE_URL` for an unavailable
+local target at `127.0.0.1:55432`, causing 2 connection timeouts. The recorded final run cleared
+that external target so those tests followed their declared skip contract. These setup attempts
+are not hidden or counted as final application failures.
+
+No dependency file was changed by this documentation work.
 
 ## Changed documentation
 
+- `docs/itaiwan-proptech-deep-workflow-audit-v1.md`
+- `docs/README.md`
 - `docs/vnext/architecture-overview-v1.md`
-- `docs/vnext/property-identity-architecture-v1.md`
-- `docs/vnext/workspace-security-architecture-v1.md`
-- `docs/vnext/api-contract-v1.md`
+- `docs/vnext/data-source-registry-v1.md`
 - `docs/vnext/stage-0-architecture-signoff.md`
 
 No frontend, backend, service, provider, migration, environment, feature-flag or production
@@ -185,6 +220,6 @@ configuration file is changed by this closure work.
 
 > **Do not enter Stage 1.**
 
-Stage 1 remains blocked until the audit is supplied/reconciled and both named external
-security/safety gates are `GO`. At that point this signoff must be updated, validation rerun,
-committed and pushed before Stage 1 can be authorized.
+Stage 0 architecture is ready. Stage 1 remains blocked until both named external
+security/safety gates are `GO`; their acceptance must be recorded before implementation is
+authorized.

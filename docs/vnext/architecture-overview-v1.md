@@ -25,8 +25,9 @@ wins. In particular:
 - The reviewed production migration runner registers migrations `004` through `010`.
   Earlier valuation/market migrations and the `011` compact-green schema have separate
   operational paths.
-- `docs/itaiwan-proptech-deep-workflow-audit-v1.md`, named as a mandatory design input,
-  is absent. No archive document was substituted for it. This is a signoff blocker.
+- `docs/itaiwan-proptech-deep-workflow-audit-v1.md` is the authoritative competitive workflow
+  input. It was supplied in full and reconciled against this package on 2026-08-28; no archive
+  document or shorter substitute was used.
 
 ## 2. Current architecture
 
@@ -372,7 +373,7 @@ real-provider acceptance with coverage, license, freshness and failure-path evid
 | Browser `SavedCase` combines property facts and a decision snapshot | It is not durable identity or evidence | Replace it, mutate it, or adapt it | Keep v1 unchanged; optional import adapter creates an unverified durable Case | No current data rewrite |
 | Current custom pilot sessions; no Supabase Auth in runtime | VNext needs one canonical workspace principal without replacing the existing FastAPI BFF | Supabase Auth, another IdP, or custom application principals | **Selected:** Supabase Auth; `workspace_members.user_id -> auth.users.id`; FastAPI validates the principal and remains the shared Consumer/Professional BFF | Additive Auth/membership integration later; no Stage 0 runtime change |
 | Existing server tables mostly in `public`; RLS is inconsistent | Accidental Data API exposure could bypass application assumptions | Retrofit all now or isolate VNext | Keep current server-only; put VNext in private schemas and deny grants | No Stage 0 migration |
-| Current terrain overall level can reach downstream summaries | Unknown-to-safe behavior is not proven impossible | Ignore, rewrite terrain now, or gate signoff | Record as critical pre-existing trust blocker; repair in its approved stage | No Stage 0 behavior change |
+| Current terrain overall level can reach downstream summaries | Unknown-to-safe behavior is not proven impossible | Ignore, rewrite terrain now, or gate Stage 1 | Record as a required external pre-Stage-1 safety gate owned by `safety/terrain-unknown-gate` | No Stage 0 behavior change |
 | Migration numbering includes duplicate `002`; runner covers `004`-`010`, while `011` has a separate runbook | A naive glob/order policy is unsafe | Rename history or freeze and allocate | Never rename applied files; publish one authoritative registry before VNext DDL | Documentation/owner action first |
 | Some older docs describe valuation demo fallback while current trust contract fails closed | Documentation can overstate current behavior | Follow old docs or current code/trust contract | Current code and active fail-closed contract govern; stale setup guidance needs separate cleanup | No semantic change |
 

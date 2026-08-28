@@ -65,9 +65,8 @@ A source may move to `production_accepted` only when an owner-approved evidence 
 Until then the feature flag stays off and API responses remain unavailable/limited as
 appropriate. Configuration presence by itself is not readiness.
 
-## 5. Immediate blocking owner actions
+## 5. Remaining source owner actions
 
-- Supply/reconcile the missing iTaiwan deep-workflow audit.
 - Complete TGOS configuration/application and terms review if TGOS is the Stage 1 resolver.
 - Decide the exact NLSC parcel dataset/endpoint, authorization and license for Stage 2.
 - Record PLVR license/attribution and scope for any new VNext evidence reuse.
