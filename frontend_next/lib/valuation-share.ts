@@ -64,7 +64,10 @@ export function buildValuationSummaryHtml(
   }
   const holding = holdingCost ?? readHoldingCostResult();
   const location = locationInsight ?? readLocationInsightResult();
-  const decision = buildDecisionSummary(propertySearch, result, loan, holding, location);
+  // The export only has stored terrain reference evidence, which cannot prove a
+  // known-low terrain risk level, so terrain safety is "unproven": the quick
+  // conclusion must not be promoted to an unrestricted all-clear.
+  const decision = buildDecisionSummary(propertySearch, result, loan, holding, location, "unproven");
   const risk = buildRiskSummary({ propertySearch, valuation: result, trend, loan, holding, location });
   const taxOracle = readWorkflowSession().taxOracleResult;
   const comparableRows = result.comparables.slice(0, 5).map((row) => `

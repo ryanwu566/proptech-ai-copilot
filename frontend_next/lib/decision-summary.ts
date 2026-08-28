@@ -1,4 +1,5 @@
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, ValuationResult } from "@/lib/api";
+import type { TerrainSafetyClass } from "@/lib/terrain-safety-gate";
 
 export type DecisionSummary = {
   recommendation: "值得進一步看屋" | "需謹慎評估" | "暫不建議";
@@ -8,16 +9,37 @@ export type DecisionSummary = {
   checklist: { label: string; status: "通過" | "需確認" | "未完成"; detail: string }[];
 };
 
+// Terrain safety input for the decision summary. Callers pass the classification
+// from terrain-safety-gate.ts when a full TerrainRiskResult is available. When
+// only stored/reference evidence exists (e.g. export/share), callers pass
+// "unproven" because stored evidence cannot prove known-low. Only "known_low"
+// permits an unrestricted positive recommendation; "known_high" forces a
+// non-positive conclusion; everything else is treated as incomplete/caution.
+export type DecisionTerrainSafety = TerrainSafetyClass | "unproven";
+
 export function buildDecisionSummary(
   propertySearch?: PropertySearchResult,
   valuation?: ValuationResult,
   loan?: LoanCalculationResult,
   holding?: HoldingCostResult,
   location?: LocationInsightResult,
+  terrainSafety?: DecisionTerrainSafety,
 ): DecisionSummary {
   const risky = loan?.affordability_level === "risky" || holding?.affordability_level === "risky";
   const cautious = loan?.affordability_level === "tight" || holding?.affordability_level === "tight" || valuation?.confidence === "low" || location?.data_quality.status === "unavailable";
-  const recommendation = risky ? "暫不建議" : cautious ? "需謹慎評估" : valuation && (loan || holding || location) ? "值得進一步看屋" : "需謹慎評估";
+  // Terrain gate: known_high blocks a positive conclusion; anything that is not
+  // positively known-low (unknown/unavailable/error/not_assessed/absent/
+  // caution/limited/partial/no_match/unproven) prevents an unrestricted
+  // "值得進一步看屋" all-clear. Undefined means the caller supplied no terrain
+  // context and legacy behavior is preserved.
+  const terrainKnownHigh = terrainSafety === "known_high";
+  const terrainBlocksPositive = terrainSafety !== undefined && terrainSafety !== "known_low";
+  const baseRecommendation = risky ? "暫不建議" : cautious ? "需謹慎評估" : valuation && (loan || holding || location) ? "值得進一步看屋" : "需謹慎評估";
+  const recommendation = terrainKnownHigh
+    ? "需謹慎評估"
+    : terrainBlocksPositive && baseRecommendation === "值得進一步看屋"
+      ? "需謹慎評估"
+      : baseRecommendation;
   const reasons = [
     valuation ? `估價中位約 ${valuation.price_range.mid.toLocaleString()} 萬，已有 ${valuation.valuation_explanation.sample_count} 筆可比成交支持。` : "",
     loan && loan.affordability_level !== "risky" ? `貸款月付約 ${loan.monthly_payment.toLocaleString()} 元，負擔等級為 ${loan.affordability_level}。` : "",
@@ -39,7 +61,7 @@ export function buildDecisionSummary(
     { label: "持有成本是否可承受", status: affordabilityStatus(holding?.affordability_level), detail: holding ? holding.affordability_message : "尚未完成持有成本試算。" },
     { label: "區位是否符合需求", status: location ? (location.data_quality.status === "unavailable" ? "需確認" : "通過") : "未完成", detail: location ? location.valuation_context.explanation : "尚未完成區位分析。" },
     { label: "資料信心是否足夠", status: dataConfidence === "充足" ? "通過" : "需確認", detail: `目前資料信心：${dataConfidence}。` },
-    { label: "是否建議實地看屋", status: recommendation === "暫不建議" ? "需確認" : valuation ? "通過" : "未完成", detail: recommendation },
+    { label: "是否建議實地看屋", status: recommendation === "值得進一步看屋" ? "通過" : recommendation === "暫不建議" ? "需確認" : "需確認", detail: terrainBlocksPositive && recommendation !== "值得進一步看屋" ? `${recommendation}；地勢與災害資料不足或未知，不代表沒有風險。` : recommendation },
     { label: "補查實際屋況與社區條件", status: "需確認", detail: "建議補查嫌惡設施、社區管理費、修繕紀錄與實際屋況。" },
   ];
   return { recommendation, reasons: reasons.length ? reasons : ["先完成找房、估價與成本試算，再形成決策結論。"], risks: risks.length ? risks : ["仍需實地確認屋況、交通噪音與社區管理狀況。"], dataConfidence, checklist };

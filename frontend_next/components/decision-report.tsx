@@ -3,6 +3,7 @@
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult } from "@/lib/api";
 import { buildDecisionSummary } from "@/lib/decision-summary";
 import type { RiskSummary } from "@/lib/risk-summary";
+import { classifyTerrainSafety } from "@/lib/terrain-safety-gate";
 import { DetailDisclosure } from "@/components/detail-disclosure";
 import { ViewingDecisionPanel } from "@/components/viewing-decision-panel";
 import { buildViewingDecision } from "@/lib/viewing-decision";
@@ -16,7 +17,7 @@ export function DecisionReport({
 }) {
   const { copy } = useExperienceLocale();
   if (!valuation) return <section id="decision-report" className="scroll-mt-20 rounded-xl border border-dashed border-stone-300 bg-white p-5 text-center"><h2 className="font-bold text-slate-900">{copy("tour.clientReport")}</h2><p className="mt-2 text-xs leading-5 text-slate-500">{copy("common.notStarted")}</p></section>;
-  const summary = buildDecisionSummary(propertySearch, valuation, loan, holding, location);
+  const summary = buildDecisionSummary(propertySearch, valuation, loan, holding, location, classifyTerrainSafety(terrainRisk));
   const viewingDecision = buildViewingDecision({ valuation, loan, holding, location, terrainRisk, riskSummary, taxOracleResult });
   const tone = summary.recommendation === "值得進一步看屋" ? "text-emerald-800 bg-emerald-50 border-emerald-200" : summary.recommendation === "暫不建議" ? "text-rose-800 bg-rose-50 border-rose-200" : "text-amber-800 bg-amber-50 border-amber-200";
   return <section id="decision-report" className="scroll-mt-20 rounded-xl border border-stone-200 bg-white p-4">
