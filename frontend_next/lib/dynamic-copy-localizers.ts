@@ -54,6 +54,7 @@ const RISK_SOURCE_KEYS: Record<string, RuntimeCopyKey> = {
   holding_risky: "decision.riskHoldingRisky",
   location_facility: "decision.riskLocationFacility",
   tax_high: "decision.riskTaxHigh",
+  terrain_high: "decision.riskTerrainHigh",
 };
 
 export function localizeRiskSource(sourceId: string, locale: ExperienceLocale, params?: Record<string, string | number>): string {
