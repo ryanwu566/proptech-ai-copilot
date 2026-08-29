@@ -1,0 +1,63 @@
+"""Safe, structured VNext application errors."""
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Mapping
+
+
+class ErrorCode(str, Enum):
+    AUTHENTICATION_REQUIRED = "authentication_required"
+    PERMISSION_DENIED = "permission_denied"
+    VALIDATION_FAILED = "validation_failed"
+    NOT_FOUND = "not_found"
+    VERSION_CONFLICT = "version_conflict"
+    IDEMPOTENCY_CONFLICT = "idempotency_conflict"
+    RATE_LIMITED = "rate_limited"
+    MAINTENANCE = "maintenance"
+    INTERNAL_ERROR = "internal_error"
+
+
+_DEFAULTS: dict[ErrorCode, tuple[int, str, bool]] = {
+    ErrorCode.AUTHENTICATION_REQUIRED: (401, "Authentication is required.", False),
+    ErrorCode.PERMISSION_DENIED: (403, "Permission is denied.", False),
+    ErrorCode.VALIDATION_FAILED: (422, "The request is invalid.", False),
+    ErrorCode.NOT_FOUND: (404, "The requested resource was not found.", False),
+    ErrorCode.VERSION_CONFLICT: (409, "The resource version has changed.", False),
+    ErrorCode.IDEMPOTENCY_CONFLICT: (409, "The idempotency key conflicts with an earlier request.", False),
+    ErrorCode.RATE_LIMITED: (429, "The request rate limit was reached.", True),
+    ErrorCode.MAINTENANCE: (503, "The service is temporarily unavailable.", True),
+    ErrorCode.INTERNAL_ERROR: (500, "The request could not be completed.", False),
+}
+
+
+class VNextError(Exception):
+    """An allowlisted client error with no provider or exception payload."""
+
+    def __init__(
+        self,
+        code: ErrorCode,
+        *,
+        details: Mapping[str, object] | None = None,
+    ) -> None:
+        status_code, message, retryable = _DEFAULTS[code]
+        super().__init__(code.value)
+        self.code = code
+        self.status_code = status_code
+        self.message = message
+        self.retryable = retryable
+        # Details are supplied only by bounded application call sites. Never
+        # put an exception, SQL, token, provider body, or credential here.
+        self.details = dict(details or {})
+
+    @classmethod
+    def authentication_required(cls) -> "VNextError":
+        return cls(ErrorCode.AUTHENTICATION_REQUIRED)
+
+    @classmethod
+    def permission_denied(cls) -> "VNextError":
+        return cls(ErrorCode.PERMISSION_DENIED)
+
+    @classmethod
+    def validation_failed(cls) -> "VNextError":
+        return cls(ErrorCode.VALIDATION_FAILED)

@@ -1,0 +1,109 @@
+{
+  "registry_version": 1,
+  "migrations": [
+    {
+      "registry_order": 1,
+      "logical_id": "legacy-001-dedupe-key",
+      "sequence": 1,
+      "filename": "001_add_dedupe_key_to_real_price_transactions.sql",
+      "execution_policy": "legacy_operator",
+      "sha256": "2eb4a3e8652d3f18cac9c200d38b3bf350e77bd36aa103f8b76ecf4004143223"
+    },
+    {
+      "registry_order": 2,
+      "logical_id": "legacy-002-market-direct-indexes",
+      "sequence": 2,
+      "filename": "002_add_market_direct_query_indexes.sql",
+      "execution_policy": "legacy_operator",
+      "sha256": "2cb6da19a01415ffee34845aa294843257cce7f9991803e0ca470e3405cfc310"
+    },
+    {
+      "registry_order": 3,
+      "logical_id": "legacy-002-valuation-import-runs",
+      "sequence": 2,
+      "filename": "002_expand_valuation_import_runs.sql",
+      "execution_policy": "legacy_operator",
+      "sha256": "0108c13fad4d0310e291c0d2e041868c7d59b8fb2f47739831139fa3039b2d64"
+    },
+    {
+      "registry_order": 4,
+      "logical_id": "legacy-003-market-region-coverage",
+      "sequence": 3,
+      "filename": "003_add_market_region_coverage.sql",
+      "execution_policy": "legacy_operator",
+      "sha256": "267db5dcba4c12646b78f480b289cbd289a323bc205a0a8fe5ba507290efb16b"
+    },
+    {
+      "registry_order": 5,
+      "logical_id": "production-004-pilot-evidence",
+      "sequence": 4,
+      "filename": "004_add_pilot_evidence.sql",
+      "execution_policy": "production_runner",
+      "sha256": "ba2a3f21605983f13b16648e344e3a71baf677ee7e086d155a39dc9b2220b516"
+    },
+    {
+      "registry_order": 6,
+      "logical_id": "production-005-pilot-security-indexes",
+      "sequence": 5,
+      "filename": "005_add_pilot_security_indexes.sql",
+      "execution_policy": "production_runner",
+      "sha256": "7da6cffddc6a715bfc041fe37eb9ebf19574e30ef5379a4917db6bc634614d3c"
+    },
+    {
+      "registry_order": 7,
+      "logical_id": "production-006-tax-analysis-history",
+      "sequence": 6,
+      "filename": "006_add_tax_analysis_history.sql",
+      "execution_policy": "production_runner",
+      "sha256": "cc0e6bc09b4f0736c6ddb012ff34912db0385339c93d329d39203e696dc3d1c0"
+    },
+    {
+      "registry_order": 8,
+      "logical_id": "production-007-schema-migration-ledger",
+      "sequence": 7,
+      "filename": "007_add_schema_migration_ledger.sql",
+      "execution_policy": "production_runner",
+      "sha256": "1d1d20edf40b9d2782dd9e314d7e4a2d35ac0aaac5d1570494e58f3e3d982996"
+    },
+    {
+      "registry_order": 9,
+      "logical_id": "production-008-official-market-pipeline",
+      "sequence": 8,
+      "filename": "008_add_official_market_pipeline.sql",
+      "execution_policy": "production_runner",
+      "sha256": "22e0a282a40692e05054388fe2e4aa5f25c253e733b2aedd50f4d30446b788d9"
+    },
+    {
+      "registry_order": 10,
+      "logical_id": "production-009-official-market-coverage",
+      "sequence": 9,
+      "filename": "009_separate_official_market_region_coverage.sql",
+      "execution_policy": "production_runner",
+      "sha256": "c14084726fa101f3a93e700525abe90f1caee46f542f5a37a13d5d545b3526f7"
+    },
+    {
+      "registry_order": 11,
+      "logical_id": "production-010-plvr-generation-schema",
+      "sequence": 10,
+      "filename": "010_add_plvr_generation_schema.sql",
+      "execution_policy": "production_runner",
+      "sha256": "fcf69fc2d3b5e6419e2d94a6d92abc03c9b4424204e9bd129b85ea749ebed4a5"
+    },
+    {
+      "registry_order": 12,
+      "logical_id": "compact-green-011-schema",
+      "sequence": 11,
+      "filename": "011_add_plvr_compact_green_schema.sql",
+      "execution_policy": "compact_green_operator",
+      "sha256": "107ba18c7db124a40183dc048581f821c853499feca203f874152c5b0dab2af2"
+    },
+    {
+      "registry_order": 13,
+      "logical_id": "production-012-security-rls-deny-default",
+      "sequence": 12,
+      "filename": "012_security_rls_deny_by_default.sql",
+      "execution_policy": "production_runner",
+      "sha256": "bb1551d4e7fda1d3c7df99e3fd64a53f7fb05a8dcfb7ec0049c18ae6c2dfa056"
+    }
+  ]
+}

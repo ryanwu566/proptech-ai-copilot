@@ -1,10 +1,22 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+import json
 from pathlib import Path
+import shutil
+
+import pytest
 
 from scripts import apply_production_migrations as migration_runner
 from scripts import validate_postgres_migration as migration_validator
+from scripts.migration_registry import (
+    MIGRATION_DIRECTORY,
+    REGISTRY_PATH,
+    MigrationRegistryError,
+    checksum,
+    load_registry,
+    next_safe_sequence,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -95,6 +107,92 @@ def test_empty_database_bootstraps_ledger_before_recording_migrations(monkeypatc
     )
     assert not any(sql == "begin" for sql in connection.sql)
     assert connection.transaction_committed is True
+
+
+def test_registry_freezes_every_historical_migration_exactly_once() -> None:
+    registrations = load_registry()
+    actual_files = {path.name for path in MIGRATION_DIRECTORY.glob("*.sql")}
+
+    assert len(registrations) == len(actual_files) == 13
+    assert {item.filename for item in registrations} == actual_files
+    assert len({item.logical_id for item in registrations}) == len(registrations)
+    assert [item.registry_order for item in registrations] == list(range(1, 14))
+    assert [item.filename for item in registrations][1:3] == [
+        "002_add_market_direct_query_indexes.sql",
+        "002_expand_valuation_import_runs.sql",
+    ]
+
+
+def test_registry_preserves_historical_checksums_and_migration_012() -> None:
+    frozen = {item.filename: item.sha256 for item in load_registry()}
+
+    assert frozen["001_add_dedupe_key_to_real_price_transactions.sql"] == (
+        "2eb4a3e8652d3f18cac9c200d38b3bf350e77bd36aa103f8b76ecf4004143223"
+    )
+    assert frozen["011_add_plvr_compact_green_schema.sql"] == (
+        "107ba18c7db124a40183dc048581f821c853499feca203f874152c5b0dab2af2"
+    )
+    assert frozen["012_security_rls_deny_by_default.sql"] == (
+        "bb1551d4e7fda1d3c7df99e3fd64a53f7fb05a8dcfb7ec0049c18ae6c2dfa056"
+    )
+    assert all(checksum(item.path) == item.sha256 for item in load_registry())
+
+
+def test_registry_detects_duplicate_logical_registration(tmp_path: Path) -> None:
+    payload = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    payload["migrations"][1]["logical_id"] = payload["migrations"][0]["logical_id"]
+    registry_path = tmp_path / "registry.json"
+    registry_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(MigrationRegistryError) as error:
+        load_registry(registry_path, MIGRATION_DIRECTORY, verify_files=False)
+
+    assert error.value.reason == "migration_logical_registration_duplicate"
+
+
+def test_registry_detects_checksum_drift(tmp_path: Path) -> None:
+    migration_directory = tmp_path / "migrations"
+    migration_directory.mkdir()
+    for source in MIGRATION_DIRECTORY.glob("*.sql"):
+        shutil.copyfile(source, migration_directory / source.name)
+    drifted = migration_directory / "012_security_rls_deny_by_default.sql"
+    drifted.write_text(drifted.read_text(encoding="utf-8") + "\n-- drift\n", encoding="utf-8")
+
+    with pytest.raises(MigrationRegistryError) as error:
+        load_registry(REGISTRY_PATH, migration_directory)
+
+    assert error.value.reason == "migration_checksum_drift"
+
+
+def test_registry_checksum_is_stable_across_checkout_line_endings(tmp_path: Path) -> None:
+    lf = tmp_path / "lf.sql"
+    crlf = tmp_path / "crlf.sql"
+    lf.write_bytes(b"select 1;\nselect 2;\n")
+    crlf.write_bytes(b"select 1;\r\nselect 2;\r\n")
+
+    assert checksum(lf) == checksum(crlf)
+
+
+def test_registry_allocates_collision_free_stage_1_sequence() -> None:
+    registrations = load_registry()
+
+    assert next_safe_sequence(registrations) == 13
+    assert not any(item.filename.startswith("013_") for item in registrations)
+    assert "011_add_plvr_compact_green_schema.sql" not in {
+        path.name for path in migration_runner.MIGRATIONS
+    }
+
+
+def test_dry_run_reports_frozen_registry_and_next_allocation() -> None:
+    result = migration_runner.apply(None, dry_run=True)
+
+    assert result == {
+        "status": "ready",
+        "migration_count": 8,
+        "registry_count": 13,
+        "next_migration_sequence": "013",
+        "mode": "dry_run",
+    }
 
 
 def test_rerunning_migrations_is_idempotent_and_preserves_checksums(monkeypatch) -> None:

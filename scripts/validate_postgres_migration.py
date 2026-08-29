@@ -20,18 +20,17 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from services.postgres_runtime import connect
-
-
-MIGRATIONS = (
-    ROOT / "database" / "migrations" / "004_add_pilot_evidence.sql",
-    ROOT / "database" / "migrations" / "005_add_pilot_security_indexes.sql",
-    ROOT / "database" / "migrations" / "006_add_tax_analysis_history.sql",
-    ROOT / "database" / "migrations" / "007_add_schema_migration_ledger.sql",
-    ROOT / "database" / "migrations" / "008_add_official_market_pipeline.sql",
-    ROOT / "database" / "migrations" / "009_separate_official_market_region_coverage.sql",
-    ROOT / "database" / "migrations" / "010_add_plvr_generation_schema.sql",
-    ROOT / "database" / "migrations" / "012_security_rls_deny_by_default.sql",
+from scripts.migration_registry import (
+    MigrationRegistryError,
+    load_registry,
+    next_safe_sequence,
+    production_migrations,
 )
+
+
+# Keep the compatibility constant used by existing tests and operator scripts,
+# but derive it from the frozen registry instead of maintaining a second list.
+MIGRATIONS = production_migrations(load_registry(verify_files=False))
 REQUIRED_TABLES = {
     "pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events",
     "pilot_feedback", "professional_reviews", "tax_analysis_history",
@@ -58,9 +57,13 @@ REQUIRED_INDEXES = {
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
 
-def _static_contract() -> dict[str, str]:
-    if not all(path.is_file() for path in MIGRATIONS):
-        return {"status": "fail", "migration": "missing"}
+def _static_contract() -> dict[str, Any]:
+    try:
+        registrations = load_registry()
+    except MigrationRegistryError as exc:
+        return {"status": "fail", "migration": exc.reason}
+    if MIGRATIONS != production_migrations(registrations):
+        return {"status": "fail", "migration": "migration_runner_registry_mismatch"}
     joined = "\n".join(path.read_text(encoding="utf-8") for path in MIGRATIONS).lower()
     required = (
         "references", "on delete cascade", "create index", "tax_analysis_history",
@@ -70,7 +73,13 @@ def _static_contract() -> dict[str, str]:
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
-    return {"status": "pass", "migration": "static_contract_pass"}
+    return {
+        "status": "pass",
+        "migration": "static_contract_pass",
+        "registry_count": len(registrations),
+        "managed_migration_count": len(MIGRATIONS),
+        "next_migration_sequence": f"{next_safe_sequence(registrations):03d}",
+    }
 
 
 def _split_sql(sql: str) -> list[str]:
