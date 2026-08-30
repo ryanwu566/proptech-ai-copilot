@@ -58,6 +58,13 @@ REQUIRED_VNEXT_TABLES = {
     "vnext_core.workspaces",
     "vnext_core.workspace_members",
     "vnext_core.cases",
+    "vnext_core.property_entities",
+    "vnext_core.property_identity_references",
+    "vnext_core.property_graph_nodes",
+    "vnext_core.property_relations",
+    "vnext_core.evidence_items",
+    "vnext_core.evidence_lineage",
+    "vnext_core.evidence_links",
     "vnext_private.idempotency_records",
     "vnext_private.audit_events",
 }
@@ -66,9 +73,31 @@ REQUIRED_VNEXT_INDEXES = {
     "vnext_core.idx_vnext_workspace_members_user_status",
     "vnext_core.idx_vnext_workspace_members_workspace_status_role",
     "vnext_core.idx_vnext_cases_workspace_status_updated",
+    "vnext_core.idx_vnext_property_entities_workspace_status_updated",
+    "vnext_core.idx_vnext_identity_references_workspace_type_status",
+    "vnext_core.idx_vnext_property_graph_nodes_workspace_type_record",
+    "vnext_core.idx_vnext_property_relations_from",
+    "vnext_core.idx_vnext_property_relations_to",
+    "vnext_core.idx_vnext_evidence_workspace_fact_status_retrieved",
+    "vnext_core.idx_vnext_evidence_lineage_parent",
+    "vnext_core.idx_vnext_evidence_links_subject",
     "vnext_private.idx_vnext_idempotency_expiry",
     "vnext_private.idx_vnext_audit_workspace_created",
     "vnext_private.idx_vnext_audit_request",
+}
+REQUIRED_VNEXT_FOREIGN_KEYS = {
+    "fk_vnext_cases_assigned_member",
+    "fk_vnext_property_entities_workspace",
+    "fk_vnext_identity_references_supersedes",
+    "fk_vnext_evidence_supersedes",
+    "fk_vnext_property_relations_from_node",
+    "fk_vnext_property_relations_to_node",
+    "fk_vnext_property_relations_evidence",
+    "fk_vnext_property_relations_supersedes",
+    "fk_vnext_evidence_lineage_child",
+    "fk_vnext_evidence_lineage_parent",
+    "fk_vnext_evidence_links_evidence",
+    "fk_vnext_evidence_links_subject",
 }
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
@@ -89,6 +118,9 @@ def _static_contract() -> dict[str, Any]:
         "create role vnext_api", "force row level security",
         "workspace_members_self_select", "vnext_private.idempotency_records",
         "vnext_private.audit_events",
+        "vnext_core.property_entities", "vnext_core.property_graph_nodes",
+        "vnext_core.property_relations", "vnext_core.evidence_items",
+        "vnext_core.evidence_lineage", "vnext_core.evidence_links",
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
@@ -278,13 +310,22 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
                     "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
                     "AND constraint_type = 'FOREIGN KEY'"
                 ).fetchone()[0]
+                vnext_foreign_keys = {
+                    row[0]
+                    for row in connection.execute(
+                        "SELECT constraint_name FROM information_schema.table_constraints "
+                        "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+                        "AND constraint_type = 'FOREIGN KEY'"
+                    ).fetchall()
+                }
                 if (
                     not REQUIRED_TABLES.issubset(tables)
                     or not REQUIRED_INDEXES.issubset(indexes)
                     or not REQUIRED_VNEXT_TABLES.issubset(vnext_tables)
                     or not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes)
                     or foreign_key_count < 4
-                    or vnext_foreign_key_count < 8
+                    or vnext_foreign_key_count < 36
+                    or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys)
                 ):
                     raise _SchemaContractFailure
                 raise _RollbackValidation

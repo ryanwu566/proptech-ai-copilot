@@ -30,6 +30,7 @@ from scripts.validate_postgres_migration import (
     REQUIRED_INDEXES,
     REQUIRED_TABLES,
     REQUIRED_VNEXT_INDEXES,
+    REQUIRED_VNEXT_FOREIGN_KEYS,
     REQUIRED_VNEXT_TABLES,
     _statements,
 )
@@ -76,6 +77,14 @@ def _verify(connection) -> dict[str, str]:
         "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
         "AND constraint_type = 'FOREIGN KEY'"
     ).fetchone()[0]
+    vnext_foreign_keys = {
+        row[0]
+        for row in connection.execute(
+            "SELECT constraint_name FROM information_schema.table_constraints "
+            "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+            "AND constraint_type = 'FOREIGN KEY'"
+        ).fetchall()
+    }
     if not REQUIRED_TABLES.issubset(tables):
         return {"status": "failed", "check": "tables"}
     if not REQUIRED_INDEXES.issubset(indexes):
@@ -86,7 +95,7 @@ def _verify(connection) -> dict[str, str]:
         return {"status": "failed", "check": "vnext_indexes"}
     if foreign_key_count < 4:
         return {"status": "failed", "check": "foreign_keys"}
-    if vnext_foreign_key_count < 8:
+    if vnext_foreign_key_count < 36 or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys):
         return {"status": "failed", "check": "vnext_foreign_keys"}
     return {"status": "pass", "check": "tables_indexes_foreign_keys"}
 

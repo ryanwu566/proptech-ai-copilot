@@ -112,6 +112,14 @@
       "filename": "013_vnext_workspace_case_foundation.sql",
       "execution_policy": "production_runner",
       "sha256": "322c66295975a612d03b39d46c2fdb4fdb0a7e4be6212ae3f4488fee4ce73952"
+    },
+    {
+      "registry_order": 15,
+      "logical_id": "production-014-vnext-property-graph-evidence-foundation",
+      "sequence": 14,
+      "filename": "014_vnext_property_graph_evidence_foundation.sql",
+      "execution_policy": "production_runner",
+      "sha256": "0b465671d513a4b182af8c56e784e8a7e161ed019e6218934ce30625cde7dacd"
     }
   ]
 }
