@@ -11,6 +11,7 @@ from services.vnext.auth import AuthenticatedPrincipal
 from services.vnext.db_principal import (
     DatabasePrincipalContext,
     DatabasePrincipalContextError,
+    get_vnext_database_principal_context,
 )
 
 
@@ -43,10 +44,12 @@ class _Connection:
         role: str = "vnext_api",
         superuser: bool = False,
         bypass_rls: bool = False,
+        owns_vnext: bool = False,
     ) -> None:
         self.role = role
         self.superuser = superuser
         self.bypass_rls = bypass_rls
+        self.owns_vnext = owns_vnext
         self.local_settings: dict[str, str] = {}
         self.transaction_count = 0
         self.rollback_count = 0
@@ -69,6 +72,8 @@ class _Connection:
         self.sql.append((normalized, params))
         if normalized.startswith("select rolname, rolsuper, rolbypassrls"):
             return _Result((self.role, self.superuser, self.bypass_rls))
+        if normalized.startswith("select exists") and "pg_namespace" in normalized:
+            return _Result((self.owns_vnext,))
         if "set_config('request.jwt.claim.sub'" in normalized:
             assert params is not None
             self.local_settings["request.jwt.claim.sub"] = str(params[0])
@@ -86,11 +91,15 @@ class _Pool:
     def __init__(self, connection: _Connection) -> None:
         self.shared_connection = connection
         self.checkout_count = 0
+        self.closed = False
 
     @contextmanager
     def connection(self):
         self.checkout_count += 1
         yield self.shared_connection
+
+    def close(self) -> None:
+        self.closed = True
 
 
 def test_principals_are_transaction_local_on_a_reused_pool_connection() -> None:
@@ -135,24 +144,27 @@ def test_principal_context_is_cleared_after_exception() -> None:
 
 
 @pytest.mark.parametrize(
-    ("role", "superuser", "bypass_rls"),
+    ("role", "superuser", "bypass_rls", "owns_vnext"),
     [
-        ("postgres", True, True),
-        ("service_role", False, True),
-        ("vnext_api", True, False),
-        ("vnext_api", False, True),
-        ("legacy_owner", False, False),
+        ("postgres", True, True, True),
+        ("service_role", False, True, False),
+        ("vnext_api", True, False, False),
+        ("vnext_api", False, True, False),
+        ("vnext_api", False, False, True),
+        ("legacy_owner", False, False, False),
     ],
 )
 def test_privileged_or_unexpected_database_roles_are_rejected(
     role: str,
     superuser: bool,
     bypass_rls: bool,
+    owns_vnext: bool,
 ) -> None:
     connection = _Connection(
         role=role,
         superuser=superuser,
         bypass_rls=bypass_rls,
+        owns_vnext=owns_vnext,
     )
     context = DatabasePrincipalContext(_Pool(connection))
 
@@ -174,3 +186,27 @@ def test_principal_settings_are_explicitly_transaction_local() -> None:
     set_config_calls = [item for item in connection.sql if "set_config" in item[0]]
     assert len(set_config_calls) == 2
     assert all(call[0].endswith(", %s, true)") for call in set_config_calls)
+
+
+def test_vnext_pool_never_falls_back_to_legacy_owner_database_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    get_vnext_database_principal_context.cache_clear()
+    monkeypatch.setenv("DATABASE_URL", "postgresql://legacy-owner.invalid/database")
+    monkeypatch.delenv("VNEXT_DATABASE_URL", raising=False)
+    try:
+        with pytest.raises(DatabasePrincipalContextError) as error:
+            get_vnext_database_principal_context()
+    finally:
+        get_vnext_database_principal_context.cache_clear()
+
+    assert error.value.args == ("database_request_role_unavailable",)
+
+
+def test_principal_context_closes_its_pool() -> None:
+    pool = _Pool(_Connection())
+    context = DatabasePrincipalContext(pool)
+
+    context.close()
+
+    assert pool.closed is True

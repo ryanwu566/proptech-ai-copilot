@@ -81,10 +81,18 @@ class _FakeConnection:
             return _Result([])
         if normalized.startswith("select table_name"):
             return _Result([(table,) for table in migration_runner.REQUIRED_TABLES])
+        if normalized.startswith("select table_schema, table_name"):
+            return _Result(
+                [tuple(table.split(".", 1)) for table in migration_runner.REQUIRED_VNEXT_TABLES]
+            )
         if normalized.startswith("select indexname"):
             return _Result([(index,) for index in migration_runner.REQUIRED_INDEXES])
+        if normalized.startswith("select schemaname, indexname"):
+            return _Result(
+                [tuple(index.split(".", 1)) for index in migration_runner.REQUIRED_VNEXT_INDEXES]
+            )
         if normalized.startswith("select count(*) from information_schema.table_constraints"):
-            return _Result([(4,)])
+            return _Result([(11 if "constraint_schema in" in normalized else 4,)])
         return _Result([])
 
 
@@ -113,10 +121,10 @@ def test_registry_freezes_every_historical_migration_exactly_once() -> None:
     registrations = load_registry()
     actual_files = {path.name for path in MIGRATION_DIRECTORY.glob("*.sql")}
 
-    assert len(registrations) == len(actual_files) == 13
+    assert len(registrations) == len(actual_files) == 14
     assert {item.filename for item in registrations} == actual_files
     assert len({item.logical_id for item in registrations}) == len(registrations)
-    assert [item.registry_order for item in registrations] == list(range(1, 14))
+    assert [item.registry_order for item in registrations] == list(range(1, 15))
     assert [item.filename for item in registrations][1:3] == [
         "002_add_market_direct_query_indexes.sql",
         "002_expand_valuation_import_runs.sql",
@@ -173,11 +181,11 @@ def test_registry_checksum_is_stable_across_checkout_line_endings(tmp_path: Path
     assert checksum(lf) == checksum(crlf)
 
 
-def test_registry_allocates_collision_free_stage_1_sequence() -> None:
+def test_registry_allocates_next_slice_sequence_after_stage_1a() -> None:
     registrations = load_registry()
 
-    assert next_safe_sequence(registrations) == 13
-    assert not any(item.filename.startswith("013_") for item in registrations)
+    assert next_safe_sequence(registrations) == 14
+    assert sum(item.filename.startswith("013_") for item in registrations) == 1
     assert "011_add_plvr_compact_green_schema.sql" not in {
         path.name for path in migration_runner.MIGRATIONS
     }
@@ -188,9 +196,9 @@ def test_dry_run_reports_frozen_registry_and_next_allocation() -> None:
 
     assert result == {
         "status": "ready",
-        "migration_count": 8,
-        "registry_count": 13,
-        "next_migration_sequence": "013",
+        "migration_count": 9,
+        "registry_count": 14,
+        "next_migration_sequence": "014",
         "mode": "dry_run",
     }
 
@@ -217,6 +225,7 @@ def test_migration_schema_versions_follow_file_numbers(monkeypatch) -> None:
     assert connection.schema_versions["008_add_official_market_pipeline"] == "schema-008"
     assert connection.schema_versions["009_separate_official_market_region_coverage"] == "schema-009"
     assert connection.schema_versions["010_add_plvr_generation_schema"] == "schema-010"
+    assert connection.schema_versions["013_vnext_workspace_case_foundation"] == "schema-013"
 
 
 def test_checksum_drift_fails_without_applying_other_migrations(monkeypatch) -> None:
@@ -252,7 +261,7 @@ def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     assert "release_id text not null references official_market_releases" in forward
     assert "create table if not exists market_region_coverage (" not in forward
     assert "idx_official_market_region_coverage_region_period" in forward
-    assert migration_runner.MIGRATIONS[-1].name == "012_security_rls_deny_by_default.sql"
+    assert migration_runner.MIGRATIONS[-1].name == "013_vnext_workspace_case_foundation.sql"
     assert any(path.name == "010_add_plvr_generation_schema.sql" for path in migration_runner.MIGRATIONS)
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
     assert "plvr_dataset_generations" in migration_runner.REQUIRED_TABLES

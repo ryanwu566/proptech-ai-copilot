@@ -76,7 +76,9 @@ async def app_lifespan(_app: FastAPI):
     # Shutdown: close GREEN connection pool if it was initialized.
     # Safe no-op if pool was never created (PLVR_DATA_BACKEND != green).
     from services.compact_green_query import close_green_pool
+    from services.vnext.db_principal import close_vnext_database_pool
     close_green_pool()
+    close_vnext_database_pool()
 
 
 app = FastAPI(

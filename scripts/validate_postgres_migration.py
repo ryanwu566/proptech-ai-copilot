@@ -54,6 +54,22 @@ REQUIRED_INDEXES = {
     "idx_plvr_generation_region_coverage_region_period",
     "idx_plvr_generation_load_checkpoints_updated_at",
 }
+REQUIRED_VNEXT_TABLES = {
+    "vnext_core.workspaces",
+    "vnext_core.workspace_members",
+    "vnext_core.cases",
+    "vnext_private.idempotency_records",
+    "vnext_private.audit_events",
+}
+REQUIRED_VNEXT_INDEXES = {
+    "vnext_core.uq_vnext_workspaces_personal_owner",
+    "vnext_core.idx_vnext_workspace_members_user_status",
+    "vnext_core.idx_vnext_workspace_members_workspace_status_role",
+    "vnext_core.idx_vnext_cases_workspace_status_updated",
+    "vnext_private.idx_vnext_idempotency_expiry",
+    "vnext_private.idx_vnext_audit_workspace_created",
+    "vnext_private.idx_vnext_audit_request",
+}
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
 
@@ -70,6 +86,9 @@ def _static_contract() -> dict[str, Any]:
         "jsonb", "schema_migration_ledger", "schema_version", "official_market_releases",
         "market_region_period_aggregates", "market_import_checkpoints",
         "plvr_dataset_generations", "plvr_active_dataset",
+        "create role vnext_api", "force row level security",
+        "workspace_members_self_select", "vnext_private.idempotency_records",
+        "vnext_private.audit_events",
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
@@ -215,13 +234,58 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
     with connect(database_url) as connection:
         try:
             with connection.transaction():
+                # A plain disposable PostgreSQL service does not include the
+                # Supabase Auth schema. Supply only the canonical prerequisite
+                # contract inside this rollback-only validation transaction.
+                connection.execute("CREATE SCHEMA IF NOT EXISTS auth")
+                connection.execute(
+                    "CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY)"
+                )
+                auth_uid = connection.execute(
+                    "SELECT to_regprocedure('auth.uid()')"
+                ).fetchone()
+                if auth_uid is None or auth_uid[0] is None:
+                    connection.execute(
+                        "CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE "
+                        "SET search_path = '' AS $$ "
+                        "SELECT COALESCE("
+                        "NULLIF(current_setting('request.jwt.claim.sub', true), ''), "
+                        "NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'"
+                        ")::uuid $$"
+                    )
                 for path in MIGRATIONS:
                     for statement in _statements(path):
                         connection.execute(statement)
                 tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
                 indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
+                vnext_tables = {
+                    f"{row[0]}.{row[1]}"
+                    for row in connection.execute(
+                        "SELECT table_schema, table_name FROM information_schema.tables "
+                        "WHERE table_schema IN ('vnext_core', 'vnext_private')"
+                    ).fetchall()
+                }
+                vnext_indexes = {
+                    f"{row[0]}.{row[1]}"
+                    for row in connection.execute(
+                        "SELECT schemaname, indexname FROM pg_indexes "
+                        "WHERE schemaname IN ('vnext_core', 'vnext_private')"
+                    ).fetchall()
+                }
                 foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
-                if not REQUIRED_TABLES.issubset(tables) or not REQUIRED_INDEXES.issubset(indexes) or foreign_key_count < 4:
+                vnext_foreign_key_count = connection.execute(
+                    "SELECT count(*) FROM information_schema.table_constraints "
+                    "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+                    "AND constraint_type = 'FOREIGN KEY'"
+                ).fetchone()[0]
+                if (
+                    not REQUIRED_TABLES.issubset(tables)
+                    or not REQUIRED_INDEXES.issubset(indexes)
+                    or not REQUIRED_VNEXT_TABLES.issubset(vnext_tables)
+                    or not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes)
+                    or foreign_key_count < 4
+                    or vnext_foreign_key_count < 8
+                ):
                     raise _SchemaContractFailure
                 raise _RollbackValidation
         except _RollbackValidation:

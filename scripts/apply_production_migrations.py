@@ -25,7 +25,14 @@ from scripts.migration_registry import (
     next_safe_sequence,
     production_migrations,
 )
-from scripts.validate_postgres_migration import MIGRATIONS, REQUIRED_INDEXES, REQUIRED_TABLES, _statements
+from scripts.validate_postgres_migration import (
+    MIGRATIONS,
+    REQUIRED_INDEXES,
+    REQUIRED_TABLES,
+    REQUIRED_VNEXT_INDEXES,
+    REQUIRED_VNEXT_TABLES,
+    _statements,
+)
 
 SAFE_RELEASE = re.compile(r"^[A-Za-z0-9._:-]{1,80}$")
 LEDGER_MIGRATION = next(path for path in MIGRATIONS if path.stem == "007_add_schema_migration_ledger")
@@ -50,12 +57,37 @@ def _verify(connection) -> dict[str, str]:
     tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
     indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
     foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
+    vnext_tables = {
+        f"{row[0]}.{row[1]}"
+        for row in connection.execute(
+            "SELECT table_schema, table_name FROM information_schema.tables "
+            "WHERE table_schema IN ('vnext_core', 'vnext_private')"
+        ).fetchall()
+    }
+    vnext_indexes = {
+        f"{row[0]}.{row[1]}"
+        for row in connection.execute(
+            "SELECT schemaname, indexname FROM pg_indexes "
+            "WHERE schemaname IN ('vnext_core', 'vnext_private')"
+        ).fetchall()
+    }
+    vnext_foreign_key_count = connection.execute(
+        "SELECT count(*) FROM information_schema.table_constraints "
+        "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+        "AND constraint_type = 'FOREIGN KEY'"
+    ).fetchone()[0]
     if not REQUIRED_TABLES.issubset(tables):
         return {"status": "failed", "check": "tables"}
     if not REQUIRED_INDEXES.issubset(indexes):
         return {"status": "failed", "check": "indexes"}
+    if not REQUIRED_VNEXT_TABLES.issubset(vnext_tables):
+        return {"status": "failed", "check": "vnext_tables"}
+    if not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes):
+        return {"status": "failed", "check": "vnext_indexes"}
     if foreign_key_count < 4:
         return {"status": "failed", "check": "foreign_keys"}
+    if vnext_foreign_key_count < 8:
+        return {"status": "failed", "check": "vnext_foreign_keys"}
     return {"status": "pass", "check": "tables_indexes_foreign_keys"}
 
 

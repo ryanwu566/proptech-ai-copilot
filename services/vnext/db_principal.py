@@ -10,13 +10,16 @@ commit or rollback before the connection is returned to its pool.
 from __future__ import annotations
 
 import json
+import os
 from contextlib import contextmanager
+from functools import lru_cache
 from typing import Any, Iterator, Protocol
 
 from services.vnext.auth import AuthenticatedPrincipal
 
 
 FORBIDDEN_REQUEST_ROLES = frozenset({"postgres", "service_role"})
+VNEXT_DATABASE_URL_ENV = "VNEXT_DATABASE_URL"
 
 
 class DatabasePrincipalContextError(RuntimeError):
@@ -36,6 +39,11 @@ class DatabasePrincipalContext:
         self._pool = pool
         self._expected_role = expected_role
 
+    def close(self) -> None:
+        close = getattr(self._pool, "close", None)
+        if callable(close):
+            close()
+
     def _verify_database_role(self, connection: Any) -> None:
         row = connection.execute(
             "SELECT rolname, rolsuper, rolbypassrls "
@@ -50,6 +58,20 @@ class DatabasePrincipalContext:
             or is_superuser
             or bypasses_rls
         ):
+            raise DatabasePrincipalContextError("database_request_role_unsafe")
+        ownership = connection.execute(
+            "SELECT EXISTS ("
+            "SELECT 1 FROM pg_namespace namespace "
+            "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
+            "AND namespace.nspowner = (SELECT oid FROM pg_roles WHERE rolname = current_user) "
+            "UNION ALL "
+            "SELECT 1 FROM pg_class relation "
+            "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+            "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
+            "AND relation.relowner = (SELECT oid FROM pg_roles WHERE rolname = current_user)"
+            ")"
+        ).fetchone()
+        if ownership is None or bool(ownership[0]):
             raise DatabasePrincipalContextError("database_request_role_unsafe")
 
     @contextmanager
@@ -78,3 +100,42 @@ class DatabasePrincipalContext:
                         "database_principal_context_unavailable"
                     )
                 yield connection
+
+
+@lru_cache(maxsize=1)
+def get_vnext_database_principal_context() -> DatabasePrincipalContext:
+    """Build the dedicated VNext request pool, never the legacy owner pool.
+
+    ``VNEXT_DATABASE_URL`` must authenticate directly as ``vnext_api``.  It is
+    intentionally not allowed to fall back to the repository's legacy
+    ``DATABASE_URL`` because that credential may own tables or bypass RLS.
+    """
+
+    database_url = os.getenv(VNEXT_DATABASE_URL_ENV, "").strip()
+    if not database_url:
+        raise DatabasePrincipalContextError("database_request_role_unavailable")
+    try:
+        from psycopg_pool import ConnectionPool as PsycopgConnectionPool
+
+        pool = PsycopgConnectionPool(
+            conninfo=database_url,
+            min_size=1,
+            max_size=5,
+            open=True,
+            kwargs={"prepare_threshold": None},
+        )
+    except Exception:
+        raise DatabasePrincipalContextError(
+            "database_request_role_unavailable"
+        ) from None
+    return DatabasePrincipalContext(pool, expected_role="vnext_api")
+
+
+def close_vnext_database_pool() -> None:
+    """Close the VNext request pool without creating it during shutdown."""
+
+    if get_vnext_database_principal_context.cache_info().currsize:
+        try:
+            get_vnext_database_principal_context().close()
+        finally:
+            get_vnext_database_principal_context.cache_clear()

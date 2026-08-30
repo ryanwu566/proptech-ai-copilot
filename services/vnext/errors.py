@@ -61,3 +61,15 @@ class VNextError(Exception):
     @classmethod
     def validation_failed(cls) -> "VNextError":
         return cls(ErrorCode.VALIDATION_FAILED)
+
+    @classmethod
+    def not_found(cls) -> "VNextError":
+        return cls(ErrorCode.NOT_FOUND)
+
+    @classmethod
+    def version_conflict(cls) -> "VNextError":
+        return cls(ErrorCode.VERSION_CONFLICT)
+
+    @classmethod
+    def idempotency_conflict(cls) -> "VNextError":
+        return cls(ErrorCode.IDEMPOTENCY_CONFLICT)

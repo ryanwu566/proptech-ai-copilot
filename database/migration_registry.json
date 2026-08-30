@@ -104,6 +104,14 @@
       "filename": "012_security_rls_deny_by_default.sql",
       "execution_policy": "production_runner",
       "sha256": "bb1551d4e7fda1d3c7df99e3fd64a53f7fb05a8dcfb7ec0049c18ae6c2dfa056"
+    },
+    {
+      "registry_order": 14,
+      "logical_id": "production-013-vnext-workspace-case-foundation",
+      "sequence": 13,
+      "filename": "013_vnext_workspace_case_foundation.sql",
+      "execution_policy": "production_runner",
+      "sha256": "322c66295975a612d03b39d46c2fdb4fdb0a7e4be6212ae3f4488fee4ce73952"
     }
   ]
 }

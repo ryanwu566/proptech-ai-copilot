@@ -27,6 +27,7 @@ kept under `docs/archive/` and must not be used as current product guidance.
 - [VNext workspace and security architecture](vnext/workspace-security-architecture-v1.md) - tenant roles, RLS, server-only schemas, private Storage, audit and PostGIS.
 - [VNext data-source registry](vnext/data-source-registry-v1.md) - access/license/coverage feasibility and owner actions; registration is not readiness.
 - [VNext API contract](vnext/api-contract-v1.md) - future `/v1` resource, error, idempotency and audit conventions.
+- [VNext API database role provisioning](vnext/vnext-api-database-role-provisioning.md) - separates the passwordless `vnext_api` role/grants migration from external deployment credential provisioning and acceptance.
 - [VNext legacy case migration](vnext/legacy-case-migration-v1.md) - optional copy-only SavedCase v1 import and `legacy_unverified` boundary.
 - [Valuation public-service architecture](valuation_public_service_architecture.md) - active PLVR-to-valuation architecture and operational boundaries.
 - [Property Case Decision System](property-case-decision-system-v1.md) - current case model, readiness, comparison, and report boundaries.
