@@ -26,10 +26,13 @@ DATABASE_ENV = "VNEXT_RLS_POSTGRES_URL"
 DISPOSABLE_CONFIRMATION_ENV = "VNEXT_RLS_POSTGRES_DISPOSABLE"
 DATABASE_URL = os.getenv(DATABASE_ENV, "").strip()
 
-pytestmark = pytest.mark.skipif(
-    not DATABASE_URL or os.getenv(DISPOSABLE_CONFIRMATION_ENV) != "1",
-    reason="real VNext RLS test requires an explicitly confirmed disposable PostgreSQL target",
-)
+pytestmark = [
+    pytest.mark.external_database,
+    pytest.mark.skipif(
+        not DATABASE_URL or os.getenv(DISPOSABLE_CONFIRMATION_ENV) != "1",
+        reason="real VNext RLS test requires an explicitly confirmed disposable PostgreSQL target",
+    ),
+]
 
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATION = ROOT / "database/migrations/013_vnext_workspace_case_foundation.sql"
@@ -81,10 +84,11 @@ def _install_auth_contract(connection) -> None:
 
 
 def _seed(connection) -> None:
-    connection.executemany(
-        "INSERT INTO auth.users (id) VALUES (%s) ON CONFLICT (id) DO NOTHING",
-        [(user_id,) for user_id in USERS.values()],
-    )
+    with connection.cursor() as cursor:
+        cursor.executemany(
+            "INSERT INTO auth.users (id) VALUES (%s) ON CONFLICT (id) DO NOTHING",
+            [(user_id,) for user_id in USERS.values()],
+        )
     connection.execute(
         "INSERT INTO vnext_core.workspaces ("
         "workspace_id, workspace_type, display_name, created_by_user_id, personal_owner_user_id"
@@ -99,13 +103,14 @@ def _seed(connection) -> None:
         ),
     )
     active_members = ["viewer", "member", "manager", "admin", "owner"]
-    connection.executemany(
-        "INSERT INTO vnext_core.workspace_members ("
-        "workspace_id, user_id, role, status, joined_at"
-        ") VALUES (%s, %s, %s, 'active', clock_timestamp())",
-        [(WORKSPACE_A, USERS[role], role) for role in active_members]
-        + [(WORKSPACE_B, USERS["workspace_b"], "member")],
-    )
+    with connection.cursor() as cursor:
+        cursor.executemany(
+            "INSERT INTO vnext_core.workspace_members ("
+            "workspace_id, user_id, role, status, joined_at"
+            ") VALUES (%s, %s, %s, 'active', clock_timestamp())",
+            [(WORKSPACE_A, USERS[role], role) for role in active_members]
+            + [(WORKSPACE_B, USERS["workspace_b"], "member")],
+        )
     connection.execute(
         "INSERT INTO vnext_core.workspace_members ("
         "workspace_id, user_id, role, status, revoked_at"
@@ -178,10 +183,11 @@ def _prepared_database():
                 admin.execute("ALTER ROLE vnext_api PASSWORD NULL")
             admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
             admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
-            admin.execute(
-                "DELETE FROM auth.users WHERE id = ANY(%s)",
-                (list(USERS.values()),),
-            )
+            if admin.execute("SELECT to_regclass('auth.users')").fetchone()[0] is not None:
+                admin.execute(
+                    "DELETE FROM auth.users WHERE id = ANY(%s)",
+                    (list(USERS.values()),),
+                )
             admin.commit()
         finally:
             admin.close()
@@ -195,6 +201,108 @@ def _visible_case_count(context: DatabasePrincipalContext, user: str, workspace_
                 (workspace_id,),
             ).fetchone()[0]
         )
+
+
+def _assert_migration_catalog(admin) -> None:
+    assert admin.execute("SELECT current_database()").fetchone()[0].startswith(
+        "vnext_rls_test"
+    )
+    assert admin.execute(
+        "SELECT nspname FROM pg_namespace "
+        "WHERE nspname IN ('vnext_core', 'vnext_private') ORDER BY nspname"
+    ).fetchall() == [("vnext_core",), ("vnext_private",)]
+
+    tables = admin.execute(
+        "SELECT namespace.nspname, relation.relname, relation.relrowsecurity, "
+        "relation.relforcerowsecurity, owner.rolname "
+        "FROM pg_class relation "
+        "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+        "JOIN pg_roles owner ON owner.oid = relation.relowner "
+        "WHERE relation.relkind = 'r' "
+        "AND namespace.nspname IN ('vnext_core', 'vnext_private') "
+        "ORDER BY namespace.nspname, relation.relname"
+    ).fetchall()
+    assert [(schema, table, rls, forced) for schema, table, rls, forced, _ in tables] == [
+        ("vnext_core", "cases", True, True),
+        ("vnext_core", "workspace_members", True, True),
+        ("vnext_core", "workspaces", True, True),
+        ("vnext_private", "audit_events", True, True),
+        ("vnext_private", "idempotency_records", True, True),
+    ]
+    assert all(owner != "vnext_api" for _, _, _, _, owner in tables)
+
+    policies = admin.execute(
+        "SELECT schemaname, tablename, policyname, cmd, roles "
+        "FROM pg_policies "
+        "WHERE schemaname IN ('vnext_core', 'vnext_private') "
+        "ORDER BY schemaname, tablename, policyname"
+    ).fetchall()
+    assert policies == [
+        ("vnext_core", "cases", "cases_active_member_select", "SELECT", ["vnext_api"]),
+        ("vnext_core", "cases", "cases_active_writer_insert", "INSERT", ["vnext_api"]),
+        ("vnext_core", "cases", "cases_active_writer_update", "UPDATE", ["vnext_api"]),
+        (
+            "vnext_core",
+            "workspace_members",
+            "workspace_members_self_select",
+            "SELECT",
+            ["vnext_api"],
+        ),
+        (
+            "vnext_core",
+            "workspaces",
+            "workspaces_active_member_select",
+            "SELECT",
+            ["vnext_api"],
+        ),
+        (
+            "vnext_private",
+            "audit_events",
+            "audit_actor_insert",
+            "INSERT",
+            ["vnext_api"],
+        ),
+        (
+            "vnext_private",
+            "idempotency_records",
+            "idempotency_actor_insert",
+            "INSERT",
+            ["vnext_api"],
+        ),
+        (
+            "vnext_private",
+            "idempotency_records",
+            "idempotency_actor_select",
+            "SELECT",
+            ["vnext_api"],
+        ),
+        (
+            "vnext_private",
+            "idempotency_records",
+            "idempotency_actor_update",
+            "UPDATE",
+            ["vnext_api"],
+        ),
+    ]
+
+    grants = admin.execute(
+        "SELECT table_schema, table_name, privilege_type "
+        "FROM information_schema.role_table_grants "
+        "WHERE grantee = 'vnext_api' "
+        "AND table_schema IN ('vnext_core', 'vnext_private') "
+        "ORDER BY table_schema, table_name, privilege_type"
+    ).fetchall()
+    assert grants == [
+        ("vnext_core", "cases", "INSERT"),
+        ("vnext_core", "cases", "SELECT"),
+        ("vnext_core", "cases", "UPDATE"),
+        ("vnext_core", "workspace_members", "SELECT"),
+        ("vnext_core", "workspaces", "SELECT"),
+        ("vnext_private", "audit_events", "INSERT"),
+        ("vnext_private", "idempotency_records", "INSERT"),
+        ("vnext_private", "idempotency_records", "SELECT"),
+        ("vnext_private", "idempotency_records", "UPDATE"),
+    ]
 
 
 def _insert_is_denied(context: DatabasePrincipalContext, user: str, workspace_id: UUID) -> None:
@@ -212,9 +320,11 @@ def _insert_is_denied(context: DatabasePrincipalContext, user: str, workspace_id
 
 def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
     with _prepared_database() as (admin, pool, context):
+        _assert_migration_catalog(admin)
+
         with context.transaction(_principal(USERS["owner"])) as connection:
             role = connection.execute(
-                "SELECT current_user, rolsuper, rolbypassrls "
+                "SELECT current_user, rolsuper, rolbypassrls, rolinherit "
                 "FROM pg_roles WHERE rolname = current_user"
             ).fetchone()
             owns_vnext = connection.execute(
@@ -223,7 +333,7 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
                 "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
                 "AND relation.relowner = (SELECT oid FROM pg_roles WHERE rolname = current_user))"
             ).fetchone()[0]
-            assert role == ("vnext_api", False, False)
+            assert role == ("vnext_api", False, False, False)
             assert owns_vnext is False
             assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["owner"]
 
@@ -307,8 +417,10 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
         # Commit clears the transaction-local principal before the sole pooled
         # connection is checked out again.
         with context.transaction(_principal(USERS["member"])) as connection:
+            physical_connection = connection.execute("SELECT pg_backend_pid()").fetchone()[0]
             assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["member"]
         with pool.connection() as connection:
+            assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
             committed = connection.execute(
                 "SELECT current_setting('request.jwt.claim.sub', true)"
             ).fetchone()[0]
@@ -320,9 +432,11 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
 
         with pytest.raises(_RollbackProof):
             with context.transaction(_principal(USERS["owner"])) as connection:
+                assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
                 assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["owner"]
                 raise _RollbackProof
         with pool.connection() as connection:
+            assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
             rolled_back = connection.execute(
                 "SELECT current_setting('request.jwt.claim.sub', true)"
             ).fetchone()[0]
@@ -331,6 +445,7 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
 
         # The same physical connection now carries B, never A.
         with context.transaction(_principal(USERS["workspace_b"])) as connection:
+            assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
             assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["workspace_b"]
             assert connection.execute(
                 "SELECT count(*) FROM vnext_core.cases WHERE workspace_id = %s",
