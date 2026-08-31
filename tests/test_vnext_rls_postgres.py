@@ -24,6 +24,7 @@ from services.vnext.authorization import (
     WorkspaceAuthorizer,
 )
 from services.vnext.db_principal import DatabasePrincipalContext
+from services.vnext.errors import ErrorCode, VNextError
 from services.vnext.identity_resolution import (
     CandidateRankingFactors,
     IdentityCandidateType,
@@ -36,7 +37,16 @@ from services.vnext.identity_resolution import (
 from services.vnext.identity_resolution_repository import (
     PostgresIdentityResolutionRepository,
 )
-from services.vnext.property_graph import CoverageStatus, SourceEnvironment
+from services.vnext.identity_resolution_service import (
+    IdentityResolutionApplicationService,
+)
+from services.vnext.persistence import PostgresCaseRepository, PostgresIdempotencyRepository
+from services.vnext.property_graph import (
+    CoverageStatus,
+    PropertyRelationStatus,
+    SourceEnvironment,
+)
+from services.vnext.property_read_repository import PostgresPropertyReadRepository
 
 
 DATABASE_ENV = "VNEXT_RLS_POSTGRES_URL"
@@ -1446,3 +1456,152 @@ def test_real_postgres_identity_resolution_repository_round_trip() -> None:
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
         ).fetchone()[0] == property_count_before
+
+
+def test_real_postgres_slice5_reads_and_idempotent_resolution_command() -> None:
+    with _prepared_database() as (admin, _pool, context):
+        _seed_property_graph_and_evidence(admin)
+        admin.commit()
+        authorizer = WorkspaceAuthorizer(
+            PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
+        )
+        read_repository = PostgresPropertyReadRepository(context, authorizer)
+        viewer = _principal(USERS["viewer"])
+        member = _principal(USERS["member"])
+
+        property_record = read_repository.get_property(
+            principal=viewer,
+            property_entity_id=PROPERTY_A,
+        )
+        assert property_record.entity_status.value == "unverified"
+
+        current = read_repository.get_graph(
+            principal=viewer,
+            property_entity_id=PROPERTY_A,
+        )
+        assert {relation.relation_status.value for relation in current.relations} == {
+            "disputed"
+        }
+
+        proposed_relations = []
+        position = None
+        while True:
+            page = read_repository.get_graph(
+                principal=viewer,
+                property_entity_id=PROPERTY_A,
+                status=PropertyRelationStatus.PROPOSED,
+                position=position,
+                limit=2,
+            )
+            proposed_relations.extend(page.relations)
+            position = page.next_position
+            if position is None:
+                break
+        assert len({item.property_relation_id for item in proposed_relations}) == 7
+        assert sum(
+            item.relation_type.value == "parcel_building"
+            for item in proposed_relations
+        ) == 3
+
+        evidence = []
+        evidence_position = None
+        while True:
+            page = read_repository.get_evidence(
+                principal=viewer,
+                property_entity_id=PROPERTY_A,
+                position=evidence_position,
+                limit=2,
+            )
+            evidence.extend(page.evidence)
+            evidence_position = page.next_position
+            if evidence_position is None:
+                break
+        assert {item.evidence_status.value for item in evidence} == {
+            "available",
+            "limited",
+            "stale",
+            "unknown",
+        }
+        assert len({item.evidence_id for item in evidence}) == 5
+
+        for hidden_principal, hidden_property in (
+            (member, PROPERTY_B),
+            (_principal(USERS["revoked"]), PROPERTY_A),
+            (_principal(USERS["none"]), PROPERTY_A),
+        ):
+            with pytest.raises(VNextError) as hidden:
+                read_repository.get_property(
+                    principal=hidden_principal,
+                    property_entity_id=hidden_property,
+                )
+            assert hidden.value.code is ErrorCode.NOT_FOUND
+
+        resolution_repository = PostgresIdentityResolutionRepository(context, authorizer)
+        idempotency_repository = PostgresIdempotencyRepository(context, authorizer)
+        service = IdentityResolutionApplicationService(
+            authorizer=authorizer,
+            engine=IdentityResolutionEngine((), clock=lambda: datetime.now(timezone.utc)),
+            resolution_repository=resolution_repository,
+            idempotency_repository=idempotency_repository,
+            case_repository=PostgresCaseRepository(context, authorizer),
+            runtime_environment="test",
+        )
+        resolution_count_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_resolutions"
+        ).fetchone()[0]
+        for _ in range(2):
+            with pytest.raises(VNextError) as unavailable:
+                service.create(
+                    principal=member,
+                    workspace_id=WORKSPACE_A,
+                    input_type=ResolutionInputType.ADDRESS,
+                    raw_input={"address": "Real PostgreSQL unresolved fixture"},
+                    case_id=CASE_A,
+                    idempotency_key="real-postgres-resolution-key-0001",
+                )
+            assert unavailable.value.code is ErrorCode.PROVIDER_UNAVAILABLE
+
+        resolution_count_after = admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_resolutions"
+        ).fetchone()[0]
+        assert resolution_count_after == resolution_count_before + 1
+        idempotency = admin.execute(
+            "SELECT operation_status, response_status_code, response_reference_type, "
+            "response_reference_id, idempotency_key_hash "
+            "FROM vnext_private.idempotency_records WHERE workspace_id = %s "
+            "AND actor_user_id = %s AND canonical_route = '/v1/property-resolutions'",
+            (WORKSPACE_A, USERS["member"]),
+        ).fetchone()
+        assert idempotency[:3] == ("failed", 503, "identity_resolution")
+        assert idempotency[3] is not None
+        assert idempotency[4] != "real-postgres-resolution-key-0001"
+
+        replayed = resolution_repository.get_resolution_by_id(
+            principal=viewer,
+            identity_resolution_id=idempotency[3],
+        )
+        assert replayed.status.value == "unresolved"
+        assert replayed.needs_human_confirmation is True
+        assert replayed.candidates == ()
+
+        with pytest.raises(VNextError) as conflict:
+            service.create(
+                principal=member,
+                workspace_id=WORKSPACE_A,
+                input_type=ResolutionInputType.ADDRESS,
+                raw_input={"address": "Different canonical request"},
+                case_id=CASE_A,
+                idempotency_key="real-postgres-resolution-key-0001",
+            )
+        assert conflict.value.code is ErrorCode.IDEMPOTENCY_CONFLICT
+
+        with pytest.raises(VNextError) as viewer_denied:
+            service.create(
+                principal=viewer,
+                workspace_id=WORKSPACE_A,
+                input_type=ResolutionInputType.ADDRESS,
+                raw_input={"address": "Viewer denied"},
+                case_id=None,
+                idempotency_key="viewer-resolution-denied-0001",
+            )
+        assert viewer_denied.value.code is ErrorCode.PERMISSION_DENIED

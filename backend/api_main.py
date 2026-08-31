@@ -162,6 +162,11 @@ app.add_exception_handler(VNextError, vnext_error_handler)
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, error: RequestValidationError):
     if request.url.path.startswith("/v1"):
+        if request.url.path == "/v1/property-resolutions" and any(
+            item.get("type") == "union_tag_invalid"
+            for item in error.errors()
+        ):
+            return structured_error_response(request, VNextError.unsupported_input())
         return structured_error_response(request, VNextError.validation_failed())
     return await request_validation_exception_handler(request, error)
 

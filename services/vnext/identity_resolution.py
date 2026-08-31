@@ -569,6 +569,12 @@ class IdentityResolutionEngine:
         self._providers = tuple(providers)
         self._clock = clock
 
+    @property
+    def providers(self) -> tuple[IdentityResolutionProvider, ...]:
+        """Expose the immutable configured set for the API environment gate."""
+
+        return self._providers
+
     def resolve(
         self,
         *,

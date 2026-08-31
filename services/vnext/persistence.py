@@ -316,6 +316,7 @@ class IdempotencyReservation:
     operation_status: str
     response_reference_type: str | None
     response_reference_id: UUID | None
+    response_status_code: int | None = None
 
 
 _IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9._:-]{16,128}$")
@@ -372,7 +373,8 @@ class PostgresIdempotencyRepository:
                 "ON CONFLICT (workspace_id, actor_user_id, http_method, "
                 "canonical_route, idempotency_key_hash) DO NOTHING "
                 "RETURNING idempotency_record_id, request_fingerprint, "
-                "operation_status, response_reference_type, response_reference_id",
+                "operation_status, response_reference_type, response_reference_id, "
+                "response_status_code",
                 (
                     record_id,
                     workspace_id,
@@ -389,7 +391,8 @@ class PostgresIdempotencyRepository:
             if row is None:
                 row = connection.execute(
                     "SELECT idempotency_record_id, request_fingerprint, "
-                    "operation_status, response_reference_type, response_reference_id "
+                    "operation_status, response_reference_type, response_reference_id, "
+                    "response_status_code "
                     "FROM vnext_private.idempotency_records WHERE workspace_id = %s "
                     "AND actor_user_id = %s AND http_method = %s "
                     "AND canonical_route = %s AND idempotency_key_hash = %s",
@@ -413,7 +416,45 @@ class PostgresIdempotencyRepository:
                 operation_status=str(row[2]),
                 response_reference_type=(None if row[3] is None else str(row[3])),
                 response_reference_id=(None if row[4] is None else UUID(str(row[4]))),
+                response_status_code=(
+                    None if len(row) < 6 or row[5] is None else int(row[5])
+                ),
             )
+
+    def mark_failed(
+        self,
+        *,
+        principal: AuthenticatedPrincipal,
+        workspace_id: UUID,
+        idempotency_record_id: UUID,
+        response_status_code: int = 500,
+    ) -> None:
+        """Finalize a reserved command without retaining exception data."""
+
+        self._authorizer.require_workspace_role(
+            principal,
+            workspace_id,
+            allowed_roles=CASE_WRITE_ROLES,
+        )
+        if response_status_code < 400 or response_status_code > 599:
+            raise VNextError.validation_failed()
+        with self._principal_context.transaction(principal) as connection:
+            row = connection.execute(
+                "UPDATE vnext_private.idempotency_records SET "
+                "operation_status = 'failed', response_status_code = %s, "
+                "updated_at = clock_timestamp() "
+                "WHERE idempotency_record_id = %s AND workspace_id = %s "
+                "AND actor_user_id = %s AND operation_status = 'pending' "
+                "RETURNING idempotency_record_id",
+                (
+                    response_status_code,
+                    idempotency_record_id,
+                    workspace_id,
+                    principal.user_id,
+                ),
+            ).fetchone()
+        if row is None:
+            raise VNextError.idempotency_conflict()
 
 
 @dataclass(frozen=True)

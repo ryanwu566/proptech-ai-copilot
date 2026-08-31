@@ -326,6 +326,9 @@ class PostgresIdentityResolutionRepository:
         draft: IdentityResolutionDraft,
         case_id: UUID | None = None,
         supersedes_resolution_id: UUID | None = None,
+        idempotency_record_id: UUID | None = None,
+        idempotency_response_status_code: int | None = None,
+        idempotency_operation_status: str | None = None,
     ) -> IdentityResolutionRecord:
         self._authorizer.require_workspace_role(
             principal,
@@ -340,6 +343,22 @@ class PostgresIdentityResolutionRepository:
                 ResolutionStatus.SUPERSEDED,
             }
             or draft.completed_at is None
+        ):
+            raise VNextError.validation_failed()
+        completion_values = (
+            idempotency_record_id,
+            idempotency_response_status_code,
+            idempotency_operation_status,
+        )
+        if (
+            idempotency_record_id is None
+            and any(value is not None for value in completion_values[1:])
+            or idempotency_record_id is not None
+            and (
+                idempotency_response_status_code is None
+                or not 100 <= idempotency_response_status_code <= 599
+                or idempotency_operation_status not in {"succeeded", "failed"}
+            )
         ):
             raise VNextError.validation_failed()
 
@@ -575,6 +594,27 @@ class PostgresIdentityResolutionRepository:
                     )
                 )
 
+            if idempotency_record_id is not None:
+                completed = connection.execute(
+                    "UPDATE vnext_private.idempotency_records SET "
+                    "operation_status = %s, response_status_code = %s, "
+                    "response_reference_type = 'identity_resolution', "
+                    "response_reference_id = %s, updated_at = clock_timestamp() "
+                    "WHERE idempotency_record_id = %s AND workspace_id = %s "
+                    "AND actor_user_id = %s AND operation_status = 'pending' "
+                    "RETURNING idempotency_record_id",
+                    (
+                        idempotency_operation_status,
+                        idempotency_response_status_code,
+                        resolution_id,
+                        idempotency_record_id,
+                        workspace_id,
+                        principal.user_id,
+                    ),
+                ).fetchone()
+                if completed is None:
+                    raise VNextError.idempotency_conflict()
+
         return IdentityResolutionRecord(
             identity_resolution_id=resolution_id,
             workspace_id=workspace_id,
@@ -594,6 +634,28 @@ class PostgresIdentityResolutionRepository:
             attempts=tuple(attempts),
             candidates=tuple(candidates),
             conflicts=tuple(conflicts),
+        )
+
+    def get_resolution_by_id(
+        self,
+        *,
+        principal: AuthenticatedPrincipal,
+        identity_resolution_id: UUID,
+    ) -> IdentityResolutionRecord:
+        """Discover a resolution workspace through RLS without tenant enumeration."""
+
+        with self._principal_context.transaction(principal) as connection:
+            row = connection.execute(
+                "SELECT workspace_id FROM vnext_core.identity_resolutions "
+                "WHERE identity_resolution_id = %s",
+                (identity_resolution_id,),
+            ).fetchone()
+        if row is None:
+            raise VNextError.not_found()
+        return self.get_resolution(
+            principal=principal,
+            workspace_id=UUID(str(row[0])),
+            identity_resolution_id=identity_resolution_id,
         )
 
     def get_resolution(

@@ -6,6 +6,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
 
+from backend.api.v1.property_identity import router as property_identity_router
 from services.vnext.auth import AuthenticatedPrincipal, require_authenticated_principal
 from services.vnext.authorization import (
     WorkspaceAuthorizer,
@@ -66,3 +67,6 @@ def workspace_context(
         "user_id": str(membership.user_id),
         "role": membership.role.value,
     }
+
+
+router.include_router(property_identity_router)
