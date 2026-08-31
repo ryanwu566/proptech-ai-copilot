@@ -65,6 +65,10 @@ REQUIRED_VNEXT_TABLES = {
     "vnext_core.evidence_items",
     "vnext_core.evidence_lineage",
     "vnext_core.evidence_links",
+    "vnext_core.identity_resolutions",
+    "vnext_core.resolution_attempts",
+    "vnext_core.identity_candidates",
+    "vnext_core.identity_conflicts",
     "vnext_private.idempotency_records",
     "vnext_private.audit_events",
 }
@@ -81,6 +85,13 @@ REQUIRED_VNEXT_INDEXES = {
     "vnext_core.idx_vnext_evidence_workspace_fact_status_retrieved",
     "vnext_core.idx_vnext_evidence_lineage_parent",
     "vnext_core.idx_vnext_evidence_links_subject",
+    "vnext_core.idx_vnext_identity_resolutions_workspace_status_started",
+    "vnext_core.idx_vnext_identity_resolutions_case_started",
+    "vnext_core.idx_vnext_resolution_attempts_resolution_order",
+    "vnext_core.idx_vnext_identity_candidates_resolution_rank",
+    "vnext_core.idx_vnext_identity_candidates_existing_property",
+    "vnext_core.idx_vnext_identity_candidates_evidence",
+    "vnext_core.idx_vnext_identity_conflicts_resolution_state",
     "vnext_private.idx_vnext_idempotency_expiry",
     "vnext_private.idx_vnext_audit_workspace_created",
     "vnext_private.idx_vnext_audit_request",
@@ -98,6 +109,16 @@ REQUIRED_VNEXT_FOREIGN_KEYS = {
     "fk_vnext_evidence_lineage_parent",
     "fk_vnext_evidence_links_evidence",
     "fk_vnext_evidence_links_subject",
+    "fk_vnext_identity_resolutions_case",
+    "fk_vnext_identity_resolutions_supersedes",
+    "fk_vnext_resolution_attempts_resolution",
+    "fk_vnext_identity_candidates_resolution",
+    "fk_vnext_identity_candidates_existing_property",
+    "fk_vnext_identity_candidates_supersedes",
+    "fk_vnext_identity_conflicts_left_candidate",
+    "fk_vnext_identity_conflicts_right_candidate",
+    "fk_vnext_identity_conflicts_evidence",
+    "fk_vnext_identity_conflicts_property",
 }
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
@@ -121,6 +142,9 @@ def _static_contract() -> dict[str, Any]:
         "vnext_core.property_entities", "vnext_core.property_graph_nodes",
         "vnext_core.property_relations", "vnext_core.evidence_items",
         "vnext_core.evidence_lineage", "vnext_core.evidence_links",
+        "vnext_core.identity_resolutions", "vnext_core.resolution_attempts",
+        "vnext_core.identity_candidates", "vnext_core.identity_conflicts",
+        "needs_human_confirmation",
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
@@ -324,7 +348,7 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
                     or not REQUIRED_VNEXT_TABLES.issubset(vnext_tables)
                     or not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes)
                     or foreign_key_count < 4
-                    or vnext_foreign_key_count < 36
+                    or vnext_foreign_key_count < 53
                     or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys)
                 ):
                     raise _SchemaContractFailure

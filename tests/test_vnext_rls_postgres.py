@@ -19,7 +19,24 @@ import pytest
 from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
 from services.vnext.auth import AuthenticatedPrincipal
+from services.vnext.authorization import (
+    PostgresWorkspaceMembershipRepository,
+    WorkspaceAuthorizer,
+)
 from services.vnext.db_principal import DatabasePrincipalContext
+from services.vnext.identity_resolution import (
+    CandidateRankingFactors,
+    IdentityCandidateType,
+    IdentityResolutionEngine,
+    ProviderCandidateObservation,
+    ProviderResolutionResult,
+    ResolutionAttemptStatus,
+    ResolutionInputType,
+)
+from services.vnext.identity_resolution_repository import (
+    PostgresIdentityResolutionRepository,
+)
+from services.vnext.property_graph import CoverageStatus, SourceEnvironment
 
 
 DATABASE_ENV = "VNEXT_RLS_POSTGRES_URL"
@@ -38,6 +55,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS = (
     ROOT / "database/migrations/013_vnext_workspace_case_foundation.sql",
     ROOT / "database/migrations/014_vnext_property_graph_evidence_foundation.sql",
+    ROOT / "database/migrations/015_vnext_identity_resolution_candidates.sql",
 )
 
 WORKSPACE_A = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -165,9 +183,16 @@ def _prepared_database():
         admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
         admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
         _install_auth_contract(admin)
-        for migration in MIGRATIONS:
+        # Exercise the exact upgrade boundary: establish the approved Slice 3
+        # catalog first, prove Slice 4 is absent, then apply migration 015.
+        for migration in MIGRATIONS[:-1]:
             for statement in _statements(migration):
                 admin.execute(statement)
+        assert admin.execute(
+            "SELECT to_regclass('vnext_core.identity_resolutions')"
+        ).fetchone()[0] is None
+        for statement in _statements(MIGRATIONS[-1]):
+            admin.execute(statement)
         _seed(admin)
         admin.execute(
             sql.SQL("ALTER ROLE vnext_api PASSWORD {}").format(sql.Literal(password))
@@ -655,6 +680,202 @@ def _assert_graph_evidence_catalog(admin) -> None:
     ]
 
 
+def _assert_identity_resolution_catalog(admin) -> None:
+    table_names = (
+        "identity_candidates",
+        "identity_conflicts",
+        "identity_resolutions",
+        "resolution_attempts",
+    )
+    tables = admin.execute(
+        "SELECT relation.relname, relation.relrowsecurity, relation.relforcerowsecurity, "
+        "owner.rolname FROM pg_class relation "
+        "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+        "JOIN pg_roles owner ON owner.oid = relation.relowner "
+        "WHERE namespace.nspname = 'vnext_core' AND relation.relkind = 'r' "
+        "AND relation.relname = ANY(%s) ORDER BY relation.relname",
+        (list(table_names),),
+    ).fetchall()
+    assert [(table, rls, forced) for table, rls, forced, _ in tables] == [
+        (table, True, True) for table in table_names
+    ]
+    assert all(owner != "vnext_api" for _, _, _, owner in tables)
+
+    policies = admin.execute(
+        "SELECT tablename, policyname, cmd, roles FROM pg_policies "
+        "WHERE schemaname = 'vnext_core' AND tablename = ANY(%s) "
+        "ORDER BY tablename, policyname",
+        (list(table_names),),
+    ).fetchall()
+    assert len(policies) == 8
+    for table in table_names:
+        selected = [row for row in policies if row[0] == table]
+        assert [(row[2], row[3]) for row in selected] == [
+            ("SELECT", ["vnext_api"]),
+            ("INSERT", ["vnext_api"]),
+        ]
+
+    grants = admin.execute(
+        "SELECT table_name, privilege_type FROM information_schema.role_table_grants "
+        "WHERE grantee = 'vnext_api' AND table_schema = 'vnext_core' "
+        "AND table_name = ANY(%s) ORDER BY table_name, privilege_type",
+        (list(table_names),),
+    ).fetchall()
+    assert grants == [
+        (table, privilege)
+        for table in table_names
+        for privilege in ("INSERT", "SELECT")
+    ]
+
+
+def _insert_identity_candidate_set(
+    context: DatabasePrincipalContext,
+    role: str,
+    *,
+    include_conflict: bool = False,
+    include_support: bool = False,
+) -> dict[str, UUID]:
+    resolution_id, attempt_id = uuid4(), uuid4()
+    left_candidate_id, right_candidate_id, conflict_id = uuid4(), uuid4(), uuid4()
+    timestamp = datetime.now(timezone.utc)
+    with context.transaction(_principal(USERS[role])) as connection:
+        connection.execute(
+            "INSERT INTO vnext_core.identity_resolutions ("
+            "identity_resolution_id, workspace_id, case_id, input_type, raw_input, "
+            "normalized_input, normalized_key, normalization_version, resolution_status, "
+            "coverage_status, coverage, ambiguity_status, requested_by_user_id, "
+            "started_at, completed_at"
+            ") VALUES (%s, %s, %s, 'address', %s::jsonb, %s::jsonb, %s, "
+            "'identity-input-normalization-v1', %s, 'known', %s::jsonb, %s, %s, %s, %s)",
+            (
+                resolution_id,
+                WORKSPACE_A,
+                CASE_A,
+                '{"address":"fixture raw"}',
+                '{"address":"fixture normalized"}',
+                f"address:fixture-{resolution_id}",
+                "ambiguous" if include_conflict else "candidates_found",
+                '{"scope":"fixture"}',
+                "material_conflict" if include_conflict else "none",
+                USERS[role],
+                timestamp,
+                timestamp,
+            ),
+        )
+        result_count = 2 if include_conflict else 1
+        connection.execute(
+            "INSERT INTO vnext_core.resolution_attempts ("
+            "resolution_attempt_id, workspace_id, identity_resolution_id, attempt_order, "
+            "strategy_id, provider_id, source_id, source_type, source_environment, "
+            "attempt_status, coverage_status, coverage, result_count, started_at, "
+            "completed_at, retrieved_at, created_by_user_id"
+            ") VALUES (%s, %s, %s, 1, 'fixture-lookup-v1', 'rls-fixture-provider', "
+            "'vnext-test', 'test', 'test', 'available', 'known', %s::jsonb, %s, %s, %s, %s, %s)",
+            (
+                attempt_id,
+                WORKSPACE_A,
+                resolution_id,
+                '{"scope":"fixture"}',
+                result_count,
+                timestamp,
+                timestamp,
+                timestamp,
+                USERS[role],
+            ),
+        )
+        evidence_ids = [EVIDENCE_AVAILABLE] if include_support else []
+        reference_ids = [ADDRESS_A_1] if include_support else []
+        property_id = PROPERTY_A if include_support else None
+        candidate_rows = [
+            (
+                left_candidate_id,
+                WORKSPACE_A,
+                resolution_id,
+                "address",
+                f"address:left-{resolution_id}",
+                '{"address":"left"}',
+                "Left candidate",
+                "fixture-left",
+                timestamp,
+                0.99,
+                '{"method":"identity-ranking-v1"}',
+                1,
+                "conflicting" if include_conflict else "plausible",
+                '{"scope":"fixture"}',
+                evidence_ids,
+                reference_ids,
+                property_id,
+                USERS[role],
+                timestamp,
+            )
+        ]
+        if include_conflict:
+            candidate_rows.append(
+                (
+                    right_candidate_id,
+                    WORKSPACE_A,
+                    resolution_id,
+                    "address",
+                    f"address:right-{resolution_id}",
+                    '{"address":"right"}',
+                    "Right candidate",
+                    "fixture-right",
+                    timestamp,
+                    0.80,
+                    '{"method":"identity-ranking-v1"}',
+                    2,
+                    "conflicting",
+                    '{"scope":"fixture"}',
+                    [],
+                    [],
+                    None,
+                    USERS[role],
+                    timestamp,
+                )
+            )
+        with connection.cursor() as cursor:
+            cursor.executemany(
+                "INSERT INTO vnext_core.identity_candidates ("
+                "identity_candidate_id, workspace_id, identity_resolution_id, "
+                "candidate_type, normalized_key, normalized_identity, display_identity, "
+                "source_id, source_type, source_environment, source_record_id, retrieved_at, "
+                "confidence, confidence_method, ranking_factors, rank, candidate_status, "
+                "coverage_status, coverage, supporting_evidence_ids, supporting_reference_ids, "
+                "possible_existing_property_entity_id, created_by_user_id, created_at"
+                ") VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s, 'vnext-test', 'test', "
+                "'test', %s, %s, %s, 'identity-ranking-v1', "
+                "%s::jsonb, %s, %s, 'known', %s::jsonb, %s, %s, %s, %s, %s)",
+                candidate_rows,
+            )
+        if include_conflict:
+            connection.execute(
+                "INSERT INTO vnext_core.identity_conflicts ("
+                "identity_conflict_id, workspace_id, identity_resolution_id, "
+                "left_candidate_id, right_candidate_id, related_evidence_id, conflict_type, "
+                "severity, source_basis, conflict_basis, resolution_state, created_by_user_id"
+                ") VALUES (%s, %s, %s, %s, %s, %s, 'provider_disagreement', 'blocking', "
+                "%s::jsonb, %s::jsonb, 'requires_review', %s)",
+                (
+                    conflict_id,
+                    WORKSPACE_A,
+                    resolution_id,
+                    left_candidate_id,
+                    right_candidate_id,
+                    EVIDENCE_AVAILABLE if include_support else None,
+                    '{"left":"fixture-left","right":"fixture-right"}',
+                    '{"dimension":"normalized_address"}',
+                    USERS[role],
+                ),
+            )
+    return {
+        "resolution": resolution_id,
+        "attempt": attempt_id,
+        "left": left_candidate_id,
+        "right": right_candidate_id,
+        "conflict": conflict_id,
+    }
+
+
 def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
     with _prepared_database() as (admin, pool, context):
         _assert_migration_catalog(admin)
@@ -990,3 +1211,238 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
                     "DELETE FROM vnext_core.evidence_items WHERE evidence_id = %s",
                     (EVIDENCE_AVAILABLE,),
                 )
+
+
+def test_real_postgres_identity_resolution_candidate_rls_and_history() -> None:
+    import psycopg
+
+    with _prepared_database() as (admin, _pool, context):
+        _seed_property_graph_and_evidence(admin)
+        admin.commit()
+        _assert_identity_resolution_catalog(admin)
+
+        property_count_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0]
+        seeded = _insert_identity_candidate_set(
+            context,
+            "owner",
+            include_conflict=True,
+            include_support=True,
+        )
+
+        assert admin.execute(
+            "SELECT resolution_status, ambiguity_status, needs_human_confirmation "
+            "FROM vnext_core.identity_resolutions WHERE identity_resolution_id = %s",
+            (seeded["resolution"],),
+        ).fetchone() == ("ambiguous", "material_conflict", True)
+        provenance = admin.execute(
+            "SELECT identity_candidate_id, confidence, confidence_method, source_id, "
+            "source_record_id, source_environment, retrieved_at, coverage_status, "
+            "supporting_evidence_ids, supporting_reference_ids, "
+            "possible_existing_property_entity_id, needs_human_confirmation "
+            "FROM vnext_core.identity_candidates WHERE identity_resolution_id = %s "
+            "ORDER BY rank",
+            (seeded["resolution"],),
+        ).fetchall()[0]
+        assert provenance[0] == seeded["left"]
+        assert float(provenance[1]) == pytest.approx(0.99)
+        assert provenance[2:6] == (
+            "identity-ranking-v1",
+            "vnext-test",
+            "fixture-left",
+            "test",
+        )
+        assert abs((datetime.now(timezone.utc) - provenance[6]).total_seconds()) < 60
+        assert provenance[7:] == (
+            "known",
+            [EVIDENCE_AVAILABLE],
+            [ADDRESS_A_1],
+            PROPERTY_A,
+            True,
+        )
+        assert admin.execute(
+            "SELECT left_candidate_id, right_candidate_id, conflict_type, severity, "
+            "source_basis, resolution_state FROM vnext_core.identity_conflicts "
+            "WHERE identity_conflict_id = %s",
+            (seeded["conflict"],),
+        ).fetchone() == (
+            seeded["left"],
+            seeded["right"],
+            "provider_disagreement",
+            "blocking",
+            {"left": "fixture-left", "right": "fixture-right"},
+            "requires_review",
+        )
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_candidates "
+            "WHERE identity_resolution_id = %s",
+            (seeded["resolution"],),
+        ).fetchone()[0] == 2
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == property_count_before
+        assert admin.execute(
+            "SELECT identity_status FROM vnext_core.cases WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone() == ("unverified",)
+
+        for table in (
+            "identity_resolutions",
+            "resolution_attempts",
+            "identity_candidates",
+            "identity_conflicts",
+        ):
+            with context.transaction(_principal(USERS["none"])) as connection:
+                assert connection.execute(
+                    f"SELECT count(*) FROM vnext_core.{table}"
+                ).fetchone()[0] == 0
+            with context.transaction(_principal(USERS["revoked"])) as connection:
+                assert connection.execute(
+                    f"SELECT count(*) FROM vnext_core.{table}"
+                ).fetchone()[0] == 0
+            with context.transaction(_principal(USERS["viewer"])) as connection:
+                assert connection.execute(
+                    f"SELECT count(*) FROM vnext_core.{table} WHERE workspace_id = %s",
+                    (WORKSPACE_A,),
+                ).fetchone()[0] >= 1
+            with context.transaction(_principal(USERS["member"])) as connection:
+                assert connection.execute(
+                    f"SELECT count(*) FROM vnext_core.{table} WHERE workspace_id = %s",
+                    (WORKSPACE_B,),
+                ).fetchone()[0] == 0
+
+        denied_resolution = (
+            "INSERT INTO vnext_core.identity_resolutions ("
+            "workspace_id, input_type, raw_input, normalized_input, normalized_key, "
+            "normalization_version, resolution_status, coverage_status, coverage, "
+            "ambiguity_status, requested_by_user_id, started_at, completed_at"
+            ") VALUES (%s, 'address', '{}'::jsonb, '{}'::jsonb, 'address:denied', "
+            "'identity-input-normalization-v1', 'unresolved', 'unknown', '{}'::jsonb, "
+            "'insufficient_evidence', %s, clock_timestamp(), clock_timestamp())"
+        )
+        for role in ("none", "viewer", "revoked"):
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                with context.transaction(_principal(USERS[role])) as connection:
+                    connection.execute(
+                        denied_resolution,
+                        (WORKSPACE_A, USERS[role]),
+                    )
+
+        for role in ("member", "manager", "admin", "owner"):
+            inserted = _insert_identity_candidate_set(context, role)
+            with context.transaction(_principal(USERS[role])) as connection:
+                stored = connection.execute(
+                    "SELECT confidence, needs_human_confirmation "
+                    "FROM vnext_core.identity_candidates "
+                    "WHERE identity_candidate_id = %s",
+                    (inserted["left"],),
+                ).fetchone()
+                assert float(stored[0]) == pytest.approx(0.99)
+                assert stored[1] is True
+
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(_principal(USERS["member"])) as connection:
+                connection.execute(
+                    denied_resolution,
+                    (WORKSPACE_B, USERS["member"]),
+                )
+
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(_principal(USERS["owner"])) as connection:
+                connection.execute(
+                    "UPDATE vnext_core.identity_candidates SET confidence = 0.1 "
+                    "WHERE identity_candidate_id = %s",
+                    (seeded["left"],),
+                )
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(_principal(USERS["owner"])) as connection:
+                connection.execute(
+                    "DELETE FROM vnext_core.resolution_attempts "
+                    "WHERE resolution_attempt_id = %s",
+                    (seeded["attempt"],),
+                )
+
+
+def test_real_postgres_identity_resolution_repository_round_trip() -> None:
+    with _prepared_database() as (admin, _pool, context):
+        _seed_property_graph_and_evidence(admin)
+        admin.commit()
+        timestamp = datetime.now(timezone.utc)
+
+        class _FixtureProvider:
+            provider_id = "repository-real-fixture"
+            strategy_id = "fixture-lookup-v1"
+            source_id = "vnext-test"
+            source_environment = SourceEnvironment.TEST
+
+            def resolve(self, _resolution_input):
+                return ProviderResolutionResult(
+                    status=ResolutionAttemptStatus.LIMITED,
+                    started_at=timestamp,
+                    completed_at=timestamp,
+                    retrieved_at=timestamp,
+                    coverage_status=CoverageStatus.PARTIAL,
+                    coverage={"scope": "real-fixture"},
+                    candidates=(
+                        ProviderCandidateObservation(
+                            observation_id="repository-real-candidate",
+                            candidate_type=IdentityCandidateType.PARCEL,
+                            normalized_key="parcel:repository-real",
+                            normalized_identity={"lot_number": "repository-real"},
+                            display_identity="Repository real parcel",
+                            source_record_id="repository-real-record",
+                            retrieved_at=timestamp,
+                            ranking_factors=CandidateRankingFactors(1, 1, 1, 1, 1, 0.9),
+                            coverage_status=CoverageStatus.PARTIAL,
+                            coverage={"scope": "real-fixture"},
+                            supporting_evidence_ids=(EVIDENCE_AVAILABLE,),
+                            supporting_reference_ids=(ADDRESS_A_1,),
+                            possible_existing_property_entity_id=PROPERTY_A,
+                        ),
+                    ),
+                )
+
+        draft = IdentityResolutionEngine(
+            (_FixtureProvider(),), clock=lambda: timestamp
+        ).resolve(
+            input_type=ResolutionInputType.ADDRESS,
+            raw_input={"address": "台北市信義路1號"},
+        )
+        authorizer = WorkspaceAuthorizer(
+            PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
+        )
+        repository = PostgresIdentityResolutionRepository(context, authorizer)
+        property_count_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0]
+
+        created = repository.append_resolution(
+            principal=_principal(USERS["owner"]),
+            workspace_id=WORKSPACE_A,
+            case_id=CASE_A,
+            draft=draft,
+        )
+        read = repository.get_resolution(
+            principal=_principal(USERS["viewer"]),
+            workspace_id=WORKSPACE_A,
+            identity_resolution_id=created.identity_resolution_id,
+        )
+
+        assert read.status.value == "partially_resolved"
+        assert read.needs_human_confirmation is True
+        assert read.resolution_input.normalized_key == "address:台北市信義路1號"
+        assert len(read.attempts) == 1
+        assert len(read.candidates) == 1
+        assert read.candidates[0].confidence == pytest.approx(0.99)
+        assert read.candidates[0].supporting_evidence_ids == (EVIDENCE_AVAILABLE,)
+        assert read.candidates[0].supporting_reference_ids == (ADDRESS_A_1,)
+        assert read.candidates[0].possible_existing_property_entity_id == PROPERTY_A
+        assert read.conflicts == ()
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == property_count_before

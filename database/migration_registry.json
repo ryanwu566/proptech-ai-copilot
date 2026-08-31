@@ -120,6 +120,14 @@
       "filename": "014_vnext_property_graph_evidence_foundation.sql",
       "execution_policy": "production_runner",
       "sha256": "0b465671d513a4b182af8c56e784e8a7e161ed019e6218934ce30625cde7dacd"
+    },
+    {
+      "registry_order": 16,
+      "logical_id": "production-015-vnext-identity-resolution-candidates",
+      "sequence": 15,
+      "filename": "015_vnext_identity_resolution_candidates.sql",
+      "execution_policy": "production_runner",
+      "sha256": "b87b582e013d3733fe8db179681489fcc950ea6998b7c23552b0fa88a044361f"
     }
   ]
 }
