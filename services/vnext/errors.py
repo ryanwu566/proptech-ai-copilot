@@ -14,6 +14,8 @@ class ErrorCode(str, Enum):
     PROVIDER_UNAVAILABLE = "provider_unavailable"
     COVERAGE_UNAVAILABLE = "coverage_unavailable"
     AMBIGUOUS_IDENTITY = "ambiguous_identity"
+    STALE_EVIDENCE = "stale_evidence"
+    CONFLICTING_EVIDENCE = "conflicting_evidence"
     NOT_FOUND = "not_found"
     VERSION_CONFLICT = "version_conflict"
     IDEMPOTENCY_CONFLICT = "idempotency_conflict"
@@ -30,6 +32,8 @@ _DEFAULTS: dict[ErrorCode, tuple[int, str, bool]] = {
     ErrorCode.PROVIDER_UNAVAILABLE: (503, "An identity provider is unavailable.", True),
     ErrorCode.COVERAGE_UNAVAILABLE: (503, "Source coverage is unavailable.", True),
     ErrorCode.AMBIGUOUS_IDENTITY: (409, "Identity requires confirmation.", False),
+    ErrorCode.STALE_EVIDENCE: (409, "Identity evidence is stale.", False),
+    ErrorCode.CONFLICTING_EVIDENCE: (409, "Identity evidence is conflicting.", False),
     ErrorCode.NOT_FOUND: (404, "The requested resource was not found.", False),
     ErrorCode.VERSION_CONFLICT: (409, "The resource version has changed.", False),
     ErrorCode.IDEMPOTENCY_CONFLICT: (409, "The idempotency key conflicts with an earlier request.", False),
@@ -81,6 +85,14 @@ class VNextError(Exception):
         details: Mapping[str, object] | None = None,
     ) -> "VNextError":
         return cls(ErrorCode.PROVIDER_UNAVAILABLE, details=details)
+
+    @classmethod
+    def stale_evidence(cls) -> "VNextError":
+        return cls(ErrorCode.STALE_EVIDENCE)
+
+    @classmethod
+    def conflicting_evidence(cls) -> "VNextError":
+        return cls(ErrorCode.CONFLICTING_EVIDENCE)
 
     @classmethod
     def not_found(cls) -> "VNextError":

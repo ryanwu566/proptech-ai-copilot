@@ -17,7 +17,7 @@ from services.vnext.authorization import (
     WorkspaceRole,
 )
 from services.vnext.db_principal import DatabasePrincipalContext
-from services.vnext.errors import VNextError
+from services.vnext.errors import ErrorCode, VNextError
 
 
 CASE_WRITE_ROLES = frozenset(
@@ -106,6 +106,13 @@ _AUDIT_METADATA_KEYS = frozenset(
         "new_version",
         "operation_status",
         "membership_role",
+        "resolution_id",
+        "candidate_id",
+        "property_entity_id",
+        "confirmation_id",
+        "case_id",
+        "case_property_link_id",
+        "reason_code",
     }
 )
 
@@ -179,6 +186,8 @@ class PostgresCaseRepository:
         purpose: CasePurpose,
         title: str,
         request_id: str,
+        idempotency_record_id: UUID | None = None,
+        idempotency_response_status_code: int = 201,
     ) -> CaseRecord:
         membership = self._authorizer.require_workspace_role(
             principal,
@@ -186,6 +195,8 @@ class PostgresCaseRepository:
             allowed_roles=CASE_WRITE_ROLES,
         )
         selected_title = _bounded_text(title, maximum=240)
+        if idempotency_record_id is not None and not 100 <= idempotency_response_status_code <= 599:
+            raise VNextError.validation_failed()
         with self._principal_context.transaction(principal) as connection:
             row = connection.execute(
                 "INSERT INTO vnext_core.cases ("
@@ -212,7 +223,45 @@ class PostgresCaseRepository:
                     "new_version": case.version,
                 },
             )
+            if idempotency_record_id is not None:
+                completed = connection.execute(
+                    "UPDATE vnext_private.idempotency_records SET "
+                    "operation_status = 'succeeded', response_status_code = %s, "
+                    "response_reference_type = 'case', response_reference_id = %s, "
+                    "updated_at = clock_timestamp() "
+                    "WHERE idempotency_record_id = %s AND workspace_id = %s "
+                    "AND actor_user_id = %s AND operation_status = 'pending' "
+                    "RETURNING idempotency_record_id",
+                    (
+                        idempotency_response_status_code,
+                        case.case_id,
+                        idempotency_record_id,
+                        workspace_id,
+                        principal.user_id,
+                    ),
+                ).fetchone()
+                if completed is None:
+                    raise VNextError.idempotency_conflict()
             return case
+
+    def get_case_by_id(
+        self,
+        *,
+        principal: AuthenticatedPrincipal,
+        case_id: UUID,
+    ) -> CaseRecord:
+        """Discover a Case workspace only through its active-member RLS policy."""
+
+        with self._principal_context.transaction(principal) as connection:
+            row = connection.execute(
+                "SELECT " + _CASE_COLUMNS + " FROM vnext_core.cases WHERE case_id = %s",
+                (case_id,),
+            ).fetchone()
+        if row is None:
+            raise VNextError.not_found()
+        case = _case_record(row)
+        self._authorizer.require_workspace_access(principal, case.workspace_id)
+        return case
 
     def get_case(
         self,
@@ -317,6 +366,7 @@ class IdempotencyReservation:
     response_reference_type: str | None
     response_reference_id: UUID | None
     response_status_code: int | None = None
+    response_error_code: str | None = None
 
 
 _IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9._:-]{16,128}$")
@@ -374,7 +424,7 @@ class PostgresIdempotencyRepository:
                 "canonical_route, idempotency_key_hash) DO NOTHING "
                 "RETURNING idempotency_record_id, request_fingerprint, "
                 "operation_status, response_reference_type, response_reference_id, "
-                "response_status_code",
+                "response_status_code, response_error_code",
                 (
                     record_id,
                     workspace_id,
@@ -392,7 +442,7 @@ class PostgresIdempotencyRepository:
                 row = connection.execute(
                     "SELECT idempotency_record_id, request_fingerprint, "
                     "operation_status, response_reference_type, response_reference_id, "
-                    "response_status_code "
+                    "response_status_code, response_error_code "
                     "FROM vnext_private.idempotency_records WHERE workspace_id = %s "
                     "AND actor_user_id = %s AND http_method = %s "
                     "AND canonical_route = %s AND idempotency_key_hash = %s",
@@ -419,6 +469,9 @@ class PostgresIdempotencyRepository:
                 response_status_code=(
                     None if len(row) < 6 or row[5] is None else int(row[5])
                 ),
+                response_error_code=(
+                    None if len(row) < 7 or row[6] is None else str(row[6])
+                ),
             )
 
     def mark_failed(
@@ -428,6 +481,7 @@ class PostgresIdempotencyRepository:
         workspace_id: UUID,
         idempotency_record_id: UUID,
         response_status_code: int = 500,
+        response_error_code: str = ErrorCode.INTERNAL_ERROR.value,
     ) -> None:
         """Finalize a reserved command without retaining exception data."""
 
@@ -436,18 +490,24 @@ class PostgresIdempotencyRepository:
             workspace_id,
             allowed_roles=CASE_WRITE_ROLES,
         )
+        try:
+            selected_error_code = ErrorCode(response_error_code).value
+        except ValueError:
+            raise VNextError.validation_failed() from None
         if response_status_code < 400 or response_status_code > 599:
             raise VNextError.validation_failed()
         with self._principal_context.transaction(principal) as connection:
             row = connection.execute(
                 "UPDATE vnext_private.idempotency_records SET "
                 "operation_status = 'failed', response_status_code = %s, "
+                "response_error_code = %s, "
                 "updated_at = clock_timestamp() "
                 "WHERE idempotency_record_id = %s AND workspace_id = %s "
                 "AND actor_user_id = %s AND operation_status = 'pending' "
                 "RETURNING idempotency_record_id",
                 (
                     response_status_code,
+                    selected_error_code,
                     idempotency_record_id,
                     workspace_id,
                     principal.user_id,

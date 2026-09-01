@@ -95,7 +95,7 @@ def _verify(connection) -> dict[str, str]:
         return {"status": "failed", "check": "vnext_indexes"}
     if foreign_key_count < 4:
         return {"status": "failed", "check": "foreign_keys"}
-    if vnext_foreign_key_count < 36 or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys):
+    if vnext_foreign_key_count < 65 or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys):
         return {"status": "failed", "check": "vnext_foreign_keys"}
     return {"status": "pass", "check": "tables_indexes_foreign_keys"}
 

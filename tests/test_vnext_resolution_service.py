@@ -163,6 +163,7 @@ class _MemoryIdempotency:
             response_reference_type=None,
             response_reference_id=None,
             response_status_code=kwargs["response_status_code"],
+            response_error_code=kwargs["response_error_code"],
         )
 
 

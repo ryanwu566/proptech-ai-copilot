@@ -128,6 +128,14 @@
       "filename": "015_vnext_identity_resolution_candidates.sql",
       "execution_policy": "production_runner",
       "sha256": "b87b582e013d3733fe8db179681489fcc950ea6998b7c23552b0fa88a044361f"
+    },
+    {
+      "registry_order": 17,
+      "logical_id": "production-016-vnext-identity-confirmation-case-links",
+      "sequence": 16,
+      "filename": "016_vnext_identity_confirmation_case_links.sql",
+      "execution_policy": "production_runner",
+      "sha256": "b0f5ae9694fbb6dcb64d467aa9338778b3c83e7d0da3c5bbab9f710dbebd3636"
     }
   ]
 }

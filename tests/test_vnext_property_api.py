@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
+from types import SimpleNamespace
 from uuid import UUID
 
 import jwt
@@ -11,6 +13,7 @@ from fastapi.testclient import TestClient
 
 from backend.api.v1.property_identity import (
     get_cursor_codec,
+    get_identity_command_service,
     get_property_read_repository,
     get_resolution_application_service,
 )
@@ -35,8 +38,22 @@ from services.vnext.identity_resolution import (
 )
 from services.vnext.identity_resolution_repository import (
     IdentityCandidateRecord,
+    IdentityDecisionRecord,
     IdentityResolutionRecord,
     ResolutionAttemptRecord,
+)
+from services.vnext.identity_command_repository import CasePropertyLinkRecord
+from services.vnext.identity_command_service import (
+    CaseAttachmentOutcome,
+    CaseCreateOutcome,
+    IdentityDecisionOutcome,
+)
+from services.vnext.persistence import (
+    CASE_WRITE_ROLES,
+    CaseIdentityStatus,
+    CasePurpose,
+    CaseRecord,
+    CaseStatus,
 )
 from services.vnext.identity_resolution_service import ResolutionCreateOutcome
 from services.vnext.pagination import CursorCodec
@@ -78,6 +95,9 @@ ADDRESS_ID = UUID("aaaaaaaa-7777-4777-8777-777777777777")
 RELATION_ID = UUID("aaaaaaaa-8888-4888-8888-888888888888")
 EVIDENCE_UNKNOWN_ID = UUID("aaaaaaaa-9999-4999-8999-999999999991")
 EVIDENCE_LIMITED_ID = UUID("aaaaaaaa-9999-4999-8999-999999999992")
+DECISION_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa01")
+CASE_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa02")
+CASE_LINK_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa03")
 PRIVATE_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 PUBLIC_KEY = PRIVATE_KEY.public_key()
 
@@ -280,6 +300,142 @@ class _ResolutionService:
         return self.record
 
 
+class _CommandService:
+    def __init__(self, authorizer: WorkspaceAuthorizer, resolutions: _ResolutionService) -> None:
+        self.authorizer = authorizer
+        self.resolutions = resolutions
+        self.case = CaseRecord(
+            case_id=CASE_ID,
+            workspace_id=WORKSPACE_ID,
+            purpose=CasePurpose.BUY_DUE_DILIGENCE,
+            status=CaseStatus.OPEN,
+            title="Fixture Case",
+            identity_status=CaseIdentityStatus.UNVERIFIED,
+            assigned_member_id=None,
+            version=1,
+            opened_at=NOW,
+            updated_at=NOW,
+            closed_at=None,
+            archived_at=None,
+        )
+
+    def _decision(self, decision_type: str, candidate_id: UUID | None):
+        candidate = self.resolutions.record.candidates[0]
+        return IdentityDecisionRecord(
+            identity_decision_id=DECISION_ID,
+            workspace_id=WORKSPACE_ID,
+            identity_resolution_id=RESOLUTION_ID,
+            identity_candidate_id=candidate_id,
+            property_entity_id=PROPERTY_ID if decision_type == "confirmed" else None,
+            materialized_identity_reference_id=(
+                ADDRESS_ID if decision_type == "confirmed" else None
+            ),
+            primary_evidence_id=(
+                EVIDENCE_LIMITED_ID if decision_type == "confirmed" else None
+            ),
+            decision_type=decision_type,
+            decision_reason=("reviewed displayed evidence" if decision_type == "confirmed" else None),
+            reason_code=(None if decision_type == "confirmed" else "not_same_property"),
+            resolution_version_observed=1,
+            decision_version=2,
+            candidate_type_snapshot=(
+                None if candidate_id is None else candidate.candidate_type.value
+            ),
+            candidate_status_snapshot=(
+                None if candidate_id is None else candidate.candidate_status.value
+            ),
+            confidence_snapshot=None if candidate_id is None else candidate.confidence,
+            confidence_method_snapshot=(
+                None if candidate_id is None else candidate.confidence_method
+            ),
+            coverage_status_snapshot=candidate.coverage_status,
+            coverage_snapshot=candidate.coverage,
+            supporting_evidence_ids_snapshot=(
+                () if candidate_id is None else candidate.supporting_evidence_ids
+            ),
+            supporting_reference_ids_snapshot=(
+                () if candidate_id is None else candidate.supporting_reference_ids
+            ),
+            source_id_snapshot=None if candidate_id is None else candidate.source_id,
+            source_type_snapshot=None if candidate_id is None else candidate.source_type,
+            source_environment_snapshot=(
+                None if candidate_id is None else candidate.source_environment
+            ),
+            source_record_id_snapshot=(
+                None if candidate_id is None else candidate.source_record_id
+            ),
+            created_new_property=False if decision_type == "confirmed" else None,
+            created_new_reference=False if decision_type == "confirmed" else None,
+            actor_user_id=USER_ID,
+            request_id="fixture-request",
+            idempotency_record_id=UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa04"),
+            created_at=NOW,
+        )
+
+    def confirm(self, **kwargs):
+        self.authorizer.require_workspace_role(
+            kwargs["principal"],
+            WORKSPACE_ID,
+            allowed_roles={WorkspaceRole.OWNER, WorkspaceRole.ADMIN},
+        )
+        decision = self._decision("confirmed", kwargs["identity_candidate_id"])
+        self.resolutions.record = replace(self.resolutions.record, decisions=(decision,))
+        return IdentityDecisionOutcome(self.resolutions.record, decision, False)
+
+    def reject(self, **kwargs):
+        self.authorizer.require_workspace_role(
+            kwargs["principal"],
+            WORKSPACE_ID,
+            allowed_roles={WorkspaceRole.OWNER, WorkspaceRole.ADMIN},
+        )
+        candidate_id = kwargs["identity_candidate_id"]
+        decision = self._decision(
+            "candidate_rejected" if candidate_id is not None else "resolution_rejected",
+            candidate_id,
+        )
+        self.resolutions.record = replace(self.resolutions.record, decisions=(decision,))
+        return IdentityDecisionOutcome(self.resolutions.record, decision, False)
+
+    def create_case(self, **kwargs):
+        self.authorizer.require_workspace_role(
+            kwargs["principal"], WORKSPACE_ID, allowed_roles=CASE_WRITE_ROLES
+        )
+        return CaseCreateOutcome(self.case, False)
+
+    def attach_resolution(self, **kwargs):
+        self.authorizer.require_workspace_role(
+            kwargs["principal"],
+            WORKSPACE_ID,
+            allowed_roles={WorkspaceRole.OWNER, WorkspaceRole.ADMIN},
+        )
+        if not any(
+            item.decision_type == "confirmed" for item in self.resolutions.record.decisions
+        ):
+            raise VNextError.not_found()
+        attached_case = replace(
+            self.case,
+            identity_status=CaseIdentityStatus.CONFIRMED,
+            version=2,
+        )
+        link = CasePropertyLinkRecord(
+            case_property_link_id=CASE_LINK_ID,
+            workspace_id=WORKSPACE_ID,
+            case_id=CASE_ID,
+            property_entity_id=PROPERTY_ID,
+            identity_resolution_id=RESOLUTION_ID,
+            identity_confirmation_id=DECISION_ID,
+            actor_user_id=USER_ID,
+            case_version_before=1,
+            case_version_after=2,
+            supersedes_case_property_link_id=None,
+            request_id="fixture-request",
+            idempotency_record_id=UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaa05"),
+            created_at=NOW,
+        )
+        self.case = attached_case
+        return CaseAttachmentOutcome(attached_case, link, False)
+
+
 class _PropertyReads:
     def __init__(self, authorizer: WorkspaceAuthorizer) -> None:
         self.authorizer = authorizer
@@ -398,6 +554,7 @@ def _client(
     )
     authorizer = WorkspaceAuthorizer(_Memberships(role, user_id))
     service = _ResolutionService(authorizer)
+    command_service = _CommandService(authorizer, service)
     reads = _PropertyReads(authorizer)
     app.dependency_overrides[get_supabase_jwt_verifier] = lambda: verifier
     app.dependency_overrides[get_workspace_authorizer] = lambda: authorizer
@@ -405,6 +562,7 @@ def _client(
         identity_v1=feature_enabled
     )
     app.dependency_overrides[get_resolution_application_service] = lambda: service
+    app.dependency_overrides[get_identity_command_service] = lambda: command_service
     app.dependency_overrides[get_property_read_repository] = lambda: reads
     app.dependency_overrides[get_cursor_codec] = lambda: CursorCodec(
         b"slice-5-test-cursor-key-material-0001"
@@ -429,19 +587,28 @@ def _resolution_body(text: str = "Fixture") -> dict[str, object]:
     }
 
 
-def test_slice_5_openapi_exposes_only_non_confirming_routes() -> None:
+def test_slice_6_openapi_exposes_only_approved_identity_and_case_routes() -> None:
     with _client() as (client, _service, _reads):
         schema = client.get("/openapi.json").json()
 
     expected = {
         "/v1/property-resolutions",
         "/v1/property-resolutions/{identity_resolution_id}",
+        "/v1/property-resolutions/{identity_resolution_id}/confirm",
+        "/v1/property-resolutions/{identity_resolution_id}/reject",
         "/v1/properties/{property_entity_id}",
         "/v1/properties/{property_entity_id}/graph",
         "/v1/properties/{property_entity_id}/evidence",
+        "/v1/cases",
+        "/v1/cases/{case_id}/attach-resolution",
     }
     assert expected <= set(schema["paths"])
-    assert not any("confirm" in path or "reject" in path for path in schema["paths"])
+    assert not any(
+        "human-confirmations" in path
+        or "case-property-links" in path
+        or "merge" in path
+        for path in schema["paths"]
+    )
     post = schema["paths"]["/v1/property-resolutions"]["post"]
     assert {"SupabaseBearer": []} in post["security"]
     assert "Idempotency-Key" in [item["name"] for item in post["parameters"]]
@@ -513,6 +680,67 @@ def test_auth_feature_flag_and_client_identity_boundaries() -> None:
     with _client(feature_enabled=False) as (client, _service, _reads):
         response = client.get(f"/v1/properties/{PROPERTY_ID}", headers=_auth())
         assert response.status_code == 404
+
+
+@pytest.mark.parametrize(
+    ("path", "body", "idempotency_key"),
+    [
+        (
+            f"/v1/property-resolutions/{RESOLUTION_ID}/confirm",
+            {
+                "candidate_id": str(CANDIDATE_ID),
+                "version": 1,
+                "confirmation_reason": "human reviewed the displayed evidence",
+            },
+            "confirm-auth-boundary-0001",
+        ),
+        (
+            f"/v1/property-resolutions/{RESOLUTION_ID}/reject",
+            {
+                "candidate_id": str(CANDIDATE_ID),
+                "version": 1,
+                "reason_code": "not_same_property",
+            },
+            "reject-auth-boundary-0001",
+        ),
+        (
+            "/v1/cases",
+            {
+                "workspace_id": str(WORKSPACE_ID),
+                "purpose": "buy_due_diligence",
+                "title": "Authentication boundary case",
+            },
+            "case-auth-boundary-0001",
+        ),
+        (
+            f"/v1/cases/{CASE_ID}/attach-resolution",
+            {"resolution_id": str(RESOLUTION_ID), "case_version": 1},
+            "attach-auth-boundary-0001",
+        ),
+    ],
+)
+def test_slice_6_commands_require_valid_authentication(
+    path: str, body: dict[str, object], idempotency_key: str
+) -> None:
+    with _client(WorkspaceRole.OWNER) as (client, _service, _reads):
+        no_auth = client.post(
+            path,
+            headers={"Idempotency-Key": idempotency_key},
+            json=body,
+        )
+        other_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        invalid_auth = client.post(
+            path,
+            headers={
+                "Authorization": f"Bearer {_token(private_key=other_key)}",
+                "Idempotency-Key": idempotency_key,
+            },
+            json=body,
+        )
+
+    assert no_auth.status_code == invalid_auth.status_code == 401
+    assert no_auth.json()["error"]["code"] == "authentication_required"
+    assert invalid_auth.json()["error"]["code"] == "authentication_required"
 
 
 def test_unknown_resolution_input_kind_is_allowlisted_unsupported_error() -> None:
@@ -626,5 +854,191 @@ def test_graph_read_never_fabricates_missing_source_provenance() -> None:
             headers=_auth(),
         )
 
-    assert response.status_code == 503
-    assert response.json()["error"]["code"] == "maintenance"
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "maintenance"
+
+
+@pytest.mark.parametrize(
+    ("role", "expected"),
+    [
+        (WorkspaceRole.OWNER, 200),
+        (WorkspaceRole.ADMIN, 200),
+        (WorkspaceRole.MANAGER, 403),
+        (WorkspaceRole.MEMBER, 403),
+        (WorkspaceRole.VIEWER, 403),
+        (None, 403),
+    ],
+)
+def test_confirm_api_role_matrix_and_explicit_projection(role, expected) -> None:
+    with _client(role) as (client, _service, _reads):
+        response = client.post(
+            f"/v1/property-resolutions/{RESOLUTION_ID}/confirm",
+            headers={**_auth(), "Idempotency-Key": "confirm-fixture-0001"},
+            json={
+                "candidate_id": str(CANDIDATE_ID),
+                "version": 1,
+                "confirmation_reason": "user reviewed the displayed evidence",
+            },
+        )
+
+    assert response.status_code == expected
+    if expected == 200:
+        payload = response.json()
+        assert payload["state"] == "confirmed"
+        assert payload["needs_human_confirmation"] is False
+        assert payload["selected_candidate_id"] == str(CANDIDATE_ID)
+        assert payload["confirmed_property_entity_id"] == str(PROPERTY_ID)
+        assert payload["version"] == 2
+        assert payload["candidates"][0]["confidence"] == 1.0
+        assert payload["candidates"][0]["needs_human_confirmation"] is True
+
+
+@pytest.mark.parametrize(
+    ("role", "expected"),
+    [
+        (WorkspaceRole.OWNER, 200),
+        (WorkspaceRole.ADMIN, 200),
+        (WorkspaceRole.MANAGER, 403),
+        (WorkspaceRole.MEMBER, 403),
+        (WorkspaceRole.VIEWER, 403),
+        (None, 403),
+    ],
+)
+def test_reject_api_role_matrix(role, expected) -> None:
+    with _client(role) as (client, _service, _reads):
+        response = client.post(
+            f"/v1/property-resolutions/{RESOLUTION_ID}/reject",
+            headers={**_auth(), "Idempotency-Key": "reject-role-matrix-0001"},
+            json={
+                "candidate_id": str(CANDIDATE_ID),
+                "version": 1,
+                "reason_code": "not_same_property",
+            },
+        )
+    assert response.status_code == expected
+
+
+@pytest.mark.parametrize(
+    ("role", "expected"),
+    [
+        (WorkspaceRole.OWNER, 201),
+        (WorkspaceRole.ADMIN, 201),
+        (WorkspaceRole.MANAGER, 201),
+        (WorkspaceRole.MEMBER, 201),
+        (WorkspaceRole.VIEWER, 403),
+        (None, 403),
+    ],
+)
+def test_case_create_role_matrix(role, expected) -> None:
+    with _client(role) as (client, _service, _reads):
+        response = client.post(
+            "/v1/cases",
+            headers={**_auth(), "Idempotency-Key": "case-role-matrix-0001"},
+            json={
+                "workspace_id": str(WORKSPACE_ID),
+                "purpose": "buy_due_diligence",
+                "title": "Role matrix case",
+            },
+        )
+    assert response.status_code == expected
+
+
+@pytest.mark.parametrize(
+    ("role", "expected"),
+    [
+        (WorkspaceRole.OWNER, 200),
+        (WorkspaceRole.ADMIN, 200),
+        (WorkspaceRole.MANAGER, 403),
+        (WorkspaceRole.MEMBER, 403),
+        (WorkspaceRole.VIEWER, 403),
+        (None, 403),
+    ],
+)
+def test_case_attach_role_matrix(role, expected) -> None:
+    with _client(role) as (client, service, _reads):
+        service.record = replace(
+            service.record,
+            decisions=(SimpleNamespace(decision_type="confirmed"),),
+        )
+        response = client.post(
+            f"/v1/cases/{CASE_ID}/attach-resolution",
+            headers={**_auth(), "Idempotency-Key": "attach-role-matrix-0001"},
+            json={"resolution_id": str(RESOLUTION_ID), "case_version": 1},
+        )
+    assert response.status_code == expected
+
+
+def test_reject_api_preserves_candidate_snapshot_and_case_is_not_auto_attached() -> None:
+    with _client(WorkspaceRole.OWNER) as (client, _service, _reads):
+        rejected = client.post(
+            f"/v1/property-resolutions/{RESOLUTION_ID}/reject",
+            headers={**_auth(), "Idempotency-Key": "reject-fixture-0001"},
+            json={
+                "candidate_id": str(CANDIDATE_ID),
+                "version": 1,
+                "reason_code": "not_same_property",
+            },
+        )
+        created_case = client.post(
+            "/v1/cases",
+            headers={**_auth(), "Idempotency-Key": "case-create-fixture-0001"},
+            json={
+                "workspace_id": str(WORKSPACE_ID),
+                "purpose": "buy_due_diligence",
+                "title": "Fixture Case",
+            },
+        )
+
+    assert rejected.status_code == 200
+    assert rejected.json()["decisions"][0]["decision_type"] == "candidate_rejected"
+    assert rejected.json()["candidates"][0]["status"] == "plausible"
+    assert created_case.status_code == 201
+    assert created_case.json()["identity_status"] == "unverified"
+
+
+def test_case_attach_requires_separate_confirmed_resolution_command() -> None:
+    with _client(WorkspaceRole.ADMIN) as (client, _service, _reads):
+        before = client.post(
+            f"/v1/cases/{CASE_ID}/attach-resolution",
+            headers={**_auth(), "Idempotency-Key": "attach-fixture-0001"},
+            json={"resolution_id": str(RESOLUTION_ID), "case_version": 1},
+        )
+        confirmed = client.post(
+            f"/v1/property-resolutions/{RESOLUTION_ID}/confirm",
+            headers={**_auth(), "Idempotency-Key": "confirm-fixture-0002"},
+            json={
+                "candidate_id": str(CANDIDATE_ID),
+                "version": 1,
+                "confirmation_reason": "administrator reviewed the displayed evidence",
+            },
+        )
+        attached = client.post(
+            f"/v1/cases/{CASE_ID}/attach-resolution",
+            headers={**_auth(), "Idempotency-Key": "attach-fixture-0002"},
+            json={"resolution_id": str(RESOLUTION_ID), "case_version": 1},
+        )
+
+    assert before.status_code == 404
+    assert confirmed.status_code == 200
+    assert attached.status_code == 200
+    assert attached.json()["case"]["identity_status"] == "confirmed"
+    assert attached.json()["case"]["version"] == 2
+    assert attached.json()["link"]["confirmation_id"] == str(DECISION_ID)
+
+
+def test_confirmation_rejects_client_supplied_authority_fields() -> None:
+    with _client(WorkspaceRole.OWNER) as (client, _service, _reads):
+        response = client.post(
+            f"/v1/property-resolutions/{RESOLUTION_ID}/confirm",
+            headers={**_auth(), "Idempotency-Key": "confirm-fixture-0003"},
+            json={
+                "candidate_id": str(CANDIDATE_ID),
+                "version": 1,
+                "confirmation_reason": "owner reviewed the displayed evidence",
+                "confirmed_by": str(OTHER_USER_ID),
+                "confidence": 0.1,
+                "relation_status": "confirmed",
+            },
+        )
+
+    assert response.status_code == 422

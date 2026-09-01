@@ -7,10 +7,11 @@ runs only when CI/operators provide a dedicated database whose name begins with
 
 from __future__ import annotations
 
+import json
 import os
 import secrets
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -20,34 +21,31 @@ from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
 from services.vnext.auth import AuthenticatedPrincipal
 from services.vnext.authorization import (
-    PostgresWorkspaceMembershipRepository,
-    WorkspaceAuthorizer,
-)
+    PostgresWorkspaceMembershipRepository, WorkspaceAuthorizer)
 from services.vnext.db_principal import DatabasePrincipalContext
 from services.vnext.errors import ErrorCode, VNextError
-from services.vnext.identity_resolution import (
-    CandidateRankingFactors,
-    IdentityCandidateType,
-    IdentityResolutionEngine,
-    ProviderCandidateObservation,
-    ProviderResolutionResult,
-    ResolutionAttemptStatus,
-    ResolutionInputType,
-)
-from services.vnext.identity_resolution_repository import (
-    PostgresIdentityResolutionRepository,
-)
-from services.vnext.identity_resolution_service import (
-    IdentityResolutionApplicationService,
-)
-from services.vnext.persistence import PostgresCaseRepository, PostgresIdempotencyRepository
-from services.vnext.property_graph import (
-    CoverageStatus,
-    PropertyRelationStatus,
-    SourceEnvironment,
-)
-from services.vnext.property_read_repository import PostgresPropertyReadRepository
-
+from services.vnext.identity_command_repository import \
+    PostgresIdentityCommandRepository
+from services.vnext.identity_command_service import \
+    IdentityCommandApplicationService
+from services.vnext.identity_resolution import (CandidateRankingFactors,
+                                                IdentityCandidateType,
+                                                IdentityResolutionEngine,
+                                                ProviderCandidateObservation,
+                                                ProviderResolutionResult,
+                                                ResolutionAttemptStatus,
+                                                ResolutionInputType)
+from services.vnext.identity_resolution_repository import \
+    PostgresIdentityResolutionRepository
+from services.vnext.identity_resolution_service import \
+    IdentityResolutionApplicationService
+from services.vnext.persistence import (CasePurpose, PostgresCaseRepository,
+                                        PostgresIdempotencyRepository)
+from services.vnext.property_graph import (CoverageStatus,
+                                           PropertyRelationStatus,
+                                           SourceEnvironment)
+from services.vnext.property_read_repository import \
+    PostgresPropertyReadRepository
 
 DATABASE_ENV = "VNEXT_RLS_POSTGRES_URL"
 DISPOSABLE_CONFIRMATION_ENV = "VNEXT_RLS_POSTGRES_DISPOSABLE"
@@ -66,6 +64,7 @@ MIGRATIONS = (
     ROOT / "database/migrations/013_vnext_workspace_case_foundation.sql",
     ROOT / "database/migrations/014_vnext_property_graph_evidence_foundation.sql",
     ROOT / "database/migrations/015_vnext_identity_resolution_candidates.sql",
+    ROOT / "database/migrations/016_vnext_identity_confirmation_case_links.sql",
 )
 
 WORKSPACE_A = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -193,13 +192,13 @@ def _prepared_database():
         admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
         admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
         _install_auth_contract(admin)
-        # Exercise the exact upgrade boundary: establish the approved Slice 3
-        # catalog first, prove Slice 4 is absent, then apply migration 015.
+        # Exercise the exact upgrade boundary: establish the approved Slice 5
+        # catalog first, prove Slice 6 is absent, then apply migration 016.
         for migration in MIGRATIONS[:-1]:
             for statement in _statements(migration):
                 admin.execute(statement)
         assert admin.execute(
-            "SELECT to_regclass('vnext_core.identity_resolutions')"
+            "SELECT to_regclass('vnext_core.identity_decisions')"
         ).fetchone()[0] is None
         for statement in _statements(MIGRATIONS[-1]):
             admin.execute(statement)
@@ -669,13 +668,16 @@ def _assert_graph_evidence_catalog(admin) -> None:
         "ORDER BY tablename, policyname",
         (list(table_names),),
     ).fetchall()
-    assert len(policies) == 14
+    assert len(policies) == 15
     for table in table_names:
         selected = [row for row in policies if row[0] == table]
-        assert [(row[2], row[3]) for row in selected] == [
+        expected = [
             ("SELECT", ["vnext_api"]),
             ("INSERT", ["vnext_api"]),
         ]
+        if table == "property_relations":
+            expected.append(("INSERT", ["vnext_api"]))
+        assert [(row[2], row[3]) for row in selected] == expected
 
     grants = admin.execute(
         "SELECT table_name, privilege_type FROM information_schema.role_table_grants "
@@ -1605,3 +1607,771 @@ def test_real_postgres_slice5_reads_and_idempotent_resolution_command() -> None:
                 idempotency_key="viewer-resolution-denied-0001",
             )
         assert viewer_denied.value.code is ErrorCode.PERMISSION_DENIED
+
+
+def _seed_slice6_resolution(
+    connection,
+    *,
+    workspace_id: UUID = WORKSPACE_A,
+    creator_user_id: UUID = USERS["owner"],
+    source_type: str = "deterministic",
+    source_environment: str = "production",
+    candidate_type: str = "address",
+    coverage_status: str = "known",
+    evidence_status: str = "available",
+    quality_status: str = "passed",
+    license_status: str = "approved",
+    possible_existing_property_entity_id: UUID | None = None,
+    blocking_conflict: bool = False,
+    case_id: UUID | None = CASE_A,
+    candidate_confidences: tuple[float, ...] = (1.0, 0.8),
+    mismatched_reference: bool = False,
+) -> dict[str, object]:
+    """Seed immutable Slice 5 history without creating a PropertyEntity."""
+
+    resolution_id = uuid4()
+    evidence_id = uuid4()
+    reference_id = uuid4() if mismatched_reference else None
+    candidate_ids = tuple(uuid4() for _confidence in candidate_confidences)
+    now = datetime.now(timezone.utc)
+    retrieved_at = now - timedelta(days=2) if evidence_status == "stale" else now
+    expires_at = now - timedelta(days=1) if evidence_status == "stale" else None
+    value = (
+        None
+        if evidence_status in {"unknown", "unavailable"}
+        else json.dumps({"identity": str(resolution_id)})
+    )
+    connection.execute(
+        "INSERT INTO vnext_core.evidence_items ("
+        "evidence_id, workspace_id, fact_type, value, source_id, source_type, "
+        "source_environment, source_record_id, retrieved_at, expires_at, "
+        "coverage_status, coverage, evidence_status, quality_status, quality, "
+        "license_status, license, lineage, content_hash, created_by_user_id"
+        ") VALUES (%s, %s, 'property.identity', %s::jsonb, 'vnext-deterministic', "
+        "'deterministic', 'production', %s, %s, %s, %s, %s::jsonb, %s, %s, "
+        "'{}'::jsonb, %s, '{}'::jsonb, '{}'::jsonb, %s, %s)",
+        (
+            evidence_id,
+            workspace_id,
+            value,
+            str(evidence_id),
+            retrieved_at,
+            expires_at,
+            coverage_status,
+            json.dumps({"scope": "slice6-real-postgres"}),
+            evidence_status,
+            quality_status,
+            license_status,
+            uuid4().hex + uuid4().hex,
+            creator_user_id,
+        ),
+    )
+    connection.execute(
+        "INSERT INTO vnext_core.identity_resolutions ("
+        "identity_resolution_id, workspace_id, case_id, input_type, raw_input, "
+        "normalized_input, normalized_key, normalization_version, resolution_status, "
+        "coverage_status, coverage, ambiguity_status, needs_human_confirmation, "
+        "version, requested_by_user_id, started_at, completed_at"
+        ") VALUES (%s, %s, %s, 'address', %s::jsonb, %s::jsonb, %s, "
+        "'identity-normalization-v1', 'ambiguous', %s, %s::jsonb, "
+        "'multiple_candidates', true, 1, %s, %s, %s)",
+        (
+            resolution_id,
+            workspace_id,
+            case_id,
+            json.dumps({"address": f"Slice 6 {resolution_id}"}),
+            json.dumps({"address": f"slice 6 {resolution_id}"}),
+            f"address:slice6:{resolution_id}",
+            coverage_status,
+            json.dumps({"scope": "slice6-real-postgres"}),
+            creator_user_id,
+            now - timedelta(seconds=1),
+            now,
+        ),
+    )
+    if reference_id is not None:
+        connection.execute(
+            "INSERT INTO vnext_core.property_identity_references ("
+            "identity_reference_id, workspace_id, reference_type, normalized_key, "
+            "display_value, source_id, source_type, source_environment, source_record_id, "
+            "confidence, confidence_method, reference_status, created_by_user_id"
+            ") VALUES (%s, %s, %s, %s, 'Mismatched stored reference', "
+            "'vnext-deterministic', 'deterministic', 'production', %s, 1.0, "
+            "'identity-ranking-v1', 'observed', %s)",
+            (
+                reference_id,
+                workspace_id,
+                candidate_type,
+                f"{candidate_type}:mismatched:{resolution_id}",
+                f"mismatched-{resolution_id}",
+                creator_user_id,
+            ),
+        )
+    connection.execute(
+        "INSERT INTO vnext_core.resolution_attempts ("
+        "workspace_id, identity_resolution_id, attempt_order, strategy_id, provider_id, "
+        "source_id, source_type, source_environment, attempt_status, coverage_status, "
+        "coverage, result_count, started_at, completed_at, retrieved_at, created_by_user_id"
+        ") VALUES (%s, %s, 1, 'deterministic-exact', 'vnext-deterministic', "
+        "'vnext-deterministic', %s, %s, 'available', %s, %s::jsonb, %s, %s, %s, %s, %s)",
+        (
+            workspace_id,
+            resolution_id,
+            source_type,
+            source_environment,
+            coverage_status,
+            json.dumps({"scope": "slice6-real-postgres"}),
+            len(candidate_confidences),
+            now - timedelta(seconds=1),
+            now,
+            now,
+            creator_user_id,
+        ),
+    )
+    for rank, (candidate_id, confidence) in enumerate(
+        zip(candidate_ids, candidate_confidences, strict=True), start=1
+    ):
+        connection.execute(
+            "INSERT INTO vnext_core.identity_candidates ("
+            "identity_candidate_id, workspace_id, identity_resolution_id, candidate_type, "
+            "normalized_key, normalized_identity, display_identity, source_id, source_type, "
+            "source_environment, source_record_id, retrieved_at, confidence, "
+            "confidence_method, ranking_factors, rank, candidate_status, coverage_status, "
+            "coverage, supporting_evidence_ids, supporting_reference_ids, "
+            "possible_existing_property_entity_id, needs_human_confirmation, "
+            "created_by_user_id"
+            ") VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s, 'vnext-deterministic', "
+            "%s, %s, %s, %s, %s, 'identity-ranking-v1', %s::jsonb, %s, 'plausible', "
+            "%s, %s::jsonb, %s, %s, %s, true, %s)",
+            (
+                candidate_id,
+                workspace_id,
+                resolution_id,
+                candidate_type,
+                f"{candidate_type}:slice6:{resolution_id}:{rank}",
+                json.dumps({"fixture_rank": rank}),
+                f"Slice 6 candidate {rank}",
+                source_type,
+                source_environment,
+                f"slice6-{resolution_id}-{rank}",
+                now,
+                confidence,
+                json.dumps({"rank": rank, "confidence": confidence}),
+                rank,
+                coverage_status,
+                json.dumps({"scope": "slice6-real-postgres"}),
+                [evidence_id],
+                [] if reference_id is None else [reference_id],
+                possible_existing_property_entity_id,
+                creator_user_id,
+            ),
+        )
+    if blocking_conflict:
+        assert len(candidate_ids) >= 2
+        connection.execute(
+            "INSERT INTO vnext_core.identity_conflicts ("
+            "workspace_id, identity_resolution_id, left_candidate_id, right_candidate_id, "
+            "related_evidence_id, conflict_type, severity, source_basis, conflict_basis, "
+            "resolution_state, created_by_user_id"
+            ") VALUES (%s, %s, %s, %s, %s, 'provider_disagreement', 'blocking', "
+            "'{}'::jsonb, '{}'::jsonb, 'open', %s)",
+            (
+                workspace_id,
+                resolution_id,
+                candidate_ids[0],
+                candidate_ids[1],
+                evidence_id,
+                creator_user_id,
+            ),
+        )
+    return {
+        "resolution_id": resolution_id,
+        "candidate_ids": candidate_ids,
+        "evidence_id": evidence_id,
+        "reference_id": reference_id,
+    }
+
+
+def _slice6_command_stack(context: DatabasePrincipalContext):
+    authorizer = WorkspaceAuthorizer(
+        PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
+    )
+    resolution_repository = PostgresIdentityResolutionRepository(context, authorizer)
+    idempotency_repository = PostgresIdempotencyRepository(context, authorizer)
+    case_repository = PostgresCaseRepository(context, authorizer)
+    command_repository = PostgresIdentityCommandRepository(context, authorizer)
+    service = IdentityCommandApplicationService(
+        authorizer=authorizer,
+        resolution_repository=resolution_repository,
+        command_repository=command_repository,
+        idempotency_repository=idempotency_repository,
+        case_repository=case_repository,
+    )
+    return service
+
+
+def _assert_slice6_catalog(admin) -> None:
+    tables = admin.execute(
+        "SELECT relation.relname, relation.relrowsecurity, relation.relforcerowsecurity, "
+        "owner.rolname FROM pg_class relation "
+        "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+        "JOIN pg_roles owner ON owner.oid = relation.relowner "
+        "WHERE namespace.nspname = 'vnext_core' AND relation.relkind = 'r' "
+        "AND relation.relname = ANY(%s) ORDER BY relation.relname",
+        (["case_property_links", "identity_decisions"],),
+    ).fetchall()
+    assert [(name, rls, forced) for name, rls, forced, _owner in tables] == [
+        ("case_property_links", True, True),
+        ("identity_decisions", True, True),
+    ]
+    assert all(owner != "vnext_api" for _name, _rls, _forced, owner in tables)
+
+    policies = admin.execute(
+        "SELECT tablename, cmd, roles FROM pg_policies WHERE schemaname = 'vnext_core' "
+        "AND tablename = ANY(%s) ORDER BY tablename, policyname",
+        (["case_property_links", "identity_decisions"],),
+    ).fetchall()
+    assert policies == [
+        ("case_property_links", "SELECT", ["vnext_api"]),
+        ("case_property_links", "INSERT", ["vnext_api"]),
+        ("identity_decisions", "SELECT", ["vnext_api"]),
+        ("identity_decisions", "INSERT", ["vnext_api"]),
+    ]
+    grants = admin.execute(
+        "SELECT table_name, privilege_type FROM information_schema.role_table_grants "
+        "WHERE grantee = 'vnext_api' AND table_schema = 'vnext_core' "
+        "AND table_name = ANY(%s) ORDER BY table_name, privilege_type",
+        (["case_property_links", "identity_decisions"],),
+    ).fetchall()
+    assert grants == [
+        ("case_property_links", "INSERT"),
+        ("case_property_links", "SELECT"),
+        ("identity_decisions", "INSERT"),
+        ("identity_decisions", "SELECT"),
+    ]
+    constraints = {
+        row[0]
+        for row in admin.execute(
+            "SELECT constraint_name FROM information_schema.table_constraints "
+            "WHERE table_schema = 'vnext_core' AND table_name = ANY(%s)",
+            (["case_property_links", "identity_decisions", "property_relations"],),
+        ).fetchall()
+    }
+    assert {
+        "fk_vnext_identity_decisions_candidate",
+        "fk_vnext_identity_decisions_property",
+        "fk_vnext_identity_decisions_idempotency",
+        "fk_vnext_property_relations_confirmation",
+        "fk_vnext_case_property_links_confirmation",
+        "fk_vnext_case_property_links_supersedes",
+    } <= constraints
+    functions = admin.execute(
+        "SELECT procedure.proname, procedure.prosecdef FROM pg_proc procedure "
+        "JOIN pg_namespace namespace ON namespace.oid = procedure.pronamespace "
+        "WHERE namespace.nspname = 'vnext_private' "
+        "AND procedure.proname = ANY(%s)",
+        ([
+            "guard_identity_decision",
+            "guard_confirmed_property_relation",
+            "guard_case_property_link",
+        ],),
+    ).fetchall()
+    assert len(functions) == 3
+    assert all(not security_definer for _name, security_definer in functions)
+
+
+def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() -> None:
+    with _prepared_database() as (admin, pool, context):
+        _assert_slice6_catalog(admin)
+        good = _seed_slice6_resolution(admin)
+        single_confident = _seed_slice6_resolution(
+            admin, case_id=None, candidate_confidences=(1.0,)
+        )
+        unconfirmed = _seed_slice6_resolution(admin, case_id=None)
+        demo = _seed_slice6_resolution(
+            admin, source_type="demo", source_environment="demo", case_id=None
+        )
+        test_source = _seed_slice6_resolution(
+            admin, source_type="test", source_environment="test", case_id=None
+        )
+        unknown = _seed_slice6_resolution(
+            admin,
+            coverage_status="unknown",
+            evidence_status="unknown",
+            case_id=None,
+        )
+        unavailable = _seed_slice6_resolution(
+            admin,
+            coverage_status="unavailable",
+            evidence_status="unavailable",
+            case_id=None,
+        )
+        stale = _seed_slice6_resolution(
+            admin, evidence_status="stale", case_id=None
+        )
+        conflicting_evidence = _seed_slice6_resolution(
+            admin, evidence_status="conflicting", case_id=None
+        )
+        failed_quality = _seed_slice6_resolution(
+            admin, quality_status="failed", case_id=None
+        )
+        prohibited_license = _seed_slice6_resolution(
+            admin, license_status="prohibited", case_id=None
+        )
+        atomic_rollback = _seed_slice6_resolution(
+            admin, mismatched_reference=True, case_id=None
+        )
+        conflicting = _seed_slice6_resolution(
+            admin, blocking_conflict=True, case_id=None
+        )
+        composite = _seed_slice6_resolution(
+            admin, candidate_type="composite_property", case_id=None
+        )
+        workspace_b = _seed_slice6_resolution(
+            admin,
+            workspace_id=WORKSPACE_B,
+            creator_user_id=USERS["workspace_b"],
+            case_id=None,
+        )
+        rejected = _seed_slice6_resolution(admin, case_id=None)
+        admin.commit()
+
+        service = _slice6_command_stack(context)
+        owner = _principal(USERS["owner"])
+        admin_user = _principal(USERS["admin"])
+        property_count_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0]
+        assert property_count_before == 0
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 0
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions "
+            "WHERE identity_resolution_id = %s",
+            (single_confident["resolution_id"],),
+        ).fetchone()[0] == 0
+        assert admin.execute(
+            "SELECT identity_status, version FROM vnext_core.cases WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone() == ("unverified", 1)
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone()[0] == 0
+
+        # Missing, invalid/unmapped, revoked, and cross-workspace principals see no rows.
+        with pool.connection() as connection:
+            assert connection.execute(
+                "SELECT count(*) FROM vnext_core.identity_decisions"
+            ).fetchone()[0] == 0
+            connection.rollback()
+        with context.transaction(_principal(uuid4())) as connection:
+            assert connection.execute(
+                "SELECT count(*) FROM vnext_core.identity_resolutions"
+            ).fetchone()[0] == 0
+        for role in ("none", "viewer", "member", "manager", "revoked"):
+            with pytest.raises(VNextError) as denied:
+                service.confirm(
+                    principal=_principal(USERS[role]),
+                    identity_resolution_id=good["resolution_id"],
+                    identity_candidate_id=good["candidate_ids"][1],
+                    expected_version=1,
+                    confirmation_reason="reviewed the displayed identity evidence",
+                    idempotency_key=f"real-slice6-denied-{role}-0001",
+                    request_id=f"real-slice6-denied-{role}",
+                )
+            expected = (
+                ErrorCode.NOT_FOUND
+                if role in {"none", "revoked"}
+                else ErrorCode.PERMISSION_DENIED
+            )
+            assert denied.value.code is expected
+            assert admin.execute(
+                "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+                (WORKSPACE_A,),
+            ).fetchone()[0] == property_count_before
+        with pytest.raises(VNextError) as cross_workspace:
+            service.confirm(
+                principal=_principal(USERS["workspace_b"]),
+                identity_resolution_id=good["resolution_id"],
+                identity_candidate_id=good["candidate_ids"][1],
+                expected_version=1,
+                confirmation_reason="reviewed the displayed identity evidence",
+                idempotency_key="real-slice6-cross-workspace-0001",
+                request_id="real-slice6-cross-workspace",
+            )
+        assert cross_workspace.value.code is ErrorCode.NOT_FOUND
+
+        with pytest.raises(VNextError) as stale_version:
+            service.confirm(
+                principal=owner,
+                identity_resolution_id=good["resolution_id"],
+                identity_candidate_id=good["candidate_ids"][1],
+                expected_version=2,
+                confirmation_reason="reviewed the displayed identity evidence",
+                idempotency_key="real-slice6-stale-version-0001",
+                request_id="real-slice6-stale-version",
+            )
+        assert stale_version.value.code is ErrorCode.VERSION_CONFLICT
+        with pytest.raises(VNextError) as stale_replay:
+            service.confirm(
+                principal=owner,
+                identity_resolution_id=good["resolution_id"],
+                identity_candidate_id=good["candidate_ids"][1],
+                expected_version=2,
+                confirmation_reason="reviewed the displayed identity evidence",
+                idempotency_key="real-slice6-stale-version-0001",
+                request_id="real-slice6-stale-version-replay",
+            )
+        assert stale_replay.value.code is ErrorCode.VERSION_CONFLICT
+        for foreign_candidate in (
+            unconfirmed["candidate_ids"][0],
+            workspace_b["candidate_ids"][0],
+        ):
+            with pytest.raises(VNextError) as candidate_scope:
+                service.confirm(
+                    principal=owner,
+                    identity_resolution_id=good["resolution_id"],
+                    identity_candidate_id=foreign_candidate,
+                    expected_version=1,
+                    confirmation_reason="reviewed the displayed identity evidence",
+                    idempotency_key=f"real-slice6-candidate-scope-{foreign_candidate}",
+                    request_id="real-slice6-candidate-scope",
+                )
+            assert candidate_scope.value.code is ErrorCode.NOT_FOUND
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == property_count_before
+
+        fail_closed = (
+            (demo, ErrorCode.PERMISSION_DENIED, "demo"),
+            (test_source, ErrorCode.PERMISSION_DENIED, "test"),
+            (unknown, ErrorCode.COVERAGE_UNAVAILABLE, "unknown"),
+            (unavailable, ErrorCode.COVERAGE_UNAVAILABLE, "unavailable"),
+            (stale, ErrorCode.STALE_EVIDENCE, "stale"),
+            (
+                conflicting_evidence,
+                ErrorCode.CONFLICTING_EVIDENCE,
+                "conflicting-evidence",
+            ),
+            (failed_quality, ErrorCode.VALIDATION_FAILED, "failed-quality"),
+            (
+                prohibited_license,
+                ErrorCode.VALIDATION_FAILED,
+                "prohibited-license",
+            ),
+            (
+                atomic_rollback,
+                ErrorCode.CONFLICTING_EVIDENCE,
+                "atomic-rollback",
+            ),
+            (conflicting, ErrorCode.CONFLICTING_EVIDENCE, "conflict"),
+            (composite, ErrorCode.AMBIGUOUS_IDENTITY, "composite"),
+        )
+        for fixture, error_code, label in fail_closed:
+            with pytest.raises(VNextError) as failed:
+                service.confirm(
+                    principal=owner,
+                    identity_resolution_id=fixture["resolution_id"],
+                    identity_candidate_id=fixture["candidate_ids"][0],
+                    expected_version=1,
+                    confirmation_reason="reviewed the displayed identity evidence",
+                    idempotency_key=f"real-slice6-fail-{label}-0001",
+                    request_id=f"real-slice6-fail-{label}",
+                )
+            assert failed.value.code is error_code
+            assert admin.execute(
+                "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+                (WORKSPACE_A,),
+            ).fetchone()[0] == property_count_before
+            assert admin.execute(
+                "SELECT count(*) FROM vnext_core.property_relations "
+                "WHERE workspace_id = %s AND relation_status = 'confirmed'",
+                (WORKSPACE_A,),
+            ).fetchone()[0] == 0
+
+        selected_rank_two = good["candidate_ids"][1]
+        confirmed = service.confirm(
+            principal=owner,
+            identity_resolution_id=good["resolution_id"],
+            identity_candidate_id=selected_rank_two,
+            expected_version=1,
+            confirmation_reason="owner reviewed the displayed identity evidence",
+            idempotency_key="real-slice6-confirm-success-0001",
+            request_id="real-slice6-confirm-success",
+        )
+        property_id = confirmed.decision.property_entity_id
+        assert property_id is not None
+        assert confirmed.decision.identity_candidate_id == selected_rank_two
+        assert float(confirmed.decision.confidence_snapshot) == 0.8
+        assert confirmed.resolution.candidates[0].confidence == 1.0
+        assert confirmed.resolution.candidates[0].identity_candidate_id != selected_rank_two
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == property_count_before + 1
+        relation = admin.execute(
+            "SELECT relation_status, confirmed_by_user_id, confirmed_at, "
+            "identity_confirmation_id, source_type, source_environment "
+            "FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchall()
+        assert len(relation) == 1
+        assert relation[0][0] == "confirmed"
+        assert relation[0][1] == USERS["owner"]
+        assert relation[0][2] is not None
+        assert relation[0][3] == confirmed.decision.identity_decision_id
+        assert relation[0][4:] == ("deterministic", "production")
+        assert admin.execute(
+            "SELECT identity_status, version FROM vnext_core.cases WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone() == ("unverified", 1)
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone()[0] == 0
+
+        replay = service.confirm(
+            principal=owner,
+            identity_resolution_id=good["resolution_id"],
+            identity_candidate_id=selected_rank_two,
+            expected_version=1,
+            confirmation_reason="owner reviewed the displayed identity evidence",
+            idempotency_key="real-slice6-confirm-success-0001",
+            request_id="real-slice6-confirm-replay",
+        )
+        assert replay.replayed is True
+        assert replay.decision.identity_decision_id == confirmed.decision.identity_decision_id
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == property_count_before + 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 1
+        with pytest.raises(VNextError) as conflicting_second:
+            service.confirm(
+                principal=owner,
+                identity_resolution_id=good["resolution_id"],
+                identity_candidate_id=good["candidate_ids"][0],
+                expected_version=2,
+                confirmation_reason="owner selected a competing candidate",
+                idempotency_key="real-slice6-confirm-second-0001",
+                request_id="real-slice6-confirm-second",
+            )
+        assert conflicting_second.value.code is ErrorCode.VERSION_CONFLICT
+
+        read_authorizer = WorkspaceAuthorizer(
+            PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
+        )
+        property_read = PostgresPropertyReadRepository(context, read_authorizer).get_property(
+            principal=owner, property_entity_id=property_id
+        )
+        assert property_read.entity_status.value == "unverified"
+        assert property_read.confirmation_id == confirmed.decision.identity_decision_id
+        assert property_read.confirmed_by_user_id == USERS["owner"]
+
+        with pytest.raises(VNextError) as attach_unconfirmed:
+            service.attach_resolution(
+                principal=owner,
+                case_id=CASE_A,
+                identity_resolution_id=unconfirmed["resolution_id"],
+                expected_case_version=1,
+                idempotency_key="real-slice6-attach-unconfirmed-0001",
+                request_id="real-slice6-attach-unconfirmed",
+            )
+        assert attach_unconfirmed.value.code is ErrorCode.AMBIGUOUS_IDENTITY
+        attached = service.attach_resolution(
+            principal=owner,
+            case_id=CASE_A,
+            identity_resolution_id=good["resolution_id"],
+            expected_case_version=1,
+            idempotency_key="real-slice6-attach-success-0001",
+            request_id="real-slice6-attach-success",
+        )
+        attached_replay = service.attach_resolution(
+            principal=owner,
+            case_id=CASE_A,
+            identity_resolution_id=good["resolution_id"],
+            expected_case_version=1,
+            idempotency_key="real-slice6-attach-success-0001",
+            request_id="real-slice6-attach-replay",
+        )
+        assert attached.case.identity_status.value == "confirmed"
+        assert attached.case.version == 2
+        assert attached_replay.replayed is True
+        assert attached_replay.link.case_property_link_id == attached.link.case_property_link_id
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone()[0] == 1
+        with pytest.raises(VNextError) as stale_case:
+            service.attach_resolution(
+                principal=owner,
+                case_id=CASE_A,
+                identity_resolution_id=good["resolution_id"],
+                expected_case_version=1,
+                idempotency_key="real-slice6-attach-stale-0001",
+                request_id="real-slice6-attach-stale",
+            )
+        assert stale_case.value.code is ErrorCode.VERSION_CONFLICT
+
+        existing = _seed_slice6_resolution(
+            admin,
+            possible_existing_property_entity_id=property_id,
+            case_id=None,
+        )
+        admin.commit()
+        existing_confirmed = service.confirm(
+            principal=admin_user,
+            identity_resolution_id=existing["resolution_id"],
+            identity_candidate_id=existing["candidate_ids"][0],
+            expected_version=1,
+            confirmation_reason="admin reviewed the exact existing property reference",
+            idempotency_key="real-slice6-existing-success-0001",
+            request_id="real-slice6-existing-success",
+        )
+        assert existing_confirmed.decision.property_entity_id == property_id
+        assert existing_confirmed.decision.created_new_property is False
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == property_count_before + 1
+        reattached = service.attach_resolution(
+            principal=owner,
+            case_id=CASE_A,
+            identity_resolution_id=existing["resolution_id"],
+            expected_case_version=2,
+            idempotency_key="real-slice6-reattach-success-0001",
+            request_id="real-slice6-reattach-success",
+        )
+        assert reattached.case.version == 3
+        history = admin.execute(
+            "SELECT case_property_link_id, supersedes_case_property_link_id, "
+            "case_version_before, case_version_after FROM vnext_core.case_property_links "
+            "WHERE case_id = %s ORDER BY case_version_after",
+            (CASE_A,),
+        ).fetchall()
+        assert len(history) == 2
+        assert history[0][1] is None
+        assert history[1][1] == history[0][0]
+        assert [row[2:] for row in history] == [(1, 2), (2, 3)]
+
+        evidence_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.evidence_items WHERE evidence_id = %s",
+            (rejected["evidence_id"],),
+        ).fetchone()[0]
+        attempts_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.resolution_attempts "
+            "WHERE identity_resolution_id = %s",
+            (rejected["resolution_id"],),
+        ).fetchone()[0]
+        property_before_reject = admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0]
+        rejection = service.reject(
+            principal=owner,
+            identity_resolution_id=rejected["resolution_id"],
+            identity_candidate_id=rejected["candidate_ids"][0],
+            expected_version=1,
+            reason_code="not_same_property",
+            idempotency_key="real-slice6-reject-success-0001",
+            request_id="real-slice6-reject-success",
+        )
+        rejection_replay = service.reject(
+            principal=owner,
+            identity_resolution_id=rejected["resolution_id"],
+            identity_candidate_id=rejected["candidate_ids"][0],
+            expected_version=1,
+            reason_code="not_same_property",
+            idempotency_key="real-slice6-reject-success-0001",
+            request_id="real-slice6-reject-replay",
+        )
+        assert rejection.decision.decision_type == "candidate_rejected"
+        assert rejection_replay.replayed is True
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions "
+            "WHERE identity_resolution_id = %s AND decision_type = 'candidate_rejected'",
+            (rejected["resolution_id"],),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.evidence_items WHERE evidence_id = %s",
+            (rejected["evidence_id"],),
+        ).fetchone()[0] == evidence_before
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.resolution_attempts "
+            "WHERE identity_resolution_id = %s",
+            (rejected["resolution_id"],),
+        ).fetchone()[0] == attempts_before
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == property_before_reject
+        with pytest.raises(VNextError) as rejected_confirm:
+            service.confirm(
+                principal=owner,
+                identity_resolution_id=rejected["resolution_id"],
+                identity_candidate_id=rejected["candidate_ids"][0],
+                expected_version=2,
+                confirmation_reason="owner reconsidered the stale decision state",
+                idempotency_key="real-slice6-rejected-confirm-0001",
+                request_id="real-slice6-rejected-confirm",
+            )
+        assert rejected_confirm.value.code is ErrorCode.VERSION_CONFLICT
+
+        created = service.create_case(
+            principal=owner,
+            workspace_id=WORKSPACE_A,
+            purpose=CasePurpose.BUY_DUE_DILIGENCE,
+            title="Slice 6 standalone case",
+            idempotency_key="real-slice6-case-create-0001",
+            request_id="real-slice6-case-create",
+        )
+        created_replay = service.create_case(
+            principal=owner,
+            workspace_id=WORKSPACE_A,
+            purpose=CasePurpose.BUY_DUE_DILIGENCE,
+            title="Slice 6 standalone case",
+            idempotency_key="real-slice6-case-create-0001",
+            request_id="real-slice6-case-create-replay",
+        )
+        assert created.case.identity_status.value == "unverified"
+        assert created.case.version == 1
+        assert created_replay.replayed is True
+        assert created_replay.case.case_id == created.case.case_id
+
+        with pytest.raises(VNextError) as hidden_resolution:
+            service.confirm(
+                principal=owner,
+                identity_resolution_id=workspace_b["resolution_id"],
+                identity_candidate_id=workspace_b["candidate_ids"][0],
+                expected_version=1,
+                confirmation_reason="cross workspace should remain hidden",
+                idempotency_key="real-slice6-hidden-resolution-0001",
+                request_id="real-slice6-hidden-resolution",
+            )
+        assert hidden_resolution.value.code is ErrorCode.NOT_FOUND
+        idempotency_columns = {
+            row[0]
+            for row in admin.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_schema = 'vnext_private' "
+                "AND table_name = 'idempotency_records'"
+            ).fetchall()
+        }
+        assert "idempotency_key" not in idempotency_columns
+        assert "request_body" not in idempotency_columns
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.idempotency_records "
+            "WHERE idempotency_key_hash = %s OR request_fingerprint = %s",
+            ("real-slice6-confirm-success-0001", "real-slice6-confirm-success-0001"),
+        ).fetchone()[0] == 0

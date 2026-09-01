@@ -114,6 +114,40 @@ class IdentityConflictRecord:
 
 
 @dataclass(frozen=True)
+class IdentityDecisionRecord:
+    identity_decision_id: UUID
+    workspace_id: UUID
+    identity_resolution_id: UUID
+    identity_candidate_id: UUID | None
+    property_entity_id: UUID | None
+    materialized_identity_reference_id: UUID | None
+    primary_evidence_id: UUID | None
+    decision_type: str
+    decision_reason: str | None
+    reason_code: str | None
+    resolution_version_observed: int
+    decision_version: int
+    candidate_type_snapshot: str | None
+    candidate_status_snapshot: str | None
+    confidence_snapshot: float | None
+    confidence_method_snapshot: str | None
+    coverage_status_snapshot: CoverageStatus
+    coverage_snapshot: Mapping[str, object]
+    supporting_evidence_ids_snapshot: tuple[UUID, ...]
+    supporting_reference_ids_snapshot: tuple[UUID, ...]
+    source_id_snapshot: str | None
+    source_type_snapshot: SourceType | None
+    source_environment_snapshot: SourceEnvironment | None
+    source_record_id_snapshot: str | None
+    created_new_property: bool | None
+    created_new_reference: bool | None
+    actor_user_id: UUID
+    request_id: str
+    idempotency_record_id: UUID
+    created_at: datetime
+
+
+@dataclass(frozen=True)
 class IdentityResolutionRecord:
     identity_resolution_id: UUID
     workspace_id: UUID
@@ -133,6 +167,7 @@ class IdentityResolutionRecord:
     attempts: tuple[ResolutionAttemptRecord, ...]
     candidates: tuple[IdentityCandidateRecord, ...]
     conflicts: tuple[IdentityConflictRecord, ...]
+    decisions: tuple[IdentityDecisionRecord, ...] = ()
 
 
 _RESOLUTION_COLUMNS = (
@@ -162,6 +197,17 @@ _CONFLICT_COLUMNS = (
     "right_candidate_id, related_identity_reference_id, related_evidence_id, "
     "related_property_entity_id, conflict_type, severity, source_basis, conflict_basis, "
     "resolution_state, created_by_user_id, created_at"
+)
+_DECISION_COLUMNS = (
+    "identity_decision_id, workspace_id, identity_resolution_id, "
+    "identity_candidate_id, property_entity_id, materialized_identity_reference_id, "
+    "primary_evidence_id, decision_type, decision_reason, reason_code, "
+    "resolution_version_observed, decision_version, candidate_type_snapshot, "
+    "candidate_status_snapshot, confidence_snapshot, confidence_method_snapshot, "
+    "coverage_status_snapshot, coverage_snapshot, supporting_evidence_ids_snapshot, "
+    "supporting_reference_ids_snapshot, source_id_snapshot, source_type_snapshot, "
+    "source_environment_snapshot, source_record_id_snapshot, created_new_property, "
+    "created_new_reference, actor_user_id, request_id, idempotency_record_id, created_at"
 )
 
 
@@ -266,12 +312,52 @@ def _conflict_record(row: tuple[Any, ...]) -> IdentityConflictRecord:
     )
 
 
+def _decision_record(row: tuple[Any, ...]) -> IdentityDecisionRecord:
+    return IdentityDecisionRecord(
+        identity_decision_id=UUID(str(row[0])),
+        workspace_id=UUID(str(row[1])),
+        identity_resolution_id=UUID(str(row[2])),
+        identity_candidate_id=None if row[3] is None else UUID(str(row[3])),
+        property_entity_id=None if row[4] is None else UUID(str(row[4])),
+        materialized_identity_reference_id=(
+            None if row[5] is None else UUID(str(row[5]))
+        ),
+        primary_evidence_id=None if row[6] is None else UUID(str(row[6])),
+        decision_type=str(row[7]),
+        decision_reason=None if row[8] is None else str(row[8]),
+        reason_code=None if row[9] is None else str(row[9]),
+        resolution_version_observed=int(row[10]),
+        decision_version=int(row[11]),
+        candidate_type_snapshot=None if row[12] is None else str(row[12]),
+        candidate_status_snapshot=None if row[13] is None else str(row[13]),
+        confidence_snapshot=None if row[14] is None else float(row[14]),
+        confidence_method_snapshot=None if row[15] is None else str(row[15]),
+        coverage_status_snapshot=CoverageStatus(str(row[16])),
+        coverage_snapshot=_decoded(row[17]),
+        supporting_evidence_ids_snapshot=tuple(UUID(str(value)) for value in row[18]),
+        supporting_reference_ids_snapshot=tuple(UUID(str(value)) for value in row[19]),
+        source_id_snapshot=None if row[20] is None else str(row[20]),
+        source_type_snapshot=None if row[21] is None else SourceType(str(row[21])),
+        source_environment_snapshot=(
+            None if row[22] is None else SourceEnvironment(str(row[22]))
+        ),
+        source_record_id_snapshot=None if row[23] is None else str(row[23]),
+        created_new_property=None if row[24] is None else bool(row[24]),
+        created_new_reference=None if row[25] is None else bool(row[25]),
+        actor_user_id=UUID(str(row[26])),
+        request_id=str(row[27]),
+        idempotency_record_id=UUID(str(row[28])),
+        created_at=row[29],
+    )
+
+
 def _resolution_record(
     row: tuple[Any, ...],
     *,
     attempts: tuple[ResolutionAttemptRecord, ...],
     candidates: tuple[IdentityCandidateRecord, ...],
     conflicts: tuple[IdentityConflictRecord, ...],
+    decisions: tuple[IdentityDecisionRecord, ...] = (),
 ) -> IdentityResolutionRecord:
     input_type = ResolutionInputType(str(row[3]))
     raw_input = _decoded(row[4])
@@ -301,6 +387,7 @@ def _resolution_record(
         attempts=attempts,
         candidates=candidates,
         conflicts=conflicts,
+        decisions=decisions,
     )
 
 
@@ -658,6 +745,24 @@ class PostgresIdentityResolutionRepository:
             identity_resolution_id=identity_resolution_id,
         )
 
+    def get_decision_by_id(
+        self,
+        *,
+        principal: AuthenticatedPrincipal,
+        identity_decision_id: UUID,
+    ) -> IdentityDecisionRecord:
+        """Read one decision through RLS without disclosing its workspace."""
+
+        with self._principal_context.transaction(principal) as connection:
+            row = connection.execute(
+                "SELECT " + _DECISION_COLUMNS + " FROM vnext_core.identity_decisions "
+                "WHERE identity_decision_id = %s",
+                (identity_decision_id,),
+            ).fetchone()
+        if row is None:
+            raise VNextError.not_found()
+        return _decision_record(row)
+
     def get_resolution(
         self,
         *,
@@ -700,9 +805,19 @@ class PostgresIdentityResolutionRepository:
                     (workspace_id, identity_resolution_id),
                 ).fetchall()
             )
+            decisions = tuple(
+                _decision_record(row)
+                for row in connection.execute(
+                    "SELECT " + _DECISION_COLUMNS + " FROM vnext_core.identity_decisions "
+                    "WHERE workspace_id = %s AND identity_resolution_id = %s "
+                    "ORDER BY decision_version, identity_decision_id",
+                    (workspace_id, identity_resolution_id),
+                ).fetchall()
+            )
         return _resolution_record(
             resolution,
             attempts=attempts,
             candidates=candidates,
             conflicts=conflicts,
+            decisions=decisions,
         )

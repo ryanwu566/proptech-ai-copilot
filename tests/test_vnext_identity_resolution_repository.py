@@ -224,4 +224,5 @@ def test_reader_rehydrates_immutable_candidate_set() -> None:
     assert result.attempts == ()
     assert result.candidates == ()
     assert result.conflicts == ()
-    assert len(connection.calls) == 4
+    assert result.decisions == ()
+    assert len(connection.calls) == 5

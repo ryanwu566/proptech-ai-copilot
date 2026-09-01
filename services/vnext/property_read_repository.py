@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any
 from uuid import UUID
@@ -149,18 +149,42 @@ class PostgresPropertyReadRepository:
     ) -> PropertyEntityRecord:
         with self._principal_context.transaction(principal) as connection:
             row = connection.execute(
-                "SELECT " + _PROPERTY_READ_COLUMNS + ", node.property_graph_node_id "
+                "SELECT " + _PROPERTY_READ_COLUMNS + ", node.property_graph_node_id, "
+                "confirmation.identity_decision_id, confirmation.created_at, "
+                "confirmation.actor_user_id, confirmation.identity_resolution_id "
                 "FROM vnext_core.property_entities property "
                 "JOIN vnext_core.property_graph_nodes node "
                 "ON node.workspace_id = property.workspace_id "
                 "AND node.node_type = 'property' "
                 "AND node.record_id = property.property_entity_id "
+                "LEFT JOIN LATERAL ("
+                "SELECT decision.identity_decision_id, decision.created_at, "
+                "decision.actor_user_id, decision.identity_resolution_id "
+                "FROM vnext_core.identity_decisions decision "
+                "WHERE decision.workspace_id = property.workspace_id "
+                "AND decision.property_entity_id = property.property_entity_id "
+                "AND decision.decision_type = 'confirmed' "
+                "ORDER BY decision.created_at DESC, decision.identity_decision_id DESC "
+                "LIMIT 1"
+                ") confirmation ON true "
                 "WHERE property.property_entity_id = %s",
                 (property_entity_id,),
             ).fetchone()
         if row is None:
             raise VNextError.not_found()
-        property_record = _property_record(row[:9], row[9])
+        property_record = replace(
+            _property_record(row[:9], row[9]),
+            confirmation_id=(
+                None if len(row) < 14 or row[10] is None else UUID(str(row[10]))
+            ),
+            confirmed_at=None if len(row) < 14 else row[11],
+            confirmed_by_user_id=(
+                None if len(row) < 14 or row[12] is None else UUID(str(row[12]))
+            ),
+            confirmed_resolution_id=(
+                None if len(row) < 14 or row[13] is None else UUID(str(row[13]))
+            ),
+        )
         # The lookup above is already RLS-filtered. This second boundary keeps
         # application authorization explicit and fails closed on membership
         # infrastructure errors without turning a path UUID into an oracle.

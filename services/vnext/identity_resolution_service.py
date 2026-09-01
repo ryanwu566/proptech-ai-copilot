@@ -185,14 +185,15 @@ class IdentityResolutionApplicationService:
         principal: AuthenticatedPrincipal,
         workspace_id: UUID,
         reservation: IdempotencyReservation,
-        status_code: int,
+        error: VNextError,
     ) -> None:
         try:
             self._idempotency_repository.mark_failed(
                 principal=principal,
                 workspace_id=workspace_id,
                 idempotency_record_id=reservation.idempotency_record_id,
-                response_status_code=status_code,
+                response_status_code=error.status_code,
+                response_error_code=error.code.value,
             )
         except Exception:
             # The original error remains the safe client result. A pending key
@@ -252,6 +253,15 @@ class IdentityResolutionApplicationService:
             if reservation.operation_status == "pending":
                 raise VNextError(ErrorCode.MAINTENANCE)
             if (
+                reservation.operation_status == "failed"
+                and reservation.response_reference_id is None
+            ):
+                try:
+                    replay_error = ErrorCode(str(reservation.response_error_code))
+                except ValueError:
+                    raise VNextError(ErrorCode.INTERNAL_ERROR) from None
+                raise VNextError(replay_error)
+            if (
                 reservation.response_reference_type != "identity_resolution"
                 or reservation.response_reference_id is None
             ):
@@ -300,17 +310,18 @@ class IdentityResolutionApplicationService:
                 principal=principal,
                 workspace_id=workspace_id,
                 reservation=reservation,
-                status_code=error.status_code,
+                error=error,
             )
             raise
         except Exception:
+            error = VNextError(ErrorCode.INTERNAL_ERROR)
             self._safe_mark_failed(
                 principal=principal,
                 workspace_id=workspace_id,
                 reservation=reservation,
-                status_code=500,
+                error=error,
             )
-            raise VNextError(ErrorCode.INTERNAL_ERROR) from None
+            raise error from None
 
         error = _completion_error(record)
         if error is not None:

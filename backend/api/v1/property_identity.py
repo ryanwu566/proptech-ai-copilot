@@ -14,52 +14,40 @@ from fastapi import APIRouter, Depends, Header, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
-from services.vnext.auth import AuthenticatedPrincipal, require_authenticated_principal
-from services.vnext.authorization import WorkspaceAuthorizer, get_workspace_authorizer
+from backend.api.v1.errors import request_id as correlation_request_id
+from services.vnext.auth import (AuthenticatedPrincipal,
+                                 require_authenticated_principal)
+from services.vnext.authorization import (WorkspaceAuthorizer,
+                                          get_workspace_authorizer)
 from services.vnext.db_principal import get_vnext_database_principal_context
 from services.vnext.errors import ErrorCode, VNextError
-from services.vnext.feature_flags import VNextFeatureFlags, get_vnext_feature_flags
-from services.vnext.identity_resolution import (
-    IdentityResolutionEngine,
-    ResolutionInputType,
-)
+from services.vnext.feature_flags import (VNextFeatureFlags,
+                                          get_vnext_feature_flags)
+from services.vnext.identity_command_repository import (
+    CasePropertyLinkRecord, PostgresIdentityCommandRepository)
+from services.vnext.identity_command_service import \
+    IdentityCommandApplicationService
+from services.vnext.identity_resolution import (IdentityResolutionEngine,
+                                                ResolutionInputType)
 from services.vnext.identity_resolution_repository import (
-    IDENTITY_WRITE_ROLES,
-    IdentityCandidateRecord,
-    IdentityConflictRecord,
-    IdentityResolutionRecord,
-    PostgresIdentityResolutionRepository,
-    ResolutionAttemptRecord,
-)
-from services.vnext.identity_resolution_service import (
-    IdentityResolutionApplicationService,
-)
-from services.vnext.pagination import (
-    CURSOR_SIGNING_KEY_ENV,
-    CursorCodec,
-    cursor_datetime,
-    cursor_uuid,
-)
-from services.vnext.persistence import (
-    PostgresCaseRepository,
-    PostgresIdempotencyRepository,
-)
-from services.vnext.property_graph import (
-    EvidenceRecord,
-    EvidenceStatus,
-    PropertyEntityRecord,
-    PropertyRelationRecord,
-    PropertyRelationStatus,
-    PropertyRelationType,
-)
+    IDENTITY_WRITE_ROLES, IdentityCandidateRecord, IdentityConflictRecord,
+    IdentityDecisionRecord, IdentityResolutionRecord,
+    PostgresIdentityResolutionRepository, ResolutionAttemptRecord)
+from services.vnext.identity_resolution_service import \
+    IdentityResolutionApplicationService
+from services.vnext.pagination import (CURSOR_SIGNING_KEY_ENV, CursorCodec,
+                                       cursor_datetime, cursor_uuid)
+from services.vnext.persistence import (CasePurpose, CaseRecord,
+                                        PostgresCaseRepository,
+                                        PostgresIdempotencyRepository)
+from services.vnext.property_graph import (EvidenceRecord, EvidenceStatus,
+                                           PropertyEntityRecord,
+                                           PropertyRelationRecord,
+                                           PropertyRelationStatus,
+                                           PropertyRelationType)
 from services.vnext.property_read_repository import (
-    EvidencePosition,
-    GraphPosition,
-    PostgresPropertyReadRepository,
-    PropertyEvidencePage,
-    PropertyGraphNodeRecord,
-    PropertyGraphPage,
-)
+    EvidencePosition, GraphPosition, PostgresPropertyReadRepository,
+    PropertyEvidencePage, PropertyGraphNodeRecord, PropertyGraphPage)
 
 router = APIRouter(tags=["vnext-property-identity"])
 
@@ -74,6 +62,18 @@ BoundedText160 = Annotated[
 BoundedText120 = Annotated[
     str,
     StringConstraints(strip_whitespace=True, min_length=1, max_length=120),
+]
+BoundedConfirmationReason = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=8, max_length=1000),
+]
+BoundedCaseTitle = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=240),
+]
+ReasonCode = Annotated[
+    str,
+    StringConstraints(pattern=r"^[a-z][a-z0-9._-]{2,79}$"),
 ]
 Coordinate = Annotated[float, Field(strict=True)]
 _IDEMPOTENCY_PATTERN = r"^[A-Za-z0-9._:-]{16,128}$"
@@ -156,6 +156,29 @@ class ResolutionCreateRequest(_StrictModel):
     case_id: UUID | None = None
 
 
+class ResolutionConfirmRequest(_StrictModel):
+    candidate_id: UUID
+    version: Annotated[int, Field(ge=1)]
+    confirmation_reason: BoundedConfirmationReason
+
+
+class ResolutionRejectRequest(_StrictModel):
+    candidate_id: UUID | None = None
+    version: Annotated[int, Field(ge=1)]
+    reason_code: ReasonCode
+
+
+class CaseCreateRequest(_StrictModel):
+    workspace_id: UUID
+    purpose: CasePurpose
+    title: BoundedCaseTitle
+
+
+class CaseAttachResolutionRequest(_StrictModel):
+    resolution_id: UUID
+    case_version: Annotated[int, Field(ge=1)]
+
+
 class SourceDTO(_StrictModel):
     source_id: str
     source_type: str
@@ -217,6 +240,18 @@ class IdentityConflictDTO(_StrictModel):
     state: str
 
 
+class IdentityDecisionDTO(_StrictModel):
+    decision_id: UUID
+    decision_type: str
+    candidate_id: UUID | None
+    property_entity_id: UUID | None
+    reason_code: str | None
+    resolution_version_observed: int
+    decision_version: int
+    actor_user_id: UUID
+    decided_at: datetime
+
+
 class PropertyResolutionDTO(_StrictModel):
     resolution_id: UUID
     workspace_id: UUID
@@ -228,12 +263,13 @@ class PropertyResolutionDTO(_StrictModel):
     coverage_status: str
     coverage: dict[str, object]
     ambiguity: str
-    needs_human_confirmation: Literal[True]
+    needs_human_confirmation: bool
     candidates: list[IdentityCandidateDTO]
     conflicts: list[IdentityConflictDTO]
     provider_attempts: list[ResolutionAttemptDTO]
-    selected_candidate_id: None = None
-    confirmed_property_entity_id: None = None
+    decisions: list[IdentityDecisionDTO]
+    selected_candidate_id: UUID | None = None
+    confirmed_property_entity_id: UUID | None = None
     version: int
     created_by: UUID
     created_at: datetime
@@ -241,8 +277,12 @@ class PropertyResolutionDTO(_StrictModel):
 
 
 class ConfirmationSummaryDTO(_StrictModel):
-    available: Literal[False] = False
-    human_confirmed: Literal[False] = False
+    available: bool
+    human_confirmed: bool
+    confirmation_id: UUID | None = None
+    confirmed_at: datetime | None = None
+    confirmed_by: UUID | None = None
+    resolution_id: UUID | None = None
 
 
 class PropertyDTO(_StrictModel):
@@ -282,6 +322,36 @@ class PropertyRelationDTO(_StrictModel):
     valid_to: datetime | None
     supersedes_relation_id: UUID | None
     created_at: datetime
+    confirmation_id: UUID | None
+
+
+class CaseDTO(_StrictModel):
+    case_id: UUID
+    workspace_id: UUID
+    purpose: str
+    status: str
+    title: str
+    identity_status: str
+    assigned_member_id: UUID | None
+    version: int
+    opened_at: datetime
+    updated_at: datetime
+
+
+class CasePropertyLinkDTO(_StrictModel):
+    case_property_link_id: UUID
+    case_id: UUID
+    property_entity_id: UUID
+    resolution_id: UUID
+    confirmation_id: UUID
+    supersedes_case_property_link_id: UUID | None
+    attached_by: UUID
+    attached_at: datetime
+
+
+class CaseAttachmentDTO(_StrictModel):
+    case: CaseDTO
+    link: CasePropertyLinkDTO
 
 
 class PropertyGraphDTO(_StrictModel):
@@ -367,6 +437,13 @@ def get_case_repository() -> PostgresCaseRepository:
     )
 
 
+def get_identity_command_repository() -> PostgresIdentityCommandRepository:
+    return PostgresIdentityCommandRepository(
+        get_vnext_database_principal_context(),
+        get_workspace_authorizer(),
+    )
+
+
 def get_resolution_application_service(
     engine: IdentityResolutionEngine = Depends(get_identity_resolution_engine),
     resolution_repository: PostgresIdentityResolutionRepository = Depends(
@@ -382,6 +459,28 @@ def get_resolution_application_service(
         authorizer=authorizer,
         engine=engine,
         resolution_repository=resolution_repository,
+        idempotency_repository=idempotency_repository,
+        case_repository=case_repository,
+    )
+
+
+def get_identity_command_service(
+    resolution_repository: PostgresIdentityResolutionRepository = Depends(
+        get_identity_resolution_repository
+    ),
+    command_repository: PostgresIdentityCommandRepository = Depends(
+        get_identity_command_repository
+    ),
+    idempotency_repository: PostgresIdempotencyRepository = Depends(
+        get_idempotency_repository
+    ),
+    case_repository: PostgresCaseRepository = Depends(get_case_repository),
+    authorizer: WorkspaceAuthorizer = Depends(get_workspace_authorizer),
+) -> IdentityCommandApplicationService:
+    return IdentityCommandApplicationService(
+        authorizer=authorizer,
+        resolution_repository=resolution_repository,
+        command_repository=command_repository,
         idempotency_repository=idempotency_repository,
         case_repository=case_repository,
     )
@@ -489,15 +588,52 @@ def _conflict_dto(record: IdentityConflictRecord) -> IdentityConflictDTO:
     )
 
 
+def _decision_dto(record: IdentityDecisionRecord) -> IdentityDecisionDTO:
+    return IdentityDecisionDTO(
+        decision_id=record.identity_decision_id,
+        decision_type=record.decision_type,
+        candidate_id=record.identity_candidate_id,
+        property_entity_id=record.property_entity_id,
+        reason_code=record.reason_code,
+        resolution_version_observed=record.resolution_version_observed,
+        decision_version=record.decision_version,
+        actor_user_id=record.actor_user_id,
+        decided_at=record.created_at,
+    )
+
+
 def resolution_dto(record: IdentityResolutionRecord) -> PropertyResolutionDTO:
     raw_value = dict(record.resolution_input.raw_input)
     if record.resolution_input.input_type is ResolutionInputType.ADDRESS:
         raw_value = {"text": raw_value.get("address")}
+    confirmation = next(
+        (item for item in reversed(record.decisions) if item.decision_type == "confirmed"),
+        None,
+    )
+    resolution_rejection = next(
+        (
+            item
+            for item in reversed(record.decisions)
+            if item.decision_type == "resolution_rejected"
+        ),
+        None,
+    )
+    terminal = confirmation is not None or resolution_rejection is not None
+    state = (
+        "confirmed"
+        if confirmation is not None
+        else "rejected"
+        if resolution_rejection is not None
+        else record.status.value
+    )
+    projected_version = max(
+        [record.version, *(item.decision_version for item in record.decisions)]
+    )
     return PropertyResolutionDTO(
         resolution_id=record.identity_resolution_id,
         workspace_id=record.workspace_id,
         case_id=record.case_id,
-        state=record.status.value,
+        state=state,
         input=ResolutionInputDTO(
             kind=record.resolution_input.input_type.value,
             value=raw_value,
@@ -507,11 +643,18 @@ def resolution_dto(record: IdentityResolutionRecord) -> PropertyResolutionDTO:
         coverage_status=record.coverage_status.value,
         coverage=dict(record.coverage),
         ambiguity=record.ambiguity_status.value,
-        needs_human_confirmation=True,
+        needs_human_confirmation=not terminal,
         candidates=[_candidate_dto(item) for item in record.candidates],
         conflicts=[_conflict_dto(item) for item in record.conflicts],
         provider_attempts=[_attempt_dto(item) for item in record.attempts],
-        version=record.version,
+        decisions=[_decision_dto(item) for item in record.decisions],
+        selected_candidate_id=(
+            None if confirmation is None else confirmation.identity_candidate_id
+        ),
+        confirmed_property_entity_id=(
+            None if confirmation is None else confirmation.property_entity_id
+        ),
+        version=projected_version,
         created_by=record.requested_by_user_id,
         created_at=record.created_at,
         updated_at=record.created_at,
@@ -524,7 +667,14 @@ def property_dto(record: PropertyEntityRecord) -> PropertyDTO:
         workspace_id=record.workspace_id,
         lifecycle_state=record.entity_status.value,
         display_label=record.display_label,
-        confirmation_summary=ConfirmationSummaryDTO(),
+        confirmation_summary=ConfirmationSummaryDTO(
+            available=record.confirmation_id is not None,
+            human_confirmed=record.confirmation_id is not None,
+            confirmation_id=record.confirmation_id,
+            confirmed_at=record.confirmed_at,
+            confirmed_by=record.confirmed_by_user_id,
+            resolution_id=record.confirmed_resolution_id,
+        ),
         version=record.version,
         created_at=record.created_at,
         updated_at=record.updated_at,
@@ -577,6 +727,35 @@ def _relation_dto(record: PropertyRelationRecord) -> PropertyRelationDTO:
         valid_to=record.valid_to,
         supersedes_relation_id=record.supersedes_relation_id,
         created_at=record.created_at,
+        confirmation_id=record.identity_confirmation_id,
+    )
+
+
+def case_dto(record: CaseRecord) -> CaseDTO:
+    return CaseDTO(
+        case_id=record.case_id,
+        workspace_id=record.workspace_id,
+        purpose=record.purpose.value,
+        status=record.status.value,
+        title=record.title,
+        identity_status=record.identity_status.value,
+        assigned_member_id=record.assigned_member_id,
+        version=record.version,
+        opened_at=record.opened_at,
+        updated_at=record.updated_at,
+    )
+
+
+def case_link_dto(record: CasePropertyLinkRecord) -> CasePropertyLinkDTO:
+    return CasePropertyLinkDTO(
+        case_property_link_id=record.case_property_link_id,
+        case_id=record.case_id,
+        property_entity_id=record.property_entity_id,
+        resolution_id=record.identity_resolution_id,
+        confirmation_id=record.identity_confirmation_id,
+        supersedes_case_property_link_id=record.supersedes_case_property_link_id,
+        attached_by=record.actor_user_id,
+        attached_at=record.created_at,
     )
 
 
@@ -708,6 +887,152 @@ def create_property_resolution(
         status_code=outcome.status_code,
         content=payload.model_dump(mode="json"),
     )
+
+
+@router.post(
+    "/property-resolutions/{identity_resolution_id}/confirm",
+    response_model=PropertyResolutionDTO,
+    dependencies=[
+        Depends(reject_client_identity_overrides),
+        Depends(require_identity_feature),
+    ],
+    responses={401: {}, 403: {}, 404: {}, 409: {}, 422: {}, 503: {}},
+)
+def confirm_property_resolution(
+    identity_resolution_id: UUID,
+    body: ResolutionConfirmRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(
+            alias="Idempotency-Key",
+            min_length=16,
+            max_length=128,
+            pattern=_IDEMPOTENCY_PATTERN,
+        ),
+    ],
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
+    service: IdentityCommandApplicationService = Depends(get_identity_command_service),
+) -> PropertyResolutionDTO:
+    outcome = service.confirm(
+        principal=principal,
+        identity_resolution_id=identity_resolution_id,
+        identity_candidate_id=body.candidate_id,
+        expected_version=body.version,
+        confirmation_reason=body.confirmation_reason,
+        idempotency_key=idempotency_key,
+        request_id=correlation_request_id(request),
+    )
+    return resolution_dto(outcome.resolution)
+
+
+@router.post(
+    "/property-resolutions/{identity_resolution_id}/reject",
+    response_model=PropertyResolutionDTO,
+    dependencies=[
+        Depends(reject_client_identity_overrides),
+        Depends(require_identity_feature),
+    ],
+    responses={401: {}, 403: {}, 404: {}, 409: {}, 422: {}, 503: {}},
+)
+def reject_property_resolution(
+    identity_resolution_id: UUID,
+    body: ResolutionRejectRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(
+            alias="Idempotency-Key",
+            min_length=16,
+            max_length=128,
+            pattern=_IDEMPOTENCY_PATTERN,
+        ),
+    ],
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
+    service: IdentityCommandApplicationService = Depends(get_identity_command_service),
+) -> PropertyResolutionDTO:
+    outcome = service.reject(
+        principal=principal,
+        identity_resolution_id=identity_resolution_id,
+        identity_candidate_id=body.candidate_id,
+        expected_version=body.version,
+        reason_code=body.reason_code,
+        idempotency_key=idempotency_key,
+        request_id=correlation_request_id(request),
+    )
+    return resolution_dto(outcome.resolution)
+
+
+@router.post(
+    "/cases",
+    response_model=CaseDTO,
+    status_code=201,
+    dependencies=[
+        Depends(reject_client_identity_overrides),
+        Depends(require_identity_feature),
+    ],
+    responses={401: {}, 403: {}, 409: {}, 422: {}, 503: {}},
+)
+def create_case(
+    body: CaseCreateRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(
+            alias="Idempotency-Key",
+            min_length=16,
+            max_length=128,
+            pattern=_IDEMPOTENCY_PATTERN,
+        ),
+    ],
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
+    service: IdentityCommandApplicationService = Depends(get_identity_command_service),
+) -> CaseDTO:
+    outcome = service.create_case(
+        principal=principal,
+        workspace_id=body.workspace_id,
+        purpose=body.purpose,
+        title=body.title,
+        idempotency_key=idempotency_key,
+        request_id=correlation_request_id(request),
+    )
+    return case_dto(outcome.case)
+
+
+@router.post(
+    "/cases/{case_id}/attach-resolution",
+    response_model=CaseAttachmentDTO,
+    dependencies=[
+        Depends(reject_client_identity_overrides),
+        Depends(require_identity_feature),
+    ],
+    responses={401: {}, 403: {}, 404: {}, 409: {}, 422: {}, 503: {}},
+)
+def attach_case_resolution(
+    case_id: UUID,
+    body: CaseAttachResolutionRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(
+            alias="Idempotency-Key",
+            min_length=16,
+            max_length=128,
+            pattern=_IDEMPOTENCY_PATTERN,
+        ),
+    ],
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
+    service: IdentityCommandApplicationService = Depends(get_identity_command_service),
+) -> CaseAttachmentDTO:
+    outcome = service.attach_resolution(
+        principal=principal,
+        case_id=case_id,
+        identity_resolution_id=body.resolution_id,
+        expected_case_version=body.case_version,
+        idempotency_key=idempotency_key,
+        request_id=correlation_request_id(request),
+    )
+    return CaseAttachmentDTO(case=case_dto(outcome.case), link=case_link_dto(outcome.link))
 
 
 @router.get(

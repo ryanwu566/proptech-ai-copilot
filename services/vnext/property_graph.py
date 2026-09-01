@@ -230,6 +230,10 @@ class PropertyEntityRecord:
     created_at: datetime
     updated_at: datetime
     archived_at: datetime | None
+    confirmation_id: UUID | None = None
+    confirmed_at: datetime | None = None
+    confirmed_by_user_id: UUID | None = None
+    confirmed_resolution_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -307,6 +311,7 @@ class PropertyRelationRecord:
     supersedes_relation_id: UUID | None
     created_by_user_id: UUID
     created_at: datetime
+    identity_confirmation_id: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -389,7 +394,7 @@ _RELATION_COLUMNS = (
     "property_relation_id, workspace_id, from_node_id, to_node_id, relation_type, "
     "direction, confidence, confidence_method, source_id, source_type, "
     "source_environment, evidence_id, relation_status, valid_from, valid_to, "
-    "supersedes_relation_id, created_by_user_id, created_at"
+    "supersedes_relation_id, created_by_user_id, created_at, identity_confirmation_id"
 )
 _EVIDENCE_COLUMNS = (
     "evidence_id, workspace_id, fact_type, value, value_ref, value_schema, "
@@ -546,6 +551,9 @@ def _relation_record(row: tuple[Any, ...]) -> PropertyRelationRecord:
         supersedes_relation_id=None if row[15] is None else UUID(str(row[15])),
         created_by_user_id=UUID(str(row[16])),
         created_at=row[17],
+        identity_confirmation_id=(
+            None if len(row) < 19 or row[18] is None else UUID(str(row[18]))
+        ),
     )
 
 
