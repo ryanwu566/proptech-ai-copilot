@@ -39,6 +39,11 @@ from services.vnext.identity_resolution_repository import \
     PostgresIdentityResolutionRepository
 from services.vnext.identity_resolution_service import \
     IdentityResolutionApplicationService
+from services.vnext.legacy_case_import import LegacyEvidenceDraft, ParsedLegacyCase
+from services.vnext.legacy_case_import_repository import \
+    PostgresLegacyCaseImportRepository
+from services.vnext.legacy_case_import_service import \
+    LegacyCaseImportApplicationService
 from services.vnext.persistence import (CasePurpose, PostgresCaseRepository,
                                         PostgresIdempotencyRepository)
 from services.vnext.property_graph import (CoverageStatus,
@@ -65,6 +70,7 @@ MIGRATIONS = (
     ROOT / "database/migrations/014_vnext_property_graph_evidence_foundation.sql",
     ROOT / "database/migrations/015_vnext_identity_resolution_candidates.sql",
     ROOT / "database/migrations/016_vnext_identity_confirmation_case_links.sql",
+    ROOT / "database/migrations/017_vnext_legacy_saved_case_import.sql",
 )
 
 WORKSPACE_A = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -192,13 +198,13 @@ def _prepared_database():
         admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
         admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
         _install_auth_contract(admin)
-        # Exercise the exact upgrade boundary: establish the approved Slice 5
-        # catalog first, prove Slice 6 is absent, then apply migration 016.
+        # Exercise the exact upgrade boundary: establish the approved Slice 6
+        # catalog first, prove Slice 7 is absent, then apply migration 017.
         for migration in MIGRATIONS[:-1]:
             for statement in _statements(migration):
                 admin.execute(statement)
         assert admin.execute(
-            "SELECT to_regclass('vnext_core.identity_decisions')"
+            "SELECT to_regclass('vnext_private.legacy_case_imports')"
         ).fetchone()[0] is None
         for statement in _statements(MIGRATIONS[-1]):
             admin.execute(statement)
@@ -2375,3 +2381,412 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
             "WHERE idempotency_key_hash = %s OR request_fingerprint = %s",
             ("real-slice6-confirm-success-0001", "real-slice6-confirm-success-0001"),
         ).fetchone()[0] == 0
+
+
+def _slice7_import_stack(
+    context: DatabasePrincipalContext, *, parser=None
+) -> LegacyCaseImportApplicationService:
+    authorizer = WorkspaceAuthorizer(
+        PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
+    )
+    idempotency = PostgresIdempotencyRepository(context, authorizer)
+    repository = PostgresLegacyCaseImportRepository(context, authorizer)
+    return LegacyCaseImportApplicationService(
+        authorizer=authorizer,
+        repository=repository,
+        idempotency_repository=idempotency,
+        parser=parser,
+    )
+
+
+def _slice7_payload(title: str, terrain_state: str = "partial") -> dict[str, object]:
+    return {
+        "id": f"raw-browser-id-{title}",
+        "version": 1,
+        "title": title,
+        "workflowMode": "buying_wizard",
+        "inputSummary": {"city": "Synthetic City", "road": "Example Road"},
+        "data": {
+            "inputs": {"city": "Synthetic City", "road": "Example Road"},
+            "terrainReference": {
+                "schema_version": 1,
+                "kind": "terrain_reference",
+                "status": terrain_state,
+                "summary": "Legacy terrain is reference only",
+            },
+        },
+        "provider_payload": {"secret": "never-persist-this"},
+        "coordinates": {"latitude": 25.0, "longitude": 121.5},
+        "comparables": [{"address": "must-not-persist"}],
+        "storage_path": "private/legacy/path",
+    }
+
+
+def _assert_slice7_catalog(admin) -> None:
+    table = admin.execute(
+        "SELECT relation.relrowsecurity, relation.relforcerowsecurity, owner.rolname "
+        "FROM pg_class relation "
+        "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+        "JOIN pg_roles owner ON owner.oid = relation.relowner "
+        "WHERE namespace.nspname = 'vnext_private' "
+        "AND relation.relname = 'legacy_case_imports'"
+    ).fetchone()
+    assert table[:2] == (True, True)
+    assert table[2] != "vnext_api"
+
+    assert admin.execute(
+        "SELECT policyname, cmd, roles FROM pg_policies "
+        "WHERE schemaname = 'vnext_private' "
+        "AND tablename = 'legacy_case_imports' ORDER BY policyname"
+    ).fetchall() == [
+        ("legacy_case_imports_actor_insert", "INSERT", ["vnext_api"]),
+        ("legacy_case_imports_actor_select", "SELECT", ["vnext_api"]),
+    ]
+    assert admin.execute(
+        "SELECT privilege_type FROM information_schema.role_table_grants "
+        "WHERE grantee = 'vnext_api' AND table_schema = 'vnext_private' "
+        "AND table_name = 'legacy_case_imports' ORDER BY privilege_type"
+    ).fetchall() == [("INSERT",), ("SELECT",)]
+
+    constraints = {
+        row[0]
+        for row in admin.execute(
+            "SELECT constraint_name FROM information_schema.table_constraints "
+            "WHERE table_schema = 'vnext_private' "
+            "AND table_name = 'legacy_case_imports'"
+        ).fetchall()
+    }
+    assert {
+        "fk_vnext_legacy_import_workspace",
+        "fk_vnext_legacy_import_case",
+        "fk_vnext_legacy_import_actor",
+        "fk_vnext_legacy_import_idempotency",
+        "uq_vnext_legacy_import_case",
+        "uq_vnext_legacy_import_idempotency",
+        "uq_vnext_legacy_import_scoped_client",
+    } <= constraints
+    assert admin.execute(
+        "SELECT count(*) FROM pg_indexes WHERE schemaname = 'vnext_private' "
+        "AND indexname = 'idx_vnext_legacy_case_imports_actor'"
+    ).fetchone()[0] == 1
+    assert admin.execute(
+        "SELECT procedure.prosecdef FROM pg_proc procedure "
+        "JOIN pg_namespace namespace ON namespace.oid = procedure.pronamespace "
+        "WHERE namespace.nspname = 'vnext_private' "
+        "AND procedure.proname = 'guard_legacy_case_import'"
+    ).fetchone() == (False,)
+
+    columns = {
+        row[0]
+        for row in admin.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_schema = 'vnext_private' "
+            "AND table_name = 'legacy_case_imports'"
+        ).fetchall()
+    }
+    assert "legacy_client_id_hash" in columns
+    assert {
+        "legacy_client_id",
+        "payload",
+        "raw_payload",
+        "property_entity_id",
+        "identity_resolution_id",
+        "case_property_link_id",
+    }.isdisjoint(columns)
+
+
+def _case_terrain_evidence(admin, case_id: UUID):
+    return admin.execute(
+        "SELECT evidence.evidence_status, evidence.coverage_status, evidence.value "
+        "FROM vnext_core.evidence_items evidence "
+        "JOIN vnext_core.evidence_links link "
+        "ON link.workspace_id = evidence.workspace_id "
+        "AND link.evidence_id = evidence.evidence_id "
+        "JOIN vnext_core.property_graph_nodes node "
+        "ON node.workspace_id = link.workspace_id "
+        "AND node.property_graph_node_id = link.subject_node_id "
+        "WHERE node.node_type = 'case' AND node.record_id = %s "
+        "AND evidence.fact_type = 'legacy_saved_case.terrain_reference'",
+        (case_id,),
+    ).fetchone()
+
+
+def test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants() -> None:
+    import psycopg
+
+    with _prepared_database() as (admin, _pool, context):
+        _assert_slice7_catalog(admin)
+        service = _slice7_import_stack(context)
+        counts_before = admin.execute(
+            "SELECT "
+            "(SELECT count(*) FROM vnext_core.cases WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.identity_resolutions WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.identity_decisions WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.case_property_links WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_status = 'confirmed')",
+            (WORKSPACE_A,) * 6,
+        ).fetchone()
+
+        for role in ("none", "viewer", "revoked"):
+            with pytest.raises(VNextError) as denied:
+                service.import_case(
+                    principal=_principal(USERS[role]),
+                    workspace_id=WORKSPACE_A,
+                    legacy_format="saved_case_v1",
+                    legacy_client_id=f"denied-{role}",
+                    payload=_slice7_payload(f"Denied {role}"),
+                    import_mode="copy",
+                    consent=True,
+                    idempotency_key=f"real-slice7-denied-{role}-0001",
+                    request_id=f"real-slice7-denied-{role}",
+                )
+            assert denied.value.code is ErrorCode.PERMISSION_DENIED
+
+        with pytest.raises(VNextError) as cross_workspace:
+            service.import_case(
+                principal=_principal(USERS["member"]),
+                workspace_id=WORKSPACE_B,
+                legacy_format="saved_case_v1",
+                legacy_client_id="cross-workspace",
+                payload=_slice7_payload("Cross workspace"),
+                import_mode="copy",
+                consent=True,
+                idempotency_key="real-slice7-cross-workspace-0001",
+                request_id="real-slice7-cross-workspace",
+            )
+        assert cross_workspace.value.code is ErrorCode.PERMISSION_DENIED
+
+        created = {}
+        terrain_states = {
+            "member": "partial",
+            "manager": "unknown",
+            "admin": "unavailable",
+            "owner": "partial",
+        }
+        for role in ("member", "manager", "admin", "owner"):
+            created[role] = service.import_case(
+                principal=_principal(USERS[role]),
+                workspace_id=WORKSPACE_A,
+                legacy_format="saved_case_v1",
+                legacy_client_id=f"browser-{role}-case-1",
+                payload=_slice7_payload(
+                    f"Imported {role}", terrain_states[role]
+                ),
+                import_mode="copy",
+                consent=True,
+                idempotency_key=f"real-slice7-import-{role}-0001",
+                request_id=f"real-slice7-import-{role}",
+            )
+            assert created[role].result.case.identity_status.value == "legacy_unverified"
+            assert created[role].result.case.version == 1
+            assert created[role].replayed is False
+
+        replay = service.import_case(
+            principal=_principal(USERS["member"]),
+            workspace_id=WORKSPACE_A,
+            legacy_format="saved_case_v1",
+            legacy_client_id="browser-member-case-1",
+            payload=_slice7_payload("Imported member", "partial"),
+            import_mode="copy",
+            consent=True,
+            idempotency_key="real-slice7-import-member-0001",
+            request_id="real-slice7-import-member-replay",
+        )
+        assert replay.replayed is True
+        assert replay.result.case.case_id == created["member"].result.case.case_id
+
+        with pytest.raises(VNextError) as conflict:
+            service.import_case(
+                principal=_principal(USERS["member"]),
+                workspace_id=WORKSPACE_A,
+                legacy_format="saved_case_v1",
+                legacy_client_id="browser-member-case-1",
+                payload=_slice7_payload("Changed member request", "partial"),
+                import_mode="copy",
+                consent=True,
+                idempotency_key="real-slice7-import-member-0001",
+                request_id="real-slice7-import-member-conflict",
+            )
+        assert conflict.value.code is ErrorCode.IDEMPOTENCY_CONFLICT
+
+        with pytest.raises(VNextError) as duplicate:
+            service.import_case(
+                principal=_principal(USERS["member"]),
+                workspace_id=WORKSPACE_A,
+                legacy_format="saved_case_v1",
+                legacy_client_id="browser-member-case-1",
+                payload=_slice7_payload("Imported member", "partial"),
+                import_mode="copy",
+                consent=True,
+                idempotency_key="real-slice7-import-member-duplicate-0002",
+                request_id="real-slice7-import-member-duplicate",
+            )
+        assert duplicate.value.code is ErrorCode.DUPLICATE_LEGACY_IMPORT
+
+        assert _case_terrain_evidence(
+            admin, created["member"].result.case.case_id
+        ) == (
+            "limited",
+            "partial",
+            {
+                "kind": "terrain_reference",
+                "conclusion": "reference_only",
+                "legacy_state": "partial",
+                "schema_version": 1,
+                "summary": "Legacy terrain is reference only",
+            },
+        )
+        assert _case_terrain_evidence(
+            admin, created["manager"].result.case.case_id
+        ) == ("unknown", "unknown", None)
+        assert _case_terrain_evidence(
+            admin, created["admin"].result.case.case_id
+        ) == ("unavailable", "unavailable", None)
+
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.cases WHERE workspace_id = %s "
+            "AND identity_status = 'legacy_unverified'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 4
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.legacy_case_imports"
+        ).fetchone()[0] == 4
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.audit_events "
+            "WHERE event_type = 'legacy_case.imported'"
+        ).fetchone()[0] == 4
+
+        for role in ("none", "viewer", "revoked"):
+            with context.transaction(_principal(USERS[role])) as connection:
+                assert connection.execute(
+                    "SELECT count(*) FROM vnext_private.legacy_case_imports"
+                ).fetchone()[0] == 0
+        for role in ("member", "manager", "admin", "owner"):
+            with context.transaction(_principal(USERS[role])) as connection:
+                assert connection.execute(
+                    "SELECT count(*) FROM vnext_private.legacy_case_imports"
+                ).fetchone()[0] == 1
+
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(_principal(USERS["owner"])) as connection:
+                connection.execute(
+                    "UPDATE vnext_private.legacy_case_imports "
+                    "SET warnings = '{}'::text[]"
+                )
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(_principal(USERS["owner"])) as connection:
+                connection.execute("DELETE FROM vnext_private.legacy_case_imports")
+
+        stored_text = json.dumps(
+            {
+                "imports": admin.execute(
+                    "SELECT legacy_client_id_hash, accepted_field_classes, "
+                    "dropped_field_classes, warnings "
+                    "FROM vnext_private.legacy_case_imports ORDER BY imported_at"
+                ).fetchall(),
+                "evidence": admin.execute(
+                    "SELECT value, lineage FROM vnext_core.evidence_items "
+                    "WHERE source_id = 'legacy-saved-case-v1' ORDER BY created_at"
+                ).fetchall(),
+                "audit": admin.execute(
+                    "SELECT metadata FROM vnext_private.audit_events "
+                    "WHERE event_type = 'legacy_case.imported' ORDER BY created_at"
+                ).fetchall(),
+            },
+            default=str,
+            ensure_ascii=True,
+        ).lower()
+        for forbidden in (
+            "never-persist-this",
+            "must-not-persist",
+            "private/legacy/path",
+            "raw-browser-id",
+            "browser-member-case-1",
+            "latitude",
+            "longitude",
+        ):
+            assert forbidden not in stored_text
+
+        class _InvalidAllowlistParser:
+            def parse(self, _payload):
+                return ParsedLegacyCase(
+                    title="Atomic failure",
+                    client_created_at=None,
+                    client_updated_at=None,
+                    accepted_field_classes=("not_allowlisted",),
+                    dropped_field_classes=(),
+                    warnings=(),
+                    evidence=(
+                        LegacyEvidenceDraft(
+                            fact_type="legacy_saved_case.atomic_fixture",
+                            value={"fixture": "transaction rollback"},
+                            value_schema="legacy-atomic-fixture-v1",
+                            evidence_status="unverified",
+                            coverage_status="unknown",
+                            quality_status="not_checked",
+                            limitations=("legacy_unverified",),
+                        ),
+                    ),
+                )
+
+        failing_service = _slice7_import_stack(
+            context, parser=_InvalidAllowlistParser()
+        )
+        atomic_before = admin.execute(
+            "SELECT "
+            "(SELECT count(*) FROM vnext_core.cases), "
+            "(SELECT count(*) FROM vnext_core.property_graph_nodes), "
+            "(SELECT count(*) FROM vnext_core.evidence_items), "
+            "(SELECT count(*) FROM vnext_private.legacy_case_imports), "
+            "(SELECT count(*) FROM vnext_private.audit_events)"
+        ).fetchone()
+        with pytest.raises(VNextError) as failed:
+            failing_service.import_case(
+                principal=_principal(USERS["owner"]),
+                workspace_id=WORKSPACE_A,
+                legacy_format="saved_case_v1",
+                legacy_client_id="atomic-failure-case",
+                payload={"version": 1, "title": "Atomic failure"},
+                import_mode="copy",
+                consent=True,
+                idempotency_key="real-slice7-atomic-failure-0001",
+                request_id="real-slice7-atomic-failure",
+            )
+        assert failed.value.code is ErrorCode.VALIDATION_FAILED
+        atomic_after = admin.execute(
+            "SELECT "
+            "(SELECT count(*) FROM vnext_core.cases), "
+            "(SELECT count(*) FROM vnext_core.property_graph_nodes), "
+            "(SELECT count(*) FROM vnext_core.evidence_items), "
+            "(SELECT count(*) FROM vnext_private.legacy_case_imports), "
+            "(SELECT count(*) FROM vnext_private.audit_events)"
+        ).fetchone()
+        assert atomic_after == atomic_before
+        assert admin.execute(
+            "SELECT operation_status, response_error_code "
+            "FROM vnext_private.idempotency_records "
+            "WHERE response_error_code = 'validation_failed' "
+            "ORDER BY created_at DESC LIMIT 1"
+        ).fetchone() == ("failed", "validation_failed")
+
+        counts_after = admin.execute(
+            "SELECT "
+            "(SELECT count(*) FROM vnext_core.cases WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.identity_resolutions WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.identity_decisions WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.case_property_links WHERE workspace_id = %s), "
+            "(SELECT count(*) FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_status = 'confirmed')",
+            (WORKSPACE_A,) * 6,
+        ).fetchone()
+        assert counts_after == (
+            counts_before[0] + 4,
+            counts_before[1],
+            counts_before[2],
+            counts_before[3],
+            counts_before[4],
+            counts_before[5],
+        )

@@ -73,6 +73,7 @@ REQUIRED_VNEXT_TABLES = {
     "vnext_core.case_property_links",
     "vnext_private.idempotency_records",
     "vnext_private.audit_events",
+    "vnext_private.legacy_case_imports",
 }
 REQUIRED_VNEXT_INDEXES = {
     "vnext_core.uq_vnext_workspaces_personal_owner",
@@ -102,6 +103,7 @@ REQUIRED_VNEXT_INDEXES = {
     "vnext_private.idx_vnext_idempotency_expiry",
     "vnext_private.idx_vnext_audit_workspace_created",
     "vnext_private.idx_vnext_audit_request",
+    "vnext_private.idx_vnext_legacy_case_imports_actor",
 }
 REQUIRED_VNEXT_FOREIGN_KEYS = {
     "fk_vnext_cases_assigned_member",
@@ -138,6 +140,10 @@ REQUIRED_VNEXT_FOREIGN_KEYS = {
     "fk_vnext_case_property_links_resolution",
     "fk_vnext_case_property_links_confirmation",
     "fk_vnext_case_property_links_supersedes",
+    "fk_vnext_legacy_import_workspace",
+    "fk_vnext_legacy_import_case",
+    "fk_vnext_legacy_import_actor",
+    "fk_vnext_legacy_import_idempotency",
 }
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
@@ -166,6 +172,8 @@ def _static_contract() -> dict[str, Any]:
         "vnext_core.identity_decisions", "vnext_core.case_property_links",
         "identity_confirmation_id", "case_property_links_owner_admin_insert",
         "needs_human_confirmation",
+        "vnext_private.legacy_case_imports", "legacy_case_imports_actor_insert",
+        "legacy_unverified", "saved_case_v1",
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
@@ -369,7 +377,7 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
                     or not REQUIRED_VNEXT_TABLES.issubset(vnext_tables)
                     or not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes)
                     or foreign_key_count < 4
-                    or vnext_foreign_key_count < 65
+                    or vnext_foreign_key_count < 69
                     or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys)
                 ):
                     raise _SchemaContractFailure

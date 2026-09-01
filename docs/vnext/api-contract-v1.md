@@ -1,6 +1,6 @@
 # VNext API Contract v1
 
-Status: Stage 0 interface/OpenAPI skeleton; no `/v1` route is implemented
+Status: Stage 1 executable contract through Slice 7; later-slice surfaces remain deferred
 
 ## 1. Conventions
 
@@ -44,6 +44,12 @@ Case
   case_id, workspace_id, purpose, status, title
   property_entity_id?, identity_status
   assigned_member_id?, version, opened_at, updated_at, closed_at?
+
+LegacyCaseImport
+  legacy_case_import_id, case_id, workspace_id
+  import_status=imported_unverified, identity_status=legacy_unverified
+  accepted_field_classes[], dropped_field_classes[], warnings[]
+  evidence_ids[], imported_at
 ```
 
 All evidence uses the DTO in `evidence-architecture-v1.md`. Provider attempts expose bounded
@@ -145,6 +151,31 @@ from the same workspace.
 Returns `200` with updated Case. It appends attachment history and audit; it does not rewrite
 legacy browser data or delete the prior property/relationship history.
 
+### `POST /v1/cases/import-legacy`
+
+Explicitly copies one user-selected SavedCase v1 object into a new durable Case. It requires
+authentication, an active `member|manager|admin|owner` membership in the body workspace,
+`Idempotency-Key`, the independently default-off `legacy_case_import_v1` feature flag, and
+literal consent. `identity_v1` is neither required nor enabled by this operation.
+
+```json
+{
+  "workspace_id": "uuid",
+  "legacy_format": "saved_case_v1",
+  "legacy_client_id": "opaque-browser-case-id",
+  "payload": {"version": 1, "title": "..."},
+  "import_mode": "copy",
+  "consent": true
+}
+```
+
+Returns `201` with a new `LegacyCaseImport`. The Case is always
+`identity_status=legacy_unverified`; `property_entity_id` and `resolution_id` are always null.
+The server persists only allowlisted typed evidence, bounded accepted/dropped/warning codes,
+a SHA-256 client reference, and server audit metadata. It never stores the request object or
+raw browser identifier. It never invokes resolution/confirmation, creates a PropertyEntity,
+or attaches a CasePropertyLink. Import failure leaves the browser SavedCase unchanged.
+
 ## 4. Error contract
 
 ```json
@@ -176,6 +207,7 @@ contains raw input/provider/SQL/exception data.
 | `not_found` | 404 | Resource absent or hidden under non-enumeration policy |
 | `version_conflict` | 409 | ETag/version no longer current |
 | `idempotency_conflict` | 409 | Same key reused with a different canonical request |
+| `duplicate_legacy_import` | 409 | A different key targeted the same actor/workspace/format/client reference; no merge or second Case was performed |
 | `rate_limited` | 429 | Bounded server/provider limit reached; optional safe retry metadata |
 | `maintenance` | 503 | Mutation disabled under maintenance mode |
 
@@ -189,6 +221,7 @@ Required for:
 
 - resolution create/confirm/reject;
 - Case create and resolution attachment;
+- explicit SavedCase v1 copy import;
 - document upload initialization/completion;
 - title procurement;
 - CRM activity creation;
@@ -239,7 +272,7 @@ document upload/access/share, title purchase, CRM edit, assignment, export and A
 
 ## 8. OpenAPI skeleton
 
-This is an interface sketch, not mounted in the running application:
+The approved paths below are mounted behind their respective feature gates:
 
 ```yaml
 openapi: 3.1.0
@@ -280,6 +313,11 @@ paths:
       operationId: attachCaseResolution
       parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
       responses: {'200': {description: Attached}, '409': {description: Resolution/state conflict}, '403': {description: Permission denied}}
+  /v1/cases/import-legacy:
+    post:
+      operationId: importLegacyCase
+      parameters: [{ $ref: '#/components/parameters/IdempotencyKey' }]
+      responses: {'201': {description: Imported unverified copy}, '409': {description: Duplicate or idempotency conflict}, '422': {description: Unsupported or invalid SavedCase v1}, '403': {description: Permission denied}}
 components:
   securitySchemes:
     SupabaseBearer:
@@ -296,5 +334,5 @@ security:
   - SupabaseBearer: []
 ```
 
-Stage 1 must expand this into executable schemas/examples and contract tests before mounting
-routes. It must not implement beyond the approved feature gate.
+Later stages may add separately reviewed operations. They must not broaden these feature gates
+or infer identity from imported legacy evidence.

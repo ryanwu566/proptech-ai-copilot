@@ -113,6 +113,11 @@ _AUDIT_METADATA_KEYS = frozenset(
         "case_id",
         "case_property_link_id",
         "reason_code",
+        "legacy_format",
+        "legacy_case_import_id",
+        "accepted_field_classes",
+        "dropped_field_classes",
+        "warning_codes",
     }
 )
 

@@ -31,7 +31,7 @@ def test_migration_014_is_registered_once_and_advances_sequence() -> None:
     assert selected[0].filename == MIGRATION.name
     assert selected[0].execution_policy == "production_runner"
     assert selected[0].sha256 == checksum(MIGRATION)
-    assert next_safe_sequence(registrations) == 17
+    assert next_safe_sequence(registrations) == 18
     assert MIGRATION in migration_runner.MIGRATIONS
 
 

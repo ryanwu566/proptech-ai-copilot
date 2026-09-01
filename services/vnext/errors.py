@@ -19,6 +19,7 @@ class ErrorCode(str, Enum):
     NOT_FOUND = "not_found"
     VERSION_CONFLICT = "version_conflict"
     IDEMPOTENCY_CONFLICT = "idempotency_conflict"
+    DUPLICATE_LEGACY_IMPORT = "duplicate_legacy_import"
     RATE_LIMITED = "rate_limited"
     MAINTENANCE = "maintenance"
     INTERNAL_ERROR = "internal_error"
@@ -37,6 +38,7 @@ _DEFAULTS: dict[ErrorCode, tuple[int, str, bool]] = {
     ErrorCode.NOT_FOUND: (404, "The requested resource was not found.", False),
     ErrorCode.VERSION_CONFLICT: (409, "The resource version has changed.", False),
     ErrorCode.IDEMPOTENCY_CONFLICT: (409, "The idempotency key conflicts with an earlier request.", False),
+    ErrorCode.DUPLICATE_LEGACY_IMPORT: (409, "This legacy case was already imported.", False),
     ErrorCode.RATE_LIMITED: (429, "The request rate limit was reached.", True),
     ErrorCode.MAINTENANCE: (503, "The service is temporarily unavailable.", True),
     ErrorCode.INTERNAL_ERROR: (500, "The request could not be completed.", False),
@@ -105,3 +107,11 @@ class VNextError(Exception):
     @classmethod
     def idempotency_conflict(cls) -> "VNextError":
         return cls(ErrorCode.IDEMPOTENCY_CONFLICT)
+
+    @classmethod
+    def duplicate_legacy_import(
+        cls,
+        *,
+        details: Mapping[str, object] | None = None,
+    ) -> "VNextError":
+        return cls(ErrorCode.DUPLICATE_LEGACY_IMPORT, details=details)

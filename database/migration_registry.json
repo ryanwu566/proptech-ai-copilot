@@ -136,6 +136,14 @@
       "filename": "016_vnext_identity_confirmation_case_links.sql",
       "execution_policy": "production_runner",
       "sha256": "b0f5ae9694fbb6dcb64d467aa9338778b3c83e7d0da3c5bbab9f710dbebd3636"
+    },
+    {
+      "registry_order": 18,
+      "logical_id": "production-017-vnext-legacy-saved-case-import",
+      "sequence": 17,
+      "filename": "017_vnext_legacy_saved_case_import.sql",
+      "execution_policy": "production_runner",
+      "sha256": "0753b222597d7e0d6cbc618a17bc1d07d047a0d499318936c29880a119182efa"
     }
   ]
 }
