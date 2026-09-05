@@ -13,6 +13,7 @@
     "test:e2e:i18n": "npm run build:e2e && node e2e/run-e2e.cjs e2e/i18n.spec.ts",
     "test:e2e:navigation": "npm run build:e2e && node e2e/run-e2e.cjs e2e/navigation.spec.ts",
     "test:e2e:speech": "npm run build:e2e && node e2e/run-e2e.cjs e2e/speech.spec.ts",
+    "test:e2e:vnext-identity": "npm run build:e2e && node e2e/run-e2e.cjs e2e/vnext-property-identity.spec.ts",
     "test:e2e:hosted": "playwright test --config=playwright.hosted.config.ts",
     "test:e2e:real-provider": "npm run build:e2e && node e2e/run-e2e.cjs --config=playwright.real-provider.config.ts --workers=1"
   },

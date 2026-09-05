@@ -8,6 +8,9 @@ const environment = {
   ...process.env,
   NEXT_PUBLIC_API_BASE_URL: hasExplicitApiOrigin ? process.env.NEXT_PUBLIC_API_BASE_URL : "http://e2e.test",
   NEXT_PUBLIC_APP_ENV: "test",
+  NEXT_PUBLIC_SUPABASE_URL: "https://slice8-auth.supabase.co",
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_slice8_e2e_public_only",
+  NEXT_PUBLIC_SUPABASE_AUTH_STORAGE_KEY: "sb-slice8-auth-auth-token",
 };
 
 if (environment.NEXT_PUBLIC_APP_ENV !== "test" || environment.NEXT_PUBLIC_API_BASE_URL !== "http://e2e.test") {

@@ -1,0 +1,90 @@
+.page {
+  --ink: #17231f;
+  --muted: #52635d;
+  --line: #ced8d3;
+  --paper: #f7f9f7;
+  --accent: #155d49;
+  --warning: #77540b;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0 96px;
+  color: var(--ink);
+}
+
+.hero {
+  padding: clamp(24px, 5vw, 54px);
+  border: 1px solid #bfcfc8;
+  border-radius: 24px;
+  background: linear-gradient(145deg, #eef6f1, #fbfaf4);
+  box-shadow: 0 18px 48px rgba(21, 68, 53, 0.08);
+}
+
+.hero h1 { max-width: 760px; margin: 12px 0; font-size: clamp(2rem, 5vw, 4.25rem); line-height: 1.03; letter-spacing: -0.045em; }
+.hero p { max-width: 800px; color: var(--muted); line-height: 1.7; }
+.heroTop, .sectionTitle, .buttonRow { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.eyebrow { color: var(--accent) !important; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.14em; }
+
+.panel {
+  margin-top: 22px;
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.panel h2, .panel h3 { margin: 0 0 12px; }
+.panel p { line-height: 1.55; }
+.inlineForm, .inputGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); align-items: end; gap: 14px; }
+.inlineForm button { min-height: 46px; }
+.panel label, .hero label { display: grid; gap: 7px; color: var(--muted); font-size: 0.9rem; font-weight: 650; }
+.panel input, .panel select, .panel textarea, .hero select { width: 100%; padding: 11px 12px; border: 1px solid #9aaba3; border-radius: 9px; background: #fff; color: var(--ink); font: inherit; }
+.panel textarea { min-height: 108px; resize: vertical; }
+.panel button { padding: 12px 17px; border: 1px solid var(--accent); border-radius: 9px; background: var(--accent); color: white; font: inherit; font-weight: 750; cursor: pointer; }
+.panel button:hover:not(:disabled) { background: #0d4939; }
+.panel button:disabled { cursor: not-allowed; opacity: 0.48; }
+.panel :is(button, input, select, textarea, summary):focus-visible, .hero select:focus-visible { outline: 3px solid #f0aa28; outline-offset: 3px; }
+.panel details { margin: 10px 0; }
+.panel summary { cursor: pointer; font-weight: 700; }
+.panel code { display: block; overflow-wrap: anywhere; margin-top: 8px; padding: 10px; border-radius: 8px; background: #eff3f1; white-space: normal; }
+
+.state, .status { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 11px; background: #edf2ef; font-size: 0.84rem; font-weight: 750; }
+.status_known { background: #e4f2ea; color: #16543f; }
+.status_partial { background: #fff1cf; color: #6a4a00; }
+.status_unknown { background: #ebe9f4; color: #4b416d; border: 1px dashed #7c7198; }
+.status_unavailable { background: #fbe8e8; color: #7c2525; border: 1px solid #dc9c9c; }
+.error, .notice, .warning, .unavailable, .blocking { margin-top: 20px; padding: 15px 17px; border-radius: 12px; line-height: 1.5; }
+.error, .blocking { border: 2px solid #b83f3f; background: #fff0f0; color: #761d1d; }
+.notice { border: 1px solid #72a88e; background: #edf8f2; color: #174f3c; }
+.warning { border: 1px solid #c49a3a; background: #fff8df; color: #64480a; }
+.unavailable { border: 2px dashed #9d4f4f; background: #fbefef; color: #6c2929; }
+.caution { padding-left: 12px; border-left: 3px solid #a18130; color: var(--muted); }
+
+.candidateList { display: grid; gap: 14px; margin: 22px 0; padding: 0; border: 0; }
+.candidate { display: grid; gap: 10px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; color: var(--ink); font-weight: 500; }
+.candidate:hover { border-color: #7ea394; }
+.candidate.selected { border: 2px solid var(--accent); background: #f2f8f5; }
+.candidateHeader { display: grid !important; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px !important; color: var(--ink) !important; cursor: pointer; }
+.candidateHeader input { width: 19px; height: 19px; }
+.secondary { color: var(--muted); font-size: 0.86rem; }
+.commandBox, .rejectBox { display: grid; gap: 14px; margin-top: 18px; padding: 18px; border-radius: 14px; background: var(--paper); }
+.rejectBox { border: 1px dashed #aa8585; }
+.checkbox { display: grid !important; grid-template-columns: auto 1fr; align-items: start; gap: 10px !important; color: var(--ink) !important; }
+.checkbox input { width: 19px; height: 19px; margin-top: 1px; }
+.secondaryButton { border-color: #704242 !important; background: transparent !important; color: #704242 !important; }
+
+.confirmed, .caseCard, .ledgerRow { display: grid; gap: 8px; padding: 17px; border: 1px solid var(--line); border-radius: 13px; background: var(--paper); overflow-wrap: anywhere; }
+.ledgerRow { margin-top: 10px; }
+.caseCard { margin-top: 16px; }
+.success { font-weight: 800; color: #176348; }
+.live { position: fixed; right: 16px; bottom: 16px; max-width: calc(100vw - 32px); padding: 8px 12px; border-radius: 8px; background: #17231f; color: white; }
+.live:empty { display: none; }
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 640px) {
+  .page { width: min(100% - 20px, 1120px); padding-top: 18px; }
+  .hero, .panel { border-radius: 15px; }
+  .heroTop, .sectionTitle, .buttonRow { align-items: stretch; flex-direction: column; }
+  .candidateHeader { grid-template-columns: auto 1fr; }
+  .candidateHeader span:last-child { grid-column: 2; }
+  .panel button { width: 100%; min-height: 48px; }
+}
