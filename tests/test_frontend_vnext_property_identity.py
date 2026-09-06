@@ -45,7 +45,9 @@ def test_browser_auth_uses_only_publishable_session_configuration() -> None:
     assert "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" in AUTH
     assert "window.localStorage.getItem(storageKey)" in AUTH
     assert "/auth/v1/token?grant_type=refresh_token" in AUTH
-    assert "jwtExpiry(accessToken)" in AUTH
+    assert "accessTokenExpiry(accessToken" in AUTH
+    assert '!["RS256", "ES256"].includes(String(header.alg))' in AUTH
+    assert 'payload.iss !== expectedIssuer' in AUTH
     assert "allowedPublishableKey" in AUTH
     assert 'jwtPayload(key)?.role === "anon"' in AUTH
     assert "sb_publishable_" in AUTH
@@ -80,6 +82,8 @@ def test_human_confirmation_requires_selection_review_intent_and_reason() -> Non
     assert "confirmIntent" in WORKFLOW
     assert "confirmationReason.trim().length < 8" in WORKFLOW
     assert "hasBlockingConflict" in WORKFLOW
+    assert "selectedCandidateConfirmable" in WORKFLOW
+    assert 'selectedCandidate.source.environment === "production"' in WORKFLOW
     assert 'workspace?.role === "owner" || workspace?.role === "admin"' in WORKFLOW
     assert "candidate.confidence * 100" in WORKFLOW
     assert "checked={selectedCandidateId === candidate.candidate_id}" in WORKFLOW

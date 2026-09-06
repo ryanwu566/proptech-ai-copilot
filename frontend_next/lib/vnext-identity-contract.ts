@@ -74,7 +74,9 @@ function nullableUuidAt(value: unknown, path: string): string | null {
 
 function dateAt(value: unknown, path: string): string {
   const selected = stringAt(value, path, 80);
-  if (!/^\d{4}-\d{2}-\d{2}T/.test(selected) || Number.isNaN(Date.parse(selected))) throw new VNextContractError(path);
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/.test(selected) || Number.isNaN(Date.parse(selected))) {
+    throw new VNextContractError(path);
+  }
   return selected;
 }
 
@@ -96,7 +98,9 @@ function jsonValueAt(value: unknown, path: string, depth = 0): JsonValue {
   if (entries.length > 200) throw new VNextContractError(path);
   const parsed: JsonObject = {};
   for (const [key, item] of entries) {
-    if (key.length === 0 || key.length > 160) throw new VNextContractError(`${path}.${key}`);
+    if (key.length === 0 || key.length > 160 || ["__proto__", "constructor", "prototype"].includes(key)) {
+      throw new VNextContractError(`${path}.${key}`);
+    }
     parsed[key] = jsonValueAt(item, `${path}.${key}`, depth + 1);
   }
   return parsed;
@@ -111,6 +115,17 @@ function jsonObjectAt(value: unknown, path: string): JsonObject {
 function arrayAt<T>(value: unknown, path: string, parse: (item: unknown, path: string) => T, maximum = 500): T[] {
   if (!Array.isArray(value) || value.length > maximum) throw new VNextContractError(path);
   return value.map((item, index) => parse(item, `${path}[${index}]`));
+}
+
+function opaqueCursorAt(value: unknown, path: string): string | null {
+  if (value === null) return null;
+  const selected = stringAt(value, path, 1024);
+  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]{43}$/.test(selected)) throw new VNextContractError(path);
+  return selected;
+}
+
+function uniqueIds(values: readonly string[], path: string): void {
+  if (new Set(values).size !== values.length) throw new VNextContractError(path);
 }
 
 const coverageStatuses = ["known", "partial", "unknown", "unavailable"] as const;
@@ -128,6 +143,7 @@ const roles = ["owner", "admin", "manager", "member", "viewer"] as const;
 const decisionTypes = ["confirmed", "candidate_rejected", "resolution_rejected"] as const;
 const propertyStates = ["unverified", "active", "disputed", "archived"] as const;
 const relationTypes = ["property_address", "property_geo_reference", "property_parcel", "property_building", "parcel_building"] as const;
+const nodeTypes = ["property", "address", "geo_reference", "parcel", "building", "listing", "case"] as const;
 const relationDirections = ["directed", "bidirectional"] as const;
 const relationStatuses = ["proposed", "confirmed", "rejected", "superseded", "disputed"] as const;
 const referenceStatuses = ["observed", "limited", "unverified", "disputed", "superseded", "rejected"] as const;
@@ -164,7 +180,7 @@ export type VNextErrorEnvelope = ReturnType<typeof parseVNextError>;
 
 function parseSource(value: unknown, path: string) {
   const item = objectAt(value, path);
-  return {
+  const parsed = {
     source_id: stringAt(item.source_id, `${path}.source_id`, 160),
     source_type: enumAt(item.source_type, `${path}.source_type`, sourceTypes),
     environment: enumAt(item.environment, `${path}.environment`, ["production", "demo", "test"] as const),
@@ -172,6 +188,12 @@ function parseSource(value: unknown, path: string) {
     source_record_id: nullableStringAt(item.source_record_id, `${path}.source_record_id`, 320),
     retrieved_at: nullableDateAt(item.retrieved_at, `${path}.retrieved_at`),
   };
+  const nonProductionSource = parsed.source_type === "demo" || parsed.source_type === "test";
+  if ((parsed.environment === "production" && nonProductionSource)
+    || (parsed.environment !== "production" && parsed.source_type !== parsed.environment)) {
+    throw new VNextContractError(`${path}.environment`);
+  }
+  return parsed;
 }
 
 function parseCandidate(value: unknown, path: string) {
@@ -285,6 +307,20 @@ export function parsePropertyResolution(value: unknown): {
     created_at: dateAt(item.created_at, `${path}.created_at`),
     updated_at: dateAt(item.updated_at, `${path}.updated_at`),
   };
+  uniqueIds(parsed.candidates.map((candidate) => candidate.candidate_id), `${path}.candidates`);
+  uniqueIds(parsed.candidates.map((candidate) => String(candidate.rank)), `${path}.candidates.rank`);
+  const candidateIds = new Set(parsed.candidates.map((candidate) => candidate.candidate_id));
+  for (const conflict of parsed.conflicts) {
+    if (!candidateIds.has(conflict.left_candidate_id)
+      || (conflict.right_candidate_id !== null && !candidateIds.has(conflict.right_candidate_id))) {
+      throw new VNextContractError(`${path}.conflicts`);
+    }
+  }
+  for (const decision of parsed.decisions) {
+    if (decision.candidate_id !== null && !candidateIds.has(decision.candidate_id)) {
+      throw new VNextContractError(`${path}.decisions`);
+    }
+  }
   if (parsed.state === "confirmed") {
     if (parsed.needs_human_confirmation || !parsed.selected_candidate_id || !parsed.confirmed_property_entity_id) {
       throw new VNextContractError(`${path}.confirmation`);
@@ -293,6 +329,18 @@ export function parsePropertyResolution(value: unknown): {
       && decision.candidate_id === parsed.selected_candidate_id
       && decision.property_entity_id === parsed.confirmed_property_entity_id);
     if (!matchingDecision) throw new VNextContractError(`${path}.decisions`);
+    const selected = parsed.candidates.find((candidate) => candidate.candidate_id === parsed.selected_candidate_id);
+    const blockingConflict = parsed.conflicts.some((conflict) => conflict.severity === "blocking"
+      && ["open", "requires_review"].includes(conflict.state)
+      && (conflict.left_candidate_id === parsed.selected_candidate_id || conflict.right_candidate_id === parsed.selected_candidate_id));
+    if (!selected || selected.source.environment !== "production"
+      || selected.source.source_type === "demo" || selected.source.source_type === "test"
+      || selected.candidate_type === "composite_property"
+      || ["insufficient", "rejected", "superseded"].includes(selected.status)
+      || selected.coverage_status !== "known" || selected.supporting_evidence_ids.length === 0
+      || blockingConflict) {
+      throw new VNextContractError(`${path}.confirmation`);
+    }
   } else if (parsed.state === "rejected") {
     if (parsed.needs_human_confirmation || parsed.selected_candidate_id !== null || parsed.confirmed_property_entity_id !== null
       || !parsed.decisions.some((decision) => decision.decision_type === "resolution_rejected")) {
@@ -342,7 +390,7 @@ export function parseProperty(value: unknown) {
 function parseGraphNode(value: unknown, path: string) {
   const item = objectAt(value, path);
   return {
-    node_id: uuidAt(item.node_id, `${path}.node_id`), node_type: stringAt(item.node_type, `${path}.node_type`, 80),
+    node_id: uuidAt(item.node_id, `${path}.node_id`), node_type: enumAt(item.node_type, `${path}.node_type`, nodeTypes),
     record_id: uuidAt(item.record_id, `${path}.record_id`), display_label: stringAt(item.display_label, `${path}.display_label`, 512),
     status: item.status === null ? null : enumAt(item.status, `${path}.status`, referenceStatuses),
     source: item.source === null ? null : parseSource(item.source, `${path}.source`),
@@ -352,7 +400,7 @@ function parseGraphNode(value: unknown, path: string) {
 
 function parseRelation(value: unknown, path: string) {
   const item = objectAt(value, path);
-  return {
+  const parsed = {
     relation_id: uuidAt(item.relation_id, `${path}.relation_id`), from_node_id: uuidAt(item.from_node_id, `${path}.from_node_id`),
     to_node_id: uuidAt(item.to_node_id, `${path}.to_node_id`), relation_type: enumAt(item.relation_type, `${path}.relation_type`, relationTypes),
     direction: enumAt(item.direction, `${path}.direction`, relationDirections),
@@ -363,21 +411,35 @@ function parseRelation(value: unknown, path: string) {
     supersedes_relation_id: nullableUuidAt(item.supersedes_relation_id, `${path}.supersedes_relation_id`),
     created_at: dateAt(item.created_at, `${path}.created_at`), confirmation_id: nullableUuidAt(item.confirmation_id, `${path}.confirmation_id`),
   };
+  if (parsed.status === "confirmed" && (parsed.confirmation_id === null || parsed.source.environment !== "production"
+    || parsed.source.source_type === "demo" || parsed.source.source_type === "test")) {
+    throw new VNextContractError(`${path}.confirmation_id`);
+  }
+  return parsed;
 }
 
 export function parsePropertyGraph(value: unknown) {
   const path = "graph";
   const item = objectAt(value, path);
-  return {
+  const parsed = {
     property: parseProperty(item.property), nodes: arrayAt(item.nodes, `${path}.nodes`, parseGraphNode, 500),
     relations: arrayAt(item.relations, `${path}.relations`, parseRelation, 100),
-    as_of: nullableDateAt(item.as_of, `${path}.as_of`), next_cursor: nullableStringAt(item.next_cursor, `${path}.next_cursor`, 4096),
+    as_of: nullableDateAt(item.as_of, `${path}.as_of`), next_cursor: opaqueCursorAt(item.next_cursor, `${path}.next_cursor`),
   };
+  uniqueIds(parsed.nodes.map((node) => node.node_id), `${path}.nodes`);
+  uniqueIds(parsed.relations.map((relation) => relation.relation_id), `${path}.relations`);
+  const nodeIds = new Set(parsed.nodes.map((node) => node.node_id));
+  const propertyNodes = parsed.nodes.filter((node) => node.node_type === "property"
+    && node.record_id === parsed.property.property_entity_id);
+  if (propertyNodes.length !== 1 || parsed.relations.some((relation) => !nodeIds.has(relation.from_node_id) || !nodeIds.has(relation.to_node_id))) {
+    throw new VNextContractError(`${path}.nodes`);
+  }
+  return parsed;
 }
 
 function parseEvidence(value: unknown, path: string) {
   const item = objectAt(value, path);
-  return {
+  const parsed = {
     evidence_id: uuidAt(item.evidence_id, `${path}.evidence_id`), workspace_id: uuidAt(item.workspace_id, `${path}.workspace_id`),
     fact_type: stringAt(item.fact_type, `${path}.fact_type`, 120), value: item.value === null ? null : jsonObjectAt(item.value, `${path}.value`),
     has_private_value_reference: booleanAt(item.has_private_value_reference, `${path}.has_private_value_reference`),
@@ -393,15 +455,27 @@ function parseEvidence(value: unknown, path: string) {
     version: integerAt(item.version, `${path}.version`, 1), supersedes_evidence_id: nullableUuidAt(item.supersedes_evidence_id, `${path}.supersedes_evidence_id`),
     created_at: dateAt(item.created_at, `${path}.created_at`),
   };
+  if (["unknown", "unavailable"].includes(parsed.status) && parsed.value !== null) {
+    throw new VNextContractError(`${path}.value`);
+  }
+  if (parsed.status === "available" && parsed.value === null && !parsed.has_private_value_reference) {
+    throw new VNextContractError(`${path}.value`);
+  }
+  return parsed;
 }
 
 export function parsePropertyEvidence(value: unknown) {
   const path = "evidence";
   const item = objectAt(value, path);
-  return {
+  const parsed = {
     property: parseProperty(item.property), evidence: arrayAt(item.evidence, `${path}.evidence`, parseEvidence, 100),
-    next_cursor: nullableStringAt(item.next_cursor, `${path}.next_cursor`, 4096),
+    next_cursor: opaqueCursorAt(item.next_cursor, `${path}.next_cursor`),
   };
+  uniqueIds(parsed.evidence.map((evidence) => evidence.evidence_id), `${path}.evidence`);
+  if (parsed.evidence.some((evidence) => evidence.workspace_id !== parsed.property.workspace_id)) {
+    throw new VNextContractError(`${path}.workspace_id`);
+  }
+  return parsed;
 }
 
 export function parseCase(value: unknown) {
@@ -420,7 +494,7 @@ export function parseCaseAttachment(value: unknown) {
   const path = "attachment";
   const item = objectAt(value, path);
   const link = objectAt(item.link, `${path}.link`);
-  return {
+  const parsed = {
     case: parseCase(item.case),
     link: {
       case_property_link_id: uuidAt(link.case_property_link_id, `${path}.link.case_property_link_id`),
@@ -430,6 +504,10 @@ export function parseCaseAttachment(value: unknown) {
       attached_by: uuidAt(link.attached_by, `${path}.link.attached_by`), attached_at: dateAt(link.attached_at, `${path}.link.attached_at`),
     },
   };
+  if (parsed.case.case_id !== parsed.link.case_id || parsed.case.identity_status !== "confirmed") {
+    throw new VNextContractError(`${path}.link.case_id`);
+  }
+  return parsed;
 }
 
 export function parseVNextContext(value: unknown) {

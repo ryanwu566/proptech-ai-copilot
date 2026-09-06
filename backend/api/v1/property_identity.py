@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from backend.api.v1.errors import request_id as correlation_request_id
+from backend.api.v1.errors import vnext_error_responses
 from services.vnext.auth import (AuthenticatedPrincipal,
                                  require_authenticated_principal)
 from services.vnext.authorization import (WorkspaceAuthorizer,
@@ -849,7 +850,7 @@ def _evidence_page_dto(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 409: {}, 422: {}, 429: {}, 503: {}},
+    responses=vnext_error_responses(401, 403, 409, 422, 429, 503),
 )
 def create_property_resolution(
     body: ResolutionCreateRequest,
@@ -896,7 +897,7 @@ def create_property_resolution(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}, 409: {}, 422: {}, 503: {}},
+    responses=vnext_error_responses(401, 403, 404, 409, 422, 503),
 )
 def confirm_property_resolution(
     identity_resolution_id: UUID,
@@ -933,7 +934,7 @@ def confirm_property_resolution(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}, 409: {}, 422: {}, 503: {}},
+    responses=vnext_error_responses(401, 403, 404, 409, 422, 503),
 )
 def reject_property_resolution(
     identity_resolution_id: UUID,
@@ -971,7 +972,7 @@ def reject_property_resolution(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 409: {}, 422: {}, 503: {}},
+    responses=vnext_error_responses(401, 403, 409, 422, 503),
 )
 def create_case(
     body: CaseCreateRequest,
@@ -1006,7 +1007,7 @@ def create_case(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}, 409: {}, 422: {}, 503: {}},
+    responses=vnext_error_responses(401, 403, 404, 409, 422, 503),
 )
 def attach_case_resolution(
     case_id: UUID,
@@ -1042,7 +1043,7 @@ def attach_case_resolution(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}},
+    responses=vnext_error_responses(401, 403, 404, 422),
 )
 def get_property_resolution(
     identity_resolution_id: UUID,
@@ -1066,7 +1067,7 @@ def get_property_resolution(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}},
+    responses=vnext_error_responses(401, 403, 404, 422),
 )
 def get_property(
     property_entity_id: UUID,
@@ -1088,7 +1089,7 @@ def get_property(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}, 422: {}},
+    responses=vnext_error_responses(401, 403, 404, 422),
 )
 def get_property_graph(
     property_entity_id: UUID,
@@ -1134,7 +1135,7 @@ def get_property_graph(
         Depends(reject_client_identity_overrides),
         Depends(require_identity_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}, 422: {}},
+    responses=vnext_error_responses(401, 403, 404, 422),
 )
 def get_property_evidence(
     property_entity_id: UUID,

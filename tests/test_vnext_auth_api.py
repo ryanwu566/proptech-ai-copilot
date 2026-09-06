@@ -7,7 +7,7 @@ from uuid import UUID
 
 import jwt
 import pytest
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from fastapi.testclient import TestClient
 
 from backend.api_main import app
@@ -25,6 +25,10 @@ WORKSPACE_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 PRIVATE_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 PUBLIC_KEY = PRIVATE_KEY.public_key()
 OTHER_PRIVATE_KEY = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+EC_PRIVATE_KEYS = {
+    "fixture-ec-current": ec.generate_private_key(ec.SECP256R1()),
+    "fixture-ec-rotated": ec.generate_private_key(ec.SECP256R1()),
+}
 
 
 def _token(
@@ -154,6 +158,67 @@ def test_valid_token_builds_minimal_authenticated_principal(
     assert principal.token_subject == str(USER_ID)
     assert principal.issuer == ISSUER
     assert principal.token_issued_at is not None
+
+
+def test_es256_current_and_rotated_jwks_keys_are_supported() -> None:
+    now = datetime.now(timezone.utc)
+    tokens = {
+        kid: jwt.encode(
+            {
+                "sub": str(USER_ID),
+                "iss": ISSUER,
+                "aud": [AUDIENCE],
+                "role": "authenticated",
+                "iat": now,
+                "exp": now + timedelta(minutes=5),
+            },
+            private_key,
+            algorithm="ES256",
+            headers={"kid": kid},
+        )
+        for kid, private_key in EC_PRIVATE_KEYS.items()
+    }
+
+    def resolve(token: str):
+        kid = jwt.get_unverified_header(token)["kid"]
+        return EC_PRIVATE_KEYS[kid].public_key()
+
+    verifier = SupabaseJWTVerifier(
+        issuer=ISSUER,
+        audience=AUDIENCE,
+        signing_key_resolver=resolve,
+    )
+
+    assert {verifier.verify(token).user_id for token in tokens.values()} == {USER_ID}
+
+
+def test_unknown_rotated_key_fails_closed_without_claim_or_token_leak(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    token = jwt.encode(
+        {
+            "sub": str(USER_ID),
+            "iss": ISSUER,
+            "aud": AUDIENCE,
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=5),
+        },
+        EC_PRIVATE_KEYS["fixture-ec-current"],
+        algorithm="ES256",
+        headers={"kid": "fixture-ec-unknown"},
+    )
+    verifier = SupabaseJWTVerifier(
+        issuer=ISSUER,
+        audience=AUDIENCE,
+        signing_key_resolver=lambda candidate: EC_PRIVATE_KEYS[
+            jwt.get_unverified_header(candidate)["kid"]
+        ].public_key(),
+    )
+
+    with caplog.at_level(logging.INFO), pytest.raises(VNextError) as error:
+        verifier.verify(token)
+
+    assert error.value.code.value == "authentication_required"
+    assert token not in caplog.text
 
 
 def test_verification_infrastructure_unavailable_fails_closed() -> None:

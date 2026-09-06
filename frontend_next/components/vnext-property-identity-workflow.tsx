@@ -256,10 +256,19 @@ export function VNextPropertyIdentityWorkflow() {
   const canConfirm = workspace?.role === "owner" || workspace?.role === "admin";
   const canCreate = workspace ? ["owner", "admin", "manager", "member"].includes(workspace.role) : false;
   const providerUnavailable = resolution?.provider_attempts.some((item) => item.status === "unavailable" || item.status === "timeout" || item.error_category === "provider_unavailable") ?? false;
+  const selectedCandidate = selectedCandidateId ? resolution?.candidates.find((candidate) => candidate.candidate_id === selectedCandidateId) ?? null : null;
+  const selectedCandidateConfirmable = selectedCandidate !== null
+    && selectedCandidate.source.environment === "production"
+    && selectedCandidate.source.source_type !== "demo"
+    && selectedCandidate.source.source_type !== "test"
+    && selectedCandidate.candidate_type !== "composite_property"
+    && !["insufficient", "rejected", "superseded"].includes(selectedCandidate.status)
+    && selectedCandidate.coverage_status === "known"
+    && selectedCandidate.supporting_evidence_ids.length > 0;
   const confirmedCandidate = resolution?.selected_candidate_id ? resolution.candidates.find((candidate) => candidate.candidate_id === resolution.selected_candidate_id) ?? null : null;
 
   async function confirmCandidate() {
-    if (!resolution || !selectedCandidateId || !reviewed || !confirmIntent || confirmationReason.trim().length < 8 || confirmationReason.trim().length > 1000 || hasBlockingConflict || !canConfirm) return;
+    if (!resolution || !selectedCandidateId || !selectedCandidateConfirmable || !reviewed || !confirmIntent || confirmationReason.trim().length < 8 || confirmationReason.trim().length > 1000 || hasBlockingConflict || !canConfirm) return;
     const reason = confirmationReason.trim();
     const fingerprint = JSON.stringify({ resolution: resolution.resolution_id, candidate: selectedCandidateId, version: resolution.version, reason });
     const attempt = confirmAttempt?.fingerprint === fingerprint ? confirmAttempt : { fingerprint, key: newIdempotencyKey("confirm") };
@@ -456,10 +465,11 @@ export function VNextPropertyIdentityWorkflow() {
         })}</fieldset>
 
         {canConfirm ? <div className={styles.commandBox}>
+          {selectedCandidateId && !selectedCandidateConfirmable && <p className={styles.blocking} role="alert" data-testid="candidate-not-confirmable">{copy.candidateNotConfirmable}</p>}
           <label className={styles.checkbox}><input type="checkbox" checked={reviewed} onChange={(event) => setReviewed(event.target.checked)} />{copy.reviewed}</label>
           <label className={styles.checkbox}><input type="checkbox" checked={confirmIntent} onChange={(event) => setConfirmIntent(event.target.checked)} />{copy.intent}</label>
           <label>{copy.reason}<textarea value={confirmationReason} minLength={8} maxLength={1000} onChange={(event) => setConfirmationReason(event.target.value)} /></label>
-          <button type="button" data-testid="confirm-resolution" onClick={confirmCandidate} disabled={pending !== null || !selectedCandidateId || !reviewed || !confirmIntent || confirmationReason.trim().length < 8 || hasBlockingConflict || resolution.state === "confirmed" || resolution.state === "rejected"}>{copy.confirm}</button>
+          <button type="button" data-testid="confirm-resolution" onClick={confirmCandidate} disabled={pending !== null || !selectedCandidateId || !selectedCandidateConfirmable || !reviewed || !confirmIntent || confirmationReason.trim().length < 8 || hasBlockingConflict || resolution.state === "confirmed" || resolution.state === "rejected"}>{copy.confirm}</button>
         </div> : <p className={styles.caution}>{copy.roleRestricted}</p>}
 
         {canConfirm && <div className={styles.rejectBox}>

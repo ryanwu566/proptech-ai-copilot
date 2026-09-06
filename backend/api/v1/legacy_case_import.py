@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Header, Request
 from pydantic import BaseModel, ConfigDict, StringConstraints
 
 from backend.api.v1.errors import request_id as correlation_request_id
+from backend.api.v1.errors import vnext_error_responses
 from services.vnext.auth import AuthenticatedPrincipal, require_authenticated_principal
 from services.vnext.authorization import WorkspaceAuthorizer, get_workspace_authorizer
 from services.vnext.db_principal import get_vnext_database_principal_context
@@ -120,7 +121,7 @@ def get_legacy_import_service(
         Depends(reject_client_identity_overrides),
         Depends(require_legacy_import_feature),
     ],
-    responses={401: {}, 403: {}, 404: {}, 409: {}, 422: {}, 503: {}},
+    responses=vnext_error_responses(401, 403, 404, 409, 422, 503),
 )
 def import_legacy_case(
     body: LegacyCaseImportRequest,

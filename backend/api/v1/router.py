@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.v1.property_identity import router as property_identity_router
 from backend.api.v1.legacy_case_import import router as legacy_case_import_router
+from backend.api.v1.errors import vnext_error_responses
 from services.vnext.auth import AuthenticatedPrincipal, require_authenticated_principal
 from services.vnext.authorization import (
     WorkspaceAuthorizer,
@@ -37,7 +38,7 @@ def reject_client_identity_overrides(request: Request) -> None:
         raise VNextError.validation_failed()
 
 
-@router.get("")
+@router.get("", responses=vnext_error_responses(401, 422))
 def vnext_context(
     _identity_boundary: None = Depends(reject_client_identity_overrides),
     principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
@@ -55,7 +56,10 @@ def vnext_context(
     }
 
 
-@router.get("/workspaces/{workspace_id}/context")
+@router.get(
+    "/workspaces/{workspace_id}/context",
+    responses=vnext_error_responses(401, 403, 422),
+)
 def workspace_context(
     workspace_id: UUID,
     _identity_boundary: None = Depends(reject_client_identity_overrides),

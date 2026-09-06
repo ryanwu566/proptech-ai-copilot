@@ -10,9 +10,11 @@ from __future__ import annotations
 import json
 import os
 import secrets
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from threading import Barrier
 from uuid import UUID, uuid4
 
 import pytest
@@ -221,7 +223,7 @@ def _prepared_database():
         pool = ConnectionPool(
             conninfo=request_url,
             min_size=1,
-            max_size=1,
+            max_size=8,
             open=True,
             kwargs={"prepare_threshold": None},
         )
@@ -2790,3 +2792,235 @@ def test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants(
             counts_before[4],
             counts_before[5],
         )
+
+
+def _race(*actions):
+    barrier = Barrier(len(actions))
+
+    def invoke(action):
+        barrier.wait(timeout=10)
+        try:
+            return ("ok", action())
+        except Exception as error:  # The caller asserts exact safe failure types.
+            return ("error", error)
+
+    with ThreadPoolExecutor(max_workers=len(actions)) as executor:
+        futures = [executor.submit(invoke, action) for action in actions]
+        return [future.result(timeout=30) for future in futures]
+
+
+def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates() -> None:
+    with _prepared_database() as (admin, _pool, context):
+        candidates_race = _seed_slice6_resolution(admin, case_id=None)
+        terminal_race = _seed_slice6_resolution(admin, case_id=None)
+        replay_race = _seed_slice6_resolution(admin, case_id=None)
+        attach_first = _seed_slice6_resolution(admin, case_id=None)
+        attach_second = _seed_slice6_resolution(admin, case_id=None)
+        admin.commit()
+
+        service = _slice6_command_stack(context)
+        owner = _principal(USERS["owner"])
+
+        different_candidates = _race(
+            lambda: service.confirm(
+                principal=owner,
+                identity_resolution_id=candidates_race["resolution_id"],
+                identity_candidate_id=candidates_race["candidate_ids"][0],
+                expected_version=1,
+                confirmation_reason="human chose candidate one in the concurrency review",
+                idempotency_key="slice9-race-candidate-one-0001",
+                request_id="slice9-race-candidate-one",
+            ),
+            lambda: service.confirm(
+                principal=owner,
+                identity_resolution_id=candidates_race["resolution_id"],
+                identity_candidate_id=candidates_race["candidate_ids"][1],
+                expected_version=1,
+                confirmation_reason="human chose candidate two in the concurrency review",
+                idempotency_key="slice9-race-candidate-two-0001",
+                request_id="slice9-race-candidate-two",
+            ),
+        )
+        admin.commit()
+        assert [status for status, _result in different_candidates].count("ok") == 1
+        candidate_errors = [result for status, result in different_candidates if status == "error"]
+        assert len(candidate_errors) == 1
+        assert isinstance(candidate_errors[0], VNextError)
+        assert candidate_errors[0].code is ErrorCode.VERSION_CONFLICT
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions "
+            "WHERE identity_resolution_id = %s",
+            (candidates_race["resolution_id"],),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations relation "
+            "JOIN vnext_core.identity_decisions decision "
+            "ON decision.identity_decision_id = relation.identity_confirmation_id "
+            "WHERE decision.identity_resolution_id = %s "
+            "AND relation.relation_status = 'confirmed'",
+            (candidates_race["resolution_id"],),
+        ).fetchone()[0] == 1
+
+        confirm_vs_reject = _race(
+            lambda: service.confirm(
+                principal=owner,
+                identity_resolution_id=terminal_race["resolution_id"],
+                identity_candidate_id=terminal_race["candidate_ids"][0],
+                expected_version=1,
+                confirmation_reason="human confirmed after reviewing the race fixture",
+                idempotency_key="slice9-race-confirm-terminal-0001",
+                request_id="slice9-race-confirm-terminal",
+            ),
+            lambda: service.reject(
+                principal=owner,
+                identity_resolution_id=terminal_race["resolution_id"],
+                identity_candidate_id=None,
+                expected_version=1,
+                reason_code="insufficient_evidence",
+                idempotency_key="slice9-race-reject-terminal-0001",
+                request_id="slice9-race-reject-terminal",
+            ),
+        )
+        admin.commit()
+        assert [status for status, _result in confirm_vs_reject].count("ok") == 1
+        terminal_errors = [result for status, result in confirm_vs_reject if status == "error"]
+        assert len(terminal_errors) == 1
+        assert isinstance(terminal_errors[0], VNextError)
+        assert terminal_errors[0].code is ErrorCode.VERSION_CONFLICT
+        terminal = admin.execute(
+            "SELECT decision_type, decision_version FROM vnext_core.identity_decisions "
+            "WHERE identity_resolution_id = %s",
+            (terminal_race["resolution_id"],),
+        ).fetchone()
+        # Resolution inputs remain immutable; the append-only decision is the
+        # authoritative terminal transition projected by the repository.
+        assert terminal in (("confirmed", 2), ("resolution_rejected", 2))
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions "
+            "WHERE identity_resolution_id = %s",
+            (terminal_race["resolution_id"],),
+        ).fetchone()[0] == 1
+
+        replay_results = _race(
+            *(
+                lambda: service.confirm(
+                    principal=owner,
+                    identity_resolution_id=replay_race["resolution_id"],
+                    identity_candidate_id=replay_race["candidate_ids"][0],
+                    expected_version=1,
+                    confirmation_reason="identical human confirmation retry under concurrency",
+                    idempotency_key="slice9-race-idempotent-confirm-0001",
+                    request_id="slice9-race-idempotent-confirm",
+                )
+                for _index in range(2)
+            ),
+        )
+        admin.commit()
+        assert any(status == "ok" for status, _result in replay_results)
+        assert all(
+            status == "ok"
+            or isinstance(result, VNextError) and result.code is ErrorCode.MAINTENANCE
+            for status, result in replay_results
+        )
+        replay = service.confirm(
+            principal=owner,
+            identity_resolution_id=replay_race["resolution_id"],
+            identity_candidate_id=replay_race["candidate_ids"][0],
+            expected_version=1,
+            confirmation_reason="identical human confirmation retry under concurrency",
+            idempotency_key="slice9-race-idempotent-confirm-0001",
+            request_id="slice9-race-idempotent-replay",
+        )
+        assert replay.replayed is True
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions "
+            "WHERE identity_resolution_id = %s",
+            (replay_race["resolution_id"],),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.idempotency_records "
+            "WHERE canonical_route = %s",
+            (f"/v1/property-resolutions/{replay_race['resolution_id']}/confirm",),
+        ).fetchone()[0] == 1
+
+        for index, seeded in enumerate((attach_first, attach_second), start=1):
+            service.confirm(
+                principal=owner,
+                identity_resolution_id=seeded["resolution_id"],
+                identity_candidate_id=seeded["candidate_ids"][0],
+                expected_version=1,
+                confirmation_reason=f"human confirmation for attachment race {index}",
+                idempotency_key=f"slice9-attach-confirm-{index:02d}-0001",
+                request_id=f"slice9-attach-confirm-{index}",
+            )
+        attachments = _race(
+            lambda: service.attach_resolution(
+                principal=owner,
+                case_id=CASE_A,
+                identity_resolution_id=attach_first["resolution_id"],
+                expected_case_version=1,
+                idempotency_key="slice9-race-case-attach-one-0001",
+                request_id="slice9-race-case-attach-one",
+            ),
+            lambda: service.attach_resolution(
+                principal=owner,
+                case_id=CASE_A,
+                identity_resolution_id=attach_second["resolution_id"],
+                expected_case_version=1,
+                idempotency_key="slice9-race-case-attach-two-0001",
+                request_id="slice9-race-case-attach-two",
+            ),
+        )
+        admin.commit()
+        assert [status for status, _result in attachments].count("ok") == 1
+        attachment_errors = [result for status, result in attachments if status == "error"]
+        assert len(attachment_errors) == 1
+        assert isinstance(attachment_errors[0], VNextError)
+        assert attachment_errors[0].code is ErrorCode.VERSION_CONFLICT
+        assert admin.execute(
+            "SELECT identity_status, version FROM vnext_core.cases WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone() == ("confirmed", 2)
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone()[0] == 1
+
+        import_service = _slice7_import_stack(context)
+        import_count_before = admin.execute(
+            "SELECT count(*) FROM vnext_private.legacy_case_imports"
+        ).fetchone()[0]
+        admin.commit()
+        duplicate_imports = _race(
+            lambda: import_service.import_case(
+                principal=owner,
+                workspace_id=WORKSPACE_A,
+                legacy_format="saved_case_v1",
+                legacy_client_id="slice9-concurrent-legacy-case",
+                payload=_slice7_payload("Concurrent legacy import"),
+                import_mode="copy",
+                consent=True,
+                idempotency_key="slice9-race-legacy-import-one-0001",
+                request_id="slice9-race-legacy-import-one",
+            ),
+            lambda: import_service.import_case(
+                principal=owner,
+                workspace_id=WORKSPACE_A,
+                legacy_format="saved_case_v1",
+                legacy_client_id="slice9-concurrent-legacy-case",
+                payload=_slice7_payload("Concurrent legacy import"),
+                import_mode="copy",
+                consent=True,
+                idempotency_key="slice9-race-legacy-import-two-0001",
+                request_id="slice9-race-legacy-import-two",
+            ),
+        )
+        admin.commit()
+        assert [status for status, _result in duplicate_imports].count("ok") == 1
+        import_errors = [result for status, result in duplicate_imports if status == "error"]
+        assert len(import_errors) == 1
+        assert isinstance(import_errors[0], VNextError)
+        assert import_errors[0].code is ErrorCode.DUPLICATE_LEGACY_IMPORT
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.legacy_case_imports"
+        ).fetchone()[0] == import_count_before + 1

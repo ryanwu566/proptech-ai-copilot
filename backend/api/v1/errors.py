@@ -2,11 +2,36 @@
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, ConfigDict, Field
 
 from services.observability import normalize_correlation_id
 from services.vnext.errors import ErrorCode, VNextError
+
+
+class VNextErrorDTO(BaseModel):
+    """The complete allowlisted public error payload."""
+
+    model_config = ConfigDict(extra="forbid")
+    code: ErrorCode
+    message: Annotated[str, Field(min_length=1, max_length=512)]
+    request_id: Annotated[str, Field(min_length=1, max_length=128)]
+    retryable: bool
+    details: dict[str, object] | None = None
+
+
+class VNextErrorEnvelopeDTO(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    error: VNextErrorDTO
+
+
+def vnext_error_responses(*status_codes: int) -> dict[int, dict[str, object]]:
+    """Attach one bounded error contract to every declared VNext failure."""
+
+    return {status_code: {"model": VNextErrorEnvelopeDTO} for status_code in status_codes}
 
 
 def request_id(request: Request) -> str:

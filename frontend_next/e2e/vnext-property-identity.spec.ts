@@ -17,14 +17,14 @@ const RELATION = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 const ATTEMPT = "ffffffff-ffff-4fff-8fff-ffffffffffff";
 const NOW = "2026-09-05T02:00:00Z";
 
-function source(environment: "test" | "production" = "test") {
+function source(environment: "test" | "production" = "production") {
   return { source_id: "synthetic-contract-source", source_type: environment === "test" ? "test" : "official", environment, provider_id: "synthetic-provider", source_record_id: "synthetic-record", retrieved_at: NOW };
 }
 
 function candidate(id: string, rank: number, confidence: number, coverage: "known" | "unknown") {
   return {
     candidate_id: id, candidate_type: rank === 1 ? "address" : "parcel", normalized_identity: { synthetic: `candidate-${rank}` },
-    display_identity: `Synthetic Candidate ${rank === 1 ? "One" : "Two"}`, source: source(), confidence, confidence_method: "deterministic-ranking-v1",
+    display_identity: `Synthetic Candidate ${rank === 1 ? "One" : "Two"}`, source: source("production"), confidence, confidence_method: "deterministic-ranking-v1",
     ranking_trace: { method: "synthetic" }, rank, status: "plausible", coverage_status: coverage,
     coverage: coverage === "unknown" ? { limitation: "coverage_not_reported" } : { scope: "synthetic" },
     supporting_evidence_ids: rank === 2 ? [EVIDENCE] : [], supporting_identity_reference_ids: [NODE_ADDRESS],
@@ -40,7 +40,7 @@ function resolution(mode: "ambiguous" | "confirmed" | "candidate_rejected" = "am
     input: { kind: "address", value: { text: "Synthetic Road observation" } },
     normalized_input: { address: "synthetic road observation" }, normalization_version: "identity-normalization-v1",
     coverage_status: "partial", coverage: { attempt_count: 1 }, ambiguity: confirmed ? "none" : "multiple_candidates",
-    needs_human_confirmation: !confirmed, candidates: [candidate(CANDIDATE_ONE, 1, 1, "known"), candidate(CANDIDATE_TWO, 2, 0.62, "unknown")],
+    needs_human_confirmation: !confirmed, candidates: [candidate(CANDIDATE_ONE, 1, 1, "known"), candidate(CANDIDATE_TWO, 2, 0.62, "known")],
     conflicts: [{ conflict_id: "12121212-1212-4121-8121-121212121212", left_candidate_id: CANDIDATE_ONE, right_candidate_id: CANDIDATE_TWO, related_identity_reference_id: null, related_evidence_id: EVIDENCE, related_property_entity_id: null, category: "provider_disagreement", severity: blocking ? "blocking" : "warning", state: "requires_review" }],
     provider_attempts: [{ attempt_id: ATTEMPT, order: 1, strategy_id: "synthetic-v1", source: source(), status: "unavailable", coverage_status: "unavailable", coverage: { scope: "unavailable" }, result_count: 0, error_category: "provider_unavailable", error_code: "provider_not_configured", retryable: true, started_at: NOW, completed_at: NOW }],
     decisions: confirmed ? [{ decision_id: DECISION, decision_type: "confirmed", candidate_id: CANDIDATE_TWO, property_entity_id: PROPERTY, reason_code: null, resolution_version_observed: 1, decision_version: 2, actor_user_id: USER, decided_at: NOW }] : candidateRejected ? [{ decision_id: DECISION, decision_type: "candidate_rejected", candidate_id: CANDIDATE_TWO, property_entity_id: null, reason_code: "not_same_property", resolution_version_observed: 1, decision_version: 2, actor_user_id: USER, decided_at: NOW }] : [],
@@ -62,8 +62,8 @@ function error(code: string, message = "The request could not be completed.") {
 }
 
 function syntheticToken(exp: number): string {
-  const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url");
-  const payload = Buffer.from(JSON.stringify({ sub: USER, aud: "authenticated", role: "authenticated", exp })).toString("base64url");
+  const header = Buffer.from(JSON.stringify({ alg: "ES256", typ: "JWT", kid: "slice9-e2e-key" })).toString("base64url");
+  const payload = Buffer.from(JSON.stringify({ sub: USER, aud: "authenticated", role: "authenticated", iss: "https://slice8-auth.supabase.co/auth/v1", exp })).toString("base64url");
   return `${header}.${payload}.synthetic`;
 }
 
@@ -210,6 +210,27 @@ test("blocking conflict disables confirmation and malformed DTO fails closed", a
   malformed = true;
   await page.getByTestId("open-resolution").click();
   await expect(page.locator('[role="alert"]').filter({ hasText: "失敗關閉" })).toBeVisible();
+});
+
+test("demo candidate remains reviewable but cannot become production identity", async ({ page }) => {
+  await installSession(page);
+  const demoResolution = resolution();
+  demoResolution.candidates[1].source = source("test");
+  await page.route("http://e2e.test/v1**", async (route) => {
+    if (await routeContext(route, "owner") !== false) return;
+    const path = new URL(route.request().url()).pathname;
+    if (path === `/v1/property-resolutions/${RESOLUTION}`) return route.fulfill({ json: demoResolution });
+    return route.fulfill({ status: 404, json: error("not_found") });
+  });
+  await page.goto("/vnext/property-identity");
+  await page.getByLabel("解析 ID").fill(RESOLUTION);
+  await page.getByTestId("open-resolution").click();
+  await page.getByRole("radio", { name: /Synthetic Candidate Two/ }).check();
+  await page.getByLabel(/我已檢視所選候選/).check();
+  await page.getByLabel(/我明確要以人工判斷/).check();
+  await page.getByLabel("確認理由").fill("Explicit review cannot promote test evidence.");
+  await expect(page.getByTestId("candidate-not-confirmable")).toBeVisible();
+  await expect(page.getByTestId("confirm-resolution")).toBeDisabled();
 });
 
 test("cross-workspace not-found remains generic", async ({ page }) => {

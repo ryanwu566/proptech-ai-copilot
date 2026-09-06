@@ -7,10 +7,14 @@ export type AccessTokenResult =
 
 type StoredSession = {
   record: Record<string, unknown>;
+  serialized: string;
   accessToken: string;
   refreshToken: string;
   expiresAt: number;
 };
+
+const refreshes = new Map<string, Promise<StoredSession | null>>();
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function record(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -33,19 +37,42 @@ function authStorageKey(url: URL): string | null {
   return /^[a-z0-9-]{1,100}$/i.test(projectReference) ? `sb-${projectReference}-auth-token` : null;
 }
 
-function jwtPayload(token: string): Record<string, unknown> | null {
+function jwtPart(token: string, index: number): Record<string, unknown> | null {
   const parts = token.split(".");
   if (parts.length !== 3 || parts.some((part) => !/^[A-Za-z0-9_-]+$/.test(part))) return null;
   try {
-    const encoded = parts[1].replaceAll("-", "+").replaceAll("_", "/");
+    const encoded = parts[index].replaceAll("-", "+").replaceAll("_", "/");
     const padded = encoded.padEnd(Math.ceil(encoded.length / 4) * 4, "=");
     return record(JSON.parse(atob(padded)) as unknown);
   } catch { return null; }
 }
 
-function jwtExpiry(accessToken: string): number | null {
+function jwtPayload(token: string): Record<string, unknown> | null {
+  return jwtPart(token, 1);
+}
+
+function accessTokenExpiry(accessToken: string, expectedIssuer: string): number | null {
+  const header = jwtPart(accessToken, 0);
   const payload = jwtPayload(accessToken);
-  return payload && typeof payload.exp === "number" && Number.isSafeInteger(payload.exp) ? payload.exp : null;
+  const audience = payload?.aud;
+  const authenticatedAudience = audience === "authenticated"
+    || (Array.isArray(audience) && audience.includes("authenticated"));
+  if (
+    !header
+    || !["RS256", "ES256"].includes(String(header.alg))
+    || typeof header.kid !== "string"
+    || header.kid.length < 1
+    || header.kid.length > 256
+    || !payload
+    || payload.iss !== expectedIssuer
+    || !authenticatedAudience
+    || typeof payload.sub !== "string"
+    || !UUID_PATTERN.test(payload.sub)
+    || payload.role !== "authenticated"
+    || typeof payload.exp !== "number"
+    || !Number.isSafeInteger(payload.exp)
+  ) return null;
+  return payload.exp;
 }
 
 function allowedPublishableKey(key: string): boolean {
@@ -54,19 +81,27 @@ function allowedPublishableKey(key: string): boolean {
   return jwtPayload(key)?.role === "anon";
 }
 
-function storedSession(storageKey: string): StoredSession | null {
+function storedSession(storageKey: string, expectedIssuer: string): StoredSession | null {
   try {
-    const parsed = record(JSON.parse(window.localStorage.getItem(storageKey) ?? "null") as unknown);
+    const serialized = window.localStorage.getItem(storageKey);
+    if (!serialized || serialized.length > 262_144) return null;
+    const parsed = record(JSON.parse(serialized) as unknown);
     if (!parsed) return null;
     const accessToken = typeof parsed.access_token === "string" ? parsed.access_token.trim() : "";
     const refreshToken = typeof parsed.refresh_token === "string" ? parsed.refresh_token.trim() : "";
-    const expiresAt = jwtExpiry(accessToken);
+    const expiresAt = accessTokenExpiry(accessToken, expectedIssuer);
     if (accessToken.length < 20 || accessToken.length > 16_384 || refreshToken.length < 8 || refreshToken.length > 4096 || expiresAt === null) return null;
-    return { record: parsed, accessToken, refreshToken, expiresAt };
+    return { record: parsed, serialized, accessToken, refreshToken, expiresAt };
   } catch { return null; }
 }
 
 async function refreshSession(url: URL, publishableKey: string, storageKey: string, previous: StoredSession): Promise<StoredSession | null> {
+  const issuer = `${url.origin}/auth/v1`;
+  const current = storedSession(storageKey, issuer);
+  if (!current) return null;
+  if (current.serialized !== previous.serialized) {
+    return current.expiresAt > Math.floor(Date.now() / 1000) + 30 ? current : null;
+  }
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), 10_000);
   try {
@@ -83,13 +118,29 @@ async function refreshSession(url: URL, publishableKey: string, storageKey: stri
     const accessToken = typeof payload.access_token === "string" ? payload.access_token.trim() : "";
     const refreshToken = typeof payload.refresh_token === "string" ? payload.refresh_token.trim() : "";
     const expiresIn = typeof payload.expires_in === "number" && Number.isFinite(payload.expires_in) ? payload.expires_in : 0;
-    const expiresAt = jwtExpiry(accessToken);
+    const expiresAt = accessTokenExpiry(accessToken, issuer);
     if (accessToken.length < 20 || accessToken.length > 16_384 || refreshToken.length < 8 || refreshToken.length > 4096 || expiresAt === null || expiresAt <= Math.floor(Date.now() / 1000) + 30 || expiresIn <= 0 || expiresIn > 604_800) return null;
+    const latest = storedSession(storageKey, issuer);
+    if (!latest || latest.serialized !== previous.serialized) {
+      return latest && latest.expiresAt > Math.floor(Date.now() / 1000) + 30 ? latest : null;
+    }
     const updated: Record<string, unknown> = { ...previous.record, ...payload, access_token: accessToken, refresh_token: refreshToken, expires_at: expiresAt };
     window.localStorage.setItem(storageKey, JSON.stringify(updated));
-    return { record: updated, accessToken, refreshToken, expiresAt };
+    const committed = storedSession(storageKey, issuer);
+    return committed?.accessToken === accessToken && committed.refreshToken === refreshToken ? committed : null;
   } catch { return null; }
   finally { window.clearTimeout(timeout); }
+}
+
+async function coordinatedRefresh(url: URL, publishableKey: string, storageKey: string, previous: StoredSession): Promise<StoredSession | null> {
+  const active = refreshes.get(storageKey);
+  if (active) return active;
+  const pending = refreshSession(url, publishableKey, storageKey, previous);
+  refreshes.set(storageKey, pending);
+  try { return await pending; }
+  finally {
+    if (refreshes.get(storageKey) === pending) refreshes.delete(storageKey);
+  }
 }
 
 export async function getVNextAccessToken(): Promise<AccessTokenResult> {
@@ -98,9 +149,9 @@ export async function getVNextAccessToken(): Promise<AccessTokenResult> {
   if (!url || !allowedPublishableKey(publishableKey)) return { status: "configuration_error" };
   const storageKey = authStorageKey(url);
   if (!storageKey) return { status: "configuration_error" };
-  const session = storedSession(storageKey);
+  const session = storedSession(storageKey, `${url.origin}/auth/v1`);
   if (!session) return { status: "missing_session" };
   if (session.expiresAt > Math.floor(Date.now() / 1000) + 60) return { status: "authenticated", accessToken: session.accessToken };
-  const refreshed = await refreshSession(url, publishableKey, storageKey, session);
+  const refreshed = await coordinatedRefresh(url, publishableKey, storageKey, session);
   return refreshed ? { status: "authenticated", accessToken: refreshed.accessToken } : { status: "missing_session" };
 }
