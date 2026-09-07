@@ -8,7 +8,6 @@ never SQLite, and take the documented backup checkpoint before production use.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import sys
@@ -19,7 +18,22 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from services.postgres_runtime import connect
-from scripts.validate_postgres_migration import MIGRATIONS, REQUIRED_INDEXES, REQUIRED_TABLES, _statements
+from scripts.migration_registry import (
+    MigrationRegistryError,
+    checksum,
+    load_registry,
+    next_safe_sequence,
+    production_migrations,
+)
+from scripts.validate_postgres_migration import (
+    MIGRATIONS,
+    REQUIRED_INDEXES,
+    REQUIRED_TABLES,
+    REQUIRED_VNEXT_INDEXES,
+    REQUIRED_VNEXT_FOREIGN_KEYS,
+    REQUIRED_VNEXT_TABLES,
+    _statements,
+)
 
 SAFE_RELEASE = re.compile(r"^[A-Za-z0-9._:-]{1,80}$")
 LEDGER_MIGRATION = next(path for path in MIGRATIONS if path.stem == "007_add_schema_migration_ledger")
@@ -32,7 +46,7 @@ class _SafeMigrationFailure(RuntimeError):
 
 
 def _checksum(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return checksum(path)
 
 
 def _schema_version(path: Path) -> str:
@@ -44,12 +58,45 @@ def _verify(connection) -> dict[str, str]:
     tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
     indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
     foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
+    vnext_tables = {
+        f"{row[0]}.{row[1]}"
+        for row in connection.execute(
+            "SELECT table_schema, table_name FROM information_schema.tables "
+            "WHERE table_schema IN ('vnext_core', 'vnext_private')"
+        ).fetchall()
+    }
+    vnext_indexes = {
+        f"{row[0]}.{row[1]}"
+        for row in connection.execute(
+            "SELECT schemaname, indexname FROM pg_indexes "
+            "WHERE schemaname IN ('vnext_core', 'vnext_private')"
+        ).fetchall()
+    }
+    vnext_foreign_key_count = connection.execute(
+        "SELECT count(*) FROM information_schema.table_constraints "
+        "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+        "AND constraint_type = 'FOREIGN KEY'"
+    ).fetchone()[0]
+    vnext_foreign_keys = {
+        row[0]
+        for row in connection.execute(
+            "SELECT constraint_name FROM information_schema.table_constraints "
+            "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+            "AND constraint_type = 'FOREIGN KEY'"
+        ).fetchall()
+    }
     if not REQUIRED_TABLES.issubset(tables):
         return {"status": "failed", "check": "tables"}
     if not REQUIRED_INDEXES.issubset(indexes):
         return {"status": "failed", "check": "indexes"}
+    if not REQUIRED_VNEXT_TABLES.issubset(vnext_tables):
+        return {"status": "failed", "check": "vnext_tables"}
+    if not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes):
+        return {"status": "failed", "check": "vnext_indexes"}
     if foreign_key_count < 4:
         return {"status": "failed", "check": "foreign_keys"}
+    if vnext_foreign_key_count < 69 or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys):
+        return {"status": "failed", "check": "vnext_foreign_keys"}
     return {"status": "pass", "check": "tables_indexes_foreign_keys"}
 
 
@@ -93,12 +140,25 @@ def _apply_migrations(connection, *, release_version: str) -> None:
 
 
 def apply(database_url: str | None, *, release_version: str = "unconfigured", dry_run: bool = False) -> dict[str, object]:
-    if not all(path.is_file() for path in MIGRATIONS):
-        return {"status": "failed", "reason": "migration_files_missing"}
+    try:
+        registrations = load_registry()
+    except MigrationRegistryError as exc:
+        return {"status": "failed", "reason": exc.reason}
+    if MIGRATIONS != production_migrations(registrations):
+        return {"status": "failed", "reason": "migration_runner_registry_mismatch"}
     if not SAFE_RELEASE.fullmatch(release_version):
         return {"status": "failed", "reason": "release_version_invalid"}
+    summary = {
+        "migration_count": len(MIGRATIONS),
+        "registry_count": len(registrations),
+        "next_migration_sequence": f"{next_safe_sequence(registrations):03d}",
+    }
     if dry_run or not database_url:
-        return {"status": "ready", "migration_count": len(MIGRATIONS), "mode": "dry_run" if dry_run else "database_required"}
+        return {
+            "status": "ready",
+            **summary,
+            "mode": "dry_run" if dry_run else "database_required",
+        }
     try:
         with connect(database_url) as connection:
             with connection.transaction():
@@ -106,7 +166,12 @@ def apply(database_url: str | None, *, release_version: str = "unconfigured", dr
                 verification = _verify(connection)
                 if verification["status"] != "pass":
                     raise _SafeMigrationFailure("schema_verification_failed")
-            return {"status": "pass", "migration_count": len(MIGRATIONS), "ledger": "applied", "verification": verification["check"]}
+            return {
+                "status": "pass",
+                **summary,
+                "ledger": "applied",
+                "verification": verification["check"],
+            }
     except _SafeMigrationFailure as exc:
         return {"status": "unavailable", "reason": exc.reason}
     except Exception:

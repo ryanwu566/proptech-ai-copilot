@@ -20,18 +20,17 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from services.postgres_runtime import connect
-
-
-MIGRATIONS = (
-    ROOT / "database" / "migrations" / "004_add_pilot_evidence.sql",
-    ROOT / "database" / "migrations" / "005_add_pilot_security_indexes.sql",
-    ROOT / "database" / "migrations" / "006_add_tax_analysis_history.sql",
-    ROOT / "database" / "migrations" / "007_add_schema_migration_ledger.sql",
-    ROOT / "database" / "migrations" / "008_add_official_market_pipeline.sql",
-    ROOT / "database" / "migrations" / "009_separate_official_market_region_coverage.sql",
-    ROOT / "database" / "migrations" / "010_add_plvr_generation_schema.sql",
-    ROOT / "database" / "migrations" / "012_security_rls_deny_by_default.sql",
+from scripts.migration_registry import (
+    MigrationRegistryError,
+    load_registry,
+    next_safe_sequence,
+    production_migrations,
 )
+
+
+# Keep the compatibility constant used by existing tests and operator scripts,
+# but derive it from the frozen registry instead of maintaining a second list.
+MIGRATIONS = production_migrations(load_registry(verify_files=False))
 REQUIRED_TABLES = {
     "pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events",
     "pilot_feedback", "professional_reviews", "tax_analysis_history",
@@ -55,22 +54,136 @@ REQUIRED_INDEXES = {
     "idx_plvr_generation_region_coverage_region_period",
     "idx_plvr_generation_load_checkpoints_updated_at",
 }
+REQUIRED_VNEXT_TABLES = {
+    "vnext_core.workspaces",
+    "vnext_core.workspace_members",
+    "vnext_core.cases",
+    "vnext_core.property_entities",
+    "vnext_core.property_identity_references",
+    "vnext_core.property_graph_nodes",
+    "vnext_core.property_relations",
+    "vnext_core.evidence_items",
+    "vnext_core.evidence_lineage",
+    "vnext_core.evidence_links",
+    "vnext_core.identity_resolutions",
+    "vnext_core.resolution_attempts",
+    "vnext_core.identity_candidates",
+    "vnext_core.identity_conflicts",
+    "vnext_core.identity_decisions",
+    "vnext_core.case_property_links",
+    "vnext_private.idempotency_records",
+    "vnext_private.audit_events",
+    "vnext_private.legacy_case_imports",
+}
+REQUIRED_VNEXT_INDEXES = {
+    "vnext_core.uq_vnext_workspaces_personal_owner",
+    "vnext_core.idx_vnext_workspace_members_user_status",
+    "vnext_core.idx_vnext_workspace_members_workspace_status_role",
+    "vnext_core.idx_vnext_cases_workspace_status_updated",
+    "vnext_core.idx_vnext_property_entities_workspace_status_updated",
+    "vnext_core.idx_vnext_identity_references_workspace_type_status",
+    "vnext_core.idx_vnext_property_graph_nodes_workspace_type_record",
+    "vnext_core.idx_vnext_property_relations_from",
+    "vnext_core.idx_vnext_property_relations_to",
+    "vnext_core.idx_vnext_evidence_workspace_fact_status_retrieved",
+    "vnext_core.idx_vnext_evidence_lineage_parent",
+    "vnext_core.idx_vnext_evidence_links_subject",
+    "vnext_core.idx_vnext_identity_resolutions_workspace_status_started",
+    "vnext_core.idx_vnext_identity_resolutions_case_started",
+    "vnext_core.idx_vnext_resolution_attempts_resolution_order",
+    "vnext_core.idx_vnext_identity_candidates_resolution_rank",
+    "vnext_core.idx_vnext_identity_candidates_existing_property",
+    "vnext_core.idx_vnext_identity_candidates_evidence",
+    "vnext_core.idx_vnext_identity_conflicts_resolution_state",
+    "vnext_core.idx_vnext_identity_decisions_resolution_created",
+    "vnext_core.idx_vnext_identity_decisions_property_confirmed",
+    "vnext_core.idx_vnext_property_relations_confirmation",
+    "vnext_core.idx_vnext_case_property_links_case_history",
+    "vnext_core.idx_vnext_case_property_links_property",
+    "vnext_private.idx_vnext_idempotency_expiry",
+    "vnext_private.idx_vnext_audit_workspace_created",
+    "vnext_private.idx_vnext_audit_request",
+    "vnext_private.idx_vnext_legacy_case_imports_actor",
+}
+REQUIRED_VNEXT_FOREIGN_KEYS = {
+    "fk_vnext_cases_assigned_member",
+    "fk_vnext_property_entities_workspace",
+    "fk_vnext_identity_references_supersedes",
+    "fk_vnext_evidence_supersedes",
+    "fk_vnext_property_relations_from_node",
+    "fk_vnext_property_relations_to_node",
+    "fk_vnext_property_relations_evidence",
+    "fk_vnext_property_relations_supersedes",
+    "fk_vnext_evidence_lineage_child",
+    "fk_vnext_evidence_lineage_parent",
+    "fk_vnext_evidence_links_evidence",
+    "fk_vnext_evidence_links_subject",
+    "fk_vnext_identity_resolutions_case",
+    "fk_vnext_identity_resolutions_supersedes",
+    "fk_vnext_resolution_attempts_resolution",
+    "fk_vnext_identity_candidates_resolution",
+    "fk_vnext_identity_candidates_existing_property",
+    "fk_vnext_identity_candidates_supersedes",
+    "fk_vnext_identity_conflicts_left_candidate",
+    "fk_vnext_identity_conflicts_right_candidate",
+    "fk_vnext_identity_conflicts_evidence",
+    "fk_vnext_identity_conflicts_property",
+    "fk_vnext_identity_decisions_resolution",
+    "fk_vnext_identity_decisions_candidate",
+    "fk_vnext_identity_decisions_property",
+    "fk_vnext_identity_decisions_reference",
+    "fk_vnext_identity_decisions_evidence",
+    "fk_vnext_identity_decisions_idempotency",
+    "fk_vnext_property_relations_confirmation",
+    "fk_vnext_case_property_links_case",
+    "fk_vnext_case_property_links_property",
+    "fk_vnext_case_property_links_resolution",
+    "fk_vnext_case_property_links_confirmation",
+    "fk_vnext_case_property_links_supersedes",
+    "fk_vnext_legacy_import_workspace",
+    "fk_vnext_legacy_import_case",
+    "fk_vnext_legacy_import_actor",
+    "fk_vnext_legacy_import_idempotency",
+}
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
 
-def _static_contract() -> dict[str, str]:
-    if not all(path.is_file() for path in MIGRATIONS):
-        return {"status": "fail", "migration": "missing"}
+def _static_contract() -> dict[str, Any]:
+    try:
+        registrations = load_registry()
+    except MigrationRegistryError as exc:
+        return {"status": "fail", "migration": exc.reason}
+    if MIGRATIONS != production_migrations(registrations):
+        return {"status": "fail", "migration": "migration_runner_registry_mismatch"}
     joined = "\n".join(path.read_text(encoding="utf-8") for path in MIGRATIONS).lower()
     required = (
         "references", "on delete cascade", "create index", "tax_analysis_history",
         "jsonb", "schema_migration_ledger", "schema_version", "official_market_releases",
         "market_region_period_aggregates", "market_import_checkpoints",
         "plvr_dataset_generations", "plvr_active_dataset",
+        "create role vnext_api", "force row level security",
+        "workspace_members_self_select", "vnext_private.idempotency_records",
+        "vnext_private.audit_events",
+        "vnext_core.property_entities", "vnext_core.property_graph_nodes",
+        "vnext_core.property_relations", "vnext_core.evidence_items",
+        "vnext_core.evidence_lineage", "vnext_core.evidence_links",
+        "vnext_core.identity_resolutions", "vnext_core.resolution_attempts",
+        "vnext_core.identity_candidates", "vnext_core.identity_conflicts",
+        "vnext_core.identity_decisions", "vnext_core.case_property_links",
+        "identity_confirmation_id", "case_property_links_owner_admin_insert",
+        "needs_human_confirmation",
+        "vnext_private.legacy_case_imports", "legacy_case_imports_actor_insert",
+        "legacy_unverified", "saved_case_v1",
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
-    return {"status": "pass", "migration": "static_contract_pass"}
+    return {
+        "status": "pass",
+        "migration": "static_contract_pass",
+        "registry_count": len(registrations),
+        "managed_migration_count": len(MIGRATIONS),
+        "next_migration_sequence": f"{next_safe_sequence(registrations):03d}",
+    }
 
 
 def _split_sql(sql: str) -> list[str]:
@@ -206,13 +319,67 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
     with connect(database_url) as connection:
         try:
             with connection.transaction():
+                # A plain disposable PostgreSQL service does not include the
+                # Supabase Auth schema. Supply only the canonical prerequisite
+                # contract inside this rollback-only validation transaction.
+                connection.execute("CREATE SCHEMA IF NOT EXISTS auth")
+                connection.execute(
+                    "CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY)"
+                )
+                auth_uid = connection.execute(
+                    "SELECT to_regprocedure('auth.uid()')"
+                ).fetchone()
+                if auth_uid is None or auth_uid[0] is None:
+                    connection.execute(
+                        "CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE "
+                        "SET search_path = '' AS $$ "
+                        "SELECT COALESCE("
+                        "NULLIF(current_setting('request.jwt.claim.sub', true), ''), "
+                        "NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'"
+                        ")::uuid $$"
+                    )
                 for path in MIGRATIONS:
                     for statement in _statements(path):
                         connection.execute(statement)
                 tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
                 indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
+                vnext_tables = {
+                    f"{row[0]}.{row[1]}"
+                    for row in connection.execute(
+                        "SELECT table_schema, table_name FROM information_schema.tables "
+                        "WHERE table_schema IN ('vnext_core', 'vnext_private')"
+                    ).fetchall()
+                }
+                vnext_indexes = {
+                    f"{row[0]}.{row[1]}"
+                    for row in connection.execute(
+                        "SELECT schemaname, indexname FROM pg_indexes "
+                        "WHERE schemaname IN ('vnext_core', 'vnext_private')"
+                    ).fetchall()
+                }
                 foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
-                if not REQUIRED_TABLES.issubset(tables) or not REQUIRED_INDEXES.issubset(indexes) or foreign_key_count < 4:
+                vnext_foreign_key_count = connection.execute(
+                    "SELECT count(*) FROM information_schema.table_constraints "
+                    "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+                    "AND constraint_type = 'FOREIGN KEY'"
+                ).fetchone()[0]
+                vnext_foreign_keys = {
+                    row[0]
+                    for row in connection.execute(
+                        "SELECT constraint_name FROM information_schema.table_constraints "
+                        "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
+                        "AND constraint_type = 'FOREIGN KEY'"
+                    ).fetchall()
+                }
+                if (
+                    not REQUIRED_TABLES.issubset(tables)
+                    or not REQUIRED_INDEXES.issubset(indexes)
+                    or not REQUIRED_VNEXT_TABLES.issubset(vnext_tables)
+                    or not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes)
+                    or foreign_key_count < 4
+                    or vnext_foreign_key_count < 69
+                    or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys)
+                ):
                     raise _SchemaContractFailure
                 raise _RollbackValidation
         except _RollbackValidation:

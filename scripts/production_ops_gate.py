@@ -16,6 +16,8 @@ REQUIRED = (
     "services/postgres_runtime.py",
     "backend/repositories/postgres_repo.py",
     "database/migrations/006_add_tax_analysis_history.sql",
+    "database/migration_registry.json",
+    "scripts/migration_registry.py",
     "scripts/validate_postgres_migration.py",
     "scripts/backup_pilot_evidence.py",
     "scripts/restore_pilot_evidence.py",
@@ -36,11 +38,23 @@ def evaluate() -> dict[str, object]:
     render = (ROOT / "render.yaml").read_text(encoding="utf-8")
     config = (ROOT / "services/production_config.py").read_text(encoding="utf-8")
     workflow = (ROOT / ".github/workflows/production-release-ops.yml").read_text(encoding="utf-8")
+    registry = json.loads(
+        (ROOT / "database/migration_registry.json").read_text(encoding="utf-8")
+    )
+    registered_migrations = {
+        item.get("filename")
+        for item in registry.get("migrations", [])
+        if isinstance(item, dict)
+    }
     checks = {
         "required_files": not missing,
         "postgres_required": 'key: DATABASE_URL' in render and "production_like" in config,
         "fail_closed": "raise RuntimeError" in config and "production_like" in config,
-        "migration": "006_add_tax_analysis_history.sql" in (ROOT / "scripts/validate_postgres_migration.py").read_text(encoding="utf-8") and "007_add_schema_migration_ledger.sql" in (ROOT / "scripts/validate_postgres_migration.py").read_text(encoding="utf-8"),
+        "migration": {
+            "006_add_tax_analysis_history.sql",
+            "007_add_schema_migration_ledger.sql",
+            "012_security_rls_deny_by_default.sql",
+        }.issubset(registered_migrations),
         "workflow": "workflow_dispatch:" in workflow and "pull_request:" in workflow and "push:" not in workflow and "secrets." not in workflow,
         "privacy": "provider-free" in (ROOT / "scripts/production_smoke.py").read_text(encoding="utf-8") and "external_provider_called" in (ROOT / "scripts/production_smoke.py").read_text(encoding="utf-8"),
     }

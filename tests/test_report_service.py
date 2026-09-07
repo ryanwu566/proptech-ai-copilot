@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import pandas as pd
+import pytest
 
+from backend import db
+from backend.repositories import sqlite_repo
 from backend.repositories.sqlite_repo import get_tax_analysis, list_tax_analyses
 from models.schemas import DISCLAIMER, TaxCase
 from services.report_service import generate_tax_html_report
@@ -42,7 +45,15 @@ def test_html_report_contains_required_sections() -> None:
     assert DISCLAIMER in html
 
 
-def test_tax_analysis_can_be_reloaded_from_history() -> None:
+@pytest.fixture
+def isolated_tax_history(tmp_path, monkeypatch) -> None:
+    """Keep the legacy history unit test on a per-test SQLite database."""
+
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "tax_history.db")
+    monkeypatch.setattr(sqlite_repo, "_postgres_repository", lambda: None)
+
+
+def test_tax_analysis_can_be_reloaded_from_history(isolated_tax_history) -> None:
     case = make_case("HISTORY-001")
     analyze_tax_case(case, persist=True)
     row = next(row for row in list_tax_analyses() if row["case_id"] == case.case_id)

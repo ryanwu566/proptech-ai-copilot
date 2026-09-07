@@ -1,6 +1,6 @@
 # Legacy SavedCase Migration v1
 
-Status: Stage 0 compatibility contract; no browser or server migration is implemented
+Status: Stage 1 Slice 7 explicit server copy bridge implemented; browser auto-import remains forbidden
 
 ## 1. Current code is authoritative
 
@@ -56,7 +56,7 @@ current UI.
 
 ## 4. Legacy import DTO
 
-Future conceptual request:
+Executable request (`POST /v1/cases/import-legacy`):
 
 ```json
 {
@@ -73,7 +73,7 @@ The endpoint is separate from generic Case creation or uses the `legacy_import` 
 endpoint. It requires authentication, membership, `Idempotency-Key`, size limits and an exact
 versioned schema. Extra/raw provider fields are dropped by an allowlist before persistence.
 
-Conceptual response:
+Executable response includes:
 
 ```json
 {
@@ -118,8 +118,9 @@ JSON dump. Raw provider payloads, credentials, errors and exact coordinates rema
    workspace, sees the exact data classes to be copied and confirms.
 3. Client creates an allowlisted v1 transfer DTO without mutating localStorage.
 4. Server validates schema/version, membership, tenant quota and idempotency.
-5. Server presents or records a dry-run summary: fields accepted, dropped, limited and missing.
-6. User confirms import; server creates the durable Case and user-provided evidence in one
+5. Server records bounded accepted, dropped, warning and missing-field semantics in the
+   import response and audit metadata; it does not retain the incoming object.
+6. The explicit consent-bearing command creates the durable Case and user-provided evidence in one
    transaction, with `identity_status=legacy_unverified` and `property_entity_id=null`.
 7. Audit records actor, workspace, new Case, legacy format and request ID without raw payload.
 8. Identity resolution is optional and separate. It produces candidates; only explicit human
@@ -132,8 +133,8 @@ JSON dump. Raw provider payloads, credentials, errors and exact coordinates rema
 - Import requires `Idempotency-Key` and a canonical payload hash.
 - Same key/payload returns the original durable `case_id`.
 - Same key/different payload returns `idempotency_conflict`.
-- A second import with a different key but same scoped `legacy_client_id` returns a duplicate
-  preview and requires explicit “create another Case” confirmation.
+- A second import with a different key but same scoped `legacy_client_id` returns
+  `409 duplicate_legacy_import`; no duplicate Case or merge is performed.
 - Deduplication never merges PropertyEntities and never deletes either Case.
 
 ## 8. Identity upgrade
