@@ -27,3 +27,12 @@ data/processed/
 
 # Shadow A/B benchmark artifacts (runtime output, never committed)
 artifacts/
+
+# Local development server logs
+/server*.log
+
+# Slice 4 disposable PostgreSQL and pytest runtimes
+/.slice4-postgres.log
+/.slice4-pgdata-*/
+/.slice4-postgresql-*/
+/.slice4-pytest-temp-*/
