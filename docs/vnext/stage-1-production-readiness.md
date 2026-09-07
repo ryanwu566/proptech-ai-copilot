@@ -17,9 +17,9 @@ alter a live role or user, change Auth, enable a feature, or mutate a live table
 - Production Rollout: **BLOCKED**
 
 Production remains blocked until every mandatory item marked `UNVERIFIED` below is
-re-checked and changed to `VERIFIED` in an explicitly authorized rollout window. No
-item was classified `INCOMPATIBLE`; the live migration-ledger state is an unresolved
-operational boundary, not evidence that the frozen migrations are invalid.
+re-checked and changed to `VERIFIED` in an explicitly authorized rollout window. The
+live migration state is now fully classified, but the required deterministic ledger
+reconciliation is not authorized by this preparation gate.
 
 ## Prerequisite matrix
 
@@ -35,7 +35,7 @@ operational boundary, not evidence that the frozen migrations are invalid.
 | Browser session implementation contract | VERIFIED | Current Supabase storage key/session shape and refresh semantics match the implementation; lifecycle hardening harness passes. |
 | Deployed browser configuration and real session | UNVERIFIED | Requires the controlled real-user smoke step after approved environment variables are set. |
 | Migration files and disposable rehearsal | VERIFIED | PostgreSQL 17 clean apply, production-prefix upgrade, 016→017, repeat runner, ledger, FK, FORCE RLS, ownership, grants, trigger `search_path`, and tenant isolation pass. |
-| Live custom-ledger reconciliation / exact pending set | UNVERIFIED | Live catalog contains some unledgered historical migrations; an authorized operator must approve the exact 11-migration pending set or approve a separately reviewed reconciliation mechanism before running the runner. |
+| Live custom-ledger reconciliation / exact pending set | VERIFIED classification; BLOCKED execution | The read-only [Live Migration Ledger Reconciliation](live-migration-reconciliation.md) classifies all 18 logical migrations: 6 applied/ledgered, 4 applied/unledgered, and 8 not applied. A separately reviewed ledger operation remains required before the runner. |
 | `vnext_api` contract | VERIFIED | Frozen SQL, provisioning document, runtime fail-closed checks, and local PostgreSQL catalog proof agree. |
 | Live `vnext_api` provisioning | UNVERIFIED | Role is correctly absent before rollout; later create/provision/verify it under explicit authorization. |
 | VNext Data API architecture | VERIFIED | Browser → FastAPI → direct `vnext_api` PostgreSQL connection; no browser Data API table/RPC path is required. |
@@ -49,8 +49,9 @@ operational boundary, not evidence that the frozen migrations are invalid.
 ## Live database state — read only
 
 The inspected connection resolved to the current Supabase production candidate for
-project ref `flyhsjcynreuofbcdxod`. Every SQL inspection ran inside `BEGIN TRANSACTION
-READ ONLY` and ended with `COMMIT`; no write statement was issued.
+project ref `flyhsjcynreuofbcdxod`. The initial preparation inspection used a read-only
+transaction; the reconciliation inspection issued only `SELECT`, `WITH ... SELECT`,
+and `SHOW`. No write statement was issued.
 
 | Check | Exact observed result | Classification |
 | --- | --- | --- |
@@ -71,24 +72,24 @@ The six custom-ledger IDs remain:
 5. `007_add_schema_migration_ledger`
 6. `010_add_plvr_generation_schema`
 
-`HISTORY-001` is a signed preservation requirement, not a live catalog object. It is
-**VERIFIED untouched by this gate**: the signed Stage 1 exit record remains unchanged,
-the historical six-row live ledger set remains present, and this gate used no live
-write-capable SQL. No claim is made that the label itself can be queried from Postgres.
+`HISTORY-001` is **VERIFIED PRESENT and untouched**. A bounded read selected only its
+existence/count and found exactly one row where `tax_analysis_history.id = 1` and
+`case_id = 'HISTORY-001'`; no other row content was exposed and no write-capable SQL
+was used.
 
-### Live ledger boundary that must be resolved
+### Live Migration Ledger Reconciliation
 
-The production runner manages 13 migrations. The live custom ledger records only 007
-and 010 from that set. Read-only catalog inspection found:
+The 2026-09-07 read-only reconciliation is recorded in
+[Live Migration Ledger Reconciliation](live-migration-reconciliation.md). It read all
+18 registry SQL files and compared every durable schema/security effect with the live
+catalog and both migration histories.
 
-- 004–006 artifacts already present, including all five inspected 005/006 indexes;
-- migration 012's effective posture already present (all public base tables have RLS,
-  and no public-table grants remain for `PUBLIC`, `anon`, or `authenticated`); the
-  signed security closure also records 012 in Supabase migration history;
-- 008–009 artifacts absent;
-- 013–017 artifacts absent.
+- `APPLIED_AND_LEDGERED`: 001, both 002 entries, 003, 007, 010.
+- `APPLIED_BUT_UNLEDGERED`: 004, 005, 006, 012.
+- `NOT_APPLIED`: 008, 009, 011, 013, 014, 015, 016, 017.
+- `PARTIALLY_APPLIED` / `AMBIGUOUS`: none.
 
-Consequently, the current runner would treat these 11 IDs as pending:
+The production-runner/custom-ledger set difference remains these exact 11 IDs:
 
 ```text
 004_add_pilot_evidence
@@ -104,16 +105,12 @@ Consequently, the current runner would treat these 11 IDs as pending:
 017_vnext_legacy_saved_case_import
 ```
 
-Do not describe that operation as “013–017 only.” Before execution, an authorized
-database owner must compare both Supabase migration history and the custom ledger,
-confirm exact live schemas for the unledgered objects, and then approve either:
-
-1. the complete 11-ID transactional runner set, including idempotent historical
-   statements and creation of the currently absent 008–009 objects; or
-2. a separately designed, reviewed, and tested history-reconciliation mechanism.
-
-Do not manually insert ledger rows ad hoc. A checksum mismatch, unexplained live object,
-or disagreement between histories is a stop condition.
+The current runner would execute guarded 004–006 statements and then fail closed at
+the ledgered 007 row because that historical checksum is the raw CRLF hash while the
+registry uses canonical LF. Its transaction would roll back before 008. This is not a
+runner defect. Before any runner invocation, use a separately designed, reviewed, and
+authorized reconciliation to normalize the five reproducible historical CRLF hashes
+and baseline only exact-equivalent 004–006 and 012. Do not manually edit rows ad hoc.
 
 ## JWT compatibility
 
@@ -533,8 +530,9 @@ changed.
 
 1. **LIVE JWT COMPATIBILITY — UNVERIFIED:** no authorized real user access token was
    available for non-logging end-to-end claims verification.
-2. **Live migration ledger/pending-set approval — UNVERIFIED:** the current runner would
-   process 11 unrecorded IDs, not only 013–017.
+2. **Live migration ledger reconciliation — BLOCKED:** classification is verified, but
+   the controlled checksum-normalization and four-row baseline operation is not yet
+   reviewed or authorized; the runner must not be invoked first.
 3. **Backup/PITR and recovery evidence — UNVERIFIED.**
 4. **Live `vnext_api` provisioning and acceptance — UNVERIFIED.**
 5. **Supabase Exposed schemas and post-migration Data API denial — UNVERIFIED.**
@@ -551,8 +549,8 @@ and one already-authorized non-privileged real user session through a non-loggin
 verification path. In that session:
 
 1. verify the real token and deployed browser configuration;
-2. reconcile the custom ledger against Supabase history and approve the exact pending
-   migration set or commission a separately reviewed reconciliation change;
+2. design, peer-review, rehearse, and separately authorize the deterministic ledger
+   operation specified by the reconciliation record;
 3. record backup/recovery and monitoring evidence;
 4. return a new go/no-go decision for a separately authorized production execution
    window.
