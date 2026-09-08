@@ -1,0 +1,89 @@
+{
+  "fixture_contract": "vnext-spatial-synthetic-v1",
+  "fixture_environment": "test",
+  "source_id": "vnext-test",
+  "source_type": "test",
+  "authority": "synthetic",
+  "disclaimer": "SYNTHETIC TEST DATA ONLY. Not official, government-verified, NLSC, or production data.",
+  "crs": {
+    "interchange": "EPSG:4326",
+    "projected_example": "EPSG:3826"
+  },
+  "geometries": {
+    "parcel_alpha": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [121.55, 25.03],
+          [121.551, 25.03],
+          [121.551, 25.031],
+          [121.55, 25.031],
+          [121.55, 25.03]
+        ]
+      ]
+    },
+    "parcel_beta_overlap": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [121.5505, 25.0305],
+          [121.5515, 25.0305],
+          [121.5515, 25.0315],
+          [121.5505, 25.0315],
+          [121.5505, 25.0305]
+        ]
+      ]
+    },
+    "parcel_gamma_separate": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [121.56, 25.04],
+          [121.561, 25.04],
+          [121.561, 25.041],
+          [121.56, 25.041],
+          [121.56, 25.04]
+        ]
+      ]
+    },
+    "parcel_alpha_twd97_tm2_121": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [305504.061, 2769213.139],
+          [305604.979, 2769213.549],
+          [305604.528, 2769324.315],
+          [305503.611, 2769323.905],
+          [305504.061, 2769213.139]
+        ]
+      ]
+    },
+    "inside_point": {
+      "type": "Point",
+      "coordinates": [121.55025, 25.03025]
+    },
+    "outside_point": {
+      "type": "Point",
+      "coordinates": [121.57, 25.05]
+    },
+    "malformed_polygon": {
+      "type": "Polygon",
+      "coordinates": [[[121.55, 25.03], ["invalid", 25.031]]]
+    },
+    "empty_polygon": {
+      "type": "Polygon",
+      "coordinates": []
+    }
+  },
+  "observation_scenarios": [
+    "present",
+    "absent",
+    "no_match",
+    "partial_coverage",
+    "unknown",
+    "provider_unavailable",
+    "provider_error",
+    "stale",
+    "not_assessed"
+  ]
+}
