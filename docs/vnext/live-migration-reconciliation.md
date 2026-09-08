@@ -1,6 +1,6 @@
 # Stage 1 Live Migration Ledger Reconciliation
 
-Status: read-only classification complete; reconciliation execution blocked
+Status: classification complete; execution design rehearsed; live reconciliation unauthorized
 Inspected: 2026-09-07 (Asia/Taipei)
 Live project: Supabase project ref `flyhsjcynreuofbcdxod`
 Authoritative source: `origin/main` at `a8331e1b30da27b8992ea8f4b040a04666543170`
@@ -16,9 +16,11 @@ did not execute a migration or any live mutation statement.
 
 ## Decision
 
-**Reconciliation gate: BLOCKED.** All 18 logical registry entries are confidently
-classified and there is a deterministic reconciliation plan, but executing that plan
-requires a separately reviewed and authorized live mutation window.
+**Migration history classification: COMPLETE. Reconciliation design: GO. Local
+rehearsal: PASS. Live reconciliation: NOT AUTHORIZED. Production rollout: BLOCKED.**
+All 18 logical registry entries are confidently classified and the exact ledger-only
+transaction is locally rehearsed. Executing it still requires a separately reviewed
+and authorized live mutation window plus current backup/PITR evidence.
 
 | Classification | Count | Migrations |
 | --- | ---: | --- |
@@ -466,8 +468,12 @@ modified.
 
 ## Deterministic reconciliation plan — not authorized
 
-The future operation must be designed as one reviewed, auditable, transactional
-reconciliation—not ad-hoc console edits. No executable mutation SQL is provided here.
+The future operation is one reviewed, auditable, transactional reconciliation, not
+ad-hoc console edits. The review artifact is
+`ops/stage1/reconcile_migration_ledger.sql`, SHA-256
+`2ef66850881947cb2c10f3ee0896e4ac7de48828155f9ff2cfe9c03d25f6f409`.
+It is outside the migration registry and ordinary runner path, begins with the three
+required non-authorization warnings, and is not authorization to execute it live.
 
 1. Reassert immutable preconditions immediately before the window: `origin/main`, all
    18 registry hashes, the exact six custom-ledger rows/fields, the four corroborating
@@ -498,12 +504,124 @@ The only future ledger operations are the controlled checksum normalization and 
 exact-equivalence baselines above; the only future actual migrations are the seven
 genuinely absent production-runner entries.
 
+## Exact execution design and target
+
+The artifact opens one `SERIALIZABLE` transaction, takes an exclusive lock on only
+`public.schema_migration_ledger`, emits the before image, executes one guarded
+PL/pgSQL block, emits the after image, and commits. Inside the block there is exactly
+one `UPDATE` affecting five expected rows and one `INSERT` adding four expected
+rows. No historical migration statement is executed, and no business table, role,
+schema, policy, grant, Auth object, or feature flag is changed.
+
+The exact ten-row target is:
+
+| Migration ID | Schema | Applied at | Release | Canonical checksum |
+| --- | --- | --- | --- | --- |
+| `001_add_dedupe_key_to_real_price_transactions` | `schema-001` | preserve `2026-08-14 03:43:49.208983+00` | preserve `phase2f-approval-a-ledger-baseline` | `2eb4a3e8652d3f18cac9c200d38b3bf350e77bd36aa103f8b76ecf4004143223` |
+| `002_add_market_direct_query_indexes` | `schema-002` | preserve `2026-08-14 03:43:49.208983+00` | preserve `phase2f-approval-a-ledger-baseline` | `2cb6da19a01415ffee34845aa294843257cce7f9991803e0ca470e3405cfc310` |
+| `002_expand_valuation_import_runs` | `schema-002` | preserve `2026-08-14 03:43:49.208983+00` | preserve `phase2f-approval-a-ledger-baseline` | `0108c13fad4d0310e291c0d2e041868c7d59b8fb2f47739831139fa3039b2d64` |
+| `003_add_market_region_coverage` | `schema-003` | preserve `2026-08-14 03:43:49.208983+00` | preserve `phase2f-approval-a-ledger-baseline` | `267db5dcba4c12646b78f480b289cbd289a323bc205a0a8fe5ba507290efb16b` |
+| `004_add_pilot_evidence` | `schema-004` | reconciliation transaction timestamp | `stage1-ledger-reconciliation-v1` | `ba2a3f21605983f13b16648e344e3a71baf677ee7e086d155a39dc9b2220b516` |
+| `005_add_pilot_security_indexes` | `schema-005` | same reconciliation timestamp | `stage1-ledger-reconciliation-v1` | `7da6cffddc6a715bfc041fe37eb9ebf19574e30ef5379a4917db6bc634614d3c` |
+| `006_add_tax_analysis_history` | `schema-006` | same reconciliation timestamp | `stage1-ledger-reconciliation-v1` | `cc0e6bc09b4f0736c6ddb012ff34912db0385339c93d329d39203e696dc3d1c0` |
+| `007_add_schema_migration_ledger` | `schema-007` | preserve `2026-08-14 03:43:49.208983+00` | preserve `phase2f-approval-a-ledger-baseline` | `1d1d20edf40b9d2782dd9e314d7e4a2d35ac0aaac5d1570494e58f3e3d982996` |
+| `010_add_plvr_generation_schema` | `schema-010` | preserve `2026-08-14 03:43:49.208983+00` | preserve `phase2f-approval-a-ledger-baseline` | `fcf69fc2d3b5e6419e2d94a6d92abc03c9b4424204e9bd129b85ea749ebed4a5` |
+| `012_security_rls_deny_by_default` | `schema-012` | same reconciliation timestamp | `stage1-ledger-reconciliation-v1` | `bb1551d4e7fda1d3c7df99e3fd64a53f7fb05a8dcfb7ec0049c18ae6c2dfa056` |
+
+The current five CRLF-to-canonical mappings are:
+
+| ID | Exact stored checksum | Exact canonical checksum |
+| --- | --- | --- |
+| 001 | `557eef5065a66083aadb1c189ed68dc1271cfdfff48547abcf7f54be9fee0bcd` | `2eb4a3e8652d3f18cac9c200d38b3bf350e77bd36aa103f8b76ecf4004143223` |
+| 002 direct | `ca201d932388090018e5543f89d69d43d812c6596e995d354b30b50f52e1203f` | `2cb6da19a01415ffee34845aa294843257cce7f9991803e0ca470e3405cfc310` |
+| 002 valuation | `da83474b55277316a7e8a35c490eb2a31595781bc2331f2d1aba69caea2c8caa` | `0108c13fad4d0310e291c0d2e041868c7d59b8fb2f47739831139fa3039b2d64` |
+| 003 | `34171ca38e64509c29ae2075874388cf9736ae3df7752c6ae105118d3ee90ce5` | `267db5dcba4c12646b78f480b289cbd289a323bc205a0a8fe5ba507290efb16b` |
+| 007 | `f4a8ef650ab6bbce8bd1909345785411f350eb6aabe23d0d377fb674ef5934f5` | `1d1d20edf40b9d2782dd9e314d7e4a2d35ac0aaac5d1570494e58f3e3d982996` |
+
+`applied_at` for 004/005/006/012 truthfully means
+`ledger_baseline_recorded_at`, not the earlier
+`schema_effect_observed_before_baseline`. The current five-column ledger cannot
+encode both timestamps. The explicit reconciliation release label and this audit
+record preserve that limitation and provenance without inventing history.
+
+### Fail-closed preconditions and postconditions
+
+Before its first write, the transaction requires all of the following:
+
+- exactly the six documented ledger rows with exact IDs, schema versions, timestamps,
+  release labels, and stored checksums; therefore 004/005/006/008/009/012/013-017
+  are absent and 010 is exact;
+- exact catalog fingerprints for 001, both 002 entries, 003, 004, 005, 006, 007, and
+  010, including the expected columns, constraints, indexes, PLVR functions,
+  triggers, views, comments, and an untriggered ledger;
+- exact Supabase history identity and statement hashes for 004/005/006 and the known
+  deployed or executable-equivalent canonical 012 text;
+- the 012 posture: exactly 22 public base tables, all with RLS enabled, none forced,
+  no public policies, no prohibited PUBLIC/anon/authenticated object or default
+  privileges, four invoker PLVR guards with fixed search path, and the exact ledger
+  marker comment;
+- absent 008/009 object names, absent `compact_green`, absent `vnext_core` and
+  `vnext_private`, absent `vnext_api`, the six-column 003 coverage shape, and
+  exactly one `id=1, case_id='HISTORY-001'` sentinel.
+
+After its two DML statements, the same transaction requires exactly the ten rows
+listed above; canonical checksums; preserved historical metadata and unchanged 010;
+shared reconciliation time/release for the four baselines; absent
+008/009/011/013-017 effects; exact HISTORY row content and all 004-006 business-row
+counts unchanged; and the core 012 security posture unchanged. Every guard raises
+inside the transaction, so any discrepancy rolls back both DML statements.
+
+### Local PostgreSQL 17 rehearsal
+
+A fresh local database named `vnext_rls_test_ledger_reconciliation` reproduced the
+six historical ledger rows, CRLF hashes, catalog-equivalent 001-007/010/012 state,
+the four Supabase history records, 22-table deny-by-default security state,
+representative nonempty business data, the HISTORY sentinel, and all required
+absences. The process inherited no application database URL and exported only
+`VNEXT_RLS_POSTGRES_URL` and `VNEXT_RLS_POSTGRES_DISPOSABLE=1`.
+
+- success path: PASS; final ledger count 10, five canonical normalizations, four
+  exact baseline rows with one transaction timestamp, unchanged business snapshot;
+- runner simulation: exactly 008, 009, 013, 014, 015, 016, and 017 pending in order;
+  011 remains excluded by its `compact_green_operator` policy;
+- failure injection: wrong checksum, missing row, extra row, pre-existing 004 row,
+  004 catalog mismatch, missing HISTORY sentinel, unexpected VNext schema, and
+  forced postcondition mismatch all failed closed; each left the injected starting
+  ledger and business snapshot unchanged.
+
+Result: **9 passed**. This is a local rehearsal, not live execution evidence.
+
+### Backup/PITR prerequisite and abort rules
+
+Immediately before any separately authorized live window, the operator must verify
+from Supabase backup/PITR metadata that continuous recovery is healthy through a UTC
+recovery point no older than 15 minutes at transaction start. Capture the project ref,
+latest recoverable UTC time, backup/PITR status, retention window, and restore target.
+A documented successful restore drill for this project or its approved equivalent
+must be no older than 90 days and must meet the owner-approved RTO/RPO. If plan
+capabilities require an on-demand logical or physical backup, complete and verify it
+before the window. Backup readiness remains **UNVERIFIED** in this design gate.
+
+Abort without running the artifact if the recovery point is older than 15 minutes,
+PITR/backup is disabled, delayed, degraded, outside retention, restore permissions or
+destination are unavailable, the restore drill is stale/failed, evidence cannot be
+captured, or any precheck differs.
+
+### Operator audit record
+
+Record without secrets: authoritative Git main SHA; readiness/reconciliation SHA;
+live project ref; UTC start/end; operator and peer-review identities; backup/PITR
+evidence; exact precheck output; exact ledger before/after; all checksum mappings;
+artifact SHA-256; postcheck output; and explicit rollback or commit outcome. Attach
+the database error category on abort, never a connection string, token, or secret.
+
 ## Scope verification
 
 This gate performed no live write, custom-ledger mutation, migration application,
 schema or role creation, Auth change, user/workspace creation, feature enablement, or
-deployment. It created no Migration 018 and changed no source, migration, SQL, Hero,
-or Stage 2 file. The separate worktree at `C:\Projects\proptech-ai-copilot` was not
-edited.
+deployment. It created no Migration 018 and changed no product source, registered
+migration, runner, Hero, or Stage 2 file. Changes are limited to this documentation,
+the operations-only unregistered SQL review artifact, and its local-only test. The
+separate worktree at `C:\Projects\proptech-ai-copilot` was not edited.
 
 **Production rollout: BLOCKED.**

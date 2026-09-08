@@ -35,7 +35,7 @@ reconciliation is not authorized by this preparation gate.
 | Browser session implementation contract | VERIFIED | Current Supabase storage key/session shape and refresh semantics match the implementation; lifecycle hardening harness passes. |
 | Deployed browser configuration and real session | UNVERIFIED | Requires the controlled real-user smoke step after approved environment variables are set. |
 | Migration files and disposable rehearsal | VERIFIED | PostgreSQL 17 clean apply, production-prefix upgrade, 016→017, repeat runner, ledger, FK, FORCE RLS, ownership, grants, trigger `search_path`, and tenant isolation pass. |
-| Live custom-ledger reconciliation / exact pending set | VERIFIED classification; BLOCKED execution | The read-only [Live Migration Ledger Reconciliation](live-migration-reconciliation.md) classifies all 18 logical migrations: 6 applied/ledgered, 4 applied/unledgered, and 8 not applied. A separately reviewed ledger operation remains required before the runner. |
+| Live custom-ledger reconciliation / exact pending set | VERIFIED classification and design; BLOCKED live execution | The [Live Migration Ledger Reconciliation](live-migration-reconciliation.md) classifies all 18 logical migrations and records a locally rehearsed, fail-closed ledger-only artifact. Separate mutation authorization and current backup/PITR evidence remain required before execution. |
 | `vnext_api` contract | VERIFIED | Frozen SQL, provisioning document, runtime fail-closed checks, and local PostgreSQL catalog proof agree. |
 | Live `vnext_api` provisioning | UNVERIFIED | Role is correctly absent before rollout; later create/provision/verify it under explicit authorization. |
 | VNext Data API architecture | VERIFIED | Browser → FastAPI → direct `vnext_api` PostgreSQL connection; no browser Data API table/RPC path is required. |
@@ -111,6 +111,31 @@ registry uses canonical LF. Its transaction would roll back before 008. This is 
 runner defect. Before any runner invocation, use a separately designed, reviewed, and
 authorized reconciliation to normalize the five reproducible historical CRLF hashes
 and baseline only exact-equivalent 004–006 and 012. Do not manually edit rows ad hoc.
+
+#### Rehearsed ledger execution design
+
+The execution design is locally rehearsed in the operations-only, unregistered
+artifact `ops/stage1/reconcile_migration_ledger.sql` with SHA-256
+`2ef66850881947cb2c10f3ee0896e4ac7de48828155f9ff2cfe9c03d25f6f409`.
+It performs one five-row checksum update and one four-row baseline insert inside a
+single serializable transaction, with exact pre/post guards and no migration replay.
+Its four baseline rows use the reconciliation transaction time and release
+`stage1-ledger-reconciliation-v1`; documentation, not a fabricated timestamp,
+records that each schema effect predates its custom-ledger baseline.
+
+Fresh local PostgreSQL 17 rehearsal result: **9 passed** (one exact-state success and
+eight rollback injections). The successful final ledger has exactly 10 rows. The
+post-reconciliation runner simulation leaves exactly seven managed migrations pending
+in order: 008, 009, 013, 014, 015, 016, and 017. Migration 011 remains excluded.
+Wrong checksum, missing row, extra row, existing 004 baseline, catalog mismatch,
+missing HISTORY sentinel, unexpected VNext schema, and injected postcondition
+mismatch each rolled back without a partial ledger or business-data change.
+
+This design result does not authorize production execution. Immediately before any
+future authorization, require healthy PITR through a recoverable UTC point no older
+than 15 minutes, an applicable successful restore drill no older than 90 days, a
+known recovery owner/destination/RTO/RPO, peer review, and a complete secret-free
+operator audit record. Abort if any recovery or transaction precondition is missing.
 
 ## JWT compatibility
 
@@ -530,9 +555,9 @@ changed.
 
 1. **LIVE JWT COMPATIBILITY — UNVERIFIED:** no authorized real user access token was
    available for non-logging end-to-end claims verification.
-2. **Live migration ledger reconciliation — BLOCKED:** classification is verified, but
-   the controlled checksum-normalization and four-row baseline operation is not yet
-   reviewed or authorized; the runner must not be invoked first.
+2. **Live migration ledger reconciliation - BLOCKED:** classification and local
+   execution design are verified, but backup/PITR evidence and live mutation
+   authorization are absent; the runner must not be invoked first.
 3. **Backup/PITR and recovery evidence — UNVERIFIED.**
 4. **Live `vnext_api` provisioning and acceptance — UNVERIFIED.**
 5. **Supabase Exposed schemas and post-migration Data API denial — UNVERIFIED.**
@@ -549,8 +574,8 @@ and one already-authorized non-privileged real user session through a non-loggin
 verification path. In that session:
 
 1. verify the real token and deployed browser configuration;
-2. design, peer-review, rehearse, and separately authorize the deterministic ledger
-   operation specified by the reconciliation record;
+2. peer-review the rehearsed deterministic ledger artifact and separately authorize
+   it only after all backup/PITR and transaction preconditions pass;
 3. record backup/recovery and monitoring evidence;
 4. return a new go/no-go decision for a separately authorized production execution
    window.
