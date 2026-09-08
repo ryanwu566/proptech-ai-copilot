@@ -20,19 +20,22 @@ role, grant, Auth, configuration, user, workspace, or feature-flag mutation.
 | --- | --- |
 | Reconciliation Design | **GO** |
 | Local Rehearsal | **PASS** |
-| Backup/PITR Readiness | **UNVERIFIED** |
+| Supabase Scheduled Backup / PITR | **NOT AVAILABLE** |
+| Free-Plan Recovery Assurance | **BLOCKED** |
 | Live JWT Compatibility | **UNVERIFIED** |
-| Exposed Schemas | **UNVERIFIED** |
-| Operator Readiness | **UNVERIFIED** |
+| Exposed Schemas | **VERIFIED_SAFE for current state** |
+| Operator / Peer / Change Window | **DEFERRED / REQUIRED** |
 | Live Drift | **NONE** |
 | Production Mutation Pre-Authorization | **BLOCKED** |
 | Live Ledger Reconciliation | **NOT AUTHORIZED** |
 | Production Rollout | **BLOCKED** |
 
 The design and current database preconditions are sound. A request for separate
-live mutation authorization is premature until backup/recovery, operator,
-peer-review, and exclusive-window evidence is attached. Real-user JWT and Data
-API exposure evidence also remain required before feature rollout.
+live mutation authorization is premature until the
+[Free-Plan Recovery Assurance](free-plan-recovery-assurance.md) full logical
+backup/restore requirement and the deferred operator, peer-review, and
+exclusive-window requirements are complete. Real-user JWT evidence remains
+required before feature rollout.
 
 ## Live state and drift
 
@@ -129,31 +132,19 @@ inside the transaction make every mismatch roll back the full write set.
 
 ## Backup and PITR
 
-| Required evidence | Classification | Evidence needed |
-| --- | --- | --- |
-| PITR enabled | UNVERIFIED | Account-specific Database Backups / Point in Time evidence |
-| PITR health | UNVERIFIED | Healthy current backup/WAL status for this project |
-| Retention window | UNVERIFIED | Earliest and latest recoverable points |
-| Latest usable recovery point | UNVERIFIED | Timestamp captured for the approved window |
-| Recovery-point age at most 15 minutes | UNVERIFIED | Timestamp and age calculation at execution time |
-| Restore/recovery rehearsal at most 90 days old | UNVERIFIED | Dated successful restore record |
-| Restore destination | UNVERIFIED | Named isolated target or approved in-place procedure |
-| Expected RTO | UNVERIFIED | Owner-approved estimate from rehearsal evidence |
-| Expected RPO | UNVERIFIED | Owner-approved objective supported by actual recovery mode |
+The project owner manually verified that Supabase Scheduled Backups and PITR
+are **NOT AVAILABLE** on the current Free Plan. This accepted limitation is no
+longer an unknown account-state item. It requires a separately reviewed
+logical recovery substitute rather than a lowered safety bar.
 
-The available account connector exposed project health, catalog queries, and
-migration-history listing, but no read-only backup/PITR endpoint. No Dashboard
-backup evidence was available. Do not infer coverage from the healthy project,
-PostgreSQL version, plan defaults, or documentation.
+The Free-Plan recovery gate created and restored an exact, non-business
+six-row ledger snapshot, but the protected full production logical dump and
+full restore rehearsal are still incomplete. See
+[Free-Plan Recovery Assurance](free-plan-recovery-assurance.md) for the
+artifact metadata, recovery design, platform limitations, freshness rule, and
+remaining evidence.
 
-An authorized operator must provide a current capture or read-only Management
-API result for project `flyhsjcynreuofbcdxod` from
-`Database > Backups` and its `Point in Time` settings, including earliest
-and latest recovery points and retention. Attach the most recent restore
-rehearsal record, destination, outcome, duration, RTO, and RPO. Recheck the
-latest recovery point inside the mutation window.
-
-**Backup/PITR Readiness: UNVERIFIED.**
+**Free-Plan Recovery Assurance: BLOCKED.**
 
 ## JWT and exposed schemas
 
@@ -165,19 +156,13 @@ credential was printed, persisted, or transmitted.
 **Live JWT Compatibility: UNVERIFIED.** This does not alter the live ledger
 preconditions, but it remains a Stage 1 feature-rollout blocker.
 
-The live database session returned no `pgrst.db_schemas` value. The
-`authenticator` role and database-role settings contain no manual
-`pgrst.db_schemas` override. The available project connector cannot inspect
-the Dashboard-managed Data API schema list, so absence of an override is not
-proof of the effective exposed schemas.
+The project owner manually verified the current Data API Exposed Schemas as
+`graphql_public` and `public`. `vnext_core` and `vnext_private` remain
+absent. **Exposed Schemas: VERIFIED_SAFE for the current state.**
 
-An authorized project operator must open
-`Project Settings > Data API > Exposed Schemas`, capture the effective list,
-and confirm that future `vnext_core` and `vnext_private` are excluded.
-Recheck for a role-level override if the Dashboard reports it cannot manage
-the list. Do not change the setting in this gate.
-
-**Exposed Schemas: UNVERIFIED.**
+`Automatically expose new tables` is ON and was not changed. It remains a
+later rollout configuration review item; this current-state classification
+does not approve future VNext schema exposure.
 
 ## Operator principal and change freeze
 
@@ -202,13 +187,14 @@ ref, database, current role, source/artifact hashes, backup evidence, and the
 exact command before execution. The peer must review the artifact and evidence
 instead of approving an edited console copy.
 
-**Operator Readiness: UNVERIFIED.**
+**Operator: DEFERRED / REQUIRED BEFORE LIVE AUTHORIZATION.**
+**Peer reviewer: DEFERRED / REQUIRED BEFORE LIVE AUTHORIZATION.**
 
 The future window also requires a recorded freeze owner, start/end time, and
 acknowledgement that no production migration, database schema deployment,
 ledger writer, or release process touching migration history can run
 concurrently. If exclusivity cannot be assured, the operation stays blocked.
-No such approved window or acknowledgements were available in this gate.
+**Change window: DEFERRED / REQUIRED BEFORE LIVE AUTHORIZATION.**
 
 ## Future operator walkthrough
 
@@ -223,8 +209,8 @@ instruction for the current gate.
 4. Record the approved readiness SHA.
 5. Record the exact artifact SHA-256
    `2ef66850881947cb2c10f3ee0896e4ac7de48828155f9ff2cfe9c03d25f6f409`.
-6. Verify backup/PITR health, retention, current recovery point, approved RTO
-   and RPO, and restore evidence.
+6. Verify the fresh full logical dump, exact ledger snapshot, successful
+   disposable restore, approved RTO/RPO, and artifact custody evidence.
 7. Capture the complete six-row live custom-ledger before image.
 8. Capture the bounded `HISTORY-001` sentinel result.
 9. Capture every documented history, catalog, security, absence, and
@@ -244,17 +230,17 @@ instruction for the current gate.
     authorization.
 
 The audit record must contain the UTC start/end times, operator and reviewer,
-project/database/current role, source and artifact hashes, backup/PITR
-evidence, freeze acknowledgements, ledger before/after images, sentinel and
-business-count results, security/catalog results, transaction outcome,
-dry-run output, and incident reference if any guard fails.
+project/database/current role, source and artifact hashes, logical
+backup/restore evidence, freeze acknowledgements, ledger before/after images,
+sentinel and business-count results, security/catalog results, transaction
+outcome, dry-run output, and incident reference if any guard fails.
 
 ## Abort conditions
 
 Every item below means **NO LIVE MUTATION; STOP; REVIEW REQUIRED**:
 
 - wrong live project ref or database;
-- backup/PITR unverified or recovery point stale;
+- approved logical recovery substitute incomplete or either snapshot stale;
 - unexpected or missing ledger row;
 - checksum, catalog, or security drift;
 - `HISTORY-001` mismatch;
