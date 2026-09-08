@@ -20,6 +20,7 @@ connection string, or business row is included in this document.
 | --- | --- |
 | Supabase Scheduled Backup | **NOT AVAILABLE** |
 | Supabase PITR | **NOT AVAILABLE** |
+| Full Backup Operator Preparation | **GO** |
 | Full Logical Backup | **UNVERIFIED** |
 | Ledger-only Snapshot | **VERIFIED** |
 | Ledger-only Local Restore Rehearsal | **PASS** |
@@ -155,21 +156,179 @@ workstation or separately authorize a controlled full-data export. Requirements:
   versions, and source project ref recorded;
 - immediate credential removal from the process environment.
 
-The reviewed command shape is:
+### Prepared operator workflow
+
+**Operator Preparation Gate: GO. Backup execution: NOT AUTHORIZED by this
+gate.**
+
+Use a new dedicated PowerShell session. In Supabase Connect, select the Shared
+Pooler in **Session mode**, not Transaction mode. Session mode uses port 5432;
+port 6543 identifies the transaction-pooler path and must be rejected. A
+direct connection may replace it only when IPv6 reachability is explicitly
+confirmed.
+
+The following template asks for each connection field separately. The password
+is collected with secure input, converted only transiently for libpq, never
+echoed, and removed with every other temporary `PG*` value in `finally`.
+The dump retains the source archive's owner and ACL entries for later
+inspection; the local rehearsal may suppress applying them.
 
 ```powershell
-# NOT AUTHORIZED HERE - OPERATOR TEMPLATE ONLY
-# PG* values are injected out of band and must never be echoed.
-pg_dump --format=custom --compress=9 --serializable-deferrable `
-  --no-password --file $approvedDumpPath
+# NOT AUTHORIZED HERE - OPERATOR TEMPLATE ONLY.
+# Run only after separate approval in a new dedicated PowerShell session.
+$ErrorActionPreference = 'Stop'
+$projectRef = 'flyhsjcynreuofbcdxod'
+$artifactRoot = 'C:\Projects\proptech-recovery-artifacts'
+$temporaryPgVariables = @(
+  'PGHOST',
+  'PGPORT',
+  'PGDATABASE',
+  'PGUSER',
+  'PGPASSWORD',
+  'PGSSLMODE'
+)
+$securePassword = $null
+$metadata = $null
+
+try {
+  $pgBin = Read-Host 'PostgreSQL 17 bin directory'
+  $pgDump = Join-Path $pgBin 'pg_dump.exe'
+  $pgRestore = Join-Path $pgBin 'pg_restore.exe'
+  $psql = Join-Path $pgBin 'psql.exe'
+  foreach ($tool in @($pgDump, $pgRestore, $psql)) {
+    if (-not (Test-Path -LiteralPath $tool -PathType Leaf)) {
+      throw 'Required PostgreSQL 17 client tool is unavailable'
+    }
+  }
+
+  $clientVersion = & $pgDump --version
+  if ($LASTEXITCODE -ne 0 -or $clientVersion -notmatch 'PostgreSQL.* 17\.') {
+    throw 'pg_dump major version must be 17'
+  }
+
+  $env:PGHOST = Read-Host 'Session pooler host only; no scheme or password'
+  $env:PGPORT = Read-Host 'Session pooler port; expected 5432'
+  $env:PGDATABASE = Read-Host 'Database name; expected postgres'
+  $env:PGUSER = Read-Host 'Session pooler user; expected postgres.project-ref'
+  $env:PGSSLMODE = 'require'
+  $securePassword = Read-Host 'Database password' -AsSecureString
+  $env:PGPASSWORD = [System.Net.NetworkCredential]::new(
+    '',
+    $securePassword
+  ).Password
+
+  if ($env:PGPORT -ne '5432') {
+    throw 'Transaction pooler or unexpected port rejected'
+  }
+  if ($env:PGHOST -notmatch '\.pooler\.supabase\.com$') {
+    throw 'Expected a Supabase Session pooler host'
+  }
+  if ($env:PGUSER -ne ('postgres.' + $projectRef)) {
+    throw 'Session pooler user does not match the approved project ref'
+  }
+  if ($env:PGDATABASE -ne 'postgres') {
+    throw 'Unexpected source database'
+  }
+
+  New-Item -ItemType Directory -Path $artifactRoot -Force | Out-Null
+  $stamp = [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ')
+  $dumpPath = Join-Path $artifactRoot (
+    'stage1-full-logical-backup-' + $projectRef + '-' + $stamp + '.dump'
+  )
+  if (Test-Path -LiteralPath $dumpPath) {
+    throw 'Refusing to overwrite an existing backup'
+  }
+
+  # Both commands are read-only against the source database.
+  $serverVersion = & $psql -X -tA --no-password -c 'show server_version'
+  if ($LASTEXITCODE -ne 0) {
+    throw 'Server-version query failed'
+  }
+  $sourceDatabase = & $psql -X -tA --no-password -c (
+    'select current_database()'
+  )
+  if ($LASTEXITCODE -ne 0 -or $sourceDatabase -ne 'postgres') {
+    throw 'Source database verification failed'
+  }
+
+  $startedUtc = [DateTime]::UtcNow
+  $dumpTimer = [System.Diagnostics.Stopwatch]::StartNew()
+  & $pgDump `
+    --format=custom `
+    --compress=9 `
+    --serializable-deferrable `
+    --no-password `
+    --file=$dumpPath
+  $dumpTimer.Stop()
+  if ($LASTEXITCODE -ne 0) {
+    throw 'Full logical dump failed; do not treat the file as usable'
+  }
+  $endedUtc = [DateTime]::UtcNow
+
+  & $pgRestore --list $dumpPath | Out-Null
+  if ($LASTEXITCODE -ne 0) {
+    throw 'Archive inventory validation failed'
+  }
+
+  $file = Get-Item -LiteralPath $dumpPath
+  $metadata = [ordered]@{
+    output_file = $file.Name
+    output_directory = $artifactRoot
+    source_project_ref = $projectRef
+    source_database = $sourceDatabase
+    utc_start = $startedUtc.ToString('o')
+    utc_end = $endedUtc.ToString('o')
+    duration_seconds = [math]::Round($dumpTimer.Elapsed.TotalSeconds, 3)
+    size_bytes = $file.Length
+    sha256 = (Get-FileHash -Algorithm SHA256 $dumpPath).Hash.ToLower()
+    pg_dump_version = $clientVersion
+    server_version = $serverVersion
+    archive_list = 'pass'
+  }
+} finally {
+  foreach ($name in $temporaryPgVariables) {
+    Remove-Item ('Env:' + $name) -ErrorAction SilentlyContinue
+  }
+  if ($null -ne $securePassword) {
+    $securePassword.Dispose()
+  }
+}
+
+# This output contains bounded metadata only, never connection material.
+$metadata | ConvertTo-Json
 ```
 
-The operator must then restore that exact hash into a fresh disposable local
-PostgreSQL 17 database. For portability, owner/ACL application may be skipped
-during rehearsal with `pg_restore --no-owner --no-privileges`, while the
-archive listing and independent live catalog snapshot retain the security
-evidence. Any missing extension, dependency, definition, or data fails the
-gate rather than being silently excluded.
+In the next separately authorized gate, restore that exact hash into a fresh
+disposable local PostgreSQL 17 database named
+`vnext_full_recovery_rehearsal_*`. For portability, owner/ACL application
+may be skipped during rehearsal with
+`pg_restore --no-owner --no-privileges`, while the archive listing and
+independent live catalog snapshot retain the security evidence. Any missing
+extension, dependency, definition, or data fails the gate rather than being
+silently excluded. Do not restore it to live Supabase, the green project, or
+any hosted environment.
+
+After the template completes, confirm that no temporary connection variables
+remain and that the readiness repository did not change:
+
+```powershell
+Get-ChildItem Env: |
+  Where-Object Name -In @(
+    'PGHOST',
+    'PGPORT',
+    'PGDATABASE',
+    'PGUSER',
+    'PGPASSWORD',
+    'PGSSLMODE'
+  ) |
+  Select-Object -ExpandProperty Name
+
+git -C C:\Projects\proptech-production-readiness status --short
+```
+
+Both checks must print nothing. Do not print the PowerShell history or any
+environment-variable value. Close the dedicated shell after recording the
+bounded metadata. Do not delete the dump unless separately authorized.
 
 ### Full restore validation
 
