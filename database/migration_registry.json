@@ -144,6 +144,14 @@
       "filename": "017_vnext_legacy_saved_case_import.sql",
       "execution_policy": "production_runner",
       "sha256": "0753b222597d7e0d6cbc618a17bc1d07d047a0d499318936c29880a119182efa"
+    },
+    {
+      "registry_order": 19,
+      "logical_id": "production-018-vnext-spatial-foundation",
+      "sequence": 18,
+      "filename": "018_add_vnext_spatial_foundation.sql",
+      "execution_policy": "production_runner",
+      "sha256": "3a6699523ef2a48c84eb98dc507b1391b1518fc5f0c366a419f035594fa17590"
     }
   ]
 }

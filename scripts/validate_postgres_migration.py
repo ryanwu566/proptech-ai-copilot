@@ -32,19 +32,35 @@ from scripts.migration_registry import (
 # but derive it from the frozen registry instead of maintaining a second list.
 MIGRATIONS = production_migrations(load_registry(verify_files=False))
 REQUIRED_TABLES = {
-    "pilot_campaigns", "pilot_sessions", "pilot_consents", "pilot_events",
-    "pilot_feedback", "professional_reviews", "tax_analysis_history",
-    "official_market_releases", "official_market_artifacts", "market_transactions",
-    "market_transaction_quality_events", "market_region_period_aggregates",
-    "official_market_region_coverage", "market_import_runs", "market_import_checkpoints",
-    "plvr_dataset_generations", "plvr_generation_transactions",
-    "plvr_generation_market_aggregates", "plvr_generation_region_coverage",
-    "plvr_active_dataset", "plvr_generation_load_checkpoints",
+    "pilot_campaigns",
+    "pilot_sessions",
+    "pilot_consents",
+    "pilot_events",
+    "pilot_feedback",
+    "professional_reviews",
+    "tax_analysis_history",
+    "official_market_releases",
+    "official_market_artifacts",
+    "market_transactions",
+    "market_transaction_quality_events",
+    "market_region_period_aggregates",
+    "official_market_region_coverage",
+    "market_import_runs",
+    "market_import_checkpoints",
+    "plvr_dataset_generations",
+    "plvr_generation_transactions",
+    "plvr_generation_market_aggregates",
+    "plvr_generation_region_coverage",
+    "plvr_active_dataset",
+    "plvr_generation_load_checkpoints",
 }
 REQUIRED_INDEXES = {
-    "idx_pilot_sessions_campaign", "idx_pilot_events_idempotency",
-    "idx_tax_analysis_history_created_at", "idx_tax_analysis_history_case_id",
-    "idx_schema_migration_ledger_applied_at", "idx_market_transactions_region_period",
+    "idx_pilot_sessions_campaign",
+    "idx_pilot_events_idempotency",
+    "idx_tax_analysis_history_created_at",
+    "idx_tax_analysis_history_case_id",
+    "idx_schema_migration_ledger_applied_at",
+    "idx_market_transactions_region_period",
     "idx_market_aggregates_region_period",
     "idx_official_market_region_coverage_region_period",
     "idx_plvr_dataset_generations_state",
@@ -74,6 +90,9 @@ REQUIRED_VNEXT_TABLES = {
     "vnext_private.idempotency_records",
     "vnext_private.audit_events",
     "vnext_private.legacy_case_imports",
+    "vnext_core.spatial_layers",
+    "vnext_core.parcel_geometry_versions",
+    "vnext_core.spatial_observations",
 }
 REQUIRED_VNEXT_INDEXES = {
     "vnext_core.uq_vnext_workspaces_personal_owner",
@@ -104,6 +123,12 @@ REQUIRED_VNEXT_INDEXES = {
     "vnext_private.idx_vnext_audit_workspace_created",
     "vnext_private.idx_vnext_audit_request",
     "vnext_private.idx_vnext_legacy_case_imports_actor",
+    "vnext_core.idx_vnext_spatial_layers_key_latest",
+    "vnext_core.idx_vnext_parcel_geometry_parcel_history",
+    "vnext_core.idx_vnext_parcel_geometry_evidence",
+    "vnext_core.idx_vnext_spatial_observations_subject",
+    "vnext_core.idx_vnext_spatial_observations_geometry",
+    "vnext_core.idx_vnext_spatial_observations_layer",
 }
 REQUIRED_VNEXT_FOREIGN_KEYS = {
     "fk_vnext_cases_assigned_member",
@@ -144,6 +169,18 @@ REQUIRED_VNEXT_FOREIGN_KEYS = {
     "fk_vnext_legacy_import_case",
     "fk_vnext_legacy_import_actor",
     "fk_vnext_legacy_import_idempotency",
+    "fk_vnext_parcel_geometry_workspace",
+    "fk_vnext_parcel_geometry_reference",
+    "fk_vnext_parcel_geometry_supersedes",
+    "fk_vnext_parcel_geometry_evidence",
+    "fk_vnext_parcel_geometry_idempotency",
+    "fk_vnext_parcel_geometry_creator",
+    "fk_vnext_spatial_observation_workspace",
+    "fk_vnext_spatial_observation_geometry",
+    "fk_vnext_spatial_observation_layer",
+    "fk_vnext_spatial_observation_evidence",
+    "fk_vnext_spatial_observation_idempotency",
+    "fk_vnext_spatial_observation_creator",
 }
 _DOLLAR_QUOTE_START = re.compile(r"\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$")
 
@@ -157,23 +194,48 @@ def _static_contract() -> dict[str, Any]:
         return {"status": "fail", "migration": "migration_runner_registry_mismatch"}
     joined = "\n".join(path.read_text(encoding="utf-8") for path in MIGRATIONS).lower()
     required = (
-        "references", "on delete cascade", "create index", "tax_analysis_history",
-        "jsonb", "schema_migration_ledger", "schema_version", "official_market_releases",
-        "market_region_period_aggregates", "market_import_checkpoints",
-        "plvr_dataset_generations", "plvr_active_dataset",
-        "create role vnext_api", "force row level security",
-        "workspace_members_self_select", "vnext_private.idempotency_records",
+        "references",
+        "on delete cascade",
+        "create index",
+        "tax_analysis_history",
+        "jsonb",
+        "schema_migration_ledger",
+        "schema_version",
+        "official_market_releases",
+        "market_region_period_aggregates",
+        "market_import_checkpoints",
+        "plvr_dataset_generations",
+        "plvr_active_dataset",
+        "create role vnext_api",
+        "force row level security",
+        "workspace_members_self_select",
+        "vnext_private.idempotency_records",
         "vnext_private.audit_events",
-        "vnext_core.property_entities", "vnext_core.property_graph_nodes",
-        "vnext_core.property_relations", "vnext_core.evidence_items",
-        "vnext_core.evidence_lineage", "vnext_core.evidence_links",
-        "vnext_core.identity_resolutions", "vnext_core.resolution_attempts",
-        "vnext_core.identity_candidates", "vnext_core.identity_conflicts",
-        "vnext_core.identity_decisions", "vnext_core.case_property_links",
-        "identity_confirmation_id", "case_property_links_owner_admin_insert",
+        "vnext_core.property_entities",
+        "vnext_core.property_graph_nodes",
+        "vnext_core.property_relations",
+        "vnext_core.evidence_items",
+        "vnext_core.evidence_lineage",
+        "vnext_core.evidence_links",
+        "vnext_core.identity_resolutions",
+        "vnext_core.resolution_attempts",
+        "vnext_core.identity_candidates",
+        "vnext_core.identity_conflicts",
+        "vnext_core.identity_decisions",
+        "vnext_core.case_property_links",
+        "identity_confirmation_id",
+        "case_property_links_owner_admin_insert",
         "needs_human_confirmation",
-        "vnext_private.legacy_case_imports", "legacy_case_imports_actor_insert",
-        "legacy_unverified", "saved_case_v1",
+        "vnext_private.legacy_case_imports",
+        "legacy_case_imports_actor_insert",
+        "legacy_unverified",
+        "saved_case_v1",
+        "vnext_core.spatial_layers",
+        "vnext_core.parcel_geometry_versions",
+        "vnext_core.spatial_observations",
+        "source_geometry_wkb",
+        "spatial_observations_active_writer_insert",
+        "coverage -> 'gaps' = '[]'::jsonb",
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
@@ -341,8 +403,18 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
                 for path in MIGRATIONS:
                     for statement in _statements(path):
                         connection.execute(statement)
-                tables = {row[0] for row in connection.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public'").fetchall()}
-                indexes = {row[0] for row in connection.execute("SELECT indexname FROM pg_indexes WHERE schemaname='public'").fetchall()}
+                tables = {
+                    row[0]
+                    for row in connection.execute(
+                        "SELECT table_name FROM information_schema.tables WHERE table_schema='public'"
+                    ).fetchall()
+                }
+                indexes = {
+                    row[0]
+                    for row in connection.execute(
+                        "SELECT indexname FROM pg_indexes WHERE schemaname='public'"
+                    ).fetchall()
+                }
                 vnext_tables = {
                     f"{row[0]}.{row[1]}"
                     for row in connection.execute(
@@ -357,7 +429,9 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
                         "WHERE schemaname IN ('vnext_core', 'vnext_private')"
                     ).fetchall()
                 }
-                foreign_key_count = connection.execute("SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'").fetchone()[0]
+                foreign_key_count = connection.execute(
+                    "SELECT count(*) FROM information_schema.table_constraints WHERE constraint_schema='public' AND constraint_type='FOREIGN KEY'"
+                ).fetchone()[0]
                 vnext_foreign_key_count = connection.execute(
                     "SELECT count(*) FROM information_schema.table_constraints "
                     "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
@@ -377,13 +451,19 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
                     or not REQUIRED_VNEXT_TABLES.issubset(vnext_tables)
                     or not REQUIRED_VNEXT_INDEXES.issubset(vnext_indexes)
                     or foreign_key_count < 4
-                    or vnext_foreign_key_count < 69
+                    or vnext_foreign_key_count < 81
                     or not REQUIRED_VNEXT_FOREIGN_KEYS.issubset(vnext_foreign_keys)
                 ):
                     raise _SchemaContractFailure
                 raise _RollbackValidation
         except _RollbackValidation:
-            return {"status": "pass", "migration": "postgres_transaction_rolled_back", "foreign_keys": "pass", "indexes": "pass", "ledger": "pass"}
+            return {
+                "status": "pass",
+                "migration": "postgres_transaction_rolled_back",
+                "foreign_keys": "pass",
+                "indexes": "pass",
+                "ledger": "pass",
+            }
         except _SchemaContractFailure:
             return {"status": "fail", "migration": "schema_contract_failed"}
 
@@ -394,18 +474,28 @@ def validate(database_url: str | None = None) -> dict[str, Any]:
         return result
     if not database_url:
         result["database"] = "not_run"
-        result["operator_note"] = "Provide a disposable Postgres URL for transactional application validation."
+        result["operator_note"] = (
+            "Provide a disposable Postgres URL for transactional application validation."
+        )
         return result
     try:
         result.update({"database": "validated", **_execute_disposable(database_url)})
     except Exception:
-        return {"status": "unavailable", "migration": "database_validation_unavailable", "database": "unavailable"}
+        return {
+            "status": "unavailable",
+            "migration": "database_validation_unavailable",
+            "database": "unavailable",
+        }
     return result
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--database-url", default=None, help="Explicit disposable Postgres URL; never read from environment.")
+    parser.add_argument(
+        "--database-url",
+        default=None,
+        help="Explicit disposable Postgres URL; never read from environment.",
+    )
     args = parser.parse_args()
     result = validate(args.database_url)
     print(json.dumps(result, sort_keys=True))

@@ -118,6 +118,14 @@ _AUDIT_METADATA_KEYS = frozenset(
         "accepted_field_classes",
         "dropped_field_classes",
         "warning_codes",
+        "parcel_identity_reference_id",
+        "geometry_version",
+        "supersedes_geometry_id",
+        "authority_class",
+        "subject_type",
+        "subject_id",
+        "spatial_layer_id",
+        "observation_status",
     }
 )
 
@@ -200,7 +208,10 @@ class PostgresCaseRepository:
             allowed_roles=CASE_WRITE_ROLES,
         )
         selected_title = _bounded_text(title, maximum=240)
-        if idempotency_record_id is not None and not 100 <= idempotency_response_status_code <= 599:
+        if (
+            idempotency_record_id is not None
+            and not 100 <= idempotency_response_status_code <= 599
+        ):
             raise VNextError.validation_failed()
         with self._principal_context.transaction(principal) as connection:
             row = connection.execute(

@@ -1,7 +1,7 @@
 # Stage 2A GIS / Parcel Foundation
 
-Status: Slice 0 provider-independent contract; no production provider, migration, API route,
-feature enablement, or map UI
+Status: Slice 1 durable spatial persistence; development migration only, with no production
+provider, live migration, API route, feature enablement, or map UI
 
 ## 1. Purpose
 
@@ -19,7 +19,8 @@ The Slice 0 implementation is deliberately pure:
 - direct adaptation into Stage 1 `EvidenceDraft` and `PropertyRelationDraft` contracts;
 - deterministic, conspicuously synthetic fixtures and unit tests.
 
-It creates no database object and makes no network call.
+Slice 1 adds a development-only PostgreSQL persistence boundary and migration 018. It makes no
+network/provider call and has not been applied to a hosted or production database.
 
 ## 2. Relationship to Stage 1
 
@@ -42,6 +43,26 @@ Confidence, exact overlap, containment, distance, nearest-neighbor rank, and pro
 may support review. None of them confirms a property/parcel relationship or merges graph
 nodes. `proposed_property_parcel_relation()` always returns `status=proposed`, including when
 confidence is `1.0`.
+
+### Slice 1 persisted model
+
+Migration `018_add_vnext_spatial_foundation` adds three narrowly scoped objects without
+altering the Stage 1 tables:
+
+- `vnext_core.parcel_geometry_versions` is tenant-owned, immutable geometry history linked by
+  a composite workspace foreign key to the existing parcel identity reference, Stage 1
+  Evidence, and Stage 1 idempotency record.
+- `vnext_core.spatial_layers` is global system metadata. A layer is versioned rather than
+  edited, carries no credential, and is SELECT-only for `vnext_api`; registration is a reviewed
+  migration/operator action, not a normal tenant command.
+- `vnext_core.spatial_observations` is tenant-owned, immutable evidence linked to a typed
+  PropertyEntity, identity-reference, parcel, building, address, geo-reference, or Case
+  subject, and optionally to a parcel geometry version.
+
+Tenant tables use the existing `auth.users.id` principal, active workspace membership checks,
+RLS plus FORCE RLS, and INSERT/SELECT-only application grants. The global layer registry has
+no workspace duplication and no application mutation grant. None of these records changes
+identity status, creates a PropertyEntity/relation, or attaches a Case.
 
 ## 3. Competitive-workflow rationale
 
@@ -82,12 +103,19 @@ counts, and invalid EPSG:4326 bounds fail closed with bounded codes. Slice 0 doe
 malformed geometry because repair is a material derivation that needs its own evidence and
 review policy.
 
-Canonical geometry is not stored inside `PropertyEntity`. A later persistence slice should
-add immutable, workspace-scoped parcel-geometry versions adjacent to the existing parcel graph
-node, with a reviewed current-version projection. Raw/source artifacts remain Evidence or
-private Artifact material as license permits. A current geometry version is a confirmed
-working representation, not an assertion of legal boundary or ownership unless its evidence
-and source contract expressly support that claim.
+Canonical geometry is not stored inside `PropertyEntity`. Slice 1 stores immutable,
+workspace-scoped versions adjacent to the existing parcel graph node. The latest version is a
+read projection over the append-only history, not a mutable `current` flag. Raw/source
+artifacts remain Evidence or private Artifact material as license permits. A current geometry
+version is a working representation, not an assertion of legal boundary or ownership unless
+its evidence and source contract expressly support that claim.
+
+Source geometry is encoded as two-dimensional WKB with a separate, mandatory source CRS and
+coordinate-order field. This avoids pretending arbitrary projected coordinates are GeoJSON.
+The SHA-256 of those bytes detects corruption. A separate normalized JSONB geometry is always
+EPSG:4326 longitude/latitude for safe application/API interchange. The repository round-trips
+WKB through Shapely, while database constraints keep source and normalized representations
+unambiguous and bound their size. Transformation steps remain immutable JSON lineage.
 
 ## 5. CRS policy
 
@@ -111,7 +139,7 @@ fail safely.
 
 ## 6. Layer registry
 
-`SpatialLayer` and `SpatialLayerRegistry` provide stable, provider-neutral metadata. Each
+`SpatialLayer` and `SpatialLayerRegistry` provide stable, provider-neutral, versioned metadata. Each
 layer declares:
 
 - opaque ID, stable key, title, category, provider, source, and authority class;
@@ -123,7 +151,10 @@ layer declares:
 - mandatory evidence and provenance requirements;
 - availability, uncertainty, and limitations.
 
-Layer keys and IDs are unique. Registration describes a contract, not production acceptance.
+Layer key/version pairs and IDs are unique. The durable registry is global system metadata to
+avoid copying identical definitions into every workspace. `vnext_api` can read but cannot
+insert, update, or delete it, and all versions are append-only. Registration describes a
+contract, not production acceptance.
 A synthetic layer cannot declare itself fully authoritative/available, and a future official
 layer still needs the data-source readiness evidence pack before enablement.
 
@@ -187,9 +218,15 @@ effective timestamps, source record/reference, Evidence ID, and transformation l
 - failures have no usable fact value;
 - a proven negative observation is an explicit scoped value, never a generic risk/safety fact.
 
+`parcel_geometry_evidence_draft()` similarly links a geometry to the same Stage 1 store using
+an opaque `parcel-geometry:<uuid>` reference rather than duplicating large geometry in an
+Evidence value. License metadata remains canonical on Evidence. Database triggers verify
+workspace, fact type, source, provider, environment, retrieval time, and expected evidence
+status before accepting a spatial row.
+
 Raw provider payloads, private storage paths, permanent signed URLs, and credentials are not
-fields in these contracts. A later persistence service must verify workspace equality among
-the subject, Evidence, parcel identity reference, graph nodes, and Case before writing.
+fields in these contracts. The repository and database verify workspace equality among the
+subject, Evidence, parcel identity reference, geometry, and Case where applicable.
 
 ## 10. Unknown / failure semantics
 
@@ -233,8 +270,10 @@ metadata. The map can therefore support future parcel/building selection, layer 
 planning/hazard overlays, comparisons, and spatial inspection without becoming the homepage
 or an isolated tool list. Slice 0 defines state only; it adds no frontend component or route.
 
-Map state is attached to `Case` as investigation context, not as property identity. A later
-slice may persist reviewed Case map preferences or append map-inspection Activities. It must
+Map state is attached to `Case` as investigation context, not as property identity. Slice 1
+deliberately defers MapWorkspace persistence because viewport, selection, and layer toggles
+are presentation state rather than durable evidence. A later slice may persist reviewed Case
+map preferences or append map-inspection Activities. It must
 not populate `Case.property_entity_id` or create `CasePropertyLink` without the existing
 explicit command.
 
@@ -250,8 +289,9 @@ explicit command.
 - Raw artifacts are private and retained only when license and tenant policy permit.
 - Provider errors are bounded codes; no raw body, URL credential, SQL, or stack trace crosses
   the adapter boundary.
-- Future persistence remains in private-by-default VNext schemas with workspace authorization
-  and RLS defense in depth. Slice 0 adds no table, grant, policy, role, or Auth change.
+- Spatial persistence remains in private-by-default VNext schemas with workspace authorization
+  and RLS defense in depth. Migration 018 adds no role, Auth change, public table, or Data API
+  exposure.
 
 ## 13. NLSC Stage 2B boundary
 
@@ -265,7 +305,7 @@ live calls, claim official coverage, or label synthetic fixtures NLSC data.
 
 ## 14. Test strategy
 
-Focused tests cover:
+Focused Slice 0 and Slice 1 tests cover:
 
 - valid, malformed, empty, overly ambiguous, and transformed geometry contracts;
 - explicit EPSG:4326 coordinate order and projected metre processing;
@@ -278,18 +318,25 @@ Focused tests cover:
 - full-confidence property/parcel relations remaining proposed;
 - Case-scoped Map Workspace metadata;
 - unmistakably synthetic fixture labels.
+- immutable first/new geometry versions, complete history, WKB/CRS round-trip, Evidence links,
+  invalid/self/cross-parcel supersession, duplicate version/source records, and concurrent
+  supersession races;
+- observation idempotent replay and distinct unknown/no-match/error/absence behavior;
+- global layer mutation denial, tenant RLS/FORCE RLS, ownership, grants, and cross-workspace
+  isolation on a disposable local PostgreSQL database.
 
 The relevant Stage 1 graph/evidence/identity tests are regression gates because the new module
-imports their contracts. No credentialed provider test, database test, or PostGIS test is
+imports their contracts. No credentialed provider, hosted-database, or PostGIS test is
 appropriate until a later slice explicitly introduces those boundaries.
 
 ## 15. Slice roadmap
 
-- **Slice 0 (this gate):** pure domain/CRS/layer/provider/operation/map contracts, synthetic
+- **Slice 0:** pure domain/CRS/layer/provider/operation/map contracts, synthetic
   fixtures, tests, and architecture decisions.
-- **Later Stage 2A slices:** reviewed persistence/API design, additive migration only if
-  authorized, workspace/RLS gates, bounded map read workflow, and approved non-production
-  integration rehearsals.
+- **Slice 1 (this gate):** additive migration 018, spatial repositories, append-only versioning,
+  Stage 1 Evidence/idempotency linkage, workspace/RLS gates, and disposable PostgreSQL proof.
+- **Later Stage 2A slices:** bounded map read workflow and approved non-production integration
+  rehearsals.
 - **Stage 2B:** production NLSC adapter only after source approval and real-provider acceptance.
 - **Stage 3:** building, planning, and redevelopment observations reuse the same layer,
   temporal, CRS, Evidence, conflict, relation-proposal, and Map Workspace contracts.
@@ -300,9 +347,9 @@ plan evidence, disposable-database validation, backup/restore readiness, and rol
 
 ## 16. Explicit non-goals
 
-This slice does not:
+Slice 1 does not:
 
-- add a production migration, schema, PostGIS extension, role, grant, RLS policy, or API route;
+- apply migration 018 to production, add PostGIS, add a role, or expose an API route;
 - enable `parcel_workspace`, `identity_v1`, or any other feature flag;
 - implement a production NLSC or other GIS provider;
 - scrape, reverse engineer, or call a competitor or official system;

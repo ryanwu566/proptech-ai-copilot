@@ -26,9 +26,9 @@ def test_migration_017_is_registered_once_and_advances_sequence() -> None:
     assert matching[0].sequence == 17
     assert matching[0].execution_policy == "production_runner"
     assert matching[0].sha256 == checksum(MIGRATION)
-    assert migration_runner.MIGRATIONS[-1] == MIGRATION
-    assert migration_validator.MIGRATIONS[-1] == MIGRATION
-    assert next_safe_sequence(registrations) == 18
+    assert MIGRATION in migration_runner.MIGRATIONS
+    assert MIGRATION in migration_validator.MIGRATIONS
+    assert next_safe_sequence(registrations) == 19
 
 
 def test_migrations_001_through_016_remain_frozen() -> None:
@@ -43,7 +43,9 @@ def test_migrations_001_through_016_remain_frozen() -> None:
     assert len([item for item in entries if int(item["sequence"]) <= 16]) == 17
 
 
-def test_import_record_is_bounded_hashed_copy_only_and_contains_no_raw_payload() -> None:
+def test_import_record_is_bounded_hashed_copy_only_and_contains_no_raw_payload() -> (
+    None
+):
     sql = _sql()
     table = sql.split("create table vnext_private.legacy_case_imports", 1)[1].split(
         ");", 1
@@ -66,15 +68,24 @@ def test_import_is_scoped_deduplicated_and_append_only() -> None:
     sql = _sql()
 
     assert "uq_vnext_legacy_import_scoped_client" in sql
-    assert "unique (workspace_id, actor_user_id, legacy_format, legacy_client_id_hash)" in sql
+    assert (
+        "unique (workspace_id, actor_user_id, legacy_format, legacy_client_id_hash)"
+        in sql
+    )
     assert "uq_vnext_legacy_import_case" in sql
     assert "uq_vnext_legacy_import_idempotency" in sql
     assert "create index idx_vnext_legacy_case_imports_actor" in sql
     assert "trg_vnext_legacy_case_import_append_only" in sql
     assert "before update or delete" in sql
-    assert "alter table vnext_private.legacy_case_imports enable row level security" in sql
-    assert "alter table vnext_private.legacy_case_imports force row level security" in sql
-    assert "grant select, insert on vnext_private.legacy_case_imports to vnext_api" in sql
+    assert (
+        "alter table vnext_private.legacy_case_imports enable row level security" in sql
+    )
+    assert (
+        "alter table vnext_private.legacy_case_imports force row level security" in sql
+    )
+    assert (
+        "grant select, insert on vnext_private.legacy_case_imports to vnext_api" in sql
+    )
     assert "grant update" not in "\n".join(
         line for line in sql.splitlines() if "legacy_case_imports" in line
     )
@@ -94,7 +105,9 @@ def test_import_rls_requires_actor_and_active_writer_membership() -> None:
     )
 
 
-def test_import_guard_requires_unverified_case_pending_request_and_no_attachment() -> None:
+def test_import_guard_requires_unverified_case_pending_request_and_no_attachment() -> (
+    None
+):
     sql = _sql()
 
     assert "imported_case.identity_status = 'legacy_unverified'" in sql

@@ -23,36 +23,78 @@ from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
 from services.vnext.auth import AuthenticatedPrincipal
 from services.vnext.authorization import (
-    PostgresWorkspaceMembershipRepository, WorkspaceAuthorizer)
+    PostgresWorkspaceMembershipRepository,
+    WorkspaceAuthorizer,
+)
 from services.vnext.db_principal import DatabasePrincipalContext
 from services.vnext.errors import ErrorCode, VNextError
-from services.vnext.identity_command_repository import \
-    PostgresIdentityCommandRepository
-from services.vnext.identity_command_service import \
-    IdentityCommandApplicationService
-from services.vnext.identity_resolution import (CandidateRankingFactors,
+from services.vnext.identity_command_repository import PostgresIdentityCommandRepository
+from services.vnext.identity_command_service import IdentityCommandApplicationService
+from services.vnext.identity_resolution import (
+    CandidateRankingFactors,
                                                 IdentityCandidateType,
                                                 IdentityResolutionEngine,
                                                 ProviderCandidateObservation,
                                                 ProviderResolutionResult,
                                                 ResolutionAttemptStatus,
-                                                ResolutionInputType)
-from services.vnext.identity_resolution_repository import \
-    PostgresIdentityResolutionRepository
-from services.vnext.identity_resolution_service import \
-    IdentityResolutionApplicationService
+    ResolutionInputType,
+)
+from services.vnext.identity_resolution_repository import (
+    PostgresIdentityResolutionRepository,
+)
+from services.vnext.identity_resolution_service import (
+    IdentityResolutionApplicationService,
+)
 from services.vnext.legacy_case_import import LegacyEvidenceDraft, ParsedLegacyCase
-from services.vnext.legacy_case_import_repository import \
-    PostgresLegacyCaseImportRepository
-from services.vnext.legacy_case_import_service import \
-    LegacyCaseImportApplicationService
-from services.vnext.persistence import (CasePurpose, PostgresCaseRepository,
-                                        PostgresIdempotencyRepository)
-from services.vnext.property_graph import (CoverageStatus,
+from services.vnext.legacy_case_import_repository import (
+    PostgresLegacyCaseImportRepository,
+)
+from services.vnext.legacy_case_import_service import LegacyCaseImportApplicationService
+from services.vnext.persistence import (
+    CasePurpose,
+    PostgresCaseRepository,
+    PostgresIdempotencyRepository,
+)
+from services.vnext.property_graph import (
+    CoverageStatus,
+    IdentityReferenceDraft,
+    IdentityReferenceStatus,
+    IdentityReferenceType,
+    LicenseStatus,
+    PostgresEvidenceRepository,
+    PostgresPropertyGraphRepository,
                                            PropertyRelationStatus,
-                                           SourceEnvironment)
-from services.vnext.property_read_repository import \
-    PostgresPropertyReadRepository
+    SourceEnvironment,
+    SourceType,
+)
+from services.vnext.property_read_repository import PostgresPropertyReadRepository
+from services.vnext.spatial import (
+    API_INTERCHANGE_CRS,
+    GeometryType,
+    ParcelGeometry,
+    SpatialAuthority,
+    SpatialAvailability,
+    SpatialCoverage,
+    SpatialContractError,
+    SpatialCoverageStatus,
+    SpatialLayer,
+    SpatialLicense,
+    SpatialObservation,
+    SpatialObservationStatus,
+    SpatialOperand,
+    SpatialPrecision,
+    SpatialProvenance,
+    RefreshSemantics,
+    TemporalSemantics,
+    observation_evidence_draft,
+    parcel_geometry_evidence_draft,
+    parcel_geometry_from_source,
+)
+from services.vnext.spatial_repository import (
+    PARCEL_GEOMETRY_ROUTE,
+    SPATIAL_OBSERVATION_ROUTE,
+    PostgresSpatialRepository,
+)
 
 DATABASE_ENV = "VNEXT_RLS_POSTGRES_URL"
 DISPOSABLE_CONFIRMATION_ENV = "VNEXT_RLS_POSTGRES_DISPOSABLE"
@@ -73,6 +115,7 @@ MIGRATIONS = (
     ROOT / "database/migrations/015_vnext_identity_resolution_candidates.sql",
     ROOT / "database/migrations/016_vnext_identity_confirmation_case_links.sql",
     ROOT / "database/migrations/017_vnext_legacy_saved_case_import.sql",
+    ROOT / "database/migrations/018_add_vnext_spatial_foundation.sql",
 )
 
 WORKSPACE_A = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -200,14 +243,25 @@ def _prepared_database():
         admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
         admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
         _install_auth_contract(admin)
-        # Exercise the exact upgrade boundary: establish the approved Slice 6
-        # catalog first, prove Slice 7 is absent, then apply migration 017.
-        for migration in MIGRATIONS[:-1]:
+        # Exercise the Stage 1 boundary before applying the additive spatial
+        # migration used by this suite.
+        for migration in MIGRATIONS[:-2]:
             for statement in _statements(migration):
                 admin.execute(statement)
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT to_regclass('vnext_private.legacy_case_imports')"
-        ).fetchone()[0] is None
+            ).fetchone()[0]
+            is None
+        )
+        for statement in _statements(MIGRATIONS[-2]):
+            admin.execute(statement)
+        assert (
+            admin.execute(
+                "SELECT to_regclass('vnext_core.spatial_observations')"
+            ).fetchone()[0]
+            is None
+        )
         for statement in _statements(MIGRATIONS[-1]):
             admin.execute(statement)
         _seed(admin)
@@ -243,7 +297,10 @@ def _prepared_database():
                 admin.execute("ALTER ROLE vnext_api PASSWORD NULL")
             admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
             admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
-            if admin.execute("SELECT to_regclass('auth.users')").fetchone()[0] is not None:
+            if (
+                admin.execute("SELECT to_regclass('auth.users')").fetchone()[0]
+                is not None
+            ):
                 admin.execute(
                     "DELETE FROM auth.users WHERE id = ANY(%s)",
                     (list(USERS.values()),),
@@ -253,7 +310,9 @@ def _prepared_database():
             admin.close()
 
 
-def _visible_case_count(context: DatabasePrincipalContext, user: str, workspace_id: UUID) -> int:
+def _visible_case_count(
+    context: DatabasePrincipalContext, user: str, workspace_id: UUID
+) -> int:
     with context.transaction(_principal(USERS[user])) as connection:
         return int(
             connection.execute(
@@ -264,8 +323,10 @@ def _visible_case_count(context: DatabasePrincipalContext, user: str, workspace_
 
 
 def _assert_migration_catalog(admin) -> None:
-    assert admin.execute("SELECT current_database()").fetchone()[0].startswith(
-        "vnext_rls_test"
+    assert (
+        admin.execute("SELECT current_database()")
+        .fetchone()[0]
+        .startswith("vnext_rls_test")
     )
     assert admin.execute(
         "SELECT nspname FROM pg_namespace "
@@ -284,7 +345,9 @@ def _assert_migration_catalog(admin) -> None:
         "'audit_events', 'idempotency_records') "
         "ORDER BY namespace.nspname, relation.relname"
     ).fetchall()
-    assert [(schema, table, rls, forced) for schema, table, rls, forced, _ in tables] == [
+    assert [
+        (schema, table, rls, forced) for schema, table, rls, forced, _ in tables
+    ] == [
         ("vnext_core", "cases", True, True),
         ("vnext_core", "workspace_members", True, True),
         ("vnext_core", "workspaces", True, True),
@@ -371,7 +434,9 @@ def _assert_migration_catalog(admin) -> None:
     ]
 
 
-def _insert_is_denied(context: DatabasePrincipalContext, user: str, workspace_id: UUID) -> None:
+def _insert_is_denied(
+    context: DatabasePrincipalContext, user: str, workspace_id: UUID
+) -> None:
     import psycopg
 
     with pytest.raises(psycopg.errors.InsufficientPrivilege):
@@ -384,7 +449,9 @@ def _insert_is_denied(context: DatabasePrincipalContext, user: str, workspace_id
             )
 
 
-def _graph_node(connection, workspace_id: UUID, node_type: str, record_id: UUID) -> UUID:
+def _graph_node(
+    connection, workspace_id: UUID, node_type: str, record_id: UUID
+) -> UUID:
     return connection.execute(
         "SELECT property_graph_node_id FROM vnext_core.property_graph_nodes "
         "WHERE workspace_id = %s AND node_type = %s AND record_id = %s",
@@ -407,13 +474,69 @@ def _seed_property_graph_and_evidence(connection) -> dict[str, UUID]:
         ),
     )
     references = (
-        (ADDRESS_A_1, WORKSPACE_A, "address", "address-a-1", "Address A One", "tgos-address", "address-a-1"),
-        (ADDRESS_A_2, WORKSPACE_A, "address", "address-a-2", "Address A Two", "tgos-address", "address-a-2"),
-        (ADDRESS_B, WORKSPACE_B, "address", "address-b", "Address B", "tgos-address", "address-b"),
-        (PARCEL_A_1, WORKSPACE_A, "parcel", "parcel-a-1", "Parcel A One", "nlsc-cadastral", "parcel-a-1"),
-        (PARCEL_A_2, WORKSPACE_A, "parcel", "parcel-a-2", "Parcel A Two", "nlsc-cadastral", "parcel-a-2"),
-        (BUILDING_A_1, WORKSPACE_A, "building", "building-a-1", "Building A One", "nlsc-cadastral", "building-a-1"),
-        (BUILDING_A_2, WORKSPACE_A, "building", "building-a-2", "Building A Two", "nlsc-cadastral", "building-a-2"),
+        (
+            ADDRESS_A_1,
+            WORKSPACE_A,
+            "address",
+            "address-a-1",
+            "Address A One",
+            "tgos-address",
+            "address-a-1",
+        ),
+        (
+            ADDRESS_A_2,
+            WORKSPACE_A,
+            "address",
+            "address-a-2",
+            "Address A Two",
+            "tgos-address",
+            "address-a-2",
+        ),
+        (
+            ADDRESS_B,
+            WORKSPACE_B,
+            "address",
+            "address-b",
+            "Address B",
+            "tgos-address",
+            "address-b",
+        ),
+        (
+            PARCEL_A_1,
+            WORKSPACE_A,
+            "parcel",
+            "parcel-a-1",
+            "Parcel A One",
+            "nlsc-cadastral",
+            "parcel-a-1",
+        ),
+        (
+            PARCEL_A_2,
+            WORKSPACE_A,
+            "parcel",
+            "parcel-a-2",
+            "Parcel A Two",
+            "nlsc-cadastral",
+            "parcel-a-2",
+        ),
+        (
+            BUILDING_A_1,
+            WORKSPACE_A,
+            "building",
+            "building-a-1",
+            "Building A One",
+            "nlsc-cadastral",
+            "building-a-1",
+        ),
+        (
+            BUILDING_A_2,
+            WORKSPACE_A,
+            "building",
+            "building-a-2",
+            "Building A Two",
+            "nlsc-cadastral",
+            "building-a-2",
+        ),
     )
     with connection.cursor() as cursor:
         cursor.executemany(
@@ -423,7 +546,11 @@ def _seed_property_graph_and_evidence(connection) -> dict[str, UUID]:
             "confidence, confidence_method, reference_status, created_by_user_id"
             ") VALUES (%s, %s, %s, %s, %s, %s, 'official', 'production', "
             "%s, 0.8, 'fixture-seed', 'observed', %s)",
-            [row + (USERS["owner"] if row[1] == WORKSPACE_A else USERS["workspace_b"],) for row in references],
+            [
+                row
+                + (USERS["owner"] if row[1] == WORKSPACE_A else USERS["workspace_b"],)
+                for row in references
+            ],
         )
 
     nodes = {
@@ -439,13 +566,55 @@ def _seed_property_graph_and_evidence(connection) -> dict[str, UUID]:
     }
 
     relation_rows = (
-        (nodes["property_a"], nodes["address_a_1"], "property_address", "directed", "proposed"),
-        (nodes["property_a"], nodes["address_a_2"], "property_address", "directed", "disputed"),
-        (nodes["property_a"], nodes["parcel_a_1"], "property_parcel", "directed", "proposed"),
-        (nodes["property_a"], nodes["parcel_a_2"], "property_parcel", "directed", "proposed"),
-        (nodes["parcel_a_1"], nodes["building_a_1"], "parcel_building", "bidirectional", "proposed"),
-        (nodes["parcel_a_1"], nodes["building_a_2"], "parcel_building", "bidirectional", "proposed"),
-        (nodes["parcel_a_2"], nodes["building_a_1"], "parcel_building", "bidirectional", "proposed"),
+        (
+            nodes["property_a"],
+            nodes["address_a_1"],
+            "property_address",
+            "directed",
+            "proposed",
+        ),
+        (
+            nodes["property_a"],
+            nodes["address_a_2"],
+            "property_address",
+            "directed",
+            "disputed",
+        ),
+        (
+            nodes["property_a"],
+            nodes["parcel_a_1"],
+            "property_parcel",
+            "directed",
+            "proposed",
+        ),
+        (
+            nodes["property_a"],
+            nodes["parcel_a_2"],
+            "property_parcel",
+            "directed",
+            "proposed",
+        ),
+        (
+            nodes["parcel_a_1"],
+            nodes["building_a_1"],
+            "parcel_building",
+            "bidirectional",
+            "proposed",
+        ),
+        (
+            nodes["parcel_a_1"],
+            nodes["building_a_2"],
+            "parcel_building",
+            "bidirectional",
+            "proposed",
+        ),
+        (
+            nodes["parcel_a_2"],
+            nodes["building_a_1"],
+            "parcel_building",
+            "bidirectional",
+            "proposed",
+        ),
     )
     with connection.cursor() as cursor:
         cursor.executemany(
@@ -913,7 +1082,9 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
             ).fetchone()[0]
             assert role == ("vnext_api", False, False, False)
             assert owns_vnext is False
-            assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["owner"]
+            assert (
+                connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["owner"]
+            )
 
         assert _visible_case_count(context, "none", WORKSPACE_A) == 0
         _insert_is_denied(context, "none", WORKSPACE_A)
@@ -995,10 +1166,17 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
         # Commit clears the transaction-local principal before the sole pooled
         # connection is checked out again.
         with context.transaction(_principal(USERS["member"])) as connection:
-            physical_connection = connection.execute("SELECT pg_backend_pid()").fetchone()[0]
-            assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["member"]
+            physical_connection = connection.execute(
+                "SELECT pg_backend_pid()"
+            ).fetchone()[0]
+            assert (
+                connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["member"]
+            )
         with pool.connection() as connection:
-            assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
+            assert (
+                connection.execute("SELECT pg_backend_pid()").fetchone()[0]
+                == physical_connection
+            )
             committed = connection.execute(
                 "SELECT current_setting('request.jwt.claim.sub', true)"
             ).fetchone()[0]
@@ -1010,11 +1188,20 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
 
         with pytest.raises(_RollbackProof):
             with context.transaction(_principal(USERS["owner"])) as connection:
-                assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
-                assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["owner"]
+                assert (
+                    connection.execute("SELECT pg_backend_pid()").fetchone()[0]
+                    == physical_connection
+                )
+                assert (
+                    connection.execute("SELECT auth.uid()").fetchone()[0]
+                    == USERS["owner"]
+                )
                 raise _RollbackProof
         with pool.connection() as connection:
-            assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
+            assert (
+                connection.execute("SELECT pg_backend_pid()").fetchone()[0]
+                == physical_connection
+            )
             rolled_back = connection.execute(
                 "SELECT current_setting('request.jwt.claim.sub', true)"
             ).fetchone()[0]
@@ -1023,12 +1210,21 @@ def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:
 
         # The same physical connection now carries B, never A.
         with context.transaction(_principal(USERS["workspace_b"])) as connection:
-            assert connection.execute("SELECT pg_backend_pid()").fetchone()[0] == physical_connection
-            assert connection.execute("SELECT auth.uid()").fetchone()[0] == USERS["workspace_b"]
-            assert connection.execute(
+            assert (
+                connection.execute("SELECT pg_backend_pid()").fetchone()[0]
+                == physical_connection
+            )
+            assert (
+                connection.execute("SELECT auth.uid()").fetchone()[0]
+                == USERS["workspace_b"]
+            )
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.cases WHERE workspace_id = %s",
                 (WORKSPACE_B,),
-            ).fetchone()[0] == 1
+                ).fetchone()[0]
+                == 1
+            )
 
 
 def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> None:
@@ -1044,17 +1240,23 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
             "WHERE workspace_id = %s GROUP BY reference_type ORDER BY reference_type",
             (WORKSPACE_A,),
         ).fetchall() == [("address", 2), ("building", 2), ("parcel", 2)]
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_relations "
             "WHERE workspace_id = %s AND relation_type = 'parcel_building'",
             (WORKSPACE_A,),
-        ).fetchone()[0] == 3
-        assert admin.execute(
+            ).fetchone()[0]
+            == 3
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_relations "
             "WHERE workspace_id = %s AND relation_type = 'parcel_building' "
             "AND to_node_id = %s",
             (WORKSPACE_A, nodes["building_a_1"]),
-        ).fetchone()[0] == 2
+            ).fetchone()[0]
+            == 2
+        )
         assert set(
             row[0]
             for row in admin.execute(
@@ -1103,11 +1305,14 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
             "SELECT coverage_status FROM vnext_core.evidence_items WHERE evidence_id = %s",
             (EVIDENCE_LIMITED,),
         ).fetchone() == ("partial",)
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.evidence_lineage "
             "WHERE workspace_id = %s AND child_evidence_id = %s",
             (WORKSPACE_A, EVIDENCE_DERIVED),
-        ).fetchone()[0] == 2
+            ).fetchone()[0]
+            == 2
+        )
         assert admin.execute(
             "SELECT evidence_version, supersedes_evidence_id FROM vnext_core.evidence_items "
             "WHERE evidence_id = %s",
@@ -1115,12 +1320,18 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
         ).fetchone() == (2, EVIDENCE_AVAILABLE)
 
         with context.transaction(_principal(USERS["none"])) as connection:
-            assert connection.execute(
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.property_entities"
-            ).fetchone()[0] == 0
-            assert connection.execute(
+                ).fetchone()[0]
+                == 0
+            )
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.evidence_items"
-            ).fetchone()[0] == 0
+                ).fetchone()[0]
+                == 0
+            )
         with pytest.raises(psycopg.errors.InsufficientPrivilege):
             with context.transaction(_principal(USERS["none"])) as connection:
                 connection.execute(
@@ -1131,10 +1342,13 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
                 )
 
         with context.transaction(_principal(USERS["viewer"])) as connection:
-            assert connection.execute(
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
                 (WORKSPACE_A,),
-            ).fetchone()[0] == 1
+                ).fetchone()[0]
+                == 1
+            )
             assert connection.execute(
                 "SELECT source_type, evidence_status FROM vnext_core.evidence_items "
                 "WHERE evidence_id = %s",
@@ -1159,11 +1373,14 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
                     (property_id, WORKSPACE_A, f"{role} unverified", USERS[role]),
                 ).fetchone()
                 assert inserted == ("unverified", 1)
-                assert connection.execute(
+                assert (
+                    connection.execute(
                     "SELECT count(*) FROM vnext_core.property_graph_nodes "
                     "WHERE workspace_id = %s AND node_type = 'property' AND record_id = %s",
                     (WORKSPACE_A, property_id),
-                ).fetchone()[0] == 1
+                    ).fetchone()[0]
+                    == 1
+                )
 
         with context.transaction(_principal(USERS["member"])) as connection:
             inserted = connection.execute(
@@ -1180,14 +1397,20 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
             assert inserted == ("unknown",)
 
         with context.transaction(_principal(USERS["member"])) as connection:
-            assert connection.execute(
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
                 (WORKSPACE_B,),
-            ).fetchone()[0] == 0
-            assert connection.execute(
+                ).fetchone()[0]
+                == 0
+            )
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.property_graph_nodes WHERE workspace_id = %s",
                 (WORKSPACE_B,),
-            ).fetchone()[0] == 0
+                ).fetchone()[0]
+                == 0
+            )
         with pytest.raises(psycopg.Error):
             with context.transaction(_principal(USERS["member"])) as connection:
                 connection.execute(
@@ -1205,10 +1428,13 @@ def test_real_postgres_property_graph_evidence_rls_history_and_cardinality() -> 
                 )
 
         with context.transaction(_principal(USERS["revoked"])) as connection:
-            assert connection.execute(
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.evidence_items WHERE workspace_id = %s",
                 (WORKSPACE_A,),
-            ).fetchone()[0] == 0
+                ).fetchone()[0]
+                == 0
+            )
         with pytest.raises(psycopg.errors.InsufficientPrivilege):
             with context.transaction(_principal(USERS["revoked"])) as connection:
                 connection.execute(
@@ -1295,15 +1521,21 @@ def test_real_postgres_identity_resolution_candidate_rls_and_history() -> None:
             {"left": "fixture-left", "right": "fixture-right"},
             "requires_review",
         )
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.identity_candidates "
             "WHERE identity_resolution_id = %s",
             (seeded["resolution"],),
-        ).fetchone()[0] == 2
-        assert admin.execute(
+            ).fetchone()[0]
+            == 2
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
-        ).fetchone()[0] == property_count_before
+            ).fetchone()[0]
+            == property_count_before
+        )
         assert admin.execute(
             "SELECT identity_status FROM vnext_core.cases WHERE case_id = %s",
             (CASE_A,),
@@ -1316,23 +1548,35 @@ def test_real_postgres_identity_resolution_candidate_rls_and_history() -> None:
             "identity_conflicts",
         ):
             with context.transaction(_principal(USERS["none"])) as connection:
-                assert connection.execute(
+                assert (
+                    connection.execute(
                     f"SELECT count(*) FROM vnext_core.{table}"
-                ).fetchone()[0] == 0
+                    ).fetchone()[0]
+                    == 0
+                )
             with context.transaction(_principal(USERS["revoked"])) as connection:
-                assert connection.execute(
+                assert (
+                    connection.execute(
                     f"SELECT count(*) FROM vnext_core.{table}"
-                ).fetchone()[0] == 0
+                    ).fetchone()[0]
+                    == 0
+                )
             with context.transaction(_principal(USERS["viewer"])) as connection:
-                assert connection.execute(
+                assert (
+                    connection.execute(
                     f"SELECT count(*) FROM vnext_core.{table} WHERE workspace_id = %s",
                     (WORKSPACE_A,),
-                ).fetchone()[0] >= 1
+                    ).fetchone()[0]
+                    >= 1
+                )
             with context.transaction(_principal(USERS["member"])) as connection:
-                assert connection.execute(
+                assert (
+                    connection.execute(
                     f"SELECT count(*) FROM vnext_core.{table} WHERE workspace_id = %s",
                     (WORKSPACE_B,),
-                ).fetchone()[0] == 0
+                    ).fetchone()[0]
+                    == 0
+                )
 
         denied_resolution = (
             "INSERT INTO vnext_core.identity_resolutions ("
@@ -1462,10 +1706,13 @@ def test_real_postgres_identity_resolution_repository_round_trip() -> None:
         assert read.candidates[0].supporting_reference_ids == (ADDRESS_A_1,)
         assert read.candidates[0].possible_existing_property_entity_id == PROPERTY_A
         assert read.conflicts == ()
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
-        ).fetchone()[0] == property_count_before
+            ).fetchone()[0]
+            == property_count_before
+        )
 
 
 def test_real_postgres_slice5_reads_and_idempotent_resolution_command() -> None:
@@ -1508,10 +1755,13 @@ def test_real_postgres_slice5_reads_and_idempotent_resolution_command() -> None:
             if position is None:
                 break
         assert len({item.property_relation_id for item in proposed_relations}) == 7
-        assert sum(
+        assert (
+            sum(
             item.relation_type.value == "parcel_building"
             for item in proposed_relations
-        ) == 3
+            )
+            == 3
+        )
 
         evidence = []
         evidence_position = None
@@ -1546,11 +1796,15 @@ def test_real_postgres_slice5_reads_and_idempotent_resolution_command() -> None:
                 )
             assert hidden.value.code is ErrorCode.NOT_FOUND
 
-        resolution_repository = PostgresIdentityResolutionRepository(context, authorizer)
+        resolution_repository = PostgresIdentityResolutionRepository(
+            context, authorizer
+        )
         idempotency_repository = PostgresIdempotencyRepository(context, authorizer)
         service = IdentityResolutionApplicationService(
             authorizer=authorizer,
-            engine=IdentityResolutionEngine((), clock=lambda: datetime.now(timezone.utc)),
+            engine=IdentityResolutionEngine(
+                (), clock=lambda: datetime.now(timezone.utc)
+            ),
             resolution_repository=resolution_repository,
             idempotency_repository=idempotency_repository,
             case_repository=PostgresCaseRepository(context, authorizer),
@@ -1878,11 +2132,13 @@ def _assert_slice6_catalog(admin) -> None:
         "JOIN pg_namespace namespace ON namespace.oid = procedure.pronamespace "
         "WHERE namespace.nspname = 'vnext_private' "
         "AND procedure.proname = ANY(%s)",
-        ([
+        (
+            [
             "guard_identity_decision",
             "guard_confirmed_property_relation",
             "guard_case_property_link",
-        ],),
+            ],
+        ),
     ).fetchall()
     assert len(functions) == 3
     assert all(not security_definer for _name, security_definer in functions)
@@ -1914,9 +2170,7 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
             evidence_status="unavailable",
             case_id=None,
         )
-        stale = _seed_slice6_resolution(
-            admin, evidence_status="stale", case_id=None
-        )
+        stale = _seed_slice6_resolution(admin, evidence_status="stale", case_id=None)
         conflicting_evidence = _seed_slice6_resolution(
             admin, evidence_status="conflicting", case_id=None
         )
@@ -1952,35 +2206,50 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
             (WORKSPACE_A,),
         ).fetchone()[0]
         assert property_count_before == 0
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_relations "
             "WHERE workspace_id = %s AND relation_status = 'confirmed'",
             (WORKSPACE_A,),
-        ).fetchone()[0] == 0
-        assert admin.execute(
+            ).fetchone()[0]
+            == 0
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.identity_decisions "
             "WHERE identity_resolution_id = %s",
             (single_confident["resolution_id"],),
-        ).fetchone()[0] == 0
+            ).fetchone()[0]
+            == 0
+        )
         assert admin.execute(
             "SELECT identity_status, version FROM vnext_core.cases WHERE case_id = %s",
             (CASE_A,),
         ).fetchone() == ("unverified", 1)
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
             (CASE_A,),
-        ).fetchone()[0] == 0
+            ).fetchone()[0]
+            == 0
+        )
 
         # Missing, invalid/unmapped, revoked, and cross-workspace principals see no rows.
         with pool.connection() as connection:
-            assert connection.execute(
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.identity_decisions"
-            ).fetchone()[0] == 0
+                ).fetchone()[0]
+                == 0
+            )
             connection.rollback()
         with context.transaction(_principal(uuid4())) as connection:
-            assert connection.execute(
+            assert (
+                connection.execute(
                 "SELECT count(*) FROM vnext_core.identity_resolutions"
-            ).fetchone()[0] == 0
+                ).fetchone()[0]
+                == 0
+            )
         for role in ("none", "viewer", "member", "manager", "revoked"):
             with pytest.raises(VNextError) as denied:
                 service.confirm(
@@ -1998,10 +2267,13 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
                 else ErrorCode.PERMISSION_DENIED
             )
             assert denied.value.code is expected
-            assert admin.execute(
+            assert (
+                admin.execute(
                 "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
                 (WORKSPACE_A,),
-            ).fetchone()[0] == property_count_before
+                ).fetchone()[0]
+                == property_count_before
+            )
         with pytest.raises(VNextError) as cross_workspace:
             service.confirm(
                 principal=_principal(USERS["workspace_b"]),
@@ -2051,10 +2323,13 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
                     request_id="real-slice6-candidate-scope",
                 )
             assert candidate_scope.value.code is ErrorCode.NOT_FOUND
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
-        ).fetchone()[0] == property_count_before
+            ).fetchone()[0]
+            == property_count_before
+        )
 
         fail_closed = (
             (demo, ErrorCode.PERMISSION_DENIED, "demo"),
@@ -2093,15 +2368,21 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
                     request_id=f"real-slice6-fail-{label}",
                 )
             assert failed.value.code is error_code
-            assert admin.execute(
+            assert (
+                admin.execute(
                 "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
                 (WORKSPACE_A,),
-            ).fetchone()[0] == property_count_before
-            assert admin.execute(
+                ).fetchone()[0]
+                == property_count_before
+            )
+            assert (
+                admin.execute(
                 "SELECT count(*) FROM vnext_core.property_relations "
                 "WHERE workspace_id = %s AND relation_status = 'confirmed'",
                 (WORKSPACE_A,),
-            ).fetchone()[0] == 0
+                ).fetchone()[0]
+                == 0
+            )
 
         selected_rank_two = good["candidate_ids"][1]
         confirmed = service.confirm(
@@ -2118,11 +2399,17 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
         assert confirmed.decision.identity_candidate_id == selected_rank_two
         assert float(confirmed.decision.confidence_snapshot) == 0.8
         assert confirmed.resolution.candidates[0].confidence == 1.0
-        assert confirmed.resolution.candidates[0].identity_candidate_id != selected_rank_two
-        assert admin.execute(
+        assert (
+            confirmed.resolution.candidates[0].identity_candidate_id
+            != selected_rank_two
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
-        ).fetchone()[0] == property_count_before + 1
+            ).fetchone()[0]
+            == property_count_before + 1
+        )
         relation = admin.execute(
             "SELECT relation_status, confirmed_by_user_id, confirmed_at, "
             "identity_confirmation_id, source_type, source_environment "
@@ -2140,10 +2427,13 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
             "SELECT identity_status, version FROM vnext_core.cases WHERE case_id = %s",
             (CASE_A,),
         ).fetchone() == ("unverified", 1)
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
             (CASE_A,),
-        ).fetchone()[0] == 0
+            ).fetchone()[0]
+            == 0
+        )
 
         replay = service.confirm(
             principal=owner,
@@ -2155,16 +2445,25 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
             request_id="real-slice6-confirm-replay",
         )
         assert replay.replayed is True
-        assert replay.decision.identity_decision_id == confirmed.decision.identity_decision_id
-        assert admin.execute(
+        assert (
+            replay.decision.identity_decision_id
+            == confirmed.decision.identity_decision_id
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
-        ).fetchone()[0] == property_count_before + 1
-        assert admin.execute(
+            ).fetchone()[0]
+            == property_count_before + 1
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_relations "
             "WHERE workspace_id = %s AND relation_status = 'confirmed'",
             (WORKSPACE_A,),
-        ).fetchone()[0] == 1
+            ).fetchone()[0]
+            == 1
+        )
         with pytest.raises(VNextError) as conflicting_second:
             service.confirm(
                 principal=owner,
@@ -2180,9 +2479,9 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
         read_authorizer = WorkspaceAuthorizer(
             PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
         )
-        property_read = PostgresPropertyReadRepository(context, read_authorizer).get_property(
-            principal=owner, property_entity_id=property_id
-        )
+        property_read = PostgresPropertyReadRepository(
+            context, read_authorizer
+        ).get_property(principal=owner, property_entity_id=property_id)
         assert property_read.entity_status.value == "unverified"
         assert property_read.confirmation_id == confirmed.decision.identity_decision_id
         assert property_read.confirmed_by_user_id == USERS["owner"]
@@ -2216,11 +2515,17 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
         assert attached.case.identity_status.value == "confirmed"
         assert attached.case.version == 2
         assert attached_replay.replayed is True
-        assert attached_replay.link.case_property_link_id == attached.link.case_property_link_id
-        assert admin.execute(
+        assert (
+            attached_replay.link.case_property_link_id
+            == attached.link.case_property_link_id
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
             (CASE_A,),
-        ).fetchone()[0] == 1
+            ).fetchone()[0]
+            == 1
+        )
         with pytest.raises(VNextError) as stale_case:
             service.attach_resolution(
                 principal=owner,
@@ -2249,10 +2554,13 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
         )
         assert existing_confirmed.decision.property_entity_id == property_id
         assert existing_confirmed.decision.created_new_property is False
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
-        ).fetchone()[0] == property_count_before + 1
+            ).fetchone()[0]
+            == property_count_before + 1
+        )
         reattached = service.attach_resolution(
             principal=owner,
             case_id=CASE_A,
@@ -2306,24 +2614,36 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
         )
         assert rejection.decision.decision_type == "candidate_rejected"
         assert rejection_replay.replayed is True
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.identity_decisions "
             "WHERE identity_resolution_id = %s AND decision_type = 'candidate_rejected'",
             (rejected["resolution_id"],),
-        ).fetchone()[0] == 1
-        assert admin.execute(
+            ).fetchone()[0]
+            == 1
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.evidence_items WHERE evidence_id = %s",
             (rejected["evidence_id"],),
-        ).fetchone()[0] == evidence_before
-        assert admin.execute(
+            ).fetchone()[0]
+            == evidence_before
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.resolution_attempts "
             "WHERE identity_resolution_id = %s",
             (rejected["resolution_id"],),
-        ).fetchone()[0] == attempts_before
-        assert admin.execute(
+            ).fetchone()[0]
+            == attempts_before
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_entities WHERE workspace_id = %s",
             (WORKSPACE_A,),
-        ).fetchone()[0] == property_before_reject
+            ).fetchone()[0]
+            == property_before_reject
+        )
         with pytest.raises(VNextError) as rejected_confirm:
             service.confirm(
                 principal=owner,
@@ -2378,11 +2698,17 @@ def test_real_postgres_slice6_human_confirmation_case_commands_and_invariants() 
         }
         assert "idempotency_key" not in idempotency_columns
         assert "request_body" not in idempotency_columns
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_private.idempotency_records "
             "WHERE idempotency_key_hash = %s OR request_fingerprint = %s",
-            ("real-slice6-confirm-success-0001", "real-slice6-confirm-success-0001"),
-        ).fetchone()[0] == 0
+                (
+                    "real-slice6-confirm-success-0001",
+                    "real-slice6-confirm-success-0001",
+                ),
+            ).fetchone()[0]
+            == 0
+        )
 
 
 def _slice7_import_stack(
@@ -2467,10 +2793,13 @@ def _assert_slice7_catalog(admin) -> None:
         "uq_vnext_legacy_import_idempotency",
         "uq_vnext_legacy_import_scoped_client",
     } <= constraints
-    assert admin.execute(
+    assert (
+        admin.execute(
         "SELECT count(*) FROM pg_indexes WHERE schemaname = 'vnext_private' "
         "AND indexname = 'idx_vnext_legacy_case_imports_actor'"
-    ).fetchone()[0] == 1
+        ).fetchone()[0]
+        == 1
+    )
     assert admin.execute(
         "SELECT procedure.prosecdef FROM pg_proc procedure "
         "JOIN pg_namespace namespace ON namespace.oid = procedure.pronamespace "
@@ -2513,7 +2842,9 @@ def _case_terrain_evidence(admin, case_id: UUID):
     ).fetchone()
 
 
-def test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants() -> None:
+def test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants() -> (
+    None
+):
     import psycopg
 
     with _prepared_database() as (admin, _pool, context):
@@ -2573,15 +2904,15 @@ def test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants(
                 workspace_id=WORKSPACE_A,
                 legacy_format="saved_case_v1",
                 legacy_client_id=f"browser-{role}-case-1",
-                payload=_slice7_payload(
-                    f"Imported {role}", terrain_states[role]
-                ),
+                payload=_slice7_payload(f"Imported {role}", terrain_states[role]),
                 import_mode="copy",
                 consent=True,
                 idempotency_key=f"real-slice7-import-{role}-0001",
                 request_id=f"real-slice7-import-{role}",
             )
-            assert created[role].result.case.identity_status.value == "legacy_unverified"
+            assert (
+                created[role].result.case.identity_status.value == "legacy_unverified"
+            )
             assert created[role].result.case.version == 1
             assert created[role].replayed is False
 
@@ -2627,9 +2958,7 @@ def test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants(
             )
         assert duplicate.value.code is ErrorCode.DUPLICATE_LEGACY_IMPORT
 
-        assert _case_terrain_evidence(
-            admin, created["member"].result.case.case_id
-        ) == (
+        assert _case_terrain_evidence(admin, created["member"].result.case.case_id) == (
             "limited",
             "partial",
             {
@@ -2643,33 +2972,50 @@ def test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants(
         assert _case_terrain_evidence(
             admin, created["manager"].result.case.case_id
         ) == ("unknown", "unknown", None)
-        assert _case_terrain_evidence(
-            admin, created["admin"].result.case.case_id
-        ) == ("unavailable", "unavailable", None)
+        assert _case_terrain_evidence(admin, created["admin"].result.case.case_id) == (
+            "unavailable",
+            "unavailable",
+            None,
+        )
 
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.cases WHERE workspace_id = %s "
             "AND identity_status = 'legacy_unverified'",
             (WORKSPACE_A,),
-        ).fetchone()[0] == 4
-        assert admin.execute(
+            ).fetchone()[0]
+            == 4
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_private.legacy_case_imports"
-        ).fetchone()[0] == 4
-        assert admin.execute(
+            ).fetchone()[0]
+            == 4
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_private.audit_events "
             "WHERE event_type = 'legacy_case.imported'"
-        ).fetchone()[0] == 4
+            ).fetchone()[0]
+            == 4
+        )
 
         for role in ("none", "viewer", "revoked"):
             with context.transaction(_principal(USERS[role])) as connection:
-                assert connection.execute(
+                assert (
+                    connection.execute(
                     "SELECT count(*) FROM vnext_private.legacy_case_imports"
-                ).fetchone()[0] == 0
+                    ).fetchone()[0]
+                    == 0
+                )
         for role in ("member", "manager", "admin", "owner"):
             with context.transaction(_principal(USERS[role])) as connection:
-                assert connection.execute(
+                assert (
+                    connection.execute(
                     "SELECT count(*) FROM vnext_private.legacy_case_imports"
-                ).fetchone()[0] == 1
+                    ).fetchone()[0]
+                    == 1
+                )
 
         with pytest.raises(psycopg.errors.InsufficientPrivilege):
             with context.transaction(_principal(USERS["owner"])) as connection:
@@ -2809,7 +3155,9 @@ def _race(*actions):
         return [future.result(timeout=30) for future in futures]
 
 
-def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates() -> None:
+def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates() -> (
+    None
+):
     with _prepared_database() as (admin, _pool, context):
         candidates_race = _seed_slice6_resolution(admin, case_id=None)
         terminal_race = _seed_slice6_resolution(admin, case_id=None)
@@ -2843,23 +3191,31 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
         )
         admin.commit()
         assert [status for status, _result in different_candidates].count("ok") == 1
-        candidate_errors = [result for status, result in different_candidates if status == "error"]
+        candidate_errors = [
+            result for status, result in different_candidates if status == "error"
+        ]
         assert len(candidate_errors) == 1
         assert isinstance(candidate_errors[0], VNextError)
         assert candidate_errors[0].code is ErrorCode.VERSION_CONFLICT
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.identity_decisions "
             "WHERE identity_resolution_id = %s",
             (candidates_race["resolution_id"],),
-        ).fetchone()[0] == 1
-        assert admin.execute(
+            ).fetchone()[0]
+            == 1
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.property_relations relation "
             "JOIN vnext_core.identity_decisions decision "
             "ON decision.identity_decision_id = relation.identity_confirmation_id "
             "WHERE decision.identity_resolution_id = %s "
             "AND relation.relation_status = 'confirmed'",
             (candidates_race["resolution_id"],),
-        ).fetchone()[0] == 1
+            ).fetchone()[0]
+            == 1
+        )
 
         confirm_vs_reject = _race(
             lambda: service.confirm(
@@ -2883,7 +3239,9 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
         )
         admin.commit()
         assert [status for status, _result in confirm_vs_reject].count("ok") == 1
-        terminal_errors = [result for status, result in confirm_vs_reject if status == "error"]
+        terminal_errors = [
+            result for status, result in confirm_vs_reject if status == "error"
+        ]
         assert len(terminal_errors) == 1
         assert isinstance(terminal_errors[0], VNextError)
         assert terminal_errors[0].code is ErrorCode.VERSION_CONFLICT
@@ -2895,11 +3253,14 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
         # Resolution inputs remain immutable; the append-only decision is the
         # authoritative terminal transition projected by the repository.
         assert terminal in (("confirmed", 2), ("resolution_rejected", 2))
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.identity_decisions "
             "WHERE identity_resolution_id = %s",
             (terminal_race["resolution_id"],),
-        ).fetchone()[0] == 1
+            ).fetchone()[0]
+            == 1
+        )
 
         replay_results = _race(
             *(
@@ -2919,7 +3280,8 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
         assert any(status == "ok" for status, _result in replay_results)
         assert all(
             status == "ok"
-            or isinstance(result, VNextError) and result.code is ErrorCode.MAINTENANCE
+            or isinstance(result, VNextError)
+            and result.code is ErrorCode.MAINTENANCE
             for status, result in replay_results
         )
         replay = service.confirm(
@@ -2932,16 +3294,22 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
             request_id="slice9-race-idempotent-replay",
         )
         assert replay.replayed is True
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.identity_decisions "
             "WHERE identity_resolution_id = %s",
             (replay_race["resolution_id"],),
-        ).fetchone()[0] == 1
-        assert admin.execute(
+            ).fetchone()[0]
+            == 1
+        )
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_private.idempotency_records "
             "WHERE canonical_route = %s",
             (f"/v1/property-resolutions/{replay_race['resolution_id']}/confirm",),
-        ).fetchone()[0] == 1
+            ).fetchone()[0]
+            == 1
+        )
 
         for index, seeded in enumerate((attach_first, attach_second), start=1):
             service.confirm(
@@ -2973,7 +3341,9 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
         )
         admin.commit()
         assert [status for status, _result in attachments].count("ok") == 1
-        attachment_errors = [result for status, result in attachments if status == "error"]
+        attachment_errors = [
+            result for status, result in attachments if status == "error"
+        ]
         assert len(attachment_errors) == 1
         assert isinstance(attachment_errors[0], VNextError)
         assert attachment_errors[0].code is ErrorCode.VERSION_CONFLICT
@@ -2981,10 +3351,13 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
             "SELECT identity_status, version FROM vnext_core.cases WHERE case_id = %s",
             (CASE_A,),
         ).fetchone() == ("confirmed", 2)
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_core.case_property_links WHERE case_id = %s",
             (CASE_A,),
-        ).fetchone()[0] == 1
+            ).fetchone()[0]
+            == 1
+        )
 
         import_service = _slice7_import_stack(context)
         import_count_before = admin.execute(
@@ -3017,10 +3390,1290 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
         )
         admin.commit()
         assert [status for status, _result in duplicate_imports].count("ok") == 1
-        import_errors = [result for status, result in duplicate_imports if status == "error"]
+        import_errors = [
+            result for status, result in duplicate_imports if status == "error"
+        ]
         assert len(import_errors) == 1
         assert isinstance(import_errors[0], VNextError)
         assert import_errors[0].code is ErrorCode.DUPLICATE_LEGACY_IMPORT
-        assert admin.execute(
+        assert (
+            admin.execute(
             "SELECT count(*) FROM vnext_private.legacy_case_imports"
-        ).fetchone()[0] == import_count_before + 1
+            ).fetchone()[0]
+            == import_count_before + 1
+        )
+
+
+def _spatial_coverage(
+    status: SpatialCoverageStatus = SpatialCoverageStatus.COMPLETE,
+    *,
+    gaps: tuple[str, ...] = (),
+) -> SpatialCoverage:
+    return SpatialCoverage(
+        status=status,
+        geography={"kind": "synthetic_extent", "value": "slice1-local"},
+        temporal={"status": "known", "as_of": "2026-09-08"},
+        subject_scope="parcel",
+        fields=("geometry", "layer.observation"),
+        gaps=gaps,
+    )
+
+
+def _spatial_license() -> SpatialLicense:
+    return SpatialLicense(
+        status=LicenseStatus.NOT_APPLICABLE,
+        license_id="synthetic-local-test",
+        attribution="Synthetic local PostgreSQL fixture",
+        commercial_use="not_applicable",
+        redistribution="test_only",
+    )
+
+
+def _spatial_provenance(
+    evidence_id: UUID,
+    source_record_id: str,
+) -> SpatialProvenance:
+    return SpatialProvenance(
+        source_id="vnext-test",
+        source_type=SourceType.TEST,
+        authority=SpatialAuthority.SYNTHETIC,
+        environment=SourceEnvironment.TEST,
+        provider_id="synthetic-spatial-provider",
+        provider_version="fixture-v1",
+        retrieved_at=datetime(2026, 9, 8, 4, 5, 6, tzinfo=timezone.utc),
+        effective_at=datetime(2026, 9, 8, 0, 0, 0, tzinfo=timezone.utc),
+        evidence_id=evidence_id,
+        source_record_id=source_record_id,
+    )
+
+
+def _parcel_geometry(
+    *,
+    geometry_id: UUID,
+    parcel_id: UUID,
+    evidence_id: UUID,
+    source_record_id: str,
+    version: int = 1,
+    supersedes_geometry_id: UUID | None = None,
+    east_shift: float = 0,
+) -> ParcelGeometry:
+    west = 121.55 + east_shift
+    east = 121.551 + east_shift
+    return parcel_geometry_from_source(
+        geometry_id=geometry_id,
+        parcel_identity_reference_id=parcel_id,
+        source_operand=SpatialOperand(
+            feature_id=f"parcel-{geometry_id}",
+            geometry={
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [west, 25.03],
+                        [east, 25.03],
+                        [east, 25.031],
+                        [west, 25.031],
+                        [west, 25.03],
+                    ]
+                ],
+            },
+            crs=API_INTERCHANGE_CRS,
+        ),
+        precision=SpatialPrecision(0.25, "meters", "provider_reported"),
+        tolerance=0.5,
+        tolerance_unit="meters",
+        geometry_source="provider_observation",
+        coverage=_spatial_coverage(),
+        provenance=_spatial_provenance(evidence_id, source_record_id),
+        effective_at=datetime(2026, 9, 8, 0, 0, 0, tzinfo=timezone.utc),
+        valid_from=datetime(2026, 9, 8, 0, 0, 0, tzinfo=timezone.utc),
+        version=version,
+        supersedes_geometry_id=supersedes_geometry_id,
+    )
+
+
+def _spatial_layer() -> SpatialLayer:
+    selected_license = _spatial_license()
+    return SpatialLayer(
+        layer_id=UUID("70000000-0000-4000-8000-000000000001"),
+        layer_key="synthetic.parcel-context",
+        layer_version=1,
+        title="Synthetic parcel context",
+        category="parcel_context",
+        provider_id="synthetic-spatial-provider",
+        provider_version="fixture-v1",
+        source_id="vnext-test",
+        source_type=SourceType.TEST,
+        source_environment=SourceEnvironment.TEST,
+        authority=SpatialAuthority.SYNTHETIC,
+        geometry_types=frozenset({GeometryType.POLYGON}),
+        source_crs=(API_INTERCHANGE_CRS,),
+        supported_crs=(API_INTERCHANGE_CRS,),
+        coverage=_spatial_coverage(),
+        temporal_semantics=TemporalSemantics.SNAPSHOT,
+        refresh_semantics=RefreshSemantics.IMMUTABLE_RELEASE,
+        license=selected_license,
+        attribution=selected_license.attribution,
+        evidence_requirements=("evidence_id", "retrieved_at", "coverage"),
+        provenance_requirements=(
+            "source_crs",
+            "normalized_crs",
+            "processing_lineage",
+        ),
+        availability=SpatialAvailability.LIMITED,
+        limitations=("Synthetic local test layer; never production authority.",),
+    )
+
+
+def _seed_spatial_layer(admin, layer: SpatialLayer) -> None:
+    crs = [
+        {
+            "identifier": API_INTERCHANGE_CRS.identifier,
+            "coordinate_order": API_INTERCHANGE_CRS.coordinate_order.value,
+        }
+    ]
+    admin.execute(
+        "INSERT INTO vnext_core.spatial_layers ("
+        "spatial_layer_id, layer_key, layer_version, title, category, provider_id, "
+        "provider_version, source_id, source_type, source_environment, authority_class, "
+        "geometry_types, source_crs, supported_crs, coverage_semantics, "
+        "temporal_semantics, refresh_semantics, license_status, license, attribution, "
+        "evidence_requirements, provenance_requirements, limitations, availability"
+        ") VALUES ("
+        "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, "
+        "%s::jsonb, %s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s"
+        ")",
+        (
+            layer.layer_id,
+            layer.layer_key,
+            layer.layer_version,
+            layer.title,
+            layer.category,
+            layer.provider_id,
+            layer.provider_version,
+            layer.source_id,
+            layer.source_type.value,
+            layer.source_environment.value,
+            layer.authority.value,
+            [item.value for item in layer.geometry_types],
+            json.dumps(crs),
+            json.dumps(crs),
+            json.dumps(dict(layer.coverage.as_evidence_mapping())),
+            layer.temporal_semantics.value,
+            layer.refresh_semantics.value,
+            layer.license.status.value,
+            json.dumps(dict(layer.license.as_evidence_mapping())),
+            layer.attribution,
+            list(layer.evidence_requirements),
+            list(layer.provenance_requirements),
+            list(layer.limitations),
+            layer.availability.value,
+        ),
+    )
+
+
+def _spatial_stack(context: DatabasePrincipalContext):
+    authorizer = WorkspaceAuthorizer(
+        PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
+    )
+    return (
+        PostgresPropertyGraphRepository(context, authorizer),
+        PostgresEvidenceRepository(context, authorizer),
+        PostgresIdempotencyRepository(context, authorizer),
+        PostgresSpatialRepository(context, authorizer),
+    )
+
+
+def _append_spatial_evidence(
+    evidence_repository: PostgresEvidenceRepository,
+    principal: AuthenticatedPrincipal,
+    geometry: ParcelGeometry,
+) -> ParcelGeometry:
+    record = evidence_repository.append_evidence(
+        principal=principal,
+        workspace_id=WORKSPACE_A,
+        draft=parcel_geometry_evidence_draft(geometry, _spatial_license()),
+    )
+    return _parcel_geometry(
+        geometry_id=geometry.geometry_id,
+        parcel_id=geometry.parcel_identity_reference_id,
+        evidence_id=record.evidence_id,
+        source_record_id=str(geometry.provenance.source_record_id),
+        version=geometry.version,
+        supersedes_geometry_id=geometry.supersedes_geometry_id,
+        east_shift=float(geometry.geometry["coordinates"][0][0][0]) - 121.55,
+    )
+
+
+def _append_spatial_evidence_for_workspace(
+    evidence_repository: PostgresEvidenceRepository,
+    principal: AuthenticatedPrincipal,
+    workspace_id: UUID,
+    geometry: ParcelGeometry,
+) -> ParcelGeometry:
+    record = evidence_repository.append_evidence(
+        principal=principal,
+        workspace_id=workspace_id,
+        draft=parcel_geometry_evidence_draft(geometry, _spatial_license()),
+    )
+    return _parcel_geometry(
+        geometry_id=geometry.geometry_id,
+        parcel_id=geometry.parcel_identity_reference_id,
+        evidence_id=record.evidence_id,
+        source_record_id=str(geometry.provenance.source_record_id),
+        version=geometry.version,
+        supersedes_geometry_id=geometry.supersedes_geometry_id,
+        east_shift=float(geometry.geometry["coordinates"][0][0][0]) - 121.55,
+    )
+
+
+def _reserve_spatial(
+    repository: PostgresIdempotencyRepository,
+    principal: AuthenticatedPrincipal,
+    route: str,
+    key: str,
+    payload: bytes,
+):
+    return repository.reserve(
+        principal=principal,
+        workspace_id=WORKSPACE_A,
+        method="POST",
+        canonical_route=route,
+        idempotency_key=key,
+        canonical_request=payload,
+    )
+
+
+def _reserve_spatial_for_workspace(
+    repository: PostgresIdempotencyRepository,
+    principal: AuthenticatedPrincipal,
+    workspace_id: UUID,
+    route: str,
+    key: str,
+    payload: bytes,
+):
+    return repository.reserve(
+        principal=principal,
+        workspace_id=workspace_id,
+        method="POST",
+        canonical_route=route,
+        idempotency_key=key,
+        canonical_request=payload,
+    )
+
+
+def test_real_postgres_stage2a_spatial_persistence_rls_and_invariants() -> None:
+    import psycopg
+
+    with _prepared_database() as (admin, _pool, context):
+        graph, evidence, idempotency, spatial = _spatial_stack(context)
+        member = _principal(USERS["member"])
+        viewer = _principal(USERS["viewer"])
+        workspace_b = _principal(USERS["workspace_b"])
+        layer = _spatial_layer()
+        _seed_spatial_layer(admin, layer)
+        admin.commit()
+
+        parcel_a = graph.append_identity_reference(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            draft=IdentityReferenceDraft(
+                reference_type=IdentityReferenceType.PARCEL,
+                normalized_key="synthetic-parcel-a",
+                display_value="Synthetic parcel A",
+                source_id="vnext-test",
+                source_environment=SourceEnvironment.TEST,
+                source_record_id="parcel-identity-a",
+                reference_status=IdentityReferenceStatus.UNVERIFIED,
+            ),
+        )
+        parcel_b = graph.append_identity_reference(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            draft=IdentityReferenceDraft(
+                reference_type=IdentityReferenceType.PARCEL,
+                normalized_key="synthetic-parcel-b",
+                display_value="Synthetic parcel B",
+                source_id="vnext-test",
+                source_environment=SourceEnvironment.TEST,
+                source_record_id="parcel-identity-b",
+                reference_status=IdentityReferenceStatus.UNVERIFIED,
+            ),
+        )
+
+        first_id = UUID("71000000-0000-4000-8000-000000000001")
+        first = _append_spatial_evidence(
+            evidence,
+            member,
+            _parcel_geometry(
+                geometry_id=first_id,
+                parcel_id=parcel_a.identity_reference_id,
+                evidence_id=uuid4(),
+                source_record_id="parcel-geometry-a-v1",
+            ),
+        )
+        first_reservation = _reserve_spatial(
+            idempotency,
+            member,
+            PARCEL_GEOMETRY_ROUTE,
+            "slice1-parcel-geometry-v1-0001",
+            b'{"parcel":"a","version":1}',
+        )
+        persisted_first = spatial.append_parcel_geometry(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            geometry=first,
+            request_id="slice1-parcel-v1",
+            idempotency_record_id=first_reservation.idempotency_record_id,
+        )
+        replayed_first = spatial.append_parcel_geometry(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            geometry=first,
+            request_id="slice1-parcel-v1-replay",
+            idempotency_record_id=first_reservation.idempotency_record_id,
+        )
+        assert replayed_first.geometry_id == persisted_first.geometry_id
+        assert persisted_first.source_crs.identifier == "EPSG:4326"
+        assert persisted_first.normalized_crs.identifier == "EPSG:4326"
+        assert persisted_first.evidence_id == first.evidence_id
+        assert persisted_first.source_geometry == first.source_geometry
+
+        racers: list[tuple[ParcelGeometry, UUID]] = []
+        for suffix, shift in (("a", 0.0001), ("b", 0.0002)):
+            candidate = _append_spatial_evidence(
+                evidence,
+                member,
+                _parcel_geometry(
+                    geometry_id=uuid4(),
+                    parcel_id=parcel_a.identity_reference_id,
+                    evidence_id=uuid4(),
+                    source_record_id=f"parcel-geometry-a-v2-{suffix}",
+                    version=2,
+                    supersedes_geometry_id=first_id,
+                    east_shift=shift,
+                ),
+            )
+            reservation = _reserve_spatial(
+                idempotency,
+                member,
+                PARCEL_GEOMETRY_ROUTE,
+                f"slice1-parcel-race-{suffix}-0001",
+                f'{{"version":2,"attempt":"{suffix}"}}'.encode(),
+            )
+            racers.append((candidate, reservation.idempotency_record_id))
+        race_results = _race(
+            *(
+                lambda item=item: spatial.append_parcel_geometry(
+                    principal=member,
+                    workspace_id=WORKSPACE_A,
+                    geometry=item[0],
+                    request_id=f"slice1-race-{item[0].geometry_id}",
+                    idempotency_record_id=item[1],
+                )
+                for item in racers
+            )
+        )
+        assert [state for state, _result in race_results].count("ok") == 1
+        race_errors = [result for state, result in race_results if state == "error"]
+        assert len(race_errors) == 1
+        assert isinstance(race_errors[0], VNextError)
+        assert race_errors[0].code is ErrorCode.VERSION_CONFLICT
+
+        history = spatial.parcel_geometry_history(
+            principal=viewer,
+            workspace_id=WORKSPACE_A,
+            parcel_identity_reference_id=parcel_a.identity_reference_id,
+        )
+        assert [item.version for item in history] == [2, 1]
+        assert history[1].geometry_id == first_id
+        latest = spatial.latest_parcel_geometry(
+            principal=viewer,
+            workspace_id=WORKSPACE_A,
+            parcel_identity_reference_id=parcel_a.identity_reference_id,
+        )
+        assert latest.geometry_id == history[0].geometry_id
+
+        duplicate_source = _append_spatial_evidence(
+            evidence,
+            member,
+            _parcel_geometry(
+                geometry_id=uuid4(),
+                parcel_id=parcel_a.identity_reference_id,
+                evidence_id=uuid4(),
+                source_record_id=str(latest.provenance.source_record_id),
+                version=3,
+                supersedes_geometry_id=latest.geometry_id,
+                east_shift=0.0003,
+            ),
+        )
+        duplicate_source_reservation = _reserve_spatial(
+            idempotency,
+            member,
+            PARCEL_GEOMETRY_ROUTE,
+            "slice1-duplicate-source-record-0001",
+            b'{"duplicate_source_record":true}',
+        )
+        with pytest.raises(VNextError) as duplicate_source_error:
+            spatial.append_parcel_geometry(
+                principal=member,
+                workspace_id=WORKSPACE_A,
+                geometry=duplicate_source,
+                request_id="slice1-duplicate-source",
+                idempotency_record_id=(
+                    duplicate_source_reservation.idempotency_record_id
+                ),
+            )
+        assert duplicate_source_error.value.code is ErrorCode.VERSION_CONFLICT
+
+        with pytest.raises(SpatialContractError, match="invalid_geometry_supersession"):
+            _parcel_geometry(
+                geometry_id=first_id,
+                parcel_id=parcel_a.identity_reference_id,
+                evidence_id=uuid4(),
+                source_record_id="self-supersession",
+                version=2,
+                supersedes_geometry_id=first_id,
+            )
+
+        cross_parcel = _append_spatial_evidence(
+            evidence,
+            member,
+            _parcel_geometry(
+                geometry_id=uuid4(),
+                parcel_id=parcel_b.identity_reference_id,
+                evidence_id=uuid4(),
+                source_record_id="cross-parcel-supersession",
+                version=2,
+                supersedes_geometry_id=first_id,
+            ),
+        )
+        cross_reservation = _reserve_spatial(
+            idempotency,
+            member,
+            PARCEL_GEOMETRY_ROUTE,
+            "slice1-cross-parcel-geometry-0001",
+            b'{"cross_parcel":true}',
+        )
+        with pytest.raises(VNextError) as cross_error:
+            spatial.append_parcel_geometry(
+                principal=member,
+                workspace_id=WORKSPACE_A,
+                geometry=cross_parcel,
+                request_id="slice1-cross-parcel",
+                idempotency_record_id=cross_reservation.idempotency_record_id,
+            )
+        assert cross_error.value.code is ErrorCode.VALIDATION_FAILED
+
+        with pytest.raises(VNextError) as cross_workspace_error:
+            spatial.latest_parcel_geometry(
+                principal=workspace_b,
+                workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=parcel_a.identity_reference_id,
+            )
+        assert cross_workspace_error.value.code is ErrorCode.PERMISSION_DENIED
+        with context.transaction(workspace_b) as connection:
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.parcel_geometry_versions "
+                    "WHERE workspace_id = %s",
+                    (WORKSPACE_A,),
+                ).fetchone()[0]
+                == 0
+            )
+
+        owner = _principal(USERS["owner"])
+        revoked = _principal(USERS["revoked"])
+        workspace_b_parcel = graph.append_identity_reference(
+            principal=workspace_b,
+            workspace_id=WORKSPACE_B,
+            draft=IdentityReferenceDraft(
+                reference_type=IdentityReferenceType.PARCEL,
+                normalized_key="cross-workspace-parcel",
+                display_value="Cross workspace parcel",
+                source_id="vnext-test",
+                source_environment=SourceEnvironment.TEST,
+                source_record_id="parcel-identity-cross-workspace",
+                reference_status=IdentityReferenceStatus.UNVERIFIED,
+            ),
+        )
+        cross_workspace_geometry_candidate = _append_spatial_evidence_for_workspace(
+            evidence,
+            owner,
+            WORKSPACE_A,
+            _parcel_geometry(
+                geometry_id=UUID("73000000-0000-4000-8000-000000000001"),
+                parcel_id=workspace_b_parcel.identity_reference_id,
+                evidence_id=uuid4(),
+                source_record_id="slice1-cross-workspace-identity",
+                version=3,
+                supersedes_geometry_id=first_id,
+                east_shift=0.0004,
+            ),
+        )
+        cross_workspace_geometry_reservation = _reserve_spatial_for_workspace(
+            idempotency,
+            owner,
+            WORKSPACE_A,
+            PARCEL_GEOMETRY_ROUTE,
+            "slice1-cross-workspace-identity-0001",
+            b'{"cross_workspace_identity":true}',
+        )
+        with pytest.raises(VNextError) as cross_workspace_identity_error:
+            spatial.append_parcel_geometry(
+                principal=owner,
+                workspace_id=WORKSPACE_A,
+                geometry=cross_workspace_geometry_candidate,
+                request_id="slice1-cross-workspace-identity",
+                idempotency_record_id=cross_workspace_geometry_reservation.idempotency_record_id,
+            )
+        assert cross_workspace_identity_error.value.code is ErrorCode.VALIDATION_FAILED
+
+        workspace_b_evidence = evidence.append_evidence(
+            principal=workspace_b,
+            workspace_id=WORKSPACE_B,
+            draft=parcel_geometry_evidence_draft(
+                _parcel_geometry(
+                    geometry_id=UUID("73000000-0000-4000-8000-000000000002"),
+                    parcel_id=workspace_b_parcel.identity_reference_id,
+                    evidence_id=uuid4(),
+                    source_record_id="slice1-cross-workspace-evidence-source",
+                    version=1,
+                    east_shift=0.0005,
+                ),
+                _spatial_license(),
+            ),
+        )
+        cross_workspace_evidence_candidate = _parcel_geometry(
+            geometry_id=UUID("74000000-0000-4000-8000-000000000001"),
+            parcel_id=parcel_a.identity_reference_id,
+            evidence_id=workspace_b_evidence.evidence_id,
+            source_record_id="slice1-cross-workspace-evidence-ref",
+            version=3,
+            supersedes_geometry_id=latest.geometry_id,
+            east_shift=0.0006,
+        )
+        cross_workspace_evidence_reservation = _reserve_spatial(
+            idempotency,
+            owner,
+            PARCEL_GEOMETRY_ROUTE,
+            "slice1-cross-workspace-evidence-0001",
+            b'{"cross_workspace_evidence":true}',
+        )
+        with pytest.raises(VNextError) as cross_workspace_evidence_error:
+            spatial.append_parcel_geometry(
+                principal=owner,
+                workspace_id=WORKSPACE_A,
+                geometry=cross_workspace_evidence_candidate,
+                request_id="slice1-cross-workspace-evidence",
+                idempotency_record_id=cross_workspace_evidence_reservation.idempotency_record_id,
+            )
+        assert cross_workspace_evidence_error.value.code is ErrorCode.VALIDATION_FAILED
+
+        workspace_b_geometry_candidate = _append_spatial_evidence_for_workspace(
+            evidence,
+            workspace_b,
+            WORKSPACE_B,
+            _parcel_geometry(
+                geometry_id=UUID("75000000-0000-4000-8000-000000000002"),
+                parcel_id=workspace_b_parcel.identity_reference_id,
+                evidence_id=uuid4(),
+                source_record_id="slice1-cross-workspace-observation-source",
+                version=1,
+            ),
+        )
+        workspace_b_geometry_reservation = _reserve_spatial_for_workspace(
+            idempotency,
+            workspace_b,
+            WORKSPACE_B,
+            PARCEL_GEOMETRY_ROUTE,
+            "slice1-cross-workspace-observation-geom-0001",
+            b'{"cross_workspace_observation":true}',
+        )
+        persisted_workspace_b_geometry = spatial.append_parcel_geometry(
+            principal=workspace_b,
+            workspace_id=WORKSPACE_B,
+            geometry=workspace_b_geometry_candidate,
+            request_id="slice1-cross-workspace-observation-geom",
+            idempotency_record_id=workspace_b_geometry_reservation.idempotency_record_id,
+        )
+        cross_workspace_observation_request = uuid4()
+        cross_workspace_observation = SpatialObservation(
+            observation_id=UUID("73000000-0000-4000-8000-000000000002"),
+            workspace_id=WORKSPACE_A,
+            subject_type="parcel",
+            subject_id=parcel_a.identity_reference_id,
+            layer_id=layer.layer_id,
+            status=SpatialObservationStatus.UNKNOWN,
+            value=None,
+            coverage=_spatial_coverage(
+                SpatialCoverageStatus.UNKNOWN,
+                gaps=("coverage_not_proven",),
+            ),
+            license=layer.license,
+            provenance=_spatial_provenance(
+                cross_workspace_observation_request,
+                "observation-cross-workspace-geometry-v1",
+            ),
+            evidence_id=cross_workspace_observation_request,
+            limitations=("Coverage is not proven.",),
+        )
+        cross_workspace_observation_evidence = evidence.append_evidence(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            draft=observation_evidence_draft(cross_workspace_observation),
+        )
+        cross_workspace_observation = SpatialObservation(
+            observation_id=UUID("73000000-0000-4000-8000-000000000002"),
+            workspace_id=WORKSPACE_A,
+            subject_type="parcel",
+            subject_id=parcel_a.identity_reference_id,
+            layer_id=layer.layer_id,
+            status=SpatialObservationStatus.UNKNOWN,
+            value=None,
+            coverage=_spatial_coverage(
+                SpatialCoverageStatus.UNKNOWN,
+                gaps=("coverage_not_proven",),
+            ),
+            license=layer.license,
+            provenance=_spatial_provenance(
+                cross_workspace_observation_evidence.evidence_id,
+                "observation-cross-workspace-geometry-v1",
+            ),
+            evidence_id=cross_workspace_observation_evidence.evidence_id,
+            limitations=("Coverage is not proven.",),
+        )
+        cross_workspace_observation_reservation = _reserve_spatial(
+            idempotency,
+            member,
+            SPATIAL_OBSERVATION_ROUTE,
+            "slice1-cross-workspace-observation-append-0001",
+            b'{"observation_cross_workspace":true}',
+        )
+        with pytest.raises(VNextError) as cross_workspace_observation_error:
+            spatial.append_observation(
+                principal=member,
+                workspace_id=WORKSPACE_A,
+                observation=cross_workspace_observation,
+                parcel_geometry_id=persisted_workspace_b_geometry.geometry_id,
+                request_id="slice1-cross-workspace-observation",
+                idempotency_record_id=cross_workspace_observation_reservation.idempotency_record_id,
+            )
+        assert cross_workspace_observation_error.value.code is ErrorCode.VALIDATION_FAILED
+
+        role_insert_targets = {}
+        for role_name in ("member", "manager", "admin", "owner"):
+            role_insert_targets[role_name] = graph.append_identity_reference(
+                principal=owner,
+                workspace_id=WORKSPACE_A,
+                draft=IdentityReferenceDraft(
+                    reference_type=IdentityReferenceType.PARCEL,
+                    normalized_key=f"slice1-role-{role_name}-parcel",
+                    display_value=f"Slice1 role {role_name}",
+                    source_id="vnext-test",
+                    source_environment=SourceEnvironment.TEST,
+                    source_record_id=f"slice1-role-{role_name}-parcel",
+                    reference_status=IdentityReferenceStatus.UNVERIFIED,
+                ),
+            )
+        denied_principals = {
+            "none": _principal(USERS["none"]),
+            "viewer": viewer,
+            "revoked": revoked,
+            "cross_workspace": workspace_b,
+        }
+        denied_identity = _append_spatial_evidence_for_workspace(
+            evidence,
+            owner,
+            WORKSPACE_A,
+            _parcel_geometry(
+                geometry_id=UUID("75000000-0000-4000-8000-000000000001"),
+                parcel_id=parcel_b.identity_reference_id,
+                evidence_id=uuid4(),
+                source_record_id="slice1-geometry-denied-common",
+                version=1,
+            ),
+        )
+        denied_reservation = _reserve_spatial_for_workspace(
+            idempotency,
+            owner,
+            WORKSPACE_A,
+            PARCEL_GEOMETRY_ROUTE,
+            "slice1-role-denied-insert-common-0001",
+            b'{"role":"denied"}',
+        )
+        denied_geometry_count = admin.execute(
+            "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+        ).fetchone()[0]
+        for role_name, actor in denied_principals.items():
+            with pytest.raises(VNextError) as denied_insert_error:
+                spatial.append_parcel_geometry(
+                    principal=actor,
+                    workspace_id=WORKSPACE_A,
+                    geometry=denied_identity,
+                    request_id=f"slice1-role-{role_name}-denied",
+                    idempotency_record_id=denied_reservation.idempotency_record_id,
+                )
+            assert denied_insert_error.value.code is ErrorCode.PERMISSION_DENIED
+            assert (
+                admin.execute(
+                    "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+                ).fetchone()[0]
+                == denied_geometry_count
+            )
+
+        for role_name in ("member", "manager", "admin", "owner"):
+            actor = _principal(USERS[role_name])
+            role_candidate = _append_spatial_evidence_for_workspace(
+                evidence,
+                actor,
+                WORKSPACE_A,
+                _parcel_geometry(
+                    geometry_id=uuid4(),
+                    parcel_id=role_insert_targets[role_name].identity_reference_id,
+                    evidence_id=uuid4(),
+                    source_record_id=f"slice1-role-{role_name}-geometry",
+                    version=1,
+                ),
+            )
+            role_reservation = _reserve_spatial_for_workspace(
+                idempotency,
+                actor,
+                WORKSPACE_A,
+                PARCEL_GEOMETRY_ROUTE,
+                f"slice1-role-{role_name}-geometry-append-0001",
+                b'{"role":"append"}',
+            )
+            persisted = spatial.append_parcel_geometry(
+                principal=actor,
+                workspace_id=WORKSPACE_A,
+                geometry=role_candidate,
+                request_id=f"slice1-role-{role_name}-geometry",
+                idempotency_record_id=role_reservation.idempotency_record_id,
+            )
+            assert persisted.geometry_id == role_candidate.geometry_id
+
+            role_observation_placeholder = uuid4()
+            role_observation_id = uuid4()
+            role_observation_source = f"slice1-role-{role_name}-observation"
+            role_observation_draft = SpatialObservation(
+                observation_id=role_observation_id,
+                workspace_id=WORKSPACE_A,
+                subject_type="parcel",
+                subject_id=role_insert_targets[role_name].identity_reference_id,
+                layer_id=layer.layer_id,
+                status=SpatialObservationStatus.UNKNOWN,
+                value=None,
+                coverage=_spatial_coverage(
+                    SpatialCoverageStatus.UNKNOWN,
+                    gaps=("coverage_not_proven",),
+                ),
+                license=layer.license,
+                provenance=_spatial_provenance(
+                    role_observation_placeholder,
+                    role_observation_source,
+                ),
+                evidence_id=role_observation_placeholder,
+                limitations=("Coverage is not proven.",),
+            )
+            role_observation_evidence = evidence.append_evidence(
+                principal=actor,
+                workspace_id=WORKSPACE_A,
+                draft=observation_evidence_draft(role_observation_draft),
+            )
+            role_observation = SpatialObservation(
+                observation_id=role_observation_id,
+                workspace_id=WORKSPACE_A,
+                subject_type="parcel",
+                subject_id=role_insert_targets[role_name].identity_reference_id,
+                layer_id=layer.layer_id,
+                status=SpatialObservationStatus.UNKNOWN,
+                value=None,
+                coverage=role_observation_draft.coverage,
+                license=layer.license,
+                provenance=_spatial_provenance(
+                    role_observation_evidence.evidence_id,
+                    role_observation_source,
+                ),
+                evidence_id=role_observation_evidence.evidence_id,
+                limitations=("Coverage is not proven.",),
+            )
+            role_observation_reservation = _reserve_spatial_for_workspace(
+                idempotency,
+                actor,
+                WORKSPACE_A,
+                SPATIAL_OBSERVATION_ROUTE,
+                f"slice1-role-{role_name}-observation-append-0001",
+                b'{"role":"observation-append"}',
+            )
+            persisted_role_observation = spatial.append_observation(
+                principal=actor,
+                workspace_id=WORKSPACE_A,
+                observation=role_observation,
+                parcel_geometry_id=persisted.geometry_id,
+                request_id=f"slice1-role-{role_name}-observation",
+                idempotency_record_id=(
+                    role_observation_reservation.idempotency_record_id
+                ),
+            )
+            assert persisted_role_observation.observation_id == role_observation_id
+
+            with context.transaction(actor) as request_conn:
+                principal_state = request_conn.execute(
+                    "SELECT current_user, session_user, current_setting('request.jwt.claim.sub', true)"
+                ).fetchone()
+                assert principal_state == (
+                    "vnext_api",
+                    "vnext_api",
+                    str(USERS[role_name]),
+                )
+                principal_attrs = request_conn.execute(
+                    "SELECT rolsuper, rolbypassrls, rolinherit FROM pg_roles "
+                    "WHERE rolname = current_user"
+                ).fetchone()
+                assert principal_attrs == (False, False, False)
+                table_owners = request_conn.execute(
+                    "SELECT relation.relname, owner.rolname FROM pg_class relation "
+                    "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+                    "JOIN pg_roles owner ON owner.oid = relation.relowner "
+                    "WHERE namespace.nspname = 'vnext_core' "
+                    "AND relation.relname = ANY(%s)",
+                    (["parcel_geometry_versions", "spatial_observations", "spatial_layers"],),
+                ).fetchall()
+                assert {name for name, _owner_role in table_owners} == {
+                    "parcel_geometry_versions",
+                    "spatial_layers",
+                    "spatial_observations",
+                }
+                assert all(owner_role != "vnext_api" for _name, owner_role in table_owners)
+            assert (
+                admin.execute(
+                    "SELECT count(*) FROM vnext_core.parcel_geometry_versions "
+                    "WHERE workspace_id = %s",
+                    (WORKSPACE_A,),
+                ).fetchone()[0]
+                > 0
+            )
+            cross_ws_rows = admin.execute(
+                "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+            ).fetchone()[0]
+            assert cross_ws_rows > 0
+            ws_b_rows = admin.execute(
+                "SELECT count(*) FROM vnext_core.parcel_geometry_versions "
+                "WHERE workspace_id = %s",
+                (WORKSPACE_B,),
+            ).fetchone()[0]
+            assert ws_b_rows >= 0
+
+        denied_observation_placeholder = uuid4()
+        denied_observation_id = UUID("76000000-0000-4000-8000-000000000001")
+        denied_observation_draft = SpatialObservation(
+            observation_id=denied_observation_id,
+            workspace_id=WORKSPACE_A,
+            subject_type="parcel",
+            subject_id=parcel_a.identity_reference_id,
+            layer_id=layer.layer_id,
+            status=SpatialObservationStatus.UNKNOWN,
+            value=None,
+            coverage=_spatial_coverage(
+                SpatialCoverageStatus.UNKNOWN,
+                gaps=("coverage_not_proven",),
+            ),
+            license=layer.license,
+            provenance=_spatial_provenance(
+                denied_observation_placeholder,
+                "slice1-observation-denied-common",
+            ),
+            evidence_id=denied_observation_placeholder,
+            limitations=("Coverage is not proven.",),
+        )
+        denied_observation_evidence = evidence.append_evidence(
+            principal=owner,
+            workspace_id=WORKSPACE_A,
+            draft=observation_evidence_draft(denied_observation_draft),
+        )
+        denied_observation = SpatialObservation(
+            observation_id=denied_observation_id,
+            workspace_id=WORKSPACE_A,
+            subject_type="parcel",
+            subject_id=parcel_a.identity_reference_id,
+            layer_id=layer.layer_id,
+            status=SpatialObservationStatus.UNKNOWN,
+            value=None,
+            coverage=denied_observation_draft.coverage,
+            license=layer.license,
+            provenance=_spatial_provenance(
+                denied_observation_evidence.evidence_id,
+                "slice1-observation-denied-common",
+            ),
+            evidence_id=denied_observation_evidence.evidence_id,
+            limitations=("Coverage is not proven.",),
+        )
+        denied_observation_reservation = _reserve_spatial_for_workspace(
+            idempotency,
+            owner,
+            WORKSPACE_A,
+            SPATIAL_OBSERVATION_ROUTE,
+            "slice1-role-denied-observation-common-0001",
+            b'{"role":"observation-denied"}',
+        )
+        denied_observation_count = admin.execute(
+            "SELECT count(*) FROM vnext_core.spatial_observations"
+        ).fetchone()[0]
+        for role_name, actor in denied_principals.items():
+            with pytest.raises(VNextError) as denied_observation_error:
+                spatial.append_observation(
+                    principal=actor,
+                    workspace_id=WORKSPACE_A,
+                    observation=denied_observation,
+                    parcel_geometry_id=latest.geometry_id,
+                    request_id=f"slice1-role-{role_name}-observation-denied",
+                    idempotency_record_id=(
+                        denied_observation_reservation.idempotency_record_id
+                    ),
+                )
+            assert denied_observation_error.value.code is ErrorCode.PERMISSION_DENIED
+            assert (
+                admin.execute(
+                    "SELECT count(*) FROM vnext_core.spatial_observations"
+                ).fetchone()[0]
+                == denied_observation_count
+            )
+
+        assert (
+            spatial.get_spatial_layer(
+                principal=viewer,
+                workspace_id=WORKSPACE_A,
+                layer_key=layer.layer_key,
+            ).layer_version
+            == 1
+        )
+        layer_state_before = admin.execute(
+            "SELECT layer_version FROM vnext_core.spatial_layers "
+            "WHERE spatial_layer_id = %s",
+            (layer.layer_id,),
+        ).fetchone()
+        assert layer_state_before == (1,)
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(member) as connection:
+                connection.execute(
+                    "INSERT INTO vnext_core.spatial_layers ("
+                    "spatial_layer_id, layer_key, layer_version, title, category, "
+                    "provider_id, provider_version, source_id, source_type, "
+                    "source_environment, authority_class, geometry_types, source_crs, "
+                    "supported_crs, coverage_semantics, temporal_semantics, "
+                    "refresh_semantics, license_status, license, attribution, "
+                    "evidence_requirements, provenance_requirements, limitations, "
+                    "availability) SELECT %s, 'forbidden.layer', 1, title, category, "
+                    "provider_id, provider_version, source_id, source_type, "
+                    "source_environment, authority_class, geometry_types, source_crs, "
+                    "supported_crs, coverage_semantics, temporal_semantics, "
+                    "refresh_semantics, license_status, license, attribution, "
+                    "evidence_requirements, provenance_requirements, limitations, "
+                    "availability FROM vnext_core.spatial_layers "
+                    "WHERE spatial_layer_id = %s",
+                    (uuid4(), layer.layer_id),
+                )
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(owner) as connection:
+                connection.execute(
+                    "UPDATE vnext_core.spatial_layers "
+                    "SET layer_version = layer_version + 1 "
+                    "WHERE layer_key = %s",
+                    (layer.layer_key,),
+                )
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(owner) as connection:
+                connection.execute(
+                    "DELETE FROM vnext_core.spatial_layers "
+                    "WHERE layer_key = %s",
+                    (layer.layer_key,),
+                )
+        assert (
+            admin.execute(
+                "SELECT layer_version FROM vnext_core.spatial_layers "
+                "WHERE spatial_layer_id = %s",
+                (layer.layer_id,),
+            ).fetchone()
+            == layer_state_before
+        )
+        assert (
+            admin.execute(
+                "SELECT count(*) FROM vnext_core.spatial_layers "
+                "WHERE layer_key = 'forbidden.layer'"
+            ).fetchone()[0]
+            == 0
+        )
+
+        geometry_state_before = admin.execute(
+            "SELECT geometry_version, coverage_status "
+            "FROM vnext_core.parcel_geometry_versions "
+            "WHERE parcel_geometry_id = %s",
+            (persisted_first.geometry_id,),
+        ).fetchone()
+        assert geometry_state_before is not None
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(_principal(USERS["none"])) as connection:
+                connection.execute(
+                    "UPDATE vnext_core.parcel_geometry_versions "
+                    "SET geometry_version = geometry_version + 1 "
+                    "WHERE parcel_geometry_id = %s",
+                    (persisted_first.geometry_id,),
+                )
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with context.transaction(_principal(USERS["none"])) as connection:
+                connection.execute(
+                    "DELETE FROM vnext_core.parcel_geometry_versions "
+                    "WHERE parcel_geometry_id = %s",
+                    (persisted_first.geometry_id,),
+                )
+        for role_name in ("member", "manager", "admin", "owner"):
+            role_principal = _principal(USERS[role_name])
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                with context.transaction(role_principal) as connection:
+                    connection.execute(
+                        "UPDATE vnext_core.parcel_geometry_versions "
+                        "SET coverage_status = 'partial' "
+                        "WHERE parcel_geometry_id = %s",
+                        (persisted_first.geometry_id,),
+                    )
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                with context.transaction(role_principal) as connection:
+                    connection.execute(
+                        "DELETE FROM vnext_core.parcel_geometry_versions "
+                        "WHERE parcel_geometry_id = %s",
+                        (persisted_first.geometry_id,),
+                    )
+        assert (
+            admin.execute(
+                "SELECT geometry_version, coverage_status "
+                "FROM vnext_core.parcel_geometry_versions "
+                "WHERE parcel_geometry_id = %s",
+                (persisted_first.geometry_id,),
+            ).fetchone()
+            == geometry_state_before
+        )
+        observation_id = UUID("72000000-0000-4000-8000-000000000001")
+        placeholder_observation_evidence = uuid4()
+        draft_observation = SpatialObservation(
+            observation_id=observation_id,
+            workspace_id=WORKSPACE_A,
+            subject_type="parcel",
+            subject_id=parcel_a.identity_reference_id,
+            layer_id=layer.layer_id,
+            status=SpatialObservationStatus.UNKNOWN,
+            value=None,
+            coverage=_spatial_coverage(
+                SpatialCoverageStatus.UNKNOWN,
+                gaps=("coverage_not_proven",),
+            ),
+            license=layer.license,
+            provenance=_spatial_provenance(
+                placeholder_observation_evidence,
+                "observation-unknown-v1",
+            ),
+            evidence_id=placeholder_observation_evidence,
+            limitations=("Coverage is not proven.",),
+        )
+        observation_evidence = evidence.append_evidence(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            draft=observation_evidence_draft(draft_observation),
+        )
+        observation = SpatialObservation(
+            observation_id=observation_id,
+            workspace_id=WORKSPACE_A,
+            subject_type="parcel",
+            subject_id=parcel_a.identity_reference_id,
+            layer_id=layer.layer_id,
+            status=SpatialObservationStatus.UNKNOWN,
+            value=None,
+            coverage=draft_observation.coverage,
+            license=layer.license,
+            provenance=_spatial_provenance(
+                observation_evidence.evidence_id,
+                "observation-unknown-v1",
+            ),
+            evidence_id=observation_evidence.evidence_id,
+            limitations=("Coverage is not proven.",),
+        )
+        observation_reservation = _reserve_spatial(
+            idempotency,
+            member,
+            SPATIAL_OBSERVATION_ROUTE,
+            "slice1-spatial-observation-0001",
+            b'{"observation":"unknown"}',
+        )
+        persisted_observation = spatial.append_observation(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            observation=observation,
+            parcel_geometry_id=latest.geometry_id,
+            request_id="slice1-observation",
+            idempotency_record_id=observation_reservation.idempotency_record_id,
+        )
+        replayed_observation = spatial.append_observation(
+            principal=member,
+            workspace_id=WORKSPACE_A,
+            observation=observation,
+            parcel_geometry_id=latest.geometry_id,
+            request_id="slice1-observation-replay",
+            idempotency_record_id=observation_reservation.idempotency_record_id,
+        )
+        assert (
+            replayed_observation.observation_id == persisted_observation.observation_id
+        )
+        assert persisted_observation.status is SpatialObservationStatus.UNKNOWN
+        assert persisted_observation.status is not SpatialObservationStatus.ABSENT
+        observations = spatial.list_observations(
+            principal=viewer,
+            workspace_id=WORKSPACE_A,
+            subject_type="parcel",
+            subject_id=parcel_a.identity_reference_id,
+            parcel_geometry_id=latest.geometry_id,
+        )
+        assert [item.observation_id for item in observations] == [observation_id]
+
+        observation_state_before = admin.execute(
+            "SELECT observation_status FROM vnext_core.spatial_observations "
+            "WHERE spatial_observation_id = %s",
+            (persisted_observation.observation_id,),
+        ).fetchone()
+        assert observation_state_before == ("unknown",)
+        for role_name in ("member", "manager", "admin", "owner"):
+            role_principal = _principal(USERS[role_name])
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                with context.transaction(role_principal) as connection:
+                    connection.execute(
+                        "UPDATE vnext_core.spatial_observations "
+                        "SET observation_status = 'unknown' "
+                        "WHERE spatial_observation_id = %s",
+                        (persisted_observation.observation_id,),
+                    )
+            with pytest.raises(psycopg.errors.InsufficientPrivilege):
+                with context.transaction(role_principal) as connection:
+                    connection.execute(
+                        "DELETE FROM vnext_core.spatial_observations "
+                        "WHERE spatial_observation_id = %s",
+                        (persisted_observation.observation_id,),
+                    )
+        assert (
+            admin.execute(
+                "SELECT observation_status FROM vnext_core.spatial_observations "
+                "WHERE spatial_observation_id = %s",
+                (persisted_observation.observation_id,),
+            ).fetchone()
+            == observation_state_before
+        )
+
+        with context.transaction(_principal(USERS["none"])) as connection:
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+                ).fetchone()[0]
+                == 0
+            )
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.spatial_observations"
+                ).fetchone()[0]
+                == 0
+            )
+        with context.transaction(revoked) as connection:
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+                ).fetchone()[0]
+                == 0
+            )
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.spatial_observations"
+                ).fetchone()[0]
+                == 0
+            )
+        with context.transaction(viewer) as connection:
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+                ).fetchone()[0]
+                > 0
+            )
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.spatial_observations"
+                ).fetchone()[0]
+                > 0
+            )
+        for role_name in ("member", "manager", "admin", "owner"):
+            with context.transaction(_principal(USERS[role_name])) as connection:
+                assert (
+                    connection.execute(
+                        "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+                    ).fetchone()[0]
+                    > 0
+                )
+                assert (
+                    connection.execute(
+                        "SELECT count(*) FROM vnext_core.spatial_observations"
+                    ).fetchone()[0]
+                    > 0
+                )
+        with context.transaction(workspace_b) as connection:
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.parcel_geometry_versions"
+                ).fetchone()[0]
+                >= 1
+            )
+            assert (
+                connection.execute(
+                    "SELECT count(*) FROM vnext_core.spatial_observations"
+                ).fetchone()[0]
+                == 0
+            )
+
+        tenant_tables = admin.execute(
+            "SELECT relation.relname, relation.relrowsecurity, "
+            "relation.relforcerowsecurity, owner.rolname FROM pg_class relation "
+            "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+            "JOIN pg_roles owner ON owner.oid = relation.relowner "
+            "WHERE namespace.nspname = 'vnext_core' "
+            "AND relation.relname = ANY(%s) ORDER BY relation.relname",
+            (["parcel_geometry_versions", "spatial_observations"],),
+        ).fetchall()
+        assert [(name, rls, forced) for name, rls, forced, _owner in tenant_tables] == [
+            ("parcel_geometry_versions", True, True),
+            ("spatial_observations", True, True),
+        ]
+        assert all(
+            owner != "vnext_api" for _name, _rls, _forced, owner in tenant_tables
+        )
+        grants = admin.execute(
+            "SELECT table_name, privilege_type FROM information_schema.role_table_grants "
+            "WHERE grantee = 'vnext_api' AND table_schema = 'vnext_core' "
+            "AND table_name = ANY(%s) ORDER BY table_name, privilege_type",
+            (["parcel_geometry_versions", "spatial_layers", "spatial_observations"],),
+        ).fetchall()
+        assert grants == [
+            ("parcel_geometry_versions", "INSERT"),
+            ("parcel_geometry_versions", "SELECT"),
+            ("spatial_layers", "SELECT"),
+            ("spatial_observations", "INSERT"),
+            ("spatial_observations", "SELECT"),
+        ]
+        assert (
+            admin.execute(
+                "SELECT count(*) FROM information_schema.role_table_grants "
+                "WHERE grantee IN ('anon', 'authenticated') "
+                "AND table_schema IN ('vnext_core', 'vnext_private') "
+                "AND table_name = ANY(%s)",
+                (
+                    [
+                        "parcel_geometry_versions",
+                        "spatial_layers",
+                        "spatial_observations",
+                    ],
+                ),
+            ).fetchone()[0]
+            == 0
+        )

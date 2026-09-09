@@ -51,6 +51,7 @@ from services.vnext.spatial import (
     execute_spatial_operation,
     normalize_provider_observation,
     observation_evidence_draft,
+    parcel_geometry_evidence_draft,
     parcel_geometry_from_source,
     projected_crs,
     proposed_property_parcel_relation,
@@ -122,7 +123,10 @@ def layer() -> SpatialLayer:
         title="Synthetic parcel context",
         category="parcel_context",
         provider_id="synthetic-spatial-provider",
+        provider_version="fixture-v1",
         source_id="vnext-test",
+        source_type=SourceType.TEST,
+        source_environment=SourceEnvironment.TEST,
         authority=SpatialAuthority.SYNTHETIC,
         geometry_types=frozenset({GeometryType.POLYGON, GeometryType.MULTI_POLYGON}),
         source_crs=(API_INTERCHANGE_CRS, projected_crs("EPSG:3826")),
@@ -238,6 +242,31 @@ def test_invalid_and_empty_geometry_fail_safely(
 ) -> None:
     with pytest.raises(SpatialContractError, match=expected_code):
         operand(fixture_name)
+
+
+def test_parcel_geometry_adapts_to_existing_stage_1_evidence() -> None:
+    parcel = parcel_geometry_from_source(
+        geometry_id=UUID("50000000-0000-0000-0000-000000000011"),
+        parcel_identity_reference_id=SUBJECT_ID,
+        source_operand=operand("parcel_alpha"),
+        precision=SpatialPrecision(0.25, "meters", "provider_reported"),
+        tolerance=0.5,
+        tolerance_unit="meters",
+        geometry_source="provider_observation",
+        coverage=coverage(),
+        provenance=provenance(),
+        effective_at=NOW,
+        valid_from=NOW,
+    )
+
+    draft = parcel_geometry_evidence_draft(parcel, license_metadata())
+
+    assert draft.fact_type == "spatial.parcel_geometry.v1"
+    assert draft.value is None
+    assert draft.value_ref == f"parcel-geometry:{parcel.geometry_id}"
+    assert draft.evidence_status is EvidenceStatus.UNVERIFIED
+    assert draft.coverage["status"] == "complete"
+    assert draft.license["attribution"] == "Synthetic Stage 2A test fixture"
 
 
 def test_epsg4326_rejects_swapped_latitude_longitude_bounds() -> None:
@@ -540,12 +569,12 @@ def test_synthetic_source_cannot_claim_production_authority() -> None:
         provenance(environment=SourceEnvironment.PRODUCTION)
 
 
-def test_layer_registry_is_stable_and_rejects_duplicate_keys() -> None:
+def test_layer_registry_is_versioned_and_rejects_duplicate_versions() -> None:
     selected = layer()
     registry = SpatialLayerRegistry((selected,))
     assert registry.get("synthetic.parcel-context") is selected
     assert registry.all() == (selected,)
-    with pytest.raises(SpatialContractError, match="duplicate_layer_key"):
+    with pytest.raises(SpatialContractError, match="duplicate_layer_version"):
         registry.register(selected)
 
 

@@ -192,6 +192,34 @@ def _stable_key(value: str) -> str:
     return selected
 
 
+def _validate_authority_source(
+    authority: SpatialAuthority,
+    source_type: SourceType,
+    environment: SourceEnvironment,
+) -> None:
+    nonproduction = source_type in {SourceType.DEMO, SourceType.TEST}
+    if nonproduction and (
+        authority is not SpatialAuthority.SYNTHETIC
+        or environment is SourceEnvironment.PRODUCTION
+    ):
+        raise SpatialContractError("synthetic_production_authority_forbidden")
+    if environment is SourceEnvironment.PRODUCTION and nonproduction:
+        raise SpatialContractError("nonproduction_source_forbidden")
+    expected_types = {
+        SpatialAuthority.OFFICIAL: {SourceType.OFFICIAL},
+        SpatialAuthority.USER_SUPPLIED: {SourceType.USER},
+        SpatialAuthority.SYNTHETIC: {SourceType.DEMO, SourceType.TEST},
+        SpatialAuthority.DERIVED: {SourceType.DETERMINISTIC},
+        SpatialAuthority.UNKNOWN: {
+            SourceType.OFFICIAL,
+            SourceType.PARTNER,
+            SourceType.DOCUMENT,
+        },
+    }
+    if source_type not in expected_types[authority]:
+        raise SpatialContractError("source_authority_mismatch")
+
+
 def _crs(value: str) -> CRS:
     try:
         return CRS.from_user_input(value)
@@ -381,21 +409,11 @@ class SpatialProvenance:
             object.__setattr__(
                 self, "source_ref", _bounded(self.source_ref, maximum=500)
             )
-        nonproduction = self.source_type in {SourceType.DEMO, SourceType.TEST}
-        if self.authority is SpatialAuthority.SYNTHETIC:
-            if self.environment is SourceEnvironment.PRODUCTION or not nonproduction:
-                raise SpatialContractError("synthetic_production_authority_forbidden")
-        if self.environment is SourceEnvironment.PRODUCTION and nonproduction:
-            raise SpatialContractError("nonproduction_source_forbidden")
-        expected_types = {
-            SpatialAuthority.OFFICIAL: {SourceType.OFFICIAL},
-            SpatialAuthority.USER_SUPPLIED: {SourceType.USER},
-            SpatialAuthority.SYNTHETIC: {SourceType.DEMO, SourceType.TEST},
-            SpatialAuthority.DERIVED: {SourceType.DETERMINISTIC},
-        }
-        allowed = expected_types.get(self.authority)
-        if allowed is not None and self.source_type not in allowed:
-            raise SpatialContractError("source_authority_mismatch")
+        _validate_authority_source(
+            self.authority,
+            self.source_type,
+            self.environment,
+        )
 
     def lineage_mapping(self) -> Mapping[str, object]:
         return _json_object(
@@ -581,6 +599,8 @@ class ParcelGeometry:
                 raise SpatialContractError("transformation_lineage_mismatch")
         if self.version < 1:
             raise SpatialContractError("invalid_geometry_version")
+        if self.supersedes_geometry_id == self.geometry_id:
+            raise SpatialContractError("invalid_geometry_supersession")
         if self.version == 1 and self.supersedes_geometry_id is not None:
             raise SpatialContractError("invalid_geometry_supersession")
         if self.version > 1 and self.supersedes_geometry_id is None:
@@ -672,7 +692,10 @@ class SpatialLayer:
     title: str
     category: str
     provider_id: str
+    provider_version: str
     source_id: str
+    source_type: SourceType
+    source_environment: SourceEnvironment
     authority: SpatialAuthority
     geometry_types: frozenset[GeometryType]
     source_crs: tuple[CRSDefinition, ...]
@@ -686,12 +709,16 @@ class SpatialLayer:
     provenance_requirements: tuple[str, ...]
     availability: SpatialAvailability
     limitations: tuple[str, ...]
+    layer_version: int = 1
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "layer_key", _stable_key(self.layer_key))
         object.__setattr__(self, "title", _bounded(self.title, maximum=160))
         object.__setattr__(self, "category", _stable_key(self.category))
         object.__setattr__(self, "provider_id", _stable_key(self.provider_id))
+        object.__setattr__(
+            self, "provider_version", _bounded(self.provider_version, maximum=80)
+        )
         object.__setattr__(self, "source_id", _stable_key(self.source_id))
         object.__setattr__(self, "attribution", _bounded(self.attribution, maximum=500))
         if not self.geometry_types or not self.source_crs or not self.supported_crs:
@@ -700,6 +727,13 @@ class SpatialLayer:
             raise SpatialContractError("layer_interchange_crs_required")
         if not self.evidence_requirements or not self.provenance_requirements:
             raise SpatialContractError("incomplete_layer_evidence_contract")
+        if self.layer_version < 1:
+            raise SpatialContractError("invalid_layer_version")
+        _validate_authority_source(
+            self.authority,
+            self.source_type,
+            self.source_environment,
+        )
         if self.attribution != self.license.attribution:
             raise SpatialContractError("layer_attribution_mismatch")
         if (
@@ -713,23 +747,32 @@ class SpatialLayer:
 
 class SpatialLayerRegistry:
     def __init__(self, layers: Sequence[SpatialLayer] = ()) -> None:
-        self._layers: dict[str, SpatialLayer] = {}
+        self._layers: dict[tuple[str, int], SpatialLayer] = {}
         for layer in layers:
             self.register(layer)
 
     def register(self, layer: SpatialLayer) -> None:
-        if layer.layer_key in self._layers:
-            raise SpatialContractError("duplicate_layer_key")
+        key = (layer.layer_key, layer.layer_version)
+        if key in self._layers:
+            raise SpatialContractError("duplicate_layer_version")
         if any(
             existing.layer_id == layer.layer_id for existing in self._layers.values()
         ):
             raise SpatialContractError("duplicate_layer_id")
-        self._layers[layer.layer_key] = layer
+        self._layers[key] = layer
 
-    def get(self, layer_key: str) -> SpatialLayer:
+    def get(self, layer_key: str, layer_version: int | None = None) -> SpatialLayer:
+        selected_key = _stable_key(layer_key)
         try:
-            return self._layers[_stable_key(layer_key)]
-        except KeyError:
+            if layer_version is not None:
+                return self._layers[(selected_key, layer_version)]
+            versions = [
+                item
+                for (key, _version), item in self._layers.items()
+                if key == selected_key
+            ]
+            return max(versions, key=lambda item: item.layer_version)
+        except (KeyError, ValueError):
             raise SpatialContractError("unknown_layer") from None
 
     def all(self) -> tuple[SpatialLayer, ...]:
@@ -858,6 +901,8 @@ class SpatialObservation:
     provenance: SpatialProvenance
     evidence_id: UUID
     limitations: tuple[str, ...]
+    confidence: float | None = None
+    confidence_method: str | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "subject_type", _stable_key(self.subject_type))
@@ -886,6 +931,21 @@ class SpatialObservation:
             raise SpatialContractError("evidence_provenance_mismatch")
         if not self.limitations and self.status is not SpatialObservationStatus.PRESENT:
             raise SpatialContractError("observation_limitation_required")
+        if self.confidence is None:
+            if self.confidence_method is not None:
+                raise SpatialContractError("confidence_method_without_value")
+        elif (
+            not math.isfinite(self.confidence)
+            or not 0 <= self.confidence <= 1
+            or self.confidence_method is None
+        ):
+            raise SpatialContractError("invalid_confidence")
+        if self.confidence_method is not None:
+            object.__setattr__(
+                self,
+                "confidence_method",
+                _bounded(self.confidence_method, maximum=120),
+            )
 
     @property
     def evidence_status(self) -> EvidenceStatus:
@@ -948,6 +1008,55 @@ def _evidence_coverage_status(status: SpatialCoverageStatus) -> CoverageStatus:
         SpatialCoverageStatus.UNKNOWN: CoverageStatus.UNKNOWN,
         SpatialCoverageStatus.UNAVAILABLE: CoverageStatus.UNAVAILABLE,
     }[status]
+
+
+def parcel_geometry_evidence_draft(
+    geometry: ParcelGeometry,
+    license_metadata: SpatialLicense,
+) -> EvidenceDraft:
+    """Represent a durable parcel geometry through the Stage 1 Evidence store."""
+
+    evidence_status = {
+        SpatialAuthority.OFFICIAL: EvidenceStatus.AVAILABLE,
+        SpatialAuthority.DERIVED: EvidenceStatus.LIMITED,
+        SpatialAuthority.USER_SUPPLIED: EvidenceStatus.USER_PROVIDED,
+        SpatialAuthority.SYNTHETIC: EvidenceStatus.UNVERIFIED,
+        SpatialAuthority.UNKNOWN: EvidenceStatus.UNVERIFIED,
+    }[geometry.provenance.authority]
+    quality_status = {
+        EvidenceStatus.AVAILABLE: QualityStatus.PASSED,
+        EvidenceStatus.LIMITED: QualityStatus.LIMITED,
+    }.get(evidence_status, QualityStatus.NOT_CHECKED)
+    return EvidenceDraft(
+        fact_type="spatial.parcel_geometry.v1",
+        source_id=geometry.provenance.source_id,
+        source_environment=geometry.provenance.environment,
+        retrieved_at=geometry.retrieved_at,
+        effective_from=geometry.effective_at,
+        effective_to=geometry.valid_to,
+        coverage_status=_evidence_coverage_status(geometry.coverage.status),
+        coverage=geometry.coverage.as_evidence_mapping(),
+        evidence_status=evidence_status,
+        quality_status=quality_status,
+        quality={
+            "authority": geometry.provenance.authority.value,
+            "geometry_type": geometry.geometry_type.value,
+            "source_crs": geometry.source_crs.identifier,
+            "normalized_crs": geometry.normalized_crs.identifier,
+            "precision": {
+                "value": geometry.precision.value,
+                "unit": geometry.precision.unit,
+                "method": geometry.precision.method,
+            },
+        },
+        license_status=license_metadata.status,
+        license=license_metadata.as_evidence_mapping(),
+        value_ref=f"parcel-geometry:{geometry.geometry_id}",
+        value_schema="spatial-parcel-geometry-v1",
+        provider=geometry.provenance.provider_id,
+        source_record_id=geometry.provenance.source_record_id,
+        lineage=geometry.provenance.lineage_mapping(),
+    )
 
 
 def observation_evidence_draft(observation: SpatialObservation) -> EvidenceDraft:

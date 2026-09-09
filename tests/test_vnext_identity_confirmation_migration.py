@@ -4,8 +4,7 @@ import json
 from pathlib import Path
 
 from scripts import apply_production_migrations as migration_runner
-from scripts.migration_registry import (checksum, load_registry,
-                                        next_safe_sequence)
+from scripts.migration_registry import checksum, load_registry, next_safe_sequence
 
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATION = ROOT / "database/migrations/016_vnext_identity_confirmation_case_links.sql"
@@ -25,14 +24,16 @@ def test_migration_016_is_registered_once_and_advances_sequence() -> None:
     assert matching[0].sequence == 16
     assert matching[0].sha256 == checksum(MIGRATION)
     assert MIGRATION in migration_runner.MIGRATIONS
-    assert next_safe_sequence(registrations) == 18
+    assert next_safe_sequence(registrations) == 19
 
 
 def test_migrations_001_through_015_remain_frozen() -> None:
     payload = json.loads(REGISTRY.read_text(encoding="utf-8"))
     entries = payload["migrations"]
     migration_015 = next(
-        item for item in entries if item["filename"] == "015_vnext_identity_resolution_candidates.sql"
+        item
+        for item in entries
+        if item["filename"] == "015_vnext_identity_resolution_candidates.sql"
     )
 
     assert migration_015["sha256"] == FROZEN_015

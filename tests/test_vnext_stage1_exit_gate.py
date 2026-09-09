@@ -69,16 +69,15 @@ def test_executable_vnext_route_surface_is_exact_and_has_no_shortcuts() -> None:
 
 def test_openapi_requires_bearer_and_bounded_idempotency_on_every_command() -> None:
     schema = _schema()
-    assert schema["components"]["securitySchemes"]["SupabaseBearer"]["scheme"] == "bearer"
+    assert (
+        schema["components"]["securitySchemes"]["SupabaseBearer"]["scheme"] == "bearer"
+    )
     for method, path in APPROVED_ROUTES:
         operation = schema["paths"][path][method.lower()]
         assert {"SupabaseBearer": []} in operation["security"]
     for path in COMMAND_ROUTES:
         operation = schema["paths"][path]["post"]
-        parameters = {
-            item["name"]: item
-            for item in operation.get("parameters", [])
-        }
+        parameters = {item["name"]: item for item in operation.get("parameters", [])}
         idempotency = parameters["Idempotency-Key"]
         assert idempotency["in"] == "header" and idempotency["required"] is True
         assert idempotency["schema"]["minLength"] == 16
@@ -136,15 +135,19 @@ def test_stage1_feature_flags_and_example_configuration_are_default_off() -> Non
         assert "feature_legacy_case_import_v1=true" not in text
 
 
-def test_migrations_are_frozen_through_017_and_next_sequence_is_018() -> None:
+def test_migrations_are_frozen_through_017_and_slice1_uses_sequence_018() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 18
-    assert max(item.sequence for item in registrations) == 17
-    assert not list((ROOT / "database" / "migrations").glob("018_*.sql"))
+    assert next_safe_sequence(registrations) == 19
+    assert max(item.sequence for item in registrations) == 18
+    assert [
+        item.filename for item in registrations if item.sequence == 18
+    ] == ["018_add_vnext_spatial_foundation.sql"]
     assert all(len(item.sha256) == 64 for item in registrations)
 
 
-def test_frontend_headers_are_bounded_and_supabase_connect_is_exact_origin_only() -> None:
+def test_frontend_headers_are_bounded_and_supabase_connect_is_exact_origin_only() -> (
+    None
+):
     config = (FRONTEND / "next.config.mjs").read_text(encoding="utf-8")
     for header in (
         "Content-Security-Policy",

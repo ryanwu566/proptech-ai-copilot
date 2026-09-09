@@ -34,7 +34,9 @@ class _Result:
 
 
 class _FakeConnection:
-    def __init__(self, *, ledger: dict[str, str] | None = None, fail_on: str | None = None) -> None:
+    def __init__(
+        self, *, ledger: dict[str, str] | None = None, fail_on: str | None = None
+    ) -> None:
         self.ledger = dict(ledger or {})
         self.fail_on = fail_on
         self.sql: list[str] = []
@@ -61,7 +63,9 @@ class _FakeConnection:
         else:
             self.transaction_committed = True
 
-    def execute(self, statement: str, params: tuple[object, ...] | None = None) -> _Result:
+    def execute(
+        self, statement: str, params: tuple[object, ...] | None = None
+    ) -> _Result:
         normalized = " ".join(statement.lower().split())
         self.sql.append(normalized)
         if self.fail_on and self.fail_on in normalized:
@@ -71,8 +75,21 @@ class _FakeConnection:
             checksum = self.ledger.get(migration_id)
             return _Result([] if checksum is None else [(checksum,)])
         if normalized.startswith("select column_name from information_schema.columns"):
-            return _Result([(column,) for column in {"migration_id", "schema_version", "applied_at", "release_version", "checksum"}])
-        if normalized.startswith("select constraint_name from information_schema.table_constraints"):
+            return _Result(
+                [
+                    (column,)
+                    for column in {
+                        "migration_id",
+                        "schema_version",
+                        "applied_at",
+                        "release_version",
+                        "checksum",
+                    }
+                ]
+            )
+        if normalized.startswith(
+            "select constraint_name from information_schema.table_constraints"
+        ):
             if "constraint_schema in" in normalized:
                 return _Result(
                     [(name,) for name in migration_runner.REQUIRED_VNEXT_FOREIGN_KEYS]
@@ -87,34 +104,51 @@ class _FakeConnection:
             return _Result([(table,) for table in migration_runner.REQUIRED_TABLES])
         if normalized.startswith("select table_schema, table_name"):
             return _Result(
-                [tuple(table.split(".", 1)) for table in migration_runner.REQUIRED_VNEXT_TABLES]
+                [
+                    tuple(table.split(".", 1))
+                    for table in migration_runner.REQUIRED_VNEXT_TABLES
+                ]
             )
         if normalized.startswith("select indexname"):
             return _Result([(index,) for index in migration_runner.REQUIRED_INDEXES])
         if normalized.startswith("select schemaname, indexname"):
             return _Result(
-                [tuple(index.split(".", 1)) for index in migration_runner.REQUIRED_VNEXT_INDEXES]
+                [
+                    tuple(index.split(".", 1))
+                    for index in migration_runner.REQUIRED_VNEXT_INDEXES
+                ]
             )
-        if normalized.startswith("select count(*) from information_schema.table_constraints"):
-                return _Result([(69 if "constraint_schema in" in normalized else 4,)])
+        if normalized.startswith(
+            "select count(*) from information_schema.table_constraints"
+        ):
+            return _Result([(81 if "constraint_schema in" in normalized else 4,)])
         return _Result([])
 
 
 def _run(monkeypatch, connection: _FakeConnection) -> dict[str, object]:
     monkeypatch.setattr(migration_runner, "connect", lambda database_url: connection)
-    return migration_runner.apply("postgresql://synthetic", release_version="test-release")
+    return migration_runner.apply(
+        "postgresql://synthetic", release_version="test-release"
+    )
 
 
-def test_empty_database_bootstraps_ledger_before_recording_migrations(monkeypatch) -> None:
+def test_empty_database_bootstraps_ledger_before_recording_migrations(
+    monkeypatch,
+) -> None:
     connection = _FakeConnection()
 
     result = _run(monkeypatch, connection)
 
     assert result["status"] == "pass"
     assert set(connection.ledger) == {path.stem for path in migration_runner.MIGRATIONS}
-    first_insert = next(index for index, sql in enumerate(connection.sql) if sql.startswith("insert into schema_migration_ledger"))
+    first_insert = next(
+        index
+        for index, sql in enumerate(connection.sql)
+        if sql.startswith("insert into schema_migration_ledger")
+    )
     assert any(
-        index < first_insert and "create table if not exists schema_migration_ledger" in sql
+        index < first_insert
+        and "create table if not exists schema_migration_ledger" in sql
         for index, sql in enumerate(connection.sql)
     )
     assert not any(sql == "begin" for sql in connection.sql)
@@ -125,10 +159,10 @@ def test_registry_freezes_every_historical_migration_exactly_once() -> None:
     registrations = load_registry()
     actual_files = {path.name for path in MIGRATION_DIRECTORY.glob("*.sql")}
 
-    assert len(registrations) == len(actual_files) == 18
+    assert len(registrations) == len(actual_files) == 19
     assert {item.filename for item in registrations} == actual_files
     assert len({item.logical_id for item in registrations}) == len(registrations)
-    assert [item.registry_order for item in registrations] == list(range(1, 19))
+    assert [item.registry_order for item in registrations] == list(range(1, 20))
     assert [item.filename for item in registrations][1:3] == [
         "002_add_market_direct_query_indexes.sql",
         "002_expand_valuation_import_runs.sql",
@@ -168,7 +202,9 @@ def test_registry_detects_checksum_drift(tmp_path: Path) -> None:
     for source in MIGRATION_DIRECTORY.glob("*.sql"):
         shutil.copyfile(source, migration_directory / source.name)
     drifted = migration_directory / "012_security_rls_deny_by_default.sql"
-    drifted.write_text(drifted.read_text(encoding="utf-8") + "\n-- drift\n", encoding="utf-8")
+    drifted.write_text(
+        drifted.read_text(encoding="utf-8") + "\n-- drift\n", encoding="utf-8"
+    )
 
     with pytest.raises(MigrationRegistryError) as error:
         load_registry(REGISTRY_PATH, migration_directory)
@@ -176,7 +212,9 @@ def test_registry_detects_checksum_drift(tmp_path: Path) -> None:
     assert error.value.reason == "migration_checksum_drift"
 
 
-def test_registry_checksum_is_stable_across_checkout_line_endings(tmp_path: Path) -> None:
+def test_registry_checksum_is_stable_across_checkout_line_endings(
+    tmp_path: Path,
+) -> None:
     lf = tmp_path / "lf.sql"
     crlf = tmp_path / "crlf.sql"
     lf.write_bytes(b"select 1;\nselect 2;\n")
@@ -185,10 +223,10 @@ def test_registry_checksum_is_stable_across_checkout_line_endings(tmp_path: Path
     assert checksum(lf) == checksum(crlf)
 
 
-def test_registry_allocates_next_slice_sequence_after_stage_1_slice_7() -> None:
+def test_registry_allocates_next_sequence_after_stage_2a_slice_1() -> None:
     registrations = load_registry()
 
-    assert next_safe_sequence(registrations) == 18
+    assert next_safe_sequence(registrations) == 19
     assert sum(item.filename.startswith("013_") for item in registrations) == 1
     assert sum(item.filename.startswith("014_") for item in registrations) == 1
     assert sum(item.filename.startswith("015_") for item in registrations) == 1
@@ -202,14 +240,16 @@ def test_dry_run_reports_frozen_registry_and_next_allocation() -> None:
 
     assert result == {
         "status": "ready",
-        "migration_count": 13,
-        "registry_count": 18,
-        "next_migration_sequence": "018",
+        "migration_count": 14,
+        "registry_count": 19,
+        "next_migration_sequence": "019",
         "mode": "dry_run",
     }
 
 
-def test_rerunning_migrations_is_idempotent_and_preserves_checksums(monkeypatch) -> None:
+def test_rerunning_migrations_is_idempotent_and_preserves_checksums(
+    monkeypatch,
+) -> None:
     connection = _FakeConnection()
 
     first = _run(monkeypatch, connection)
@@ -228,14 +268,36 @@ def test_migration_schema_versions_follow_file_numbers(monkeypatch) -> None:
     result = _run(monkeypatch, connection)
 
     assert result["status"] == "pass"
-    assert connection.schema_versions["008_add_official_market_pipeline"] == "schema-008"
-    assert connection.schema_versions["009_separate_official_market_region_coverage"] == "schema-009"
+    assert (
+        connection.schema_versions["008_add_official_market_pipeline"] == "schema-008"
+    )
+    assert (
+        connection.schema_versions["009_separate_official_market_region_coverage"]
+        == "schema-009"
+    )
     assert connection.schema_versions["010_add_plvr_generation_schema"] == "schema-010"
-    assert connection.schema_versions["013_vnext_workspace_case_foundation"] == "schema-013"
-    assert connection.schema_versions["014_vnext_property_graph_evidence_foundation"] == "schema-014"
-    assert connection.schema_versions["015_vnext_identity_resolution_candidates"] == "schema-015"
-    assert connection.schema_versions["016_vnext_identity_confirmation_case_links"] == "schema-016"
-    assert connection.schema_versions["017_vnext_legacy_saved_case_import"] == "schema-017"
+    assert (
+        connection.schema_versions["013_vnext_workspace_case_foundation"]
+        == "schema-013"
+    )
+    assert (
+        connection.schema_versions["014_vnext_property_graph_evidence_foundation"]
+        == "schema-014"
+    )
+    assert (
+        connection.schema_versions["015_vnext_identity_resolution_candidates"]
+        == "schema-015"
+    )
+    assert (
+        connection.schema_versions["016_vnext_identity_confirmation_case_links"]
+        == "schema-016"
+    )
+    assert (
+        connection.schema_versions["017_vnext_legacy_saved_case_import"] == "schema-017"
+    )
+    assert (
+        connection.schema_versions["018_add_vnext_spatial_foundation"] == "schema-018"
+    )
 
 
 def test_checksum_drift_fails_without_applying_other_migrations(monkeypatch) -> None:
@@ -250,19 +312,30 @@ def test_checksum_drift_fails_without_applying_other_migrations(monkeypatch) -> 
 
 
 def test_failed_migration_rolls_back_ledger_records(monkeypatch) -> None:
-    connection = _FakeConnection(fail_on="create table if not exists official_market_releases")
+    connection = _FakeConnection(
+        fail_on="create table if not exists official_market_releases"
+    )
 
     result = _run(monkeypatch, connection)
 
-    assert result == {"status": "unavailable", "reason": "database_migration_unavailable"}
+    assert result == {
+        "status": "unavailable",
+        "reason": "database_migration_unavailable",
+    }
     assert connection.transaction_rolled_back is True
     assert connection.ledger == {}
 
 
 def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
-    legacy = (ROOT / "database/migrations/003_add_market_region_coverage.sql").read_text(encoding="utf-8")
-    published = (ROOT / "database/migrations/008_add_official_market_pipeline.sql").read_text(encoding="utf-8")
-    forward = (ROOT / "database/migrations/009_separate_official_market_region_coverage.sql").read_text(encoding="utf-8")
+    legacy = (
+        ROOT / "database/migrations/003_add_market_region_coverage.sql"
+    ).read_text(encoding="utf-8")
+    published = (
+        ROOT / "database/migrations/008_add_official_market_pipeline.sql"
+    ).read_text(encoding="utf-8")
+    forward = (
+        ROOT / "database/migrations/009_separate_official_market_region_coverage.sql"
+    ).read_text(encoding="utf-8")
 
     assert "create table if not exists market_region_coverage (" in legacy
     assert "valid_market_candidate_count" in legacy
@@ -271,8 +344,13 @@ def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     assert "release_id text not null references official_market_releases" in forward
     assert "create table if not exists market_region_coverage (" not in forward
     assert "idx_official_market_region_coverage_region_period" in forward
-    assert migration_runner.MIGRATIONS[-1].name == "017_vnext_legacy_saved_case_import.sql"
-    assert any(path.name == "010_add_plvr_generation_schema.sql" for path in migration_runner.MIGRATIONS)
+    assert (
+        migration_runner.MIGRATIONS[-1].name == "018_add_vnext_spatial_foundation.sql"
+    )
+    assert any(
+        path.name == "010_add_plvr_generation_schema.sql"
+        for path in migration_runner.MIGRATIONS
+    )
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
     assert "plvr_dataset_generations" in migration_runner.REQUIRED_TABLES
 
@@ -317,7 +395,9 @@ $migration$;
     assert statements[0].endswith("$migration$")
 
 
-def test_statement_splitter_ignores_semicolons_in_strings_and_escaped_quotes(tmp_path: Path) -> None:
+def test_statement_splitter_ignores_semicolons_in_strings_and_escaped_quotes(
+    tmp_path: Path,
+) -> None:
     statements = _statements(
         tmp_path,
         "INSERT INTO examples (value) VALUES ('a;b'), ('it''s;valid');",
@@ -347,8 +427,14 @@ def test_migration_009_keeps_do_block_and_rename_as_one_statement() -> None:
     statements = migration_validator._statements(path)
 
     assert len(statements) == 3
-    assert "alter table public.market_region_coverage rename to official_market_region_coverage" in statements[0].lower()
-    assert not any(statement.strip().lower().startswith("alter table") for statement in statements[1:])
+    assert (
+        "alter table public.market_region_coverage rename to official_market_region_coverage"
+        in statements[0].lower()
+    )
+    assert not any(
+        statement.strip().lower().startswith("alter table")
+        for statement in statements[1:]
+    )
 
 
 def test_all_registered_migrations_split_into_non_empty_statements() -> None:

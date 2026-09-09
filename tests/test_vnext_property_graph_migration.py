@@ -8,7 +8,9 @@ from scripts.migration_registry import checksum, load_registry, next_safe_sequen
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MIGRATION = ROOT / "database/migrations/014_vnext_property_graph_evidence_foundation.sql"
+MIGRATION = (
+    ROOT / "database/migrations/014_vnext_property_graph_evidence_foundation.sql"
+)
 REGISTRY = ROOT / "database/migration_registry.json"
 SQL = MIGRATION.read_text(encoding="utf-8").lower()
 
@@ -31,7 +33,7 @@ def test_migration_014_is_registered_once_and_advances_sequence() -> None:
     assert selected[0].filename == MIGRATION.name
     assert selected[0].execution_policy == "production_runner"
     assert selected[0].sha256 == checksum(MIGRATION)
-    assert next_safe_sequence(registrations) == 18
+    assert next_safe_sequence(registrations) == 19
     assert MIGRATION in migration_runner.MIGRATIONS
 
 

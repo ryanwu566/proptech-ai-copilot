@@ -49,18 +49,15 @@ def _reset_database(connection) -> None:
 
 
 def _assert_ledger(connection) -> None:
-    expected = {
-        path.stem: runner._checksum(path)
-        for path in runner.MIGRATIONS
-    }
+    expected = {path.stem: runner._checksum(path) for path in runner.MIGRATIONS}
     actual = dict(
         connection.execute(
             "SELECT migration_id, checksum FROM public.schema_migration_ledger"
         ).fetchall()
     )
     assert actual == expected
-    assert len(actual) == 13
-    assert not any(migration_id.startswith("018_") for migration_id in actual)
+    assert len(actual) == 14
+    assert sum(migration_id.startswith("018_") for migration_id in actual) == 1
 
 
 def _assert_catalog(connection) -> None:
@@ -73,8 +70,11 @@ def _assert_catalog(connection) -> None:
         "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
         "AND relation.relkind = 'r' ORDER BY 1, 2"
     ).fetchall()
-    assert len(tables) == 19
-    assert all(row[2] is True and row[3] is True for row in tables)
+    assert len(tables) == 22
+    tenant_tables = [row for row in tables if row[1] != "spatial_layers"]
+    assert all(row[2] is True and row[3] is True for row in tenant_tables)
+    spatial_layers = next(row for row in tables if row[1] == "spatial_layers")
+    assert spatial_layers[2:4] == (False, False)
     assert all(row[4] != "vnext_api" for row in tables)
 
     role = connection.execute(
@@ -88,7 +88,7 @@ def _assert_catalog(connection) -> None:
         "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
         "AND constraint_type = 'FOREIGN KEY'"
     ).fetchone()[0]
-    assert foreign_keys >= 69
+    assert foreign_keys >= 81
 
     grants = connection.execute(
         "SELECT table_schema, table_name, privilege_type "
@@ -99,9 +99,7 @@ def _assert_catalog(connection) -> None:
     assert grants
     assert all(privilege != "DELETE" for _schema, _table, privilege in grants)
     mutable = {
-        (schema, table)
-        for schema, table, privilege in grants
-        if privilege == "UPDATE"
+        (schema, table) for schema, table, privilege in grants if privilege == "UPDATE"
     }
     assert mutable <= {
         ("vnext_core", "cases"),
@@ -128,9 +126,7 @@ def _assert_catalog(connection) -> None:
 def _install_existing_production_prefix(connection) -> None:
     runner._ensure_ledger(connection)
     prefix = [
-        path
-        for path in runner.MIGRATIONS
-        if int(path.name.split("_", 1)[0]) < 13
+        path for path in runner.MIGRATIONS if int(path.name.split("_", 1)[0]) < 13
     ]
     assert len(prefix) == 8
     for path in prefix:
@@ -147,8 +143,8 @@ def _install_existing_production_prefix(connection) -> None:
 
 def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 18
-    assert len(runner.MIGRATIONS) == 13
+    assert next_safe_sequence(registrations) == 19
+    assert len(runner.MIGRATIONS) == 14
 
     with connect(DATABASE_URL) as connection:
         _reset_database(connection)
@@ -159,9 +155,9 @@ def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> N
     )
     assert clean == {
         "status": "pass",
-        "migration_count": 13,
-        "registry_count": 18,
-        "next_migration_sequence": "018",
+        "migration_count": 14,
+        "registry_count": 19,
+        "next_migration_sequence": "019",
         "ledger": "applied",
         "verification": "tables_indexes_foreign_keys",
     }
@@ -175,12 +171,16 @@ def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> N
         _assert_catalog(connection)
         _reset_database(connection)
         _install_existing_production_prefix(connection)
-        assert connection.execute(
-            "SELECT to_regnamespace('vnext_core')"
-        ).fetchone()[0] is None
-        assert connection.execute(
+        assert (
+            connection.execute("SELECT to_regnamespace('vnext_core')").fetchone()[0]
+            is None
+        )
+        assert (
+            connection.execute(
             "SELECT count(*) FROM public.schema_migration_ledger"
-        ).fetchone()[0] == 8
+            ).fetchone()[0]
+            == 8
+        )
 
     upgraded = runner.apply(
         DATABASE_URL,
