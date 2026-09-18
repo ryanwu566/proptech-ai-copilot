@@ -11,9 +11,38 @@ already configured or live.
 - Database expectation: managed PostgreSQL in preview and production. SQLite is
   local development only and is never a production fallback.
 - Current hosted URLs: owner-configured; no URL is hardcoded in this repository.
-- Start command: `uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT`.
+- Start command: `uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT --no-proxy-headers`.
 - Health paths: `/liveness`, `/health`, `/readiness`, `/release-version`,
   `/compatibility`, and `/source-status`.
+
+## Public map cost guard
+
+`POST /map/search`, `POST /map/insight`, and `POST /map/nearby` share a
+process-local fixed-window budget of 30 accepted requests per 60 seconds per
+direct transport peer by default. Configure positive integer values with
+`PUBLIC_MAP_RATE_LIMIT_REQUESTS` and `PUBLIC_MAP_RATE_LIMIT_WINDOW_SECONDS`;
+values are capped at 100,000 requests and 3,600 seconds. Rejected requests
+return HTTP 429 with a positive `Retry-After` and do not invoke map providers.
+FastAPI validates the request body first: malformed requests return 422 and
+do not spend this budget. The bucket table is capped at 4,096 entries; peers
+beyond that cap share an overflow budget. Metadata routes `/map/regions` and
+`/map/poi-categories` do not spend the budget.
+
+`GET /map/google-health` remains outside this three-route guard. With Google
+credentials and an empty or expired cache, that diagnostic route can call
+Google Geocoding and Places. Its existing five-minute cache reduces repeat
+checks, but concurrent cache misses can still start provider work. It remains
+a separate cost surface to review before claiming every provider-backed route
+is rate limited.
+
+`--no-proxy-headers` makes the key the direct network peer observed by Uvicorn.
+The application ignores `X-Forwarded-For`, `X-Real-IP`, and `Forwarded`. Render
+may place multiple end users behind the same peer; this is a coarse provider
+cost guard, **not a proven per-user quota**. The limiter is per process, so
+separate workers or instances do not share a budget. Do not claim end-user
+identity until the actual inbound proxy chain and trusted peer ranges have
+been verified and explicitly configured. Confirm the live Render start command
+matches the checked-in blueprint; a dashboard override can differ.
 
 ## Verification state
 

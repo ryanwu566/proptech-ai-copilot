@@ -21,7 +21,7 @@
 4. Start Command：
 
    ```text
-   uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT
+   uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT --no-proxy-headers
    ```
 
 5. 設定環境變數：
