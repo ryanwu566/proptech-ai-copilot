@@ -7,6 +7,7 @@ import { ErrorState, MetricTile, SectionCard } from "@/components/product-ui";
 import { DetailDisclosure } from "@/components/detail-disclosure";
 import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
 import { CommuteLivabilityCard } from "@/components/commute-livability-card";
+import { CommuteRouteCard } from "@/components/commute-route-card";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { RuntimeCopyKey } from "@/lib/runtime-copy";
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
@@ -158,7 +159,10 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
     </details>}
     {!embeddedJourney && <details className="rounded-xl border border-stone-200 bg-white">
       <summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">{copy("commute.title")}</summary>
-      <div className="border-t border-stone-100 p-4"><CommuteLivabilityCard address={address} /></div>
+      <div className="space-y-3 border-t border-stone-100 p-4">
+        <CommuteLivabilityCard address={address} />
+        {result?.resolved_location && <CommuteRouteCard originLatitude={result.resolved_location.latitude} originLongitude={result.resolved_location.longitude} />}
+      </div>
     </details>}
     {!embeddedJourney && <div className="rounded-xl border border-stone-200 bg-white p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
