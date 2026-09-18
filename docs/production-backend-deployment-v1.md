@@ -14,7 +14,7 @@ Use the repository root and the checked-in `render.yaml` blueprint.
 - Service type: Web Service
 - Runtime: Python
 - Build command: `pip install -r backend/requirements.txt`
-- Start command: `uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT`
+- Start command: `uvicorn backend.api_main:app --host 0.0.0.0 --port $PORT --no-proxy-headers`
 - Health check path: `/health`
 - Branch: `main`
 

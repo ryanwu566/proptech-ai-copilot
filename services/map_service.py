@@ -8,7 +8,7 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 
@@ -168,8 +168,12 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     }
 
 
-def get_google_health(force_refresh: bool = False) -> dict[str, Any]:
-    """Check backend-only Google integrations with a five-minute process cache."""
+def get_google_health(
+    force_refresh: bool = False,
+    *,
+    before_provider_probe: Callable[[], None] | None = None,
+) -> dict[str, Any]:
+    """Check Google integrations; guard only uncached, configured live probes."""
 
     global GOOGLE_HEALTH_CACHE
     now = time.monotonic()
@@ -177,7 +181,6 @@ def get_google_health(force_refresh: bool = False) -> dict[str, Any]:
         return GOOGLE_HEALTH_CACHE[1]
 
     geocoding = GoogleGeocodingAdapter()
-    places = GooglePlacesAdapter()
     if not geocoding.available:
         result = {
             "google_key_configured": False, "geocoding_enabled": False, "places_enabled": False,
@@ -186,6 +189,11 @@ def get_google_health(force_refresh: bool = False) -> dict[str, Any]:
         GOOGLE_HEALTH_CACHE = (now, result)
         return result
 
+    # Cached and no-key responses stay local. Public callers guard the live
+    # probe here, before either Google adapter performs network work.
+    if before_provider_probe is not None:
+        before_provider_probe()
+    places = GooglePlacesAdapter()
     geocoding_enabled = geocoding.search("台北101", []) is not None
     places_enabled = False
     places_error = ""

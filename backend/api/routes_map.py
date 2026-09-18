@@ -2,15 +2,71 @@
 
 from __future__ import annotations
 
+import logging
+import os
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 from services.map_service import get_google_health, get_map_insight, get_nearby_places, list_poi_categories, list_regions, search_location
+from services.rate_limit import DEFAULT_LIMIT, DEFAULT_WINDOW_SECONDS, FixedWindowRateLimiter
 
 
 router = APIRouter(prefix="/map", tags=["map-insight"])
+logger = logging.getLogger("proptech.observability")
+
+PUBLIC_MAP_RATE_LIMIT_REQUESTS_ENV = "PUBLIC_MAP_RATE_LIMIT_REQUESTS"
+PUBLIC_MAP_RATE_LIMIT_WINDOW_SECONDS_ENV = "PUBLIC_MAP_RATE_LIMIT_WINDOW_SECONDS"
+
+
+def _positive_int_env(name: str, default: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+def _build_map_rate_limiter() -> FixedWindowRateLimiter:
+    return FixedWindowRateLimiter(
+        limit=_positive_int_env(PUBLIC_MAP_RATE_LIMIT_REQUESTS_ENV, DEFAULT_LIMIT),
+        window_seconds=_positive_int_env(PUBLIC_MAP_RATE_LIMIT_WINDOW_SECONDS_ENV, DEFAULT_WINDOW_SECONDS),
+    )
+
+
+# One shared, process-local budget for three POST routes and live health probes.
+_MAP_RATE_LIMITER = _build_map_rate_limiter()
+
+
+def _enforce_map_rate_limit(request: Request) -> None:
+    """Limit the direct transport peer before provider work.
+
+    Render starts Uvicorn with --no-proxy-headers. The ASGI client host is
+    therefore a coarse peer key, not a proven end-user identity. Ignore all
+    forwarded IP headers; no proxy trust range is configured here.
+    """
+
+    try:
+        host = request.client.host if request.client else "unknown"
+        decision = _MAP_RATE_LIMITER.check(f"map:{host}")
+        rejected = not decision.allowed
+        retry_after = str(decision.retry_after_seconds) if rejected else ""
+    except Exception:
+        logger.warning(
+            "rate_limiter_failed_open boundary=map correlation_id=%s",
+            getattr(request.state, "correlation_id", "unknown"),
+        )
+        return
+    if rejected:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please retry later.",
+            headers={"Retry-After": retry_after},
+        )
 
 
 class MapQuery(BaseModel):
@@ -44,23 +100,25 @@ def get_poi_categories() -> list[dict[str, str]]:
 
 
 @router.get("/google-health")
-def get_map_google_health() -> dict[str, Any]:
+def get_map_google_health(request: Request) -> dict[str, Any]:
     """Return a safe Google integration status without exposing credentials."""
 
-    return get_google_health()
+    return get_google_health(before_provider_probe=lambda: _enforce_map_rate_limit(request))
 
 
 @router.post("/search")
-def post_map_search(request: MapQuery) -> dict[str, Any]:
+def post_map_search(request: MapQuery, http_request: Request) -> dict[str, Any]:
     """Resolve a mock address, district, or road query."""
 
+    _enforce_map_rate_limit(http_request)
     return search_location(request.query)
 
 
 @router.post("/insight")
-def post_map_insight(request: MapQuery) -> dict[str, Any]:
+def post_map_insight(request: MapQuery, http_request: Request) -> dict[str, Any]:
     """Return map center, POI layers, and livability summary."""
 
+    _enforce_map_rate_limit(http_request)
     result = get_map_insight(request.query)
     if result is None:
         raise HTTPException(status_code=404, detail="找不到符合的 Map Insight 展示資料。")
@@ -68,7 +126,8 @@ def post_map_insight(request: MapQuery) -> dict[str, Any]:
 
 
 @router.post("/nearby")
-def post_map_nearby(request: NearbyQuery) -> dict[str, Any]:
+def post_map_nearby(request: NearbyQuery, http_request: Request) -> dict[str, Any]:
     """Return normalized nearby amenities with automatic mock fallback."""
 
+    _enforce_map_rate_limit(http_request)
     return get_nearby_places(request.lat, request.lng, request.radius_m, request.categories, request.language_code)

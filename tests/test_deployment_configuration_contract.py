@@ -24,3 +24,9 @@ def test_render_and_frontend_contracts_remain_declared() -> None:
     origin = (ROOT / "frontend_next/lib/api-origin.ts").read_text(encoding="utf-8")
     assert "resolveApiOrigin" in api
     assert "Production API origin must use HTTPS" in origin
+
+
+def test_render_disables_proxy_header_client_rewriting() -> None:
+    render = (ROOT / "render.yaml").read_text(encoding="utf-8")
+    start_command = next(line for line in render.splitlines() if "startCommand:" in line)
+    assert "--no-proxy-headers" in start_command
