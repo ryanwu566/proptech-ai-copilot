@@ -10,6 +10,9 @@ import {
   parsePropertyEvidence,
   parsePropertyGraph,
   parsePropertyResolution,
+  parseParcelHypothesis,
+  parseBuildingHypothesis,
+  parseManualRelation,
   parseVNextContext,
   parseVNextError,
   parseWorkspaceContext,
@@ -19,6 +22,10 @@ import {
   type VNextErrorCode,
   type WorkspaceContextDTO,
 } from "@/lib/vnext-identity-contract";
+import {
+  buildingHypothesisBody, parcelBuildingRelationBody, parcelHypothesisBody,
+  type BuildingComponents, type ParcelComponents,
+} from "@/lib/vnext-manual-identity";
 
 export type ResolutionInput =
   | { kind: "address"; value: { text: string } }
@@ -113,7 +120,7 @@ async function requestJson<T>(
   }
 }
 
-export function newIdempotencyKey(command: "resolution" | "confirm" | "reject" | "case" | "attach"): string {
+export function newIdempotencyKey(command: "resolution" | "confirm" | "reject" | "case" | "attach" | "parcel" | "building" | "relation"): string {
   return `${command}:${crypto.randomUUID()}`;
 }
 
@@ -175,12 +182,46 @@ export const vnextIdentityClient = {
     requireMatch(result.property.property_entity_id, expected, "graph.property.property_entity_id");
     return result;
   },
+  graphByStatus: async (propertyId: string, status: "confirmed" | "disputed" | "proposed", cursor?: string) => {
+    const expected = identifier(propertyId);
+    const query = new URLSearchParams({ limit: "25", status });
+    if (cursor) query.set("cursor", cursor);
+    const result = await requestJson(`/v1/properties/${expected}/graph?${query}`, parsePropertyGraph);
+    requireMatch(result.property.property_entity_id, expected, "graph.property.property_entity_id");
+    if (result.relations.some((relation) => relation.status !== status)) throw new VNextContractError("graph.relations.status");
+    return result;
+  },
   evidence: async (propertyId: string, cursor?: string) => {
     const expected = identifier(propertyId);
     const query = new URLSearchParams({ limit: "25" });
     if (cursor) query.set("cursor", cursor);
     const result = await requestJson(`/v1/properties/${expected}/evidence?${query}`, parsePropertyEvidence);
     requireMatch(result.property.property_entity_id, expected, "evidence.property.property_entity_id");
+    return result;
+  },
+  createParcelHypothesis: async (propertyId: string, workspaceId: string, components: ParcelComponents, commandKey: string) => {
+    const expected = identifier(propertyId);
+    const result = await requestJson(`/v1/properties/${expected}/parcel-hypotheses`, parseParcelHypothesis, {
+      method: "POST", commandKey, body: parcelHypothesisBody(workspaceId, components),
+    });
+    requireMatch(result.property_entity_id, expected, "parcel_hypothesis.property_entity_id");
+    return result;
+  },
+  createBuildingHypothesis: async (propertyId: string, workspaceId: string, components: BuildingComponents, commandKey: string) => {
+    const expected = identifier(propertyId);
+    const result = await requestJson(`/v1/properties/${expected}/building-hypotheses`, parseBuildingHypothesis, {
+      method: "POST", commandKey, body: buildingHypothesisBody(workspaceId, components),
+    });
+    requireMatch(result.property_entity_id, expected, "building_hypothesis.property_entity_id");
+    return result;
+  },
+  createParcelBuildingRelation: async (workspaceId: string, parcelReferenceId: string, buildingReferenceId: string, commandKey: string) => {
+    const result = await requestJson("/v1/parcel-building-relations", parseManualRelation, {
+      method: "POST", commandKey, body: parcelBuildingRelationBody(workspaceId, parcelReferenceId, buildingReferenceId),
+    });
+    requireMatch(result.workspace_id, identifier(workspaceId), "parcel_building_relation.workspace_id");
+    requireMatch(result.parcel_identity_reference_id, identifier(parcelReferenceId), "parcel_building_relation.parcel_identity_reference_id");
+    requireMatch(result.building_identity_reference_id, identifier(buildingReferenceId), "parcel_building_relation.building_identity_reference_id");
     return result;
   },
   createCase: async (workspaceId: string, purpose: CasePurpose, title: string, commandKey: string) => {

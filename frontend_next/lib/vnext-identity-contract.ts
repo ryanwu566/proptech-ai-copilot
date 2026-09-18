@@ -178,6 +178,59 @@ export type VNextContextDTO = ReturnType<typeof parseVNextContext>;
 export type WorkspaceContextDTO = ReturnType<typeof parseWorkspaceContext>;
 export type VNextErrorEnvelope = ReturnType<typeof parseVNextError>;
 
+export type ManualReferenceDTO = ReturnType<typeof parseManualReference>;
+export type ManualRelationDTO = ReturnType<typeof parseManualRelation>;
+
+function parseManualReference(value: unknown, kind: "parcel" | "building") {
+  const path = `${kind}_hypothesis`;
+  const item = objectAt(value, path);
+  if (item.hypothesis !== true || item.identity_confirmation_id !== null) throw new VNextContractError(`${path}.authority`);
+  const authority = kind === "parcel" ? "unverified_manual_hypothesis" : "unverified_manual_claim";
+  if (item.authority !== authority || item.reference_type !== kind || item.reference_status !== "unverified"
+    || item.relation_type !== `property_${kind}` || item.relation_status !== "proposed"
+    || item.source_id !== "user-upload" || item.source_type !== "user" || item.source_environment !== "production") {
+    throw new VNextContractError(`${path}.authority`);
+  }
+  if (kind === "building" && item.identifier_kind !== "cadastral_building_number") {
+    throw new VNextContractError(`${path}.identifier_kind`);
+  }
+  return {
+    property_entity_id: uuidAt(item.property_entity_id, `${path}.property_entity_id`),
+    identity_reference_id: uuidAt(item.identity_reference_id, `${path}.identity_reference_id`),
+    relation_id: uuidAt(item.relation_id, `${path}.relation_id`),
+    display_value: stringAt(item.display_value, `${path}.display_value`, 512),
+    reference_status: "unverified" as const,
+    relation_status: "proposed" as const,
+  };
+}
+
+export function parseParcelHypothesis(value: unknown) {
+  return parseManualReference(value, "parcel");
+}
+
+export function parseBuildingHypothesis(value: unknown) {
+  return parseManualReference(value, "building");
+}
+
+export function parseManualRelation(value: unknown) {
+  const path = "parcel_building_relation";
+  const item = objectAt(value, path);
+  if (item.hypothesis !== true || item.authority !== "unverified_manual_relation"
+    || item.relation_type !== "parcel_building" || item.direction !== "bidirectional"
+    || item.relation_status !== "proposed" || item.identity_confirmation_id !== null
+    || item.source_id !== "user-upload" || item.source_type !== "user" || item.source_environment !== "production") {
+    throw new VNextContractError(`${path}.authority`);
+  }
+  return {
+    workspace_id: uuidAt(item.workspace_id, `${path}.workspace_id`),
+    parcel_identity_reference_id: uuidAt(item.parcel_identity_reference_id, `${path}.parcel_identity_reference_id`),
+    building_identity_reference_id: uuidAt(item.building_identity_reference_id, `${path}.building_identity_reference_id`),
+    relation_id: uuidAt(item.relation_id, `${path}.relation_id`),
+    direction: "bidirectional" as const,
+    relation_status: "proposed" as const,
+  };
+}
+
 function parseSource(value: unknown, path: string) {
   const item = objectAt(value, path);
   const parsed = {
