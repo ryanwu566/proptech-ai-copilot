@@ -38,7 +38,7 @@ def _build_map_rate_limiter() -> FixedWindowRateLimiter:
     )
 
 
-# One shared, process-local budget for the three public provider-backed routes.
+# One shared, process-local budget for three POST routes and live health probes.
 _MAP_RATE_LIMITER = _build_map_rate_limiter()
 
 
@@ -100,10 +100,10 @@ def get_poi_categories() -> list[dict[str, str]]:
 
 
 @router.get("/google-health")
-def get_map_google_health() -> dict[str, Any]:
+def get_map_google_health(request: Request) -> dict[str, Any]:
     """Return a safe Google integration status without exposing credentials."""
 
-    return get_google_health()
+    return get_google_health(before_provider_probe=lambda: _enforce_map_rate_limit(request))
 
 
 @router.post("/search")

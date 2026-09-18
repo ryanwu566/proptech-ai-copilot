@@ -151,6 +151,127 @@ def test_google_health_without_key_returns_mock(monkeypatch) -> None:
     assert payload["mode"] == "mock"
 
 
+def _install_live_google_health_fakes(monkeypatch):
+    """Replace only the external probes while keeping cache and route real."""
+
+    import services.map_service as map_service
+
+    events = []
+
+    class Geocoding:
+        available = True
+        last_error = ""
+
+        def search(self, query, regions):
+            events.append("geocoding")
+            return {"id": "resolved"}
+
+    class Places:
+        def nearby(self, *args):
+            events.append("places")
+            return []
+
+    monkeypatch.setattr(map_service, "GoogleGeocodingAdapter", Geocoding)
+    monkeypatch.setattr(map_service, "GooglePlacesAdapter", Places)
+    monkeypatch.setattr(map_service, "GOOGLE_HEALTH_CACHE", None)
+    return map_service, events
+
+
+def test_google_health_limits_only_live_probe_before_provider_work(monkeypatch) -> None:
+    map_service, events = _install_live_google_health_fakes(monkeypatch)
+    limiter = FixedWindowRateLimiter(limit=1)
+
+    class RecordingLimiter:
+        def check(self, key):
+            events.append("limiter")
+            return limiter.check(key)
+
+    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", RecordingLimiter())
+    first = client.get("/map/google-health")
+    assert first.status_code == 200
+    assert first.json()["mode"] == "google"
+    assert events == ["limiter", "geocoding", "places"]
+
+    cached = client.get("/map/google-health")
+    assert cached.status_code == 200
+    assert cached.json() == first.json()
+    assert events == ["limiter", "geocoding", "places"]
+
+    monkeypatch.setattr(map_service, "GOOGLE_HEALTH_CACHE", None)
+    rejected = client.get("/map/google-health")
+    assert rejected.status_code == 429
+    assert int(rejected.headers["Retry-After"]) > 0
+    assert events == ["limiter", "geocoding", "places", "limiter"]
+
+
+@pytest.mark.parametrize(
+    ("header", "spoofed_value"),
+    [
+        ("X-Forwarded-For", "203.0.113.9"),
+        ("X-Real-IP", "203.0.113.9"),
+        ("Forwarded", "for=203.0.113.9"),
+    ],
+)
+def test_google_health_spoofed_header_cannot_reset_live_probe_budget(monkeypatch, header, spoofed_value) -> None:
+    map_service, events = _install_live_google_health_fakes(monkeypatch)
+    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+    assert client.get("/map/google-health").status_code == 200
+    monkeypatch.setattr(map_service, "GOOGLE_HEALTH_CACHE", None)
+    rejected = client.get("/map/google-health", headers={header: spoofed_value})
+    assert rejected.status_code == 429
+    assert events == ["geocoding", "places"]
+
+
+def test_google_health_without_key_does_not_spend_budget_or_probe(monkeypatch) -> None:
+    import services.map_service as map_service
+
+    class DenyLimiter:
+        calls = 0
+
+        def check(self, key):
+            self.calls += 1
+            return type("Decision", (), {"allowed": False, "retry_after_seconds": 5})()
+
+    def unexpected_provider(*args, **kwargs):
+        raise AssertionError("No Google key: provider probe must not run")
+
+    limiter = DenyLimiter()
+    monkeypatch.delenv("GOOGLE_MAPS_API_KEY", raising=False)
+    monkeypatch.setattr(map_service, "GOOGLE_HEALTH_CACHE", None)
+    monkeypatch.setattr(map_service.GoogleGeocodingAdapter, "search", unexpected_provider)
+    monkeypatch.setattr(map_service.GooglePlacesAdapter, "nearby", unexpected_provider)
+    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", limiter)
+    response = client.get("/map/google-health")
+    assert response.status_code == 200
+    assert response.json()["mode"] == "mock"
+    assert limiter.calls == 0
+
+
+def test_google_health_live_probe_shares_post_route_budget(monkeypatch) -> None:
+    _, events = _install_live_google_health_fakes(monkeypatch)
+    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+    monkeypatch.setattr(routes_map, "search_location", lambda query: {"ok": True})
+    assert client.post("/map/search", json={"query": "address"}).status_code == 200
+    rejected = client.get("/map/google-health")
+    assert rejected.status_code == 429
+    assert int(rejected.headers["Retry-After"]) > 0
+    assert events == []
+
+
+def test_google_health_limiter_failure_fails_open(monkeypatch, caplog) -> None:
+    _, events = _install_live_google_health_fakes(monkeypatch)
+
+    class BrokenLimiter:
+        def check(self, key):
+            raise RuntimeError("limiter unavailable")
+
+    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", BrokenLimiter())
+    response = client.get("/map/google-health")
+    assert response.status_code == 200
+    assert events == ["geocoding", "places"]
+    assert "rate_limiter_failed_open" in caplog.text
+
+
 def test_map_search_and_insight_endpoints() -> None:
     payload = {"query": "台北市大安區和平東路二段"}
     search = client.post("/map/search", json=payload)
