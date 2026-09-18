@@ -118,6 +118,10 @@ _AUDIT_METADATA_KEYS = frozenset(
         "accepted_field_classes",
         "dropped_field_classes",
         "warning_codes",
+        "parcel_identity_reference_id",
+        "building_identity_reference_id",
+        "relation_type",
+        "direction",
     }
 )
 

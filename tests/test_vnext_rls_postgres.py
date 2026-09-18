@@ -23,10 +23,17 @@ from scripts.disposable_postgres_auth import bootstrap_disposable_supabase_auth
 from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
 from services.vnext.auth import AuthenticatedPrincipal
+from services.vnext.building_claim import normalize_building_claim
+from services.vnext.building_claim_command import (
+    BUILDING_CLAIM_FACT_TYPE,
+    BuildingClaimApplicationService,
+    PostgresBuildingClaimRepository,
+)
 from services.vnext.authorization import (
     PostgresWorkspaceMembershipRepository, WorkspaceAuthorizer)
 from services.vnext.db_principal import DatabasePrincipalContext
 from services.vnext.errors import ErrorCode, VNextError
+from services.vnext.feature_flags import VNextFeatureFlags
 from services.vnext.identity_command_repository import \
     PostgresIdentityCommandRepository
 from services.vnext.identity_command_service import \
@@ -49,7 +56,25 @@ from services.vnext.legacy_case_import_service import \
     LegacyCaseImportApplicationService
 from services.vnext.persistence import (CasePurpose, PostgresCaseRepository,
                                         PostgresIdempotencyRepository)
+from services.vnext.parcel_building_relation_command import (
+    PARCEL_BUILDING_RELATION_FACT_TYPE,
+    ParcelBuildingRelationApplicationService,
+    PostgresParcelBuildingRelationRepository,
+)
+from services.vnext.parcel_evidence import PARCEL_EVIDENCE_FACT_TYPE
+from services.vnext.parcel_evidence_command import (
+    ParcelEvidenceApplicationService,
+    PostgresParcelEvidenceRepository,
+)
+from services.vnext.parcel_hypothesis_command import (
+    ParcelHypothesisApplicationService,
+    PostgresParcelHypothesisRepository,
+)
 from services.vnext.property_graph import (CoverageStatus,
+                                           IdentityReferenceDraft,
+                                           IdentityReferenceStatus,
+                                           IdentityReferenceType,
+                                           PostgresPropertyGraphRepository,
                                            PropertyRelationStatus,
                                            SourceEnvironment)
 from services.vnext.property_read_repository import \
@@ -1626,6 +1651,7 @@ def _seed_slice6_resolution(
     case_id: UUID | None = CASE_A,
     candidate_confidences: tuple[float, ...] = (1.0, 0.8),
     mismatched_reference: bool = False,
+    candidate_normalized_key: str | None = None,
 ) -> dict[str, object]:
     """Seed immutable Slice 5 history without creating a PropertyEntity."""
 
@@ -1748,7 +1774,11 @@ def _seed_slice6_resolution(
                 workspace_id,
                 resolution_id,
                 candidate_type,
-                f"{candidate_type}:slice6:{resolution_id}:{rank}",
+                (
+                    candidate_normalized_key
+                    if candidate_normalized_key is not None
+                    else f"{candidate_type}:slice6:{resolution_id}:{rank}"
+                ),
                 json.dumps({"fixture_rank": rank}),
                 f"Slice 6 candidate {rank}",
                 source_type,
@@ -3016,3 +3046,1004 @@ def test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates()
         assert admin.execute(
             "SELECT count(*) FROM vnext_private.legacy_case_imports"
         ).fetchone()[0] == import_count_before + 1
+
+def test_real_postgres_manual_parcel_hypothesis_is_atomic_unverified_and_replay_safe() -> None:
+    """Runs only against the explicitly confirmed disposable VNext test database."""
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer = WorkspaceAuthorizer(PostgresWorkspaceMembershipRepository(lambda: context))
+        principal = _principal(USERS["member"])
+        property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+            principal=principal, workspace_id=WORKSPACE_A, display_label="Manual parcel fixture",
+        )
+        command = ParcelHypothesisApplicationService(
+            authorizer=authorizer,
+            writer=PostgresParcelHypothesisRepository(context, authorizer),
+            idempotency_repository=PostgresIdempotencyRepository(context, authorizer),
+        )
+        components = {
+            "county_city": "臺北市", "district_township": "中正區",
+            "section": "南海段", "subsection": None, "land_number": "１２３ 之 ４",
+        }
+        before_cases = admin.execute("SELECT count(*) FROM vnext_core.cases").fetchone()[0]
+        first = command.create(
+            principal=principal, workspace_id=WORKSPACE_A,
+            property_entity_id=property_record.property_entity_id,
+            components=components, idempotency_key="parcel-pg-fixture-0001",
+            request_id="parcel-pg-fixture",
+        )
+        replay = command.create(
+            principal=principal, workspace_id=WORKSPACE_A,
+            property_entity_id=property_record.property_entity_id,
+            components={**components, "land_number": "123-4"},
+            idempotency_key="parcel-pg-fixture-0001", request_id="parcel-pg-fixture-replay",
+        )
+        assert first.replayed is False and replay.replayed is True
+        assert first.record == replay.record
+        reference = admin.execute(
+            "SELECT reference_type, source_id, source_type, source_environment, reference_status, "
+            "confidence, supersedes_reference_id FROM vnext_core.property_identity_references "
+            "WHERE identity_reference_id = %s",
+            (first.record.identity_reference_id,),
+        ).fetchone()
+        assert reference == ("parcel", "user-upload", "user", "production", "unverified", None, None)
+        relation = admin.execute(
+            "SELECT relation_type, relation_status, source_id, source_type, "
+            "identity_confirmation_id, confirmed_by_user_id, evidence_id "
+            "FROM vnext_core.property_relations WHERE property_relation_id = %s",
+            (first.record.relation_id,),
+        ).fetchone()
+        assert relation == ("property_parcel", "proposed", "user-upload", "user", None, None, None)
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_graph_nodes "
+            "WHERE workspace_id = %s AND node_type = 'parcel' AND record_id = %s",
+            (WORKSPACE_A, first.record.identity_reference_id),
+        ).fetchone()[0] == 1
+        assert admin.execute("SELECT count(*) FROM vnext_core.cases").fetchone()[0] == before_cases
+        assert admin.execute("SELECT count(*) FROM vnext_core.identity_decisions").fetchone()[0] == 0
+        assert admin.execute("SELECT to_regclass('vnext_core.parcel_geometry_versions')").fetchone()[0] is None
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_identity_references WHERE workspace_id = %s "
+            "AND reference_type = 'parcel'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 1
+        with pytest.raises(VNextError) as duplicate:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                property_entity_id=property_record.property_entity_id,
+                components=components, idempotency_key="parcel-pg-fixture-0002",
+                request_id="parcel-pg-fixture-duplicate",
+            )
+        assert duplicate.value.code is ErrorCode.CONFLICTING_EVIDENCE
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_type = 'property_parcel'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 1
+        for table, id_column, record_id in (
+            ("property_identity_references", "identity_reference_id", first.record.identity_reference_id),
+            ("property_relations", "property_relation_id", first.record.relation_id),
+        ):
+            with pytest.raises(Exception):
+                with context.transaction(principal) as connection:
+                    connection.execute(
+                        f"UPDATE vnext_core.{table} SET created_at = clock_timestamp() "
+                        f"WHERE {id_column} = %s", (record_id,),
+                    )
+
+
+def test_real_postgres_parcel_evidence_coexists_without_identity_promotion() -> None:
+    """The internal evidence path is exercised only on a disposable database."""
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer = WorkspaceAuthorizer(PostgresWorkspaceMembershipRepository(lambda: context))
+        actor = _principal(USERS["member"])
+        idempotency = PostgresIdempotencyRepository(context, authorizer)
+        property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+            principal=actor, workspace_id=WORKSPACE_A, display_label="Parcel evidence fixture",
+        )
+        hypothesis = ParcelHypothesisApplicationService(
+            authorizer=authorizer,
+            writer=PostgresParcelHypothesisRepository(context, authorizer),
+            idempotency_repository=idempotency,
+        ).create(
+            principal=actor, workspace_id=WORKSPACE_A,
+            property_entity_id=property_record.property_entity_id,
+            components={"county_city": "Taipei", "district_township": "Zhongzheng",
+                        "section": "Nanhai", "subsection": None, "land_number": "123-4"},
+            idempotency_key="parcel-evidence-hypothesis-0001", request_id="parcel-evidence-hypothesis",
+        )
+        command = ParcelEvidenceApplicationService(
+            flags=VNextFeatureFlags(identity_v1=True), authorizer=authorizer,
+            writer=PostgresParcelEvidenceRepository(context, authorizer),
+            idempotency_repository=idempotency,
+        )
+        base = {
+            "schema_version": "parcel-evidence-v1",
+            "value": {"section": "A", "land_number": "123-4"},
+            "source": {"source_id": "vnext-deterministic", "provider": "fixture-a",
+                       "dataset": "offline-candidates", "record_id": "a",
+                       "endpoint_class": "offline-fixture"},
+            "retrieved_at": datetime(2026, 9, 17, tzinfo=timezone.utc),
+            "effective_at": None,
+            "coverage": {"spatial": "fixture-area", "temporal": None, "status": "partial"},
+            "confidence": {"score": 0.7, "method": "derived", "basis": "fixture-rule"},
+            "quality_status": "partial",
+            "license": {"name": "fixture-only", "attribution": "synthetic",
+                        "retention": "ephemeral", "display_constraints": ["no-public-display"]},
+            "identity_scope": "parcel", "review_state": "unreviewed",
+            "transformations": [{"name": "normalization", "version": "v1", "input_ref": "fixture:raw-a"}],
+            "raw_evidence_ref": "fixture:raw-a", "unknown_reason": None,
+        }
+        target = {
+            "principal": actor, "workspace_id": WORKSPACE_A,
+            "property_entity_id": property_record.property_entity_id,
+            "parcel_identity_reference_id": hypothesis.record.identity_reference_id,
+        }
+        before_cases = admin.execute("SELECT count(*) FROM vnext_core.cases").fetchone()[0]
+        first = command.attach(**target, envelope=base, idempotency_key="parcel-evidence-pg-0001", request_id="evidence-a")
+        replay = command.attach(**target, envelope=base, idempotency_key="parcel-evidence-pg-0001", request_id="evidence-a-replay")
+        duplicate = command.attach(**target, envelope=base, idempotency_key="parcel-evidence-pg-0002", request_id="evidence-a-duplicate")
+        assert first.record == replay.record == duplicate.record
+        assert replay.replayed and duplicate.duplicate
+        other = dict(base)
+        other.update(
+            value={"section": "A", "land_number": "123-5"},
+            source={**base["source"], "provider": "fixture-b", "record_id": "b"},
+            quality_status="conflict", review_state="manual_review_required",
+            raw_evidence_ref="fixture:raw-b",
+        )
+        second = command.attach(**target, envelope=other, idempotency_key="parcel-evidence-pg-0003", request_id="evidence-b")
+        assert second.record.evidence_id != first.record.evidence_id
+        rows = admin.execute(
+            "SELECT evidence_id, evidence_status, source_type, raw_artifact_ref, lineage "
+            "FROM vnext_core.evidence_items WHERE workspace_id = %s AND fact_type = %s "
+            "ORDER BY provider",
+            (WORKSPACE_A, PARCEL_EVIDENCE_FACT_TYPE),
+        ).fetchall()
+        assert len(rows) == 2
+        assert [row[1] for row in rows] == ["limited", "conflicting"]
+        assert all(row[2] == "deterministic" for row in rows)
+        assert [row[3] for row in rows] == ["fixture:raw-a", "fixture:raw-b"]
+        assert rows[0][4]["transformations"][0]["input_ref"] == "fixture:raw-a"
+        page = PostgresPropertyReadRepository(context, authorizer).get_evidence(
+            principal=actor, property_entity_id=property_record.property_entity_id,
+            fact_type=PARCEL_EVIDENCE_FACT_TYPE,
+        )
+        assert {item.evidence_id for item in page.evidence} == {
+            first.record.evidence_id, second.record.evidence_id,
+        }
+        assert admin.execute(
+            "SELECT reference_status FROM vnext_core.property_identity_references WHERE identity_reference_id = %s",
+            (hypothesis.record.identity_reference_id,),
+        ).fetchone()[0] == "unverified"
+        assert admin.execute(
+            "SELECT relation_status FROM vnext_core.property_relations WHERE property_relation_id = %s",
+            (hypothesis.record.relation_id,),
+        ).fetchone()[0] == "proposed"
+        assert admin.execute("SELECT count(*) FROM vnext_core.identity_decisions").fetchone()[0] == 0
+        assert admin.execute("SELECT count(*) FROM vnext_core.cases").fetchone()[0] == before_cases
+        assert admin.execute("SELECT to_regclass('vnext_core.parcel_geometry_versions')").fetchone()[0] is None
+        with pytest.raises(VNextError) as viewer:
+            command.attach(**{**target, "principal": _principal(USERS["viewer"])},
+                           envelope=base, idempotency_key="parcel-evidence-pg-0004", request_id="viewer-denied")
+        assert viewer.value.code is ErrorCode.PERMISSION_DENIED
+
+
+def _building_claim_components() -> dict[str, str | None]:
+    return {
+        "county_city": "臺北市", "district_township": "中正區",
+        "section": "城中段", "subsection_status": "not_applicable",
+        "subsection": None, "building_number": "１２３－４",
+    }
+
+
+def _building_claim_stack(context: DatabasePrincipalContext):
+    authorizer = WorkspaceAuthorizer(PostgresWorkspaceMembershipRepository(lambda: context))
+    return authorizer, BuildingClaimApplicationService(
+        authorizer=authorizer,
+        writer=PostgresBuildingClaimRepository(context, authorizer),
+        idempotency_repository=PostgresIdempotencyRepository(context, authorizer),
+    )
+
+
+def test_real_postgres_manual_building_claim_is_atomic_proposed_and_replay_safe() -> None:
+    """Requires the explicitly confirmed disposable VNext database."""
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer, command = _building_claim_stack(context)
+        actor = _principal(USERS["member"])
+        property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+            principal=actor, workspace_id=WORKSPACE_A, display_label="Building claim fixture",
+        )
+        components = _building_claim_components()
+        target = dict(
+            principal=actor, workspace_id=WORKSPACE_A,
+            property_entity_id=property_record.property_entity_id,
+            components=components,
+        )
+        before_cases = admin.execute("SELECT count(*) FROM vnext_core.cases").fetchone()[0]
+        first = command.create(**target, idempotency_key="building-pg-fixture-0001",
+                               request_id="building-pg-fixture")
+        replay = command.create(**target, idempotency_key="building-pg-fixture-0001",
+                                request_id="building-pg-fixture")
+        assert first.replayed is False and replay.replayed is True
+        assert first.record == replay.record
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_identity_references "
+            "WHERE workspace_id = %s AND reference_type = 'building' AND normalized_key = %s",
+            (WORKSPACE_A, first.record.normalized_key),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_graph_nodes "
+            "WHERE workspace_id = %s AND node_type = 'building' AND record_id = %s",
+            (WORKSPACE_A, first.record.identity_reference_id),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.evidence_items "
+            "WHERE workspace_id = %s AND fact_type = %s",
+            (WORKSPACE_A, BUILDING_CLAIM_FACT_TYPE),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.evidence_links WHERE evidence_id = %s",
+            (first.record.evidence_id,),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations WHERE evidence_id = %s",
+            (first.record.evidence_id,),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT operation_status, response_status_code, response_reference_type, "
+            "response_reference_id FROM vnext_private.idempotency_records "
+            "WHERE canonical_route = %s",
+            (f"/v1/properties/{property_record.property_entity_id}/building-hypotheses",),
+        ).fetchone() == ("succeeded", 201, "building_claim_relation", first.record.relation_id)
+        reference = admin.execute(
+            "SELECT reference_type, source_id, source_type, source_environment, "
+            "reference_status, confidence FROM vnext_core.property_identity_references "
+            "WHERE identity_reference_id = %s",
+            (first.record.identity_reference_id,),
+        ).fetchone()
+        assert reference == ("building", "user-upload", "user", "production", "unverified", None)
+        assert admin.execute(
+            "SELECT property_graph_node_id FROM vnext_core.property_graph_nodes "
+            "WHERE workspace_id = %s AND node_type = 'building' AND record_id = %s",
+            (WORKSPACE_A, first.record.identity_reference_id),
+        ).fetchone()[0] == first.record.building_node_id
+        evidence = admin.execute(
+            "SELECT value, source_type, evidence_status, coverage_status, quality_status "
+            "FROM vnext_core.evidence_items WHERE evidence_id = %s",
+            (first.record.evidence_id,),
+        ).fetchone()
+        assert evidence[0]["raw_input"] == components
+        assert evidence[0]["normalized_components"]["building_number"] == "123-4"
+        assert evidence[0]["property_entity_id"] == str(property_record.property_entity_id)
+        assert evidence[0]["actor_user_id"] == str(actor.user_id)
+        assert evidence[1:] == ("user", "user_provided", "unknown", "not_checked")
+        relation = admin.execute(
+            "SELECT relation_type, direction, relation_status, evidence_id, "
+            "identity_confirmation_id, confirmed_by_user_id FROM vnext_core.property_relations "
+            "WHERE property_relation_id = %s",
+            (first.record.relation_id,),
+        ).fetchone()
+        assert relation == ("property_building", "directed", "proposed", first.record.evidence_id, None, None)
+        read = PostgresPropertyReadRepository(context, authorizer)
+        assert first.record.relation_id not in {
+            item.property_relation_id for item in read.get_graph(
+                principal=actor, property_entity_id=property_record.property_entity_id,
+            ).relations
+        }
+        proposed = read.get_graph(
+            principal=actor, property_entity_id=property_record.property_entity_id,
+            status=PropertyRelationStatus.PROPOSED,
+        )
+        assert {item.property_relation_id for item in proposed.relations} == {first.record.relation_id}
+        assert any(item.node_type == "building" for item in proposed.nodes)
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.audit_events "
+            "WHERE event_type = 'building_claim.created' AND resource_id = %s",
+            (first.record.relation_id,),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE relation_type = 'parcel_building'",
+        ).fetchone()[0] == 0
+        assert admin.execute("SELECT count(*) FROM vnext_core.identity_decisions").fetchone()[0] == 0
+        assert admin.execute("SELECT count(*) FROM vnext_core.cases").fetchone()[0] == before_cases
+        with pytest.raises(VNextError) as duplicate:
+            command.create(**target, idempotency_key="building-pg-fixture-0002",
+                           request_id="building-pg-duplicate")
+        assert duplicate.value.code is ErrorCode.CONFLICTING_EVIDENCE
+        with pytest.raises(VNextError) as wrong_property:
+            command.create(**{**target, "property_entity_id": uuid4()},
+                           idempotency_key="building-pg-fixture-0003", request_id="missing-property")
+        assert wrong_property.value.code is ErrorCode.NOT_FOUND
+        with pytest.raises(VNextError) as viewer:
+            command.create(**{**target, "principal": _principal(USERS["viewer"])},
+                           idempotency_key="building-pg-fixture-0004", request_id="viewer-denied")
+        assert viewer.value.code is ErrorCode.PERMISSION_DENIED
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations WHERE relation_type = 'property_building'",
+        ).fetchone()[0] == 1
+
+
+def test_real_postgres_building_claim_reuses_orphan_without_cross_property_merge() -> None:
+    with _prepared_database() as (admin, _pool, context):
+        authorizer, command = _building_claim_stack(context)
+        actor = _principal(USERS["member"])
+        graph = PostgresPropertyGraphRepository(context, authorizer)
+        property_record = graph.create_property_entity(
+            principal=actor, workspace_id=WORKSPACE_A, display_label="Building reuse fixture",
+        )
+        other_property = graph.create_property_entity(
+            principal=actor, workspace_id=WORKSPACE_A, display_label="Other building claim fixture",
+        )
+        normalized = normalize_building_claim(_building_claim_components())
+        orphan = graph.append_identity_reference(
+            principal=actor, workspace_id=WORKSPACE_A,
+            draft=IdentityReferenceDraft(
+                reference_type=IdentityReferenceType.BUILDING,
+                normalized_key=normalized.normalized_key,
+                display_value=normalized.display_value,
+                source_id="user-upload", source_environment=SourceEnvironment.PRODUCTION,
+                reference_status=IdentityReferenceStatus.UNVERIFIED,
+            ),
+        )
+        def submit(target, key):
+            return command.create(
+                principal=actor, workspace_id=WORKSPACE_A,
+                property_entity_id=target,
+                components=_building_claim_components(), idempotency_key=key,
+                request_id=key,
+            )
+        with ThreadPoolExecutor(max_workers=2) as workers:
+            first = workers.submit(submit, property_record.property_entity_id, "building-pg-reuse-0001")
+            second = workers.submit(submit, other_property.property_entity_id, "building-pg-reuse-0002")
+            outcomes = (first.result(), second.result())
+        reference_ids = {outcome.record.identity_reference_id for outcome in outcomes}
+        assert len(reference_ids) == 2
+        assert orphan.identity_reference_id in reference_ids
+        assert any(outcome.record.building_node_id == orphan.property_graph_node_id for outcome in outcomes)
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_identity_references "
+            "WHERE workspace_id = %s AND reference_type = 'building'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 2
+
+
+def test_real_postgres_building_claim_failure_rolls_back_every_domain_write(monkeypatch) -> None:
+    with _prepared_database() as (admin, _pool, context):
+        authorizer, command = _building_claim_stack(context)
+        actor = _principal(USERS["member"])
+        property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+            principal=actor, workspace_id=WORKSPACE_A, display_label="Building rollback fixture",
+        )
+        def fail_audit(*_args, **_kwargs):
+            raise RuntimeError("injected audit failure")
+        monkeypatch.setattr("services.vnext.building_claim_command._append_audit", fail_audit)
+        with pytest.raises(VNextError) as failed:
+            command.create(
+                principal=actor, workspace_id=WORKSPACE_A,
+                property_entity_id=property_record.property_entity_id,
+                components=_building_claim_components(), idempotency_key="building-pg-rollback-0001",
+                request_id="building-pg-rollback",
+            )
+        assert failed.value.code is ErrorCode.INTERNAL_ERROR
+        for table in ("property_identity_references", "evidence_items", "evidence_links", "property_relations"):
+            assert admin.execute(
+                f"SELECT count(*) FROM vnext_core.{table} WHERE workspace_id = %s",
+                (WORKSPACE_A,),
+            ).fetchone()[0] == 0
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_graph_nodes "
+            "WHERE workspace_id = %s AND node_type = 'building'", (WORKSPACE_A,),
+        ).fetchone()[0] == 0
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.audit_events WHERE event_type = 'building_claim.created'",
+        ).fetchone()[0] == 0
+        assert admin.execute(
+            "SELECT operation_status, response_reference_id FROM vnext_private.idempotency_records "
+            "WHERE canonical_route = %s",
+            (f"/v1/properties/{property_record.property_entity_id}/building-hypotheses",),
+        ).fetchone() == ("failed", None)
+
+
+def test_real_postgres_building_claim_preserves_existing_confirmed_relation() -> None:
+    with _prepared_database() as (admin, _pool, context):
+        authorizer, command = _building_claim_stack(context)
+        owner = _principal(USERS["owner"])
+        property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+            principal=owner, workspace_id=WORKSPACE_A, display_label="Confirmed building fixture",
+        )
+        candidate = _seed_slice6_resolution(
+            admin, candidate_type="building", case_id=None,
+            possible_existing_property_entity_id=property_record.property_entity_id,
+            candidate_confidences=(0.8,),
+        )
+        admin.commit()
+        confirmed = _slice6_command_stack(context).confirm(
+            principal=owner, identity_resolution_id=candidate["resolution_id"],
+            identity_candidate_id=candidate["candidate_ids"][0], expected_version=1,
+            confirmation_reason="owner reviewed the building candidate evidence",
+            idempotency_key="building-confirmed-fixture-0001", request_id="building-confirmed-fixture",
+        )
+        prior = admin.execute(
+            "SELECT property_relation_id, relation_status, identity_confirmation_id "
+            "FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_type = 'property_building' AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchall()
+        assert len(prior) == 1
+        manual = command.create(
+            principal=owner, workspace_id=WORKSPACE_A,
+            property_entity_id=property_record.property_entity_id,
+            components=_building_claim_components(), idempotency_key="building-alongside-confirmed-0001",
+            request_id="building-alongside-confirmed",
+        )
+        assert manual.record.relation_id != prior[0][0]
+        assert admin.execute(
+            "SELECT property_relation_id, relation_status, identity_confirmation_id "
+            "FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_type = 'property_building' AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchall() == prior
+        assert admin.execute(
+            "SELECT relation_status, identity_confirmation_id FROM vnext_core.property_relations "
+            "WHERE property_relation_id = %s", (manual.record.relation_id,),
+        ).fetchone() == ("proposed", None)
+        assert confirmed.decision.property_entity_id == property_record.property_entity_id
+
+
+def _seed_parcel_and_building_references(context, authorizer, principal):
+    """Create one existing parcel and one existing building reference on a property.
+
+    Reuses the manual parcel-hypothesis and manual building-claim commands so the
+    references and their graph nodes already exist before the parcel<->building
+    relation is asserted. The relation command must never create new references.
+    """
+
+    property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+        principal=principal, workspace_id=WORKSPACE_A,
+        display_label="Parcel building relation fixture",
+    )
+    idempotency = PostgresIdempotencyRepository(context, authorizer)
+    parcel = ParcelHypothesisApplicationService(
+        authorizer=authorizer,
+        writer=PostgresParcelHypothesisRepository(context, authorizer),
+        idempotency_repository=idempotency,
+    ).create(
+        principal=principal, workspace_id=WORKSPACE_A,
+        property_entity_id=property_record.property_entity_id,
+        components={"county_city": "臺北市", "district_township": "中正區",
+                    "section": "南海段", "subsection": None, "land_number": "123-4"},
+        idempotency_key="pbr-parcel-seed-0001", request_id="pbr-parcel-seed",
+    )
+    building = BuildingClaimApplicationService(
+        authorizer=authorizer,
+        writer=PostgresBuildingClaimRepository(context, authorizer),
+        idempotency_repository=idempotency,
+    ).create(
+        principal=principal, workspace_id=WORKSPACE_A,
+        property_entity_id=property_record.property_entity_id,
+        components={"county_city": "臺北市", "district_township": "中正區",
+                    "section": "城中段", "subsection_status": "not_applicable",
+                    "subsection": None, "building_number": "56"},
+        idempotency_key="pbr-building-seed-0001", request_id="pbr-building-seed",
+    )
+    return property_record, parcel, building
+
+
+def test_real_postgres_manual_parcel_building_relation_is_proposed_and_atomic() -> None:
+    """Runs only against the explicitly confirmed disposable VNext test database."""
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer = WorkspaceAuthorizer(PostgresWorkspaceMembershipRepository(lambda: context))
+        principal = _principal(USERS["member"])
+        property_record, parcel, building = _seed_parcel_and_building_references(
+            context, authorizer, principal,
+        )
+        command = ParcelBuildingRelationApplicationService(
+            authorizer=authorizer,
+            writer=PostgresParcelBuildingRelationRepository(context, authorizer),
+            idempotency_repository=PostgresIdempotencyRepository(context, authorizer),
+        )
+
+        references_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.property_identity_references WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0]
+        decisions_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions",
+        ).fetchone()[0]
+
+        first = command.create(
+            principal=principal, workspace_id=WORKSPACE_A,
+            parcel_identity_reference_id=parcel.record.identity_reference_id,
+            building_identity_reference_id=building.record.identity_reference_id,
+            idempotency_key="pbr-relation-0001", request_id="pbr-relation",
+        )
+        replay = command.create(
+            principal=principal, workspace_id=WORKSPACE_A,
+            parcel_identity_reference_id=parcel.record.identity_reference_id,
+            building_identity_reference_id=building.record.identity_reference_id,
+            idempotency_key="pbr-relation-0001", request_id="pbr-relation-replay",
+        )
+        # Idempotent replay: same result, zero duplicate writes.
+        assert first.replayed is False and replay.replayed is True
+        assert first.record == replay.record
+
+        # The relation is proposed, bidirectional, manual/user, unconfirmed.
+        relation = admin.execute(
+            "SELECT relation_type, direction, relation_status, source_id, source_type, "
+            "source_environment, identity_confirmation_id, confirmed_by_user_id, confirmed_at, "
+            "evidence_id, valid_to FROM vnext_core.property_relations "
+            "WHERE property_relation_id = %s",
+            (first.record.relation_id,),
+        ).fetchone()
+        assert relation[:6] == (
+            "parcel_building", "bidirectional", "proposed", "user-upload", "user", "production",
+        )
+        assert relation[6] is None and relation[7] is None and relation[8] is None
+        assert relation[9] == first.record.evidence_id
+        assert relation[10] is None
+
+        # The evidence is USER_PROVIDED manual, not provider-derived.
+        evidence = admin.execute(
+            "SELECT fact_type, evidence_status, source_id, source_type, provider "
+            "FROM vnext_core.evidence_items WHERE evidence_id = %s",
+            (first.record.evidence_id,),
+        ).fetchone()
+        assert evidence == (
+            PARCEL_BUILDING_RELATION_FACT_TYPE, "user_provided", "user-upload", "user", None,
+        )
+
+        # The audit row is committed in the same transaction and is traceable to
+        # the parcel reference, the building reference, and the relation.
+        audit = admin.execute(
+            "SELECT resource_type, resource_id, outcome, event_type, "
+            "metadata->>'parcel_identity_reference_id', "
+            "metadata->>'building_identity_reference_id', "
+            "metadata->>'relation_type', metadata->>'direction' "
+            "FROM vnext_private.audit_events "
+            "WHERE workspace_id = %s AND event_type = 'parcel_building_relation.created' "
+            "AND resource_id = %s",
+            (WORKSPACE_A, first.record.relation_id),
+        ).fetchall()
+        assert len(audit) == 1
+        assert audit[0] == (
+            "property_relation", first.record.relation_id, "succeeded",
+            "parcel_building_relation.created",
+            str(parcel.record.identity_reference_id),
+            str(building.record.identity_reference_id),
+            "parcel_building", "bidirectional",
+        )
+
+        # No new references were created; the command reused existing nodes only.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_identity_references WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == references_before
+
+        # No Property Identity confirmation/decision was created.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions",
+        ).fetchone()[0] == decisions_before
+
+        # No confirmed parcel_building relation exists.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_type = 'parcel_building' "
+            "AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 0
+
+        # Default graph read excludes the proposed relation; explicit PROPOSED includes it.
+        read_repository = PostgresPropertyReadRepository(context, authorizer)
+        default_page = read_repository.get_graph(
+            principal=principal, property_entity_id=property_record.property_entity_id,
+        )
+        assert first.record.relation_id not in {
+            item.property_relation_id for item in default_page.relations
+        }
+        assert "parcel_building" not in {
+            item.relation_type.value for item in default_page.relations
+        }
+        proposed_relations = []
+        position = None
+        while True:
+            page = read_repository.get_graph(
+                principal=principal, property_entity_id=property_record.property_entity_id,
+                status=PropertyRelationStatus.PROPOSED, position=position, limit=25,
+            )
+            proposed_relations.extend(page.relations)
+            position = page.next_position
+            if position is None:
+                break
+        proposed = {item.property_relation_id: item for item in proposed_relations}
+        assert first.record.relation_id in proposed
+        included = proposed[first.record.relation_id]
+        assert included.relation_type.value == "parcel_building"
+        assert included.direction.value == "bidirectional"
+        assert included.relation_status.value == "proposed"
+        assert included.identity_confirmation_id is None
+
+
+def test_real_postgres_parcel_building_relation_rejects_bad_input_and_duplicates() -> None:
+    """Runs only against the explicitly confirmed disposable VNext test database."""
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer = WorkspaceAuthorizer(PostgresWorkspaceMembershipRepository(lambda: context))
+        principal = _principal(USERS["member"])
+        viewer = _principal(USERS["viewer"])
+        property_record, parcel, building = _seed_parcel_and_building_references(
+            context, authorizer, principal,
+        )
+        # A second parcel and building to test M:N and orientation independence.
+        idempotency = PostgresIdempotencyRepository(context, authorizer)
+        parcel_two = ParcelHypothesisApplicationService(
+            authorizer=authorizer,
+            writer=PostgresParcelHypothesisRepository(context, authorizer),
+            idempotency_repository=idempotency,
+        ).create(
+            principal=principal, workspace_id=WORKSPACE_A,
+            property_entity_id=property_record.property_entity_id,
+            components={"county_city": "臺北市", "district_township": "中正區",
+                        "section": "南海段", "subsection": None, "land_number": "999"},
+            idempotency_key="pbr-parcel-two-0001", request_id="pbr-parcel-two",
+        )
+        command = ParcelBuildingRelationApplicationService(
+            authorizer=authorizer,
+            writer=PostgresParcelBuildingRelationRepository(context, authorizer),
+            idempotency_repository=idempotency,
+        )
+
+        parcel_id = parcel.record.identity_reference_id
+        building_id = building.record.identity_reference_id
+
+        # Missing parcel reference -> NOT_FOUND, zero writes.
+        with pytest.raises(VNextError) as missing_parcel:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=uuid4(),
+                building_identity_reference_id=building_id,
+                idempotency_key="pbr-missing-parcel-0001", request_id="pbr-missing-parcel",
+            )
+        assert missing_parcel.value.code is ErrorCode.NOT_FOUND
+
+        # Missing building reference -> NOT_FOUND.
+        with pytest.raises(VNextError) as missing_building:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=parcel_id,
+                building_identity_reference_id=uuid4(),
+                idempotency_key="pbr-missing-building-0001", request_id="pbr-missing-building",
+            )
+        assert missing_building.value.code is ErrorCode.NOT_FOUND
+
+        # Wrong reference types: parcel id in the building slot and vice versa.
+        with pytest.raises(VNextError) as wrong_types:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=building_id,
+                building_identity_reference_id=parcel_id,
+                idempotency_key="pbr-wrong-types-0001", request_id="pbr-wrong-types",
+            )
+        assert wrong_types.value.code is ErrorCode.NOT_FOUND
+
+        # Viewer is denied.
+        with pytest.raises(VNextError) as denied:
+            command.create(
+                principal=viewer, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=parcel_id,
+                building_identity_reference_id=building_id,
+                idempotency_key="pbr-viewer-0001", request_id="pbr-viewer",
+            )
+        assert denied.value.code is ErrorCode.PERMISSION_DENIED
+
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_type = 'parcel_building'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 0
+
+        # First valid write.
+        first = command.create(
+            principal=principal, workspace_id=WORKSPACE_A,
+            parcel_identity_reference_id=parcel_id,
+            building_identity_reference_id=building_id,
+            idempotency_key="pbr-relation-valid-0001", request_id="pbr-valid",
+        )
+
+        # Same key, changed pair -> IDEMPOTENCY_CONFLICT, no new write.
+        with pytest.raises(VNextError) as changed:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=parcel_two.record.identity_reference_id,
+                building_identity_reference_id=building_id,
+                idempotency_key="pbr-relation-valid-0001", request_id="pbr-valid-changed",
+            )
+        assert changed.value.code is ErrorCode.IDEMPOTENCY_CONFLICT
+
+        # Different key, same pair -> duplicate rejected (not merged).
+        with pytest.raises(VNextError) as duplicate:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=parcel_id,
+                building_identity_reference_id=building_id,
+                idempotency_key="pbr-relation-valid-0002", request_id="pbr-valid-duplicate",
+            )
+        assert duplicate.value.code is ErrorCode.CONFLICTING_EVIDENCE
+
+        # Reversed orientation is the same bidirectional pair -> also rejected.
+        with pytest.raises(VNextError) as reversed_pair:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=parcel_id,
+                building_identity_reference_id=building_id,
+                idempotency_key="pbr-relation-valid-0003", request_id="pbr-valid-reversed",
+            )
+        assert reversed_pair.value.code is ErrorCode.CONFLICTING_EVIDENCE
+
+        # M:N: a distinct pair (second parcel, same building) is independently writable.
+        second = command.create(
+            principal=principal, workspace_id=WORKSPACE_A,
+            parcel_identity_reference_id=parcel_two.record.identity_reference_id,
+            building_identity_reference_id=building_id,
+            idempotency_key="pbr-relation-mn-0001", request_id="pbr-mn",
+        )
+        assert second.record.relation_id != first.record.relation_id
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_type = 'parcel_building'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 2
+
+        # Rows are immutable to the application role (guards atomic history).
+        for record_id in (first.record.relation_id, second.record.relation_id):
+            with pytest.raises(Exception):
+                with context.transaction(principal) as connection:
+                    connection.execute(
+                        "UPDATE vnext_core.property_relations SET created_at = clock_timestamp() "
+                        "WHERE property_relation_id = %s", (record_id,),
+                    )
+
+
+def test_real_postgres_parcel_building_relation_audit_failure_rolls_back_mutation(monkeypatch) -> None:
+    """Runs only against the explicitly confirmed disposable VNext test database.
+
+    A late audit failure must leave no relation, no relation-scoped evidence, and
+    no audit row, and must mark the idempotency record failed. This proves the
+    single-transaction atomicity without weakening production behavior.
+    """
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer = WorkspaceAuthorizer(PostgresWorkspaceMembershipRepository(lambda: context))
+        principal = _principal(USERS["member"])
+        _property_record, parcel, building = _seed_parcel_and_building_references(
+            context, authorizer, principal,
+        )
+        command = ParcelBuildingRelationApplicationService(
+            authorizer=authorizer,
+            writer=PostgresParcelBuildingRelationRepository(context, authorizer),
+            idempotency_repository=PostgresIdempotencyRepository(context, authorizer),
+        )
+
+        def fail_audit(*_args, **_kwargs):
+            raise RuntimeError("injected audit failure")
+
+        monkeypatch.setattr(
+            "services.vnext.parcel_building_relation_command._append_audit", fail_audit,
+        )
+        with pytest.raises(VNextError) as failed:
+            command.create(
+                principal=principal, workspace_id=WORKSPACE_A,
+                parcel_identity_reference_id=parcel.record.identity_reference_id,
+                building_identity_reference_id=building.record.identity_reference_id,
+                idempotency_key="pbr-audit-rollback-0001", request_id="pbr-audit-rollback",
+            )
+        assert failed.value.code is ErrorCode.INTERNAL_ERROR
+
+        # No parcel_building relation was committed.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_type = 'parcel_building'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 0
+        # No relation-scoped evidence was committed.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.evidence_items "
+            "WHERE workspace_id = %s AND fact_type = %s",
+            (WORKSPACE_A, PARCEL_BUILDING_RELATION_FACT_TYPE),
+        ).fetchone()[0] == 0
+        # No audit row was committed.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.audit_events "
+            "WHERE workspace_id = %s AND event_type = 'parcel_building_relation.created'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 0
+        # The idempotency record is marked failed with no reference.
+        assert admin.execute(
+            "SELECT operation_status, response_reference_id FROM vnext_private.idempotency_records "
+            "WHERE canonical_route = %s",
+            ("/v1/parcel-building-relations",),
+        ).fetchone() == ("failed", None)
+
+def test_real_postgres_building_claim_distinct_key_concurrency_has_single_winner() -> None:
+    """Same property + same normalized claim + two distinct idempotency keys.
+
+    The advisory lock and duplicate guard must yield exactly one logical claim:
+    one relation, one building reference/node, one evidence row, and a
+    deterministic ``CONFLICTING_EVIDENCE`` loser with no partial state and no
+    last-write-wins. Confirmed identity is not involved and must stay empty.
+    """
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer, command = _building_claim_stack(context)
+        actor = _principal(USERS["member"])
+        property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+            principal=actor, workspace_id=WORKSPACE_A, display_label="Building concurrency fixture",
+        )
+        normalized = normalize_building_claim(_building_claim_components())
+
+        def submit(key):
+            return command.create(
+                principal=actor, workspace_id=WORKSPACE_A,
+                property_entity_id=property_record.property_entity_id,
+                components=_building_claim_components(), idempotency_key=key,
+                request_id=key,
+            )
+
+        results = _race(
+            lambda: submit("building-pg-concurrency-0001"),
+            lambda: submit("building-pg-concurrency-0002"),
+        )
+        statuses = [status for status, _payload in results]
+        assert statuses.count("ok") == 1, results
+        assert statuses.count("error") == 1, results
+        loser = next(payload for status, payload in results if status == "error")
+        assert isinstance(loser, VNextError)
+        assert loser.code is ErrorCode.CONFLICTING_EVIDENCE
+
+        # Exactly one logical claim materialized: no duplicate reference/node,
+        # evidence, or relation.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_identity_references "
+            "WHERE workspace_id = %s AND reference_type = 'building' AND normalized_key = %s",
+            (WORKSPACE_A, normalized.normalized_key),
+        ).fetchone()[0] == 1
+        reference_id = admin.execute(
+            "SELECT identity_reference_id FROM vnext_core.property_identity_references "
+            "WHERE workspace_id = %s AND reference_type = 'building' AND normalized_key = %s",
+            (WORKSPACE_A, normalized.normalized_key),
+        ).fetchone()[0]
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_graph_nodes "
+            "WHERE workspace_id = %s AND node_type = 'building' AND record_id = %s",
+            (WORKSPACE_A, reference_id),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.evidence_items "
+            "WHERE workspace_id = %s AND fact_type = %s",
+            (WORKSPACE_A, BUILDING_CLAIM_FACT_TYPE),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations "
+            "WHERE workspace_id = %s AND relation_type = 'property_building'",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.evidence_links WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == 1
+
+        # No last-write-wins: the surviving relation is the winner's, is proposed,
+        # and carries no confirmation.
+        winner = next(payload for status, payload in results if status == "ok")
+        surviving = admin.execute(
+            "SELECT property_relation_id, relation_status, identity_confirmation_id, evidence_id "
+            "FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_type = 'property_building'",
+            (WORKSPACE_A,),
+        ).fetchall()
+        assert surviving == [
+            (winner.record.relation_id, "proposed", None, winner.record.evidence_id)
+        ]
+
+        # The loser left no partial state: its idempotency record failed and
+        # references nothing.
+        idempotency_rows = admin.execute(
+            "SELECT operation_status, response_reference_id FROM vnext_private.idempotency_records "
+            "WHERE canonical_route = %s ORDER BY operation_status",
+            (f"/v1/properties/{property_record.property_entity_id}/building-hypotheses",),
+        ).fetchall()
+        assert ("failed", None) in idempotency_rows
+        assert ("succeeded", winner.record.relation_id) in idempotency_rows
+        assert len(idempotency_rows) == 2
+
+        # Exactly one audit event; confirmed identity untouched.
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.audit_events "
+            "WHERE event_type = 'building_claim.created'",
+        ).fetchone()[0] == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.identity_decisions",
+        ).fetchone()[0] == 0
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations WHERE relation_status = 'confirmed'",
+        ).fetchone()[0] == 0
+
+
+def test_real_postgres_building_claim_collides_with_confirmed_same_key_and_leaves_it_unchanged() -> None:
+    """A manual claim whose normalized key already backs a confirmed
+    property_building relation must fail closed with CONFLICTING_EVIDENCE while
+    the confirmed row is left completely unchanged."""
+
+    with _prepared_database() as (admin, _pool, context):
+        authorizer, command = _building_claim_stack(context)
+        owner = _principal(USERS["owner"])
+        property_record = PostgresPropertyGraphRepository(context, authorizer).create_property_entity(
+            principal=owner, workspace_id=WORKSPACE_A, display_label="Confirmed collision fixture",
+        )
+        normalized = normalize_building_claim(_building_claim_components())
+        candidate = _seed_slice6_resolution(
+            admin, candidate_type="building", case_id=None,
+            possible_existing_property_entity_id=property_record.property_entity_id,
+            candidate_confidences=(0.8,),
+            candidate_normalized_key=normalized.normalized_key,
+        )
+        admin.commit()
+        confirmed = _slice6_command_stack(context).confirm(
+            principal=owner, identity_resolution_id=candidate["resolution_id"],
+            identity_candidate_id=candidate["candidate_ids"][0], expected_version=1,
+            confirmation_reason="owner reviewed the building candidate evidence",
+            idempotency_key="building-collision-confirmed-0001", request_id="building-collision-confirmed",
+        )
+        prior = admin.execute(
+            "SELECT property_relation_id, relation_status, identity_confirmation_id, "
+            "evidence_id, confirmed_by_user_id, confirmed_at "
+            "FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_type = 'property_building' AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchall()
+        assert len(prior) == 1
+        confirmed_reference_key = admin.execute(
+            "SELECT reference.normalized_key FROM vnext_core.property_relations relation "
+            "JOIN vnext_core.property_graph_nodes building_node ON "
+            "building_node.workspace_id = relation.workspace_id "
+            "AND building_node.property_graph_node_id = relation.to_node_id "
+            "JOIN vnext_core.property_identity_references reference ON "
+            "reference.workspace_id = building_node.workspace_id "
+            "AND reference.identity_reference_id = building_node.record_id "
+            "WHERE relation.property_relation_id = %s",
+            (prior[0][0],),
+        ).fetchone()[0]
+        assert confirmed_reference_key == normalized.normalized_key
+
+        relations_before = admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0]
+
+        with pytest.raises(VNextError) as collision:
+            command.create(
+                principal=owner, workspace_id=WORKSPACE_A,
+                property_entity_id=property_record.property_entity_id,
+                components=_building_claim_components(),
+                idempotency_key="building-collision-manual-0001",
+                request_id="building-collision-manual",
+            )
+        assert collision.value.code is ErrorCode.CONFLICTING_EVIDENCE
+
+        # Confirmed row is byte-for-byte unchanged and no new relation appeared.
+        assert admin.execute(
+            "SELECT property_relation_id, relation_status, identity_confirmation_id, "
+            "evidence_id, confirmed_by_user_id, confirmed_at "
+            "FROM vnext_core.property_relations WHERE workspace_id = %s "
+            "AND relation_type = 'property_building' AND relation_status = 'confirmed'",
+            (WORKSPACE_A,),
+        ).fetchall() == prior
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.property_relations WHERE workspace_id = %s",
+            (WORKSPACE_A,),
+        ).fetchone()[0] == relations_before
+        assert confirmed.decision.property_entity_id == property_record.property_entity_id
