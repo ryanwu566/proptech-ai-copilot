@@ -17,7 +17,9 @@ from services.terrain_risk_providers.ardswc_slope_hazard_provider import (
 )
 
 
-def test_non_mvt_providers_return_unavailable_source_metadata_without_external_calls() -> None:
+def test_non_mvt_providers_return_unavailable_source_metadata_without_external_calls(monkeypatch) -> None:
+    monkeypatch.delenv("NLSC_GATEWAY_BASE_URL", raising=False)
+    monkeypatch.delenv("NLSC_GATEWAY_CLIENT_TOKEN", raising=False)
     terrain = NlscTerrainProvider().analyze(25, 121, 500)
     assert terrain["status"] == "unavailable"
 

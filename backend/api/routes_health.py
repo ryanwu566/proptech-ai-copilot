@@ -23,4 +23,5 @@ def get_health() -> dict[str, object]:
         "persistence": persistence,
         "readiness": "ready" if config.ready and persistence["database"] in {"ok", "available"} else "unavailable",
         "mode": config.mode,
+        "nlsc_gateway": config.nlsc_gateway_status,
     }

@@ -35,10 +35,20 @@ Optional backend feature configuration:
 - `TDX_CLIENT_ID`
 - `TDX_CLIENT_SECRET`
 - `COMMUTE_REFRESH_TOKEN`
+- `NLSC_GATEWAY_BASE_URL`
+- `NLSC_GATEWAY_CLIENT_TOKEN`
 
 `COMMUTE_REFRESH_TOKEN` belongs only on the Render backend. Do not set it on Vercel and do not expose it with a `NEXT_PUBLIC_` prefix.
 
 If optional provider variables are absent, affected features should return their existing unavailable or fallback states. `/health` must still boot.
+
+## NLSC Taiwan Gateway Acceptance
+
+`NLSC_GATEWAY_BASE_URL` is a fixed backend origin, not a user-supplied destination. In production, configure a controlled HTTPS domain such as `https://gateway.example.tw`. A literal public IP is also structurally accepted, provided the TLS certificate validates for that IP. The application rejects userinfo, paths, queries, fragments, localhost, and obvious private or local targets. `NLSC_GATEWAY_CLIENT_TOKEN` stays on Render as a secret and is sent only to that fixed gateway endpoint. Invalid or absent configuration leaves NLSC terrain enrichment unavailable; it does not block startup.
+
+Application configuration status reports only `configured`, `not_configured`, or `malformed`. These categories validate the origin and credential syntax; they do not establish that the host or IP is in Taiwan. TLS validation occurs when the gateway is contacted.
+
+Before submitting the NLSC application, separately evidence a Taiwan-resident gateway with a fixed public IP, the hosting provider's region, and WHOIS/RIR records where applicable. Verify that the controlled domain resolves to that fixed Taiwan IP and record the domain and IP for NLSC. The repository does not infer Taiwan residency from hostname, IP syntax, or DNS answers.
 
 ## CORS
 

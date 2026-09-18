@@ -8,7 +8,9 @@ accepted as a compatibility alias while operators migrate configuration.
 
 from __future__ import annotations
 
+import ipaddress
 import os
+import re
 from dataclasses import dataclass
 from typing import Mapping
 from urllib.parse import urlsplit
@@ -26,8 +28,16 @@ RELEASE_VERSION_ENV = "RELEASE_VERSION"
 API_CONTRACT_VERSION_ENV = "API_CONTRACT_VERSION"
 SCHEMA_VERSION_ENV = "SCHEMA_VERSION"
 MAINTENANCE_MODE_ENV = "MAINTENANCE_MODE"
+NLSC_GATEWAY_BASE_URL_ENV = "NLSC_GATEWAY_BASE_URL"
+NLSC_GATEWAY_CLIENT_TOKEN_ENV = "NLSC_GATEWAY_CLIENT_TOKEN"
 
 PRODUCTION_MODES = frozenset({"production", "preview"})
+_GATEWAY_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+={0,2}\Z")
+_DNS_LABEL = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\Z")
+_NONPUBLIC_GATEWAY_SUFFIXES = frozenset({
+    "localhost", "local", "localdomain", "internal", "lan", "home",
+    "invalid", "test", "example",
+})
 
 
 def _status(value: str | None, *, minimum_length: int = 1) -> str:
@@ -84,6 +94,54 @@ def _base_url_status(value: str | None) -> str:
     return "configured"
 
 
+def nlsc_gateway_configuration_status(values: Mapping[str, str], *, production_like: bool) -> str:
+    """Validate a fixed gateway origin and credential, without inferring location."""
+
+    raw_url = values.get(NLSC_GATEWAY_BASE_URL_ENV, "")
+    raw_token = values.get(NLSC_GATEWAY_CLIENT_TOKEN_ENV, "")
+    if not raw_url or not raw_token:
+        return "not_configured"
+    url = raw_url.strip()
+    token = raw_token.strip()
+    if not url or not token:
+        return "not_configured"
+    if raw_url != url or raw_token != token or len(token) < 16 or len(token) > 512 or not _GATEWAY_TOKEN.fullmatch(token):
+        return "malformed"
+    if any(char.isspace() or ord(char) < 32 for char in url) or "\\" in url:
+        return "malformed"
+    try:
+        parsed = urlsplit(url)
+        port = parsed.port
+        host = parsed.hostname
+    except ValueError:
+        return "malformed"
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc or not host or parsed.username or parsed.password:
+        return "malformed"
+    if parsed.path not in {"", "/"} or parsed.query or parsed.fragment or port == 0:
+        return "malformed"
+    if production_like and parsed.scheme != "https":
+        return "malformed"
+    host = host.lower()
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        labels = host.split(".")
+        if not all(_DNS_LABEL.fullmatch(label) for label in labels):
+            return "malformed"
+        if production_like and (
+            len(labels) < 2
+            or labels[0] == "localhost"
+            or labels[-1] in _NONPUBLIC_GATEWAY_SUFFIXES
+            or labels[-2:] == ["home", "arpa"]
+            or not any(char.isalpha() for char in labels[-1])
+        ):
+            return "malformed"
+    else:
+        if production_like and not address.is_global:
+            return "malformed"
+    return "configured"
+
+
 def _maintenance_status(value: str | None) -> str:
     value = (value or "").strip().lower()
     return "enabled" if value in {"1", "true", "yes", "on"} else "disabled"
@@ -112,6 +170,7 @@ class RuntimeConfiguration:
     api_contract_version_status: str
     schema_version_status: str
     maintenance_status: str
+    nlsc_gateway_status: str
     serverless: bool
 
     @property
@@ -144,6 +203,7 @@ class RuntimeConfiguration:
             "api_contract_version": self.api_contract_version_status,
             "schema_version": self.schema_version_status,
             "maintenance": self.maintenance_status,
+            "nlsc_gateway": self.nlsc_gateway_status,
             "ready": self.ready,
         }
 
@@ -154,6 +214,7 @@ def load_runtime_configuration(environ: Mapping[str, str] | None = None) -> Runt
     runtime = values.get(APP_RUNTIME_ENV, "").strip().lower()
     database_url, database_source = _database_url(values)
     serverless = is_serverless_runtime(dict(values))
+    production_like = mode in PRODUCTION_MODES or serverless
     return RuntimeConfiguration(
         mode=mode,
         runtime=runtime,
@@ -168,6 +229,7 @@ def load_runtime_configuration(environ: Mapping[str, str] | None = None) -> Runt
         api_contract_version_status=_status(values.get(API_CONTRACT_VERSION_ENV)),
         schema_version_status=_status(values.get(SCHEMA_VERSION_ENV)),
         maintenance_status=_maintenance_status(values.get(MAINTENANCE_MODE_ENV)),
+        nlsc_gateway_status=nlsc_gateway_configuration_status(values, production_like=production_like),
         serverless=serverless,
     )
 
