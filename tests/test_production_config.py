@@ -72,7 +72,11 @@ def test_nlsc_gateway_report_is_value_free_and_validates_production_destination(
 
     for url in (
         "http://gateway.example.invalid",
+        "http://93.184.216.34",
         "https://gateway.example.invalid",
+        "http://gateway.example.tw",
+        "https://localhost",
+        "https://foo.localhost",
         "https://127.0.0.1",
         "https://93.184.216.34.",
         "https://127.1",
@@ -85,10 +89,15 @@ def test_nlsc_gateway_report_is_value_free_and_validates_production_destination(
         "https://gateway.local",
         "https://gateway.localdomain",
         "https://gateway.internal",
+        "https://gateway.home.arpa",
         "https://user:pass@gateway.example.invalid",
+        "https://user:pass@gateway.example.tw",
         "https://gateway.example.invalid/other/path",
+        "https://gateway.example.tw/other/path",
         "https://gateway.example.invalid?url=https://attacker.example",
+        "https://gateway.example.tw?url=https://attacker.example",
         "https://gateway.example.invalid#fragment",
+        "https://gateway.example.tw#fragment",
     ):
         values["NLSC_GATEWAY_BASE_URL"] = url
         assert load_runtime_configuration(values).safe_report()["nlsc_gateway"] == "malformed", url
@@ -96,6 +105,21 @@ def test_nlsc_gateway_report_is_value_free_and_validates_production_destination(
     values["NLSC_GATEWAY_BASE_URL"] = "https://93.184.216.34"
     values["NLSC_GATEWAY_CLIENT_TOKEN"] = "has whitespace secret"
     assert load_runtime_configuration(values).safe_report()["nlsc_gateway"] == "malformed"
+
+
+def test_https_fqdn_is_structurally_configured_without_residency_claim() -> None:
+    values = {
+        "APP_ENV": "production",
+        "NLSC_GATEWAY_BASE_URL": "https://gateway.example.tw",
+        "NLSC_GATEWAY_CLIENT_TOKEN": "backend-client-token-123",
+    }
+    taiwan_domain = load_runtime_configuration(values).safe_report()
+    assert taiwan_domain["nlsc_gateway"] == "configured"
+    values["NLSC_GATEWAY_BASE_URL"] = "https://gateway.example.com"
+    other_domain = load_runtime_configuration(values).safe_report()
+    assert other_domain["nlsc_gateway"] == "configured"
+    assert taiwan_domain == other_domain
+    assert "taiwan" not in json.dumps(taiwan_domain).lower()
 
 
 def test_health_exposes_gateway_category_without_values(monkeypatch) -> None:

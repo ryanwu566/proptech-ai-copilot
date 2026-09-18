@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 TOKEN = "backend-only-client-token-123"
 CONFIG = {
     "APP_ENV": "production",
-    "NLSC_GATEWAY_BASE_URL": "https://93.184.216.34",
+    "NLSC_GATEWAY_BASE_URL": "https://gateway.example.tw",
     "NLSC_GATEWAY_CLIENT_TOKEN": TOKEN,
 }
 VALID_RESPONSE = {
@@ -65,7 +65,7 @@ def test_valid_response_uses_only_fixed_endpoint_and_backend_bearer_credential()
     assert result == VALID_RESPONSE
     assert len(requests) == 1
     request = requests[0]
-    assert str(request.url) == "https://93.184.216.34/nlsc/terrain/point"
+    assert str(request.url) == "https://gateway.example.tw/nlsc/terrain/point"
     assert request.method == "POST"
     assert json.loads(request.content) == {"lat": 25.03, "lng": 121.56, "radius_m": 500}
     assert request.headers["authorization"] == f"Bearer {TOKEN}"
@@ -96,7 +96,7 @@ def test_gateway_transport_failures_return_unavailable_without_secret(failure: s
     assert TOKEN not in json.dumps(result)
 
 
-@pytest.mark.parametrize("url", ["http://93.184.216.34", "https://10.0.0.1", "https://gateway.example.invalid", "https://gateway.local"])
+@pytest.mark.parametrize("url", ["http://gateway.example.tw", "https://10.0.0.1", "https://gateway.example.invalid", "https://gateway.local"])
 def test_malformed_production_gateway_never_calls_network(url: str) -> None:
     client, requests = client_with(lambda request: httpx.Response(200, json=VALID_RESPONSE))
     with client:

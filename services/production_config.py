@@ -34,6 +34,10 @@ NLSC_GATEWAY_CLIENT_TOKEN_ENV = "NLSC_GATEWAY_CLIENT_TOKEN"
 PRODUCTION_MODES = frozenset({"production", "preview"})
 _GATEWAY_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+={0,2}\Z")
 _DNS_LABEL = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\Z")
+_NONPUBLIC_GATEWAY_SUFFIXES = frozenset({
+    "localhost", "local", "localdomain", "internal", "lan", "home",
+    "invalid", "test", "example",
+})
 
 
 def _status(value: str | None, *, minimum_length: int = 1) -> str:
@@ -91,7 +95,7 @@ def _base_url_status(value: str | None) -> str:
 
 
 def nlsc_gateway_configuration_status(values: Mapping[str, str], *, production_like: bool) -> str:
-    """Validate the optional fixed gateway destination and backend bearer credential."""
+    """Validate a fixed gateway origin and credential, without inferring location."""
 
     raw_url = values.get(NLSC_GATEWAY_BASE_URL_ENV, "")
     raw_token = values.get(NLSC_GATEWAY_CLIENT_TOKEN_ENV, "")
@@ -121,11 +125,16 @@ def nlsc_gateway_configuration_status(values: Mapping[str, str], *, production_l
     try:
         address = ipaddress.ip_address(host)
     except ValueError:
-        if production_like:
-            # Pin production egress to the declared fixed public IP. A DNS
-            # name could resolve (or later rebind) to a private destination.
+        labels = host.split(".")
+        if not all(_DNS_LABEL.fullmatch(label) for label in labels):
             return "malformed"
-        if not all(_DNS_LABEL.fullmatch(label) for label in host.split(".")):
+        if production_like and (
+            len(labels) < 2
+            or labels[0] == "localhost"
+            or labels[-1] in _NONPUBLIC_GATEWAY_SUFFIXES
+            or labels[-2:] == ["home", "arpa"]
+            or not any(char.isalpha() for char in labels[-1])
+        ):
             return "malformed"
     else:
         if production_like and not address.is_global:
