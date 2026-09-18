@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 from scripts import apply_production_migrations as runner
+from scripts.disposable_postgres_auth import bootstrap_disposable_supabase_auth
 from scripts.migration_registry import load_registry, next_safe_sequence
 from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
@@ -36,15 +37,7 @@ def _reset_database(connection) -> None:
     connection.execute("DROP SCHEMA IF EXISTS auth CASCADE")
     connection.execute("DROP SCHEMA IF EXISTS public CASCADE")
     connection.execute("CREATE SCHEMA public")
-    connection.execute("CREATE SCHEMA auth")
-    connection.execute("CREATE TABLE auth.users (id uuid PRIMARY KEY)")
-    connection.execute(
-        "CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE "
-        "SET search_path = '' AS $$ SELECT COALESCE("
-        "NULLIF(current_setting('request.jwt.claim.sub', true), ''), "
-        "NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'"
-        ")::uuid $$"
-    )
+    bootstrap_disposable_supabase_auth(connection)
     connection.commit()
 
 

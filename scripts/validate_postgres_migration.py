@@ -20,6 +20,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from services.postgres_runtime import connect
+from scripts.disposable_postgres_auth import bootstrap_disposable_supabase_auth
 from scripts.migration_registry import (
     MigrationRegistryError,
     load_registry,
@@ -322,22 +323,7 @@ def _execute_disposable(database_url: str) -> dict[str, str]:
                 # A plain disposable PostgreSQL service does not include the
                 # Supabase Auth schema. Supply only the canonical prerequisite
                 # contract inside this rollback-only validation transaction.
-                connection.execute("CREATE SCHEMA IF NOT EXISTS auth")
-                connection.execute(
-                    "CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY)"
-                )
-                auth_uid = connection.execute(
-                    "SELECT to_regprocedure('auth.uid()')"
-                ).fetchone()
-                if auth_uid is None or auth_uid[0] is None:
-                    connection.execute(
-                        "CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE "
-                        "SET search_path = '' AS $$ "
-                        "SELECT COALESCE("
-                        "NULLIF(current_setting('request.jwt.claim.sub', true), ''), "
-                        "NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'"
-                        ")::uuid $$"
-                    )
+                bootstrap_disposable_supabase_auth(connection)
                 for path in MIGRATIONS:
                     for statement in _statements(path):
                         connection.execute(statement)

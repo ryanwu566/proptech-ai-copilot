@@ -19,6 +19,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
+from scripts.disposable_postgres_auth import bootstrap_disposable_supabase_auth
 from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
 from services.vnext.auth import AuthenticatedPrincipal
@@ -123,16 +124,7 @@ def _require_disposable_database(connection) -> None:
 
 
 def _install_auth_contract(connection) -> None:
-    connection.execute("CREATE SCHEMA IF NOT EXISTS auth")
-    connection.execute("CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY)")
-    if connection.execute("SELECT to_regprocedure('auth.uid()')").fetchone()[0] is None:
-        connection.execute(
-            "CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE "
-            "SET search_path = '' AS $$ SELECT COALESCE("
-            "NULLIF(current_setting('request.jwt.claim.sub', true), ''), "
-            "NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub'"
-            ")::uuid $$"
-        )
+    bootstrap_disposable_supabase_auth(connection)
 
 
 def _seed(connection) -> None:
