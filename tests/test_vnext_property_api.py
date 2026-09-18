@@ -12,13 +12,17 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi.testclient import TestClient
 
 from backend.api.v1.property_identity import (
+    get_building_claim_service,
     get_cursor_codec,
     get_identity_command_service,
+    get_parcel_hypothesis_service,
     get_property_read_repository,
     get_resolution_application_service,
 )
 from backend.api_main import app
 from services.vnext.auth import SupabaseJWTVerifier, get_supabase_jwt_verifier
+from services.vnext.building_claim import normalize_building_claim
+from services.vnext.building_claim_command import BuildingClaimOutcome, BuildingClaimRecord
 from services.vnext.authorization import (
     WorkspaceAuthorizer,
     WorkspaceMembership,
@@ -57,6 +61,10 @@ from services.vnext.persistence import (
 )
 from services.vnext.identity_resolution_service import ResolutionCreateOutcome
 from services.vnext.pagination import CursorCodec
+from services.vnext.parcel_hypothesis import normalize_parcel_hypothesis
+from services.vnext.parcel_hypothesis_command import (
+    ParcelHypothesisOutcome, ParcelHypothesisRecord,
+)
 from services.vnext.property_graph import (
     CoverageStatus,
     EvidenceRecord,
@@ -585,6 +593,181 @@ def _resolution_body(text: str = "Fixture") -> dict[str, object]:
         "input": {"kind": "address", "value": {"text": text}},
         "case_id": None,
     }
+
+
+class _ParcelHypothesisService:
+    def __init__(self, authorizer):
+        self.authorizer = authorizer
+        self.calls = 0
+        self.replayed = False
+
+    def create(self, *, principal, workspace_id, property_entity_id, components, idempotency_key, request_id):
+        self.authorizer.require_workspace_role(
+            principal, workspace_id, allowed_roles=CASE_WRITE_ROLES,
+        )
+        if property_entity_id != PROPERTY_ID:
+            raise VNextError.not_found()
+        self.calls += 1
+        normalized = normalize_parcel_hypothesis(components)
+        return ParcelHypothesisOutcome(
+            ParcelHypothesisRecord(
+                property_entity_id, ADDRESS_ID, RELATION_ID,
+                normalized.normalized_key, normalized.display_value, NOW,
+            ),
+            normalized,
+            self.replayed,
+        )
+
+
+def _parcel_body() -> dict[str, object]:
+    return {
+        "workspace_id": str(WORKSPACE_ID),
+        "components": {
+            "county_city": "臺北市", "district_township": "中正區",
+            "section": "南海段", "land_number": "１２３ 之 ４",
+        },
+    }
+
+
+def test_parcel_hypothesis_endpoint_enforces_auth_and_bounded_contract() -> None:
+    route = f"/v1/properties/{PROPERTY_ID}/parcel-hypotheses"
+    headers = {**_auth(), "Idempotency-Key": "parcel-api-key-0001"}
+    with _client() as (client, _service, _reads):
+        parcel = _ParcelHypothesisService(WorkspaceAuthorizer(_Memberships(WorkspaceRole.MEMBER, USER_ID)))
+        app.dependency_overrides[get_parcel_hypothesis_service] = lambda: parcel
+        assert client.post(route, json=_parcel_body(), headers={"Idempotency-Key": "parcel-api-key-0001"}).status_code == 401
+        assert client.post(route, json=_parcel_body(), headers=_auth()).status_code == 422
+        assert client.post(route, json=_parcel_body(), headers={**headers, "X-Role": "owner"}).status_code == 422
+        response = client.post(route, json=_parcel_body(), headers=headers)
+        assert response.status_code == 201
+        payload = response.json()
+        assert payload["hypothesis"] is True
+        assert payload["authority"] == "unverified_manual_hypothesis"
+        assert payload["reference_type"] == "parcel"
+        assert payload["reference_status"] == "unverified"
+        assert payload["relation_type"] == "property_parcel"
+        assert payload["relation_status"] == "proposed"
+        assert payload["identity_confirmation_id"] is None
+        assert payload["source_type"] == "user"
+        assert payload["raw_input"]["land_number"] == "１２３ 之 ４"
+        assert parcel.calls == 1
+        parcel.replayed = True
+        replay = client.post(route, json=_parcel_body(), headers=headers)
+        assert replay.status_code == 200
+        assert replay.json()["relation_id"] == payload["relation_id"]
+        for forbidden in ({"source_type": "official"}, {"reference_status": "observed"},
+                          {"relation_status": "confirmed"}, {"confidence": 1.0},
+                          {"provider_id": "nlsc-cadastral"}, {"case_id": str(CASE_ID)}):
+            body = _parcel_body()
+            body.update(forbidden)
+            assert client.post(route, json=body, headers=headers).status_code == 422
+        body = _parcel_body()
+        body["workspace_id"] = str(UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"))
+        assert client.post(route, json=body, headers=headers).status_code == 403
+        assert client.post(f"/v1/properties/{ADDRESS_ID}/parcel-hypotheses", json=_parcel_body(), headers=headers).status_code == 404
+
+
+def test_parcel_hypothesis_feature_flag_and_viewer_role_fail_closed() -> None:
+    route = f"/v1/properties/{PROPERTY_ID}/parcel-hypotheses"
+    headers = {**_auth(), "Idempotency-Key": "parcel-api-key-0002"}
+    with _client(feature_enabled=False) as (client, _service, _reads):
+        assert client.post(route, json=_parcel_body(), headers=headers).status_code == 404
+    with _client(role=WorkspaceRole.VIEWER) as (client, _service, _reads):
+        parcel = _ParcelHypothesisService(WorkspaceAuthorizer(_Memberships(WorkspaceRole.VIEWER, USER_ID)))
+        app.dependency_overrides[get_parcel_hypothesis_service] = lambda: parcel
+        assert client.post(route, json=_parcel_body(), headers=headers).status_code == 403
+        assert parcel.calls == 0
+
+
+class _BuildingClaimService:
+    def __init__(self, authorizer):
+        self.authorizer = authorizer
+        self.calls = 0
+        self.replayed = False
+
+    def create(self, *, principal, workspace_id, property_entity_id, components, idempotency_key, request_id):
+        self.authorizer.require_workspace_role(
+            principal, workspace_id, allowed_roles=CASE_WRITE_ROLES,
+        )
+        if property_entity_id != PROPERTY_ID:
+            raise VNextError.not_found()
+        normalized = normalize_building_claim(components)
+        self.calls += 1
+        return BuildingClaimOutcome(
+            BuildingClaimRecord(
+                property_entity_id, ADDRESS_ID, ADDRESS_ID, EVIDENCE_LIMITED_ID,
+                ADDRESS_ID, RELATION_ID, normalized.normalized_key,
+                normalized.display_value, NOW,
+            ), normalized, self.replayed,
+        )
+
+
+def _building_claim_body() -> dict[str, object]:
+    return {
+        "workspace_id": str(WORKSPACE_ID),
+        "identifier_kind": "cadastral_building_number",
+        "components": {
+            "county_city": "臺北市",
+            "district_township": "中正區",
+            "section": "城中段",
+            "subsection_status": "not_applicable",
+            "subsection": None,
+            "building_number": "１２３－４",
+        },
+    }
+
+
+def test_building_claim_endpoint_is_strict_manual_and_replay_safe() -> None:
+    route = f"/v1/properties/{PROPERTY_ID}/building-hypotheses"
+    headers = {**_auth(), "Idempotency-Key": "building-api-key-0001"}
+    with _client() as (client, _service, _reads):
+        claim = _BuildingClaimService(WorkspaceAuthorizer(_Memberships(WorkspaceRole.MEMBER, USER_ID)))
+        app.dependency_overrides[get_building_claim_service] = lambda: claim
+        assert client.post(route, json=_building_claim_body(), headers={"Idempotency-Key": "building-api-key-0001"}).status_code == 401
+        assert client.post(route, json=_building_claim_body(), headers=_auth()).status_code == 422
+        assert client.post(route, json=_building_claim_body(), headers={**headers, "X-Role": "owner"}).status_code == 422
+        response = client.post(route, json=_building_claim_body(), headers=headers)
+        assert response.status_code == 201
+        payload = response.json()
+        assert payload["identifier_kind"] == "cadastral_building_number"
+        assert payload["authority"] == "unverified_manual_claim"
+        assert payload["reference_type"] == "building"
+        assert payload["reference_status"] == "unverified"
+        assert payload["relation_type"] == "property_building"
+        assert payload["relation_status"] == "proposed"
+        assert payload["identity_confirmation_id"] is None
+        assert payload["source_type"] == "user"
+        assert payload["raw_input"]["building_number"] == "１２３－４"
+        claim.replayed = True
+        replay = client.post(route, json=_building_claim_body(), headers=headers)
+        assert replay.status_code == 200
+        assert replay.json()["relation_id"] == payload["relation_id"]
+        for forbidden in ({"source_id": "nlsc-cadastral"}, {"verified": True},
+                          {"relation_status": "confirmed"}, {"confidence": 1.0},
+                          {"parcel_id": str(ADDRESS_ID)}, {"community": "Example"}):
+            body = _building_claim_body()
+            body.update(forbidden)
+            assert client.post(route, json=body, headers=headers).status_code == 422
+        body = _building_claim_body()
+        body["components"]["building_number"] = "Community name"
+        assert client.post(route, json=body, headers=headers).status_code == 422
+        body = _building_claim_body()
+        body["workspace_id"] = str(UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"))
+        assert client.post(route, json=body, headers=headers).status_code == 403
+        assert client.post(f"/v1/properties/{ADDRESS_ID}/building-hypotheses", json=_building_claim_body(), headers=headers).status_code == 404
+        assert claim.calls == 2
+
+
+def test_building_claim_feature_flag_and_viewer_fail_closed() -> None:
+    route = f"/v1/properties/{PROPERTY_ID}/building-hypotheses"
+    headers = {**_auth(), "Idempotency-Key": "building-api-key-0002"}
+    with _client(feature_enabled=False) as (client, _service, _reads):
+        assert client.post(route, json=_building_claim_body(), headers=headers).status_code == 404
+    with _client(role=WorkspaceRole.VIEWER) as (client, _service, _reads):
+        claim = _BuildingClaimService(WorkspaceAuthorizer(_Memberships(WorkspaceRole.VIEWER, USER_ID)))
+        app.dependency_overrides[get_building_claim_service] = lambda: claim
+        assert client.post(route, json=_building_claim_body(), headers=headers).status_code == 403
+        assert claim.calls == 0
 
 
 def test_slice_6_openapi_exposes_only_approved_identity_and_case_routes() -> None:

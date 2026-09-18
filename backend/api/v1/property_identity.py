@@ -20,6 +20,11 @@ from services.vnext.auth import (AuthenticatedPrincipal,
                                  require_authenticated_principal)
 from services.vnext.authorization import (WorkspaceAuthorizer,
                                           get_workspace_authorizer)
+from services.vnext.building_claim import BUILDING_CLAIM_VERSION
+from services.vnext.building_claim_command import (
+    BuildingClaimApplicationService, BuildingClaimOutcome,
+    PostgresBuildingClaimRepository,
+)
 from services.vnext.db_principal import get_vnext_database_principal_context
 from services.vnext.errors import ErrorCode, VNextError
 from services.vnext.feature_flags import (VNextFeatureFlags,
@@ -38,6 +43,14 @@ from services.vnext.identity_resolution_service import \
     IdentityResolutionApplicationService
 from services.vnext.pagination import (CURSOR_SIGNING_KEY_ENV, CursorCodec,
                                        cursor_datetime, cursor_uuid)
+from services.vnext.parcel_building_relation_command import (
+    ParcelBuildingRelationApplicationService, ParcelBuildingRelationOutcome,
+    PostgresParcelBuildingRelationRepository,
+)
+from services.vnext.parcel_hypothesis_command import (
+    ParcelHypothesisApplicationService, ParcelHypothesisOutcome,
+    PostgresParcelHypothesisRepository,
+)
 from services.vnext.persistence import (CasePurpose, CaseRecord,
                                         PostgresCaseRepository,
                                         PostgresIdempotencyRepository)
@@ -178,6 +191,107 @@ class CaseCreateRequest(_StrictModel):
 class CaseAttachResolutionRequest(_StrictModel):
     resolution_id: UUID
     case_version: Annotated[int, Field(ge=1)]
+
+
+class ParcelComponentsRequest(_StrictModel):
+    county_city: Annotated[str, Field(max_length=160)] | None = None
+    district_township: Annotated[str, Field(max_length=160)] | None = None
+    section: Annotated[str, Field(max_length=160)] | None = None
+    subsection: Annotated[str, Field(max_length=160)] | None = None
+    land_number: Annotated[str, Field(max_length=160)] | None = None
+
+
+class ParcelHypothesisRequest(_StrictModel):
+    workspace_id: UUID
+    components: ParcelComponentsRequest
+
+
+class ParcelHypothesisDTO(_StrictModel):
+    hypothesis: Literal[True]
+    authority: Literal["unverified_manual_hypothesis"]
+    property_entity_id: UUID
+    identity_reference_id: UUID
+    relation_id: UUID
+    reference_type: Literal["parcel"]
+    normalized_key: str
+    normalization_version: Literal["parcel-v1"]
+    display_value: str
+    raw_input: dict[str, str | None]
+    reference_status: Literal["unverified"]
+    relation_type: Literal["property_parcel"]
+    relation_status: Literal["proposed"]
+    source_id: Literal["user-upload"]
+    source_type: Literal["user"]
+    source_environment: Literal["production"]
+    identity_confirmation_id: None
+    created_at: datetime
+
+
+class BuildingClaimComponentsRequest(_StrictModel):
+    county_city: Annotated[str, Field(max_length=160)]
+    district_township: Annotated[str, Field(max_length=160)]
+    section: Annotated[str, Field(max_length=160)]
+    subsection_status: Literal["specified", "not_applicable"]
+    subsection: Annotated[str, Field(max_length=160)] | None
+    building_number: Annotated[str, Field(max_length=160)]
+
+
+class BuildingClaimRequest(_StrictModel):
+    workspace_id: UUID
+    identifier_kind: Literal["cadastral_building_number"]
+    components: BuildingClaimComponentsRequest
+
+
+class BuildingClaimDTO(_StrictModel):
+    hypothesis: Literal[True]
+    identifier_kind: Literal["cadastral_building_number"]
+    authority: Literal["unverified_manual_claim"]
+    property_entity_id: UUID
+    identity_reference_id: UUID
+    building_node_id: UUID
+    evidence_id: UUID
+    evidence_link_id: UUID
+    relation_id: UUID
+    reference_type: Literal["building"]
+    normalized_key: str
+    normalization_version: Literal["building-cadastral-claim-v1"]
+    display_value: str
+    raw_input: dict[str, str | None]
+    reference_status: Literal["unverified"]
+    relation_type: Literal["property_building"]
+    relation_status: Literal["proposed"]
+    source_id: Literal["user-upload"]
+    source_type: Literal["user"]
+    source_environment: Literal["production"]
+    identity_confirmation_id: None
+    created_at: datetime
+
+
+class ParcelBuildingRelationRequest(_StrictModel):
+    workspace_id: UUID
+    parcel_identity_reference_id: UUID
+    building_identity_reference_id: UUID
+
+
+class ParcelBuildingRelationDTO(_StrictModel):
+    hypothesis: Literal[True]
+    authority: Literal["unverified_manual_relation"]
+    workspace_id: UUID
+    parcel_identity_reference_id: UUID
+    building_identity_reference_id: UUID
+    parcel_node_id: UUID
+    building_node_id: UUID
+    evidence_id: UUID
+    evidence_link_id: UUID
+    relation_id: UUID
+    relation_type: Literal["parcel_building"]
+    direction: Literal["bidirectional"]
+    relation_status: Literal["proposed"]
+    source_id: Literal["user-upload"]
+    source_type: Literal["user"]
+    source_environment: Literal["production"]
+    identity_confirmation_id: None
+    created_at: datetime
 
 
 class SourceDTO(_StrictModel):
@@ -484,6 +598,45 @@ def get_identity_command_service(
         command_repository=command_repository,
         idempotency_repository=idempotency_repository,
         case_repository=case_repository,
+    )
+
+
+def get_parcel_hypothesis_service(
+    idempotency_repository: PostgresIdempotencyRepository = Depends(get_idempotency_repository),
+    authorizer: WorkspaceAuthorizer = Depends(get_workspace_authorizer),
+) -> ParcelHypothesisApplicationService:
+    return ParcelHypothesisApplicationService(
+        authorizer=authorizer,
+        writer=PostgresParcelHypothesisRepository(
+            get_vnext_database_principal_context(), authorizer,
+        ),
+        idempotency_repository=idempotency_repository,
+    )
+
+
+def get_building_claim_service(
+    idempotency_repository: PostgresIdempotencyRepository = Depends(get_idempotency_repository),
+    authorizer: WorkspaceAuthorizer = Depends(get_workspace_authorizer),
+) -> BuildingClaimApplicationService:
+    return BuildingClaimApplicationService(
+        authorizer=authorizer,
+        writer=PostgresBuildingClaimRepository(
+            get_vnext_database_principal_context(), authorizer,
+        ),
+        idempotency_repository=idempotency_repository,
+    )
+
+
+def get_parcel_building_relation_service(
+    idempotency_repository: PostgresIdempotencyRepository = Depends(get_idempotency_repository),
+    authorizer: WorkspaceAuthorizer = Depends(get_workspace_authorizer),
+) -> ParcelBuildingRelationApplicationService:
+    return ParcelBuildingRelationApplicationService(
+        authorizer=authorizer,
+        writer=PostgresParcelBuildingRelationRepository(
+            get_vnext_database_principal_context(), authorizer,
+        ),
+        idempotency_repository=idempotency_repository,
     )
 
 
@@ -839,6 +992,184 @@ def _evidence_page_dto(
         property=property_dto(page.property),
         evidence=[_evidence_dto(item) for item in page.evidence],
         next_cursor=next_cursor,
+    )
+
+
+def parcel_hypothesis_dto(outcome: ParcelHypothesisOutcome) -> ParcelHypothesisDTO:
+    record = outcome.record
+    return ParcelHypothesisDTO(
+        hypothesis=True,
+        authority="unverified_manual_hypothesis",
+        property_entity_id=record.property_entity_id,
+        identity_reference_id=record.identity_reference_id,
+        relation_id=record.relation_id,
+        reference_type="parcel",
+        normalized_key=record.normalized_key,
+        normalization_version="parcel-v1",
+        display_value=record.display_value,
+        raw_input=dict(outcome.normalized.raw_input),
+        reference_status="unverified",
+        relation_type="property_parcel",
+        relation_status="proposed",
+        source_id="user-upload",
+        source_type="user",
+        source_environment="production",
+        identity_confirmation_id=None,
+        created_at=record.created_at,
+    )
+
+
+@router.post(
+    "/properties/{property_entity_id}/parcel-hypotheses",
+    response_model=ParcelHypothesisDTO,
+    status_code=201,
+    dependencies=[Depends(reject_client_identity_overrides), Depends(require_identity_feature)],
+    responses=vnext_error_responses(401, 403, 404, 409, 422, 503),
+)
+def create_parcel_hypothesis(
+    property_entity_id: UUID,
+    body: ParcelHypothesisRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(alias="Idempotency-Key", min_length=16, max_length=128, pattern=_IDEMPOTENCY_PATTERN),
+    ],
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
+    service: ParcelHypothesisApplicationService = Depends(get_parcel_hypothesis_service),
+) -> JSONResponse:
+    outcome = service.create(
+        principal=principal,
+        workspace_id=body.workspace_id,
+        property_entity_id=property_entity_id,
+        components=body.components.model_dump(),
+        idempotency_key=idempotency_key,
+        request_id=correlation_request_id(request),
+    )
+    payload = parcel_hypothesis_dto(outcome)
+    return JSONResponse(
+        status_code=200 if outcome.replayed else 201,
+        content=payload.model_dump(mode="json"),
+    )
+
+
+def building_claim_dto(outcome: BuildingClaimOutcome) -> BuildingClaimDTO:
+    record = outcome.record
+    return BuildingClaimDTO(
+        hypothesis=True,
+        identifier_kind="cadastral_building_number",
+        authority="unverified_manual_claim",
+        property_entity_id=record.property_entity_id,
+        identity_reference_id=record.identity_reference_id,
+        building_node_id=record.building_node_id,
+        evidence_id=record.evidence_id,
+        evidence_link_id=record.evidence_link_id,
+        relation_id=record.relation_id,
+        reference_type="building",
+        normalized_key=record.normalized_key,
+        normalization_version=BUILDING_CLAIM_VERSION,
+        display_value=record.display_value,
+        raw_input=dict(outcome.normalized.raw_input),
+        reference_status="unverified",
+        relation_type="property_building",
+        relation_status="proposed",
+        source_id="user-upload",
+        source_type="user",
+        source_environment="production",
+        identity_confirmation_id=None,
+        created_at=record.created_at,
+    )
+
+
+@router.post(
+    "/properties/{property_entity_id}/building-hypotheses",
+    response_model=BuildingClaimDTO,
+    status_code=201,
+    dependencies=[Depends(reject_client_identity_overrides), Depends(require_identity_feature)],
+    responses=vnext_error_responses(401, 403, 404, 409, 422, 503),
+)
+def create_building_claim(
+    property_entity_id: UUID,
+    body: BuildingClaimRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(alias="Idempotency-Key", min_length=16, max_length=128, pattern=_IDEMPOTENCY_PATTERN),
+    ],
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
+    service: BuildingClaimApplicationService = Depends(get_building_claim_service),
+) -> JSONResponse:
+    outcome = service.create(
+        principal=principal,
+        workspace_id=body.workspace_id,
+        property_entity_id=property_entity_id,
+        components=body.components.model_dump(),
+        idempotency_key=idempotency_key,
+        request_id=correlation_request_id(request),
+    )
+    payload = building_claim_dto(outcome)
+    return JSONResponse(
+        status_code=200 if outcome.replayed else 201,
+        content=payload.model_dump(mode="json"),
+    )
+
+
+def parcel_building_relation_dto(
+    outcome: ParcelBuildingRelationOutcome,
+) -> ParcelBuildingRelationDTO:
+    record = outcome.record
+    return ParcelBuildingRelationDTO(
+        hypothesis=True,
+        authority="unverified_manual_relation",
+        workspace_id=record.workspace_id,
+        parcel_identity_reference_id=record.parcel_identity_reference_id,
+        building_identity_reference_id=record.building_identity_reference_id,
+        parcel_node_id=record.parcel_node_id,
+        building_node_id=record.building_node_id,
+        evidence_id=record.evidence_id,
+        evidence_link_id=record.evidence_link_id,
+        relation_id=record.relation_id,
+        relation_type="parcel_building",
+        direction="bidirectional",
+        relation_status="proposed",
+        source_id="user-upload",
+        source_type="user",
+        source_environment="production",
+        identity_confirmation_id=None,
+        created_at=record.created_at,
+    )
+
+
+@router.post(
+    "/parcel-building-relations",
+    response_model=ParcelBuildingRelationDTO,
+    status_code=201,
+    dependencies=[Depends(reject_client_identity_overrides), Depends(require_identity_feature)],
+    responses=vnext_error_responses(401, 403, 404, 409, 422, 503),
+)
+def create_parcel_building_relation(
+    body: ParcelBuildingRelationRequest,
+    request: Request,
+    idempotency_key: Annotated[
+        str,
+        Header(alias="Idempotency-Key", min_length=16, max_length=128, pattern=_IDEMPOTENCY_PATTERN),
+    ],
+    principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
+    service: ParcelBuildingRelationApplicationService = Depends(
+        get_parcel_building_relation_service
+    ),
+) -> JSONResponse:
+    outcome = service.create(
+        principal=principal,
+        workspace_id=body.workspace_id,
+        parcel_identity_reference_id=body.parcel_identity_reference_id,
+        building_identity_reference_id=body.building_identity_reference_id,
+        idempotency_key=idempotency_key,
+        request_id=correlation_request_id(request),
+    )
+    payload = parcel_building_relation_dto(outcome)
+    return JSONResponse(
+        status_code=200 if outcome.replayed else 201,
+        content=payload.model_dump(mode="json"),
     )
 
 
