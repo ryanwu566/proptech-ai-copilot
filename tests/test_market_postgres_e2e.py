@@ -14,6 +14,8 @@ from pathlib import Path
 import pytest
 
 from scripts.apply_production_migrations import apply
+from scripts.disposable_postgres_auth import bootstrap_disposable_supabase_auth
+from scripts.validate_postgres_migration import _statements
 from services.official_plvr_market_pipeline import (
     NormalizedTransaction,
     publish_release,
@@ -151,10 +153,14 @@ def _publish(connection, release_id: str, prices: list[float]) -> None:
 
 def test_disposable_postgres_market_release_lifecycle() -> None:
     database_url = _database_url()
+    import psycopg
+
+    with psycopg.connect(database_url, prepare_threshold=None) as connection:
+        assert connection.execute("SELECT current_database()").fetchone()[0] == "market_e2e"
+        bootstrap_disposable_supabase_auth(connection)
+
     migration = apply(database_url, release_version="market-e2e")
     assert migration["status"] == "pass"
-
-    import psycopg
 
     with psycopg.connect(database_url, prepare_threshold=None) as connection:
         _publish(connection, "release-a", [100, 200, 300])
@@ -193,3 +199,28 @@ def test_disposable_postgres_market_release_lifecycle() -> None:
         with connection.cursor() as cursor:
             cursor.execute("select release_id from official_market_releases where is_active")
             assert cursor.fetchone()[0] == "release-a"
+
+
+def test_vnext_migration_rejects_missing_auth_prerequisites() -> None:
+    import psycopg
+
+    guard = next(
+        statement
+        for statement in _statements(
+            ROOT / "database" / "migrations" / "013_vnext_workspace_case_foundation.sql"
+        )
+        if "vnext_auth_users_prerequisite_missing" in statement
+    )
+    with psycopg.connect(_database_url(), prepare_threshold=None) as connection:
+        assert connection.execute("SELECT current_database()").fetchone()[0] == "market_e2e"
+        bootstrap_disposable_supabase_auth(connection)
+        for object_name, missing_reason in (
+            ("TABLE auth.users", "vnext_auth_users_prerequisite_missing"),
+            ("FUNCTION auth.uid()", "vnext_auth_uid_prerequisite_missing"),
+        ):
+            with pytest.raises(psycopg.errors.RaiseException, match=missing_reason):
+                with connection.transaction():
+                    connection.execute(
+                        f"ALTER {object_name} RENAME TO missing_for_guard_test"
+                    )
+                    connection.execute(guard)
