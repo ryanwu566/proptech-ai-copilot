@@ -178,4 +178,4 @@ def test_frontend_session_and_dto_mutation_harness_passes() -> None:
         check=False,
     )
     assert completed.returncode == 0, completed.stderr[-2000:]
-    assert "VNext frontend hardening: 31 passed" in completed.stdout
+    assert "VNext frontend hardening: 34 passed" in completed.stdout

@@ -1,7 +1,7 @@
 "use client";
 
 import { API_BASE } from "@/lib/api";
-import { getVNextAccessToken } from "@/lib/vnext-auth-session";
+import { expireVNextSession, getVNextAccessToken, getVNextSessionGeneration, isVNextSessionGenerationCurrent } from "@/lib/vnext-auth-session";
 import {
   VNextContractError,
   parseCase,
@@ -56,7 +56,7 @@ export class VNextOutcomeUnknownError extends Error {
 }
 
 export class VNextSessionError extends Error {
-  constructor(readonly reason: "configuration_error" | "missing_session") {
+  constructor(readonly reason: "configuration_error" | "missing_session" | "expired_session") {
     super(reason);
     this.name = "VNextSessionError";
   }
@@ -64,6 +64,7 @@ export class VNextSessionError extends Error {
 
 function apiUrl(path: string): string {
   if (!API_BASE) throw new VNextSessionError("configuration_error");
+  if (!/^\/v1(?:\/|\?|$)/.test(path)) throw new VNextContractError("request.path");
   return `${API_BASE}${path}`;
 }
 
@@ -74,16 +75,18 @@ function identifier(value: string): string {
   return value;
 }
 
-async function authenticatedHeaders(commandKey?: string): Promise<Headers> {
+async function authenticatedHeaders(commandKey?: string): Promise<{ headers: Headers; accessToken: string; generation: number }> {
+  const generation = getVNextSessionGeneration();
   const session = await getVNextAccessToken();
   if (session.status !== "authenticated") throw new VNextSessionError(session.status);
+  if (!isVNextSessionGenerationCurrent(generation)) throw new VNextSessionError("missing_session");
   const headers = new Headers({ Authorization: `Bearer ${session.accessToken}`, Accept: "application/json" });
   if (commandKey) {
     if (!/^[A-Za-z0-9._:-]{16,128}$/.test(commandKey)) throw new VNextContractError("request.idempotency_key");
     headers.set("Content-Type", "application/json");
     headers.set("Idempotency-Key", commandKey);
   }
-  return headers;
+  return { headers, accessToken: session.accessToken, generation };
 }
 
 async function requestJson<T>(
@@ -94,13 +97,21 @@ async function requestJson<T>(
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs ?? 15_000);
   try {
-    const response = await fetch(apiUrl(path), {
+    const url = apiUrl(path);
+    const authorized = await authenticatedHeaders(options.commandKey);
+    if (!isVNextSessionGenerationCurrent(authorized.generation)) throw new VNextSessionError("missing_session");
+    const response = await fetch(url, {
       method: options.method ?? "GET",
-      headers: await authenticatedHeaders(options.commandKey),
+      headers: authorized.headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
       cache: "no-store",
+      redirect: "error",
       signal: controller.signal,
     });
+    if (response.status === 401) {
+      if (await expireVNextSession(authorized.generation, authorized.accessToken)) throw new VNextSessionError("expired_session");
+      throw new VNextApiError("authentication_required", 401, "", false);
+    }
     let payload: unknown;
     try {
       payload = await response.json();

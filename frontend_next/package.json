@@ -19,6 +19,7 @@
     "test:e2e:real-provider": "npm run build:e2e && node e2e/run-e2e.cjs --config=playwright.real-provider.config.ts --workers=1"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "leaflet": "^1.9.4",
     "next": "16.3.3",
     "react": "^19.2.6",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
 
 
@@ -11,6 +12,8 @@ CLIENT = (FRONTEND / "lib" / "vnext-identity-client.ts").read_text(encoding="utf
 CONTRACT = (FRONTEND / "lib" / "vnext-identity-contract.ts").read_text(encoding="utf-8")
 AUTH = (FRONTEND / "lib" / "vnext-auth-session.ts").read_text(encoding="utf-8")
 CSP = (FRONTEND / "next.config.mjs").read_text(encoding="utf-8")
+AUTH_GATE = (FRONTEND / "components" / "vnext-auth-gate.tsx").read_text(encoding="utf-8")
+LIVE_ROUTE = (FRONTEND / "components" / "property-identity-live-route.tsx").read_text(encoding="utf-8")
 
 
 def test_slice_8_is_an_isolated_route_without_homepage_imports() -> None:
@@ -43,13 +46,15 @@ def test_client_calls_only_the_approved_identity_surface() -> None:
 def test_browser_auth_uses_only_publishable_session_configuration() -> None:
     assert "NEXT_PUBLIC_SUPABASE_URL" in AUTH
     assert "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" in AUTH
-    assert "window.localStorage.getItem(storageKey)" in AUTH
-    assert "/auth/v1/token?grant_type=refresh_token" in AUTH
-    assert "accessTokenExpiry(accessToken" in AUTH
-    assert '!["RS256", "ES256"].includes(String(header.alg))' in AUTH
-    assert 'payload.iss !== expectedIssuer' in AUTH
-    assert "allowedPublishableKey" in AUTH
-    assert 'jwtPayload(key)?.role === "anon"' in AUTH
+    assert "createClient(config.url, config.key" in AUTH
+    assert "client.auth.getSession()" in AUTH
+    assert "client.auth.refreshSession()" in AUTH
+    assert "client.auth.signInWithPassword(" in AUTH
+    assert 'client.auth.signOut({ scope: "local" })' in AUTH
+    assert "window.localStorage" not in AUTH
+    assert '["RS256", "ES256"].includes(String(header.alg))' in AUTH
+    assert "payload.iss !== issuer" in AUTH
+    assert 'payload.role !== "authenticated"' in AUTH
     assert "sb_publishable_" in AUTH
     assert "Authorization" in CLIENT and "Bearer ${session.accessToken}" in CLIENT
     assert "from(" not in AUTH
@@ -57,6 +62,24 @@ def test_browser_auth_uses_only_publishable_session_configuration() -> None:
     assert "getSupabaseAuthConnectSource" in CSP
     assert "url.username || url.password" in CSP
     assert "${supabaseAuthConnectSource}" in CSP
+
+
+def test_production_auth_deployment_contract_and_browser_boundary() -> None:
+    manifest = json.loads((ROOT / "config" / "hosted-environment-manifest.json").read_text(encoding="utf-8"))
+    public_frontend = {
+        item["name"] for item in manifest["variables"]
+        if item["scope"] == "frontend" and item["visibility"] == "public"
+    }
+    assert public_frontend == {
+        "NEXT_PUBLIC_API_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+    }
+    browser_source = AUTH + CLIENT + AUTH_GATE + LIVE_ROUTE
+    for forbidden in ("sb_secret_", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "signInWithOAuth", "signUp("):
+        assert forbidden not in browser_source
+    assert "console." not in browser_source
+    assert "captureException" not in browser_source
+    assert "Authorization" not in AUTH_GATE + LIVE_ROUTE
+    assert 'redirect: "error"' in CLIENT
 
 
 def test_runtime_contracts_fail_closed_without_any() -> None:
