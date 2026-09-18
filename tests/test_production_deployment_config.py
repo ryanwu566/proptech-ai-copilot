@@ -37,6 +37,15 @@ def test_render_blueprint_lists_only_variable_names_not_values() -> None:
     assert "token:" not in RENDER.lower()
 
 
+def test_render_declares_gateway_token_as_backend_secret() -> None:
+    import yaml
+
+    service = yaml.safe_load(RENDER)["services"][0]
+    variables = {item["key"]: item for item in service["envVars"]}
+    assert variables["NLSC_GATEWAY_BASE_URL"] == {"key": "NLSC_GATEWAY_BASE_URL", "sync": False}
+    assert variables["NLSC_GATEWAY_CLIENT_TOKEN"] == {"key": "NLSC_GATEWAY_CLIENT_TOKEN", "sync": False}
+
+
 def test_cors_allowlist_parser_rejects_wildcard_with_credentials() -> None:
     assert parse_cors_allowed_origins("https://frontend.example, * , https://frontend.example/") == ["https://frontend.example"]
     assert "*" not in parse_cors_allowed_origins("*")

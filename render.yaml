@@ -52,6 +52,10 @@ services:
         sync: false
       - key: TGOS_API_KEY
         sync: false
+      - key: NLSC_GATEWAY_BASE_URL
+        sync: false
+      - key: NLSC_GATEWAY_CLIENT_TOKEN
+        sync: false
       - key: TDX_CLIENT_ID
         sync: false
       - key: TDX_CLIENT_SECRET
