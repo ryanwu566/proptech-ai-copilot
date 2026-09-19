@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.api.routes_health import router as health_router
+from backend.api.routes_metrics import build_metrics_router
 from backend.api.routes_holding_cost import router as holding_cost_router
 from backend.api.routes_location_insight import router as location_insight_router
 from backend.api.routes_bank_rates import router as bank_rates_router
@@ -37,6 +38,7 @@ from backend.api.routes_performance import router as performance_router
 from backend.api.routes_parcel_geometry import router as parcel_geometry_router
 from backend.api.v1 import router as vnext_router
 from backend.api.v1.errors import structured_error_response, vnext_error_handler
+from services.metrics import BoundedMetricsRegistry, route_template_from_scope
 from services.observability import build_observation, normalize_correlation_id
 from services.production_config import assert_startup_configuration
 from services.security import safe_origin, security_headers
@@ -98,6 +100,17 @@ app.add_middleware(
 )
 
 logger = logging.getLogger("proptech.observability")
+http_metrics: BoundedMetricsRegistry
+
+
+def _record_http_metrics(request: Request, response, started: float):
+    http_metrics.observe_http_request(
+        method=request.method,
+        route_template=route_template_from_scope(request.scope),
+        status_code=response.status_code,
+        duration_seconds=time.monotonic() - started,
+    )
+    return response
 
 
 @app.middleware("http")
@@ -115,7 +128,7 @@ async def privacy_safe_observability(request: Request, call_next):
         response.headers["X-Correlation-ID"] = correlation_id
         for name, value in security_headers(private=True).items():
             response.headers.setdefault(name, value)
-        return response
+        return _record_http_metrics(request, response, started)
     origin = safe_origin(request.headers.get("origin"))
     if origin and request.method not in {"GET", "HEAD", "OPTIONS"} and origin not in {item.lower().rstrip("/") for item in configured_cors_origins()}:
         if request.url.path.startswith("/v1"):
@@ -125,7 +138,7 @@ async def privacy_safe_observability(request: Request, call_next):
         response.headers["X-Correlation-ID"] = correlation_id
         for name, value in security_headers(private=request.url.path.startswith("/pilot")).items():
             response.headers.setdefault(name, value)
-        return response
+        return _record_http_metrics(request, response, started)
     maintenance = os.getenv(MAINTENANCE_MODE_ENV, "").strip().lower() in {"1", "true", "yes", "on"}
     if maintenance and request.method in {"POST", "PUT", "PATCH", "DELETE"} and not request.url.path.startswith(("/health", "/liveness", "/readiness", "/release-version", "/source-status", "/compatibility")):
         if request.url.path.startswith("/v1"):
@@ -135,11 +148,11 @@ async def privacy_safe_observability(request: Request, call_next):
         response.headers["X-Correlation-ID"] = correlation_id
         for name, value in security_headers(production=os.getenv("APP_ENV", "development").strip().lower() in {"production", "preview"}, private=True).items():
             response.headers.setdefault(name, value)
-        return response
+        return _record_http_metrics(request, response, started)
     try:
         response = await call_next(request)
     except Exception:
-        observation = build_observation(correlation_id=correlation_id, route=request.url.path, method=request.method, status_code=500, duration_ms=int((time.monotonic() - started) * 1000), error_code="server_error")
+        observation = build_observation(correlation_id=correlation_id, route=route_template_from_scope(request.scope), method=request.method, status_code=500, duration_ms=int((time.monotonic() - started) * 1000), error_code="server_error")
         logger.warning("request_failed %s", json.dumps(observation, ensure_ascii=True, separators=(",", ":")))
         if request.url.path.startswith("/v1"):
             response = structured_error_response(request, VNextError(ErrorCode.INTERNAL_ERROR))
@@ -151,9 +164,9 @@ async def privacy_safe_observability(request: Request, call_next):
     for name, value in security_headers(production=production, private=private).items():
         response.headers.setdefault(name, value)
     if response.status_code >= 400:
-        observation = build_observation(correlation_id=correlation_id, route=request.url.path, method=request.method, status_code=response.status_code, duration_ms=int((time.monotonic() - started) * 1000), error_code="request_failed")
+        observation = build_observation(correlation_id=correlation_id, route=route_template_from_scope(request.scope), method=request.method, status_code=response.status_code, duration_ms=int((time.monotonic() - started) * 1000), error_code="request_failed")
         logger.info("request_completed %s", json.dumps(observation, ensure_ascii=True, separators=(",", ":")))
-    return response
+    return _record_http_metrics(request, response, started)
 
 
 app.add_exception_handler(VNextError, vnext_error_handler)
@@ -201,3 +214,11 @@ app.include_router(pilot_router)
 app.include_router(performance_router)
 app.include_router(parcel_geometry_router)
 app.include_router(vnext_router)
+
+http_metrics = BoundedMetricsRegistry(
+    {
+        *(getattr(route, "path", "") for route in app.routes),
+        "/metrics",
+    }
+)
+app.include_router(build_metrics_router(http_metrics))

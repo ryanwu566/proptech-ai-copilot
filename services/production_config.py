@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Mapping
 from urllib.parse import urlsplit
 
+from services.metrics import valid_scrape_token
 from services.security import MIN_SESSION_SIGNING_KEY_LENGTH, is_serverless_runtime
 
 
@@ -30,6 +31,7 @@ SCHEMA_VERSION_ENV = "SCHEMA_VERSION"
 MAINTENANCE_MODE_ENV = "MAINTENANCE_MODE"
 NLSC_GATEWAY_BASE_URL_ENV = "NLSC_GATEWAY_BASE_URL"
 NLSC_GATEWAY_CLIENT_TOKEN_ENV = "NLSC_GATEWAY_CLIENT_TOKEN"
+METRICS_SCRAPE_TOKEN_ENV = "METRICS_SCRAPE_TOKEN"
 
 PRODUCTION_MODES = frozenset({"production", "preview"})
 _GATEWAY_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+={0,2}\Z")
@@ -147,6 +149,12 @@ def _maintenance_status(value: str | None) -> str:
     return "enabled" if value in {"1", "true", "yes", "on"} else "disabled"
 
 
+def _metrics_scrape_token_status(value: str | None) -> str:
+    if value is None or value == "":
+        return "not_configured"
+    return "configured" if valid_scrape_token(value) else "malformed"
+
+
 def _database_url(values: Mapping[str, str]) -> tuple[str, str]:
     primary = values.get(DATABASE_URL_ENV, "").strip()
     if primary:
@@ -171,6 +179,7 @@ class RuntimeConfiguration:
     schema_version_status: str
     maintenance_status: str
     nlsc_gateway_status: str
+    metrics_scrape_token_status: str
     serverless: bool
 
     @property
@@ -181,10 +190,11 @@ class RuntimeConfiguration:
     def ready(self) -> bool:
         if not self.production_like:
             return True
-        return all(
+        required_configuration_ready = all(
             value == "configured"
             for value in (self.database_status, self.session_secret_status, self.cors_status, self.public_base_url_status)
         )
+        return required_configuration_ready and self.metrics_scrape_token_status != "malformed"
 
     def safe_report(self) -> dict[str, object]:
         return {
@@ -204,6 +214,7 @@ class RuntimeConfiguration:
             "schema_version": self.schema_version_status,
             "maintenance": self.maintenance_status,
             "nlsc_gateway": self.nlsc_gateway_status,
+            "metrics_scrape_token": self.metrics_scrape_token_status,
             "ready": self.ready,
         }
 
@@ -230,6 +241,7 @@ def load_runtime_configuration(environ: Mapping[str, str] | None = None) -> Runt
         schema_version_status=_status(values.get(SCHEMA_VERSION_ENV)),
         maintenance_status=_maintenance_status(values.get(MAINTENANCE_MODE_ENV)),
         nlsc_gateway_status=nlsc_gateway_configuration_status(values, production_like=production_like),
+        metrics_scrape_token_status=_metrics_scrape_token_status(values.get(METRICS_SCRAPE_TOKEN_ENV)),
         serverless=serverless,
     )
 
