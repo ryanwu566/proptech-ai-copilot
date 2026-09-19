@@ -1,0 +1,68 @@
+name: Authenticated Property Identity Smoke
+
+on:
+  schedule:
+    - cron: "23 4 * * *"
+  workflow_dispatch:
+    inputs:
+      write_mode:
+        description: "Request dedicated workspace write smoke (currently unsupported)"
+        type: boolean
+        required: true
+        default: false
+
+permissions: {}
+
+jobs:
+  read-only-smoke:
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || inputs.write_mode != true) }}
+    runs-on: ubuntu-latest
+    # Configure main-only branch protection and secrets only in this environment.
+    # Rotate SMOKE_USER_BEARER_TOKEN before expiry; keep these names out of repository secrets.
+    environment: production-identity-smoke-read
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run authenticated read checks
+        env:
+          SMOKE_API_BASE_URL: ${{ secrets.SMOKE_API_BASE_URL }}
+          SMOKE_USER_BEARER_TOKEN: ${{ secrets.SMOKE_USER_BEARER_TOKEN }}
+          SMOKE_WORKSPACE_ID: ${{ secrets.SMOKE_WORKSPACE_ID }}
+          SMOKE_PROPERTY_ENTITY_ID: ${{ secrets.SMOKE_PROPERTY_ENTITY_ID }}
+          SMOKE_WRITE_MODE: "false"
+        run: python scripts/authenticated_identity_smoke.py
+
+  write-smoke-gate:
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.write_mode == true }}
+    runs-on: ubuntu-latest
+    # Configure main-only branch protection, reviewer approval, and environment-only secrets.
+    # Keep these names out of repository secrets.
+    environment: production-identity-smoke-write
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Enforce dedicated workspace write gate
+        env:
+          SMOKE_API_BASE_URL: ${{ secrets.SMOKE_API_BASE_URL }}
+          SMOKE_USER_BEARER_TOKEN: ${{ secrets.SMOKE_USER_BEARER_TOKEN }}
+          SMOKE_WORKSPACE_ID: ${{ secrets.SMOKE_WORKSPACE_ID }}
+          SMOKE_PROPERTY_ENTITY_ID: ${{ secrets.SMOKE_PROPERTY_ENTITY_ID }}
+          SMOKE_WRITE_MODE: "true"
+          SMOKE_TEST_WORKSPACE_ID: ${{ secrets.SMOKE_TEST_WORKSPACE_ID }}
+        run: python scripts/authenticated_identity_smoke.py
