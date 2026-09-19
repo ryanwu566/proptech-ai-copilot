@@ -20,7 +20,6 @@ const NODE_ADDRESS = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 const RELATION = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 const NOW = "2026-09-06T00:00:00Z";
 const PROJECT_URL = "https://slice9-auth.supabase.co";
-const STORAGE_KEY = "sb-slice9-auth-auth-token";
 const PUBLISHABLE_KEY = "sb_publishable_slice9_public_only";
 
 function compile(relativePath, globals = {}) {
@@ -47,33 +46,43 @@ function legacyKey(role = "anon") {
   return `${base64url({ alg: "HS256", typ: "JWT" })}.${base64url({ role, iss: "supabase" })}.signature`;
 }
 
-function storage(initial = {}) {
-  const values = new Map(Object.entries(initial));
-  return {
-    getItem: (key) => values.get(key) ?? null,
-    setItem: (key, value) => values.set(key, String(value)),
-    removeItem: (key) => values.delete(key),
-    values,
-  };
-}
-
-function authHarness({ env = {}, initial = null, fetchImpl, setTimeoutImpl } = {}) {
-  const localStorage = storage(initial === null ? {} : { [STORAGE_KEY]: JSON.stringify(initial) });
+function authHarness({ env = {}, initial = null, refreshed = null, signIn = null, getSessionError = null, getSessionImpl = null } = {}) {
+  let current = initial;
+  const calls = { refresh: 0, signOut: 0, signIn: [] };
   const logs = [];
-  const auth = compile("lib/vnext-auth-session.ts", {
-    process: { env: { NEXT_PUBLIC_SUPABASE_URL: PROJECT_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE_KEY, ...env } },
-    window: {
-      localStorage,
-      setTimeout: setTimeoutImpl ?? setTimeout,
-      clearTimeout,
+  const events = [];
+  const listeners = [];
+  const emit = (name) => { for (const listener of listeners) listener(name, current); };
+  const sdk = { auth: {
+    getSession: async () => getSessionImpl ? getSessionImpl() : ({ data: { session: current }, error: getSessionError }),
+    refreshSession: async () => {
+      calls.refresh += 1;
+      current = refreshed;
+      return { data: { session: current }, error: current ? null : new Error("refresh rejected") };
     },
-    fetch: fetchImpl ?? (async () => { throw new Error("unexpected fetch"); }),
-    URL,
-    AbortController,
-    atob,
+    signInWithPassword: async (credentials) => {
+      calls.signIn.push(credentials);
+      current = signIn;
+      if (current) emit("SIGNED_IN");
+      return { data: { session: current }, error: current ? null : new Error("invalid credentials") };
+    },
+    signOut: async () => { calls.signOut += 1; current = null; emit("SIGNED_OUT"); return { error: null }; },
+    onAuthStateChange: (listener) => {
+      listeners.push(listener);
+      return { data: { subscription: { unsubscribe: () => listeners.splice(listeners.indexOf(listener), 1) } } };
+    },
+  } };
+  const auth = compile("lib/vnext-auth-session.ts", {
+    process: { env: { NEXT_PUBLIC_SUPABASE_URL: PROJECT_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: PUBLISHABLE_KEY, NODE_ENV: "production", ...env } },
+    window: { dispatchEvent: (event) => events.push(event.type) },
+    Event, URL, atob,
+    require: (name) => {
+      assert.equal(name, "@supabase/supabase-js");
+      return { createClient: () => sdk };
+    },
     console: { log: (...items) => logs.push(items), error: (...items) => logs.push(items), warn: (...items) => logs.push(items) },
   });
-  return { auth, localStorage, logs };
+  return { auth, calls, logs, events, replaceSession: (value) => { current = value; emit("SIGNED_IN"); } };
 }
 
 function session(token, refresh = "slice9-refresh-token") {
@@ -84,10 +93,6 @@ function session(token, refresh = "slice9-refresh-token") {
     expires_in: 3600,
     user: { id: USER, app_metadata: {}, user_metadata: {} },
   };
-}
-
-function response(body, ok = true) {
-  return { ok, json: async () => body };
 }
 
 const source = (environment = "production") => ({
@@ -228,108 +233,108 @@ async function check(name, action) {
 const future = Math.floor(Date.now() / 1000) + 3600;
 const expired = Math.floor(Date.now() / 1000) - 60;
 
-await check("current Supabase session shape and derived key", async () => {
+await check("official client restores a valid session", async () => {
   const token = accessToken(future);
-  const { auth, localStorage } = authHarness({ initial: session(token) });
+  const { auth } = authHarness({ initial: session(token) });
   assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "authenticated", accessToken: token });
-  assert.ok(localStorage.values.has(STORAGE_KEY));
 });
 
-await check("expired access token rotates both tokens and preserves session fields", async () => {
+await check("official client refreshes an expiring access token", async () => {
   const next = accessToken(future);
-  const { auth, localStorage, logs } = authHarness({
-    initial: session(accessToken(expired)),
-    fetchImpl: async () => response({ access_token: next, refresh_token: "slice9-rotated-token", expires_in: 3600 }),
-  });
+  const { auth, calls, logs } = authHarness({ initial: session(accessToken(expired)), refreshed: session(next, "rotated") });
   assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "authenticated", accessToken: next });
-  const stored = JSON.parse(localStorage.values.get(STORAGE_KEY));
-  assert.equal(stored.refresh_token, "slice9-rotated-token");
-  assert.equal(stored.user.id, USER);
+  assert.equal(calls.refresh, 1);
   assert.deepEqual(logs, []);
 });
 
-await check("same-realm refresh is single-flight", async () => {
-  let calls = 0;
-  const next = accessToken(future);
-  const { auth } = authHarness({
-    initial: session(accessToken(expired)),
-    fetchImpl: async () => { calls += 1; await new Promise((resolve) => setTimeout(resolve, 5)); return response({ access_token: next, refresh_token: "slice9-rotated-token", expires_in: 3600 }); },
-  });
-  const results = await Promise.all([auth.getVNextAccessToken(), auth.getVNextAccessToken()]);
-  assert.equal(calls, 1);
-  assert.equal(results[0].accessToken, next);
-  assert.equal(results[1].accessToken, next);
+await check("failed refresh expires and clears the session", async () => {
+  const { auth, calls, logs, events } = authHarness({ initial: session(accessToken(expired)) });
+  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "expired_session" });
+  assert.equal(calls.signOut, 1);
+  assert.deepEqual(events, ["vnext-session-expired"]);
+  assert.deepEqual(logs, []);
 });
 
-await check("newer session is not overwritten by stale refresh", async () => {
-  let release;
-  const pendingResponse = new Promise((resolve) => { release = resolve; });
-  const newer = accessToken(future, { session_id: "newer" });
-  const { auth, localStorage } = authHarness({ initial: session(accessToken(expired)), fetchImpl: () => pendingResponse });
-  const pending = auth.getVNextAccessToken();
-  await Promise.resolve();
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(session(newer, "newer-refresh-token")));
-  release(response({ access_token: accessToken(future, { session_id: "stale" }), refresh_token: "stale-refresh-token", expires_in: 3600 }));
-  assert.deepEqual(plain(await pending), { status: "authenticated", accessToken: newer });
-  assert.equal(JSON.parse(localStorage.values.get(STORAGE_KEY)).refresh_token, "newer-refresh-token");
+await check("invalid privileged user token is rejected", async () => {
+  const { auth, calls } = authHarness({ initial: session(accessToken(future, { role: "service_role" })) });
+  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "expired_session" });
+  assert.equal(calls.signOut, 1);
 });
 
-await check("signed-out removal is not resurrected", async () => {
+await check("wrong issuer user token is rejected", async () => {
+  const { auth, calls } = authHarness({ initial: session(accessToken(future, { iss: "https://other.supabase.co/auth/v1" })) });
+  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "expired_session" });
+  assert.equal(calls.signOut, 1);
+});
+
+await check("official sign-in failure does not log credentials", async () => {
+  const { auth, logs, calls } = authHarness();
+  assert.equal(await auth.signInVNext("unknown@example.invalid", "private-password"), false);
+  assert.equal(calls.signOut, 0);
+  assert.deepEqual(logs, []);
+});
+
+await check("official sign-in and sign-out own the session", async () => {
+  const token = accessToken(future);
+  const { auth, calls } = authHarness({ signIn: session(token) });
+  assert.equal(await auth.signInVNext("user@example.invalid", "example-password"), true);
+  assert.deepEqual(plain(calls.signIn), [{ email: "user@example.invalid", password: "example-password" }]);
+  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "authenticated", accessToken: token });
+  await auth.signOutVNext();
+  assert.equal(calls.signOut, 1);
+  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "missing_session" });
+});
+
+await check("sign-out invalidates an in-flight session read", async () => {
   let release;
-  const pendingResponse = new Promise((resolve) => { release = resolve; });
-  const { auth, localStorage } = authHarness({ initial: session(accessToken(expired)), fetchImpl: () => pendingResponse });
+  const old = session(accessToken(future));
+  const pendingSession = new Promise((resolve) => { release = resolve; });
+  const { auth, calls } = authHarness({ initial: old, getSessionImpl: () => pendingSession });
   const pending = auth.getVNextAccessToken();
-  await Promise.resolve();
-  localStorage.removeItem(STORAGE_KEY);
-  release(response({ access_token: accessToken(future), refresh_token: "rotated-refresh-token", expires_in: 3600 }));
+  await auth.signOutVNext();
+  release({ data: { session: old }, error: null });
   assert.deepEqual(plain(await pending), { status: "missing_session" });
-  assert.equal(localStorage.values.has(STORAGE_KEY), false);
+  assert.equal(calls.signOut, 1);
 });
 
-for (const [name, raw] of [["corrupt JSON", "{"], ["non-session JSON", JSON.stringify({ access_token: "x" })]]) {
-  await check(name, async () => {
-    let calls = 0;
-    const { auth, localStorage } = authHarness({ fetchImpl: async () => { calls += 1; throw new Error("should not run"); } });
-    localStorage.setItem(STORAGE_KEY, raw);
-    assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "missing_session" });
-    assert.equal(calls, 0);
-  });
-}
+await check("stale 401 cannot expire a newer signed-in session", async () => {
+  const oldToken = accessToken(future);
+  const newToken = accessToken(future, { session_id: "new-session" });
+  const { auth, calls, replaceSession } = authHarness({ initial: session(oldToken) });
+  const generation = auth.getVNextSessionGeneration();
+  replaceSession(session(newToken));
+  assert.equal(await auth.expireVNextSession(generation, oldToken), false);
+  assert.equal(calls.signOut, 0);
+  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "authenticated", accessToken: newToken });
+});
 
-for (const [name, fetchImpl] of [
-  ["invalid refresh token response", async () => response({}, false)],
-  ["malformed refresh response", async () => response({ access_token: "malformed", refresh_token: "rotated-refresh-token", expires_in: 3600 })],
-]) {
-  await check(name, async () => {
-    const { auth, logs } = authHarness({ initial: session(accessToken(expired)), fetchImpl });
-    assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "missing_session" });
-    assert.deepEqual(logs, []);
-  });
-}
+await check("cross-tab sign-in restores a locally signed-out tab", async () => {
+  const newToken = accessToken(future, { session_id: "other-tab" });
+  const { auth, replaceSession } = authHarness({ initial: session(accessToken(future)) });
+  await auth.signOutVNext();
+  replaceSession(session(newToken));
+  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "authenticated", accessToken: newToken });
+});
 
-await check("refresh timeout fails closed", async () => {
-  const fetchImpl = (_url, options) => new Promise((_resolve, reject) => options.signal.addEventListener("abort", () => reject(new Error("aborted"))));
-  const { auth } = authHarness({ initial: session(accessToken(expired)), fetchImpl, setTimeoutImpl: (callback) => { queueMicrotask(callback); return 1; } });
+await check("missing session has no backend token", async () => {
+  const { auth } = authHarness();
   assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "missing_session" });
 });
 
 for (const [name, env] of [
   ["wrong Supabase URL", { NEXT_PUBLIC_SUPABASE_URL: "https://example.com" }],
   ["HTTP production URL", { NEXT_PUBLIC_SUPABASE_URL: "http://slice9-auth.supabase.co" }],
+  ["Auth URL with query", { NEXT_PUBLIC_SUPABASE_URL: "https://slice9-auth.supabase.co/?token=unsafe" }],
   ["missing publishable key", { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "" }],
+  ["secret browser key", { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_secret_this_is_not_public" }],
   ["service legacy JWT key", { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: legacyKey("service_role") }],
+  ["legacy anon key", { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: legacyKey("anon") }],
 ]) {
   await check(name, async () => {
     const { auth } = authHarness({ env, initial: session(accessToken(future)) });
     assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "configuration_error" });
   });
 }
-
-await check("legacy anon JWT browser key remains supported", async () => {
-  const token = accessToken(future);
-  const { auth } = authHarness({ env: { NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: legacyKey() }, initial: session(token) });
-  assert.deepEqual(plain(await auth.getVNextAccessToken()), { status: "authenticated", accessToken: token });
-});
 
 const contract = compile("lib/vnext-identity-contract.ts");
 const rejects = (parser, value) => assert.throws(() => parser(value), (error) => error?.name === "VNextContractError");

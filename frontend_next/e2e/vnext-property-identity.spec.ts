@@ -143,6 +143,7 @@ test("explicit rank-2 confirmation, bounded retry, property reads, and separate 
   expect(confirmCalls).toBe(1);
   await confirmButton.click();
   await expect(page.getByText("Human-confirmed synthetic property")).toBeVisible();
+  await expect(page.getByRole("link", { name: "審閱此房產的地號、建號與待確認關係" })).toHaveAttribute("href", `/vnext/property-identity/${WORKSPACE}/${PROPERTY}`);
   expect(confirmCalls).toBe(2);
   expect(confirmKeys[0]).toBe(confirmKeys[1]);
   expect(attachCalls).toBe(0);
@@ -259,7 +260,7 @@ test("missing session blocks BFF traffic and expired session refreshes through p
   let bffCalls = 0;
   await page.route("http://e2e.test/v1", (route) => { bffCalls += 1; return route.fulfill({ json: { status: "ok", principal: { user_id: USER }, features: { identity_v1: true, legacy_case_import_v1: false } } }); });
   await page.goto("/vnext/property-identity");
-  await expect(page.getByText(/Supabase 登入工作階段/)).toBeVisible();
+  await expect(page.getByLabel("電子郵件")).toBeVisible();
   expect(bffCalls).toBe(0);
 
   const refreshedToken = syntheticToken(4102444800);
@@ -270,7 +271,8 @@ test("missing session blocks BFF traffic and expired session refreshes through p
     expect(new URL(route.request().url()).searchParams.get("grant_type")).toBe("refresh_token");
     expect(route.request().headers().apikey).toBe("sb_publishable_slice8_e2e_public_only");
     expect(route.request().postDataJSON()).toEqual({ refresh_token: "synthetic-refresh" });
-    return route.fulfill({ json: { access_token: refreshedToken, refresh_token: "synthetic-rotated", expires_in: 3600 } });
+    return route.fulfill({ json: { access_token: refreshedToken, refresh_token: "synthetic-rotated", token_type: "bearer", expires_in: 3600,
+      user: { id: USER, aud: "authenticated", role: "authenticated", email: "synthetic@example.invalid", app_metadata: {}, user_metadata: {}, created_at: NOW } } });
   });
   await page.reload();
   await expect.poll(() => refreshCalls).toBe(1);

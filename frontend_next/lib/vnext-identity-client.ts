@@ -1,7 +1,7 @@
 "use client";
 
 import { API_BASE } from "@/lib/api";
-import { getVNextAccessToken } from "@/lib/vnext-auth-session";
+import { expireVNextSession, getVNextAccessToken, getVNextSessionGeneration, isVNextSessionGenerationCurrent } from "@/lib/vnext-auth-session";
 import {
   VNextContractError,
   parseCase,
@@ -10,6 +10,9 @@ import {
   parsePropertyEvidence,
   parsePropertyGraph,
   parsePropertyResolution,
+  parseParcelHypothesis,
+  parseBuildingHypothesis,
+  parseManualRelation,
   parseVNextContext,
   parseVNextError,
   parseWorkspaceContext,
@@ -19,6 +22,10 @@ import {
   type VNextErrorCode,
   type WorkspaceContextDTO,
 } from "@/lib/vnext-identity-contract";
+import {
+  buildingHypothesisBody, parcelBuildingRelationBody, parcelHypothesisBody,
+  type BuildingComponents, type ParcelComponents,
+} from "@/lib/vnext-manual-identity";
 
 export type ResolutionInput =
   | { kind: "address"; value: { text: string } }
@@ -49,7 +56,7 @@ export class VNextOutcomeUnknownError extends Error {
 }
 
 export class VNextSessionError extends Error {
-  constructor(readonly reason: "configuration_error" | "missing_session") {
+  constructor(readonly reason: "configuration_error" | "missing_session" | "expired_session") {
     super(reason);
     this.name = "VNextSessionError";
   }
@@ -57,6 +64,7 @@ export class VNextSessionError extends Error {
 
 function apiUrl(path: string): string {
   if (!API_BASE) throw new VNextSessionError("configuration_error");
+  if (!/^\/v1(?:\/|\?|$)/.test(path)) throw new VNextContractError("request.path");
   return `${API_BASE}${path}`;
 }
 
@@ -67,16 +75,18 @@ function identifier(value: string): string {
   return value;
 }
 
-async function authenticatedHeaders(commandKey?: string): Promise<Headers> {
+async function authenticatedHeaders(commandKey?: string): Promise<{ headers: Headers; accessToken: string; generation: number }> {
+  const generation = getVNextSessionGeneration();
   const session = await getVNextAccessToken();
   if (session.status !== "authenticated") throw new VNextSessionError(session.status);
+  if (!isVNextSessionGenerationCurrent(generation)) throw new VNextSessionError("missing_session");
   const headers = new Headers({ Authorization: `Bearer ${session.accessToken}`, Accept: "application/json" });
   if (commandKey) {
     if (!/^[A-Za-z0-9._:-]{16,128}$/.test(commandKey)) throw new VNextContractError("request.idempotency_key");
     headers.set("Content-Type", "application/json");
     headers.set("Idempotency-Key", commandKey);
   }
-  return headers;
+  return { headers, accessToken: session.accessToken, generation };
 }
 
 async function requestJson<T>(
@@ -87,13 +97,21 @@ async function requestJson<T>(
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs ?? 15_000);
   try {
-    const response = await fetch(apiUrl(path), {
+    const url = apiUrl(path);
+    const authorized = await authenticatedHeaders(options.commandKey);
+    if (!isVNextSessionGenerationCurrent(authorized.generation)) throw new VNextSessionError("missing_session");
+    const response = await fetch(url, {
       method: options.method ?? "GET",
-      headers: await authenticatedHeaders(options.commandKey),
+      headers: authorized.headers,
       body: options.body ? JSON.stringify(options.body) : undefined,
       cache: "no-store",
+      redirect: "error",
       signal: controller.signal,
     });
+    if (response.status === 401) {
+      if (await expireVNextSession(authorized.generation, authorized.accessToken)) throw new VNextSessionError("expired_session");
+      throw new VNextApiError("authentication_required", 401, "", false);
+    }
     let payload: unknown;
     try {
       payload = await response.json();
@@ -113,7 +131,7 @@ async function requestJson<T>(
   }
 }
 
-export function newIdempotencyKey(command: "resolution" | "confirm" | "reject" | "case" | "attach"): string {
+export function newIdempotencyKey(command: "resolution" | "confirm" | "reject" | "case" | "attach" | "parcel" | "building" | "relation"): string {
   return `${command}:${crypto.randomUUID()}`;
 }
 
@@ -175,12 +193,46 @@ export const vnextIdentityClient = {
     requireMatch(result.property.property_entity_id, expected, "graph.property.property_entity_id");
     return result;
   },
+  graphByStatus: async (propertyId: string, status: "confirmed" | "disputed" | "proposed", cursor?: string) => {
+    const expected = identifier(propertyId);
+    const query = new URLSearchParams({ limit: "25", status });
+    if (cursor) query.set("cursor", cursor);
+    const result = await requestJson(`/v1/properties/${expected}/graph?${query}`, parsePropertyGraph);
+    requireMatch(result.property.property_entity_id, expected, "graph.property.property_entity_id");
+    if (result.relations.some((relation) => relation.status !== status)) throw new VNextContractError("graph.relations.status");
+    return result;
+  },
   evidence: async (propertyId: string, cursor?: string) => {
     const expected = identifier(propertyId);
     const query = new URLSearchParams({ limit: "25" });
     if (cursor) query.set("cursor", cursor);
     const result = await requestJson(`/v1/properties/${expected}/evidence?${query}`, parsePropertyEvidence);
     requireMatch(result.property.property_entity_id, expected, "evidence.property.property_entity_id");
+    return result;
+  },
+  createParcelHypothesis: async (propertyId: string, workspaceId: string, components: ParcelComponents, commandKey: string) => {
+    const expected = identifier(propertyId);
+    const result = await requestJson(`/v1/properties/${expected}/parcel-hypotheses`, parseParcelHypothesis, {
+      method: "POST", commandKey, body: parcelHypothesisBody(workspaceId, components),
+    });
+    requireMatch(result.property_entity_id, expected, "parcel_hypothesis.property_entity_id");
+    return result;
+  },
+  createBuildingHypothesis: async (propertyId: string, workspaceId: string, components: BuildingComponents, commandKey: string) => {
+    const expected = identifier(propertyId);
+    const result = await requestJson(`/v1/properties/${expected}/building-hypotheses`, parseBuildingHypothesis, {
+      method: "POST", commandKey, body: buildingHypothesisBody(workspaceId, components),
+    });
+    requireMatch(result.property_entity_id, expected, "building_hypothesis.property_entity_id");
+    return result;
+  },
+  createParcelBuildingRelation: async (workspaceId: string, parcelReferenceId: string, buildingReferenceId: string, commandKey: string) => {
+    const result = await requestJson("/v1/parcel-building-relations", parseManualRelation, {
+      method: "POST", commandKey, body: parcelBuildingRelationBody(workspaceId, parcelReferenceId, buildingReferenceId),
+    });
+    requireMatch(result.workspace_id, identifier(workspaceId), "parcel_building_relation.workspace_id");
+    requireMatch(result.parcel_identity_reference_id, identifier(parcelReferenceId), "parcel_building_relation.parcel_identity_reference_id");
+    requireMatch(result.building_identity_reference_id, identifier(buildingReferenceId), "parcel_building_relation.building_identity_reference_id");
     return result;
   },
   createCase: async (workspaceId: string, purpose: CasePurpose, title: string, commandKey: string) => {
