@@ -6,7 +6,8 @@ from dataclasses import dataclass, field
 import math
 import re
 import threading
-from collections.abc import Iterable
+from collections.abc import Awaitable, Callable, Iterable, MutableMapping
+from typing import Any
 
 
 UNMATCHED_ROUTE = "/__unmatched__"
@@ -16,6 +17,11 @@ MAX_LATENCY_SECONDS = 120.0
 _ROUTE_PARAMETER = re.compile(r"\{[^{}]+\}")
 _SAFE_ROUTE_TEMPLATE = re.compile(r"/[A-Za-z0-9._~!$&'()*+,;=:@%/{}-]*\Z")
 _SCRAPE_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+={0,2}\Z")
+_ROUTE_LABEL_STATE_KEY = "proptech.observability.route_label"
+
+_Receive = Callable[[], Awaitable[dict[str, Any]]]
+_Send = Callable[[dict[str, Any]], Awaitable[None]]
+_AsgiApp = Callable[[dict[str, Any], _Receive, _Send], Awaitable[None]]
 
 
 def valid_scrape_token(value: object) -> bool:
@@ -51,6 +57,53 @@ def route_template_from_scope(scope: dict[str, object]) -> str:
 
     route = scope.get("route")
     return canonical_route_template(getattr(route, "path", None))
+
+
+def _request_state(scope: MutableMapping[str, Any]) -> MutableMapping[str, Any]:
+    state = scope.get("state")
+    if isinstance(state, MutableMapping):
+        return state
+    state = {}
+    scope["state"] = state
+    return state
+
+
+def captured_route_label(scope: MutableMapping[str, Any]) -> str:
+    """Return the one post-routing label captured for this request, if any."""
+
+    value = _request_state(scope).get(_ROUTE_LABEL_STATE_KEY)
+    return value if isinstance(value, str) else UNMATCHED_ROUTE
+
+
+class _RouteLabelCapture:
+    """Capture a route's registered template after the router selects it."""
+
+    def __init__(self, app: _AsgiApp, route_template: object) -> None:
+        self.app = app
+        self.route_label = canonical_route_template(route_template)
+
+    async def __call__(
+        self,
+        scope: dict[str, Any],
+        receive: _Receive,
+        send: _Send,
+    ) -> None:
+        state = _request_state(scope)
+        state.setdefault(_ROUTE_LABEL_STATE_KEY, self.route_label)
+        await self.app(scope, receive, send)
+
+
+def install_route_label_capture(routes: Iterable[object]) -> None:
+    """Wrap registered route handlers at their post-match ASGI boundary."""
+
+    for route in routes:
+        route_app = getattr(route, "app", None)
+        route_template = getattr(route, "path", None)
+        if not callable(route_app) or not isinstance(route_template, str):
+            continue
+        if isinstance(route_app, _RouteLabelCapture):
+            continue
+        route.app = _RouteLabelCapture(route_app, route_template)
 
 
 def _method_label(value: object) -> str:
