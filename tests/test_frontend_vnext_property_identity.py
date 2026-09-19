@@ -14,6 +14,8 @@ AUTH = (FRONTEND / "lib" / "vnext-auth-session.ts").read_text(encoding="utf-8")
 CSP = (FRONTEND / "next.config.mjs").read_text(encoding="utf-8")
 AUTH_GATE = (FRONTEND / "components" / "vnext-auth-gate.tsx").read_text(encoding="utf-8")
 LIVE_ROUTE = (FRONTEND / "components" / "property-identity-live-route.tsx").read_text(encoding="utf-8")
+PROFESSIONAL_WORKSPACE = (FRONTEND / "components" / "professional-workspace-shell.tsx").read_text(encoding="utf-8")
+PROFESSIONAL_WORKSPACE_ROUTE = (FRONTEND / "app" / "workspace" / "[caseId]" / "page.tsx").read_text(encoding="utf-8")
 
 
 def test_slice_8_is_an_isolated_route_without_homepage_imports() -> None:
@@ -73,13 +75,21 @@ def test_production_auth_deployment_contract_and_browser_boundary() -> None:
     assert public_frontend == {
         "NEXT_PUBLIC_API_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
     }
-    browser_source = AUTH + CLIENT + AUTH_GATE + LIVE_ROUTE
+    browser_source = AUTH + CLIENT + AUTH_GATE + LIVE_ROUTE + PROFESSIONAL_WORKSPACE
     for forbidden in ("sb_secret_", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "signInWithOAuth", "signUp("):
         assert forbidden not in browser_source
     assert "console." not in browser_source
     assert "captureException" not in browser_source
-    assert "Authorization" not in AUTH_GATE + LIVE_ROUTE
+    assert "Authorization" not in AUTH_GATE + LIVE_ROUTE + PROFESSIONAL_WORKSPACE
+    for forbidden in (".from(", ".rpc(", "/rest/v1", "createClient(", "@supabase/"):
+        assert forbidden not in PROFESSIONAL_WORKSPACE + PROFESSIONAL_WORKSPACE_ROUTE
     assert 'redirect: "error"' in CLIENT
+
+
+def test_professional_workspace_session_failures_do_not_leave_loading_state() -> None:
+    assert 'error.reason === "configuration_error" ? "configuration_error" : "session_error"' in PROFESSIONAL_WORKSPACE
+    assert "Professional backend configuration is unavailable." in PROFESSIONAL_WORKSPACE
+    assert "The existing VNext session is no longer available." in PROFESSIONAL_WORKSPACE
 
 
 def test_runtime_contracts_fail_closed_without_any() -> None:

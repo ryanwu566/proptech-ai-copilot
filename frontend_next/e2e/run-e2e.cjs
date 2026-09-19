@@ -3,6 +3,7 @@ const { spawn } = require("node:child_process");
 const port = process.env.E2E_PORT || "3100";
 const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", port], {
   stdio: "inherit",
+  env: { ...process.env, PROFESSIONAL_WORKSPACE: "true" },
   windowsHide: true,
 });
 
