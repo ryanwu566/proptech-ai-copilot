@@ -25,7 +25,7 @@ _CORRELATION_ID = re.compile(r"^[0-9a-f]{32}$")
 _SAFE_CHECK_NAMES = frozenset({
     "configuration", "token_invalid", "service_role_refused", "write_mode_refused",
     "WRITE_MODE_UNSUPPORTED", "runtime", "authenticated_root", "property",
-    "property_graph", "property_evidence", "unauthenticated_control",
+    "workspace_context", "property_graph", "property_evidence", "unauthenticated_control",
 })
 
 
@@ -253,6 +253,11 @@ def run(*, environ: Mapping[str, str] | None = None, client: SmokeClient | None 
     property_path = f"/v1/properties/{config.property_id}"
     requests = (
         ("authenticated_root", "/v1", True),
+        (
+            "workspace_context",
+            f"/v1/workspaces/{config.workspace_id}/context",
+            True,
+        ),
         ("property", property_path, True),
         ("property_graph", f"{property_path}/graph", True),
         ("property_evidence", f"{property_path}/evidence", True),
