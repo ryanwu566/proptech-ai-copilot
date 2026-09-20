@@ -11,6 +11,7 @@ import { CommuteRouteCard } from "@/components/commute-route-card";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { RuntimeCopyKey } from "@/lib/runtime-copy";
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
+import { GoogleLocationVisualContext } from "@/components/google-location-visual-context";
 
 
 
@@ -153,6 +154,7 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
       </div>
     </div>
   </SectionCard>
+    <GoogleLocationVisualContext result={result} />
     {!embeddedJourney && <details className="rounded-xl border border-stone-200 bg-white" open={Boolean(result?.resolved_location)}>
       <summary className="cursor-pointer px-4 py-3 text-xs font-bold text-slate-700">Terrain Risk</summary>
       <div className="border-t border-stone-100 p-4"><TerrainRiskAnalysis location={result} compactFromLocation resetKey={address} /></div>

@@ -73,7 +73,8 @@ def test_production_auth_deployment_contract_and_browser_boundary() -> None:
         if item["scope"] == "frontend" and item["visibility"] == "public"
     }
     assert public_frontend == {
-        "NEXT_PUBLIC_API_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+        "NEXT_PUBLIC_API_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+        "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY",
     }
     browser_source = AUTH + CLIENT + AUTH_GATE + LIVE_ROUTE + PROFESSIONAL_WORKSPACE
     for forbidden in ("sb_secret_", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "signInWithOAuth", "signUp("):
