@@ -43,6 +43,7 @@ from services.metrics import (
     BoundedMetricsRegistry,
     captured_route_label,
     install_route_label_capture,
+    registered_route_templates,
 )
 from services.observability import build_observation, normalize_correlation_id
 from services.production_config import assert_startup_configuration
@@ -231,7 +232,7 @@ app.include_router(vnext_router)
 
 http_metrics = BoundedMetricsRegistry(
     {
-        *(getattr(route, "path", "") for route in app.routes),
+        *registered_route_templates(app.routes),
         "/metrics",
     }
 )

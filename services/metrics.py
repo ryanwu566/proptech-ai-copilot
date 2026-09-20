@@ -59,6 +59,22 @@ def route_template_from_scope(scope: dict[str, object]) -> str:
     return canonical_route_template(getattr(route, "path", None))
 
 
+def registered_route_templates(routes: Iterable[object]) -> Iterable[str]:
+    """Yield registered paths from flat and included-router representations."""
+
+    for route in routes:
+        route_template = getattr(route, "path", None)
+        if isinstance(route_template, str):
+            yield route_template
+        effective_route_contexts = getattr(route, "effective_route_contexts", None)
+        if not callable(effective_route_contexts):
+            continue
+        for context in effective_route_contexts():
+            effective_template = getattr(context, "path", None)
+            if isinstance(effective_template, str):
+                yield effective_template
+
+
 def _request_state(scope: MutableMapping[str, Any]) -> MutableMapping[str, Any]:
     state = scope.get("state")
     if isinstance(state, MutableMapping):
@@ -69,10 +85,10 @@ def _request_state(scope: MutableMapping[str, Any]) -> MutableMapping[str, Any]:
 
 
 def captured_route_label(scope: MutableMapping[str, Any]) -> str:
-    """Return the one post-routing label captured for this request, if any."""
+    """Return a bounded post-routing label across supported router versions."""
 
     value = _request_state(scope).get(_ROUTE_LABEL_STATE_KEY)
-    return value if isinstance(value, str) else UNMATCHED_ROUTE
+    return value if isinstance(value, str) else route_template_from_scope(scope)
 
 
 class _RouteLabelCapture:
