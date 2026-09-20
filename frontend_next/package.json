@@ -2,6 +2,7 @@
   "name": "proptech-ai-copilot-frontend",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.19.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,7 +10,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "build:e2e": "node scripts/build-e2e.mjs",
-    "test:e2e": "npm run build:e2e && node e2e/run-e2e.cjs",
+    "test:e2e:runner": "node --test scripts/run-e2e.test.cjs",
+    "test:e2e": "npm run build:e2e && npm run test:e2e:runner && node e2e/run-e2e.cjs",
     "test:e2e:i18n": "npm run build:e2e && node e2e/run-e2e.cjs e2e/i18n.spec.ts",
     "test:e2e:navigation": "npm run build:e2e && node e2e/run-e2e.cjs e2e/navigation.spec.ts",
     "test:e2e:speech": "npm run build:e2e && node e2e/run-e2e.cjs e2e/speech.spec.ts",

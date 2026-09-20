@@ -37,17 +37,66 @@ async function mockAegis(page: import("@playwright/test").Page) {
 // ─── Valuation mock factory ─────────────────────────────────────────────────
 
 function valuationMock(city: string, mid: number) {
+  const unit = Math.round(mid / 30 * 10) / 10;
+  const comparables = [0, 1, 2].map((index) => ({
+    transaction_period: `2026-0${6 - index}`, city, district: "大安區", road: "中山路", building_type: "住宅大樓",
+    area_ping: 30 + index, unit_price_per_ping: unit + index, total_price: mid + index * 50,
+    building_age_years: 15 + index, distance_m: index * 100, similarity_score: 0.9 - index * 0.05,
+    weight: 1, note: "Controlled official comparable.", source: "official_plvr_opendata", source_label: "Official",
+  }));
   return {
-    source: "postgres", estimate_total_price: mid, estimate_unit_price_per_ping: Math.round(mid / 30 * 10) / 10,
+    valuation_status: "available", valuation_reason_code: "OFFICIAL_COMPARABLES", result_origin: "official", is_actionable: true,
+    source: "postgres", estimate_total_price: mid, estimate_unit_price_per_ping: unit,
     estimate_level: "road", confidence_score: 72, confidence: "medium", confidence_reason: "fixture",
     price_range: { low: mid - 200, mid, high: mid + 200 },
-    unit_price_distribution: { weighted_mean: 70, weighted_median: 70, p25: 63, p75: 77 },
-    comparables: [{ transaction_period: "2026-06", city, district: "大安區", road: "和平東路二段", building_type: "住宅大樓", area_ping: 30, unit_price_per_ping: 70, total_price: mid, building_age_years: 15, distance_m: 0, similarity_score: 0.9, weight: 1, note: "mock", source: "official_plvr_opendata", source_label: "Official" }],
+    unit_price_distribution: { weighted_mean: unit, weighted_median: unit, p25: unit - 5, p75: unit + 5 },
+    comparables,
     valuation_explanation: { sample_count: 5, same_road_count: 5, same_district_count: 5, same_city_count: 5, same_building_type_count: 5, nearest_distance_m: 100, average_area_difference_ping: 2, average_age_difference_years: 3, average_similarity_score: 0.85, method: "weighted_median" },
     matched_community: null, disclaimer: "Reference only.", methodology: ["IQR filtering", "similarity weighting"],
-    source_details: { file: "postgres", nature: "official", complete_real_price_registry: false, formal_appraisal: false, bank_appraisal: false, future_adapter: "none" },
+    source_details: { file: "postgres", nature: "official", complete_real_price_registry: true, formal_appraisal: false, bank_appraisal: false, future_adapter: "none" },
     data_status: { active_source: "postgres", is_demo_data: false, is_full_taiwan: true, data_composition: "official", official_records_count: 100, sample_records_count: 0, coverage: { cities: [city], districts: ["大安區"], roads_count: 1, records_count: 100 }, last_updated: "2026-08-19", update_frequency_note: "", source_note: "mock", user_message: "", freshness_status: "fresh", freshness_reason_code: "CURRENT_RELEASE", freshness_as_of: "2026-08-19", latest_import_at: "2026-08-19T00:00:00Z", latest_import_age_days: 1, newest_effective_period_lag_months: 1, operator_attention_required: false, freshness_user_message: "" },
     data_composition: "official", estimate_data_composition: "official", estimate_source_label: "Official", candidate_pool_size: 5, official_same_road_count: 5, official_same_district_count: 5, sample_same_road_count: 0, sample_same_district_count: 0,
+  };
+}
+
+function valuationTrendMock(city: string, recentMedian: number) {
+  const scenario = (growth: number) => [6, 12, 36].map((horizon_months) => ({
+    horizon_months,
+    projected_unit_price_per_ping: recentMedian,
+    projected_total_price: recentMedian * 30,
+    growth_rate_used: growth,
+    explanation: `${city} controlled trend`,
+  }));
+  return {
+    source: "official_plvr_opendata",
+    data_scope: "road",
+    raw_period_min: "2026-05",
+    raw_period_max: "2026-06",
+    effective_period_min: "2026-05",
+    effective_period_max: "2026-06",
+    excluded_future_period_count: 0,
+    excluded_out_of_window_count: 0,
+    period_min: "2026-05",
+    period_max: "2026-06",
+    sample_count: 12,
+    road_sample_count: 12,
+    district_sample_count: 12,
+    monthly_series: [
+      { period: "2026-05", median_unit_price_per_ping: recentMedian - 1, p25_unit_price_per_ping: recentMedian - 5, p75_unit_price_per_ping: recentMedian + 5, transaction_count: 6 },
+      { period: "2026-06", median_unit_price_per_ping: recentMedian, p25_unit_price_per_ping: recentMedian - 5, p75_unit_price_per_ping: recentMedian + 5, transaction_count: 6 },
+    ],
+    yearly_series: [{ year: "2026", median_unit_price_per_ping: recentMedian, transaction_count: 12, yoy_change_percent: null }],
+    recent_median_unit_price: recentMedian,
+    trend_annualized_rate: 0.02,
+    volatility: 0.01,
+    confidence_level: "medium",
+    confidence_reason: `${city} controlled trend rendered`,
+    scenario_forecast: { conservative: scenario(0), base: scenario(0.02), optimistic: scenario(0.04) },
+    methodology: ["Controlled official period aggregation"],
+    disclaimer: "Trend scenarios are not forecasts.",
+    trend_status: "available",
+    trend_reason_code: "OFFICIAL_PERIODS",
+    is_actionable: true,
   };
 }
 
@@ -182,15 +231,30 @@ test.describe("Valuation A→B", () => {
 
   test("Changing city clears result and re-estimate produces new value", async ({ page }) => {
     let callCount = 0;
+    const order: string[] = [];
+    const failedTrendRequests: string[] = [];
+    let releaseBTrend: (() => void) | undefined;
+    const bTrendGate = new Promise<void>((resolve) => { releaseBTrend = resolve; });
+    page.on("requestfailed", (request) => {
+      if (new URL(request.url()).pathname === "/valuation/trend") failedTrendRequests.push(request.failure()?.errorText ?? "unknown");
+    });
     await page.route("**/valuation/estimate", async (route) => {
       callCount++;
       const payload = route.request().postDataJSON();
       const city = payload.city ?? "臺北市";
       const mid = city === "臺北市" ? 2100 : 1500;
+      order.push(`estimate-request:${city}`);
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(valuationMock(city, mid)) });
+      order.push(`estimate-response:${city}`);
     });
-    // Suppress trend to avoid crash on incomplete mock
-    await page.route("**/valuation/trend", (route) => route.abort("failed"));
+    await page.route("**/valuation/trend", async (route) => {
+      const payload = route.request().postDataJSON();
+      const city = payload.city ?? "臺北市";
+      order.push(`trend-request:${city}`);
+      if (city === "新北市") await bTrendGate;
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(valuationTrendMock(city, city === "臺北市" ? 70 : 50)) });
+      order.push(`trend-response:${city}`);
+    });
     await page.goto("/");
 
     // Navigate to valuation page via sidebar
@@ -199,21 +263,44 @@ test.describe("Valuation A→B", () => {
 
     // Select city/district/road and estimate
     const calcSection = page.locator("#valuation-calculator");
-    await calcSection.locator("select").first().selectOption("臺北市");
-    await page.waitForTimeout(300);
-    await calcSection.locator("select").nth(1).selectOption("大安區");
-    await page.waitForTimeout(300);
-    await calcSection.locator("select").nth(2).selectOption("中山路");
+    const city = calcSection.locator("select").first();
+    const district = calcSection.locator("select").nth(1);
+    const road = calcSection.locator("select").nth(2);
+    await city.selectOption("臺北市");
+    await expect(district.locator("option")).toContainText(["選擇鄉鎮市區", "大安區", "信義區"]);
+    await district.selectOption("大安區");
+    await expect(road.locator("option")).toContainText(["選擇路段", "中山路", "中正路", "和平路"]);
+    await road.selectOption("中山路");
     await calcSection.getByRole("button", { name: /估算房價/ }).click();
-    await expect(page.locator("text=2,100").first()).toBeVisible({ timeout: 5000 });
+    await expect(page.getByTestId("valuation-result")).toContainText("2,100", { timeout: 5000 });
+    await expect(page.getByText("臺北市 controlled trend rendered")).toBeVisible();
 
-    // Verify stale-state: changing city input clears the result
-    // Use page-level locator since the section may re-render
-    await page.locator("#valuation-calculator select").first().selectOption("新北市");
-    await page.waitForTimeout(500);
-    // After city change, the valuation component clears result via useEffect
-    await expect(page.locator("text=2,100").first()).not.toBeVisible({ timeout: 3000 });
-    expect(callCount).toBe(1);
+    await city.selectOption("新北市");
+    order.push("input-change:新北市");
+    await expect(page.getByTestId("valuation-result")).toHaveCount(0);
+    order.push("stale-result-cleared:新北市");
+    await expect(district.locator("option")).toContainText(["選擇鄉鎮市區", "永和區", "板橋區"]);
+    await district.selectOption("板橋區");
+    await expect(road.locator("option")).toContainText(["選擇路段", "中山路", "中正路", "和平路"]);
+    await road.selectOption("中山路");
+    await calcSection.getByRole("button", { name: /估算房價/ }).click();
+    await expect(page.getByTestId("valuation-result")).toContainText("1,500", { timeout: 5000 });
+    order.push("valuation-result-rendered:新北市");
+    await expect.poll(() => order).toContain("trend-request:新北市");
+    releaseBTrend!();
+    await expect(page.getByText("新北市 controlled trend rendered")).toBeVisible();
+    order.push("trend-result-rendered:新北市");
+
+    expect(callCount).toBe(2);
+    expect(failedTrendRequests).toEqual([]);
+    const requiredOrder = [
+      "input-change:新北市",
+      "stale-result-cleared:新北市",
+      "trend-request:新北市",
+      "trend-response:新北市",
+      "trend-result-rendered:新北市",
+    ];
+    expect(order.filter((event) => requiredOrder.includes(event))).toEqual(requiredOrder);
   });
 });
 
