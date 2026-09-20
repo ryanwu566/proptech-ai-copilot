@@ -6,6 +6,7 @@ const frontendRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), 
 const hasExplicitApiOrigin = Object.prototype.hasOwnProperty.call(process.env, "NEXT_PUBLIC_API_BASE_URL");
 const environment = {
   ...process.env,
+  PROFESSIONAL_WORKSPACE: "true",
   NEXT_PUBLIC_API_BASE_URL: hasExplicitApiOrigin ? process.env.NEXT_PUBLIC_API_BASE_URL : "http://e2e.test",
   NEXT_PUBLIC_APP_ENV: "test",
   NEXT_PUBLIC_SUPABASE_URL: "https://slice8-auth.supabase.co",
