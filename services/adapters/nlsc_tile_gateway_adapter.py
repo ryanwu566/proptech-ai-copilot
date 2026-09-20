@@ -142,7 +142,7 @@ def _approved_origins(raw_value: str) -> frozenset[str]:
 
 
 def _valid_tile_coordinate(z: object, x: object, y: object) -> bool:
-    if any(not isinstance(value, int) or isinstance(value, bool) for value in (z, x, y)):
+    if any(type(value) is not int for value in (z, x, y)):
         return False
     if not 0 <= z <= TILE_001_MAX_LEVEL:
         return False
@@ -172,6 +172,64 @@ def _png_scanline_size(
     return size if size <= _MAX_DECOMPRESSED_BYTES else None
 
 
+def _paeth_predictor(left: int, above: int, upper_left: int) -> int:
+    estimate = left + above - upper_left
+    left_distance = abs(estimate - left)
+    above_distance = abs(estimate - above)
+    upper_left_distance = abs(estimate - upper_left)
+    if left_distance <= above_distance and left_distance <= upper_left_distance:
+        return left
+    if above_distance <= upper_left_distance:
+        return above
+    return upper_left
+
+
+def _valid_indexed_scanlines(
+    decoded: bytes,
+    *,
+    width: int,
+    height: int,
+    bit_depth: int,
+    palette_entries: int,
+) -> bool:
+    """Unfilter bounded indexed rows and reject samples outside PLTE."""
+
+    row_bytes = (width * bit_depth + 7) // 8
+    previous = bytes(row_bytes)
+    offset = 0
+    sample_mask = (1 << bit_depth) - 1
+    for _ in range(height):
+        filter_type = decoded[offset]
+        filtered = decoded[offset + 1 : offset + row_bytes + 1]
+        reconstructed = bytearray(row_bytes)
+        for index, value in enumerate(filtered):
+            left = reconstructed[index - 1] if index else 0
+            above = previous[index]
+            upper_left = previous[index - 1] if index else 0
+            predictor = 0
+            if filter_type == 1:
+                predictor = left
+            elif filter_type == 2:
+                predictor = above
+            elif filter_type == 3:
+                predictor = (left + above) // 2
+            elif filter_type == 4:
+                predictor = _paeth_predictor(left, above, upper_left)
+            reconstructed[index] = (value + predictor) & 0xFF
+
+        remaining = width
+        for value in reconstructed:
+            for shift in range(8 - bit_depth, -1, -bit_depth):
+                if remaining == 0:
+                    break
+                if ((value >> shift) & sample_mask) >= palette_entries:
+                    return False
+                remaining -= 1
+        previous = bytes(reconstructed)
+        offset += row_bytes + 1
+    return True
+
+
 def _valid_png(payload: bytes) -> bool:
     """Validate PNG signature, chunk framing/CRC, IHDR, IDAT, and zlib data."""
 
@@ -181,8 +239,8 @@ def _valid_png(payload: bytes) -> bool:
     ihdr: tuple[int, int, int, int] | None = None
     idat_parts: list[bytes] = []
     seen_plte = False
+    palette_entries: int | None = None
     seen_idat = False
-    idat_finished = False
     seen_iend = False
 
     while offset < len(payload):
@@ -198,6 +256,7 @@ def _valid_png(payload: bytes) -> bool:
             or chunk_end > len(payload)
             or len(chunk_type) != 4
             or any(not (65 <= byte <= 90 or 97 <= byte <= 122) for byte in chunk_type)
+            or chunk_type[2] & 0x20
         ):
             return False
         chunk_data = payload[data_start:data_end]
@@ -233,11 +292,23 @@ def _valid_png(payload: bytes) -> bool:
                 return False
             ihdr = (width, height, bit_depth, color_type)
         elif chunk_type == b"PLTE":
-            if seen_plte or seen_idat or length == 0 or length % 3 or length > 768:
+            assert ihdr is not None
+            bit_depth, color_type = ihdr[2], ihdr[3]
+            selected_palette_entries = length // 3
+            if (
+                seen_plte
+                or seen_idat
+                or length == 0
+                or length % 3
+                or length > 768
+                or color_type in {0, 4}
+                or (color_type == 3 and selected_palette_entries > 1 << bit_depth)
+            ):
                 return False
             seen_plte = True
+            palette_entries = selected_palette_entries
         elif chunk_type == b"IDAT":
-            if idat_finished or length == 0:
+            if length == 0:
                 return False
             seen_idat = True
             idat_parts.append(chunk_data)
@@ -247,12 +318,10 @@ def _valid_png(payload: bytes) -> bool:
             seen_iend = True
             break
         else:
-            if seen_idat:
-                idat_finished = True
-            # Unknown critical chunks are unsafe; ancillary chunks may be
-            # ignored after their framing and CRC have been validated.
-            if chunk_type[0] & 0x20 == 0:
-                return False
+            # This bounded seam supports the core image chunks only. Reject
+            # ancillary chunks rather than partially validating their varied
+            # length, multiplicity, and ordering rules.
+            return False
 
     if not seen_iend or ihdr is None:
         return False
@@ -283,7 +352,18 @@ def _valid_png(payload: bytes) -> bool:
     ):
         return False
     row_size = expected_size // height
-    return all(decoded[offset] <= 4 for offset in range(0, expected_size, row_size))
+    if not all(decoded[offset] <= 4 for offset in range(0, expected_size, row_size)):
+        return False
+    if color_type == 3:
+        assert palette_entries is not None
+        return _valid_indexed_scanlines(
+            decoded,
+            width=width,
+            height=height,
+            bit_depth=bit_depth,
+            palette_entries=palette_entries,
+        )
+    return True
 
 
 class NlscTileGatewayAdapter:

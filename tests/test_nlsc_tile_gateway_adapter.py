@@ -5,6 +5,8 @@ from __future__ import annotations
 import base64
 import gzip
 import json
+import struct
+import zlib
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -37,6 +39,35 @@ def _fixture(name: str = "tile_001_transparent_256.png.b64") -> bytes:
     return base64.b64decode(encoded, validate=True)
 
 
+def _png_chunk(chunk_type: bytes, data: bytes) -> bytes:
+    return (
+        struct.pack(">I", len(data))
+        + chunk_type
+        + data
+        + struct.pack(">I", zlib.crc32(chunk_type + data) & 0xFFFFFFFF)
+    )
+
+
+def _minimal_png(
+    *,
+    bit_depth: int,
+    color_type: int,
+    chunks_before_idat: tuple[bytes, ...],
+    scanline: bytes = b"\x00\x00",
+) -> bytes:
+    ihdr = struct.pack(">IIBBBBB", 1, 1, bit_depth, color_type, 0, 0, 0)
+    compressed_scanline = zlib.compress(scanline)
+    return b"".join(
+        (
+            b"\x89PNG\r\n\x1a\n",
+            _png_chunk(b"IHDR", ihdr),
+            *chunks_before_idat,
+            _png_chunk(b"IDAT", compressed_scanline),
+            _png_chunk(b"IEND", b""),
+        )
+    )
+
+
 def _client(handler, *, follow_redirects: bool = False):
     requests: list[httpx.Request] = []
 
@@ -66,6 +97,11 @@ class _ChunkStream(httpx.SyncByteStream):
 
     def close(self) -> None:
         self.closed = True
+
+
+class _PathInjectingInt(int):
+    def __format__(self, format_spec: str) -> str:
+        return "0/../../../other"
 
 
 def _png_response(
@@ -151,6 +187,34 @@ def test_tile_001_uses_one_fixed_gateway_operation_and_normalizes_only_documente
     ],
 )
 def test_invalid_tile_coordinates_are_rejected_before_egress(
+    z: object,
+    x: object,
+    y: object,
+) -> None:
+    client, requests = _client(lambda _request: _png_response())
+    with client:
+        result = _adapter_class()(
+            client=client,
+            environ=CONFIG,
+            clock=lambda: NOW,
+        ).fetch_tile(z=z, x=x, y=y)
+
+    assert result.status == "unavailable"
+    assert result.error_code == "invalid_input"
+    assert result.observation is None
+    assert result.content is None
+    assert requests == []
+
+
+@pytest.mark.parametrize(
+    ("z", "x", "y"),
+    [
+        (_PathInjectingInt(0), 0, 0),
+        (0, _PathInjectingInt(0), 0),
+        (0, 0, _PathInjectingInt(0)),
+    ],
+)
+def test_integer_subclass_coordinates_cannot_change_the_fixed_operation(
     z: object,
     x: object,
     y: object,
@@ -401,6 +465,78 @@ def test_invalid_png_scanline_filter_is_rejected() -> None:
     assert result.status == "unavailable"
     assert result.error_code == "invalid_response"
     assert result.content is None
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _minimal_png(
+            bit_depth=8,
+            color_type=0,
+            chunks_before_idat=(_png_chunk(b"PLTE", b"\x00\x00\x00"),),
+        ),
+        _minimal_png(
+            bit_depth=8,
+            color_type=0,
+            chunks_before_idat=(_png_chunk(b"abcD", b""),),
+        ),
+        _minimal_png(
+            bit_depth=1,
+            color_type=3,
+            chunks_before_idat=(_png_chunk(b"PLTE", b"\x00\x00\x00" * 3),),
+        ),
+        _minimal_png(
+            bit_depth=1,
+            color_type=3,
+            chunks_before_idat=(_png_chunk(b"PLTE", b"\x00\x00\x00"),),
+            scanline=b"\x00\x80",
+        ),
+    ],
+    ids=(
+        "grayscale-plte",
+        "reserved-bit",
+        "indexed-palette-overflow",
+        "indexed-pixel-out-of-range",
+    ),
+)
+def test_spec_malformed_png_chunks_are_rejected(payload: bytes) -> None:
+    client, requests = _client(lambda _request: _png_response(payload))
+    with client:
+        result = _adapter_class()(
+            client=client,
+            environ=CONFIG,
+            clock=lambda: NOW,
+        ).fetch_tile(z=0, x=0, y=0)
+
+    assert len(requests) == 1
+    assert result.status == "unavailable"
+    assert result.error_code == "invalid_response"
+    assert result.observation is None
+    assert result.content is None
+
+
+@pytest.mark.parametrize("filter_type", range(5))
+def test_valid_indexed_png_palette_samples_remain_supported(filter_type: int) -> None:
+    payload = _minimal_png(
+        bit_depth=1,
+        color_type=3,
+        chunks_before_idat=(
+            _png_chunk(b"PLTE", b"\x00\x00\x00\xff\xff\xff"),
+        ),
+        scanline=bytes((filter_type, 0x80)),
+    )
+    client, requests = _client(lambda _request: _png_response(payload))
+    with client:
+        result = _adapter_class()(
+            client=client,
+            environ=CONFIG,
+            clock=lambda: NOW,
+        ).fetch_tile(z=0, x=0, y=0)
+
+    assert len(requests) == 1
+    assert result.status == "available"
+    assert result.error_code is None
+    assert result.content == payload
 
 
 def test_blank_or_nonblank_semantics_remain_unknown() -> None:
