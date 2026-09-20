@@ -10,6 +10,7 @@
     {"name": "NEXT_PUBLIC_API_BASE_URL", "scope": "frontend", "visibility": "public", "required": true, "preview": true, "production": true, "rotation": "redeploy"},
     {"name": "NEXT_PUBLIC_SUPABASE_URL", "scope": "frontend", "visibility": "public", "required": true, "preview": true, "production": true, "rotation": "redeploy"},
     {"name": "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "scope": "frontend", "visibility": "public", "required": true, "preview": true, "production": true, "rotation": "redeploy"},
+    {"name": "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY", "scope": "frontend", "visibility": "public", "required": false, "preview": true, "production": true, "rotation": "redeploy"},
     {"name": "PILOT_SESSION_SIGNING_KEY", "scope": "backend", "visibility": "server-only", "required": true, "preview": true, "production": true, "rotation": "invalidate-sessions-and-restart"},
     {"name": "PILOT_ADMIN_TOKEN", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},
     {"name": "PILOT_REVIEW_TOKEN", "scope": "backend", "visibility": "server-only", "required": false, "preview": true, "production": true, "rotation": "restart"},

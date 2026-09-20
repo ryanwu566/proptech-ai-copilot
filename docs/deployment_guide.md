@@ -80,7 +80,8 @@
    NEXT_PUBLIC_API_BASE_URL=https://你的-render-backend.onrender.com
    ```
 
-   Vercel 不需要且不應設定 `GOOGLE_MAPS_API_KEY`；Google Places 只能由 Render backend 呼叫。
+   Vercel 不應設定 server-only `GOOGLE_MAPS_API_KEY`；Google Places 只能由 Render backend 呼叫。
+   可選的 Google Embed 預覽只使用獨立的 `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY`。此公開 key 必須限制為 Maps Embed API 並設定網站／referrer 限制，且不得與 backend key 共用。
    請勿將 `GOOGLE_MAPS_API_KEY` 設在 Vercel 或任何 `NEXT_PUBLIC_` 變數中。
    Map Insight 的 OpenStreetMap、CartoDB Positron 與 Esri World Imagery 圖層不需要前端 Google key。
    `data/taiwan_roads.csv` 會隨專案部署，提供縣市／鄉鎮市區／路段快速選擇，不依賴 OneDrive 或外部路名 API。
@@ -122,7 +123,7 @@
 - Render Build Command 必須使用 `pip install -r requirements.txt`。
 ## 資料服務環境變數
 
-Render backend 可設定 `GOOGLE_MAPS_API_KEY`、`TGOS_APP_ID`、`TGOS_API_KEY`。三者都不可放在 Vercel 或 commit 到 repo。
+Render backend 可設定 `GOOGLE_MAPS_API_KEY`、`TGOS_APP_ID`、`TGOS_API_KEY`。三者都不可放在 Vercel 或 commit 到 repo。Vercel 的可選 `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` 是另一把受 API 與 referrer 限制的公開 Embed key，不得重用上述 backend key。
 
 定位會依序嘗試 Google Geocoding、TGOS，最後使用展示資料。沒有 key 或外部服務失敗時，系統會安全 fallback，不影響 TaxOracle。
 

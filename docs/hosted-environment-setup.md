@@ -32,6 +32,13 @@ rejects localhost, credentials, query strings, fragments, and unsafe schemes.
 Local development alone may use the documented localhost fallback. Preview
 may use a matching backend or an explicitly approved shared staging backend.
 
+`NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` is optional and intentionally public. Set
+it only to a dedicated Maps Embed API key restricted both to the Maps Embed API
+and to the approved website/referrer origins. Never copy or reuse the backend
+`GOOGLE_MAPS_API_KEY`; missing browser configuration leaves the existing
+Location Insight and Leaflet experiences available with a bounded unavailable
+Google-preview state.
+
 No backend token, privileged provider key, database URL, or session secret may use a
 `NEXT_PUBLIC_` name or enter the browser bundle.
 

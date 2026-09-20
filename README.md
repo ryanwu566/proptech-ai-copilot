@@ -93,6 +93,11 @@ Frontend 預設透過 `frontend_next/.env.example` 說明的設定連線：
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
+Location Insight can optionally render fixed Google Maps Embed previews with
+`NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY`. This intentionally public key must be a
+dedicated Maps Embed API credential restricted by API and website/referrer;
+never reuse the server-only `GOOGLE_MAPS_API_KEY`.
+
 Streamlit legacy backup demo：
 
 ```powershell
@@ -116,6 +121,7 @@ streamlit run app.py
 - Map Insight v2 的生活機能分數同時考慮設施類別、數量與距離，並提供最近設施及客戶溝通建議；結果不代表正式估價、投資或交通分析。
 - Map Insight v3 透過 `GET /map/google-health` 安全顯示 Google Geocoding / Places 啟用狀態，不回傳 API key；有 key 時地址搜尋優先使用 Google Geocoding。
 - 前端底圖可切換 OpenStreetMap、CartoDB Positron 與 Esri World Imagery，皆不需要 Google Maps frontend key。
+- Location Insight 的 Google 視覺情境預覽是獨立、可選功能；未設定瀏覽器 key 時不影響上述 Leaflet 底圖與既有流程。
 - 評分準則固定顯示六類設施權重與距離級距，方便理解分數來源。
 - Map Insight v5 可透過正式專案內的台灣路名資料快速選擇縣市、鄉鎮市區與路段，也保留完整地址手動搜尋。
 - 生活機能總分分為極佳、良好、普通、偏弱、不足五級；六大指標各自顯示權重、分數、POI 數量、最近距離與文字說明。

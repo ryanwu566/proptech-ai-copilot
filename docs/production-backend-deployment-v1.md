@@ -70,7 +70,14 @@ Use the existing Vercel project for `proptech-ai-copilot`.
 - Value: the deployed Render backend base URL
 - Apply to Production and Preview as appropriate.
 
-Do not set backend secrets, provider keys, or refresh tokens in Vercel. The frontend only needs the public backend base URL.
+For the optional Location Insight Google preview, also configure
+`NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY` with a dedicated Maps Embed API key that
+is restricted to that API and the approved website/referrer origins. Do not
+reuse `GOOGLE_MAPS_API_KEY`.
+
+Do not set backend secrets, server provider keys, or refresh tokens in Vercel.
+The optional browser Maps Embed key is intentionally public and is the only
+Google credential permitted in the frontend build.
 
 If `NEXT_PUBLIC_API_BASE_URL` is missing in production, the frontend fails closed instead of falling back to localhost. If it is explicitly set to localhost during a production build, API requests are also treated as unconfigured.
 
