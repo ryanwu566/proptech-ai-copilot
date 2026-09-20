@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addressItems>
+  <addressItem>
+    <content>臺中市南屯區黎明里００１鄰黎明路二段４９７號</content>
+    <location>120.634421,24.153412</location>
+    <office>BC</office>
+    <sect>2013</sect>
+    <landno>03420000</landno>
+  </addressItem>
+  <addressItem>
+    <content>臺中市南屯區黎明里黎明路二段４９７號</content>
+    <location>120.634500,24.153500</location>
+    <office>BC</office>
+    <sect>2013</sect>
+    <landno>03430000</landno>
+  </addressItem>
+</addressItems>
