@@ -25,7 +25,7 @@ def test_migration_016_is_registered_once_and_advances_sequence() -> None:
     assert matching[0].sequence == 16
     assert matching[0].sha256 == checksum(MIGRATION)
     assert MIGRATION in migration_runner.MIGRATIONS
-    assert next_safe_sequence(registrations) == 18
+    assert next_safe_sequence(registrations) == 19
 
 
 def test_migrations_001_through_015_remain_frozen() -> None:

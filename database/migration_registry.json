@@ -144,6 +144,14 @@
       "filename": "017_vnext_legacy_saved_case_import.sql",
       "execution_policy": "production_runner",
       "sha256": "0753b222597d7e0d6cbc618a17bc1d07d047a0d499318936c29880a119182efa"
+    },
+    {
+      "registry_order": 19,
+      "logical_id": "production-018-vnext-case-parcel-set-v1",
+      "sequence": 18,
+      "filename": "018_vnext_case_parcel_set_v1.sql",
+      "execution_policy": "production_runner",
+      "sha256": "ec4565c5dd1100dbaeecfdc42bc4bfc39877c9206398bc47dfa42deef5319008"
     }
   ]
 }

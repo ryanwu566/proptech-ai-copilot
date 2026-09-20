@@ -335,4 +335,7 @@ def test_existing_graph_and_geometry_boundaries_are_untouched():
     assert "INSERT INTO vnext_core.identity_decisions" not in command
     assert "vnext_core.cases" not in command
     assert "parcel_geometry" not in command
-    assert not list((root / "database/migrations").glob("018_*.sql"))
+    assert [
+        path.name for path in (root / "database/migrations").glob("018_*.sql")
+    ] == ["018_vnext_case_parcel_set_v1.sql"]
+    assert not list((root / "database/migrations").glob("019_*.sql"))

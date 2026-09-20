@@ -29,6 +29,13 @@ APPROVED_ROUTES = {
     ("POST", "/v1/cases"),
     ("POST", "/v1/cases/{case_id}/attach-resolution"),
     ("POST", "/v1/cases/import-legacy"),
+    ("GET", "/v1/cases/{case_id}/parcel-set"),
+    ("POST", "/v1/cases/{case_id}/parcel-set"),
+    ("POST", "/v1/cases/{case_id}/parcel-set/members"),
+    ("POST", "/v1/cases/{case_id}/parcel-set/members/{member_id}/review"),
+    ("POST", "/v1/cases/{case_id}/parcel-set/active-member"),
+    ("POST", "/v1/cases/{case_id}/parcel-set/reorder"),
+    ("POST", "/v1/cases/{case_id}/parcel-set/review"),
 }
 COMMAND_ROUTES = {
     "/v1/property-resolutions",
@@ -40,6 +47,12 @@ COMMAND_ROUTES = {
     "/v1/cases",
     "/v1/cases/{case_id}/attach-resolution",
     "/v1/cases/import-legacy",
+    "/v1/cases/{case_id}/parcel-set",
+    "/v1/cases/{case_id}/parcel-set/members",
+    "/v1/cases/{case_id}/parcel-set/members/{member_id}/review",
+    "/v1/cases/{case_id}/parcel-set/active-member",
+    "/v1/cases/{case_id}/parcel-set/reorder",
+    "/v1/cases/{case_id}/parcel-set/review",
 }
 
 
@@ -132,21 +145,27 @@ def test_stage1_feature_flags_and_example_configuration_are_default_off() -> Non
     assert VNextFeatureFlags.from_environment({}) == VNextFeatureFlags(
         identity_v1=False,
         legacy_case_import_v1=False,
+        case_parcel_set_v1=False,
     )
     example = (ROOT / ".env.example").read_text(encoding="utf-8")
     assert "FEATURE_IDENTITY_V1=false" in example
     assert "FEATURE_LEGACY_CASE_IMPORT_V1=false" in example
+    assert "FEATURE_CASE_PARCEL_SET_V1=false" in example
     for path in ROOT.glob(".env*"):
         text = path.read_text(encoding="utf-8", errors="ignore").lower()
         assert "feature_identity_v1=true" not in text
         assert "feature_legacy_case_import_v1=true" not in text
+        assert "feature_case_parcel_set_v1=true" not in text
 
 
-def test_migrations_are_frozen_through_017_and_next_sequence_is_018() -> None:
+def test_migrations_are_frozen_through_018_and_next_sequence_is_019() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 18
-    assert max(item.sequence for item in registrations) == 17
-    assert not list((ROOT / "database" / "migrations").glob("018_*.sql"))
+    assert next_safe_sequence(registrations) == 19
+    assert max(item.sequence for item in registrations) == 18
+    assert [
+        path.name for path in (ROOT / "database" / "migrations").glob("018_*.sql")
+    ] == ["018_vnext_case_parcel_set_v1.sql"]
+    assert not list((ROOT / "database" / "migrations").glob("019_*.sql"))
     assert all(len(item.sha256) == 64 for item in registrations)
 
 

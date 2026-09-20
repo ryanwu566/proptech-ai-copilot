@@ -442,6 +442,39 @@ def test_idempotency_same_key_different_request_conflicts() -> None:
     assert error.value.code.value == "idempotency_conflict"
 
 
+def test_idempotency_named_scope_conflicts_across_concrete_member_routes() -> None:
+    fingerprint = hashlib.sha256(b"first member").hexdigest()
+    stored = (
+        IDEMPOTENCY_ID,
+        fingerprint,
+        "succeeded",
+        "case_parcel_set",
+        CASE_ID,
+        200,
+        None,
+        f"/v1/cases/{CASE_ID}/parcel-set/members/{USER_A}/review",
+    )
+    connection = _Connection([(None,), stored])
+    repository = PostgresIdempotencyRepository(_Context(connection), _authorizer())
+
+    with pytest.raises(VNextError) as conflict:
+        repository.reserve(
+            principal=PRINCIPAL_A,
+            workspace_id=WORKSPACE_A,
+            method="POST",
+            canonical_route=(
+                f"/v1/cases/{CASE_ID}/parcel-set/members/{USER_B}/review"
+            ),
+            idempotency_key="case-parcel-review-shared-0001",
+            canonical_request=b"second member",
+            conflict_scope="case_parcel_set",
+        )
+
+    assert conflict.value.code.value == "idempotency_conflict"
+    assert "pg_advisory_xact_lock" in connection.calls[0][0]
+    assert "canonical_route ~ %s" in connection.calls[1][0]
+
+
 def test_idempotency_scope_keeps_workspace_and_actor_distinct() -> None:
     fingerprint = hashlib.sha256(b"same").hexdigest()
     connection = _Connection(
@@ -533,3 +566,29 @@ def test_audit_rejects_unbounded_or_unapproved_metadata() -> None:
         )
 
     assert error.value.code.value == "validation_failed"
+
+
+def test_audit_accepts_only_bounded_case_parcel_set_metadata() -> None:
+    connection = _Connection([None])
+    repository = PostgresAuditRepository(_Context(connection), _authorizer())
+
+    repository.append(
+        principal=PRINCIPAL_A,
+        workspace_id=WORKSPACE_A,
+        event_type="case_parcel_set.member_reviewed",
+        resource_type="case_parcel_set",
+        resource_id=CASE_ID,
+        request_id="request-parcel-set-audit",
+        metadata={
+            "parcel_set_id": str(CASE_ID),
+            "parcel_set_member_id": str(IDEMPOTENCY_ID),
+            "parcel_set_status": "draft",
+            "review_status": "case_selected",
+            "active_member_id": str(IDEMPOTENCY_ID),
+            "member_count": 1,
+        },
+    )
+
+    encoded_metadata = connection.calls[0][1][-1]
+    assert "parcel_set_member_id" in encoded_metadata
+    assert "case_selected" in encoded_metadata
