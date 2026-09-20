@@ -99,6 +99,7 @@ MIGRATIONS = (
     ROOT / "database/migrations/015_vnext_identity_resolution_candidates.sql",
     ROOT / "database/migrations/016_vnext_identity_confirmation_case_links.sql",
     ROOT / "database/migrations/017_vnext_legacy_saved_case_import.sql",
+    ROOT / "database/migrations/018_vnext_case_parcel_set_v1.sql",
 )
 
 WORKSPACE_A = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
@@ -122,8 +123,11 @@ ADDRESS_A_2 = UUID("aaaaaaaa-2222-4222-8222-222222222222")
 ADDRESS_B = UUID("bbbbbbbb-2222-4222-8222-222222222221")
 PARCEL_A_1 = UUID("aaaaaaaa-3333-4333-8333-333333333331")
 PARCEL_A_2 = UUID("aaaaaaaa-3333-4333-8333-333333333332")
+PARCEL_B_1 = UUID("bbbbbbbb-3333-4333-8333-333333333331")
 BUILDING_A_1 = UUID("aaaaaaaa-4444-4444-8444-444444444441")
 BUILDING_A_2 = UUID("aaaaaaaa-4444-4444-8444-444444444442")
+GEO_A_1 = UUID("aaaaaaaa-6666-4666-8666-666666666661")
+CASE_A_2 = UUID("aaaaaaaa-cccc-4ccc-8ccc-cccccccccccd")
 EVIDENCE_AVAILABLE = UUID("aaaaaaaa-5555-4555-8555-555555555551")
 EVIDENCE_UNKNOWN = UUID("aaaaaaaa-5555-4555-8555-555555555552")
 EVIDENCE_LIMITED = UUID("aaaaaaaa-5555-4555-8555-555555555553")
@@ -217,13 +221,13 @@ def _prepared_database():
         admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
         admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
         _install_auth_contract(admin)
-        # Exercise the exact upgrade boundary: establish the approved Slice 6
-        # catalog first, prove Slice 7 is absent, then apply migration 017.
+        # Exercise the exact upgrade boundary: establish the approved through-017
+        # catalog first, prove Stage 2 is absent, then apply migration 018.
         for migration in MIGRATIONS[:-1]:
             for statement in _statements(migration):
                 admin.execute(statement)
         assert admin.execute(
-            "SELECT to_regclass('vnext_private.legacy_case_imports')"
+            "SELECT to_regclass('vnext_core.case_parcel_sets')"
         ).fetchone()[0] is None
         for statement in _statements(MIGRATIONS[-1]):
             admin.execute(statement)
@@ -3492,6 +3496,408 @@ def test_real_postgres_building_claim_preserves_existing_confirmed_relation() ->
             "WHERE property_relation_id = %s", (manual.record.relation_id,),
         ).fetchone() == ("proposed", None)
         assert confirmed.decision.property_entity_id == property_record.property_entity_id
+
+
+def _seed_case_parcel_set_references(connection) -> None:
+    rows = (
+        (WORKSPACE_A, PARCEL_A_1, "parcel", "parcel-a-1", "Parcel A 1", USERS["owner"]),
+        (WORKSPACE_A, PARCEL_A_2, "parcel", "parcel-a-2", "Parcel A 2", USERS["owner"]),
+        (WORKSPACE_A, ADDRESS_A_1, "address", "address-a-1", "Address A 1", USERS["owner"]),
+        (WORKSPACE_A, BUILDING_A_1, "building", "building-a-1", "Building A 1", USERS["owner"]),
+        (WORKSPACE_A, GEO_A_1, "geo_reference", "geo-a-1", "Geo A 1", USERS["owner"]),
+        (WORKSPACE_B, PARCEL_B_1, "parcel", "parcel-b-1", "Parcel B 1", USERS["workspace_b"]),
+    )
+    with connection.cursor() as cursor:
+        cursor.executemany(
+            "INSERT INTO vnext_core.property_identity_references ("
+            "workspace_id, identity_reference_id, reference_type, normalized_key, "
+            "display_value, source_id, source_type, source_environment, reference_status, "
+            "created_by_user_id) VALUES (%s, %s, %s, %s, %s, 'case-set-test', "
+            "'test', 'test', 'unverified', %s)",
+            rows,
+        )
+
+
+def _case_parcel_set_stack(context):
+    from services.vnext.case_parcel_set_repository import PostgresCaseParcelSetRepository
+    from services.vnext.case_parcel_set_service import CaseParcelSetApplicationService
+
+    authorizer = WorkspaceAuthorizer(
+        PostgresWorkspaceMembershipRepository(context_provider=lambda: context)
+    )
+    repository = PostgresCaseParcelSetRepository(context, authorizer)
+    return (
+        repository,
+        CaseParcelSetApplicationService(
+            authorizer=authorizer,
+            writer=repository,
+            idempotency_repository=PostgresIdempotencyRepository(context, authorizer),
+        ),
+    )
+
+
+def test_real_postgres_case_parcel_set_rls_atomic_review_and_identity_boundary() -> None:
+    from services.vnext.case_parcel_set import ParcelMemberReviewStatus
+
+    with _prepared_database() as (admin, _pool, context):
+        _seed_case_parcel_set_references(admin)
+        admin.execute(
+            "INSERT INTO vnext_core.cases (case_id, workspace_id, purpose, title, created_by_user_id) "
+            "VALUES (%s, %s, 'buy_due_diligence', 'Case A 2', %s)",
+            (CASE_A_2, WORKSPACE_A, USERS["owner"]),
+        )
+        admin.commit()
+
+        catalog = admin.execute(
+            "SELECT relname, relrowsecurity, relforcerowsecurity FROM pg_class relation "
+            "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
+            "WHERE namespace.nspname = 'vnext_core' "
+            "AND relname IN ('case_parcel_sets', 'case_parcel_set_members') ORDER BY relname"
+        ).fetchall()
+        assert catalog == [
+            ("case_parcel_set_members", True, True),
+            ("case_parcel_sets", True, True),
+        ]
+        for table in ("case_parcel_sets", "case_parcel_set_members"):
+            assert admin.execute(
+                "SELECT has_table_privilege('vnext_api', %s, 'SELECT'), "
+                "has_table_privilege('vnext_api', %s, 'INSERT'), "
+                "has_table_privilege('vnext_api', %s, 'UPDATE'), "
+                "has_table_privilege('vnext_api', %s, 'DELETE')",
+                (f"vnext_core.{table}",) * 4,
+            ).fetchone() == (True, True, True, False)
+
+        identity_before = admin.execute(
+            "SELECT to_jsonb(reference) FROM vnext_core.property_identity_references reference "
+            "ORDER BY identity_reference_id"
+        ).fetchall()
+        canonical_before = admin.execute(
+            "SELECT (SELECT count(*) FROM vnext_core.identity_decisions), "
+            "(SELECT count(*) FROM vnext_core.property_relations WHERE relation_status = 'confirmed'), "
+            "(SELECT count(*) FROM vnext_core.case_property_links), "
+            "(SELECT count(*) FROM vnext_core.property_entities)"
+        ).fetchone()
+
+        repository, service = _case_parcel_set_stack(context)
+        member = _principal(USERS["member"])
+        viewer = _principal(USERS["viewer"])
+
+        with pytest.raises(VNextError) as absent:
+            service.get(principal=viewer, case_id=CASE_A)
+        assert absent.value.code is ErrorCode.NOT_FOUND
+
+        with pytest.raises(VNextError) as viewer_denied:
+            service.initialize(
+                principal=viewer, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                expected_version=0, idempotency_key="case-set-viewer-denied-0001",
+                request_id="case-set-viewer-denied",
+            )
+        assert viewer_denied.value.code is ErrorCode.PERMISSION_DENIED
+
+        with pytest.raises(Exception) as direct_insert_denied:
+            with context.transaction(viewer) as connection:
+                connection.execute(
+                    "INSERT INTO vnext_core.case_parcel_sets "
+                    "(workspace_id, case_id, created_by_user_id) VALUES (%s, %s, %s)",
+                    (WORKSPACE_A, CASE_A, USERS["viewer"]),
+                )
+        assert getattr(direct_insert_denied.value, "sqlstate", None) == "42501"
+
+        created = service.initialize(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            expected_version=0, idempotency_key="case-set-create-real-0001",
+            request_id="case-set-create-real",
+        )
+        assert created.record.version == 1
+        assert created.record.members == ()
+        replayed = service.initialize(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            expected_version=0, idempotency_key="case-set-create-real-0001",
+            request_id="case-set-create-replay",
+        )
+        assert replayed.replayed is True
+        assert replayed.record.parcel_set_id == created.record.parcel_set_id
+
+        with pytest.raises(VNextError) as duplicate_set:
+            service.initialize(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                expected_version=0, idempotency_key="case-set-create-other-0001",
+                request_id="case-set-create-other",
+            )
+        assert duplicate_set.value.code is ErrorCode.VALIDATION_FAILED
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_core.case_parcel_sets WHERE case_id = %s",
+            (CASE_A,),
+        ).fetchone()[0] == 1
+
+        with pytest.raises(VNextError) as wrong_workspace_case:
+            service.initialize(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_B,
+                expected_version=0, idempotency_key="case-set-wrong-case-0001",
+                request_id="case-set-wrong-case",
+            )
+        assert wrong_workspace_case.value.code is ErrorCode.NOT_FOUND
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.idempotency_records "
+            "WHERE workspace_id = %s AND actor_user_id = %s AND canonical_route = %s",
+            (WORKSPACE_A, USERS["member"], f"/v1/cases/{CASE_B}/parcel-set"),
+        ).fetchone()[0] == 0
+
+        first = service.add_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            parcel_identity_reference_id=PARCEL_A_1, expected_version=1,
+            idempotency_key="case-set-add-first-0001", request_id="case-set-add-first",
+        ).record
+        assert first.version == 2
+        assert [item.position for item in first.members] == [1]
+
+        for index, wrong_reference in enumerate((ADDRESS_A_1, BUILDING_A_1, GEO_A_1), start=1):
+            with pytest.raises(VNextError) as wrong_type:
+                service.add_member(
+                    principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                    parcel_identity_reference_id=wrong_reference, expected_version=2,
+                    idempotency_key=f"case-set-wrong-type-{index:02d}-0001",
+                    request_id=f"case-set-wrong-type-{index}",
+                )
+            assert wrong_type.value.code is ErrorCode.VALIDATION_FAILED
+        with pytest.raises(VNextError) as cross_workspace:
+            service.add_member(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                parcel_identity_reference_id=PARCEL_B_1, expected_version=2,
+                idempotency_key="case-set-cross-workspace-0001",
+                request_id="case-set-cross-workspace",
+            )
+        assert cross_workspace.value.code is ErrorCode.NOT_FOUND
+
+        second = service.add_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            parcel_identity_reference_id=PARCEL_A_2, expected_version=2,
+            idempotency_key="case-set-add-second-0001", request_id="case-set-add-second",
+        ).record
+        first_member, second_member = second.members
+        assert second.version == 3
+        assert [item.parcel_identity_reference_id for item in second.members] == [
+            PARCEL_A_1, PARCEL_A_2
+        ]
+
+        with pytest.raises(VNextError) as duplicate_member:
+            service.add_member(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                parcel_identity_reference_id=PARCEL_A_1, expected_version=3,
+                idempotency_key="case-set-add-duplicate-0001",
+                request_id="case-set-add-duplicate",
+            )
+        assert duplicate_member.value.code is ErrorCode.VALIDATION_FAILED
+
+        with context.transaction(viewer) as connection:
+            direct_update = connection.execute(
+                "UPDATE vnext_core.case_parcel_sets SET version = version + 1, "
+                "updated_at = clock_timestamp() WHERE parcel_set_id = %s",
+                (created.record.parcel_set_id,),
+            )
+            assert direct_update.rowcount == 0
+        assert service.get(principal=viewer, case_id=CASE_A).version == 3
+
+        selected = service.review_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            member_id=first_member.parcel_set_member_id,
+            review_status=ParcelMemberReviewStatus.CASE_SELECTED,
+            expected_version=3, idempotency_key="case-set-shared-review-0001",
+            request_id="case-set-select-first",
+        ).record
+        assert selected.version == 4 and selected.status.value == "draft"
+        with pytest.raises(VNextError) as reused_for_other_member:
+            service.review_member(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                member_id=second_member.parcel_set_member_id,
+                review_status=ParcelMemberReviewStatus.CASE_REJECTED,
+                expected_version=4, idempotency_key="case-set-shared-review-0001",
+                request_id="case-set-reused-other-member",
+            )
+        assert reused_for_other_member.value.code is ErrorCode.IDEMPOTENCY_CONFLICT
+        assert service.get(principal=viewer, case_id=CASE_A).version == 4
+        with pytest.raises(VNextError) as candidates_remain:
+            service.mark_case_reviewed(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                expected_version=4, idempotency_key="case-set-review-too-early-0001",
+                request_id="case-set-review-too-early",
+            )
+        assert candidates_remain.value.code is ErrorCode.VALIDATION_FAILED
+        assert service.get(principal=viewer, case_id=CASE_A).version == 4
+
+        disposed = service.review_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            member_id=second_member.parcel_set_member_id,
+            review_status=ParcelMemberReviewStatus.CASE_REJECTED,
+            expected_version=4, idempotency_key="case-set-reject-second-0001",
+            request_id="case-set-reject-second",
+        ).record
+        active = service.set_active_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            active_member_id=first_member.parcel_set_member_id,
+            expected_version=5, idempotency_key="case-set-active-first-0001",
+            request_id="case-set-active-first",
+        ).record
+        reviewed = service.mark_case_reviewed(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            expected_version=6, idempotency_key="case-set-mark-reviewed-0001",
+            request_id="case-set-mark-reviewed",
+        ).record
+        assert disposed.version == 5 and active.version == 6
+        assert reviewed.version == 7 and reviewed.status.value == "case_reviewed"
+        assert reviewed.reviewed_at is not None
+
+        cleared = service.set_active_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            active_member_id=None, expected_version=7,
+            idempotency_key="case-set-clear-active-0001", request_id="case-set-clear-active",
+        ).record
+        assert cleared.version == 8
+        assert cleared.status.value == "case_reviewed" and cleared.reviewed_at is not None
+
+        reordered = service.reorder(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            ordered_member_ids=(second_member.parcel_set_member_id, first_member.parcel_set_member_id),
+            expected_version=8, idempotency_key="case-set-reorder-real-0001",
+            request_id="case-set-reorder-real",
+        ).record
+        assert reordered.version == 9 and reordered.status.value == "draft"
+        assert reordered.reviewed_at is None
+        assert [item.parcel_set_member_id for item in reordered.members] == [
+            second_member.parcel_set_member_id, first_member.parcel_set_member_id
+        ]
+
+        with pytest.raises(VNextError) as incomplete_order:
+            service.reorder(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                ordered_member_ids=(first_member.parcel_set_member_id,), expected_version=9,
+                idempotency_key="case-set-reorder-incomplete-0001",
+                request_id="case-set-reorder-incomplete",
+            )
+        assert incomplete_order.value.code is ErrorCode.VALIDATION_FAILED
+        with pytest.raises(VNextError) as stale:
+            service.set_active_member(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                active_member_id=first_member.parcel_set_member_id, expected_version=8,
+                idempotency_key="case-set-stale-active-0001", request_id="case-set-stale-active",
+            )
+        assert stale.value.code is ErrorCode.VERSION_CONFLICT
+        assert service.get(principal=viewer, case_id=CASE_A).version == 9
+
+        other = service.initialize(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A_2,
+            expected_version=0, idempotency_key="case-set-create-other-case-0001",
+            request_id="case-set-create-other-case",
+        ).record
+        other = service.add_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A_2,
+            parcel_identity_reference_id=PARCEL_A_1, expected_version=1,
+            idempotency_key="case-set-add-other-case-0001",
+            request_id="case-set-add-other-case",
+        ).record
+        with pytest.raises(VNextError) as foreign_member:
+            service.set_active_member(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                active_member_id=other.members[0].parcel_set_member_id, expected_version=9,
+                idempotency_key="case-set-foreign-active-0001",
+                request_id="case-set-foreign-active",
+            )
+        assert foreign_member.value.code is ErrorCode.NOT_FOUND
+
+        final = service.mark_case_reviewed(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            expected_version=9, idempotency_key="case-set-mark-final-0001",
+            request_id="case-set-mark-final",
+        ).record
+        assert final.version == 10 and final.status.value == "case_reviewed"
+
+        events = admin.execute(
+            "SELECT event_type, metadata FROM vnext_private.audit_events "
+            "WHERE resource_id = %s ORDER BY created_at, audit_event_id",
+            (created.record.parcel_set_id,),
+        ).fetchall()
+        assert [event_type for event_type, _metadata in events] == [
+            "case_parcel_set.created",
+            "case_parcel_set.member_added",
+            "case_parcel_set.member_added",
+            "case_parcel_set.member_case_reviewed",
+            "case_parcel_set.member_case_reviewed",
+            "case_parcel_set.active_member_changed",
+            "case_parcel_set.case_reviewed",
+            "case_parcel_set.active_member_changed",
+            "case_parcel_set.reordered",
+            "case_parcel_set.case_reviewed",
+        ]
+        assert all(metadata["parcel_set_id"] == str(created.record.parcel_set_id) for _, metadata in events)
+        assert all(metadata["membership_role"] == "member" for _, metadata in events)
+
+        assert admin.execute(
+            "SELECT to_jsonb(reference) FROM vnext_core.property_identity_references reference "
+            "ORDER BY identity_reference_id"
+        ).fetchall() == identity_before
+        assert admin.execute(
+            "SELECT (SELECT count(*) FROM vnext_core.identity_decisions), "
+            "(SELECT count(*) FROM vnext_core.property_relations WHERE relation_status = 'confirmed'), "
+            "(SELECT count(*) FROM vnext_core.case_property_links), "
+            "(SELECT count(*) FROM vnext_core.property_entities)"
+        ).fetchone() == canonical_before
+
+
+def test_real_postgres_case_parcel_set_same_version_race_has_one_atomic_winner() -> None:
+    from services.vnext.case_parcel_set import ParcelMemberReviewStatus
+
+    with _prepared_database() as (admin, _pool, context):
+        _seed_case_parcel_set_references(admin)
+        admin.commit()
+        _repository, service = _case_parcel_set_stack(context)
+        member = _principal(USERS["member"])
+        record = service.initialize(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            expected_version=0, idempotency_key="case-set-race-create-0001",
+            request_id="case-set-race-create",
+        ).record
+        record = service.add_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            parcel_identity_reference_id=PARCEL_A_1, expected_version=1,
+            idempotency_key="case-set-race-add-one-0001", request_id="case-set-race-add-one",
+        ).record
+        record = service.add_member(
+            principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+            parcel_identity_reference_id=PARCEL_A_2, expected_version=2,
+            idempotency_key="case-set-race-add-two-0001", request_id="case-set-race-add-two",
+        ).record
+        first_member, second_member = record.members
+
+        results = _race(
+            lambda: service.review_member(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                member_id=first_member.parcel_set_member_id,
+                review_status=ParcelMemberReviewStatus.CASE_SELECTED,
+                expected_version=3, idempotency_key="case-set-race-review-one-0001",
+                request_id="case-set-race-review-one",
+            ),
+            lambda: service.review_member(
+                principal=member, workspace_id=WORKSPACE_A, case_id=CASE_A,
+                member_id=second_member.parcel_set_member_id,
+                review_status=ParcelMemberReviewStatus.CASE_REJECTED,
+                expected_version=3, idempotency_key="case-set-race-review-two-0001",
+                request_id="case-set-race-review-two",
+            ),
+        )
+
+        assert [status for status, _result in results].count("ok") == 1
+        errors = [result for status, result in results if status == "error"]
+        assert len(errors) == 1
+        assert isinstance(errors[0], VNextError)
+        assert errors[0].code is ErrorCode.VERSION_CONFLICT
+        stored = service.get(principal=member, case_id=CASE_A)
+        assert stored.version == 4
+        assert sum(item.review_status.value != "candidate" for item in stored.members) == 1
+        assert admin.execute(
+            "SELECT count(*) FROM vnext_private.audit_events "
+            "WHERE resource_id = %s AND event_type = 'case_parcel_set.member_case_reviewed'",
+            (record.parcel_set_id,),
+        ).fetchone()[0] == 1
 
 
 def _seed_parcel_and_building_references(context, authorizer, principal):

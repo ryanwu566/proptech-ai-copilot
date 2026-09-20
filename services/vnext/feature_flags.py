@@ -9,6 +9,7 @@ from typing import Mapping
 
 IDENTITY_V1_ENV = "FEATURE_IDENTITY_V1"
 LEGACY_CASE_IMPORT_V1_ENV = "FEATURE_LEGACY_CASE_IMPORT_V1"
+CASE_PARCEL_SET_V1_ENV = "FEATURE_CASE_PARCEL_SET_V1"
 _ENABLED = frozenset({"1", "true", "yes", "on"})
 
 
@@ -16,6 +17,7 @@ _ENABLED = frozenset({"1", "true", "yes", "on"})
 class VNextFeatureFlags:
     identity_v1: bool = False
     legacy_case_import_v1: bool = False
+    case_parcel_set_v1: bool = False
 
     @classmethod
     def from_environment(
@@ -27,9 +29,13 @@ class VNextFeatureFlags:
         legacy_import_enabled = (
             values.get(LEGACY_CASE_IMPORT_V1_ENV, "").strip().lower() in _ENABLED
         )
+        case_parcel_set_enabled = (
+            values.get(CASE_PARCEL_SET_V1_ENV, "").strip().lower() in _ENABLED
+        )
         return cls(
             identity_v1=identity_enabled,
             legacy_case_import_v1=legacy_import_enabled,
+            case_parcel_set_v1=case_parcel_set_enabled,
         )
 
     def enabled(self, name: str) -> bool:
@@ -37,6 +43,8 @@ class VNextFeatureFlags:
             return self.identity_v1
         if name == "legacy_case_import_v1":
             return self.legacy_case_import_v1
+        if name == "case_parcel_set_v1":
+            return self.case_parcel_set_v1
         return False
 
 

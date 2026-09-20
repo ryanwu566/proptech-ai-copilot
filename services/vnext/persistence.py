@@ -122,6 +122,12 @@ _AUDIT_METADATA_KEYS = frozenset(
         "building_identity_reference_id",
         "relation_type",
         "direction",
+        "parcel_set_id",
+        "parcel_set_member_id",
+        "parcel_set_status",
+        "review_status",
+        "active_member_id",
+        "member_count",
     }
 )
 
@@ -380,6 +386,11 @@ class IdempotencyReservation:
 
 _IDEMPOTENCY_KEY = re.compile(r"^[A-Za-z0-9._:-]{16,128}$")
 _IDEMPOTENCY_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+_IDEMPOTENCY_CONFLICT_SCOPES = {
+    "case_parcel_set": re.compile(
+        r"^/v1/cases/[0-9a-f-]{36}/parcel-set(?:/.*)?$"
+    ),
+}
 
 
 class PostgresIdempotencyRepository:
@@ -402,6 +413,7 @@ class PostgresIdempotencyRepository:
         canonical_route: str,
         idempotency_key: str,
         canonical_request: bytes,
+        conflict_scope: str | None = None,
         replay_window: timedelta = timedelta(hours=24),
     ) -> IdempotencyReservation:
         self._authorizer.require_workspace_role(
@@ -411,12 +423,19 @@ class PostgresIdempotencyRepository:
         )
         selected_method = method.strip().upper()
         selected_route = _bounded_text(canonical_route, maximum=300)
+        scope_pattern = (
+            None
+            if conflict_scope is None
+            else _IDEMPOTENCY_CONFLICT_SCOPES.get(conflict_scope)
+        )
         if (
             selected_method not in _IDEMPOTENCY_METHODS
             or not selected_route.startswith("/")
             or not _IDEMPOTENCY_KEY.fullmatch(idempotency_key)
             or len(canonical_request) > 65_536
             or replay_window < timedelta(hours=24)
+            or (conflict_scope is not None and scope_pattern is None)
+            or (scope_pattern is not None and scope_pattern.fullmatch(selected_route) is None)
         ):
             raise VNextError.validation_failed()
         key_hash = hashlib.sha256(idempotency_key.encode("utf-8")).hexdigest()
@@ -424,29 +443,59 @@ class PostgresIdempotencyRepository:
         record_id = uuid4()
         expires_at = datetime.now(timezone.utc) + replay_window
         with self._principal_context.transaction(principal) as connection:
-            inserted = connection.execute(
-                "INSERT INTO vnext_private.idempotency_records ("
-                "idempotency_record_id, workspace_id, actor_user_id, http_method, "
-                "canonical_route, idempotency_key_hash, request_fingerprint, expires_at"
-                ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
-                "ON CONFLICT (workspace_id, actor_user_id, http_method, "
-                "canonical_route, idempotency_key_hash) DO NOTHING "
-                "RETURNING idempotency_record_id, request_fingerprint, "
-                "operation_status, response_reference_type, response_reference_id, "
-                "response_status_code, response_error_code",
-                (
-                    record_id,
-                    workspace_id,
-                    principal.user_id,
-                    selected_method,
-                    selected_route,
-                    key_hash,
-                    fingerprint,
-                    expires_at,
-                ),
-            ).fetchone()
             decision = IdempotencyDecision.NEW
-            row = inserted
+            row = None
+            if scope_pattern is not None:
+                connection.execute(
+                    "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
+                    (
+                        f"idempotency:{conflict_scope}:{workspace_id}:"
+                        f"{principal.user_id}:{selected_method}:{key_hash}",
+                    ),
+                )
+                scoped = connection.execute(
+                    "SELECT idempotency_record_id, request_fingerprint, "
+                    "operation_status, response_reference_type, response_reference_id, "
+                    "response_status_code, response_error_code, canonical_route "
+                    "FROM vnext_private.idempotency_records WHERE workspace_id = %s "
+                    "AND actor_user_id = %s AND http_method = %s "
+                    "AND idempotency_key_hash = %s AND canonical_route ~ %s "
+                    "ORDER BY created_at LIMIT 1",
+                    (
+                        workspace_id,
+                        principal.user_id,
+                        selected_method,
+                        key_hash,
+                        scope_pattern.pattern,
+                    ),
+                ).fetchone()
+                if scoped is not None:
+                    if str(scoped[7]) != selected_route or str(scoped[1]) != fingerprint:
+                        raise VNextError.idempotency_conflict()
+                    row = scoped[:7]
+                    decision = IdempotencyDecision.REPLAY
+            if row is None:
+                row = connection.execute(
+                    "INSERT INTO vnext_private.idempotency_records ("
+                    "idempotency_record_id, workspace_id, actor_user_id, http_method, "
+                    "canonical_route, idempotency_key_hash, request_fingerprint, expires_at"
+                    ") VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
+                    "ON CONFLICT (workspace_id, actor_user_id, http_method, "
+                    "canonical_route, idempotency_key_hash) DO NOTHING "
+                    "RETURNING idempotency_record_id, request_fingerprint, "
+                    "operation_status, response_reference_type, response_reference_id, "
+                    "response_status_code, response_error_code",
+                    (
+                        record_id,
+                        workspace_id,
+                        principal.user_id,
+                        selected_method,
+                        selected_route,
+                        key_hash,
+                        fingerprint,
+                        expires_at,
+                    ),
+                ).fetchone()
             if row is None:
                 row = connection.execute(
                     "SELECT idempotency_record_id, request_fingerprint, "

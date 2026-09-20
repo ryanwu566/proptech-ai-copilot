@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Request
 
 from backend.api.v1.property_identity import router as property_identity_router
 from backend.api.v1.legacy_case_import import router as legacy_case_import_router
+from backend.api.v1.case_parcel_set import router as case_parcel_set_router
 from backend.api.v1.errors import vnext_error_responses
 from services.vnext.auth import AuthenticatedPrincipal, require_authenticated_principal
 from services.vnext.authorization import (
@@ -52,6 +53,7 @@ def vnext_context(
         "features": {
             "identity_v1": flags.identity_v1,
             "legacy_case_import_v1": flags.legacy_case_import_v1,
+            "case_parcel_set_v1": flags.case_parcel_set_v1,
         },
     }
 
@@ -79,3 +81,4 @@ def workspace_context(
 
 router.include_router(property_identity_router)
 router.include_router(legacy_case_import_router)
+router.include_router(case_parcel_set_router)

@@ -52,8 +52,9 @@ def _assert_ledger(connection) -> None:
         ).fetchall()
     )
     assert actual == expected
-    assert len(actual) == 13
-    assert not any(migration_id.startswith("018_") for migration_id in actual)
+    assert len(actual) == 14
+    assert any(migration_id.startswith("018_") for migration_id in actual)
+    assert not any(migration_id.startswith("019_") for migration_id in actual)
 
 
 def _assert_catalog(connection) -> None:
@@ -66,7 +67,7 @@ def _assert_catalog(connection) -> None:
         "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
         "AND relation.relkind = 'r' ORDER BY 1, 2"
     ).fetchall()
-    assert len(tables) == 19
+    assert len(tables) == 21
     assert all(row[2] is True and row[3] is True for row in tables)
     assert all(row[4] != "vnext_api" for row in tables)
 
@@ -81,7 +82,7 @@ def _assert_catalog(connection) -> None:
         "WHERE constraint_schema IN ('vnext_core', 'vnext_private') "
         "AND constraint_type = 'FOREIGN KEY'"
     ).fetchone()[0]
-    assert foreign_keys >= 69
+    assert foreign_keys >= 75
 
     grants = connection.execute(
         "SELECT table_schema, table_name, privilege_type "
@@ -99,6 +100,8 @@ def _assert_catalog(connection) -> None:
     assert mutable <= {
         ("vnext_core", "cases"),
         ("vnext_core", "identity_resolutions"),
+        ("vnext_core", "case_parcel_sets"),
+        ("vnext_core", "case_parcel_set_members"),
         ("vnext_private", "idempotency_records"),
     }
 
@@ -110,7 +113,7 @@ def _assert_catalog(connection) -> None:
         "WHERE NOT trigger.tgisinternal "
         "AND namespace.nspname IN ('vnext_core', 'vnext_private')"
     ).fetchall()
-    assert len(trigger_functions) >= 14
+    assert len(trigger_functions) >= 16
     assert all(
         settings is not None
         and any(str(setting).startswith("search_path=") for setting in settings)
@@ -140,8 +143,8 @@ def _install_existing_production_prefix(connection) -> None:
 
 def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 18
-    assert len(runner.MIGRATIONS) == 13
+    assert next_safe_sequence(registrations) == 19
+    assert len(runner.MIGRATIONS) == 14
 
     with connect(DATABASE_URL) as connection:
         _reset_database(connection)
@@ -152,9 +155,9 @@ def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> N
     )
     assert clean == {
         "status": "pass",
-        "migration_count": 13,
-        "registry_count": 18,
-        "next_migration_sequence": "018",
+        "migration_count": 14,
+        "registry_count": 19,
+        "next_migration_sequence": "019",
         "ledger": "applied",
         "verification": "tables_indexes_foreign_keys",
     }

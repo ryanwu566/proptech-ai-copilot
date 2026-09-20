@@ -220,4 +220,7 @@ def test_existing_schema_guards_geometry_and_graph_without_new_migration():
     assert "before update or delete on vnext_core.property_identity_references" in graph
     assert "before update or delete on vnext_core.property_relations" in graph
     assert "parcel_geometry" not in command
-    assert not list((root / "database/migrations").glob("018_*.sql"))
+    assert [
+        path.name for path in (root / "database/migrations").glob("018_*.sql")
+    ] == ["018_vnext_case_parcel_set_v1.sql"]
+    assert not list((root / "database/migrations").glob("019_*.sql"))
