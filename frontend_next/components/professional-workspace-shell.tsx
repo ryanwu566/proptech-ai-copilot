@@ -38,8 +38,14 @@ function ReadinessBadge({ value }: { value: Readiness }) {
 
 function moduleReadiness(moduleId: ModuleId, state: LoadState): Readiness {
   if (moduleId !== "identity") return "NOT_AVAILABLE";
-  if (state.kind === "ready") return "AVAILABLE";
+  if (state.kind === "ready") {
+    return state.data.graph.next_cursor || state.data.evidence.next_cursor ? "PARTIAL" : "AVAILABLE";
+  }
   return state.kind === "loading" ? "PARTIAL" : "NOT_AVAILABLE";
+}
+
+function recordCount(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
 function loadMessage(contextState: WorkspaceContextInputState, state: LoadState): string {
@@ -105,7 +111,9 @@ export function ProfessionalWorkspaceShell({
   }, [contextState, propertyId, workspaceId]);
 
   const loaded = state.kind === "ready" ? state.data : null;
-  const evidenceReadiness: Readiness = state.kind === "ready" ? "AVAILABLE"
+  const graphHasMore = Boolean(loaded?.graph.next_cursor);
+  const evidenceHasMore = Boolean(loaded?.evidence.next_cursor);
+  const evidenceReadiness: Readiness = state.kind === "ready" ? (evidenceHasMore ? "PARTIAL" : "AVAILABLE")
     : state.kind === "loading" || contextState === "missing" ? "PARTIAL" : "NOT_AVAILABLE";
   const activeModule = MODULES.find((item) => item.id === selectedModule) ?? MODULES[0];
   const activeModuleReadiness = moduleReadiness(activeModule.id, state);
@@ -168,7 +176,9 @@ export function ProfessionalWorkspaceShell({
             <ReadinessBadge value={evidenceReadiness} />
           </div>
           {state.kind === "loading" && <p className={styles.muted} role="status">Loading the approved evidence ledger…</p>}
-          {state.kind === "ready" && state.data.evidence.evidence.length === 0 && <p className={styles.emptyState}>No evidence items were returned by the approved evidence interface.</p>}
+          {state.kind === "ready" && state.data.evidence.evidence.length === 0 && <p className={styles.emptyState}>
+            {evidenceHasMore ? "No evidence items were returned on the loaded page." : "No evidence items were returned by the approved evidence interface."}
+          </p>}
           {state.kind === "ready" && state.data.evidence.evidence.length > 0 && <ol className={styles.evidenceList}>
             {state.data.evidence.evidence.map((item) => <li key={item.evidence_id} className={styles.evidenceItem}>
               <div><strong>{item.fact_type}</strong><span className={styles.evidenceStatus}>{item.status}</span></div>
@@ -180,6 +190,7 @@ export function ProfessionalWorkspaceShell({
               </dl>
             </li>)}
           </ol>}
+          {state.kind === "ready" && evidenceHasMore && <p className={styles.muted} role="status">Additional evidence records are available.</p>}
           {state.kind !== "ready" && state.kind !== "loading" && <p className={styles.emptyState}>Evidence requires validated workspace and PropertyEntity context. No evidence was inferred.</p>}
         </aside>
 
@@ -209,7 +220,10 @@ export function ProfessionalWorkspaceShell({
               <div><dt>Lifecycle</dt><dd>{loaded.property.lifecycle_state}</dd></div>
               <div><dt>Property version</dt><dd>{loaded.property.version}</dd></div>
               <div><dt>Human confirmed</dt><dd>{loaded.property.confirmation_summary.human_confirmed ? "Yes" : "No"}</dd></div>
-              <div><dt>Graph records</dt><dd>{loaded.graph.nodes.length} nodes · {loaded.graph.relations.length} relations</dd></div>
+              <div><dt>Graph records</dt><dd>
+                {graphHasMore ? "Loaded page: " : ""}{recordCount(loaded.graph.nodes.length, "node")} · {recordCount(loaded.graph.relations.length, "relation")}
+                {graphHasMore ? ". Additional graph records are available." : ""}
+              </dd></div>
             </dl>
             {loaded.graph.relations.length === 0 ? <p className={styles.emptyState}>The approved graph interface returned no relations.</p> : <ol className={styles.relationList}>
               {loaded.graph.relations.map((relation) => <li key={relation.relation_id}>

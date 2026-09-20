@@ -7,6 +7,7 @@ const PROPERTY_ID = "33333333-3333-4333-8333-333333333333";
 const USER_ID = "44444444-4444-4444-8444-444444444444";
 const PROPERTY_NODE_ID = "55555555-5555-4555-8555-555555555555";
 const NOW = "2026-09-20T08:00:00Z";
+const NEXT_CURSOR = `next.${"a".repeat(43)}`;
 
 function accessToken(exp = 4_102_444_800): string {
   const header = Buffer.from(JSON.stringify({ alg: "ES256", typ: "JWT", kid: "workspace-e2e-key" })).toString("base64url");
@@ -64,7 +65,12 @@ function propertyDto() {
   };
 }
 
-async function fulfillApprovedRead(route: Route, token: string, requestedPaths: string[]): Promise<void> {
+async function fulfillApprovedRead(
+  route: Route,
+  token: string,
+  requestedPaths: string[],
+  nextCursor: string | null = null,
+): Promise<void> {
   const request = route.request();
   const url = new URL(request.url());
   requestedPaths.push(url.pathname);
@@ -95,12 +101,12 @@ async function fulfillApprovedRead(route: Route, token: string, requestedPaths: 
       }],
       relations: [],
       as_of: null,
-      next_cursor: null,
+      next_cursor: nextCursor,
     } });
     return;
   }
   if (url.pathname === `/v1/properties/${PROPERTY_ID}/evidence`) {
-    await route.fulfill({ json: { property: propertyDto(), evidence: [], next_cursor: null } });
+    await route.fulfill({ json: { property: propertyDto(), evidence: [], next_cursor: nextCursor } });
     return;
   }
   await route.fulfill({ status: 404, json: { error: { code: "not_found", message: "Not found.", request_id: "workspace-e2e", retryable: false } } });
@@ -197,6 +203,28 @@ test("validated workspace and property context uses only approved reads and keep
   await expect(page.locator("body")).not.toContainText(token);
   expect(new URL(page.url()).searchParams.has("access_token")).toBe(false);
   expect(directDataApiRequests).toEqual([]);
+});
+
+test("paginated graph and evidence reads disclose that the loaded records are partial", async ({ page }) => {
+  const token = await installSession(page);
+  const requestedPaths: string[] = [];
+  await page.route("http://e2e.test/v1/**", (route) => (
+    fulfillApprovedRead(route, token, requestedPaths, NEXT_CURSOR)
+  ));
+
+  await page.goto(`/workspace/${CASE_ID}?workspaceId=${WORKSPACE_ID}&propertyId=${PROPERTY_ID}`);
+
+  const evidenceRail = page.getByRole("complementary", { name: "Evidence Rail" });
+  await expect(evidenceRail).toContainText("Additional evidence records are available.");
+  await expect(evidenceRail.getByLabel("Readiness: PARTIAL")).toBeVisible();
+
+  const identityModule = page.getByRole("button", { name: "Identity Readiness: PARTIAL" });
+  await expect(identityModule).toBeVisible();
+  await identityModule.click();
+
+  const moduleDetail = page.getByRole("region", { name: "Module Detail" });
+  await expect(moduleDetail.getByLabel("Readiness: PARTIAL")).toBeVisible();
+  await expect(moduleDetail).toContainText("Loaded page: 1 node · 0 relations. Additional graph records are available.");
 });
 
 test("workspace landmarks remain usable on a narrow viewport", async ({ page }) => {
