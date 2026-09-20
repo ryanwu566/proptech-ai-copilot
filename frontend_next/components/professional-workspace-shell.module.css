@@ -26,7 +26,10 @@
 .panelHeading,
 .moduleButton,
 .evidenceItem > div,
-.moduleDetailTitle {
+.moduleDetailTitle,
+.parcelSetTitle,
+.parcelMemberHeading,
+.geometryState > div {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -35,7 +38,10 @@
 
 .contextTitle h1,
 .panelHeading h2,
-.moduleDetailTitle h3 {
+.moduleDetailTitle h3,
+.parcelSetTitle h3,
+.parcelCandidates h4,
+.geometryState h4 {
   margin: 0;
   color: #0f2521;
   letter-spacing: -.025em;
@@ -44,6 +50,9 @@
 .contextTitle h1 { font-size: clamp(1.45rem, 3vw, 2.2rem); }
 .panelHeading h2 { font-size: 1rem; }
 .moduleDetailTitle h3 { font-size: 1.4rem; }
+.parcelSetTitle h3 { font-size: 1.18rem; }
+.parcelCandidates h4,
+.geometryState h4 { font-size: .86rem; }
 
 .eyebrow,
 .kicker {
@@ -74,7 +83,10 @@
 .contextFacts dt,
 .evidenceItem dt,
 .moduleContext dt,
-.identityDetail dt {
+.identityDetail dt,
+.parcelSummaryFacts dt,
+.parcelMemberFacts dt,
+.crossReferenceMatch dt {
   color: #64716d;
   font-size: .7rem;
   font-weight: 700;
@@ -85,7 +97,10 @@
 .contextFacts dd,
 .evidenceItem dd,
 .moduleContext dd,
-.identityDetail dd {
+.identityDetail dd,
+.parcelSummaryFacts dd,
+.parcelMemberFacts dd,
+.crossReferenceMatch dd {
   margin: 5px 0 0;
   overflow-wrap: anywhere;
   font-size: .78rem;
@@ -184,22 +199,70 @@
 .mapEmpty p { margin: 17px 0 6px; font-weight: 800; }
 .mapEmpty > span { max-width: 560px; color: #586963; font-size: .82rem; line-height: 1.6; }
 
-.mapMarker {
-  position: relative;
-  display: grid;
-  width: 56px;
-  height: 56px;
-  place-items: center;
-  border: 1px solid #93b0a9;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .8);
+.parcelCanvasBody { display: grid; gap: 13px; margin-top: 16px; }
+
+.parcelSetSummary,
+.parcelCandidates,
+.geometryState,
+.truthNotices {
+  min-width: 0;
+  border: 1px solid #d7e2de;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, .86);
+  padding: 13px;
 }
 
-.mapMarker::before,
-.mapMarker::after { position: absolute; content: ""; background: #6c8b83; }
-.mapMarker::before { width: 1px; height: 74px; }
-.mapMarker::after { width: 74px; height: 1px; }
-.mapMarker span { z-index: 1; width: 7px; height: 7px; border: 2px solid white; border-radius: 50%; background: #237f70; box-shadow: 0 0 0 2px #237f70; }
+.parcelSetMeta { display: grid; justify-items: end; gap: 5px; color: #40534d; font-size: .72rem; }
+.parcelSetMeta strong { color: #765b0a; letter-spacing: .055em; }
+
+.parcelSummaryFacts,
+.parcelMemberFacts,
+.crossReferenceMatch dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 12px 0 0;
+  overflow: hidden;
+  border: 1px solid #dce5e2;
+  border-radius: 10px;
+  background: #dce5e2;
+}
+
+.parcelSummaryFacts > div,
+.parcelMemberFacts > div,
+.crossReferenceMatch dl > div { min-width: 0; background: #f8faf9; padding: 9px; }
+
+.parcelCandidates > h4 { margin: 0 0 10px; }
+.parcelCandidates > ol { display: grid; gap: 10px; margin: 0; padding-left: 24px; }
+
+.parcelMember {
+  min-width: 0;
+  border: 1px solid #dce5e2;
+  border-radius: 11px;
+  background: #fbfcfc;
+  padding: 11px;
+}
+
+.parcelMemberHeading strong { min-width: 0; overflow-wrap: anywhere; font-size: .78rem; line-height: 1.45; }
+.activeTag { flex: 0 0 auto; border-radius: 999px; background: #dff3ed; color: #126653; padding: 4px 7px; font-size: .62rem; font-weight: 850; }
+.crossReferenceState,
+.crossReferenceMatch > p { margin: 10px 0 0; color: #4c5f59; font-size: .75rem; line-height: 1.55; }
+.paginationNotice { margin: 0; border-left: 3px solid #b88b13; background: #fff8e5; color: #654e10; padding: 10px 12px; font-size: .78rem; line-height: 1.55; }
+.geometryState > div { align-items: center; }
+.geometryState h4 { margin: 0; }
+.geometryState p { margin: 9px 0 0; color: #53635e; font-size: .78rem; }
+.truthNotices { display: grid; gap: 8px; border-color: #dfcfaa; background: #fffaf0; }
+.truthNotices p { margin: 0; color: #5f4b1d; font-size: .76rem; font-weight: 650; line-height: 1.55; }
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 .emptyState,
 .muted {
@@ -292,6 +355,12 @@
   .moduleDetailTitle { flex-direction: column; }
   .relationList li { flex-direction: column; }
   .relationList span { text-align: left; }
+  .parcelSetTitle,
+  .parcelMemberHeading { flex-direction: column; }
+  .parcelSetMeta { justify-items: start; }
+  .parcelSummaryFacts,
+  .parcelMemberFacts,
+  .crossReferenceMatch dl { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 430px) {
