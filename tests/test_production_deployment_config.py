@@ -10,6 +10,7 @@ RENDER = (ROOT / "render.yaml").read_text(encoding="utf-8")
 API_TS = (ROOT / "frontend_next" / "lib" / "api.ts").read_text(encoding="utf-8")
 API_MAIN = (ROOT / "backend" / "api_main.py").read_text(encoding="utf-8")
 DOCS = (ROOT / "docs" / "production-backend-deployment-v1.md").read_text(encoding="utf-8")
+ENV_EXAMPLE = (ROOT / ".env.example").read_text(encoding="utf-8")
 
 
 def test_render_blueprint_uses_python_fastapi_runtime() -> None:
@@ -182,3 +183,40 @@ def test_render_blueprint_declares_green_valuation_variables() -> None:
     """PLVR_DATA_BACKEND and COMPACT_GREEN_DATABASE_URL must be in blueprint."""
     for name in ("PLVR_DATA_BACKEND", "COMPACT_GREEN_DATABASE_URL", "VALUATION_DATABASE_URL"):
         assert f"key: {name}" in RENDER, f"{name} missing from render.yaml"
+
+
+def test_render_declares_taipei_planning_as_default_off_manual_mode() -> None:
+    import yaml
+
+    service = yaml.safe_load(RENDER)["services"][0]
+    variables = {item["key"]: item for item in service["envVars"]}
+    assert variables["TAIPEI_PLANNING_READ_V1"] == {
+        "key": "TAIPEI_PLANNING_READ_V1",
+        "value": "false",
+    }
+    assert variables["TAIPEI_PLANNING_SOURCE_MODE"] == {
+        "key": "TAIPEI_PLANNING_SOURCE_MODE",
+        "value": "manual_evidence",
+    }
+    assert "TAIPEI_PLANNING_READ_V1=false" in ENV_EXAMPLE
+    assert "TAIPEI_PLANNING_SOURCE_MODE=manual_evidence" in ENV_EXAMPLE
+
+
+def test_taipei_planning_source_audit_records_gate_zero_boundaries() -> None:
+    audit = (ROOT / "docs/vnext/taipei-planning-read-v1-source-audit.md").read_text(
+        encoding="utf-8"
+    )
+    for expected in (
+        "Taipei City Department of Urban Development",
+        "https://zone.udd.gov.taipei/new_index1.aspx",
+        "https://udd.gov.taipei/announcement/biwfsm8",
+        "Open Government Data License, version 1.0",
+        "urban_plan_non_national_park",
+        "Yangmingshan National Park",
+        "manual_evidence",
+        "LUI_002",
+        "REFERENCE_ONLY",
+        "USER_PROVIDED",
+        "no runtime transport",
+    ):
+        assert expected in audit

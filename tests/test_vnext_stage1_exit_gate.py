@@ -36,6 +36,7 @@ APPROVED_ROUTES = {
     ("POST", "/v1/cases/{case_id}/parcel-set/active-member"),
     ("POST", "/v1/cases/{case_id}/parcel-set/reorder"),
     ("POST", "/v1/cases/{case_id}/parcel-set/review"),
+    ("POST", "/v1/planning/taipei/observe"),
 }
 COMMAND_ROUTES = {
     "/v1/property-resolutions",

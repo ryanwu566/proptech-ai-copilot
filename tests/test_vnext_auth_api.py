@@ -147,6 +147,7 @@ def test_valid_token_maps_to_canonical_principal_and_flag_defaults_off(
             "identity_v1": False,
             "legacy_case_import_v1": False,
             "case_parcel_set_v1": False,
+            "taipei_planning_read_v1": False,
         },
     }
     assert response.headers["Cache-Control"] == "private, no-store"
@@ -383,7 +384,9 @@ def test_feature_flags_are_default_deny_and_unknown_flags_are_off() -> None:
     assert flags.identity_v1 is False
     assert flags.legacy_case_import_v1 is False
     assert flags.case_parcel_set_v1 is False
+    assert flags.taipei_planning_read_v1 is False
     assert flags.enabled("identity_v1") is False
     assert flags.enabled("legacy_case_import_v1") is False
     assert flags.enabled("case_parcel_set_v1") is False
+    assert flags.enabled("taipei_planning_read_v1") is False
     assert flags.enabled("unregistered_flag") is False
