@@ -19,6 +19,7 @@
     "test:e2e:workspace": "npm run build:e2e && node scripts/test-professional-workspace-flag-off.mjs && node e2e/run-e2e.cjs e2e/professional-workspace.spec.ts",
     "test:google-maps": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/google-maps-embed.test.mjs lib/google-maps-csp.test.mjs",
     "test:e2e:google-maps": "node scripts/test-google-browser-maps-e2e.mjs",
+    "test:workspace-contract": "node scripts/test-professional-gis-contract.mjs",
     "test:vnext-hardening": "node scripts/test-vnext-hardening.mjs",
     "test:e2e:hosted": "playwright test --config=playwright.hosted.config.ts",
     "test:e2e:real-provider": "npm run build:e2e && node e2e/run-e2e.cjs --config=playwright.real-provider.config.ts --workers=1"

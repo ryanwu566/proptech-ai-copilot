@@ -3,17 +3,24 @@
 import { useEffect, useState } from "react";
 import { VNextApiError, VNextSessionError, vnextIdentityClient } from "@/lib/vnext-identity-client";
 import { VNextContractError, type PropertyDTO, type PropertyEvidenceDTO, type PropertyGraphDTO, type WorkspaceContextDTO } from "@/lib/vnext-identity-contract";
+import type { CaseParcelSetDTO } from "@/lib/vnext-case-parcel-set-contract";
+import { buildParcelInvestigation, type ParcelInvestigationMember } from "@/lib/professional-gis";
 import styles from "./professional-workspace-shell.module.css";
 
 export type WorkspaceContextInputState = "missing" | "invalid" | "provided";
 type Readiness = "AVAILABLE" | "PARTIAL" | "NOT_AVAILABLE";
 type ModuleId = "identity" | "parcel" | "building" | "planning" | "market" | "listings" | "documents" | "crm" | "decision";
 
+type ParcelSetState =
+  | { kind: "not_available" | "denied" | "configuration_error" | "session_error" | "invalid_response" | "error" }
+  | { kind: "ready"; data: CaseParcelSetDTO };
+
 type LoadedContext = {
   workspace: WorkspaceContextDTO;
   property: PropertyDTO;
   graph: PropertyGraphDTO;
   evidence: PropertyEvidenceDTO;
+  parcelSet: ParcelSetState;
 };
 
 type LoadState =
@@ -22,7 +29,7 @@ type LoadState =
 
 const MODULES: ReadonlyArray<{ id: ModuleId; label: string; description: string }> = [
   { id: "identity", label: "Identity", description: "Existing PropertyEntity, graph, and confirmation metadata from approved VNext reads." },
-  { id: "parcel", label: "Parcel/GIS", description: "No approved professional parcel geometry or durable GIS case-set read is available in this shell." },
+  { id: "parcel", label: "Parcel/GIS", description: "Authorized Case Parcel Set review state is cross-referenced only against the currently loaded PropertyEntity graph page. No Case-to-Property binding or approved parcel geometry is available." },
   { id: "building", label: "Building", description: "No approved building-candidate or building-fact read is available in this shell." },
   { id: "planning", label: "Planning", description: "No planning, zoning, or redevelopment backend contract is available." },
   { id: "market", label: "Market", description: "Historical market services are not connected to a confirmed professional case read in this slice." },
@@ -37,11 +44,62 @@ function ReadinessBadge({ value }: { value: Readiness }) {
 }
 
 function moduleReadiness(moduleId: ModuleId, state: LoadState): Readiness {
-  if (moduleId !== "identity") return "NOT_AVAILABLE";
-  if (state.kind === "ready") {
-    return state.data.graph.next_cursor || state.data.evidence.next_cursor ? "PARTIAL" : "AVAILABLE";
+  if (moduleId === "identity") {
+    if (state.kind === "ready") {
+      return state.data.graph.next_cursor || state.data.evidence.next_cursor ? "PARTIAL" : "AVAILABLE";
+    }
+    return state.kind === "loading" ? "PARTIAL" : "NOT_AVAILABLE";
   }
-  return state.kind === "loading" ? "PARTIAL" : "NOT_AVAILABLE";
+  if (moduleId === "parcel" && state.kind === "ready" && state.data.parcelSet.kind === "ready") return "PARTIAL";
+  return "NOT_AVAILABLE";
+}
+
+function classifyParcelSetError(error: unknown): ParcelSetState {
+  if (error instanceof VNextSessionError) {
+    return { kind: error.reason === "configuration_error" ? "configuration_error" : "session_error" };
+  }
+  if (error instanceof VNextApiError) {
+    if (error.status === 403 || error.code === "permission_denied") return { kind: "denied" };
+    if (error.status === 404 || error.code === "not_found") return { kind: "not_available" };
+  }
+  if (error instanceof VNextContractError) return { kind: "invalid_response" };
+  return { kind: "error" };
+}
+
+function parcelSetFailureMessage(state: Exclude<ParcelSetState, { kind: "ready" }>): string {
+  if (state.kind === "not_available") return "PARCEL_SET_NOT_AVAILABLE — The approved Case Parcel Set interface did not return an available set.";
+  if (state.kind === "denied") return "PARCEL_SET_DENIED — The Case Parcel Set read was denied. Access denial was not treated as an empty set.";
+  if (state.kind === "configuration_error") return "PARCEL_SET_CONFIGURATION_ERROR — Professional backend configuration is unavailable for the Case Parcel Set read.";
+  if (state.kind === "session_error") return "PARCEL_SET_SESSION_ERROR — The existing VNext session became unavailable while reading the Case Parcel Set.";
+  if (state.kind === "invalid_response") return "PARCEL_SET_INVALID_RESPONSE — The Case Parcel Set response failed strict contract or route binding validation.";
+  return "PARCEL_SET_ERROR — The Case Parcel Set read failed because of an infrastructure or transport error.";
+}
+
+function statusLabel(value: string): string {
+  return value.replaceAll("_", " ").toUpperCase();
+}
+
+function reviewStatusLabel(value: string): string {
+  return value.toUpperCase();
+}
+
+function ParcelCrossReference({ member }: { member: ParcelInvestigationMember }) {
+  if (member.crossReference.kind === "missing") {
+    return <p className={styles.crossReferenceState}>Reference not present in the loaded PropertyEntity graph page.</p>;
+  }
+  if (member.crossReference.kind === "ambiguous") {
+    return <p className={styles.crossReferenceState} role="status">Cross-reference ambiguous; approved metadata is unavailable.</p>;
+  }
+  return <div className={styles.crossReferenceMatch}>
+    <p>Also present in the currently loaded PropertyEntity graph page.</p>
+    <dl>
+      <div><dt>Display label</dt><dd>{member.crossReference.displayLabel}</dd></div>
+      <div><dt>Reference status</dt><dd>{member.crossReference.referenceStatus ?? "NOT_AVAILABLE"}</dd></div>
+      <div><dt>Source</dt><dd>{member.crossReference.sourceId && member.crossReference.sourceEnvironment
+        ? `${member.crossReference.sourceId} / ${member.crossReference.sourceEnvironment}`
+        : "NOT_AVAILABLE"}</dd></div>
+    </dl>
+  </div>;
 }
 
 function recordCount(count: number, noun: string): string {
@@ -57,6 +115,84 @@ function loadMessage(contextState: WorkspaceContextInputState, state: LoadState)
   if (state.kind === "session_error") return "The existing VNext session is no longer available. Authentication must be restored before approved reads can run.";
   if (state.kind === "error") return "Approved workspace context could not be loaded. No fallback or demo data was used.";
   return "Approved workspace context is loaded.";
+}
+
+function ParcelCanvasBody({ contextState, state }: { contextState: WorkspaceContextInputState; state: LoadState }) {
+  if (state.kind === "loading") {
+    return <div className={styles.mapEmpty}><p role="status">Loading authorized parcel investigation context…</p></div>;
+  }
+  if (state.kind !== "ready") {
+    return <div className={styles.mapEmpty}>
+      <p>Parcel/GIS investigation is not available.</p>
+      <span>{contextState === "provided"
+        ? "Authorized Workspace and PropertyEntity context must load before the Case Parcel Set can be requested."
+        : "Validated Workspace and PropertyEntity identifiers are required before approved reads can run."}</span>
+    </div>;
+  }
+  if (state.data.parcelSet.kind !== "ready") {
+    return <div className={styles.mapEmpty}>
+      <p role={state.data.parcelSet.kind === "not_available" ? "status" : "alert"}>
+        {parcelSetFailureMessage(state.data.parcelSet)}
+      </p>
+      <span>No empty Parcel Set or parcel membership was inferred.</span>
+    </div>;
+  }
+
+  const model = buildParcelInvestigation(state.data.parcelSet.data, state.data.graph);
+  const activeMember = model.members.find((member) => member.active) ?? null;
+  const activeReference = activeMember?.parcelIdentityReferenceId;
+
+  return <div className={styles.parcelCanvasBody}>
+    <section className={styles.parcelSetSummary} aria-labelledby="parcel-review-set-heading">
+      <div className={styles.parcelSetTitle}>
+        <div>
+          <p className={styles.kicker}>CASE-LOCAL REVIEW RESOURCE</p>
+          <h3 id="parcel-review-set-heading">Parcel review set</h3>
+        </div>
+        <div className={styles.parcelSetMeta}>
+          <strong>{statusLabel(model.status)}</strong>
+          <span>Version {model.version}</span>
+        </div>
+      </div>
+      <dl className={styles.parcelSummaryFacts}>
+        <div><dt>Active review focus (Case-local)</dt><dd>{activeReference ?? "No active review focus is recorded."}</dd></div>
+        <div><dt>Active review state</dt><dd>{activeMember ? reviewStatusLabel(activeMember.reviewStatus) : "NOT_AVAILABLE"}</dd></div>
+        <div><dt>Recorded members</dt><dd>{recordCount(model.members.length, "member")}</dd></div>
+      </dl>
+    </section>
+
+    {model.members.length === 0 ? <p className={styles.emptyState}>Parcel review set loaded; no members are currently recorded.</p> : <section className={styles.parcelCandidates} aria-labelledby="parcel-candidates-heading">
+      <h4 id="parcel-candidates-heading">Parcel candidates</h4>
+      <ol aria-label="Parcel candidates">
+        {model.members.map((member) => <li key={member.memberId} className={styles.parcelMember}>
+          <div className={styles.parcelMemberHeading}>
+            <strong><span className={styles.visuallyHidden}>Position </span>{member.position}. {member.parcelIdentityReferenceId}</strong>
+            {member.active && <span className={styles.activeTag}>ACTIVE REVIEW FOCUS</span>}
+          </div>
+          <dl className={styles.parcelMemberFacts}>
+            <div><dt>Position</dt><dd>{member.position}</dd></div>
+            <div><dt>Review state</dt><dd>{reviewStatusLabel(member.reviewStatus)}</dd></div>
+            <div><dt>Active review focus</dt><dd>{member.active ? "Yes" : "No"}</dd></div>
+          </dl>
+          <ParcelCrossReference member={member} />
+        </li>)}
+      </ol>
+    </section>}
+
+    {model.crossReferenceMayBeIncomplete && <p className={styles.paginationNotice} role="status">
+      Additional graph records are available; parcel cross-reference may be incomplete.
+    </p>}
+
+    <section className={styles.geometryState} aria-labelledby="parcel-geometry-heading">
+      <div><h4 id="parcel-geometry-heading">Geometry</h4><ReadinessBadge value="NOT_AVAILABLE" /></div>
+      <p>No approved parcel geometry is available in this slice.</p>
+    </section>
+
+    <div className={styles.truthNotices}>
+      <p>Case parcel review state does not confirm canonical Property Identity or legal parcel boundaries.</p>
+      <p>Case-to-Property binding is not available from an approved read in this workspace slice.</p>
+    </div>
+  </div>;
 }
 
 export function ProfessionalWorkspaceShell({
@@ -86,14 +222,18 @@ export function ProfessionalWorkspaceShell({
         const workspace = await vnextIdentityClient.workspace(workspaceId as string);
         const property = await vnextIdentityClient.property(propertyId as string);
         if (property.workspace_id !== workspace.workspace_id) throw new VNextContractError("workspace.property_binding");
-        const [graph, evidence] = await Promise.all([
+        const parcelSetRead = vnextIdentityClient.caseParcelSet(caseId, workspace.workspace_id)
+          .then((data): ParcelSetState => ({ kind: "ready", data }))
+          .catch((error: unknown): ParcelSetState => classifyParcelSetError(error));
+        const [graph, evidence, parcelSet] = await Promise.all([
           vnextIdentityClient.graph(property.property_entity_id),
           vnextIdentityClient.evidence(property.property_entity_id),
+          parcelSetRead,
         ]);
         if (graph.property.workspace_id !== workspace.workspace_id || evidence.property.workspace_id !== workspace.workspace_id) {
           throw new VNextContractError("workspace.read_binding");
         }
-        if (active) setState({ kind: "ready", data: { workspace, property, graph, evidence } });
+        if (active) setState({ kind: "ready", data: { workspace, property, graph, evidence, parcelSet } });
       } catch (error: unknown) {
         if (!active) return;
         if (error instanceof VNextSessionError) {
@@ -108,7 +248,7 @@ export function ProfessionalWorkspaceShell({
 
     void loadApprovedContext();
     return () => { active = false; };
-  }, [contextState, propertyId, workspaceId]);
+  }, [caseId, contextState, propertyId, workspaceId]);
 
   const loaded = state.kind === "ready" ? state.data : null;
   const graphHasMore = Boolean(loaded?.graph.next_cursor);
@@ -117,6 +257,7 @@ export function ProfessionalWorkspaceShell({
     : state.kind === "loading" || contextState === "missing" ? "PARTIAL" : "NOT_AVAILABLE";
   const activeModule = MODULES.find((item) => item.id === selectedModule) ?? MODULES[0];
   const activeModuleReadiness = moduleReadiness(activeModule.id, state);
+  const parcelReadiness = moduleReadiness("parcel", state);
 
   return (
     <div className={styles.page}>
@@ -161,13 +302,9 @@ export function ProfessionalWorkspaceShell({
         <section className={`${styles.panel} ${styles.mapCanvas}`} aria-labelledby="map-canvas-heading">
           <div className={styles.panelHeading}>
             <div><p className={styles.kicker}>CENTRAL WORKSPACE</p><h2 id="map-canvas-heading">Map Canvas</h2></div>
-            <ReadinessBadge value="NOT_AVAILABLE" />
+            <ReadinessBadge value={parcelReadiness} />
           </div>
-          <div className={styles.mapEmpty}>
-            <div className={styles.mapMarker} aria-hidden="true"><span /></div>
-            <p>No supported professional geometry is available.</p>
-            <span>Cadastral parcels, buildings, planning layers, title overlays, and listing markers are not rendered in this foundation shell.</span>
-          </div>
+          <ParcelCanvasBody contextState={contextState} state={state} />
         </section>
 
         <aside className={`${styles.panel} ${styles.evidenceRail}`} aria-labelledby="evidence-rail-heading">

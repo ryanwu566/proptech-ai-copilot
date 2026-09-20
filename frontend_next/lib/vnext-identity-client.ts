@@ -22,6 +22,7 @@ import {
   type VNextErrorCode,
   type WorkspaceContextDTO,
 } from "@/lib/vnext-identity-contract";
+import { parseCaseParcelSet, type CaseParcelSetDTO } from "@/lib/vnext-case-parcel-set-contract";
 import {
   buildingHypothesisBody, parcelBuildingRelationBody, parcelHypothesisBody,
   type BuildingComponents, type ParcelComponents,
@@ -146,6 +147,14 @@ export const vnextIdentityClient = {
     const result = await requestJson(`/v1/workspaces/${expected}/context`, parseWorkspaceContext);
     requireMatch(result.workspace_id, expected, "workspace.workspace_id");
     return result;
+  },
+  caseParcelSet: async (caseId: string, workspaceId: string): Promise<CaseParcelSetDTO> => {
+    const expectedCase = identifier(caseId);
+    const expectedWorkspace = identifier(workspaceId);
+    return requestJson(
+      `/v1/cases/${expectedCase}/parcel-set`,
+      (payload) => parseCaseParcelSet(payload, { caseId: expectedCase, workspaceId: expectedWorkspace }),
+    );
   },
   createResolution: async (workspaceId: string, input: ResolutionInput, commandKey: string): Promise<PropertyResolutionDTO> => {
     const expectedWorkspace = identifier(workspaceId);
