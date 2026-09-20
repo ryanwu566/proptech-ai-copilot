@@ -2,6 +2,7 @@
 *.pyc
 .pytest_cache/
 .pytest-temp*/
+.pytest-tmp/
 .venv/
 venv/
 .env

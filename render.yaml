@@ -48,6 +48,10 @@ services:
         sync: false
       - key: GOOGLE_MAPS_API_KEY
         sync: false
+      - key: EARTH_ENGINE_SATELLITE_REFERENCE_V1
+        value: "false"
+      - key: EARTH_ENGINE_PROJECT
+        sync: false
       - key: TGOS_APP_ID
         sync: false
       - key: TGOS_API_KEY

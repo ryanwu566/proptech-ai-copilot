@@ -32,6 +32,7 @@ from backend.api.routes_mortgage_rates import router as mortgage_rates_router
 from backend.api.routes_road import router as road_router
 from backend.api.routes_taxoracle import router as taxoracle_router
 from backend.api.routes_terrain_risk import router as terrain_risk_router
+from backend.api.routes_satellite_reference import router as satellite_reference_router
 from backend.api.routes_valuation import router as valuation_router
 from backend.api.routes_pilot import router as pilot_router
 from backend.api.routes_performance import router as performance_router
@@ -219,6 +220,7 @@ app.include_router(commute_router)
 app.include_router(loan_calculator_router)
 app.include_router(taxoracle_router)
 app.include_router(terrain_risk_router)
+app.include_router(satellite_reference_router)
 app.include_router(market_router)
 app.include_router(map_router)
 app.include_router(road_router)
