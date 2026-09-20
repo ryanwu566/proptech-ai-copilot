@@ -1,11 +1,12 @@
 import type { Page, Route } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import type { LocationInsightResult } from "../lib/api";
 
 const DISCLAIMER = "Google visual context — not property identity, parcel geometry, cadastral boundary, ownership, or zoning evidence.";
 const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY?.trim() ?? "";
 
-function locationResult(accepted = true) {
+function locationResult(accepted = true): LocationInsightResult {
   return {
     input: { address: "Existing accepted fixture" },
     resolved_location: {
@@ -104,9 +105,40 @@ test("unconfirmed coordinates stay behind the confirmation gate", async ({ page 
   await expect(page.getByTestId("geocoding-acceptance-gate")).toBeVisible();
 });
 
+const acceptanceGateCases: Array<[string, LocationInsightResult["geocoding_acceptance"]]> = [
+  ["missing", undefined],
+  ["null", null],
+  ["still requires confirmation", {
+    original_query: "Existing accepted fixture",
+    normalized_address: "Accepted fixture location",
+    resolved_lat: 25.033,
+    resolved_lng: 121.5654,
+    geocoding_source: "google_geocoding",
+    match_quality: "EXACT_OR_ACCEPTABLE",
+    accepted_for_analysis: true,
+    requires_confirmation: true,
+    mismatch_reasons: [],
+    message: "Confirmation is still required.",
+  }],
+];
+
+for (const [acceptanceCase, acceptance] of acceptanceGateCases) {
+  test(`${acceptanceCase} acceptance metadata stays behind the confirmation gate`, async ({ page }) => {
+    const result = locationResult();
+    result.geocoding_acceptance = acceptance;
+
+    const panel = await openLocationInsight(page, result);
+
+    await expect(panel).toHaveAttribute("data-google-visual-state", "confirmation_required");
+    await expect(panel.getByText("Confirm the resolved location before loading Google visual context.")).toBeVisible();
+    await expect(panel.getByText(DISCLAIMER)).toBeVisible();
+    await expect(panel.locator("iframe")).toHaveCount(0);
+  });
+}
+
 test("invalid accepted coordinates fail closed without a Google request", async ({ page }) => {
   const result = locationResult();
-  result.resolved_location.latitude = Number.NaN;
+  result.resolved_location!.latitude = Number.NaN;
   const panel = await openLocationInsight(page, result);
 
   await expect(panel).toHaveAttribute("data-google-visual-state", "preview_unavailable");

@@ -12,7 +12,10 @@ type PreviewLoadState = "loading" | "loaded" | "load_not_confirmed";
 
 export function GoogleLocationVisualContext({ result }: { result?: LocationInsightResult }) {
   const location = result?.resolved_location;
-  const confirmationRequired = !location || result?.geocoding_acceptance?.accepted_for_analysis === false;
+  const acceptance = result?.geocoding_acceptance;
+  const confirmationRequired = !location
+    || acceptance?.accepted_for_analysis !== true
+    || acceptance.requires_confirmation === true;
   const browserKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY;
 
   if (confirmationRequired) {
