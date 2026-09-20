@@ -10,6 +10,7 @@ from typing import Mapping
 IDENTITY_V1_ENV = "FEATURE_IDENTITY_V1"
 LEGACY_CASE_IMPORT_V1_ENV = "FEATURE_LEGACY_CASE_IMPORT_V1"
 CASE_PARCEL_SET_V1_ENV = "FEATURE_CASE_PARCEL_SET_V1"
+TAIPEI_PLANNING_READ_V1_ENV = "TAIPEI_PLANNING_READ_V1"
 _ENABLED = frozenset({"1", "true", "yes", "on"})
 
 
@@ -18,6 +19,7 @@ class VNextFeatureFlags:
     identity_v1: bool = False
     legacy_case_import_v1: bool = False
     case_parcel_set_v1: bool = False
+    taipei_planning_read_v1: bool = False
 
     @classmethod
     def from_environment(
@@ -32,10 +34,14 @@ class VNextFeatureFlags:
         case_parcel_set_enabled = (
             values.get(CASE_PARCEL_SET_V1_ENV, "").strip().lower() in _ENABLED
         )
+        taipei_planning_read_enabled = (
+            values.get(TAIPEI_PLANNING_READ_V1_ENV, "").strip().lower() in _ENABLED
+        )
         return cls(
             identity_v1=identity_enabled,
             legacy_case_import_v1=legacy_import_enabled,
             case_parcel_set_v1=case_parcel_set_enabled,
+            taipei_planning_read_v1=taipei_planning_read_enabled,
         )
 
     def enabled(self, name: str) -> bool:
@@ -45,6 +51,8 @@ class VNextFeatureFlags:
             return self.legacy_case_import_v1
         if name == "case_parcel_set_v1":
             return self.case_parcel_set_v1
+        if name == "taipei_planning_read_v1":
+            return self.taipei_planning_read_v1
         return False
 
 

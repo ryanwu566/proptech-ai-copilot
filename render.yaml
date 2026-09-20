@@ -56,6 +56,10 @@ services:
         sync: false
       - key: NLSC_GATEWAY_CLIENT_TOKEN
         sync: false
+      - key: TAIPEI_PLANNING_READ_V1
+        value: "false"
+      - key: TAIPEI_PLANNING_SOURCE_MODE
+        value: manual_evidence
       - key: TDX_CLIENT_ID
         sync: false
       - key: TDX_CLIENT_SECRET

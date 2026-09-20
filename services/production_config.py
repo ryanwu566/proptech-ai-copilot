@@ -32,6 +32,7 @@ MAINTENANCE_MODE_ENV = "MAINTENANCE_MODE"
 NLSC_GATEWAY_BASE_URL_ENV = "NLSC_GATEWAY_BASE_URL"
 NLSC_GATEWAY_CLIENT_TOKEN_ENV = "NLSC_GATEWAY_CLIENT_TOKEN"
 METRICS_SCRAPE_TOKEN_ENV = "METRICS_SCRAPE_TOKEN"
+TAIPEI_PLANNING_SOURCE_MODE_ENV = "TAIPEI_PLANNING_SOURCE_MODE"
 
 PRODUCTION_MODES = frozenset({"production", "preview"})
 _GATEWAY_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+={0,2}\Z")
@@ -155,6 +156,15 @@ def _metrics_scrape_token_status(value: str | None) -> str:
     return "configured" if valid_scrape_token(value) else "malformed"
 
 
+def taipei_planning_source_mode_status(values: Mapping[str, str]) -> str:
+    """Return a value-free category for the only supported V1 source mode."""
+
+    raw_value = values.get(TAIPEI_PLANNING_SOURCE_MODE_ENV)
+    if raw_value is None or not raw_value.strip():
+        return "not_configured"
+    return "configured" if raw_value.strip().lower() == "manual_evidence" else "malformed"
+
+
 def _database_url(values: Mapping[str, str]) -> tuple[str, str]:
     primary = values.get(DATABASE_URL_ENV, "").strip()
     if primary:
@@ -180,6 +190,7 @@ class RuntimeConfiguration:
     maintenance_status: str
     nlsc_gateway_status: str
     metrics_scrape_token_status: str
+    taipei_planning_source_mode_status: str
     serverless: bool
 
     @property
@@ -215,6 +226,7 @@ class RuntimeConfiguration:
             "maintenance": self.maintenance_status,
             "nlsc_gateway": self.nlsc_gateway_status,
             "metrics_scrape_token": self.metrics_scrape_token_status,
+            "taipei_planning_source_mode": self.taipei_planning_source_mode_status,
             "ready": self.ready,
         }
 
@@ -242,6 +254,7 @@ def load_runtime_configuration(environ: Mapping[str, str] | None = None) -> Runt
         maintenance_status=_maintenance_status(values.get(MAINTENANCE_MODE_ENV)),
         nlsc_gateway_status=nlsc_gateway_configuration_status(values, production_like=production_like),
         metrics_scrape_token_status=_metrics_scrape_token_status(values.get(METRICS_SCRAPE_TOKEN_ENV)),
+        taipei_planning_source_mode_status=taipei_planning_source_mode_status(values),
         serverless=serverless,
     )
 

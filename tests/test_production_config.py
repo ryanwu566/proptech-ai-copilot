@@ -133,3 +133,24 @@ def test_health_exposes_gateway_category_without_values(monkeypatch) -> None:
     assert payload["nlsc_gateway"] == "configured"
     assert "backend-client-token-123" not in json.dumps(payload)
     assert "93.184.216.34" not in json.dumps(payload)
+
+
+def test_taipei_planning_source_mode_is_exact_and_value_free() -> None:
+    assert load_runtime_configuration({}).safe_report()["taipei_planning_source_mode"] == "not_configured"
+    assert load_runtime_configuration({"TAIPEI_PLANNING_SOURCE_MODE": "  "}).safe_report()[
+        "taipei_planning_source_mode"
+    ] == "not_configured"
+    assert load_runtime_configuration({"TAIPEI_PLANNING_SOURCE_MODE": "manual_evidence"}).safe_report()[
+        "taipei_planning_source_mode"
+    ] == "configured"
+    assert load_runtime_configuration({"TAIPEI_PLANNING_SOURCE_MODE": "  MANUAL_EVIDENCE  "}).safe_report()[
+        "taipei_planning_source_mode"
+    ] == "configured"
+
+    malformed = load_runtime_configuration({"TAIPEI_PLANNING_SOURCE_MODE": "live_api"}).safe_report()
+    assert malformed["taipei_planning_source_mode"] == "malformed"
+    assert "live_api" not in json.dumps(malformed)
+
+
+def test_taipei_planning_source_mode_does_not_change_global_readiness() -> None:
+    assert load_runtime_configuration({"TAIPEI_PLANNING_SOURCE_MODE": "live_api"}).ready is True

@@ -89,6 +89,10 @@ class VNextError(Exception):
         return cls(ErrorCode.PROVIDER_UNAVAILABLE, details=details)
 
     @classmethod
+    def coverage_unavailable(cls) -> "VNextError":
+        return cls(ErrorCode.COVERAGE_UNAVAILABLE)
+
+    @classmethod
     def stale_evidence(cls) -> "VNextError":
         return cls(ErrorCode.STALE_EVIDENCE)
 
