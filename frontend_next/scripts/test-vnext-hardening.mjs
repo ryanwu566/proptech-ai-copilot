@@ -347,6 +347,12 @@ await check("valid Stage 1 DTOs parse", () => {
   assert.equal(contract.parseCaseAttachment(attachment()).case.identity_status, "confirmed");
 });
 
+await check("empty evidence page is a valid read-only acceptance response", () => {
+  const value = evidencePage();
+  value.evidence = [];
+  assert.deepEqual(contract.parsePropertyEvidence(value).evidence, []);
+});
+
 const resolutionMutations = [
   ["missing required field", (value) => { delete value.workspace_id; }],
   ["unknown enum", (value) => { value.state = "verified"; }],

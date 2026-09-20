@@ -3,6 +3,7 @@ import { expect, test, type Page, type Route } from "@playwright/test";
 const USER = "11111111-1111-4111-8111-111111111111";
 const WORKSPACE = "22222222-2222-4222-8222-222222222222";
 const PROPERTY = "66666666-6666-4666-8666-666666666666";
+const PROPERTY_NODE = "77777777-7777-4777-8777-777777777777";
 const NOW = "2026-09-18T00:00:00Z";
 const API = "http://e2e.test";
 const AUTH = "https://slice8-auth.supabase.co";
@@ -25,12 +26,12 @@ async function installSession(page: Page, accessToken = token()) {
 }
 
 function property() {
-  return { property_entity_id: PROPERTY, workspace_id: WORKSPACE, lifecycle_state: "active", display_label: "測試房產",
+  return { property_entity_id: PROPERTY, workspace_id: WORKSPACE, lifecycle_state: "unverified", display_label: "測試房產",
     confirmation_summary: { available: false, human_confirmed: false, confirmation_id: null, confirmed_at: null,
       confirmed_by: null, resolution_id: null }, version: 1, created_at: NOW, updated_at: NOW };
 }
 
-async function mockBackend(page: Page, options: { propertyStatus?: number; workspaceStatus?: number } = {}) {
+async function mockBackend(page: Page, options: { propertyStatus?: number; workspaceStatus?: number; role?: "member" | "viewer" } = {}) {
   const requests: { url: string; authorization: string; method: string }[] = [];
   await page.route(`${API}/v1**`, async (route: Route) => {
     const request = route.request();
@@ -39,11 +40,14 @@ async function mockBackend(page: Page, options: { propertyStatus?: number; works
     if (path === "/v1") return route.fulfill({ json: { status: "ok", principal: { user_id: USER }, features: { identity_v1: true, legacy_case_import_v1: false } } });
     if (path === `/v1/workspaces/${WORKSPACE}/context`) return route.fulfill(options.workspaceStatus
       ? { status: options.workspaceStatus, json: { error: { code: "permission_denied", message: "private backend detail", request_id: "auth-e2e", retryable: false } } }
-      : { json: { status: "ok", workspace_id: WORKSPACE, user_id: USER, role: "member" } });
+      : { json: { status: "ok", workspace_id: WORKSPACE, user_id: USER, role: options.role ?? "member" } });
     if (path === `/v1/properties/${PROPERTY}`) return route.fulfill(options.propertyStatus
       ? { status: options.propertyStatus, json: { error: { code: "authentication_required", message: "private backend detail", request_id: "auth-e2e", retryable: false } } }
       : { json: property() });
-    if (path === `/v1/properties/${PROPERTY}/graph`) return route.fulfill({ json: { property: property(), nodes: [], relations: [], as_of: null, next_cursor: null } });
+    if (path === `/v1/properties/${PROPERTY}/graph`) return route.fulfill({ json: { property: property(), nodes: [{
+      node_id: PROPERTY_NODE, node_type: "property", record_id: PROPERTY, display_label: "測試房產",
+      status: null, source: null, valid_from: null, valid_to: null,
+    }], relations: [], as_of: null, next_cursor: null } });
     if (path === `/v1/properties/${PROPERTY}/evidence`) return route.fulfill({ json: { property: property(), evidence: [], next_cursor: null } });
     return route.abort();
   });
@@ -93,6 +97,28 @@ test("stored valid session restores the live review without signing in again", a
   await expect(page.getByTestId("identity-status-summary")).toBeVisible();
   await expect(page.getByLabel("電子郵件")).toHaveCount(0);
   expect(requests.length).toBeGreaterThan(2);
+});
+
+test("authenticated viewer review is GET-only with mutation controls disabled", async ({ page }) => {
+  await installSession(page);
+  const requests = await mockBackend(page, { role: "viewer" });
+
+  await page.goto(routePath);
+
+  await expect(page.getByTestId("identity-status-summary")).toBeVisible();
+  await expect(page.getByText("目前沒有已確認或有爭議的地籍關係", { exact: true })).toBeVisible();
+  await expect(page.getByText("目前沒有可顯示的證據摘要", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("confirmed-count")).toHaveText("0");
+  await expect(page.getByTestId("evidence-count")).toHaveText("0");
+  await expect(page.locator('main [role="alert"]')).toHaveCount(0);
+  await expect(page.getByTestId("submit-parcel")).toBeDisabled();
+  await expect(page.getByTestId("submit-building")).toBeDisabled();
+  await expect(page.getByTestId("submit-relation")).toBeDisabled();
+  expect(requests.map((request) => new URL(request.url).pathname)).toEqual(expect.arrayContaining([
+    `/v1/properties/${PROPERTY}/graph`,
+    `/v1/properties/${PROPERTY}/evidence`,
+  ]));
+  expect(requests.every((request) => request.method === "GET")).toBe(true);
 });
 
 test("privileged-looking stored session is rejected before any backend call", async ({ page }) => {

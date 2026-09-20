@@ -20,6 +20,15 @@ from uuid import UUID, uuid4
 import pytest
 
 from scripts.disposable_postgres_auth import bootstrap_disposable_supabase_auth
+from scripts.provision_stage1_acceptance import (
+    ADVISORY_LOCK_KEY as ACCEPTANCE_ADVISORY_LOCK_KEY,
+    PROPERTY_LABEL as ACCEPTANCE_PROPERTY_LABEL,
+    REQUIRED_MIGRATIONS as ACCEPTANCE_MIGRATIONS,
+    WORKSPACE_LABEL as ACCEPTANCE_WORKSPACE_LABEL,
+    AcceptanceConfig,
+    PostgresAcceptanceStore,
+    execute as execute_acceptance,
+)
 from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
 from services.vnext.auth import AuthenticatedPrincipal
@@ -218,6 +227,7 @@ def _prepared_database():
     pool = None
     try:
         _require_disposable_database(admin)
+        admin.execute("DROP TABLE IF EXISTS public.schema_migration_ledger")
         admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
         admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
         _install_auth_contract(admin)
@@ -264,6 +274,7 @@ def _prepared_database():
                 admin.execute("ALTER ROLE vnext_api PASSWORD NULL")
             admin.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
             admin.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
+            admin.execute("DROP TABLE IF EXISTS public.schema_migration_ledger")
             if admin.execute("SELECT to_regclass('auth.users')").fetchone()[0] is not None:
                 admin.execute(
                     "DELETE FROM auth.users WHERE id = ANY(%s)",
@@ -915,6 +926,153 @@ def _insert_identity_candidate_set(
         "right": right_candidate_id,
         "conflict": conflict_id,
     }
+
+
+def _install_acceptance_ledger(admin) -> None:
+    admin.execute(
+        "CREATE TABLE public.schema_migration_ledger ("
+        "migration_id text PRIMARY KEY, checksum text NOT NULL, "
+        "schema_version text NOT NULL, release_version text, "
+        "applied_at timestamptz NOT NULL DEFAULT clock_timestamp())"
+    )
+    with admin.cursor() as cursor:
+        cursor.executemany(
+            "INSERT INTO public.schema_migration_ledger ("
+            "migration_id, schema_version, release_version, checksum"
+            ") VALUES (%s, 'stage1-acceptance-test-v1', 'disposable-test', %s)",
+            ACCEPTANCE_MIGRATIONS,
+        )
+    admin.commit()
+
+
+def test_real_postgres_stage1_acceptance_bundle_is_reversible_and_drift_safe() -> None:
+    workspace_id = UUID("30000000-0000-4000-8000-000000000001")
+    property_id = UUID("30000000-0000-4000-8000-000000000002")
+    config = AcceptanceConfig(USERS["none"], workspace_id, property_id)
+
+    with _prepared_database() as (admin, _pool, _context):
+        _install_acceptance_ledger(admin)
+        store = PostgresAcceptanceStore(admin)
+
+        with admin.transaction():
+            store.acquire_lock()
+            with connect(DATABASE_URL) as contender:
+                with contender.transaction():
+                    assert contender.execute(
+                        "SELECT pg_try_advisory_xact_lock(%s)",
+                        (ACCEPTANCE_ADVISORY_LOCK_KEY,),
+                    ).fetchone() == (False,)
+
+        assert execute_acceptance(store, config, mode="dry_run") == {
+            "status": "ready",
+            "mode": "dry_run",
+            "bundle_state": "empty",
+            "next_action": "provision",
+        }
+        assert execute_acceptance(store, config, mode="provision") == {
+            "status": "pass",
+            "mode": "provision",
+            "bundle_state": "active",
+            "action": "provisioned",
+        }
+        assert admin.execute(
+            "SELECT workspace_type, display_name, status, created_by_user_id, archived_at "
+            "FROM vnext_core.workspaces WHERE workspace_id = %s",
+            (workspace_id,),
+        ).fetchone() == (
+            "team",
+            ACCEPTANCE_WORKSPACE_LABEL,
+            "active",
+            USERS["none"],
+            None,
+        )
+        assert admin.execute(
+            "SELECT role, status, joined_at IS NOT NULL, left_at, revoked_at "
+            "FROM vnext_core.workspace_members WHERE workspace_id = %s",
+            (workspace_id,),
+        ).fetchone() == ("viewer", "active", True, None, None)
+        assert admin.execute(
+            "SELECT entity_status, display_label, created_by_user_id, archived_at "
+            "FROM vnext_core.property_entities WHERE property_entity_id = %s",
+            (property_id,),
+        ).fetchone() == (
+            "unverified",
+            ACCEPTANCE_PROPERTY_LABEL,
+            USERS["none"],
+            None,
+        )
+        graph_node_id = admin.execute(
+            "SELECT property_graph_node_id FROM vnext_core.property_graph_nodes "
+            "WHERE workspace_id = %s AND node_type = 'property' AND record_id = %s",
+            (workspace_id, property_id),
+        ).fetchone()[0]
+        assert execute_acceptance(store, config, mode="provision")["action"] == "none"
+
+        assert execute_acceptance(store, config, mode="archive") == {
+            "status": "pass",
+            "mode": "archive",
+            "bundle_state": "archived",
+            "action": "archived",
+        }
+        assert execute_acceptance(store, config, mode="provision") == {
+            "status": "pass",
+            "mode": "provision",
+            "bundle_state": "active",
+            "action": "reactivated",
+        }
+        assert admin.execute(
+            "SELECT property_graph_node_id FROM vnext_core.property_graph_nodes "
+            "WHERE workspace_id = %s",
+            (workspace_id,),
+        ).fetchall() == [(graph_node_id,)]
+
+        assert execute_acceptance(store, config, mode="archive")["status"] == "pass"
+        admin.execute(
+            "INSERT INTO vnext_core.workspace_members ("
+            "workspace_id, user_id, role, status, joined_at"
+            ") VALUES (%s, %s, 'viewer', 'active', clock_timestamp())",
+            (workspace_id, USERS["viewer"]),
+        )
+        admin.commit()
+        refused = execute_acceptance(store, config, mode="provision")
+        assert refused["status"] == "refused"
+        assert admin.execute(
+            "SELECT status FROM vnext_core.workspaces WHERE workspace_id = %s",
+            (workspace_id,),
+        ).fetchone() == ("archived",)
+
+
+def test_real_postgres_stage1_preflight_rejects_policy_and_owner_drift() -> None:
+    config = AcceptanceConfig(
+        USERS["none"],
+        UUID("30000000-0000-4000-8000-000000000011"),
+        UUID("30000000-0000-4000-8000-000000000012"),
+    )
+
+    with _prepared_database() as (admin, _pool, _context):
+        _install_acceptance_ledger(admin)
+        store = PostgresAcceptanceStore(admin)
+        assert execute_acceptance(store, config, mode="dry_run")["status"] == "ready"
+
+        admin.execute(
+            "ALTER POLICY property_entities_active_writer_insert "
+            "ON vnext_core.property_entities WITH CHECK (true)"
+        )
+        admin.commit()
+        assert execute_acceptance(store, config, mode="dry_run") == {
+            "status": "refused",
+            "reason": "request_rls_unsafe",
+        }
+
+    with _prepared_database() as (admin, _pool, _context):
+        _install_acceptance_ledger(admin)
+        admin.execute(
+            "ALTER TABLE vnext_core.property_entities OWNER TO vnext_api"
+        )
+        admin.commit()
+        assert execute_acceptance(
+            PostgresAcceptanceStore(admin), config, mode="dry_run"
+        ) == {"status": "refused", "reason": "request_rls_unsafe"}
 
 
 def test_real_postgres_vnext_role_rls_and_pool_isolation() -> None:

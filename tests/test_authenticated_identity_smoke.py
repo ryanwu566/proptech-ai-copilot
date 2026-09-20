@@ -113,28 +113,29 @@ def test_token_without_role_is_left_to_api_authentication() -> None:
         environ=environment(SMOKE_USER_BEARER_TOKEN=token_for(None)),
         client=fake,
     ) == 0
-    assert len(fake.calls) == 5
+    assert len(fake.calls) == 6
 
 
 def test_default_run_is_read_only_and_checks_authenticated_and_control_routes(capsys: pytest.CaptureFixture[str]) -> None:
     fake = FakeClient()
     env = environment()
     assert smoke.main(environ=env, client=fake) == 0
-    assert [call[0] for call in fake.calls] == ["GET"] * 5
+    assert [call[0] for call in fake.calls] == ["GET"] * 6
     assert [call[1] for call in fake.calls] == [
         "https://api.example.test/v1",
+        f"https://api.example.test/v1/workspaces/{WORKSPACE_ID}/context",
         f"https://api.example.test/v1/properties/{PROPERTY_ID}",
         f"https://api.example.test/v1/properties/{PROPERTY_ID}/graph",
         f"https://api.example.test/v1/properties/{PROPERTY_ID}/evidence",
         "https://api.example.test/v1",
     ]
-    assert all(call[2]["Authorization"] == f"Bearer {env['SMOKE_USER_BEARER_TOKEN']}" for call in fake.calls[:4])
-    assert "Authorization" not in fake.calls[4][2]
+    assert all(call[2]["Authorization"] == f"Bearer {env['SMOKE_USER_BEARER_TOKEN']}" for call in fake.calls[:5])
+    assert "Authorization" not in fake.calls[5][2]
     assert all(0 < call[3] <= 30 for call in fake.calls)
-    assert [call[4] for call in fake.calls] == [0, 0, 0, 0, 4096]
-    assert len({call[2]["X-Correlation-ID"] for call in fake.calls}) == 5
+    assert [call[4] for call in fake.calls] == [0, 0, 0, 0, 0, 4096]
+    assert len({call[2]["X-Correlation-ID"] for call in fake.calls}) == 6
     output = capsys.readouterr()
-    assert output.out.count("PASS status=") == 5
+    assert output.out.count("PASS status=") == 6
     assert "status=401" in output.out
     for secret in (env["SMOKE_USER_BEARER_TOKEN"], BODY_SECRET, PROPERTY_ID, WORKSPACE_ID, "Authorization"):
         assert secret not in output.out + output.err
@@ -183,7 +184,7 @@ def test_unauthenticated_control_requires_bearer_challenge() -> None:
 def test_redirect_is_failed_without_forwarding_bearer_to_foreign_origin(capsys: pytest.CaptureFixture[str]) -> None:
     fake = FakeClient(redirect=True)
     assert smoke.main(environ=environment(), client=fake) == 1
-    assert len(fake.calls) == 5
+    assert len(fake.calls) == 6
     assert all(call[1].startswith("https://api.example.test/") for call in fake.calls)
     assert "foreign.example.test" not in capsys.readouterr().out
 
