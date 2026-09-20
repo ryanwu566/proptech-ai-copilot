@@ -32,9 +32,11 @@ async function goToMarket(page: import("@playwright/test").Page) {
 }
 
 async function selectAndSearch(page: import("@playwright/test").Page, county: string, district: string) {
+  const districtSelect = page.getByTestId("market-district-select");
   await page.getByTestId("market-county-select").selectOption(county);
-  await page.waitForTimeout(400);
-  await page.getByTestId("market-district-select").selectOption(district);
+  await expect(districtSelect.locator(`option[value="${district}"]`)).toHaveCount(1);
+  await districtSelect.selectOption(district);
+  await expect(districtSelect).toHaveValue(district);
   await page.getByTestId("market-insight-search-button").click();
 }
 
@@ -346,10 +348,9 @@ test.describe("TASK 5: PROVIDER ERROR HARD ASSERT", () => {
   test("PROVIDER_ERROR_STATE: 500 response shows error state, previous result cleared", async ({ page }) => {
     test.setTimeout(20000);
 
-    let requestCount = 0;
     await page.route("**/market-insights/query", async (route) => {
-      requestCount++;
-      if (requestCount === 1) {
+      const payload = route.request().postDataJSON();
+      if (payload.district === "大安區") {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -376,16 +377,23 @@ test.describe("TASK 5: PROVIDER ERROR HARD ASSERT", () => {
     await expect(page.locator("body")).toContainText("PREVIOUS_SUCCESS_MARKER", { timeout: 8000 });
 
     // Second query: trigger error
-    await page.getByTestId("market-district-select").selectOption("信義區");
-    await page.waitForTimeout(300);
-    await page.getByTestId("market-insight-search-button").click();
+    const district = page.getByTestId("market-district-select");
+    const search = page.getByTestId("market-insight-search-button");
+    await district.selectOption("信義區");
+    await expect(district).toHaveValue("信義區");
+    await expect(search).toBeEnabled();
+    const providerErrorResponse = page.waitForResponse((response) => {
+      if (new URL(response.url()).pathname !== "/market-insights/query" || response.status() !== 500) return false;
+      return response.request().postDataJSON().district === "信義區";
+    });
+    await search.click();
+    expect((await providerErrorResponse).status()).toBe(500);
 
-    // Wait for the response to complete and error state to render
     const networkError = page.getByTestId("market-insight-network-error");
     const unavailable = page.getByTestId("market-insight-unavailable");
-
-    // Wait for either error indicator
-    await expect(networkError.or(unavailable)).toBeVisible({ timeout: 8000 });
+    await expect(unavailable).toBeVisible({ timeout: 8000 });
+    await expect(unavailable).toHaveAttribute("data-market-failure-reason", "market_request_http_error");
+    await expect(networkError).toHaveCount(0);
 
     // HARD ASSERT: previous successful result is NOT visible
     await expect(page.locator("body")).not.toContainText("PREVIOUS_SUCCESS_MARKER");
