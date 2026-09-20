@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 import math
 import re
 import threading
-from collections.abc import Awaitable, Callable, Iterable, MutableMapping
+from collections.abc import Awaitable, Callable, Iterable, Mapping, MutableMapping
 from typing import Any
 
 
@@ -55,6 +55,14 @@ def canonical_route_template(value: object) -> str:
 def route_template_from_scope(scope: dict[str, object]) -> str:
     """Read only the registered Starlette route template from an ASGI scope."""
 
+    fastapi_state = scope.get("fastapi")
+    if isinstance(fastapi_state, Mapping):
+        effective_context = fastapi_state.get("effective_route_context")
+        effective_template = canonical_route_template(
+            getattr(effective_context, "path", None)
+        )
+        if effective_template != UNMATCHED_ROUTE:
+            return effective_template
     route = scope.get("route")
     return canonical_route_template(getattr(route, "path", None))
 
