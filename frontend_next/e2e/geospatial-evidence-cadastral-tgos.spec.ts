@@ -164,6 +164,7 @@ test("CSP-blocked NLSC fixture tile leaves Terrain result intact", async ({ page
     tile_url_template: "https://wmts.nlsc.gov.tw/e2e-cadastral/{z}/{x}/{y}.png",
   });
   await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(result) }));
+  await page.route("https://wmts.nlsc.gov.tw/**", (route) => route.abort("blockedbyclient"));
   await openTerrain(page);
 
   await analyze(page);

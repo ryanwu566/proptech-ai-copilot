@@ -42,6 +42,26 @@ export const test = base.extend({
       unexpectedE2eRequests.push(`${route.request().method()} ${url.origin}${url.pathname}`);
       await route.abort("failed");
     });
+    await page.route("**/terrain/satellite-reference", (route) => route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "unavailable",
+        reason_code: "feature_disabled",
+        source: "Sentinel-2 / Copernicus",
+        dataset: "COPERNICUS/S2_SR_HARMONIZED",
+        window_start: "2026-06-22",
+        window_end: "2026-09-20",
+        retrieval_time: "2026-09-20T12:00:00Z",
+        aoi_radius_m: 500,
+        composite_method: "Median satellite reference composite across a fixed 90-day window.",
+        cloud_filter_percent: 35,
+        image_reference: null,
+        attribution: "Contains modified Copernicus Sentinel data processed by Google Earth Engine.",
+        limitations: ["Satellite reference is unavailable in this E2E fixture."],
+        disclaimer: "Satellite reference imagery — not cadastral or statutory evidence.",
+      }),
+    }));
     await page.route("**/demo-cases", (route) => route.fulfill({
       status: 200,
       contentType: "application/json",
