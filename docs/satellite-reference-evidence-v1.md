@@ -12,6 +12,15 @@ This feature provides bounded visual context for an already accepted terrain coo
 
 Google recommends ADC for unattended Google Cloud environments. The configured project must have the Earth Engine API enabled, Earth Engine registration, and the necessary project permissions.
 
+### Cloud Run deployment
+
+Cloud Run must run this backend with the attached user-managed service account `proptech-render-earth-engine@project-3bd34c3e-daee-493f-ad6.iam.gserviceaccount.com`. Cloud Run provides Application Default Credentials through that service identity. Do not create or mount a service-account JSON key, and do not set `GOOGLE_APPLICATION_CREDENTIALS`.
+
+Set these runtime variables on the Cloud Run service:
+
+- `EARTH_ENGINE_PROJECT=project-3bd34c3e-daee-493f-ad6`
+- `EARTH_ENGINE_SATELLITE_REFERENCE_V1=true`
+
 ## Fixed query contract
 
 - Dataset: `COPERNICUS/S2_SR_HARMONIZED`.

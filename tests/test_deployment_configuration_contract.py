@@ -30,3 +30,25 @@ def test_render_disables_proxy_header_client_rewriting() -> None:
     render = (ROOT / "render.yaml").read_text(encoding="utf-8")
     start_command = next(line for line in render.splitlines() if "startCommand:" in line)
     assert "--no-proxy-headers" in start_command
+
+
+def test_cloud_run_dockerfile_runs_fastapi_with_runtime_port_and_signal_contract() -> None:
+    dockerfile_path = ROOT / "Dockerfile.cloudrun"
+    assert dockerfile_path.is_file()
+
+    dockerfile = dockerfile_path.read_text(encoding="utf-8")
+    assert "FROM python:3.12-slim" in dockerfile
+    assert "WORKDIR /app" in dockerfile
+    assert "COPY backend/requirements.txt backend/requirements.txt" in dockerfile
+    assert "pip install --no-cache-dir -r backend/requirements.txt" in dockerfile
+    assert "exec uvicorn backend.api_main:app" in dockerfile
+    assert "--host 0.0.0.0" in dockerfile
+    assert "${PORT:-8080}" in dockerfile
+    assert "--no-proxy-headers" in dockerfile
+    assert "GOOGLE_APPLICATION_CREDENTIALS" not in dockerfile
+
+
+def test_cloud_run_dockerfile_does_not_replace_streamlit_image_contract() -> None:
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert "EXPOSE 8501" in dockerfile
+    assert 'CMD ["streamlit", "run", "app.py"' in dockerfile
