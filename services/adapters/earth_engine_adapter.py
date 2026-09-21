@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from datetime import date
+import hashlib
 import math
 import threading
 from typing import Any, Callable
@@ -30,6 +32,10 @@ _EXCLUDED_SCL_CLASSES = (3, 8, 9, 10, 11)
 _DIMENSIONS = (512, 512)
 _FORMAT = "jpg"
 _THUMBNAIL_HOST = "earthengine.googleapis.com"
+_EARTH_ENGINE_SCOPES = (
+    "https://www.googleapis.com/auth/earthengine",
+    "https://www.googleapis.com/auth/cloud-platform",
+)
 _SENSITIVE_QUERY_KEYS = {
     "access_token",
     "authorization",
@@ -43,6 +49,76 @@ _SENSITIVE_QUERY_KEYS = {
 }
 
 
+class _CredentialRetryBlocked(RuntimeError):
+    """The credential library attempted to repeat an outbound request."""
+
+
+class _SingleAttemptRequest:
+    """Allow each distinct credential transport request at most once."""
+
+    def __init__(self, request: Callable[..., Any]) -> None:
+        self._request = request
+        self._seen: set[tuple[str, str, bytes]] = set()
+        self._lock = threading.Lock()
+
+    @staticmethod
+    def _fingerprint(args: tuple[Any, ...], kwargs: dict[str, Any]) -> tuple[str, str, bytes]:
+        url = kwargs.get("url", args[0] if args else "")
+        method = kwargs.get("method", args[1] if len(args) > 1 else "GET")
+        body = kwargs.get("body", args[2] if len(args) > 2 else b"")
+        if isinstance(body, str):
+            body_bytes = body.encode("utf-8")
+        elif isinstance(body, bytes):
+            body_bytes = body
+        else:
+            body_bytes = repr(body).encode("utf-8")
+        return str(method).upper(), str(url), hashlib.sha256(body_bytes).digest()
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        fingerprint = self._fingerprint(args, kwargs)
+        with self._lock:
+            if fingerprint in self._seen:
+                raise _CredentialRetryBlocked("Credential transport retry is disabled")
+            self._seen.add(fingerprint)
+        return self._request(*args, **kwargs)
+
+
+def _install_single_attempt_refresh(
+    credentials: Any,
+    request_factory: Callable[[], Callable[..., Any]],
+) -> Any:
+    """Force every credential refresh operation through a no-repeat transport."""
+
+    if getattr(credentials, "quota_project_id", None) and hasattr(credentials, "with_quota_project"):
+        credentials = credentials.with_quota_project(None)
+    original_refresh = getattr(credentials, "refresh", None)
+    if callable(original_refresh):
+        def refresh_once(_request: Any) -> Any:
+            return original_refresh(_SingleAttemptRequest(request_factory()))
+
+        credentials.refresh = refresh_once
+    return credentials
+
+
+@contextmanager
+def _authorized_http_without_replays():
+    """Make Earth Engine discovery and API transports reject 401 replay."""
+
+    import google_auth_httplib2
+
+    original = google_auth_httplib2.AuthorizedHttp
+
+    def no_retry_authorized_http(credentials: Any, http: Any = None, **kwargs: Any):
+        kwargs["max_refresh_attempts"] = 0
+        return original(credentials, http=http, **kwargs)
+
+    google_auth_httplib2.AuthorizedHttp = no_retry_authorized_http
+    try:
+        yield
+    finally:
+        google_auth_httplib2.AuthorizedHttp = original
+
+
 class EarthEngineSatelliteAdapter:
     """Execute one fixed Sentinel-2 thumbnail query using ADC."""
 
@@ -51,7 +127,7 @@ class EarthEngineSatelliteAdapter:
         *,
         project: str,
         ee_module: Any | None = None,
-        auth_default: Callable[[], tuple[Any, str | None]] | None = None,
+        auth_default: Callable[..., tuple[Any, str | None]] | None = None,
         auth_request_factory: Callable[[], Any] | None = None,
         download_image: Callable[[str, int, float], bytes] | None = None,
     ) -> None:
@@ -85,13 +161,20 @@ class EarthEngineSatelliteAdapter:
                     import google.auth
 
                     auth_default = google.auth.default
-                credentials, _ = auth_default()
-                if hasattr(credentials, "valid") and not credentials.valid:
-                    request_factory = self._auth_request_factory
-                    if request_factory is None:
-                        from google.auth.transport.requests import Request
+                request_factory = self._auth_request_factory
+                if request_factory is None:
+                    from google.auth.transport.requests import Request
 
-                        request_factory = Request
+                    request_factory = Request
+                credentials, _ = auth_default(
+                    scopes=_EARTH_ENGINE_SCOPES,
+                    request=_SingleAttemptRequest(request_factory()),
+                )
+                from google.auth.credentials import with_scopes_if_required
+
+                credentials = with_scopes_if_required(credentials, _EARTH_ENGINE_SCOPES)
+                credentials = _install_single_attempt_refresh(credentials, request_factory)
+                if hasattr(credentials, "valid") and not credentials.valid:
                     credentials.refresh(request_factory())
             except Exception as exc:
                 raise EarthEngineCredentialUnavailable(
@@ -100,7 +183,8 @@ class EarthEngineSatelliteAdapter:
 
             try:
                 ee.data.setMaxRetries(0)
-                ee.Initialize(credentials=credentials, project=self._project)
+                with _authorized_http_without_replays():
+                    ee.Initialize(credentials=credentials, project=self._project)
             except Exception as exc:
                 raise EarthEngineInitializationUnavailable(
                     "Earth Engine initialization is unavailable"

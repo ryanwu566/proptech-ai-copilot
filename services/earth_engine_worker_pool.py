@@ -319,8 +319,12 @@ class EarthEngineWorkerManager:
         control = RequestControl(deadline=deadline)
         future: Future[bytes] | None = None
         wrapped: asyncio.Future[bytes] | None = None
+        slot: _WorkerSlot | None = None
         try:
             if executor is None or control.is_stale():
+                raise EarthEngineProviderTimeout("Earth Engine operation timed out")
+            slot = await self._acquire_slot_async(deadline, control)
+            if control.is_stale():
                 raise EarthEngineProviderTimeout("Earth Engine operation timed out")
             future = executor.submit(
                 self._execute_request,
@@ -330,31 +334,42 @@ class EarthEngineWorkerManager:
                 window_end=window_end,
                 deadline=deadline,
                 control=control,
+                slot=slot,
             )
+            slot = None
             wrapped = asyncio.wrap_future(future, loop=asyncio.get_running_loop())
+            wrapped.add_done_callback(self._consume_future_exception)
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 control.mark_stale()
-                future.cancel()
+                await self._await_containment(wrapped)
                 raise EarthEngineProviderTimeout("Earth Engine operation timed out")
             done, _ = await asyncio.wait({wrapped}, timeout=remaining)
             if not done:
                 control.mark_stale()
-                future.cancel()
                 await self._await_containment(wrapped)
                 raise EarthEngineProviderTimeout("Earth Engine operation timed out")
             return wrapped.result()
         except asyncio.CancelledError:
             control.mark_stale()
-            if future is not None:
-                future.cancel()
             if wrapped is not None:
                 await self._await_containment(wrapped)
             raise
         finally:
+            if slot is not None:
+                self._release_slot(slot)
             with self._lock:
                 self._admitted_requests -= 1
             self._admission_slots.release()
+
+    @staticmethod
+    def _consume_future_exception(future: asyncio.Future[bytes]) -> None:
+        if future.cancelled():
+            return
+        try:
+            future.exception()
+        except (asyncio.CancelledError, Exception):
+            return
 
     async def _await_containment(self, wrapped: asyncio.Future[bytes]) -> None:
         if wrapped.cancelled() or wrapped.done():
@@ -376,14 +391,18 @@ class EarthEngineWorkerManager:
         window_end: str,
         deadline: float,
         control: RequestControl,
+        slot: _WorkerSlot,
     ) -> bytes:
         """Send one request once and accept only its exact bounded response."""
 
-        self._raise_if_unavailable()
-        if control.is_stale() or deadline != control.deadline:
-            raise EarthEngineProviderTimeout("Earth Engine operation timed out")
+        try:
+            self._raise_if_unavailable()
+            if control.is_stale() or deadline != control.deadline:
+                raise EarthEngineProviderTimeout("Earth Engine operation timed out")
+        except BaseException:
+            self._release_slot(slot)
+            raise
 
-        slot = self._acquire_slot(deadline, control)
         request_id = uuid4().hex
         request = SatelliteWorkerRequest(
             version=PROTOCOL_VERSION,
@@ -452,7 +471,7 @@ class EarthEngineWorkerManager:
 
         for thread in controller_threads:
             if thread is not None and thread is not threading.current_thread():
-                thread.join(timeout=_CLEANUP_RESERVE_SECONDS)
+                thread.join()
 
         with self._lock:
             slots = list(self._slots.values())
@@ -596,15 +615,16 @@ class EarthEngineWorkerManager:
             raise EarthEngineCredentialUnavailable("Application Default Credentials are unavailable")
         raise EarthEngineProviderError("Earth Engine worker capacity is unavailable")
 
-    def _acquire_slot(self, deadline: float, control: RequestControl) -> _WorkerSlot:
+    async def _acquire_slot_async(self, deadline: float, control: RequestControl) -> _WorkerSlot:
         while True:
             remaining = deadline - time.monotonic()
             if control.is_stale() or remaining <= _CLEANUP_RESERVE_SECONDS:
                 raise EarthEngineProviderTimeout("Earth Engine operation timed out")
             try:
-                return self._idle_slots.get(timeout=min(_POLL_SECONDS, remaining - _CLEANUP_RESERVE_SECONDS))
+                return self._idle_slots.get_nowait()
             except queue.Empty:
                 self._raise_if_unavailable()
+                await asyncio.sleep(min(_POLL_SECONDS, remaining - _CLEANUP_RESERVE_SECONDS))
 
     @staticmethod
     def _valid_result(result: object, slot: _WorkerSlot, request_id: str) -> bool:

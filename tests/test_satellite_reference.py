@@ -572,17 +572,19 @@ def test_adapter_initializes_once_sets_zero_retries_and_reuses_state_concurrentl
     fake_ee = FakeEarthEngine()
     auth_calls = []
     refresh_calls = []
+    refresh_transport_calls = []
 
     class Credentials:
         valid = False
 
         def refresh(self, request):
             refresh_calls.append(request)
+            request(url="https://oauth2.googleapis.com/token", method="POST", body=b"fixed")
             self.valid = True
 
     credentials = Credentials()
 
-    def auth_default():
+    def auth_default(**_kwargs):
         auth_calls.append(True)
         time.sleep(0.02)
         return credentials, "ignored-adc-project"
@@ -591,7 +593,7 @@ def test_adapter_initializes_once_sets_zero_retries_and_reuses_state_concurrentl
         project="server-project",
         ee_module=fake_ee,
         auth_default=auth_default,
-        auth_request_factory=lambda: "refresh-request",
+        auth_request_factory=lambda: lambda **kwargs: refresh_transport_calls.append(kwargs),
         download_image=lambda *_: jpeg_with_dimensions(512, 512),
     )
     failures = []
@@ -610,7 +612,8 @@ def test_adapter_initializes_once_sets_zero_retries_and_reuses_state_concurrentl
 
     assert failures == []
     assert auth_calls == [True]
-    assert refresh_calls == ["refresh-request"]
+    assert len(refresh_calls) == 1
+    assert len(refresh_transport_calls) == 1
     assert [call[0] for call in fake_ee.calls[:2]] == ["set_max_retries", "initialize"]
     assert fake_ee.calls.count(("set_max_retries", 0)) == 1
     assert sum(call[0] == "initialize" for call in fake_ee.calls) == 1
@@ -630,7 +633,7 @@ def test_adapter_maps_adc_refresh_failure_to_credential_unavailable() -> None:
     adapter = adapter_module.EarthEngineSatelliteAdapter(
         project="server-project",
         ee_module=FakeEarthEngine(),
-        auth_default=lambda: (Credentials(), None),
+        auth_default=lambda **_kwargs: (Credentials(), None),
         auth_request_factory=lambda: object(),
         download_image=lambda *_: b"",
     )
@@ -655,7 +658,7 @@ def test_adapter_maps_ee_initialize_failure_to_initialization_unavailable() -> N
     adapter = adapter_module.EarthEngineSatelliteAdapter(
         project="server-project",
         ee_module=fake_ee,
-        auth_default=lambda: (credentials, None),
+        auth_default=lambda **_kwargs: (credentials, None),
         auth_request_factory=lambda: object(),
         download_image=lambda *_: b"",
     )
@@ -664,6 +667,111 @@ def test_adapter_maps_ee_initialize_failure_to_initialization_unavailable() -> N
         adapter.initialize()
 
     assert "must-not-leak" not in str(raised.value)
+
+
+def test_adapter_passes_fixed_earth_engine_scopes_to_adc() -> None:
+    """Removing the scopes argument would break service-account ADC before EE initialization."""
+
+    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
+    observed = {}
+    credentials = type("Credentials", (), {"valid": True})()
+
+    def auth_default(**kwargs):
+        observed.update(kwargs)
+        return credentials, None
+
+    adapter = adapter_module.EarthEngineSatelliteAdapter(
+        project="server-project",
+        ee_module=FakeEarthEngine(),
+        auth_default=auth_default,
+        auth_request_factory=lambda: object(),
+        download_image=lambda *_: b"",
+    )
+
+    adapter.initialize()
+
+    assert observed["scopes"] == (
+        "https://www.googleapis.com/auth/earthengine",
+        "https://www.googleapis.com/auth/cloud-platform",
+    )
+    assert callable(observed["request"])
+
+
+def test_adapter_blocks_duplicate_credential_transport_attempts() -> None:
+    """A credential refresh must not repeat the same outbound token request."""
+
+    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
+    transport_calls = []
+
+    def low_level_request(**kwargs):
+        transport_calls.append(kwargs)
+        return object()
+
+    class Credentials:
+        valid = False
+
+        def refresh(self, request):
+            request(url="https://oauth2.googleapis.com/token", method="POST", body=b"fixed")
+            request(url="https://oauth2.googleapis.com/token", method="POST", body=b"fixed")
+
+    adapter = adapter_module.EarthEngineSatelliteAdapter(
+        project="server-project",
+        ee_module=FakeEarthEngine(),
+        auth_default=lambda **_kwargs: (Credentials(), None),
+        auth_request_factory=lambda: low_level_request,
+        download_image=lambda *_: b"",
+    )
+
+    with pytest.raises(satellite.EarthEngineCredentialUnavailable):
+        adapter.initialize()
+
+    assert len(transport_calls) == 1
+
+
+def test_adapter_disables_authorized_http_401_replay() -> None:
+    """A 401 from Earth Engine must not refresh credentials and replay the request."""
+
+    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
+    import google_auth_httplib2
+
+    class Credentials:
+        valid = True
+        quota_project_id = None
+
+        def before_request(self, _request, _method, _url, _headers):
+            return None
+
+        def refresh(self, _request):
+            refresh_calls.append(True)
+
+    class UnauthorizedHttp:
+        def request(self, *_args, **_kwargs):
+            http_calls.append(True)
+            return SimpleNamespace(status=401), b"unauthorized"
+
+    class InitializingEarthEngine(FakeEarthEngine):
+        def Initialize(self, *, credentials, project, **_kwargs):
+            del project
+            authorized = google_auth_httplib2.AuthorizedHttp(
+                credentials,
+                http=UnauthorizedHttp(),
+            )
+            authorized.request("https://earthengine.googleapis.com/v1/projects/fixed")
+
+    http_calls = []
+    refresh_calls = []
+    adapter = adapter_module.EarthEngineSatelliteAdapter(
+        project="server-project",
+        ee_module=InitializingEarthEngine(),
+        auth_default=lambda **_kwargs: (Credentials(), None),
+        auth_request_factory=lambda: object(),
+        download_image=lambda *_: b"",
+    )
+
+    adapter.initialize()
+
+    assert http_calls == [True]
+    assert refresh_calls == []
 
 
 def fixed_query() -> satellite.SatelliteQuery:
@@ -691,7 +799,7 @@ def test_adapter_does_not_issue_collection_size_request() -> None:
     adapter = adapter_module.EarthEngineSatelliteAdapter(
         project="server-project",
         ee_module=fake_ee,
-        auth_default=lambda: (object(), None),
+        auth_default=lambda **_kwargs: (object(), None),
         download_image=lambda *_: expected,
     )
 
@@ -717,7 +825,7 @@ def test_earth_engine_adapter_uses_adc_fixed_collection_mask_and_server_side_thu
     adapter = adapter_module.EarthEngineSatelliteAdapter(
         project="server-project",
         ee_module=fake_ee,
-        auth_default=lambda: (credentials, "ignored-adc-project"),
+        auth_default=lambda **_kwargs: (credentials, "ignored-adc-project"),
         download_image=download_image,
     )
     result = adapter.fetch(fixed_query())
@@ -758,7 +866,7 @@ def test_earth_engine_adapter_rejects_tampered_internal_query_before_authenticat
     adapter = adapter_module.EarthEngineSatelliteAdapter(
         project="server-project",
         ee_module=fake_ee,
-        auth_default=lambda: (object(), None),
+        auth_default=lambda **_kwargs: (object(), None),
         download_image=lambda *_: b"\xff\xd8x\xff\xd9",
     )
 
@@ -774,7 +882,7 @@ def test_earth_engine_adapter_maps_adc_failure_without_interactive_authenticatio
     adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
     fake_ee = FakeEarthEngine()
 
-    def unavailable_adc():
+    def unavailable_adc(**_kwargs):
         raise RuntimeError("private_key=must-not-leak")
 
     adapter = adapter_module.EarthEngineSatelliteAdapter(
@@ -805,7 +913,7 @@ def test_earth_engine_adapter_rejects_non_provider_or_credential_bearing_thumbna
         adapter = adapter_module.EarthEngineSatelliteAdapter(
             project="server-project",
             ee_module=fake_ee,
-            auth_default=lambda: (object(), None),
+            auth_default=lambda **_kwargs: (object(), None),
             download_image=lambda *args: downloads.append(args),
         )
 
@@ -821,7 +929,7 @@ def test_earth_engine_adapter_rejects_jpeg_exceeding_decoded_dimension_bound() -
     adapter = adapter_module.EarthEngineSatelliteAdapter(
         project="server-project",
         ee_module=FakeEarthEngine(),
-        auth_default=lambda: (object(), None),
+        auth_default=lambda **_kwargs: (object(), None),
         download_image=lambda *_: jpeg_with_dimensions(513, 512),
     )
 
@@ -837,7 +945,7 @@ def test_earth_engine_adapter_uses_circular_buffer_as_exact_aoi() -> None:
     adapter = adapter_module.EarthEngineSatelliteAdapter(
         project="server-project",
         ee_module=fake_ee,
-        auth_default=lambda: (object(), None),
+        auth_default=lambda **_kwargs: (object(), None),
         download_image=lambda *_: jpeg_with_dimensions(512, 512),
     )
 

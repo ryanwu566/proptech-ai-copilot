@@ -559,6 +559,60 @@ def test_shutdown_is_idempotent_and_leaves_no_workers() -> None:
     assert pids.isdisjoint(child.pid for child in multiprocessing.active_children())
 
 
+def test_shutdown_waits_for_pending_spawn_ownership_before_returning(monkeypatch) -> None:
+    """Shutdown must not report stopped while a controller owns an unregistered live child."""
+
+    monkeypatch.setattr(worker_pool, "_CLEANUP_RESERVE_SECONDS", 0.01)
+    spawn_started = threading.Event()
+    release_spawn = threading.Event()
+
+    class Process:
+        def __init__(self):
+            self.alive = True
+
+        def is_alive(self):
+            return self.alive
+
+        def join(self, timeout=None):
+            del timeout
+
+        def terminate(self):
+            self.alive = False
+
+        def kill(self):
+            self.alive = False
+
+        def close(self):
+            return None
+
+    class Connection:
+        def close(self):
+            return None
+
+    process = Process()
+    manager = worker_pool.EarthEngineWorkerManager()
+
+    def delayed_spawn(*, index, generation):
+        spawn_started.set()
+        release_spawn.wait(timeout=2)
+        return worker_pool._WorkerSlot(index, generation, process, Connection())
+
+    manager._spawn_slot = delayed_spawn
+    manager.start(enabled=True, project="fixed-project")
+    assert spawn_started.wait(timeout=1)
+    shutdown_thread = threading.Thread(target=manager.shutdown)
+    shutdown_thread.start()
+    time.sleep(0.05)
+
+    assert shutdown_thread.is_alive()
+
+    release_spawn.set()
+    shutdown_thread.join(timeout=1)
+    assert shutdown_thread.is_alive() is False
+    assert process.is_alive() is False
+    assert manager.state == "stopped"
+
+
 @pytest.mark.parametrize(
     ("outcome", "reason"),
     [
@@ -729,6 +783,74 @@ def test_cancelled_queued_request_never_acquires_worker_or_sends_ipc() -> None:
     try:
         asyncio.run(scenario())
     finally:
+        manager.shutdown()
+
+
+def test_repeated_queued_cancellation_does_not_accumulate_executor_work_items() -> None:
+    """Canceled queue churn must remain physically bounded, not only logically admitted."""
+
+    manager, release_event, observations = _blocking_manager()
+
+    async def scenario():
+        deadline = time.monotonic() + 5.0
+        active = [asyncio.create_task(_fetch_task(manager, 25.0 + index / 100, deadline)) for index in range(2)]
+        await asyncio.to_thread(observations.get, True, 2)
+        await asyncio.to_thread(observations.get, True, 2)
+
+        for index in range(10):
+            queued = asyncio.create_task(_fetch_task(manager, 25.2 + index / 100, deadline))
+            await asyncio.sleep(0.01)
+            queued.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await queued
+
+        assert manager._executor is not None
+        retained_work_items = manager._executor._work_queue.qsize()
+        release_event.set()
+        assert await asyncio.gather(*active) == [b"bounded-jpeg"] * 2
+        assert retained_work_items == 0
+
+    try:
+        asyncio.run(scenario())
+    finally:
+        release_event.set()
+        manager.shutdown()
+
+
+def test_cancellation_before_executor_entry_returns_assigned_worker_slots() -> None:
+    """Canceling after slot assignment must not strand a live worker outside the idle queue."""
+
+    manager, _release_event, _observations = _blocking_manager()
+    executor_entries = worker_pool.queue.Queue()
+    allow_executor_entry = threading.Event()
+    original_execute = manager._execute_request
+
+    def paused_execute(**kwargs):
+        executor_entries.put(True)
+        allow_executor_entry.wait(timeout=2)
+        return original_execute(**kwargs)
+
+    manager._execute_request = paused_execute
+
+    async def scenario():
+        deadline = time.monotonic() + 3.0
+        tasks = [asyncio.create_task(_fetch_task(manager, 25.0 + index / 100, deadline)) for index in range(2)]
+        await asyncio.to_thread(executor_entries.get, True, 1)
+        await asyncio.to_thread(executor_entries.get, True, 1)
+        for task in tasks:
+            task.cancel()
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        assert all(isinstance(result, asyncio.CancelledError) for result in results)
+
+        allow_executor_entry.set()
+        await asyncio.sleep(0.1)
+        assert manager._idle_slots.qsize() == 2
+        assert manager.live_worker_count == 2
+
+    try:
+        asyncio.run(scenario())
+    finally:
+        allow_executor_entry.set()
         manager.shutdown()
 
 
