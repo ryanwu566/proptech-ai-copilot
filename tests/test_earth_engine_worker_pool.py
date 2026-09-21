@@ -61,10 +61,20 @@ def _mismatched_worker(connection, _project, generation, _slot_index) -> None:
         connection.close()
 
 
-def _lifecycle_worker(connection, _project, generation, slot_index, mode, observations, starts) -> None:
+def _lifecycle_worker(
+    connection,
+    _project,
+    generation,
+    slot_index,
+    mode,
+    starts,
+    request_counts,
+    worker_pids,
+) -> None:
     with starts.get_lock():
         starts[slot_index] += 1
-    observations.put(("start", slot_index, generation, os.getpid()))
+    with worker_pids.get_lock():
+        worker_pids[slot_index] = os.getpid()
     if mode == "replacement_failure" and slot_index == 0 and generation > 1:
         connection.send(worker_pool.SatelliteWorkerReady(1, generation, "initialization_unavailable"))
         connection.close()
@@ -76,7 +86,8 @@ def _lifecycle_worker(connection, _project, generation, slot_index, mode, observ
             message = connection.recv()
             if isinstance(message, tuple) and message[0] == "shutdown":
                 return
-            observations.put(("request", slot_index, generation, message.request_id))
+            with request_counts.get_lock():
+                request_counts[slot_index] += 1
             if slot_index == 0 and generation == 1 and mode in {"crash", "replacement_failure"}:
                 return
             if slot_index == 0 and generation == 1 and mode == "timeout":
@@ -268,24 +279,24 @@ def test_manager_captures_project_once_and_never_accepts_per_request_project() -
 
 def _lifecycle_manager(mode: str):
     context = multiprocessing.get_context("spawn")
-    observations = context.Queue()
     starts = context.Array("i", [0, 0])
+    request_counts = context.Array("i", [0, 0])
+    worker_pids = context.Array("i", [0, 0])
     manager = worker_pool.EarthEngineWorkerManager(
         context=context,
         worker_target=_lifecycle_worker,
-        worker_target_args=(mode, observations, starts),
+        worker_target_args=(mode, starts, request_counts, worker_pids),
         startup_timeout_seconds=5.0,
         replacement_timeout_seconds=2.0,
     )
     manager.start(enabled=True, project="fixed-project")
     _wait_for_state(manager, "available")
-    return manager, observations, starts
+    return manager, starts, request_counts, worker_pids
 
 
 def test_crashed_worker_is_joined_and_replaced_once_without_request_replay() -> None:
-    manager, observations, starts = _lifecycle_manager("crash")
-    initial = [observations.get(timeout=1), observations.get(timeout=1)]
-    old_pid = next(item[3] for item in initial if item[1] == 0)
+    manager, starts, request_counts, worker_pids = _lifecycle_manager("crash")
+    old_pid = worker_pids[0]
     deadline = time.monotonic() + 1.5
     try:
         with pytest.raises(satellite.EarthEngineProviderError):
@@ -298,28 +309,23 @@ def test_crashed_worker_is_joined_and_replaced_once_without_request_replay() -> 
                     deadline=deadline,
                 )
             )
-        request = observations.get(timeout=1)
-        assert request[:3] == ("request", 0, 1)
         _wait_until(lambda: starts[0] == 2 or manager.state != "available")
         assert starts[0] == 2, (
             manager.state,
             manager._replacement_attempts,
             manager._replacement_thread,
         )
-        replacement = observations.get(timeout=3)
-        assert replacement[:3] == ("start", 0, 2)
         _wait_until(lambda: manager.live_worker_count == 2)
         assert list(starts) == [2, 1]
+        assert list(request_counts) == [1, 0]
         assert old_pid not in {child.pid for child in multiprocessing.active_children()}
-        assert observations.empty()
     finally:
         manager.shutdown()
 
 
 def test_timeout_kills_worker_before_one_bounded_replacement() -> None:
-    manager, observations, starts = _lifecycle_manager("timeout")
-    initial = [observations.get(timeout=1), observations.get(timeout=1)]
-    old_pid = next(item[3] for item in initial if item[1] == 0)
+    manager, starts, request_counts, worker_pids = _lifecycle_manager("timeout")
+    old_pid = worker_pids[0]
     deadline = time.monotonic() + 0.8
     started_at = time.monotonic()
     try:
@@ -334,10 +340,11 @@ def test_timeout_kills_worker_before_one_bounded_replacement() -> None:
                 )
             )
         assert time.monotonic() - started_at < 1.0
-        assert observations.get(timeout=1)[:3] == ("request", 0, 1)
-        assert observations.get(timeout=3)[:3] == ("start", 0, 2)
+        _wait_until(lambda: starts[0] == 2 or manager.state != "available")
+        assert starts[0] == 2
         _wait_until(lambda: manager.live_worker_count == 2)
         assert list(starts) == [2, 1]
+        assert list(request_counts) == [1, 0]
         assert old_pid not in {child.pid for child in multiprocessing.active_children()}
     finally:
         manager.shutdown()
@@ -521,9 +528,20 @@ def test_replacement_generation_guards_remain_bounded_per_slot() -> None:
 
 
 def test_failed_replacement_cleans_other_worker_and_all_pipes() -> None:
-    manager, observations, starts = _lifecycle_manager("replacement_failure")
-    for _ in range(2):
-        observations.get(timeout=1)
+    manager, starts, request_counts, _worker_pids = _lifecycle_manager("replacement_failure")
+    initial_slots = list(manager._slots.values())
+    initial_pids = {slot.process.pid for slot in initial_slots}
+    replacement_slots = []
+    replacement_pids = []
+    spawn_slot = manager._spawn_slot
+
+    def capture_replacement_slot(*, index, generation):
+        slot = spawn_slot(index=index, generation=generation)
+        replacement_slots.append(slot)
+        replacement_pids.append(slot.process.pid)
+        return slot
+
+    manager._spawn_slot = capture_replacement_slot
     deadline = time.monotonic() + 1.5
     try:
         with pytest.raises(satellite.EarthEngineProviderError):
@@ -536,20 +554,23 @@ def test_failed_replacement_cleans_other_worker_and_all_pipes() -> None:
                     deadline=deadline,
                 )
             )
-        observations.get(timeout=1)
-        observations.get(timeout=3)
         _wait_for_state(manager, "unavailable")
-        _wait_until(lambda: manager.live_worker_count == 0)
-        time.sleep(0.1)
+        _wait_until(lambda: manager._replacement_thread is None)
+        all_pids = initial_pids | set(replacement_pids)
         assert list(starts) == [2, 1]
+        assert list(request_counts) == [1, 0]
+        assert len(replacement_slots) == 1
+        assert all(slot.connection.closed for slot in [*initial_slots, *replacement_slots])
+        assert all_pids.isdisjoint(child.pid for child in multiprocessing.active_children())
+        assert manager.live_worker_count == 0
         assert manager._slots == {}
     finally:
         manager.shutdown()
 
 
 def test_shutdown_is_idempotent_and_leaves_no_workers() -> None:
-    manager, observations, _starts = _lifecycle_manager("success")
-    pids = {observations.get(timeout=1)[3], observations.get(timeout=1)[3]}
+    manager, _starts, _request_counts, worker_pids = _lifecycle_manager("success")
+    pids = set(worker_pids)
 
     manager.shutdown()
     manager.shutdown()
