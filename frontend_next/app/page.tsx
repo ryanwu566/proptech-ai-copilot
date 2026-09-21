@@ -30,7 +30,7 @@ import { EvidenceSummary } from "@/components/data-visualization/evidence-summar
 import { FreshnessIndicator } from "@/components/data-visualization/freshness-indicator";
 import { TrendLineChart } from "@/components/data-visualization/trend-line-chart";
 import { VolumeBarChart } from "@/components/data-visualization/volume-bar-chart";
-import { MarketInsightEvidencePanel } from "@/components/data-visualization/market-insight-evidence-panel";
+import { MarketInsightEvidencePanel, MarketScopeSummary } from "@/components/data-visualization/market-insight-evidence-panel";
 import { MarketSegmentationPanel } from "@/components/market-segmentation-panel";
 import { buildValuationShareUrl, buildValuationSummaryHtml, parseValuationShareParams, valuationSummaryFilename, ValuationInputs } from "@/lib/valuation-share";
 import { buildRiskSummary } from "@/lib/risk-summary";
@@ -63,7 +63,7 @@ import { getLocalizedCountyLabel, getLocalizedDistrictLabel, getLocalizedRoadLab
 import { CompetitionTaxOracleDemo } from "@/components/competition-taxoracle-demo";
 import { capabilities, COMPETITION_NOTICE, getCompetitionCopy } from "@/lib/competition-release";
 import { PilotEvidenceCenter, ProfessionalReviewCenter } from "@/components/pilot-evidence-center";
-import { createClosedLoopJourneyState, selectJourneyPrice, setJourneyLocationResult, setJourneyMarketResult, setJourneyTerrainResult, setJourneyValuation, updateJourneyProperty, type ClosedLoopJourneyState } from "@/lib/closed-loop-journey";
+import { createClosedLoopJourneyState, selectJourneyPrice, setJourneyLocationResult, setJourneyMarketResult, setJourneyTerrainResult, setJourneyValuation, updateJourneyMarketLocation, updateJourneyProperty, type ClosedLoopJourneyState } from "@/lib/closed-loop-journey";
 import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 
@@ -94,6 +94,7 @@ export default function Home() {
   const [journeyState, setJourneyState] = useState<ClosedLoopJourneyState>(() => createClosedLoopJourneyState());
   const [journeySecondaryTool, setJourneySecondaryTool] = useState<"holding" | "tax">();
   const [journeyHoldingPrefill, setJourneyHoldingPrefill] = useState<HoldingCostPrefill>();
+  const [journeyLocationInitialTool, setJourneyLocationInitialTool] = useState<"market">();
   const journeyAffordabilityContext = buildJourneyAffordabilityContext({ propertyPriceWan: journeyState.activePriceWan, loanResult: journeyState.loanResult, holdingResult: journeyState.holdingResult, taxResult: journeyState.taxResult });
   useEffect(() => { if (parseValuationShareParams(window.location.search)) setPage("房價估算"); }, []);
   useEffect(() => { const open=()=>setPage("TaxOracle");window.addEventListener(OPEN_TAXORACLE_EVENT,open);return()=>window.removeEventListener(OPEN_TAXORACLE_EVENT,open);}, []);
@@ -145,11 +146,18 @@ export default function Home() {
       selectionStatus: "selected",
     }));
   }
+  function applyJourneyMarketSelection(selection: PropertyFinderSelection) {
+    setJourneyState((current) => updateJourneyMarketLocation(current, {
+      city: selection.city,
+      district: selection.district,
+      road: selection.road,
+    }));
+  }
   function renderJourneyStep(step: JourneyStepId, actions: JourneyRenderActions) {
     // The property flow does not auto-run analysis or save a case.
     // 不會自動執行估價或保存案件。
-    if (step === "property") return <div className="space-y-4"><p className="rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">{t("journey.property.contextNote")}</p><PropertyFinder embedded onResult={(result) => setJourneyState((current) => ({ ...current, propertySearchResult: result }))} onUseForValuation={(selection) => { applyJourneyPropertySelection(selection); actions.goToTool("valuation"); }} onUseForLoan={(_price, selection) => { applyJourneyPropertySelection(selection); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); actions.goToTool("loan"); }} onUseForHoldingCost={(price, area, selection) => { applyJourneyPropertySelection(selection); setJourneySecondaryTool("holding"); setJourneyHoldingPrefill({ property_price: price, area_ping: area }); actions.goToTool("loan"); }} onUseForLocationInsight={(selection) => { applyJourneyPropertySelection(selection); actions.goToTool("location-insight"); }} /></div>;
-    if (step === "location") return <LocationMarketStage propertyContext={journeyState.propertyContext} initialLocationResult={journeyState.locationResult} initialTerrainResult={journeyState.terrainResult} initialMarketResult={journeyState.marketResult} initialTerrainStatus={journeyState.terrainStatus} initialMarketStatus={journeyState.marketStatus} onBackToProperty={() => actions.goToTool("property-finder")} onContinueToPrice={(_context) => actions.goToNextStep()} onPropertyContextChange={(context) => setJourneyState((current) => updateJourneyProperty(current, context))} onLocationEvidenceChange={(result, status) => setJourneyState((current) => setJourneyLocationResult(current, result, status))} onTerrainEvidenceChange={(result, status) => setJourneyState((current) => setJourneyTerrainResult(current, result, status))} onMarketEvidenceChange={(result, status) => setJourneyState((current) => setJourneyMarketResult(current, result, status))} onTerrainReferenceReady={(terrainReference) => setJourneyState((current) => ({ ...current, terrainReference, storedTerrainReference: toStoredTerrainReferenceEvidence(terrainReference) ?? undefined }))} onMap={() => setPage("Map Insight Lite")} renderMarket={(context: JourneyPropertyContext, handlers: { onStatusChange: (status: LocationMarketDisplayStatus) => void; onResult: (result: MarketResult | null) => void }) => <MarketInsight embedded initialCounty={context.city} initialDistrict={context.district} initialResult={journeyState.marketResult} onMap={() => setPage("Map Insight Lite")} onStatusChange={handlers.onStatusChange} onResult={handlers.onResult} />} />;
+    if (step === "property") return <div className="space-y-4"><p className="rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">{t("journey.property.contextNote")}</p><PropertyFinder embedded onResult={(result) => setJourneyState((current) => ({ ...current, propertySearchResult: result }))} onUseForValuation={(selection) => { applyJourneyPropertySelection(selection); actions.goToTool("valuation"); }} onUseForLoan={(_price, selection) => { applyJourneyPropertySelection(selection); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); actions.goToTool("loan"); }} onUseForHoldingCost={(price, area, selection) => { applyJourneyPropertySelection(selection); setJourneySecondaryTool("holding"); setJourneyHoldingPrefill({ property_price: price, area_ping: area }); actions.goToTool("loan"); }} onUseForLocationInsight={(selection) => { applyJourneyPropertySelection(selection); setJourneyLocationInitialTool(undefined); actions.goToTool("location-insight"); }} onUseForMarketInsight={(selection) => { applyJourneyMarketSelection(selection); setJourneyLocationInitialTool("market"); actions.goToTool("location-insight"); }} /></div>;
+    if (step === "location") return <LocationMarketStage propertyContext={journeyState.propertyContext} initialLocationResult={journeyState.locationResult} initialTerrainResult={journeyState.terrainResult} initialMarketResult={journeyState.marketResult} initialTerrainStatus={journeyState.terrainStatus} initialMarketStatus={journeyState.marketStatus} initialActiveTool={journeyLocationInitialTool} onBackToProperty={() => actions.goToTool("property-finder")} onContinueToPrice={(_context) => actions.goToNextStep()} onPropertyContextChange={(context) => setJourneyState((current) => updateJourneyProperty(current, context))} onLocationEvidenceChange={(result, status) => setJourneyState((current) => setJourneyLocationResult(current, result, status))} onTerrainEvidenceChange={(result, status) => setJourneyState((current) => setJourneyTerrainResult(current, result, status))} onMarketEvidenceChange={(result, status) => setJourneyState((current) => setJourneyMarketResult(current, result, status))} onTerrainReferenceReady={(terrainReference) => setJourneyState((current) => ({ ...current, terrainReference, storedTerrainReference: toStoredTerrainReferenceEvidence(terrainReference) ?? undefined }))} onMap={() => setPage("Map Insight Lite")} renderMarket={(context: JourneyPropertyContext, handlers: { onStatusChange: (status: LocationMarketDisplayStatus) => void; onResult: (result: MarketResult | null) => void }) => <MarketInsight embedded initialCounty={context.city} initialDistrict={context.district} initialRoad={context.road} initialResult={journeyState.marketResult} onMap={() => setPage("Map Insight Lite")} onStatusChange={handlers.onStatusChange} onResult={handlers.onResult} />} />;
     if (step === "price") return <PriceDecisionStage propertyContext={journeyState.propertyContext} valuationResult={journeyState.valuationResult} priceBasis={journeyState.priceBasis} activePriceWan={journeyState.activePriceWan} manualPriceWan={journeyState.manualPriceWan} onValuationResult={(result, status) => setJourneyState((current) => setJourneyValuation(current, result, status))} onPriceBasisChange={(basis, manual) => setJourneyState((current) => selectJourneyPrice(current, basis, manual))} onBackToLocation={() => actions.goToTool("location-insight")} onContinueToAffordability={actions.goToNextStep} onTransferToLoan={(priceWan) => { setJourneyState((current) => selectJourneyPrice(current, "valuation", priceWan)); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); actions.goToNextStep(); }} onTransferToHolding={(priceWan, areaPing) => { setJourneyState((current) => selectJourneyPrice(current, "valuation", priceWan)); setJourneySecondaryTool("holding"); setJourneyHoldingPrefill({ property_price: priceWan, area_ping: areaPing }); actions.goToNextStep(); }} renderValuation={(context, handlers) => <ValuationPage embedded initialContext={context} onResult={handlers.onResult} onStatusChange={handlers.onStatusChange} />} />;
     if (step === "affordability") return <div><p className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{t("trust.fundingBoundary")}</p><AffordabilityDecisionStage propertyContext={journeyState.propertyContext} priceContext={getSafePriceContext({ propertyContext: journeyState.propertyContext, result: journeyState.valuationResult })} priceBasis={journeyState.priceBasis} explicitPriceWan={journeyState.activePriceWan} initialLoanResult={journeyState.loanResult} initialHoldingResult={journeyState.holdingResult} initialTaxResult={journeyState.taxResult} initialSecondaryTool={journeySecondaryTool} initialHoldingPrefill={journeyHoldingPrefill} renderLoan={(priceWan, handlers) => <LoanCalculator embedded propertyPriceWan={priceWan} initialResult={journeyState.loanResult} onResult={handlers.onResult} onHoldingCost={handlers.onHoldingCost} />} renderHolding={(prefill, handlers) => <HoldingCostCalculator embedded prefill={prefill} initialResult={journeyState.holdingResult} onResult={handlers.onResult} />} renderTax={(handlers) => <TaxOracle embedded requestedCase="" onResult={handlers.onResult} />} onLoanResult={(loanResult) => setJourneyState((current) => ({ ...current, loanResult, holdingResult: loanResult ? current.holdingResult : undefined }))} onHoldingResult={(holdingResult) => setJourneyState((current) => ({ ...current, holdingResult }))} onTaxResult={(taxResult) => setJourneyState((current) => ({ ...current, taxResult }))} onBackToPrice={() => actions.goToTool("valuation")} onContinueToDecision={actions.goToNextStep} /></div>;
     const priceContext = getSafePriceContext({ propertyContext: journeyState.propertyContext, result: journeyState.valuationResult });
@@ -701,11 +709,12 @@ function safeMarketSupportReference(value: unknown): string | null {
   return /^[A-Za-z0-9_-]{1,64}$/.test(reference) ? reference : null;
 }
 
-function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDistrict = "", initialResult, onStatusChange, onResult }: { onMap: () => void; embedded?: boolean; initialCounty?: string; initialDistrict?: string; initialResult?: MarketResult; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: MarketResult | null) => void }) {
+function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDistrict = "", initialRoad = "", initialResult, onStatusChange, onResult }: { onMap: () => void; embedded?: boolean; initialCounty?: string; initialDistrict?: string; initialRoad?: string; initialResult?: MarketResult; onStatusChange?: (status: LocationMarketDisplayStatus) => void; onResult?: (result: MarketResult | null) => void }) {
   const { copy, locale } = useExperienceLocale();
   const marketCopy = getMarketInsightCopy(locale);
   const [county, setCounty] = useState(initialCounty);
   const [district, setDistrict] = useState(initialDistrict);
+  const [road, setRoad] = useState(initialRoad);
   const [result, setResult] = useState<MarketResult>();
   const [querying, setQuerying] = useState(false);
   const [uiState, setUiState] = useState<MarketInsightUiState>("initial");
@@ -721,7 +730,8 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     const nextDistrict = normalizeTaiwanDistrict(nextCounty, initialDistrict);
     setCounty(nextCounty);
     setDistrict(nextDistrict);
-  }, [initialCounty, initialDistrict]);
+    setRoad(initialRoad);
+  }, [initialCounty, initialDistrict, initialRoad]);
 
   useEffect(() => {
     if (querying) return;
@@ -752,7 +762,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     marketRequestController.current = controller;
     const timeout = window.setTimeout(() => controller.abort("market_request_timeout"), 20000);
     try {
-      const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict, undefined, controller.signal);
+      const nextResult = await api.marketInsight(canonicalCounty, canonicalDistrict, road.trim() || undefined, undefined, controller.signal);
       if (marketQuerySeq.current !== queryId) return;
       const displayState = getMarketDisplayState(nextResult);
       setResult(nextResult);
@@ -787,6 +797,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     setQuerying(false);
     setCounty(normalizeTaiwanCounty(value));
     setDistrict("");
+    setRoad("");
     setResult(undefined);
     onResult?.(null);
     onStatusChange?.("not_started");
@@ -800,6 +811,20 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     marketQuerySeq.current += 1;
     setQuerying(false);
     setDistrict(normalizeTaiwanDistrict(canonicalCounty, value));
+    setRoad("");
+    setResult(undefined);
+    onResult?.(null);
+    onStatusChange?.("not_started");
+    setUiState("initial");
+    setMarketFailureReason(null);
+  }
+
+  function updateRoad(value: string) {
+    marketRequestController.current?.abort("market_request_cancelled");
+    marketRequestController.current = undefined;
+    marketQuerySeq.current += 1;
+    setQuerying(false);
+    setRoad(value);
     setResult(undefined);
     onResult?.(null);
     onStatusChange?.("not_started");
@@ -813,7 +838,7 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
     {!embedded && <PageHeader kicker={copy("valuation.kicker")} title="Market Insight" description={copy("valuation.help")} action={<Button secondary onClick={onMap}>{copy("location.map")}</Button>} />}
     {!embedded && <HelpCallout>{copy("valuation.help")}</HelpCallout>}
     <SectionCard title={copy("action.search")} description={copy("map.help")}>
-      <form onSubmit={submitQuery} aria-busy={querying} data-testid="market-insight-search-form" className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+      <form onSubmit={submitQuery} aria-busy={querying} data-testid="market-insight-search-form" className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
         <label className="text-xs text-slate-500">{copy("common.selectCounty")}
           <select data-testid="market-county-select" value={canonicalCounty} onChange={(event) => updateCounty(event.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm">
             <option value="">{copy("common.selectCounty")}</option>
@@ -825,6 +850,9 @@ function MarketInsight({ onMap, embedded = false, initialCounty = "", initialDis
             <option value="">{canonicalCounty ? copy("common.selectDistrict") : copy("common.selectCounty")}</option>
             {districtOptions.map((item) => <option key={item} value={item}>{getLocalizedDistrictLabel(item, locale)}</option>)}
           </select>
+        </label>
+        <label className="text-xs text-slate-500">{marketCopy.roadLabel}
+          <input data-testid="market-road-input" type="text" value={road} onChange={(event) => updateRoad(event.target.value)} disabled={!canonicalDistrict} maxLength={80} placeholder={marketCopy.roadPlaceholder} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm disabled:bg-stone-100 disabled:text-slate-400" />
         </label>
         <div className="flex items-end"><button type="submit" data-testid="market-insight-search-button" disabled={querying || !canonicalCounty || !canonicalDistrict} className="inline-flex min-h-11 items-center justify-center rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{querying ? marketCopy.loading : copy("action.search")}</button></div>
       </form>
@@ -854,6 +882,7 @@ function MarketInsightVisualResult({ result, model, uiState, evidenceDisclosure 
         {result.caveat && result.caveat !== message && <p className="mt-3 text-xs leading-5 text-amber-900">{result.caveat}</p>}
         <p className="mt-3 text-xs leading-5 text-slate-500">{result.disclaimer || labels.boundary}</p>
       </SectionCard>
+      <MarketScopeSummary result={result} />
       {evidenceDisclosure}
     </div>;
   }
@@ -865,6 +894,7 @@ function MarketInsightVisualResult({ result, model, uiState, evidenceDisclosure 
       {stateMessage && <p data-testid="market-state-guidance" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-bold leading-6 text-amber-950">{stateMessage}</p>}
       {model.state !== "low_sample" && <p className="mt-3 text-sm leading-6 text-slate-700">{result.summary}</p>}
     </SectionCard>
+    <MarketScopeSummary result={result} />
     <MarketInsightEvidencePanel result={result} model={model} />
     <div className="grid min-w-0 gap-4 lg:grid-cols-2">
       <SectionCard title={labels.priceTrend}><TrendLineChart data={model.history} status={model.state} /></SectionCard>

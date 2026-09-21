@@ -64,3 +64,14 @@ def test_property_search_visuals_do_not_rank_investment_or_invent_missing_values
     assert "VisualDataUnavailableState" in finder
     assert 'copy("common.unavailable")' in finder
     assert "|| 0" not in helper
+
+
+def test_market_handoff_action_is_optional_and_passes_only_the_selected_context() -> None:
+    finder = (FRONTEND / "components" / "property-finder.tsx").read_text(encoding="utf-8")
+    page = (FRONTEND / "app" / "page.tsx").read_text(encoding="utf-8")
+    assert "onUseForMarketInsight?" in finder
+    assert "onUseForMarketInsight(selection)" in finder
+    assert "applyJourneyMarketSelection(selection)" in page
+    assert "updateJourneyMarketLocation" in page
+    assert 'setJourneyLocationInitialTool("market")' in page
+    assert 'actions.goToTool("location-insight")' in page

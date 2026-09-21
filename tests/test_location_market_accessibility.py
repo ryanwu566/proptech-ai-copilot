@@ -46,3 +46,14 @@ def test_charts_have_text_alternatives_and_mobile_safe_layout() -> None:
     assert "overflow-x-auto" not in source
     assert "min-w-[560px]" not in source
     assert "min-w-[620px]" not in source
+
+
+def test_market_road_control_is_native_labeled_and_bounded() -> None:
+    page = (ROOT / "frontend_next/app/page.tsx").read_text(encoding="utf-8")
+    section = page.split("function MarketInsight(", 1)[1].split("function AegisCredit", 1)[0]
+    assert '<label className="text-xs text-slate-500">{marketCopy.roadLabel}' in section
+    assert 'data-testid="market-road-input"' in section
+    assert 'type="text"' in section
+    assert "maxLength={80}" in section
+    assert 'autoComplete="street-address"' not in section
+    assert "geocode" not in section.lower()

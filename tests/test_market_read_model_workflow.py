@@ -113,3 +113,9 @@ def test_market_read_model_docs_cover_operations_and_boundaries() -> None:
     assert "valuation results" in DOCS
     assert "loan or credit calculations" in DOCS
     assert "purchase advice" in DOCS
+
+
+def test_docs_distinguish_get_read_model_from_direct_post_queries() -> None:
+    normalized = " ".join(DOCS.split())
+    assert "Both district-only and road-aware POST queries read existing official PLVR transaction rows" in normalized
+    assert "The district-only POST query also uses the prepared read model" not in DOCS

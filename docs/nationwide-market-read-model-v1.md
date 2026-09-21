@@ -2,10 +2,18 @@
 
 ## Purpose
 
-Nationwide Market Read Model v1 separates public Market Insight reads from raw
-PLVR transaction storage. The application serves county and district market
-background from prepared aggregate rows instead of aggregating raw
-`real_price_transactions` on every GET request.
+Nationwide Market Read Model v1 separates the standard public Market Insight
+status and catalog GET reads from raw PLVR transaction storage. Those GET
+endpoints use prepared aggregate metadata and rows instead of querying
+`real_price_transactions`.
+
+Interactive POST queries use a separate bounded, read-only path. Both
+district-only and road-aware POST queries read existing official PLVR
+transaction rows. District-only queries calculate safe SQL aggregates and
+history; road-aware queries read a privacy-safe district projection so the
+rolling window, post-filter sample threshold, and exact road identity can be
+applied at request time. Neither POST path assumes a road aggregate exists in
+the prepared read model.
 
 The read model stores aggregate market fields only. It does not store raw
 transaction rows, addresses, coordinates, building names, provider payloads,
@@ -21,12 +29,28 @@ existing PLVR valuation database
 -> GET /market-insights/status
 -> GET /market-insights/catalog
 -> GET /market-insights/regions
--> POST /market-insights/query
--> frontend Market Insight explorer
 ```
 
 GET endpoints read only the read model tables. They do not read
 `real_price_transactions`.
+
+The interactive query flow is separate:
+
+```text
+existing official PLVR transaction rows
+-> POST /market-insights/query { county, district, road? }
+-> validate canonical region and bounded road identity
+-> district-only: execute bounded aggregate and history queries
+-> road-aware: read an address-free district projection
+-> road-aware: apply rolling 36-month filters and select ROAD -> DISTRICT -> NOT_AVAILABLE
+-> return aggregate statistics and safe provenance only
+```
+
+The road evidence projection contains only transaction period, canonical
+county/city, district, road, unit price per ping, total price, area, source, and
+import timestamp. It excludes address text, coordinates, row identifiers,
+provider payloads, and raw notes. The query is not truncated before the
+post-filter threshold is calculated.
 
 ## Read Model Tables
 
@@ -88,7 +112,8 @@ unavailable response and performs no database work. If the request token is
 incorrect, the endpoint returns forbidden and performs no database work.
 
 Refresh is the only write path. Public Market Insight status, catalog, region,
-and query endpoints are read-only.
+and query endpoints are read-only. The road evidence path performs no import,
+refresh, migration, or provider call.
 
 ## GitHub Actions Manual Workflow
 
@@ -135,8 +160,14 @@ Market Insight must show conservative unavailable messaging. It must not fill
 missing periods, interpolate history, or display mock market metrics as if they
 were official data.
 
-`POST /market-insights/query` returns history only for real aggregate periods
-already present in the read model, with at most six periods.
+`POST /market-insights/query` returns history only for periods supported by
+the direct official query, with at most six periods in the public history
+shape.
+
+For a road-aware query, the same public `history` shape is derived only from
+the selected effective scope's valid official rows. It is never built from the
+explanatory road or district sample counts. The request does not widen beyond
+the rolling 36-month window when a threshold is not met.
 
 ## Product Boundary
 
@@ -152,3 +183,6 @@ Market Insight is a market background explorer. Its aggregate data does not auto
 
 It must not be described as a formal appraisal, legal conclusion, loan
 approval, safety guarantee, or purchase advice.
+
+Road results are historical transaction analysis. They do not represent
+active listings, available inventory, or a community finder.

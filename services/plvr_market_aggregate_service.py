@@ -19,6 +19,7 @@ from datetime import date, datetime, timezone
 from typing import Any, Protocol
 
 from services.market_data_foundation import MARKET_DATA_CAVEAT, market_unavailable_response
+from services.market_road_analysis import ROAD_MINIMUM_SAMPLE, analyze_market_road, is_valid_market_road, normalize_market_road
 from services.plvr_data_integrity import (
     canonical_region_storage_keys,
     current_transaction_period,
@@ -79,6 +80,7 @@ MARKET_QUERY_REASON_CODES = {
     "market_coverage_not_confirmed",
     "market_summary_query_unavailable",
     "market_history_query_unavailable",
+    "market_road_query_unavailable",
     "market_summary_missing",
     "market_history_invalid",
     "market_result_contract_invalid",
@@ -126,6 +128,7 @@ class MarketQueryFailure(RuntimeError):
             "coverage_sql",
             "summary_sql",
             "history_sql",
+            "road_sql",
             "row_conversion",
             "result_contract",
         } else "query"
@@ -152,6 +155,9 @@ class MarketReadModelRepository(Protocol):
 
     def coverage(self, county: str, district: str) -> dict[str, Any]:
         """Return bounded region coverage metadata for direct queries."""
+
+    def road_evidence(self, county: str, district: str) -> dict[str, Any]:
+        """Return address-free official rows and import metadata for analysis."""
 
     def refresh(self) -> dict[str, Any]:
         """Rebuild read model tables from official PLVR transaction rows."""
@@ -309,6 +315,28 @@ class PostgresMarketReadModelRepository:
                 "valid_market_candidate_count": valid_count,
                 "source_updated_at": source_updated_at,
             }
+
+    def road_evidence(self, county: str, district: str) -> dict[str, Any]:
+        """Return an untruncated, address-free district pool for road analysis."""
+
+        with _market_query_cursor(self, "market_road_query_unavailable") as cursor:
+            params = [
+                list(canonical_region_storage_keys()),
+                _normalize_county(county),
+                normalized_storage_key(district),
+            ]
+            try:
+                cursor.execute(MARKET_ROAD_EVIDENCE_SQL, params)
+                rows = [dict(row) for row in cursor.fetchall()]
+                cursor.execute(MARKET_LATEST_IMPORT_SQL)
+                metadata = dict(cursor.fetchone() or {})
+            except Exception as exc:
+                raise MarketQueryFailure("market_road_query_unavailable", "road_sql") from exc
+        return {
+            "rows": rows,
+            "latest_import_status": _optional_text(metadata.get("latest_import_status")),
+            "latest_imported_at": metadata.get("latest_imported_at"),
+        }
 
     def refresh(self) -> dict[str, Any]:
         built_at = datetime.now(timezone.utc)
@@ -566,6 +594,7 @@ def get_market_summary(
     period: str | None = None,
     repository: MarketReadModelRepository | None = None,
     *,
+    road: str | None = None,
     as_of: date | datetime | None = None,
 ) -> dict[str, Any]:
     """Return one direct county/district aggregate and recent real history."""
@@ -575,6 +604,11 @@ def get_market_summary(
     normalized = normalize_market_region(county, district)
     county = normalized.county
     district = normalized.district
+    def unavailable(status: dict[str, Any], reason_code: str) -> dict[str, Any]:
+        if road is not None:
+            return _road_query_unavailable(county, district, road, status, support_reference, reason_code)
+        return _query_unavailable(county, district, status, support_reference, reason_code)
+
     _log_market_query_event(
         "query_started",
         support_reference=support_reference,
@@ -583,27 +617,18 @@ def get_market_summary(
         district=district,
     )
     if repo is None:
-        return _query_unavailable(
-            county,
-            district,
+        return unavailable(
             _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
-            support_reference,
             "market_runtime_not_configured",
         )
     if not normalized.valid:
-        return _query_unavailable(
-            county,
-            district,
+        return unavailable(
             _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
-            support_reference,
             "market_region_invalid",
         )
     if period and not is_publishable_transaction_period(period, as_of=as_of):
-        return _query_unavailable(
-            county,
-            district,
+        return unavailable(
             _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
-            support_reference,
             "market_summary_missing",
         )
     try:
@@ -634,11 +659,8 @@ def get_market_summary(
             district=district,
             phase=exc.phase,
         )
-        return _query_unavailable(
-            county,
-            district,
+        return unavailable(
             _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
-            support_reference,
             exc.reason_code,
         )
     except Exception as exc:
@@ -650,24 +672,66 @@ def get_market_summary(
             county=county,
             district=district,
         )
-        return _query_unavailable(
-            county,
-            district,
+        return unavailable(
             _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
-            support_reference,
             "market_coverage_query_unavailable",
         )
     if coverage["coverage_status"] != "covered":
-        return _query_unavailable(
-            county,
-            district,
+        return unavailable(
             _direct_query_status(
                 data_status="unavailable",
                 coverage_status=coverage["coverage_status"],
                 source_updated_at=coverage.get("source_updated_at"),
             ),
-            support_reference,
             "market_coverage_not_confirmed",
+        )
+    if road is not None:
+        try:
+            evidence = repo.road_evidence(county, district)
+            rows = evidence.get("rows") if isinstance(evidence, dict) else None
+            if not isinstance(rows, list):
+                raise MarketQueryFailure("market_road_query_unavailable", "row_conversion")
+            result = analyze_market_road(
+                rows,
+                county,
+                district,
+                road,
+                latest_import_status=evidence.get("latest_import_status"),
+                latest_imported_at=evidence.get("latest_imported_at"),
+                as_of=as_of,
+            )
+        except MarketQueryFailure as exc:
+            _log_repository_failure(
+                "query",
+                exc,
+                exc.reason_code,
+                support_reference,
+                county=county,
+                district=district,
+                phase=exc.phase,
+            )
+            return unavailable(
+                _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+                exc.reason_code,
+            )
+        except Exception as exc:
+            _log_repository_failure(
+                "query",
+                exc,
+                "market_road_query_unavailable",
+                support_reference,
+                county=county,
+                district=district,
+                phase="road_sql",
+            )
+            return unavailable(
+                _direct_query_status(data_status="unavailable", coverage_status="coverage_unknown"),
+                "market_road_query_unavailable",
+            )
+        return _with_query_diagnostics(
+            result,
+            support_reference,
+            "market_summary_missing" if result.get("data_status") == "no_data" else None,
         )
     try:
         _log_market_query_event(
@@ -1368,6 +1432,58 @@ def _query_unavailable(
     )
 
 
+def _road_query_unavailable(
+    county: str,
+    district: str,
+    road: str,
+    status: dict[str, Any],
+    support_reference: str,
+    reason_code: str,
+) -> dict[str, Any]:
+    result = _query_unavailable(county, district, status, support_reference, reason_code)
+    requested_road = str(road or "").strip()
+    safe_requested_road = (
+        requested_road
+        if is_valid_market_road(requested_road, county=county, district=district)
+        else None
+    )
+    normalized = normalize_market_region(county, district)
+    result.update(
+        {
+            "requested_scope": "ROAD",
+            "requested_city": normalized_storage_key(normalized.county or county),
+            "requested_district": normalized_storage_key(normalized.district or district),
+            "requested_road": safe_requested_road,
+            "normalized_road": normalize_market_road(safe_requested_road or "") or None,
+            "road_minimum_sample": ROAD_MINIMUM_SAMPLE,
+            "analysis_level": "NOT_AVAILABLE",
+            "effective_analysis_level": "NOT_AVAILABLE",
+            "effective_scope_label": "",
+            "effective_sample_count": None,
+            "road_sample_count": None,
+            "district_sample_count": None,
+            "fallback_applied": False,
+            "fallback_reason": "market_road_unknown",
+            "period": None,
+            "period_min": None,
+            "period_max": None,
+            "newest_effective_period": None,
+            "median_unit_price_per_ping": None,
+            "p25_unit_price_per_ping": None,
+            "p75_unit_price_per_ping": None,
+            "median_total_price": None,
+            "median_area_ping": None,
+            "monthly_series": [],
+            "yearly_series": [],
+            "year_over_year_change": None,
+            "volatility": None,
+            "freshness_status": "unavailable",
+            "freshness_reason_code": "provider_unavailable",
+        }
+    )
+    return result
+
+
 def _log_market_query_event(
     event: str,
     *,
@@ -1874,6 +1990,35 @@ DIRECT_HISTORY_COUNTY_SQL = _DIRECT_HISTORY_SELECT.format(
     valid_where=_VALID_PLVR_WHERE,
     district_filter="",
 )
+
+MARKET_ROAD_EVIDENCE_SQL = f"""
+select transaction_period,
+       replace(trim(city), '臺', '台') as city,
+       trim(district) as district,
+       trim(road) as road,
+       unit_price_per_ping,
+       total_price,
+       area_ping,
+       source,
+       imported_at
+from real_price_transactions
+where source = '{OFFICIAL_PLVR_SOURCE}'
+  and (
+    replace(regexp_replace(trim(city), '\\s+', '', 'g'), '臺', '台') || '|' ||
+    replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台')
+  ) = any(%s)
+  and replace(trim(city), '臺', '台') = %s
+  and replace(regexp_replace(trim(district), '\\s+', '', 'g'), '臺', '台') = %s
+order by transaction_period desc
+"""
+
+MARKET_LATEST_IMPORT_SQL = """
+select status as latest_import_status,
+       imported_at as latest_imported_at
+from valuation_import_runs
+order by imported_at desc
+limit 1
+"""
 
 _DIRECT_COVERAGE_SELECT = """
 select count(*) filter (where transaction_period <= %s)::integer as valid_market_candidate_count,

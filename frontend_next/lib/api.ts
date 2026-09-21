@@ -85,6 +85,21 @@ export type TaxResult = {
   tax_output_boundary?: "preliminary_screening_only";
 };
 
+export type MarketAnalysisLevel = "ROAD" | "DISTRICT" | "NOT_AVAILABLE";
+export type MarketMonthlyPoint = {
+  period: string;
+  median_unit_price_per_ping: number;
+  p25_unit_price_per_ping: number;
+  p75_unit_price_per_ping: number;
+  transaction_count: number;
+};
+export type MarketYearlyPoint = {
+  year: string;
+  median_unit_price_per_ping: number;
+  transaction_count: number;
+  yoy_change_percent: number | null;
+};
+
 export type MarketResult = {
   city: string;
   county?: string;
@@ -116,7 +131,7 @@ export type MarketResult = {
   sample_status?: "sufficient" | "limited" | "insufficient" | "no_data" | "unavailable";
   aggregation_version?: string | null;
   source_release_id?: string | null;
-  freshness_status?: "current" | "update_available" | "importing" | "stale" | "failed_latest_update" | "unknown" | "configuration_required";
+  freshness_status?: "current" | "update_available" | "importing" | "fresh" | "aging" | "stale" | "failed_latest_update" | "unknown" | "no_official_data" | "unavailable" | "configuration_required";
   period_change?: number | null;
   year_over_year_change?: number | null;
   price_distribution?: { label: string; count: number }[];
@@ -126,6 +141,32 @@ export type MarketResult = {
   exclusion_count?: number | null;
   methodology?: string | null;
   latest_imported_at?: string | null;
+  requested_scope?: "ROAD" | "DISTRICT";
+  requested_city?: string;
+  requested_district?: string;
+  requested_road?: string | null;
+  normalized_road?: string | null;
+  road_minimum_sample?: number;
+  analysis_level?: MarketAnalysisLevel;
+  effective_analysis_level?: MarketAnalysisLevel;
+  effective_scope_label?: string;
+  effective_sample_count?: number | null;
+  road_sample_count?: number | null;
+  district_sample_count?: number | null;
+  fallback_applied?: boolean;
+  fallback_reason?: "road_sample_below_threshold" | "district_sample_below_threshold" | "market_road_invalid" | "market_road_unknown" | null;
+  period_min?: string | null;
+  period_max?: string | null;
+  newest_effective_period?: string | null;
+  median_unit_price_per_ping?: number | null;
+  p25_unit_price_per_ping?: number | null;
+  p75_unit_price_per_ping?: number | null;
+  median_total_price?: number | null;
+  median_area_ping?: number | null;
+  volatility?: number | null;
+  monthly_series?: MarketMonthlyPoint[];
+  yearly_series?: MarketYearlyPoint[];
+  freshness_reason_code?: string | null;
 };
 
 export type MarketSegmentState = "available" | "low_sample" | "partial" | "no_data" | "unavailable";
@@ -253,12 +294,12 @@ function isMarketResult(value: unknown): value is MarketResult {
     && Array.isArray(result.history);
 }
 
-async function marketInsightRequest(county: string, district?: string, period?: string | null, signal?: AbortSignal): Promise<MarketResult> {
+async function marketInsightRequest(county: string, district?: string, road?: string, period?: string | null, signal?: AbortSignal): Promise<MarketResult> {
   try {
     const response = await fetch(apiUrl("/market-insights/query"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ county, district, period }),
+      body: JSON.stringify({ county, district, ...(road ? { road } : {}), period }),
       signal,
     });
     if (!response.ok) {
@@ -612,8 +653,8 @@ export const api = {
   marketCatalog: () => request<MarketRegionCatalog>("/market-insights/catalog"),
   marketRegions: (county?: string) =>
     request<MarketRegionCatalog>(`/market-insights/regions${county ? `?county=${encodeURIComponent(county)}` : ""}`),
-  marketInsight: (county: string, district?: string, period?: string | null, signal?: AbortSignal) =>
-    marketInsightRequest(county, district, period, signal),
+  marketInsight: (county: string, district?: string, road?: string, period?: string | null, signal?: AbortSignal) =>
+    marketInsightRequest(county, district, road, period, signal),
   marketMethodology: () => request<Record<string, unknown>>("/market-insights/methodology"),
   marketReleases: () => request<Record<string, unknown>>("/market-insights/releases"),
   marketComparables: (payload: { county: string; district: string; transaction_type?: string; limit?: number }) =>

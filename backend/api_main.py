@@ -222,6 +222,12 @@ async def validation_exception_handler(request: Request, error: RequestValidatio
         ):
             return structured_error_response(request, VNextError.unsupported_input())
         return structured_error_response(request, VNextError.validation_failed())
+    if request.url.path == "/market-insights/query":
+        safe_detail = [
+            {key: item[key] for key in ("type", "loc", "msg") if key in item}
+            for item in error.errors()
+        ]
+        return JSONResponse(status_code=422, content={"detail": safe_detail})
     return await request_validation_exception_handler(request, error)
 
 

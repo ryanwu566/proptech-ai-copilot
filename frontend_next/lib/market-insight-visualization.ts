@@ -42,6 +42,11 @@ export const MARKET_METRIC_PRESENTATION_CONTRACT = {
     unit: "ntd_per_square_meter",
     converted: false,
   },
+  roadMedianUnitPrice: {
+    sourceField: "median_unit_price_per_ping",
+    unit: "wan_ntd_per_ping",
+    converted: false,
+  },
   transactionCount: {
     sourceFields: ["transaction_count", "transaction_volume"],
     periodScope: "result.period",
@@ -53,6 +58,11 @@ export type MarketMetricPresentation = {
   transactionCount: number | null;
   period: string | null;
   medianUnitPrice: number | null;
+  roadMedianUnitPrice: number | null;
+  roadPriceRange: { p25: number; p75: number } | null;
+  roadMedianTotalPrice: number | null;
+  roadMedianAreaPing: number | null;
+  volatility: number | null;
   meanUnitPriceNtdSqm: number | null;
   medianTotalPrice: number | null;
   periodChange: number | null;
@@ -127,6 +137,16 @@ export function getMarketMetricPresentation(result: MarketResult): MarketMetricP
     transactionCount: isAvailable ? transactionCount : null,
     period: isAvailable ? safeText(result.period) : null,
     medianUnitPrice: isAvailable && isPositiveFinite(result.median_unit_price_ntd_sqm) ? result.median_unit_price_ntd_sqm : null,
+    roadMedianUnitPrice: isAvailable && isPositiveFinite(result.median_unit_price_per_ping) ? result.median_unit_price_per_ping : null,
+    roadPriceRange: isAvailable
+      && isPositiveFinite(result.p25_unit_price_per_ping)
+      && isPositiveFinite(result.p75_unit_price_per_ping)
+      && result.p25_unit_price_per_ping <= result.p75_unit_price_per_ping
+      ? { p25: result.p25_unit_price_per_ping, p75: result.p75_unit_price_per_ping }
+      : null,
+    roadMedianTotalPrice: isAvailable && isPositiveFinite(result.median_total_price) ? result.median_total_price : null,
+    roadMedianAreaPing: isAvailable && isPositiveFinite(result.median_area_ping) ? result.median_area_ping : null,
+    volatility: isAvailable && isFiniteNumber(result.volatility) && result.volatility >= 0 ? result.volatility : null,
     meanUnitPriceNtdSqm: isAvailable && isPositiveFinite(result.mean_unit_price_ntd_sqm) ? result.mean_unit_price_ntd_sqm : null,
     medianTotalPrice: isAvailable && isPositiveFinite(result.median_total_price_ntd) ? result.median_total_price_ntd : null,
     periodChange: isAvailable && isFiniteNumber(result.period_change) ? result.period_change : null,

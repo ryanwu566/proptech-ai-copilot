@@ -74,15 +74,74 @@ function DistributionTable({ title, items }: { title: string; items: MarketDistr
   </section>;
 }
 
+export function MarketScopeSummary({ result }: { result: MarketResult }) {
+  const { locale: rawLocale } = useExperienceLocale();
+  const locale = (rawLocale in LABELS ? rawLocale : "zh-TW") as Locale;
+  const labels = getMarketInsightCopy(locale);
+  const level = result.effective_analysis_level ?? result.analysis_level;
+  const hasRoadScope = result.requested_scope === "ROAD";
+  if (!hasRoadScope) return null;
+
+  const requestedLocation = [
+    result.requested_city ?? result.county ?? result.city,
+    result.requested_district ?? result.district,
+    result.requested_road,
+  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0).join(" / ");
+  const effectiveScope = result.effective_scope_label?.trim()
+    || (level === "NOT_AVAILABLE" ? labels.levelUnavailable : "—");
+  const levelLabel = level === "ROAD"
+    ? labels.levelRoad
+    : level === "DISTRICT"
+      ? labels.levelDistrict
+      : labels.levelUnavailable;
+  const threshold = Number.isInteger(result.road_minimum_sample) && Number(result.road_minimum_sample) > 0
+    ? Number(result.road_minimum_sample)
+    : 10;
+  const roadCount = Number.isInteger(result.road_sample_count) && Number(result.road_sample_count) >= 0
+    ? Number(result.road_sample_count)
+    : 0;
+  const districtCount = Number.isInteger(result.district_sample_count) && Number(result.district_sample_count) >= 0
+    ? Number(result.district_sample_count)
+    : 0;
+  const periodRange = result.period_min && result.period_max
+    ? (result.period_min === result.period_max ? result.period_min : `${result.period_min} – ${result.period_max}`)
+    : null;
+  const fallbackNotice = result.fallback_applied && result.fallback_reason === "road_sample_below_threshold"
+    ? formatMarketCopy(labels.fallbackDistrict, { roadCount, threshold })
+    : result.fallback_applied && result.fallback_reason === "district_sample_below_threshold"
+      ? formatMarketCopy(labels.fallbackUnavailable, { districtCount, threshold })
+      : null;
+
+  return <section data-testid="market-scope-summary" aria-label={labels.effectiveScope} className="rounded-xl border border-cyan-200 bg-cyan-50/60 p-4">
+    <div className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+      <MetaField label={labels.requestedScope} value={requestedLocation || "—"} />
+      <MetaField label={labels.effectiveScope} value={level === "ROAD" && result.normalized_road ? result.effective_scope_label || result.normalized_road : effectiveScope} />
+      <MetaField label={labels.analysisLevel} value={levelLabel} />
+      <MetaField label={labels.effectiveSamples} value={formatNumber(result.effective_sample_count, locale)} />
+      <MetaField label={labels.roadSamples} value={`${formatNumber(result.road_sample_count, locale)} / ${threshold}`} />
+      {periodRange && <MetaField label={labels.periodRange} value={periodRange} />}
+      {result.source_name && <MetaField label={labels.source} value={result.source_name} />}
+      {result.freshness_status && <MetaField label={labels.freshness} value={result.freshness_status} />}
+    </div>
+    {fallbackNotice && <p data-testid="market-fallback-notice" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm font-bold leading-6 text-amber-950">{fallbackNotice}</p>}
+  </section>;
+}
+
 export function MarketInsightEvidencePanel({ result, model }: { result: MarketResult; model: MarketInsightVisualModel }) {
   const { locale: rawLocale } = useExperienceLocale();
   const locale = (rawLocale in LABELS ? rawLocale : "zh-TW") as Locale;
   const labels = LABELS[locale];
   const analysisLabels = getMarketInsightCopy(locale);
   const presentation = getMarketMetricPresentation(result);
+  const roadAware = result.requested_scope === "ROAD";
   const stats = model.trendStats;
   const snapshot = buildMarketInsightSnapshot(result);
   const hasAnalysisMetadata = presentation.medianUnitPrice !== null
+    || presentation.roadMedianUnitPrice !== null
+    || presentation.roadPriceRange !== null
+    || presentation.roadMedianTotalPrice !== null
+    || presentation.roadMedianAreaPing !== null
+    || presentation.volatility !== null
     || presentation.medianTotalPrice !== null
     || presentation.yearOverYearChange !== null
     || presentation.inclusionCount !== null
@@ -101,8 +160,8 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
   return <div className="space-y-4">
     <div data-testid="market-primary-metrics" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {presentation.averageUnitPrice !== null && <MetricTile label={labels.averageDirect} value={formatNumber(presentation.averageUnitPrice, locale)} />}
-      {presentation.transactionCount !== null && <MetricTile label={labels.count} value={`${formatNumber(presentation.transactionCount, locale)} ${labels.countUnit}`} />}
-      {presentation.period && <MetricTile label={labels.period} value={presentation.period} />}
+      {presentation.transactionCount !== null && <MetricTile label={roadAware ? analysisLabels.effectiveWindowCount : labels.count} value={`${formatNumber(presentation.transactionCount, locale)} ${labels.countUnit}`} />}
+      {presentation.period && <MetricTile label={roadAware ? analysisLabels.latestPeriod : labels.period} value={presentation.period} />}
     </div>
     {stats.periodCount > 0 && <section data-testid="market-derived-stats" aria-label={analysisLabels.summary} className="rounded-xl border border-stone-200 bg-stone-50 p-3">
       <h3 className="text-xs font-bold text-slate-800">{analysisLabels.summary}</h3>
@@ -116,6 +175,11 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
     </section>}
     <button type="button" onClick={() => window.print()} className="rounded-lg border border-cyan-700 px-3 py-2 text-xs font-bold text-cyan-800 hover:bg-cyan-50 print:hidden">{labels.print}</button>
     {hasAnalysisMetadata && <div className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-4">
+      {presentation.roadMedianUnitPrice !== null && <MetaField label={analysisLabels.medianWanPerPing} value={formatNumber(presentation.roadMedianUnitPrice, locale)} />}
+      {presentation.roadPriceRange !== null && <MetaField label={analysisLabels.quartileRangeWanPerPing} value={`${formatNumber(presentation.roadPriceRange.p25, locale)} – ${formatNumber(presentation.roadPriceRange.p75, locale)}`} />}
+      {presentation.roadMedianTotalPrice !== null && <MetaField label={analysisLabels.medianTotalWan} value={formatNumber(presentation.roadMedianTotalPrice, locale)} />}
+      {presentation.roadMedianAreaPing !== null && <MetaField label={analysisLabels.medianAreaPing} value={formatNumber(presentation.roadMedianAreaPing, locale)} />}
+      {presentation.volatility !== null && <MetaField label={analysisLabels.volatility} value={formatChange(presentation.volatility)} />}
       {presentation.medianUnitPrice !== null && <MetaField label={labels.median} value={formatNumber(presentation.medianUnitPrice, locale)} />}
       {presentation.medianTotalPrice !== null && <MetaField label={labels.medianTotal} value={formatNumber(presentation.medianTotalPrice, locale)} />}
       {presentation.yearOverYearChange !== null && <MetaField label={labels.yoy} value={formatChange(presentation.yearOverYearChange)} />}
@@ -166,7 +230,7 @@ export function MarketInsightEvidencePanel({ result, model }: { result: MarketRe
       <h2 className="text-xl font-bold">{labels.reportTitle}</h2>
       <p>{result.county || result.city} / {result.district || "—"}{presentation.period ? ` · ${presentation.period}` : ""}</p>
       {presentation.averageUnitPrice !== null && <p>{labels.averageDirect}: {formatNumber(presentation.averageUnitPrice, locale)}</p>}
-      {presentation.transactionCount !== null && <p>{labels.count}: {formatNumber(presentation.transactionCount, locale)}</p>}
+      {presentation.transactionCount !== null && <p>{roadAware ? analysisLabels.effectiveWindowCount : labels.count}: {formatNumber(presentation.transactionCount, locale)}</p>}
       {presentation.medianUnitPrice !== null && <p>{labels.median}: {formatNumber(presentation.medianUnitPrice, locale)}</p>}
       {presentation.medianTotalPrice !== null && <p>{labels.medianTotal}: {formatNumber(presentation.medianTotalPrice, locale)}</p>}
       {presentation.sourceName && <p>{labels.source}: {presentation.sourceName}</p>}
