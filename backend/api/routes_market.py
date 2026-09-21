@@ -30,6 +30,13 @@ MARKET_QUERY_SAFE_FIELDS = (
     "period_change", "year_over_year_change", "price_distribution", "building_type_distribution",
     "age_band_distribution", "inclusion_count", "exclusion_count", "methodology", "latest_imported_at",
     "reason_code", "support_reference",
+    "requested_scope", "requested_city", "requested_district", "requested_road", "normalized_road",
+    "road_minimum_sample", "analysis_level", "effective_analysis_level", "effective_scope_label",
+    "effective_sample_count", "road_sample_count", "district_sample_count", "fallback_applied", "fallback_reason",
+    "period_min", "period_max", "newest_effective_period", "median_unit_price_per_ping",
+    "p25_unit_price_per_ping", "p75_unit_price_per_ping", "median_total_price", "median_area_ping",
+    "monthly_series", "yearly_series", "volatility", "freshness_reason_code",
+    "excluded_future_period_count", "excluded_out_of_window_count", "excluded_invalid_count",
 )
 MARKET_REFRESH_UNAVAILABLE_MESSAGE = "市場讀取模型暫時無法刷新，請稍後再試。"
 MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE = "市場讀取模型刷新設定尚未完成。"
@@ -44,7 +51,21 @@ class MarketInsightQuery(BaseModel):
     county: str | None = None
     city: str | None = None
     district: str = ""
+    road: str | None = None
     period: str | None = None
+
+    @field_validator("road")
+    @classmethod
+    def require_valid_road(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+
+        from services.market_road_analysis import is_valid_market_road
+
+        road = value.strip()
+        if not is_valid_market_road(road):
+            raise ValueError("invalid road")
+        return road
 
 
 class MarketCoverageReconcileRequest(BaseModel):
@@ -250,9 +271,13 @@ def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
             "coverage_unknown",
             "market_region_invalid",
             support_reference,
+            requested_road=request.road,
         )
     try:
-        result = get_market_summary(county, request.district, request.period)
+        if request.road is None:
+            result = get_market_summary(county, request.district, request.period)
+        else:
+            result = get_market_summary(county, request.district, request.period, road=request.road)
     except Exception as exc:
         logger.exception(
             "market_query_unavailable %s",
@@ -277,8 +302,9 @@ def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
             "coverage_unknown",
             "market_unknown_safe_failure",
             support_reference,
+            requested_road=request.road,
         )
-    return _safe_market_query_result(result, county, request.district, support_reference)
+    return _safe_market_query_result(result, county, request.district, support_reference, requested_road=request.road)
 
 
 def _safe_market_query_result(
@@ -286,6 +312,8 @@ def _safe_market_query_result(
     county: str,
     district: str,
     fallback_support_reference: str | None = None,
+    *,
+    requested_road: str | None = None,
 ) -> dict[str, Any]:
     """Allowlist and validate the public Market Insight result contract."""
 
@@ -302,6 +330,7 @@ def _safe_market_query_result(
             "coverage_unknown",
             "market_result_contract_invalid",
             support_reference,
+            requested_road=requested_road,
         )
 
     coverage_status = _safe_market_coverage(raw.get("coverage_status"))
@@ -312,6 +341,7 @@ def _safe_market_query_result(
             result = {key: raw.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
             result["coverage_status"] = coverage_status
             result["support_reference"] = support_reference
+            result["fallback_reason"] = _safe_market_fallback_reason(raw.get("fallback_reason"))
             if raw_reason_code:
                 result["reason_code"] = safe_market_query_reason_code(raw_reason_code)
             return result
@@ -326,6 +356,7 @@ def _safe_market_query_result(
                     "data_status": "incomplete",
                     "support_reference": support_reference,
                     "history": raw.get("history") if isinstance(raw.get("history"), list) else [],
+                    "fallback_reason": _safe_market_fallback_reason(raw.get("fallback_reason")),
                 }
             )
             if raw_reason_code:
@@ -338,7 +369,15 @@ def _safe_market_query_result(
         )
         return _safe_market_no_data(raw, county, district, reason_code, support_reference)
     reason_code = safe_market_query_reason_code(raw_reason_code) if raw_reason_code else "market_coverage_not_confirmed"
-    return _safe_market_unavailable(county, district, coverage_status, reason_code, support_reference)
+    return _safe_market_unavailable(
+        county,
+        district,
+        coverage_status,
+        reason_code,
+        support_reference,
+        requested_road=requested_road,
+        raw=raw,
+    )
 
 
 def _market_result_has_valid_metrics(result: dict[str, Any]) -> bool:
@@ -393,6 +432,20 @@ def _safe_market_coverage(value: Any) -> str:
     return "coverage_unknown"
 
 
+def _safe_market_fallback_reason(value: Any) -> str | None:
+    text = str(value or "").strip()
+    if not text:
+        return None
+    if text in {
+        "road_sample_below_threshold",
+        "district_sample_below_threshold",
+        "market_road_invalid",
+        "market_road_unknown",
+    }:
+        return text
+    return "market_road_unknown"
+
+
 def _safe_market_no_data(
     raw: dict[str, Any],
     county: str,
@@ -413,12 +466,22 @@ def _safe_market_no_data(
             "transaction_count": None,
             "transaction_volume": None,
             "record_count": None,
+            "median_unit_price_per_ping": None,
+            "p25_unit_price_per_ping": None,
+            "p75_unit_price_per_ping": None,
+            "median_total_price": None,
+            "median_area_ping": None,
+            "monthly_series": [],
+            "yearly_series": [],
+            "year_over_year_change": None,
+            "volatility": None,
             "coverage_status": "covered",
             "data_status": "no_data",
             "summary": MARKET_NO_DATA_SUMMARY,
             "history": [],
             "reason_code": safe_market_query_reason_code(reason_code),
             "support_reference": _safe_market_support_reference(raw.get("support_reference"), support_reference),
+            "fallback_reason": _safe_market_fallback_reason(raw.get("fallback_reason")),
         }
     )
     return result
@@ -430,6 +493,9 @@ def _safe_market_unavailable(
     coverage_status: str,
     reason_code: str = "market_unknown_safe_failure",
     support_reference: str | None = None,
+    *,
+    requested_road: str | None = None,
+    raw: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from services.plvr_market_aggregate_service import safe_market_query_reason_code
     from services.market_data_foundation import market_unavailable_response
@@ -450,7 +516,53 @@ def _safe_market_unavailable(
             "support_reference": _safe_market_support_reference(None, support_reference),
         }
     )
+    raw_result = raw if isinstance(raw, dict) else {}
+    road_candidate = raw_result.get("requested_road") or requested_road
+    if raw_result.get("requested_scope") == "ROAD" or requested_road is not None:
+        from services.market_road_analysis import ROAD_MINIMUM_SAMPLE, is_valid_market_road, normalize_market_road
+        from services.plvr_data_integrity import normalized_storage_key
+        from services.taiwan_admin_registry import normalize_market_region
+
+        safe_road = str(road_candidate or "").strip()
+        if not is_valid_market_road(safe_road):
+            safe_road = ""
+        normalized_region = normalize_market_region(county, district)
+        result.update(
+            {
+                "requested_scope": "ROAD",
+                "requested_city": normalized_storage_key(normalized_region.county or county),
+                "requested_district": normalized_storage_key(normalized_region.district or district),
+                "requested_road": safe_road or None,
+                "normalized_road": normalize_market_road(safe_road) or None,
+                "road_minimum_sample": ROAD_MINIMUM_SAMPLE,
+                "analysis_level": "NOT_AVAILABLE",
+                "effective_analysis_level": "NOT_AVAILABLE",
+                "effective_scope_label": "",
+                "effective_sample_count": None,
+                "road_sample_count": _safe_nonnegative_count(raw_result.get("road_sample_count")),
+                "district_sample_count": _safe_nonnegative_count(raw_result.get("district_sample_count")),
+                "fallback_applied": False,
+                "fallback_reason": _safe_market_fallback_reason(raw_result.get("fallback_reason") or "market_road_unknown"),
+                "period": None,
+                "period_min": None,
+                "period_max": None,
+                "newest_effective_period": None,
+                "median_unit_price_per_ping": None,
+                "p25_unit_price_per_ping": None,
+                "p75_unit_price_per_ping": None,
+                "median_total_price": None,
+                "median_area_ping": None,
+                "monthly_series": [],
+                "yearly_series": [],
+                "year_over_year_change": None,
+                "volatility": None,
+            }
+        )
     return {key: result.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+
+
+def _safe_nonnegative_count(value: Any) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else None
 
 
 def _new_market_support_reference() -> str:

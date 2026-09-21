@@ -34,7 +34,7 @@ def test_market_insight_queries_only_on_button_click_without_catalog_scan() -> N
     assert "query()" not in synchronization
     assert component.count("api.marketInsight(") == 1
     assert "api.marketInsight(first.city" not in component
-    assert "api.marketInsight(canonicalCounty, canonicalDistrict, undefined, controller.signal)" in component
+    assert "api.marketInsight(canonicalCounty, canonicalDistrict, road.trim() || undefined, undefined, controller.signal)" in component
     assert "AbortController" in component
     assert "marketQuerySeq.current === queryId" in component
     assert "if (querying) return" in component

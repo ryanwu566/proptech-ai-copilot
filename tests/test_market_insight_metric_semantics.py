@@ -65,3 +65,16 @@ def test_presentation_does_not_synthesize_advanced_metrics() -> None:
     )
     for expression in forbidden:
         assert expression not in source
+
+
+def test_road_metrics_keep_wan_per_ping_units_separate_from_sqm_metrics() -> None:
+    source = read_utf8(VISUAL_HELPER)
+    panel = read_utf8(EVIDENCE_PANEL)
+    assert 'sourceField: "median_unit_price_per_ping"' in source
+    assert 'unit: "wan_ntd_per_ping"' in source
+    assert "result.median_unit_price_per_ping" in source
+    assert "result.p25_unit_price_per_ping" in source
+    assert "result.p75_unit_price_per_ping" in source
+    assert "presentation.roadMedianUnitPrice" in panel
+    assert "presentation.roadPriceRange" in panel
+    assert "presentation.roadMedianTotalPrice" in panel

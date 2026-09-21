@@ -4,6 +4,8 @@ from pathlib import Path
 ROOT = Path(__file__).parents[1]
 VISUAL_HELPER = ROOT / "frontend_next" / "lib" / "market-insight-visualization.ts"
 VISUAL_DIR = ROOT / "frontend_next" / "components" / "data-visualization"
+API_CLIENT = ROOT / "frontend_next" / "lib" / "api.ts"
+MARKET_COPY = ROOT / "frontend_next" / "lib" / "market-insight-copy.ts"
 
 
 def test_visual_model_is_pure_and_filters_invalid_history() -> None:
@@ -111,3 +113,39 @@ def test_market_analysis_contract_is_deterministic_and_localized() -> None:
     assert "market_request_cors_failed" in page
     assert "forecast" not in helper.lower()
     assert "prediction" not in helper.lower()
+
+
+def test_road_level_contract_and_scope_first_story_are_explicit() -> None:
+    api = API_CLIENT.read_text(encoding="utf-8")
+    page = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+    panel = (VISUAL_DIR / "market-insight-evidence-panel.tsx").read_text(encoding="utf-8")
+    copy = MARKET_COPY.read_text(encoding="utf-8")
+    section = page.split("function MarketInsight(", 1)[1].split("function AegisCredit", 1)[0]
+
+    assert 'export type MarketAnalysisLevel = "ROAD" | "DISTRICT" | "NOT_AVAILABLE"' in api
+    for field in (
+        "requested_scope", "requested_city", "requested_district", "requested_road", "normalized_road",
+        "effective_analysis_level", "effective_scope_label", "effective_sample_count", "road_sample_count",
+        "district_sample_count", "fallback_applied", "fallback_reason", "period_min", "period_max",
+        "median_unit_price_per_ping", "p25_unit_price_per_ping", "p75_unit_price_per_ping",
+        "median_total_price", "median_area_ping", "volatility", "monthly_series", "yearly_series",
+    ):
+        assert field in api
+
+    assert "initialRoad" in section
+    assert 'data-testid="market-road-input"' in section
+    assert "maxLength={80}" in section
+    assert "setRoad(\"\")" in section
+    assert "api.marketInsight(canonicalCounty, canonicalDistrict, road.trim() || undefined" in section
+    assert 'data-testid="market-scope-summary"' in panel
+    assert 'data-testid="market-fallback-notice"' in panel
+    for field in (
+        "requested_road", "normalized_road", "effective_analysis_level", "effective_scope_label",
+        "effective_sample_count", "road_sample_count", "road_minimum_sample", "period_min", "period_max",
+    ):
+        assert field in panel
+    for copy_field in ("roadLabel", "requestedScope", "effectiveScope", "fallbackDistrict", "fallbackUnavailable"):
+        assert copy.count(f"{copy_field}:") == 5  # type plus four locales
+    assert copy.count("和平東路二段") == 4
+    assert "Heping E. Rd." not in copy
+    assert "허핑둥루" not in copy

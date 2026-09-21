@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 from typing import Any
 
 import pytest
@@ -145,6 +146,200 @@ class _DirectRepository:
         if self.failure == "history":
             raise RuntimeError("private history detail")
         return [{"period": "2025-02", "average_unit_price": 70.0, "transaction_count": 2}]
+
+
+class _RoadRepository(_DirectRepository):
+    def __init__(self, rows: list[dict[str, Any]], failure: bool = False) -> None:
+        super().__init__()
+        self.rows = rows
+        self.failure = failure
+        self.summary_called = False
+
+    def summary(self, county: str, district: str, _period: str | None = None) -> dict[str, Any] | None:
+        self.summary_called = True
+        return super().summary(county, district, _period)
+
+    def road_evidence(self, _county: str, _district: str) -> dict[str, Any]:
+        if self.failure:
+            raise RuntimeError("private road query detail")
+        return {
+            "rows": self.rows,
+            "latest_import_status": "completed",
+            "latest_imported_at": "2026-09-15T00:00:00+00:00",
+        }
+
+
+def _road_row(index: int, road: str = "和平東路二段") -> dict[str, Any]:
+    return {
+        "source": "official_plvr_opendata",
+        "transaction_period": "2026-09",
+        "city": "台北市",
+        "district": "大安區",
+        "road": road,
+        "unit_price_per_ping": 60 + index,
+        "total_price": (60 + index) * 30,
+        "area_ping": 30,
+        "imported_at": "2026-09-15T00:00:00+00:00",
+    }
+
+
+def test_service_road_query_uses_road_evidence_without_legacy_summary() -> None:
+    """Calling the legacy summary would make road scope impossible to prove."""
+
+    repository = _RoadRepository([_road_row(index) for index in range(10)])
+
+    result = get_market_summary(
+        "台北市",
+        "大安區",
+        road="和平東路2段",
+        repository=repository,
+        as_of=date(2026, 9, 21),
+    )
+
+    assert repository.summary_called is False
+    assert result["effective_analysis_level"] == "ROAD"
+    assert result["normalized_road"] == "和平東路二段"
+    assert result["road_sample_count"] == 10
+    assert result["support_reference"]
+
+
+def test_service_road_query_failure_is_safe_and_bounded() -> None:
+    """A provider exception must not leak through the road branch."""
+
+    result = get_market_summary(
+        "台北市",
+        "大安區",
+        road="和平東路二段",
+        repository=_RoadRepository([], failure=True),
+        as_of=date(2026, 9, 21),
+    )
+
+    assert result["data_status"] == "unavailable"
+    assert result["reason_code"] == "market_road_query_unavailable"
+    assert result["requested_scope"] == "ROAD"
+    assert result["requested_road"] == "和平東路二段"
+    assert result["normalized_road"] == "和平東路二段"
+    assert result["effective_analysis_level"] == "NOT_AVAILABLE"
+    assert result["fallback_reason"] == "market_road_unknown"
+    assert result["monthly_series"] == []
+    assert result["yearly_series"] == []
+    assert result["median_unit_price_per_ping"] is None
+    assert SUPPORT_REFERENCE_PATTERN.fullmatch(result["support_reference"])
+    assert "private" not in str(result)
+
+
+def test_service_road_runtime_missing_preserves_requested_scope(monkeypatch) -> None:
+    from services import plvr_market_aggregate_service
+
+    monkeypatch.setattr(plvr_market_aggregate_service, "_repository_from_env", lambda: None)
+
+    result = get_market_summary(
+        "台北市",
+        "大安區",
+        road="和平東路2段",
+        as_of=date(2026, 9, 21),
+    )
+
+    assert result["reason_code"] == "market_runtime_not_configured"
+    assert result["requested_road"] == "和平東路2段"
+    assert result["normalized_road"] == "和平東路二段"
+    assert result["effective_analysis_level"] == "NOT_AVAILABLE"
+    assert result["monthly_series"] == []
+    assert result["yearly_series"] == []
+
+
+def test_service_road_unconfirmed_coverage_preserves_requested_scope() -> None:
+    repository = _RoadRepository([])
+    repository.coverage = lambda _county, _district: {  # type: ignore[method-assign]
+        "coverage_status": "not_covered",
+        "valid_market_candidate_count": 0,
+    }
+
+    result = get_market_summary(
+        "台北市",
+        "大安區",
+        road="和平東路二段",
+        repository=repository,
+        as_of=date(2026, 9, 21),
+    )
+
+    assert result["reason_code"] == "market_coverage_not_confirmed"
+    assert result["requested_scope"] == "ROAD"
+    assert result["requested_road"] == "和平東路二段"
+    assert result["effective_analysis_level"] == "NOT_AVAILABLE"
+    assert result["fallback_reason"] == "market_road_unknown"
+
+
+class _RoadEvidenceCursor:
+    def __init__(self) -> None:
+        self.statements: list[str] = []
+        self.active = ""
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args) -> None:
+        return None
+
+    def execute(self, statement: str, _params: Any = None) -> None:
+        self.statements.append(statement)
+        if "from real_price_transactions" in statement:
+            self.active = "evidence"
+        elif "from valuation_import_runs" in statement:
+            self.active = "metadata"
+
+    def fetchall(self) -> list[dict[str, Any]]:
+        if self.active != "evidence":
+            return []
+        return [_road_row(0)]
+
+    def fetchone(self) -> dict[str, Any] | None:
+        if self.active == "metadata":
+            return {
+                "latest_import_status": "completed",
+                "latest_imported_at": "2026-09-15T00:00:00+00:00",
+            }
+        return None
+
+
+class _RoadEvidenceConnection:
+    def __init__(self) -> None:
+        self.road_cursor = _RoadEvidenceCursor()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args) -> None:
+        return None
+
+    def cursor(self) -> _RoadEvidenceCursor:
+        return self.road_cursor
+
+
+class _RoadEvidencePostgresRepository(PostgresMarketReadModelRepository):
+    def __init__(self) -> None:
+        super().__init__(database_url="unused")
+        object.__setattr__(self, "connection", _RoadEvidenceConnection())
+
+    def _connect(self) -> _RoadEvidenceConnection:
+        return self.connection
+
+
+def test_postgres_road_evidence_query_is_address_free_and_untruncated() -> None:
+    """A LIMIT or sensitive selected column could make counts false or leak data."""
+
+    repository = _RoadEvidencePostgresRepository()
+
+    evidence = repository.road_evidence("台北市", "大安區")
+
+    assert evidence["rows"] == [_road_row(0)]
+    evidence_sql = next(
+        statement for statement in repository.connection.road_cursor.statements
+        if "from real_price_transactions" in statement
+    ).lower()
+    for forbidden in ("address_text", " lat", " lng", "raw_note", "select id", "limit"):
+        assert forbidden not in evidence_sql
+    assert "source = 'official_plvr_opendata'" in evidence_sql
 
 
 @pytest.mark.parametrize(

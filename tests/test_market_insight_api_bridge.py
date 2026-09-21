@@ -11,6 +11,203 @@ from backend.api_main import app
 client = TestClient(app)
 
 
+def _road_market_result(*, level: str = "ROAD", data_status: str = "available") -> dict:
+    available = data_status == "available"
+    return {
+        "city": "台北市",
+        "county": "台北市",
+        "district": "大安區",
+        "period": "2026-09" if available else None,
+        "average_unit_price": 75.0 if available else None,
+        "avg_price_per_ping": 75.0 if available else None,
+        "transaction_count": 10 if available else None,
+        "transaction_volume": 10 if available else None,
+        "record_count": 10 if available else None,
+        "history": [{"period": "2026-09", "average_unit_price": 75.0, "transaction_count": 10}] if available else [],
+        "summary": "road analysis",
+        "source_name": "Official PLVR OpenData aggregate",
+        "source_updated_at": "2026-09-15",
+        "coverage_status": "covered",
+        "data_status": data_status,
+        "caveat": "historical reference only",
+        "disclaimer": "historical reference only",
+        "requested_scope": "ROAD",
+        "requested_city": "台北市",
+        "requested_district": "大安區",
+        "requested_road": "和平東路2段",
+        "normalized_road": "和平東路二段",
+        "road_minimum_sample": 10,
+        "analysis_level": level,
+        "effective_analysis_level": level,
+        "effective_scope_label": "台北市 / 大安區 / 和平東路二段" if level == "ROAD" else "",
+        "effective_sample_count": 10 if available else 0,
+        "road_sample_count": 10 if available else 3,
+        "district_sample_count": 20 if available else 8,
+        "fallback_applied": level != "ROAD",
+        "fallback_reason": None if level == "ROAD" else "district_sample_below_threshold",
+        "period_min": "2026-01" if available else None,
+        "period_max": "2026-09" if available else None,
+        "newest_effective_period": "2026-09" if available else None,
+        "median_unit_price_per_ping": 74.0 if available else 999.0,
+        "p25_unit_price_per_ping": 68.0 if available else 998.0,
+        "p75_unit_price_per_ping": 82.0 if available else 1000.0,
+        "median_total_price": 2200.0 if available else 9999.0,
+        "median_area_ping": 30.0 if available else 999.0,
+        "monthly_series": [{"period": "2026-09", "median_unit_price_per_ping": 74.0, "transaction_count": 10}] if available else [{"private": True}],
+        "yearly_series": [{"year": "2026", "median_unit_price_per_ping": 74.0, "transaction_count": 10, "yoy_change_percent": None}] if available else [{"private": True}],
+        "year_over_year_change": None,
+        "volatility": None,
+        "freshness_status": "fresh",
+        "freshness_reason_code": "freshness_confirmed",
+        "excluded_future_period_count": 1,
+        "excluded_out_of_window_count": 2,
+        "excluded_invalid_count": 3,
+        "address_text": "must never leak",
+    }
+
+
+def test_market_query_accepts_road_and_exposes_separate_requested_and_effective_scopes(monkeypatch) -> None:
+    """Rejecting or stripping road scope would make truthful ROAD analysis impossible."""
+
+    from services import market_insight_service
+
+    seen: dict[str, str | None] = {}
+
+    def fake_summary(city: str, district: str, period: str | None = None, road: str | None = None):
+        seen.update({"city": city, "district": district, "period": period, "road": road})
+        return _road_market_result()
+
+    monkeypatch.setattr(market_insight_service, "get_market_summary", fake_summary)
+
+    response = client.post(
+        "/market-insights/query",
+        json={"county": "台北市", "district": "大安區", "road": "和平東路2段"},
+    )
+
+    assert response.status_code == 200
+    assert seen == {"city": "台北市", "district": "大安區", "period": None, "road": "和平東路2段"}
+    payload = response.json()
+    assert payload["requested_scope"] == "ROAD"
+    assert payload["requested_road"] == "和平東路2段"
+    assert payload["normalized_road"] == "和平東路二段"
+    assert payload["effective_analysis_level"] == "ROAD"
+    assert payload["road_sample_count"] == 10
+    assert payload["median_unit_price_per_ping"] == 74.0
+    assert "address_text" not in payload
+
+
+def test_not_available_road_response_keeps_explanation_but_clears_all_metrics(monkeypatch) -> None:
+    """Residual road metrics in NOT_AVAILABLE would fabricate a market result."""
+
+    from services import market_insight_service
+
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_summary",
+        lambda *_args, **_kwargs: _road_market_result(level="NOT_AVAILABLE", data_status="no_data"),
+    )
+
+    payload = client.post(
+        "/market-insights/query",
+        json={"county": "台北市", "district": "大安區", "road": "和平東路二段"},
+    ).json()
+
+    assert payload["effective_analysis_level"] == "NOT_AVAILABLE"
+    assert payload["road_sample_count"] == 3
+    assert payload["district_sample_count"] == 8
+    assert payload["fallback_reason"] == "district_sample_below_threshold"
+    for field in (
+        "average_unit_price",
+        "transaction_count",
+        "median_unit_price_per_ping",
+        "p25_unit_price_per_ping",
+        "p75_unit_price_per_ping",
+        "median_total_price",
+        "median_area_ping",
+    ):
+        assert payload[field] is None
+    assert payload["history"] == []
+    assert payload["monthly_series"] == []
+    assert payload["yearly_series"] == []
+
+
+@pytest.mark.parametrize(
+    "road",
+    ["", "   ", "25.03,121.54", "和平東路二段100號", "和平東路二段/文化路", "路" * 81],
+)
+def test_market_query_rejects_invalid_road_without_calling_service(monkeypatch, road: str) -> None:
+    """Invalid road input must not silently execute district analysis."""
+
+    from services import market_insight_service
+
+    called = False
+
+    def fake_summary(*_args, **_kwargs):
+        nonlocal called
+        called = True
+        return _road_market_result()
+
+    monkeypatch.setattr(market_insight_service, "get_market_summary", fake_summary)
+
+    response = client.post(
+        "/market-insights/query",
+        json={"county": "台北市", "district": "大安區", "road": road},
+    )
+
+    assert response.status_code == 422
+    assert called is False
+
+
+def test_market_query_bounds_unknown_fallback_reason(monkeypatch) -> None:
+    """Provider text must not leak through the fallback explanation field."""
+
+    from services import market_insight_service
+
+    unsafe = _road_market_result(level="DISTRICT")
+    unsafe.update(
+        {
+            "fallback_applied": True,
+            "fallback_reason": "private database explanation",
+            "effective_scope_label": "台北市 / 大安區",
+        }
+    )
+    monkeypatch.setattr(market_insight_service, "get_market_summary", lambda *_args, **_kwargs: unsafe)
+
+    payload = client.post(
+        "/market-insights/query",
+        json={"county": "台北市", "district": "大安區", "road": "和平東路二段"},
+    ).json()
+
+    assert payload["fallback_reason"] == "market_road_unknown"
+    assert "private database" not in str(payload)
+
+
+def test_unexpected_road_failure_preserves_safe_requested_scope(monkeypatch) -> None:
+    """Technical failure must not erase which validated road was requested."""
+
+    from services import market_insight_service
+
+    def fail(*_args, **_kwargs):
+        raise RuntimeError("private provider detail")
+
+    monkeypatch.setattr(market_insight_service, "get_market_summary", fail)
+
+    payload = client.post(
+        "/market-insights/query",
+        json={"county": "台北市", "district": "大安區", "road": "和平東路2段"},
+    ).json()
+
+    assert payload["data_status"] == "unavailable"
+    assert payload["requested_scope"] == "ROAD"
+    assert payload["requested_road"] == "和平東路2段"
+    assert payload["normalized_road"] == "和平東路二段"
+    assert payload["effective_analysis_level"] == "NOT_AVAILABLE"
+    assert payload["fallback_reason"] == "market_road_unknown"
+    assert payload["monthly_series"] == []
+    assert payload["yearly_series"] == []
+    assert "private provider detail" not in str(payload)
+
+
 def test_market_status_endpoint_uses_safe_read_model_metadata(monkeypatch) -> None:
     from services import market_insight_service
 

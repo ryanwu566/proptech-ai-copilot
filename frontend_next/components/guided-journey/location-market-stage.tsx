@@ -20,7 +20,7 @@ type MarketHandlers = {
   onResult: (result: MarketResult | null) => void;
 };
 
-export function LocationMarketStage({ propertyContext, initialLocationResult, initialTerrainResult, initialMarketResult, initialTerrainStatus = "not_started", initialMarketStatus = "not_started", renderMarket, onMap, onBackToProperty, onContinueToPrice, onPropertyContextChange, onLocationEvidenceChange, onTerrainEvidenceChange, onMarketEvidenceChange, onTerrainReferenceReady }: { propertyContext: JourneyPropertyContext; initialLocationResult?: LocationInsightResult; initialTerrainResult?: TerrainRiskResult; initialMarketResult?: MarketResult; initialTerrainStatus?: LocationMarketDisplayStatus; initialMarketStatus?: LocationMarketDisplayStatus; renderMarket: (context: JourneyPropertyContext, handlers: MarketHandlers) => ReactNode; onMap: () => void; onBackToProperty: () => void; onContinueToPrice: (context: JourneyPropertyContext) => void; onPropertyContextChange?: (context: JourneyPropertyContext) => void; onLocationEvidenceChange?: (result: LocationInsightResult | null, status: LocationMarketDisplayStatus) => void; onTerrainEvidenceChange?: (result: TerrainRiskResult | null, status: LocationMarketDisplayStatus) => void; onMarketEvidenceChange?: (result: MarketResult | null, status: LocationMarketDisplayStatus) => void; onTerrainReferenceReady?: (evidence: TerrainReferenceEvidence) => void }) {
+export function LocationMarketStage({ propertyContext, initialLocationResult, initialTerrainResult, initialMarketResult, initialTerrainStatus = "not_started", initialMarketStatus = "not_started", initialActiveTool, renderMarket, onMap, onBackToProperty, onContinueToPrice, onPropertyContextChange, onLocationEvidenceChange, onTerrainEvidenceChange, onMarketEvidenceChange, onTerrainReferenceReady }: { propertyContext: JourneyPropertyContext; initialLocationResult?: LocationInsightResult; initialTerrainResult?: TerrainRiskResult; initialMarketResult?: MarketResult; initialTerrainStatus?: LocationMarketDisplayStatus; initialMarketStatus?: LocationMarketDisplayStatus; initialActiveTool?: LocationMarketToolId; renderMarket: (context: JourneyPropertyContext, handlers: MarketHandlers) => ReactNode; onMap: () => void; onBackToProperty: () => void; onContinueToPrice: (context: JourneyPropertyContext) => void; onPropertyContextChange?: (context: JourneyPropertyContext) => void; onLocationEvidenceChange?: (result: LocationInsightResult | null, status: LocationMarketDisplayStatus) => void; onTerrainEvidenceChange?: (result: TerrainRiskResult | null, status: LocationMarketDisplayStatus) => void; onMarketEvidenceChange?: (result: MarketResult | null, status: LocationMarketDisplayStatus) => void; onTerrainReferenceReady?: (evidence: TerrainReferenceEvidence) => void }) {
   const [locationResult, setLocationResult] = useState<LocationInsightResult | null>(initialLocationResult ?? null);
   const [commuteResult, setCommuteResult] = useState<CommuteAddressLookupResult | null>(null);
   const [commuteDisplayStatus, setCommuteDisplayStatus] = useState<LocationMarketDisplayStatus>("not_started");
@@ -37,6 +37,11 @@ export function LocationMarketStage({ propertyContext, initialLocationResult, in
   useEffect(() => { setMarketResult(initialMarketResult ?? null); }, [initialMarketResult]);
   useEffect(() => { setTerrainDisplayStatus(initialTerrainStatus); }, [initialTerrainStatus]);
   useEffect(() => { setMarketDisplayStatus(initialMarketStatus); }, [initialMarketStatus]);
+  useEffect(() => {
+    if (!initialActiveTool) return;
+    setActiveTool(initialActiveTool);
+    setVisitedTools((current) => addVisitedLocationMarketTool(current, initialActiveTool));
+  }, [initialActiveTool]);
 
   function updatePropertyContext(next: LocationInsightPrefill) {
     const addressChanged = next.address !== undefined && next.address.trim() !== (propertyContext.addressSummary ?? "").trim();

@@ -57,6 +57,26 @@ export type MarketInsightCopy = {
   generated: string;
   region: string;
   unitWanPerPing: string;
+  roadLabel: string;
+  roadPlaceholder: string;
+  requestedScope: string;
+  effectiveScope: string;
+  analysisLevel: string;
+  levelRoad: string;
+  levelDistrict: string;
+  levelUnavailable: string;
+  effectiveSamples: string;
+  effectiveWindowCount: string;
+  latestPeriod: string;
+  roadSamples: string;
+  fallbackDistrict: string;
+  fallbackUnavailable: string;
+  periodRange: string;
+  medianWanPerPing: string;
+  quartileRangeWanPerPing: string;
+  medianTotalWan: string;
+  medianAreaPing: string;
+  volatility: string;
 };
 
 export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy> = {
@@ -117,6 +137,26 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     generated: "產生時間",
     region: "區域",
     unitWanPerPing: "萬元／坪",
+    roadLabel: "路段（選填）",
+    roadPlaceholder: "例如：和平東路二段",
+    requestedScope: "查詢位置",
+    effectiveScope: "實際分析範圍",
+    analysisLevel: "分析層級",
+    levelRoad: "路段",
+    levelDistrict: "行政區",
+    levelUnavailable: "資料不足",
+    effectiveSamples: "實際分析筆數",
+    effectiveWindowCount: "有效期間交易筆數",
+    latestPeriod: "最新交易期別",
+    roadSamples: "路段有效筆數",
+    fallbackDistrict: "指定路段僅有 {{roadCount}} 筆有效交易，未達 {{threshold}} 筆門檻；本次改以行政區資料呈現。",
+    fallbackUnavailable: "此行政區僅有 {{districtCount}} 筆有效交易，未達 {{threshold}} 筆門檻；不顯示推估指標。",
+    periodRange: "分析期間",
+    medianWanPerPing: "中位單價（萬元／坪）",
+    quartileRangeWanPerPing: "單價四分位範圍（萬元／坪）",
+    medianTotalWan: "中位總價（萬元）",
+    medianAreaPing: "中位面積（坪）",
+    volatility: "年化月中位數波動",
   },
   en: {
     summary: "Market summary",
@@ -175,6 +215,26 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     generated: "Generated",
     region: "Region",
     unitWanPerPing: "NTD 10,000/ping",
+    roadLabel: "Road or section (optional)",
+    roadPlaceholder: "Official road name, e.g. 和平東路二段",
+    requestedScope: "Requested location",
+    effectiveScope: "Actual analysis scope",
+    analysisLevel: "Analysis level",
+    levelRoad: "Road",
+    levelDistrict: "District",
+    levelUnavailable: "Not enough data",
+    effectiveSamples: "Records analyzed",
+    effectiveWindowCount: "Transactions in effective window",
+    latestPeriod: "Latest transaction period",
+    roadSamples: "Valid road records",
+    fallbackDistrict: "The requested road has {{roadCount}} valid records, below the {{threshold}}-record threshold. District data is shown instead.",
+    fallbackUnavailable: "This district has {{districtCount}} valid records, below the {{threshold}}-record threshold. No estimated metrics are shown.",
+    periodRange: "Analysis period",
+    medianWanPerPing: "Median unit price (NTD 10,000/ping)",
+    quartileRangeWanPerPing: "Unit-price quartile range (NTD 10,000/ping)",
+    medianTotalWan: "Median total price (NTD 10,000)",
+    medianAreaPing: "Median area (ping)",
+    volatility: "Annualized monthly-median volatility",
   },
   ja: {
     summary: "市場概要",
@@ -233,6 +293,26 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     generated: "生成日時",
     region: "地域",
     unitWanPerPing: "万元／坪",
+    roadLabel: "道路・区間（任意）",
+    roadPlaceholder: "正式な道路名（例：和平東路二段）",
+    requestedScope: "検索した場所",
+    effectiveScope: "実際の分析範囲",
+    analysisLevel: "分析レベル",
+    levelRoad: "道路",
+    levelDistrict: "行政区",
+    levelUnavailable: "データ不足",
+    effectiveSamples: "実際の分析件数",
+    effectiveWindowCount: "有効期間の取引件数",
+    latestPeriod: "最新取引期間",
+    roadSamples: "道路の有効件数",
+    fallbackDistrict: "指定道路の有効取引は {{roadCount}} 件で、{{threshold}} 件の基準未満です。代わりに行政区データを表示します。",
+    fallbackUnavailable: "この行政区の有効取引は {{districtCount}} 件で、{{threshold}} 件の基準未満です。推定指標は表示しません。",
+    periodRange: "分析期間",
+    medianWanPerPing: "中央値単価（万元／坪）",
+    quartileRangeWanPerPing: "単価の四分位範囲（万元／坪）",
+    medianTotalWan: "中央値総額（万元）",
+    medianAreaPing: "中央値面積（坪）",
+    volatility: "月次中央値の年率換算変動率",
   },
   ko: {
     summary: "시장 요약",
@@ -291,6 +371,26 @@ export const MARKET_INSIGHT_COPY: Record<MarketInsightLocale, MarketInsightCopy>
     generated: "생성 시각",
     region: "지역",
     unitWanPerPing: "만 NTD/평",
+    roadLabel: "도로 또는 구간 (선택)",
+    roadPlaceholder: "공식 도로명 예: 和平東路二段",
+    requestedScope: "조회 위치",
+    effectiveScope: "실제 분석 범위",
+    analysisLevel: "분석 수준",
+    levelRoad: "도로",
+    levelDistrict: "행정구",
+    levelUnavailable: "데이터 부족",
+    effectiveSamples: "실제 분석 건수",
+    effectiveWindowCount: "유효 기간 거래 건수",
+    latestPeriod: "최신 거래 기간",
+    roadSamples: "도로 유효 건수",
+    fallbackDistrict: "지정 도로의 유효 거래는 {{roadCount}}건으로 {{threshold}}건 기준에 미달합니다. 대신 행정구 데이터를 표시합니다.",
+    fallbackUnavailable: "이 행정구의 유효 거래는 {{districtCount}}건으로 {{threshold}}건 기준에 미달합니다. 추정 지표를 표시하지 않습니다.",
+    periodRange: "분석 기간",
+    medianWanPerPing: "중위 단가 (만 NTD/평)",
+    quartileRangeWanPerPing: "단가 사분위 범위 (만 NTD/평)",
+    medianTotalWan: "중위 총액 (만 NTD)",
+    medianAreaPing: "중위 면적 (평)",
+    volatility: "월별 중위값 연환산 변동성",
   },
 };
 

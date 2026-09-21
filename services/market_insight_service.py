@@ -36,10 +36,15 @@ def list_market_regions(county: str = "") -> dict[str, Any]:
     return _list_market_regions(county=county)
 
 
-def get_market_summary(city: str, district: str = "", period: str | None = None) -> dict[str, Any]:
+def get_market_summary(
+    city: str,
+    district: str = "",
+    period: str | None = None,
+    road: str | None = None,
+) -> dict[str, Any]:
     """Return a direct market summary or a safe unavailable response."""
 
-    return _get_market_summary(county=city, district=district, period=period)
+    return _get_market_summary(county=city, district=district, period=period, road=road)
 
 
 def refresh_market_read_model() -> dict[str, Any]:

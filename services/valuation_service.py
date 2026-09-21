@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from services.community_index_service import match_community
+from services.market_road_analysis import normalize_market_road
 from services.plvr_data_freshness import evaluate_plvr_freshness
 from services.valuation_providers.unavailable_provider import UnavailableValuationProvider
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
@@ -644,11 +645,7 @@ def normalize_building_type(value: str) -> str:
 def normalize_road(value: str) -> str:
     """Normalize common road spelling variants before scope comparison."""
 
-    normalized = value.strip().replace("臺", "台").replace(" ", "")
-    segment_numbers = {"1": "一", "2": "二", "3": "三", "4": "四", "5": "五", "6": "六", "7": "七", "8": "八", "9": "九", "10": "十"}
-    for number, chinese in sorted(segment_numbers.items(), key=lambda item: len(item[0]), reverse=True):
-        normalized = normalized.replace(f"{number}段", f"{chinese}段")
-    return normalized
+    return normalize_market_road(value)
 
 
 def normalize_city(value: str) -> str:

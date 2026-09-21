@@ -110,6 +110,39 @@ export function updateJourneyProperty(state: ClosedLoopJourneyState, input: Part
   return next;
 }
 
+export function updateJourneyMarketLocation(
+  state: ClosedLoopJourneyState,
+  input: Pick<JourneyPropertyContext, "city" | "district" | "road">,
+): ClosedLoopJourneyState {
+  const propertyContext = getSafeJourneyPropertyContext({
+    ...state.propertyContext,
+    city: input.city,
+    district: input.district,
+    road: input.road,
+    addressSummary: [input.city, input.district, input.road].filter(Boolean).join(""),
+  });
+  if (journeyAddressKey(state.propertyContext) === journeyAddressKey(propertyContext)) {
+    return { ...state, propertyContext };
+  }
+
+  const next = {
+    ...state,
+    propertyContext,
+    locationResult: undefined,
+    locationStatus: "not_started" as const,
+    terrainResult: undefined,
+    terrainReference: undefined,
+    storedTerrainReference: undefined,
+    terrainStatus: "not_started" as const,
+    marketResult: undefined,
+    marketStatus: "not_started" as const,
+    valuationResult: undefined,
+    valuationStatus: "not_started" as const,
+    ...(state.priceBasis === "valuation" ? { activePriceWan: undefined } : {}),
+  };
+  return clearJourneyAffordability(next);
+}
+
 export function setJourneyLocationResult(
   state: ClosedLoopJourneyState,
   result: LocationInsightResult | null,

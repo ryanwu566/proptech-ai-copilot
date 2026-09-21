@@ -37,6 +37,22 @@ def test_property_finder_actions_have_real_page_handlers() -> None:
     assert "scrollIntoView" in PAGE
 
 
+def test_property_finder_has_explicit_historical_market_handoff_without_auto_query() -> None:
+    assert "onUseForMarketInsight?: (selection: PropertyFinderSelection) => void" in COMPONENT
+    assert 'copy("finder.useMarket")' in COMPONENT
+    assert "onMarket=" in COMPONENT
+    assert "onUseForMarketInsight(selection)" in COMPONENT
+    assert "onUseForMarketInsight={(selection) =>" in PAGE
+    assert 'setJourneyLocationInitialTool("market")' in PAGE
+    assert "initialActiveTool={journeyLocationInitialTool}" in PAGE
+    assert "initialRoad={context.road}" in PAGE
+    assert "function applyJourneyMarketSelection" in PAGE
+    assert "updateJourneyMarketLocation(current" in PAGE
+    assert "api.marketInsight" not in COMPONENT
+    assert "591" not in COMPONENT
+    assert "active inventory" not in COMPONENT.lower()
+
+
 def test_property_finder_mobile_tables_are_scoped_scroll_areas() -> None:
     assert "overflow-x-auto" in COMPONENT
     assert "min-w-[820px]" in COMPONENT

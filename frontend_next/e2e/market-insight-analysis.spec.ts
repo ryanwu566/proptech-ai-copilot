@@ -6,6 +6,7 @@ import {
   type MarketHistoryPoint,
 } from "../lib/market-insight-visualization";
 import { formatMarketCopy, getMarketInsightCopy } from "../lib/market-insight-copy";
+import { createClosedLoopJourneyState, selectJourneyPrice, updateJourneyMarketLocation } from "../lib/closed-loop-journey";
 
 const COUNTY = "臺中市";
 const DISTRICT = "北屯區";
@@ -46,6 +47,90 @@ const AVAILABLE_RESULT = {
   age_band_distribution: [],
   history: HISTORY,
 };
+
+function roadAnalysisResult(level: "ROAD" | "DISTRICT", requestedRoad: string) {
+  const normalizedRoad = requestedRoad.replace("4段", "四段");
+  const roadCount = level === "ROAD" ? 12 : 6;
+  const effectiveCount = level === "ROAD" ? 12 : 20;
+  return {
+    ...AVAILABLE_RESULT,
+    transaction_count: effectiveCount,
+    transaction_volume: effectiveCount,
+    record_count: effectiveCount,
+    sample_status: "sufficient",
+    freshness_status: "fresh",
+    requested_scope: "ROAD",
+    requested_city: COUNTY,
+    requested_district: DISTRICT,
+    requested_road: requestedRoad,
+    normalized_road: normalizedRoad,
+    road_minimum_sample: 10,
+    analysis_level: level,
+    effective_analysis_level: level,
+    effective_scope_label: level === "ROAD" ? `${COUNTY} / ${DISTRICT} / ${normalizedRoad}` : `${COUNTY} / ${DISTRICT}`,
+    effective_sample_count: effectiveCount,
+    road_sample_count: roadCount,
+    district_sample_count: 20,
+    fallback_applied: level === "DISTRICT",
+    fallback_reason: level === "DISTRICT" ? "road_sample_below_threshold" : null,
+    period_min: "2025-01",
+    period_max: "2026-05",
+    median_unit_price_per_ping: 35.5,
+    p25_unit_price_per_ping: 32.1,
+    p75_unit_price_per_ping: 38.9,
+    median_total_price: 1680,
+    median_area_ping: 31.5,
+    volatility: 0.042,
+    monthly_series: [],
+    yearly_series: [],
+  };
+}
+
+function unavailableRoadResult(requestedRoad: string) {
+  return {
+    ...roadAnalysisResult("DISTRICT", requestedRoad),
+    data_status: "no_data",
+    sample_status: "insufficient",
+    analysis_level: "NOT_AVAILABLE",
+    effective_analysis_level: "NOT_AVAILABLE",
+    effective_scope_label: "",
+    effective_sample_count: 0,
+    road_sample_count: 3,
+    district_sample_count: 8,
+    fallback_reason: "district_sample_below_threshold",
+    period: null,
+    period_min: null,
+    period_max: null,
+    average_unit_price: null,
+    avg_price_per_ping: null,
+    transaction_count: null,
+    transaction_volume: null,
+    record_count: null,
+    median_unit_price_per_ping: null,
+    p25_unit_price_per_ping: null,
+    p75_unit_price_per_ping: null,
+    median_total_price: null,
+    median_area_ping: null,
+    volatility: null,
+    history: [],
+    monthly_series: [],
+    yearly_series: [],
+  };
+}
+
+function propertyFinderResult() {
+  return {
+    search_status: "available",
+    search_reason_code: "official_result_available",
+    is_actionable: true,
+    summary: { matched_count: 1, city_count: 1, district_count: 1, road_count: 1, budget_min: null, budget_max: 2500, period_min: "2026-05", period_max: "2026-05", data_source_label: "官方 PLVR 實價登錄", message: "找到歷史成交方向。", disclaimer: "僅供歷史成交參考。" },
+    district_suggestions: [],
+    road_suggestions: [],
+    matched_transactions: [{ transaction_period: "2026-05", city: COUNTY, district: DISTRICT, road: "文心路四段", building_type: "住宅大樓", area_ping: 31.5, total_price: 1680, unit_price_per_ping: 53.33, building_age_years: 12, floor: 8, source_label: "官方 PLVR" }],
+    methodology: "Official historical transactions only.",
+    disclaimer: "僅供歷史成交參考。",
+  };
+}
 
 async function openMarketInsight(page: Page) {
   await page.goto("/");
@@ -235,6 +320,115 @@ test("Enter on the submit button sends exactly one POST", async ({ page }) => {
   expect(requestCount).toBe(1);
 });
 
+test("market handoff changes only geography and preserves a manual price assumption", () => {
+  const initial = createClosedLoopJourneyState({
+    city: "臺北市",
+    district: "大安區",
+    road: "和平東路二段",
+    addressSummary: "臺北市大安區和平東路二段",
+    buildingType: "住宅大樓",
+    areaPing: 35,
+    buildingAgeYears: 12,
+    floor: 8,
+    askingPriceWan: 2200,
+    selectionStatus: "selected",
+  });
+  const manual = selectJourneyPrice(initial, "manual", 1888);
+
+  const next = updateJourneyMarketLocation(manual, { city: COUNTY, district: DISTRICT, road: "文心路四段" });
+
+  expect(next.propertyContext.city).toBe(COUNTY);
+  expect(next.propertyContext.district).toBe(DISTRICT);
+  expect(next.propertyContext.road).toBe("文心路四段");
+  expect(next.propertyContext.buildingType).toBe("住宅大樓");
+  expect(next.propertyContext.areaPing).toBe(35);
+  expect(next.propertyContext.askingPriceWan).toBe(2200);
+  expect(next.priceBasis).toBe("manual");
+  expect(next.manualPriceWan).toBe(1888);
+  expect(next.activePriceWan).toBe(1888);
+});
+
+test("road query sends only after submit and distinguishes ROAD from DISTRICT fallback", async ({ page }) => {
+  await openMarketInsight(page);
+  await selectRegion(page);
+  let requestCount = 0;
+  const payloads: Array<Record<string, unknown>> = [];
+  await page.route("**/market-insights/query", async (route) => {
+    requestCount += 1;
+    const payload = route.request().postDataJSON() as Record<string, unknown>;
+    payloads.push(payload);
+    const road = String(payload.road || "");
+    const level = road === "文心路4段" ? "ROAD" : "DISTRICT";
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(roadAnalysisResult(level, road)) });
+  });
+
+  const roadInput = page.getByTestId("market-road-input");
+  await roadInput.fill("文心路4段");
+  expect(requestCount).toBe(0);
+  await page.getByTestId("market-insight-search-button").click();
+  await expect(page.getByTestId("market-insight-available")).toBeVisible();
+  await expect(page.getByTestId("market-scope-summary")).toContainText(`${COUNTY} / ${DISTRICT} / 文心路四段`);
+  await expect(page.getByTestId("market-scope-summary")).toContainText("2025-01 – 2026-05");
+  await expect(page.getByTestId("market-scope-summary")).toContainText("路段");
+  await expect(page.getByTestId("market-fallback-notice")).toHaveCount(0);
+  await expect(page.getByTestId("market-primary-metrics")).toContainText("有效期間交易筆數");
+  await expect(page.getByTestId("market-primary-metrics")).not.toContainText("本期交易筆數");
+  expect(payloads[0]).toEqual({ county: COUNTY, district: DISTRICT, road: "文心路4段" });
+
+  await roadInput.fill("崇德路二段");
+  await expect(page.getByTestId("market-insight-available")).toHaveCount(0);
+  expect(requestCount).toBe(1);
+  await page.getByTestId("market-insight-search-button").click();
+  await expect(page.getByTestId("market-scope-summary")).toContainText("崇德路二段");
+  await expect(page.getByTestId("market-scope-summary")).toContainText(`${COUNTY} / ${DISTRICT}`);
+  await expect(page.getByTestId("market-fallback-notice")).toContainText("6 筆有效交易");
+  await expect(page.getByTestId("market-fallback-notice")).toContainText("10 筆門檻");
+  expect(payloads[1]).toEqual({ county: COUNTY, district: DISTRICT, road: "崇德路二段" });
+});
+
+test("Property Finder hands city district and road to Market Insight without auto-querying", async ({ page }) => {
+  let marketRequestCount = 0;
+  let marketPayload: Record<string, unknown> | undefined;
+  await page.route("**/valuation/property-search", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(propertyFinderResult()) }));
+  await page.route("**/market-insights/query", async (route) => {
+    marketRequestCount += 1;
+    marketPayload = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(roadAnalysisResult("ROAD", "文心路四段")) });
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "搜尋看屋方向" }).click();
+  const transactions = page.locator("#property-finder details").filter({ hasText: "查看完整成交樣本" });
+  await transactions.locator("summary").click();
+  await transactions.getByRole("button", { name: "查看此路段歷史行情" }).click();
+
+  await expect(page.locator("#journey-stage-location")).toBeVisible();
+  await expect(page.locator("#location-market-market-heading")).toBeVisible();
+  await expect(page.getByTestId("market-county-select")).toHaveValue(COUNTY);
+  await expect(page.getByTestId("market-district-select")).toHaveValue(DISTRICT);
+  await expect(page.getByTestId("market-road-input")).toHaveValue("文心路四段");
+  expect(marketRequestCount).toBe(0);
+
+  await page.getByTestId("market-insight-search-button").click();
+  await expect(page.getByTestId("market-scope-summary")).toContainText("文心路四段");
+  expect(marketRequestCount).toBe(1);
+  expect(marketPayload).toEqual({ county: COUNTY, district: DISTRICT, road: "文心路四段" });
+});
+
+test("NOT_AVAILABLE keeps scope explanation but renders no charts or fake metrics", async ({ page }) => {
+  await openMarketInsight(page);
+  await selectRegion(page);
+  await page.getByTestId("market-road-input").fill("文心路四段");
+  await page.route("**/market-insights/query", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(unavailableRoadResult("文心路四段")) }));
+  await page.getByTestId("market-insight-search-button").click();
+  await expect(page.getByTestId("market-insight-no-data")).toBeVisible();
+  await expect(page.getByTestId("market-scope-summary")).toContainText("資料不足");
+  await expect(page.getByTestId("market-fallback-notice")).toContainText("8 筆有效交易");
+  await expect(page.getByTestId("market-primary-metrics")).toHaveCount(0);
+  await expect(page.getByTestId("market-price-trend")).toHaveCount(0);
+  await expect(page.getByTestId("market-volume-trend")).toHaveCount(0);
+});
+
 test("normal official sample renders the available state with provenance", async ({ page }) => {
   await openMarketInsight(page);
   await selectRegion(page);
@@ -397,6 +591,12 @@ test("mobile analysis remains readable without page-level horizontal overflow", 
   await page.setViewportSize({ width: 390, height: 844 });
   await openMarketInsight(page);
   await selectRegion(page);
+  const roadInput = page.getByTestId("market-road-input");
+  await roadInput.fill("文心路四段");
+  await roadInput.focus();
+  await expect(roadInput).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(page.getByTestId("market-insight-search-button")).toBeFocused();
   await page.route("**/market-insights/query", async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(AVAILABLE_RESULT) });
   });
