@@ -1,6 +1,6 @@
 # Earth Engine Persistent Worker Architecture Design
 
-**Status:** Proposed for specification review
+**Status:** Approved and implemented locally
 
 **Date:** 2026-09-20
 
@@ -124,9 +124,13 @@ Worker initialization performs these steps once:
 
 1. Import the Earth Engine client inside the worker.
 2. Discover ADC with `google.auth.default()`.
-3. Set Earth Engine SDK maximum retries to zero before initialization.
-4. Call `ee.Initialize(credentials=credentials, project=fixed_project)`.
-5. Publish an allowlisted readiness outcome to the parent.
+3. Refresh credentials once when they are not valid; classify discovery or
+   refresh failure as `credential_unavailable`.
+4. Set Earth Engine SDK maximum retries to zero before initialization.
+5. Call `ee.Initialize(credentials=credentials, project=fixed_project)` and
+   classify its provider/network/service/protocol failures separately as
+   `initialization_unavailable`.
+6. Publish an allowlisted readiness outcome to the parent.
 
 Google-auth may refresh an expired access token as part of normal credential
 use. That protocol action is not an application request retry. The application
@@ -139,13 +143,16 @@ requests within one Earth Engine worker are prohibited.
 
 ## 8. Optional Capability Startup
 
-FastAPI lifespan startup invokes the worker manager only when the feature flag
-is enabled and `EARTH_ENGINE_PROJECT` is non-empty. The project is read from the
-server environment and fixed for the lifetime of the manager.
+FastAPI lifespan startup creates the worker manager and starts one
+lifecycle-controlled startup controller. The manager captures the feature flag
+and `EARTH_ENGINE_PROJECT` once, records `starting`, and begins one bounded
+attempt to initialize two workers. The lifespan then yields immediately; it
+does not wait for Earth Engine readiness before the application serves traffic.
 
-The manager starts two workers concurrently and waits up to a fixed 20-second
-pool-readiness deadline. This startup deadline is separate from, and does not
-change, the eight-second request deadline.
+The startup controller owns a fixed 20-second pool-readiness deadline. This
+startup deadline is separate from, and does not change, the eight-second
+request deadline. The controller is manager-owned, process-local, singular,
+and joined during shutdown. It is not an unbounded detached task.
 
 Worker readiness is optional application state:
 
@@ -153,9 +160,12 @@ Worker readiness is optional application state:
 - If a worker reports an initialization failure, exits, or misses the startup
   deadline, the manager terminates and joins all partially started workers and
   records an allowlisted unavailable reason.
-- The lifespan always proceeds to serve the rest of the application after the
-  bounded attempt. Earth Engine readiness failure is not raised out of the
-  lifespan.
+- While the manager is `starting`, satellite requests fail closed immediately
+  with the existing bounded provider-unavailable semantics and never enter the
+  admission queue.
+- Earth Engine readiness success is never a prerequisite for FastAPI startup.
+  Initialization failure is not raised out of the startup controller, and
+  unrelated routes remain available throughout the attempt and afterward.
 - If the feature is disabled, no Earth Engine process starts.
 - If the project is absent, no Earth Engine process starts and the existing
   credential-unavailable response remains in force.
@@ -168,9 +178,16 @@ unrelated routes remain unaffected.
 
 ### 9.1 Worker Manager
 
-A process-local manager owns exactly two fixed worker slots, the admission
-semaphore, the two-thread request executor, worker lifecycle locks, and shutdown
-state. It exposes bounded `start`, `fetch`, and `shutdown` operations.
+A process-local manager is the sole owner of exactly two fixed worker slots,
+the four-slot admission bound, the two-thread request executor, worker
+generation state, replacement state, worker lifecycle locks, the fixed
+`EARTH_ENGINE_PROJECT` snapshot, and shutdown state. It exposes bounded
+`start`, `fetch`, and `shutdown` operations.
+
+Routes and services do not create a second semaphore, executor, process pool,
+worker manager, generation registry, or replacement controller. They do not
+re-read or pass a different project value per request. The manager lifecycle's
+project snapshot is the only project used by its workers.
 
 The manager state is one of `stopped`, `starting`, `available`, `unavailable`,
 or `closing`. Only `available` accepts provider work. State transitions are
@@ -195,10 +212,12 @@ concurrently.
 
 ### 9.4 FastAPI Lifespan Integration
 
-The existing lifespan calls manager startup before `yield` and manager shutdown
-in its teardown path. Earth Engine startup errors are recorded, not raised.
-Existing database-pool cleanup remains intact even when Earth Engine shutdown
-reports an internal cleanup failure.
+The existing lifespan starts the manager's bounded startup controller before
+`yield` but does not await readiness. Its teardown path calls manager shutdown,
+which joins or stops both startup and replacement control-plane work. Earth
+Engine startup errors are recorded, not raised. Existing database-pool cleanup
+remains intact even when Earth Engine shutdown reports an internal cleanup
+failure.
 
 ## 10. Strict IPC Contract
 
@@ -234,6 +253,16 @@ provider URL, credentials, environment dictionary, or serialized exception.
   `image_generation_failed`, or `provider_error`,
 - JPEG bytes only when the outcome is `available`.
 
+Worker readiness uses a separate closed result shape with protocol version,
+slot generation, and exactly one outcome: `ready`, `credential_unavailable`,
+or `initialization_unavailable`. ADC discovery or credential-refresh failure
+maps to `credential_unavailable`. An Earth Engine provider, network, service,
+or protocol failure during `ee.Initialize` maps to
+`initialization_unavailable`, which becomes the existing public
+`provider_error` unavailable response. Missing or unusable server project
+configuration retains the current public credential/configuration-unavailable
+semantics and is handled before workers start.
+
 No result contains a provider URL, credentials, bearer token, raw exception,
 stack trace, project identifier, or Earth Engine object.
 
@@ -247,8 +276,9 @@ Consequently, a late response cannot be consumed by a later request.
 
 ## 11. Request Flow and Admission
 
-1. The route validates finite latitude and longitude and reads the feature flag
-   and project from the server environment.
+1. The route validates finite latitude and longitude and consults the sole
+   manager's lifecycle snapshot and availability state. It does not re-read or
+   pass a per-request project value.
 2. The service establishes the monotonic eight-second absolute deadline, then
    computes the fixed trailing 90-day response/query window.
 3. Before executor submission, the request attempts to acquire one of exactly
@@ -258,17 +288,31 @@ Consequently, a late response cannot be consumed by a later request.
    or extending the deadline established at service entry.
 5. Executor queue time consumes the same deadline. At most two executor tasks
    can become active, leaving at most two admitted tasks queued.
-6. An active task acquires one idle worker slot using only its remaining time.
-7. The parent sends one validated IPC request and waits for the matching result
+6. The executor callable re-checks the request's cancellation/expiry control
+   before worker acquisition. A cancelled or expired request returns without
+   acquiring a worker.
+7. An active task acquires one idle worker slot using only its remaining time,
+   then re-checks cancellation and the deadline immediately before IPC. If the
+   request became stale, the worker returns to idle without receiving it.
+8. The parent sends one validated IPC request and waits for the matching result
    using the remaining deadline minus the fixed cleanup reserve.
-8. A valid JPEG result is returned to the service; the worker slot becomes idle.
-9. The service base64-encodes the bytes, builds the allowlisted response, and
+9. A valid JPEG result is returned to the service; the worker slot becomes idle.
+10. The service base64-encodes the bytes, builds the allowlisted response, and
    enforces both the serialized response-byte cap and the original absolute
    deadline before returning. If response construction exhausts the deadline,
    the image is discarded and the service returns the bounded timeout response.
-10. The admission slot is released on every path, including cancellation.
+11. The admission slot is released exactly once by the async request owner on
+    every path, including queue cancellation, deadline expiry, and worker
+    containment.
 
 No failed request is replayed or moved to another worker.
+
+Each admitted request has a small thread-safe control object containing its
+absolute deadline and a cancellation/expiry flag. If the client cancels or the
+deadline expires while its future is still queued, the async owner marks the
+control object stale and cancels the queued future when possible. A callable
+that wins the queue race must still perform both mandatory re-checks above. A
+stale request cannot acquire a worker, send IPC, or begin a provider operation.
 
 ## 12. Scene Count and Success Semantics
 
@@ -344,9 +388,20 @@ does not create a thread, process, IPC message, or provider operation.
 
 ### Initialization Failure
 
-The worker reports only `credential_unavailable`; raw details remain inside the
-child. The manager records the capability unavailable, cleans up partial
-workers, and lets FastAPI continue serving unrelated routes.
+Initialization failure categories remain truthful and allowlisted:
+
+- ADC discovery or credential refresh failure reports
+  `credential_unavailable`.
+- Missing or unusable server project configuration retains the existing public
+  credential/configuration-unavailable semantics without starting workers.
+- Earth Engine provider, network, service, or protocol failure during
+  `ee.Initialize` reports `initialization_unavailable` internally and maps to
+  the bounded public `provider_error` response.
+
+Raw exceptions, HTTP bodies, tokens, stack traces, provider details, and
+credentials remain inside the child. The manager records the capability
+unavailable, cleans up partial workers, and lets FastAPI continue serving
+unrelated routes.
 
 ### Worker Crash or Protocol Violation
 
@@ -361,7 +416,16 @@ reserve. If it does not exit after terminate, it is killed and joined. The
 request and any late result are discarded. No provider work from that worker is
 allowed to continue indefinitely after the response path completes.
 
-### Client Cancellation
+### Queued Cancellation or Expiry
+
+If cancellation or deadline expiry occurs while the request is queued, the
+async owner cancels its future when possible and marks its control object stale.
+The executor callable checks that state before worker acquisition and again
+before IPC. Even if cancellation races with executor startup, a stale request
+cannot reach a worker or begin an Earth Engine operation. The admission slot is
+released exactly once, and no request is replayed.
+
+### Active Client Cancellation
 
 If a client cancellation occurs while a worker owns the request, the manager
 uses the same terminate-and-join containment path before releasing capacity.
@@ -384,6 +448,12 @@ Replacement rules are:
 - no automatic replacement loop follows a failed replacement,
 - restoring service after failed replacement requires an explicit manager/app
   restart.
+
+If the one replacement attempt fails, the manager transitions to
+`unavailable`, stops accepting Earth Engine requests, terminates and joins every
+remaining healthy worker, closes and retires every worker pipe, and leaves zero
+Earth Engine worker processes alive. It does not retain a partially usable
+one-worker pool and does not start another recovery loop.
 
 The replacement controller itself is process-local and singular. It cannot
 create user-visible jobs, run Earth Engine queries, or outlive manager shutdown.
@@ -426,6 +496,10 @@ code changes, tests must fail for each new behavior:
 
 - manager never owns more than two live workers,
 - the fifth concurrent request fails closed before submission,
+- the manager is the single owner of admission, executor, worker, generation,
+  replacement, and fixed project state,
+- FastAPI serves unrelated routes while the bounded startup controller is still
+  initializing Earth Engine,
 - a warm worker handles sequential requests without repeated initialization,
 - each worker initializes exactly once with its fixed project,
 - Earth Engine SDK retry count is set to zero before initialization,
@@ -433,12 +507,16 @@ code changes, tests must fail for each new behavior:
 - the scene-count compute-value call is absent,
 - successful JPEG generation returns preview-availability status without a
   scene-count claim,
-- initialization failure leaves unrelated FastAPI routes available,
+- ADC/refresh failure and Earth Engine initialization failure map to different
+  allowlisted categories while unrelated FastAPI routes remain available,
 - worker crash fails the request and triggers at most one bounded replacement,
-- replacement failure marks the manager unavailable without looping,
+- replacement failure marks the manager unavailable without looping, cleans up
+  the other worker, closes all pipes, and leaves zero workers alive,
 - timeout kills and joins the assigned worker and cannot leak worker count,
 - stale generation or request-ID results are rejected and cannot cross requests,
-- cancellation contains the assigned worker,
+- queued cancellation/deadline races cannot acquire a worker or send IPC and
+  release admission exactly once,
+- active cancellation contains the assigned worker,
 - provider URLs, credentials, tokens, projects, coordinates, and raw errors do
   not leak through responses or logs,
 - no export, batch task, persistence, retry, or background imagery operation is

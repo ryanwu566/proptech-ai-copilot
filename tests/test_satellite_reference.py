@@ -9,14 +9,16 @@ from datetime import date
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib
+import inspect
 import logging
-import multiprocessing
 import threading
 import time
+from types import SimpleNamespace
 
 import pytest
 from fastapi.testclient import TestClient
 
+from backend import api_main
 from backend.api_main import app
 from backend.api import routes_satellite_reference
 from services import satellite_reference as satellite
@@ -75,8 +77,11 @@ def test_thumbnail_download_does_not_log_provider_url_or_token(caplog) -> None:
 def test_satellite_reference_is_fail_closed_when_feature_flag_is_off(monkeypatch) -> None:
     """Removing the default-off gate must make this test fail."""
 
-    monkeypatch.delenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", raising=False)
-    monkeypatch.setenv("EARTH_ENGINE_PROJECT", "public-project-name")
+    from services.earth_engine_worker_pool import EarthEngineWorkerManager
+
+    manager = EarthEngineWorkerManager()
+    manager.start(enabled=False, project="server-project")
+    monkeypatch.setattr(satellite, "_get_earth_engine_worker_manager", lambda: manager)
 
     response = client.post(
         "/terrain/satellite-reference",
@@ -92,8 +97,11 @@ def test_satellite_reference_is_fail_closed_when_feature_flag_is_off(monkeypatch
 def test_satellite_reference_is_unavailable_without_project_and_returns_only_allowlisted_fields(monkeypatch) -> None:
     """Reading ADC or leaking configuration when the project is absent is a bug."""
 
-    monkeypatch.setenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "true")
-    monkeypatch.delenv("EARTH_ENGINE_PROJECT", raising=False)
+    from services.earth_engine_worker_pool import EarthEngineWorkerManager
+
+    manager = EarthEngineWorkerManager()
+    manager.start(enabled=True, project="")
+    monkeypatch.setattr(satellite, "_get_earth_engine_worker_manager", lambda: manager)
 
     response = client.post(
         "/terrain/satellite-reference",
@@ -155,11 +163,9 @@ def test_satellite_reference_rejects_non_finite_or_out_of_range_coordinates(lati
     assert response.status_code == 422
 
 
-def test_enabled_endpoint_dispatches_only_validated_coordinate_and_server_project(monkeypatch) -> None:
+def test_route_does_not_reread_project_per_request(monkeypatch) -> None:
     """Bypassing the service or accepting extra provider controls must fail this route contract."""
 
-    monkeypatch.setenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "true")
-    monkeypatch.setenv("EARTH_ENGINE_PROJECT", "server-project")
     captured = {}
 
     async def fake_fetch(**kwargs):
@@ -182,9 +188,7 @@ def test_enabled_endpoint_dispatches_only_validated_coordinate_and_server_projec
     assert captured == {
         "latitude": 25.0375,
         "longitude": 121.5645,
-        "project": "server-project",
     }
-    assert "server-project" not in response.text
 
     rejected = client.post(
         "/terrain/satellite-reference",
@@ -197,6 +201,70 @@ def test_enabled_endpoint_dispatches_only_validated_coordinate_and_server_projec
         },
     )
     assert rejected.status_code == 422
+
+
+def test_fastapi_serves_health_while_earth_engine_manager_is_starting(monkeypatch) -> None:
+    """Earth Engine readiness must not become a whole-application startup gate."""
+
+    calls = []
+
+    class Manager:
+        state = "starting"
+
+        def start(self, **kwargs):
+            calls.append(("start", kwargs))
+            raise RuntimeError("ADC/provider details must remain optional")
+
+        def shutdown(self):
+            calls.append(("shutdown", None))
+
+    manager = Manager()
+    monkeypatch.setattr(api_main, "_get_earth_engine_worker_manager", lambda: manager, raising=False)
+    monkeypatch.setenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "true")
+    monkeypatch.setenv("EARTH_ENGINE_PROJECT", "server-project")
+
+    with TestClient(app) as lifespan_client:
+        assert lifespan_client.get("/health").status_code == 200
+
+    assert calls == [
+        ("start", {"enabled": True, "project": "server-project"}),
+        ("shutdown", None),
+    ]
+
+
+def test_satellite_route_fails_closed_while_manager_is_starting(monkeypatch) -> None:
+    """A starting optional capability must fail only its own route and return promptly."""
+
+    class Manager:
+        state = "starting"
+
+        def start(self, **_kwargs):
+            return None
+
+        def shutdown(self):
+            return None
+
+        async def fetch(self, **_kwargs):
+            raise satellite.EarthEngineProviderError("not ready")
+
+    manager = Manager()
+    monkeypatch.setattr(api_main, "_get_earth_engine_worker_manager", lambda: manager, raising=False)
+    monkeypatch.setattr(satellite, "_get_earth_engine_worker_manager", lambda: manager)
+    monkeypatch.setenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "true")
+    monkeypatch.setenv("EARTH_ENGINE_PROJECT", "server-project")
+
+    with TestClient(app) as lifespan_client:
+        assert lifespan_client.get("/health").status_code == 200
+        started_at = time.monotonic()
+        response = lifespan_client.post(
+            "/terrain/satellite-reference",
+            json={"latitude": 25.0375, "longitude": 121.5645},
+        )
+
+    assert time.monotonic() - started_at < 0.5
+    assert response.status_code == 200
+    assert response.json()["status"] == "unavailable"
+    assert response.json()["reason_code"] == "provider_error"
 
 
 class RecordingAdapter:
@@ -219,14 +287,13 @@ def test_service_builds_fixed_query_and_returns_bounded_available_image() -> Non
     """Any caller-controlled Earth Engine parameter or missing image bound is a bug."""
 
     image_bytes = b"\xff\xd8bounded-jpeg\xff\xd9"
-    adapter = RecordingAdapter(satellite.SatelliteAdapterResult(scene_count=3, image_bytes=image_bytes))
+    adapter = RecordingAdapter(satellite.SatelliteAdapterResult(image_bytes=image_bytes))
     now = datetime(2026, 9, 20, 12, 0, tzinfo=timezone.utc)
 
     result = asyncio.run(
         satellite.fetch_satellite_reference(
             latitude=25.0375,
             longitude=121.5645,
-            project="server-project",
             adapter=adapter,
             now=now,
         )
@@ -259,6 +326,7 @@ def test_service_builds_fixed_query_and_returns_bounded_available_image() -> Non
     ("error_type_name", "message", "reason_code"),
     [
         ("EarthEngineCredentialUnavailable", "private_key=must-not-leak", "credential_unavailable"),
+        ("EarthEngineInitializationUnavailable", "provider-url=must-not-leak", "provider_error"),
         ("EarthEngineProviderTimeout", "request-url=must-not-leak", "provider_timeout"),
         ("EarthEngineProviderError", "access_token=must-not-leak", "provider_error"),
         ("EarthEngineImageGenerationError", "signed-url=must-not-leak", "image_generation_failed"),
@@ -272,7 +340,6 @@ def test_service_maps_provider_failures_without_exception_or_secret_leakage(erro
         satellite.fetch_satellite_reference(
             latitude=25.0375,
             longitude=121.5645,
-            project="server-project",
             adapter=RecordingAdapter(error=error_type(message)),
         )
     )
@@ -285,104 +352,58 @@ def test_service_maps_provider_failures_without_exception_or_secret_leakage(erro
         assert forbidden not in serialized
 
 
-def test_service_does_not_widen_window_when_no_usable_imagery_exists() -> None:
-    """A zero-observation result must not trigger a wider second query."""
+def test_service_dispatches_to_lifecycle_manager_without_per_request_project(monkeypatch) -> None:
+    """The manager's startup snapshot is the only Earth Engine project authority."""
 
-    adapter = RecordingAdapter(satellite.SatelliteAdapterResult(scene_count=0, image_bytes=None))
+    captured = {}
+
+    class Manager:
+        async def fetch(self, **kwargs):
+            captured.update(kwargs)
+            return b"\xff\xd8bounded-jpeg\xff\xd9"
+
+    monkeypatch.setattr(satellite, "_get_earth_engine_worker_manager", lambda: Manager(), raising=False)
     result = asyncio.run(
         satellite.fetch_satellite_reference(
             latitude=25.0375,
             longitude=121.5645,
-            project="server-project",
-            adapter=adapter,
             now=datetime(2026, 9, 20, tzinfo=timezone.utc),
         )
     )
 
-    assert result.status == "unavailable"
-    assert result.reason_code == "no_usable_imagery_in_window"
-    assert result.image_reference is None
-    assert len(adapter.queries) == 1
-    assert adapter.queries[0].window_start == "2026-06-22"
+    assert result.status == "available"
+    assert set(captured) == {"latitude", "longitude", "window_start", "window_end", "deadline"}
+    assert captured["window_start"] == "2026-06-22"
+    assert captured["window_end"] == "2026-09-20"
+    assert "project" not in inspect.signature(satellite.fetch_satellite_reference).parameters
 
 
-def test_service_marks_single_observation_composite_limited() -> None:
-    """Treating sparse observation coverage as fully available is a bug."""
+def test_absolute_deadline_is_rechecked_after_response_construction(monkeypatch) -> None:
+    """Encoding and model construction consume the same original eight-second budget."""
 
+    clock = {"now": 100.0}
+    original_dump = satellite.SatelliteReferenceResponse.model_dump_json
+
+    def timed_dump(self, *args, **kwargs):
+        serialized = original_dump(self, *args, **kwargs)
+        clock["now"] = 108.01
+        return serialized
+
+    monkeypatch.setattr(satellite, "time", SimpleNamespace(monotonic=lambda: clock["now"]))
+    monkeypatch.setattr(satellite.SatelliteReferenceResponse, "model_dump_json", timed_dump)
     result = asyncio.run(
         satellite.fetch_satellite_reference(
             latitude=25.0375,
             longitude=121.5645,
-            project="server-project",
             adapter=RecordingAdapter(
-                satellite.SatelliteAdapterResult(scene_count=1, image_bytes=b"\xff\xd8one\xff\xd9")
+                satellite.SatelliteAdapterResult(image_bytes=b"\xff\xd8bounded-jpeg\xff\xd9")
             ),
         )
     )
 
-    assert result.status == "limited"
-    assert result.reason_code == "limited_observation_coverage"
-    assert result.image_reference is not None
-
-
-def test_external_operation_timeout_terminates_worker_process() -> None:
-    """A timed-out provider operation must not continue after the response path returns."""
-
-    children_before = {child.pid for child in multiprocessing.active_children()}
-    started_at = time.monotonic()
-
-    with pytest.raises(satellite.EarthEngineProviderTimeout):
-        satellite._run_in_terminated_process(time.sleep, (2.0,), timeout_seconds=0.05)
-
-    elapsed = time.monotonic() - started_at
-    children_after = {child.pid for child in multiprocessing.active_children()}
-    assert elapsed < 1.0
-    assert children_after == children_before
-
-
-def test_provider_request_queue_is_bounded_and_fails_closed() -> None:
-    """Only two running and two queued provider requests may occupy server capacity."""
-
-    acquired = [satellite._PROVIDER_REQUEST_SLOTS.acquire(blocking=False) for _ in range(4)]
-    try:
-        started_at = time.monotonic()
-        result = asyncio.run(
-            satellite.fetch_satellite_reference(
-                latitude=25.0375,
-                longitude=121.5645,
-                project="server-project",
-                timeout_seconds=0.25,
-            )
-        )
-    finally:
-        for did_acquire in acquired:
-            if did_acquire:
-                satellite._PROVIDER_REQUEST_SLOTS.release()
-
-    assert acquired == [True, True, True, True]
-    assert time.monotonic() - started_at < 0.25
     assert result.status == "unavailable"
-    assert result.reason_code == "provider_error"
-
-
-def test_absolute_deadline_includes_executor_queue_time(monkeypatch) -> None:
-    """An admitted request that starts late must not receive a fresh eight-second budget."""
-
-    process_calls = []
-    monkeypatch.setattr(
-        satellite,
-        "_run_in_terminated_process",
-        lambda *_args, **_kwargs: process_calls.append(True),
-    )
-
-    with pytest.raises(satellite.EarthEngineProviderTimeout):
-        satellite._bounded_earth_engine_fetch(
-            "server-project",
-            fixed_query(),
-            deadline=time.monotonic() - 0.01,
-        )
-
-    assert process_calls == []
+    assert result.reason_code == "provider_timeout"
+    assert result.image_reference is None
 
 
 def test_service_rejects_provider_image_that_exceeds_fixed_byte_bound() -> None:
@@ -392,10 +413,8 @@ def test_service_rejects_provider_image_that_exceeds_fixed_byte_bound() -> None:
         satellite.fetch_satellite_reference(
             latitude=25.0375,
             longitude=121.5645,
-            project="server-project",
             adapter=RecordingAdapter(
                 satellite.SatelliteAdapterResult(
-                    scene_count=2,
                     image_bytes=b"x" * (satellite.MAX_PROVIDER_IMAGE_BYTES + 1),
                 )
             ),
@@ -498,7 +517,8 @@ class FakeCollection:
         return self
 
     def size(self):
-        return FakeInfo(self.scene_count)
+        self.calls.append(("size",))
+        raise AssertionError("scene count is not part of preview availability")
 
     def median(self):
         self.calls.append(("median",))
@@ -520,6 +540,14 @@ class FakeFilterFactory:
         return ("lte", field, value)
 
 
+class FakeEarthEngineData:
+    def __init__(self, calls) -> None:
+        self.calls = calls
+
+    def setMaxRetries(self, retries):
+        self.calls.append(("set_max_retries", retries))
+
+
 class FakeEarthEngine:
     def __init__(self, scene_count=3, thumbnail_url="https://earthengine.googleapis.com/v1/projects/public/thumbnails/opaque?token=ephemeral") -> None:
         self.calls = []
@@ -527,6 +555,7 @@ class FakeEarthEngine:
         self.thumbnail_url = thumbnail_url
         self.Geometry = FakeGeometryFactory(self.calls)
         self.Filter = FakeFilterFactory()
+        self.data = FakeEarthEngineData(self.calls)
 
     def Initialize(self, **kwargs):
         self.calls.append(("initialize", kwargs))
@@ -534,6 +563,107 @@ class FakeEarthEngine:
     def ImageCollection(self, dataset):
         self.calls.append(("collection", dataset))
         return FakeCollection(self.calls, self.scene_count, self.thumbnail_url)
+
+
+def test_adapter_initializes_once_sets_zero_retries_and_reuses_state_concurrently() -> None:
+    """Concurrent first use must perform one bounded initialization with SDK retries disabled."""
+
+    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
+    fake_ee = FakeEarthEngine()
+    auth_calls = []
+    refresh_calls = []
+
+    class Credentials:
+        valid = False
+
+        def refresh(self, request):
+            refresh_calls.append(request)
+            self.valid = True
+
+    credentials = Credentials()
+
+    def auth_default():
+        auth_calls.append(True)
+        time.sleep(0.02)
+        return credentials, "ignored-adc-project"
+
+    adapter = adapter_module.EarthEngineSatelliteAdapter(
+        project="server-project",
+        ee_module=fake_ee,
+        auth_default=auth_default,
+        auth_request_factory=lambda: "refresh-request",
+        download_image=lambda *_: jpeg_with_dimensions(512, 512),
+    )
+    failures = []
+
+    def initialize():
+        try:
+            adapter.initialize()
+        except Exception as exc:  # pragma: no cover - assertion reports thread failure
+            failures.append(exc)
+
+    threads = [threading.Thread(target=initialize) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=1)
+
+    assert failures == []
+    assert auth_calls == [True]
+    assert refresh_calls == ["refresh-request"]
+    assert [call[0] for call in fake_ee.calls[:2]] == ["set_max_retries", "initialize"]
+    assert fake_ee.calls.count(("set_max_retries", 0)) == 1
+    assert sum(call[0] == "initialize" for call in fake_ee.calls) == 1
+
+
+def test_adapter_maps_adc_refresh_failure_to_credential_unavailable() -> None:
+    """Credential discovery or refresh errors are safe credential failures, never provider details."""
+
+    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
+
+    class Credentials:
+        valid = False
+
+        def refresh(self, _request):
+            raise RuntimeError("refresh_token=must-not-leak")
+
+    adapter = adapter_module.EarthEngineSatelliteAdapter(
+        project="server-project",
+        ee_module=FakeEarthEngine(),
+        auth_default=lambda: (Credentials(), None),
+        auth_request_factory=lambda: object(),
+        download_image=lambda *_: b"",
+    )
+
+    with pytest.raises(satellite.EarthEngineCredentialUnavailable) as raised:
+        adapter.initialize()
+
+    assert "must-not-leak" not in str(raised.value)
+
+
+def test_adapter_maps_ee_initialize_failure_to_initialization_unavailable() -> None:
+    """Provider initialization failures must not be misreported as missing credentials."""
+
+    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
+    fake_ee = FakeEarthEngine()
+
+    def fail_initialize(**_kwargs):
+        raise RuntimeError("provider-url=must-not-leak")
+
+    fake_ee.Initialize = fail_initialize
+    credentials = type("Credentials", (), {"valid": True})()
+    adapter = adapter_module.EarthEngineSatelliteAdapter(
+        project="server-project",
+        ee_module=fake_ee,
+        auth_default=lambda: (credentials, None),
+        auth_request_factory=lambda: object(),
+        download_image=lambda *_: b"",
+    )
+
+    with pytest.raises(satellite.EarthEngineInitializationUnavailable) as raised:
+        adapter.initialize()
+
+    assert "must-not-leak" not in str(raised.value)
 
 
 def fixed_query() -> satellite.SatelliteQuery:
@@ -550,6 +680,26 @@ def fixed_query() -> satellite.SatelliteQuery:
         dimensions=(512, 512),
         image_format="jpg",
     )
+
+
+def test_adapter_does_not_issue_collection_size_request() -> None:
+    """Preview availability must be established without a separate scene-count operation."""
+
+    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
+    fake_ee = FakeEarthEngine()
+    expected = jpeg_with_dimensions(512, 512)
+    adapter = adapter_module.EarthEngineSatelliteAdapter(
+        project="server-project",
+        ee_module=fake_ee,
+        auth_default=lambda: (object(), None),
+        download_image=lambda *_: expected,
+    )
+
+    adapter.initialize()
+    result = adapter.fetch_initialized(fixed_query())
+
+    assert result.image_bytes == expected
+    assert not any(call[0] == "size" for call in fake_ee.calls)
 
 
 def test_earth_engine_adapter_uses_adc_fixed_collection_mask_and_server_side_thumbnail_download() -> None:
@@ -572,11 +722,11 @@ def test_earth_engine_adapter_uses_adc_fixed_collection_mask_and_server_side_thu
     )
     result = adapter.fetch(fixed_query())
 
-    assert result == satellite.SatelliteAdapterResult(
-        scene_count=3,
-        image_bytes=jpeg_with_dimensions(512, 512),
-    )
-    assert fake_ee.calls[0] == ("initialize", {"credentials": credentials, "project": "server-project"})
+    assert result == satellite.SatelliteAdapterResult(image_bytes=jpeg_with_dimensions(512, 512))
+    assert fake_ee.calls[:2] == [
+        ("set_max_retries", 0),
+        ("initialize", {"credentials": credentials, "project": "server-project"}),
+    ]
     assert ("point", (121.5645, 25.0375)) in fake_ee.calls
     assert ("buffer", 500) in fake_ee.calls
     assert ("bounds",) not in fake_ee.calls
@@ -639,26 +789,6 @@ def test_earth_engine_adapter_maps_adc_failure_without_interactive_authenticatio
 
     assert "must-not-leak" not in str(raised.value)
     assert fake_ee.calls == []
-
-
-def test_earth_engine_adapter_returns_no_image_without_generating_thumbnail_for_empty_collection() -> None:
-    """An empty fixed window must not generate an image or launch a fallback query."""
-
-    adapter_module = importlib.import_module("services.adapters.earth_engine_adapter")
-    fake_ee = FakeEarthEngine(scene_count=0)
-    downloads = []
-    adapter = adapter_module.EarthEngineSatelliteAdapter(
-        project="server-project",
-        ee_module=fake_ee,
-        auth_default=lambda: (object(), None),
-        download_image=lambda *args: downloads.append(args),
-    )
-
-    result = adapter.fetch(fixed_query())
-
-    assert result == satellite.SatelliteAdapterResult(scene_count=0, image_bytes=None)
-    assert not any(call[0] in {"median", "thumbnail"} for call in fake_ee.calls)
-    assert downloads == []
 
 
 def test_earth_engine_adapter_rejects_non_provider_or_credential_bearing_thumbnail_url() -> None:

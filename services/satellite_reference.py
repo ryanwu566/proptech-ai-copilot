@@ -2,15 +2,11 @@
 
 from __future__ import annotations
 
-import asyncio
 import base64
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-import multiprocessing
-import threading
 import time
-from typing import Any, Callable, Literal, Protocol, cast
+from typing import Literal, Protocol
 
 from pydantic import BaseModel, Field
 
@@ -67,8 +63,7 @@ class SatelliteQuery:
 
 @dataclass(frozen=True)
 class SatelliteAdapterResult:
-    scene_count: int
-    image_bytes: bytes | None
+    image_bytes: bytes
 
 
 class SatelliteAdapter(Protocol):
@@ -76,7 +71,15 @@ class SatelliteAdapter(Protocol):
 
 
 class EarthEngineCredentialUnavailable(RuntimeError):
-    """Application Default Credentials or Earth Engine initialization failed."""
+    """Application Default Credentials are unavailable."""
+
+
+class EarthEngineFeatureDisabled(RuntimeError):
+    """The optional Earth Engine capability is disabled."""
+
+
+class EarthEngineInitializationUnavailable(RuntimeError):
+    """Earth Engine client initialization failed after credentials were obtained."""
 
 
 class EarthEngineProviderError(RuntimeError):
@@ -143,171 +146,23 @@ def _fixed_query(latitude: float, longitude: float, checked_at: datetime) -> Sat
     )
 
 
-def _process_entry(send_connection, target: Callable[..., Any], args: tuple[Any, ...]) -> None:
-    """Run one operation and return only an allowlisted result or safe failure category."""
+def _get_earth_engine_worker_manager():
+    """Import lazily to avoid starting or importing worker machinery at module load."""
 
-    try:
-        send_connection.send(("ok", target(*args)))
-    except EarthEngineCredentialUnavailable:
-        send_connection.send(("credential_unavailable", None))
-    except EarthEngineProviderTimeout:
-        send_connection.send(("provider_timeout", None))
-    except EarthEngineImageGenerationError:
-        send_connection.send(("image_generation_failed", None))
-    except EarthEngineProviderError:
-        send_connection.send(("provider_error", None))
-    except BaseException:
-        send_connection.send(("provider_error", None))
-    finally:
-        send_connection.close()
+    from services.earth_engine_worker_pool import get_earth_engine_worker_manager
 
-
-def _stop_process(process: multiprocessing.Process) -> None:
-    """Ensure a provider child is no longer executing before returning."""
-
-    if process.is_alive():
-        process.terminate()
-    process.join(timeout=0.25)
-    if process.is_alive() and hasattr(process, "kill"):
-        process.kill()
-        process.join(timeout=0.25)
-    if process.is_alive():
-        raise EarthEngineProviderError("Earth Engine worker could not be stopped")
-    process.close()
-
-
-def _run_in_terminated_process(
-    target: Callable[..., Any],
-    args: tuple[Any, ...],
-    *,
-    timeout_seconds: float,
-) -> Any:
-    """Run a picklable callable within a hard, terminating process deadline."""
-
-    if timeout_seconds <= 0:
-        raise EarthEngineProviderTimeout("Earth Engine operation timed out")
-    context = multiprocessing.get_context("spawn")
-    receive_connection, send_connection = context.Pipe(duplex=False)
-    process = context.Process(
-        target=_process_entry,
-        args=(send_connection, target, args),
-        daemon=True,
-    )
-    deadline = time.monotonic() + timeout_seconds
-    try:
-        process.start()
-        send_connection.close()
-        remaining = deadline - time.monotonic()
-        if remaining <= 0 or not receive_connection.poll(remaining):
-            raise EarthEngineProviderTimeout("Earth Engine operation timed out")
-        try:
-            outcome, payload = receive_connection.recv()
-        except EOFError as exc:
-            raise EarthEngineProviderError("Earth Engine worker exited without a result") from exc
-    finally:
-        send_connection.close()
-        receive_connection.close()
-        if process.pid is not None:
-            _stop_process(process)
-
-    if outcome == "ok":
-        return payload
-    if outcome == "credential_unavailable":
-        raise EarthEngineCredentialUnavailable("Application Default Credentials are unavailable")
-    if outcome == "provider_timeout":
-        raise EarthEngineProviderTimeout("Earth Engine operation timed out")
-    if outcome == "image_generation_failed":
-        raise EarthEngineImageGenerationError("Earth Engine thumbnail generation failed")
-    raise EarthEngineProviderError("Earth Engine query failed")
-
-
-MAX_CONCURRENT_PROVIDER_PROCESSES = 2
-MAX_QUEUED_PROVIDER_REQUESTS = 2
-_PROCESS_STOP_GRACE_SECONDS = 0.5
-_PROVIDER_PROCESS_SLOTS = threading.BoundedSemaphore(value=MAX_CONCURRENT_PROVIDER_PROCESSES)
-_PROVIDER_REQUEST_SLOTS = threading.BoundedSemaphore(
-    value=MAX_CONCURRENT_PROVIDER_PROCESSES + MAX_QUEUED_PROVIDER_REQUESTS
-)
-_PROVIDER_EXECUTOR = ThreadPoolExecutor(
-    max_workers=MAX_CONCURRENT_PROVIDER_PROCESSES,
-    thread_name_prefix="earth-engine-reference",
-)
-
-
-def _earth_engine_fetch(project: str, query: SatelliteQuery) -> SatelliteAdapterResult:
-    from services.adapters.earth_engine_adapter import EarthEngineSatelliteAdapter
-
-    return EarthEngineSatelliteAdapter(project=project).fetch(query)
-
-
-def _bounded_earth_engine_fetch(
-    project: str,
-    query: SatelliteQuery,
-    deadline: float,
-) -> SatelliteAdapterResult:
-    """Bound queueing plus execution to one total deadline and two provider workers."""
-
-    remaining = deadline - time.monotonic()
-    if remaining <= _PROCESS_STOP_GRACE_SECONDS:
-        raise EarthEngineProviderTimeout("Earth Engine operation timed out")
-    if not _PROVIDER_PROCESS_SLOTS.acquire(timeout=remaining - _PROCESS_STOP_GRACE_SECONDS):
-        raise EarthEngineProviderTimeout("Earth Engine operation timed out")
-    try:
-        remaining = deadline - time.monotonic()
-        if remaining <= _PROCESS_STOP_GRACE_SECONDS:
-            raise EarthEngineProviderTimeout("Earth Engine operation timed out")
-        return cast(
-            SatelliteAdapterResult,
-            _run_in_terminated_process(
-                _earth_engine_fetch,
-                (project, query),
-                timeout_seconds=remaining - _PROCESS_STOP_GRACE_SECONDS,
-            ),
-        )
-    finally:
-        _PROVIDER_PROCESS_SLOTS.release()
-
-
-async def _await_bounded_earth_engine_fetch(
-    project: str,
-    query: SatelliteQuery,
-    timeout_seconds: float,
-) -> SatelliteAdapterResult:
-    """Bound submissions before they enter the runtime's shared thread queue."""
-
-    if not _PROVIDER_REQUEST_SLOTS.acquire(blocking=False):
-        raise EarthEngineProviderError("Earth Engine request capacity is unavailable")
-    deadline = time.monotonic() + timeout_seconds
-    worker = asyncio.wrap_future(
-        _PROVIDER_EXECUTOR.submit(
-            _bounded_earth_engine_fetch,
-            project,
-            query,
-            deadline,
-        ),
-        loop=asyncio.get_running_loop(),
-    )
-    try:
-        return await asyncio.shield(worker)
-    except asyncio.CancelledError:
-        try:
-            await worker
-        except Exception:
-            pass
-        raise
-    finally:
-        _PROVIDER_REQUEST_SLOTS.release()
+    return get_earth_engine_worker_manager()
 
 
 async def fetch_satellite_reference(
     *,
     latitude: float,
     longitude: float,
-    project: str,
     adapter: SatelliteAdapter | None = None,
     now: datetime | None = None,
     timeout_seconds: float = EXTERNAL_TIMEOUT_SECONDS,
 ) -> SatelliteReferenceResponse:
+    deadline = time.monotonic() + timeout_seconds
     checked_at = now or datetime.now(timezone.utc)
     if checked_at.tzinfo is None:
         checked_at = checked_at.replace(tzinfo=timezone.utc)
@@ -315,17 +170,24 @@ async def fetch_satellite_reference(
 
     try:
         if adapter is None:
-            provider_result = await _await_bounded_earth_engine_fetch(
-                project,
-                query,
-                timeout_seconds,
+            image_bytes = await _get_earth_engine_worker_manager().fetch(
+                latitude=latitude,
+                longitude=longitude,
+                window_start=query.window_start,
+                window_end=query.window_end,
+                deadline=deadline,
             )
+            provider_result = SatelliteAdapterResult(image_bytes=image_bytes)
         else:
             provider_result = adapter.fetch(query)
     except EarthEngineProviderTimeout:
         return build_response(status="unavailable", reason_code="provider_timeout", now=checked_at)
+    except EarthEngineFeatureDisabled:
+        return build_response(status="unavailable", reason_code="feature_disabled", now=checked_at)
     except EarthEngineCredentialUnavailable:
         return build_response(status="unavailable", reason_code="credential_unavailable", now=checked_at)
+    except EarthEngineInitializationUnavailable:
+        return build_response(status="unavailable", reason_code="provider_error", now=checked_at)
     except EarthEngineImageGenerationError:
         return build_response(status="unavailable", reason_code="image_generation_failed", now=checked_at)
     except EarthEngineProviderError:
@@ -333,12 +195,6 @@ async def fetch_satellite_reference(
     except Exception:
         return build_response(status="unavailable", reason_code="provider_error", now=checked_at)
 
-    if provider_result.scene_count <= 0:
-        return build_response(
-            status="unavailable",
-            reason_code="no_usable_imagery_in_window",
-            now=checked_at,
-        )
     if not provider_result.image_bytes or len(provider_result.image_bytes) > MAX_PROVIDER_IMAGE_BYTES:
         return build_response(
             status="unavailable",
@@ -347,15 +203,20 @@ async def fetch_satellite_reference(
         )
 
     image_reference = "data:image/jpeg;base64," + base64.b64encode(provider_result.image_bytes).decode("ascii")
-    status: Literal["available", "limited"] = "limited" if provider_result.scene_count == 1 else "available"
-    reason_code = "limited_observation_coverage" if status == "limited" else None
     response = build_response(
-        status=status,
-        reason_code=reason_code,
+        status="available",
+        reason_code=None,
         image_reference=image_reference,
         now=checked_at,
     )
-    if len(response.model_dump_json().encode("utf-8")) > MAX_RESPONSE_BYTES:
+    response_too_large = len(response.model_dump_json().encode("utf-8")) > MAX_RESPONSE_BYTES
+    if time.monotonic() >= deadline:
+        return build_response(
+            status="unavailable",
+            reason_code="provider_timeout",
+            now=checked_at,
+        )
+    if response_too_large:
         return build_response(
             status="unavailable",
             reason_code="image_generation_failed",

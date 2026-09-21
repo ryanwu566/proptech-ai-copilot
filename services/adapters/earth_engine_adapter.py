@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import date
 import math
+import threading
 from typing import Any, Callable
 from urllib.parse import parse_qsl, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -17,6 +18,7 @@ from services.satellite_reference import (
     WINDOW_DAYS,
     EarthEngineCredentialUnavailable,
     EarthEngineImageGenerationError,
+    EarthEngineInitializationUnavailable,
     EarthEngineProviderError,
     SatelliteAdapterResult,
     SatelliteQuery,
@@ -50,33 +52,75 @@ class EarthEngineSatelliteAdapter:
         project: str,
         ee_module: Any | None = None,
         auth_default: Callable[[], tuple[Any, str | None]] | None = None,
+        auth_request_factory: Callable[[], Any] | None = None,
         download_image: Callable[[str, int, float], bytes] | None = None,
     ) -> None:
         self._project = project.strip()
         self._ee_module = ee_module
         self._auth_default = auth_default
+        self._auth_request_factory = auth_request_factory
         self._download_image = download_image or _download_thumbnail
+        self._initialize_lock = threading.Lock()
+        self._initialized = False
+
+    def initialize(self) -> None:
+        """Initialize Earth Engine once for this adapter without module-import side effects."""
+
+        if self._initialized:
+            return
+        with self._initialize_lock:
+            if self._initialized:
+                return
+            if not self._project:
+                raise EarthEngineCredentialUnavailable("Earth Engine project is unavailable")
+
+            try:
+                ee = self._ee_module
+                if ee is None:
+                    import ee as imported_ee
+
+                    ee = imported_ee
+                auth_default = self._auth_default
+                if auth_default is None:
+                    import google.auth
+
+                    auth_default = google.auth.default
+                credentials, _ = auth_default()
+                if hasattr(credentials, "valid") and not credentials.valid:
+                    request_factory = self._auth_request_factory
+                    if request_factory is None:
+                        from google.auth.transport.requests import Request
+
+                        request_factory = Request
+                    credentials.refresh(request_factory())
+            except Exception as exc:
+                raise EarthEngineCredentialUnavailable(
+                    "Application Default Credentials are unavailable"
+                ) from exc
+
+            try:
+                ee.data.setMaxRetries(0)
+                ee.Initialize(credentials=credentials, project=self._project)
+            except Exception as exc:
+                raise EarthEngineInitializationUnavailable(
+                    "Earth Engine initialization is unavailable"
+                ) from exc
+
+            self._ee_module = ee
+            self._initialized = True
 
     def fetch(self, query: SatelliteQuery) -> SatelliteAdapterResult:
         _validate_query(query)
-        if not self._project:
-            raise EarthEngineCredentialUnavailable("Earth Engine project is unavailable")
+        self.initialize()
+        return self.fetch_initialized(query)
 
-        try:
-            ee = self._ee_module
-            if ee is None:
-                import ee as imported_ee
+    def fetch_initialized(self, query: SatelliteQuery) -> SatelliteAdapterResult:
+        """Execute the fixed thumbnail pipeline after successful initialization."""
 
-                ee = imported_ee
-            auth_default = self._auth_default
-            if auth_default is None:
-                import google.auth
-
-                auth_default = google.auth.default
-            credentials, _ = auth_default()
-            ee.Initialize(credentials=credentials, project=self._project)
-        except Exception as exc:
-            raise EarthEngineCredentialUnavailable("Application Default Credentials are unavailable") from exc
+        _validate_query(query)
+        if not self._initialized or self._ee_module is None:
+            raise EarthEngineInitializationUnavailable("Earth Engine initialization is unavailable")
+        ee = self._ee_module
 
         try:
             region = ee.Geometry.Point([query.longitude, query.latitude]).buffer(query.aoi_radius_m)
@@ -87,12 +131,8 @@ class EarthEngineSatelliteAdapter:
                 .filter(ee.Filter.lte("CLOUDY_PIXEL_PERCENTAGE", query.cloud_filter_percent))
                 .map(_scl_mask)
             )
-            scene_count = int(collection.size().getInfo())
         except Exception as exc:
             raise EarthEngineProviderError("Earth Engine query failed") from exc
-
-        if scene_count <= 0:
-            return SatelliteAdapterResult(scene_count=0, image_bytes=None)
 
         try:
             image = collection.median().select(list(query.rgb_bands)).visualize(min=0, max=3000)
@@ -131,7 +171,7 @@ class EarthEngineSatelliteAdapter:
         except Exception as exc:
             raise EarthEngineImageGenerationError("Earth Engine thumbnail generation failed") from exc
 
-        return SatelliteAdapterResult(scene_count=scene_count, image_bytes=image_bytes)
+        return SatelliteAdapterResult(image_bytes=image_bytes)
 
 
 def _scl_mask(image: Any) -> Any:
