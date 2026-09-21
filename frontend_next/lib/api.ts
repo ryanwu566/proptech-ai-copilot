@@ -412,6 +412,22 @@ export type CommuteRouteMode = "transit" | "driving" | "walking";
 export type CommuteRouteResult = { status: "resolved" | "unresolved" | "unavailable"; source: "google_routes" | "mock" | "none"; mode: CommuteRouteMode; duration_min: number | null; duration_seconds: number | null; distance_m: number | null; partial: boolean; fallback: boolean; message: string; disclaimer: string };
 export type TerrainRiskLayerStatus = "available" | "limited" | "unavailable" | "error" | "skipped";
 export type TerrainRiskLevel = "low" | "medium" | "high" | "unknown";
+export type SatelliteReference = {
+  status: "available" | "limited" | "unavailable";
+  reason_code: string | null;
+  source: string;
+  dataset: "COPERNICUS/S2_SR_HARMONIZED";
+  window_start: string;
+  window_end: string;
+  retrieval_time: string;
+  aoi_radius_m: 500;
+  composite_method: string;
+  cloud_filter_percent: 35;
+  image_reference: string | null;
+  attribution: string;
+  limitations: string[];
+  disclaimer: string;
+};
 export type TerrainRiskSource = { name: string; agency: string; source_url?: string; fetched_at?: string; data_updated_at?: string; status: string; data_vintage?: string; data_quality?: string; limitation?: string };
 export type TerrainRiskSourceTransparencyLayer = {
   layer_id: string;
@@ -627,6 +643,7 @@ export const api = {
   commuteAddressLookup: (payload: { address: string }) => request<CommuteAddressLookupResult>("/commute/address-lookup", { method: "POST", body: JSON.stringify(payload) }),
   commuteRoute: (payload: { origin_latitude: number; origin_longitude: number; destination_address?: string; destination_latitude?: number; destination_longitude?: number; mode?: CommuteRouteMode }) => request<CommuteRouteResult>("/commute/route", { method: "POST", body: JSON.stringify(payload) }),
   terrainRiskAnalyze: (payload: Record<string, string | number | string[] | undefined>) => request<TerrainRiskResult>("/terrain-risk/analyze", { method: "POST", body: JSON.stringify(payload) }),
+  satelliteReference: (payload: { latitude: number; longitude: number }, signal?: AbortSignal) => request<SatelliteReference>("/terrain/satellite-reference", { method: "POST", body: JSON.stringify(payload), signal }),
   uploadParcelGeometry: (file: File, coordinates?: { latitude: number; longitude: number }, signal?: AbortSignal) => {
     const body = new FormData();
     body.append("file", file);

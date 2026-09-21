@@ -32,6 +32,7 @@ from backend.api.routes_mortgage_rates import router as mortgage_rates_router
 from backend.api.routes_road import router as road_router
 from backend.api.routes_taxoracle import router as taxoracle_router
 from backend.api.routes_terrain_risk import router as terrain_risk_router
+from backend.api.routes_satellite_reference import router as satellite_reference_router
 from backend.api.routes_valuation import router as valuation_router
 from backend.api.routes_pilot import router as pilot_router
 from backend.api.routes_performance import router as performance_router
@@ -49,12 +50,21 @@ from services.observability import build_observation, normalize_correlation_id
 from services.production_config import assert_startup_configuration
 from services.security import safe_origin, security_headers
 from services.production_config import MAINTENANCE_MODE_ENV
+from services.satellite_reference import feature_enabled
 from services.vnext.errors import ErrorCode, VNextError
 
 
 DEFAULT_DEV_CORS_ORIGINS = ("http://localhost:3000", "http://127.0.0.1:3000")
 CORS_ALLOWED_ORIGINS_ENV = "CORS_ALLOWED_ORIGINS"
 LEGACY_CORS_ORIGINS_ENV = "CORS_ORIGINS"
+
+
+def _get_earth_engine_worker_manager():
+    """Resolve the optional capability manager without starting it at import time."""
+
+    from services.earth_engine_worker_pool import get_earth_engine_worker_manager
+
+    return get_earth_engine_worker_manager()
 
 
 def parse_cors_allowed_origins(raw: str) -> list[str]:
@@ -80,13 +90,29 @@ async def app_lifespan(_app: FastAPI):
     """Validate production configuration before accepting requests."""
 
     assert_startup_configuration()
-    yield
-    # Shutdown: close GREEN connection pool if it was initialized.
-    # Safe no-op if pool was never created (PLVR_DATA_BACKEND != green).
-    from services.compact_green_query import close_green_pool
-    from services.vnext.db_principal import close_vnext_database_pool
-    close_green_pool()
-    close_vnext_database_pool()
+    earth_engine_manager = None
+    try:
+        try:
+            earth_engine_manager = _get_earth_engine_worker_manager()
+            earth_engine_manager.start(
+                enabled=feature_enabled(os.getenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "")),
+                project=os.getenv("EARTH_ENGINE_PROJECT", ""),
+            )
+        except Exception:
+            # Earth Engine is an optional capability; unrelated routes must start.
+            pass
+        yield
+    finally:
+        try:
+            if earth_engine_manager is not None:
+                earth_engine_manager.shutdown()
+        finally:
+            # Safe no-ops when their pools were never initialized.
+            from services.compact_green_query import close_green_pool
+            from services.vnext.db_principal import close_vnext_database_pool
+
+            close_green_pool()
+            close_vnext_database_pool()
 
 
 app = FastAPI(
@@ -219,6 +245,7 @@ app.include_router(commute_router)
 app.include_router(loan_calculator_router)
 app.include_router(taxoracle_router)
 app.include_router(terrain_risk_router)
+app.include_router(satellite_reference_router)
 app.include_router(market_router)
 app.include_router(map_router)
 app.include_router(road_router)

@@ -11,3 +11,4 @@ pyproj>=3.6,<4
 pyshp>=2.3,<3
 defusedxml>=0.7,<1
 python-multipart>=0.0.20,<1
+earthengine-api>=1.7.43,<2

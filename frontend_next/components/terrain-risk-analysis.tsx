@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, ApiRequestError, type CadastralEvidence, type LocationInsightResult, type ParcelGeometryEvidence, type ParcelSpatialAnalysis, type TerrainHazardLayer, type TerrainRiskResult, type TerrainRiskSourceTransparencyLayer } from "@/lib/api";
 import { AnalysisProgress, type AnalysisProgressPhase } from "@/components/analysis-progress";
 import { TerrainCadastralEvidence } from "@/components/terrain-cadastral-evidence";
+import { SatelliteEvidence, type AcceptedSatelliteCoordinate } from "@/components/satellite-evidence";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { Button, Notice } from "@/components/ui";
 import { ErrorState, SectionCard } from "@/components/product-ui";
@@ -231,7 +232,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
           {!canAnalyze && <p className="text-[10px] leading-5 text-amber-700">{compactFromLocation ? copy.compactMissing : copy.standaloneMissing}</p>}
           {error && <ErrorState message={error} />}
         </div>
-        <div className="min-w-0">{!result ? <div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500"><p>{copy.empty}<br /><span className="text-xs">{copy.emptyDetail}</span></p></div> : <TerrainRiskResults result={result} parcelEvidence={parcelEvidence} copy={copy} parcelCopy={parcelCopy} onReferenceAttach={onReferenceAttach} />}</div>
+        <div className="min-w-0">{!result ? <div className="space-y-4"><div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500"><p>{copy.empty}<br /><span className="text-xs">{copy.emptyDetail}</span></p></div><SatelliteEvidence coordinate={null} /></div> : <TerrainRiskResults result={result} satelliteCoordinate={{ latitude: Number(result.resolved_location.latitude), longitude: Number(result.resolved_location.longitude), accepted: true }} parcelEvidence={parcelEvidence} copy={copy} parcelCopy={parcelCopy} onReferenceAttach={onReferenceAttach} />}</div>
       </div>
     </SectionCard>
   </section>;
@@ -285,7 +286,7 @@ function ParcelUploadControl({ evidence, spatialEvidence, terrainAnalyzed, fileN
   </section>;
 }
 
-function TerrainRiskResults({ result, parcelEvidence, copy, parcelCopy, onReferenceAttach }: { result: TerrainRiskResult; parcelEvidence?: ParcelGeometryEvidence; copy: TerrainSurfaceCopy; parcelCopy: ParcelGeometryCopy; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
+function TerrainRiskResults({ result, satelliteCoordinate, parcelEvidence, copy, parcelCopy, onReferenceAttach }: { result: TerrainRiskResult; satelliteCoordinate: AcceptedSatelliteCoordinate; parcelEvidence?: ParcelGeometryEvidence; copy: TerrainSurfaceCopy; parcelCopy: ParcelGeometryCopy; onReferenceAttach?: (evidence: TerrainReferenceEvidence) => void }) {
   const hazards = Object.values(result.hazards); const evidence = buildTerrainReferenceEvidence(result); const evidenceByLayer = new Map(evidence.layers.map((layer) => [layer.layer_id, layer]));
   const cadastralEvidence = cadastralEvidenceFor(result);
   const requested = Array.isArray(result.input.include_layers) ? result.input.include_layers as string[] : DEFAULT_LAYERS;
@@ -301,7 +302,7 @@ function TerrainRiskResults({ result, parcelEvidence, copy, parcelCopy, onRefere
     <section data-testid="terrain-priority-follow-up" className={`rounded-xl border p-4 ${result.risk_factors.length > 0 ? "border-rose-200 bg-rose-50" : "border-amber-200 bg-amber-50"}`}><p className="text-xs font-black text-slate-900">{copy.priorityFollowUp}</p><ul className="mt-2 space-y-1 text-xs leading-5 text-slate-700">{priorityItems.map((item) => <li key={item}>• {item}</li>)}</ul></section>
     <div className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,0.92fr)] xl:items-start">
       <section className="min-w-0"><h3 className="text-xs font-black uppercase tracking-wider text-slate-800">{copy.actualEvidence}</h3><div className="mt-2 grid gap-3 sm:grid-cols-2"><TerrainEvidenceCard result={result} copy={copy} />{hazards.map((hazard) => <HazardCard key={hazard.key} hazard={hazard} state={evidenceByLayer.get(hazard.key)?.state ?? "unknown"} copy={copy} />)}</div></section>
-      <TerrainCadastralEvidence evidence={cadastralEvidence} parcelEvidence={parcelEvidence ?? result.parcel_geometry_evidence} landsect={result.landsect_context} radiusM={Number(result.input.radius_m ?? 500)} coordinateSource={result.resolved_location.geocoding_source ?? "unknown"} copy={copy} parcelCopy={parcelCopy} />
+      <div className="min-w-0 space-y-4"><TerrainCadastralEvidence evidence={cadastralEvidence} parcelEvidence={parcelEvidence ?? result.parcel_geometry_evidence} landsect={result.landsect_context} radiusM={Number(result.input.radius_m ?? 500)} coordinateSource={result.resolved_location.geocoding_source ?? "unknown"} copy={copy} parcelCopy={parcelCopy} /><SatelliteEvidence coordinate={satelliteCoordinate} /></div>
     </div>
     <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4"><p className="text-xs font-bold text-cyan-950">{copy.referenceTitle}</p><p className="mt-2 text-xs leading-5 text-cyan-950">{copy.sourceFallbackNotice}</p><button type="button" className="mt-3 rounded-lg border border-cyan-700 bg-white px-3 py-2 text-xs font-bold text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" disabled={!evidence.attachable} onClick={() => { onReferenceAttach?.(evidence); window.dispatchEvent(new CustomEvent<TerrainReferenceEvidence>(TERRAIN_REFERENCE_EVIDENCE_EVENT, { detail: evidence })); }}>{evidence.attachable ? copy.attach : copy.attachDisabled}</button>{!evidence.attachable && <p className="mt-2 text-[11px] text-amber-800">{copy.attachDisabled}</p>}<p className="mt-2 text-[11px] text-slate-600">{copy.referenceState}: {copy.states[evidence.status] ?? copy.unknown}</p></div>
     <ListCard title={copy.recommended} items={result.recommended_checks} />
