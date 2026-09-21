@@ -51,12 +51,36 @@ def test_normalize_market_road_preserves_exact_section_identity(raw: str, expect
 
 @pytest.mark.parametrize(
     "raw",
-    ["", "   ", "25.03,121.54", "和平東路二段100號", "和平東路二段/文化路", "和平東路二段，100號"],
+    [
+        "",
+        "   ",
+        "25.03,121.54",
+        "和平東路二段100號",
+        "和平東路100號信義路",
+        "和平東路二段/文化路",
+        "和平東路二段，100號",
+        f"信{' ' * 81}義路",
+    ],
 )
 def test_invalid_market_road_is_rejected(raw: str) -> None:
     """Invalid road input must not silently become a district query."""
 
     assert is_valid_market_road(raw) is False
+
+
+def test_region_prefixed_road_is_not_reinterpreted_as_district_fallback() -> None:
+    """A full address fragment must fail closed instead of selecting district evidence."""
+
+    result = analyze_market_road(
+        _rows(20),
+        "台北市",
+        "大安區",
+        "台北市大安區和平東路二段",
+        as_of=AS_OF,
+    )
+
+    assert result["effective_analysis_level"] == "NOT_AVAILABLE"
+    assert result["fallback_reason"] == "market_road_invalid"
 
 
 def test_different_roads_and_sections_do_not_collide() -> None:

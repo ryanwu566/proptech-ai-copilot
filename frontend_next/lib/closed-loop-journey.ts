@@ -122,7 +122,12 @@ export function updateJourneyMarketLocation(
     addressSummary: [input.city, input.district, input.road].filter(Boolean).join(""),
   });
   if (journeyAddressKey(state.propertyContext) === journeyAddressKey(propertyContext)) {
-    return { ...state, propertyContext };
+    return {
+      ...state,
+      propertyContext,
+      marketResult: undefined,
+      marketStatus: "not_started",
+    };
   }
 
   const next = {

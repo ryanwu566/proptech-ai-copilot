@@ -6,7 +6,9 @@ import {
   type MarketHistoryPoint,
 } from "../lib/market-insight-visualization";
 import { formatMarketCopy, getMarketInsightCopy } from "../lib/market-insight-copy";
+import { buildMarketInsightSnapshot } from "../lib/market-insight-snapshot";
 import { createClosedLoopJourneyState, selectJourneyPrice, updateJourneyMarketLocation } from "../lib/closed-loop-journey";
+import type { MarketResult } from "../lib/api";
 
 const COUNTY = "臺中市";
 const DISTRICT = "北屯區";
@@ -346,6 +348,39 @@ test("market handoff changes only geography and preserves a manual price assumpt
   expect(next.priceBasis).toBe("manual");
   expect(next.manualPriceWan).toBe(1888);
   expect(next.activePriceWan).toBe(1888);
+});
+
+test("explicit same-location market handoff clears stale market evidence", () => {
+  const initial = createClosedLoopJourneyState({
+    city: COUNTY,
+    district: DISTRICT,
+    road: "文心路四段",
+    addressSummary: `${COUNTY}${DISTRICT}文心路四段`,
+    selectionStatus: "selected",
+  });
+  const withStaleMarket = {
+    ...initial,
+    marketResult: roadAnalysisResult("ROAD", "崇德路二段") as MarketResult,
+    marketStatus: "available" as const,
+  };
+
+  const next = updateJourneyMarketLocation(withStaleMarket, {
+    city: COUNTY,
+    district: DISTRICT,
+    road: "文心路四段",
+  });
+
+  expect(next.marketResult).toBeUndefined();
+  expect(next.marketStatus).toBe("not_started");
+});
+
+test("road-aware results do not emit a district-semantic safe snapshot", () => {
+  const snapshot = buildMarketInsightSnapshot(
+    roadAnalysisResult("ROAD", "文心路四段") as MarketResult,
+    "2026-09-21T00:00:00.000Z",
+  );
+
+  expect(snapshot).toBeNull();
 });
 
 test("road query sends only after submit and distinguishes ROAD from DISTRICT fallback", async ({ page }) => {

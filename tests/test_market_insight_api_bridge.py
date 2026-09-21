@@ -133,7 +133,17 @@ def test_not_available_road_response_keeps_explanation_but_clears_all_metrics(mo
 
 @pytest.mark.parametrize(
     "road",
-    ["", "   ", "25.03,121.54", "和平東路二段100號", "和平東路二段/文化路", "路" * 81],
+    [
+        "",
+        "   ",
+        "25.03,121.54",
+        "和平東路二段100號",
+        "和平東路100號信義路",
+        "台北市大安區和平東路二段",
+        "和平東路二段/文化路",
+        "路" * 81,
+        f"信{' ' * 81}義路",
+    ],
 )
 def test_market_query_rejects_invalid_road_without_calling_service(monkeypatch, road: str) -> None:
     """Invalid road input must not silently execute district analysis."""
@@ -156,6 +166,35 @@ def test_market_query_rejects_invalid_road_without_calling_service(monkeypatch, 
 
     assert response.status_code == 422
     assert called is False
+
+
+def test_malformed_road_result_preserves_requested_scope_as_not_available(monkeypatch) -> None:
+    """A defensive sanitizer must not erase the validated road on contract failure."""
+
+    from services import market_insight_service
+
+    monkeypatch.setattr(
+        market_insight_service,
+        "get_market_summary",
+        lambda *_args, **_kwargs: {"coverage_status": "covered", "data_status": "available"},
+    )
+
+    payload = client.post(
+        "/market-insights/query",
+        json={"county": "台北市", "district": "大安區", "road": "和平東路2段"},
+    ).json()
+
+    assert payload["data_status"] == "no_data"
+    assert payload["reason_code"] == "market_result_contract_invalid"
+    assert payload["requested_scope"] == "ROAD"
+    assert payload["requested_city"] == "台北市"
+    assert payload["requested_district"] == "大安區"
+    assert payload["requested_road"] == "和平東路2段"
+    assert payload["normalized_road"] == "和平東路二段"
+    assert payload["effective_analysis_level"] == "NOT_AVAILABLE"
+    assert payload["history"] == []
+    assert payload["monthly_series"] == []
+    assert payload["yearly_series"] == []
 
 
 def test_market_query_bounds_unknown_fallback_reason(monkeypatch) -> None:

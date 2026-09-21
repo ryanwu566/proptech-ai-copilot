@@ -67,6 +67,21 @@ class MarketInsightQuery(BaseModel):
             raise ValueError("invalid road")
         return road
 
+    @model_validator(mode="after")
+    def reject_region_prefixed_road(self) -> "MarketInsightQuery":
+        if self.road is None:
+            return self
+
+        from services.market_road_analysis import is_valid_market_road
+
+        if not is_valid_market_road(
+            self.road,
+            county=self.county or self.city or "",
+            district=self.district,
+        ):
+            raise ValueError("invalid road")
+        return self
+
 
 class MarketCoverageReconcileRequest(BaseModel):
     """Bounded operator request for one county coverage reconcile."""
@@ -367,7 +382,14 @@ def _safe_market_query_result(
             if raw_reason_code
             else ("market_summary_missing" if data_status == "no_data" else "market_result_contract_invalid")
         )
-        return _safe_market_no_data(raw, county, district, reason_code, support_reference)
+        return _safe_market_no_data(
+            raw,
+            county,
+            district,
+            reason_code,
+            support_reference,
+            requested_road=requested_road,
+        )
     reason_code = safe_market_query_reason_code(raw_reason_code) if raw_reason_code else "market_coverage_not_confirmed"
     return _safe_market_unavailable(
         county,
@@ -452,6 +474,8 @@ def _safe_market_no_data(
     district: str,
     reason_code: str = "market_summary_missing",
     support_reference: str | None = None,
+    *,
+    requested_road: str | None = None,
 ) -> dict[str, Any]:
     from services.plvr_market_aggregate_service import safe_market_query_reason_code
 
@@ -484,6 +508,20 @@ def _safe_market_no_data(
             "fallback_reason": _safe_market_fallback_reason(raw.get("fallback_reason")),
         }
     )
+    if raw.get("requested_scope") == "ROAD" or requested_road is not None:
+        result.update(_safe_market_road_scope(raw, county, district, requested_road))
+        result.update(
+            {
+                "analysis_level": "NOT_AVAILABLE",
+                "effective_analysis_level": "NOT_AVAILABLE",
+                "effective_scope_label": "",
+                "effective_sample_count": 0,
+                "fallback_applied": bool(raw.get("fallback_applied")),
+                "fallback_reason": _safe_market_fallback_reason(
+                    raw.get("fallback_reason") or "market_road_unknown"
+                ),
+            }
+        )
     return result
 
 
@@ -517,30 +555,14 @@ def _safe_market_unavailable(
         }
     )
     raw_result = raw if isinstance(raw, dict) else {}
-    road_candidate = raw_result.get("requested_road") or requested_road
     if raw_result.get("requested_scope") == "ROAD" or requested_road is not None:
-        from services.market_road_analysis import ROAD_MINIMUM_SAMPLE, is_valid_market_road, normalize_market_road
-        from services.plvr_data_integrity import normalized_storage_key
-        from services.taiwan_admin_registry import normalize_market_region
-
-        safe_road = str(road_candidate or "").strip()
-        if not is_valid_market_road(safe_road):
-            safe_road = ""
-        normalized_region = normalize_market_region(county, district)
+        result.update(_safe_market_road_scope(raw_result, county, district, requested_road))
         result.update(
             {
-                "requested_scope": "ROAD",
-                "requested_city": normalized_storage_key(normalized_region.county or county),
-                "requested_district": normalized_storage_key(normalized_region.district or district),
-                "requested_road": safe_road or None,
-                "normalized_road": normalize_market_road(safe_road) or None,
-                "road_minimum_sample": ROAD_MINIMUM_SAMPLE,
                 "analysis_level": "NOT_AVAILABLE",
                 "effective_analysis_level": "NOT_AVAILABLE",
                 "effective_scope_label": "",
                 "effective_sample_count": None,
-                "road_sample_count": _safe_nonnegative_count(raw_result.get("road_sample_count")),
-                "district_sample_count": _safe_nonnegative_count(raw_result.get("district_sample_count")),
                 "fallback_applied": False,
                 "fallback_reason": _safe_market_fallback_reason(raw_result.get("fallback_reason") or "market_road_unknown"),
                 "period": None,
@@ -559,6 +581,33 @@ def _safe_market_unavailable(
             }
         )
     return {key: result.get(key) for key in MARKET_QUERY_SAFE_FIELDS}
+
+
+def _safe_market_road_scope(
+    raw: dict[str, Any],
+    county: str,
+    district: str,
+    requested_road: str | None,
+) -> dict[str, Any]:
+    from services.market_road_analysis import ROAD_MINIMUM_SAMPLE, is_valid_market_road, normalize_market_road
+    from services.plvr_data_integrity import normalized_storage_key
+    from services.taiwan_admin_registry import normalize_market_region
+
+    road_candidate = raw.get("requested_road") or requested_road
+    safe_road = str(road_candidate or "").strip()
+    if not is_valid_market_road(safe_road, county=county, district=district):
+        safe_road = ""
+    normalized_region = normalize_market_region(county, district)
+    return {
+        "requested_scope": "ROAD",
+        "requested_city": normalized_storage_key(normalized_region.county or county),
+        "requested_district": normalized_storage_key(normalized_region.district or district),
+        "requested_road": safe_road or None,
+        "normalized_road": normalize_market_road(safe_road) or None,
+        "road_minimum_sample": ROAD_MINIMUM_SAMPLE,
+        "road_sample_count": _safe_nonnegative_count(raw.get("road_sample_count")),
+        "district_sample_count": _safe_nonnegative_count(raw.get("district_sample_count")),
+    }
 
 
 def _safe_nonnegative_count(value: Any) -> int | None:

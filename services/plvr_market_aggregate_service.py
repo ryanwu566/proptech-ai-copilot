@@ -1442,7 +1442,11 @@ def _road_query_unavailable(
 ) -> dict[str, Any]:
     result = _query_unavailable(county, district, status, support_reference, reason_code)
     requested_road = str(road or "").strip()
-    safe_requested_road = requested_road if is_valid_market_road(requested_road) else None
+    safe_requested_road = (
+        requested_road
+        if is_valid_market_road(requested_road, county=county, district=district)
+        else None
+    )
     normalized = normalize_market_region(county, district)
     result.update(
         {

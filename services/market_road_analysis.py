@@ -25,6 +25,7 @@ MARKET_CAVEAT = "官方實價登錄歷史交易僅供市場背景參考，不代
 ROAD_PATTERN = re.compile(
     r"^[\u4e00-\u9fffA-Za-z0-9]+(?:大道|路|街)(?:[一二三四五六七八九十百]+段)?$"
 )
+ROAD_ADDRESS_MARKERS = ("號", "樓", "室")
 SECTION_NUMBERS = {
     "10": "十",
     "1": "一",
@@ -59,11 +60,21 @@ def normalize_market_road(value: str) -> str:
     return normalized
 
 
-def is_valid_market_road(value: str) -> bool:
+def is_valid_market_road(value: str, *, county: str = "", district: str = "") -> bool:
     """Return whether a value is a bounded road/road-section identity."""
 
-    normalized = normalize_market_road(value)
-    return 0 < len(normalized) <= 80 and ROAD_PATTERN.fullmatch(normalized) is not None
+    raw = str(value or "")
+    if len(raw) > 80:
+        return False
+    normalized = normalize_market_road(raw)
+    if not normalized or any(marker in normalized for marker in ROAD_ADDRESS_MARKERS):
+        return False
+    if county:
+        region = normalize_market_region(county, district)
+        county_prefix = normalize_market_road(region.county) if region.valid else ""
+        if county_prefix and normalized.startswith(county_prefix):
+            return False
+    return ROAD_PATTERN.fullmatch(normalized) is not None
 
 
 def effective_window(as_of: date | datetime | None = None) -> tuple[str, str]:
@@ -170,7 +181,11 @@ def analyze_market_road(
         "normalized_road": normalized_road,
         "road_minimum_sample": ROAD_MINIMUM_SAMPLE,
     }
-    if not normalized_region.valid or not normalized_region.district or not is_valid_market_road(raw_road):
+    if (
+        not normalized_region.valid
+        or not normalized_region.district
+        or not is_valid_market_road(raw_road, county=county, district=district)
+    ):
         return _not_available_result(
             requested_metadata,
             road_count=0,
