@@ -79,7 +79,7 @@ export function MarketScopeSummary({ result }: { result: MarketResult }) {
   const locale = (rawLocale in LABELS ? rawLocale : "zh-TW") as Locale;
   const labels = getMarketInsightCopy(locale);
   const level = result.effective_analysis_level ?? result.analysis_level;
-  const hasRoadScope = result.requested_scope === "ROAD" || level !== undefined;
+  const hasRoadScope = result.requested_scope === "ROAD";
   if (!hasRoadScope) return null;
 
   const requestedLocation = [

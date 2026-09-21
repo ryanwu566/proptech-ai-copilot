@@ -322,6 +322,30 @@ test("Enter on the submit button sends exactly one POST", async ({ page }) => {
   expect(requestCount).toBe(1);
 });
 
+test("district-only serialized null scope fields do not render a road scope summary", async ({ page }) => {
+  await openMarketInsight(page);
+  await selectRegion(page);
+  await page.route("**/market-insights/query", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      ...AVAILABLE_RESULT,
+      requested_scope: null,
+      analysis_level: null,
+      effective_analysis_level: null,
+      effective_scope_label: null,
+      road_minimum_sample: null,
+      road_sample_count: null,
+      district_sample_count: null,
+    }),
+  }));
+
+  await page.getByTestId("market-insight-search-button").click();
+
+  await expect(page.getByTestId("market-insight-low_sample")).toBeVisible();
+  await expect(page.getByTestId("market-scope-summary")).toHaveCount(0);
+});
+
 test("market handoff changes only geography and preserves a manual price assumption", () => {
   const initial = createClosedLoopJourneyState({
     city: "臺北市",

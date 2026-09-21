@@ -168,6 +168,31 @@ def test_market_query_rejects_invalid_road_without_calling_service(monkeypatch, 
     assert called is False
 
 
+def test_market_query_rejects_address_without_echoing_raw_input(monkeypatch) -> None:
+    """A rejected address must not be reflected by the public validation envelope."""
+
+    from services import market_insight_service
+
+    raw_address = "和平東路二段100號9樓"
+    called = False
+
+    def fake_summary(*_args, **_kwargs):
+        nonlocal called
+        called = True
+        return _road_market_result()
+
+    monkeypatch.setattr(market_insight_service, "get_market_summary", fake_summary)
+
+    response = client.post(
+        "/market-insights/query",
+        json={"county": "台北市", "district": "大安區", "road": raw_address},
+    )
+
+    assert response.status_code == 422
+    assert raw_address not in response.text
+    assert called is False
+
+
 def test_malformed_road_result_preserves_requested_scope_as_not_available(monkeypatch) -> None:
     """A defensive sanitizer must not erase the validated road on contract failure."""
 
