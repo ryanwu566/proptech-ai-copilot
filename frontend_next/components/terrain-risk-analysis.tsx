@@ -336,8 +336,32 @@ function SourceLayerCard({ layer, copy }: { layer: TerrainRiskSourceTransparency
   return <div className="rounded-lg border border-amber-100 bg-white p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="font-bold text-slate-900">{layer.display_name}</p><span className="rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">{copy.assessment[layer.assessment_status]}</span></div><p className="mt-1 text-[11px] text-slate-600">{copy.source}: {layer.source_name} · {layer.source_kind}</p><p className="mt-1 text-[11px] text-slate-600">{copy.coverage}: {copy.coverageStates[layer.coverage_status]} · {copy.updated}: {layer.data_updated_at || copy.unknown}</p><p className="mt-2 text-[11px] leading-5 text-amber-800">{layer.caveat}</p></div>;
 }
 
+// Hazard-card presentation derived from independent hazard fields.
+// A matched official signal (matched=true) must stay visible even when the
+// source status is "limited"; status=limited only adds a source caveat and
+// never erases the matched risk level. matched=false + limited stays a
+// reference/external state and must not imply "no risk".
+type HazardPresentation = { headline: string; matched: boolean; matchedRange?: string; distanceLine?: string; caveat?: string };
+function hazardPresentation(hazard: TerrainHazardLayer, copy: TerrainSurfaceCopy): HazardPresentation {
+  if (hazard.status === "unavailable" || hazard.status === "error") {
+    return { headline: copy.temporarilyUnavailable, matched: false };
+  }
+  if (hazard.matched) {
+    const level = hazard.level === "high" || hazard.level === "medium" || hazard.level === "low" ? hazard.level : "unknown";
+    const distanceLine = hazard.distance_m !== null && hazard.distance_m !== undefined
+      ? copy.nearestDistance.replace("{m}", String(Math.round(hazard.distance_m)))
+      : undefined;
+    const caveat = hazard.status === "limited" ? copy.limitedSourceCaveat : undefined;
+    return { headline: copy.risk[level] ?? copy.risk.unknown, matched: true, matchedRange: copy.matchedRange, distanceLine, caveat };
+  }
+  if (hazard.status === "available") return { headline: copy.autoCheckAvailable, matched: false };
+  if (hazard.status === "limited" || hazard.status === "skipped") return { headline: copy.referenceExternal, matched: false };
+  return { headline: copy.temporarilyUnavailable, matched: false };
+}
+
 function HazardCard({ hazard, state, copy }: { hazard: TerrainHazardLayer; state: Parameters<typeof terrainReferenceStateLabel>[0]; copy: TerrainSurfaceCopy }) {
-  return <div className={`rounded-xl border p-3 ${hazard.matched ? "border-rose-200 bg-rose-50" : "border-stone-200 bg-stone-50"}`}><p className="text-xs font-bold text-slate-800">{hazard.label}</p><p className="mt-1 text-sm font-extrabold text-slate-950">{availabilityLabel(hazard.status, copy)}</p><p className="mt-1 text-[10px] font-semibold text-slate-500">{copy.states[state] ?? state}</p><p className="mt-2 text-[11px] leading-5 text-slate-600">{hazard.explanation}</p><p className="mt-2 text-[10px] text-slate-400">{hazard.source?.agency ?? copy.sourceUnavailable} · {copy.states[hazard.source?.status ?? hazard.status] ?? hazard.source?.status ?? hazard.status}</p></div>;
+  const presentation = hazardPresentation(hazard, copy);
+  return <div className={`rounded-xl border p-3 ${hazard.matched ? "border-rose-200 bg-rose-50" : "border-stone-200 bg-stone-50"}`}><p className="text-xs font-bold text-slate-800">{hazard.label}</p>{presentation.matched && presentation.matchedRange && <p className="mt-1 text-[11px] font-black text-rose-700">{presentation.matchedRange}</p>}<p className="mt-1 text-sm font-extrabold text-slate-950">{presentation.headline}</p>{presentation.distanceLine && <p className="mt-1 text-[11px] font-bold text-slate-700">{presentation.distanceLine}</p>}<p className="mt-1 text-[10px] font-semibold text-slate-500">{copy.states[state] ?? state}</p><p className="mt-2 text-[11px] leading-5 text-slate-600">{hazard.explanation}</p>{presentation.caveat && <p className="mt-2 text-[11px] leading-5 text-amber-800">{presentation.caveat}</p>}<p className="mt-2 text-[10px] text-slate-400">{hazard.source?.agency ?? copy.sourceUnavailable} · {copy.states[hazard.source?.status ?? hazard.status] ?? hazard.source?.status ?? hazard.status}</p></div>;
 }
 
 function ListCard({ title, items }: { title: string; items: string[] }) {
