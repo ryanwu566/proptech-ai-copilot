@@ -185,29 +185,29 @@
   {
     "hazard_id": "liquefaction",
     "display_name": "土壤液化",
-    "capability_state": "unavailable",
+    "capability_state": "partial",
     "provider_present": true,
-    "provider_kind": "placeholder",
+    "provider_kind": "live_external",
     "source_name": "經濟部地質調查及礦業管理中心地質雲土壤液化潛勢 GeoJSON API",
     "official_source_proven": true,
     "data_asset_present": false,
-    "coverage_scope": "官方資源索引列出 17 個評估地區；不是完整國土覆蓋證明",
+    "coverage_scope": "僅涵蓋 provider 明確支援、可由可信 city／area_hint 路由至 GeologyCloud 官方 area 的區域；未證明全國覆蓋，只有座標且沒有可信 area_hint 時 fail closed",
     "coverage_proven": false,
-    "spatial_matching_method": "官方 REST API 可回傳依 area、classify 與 bbox 篩選的 GeoJSON polygon；目前 provider 尚未安全處理 area routing",
-    "geocoding_dependency": "既有地址定位或直接座標",
+    "spatial_matching_method": "接受地址地理編碼結果後，以可信 city 路由至 GeologyCloud 官方 area，分別以 area、classify 與 bbox 發送低潛勢／中潛勢／高潛勢三項文件化邊界 GeoJSON 查詢，再執行 strict point-in-polygon matching",
+    "geocoding_dependency": "接受既有地址地理編碼；只有座標時仍須可信 area_hint，否則 fail closed",
     "freshness_available": false,
     "source_version_available": false,
-    "failure_state": "unavailable；未設定可合法直接比對座標的官方圖資查詢 API",
-    "no_match_state": "not_assessed；不可把沒有查詢結果解讀為未命中",
+    "failure_state": "unsupported／ambiguous area -> unavailable；incomplete official queries -> limited／error；never interpreted as low risk",
+    "no_match_state": "all three queries complete but point matches no polygon -> available, matched=false, level=unknown；this is not proof of no liquefaction risk",
     "unknown_preserved": true,
     "not_assessed_preserved": true,
     "unavailable_preserved": true,
     "frontend_present": true,
     "evidence_metadata_present": true,
-    "property_case_transfer": "既有 terrainRisk 資料流存在，但未有可用正式證據",
+    "property_case_transfer": "官方即時查詢結果可隨既有 terrainRisk 資料流保存，但僅供 reference_only，且不構成全國覆蓋證明",
     "decision_effect": "reference_only",
     "public_source_audit": {
-      "classification": "UNKNOWN",
+      "classification": "LIVE_NOW",
       "official_agency": "經濟部地質調查及礦業管理中心",
       "official_dataset_or_service": "地質雲土壤液化潛勢範圍",
       "official_urls": [
@@ -228,11 +228,11 @@
       "coverage": "官方 API 的 area 列舉包含臺北、基隆、桃園、新竹、苗栗、臺中、彰化、南投、雲林、嘉義、臺南、高雄、屏東、恆春半島、臺東、宜蘭、花蓮；僅代表已公告／已評估區域，不得解讀為全國完整覆蓋",
       "documented_freshness": "API 未回傳 feature-level 更新日期；群組資料集詮釋資料更新 2024-08-08，索引資料集詮釋資料更新 2025-06-19，另列產製年份 2020；更新頻率不定期",
       "technical_support": {
-        "point_in_polygon": "yes",
-        "nearest_distance": "yes, from returned polygon geometry",
-        "risk_class_or_value_lookup": "yes, official low/medium/high liquefaction classes"
+        "point_in_polygon": "yes, strict point-in-polygon after trusted city-to-official-area routing and bbox-bounded GeoJSON queries",
+        "nearest_distance": "no; the production provider uses strict point-in-polygon only",
+        "risk_class_or_value_lookup": "yes, official 低潛勢／中潛勢／高潛勢 classifications"
       },
-      "implementation_note": "Public regional GeoJSON access exists, but a bounded production-safe query path has not yet been proven using only published API parameters. 官方 OpenAPI 要求 area 與 classify，且 all 僅文件化 true；目前 provider 只有座標、無可靠 area routing。雖實測 all=false 可縮小回應，但該值不在 OpenAPI enum，故本次不把它納入 production code。"
+      "implementation_note": "Documented bounded production path is now proven for explicitly supported official regional mappings. 每次查詢只使用 area、classify 與 bbox；省略 all，且不使用未文件化的 all=false 行為。這不構成全國覆蓋聲明；只有座標且沒有可信 area_hint 時 fail closed。"
     },
     "supporting_files": [
       "services/terrain_risk_providers/geologycloud_provider.py",
@@ -241,6 +241,7 @@
     ],
     "supporting_tests": [
       "tests/test_terrain_risk_providers.py",
+      "tests/test_terrain_risk_service.py",
       "tests/test_terrain_risk_transparency.py"
     ],
     "confirmed_gaps": [
