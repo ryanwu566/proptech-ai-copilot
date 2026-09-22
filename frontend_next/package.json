@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:provider-health": "node --test --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON tests/provider-health.test.mts",
     "build:e2e": "node scripts/build-e2e.mjs",
     "test:e2e": "npm run build:e2e && node e2e/run-e2e.cjs",
     "test:e2e:i18n": "npm run build:e2e && node e2e/run-e2e.cjs e2e/i18n.spec.ts",
