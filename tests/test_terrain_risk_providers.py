@@ -1,7 +1,11 @@
 """Terrain risk provider contract tests."""
 
-import time
+import json
 import threading
+import time
+from urllib.parse import parse_qs, urlsplit
+
+import pytest
 
 from services.terrain_risk_providers import (
     ArdswcSlopeHazardProvider,
@@ -15,6 +19,239 @@ from services.terrain_risk_providers.ardswc_slope_hazard_provider import (
     match_feature,
     tiles_for_radius,
 )
+
+
+def liquefaction_geojson(*, contains_point: bool = False, geometry_type: str = "Polygon") -> bytes:
+    features = []
+    if contains_point:
+        polygon = [[[120.999, 24.999], [121.001, 24.999], [121.001, 25.001], [120.999, 25.001], [120.999, 24.999]]]
+        coordinates = polygon if geometry_type == "Polygon" else [polygon]
+        features.append({
+            "type": "Feature",
+            "properties": {"分級": "測試潛勢", "classify": "fixture", "area": "fixture"},
+            "geometry": {"type": geometry_type, "coordinates": coordinates},
+        })
+    return json.dumps({"type": "FeatureCollection", "features": features}, ensure_ascii=False).encode("utf-8")
+
+
+def query_params(url: str) -> dict[str, list[str]]:
+    return parse_qs(urlsplit(url).query)
+
+
+@pytest.mark.parametrize(
+    ("area_hint", "expected_area"),
+    [
+        ("臺北市", "臺北"),
+        ("新北市", "臺北"),
+        ("新竹縣", "新竹"),
+    ],
+)
+def test_liquefaction_routes_only_catalog_documented_city_areas(area_hint: str, expected_area: str) -> None:
+    calls: list[str] = []
+
+    def fake_get(url: str, timeout: float) -> bytes:
+        calls.append(url)
+        return liquefaction_geojson()
+
+    result = GeologyCloudProvider(http_get=fake_get).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint=area_hint,
+        include_layers=["liquefaction"],
+    )
+
+    assert result["liquefaction"]["status"] == "available"
+    assert [query_params(url)["area"] for url in calls] == [[expected_area]] * 3
+
+
+def test_liquefaction_queries_only_documented_bounded_parameters() -> None:
+    calls: list[tuple[str, float]] = []
+
+    def fake_get(url: str, timeout: float) -> bytes:
+        calls.append((url, timeout))
+        return liquefaction_geojson()
+
+    GeologyCloudProvider(http_get=fake_get).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint="臺北市",
+        include_layers=["liquefaction"],
+    )
+
+    assert len(calls) == 3
+    assert all(timeout <= 5 for _, timeout in calls)
+    assert {query_params(url)["classify"][0] for url, _ in calls} == {"低潛勢", "中潛勢", "高潛勢"}
+    assert all(set(query_params(url)) == {"area", "classify", "bbox"} for url, _ in calls)
+    assert all(len(query_params(url)["bbox"][0].split(",")) == 4 for url, _ in calls)
+
+
+@pytest.mark.parametrize("area_hint", ["基隆市", "嘉義市", "恆春鎮", ""])
+def test_liquefaction_without_unambiguous_catalog_city_fails_closed(area_hint: str) -> None:
+    calls: list[str] = []
+    provider = GeologyCloudProvider(http_get=lambda url, timeout: calls.append(url) or liquefaction_geojson())
+
+    result = provider.analyze(25.0, 121.0, 500, area_hint=area_hint or None, include_layers=["liquefaction"])
+
+    assert calls == []
+    assert result["liquefaction"]["status"] == "unavailable"
+    assert result["liquefaction"]["level"] == "unknown"
+
+
+@pytest.mark.parametrize(
+    ("official_classification", "expected_level"),
+    [("高潛勢", "high"), ("中潛勢", "medium"), ("低潛勢", "low")],
+)
+def test_liquefaction_polygon_hit_maps_official_classification(
+    official_classification: str,
+    expected_level: str,
+) -> None:
+    def fake_get(url: str, timeout: float) -> bytes:
+        return liquefaction_geojson(contains_point=query_params(url)["classify"] == [official_classification])
+
+    result = GeologyCloudProvider(http_get=fake_get).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint="臺北市",
+        include_layers=["liquefaction"],
+    )["liquefaction"]
+
+    assert result["status"] == "available"
+    assert result["matched"] is True
+    assert result["level"] == expected_level
+    assert result["value"]["official_classification"] == official_classification
+
+
+def test_liquefaction_multipolygon_hit_is_supported() -> None:
+    def fake_get(url: str, timeout: float) -> bytes:
+        return liquefaction_geojson(
+            contains_point=query_params(url)["classify"] == ["高潛勢"],
+            geometry_type="MultiPolygon",
+        )
+
+    result = GeologyCloudProvider(http_get=fake_get).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint="臺北市",
+        include_layers=["liquefaction"],
+    )["liquefaction"]
+
+    assert result["matched"] is True
+    assert result["level"] == "high"
+
+
+def test_liquefaction_complete_three_class_no_hit_is_unknown_not_low() -> None:
+    result = GeologyCloudProvider(http_get=lambda url, timeout: liquefaction_geojson()).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint="臺北市",
+        include_layers=["liquefaction"],
+    )["liquefaction"]
+
+    assert result["status"] == "available"
+    assert result["matched"] is False
+    assert result["level"] == "unknown"
+    assert "不代表" in result["explanation"]
+
+
+def test_liquefaction_one_class_failure_is_limited_and_never_low() -> None:
+    def fake_get(url: str, timeout: float) -> bytes:
+        if query_params(url)["classify"] == ["中潛勢"]:
+            raise TimeoutError("official API timed out")
+        return liquefaction_geojson()
+
+    result = GeologyCloudProvider(http_get=fake_get).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint="臺北市",
+        include_layers=["liquefaction"],
+    )["liquefaction"]
+
+    assert result["status"] == "limited"
+    assert result["matched"] is False
+    assert result["level"] == "unknown"
+    assert result["source"]["official_classification"] == "查詢不完整"
+
+
+@pytest.mark.parametrize(
+    "bad_payload",
+    [b'{"type":"FeatureCollection","features":', b"x" * 2_000_001],
+    ids=["malformed-geojson", "oversized-response"],
+)
+def test_liquefaction_invalid_official_response_fails_safely(bad_payload: bytes) -> None:
+    def fake_get(url: str, timeout: float) -> bytes:
+        if query_params(url)["classify"] == ["高潛勢"]:
+            return bad_payload
+        return liquefaction_geojson()
+
+    result = GeologyCloudProvider(http_get=fake_get).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint="臺北市",
+        include_layers=["liquefaction"],
+    )["liquefaction"]
+
+    assert result["status"] == "limited"
+    assert result["matched"] is False
+    assert result["level"] == "unknown"
+
+
+def test_liquefaction_excessive_feature_count_fails_safely() -> None:
+    feature = {
+        "type": "Feature",
+        "properties": {"classify": "fixture"},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [[[120.0, 24.0], [120.001, 24.0], [120.001, 24.001], [120.0, 24.0]]],
+        },
+    }
+    excessive = json.dumps({"type": "FeatureCollection", "features": [feature] * 1001}).encode("utf-8")
+
+    def fake_get(url: str, timeout: float) -> bytes:
+        return excessive if query_params(url)["classify"] == ["高潛勢"] else liquefaction_geojson()
+
+    result = GeologyCloudProvider(http_get=fake_get).analyze(
+        25.0,
+        121.0,
+        500,
+        area_hint="臺北市",
+        include_layers=["liquefaction"],
+    )["liquefaction"]
+
+    assert result["status"] == "limited"
+    assert result["matched"] is False
+    assert result["level"] == "unknown"
+
+
+def test_geology_provider_skips_http_when_liquefaction_not_requested() -> None:
+    calls: list[str] = []
+    result = GeologyCloudProvider(
+        http_get=lambda url, timeout: calls.append(url) or liquefaction_geojson(),
+    ).analyze(25.0, 121.0, 500, area_hint="臺北市", include_layers=["geological_sensitivity"])
+
+    assert calls == []
+    assert result["geological_sensitivity"]["status"] == "unavailable"
+    assert result["active_fault"]["status"] == "unavailable"
+    assert result["liquefaction"]["status"] == "unavailable"
+    assert result["geological_sensitivity"]["source"]["name"] == "地質雲與地質敏感圖資"
+    assert result["active_fault"]["source"]["source_url"] == "https://www.geologycloud.tw/"
+    assert "official_classifications" not in result["active_fault"]["source"]
+
+
+def test_geology_provider_empty_include_layers_skips_all_http() -> None:
+    calls: list[str] = []
+
+    GeologyCloudProvider(
+        http_get=lambda url, timeout: calls.append(url) or liquefaction_geojson(),
+    ).analyze(25.0, 121.0, 500, area_hint="臺北市", include_layers=[])
+
+    assert calls == []
 
 
 def test_non_mvt_providers_return_unavailable_source_metadata_without_external_calls(monkeypatch) -> None:

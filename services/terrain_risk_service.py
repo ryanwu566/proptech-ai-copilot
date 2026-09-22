@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
+import inspect
 import logging
 import time
 from typing import Any, Callable, Iterable
@@ -86,7 +87,16 @@ def analyze_terrain_risk(
     if "flood" in layers:
         provider_jobs.append(("flood", lambda: _safe_hazard(provider_map["flood"], resolved, radius_m, "flood")))
     if geology_layers:
-        provider_jobs.append(("geology", lambda: _safe_hazard_group(provider_map["geology"], resolved, radius_m, geology_layers)))
+        provider_jobs.append((
+            "geology",
+            lambda: _safe_hazard_group(
+                provider_map["geology"],
+                resolved,
+                radius_m,
+                geology_layers,
+                area_hint=resolved.get("city"),
+            ),
+        ))
 
     provider_results: dict[str, Any] = {}
     provider_timing_ms: dict[str, int | None] = {key: None for key in ("terrain", "slope_hazard", "flood", "geology")}
@@ -207,13 +217,17 @@ def _resolve_location(
     center = found.get("center") if found.get("matched") else None
     if not center:
         return None
-    return {
+    resolved = {
         "address_label": found.get("formatted_address") or query,
         "latitude": float(center["lat"]),
         "longitude": float(center["lng"]),
         "geocoding_confidence": found.get("confidence", "unknown"),
         "geocoding_source": found.get("source", "unknown"),
     }
+    if acceptance and acceptance.get("accepted_for_analysis"):
+        resolved["city"] = str(found.get("city") or "").strip()
+        resolved["district"] = str(found.get("district") or "").strip()
+    return resolved
 
 
 def _safe_terrain(provider: Any, resolved: dict[str, Any], radius_m: int) -> dict[str, Any]:
@@ -235,18 +249,61 @@ def _safe_hazard(provider: Any, resolved: dict[str, Any], radius_m: int, key: st
         return {**_hazard_unavailable(key), "status": "error", "explanation": f"{LAYER_LABELS[key]}來源暫時不可用。"}
 
 
-def _safe_hazard_group(provider: Any, resolved: dict[str, Any], radius_m: int, keys: Iterable[str]) -> dict[str, Any]:
+def _safe_hazard_group(
+    provider: Any,
+    resolved: dict[str, Any],
+    radius_m: int,
+    keys: Iterable[str],
+    area_hint: str | None = None,
+) -> dict[str, Any]:
     keys = tuple(keys)
     try:
-        try:
-            result = provider.analyze(resolved["latitude"], resolved["longitude"], radius_m, include_layers=keys)
-        except TypeError as exc:
-            if "include_layers" not in str(exc):
-                raise
-            result = provider.analyze(resolved["latitude"], resolved["longitude"], radius_m)
+        optional_kwargs: dict[str, Any] = {"include_layers": keys}
+        if area_hint:
+            optional_kwargs["area_hint"] = area_hint
+        supported_kwargs = _supported_provider_kwargs(provider.analyze, optional_kwargs)
+        while True:
+            try:
+                result = provider.analyze(
+                    resolved["latitude"],
+                    resolved["longitude"],
+                    radius_m,
+                    **supported_kwargs,
+                )
+                break
+            except TypeError as exc:
+                rejected_keyword = _rejected_optional_keyword(exc, supported_kwargs)
+                if rejected_keyword is None:
+                    raise
+                supported_kwargs.pop(rejected_keyword)
     except Exception:
         return {key: {**_hazard_unavailable(key), "status": "error", "explanation": f"{LAYER_LABELS[key]}來源暫時不可用。"} for key in keys}
     return {key: result.get(key, _hazard_unavailable(key)) for key in keys}
+
+
+def _supported_provider_kwargs(call: Callable[..., Any], optional_kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Pass optional provider arguments only when an injected signature supports them."""
+
+    try:
+        parameters = inspect.signature(call).parameters.values()
+    except (TypeError, ValueError):
+        return {}
+    if any(parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters):
+        return optional_kwargs
+    accepted = {parameter.name for parameter in parameters}
+    return {key: value for key, value in optional_kwargs.items() if key in accepted}
+
+
+def _rejected_optional_keyword(exc: TypeError, optional_kwargs: dict[str, Any]) -> str | None:
+    message = str(exc)
+    return next(
+        (
+            key
+            for key in optional_kwargs
+            if f"unexpected keyword argument '{key}'" in message
+        ),
+        None,
+    )
 
 
 def _terrain_unavailable() -> dict[str, Any]:

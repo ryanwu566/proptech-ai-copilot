@@ -52,6 +52,29 @@ class GeologyProvider:
         }
 
 
+class AreaHintGeologyProvider:
+    def __init__(self):
+        self.area_hint = None
+        self.requested_layers = None
+
+    def analyze(self, latitude: float, longitude: float, radius_m: int, area_hint=None, include_layers=None) -> dict:
+        self.area_hint = area_hint
+        self.requested_layers = include_layers
+        return {
+            "geological_sensitivity": layer("geological_sensitivity", "geological sensitivity", "unavailable", "unknown", False),
+            "liquefaction": layer("liquefaction", "liquefaction", "available", "unknown", False),
+            "active_fault": layer("active_fault", "active fault", "unavailable", "unknown", False),
+        }
+
+
+class DelegatingOldSignatureGeologyProvider:
+    def __init__(self):
+        self.wrapped = GeologyProvider()
+
+    def analyze(self, *args, **kwargs):
+        return self.wrapped.analyze(*args, **kwargs)
+
+
 class FailingProvider:
     def analyze(self, *args, **kwargs):
         raise RuntimeError("provider down")
@@ -169,6 +192,80 @@ def test_address_uses_geocoding_fallback() -> None:
     assert result["resolved_location"]["address_label"] == "台北市大安區和平東路二段"
     assert result["resolved_location"]["geocoding_source"] == "mock"
     assert result["data_quality"]["status"] == "good"
+
+
+def test_accepted_geocoding_preserves_region_and_passes_trusted_city_to_geology() -> None:
+    geology = AreaHintGeologyProvider()
+
+    def accepted_searcher(query: str) -> dict:
+        return {
+            "matched": True,
+            "center": {"lat": 25.026, "lng": 121.543},
+            "formatted_address": "臺北市大安區和平東路二段",
+            "city": "臺北市",
+            "district": "大安區",
+            "confidence": "high",
+            "source": "google_geocoding",
+            "geocoding_acceptance": {"accepted_for_analysis": True},
+        }
+
+    result = analyze_terrain_risk(
+        address="臺北市大安區和平東路二段",
+        searcher=accepted_searcher,
+        providers=providers(geology=geology),
+        include_layers=["liquefaction"],
+    )
+
+    assert result["resolved_location"]["city"] == "臺北市"
+    assert result["resolved_location"]["district"] == "大安區"
+    assert geology.area_hint == "臺北市"
+    assert geology.requested_layers == ("liquefaction",)
+
+
+def test_area_hint_routing_keeps_old_geology_provider_signature_compatible() -> None:
+    def accepted_searcher(query: str) -> dict:
+        return {
+            "matched": True,
+            "center": {"lat": 25.026, "lng": 121.543},
+            "formatted_address": query,
+            "city": "臺北市",
+            "district": "大安區",
+            "confidence": "high",
+            "source": "tgos_geocoding",
+            "geocoding_acceptance": {"accepted_for_analysis": True},
+        }
+
+    result = analyze_terrain_risk(
+        address="臺北市大安區和平東路二段",
+        searcher=accepted_searcher,
+        providers=providers(geology=GeologyProvider()),
+        include_layers=["liquefaction"],
+    )
+
+    assert result["hazards"]["liquefaction"]["status"] == "available"
+
+
+def test_area_hint_routing_keeps_delegated_old_provider_signature_compatible() -> None:
+    def accepted_searcher(query: str) -> dict:
+        return {
+            "matched": True,
+            "center": {"lat": 25.026, "lng": 121.543},
+            "formatted_address": query,
+            "city": "臺北市",
+            "district": "大安區",
+            "confidence": "high",
+            "source": "tgos_geocoding",
+            "geocoding_acceptance": {"accepted_for_analysis": True},
+        }
+
+    result = analyze_terrain_risk(
+        address="臺北市大安區和平東路二段",
+        searcher=accepted_searcher,
+        providers=providers(geology=DelegatingOldSignatureGeologyProvider()),
+        include_layers=["liquefaction"],
+    )
+
+    assert result["hazards"]["liquefaction"]["status"] == "available"
 
 
 def test_geocoding_failure_is_friendly() -> None:
