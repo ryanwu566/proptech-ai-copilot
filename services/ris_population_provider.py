@@ -66,6 +66,99 @@ REQUIRED_ROW_FIELDS = (
     "people_total_f",
 )
 
+# --- Source-schema compatibility -----------------------------------------
+#
+# The ODRP014 endpoint is not schema-stable across statistic months. Some
+# months (e.g. 11504) return Chinese field names; others (11505+) return the
+# canonical English keys. This adapter maps a localized row to the canonical
+# English schema so the rest of the provider — and the dataset layer — only
+# ever sees canonical keys. The dataset layer's contract is unchanged.
+
+# Static (non-age) Chinese -> canonical English field mapping.
+CHINESE_FIELD_MAP = {
+    "統計年月": "statistic_yyymm",
+    "區域別代碼": "district_code",
+    "區域別": "site_id",
+    "村里": "village",
+    "戶數": "household_no",
+    "人口數": "people_total",
+    "人口數-男": "people_total_m",
+    "人口數-女": "people_total_f",
+    "100歲以上-男": "people_age_100up_m",
+    "100歲以上-女": "people_age_100up_f",
+}
+
+_CHINESE_SEX_SUFFIX = {"男": "m", "女": "f"}
+
+
+def _map_source_key(key: str) -> str | None:
+    """Return the canonical English key for a source key, or ``None`` if unknown.
+
+    Handles the static map plus single-year age buckets of the form
+    ``"{N}歲-男"`` / ``"{N}歲-女"`` -> ``"people_age_{NNN}_m|f"``.
+    """
+
+    if key in CHINESE_FIELD_MAP:
+        return CHINESE_FIELD_MAP[key]
+    # Single-year Chinese age buckets: "0歲-男" .. "99歲-女".
+    # Only 0..99 map to a single-year canonical field; "100歲以上-男/女" is
+    # handled by the static map above. Anything else ("100歲-男", "101歲-女",
+    # "999歲-男", ...) is intentionally NOT mapped and falls through to the
+    # unknown/extra-field policy, so a malformed source cannot silently
+    # fabricate an out-of-range canonical age field.
+    if "歲-" in key:
+        age_part, _, sex_part = key.partition("歲-")
+        if age_part.isdigit() and sex_part in _CHINESE_SEX_SUFFIX:
+            age = int(age_part)
+            if 0 <= age <= 99:
+                return f"people_age_{age:03d}_{_CHINESE_SEX_SUFFIX[sex_part]}"
+    return None
+
+
+def normalize_source_row_schema(row: dict[str, Any]) -> dict[str, Any]:
+    """Map a raw source row to the canonical English-key schema.
+
+    * Canonical English keys are preserved as-is (no unnecessary mutation).
+    * Chinese keys are translated to their canonical English equivalents.
+    * Unknown/extra keys are preserved verbatim (the downstream required-field
+      validation is an allow-list of the fields the product needs; extra source
+      columns are tolerated, matching the existing provider contract).
+    * Mixed bilingual input is only accepted when a Chinese key and its
+      canonical English counterpart carry the *same* value. A conflicting value
+      raises :class:`RisSchemaError` (fail closed; never silently overwrite).
+
+    Raises :class:`RisSchemaError` if ``row`` is not a mapping.
+    """
+
+    if not isinstance(row, dict):
+        raise RisSchemaError(
+            f"source row must be an object, got {type(row).__name__}"
+        )
+
+    canonical: dict[str, Any] = {}
+    # Track which source key first produced each canonical key, for clear errors.
+    producing_key: dict[str, str] = {}
+
+    for key, value in row.items():
+        target = _map_source_key(key)
+        if target is None:
+            # Unknown/extra source column: preserve verbatim under its own name.
+            target = key
+        if target in canonical:
+            existing = canonical[target]
+            if existing != value:
+                raise RisSchemaError(
+                    "schema conflict for canonical field "
+                    f"{target!r}: source keys {producing_key.get(target)!r} and "
+                    f"{key!r} disagree ({existing!r} != {value!r})"
+                )
+            # Same value from two source keys (e.g. bilingual duplicate): keep.
+            continue
+        canonical[target] = value
+        producing_key[target] = key
+
+    return canonical
+
 
 class RisProviderError(RuntimeError):
     """Base error for RIS population retrieval failures."""
@@ -151,17 +244,23 @@ def _validate_rows(rows: Any, page: int) -> list[dict[str, Any]]:
         raise RisSchemaError(
             f"page {page}: responseData must be a list, got {type(rows).__name__}"
         )
+    normalized_rows: list[dict[str, Any]] = []
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
             raise RisSchemaError(
                 f"page {page} row {index}: expected object, got {type(row).__name__}"
             )
-        missing = [field for field in REQUIRED_ROW_FIELDS if field not in row]
+        try:
+            canonical = normalize_source_row_schema(row)
+        except RisSchemaError as exc:
+            raise RisSchemaError(f"page {page} row {index}: {exc}") from exc
+        missing = [field for field in REQUIRED_ROW_FIELDS if field not in canonical]
         if missing:
             raise RisSchemaError(
                 f"page {page} row {index}: missing required fields {missing}"
             )
-    return rows
+        normalized_rows.append(canonical)
+    return normalized_rows
 
 
 def _coerce_int(value: Any, field: str) -> int:
