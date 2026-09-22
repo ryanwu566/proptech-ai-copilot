@@ -381,7 +381,33 @@ def lonlat_to_tile(lon: float, lat: float, zoom: int) -> tuple[int, int]:
     return max(0, min(n - 1, x)), max(0, min(n - 1, y))
 
 
+_GEOJSON_GEOMETRY_TYPES = frozenset(
+    {
+        "Point",
+        "MultiPoint",
+        "LineString",
+        "MultiLineString",
+        "Polygon",
+        "MultiPolygon",
+    }
+)
+
+
 def tile_geometry_to_lonlat(geometry: Any, tile: TileCoord, extent: int) -> Any:
+    # Modern mapbox-vector-tile (>=2) decode() returns GeoJSON-shaped geometry
+    # dicts ({"type": ..., "coordinates": ...}) whose coordinates are still in
+    # local tile pixel space. Unwrap the coordinate list so the shared nested
+    # conversion below can transform each vertex to lon/lat. Unknown or
+    # malformed dicts are returned unchanged so downstream matching treats them
+    # as non-geometry (no path, no false match).
+    if isinstance(geometry, dict):
+        geometry_type = geometry.get("type")
+        if geometry_type not in _GEOJSON_GEOMETRY_TYPES:
+            return geometry
+        coordinates = geometry.get("coordinates")
+        if not isinstance(coordinates, (list, tuple)):
+            return geometry
+        return tile_geometry_to_lonlat(coordinates, tile, extent)
     if isinstance(geometry, (tuple, list)) and len(geometry) == 2 and all(isinstance(value, (int, float)) for value in geometry):
         px, py = geometry
         n = 2**tile.z

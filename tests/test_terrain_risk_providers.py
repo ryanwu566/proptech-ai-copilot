@@ -16,6 +16,7 @@ from services.terrain_risk_providers import (
 from services.terrain_risk_providers.ardswc_slope_hazard_provider import (
     TileCoord,
     dedupe_features,
+    geometry_distance_m,
     match_feature,
     tiles_for_radius,
 )
@@ -420,3 +421,192 @@ def test_parallel_tile_completion_preserves_tile_order_and_deduplication() -> No
     result = provider._query_mvt_layer("debris_affect", tiles, 25.026, 121.543, 100)
 
     assert result["value"]["feature_ids"] == ["OBJECTID:0", "OBJECTID:1", "OBJECTID:2", "OBJECTID:3"]
+
+
+# ---------------------------------------------------------------------------
+# Real mapbox-vector-tile decode regression tests (production decode path).
+#
+# These tests exercise ArdswcSlopeHazardProvider._decode_mvt against the REAL
+# mapbox_vector_tile encode/decode roundtrip rather than a fake decoder that
+# already returns lon/lat lists. They prove the geometry structure produced by
+# the installed decoder and that real line/polygon features survive:
+#   MVT bytes -> decode -> geometry normalization -> match_feature.
+# ---------------------------------------------------------------------------
+
+mapbox_vector_tile = pytest.importorskip("mapbox_vector_tile")
+
+
+def _lonlat_to_tile_pixel(lon: float, lat: float, tile: TileCoord, extent: int = 4096) -> list[int]:
+    """Return tile-local (y-down) pixel coordinates for a geographic point.
+
+    Mirrors the slippy-map math the provider inverts, so an encoded feature at
+    these pixels converts back to (lon, lat) after tile_geometry_to_lonlat.
+    """
+    import math
+
+    n = 2 ** tile.z
+    fx = (lon + 180.0) / 360.0 * n
+    fy = (1.0 - math.asinh(math.tan(math.radians(lat))) / math.pi) / 2.0 * n
+    px = (fx - tile.x) * extent
+    py = (fy - tile.y) * extent
+    return [round(px), round(py)]
+
+
+def _tile_for(lon: float, lat: float, zoom: int = 14) -> TileCoord:
+    import math
+
+    n = 2 ** zoom
+    x = int((lon + 180.0) / 360.0 * n)
+    y = int((1.0 - math.asinh(math.tan(math.radians(lat))) / math.pi) / 2.0 * n)
+    return TileCoord(zoom, x, y)
+
+
+def _encode_layer(layer_name: str, features: list[dict]) -> bytes:
+    return mapbox_vector_tile.encode([{"name": layer_name, "features": features}])
+
+
+def test_real_decoder_emits_geojson_geometry_dicts() -> None:
+    """The installed decoder returns GeoJSON-shaped geometry dicts, not lists."""
+    payload = _encode_layer(
+        "debris_flow",
+        [{"geometry": {"type": "LineString", "coordinates": [[10, 10], [20, 20]]}, "properties": {"id": 1}}],
+    )
+    decoded = mapbox_vector_tile.decode(payload)
+    geometry = decoded["debris_flow"]["features"][0]["geometry"]
+    assert isinstance(geometry, dict)
+    assert geometry["type"] == "LineString"
+    assert isinstance(geometry["coordinates"], list)
+
+
+def test_real_decoder_line_feature_matches_near_point() -> None:
+    lon, lat = 121.52870, 24.83863
+    tile = _tile_for(lon, lat)
+    p0 = _lonlat_to_tile_pixel(lon - 0.0002, lat, tile)
+    p1 = _lonlat_to_tile_pixel(lon + 0.0002, lat, tile)
+    payload = _encode_layer(
+        "debris_flow",
+        [{"geometry": {"type": "LineString", "coordinates": [p0, p1]}, "properties": {"OBJECTID": "L1"}}],
+    )
+
+    provider = ArdswcSlopeHazardProvider(http_get=lambda url, timeout: payload, use_cache=False)
+    features = provider._decode_mvt(payload, tile)
+    assert len(features) == 1
+    prepared = dedupe_features(features)
+    match = match_feature(prepared[0], lat, lon, 500, "line")
+    assert match is not None
+    assert match["distance_m"] <= 500
+
+
+def test_real_decoder_polygon_feature_matches_point_inside() -> None:
+    lon, lat = 121.52870, 24.83863
+    tile = _tile_for(lon, lat)
+    ring = [
+        _lonlat_to_tile_pixel(lon - 0.001, lat - 0.001, tile),
+        _lonlat_to_tile_pixel(lon + 0.001, lat - 0.001, tile),
+        _lonlat_to_tile_pixel(lon + 0.001, lat + 0.001, tile),
+        _lonlat_to_tile_pixel(lon - 0.001, lat + 0.001, tile),
+        _lonlat_to_tile_pixel(lon - 0.001, lat - 0.001, tile),
+    ]
+    payload = _encode_layer(
+        "debris_affect",
+        [{"geometry": {"type": "Polygon", "coordinates": [ring]}, "properties": {"OBJECTID": "P1"}}],
+    )
+    provider = ArdswcSlopeHazardProvider(http_get=lambda url, timeout: payload, use_cache=False)
+    features = provider._decode_mvt(payload, tile)
+    prepared = dedupe_features(features)
+    match = match_feature(prepared[0], lat, lon, 500, "polygon")
+    assert match is not None
+    assert match["distance_m"] == 0
+
+
+def test_real_decoder_multilinestring_matches_near_point() -> None:
+    lon, lat = 121.52870, 24.83863
+    tile = _tile_for(lon, lat)
+    line_a = [_lonlat_to_tile_pixel(lon - 0.0002, lat, tile), _lonlat_to_tile_pixel(lon + 0.0002, lat, tile)]
+    line_b = [_lonlat_to_tile_pixel(lon, lat + 0.01, tile), _lonlat_to_tile_pixel(lon, lat + 0.011, tile)]
+    payload = _encode_layer(
+        "debris_flow",
+        [{"geometry": {"type": "MultiLineString", "coordinates": [line_b, line_a]}, "properties": {"OBJECTID": "ML1"}}],
+    )
+    provider = ArdswcSlopeHazardProvider(http_get=lambda url, timeout: payload, use_cache=False)
+    features = provider._decode_mvt(payload, tile)
+    prepared = dedupe_features(features)
+    match = match_feature(prepared[0], lat, lon, 500, "line")
+    assert match is not None
+    assert match["distance_m"] <= 500
+
+
+def test_real_decoder_multipolygon_matches_point_inside() -> None:
+    lon, lat = 121.52870, 24.83863
+    tile = _tile_for(lon, lat)
+    near_ring = [
+        _lonlat_to_tile_pixel(lon - 0.001, lat - 0.001, tile),
+        _lonlat_to_tile_pixel(lon + 0.001, lat - 0.001, tile),
+        _lonlat_to_tile_pixel(lon + 0.001, lat + 0.001, tile),
+        _lonlat_to_tile_pixel(lon - 0.001, lat + 0.001, tile),
+        _lonlat_to_tile_pixel(lon - 0.001, lat - 0.001, tile),
+    ]
+    far_ring = [
+        _lonlat_to_tile_pixel(lon + 0.02, lat + 0.02, tile),
+        _lonlat_to_tile_pixel(lon + 0.021, lat + 0.02, tile),
+        _lonlat_to_tile_pixel(lon + 0.021, lat + 0.021, tile),
+        _lonlat_to_tile_pixel(lon + 0.02, lat + 0.021, tile),
+        _lonlat_to_tile_pixel(lon + 0.02, lat + 0.02, tile),
+    ]
+    payload = _encode_layer(
+        "debris_affect",
+        [{"geometry": {"type": "MultiPolygon", "coordinates": [[far_ring], [near_ring]]}, "properties": {"OBJECTID": "MP1"}}],
+    )
+    provider = ArdswcSlopeHazardProvider(http_get=lambda url, timeout: payload, use_cache=False)
+    features = provider._decode_mvt(payload, tile)
+    prepared = dedupe_features(features)
+    match = match_feature(prepared[0], lat, lon, 500, "polygon")
+    assert match is not None
+    assert match["distance_m"] == 0
+
+
+def test_real_decoder_point_survives_normalization() -> None:
+    lon, lat = 121.52870, 24.83863
+    tile = _tile_for(lon, lat)
+    payload = _encode_layer(
+        "debris_flow",
+        [{"geometry": {"type": "Point", "coordinates": _lonlat_to_tile_pixel(lon, lat, tile)}, "properties": {"OBJECTID": "PT1"}}],
+    )
+    provider = ArdswcSlopeHazardProvider(http_get=lambda url, timeout: payload, use_cache=False)
+    features = provider._decode_mvt(payload, tile)
+    prepared = dedupe_features(features)
+    match = match_feature(prepared[0], lat, lon, 500, "line")
+    assert match is not None
+    assert match["distance_m"] <= 500
+
+
+def test_real_decoder_no_hit_stays_unknown_via_analyze() -> None:
+    """A real-decoded feature far outside the radius stays available + unknown."""
+    lon, lat = 121.52870, 24.83863
+    tile = _tile_for(lon, lat)
+    far = _lonlat_to_tile_pixel(lon + 0.02, lat + 0.02, tile)
+    far2 = _lonlat_to_tile_pixel(lon + 0.021, lat + 0.02, tile)
+    payload = _encode_layer(
+        "debris_flow",
+        [{"geometry": {"type": "LineString", "coordinates": [far, far2]}, "properties": {"OBJECTID": "FAR"}}],
+    )
+    features = ArdswcSlopeHazardProvider(use_cache=False)._decode_mvt(payload, tile)
+    prepared = dedupe_features(features)
+    assert match_feature(prepared[0], lat, lon, 100, "line") is None
+
+
+def test_normalization_rejects_malformed_geometry_dict() -> None:
+    """A dict without valid coordinates must not be treated as a matchable path."""
+    from services.terrain_risk_providers.ardswc_slope_hazard_provider import tile_geometry_to_lonlat
+
+    tile = TileCoord(14, 13722, 7024)
+    normalized = tile_geometry_to_lonlat({"type": "LineString", "coordinates": "not-a-list"}, tile, 4096)
+    assert geometry_distance_m(normalized, 121.5287, 24.83863) is None
+
+
+def test_normalization_ignores_non_geometry_dict() -> None:
+    from services.terrain_risk_providers.ardswc_slope_hazard_provider import tile_geometry_to_lonlat
+
+    tile = TileCoord(14, 13722, 7024)
+    normalized = tile_geometry_to_lonlat({"foo": "bar"}, tile, 4096)
+    assert geometry_distance_m(normalized, 121.5287, 24.83863) is None
