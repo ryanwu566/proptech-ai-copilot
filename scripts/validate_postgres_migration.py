@@ -41,6 +41,7 @@ REQUIRED_TABLES = {
     "plvr_dataset_generations", "plvr_generation_transactions",
     "plvr_generation_market_aggregates", "plvr_generation_region_coverage",
     "plvr_active_dataset", "plvr_generation_load_checkpoints",
+    "ris_village_demographics",
 }
 REQUIRED_INDEXES = {
     "idx_pilot_sessions_campaign", "idx_pilot_events_idempotency",
@@ -54,6 +55,9 @@ REQUIRED_INDEXES = {
     "idx_plvr_generation_market_aggregates_region_period",
     "idx_plvr_generation_region_coverage_region_period",
     "idx_plvr_generation_load_checkpoints_updated_at",
+    "idx_ris_village_demographics_district_month",
+    "idx_ris_village_demographics_site_month",
+    "idx_ris_village_demographics_month",
 }
 REQUIRED_VNEXT_TABLES = {
     "vnext_core.workspaces",
@@ -184,6 +188,10 @@ def _static_contract() -> dict[str, Any]:
         "needs_human_confirmation",
         "vnext_private.legacy_case_imports", "legacy_case_imports_actor_insert",
         "legacy_unverified", "saved_case_v1",
+        "public.ris_village_demographics",
+        "unique (statistic_yyymm, district_code)",
+        "idx_ris_village_demographics_district_month",
+        "alter table public.ris_village_demographics enable row level security",
     )
     if not all(token in joined for token in required):
         return {"status": "fail", "migration": "contract_incomplete"}
