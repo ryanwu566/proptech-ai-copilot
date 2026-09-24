@@ -447,7 +447,71 @@ export type BankInstitution = { bank_code: string; bank_name: string };
 export type BankRateResult = { source: "central_bank_opendata" | "mock"; bank_code: string; bank_name: string; items: { rate_name: string; rate_type: string; fixed_rate: number | null; variable_rate: number | null; effective_date: string; raw_rate_name: string }[]; summary_rate: number | null; summary_label: string; notes: string[]; fetched_at: string };
 export type LoanCalculationResult = { property_price_wan: number; down_payment_ratio: number; down_payment_wan: number; loan_amount_wan: number; annual_interest_rate: number; loan_years: number; grace_period_years: number; monthly_income_wan: number | null; monthly_payment: number; grace_period_monthly_payment: number | null; post_grace_monthly_payment: number | null; total_payment: number; total_interest: number; income_burden_ratio: number | null; affordability_level: "comfortable" | "manageable" | "tight" | "risky" | "unknown"; affordability_message: string; sensitivity: { annual_interest_rate: number; monthly_payment: number; total_interest: number; difference_from_base: number }[]; disclaimer: string };
 export type HoldingCostResult = { input: { property_price_wan: number; loan_monthly_payment: number; monthly_income_wan: number | null; area_ping: number | null; management_fee_per_ping: number; repair_reserve_per_ping: number; annual_home_tax_rate: number; annual_land_tax_rate: number; annual_insurance: number; include_tax_estimate: boolean }; property_price_wan: number; loan_monthly_payment: number; monthly_management_fee: number; monthly_repair_reserve: number; monthly_tax_estimate: number; annual_home_tax_estimate: number; annual_land_tax_estimate: number; monthly_insurance: number; monthly_total_holding_cost: number; annual_total_holding_cost: number; income_burden_ratio: number | null; affordability_level: "comfortable" | "manageable" | "tight" | "risky" | "unknown"; affordability_message: string; cost_breakdown: { key: string; label: string; monthly_amount: number }[]; disclaimer: string };
-export type LocationInsightResult = { input: Record<string, string | number | boolean | null>; resolved_location: { address_label: string; latitude: number; longitude: number; geocoding_confidence: string } | null; geocoding_acceptance?: GeocodingAcceptance | null; radius_m: number; location_score: number | null; category_scores: { transit_score: number; convenience_score: number; education_score: number; green_space_score: number; medical_score: number; risk_score: number }; poi_summary: { transit_count: number; convenience_count: number; school_count: number; park_count: number; medical_count: number; risk_facility_count: number }; nearest_pois: { category: string; name: string; distance_m: number; source: string }[]; strengths: string[]; weaknesses: string[]; buyer_fit: { self_use_family: string; commuter: string; investor: string; elderly: string }; valuation_context: { supports_price_reasonableness: boolean | "unknown"; explanation: string }; data_quality: { status: "good" | "limited" | "unavailable"; missing_sources: string[]; warnings: string[] }; scoring_method: { weights: Record<string, number>; explanation: string }; disclaimer: string };
+// --- RIS village demographics (Phase 3C) ---------------------------------
+// Bounded contract mirrors the backend village resolver + build_demographics_insight.
+// The frontend never talks to a database, R2, the RIS API, or NLSC directly; it
+// only consumes the already-resolved insight embedded in the location response.
+
+export type VillageResolutionStatus = "resolved" | "unresolved" | "ambiguous" | "unavailable";
+export type VillageResolution = {
+  status: VillageResolutionStatus;
+  county: string | null;
+  town: string | null;
+  village: string | null;
+  village_code: string | null;
+  district_code: string | null;
+  source: "nlsc_village_boundary" | string;
+  source_vintage: string | null;
+  reason: string;
+  candidate_count?: number;
+};
+
+export type DemographicsTrendStatus = "increasing" | "decreasing" | "stable";
+
+// Latest-month metrics carried on an available demographics insight. Ratios and
+// the household-size figure are nullable; null means "資料不足", 0 is a real value.
+export type DemographicsLatest = {
+  statistic_yyymm: string | null;
+  statistic_month: string | null;
+  total_population: number;
+  household_count: number;
+  average_household_size: number | null;
+  child_ratio: number | null;
+  working_age_ratio: number | null;
+  elderly_ratio: number | null;
+};
+
+// History-derived trend summary. No filling, interpolation, forecasting, or
+// smoothing is performed; has_month_gaps flags a non-contiguous observation set.
+export type DemographicsTrend = {
+  first_month: string | null;
+  last_month: string | null;
+  observed_month_count: number;
+  population_change: number;
+  population_change_ratio: number | null;
+  household_change: number;
+  has_month_gaps: boolean;
+  trend_status: DemographicsTrendStatus;
+};
+
+export type DemographicsAvailable = DemographicsLatest & DemographicsTrend & {
+  status: "available";
+  reason: string | null;
+  source_provider: string;
+  source_dataset: string;
+  // build_demographics_insight does not emit audit_reasons today; typed optional
+  // so the card can surface a bounded quality caveat if the backend adds it later.
+  audit_reasons?: string[];
+};
+
+export type DemographicsNoData = {
+  status: "no_data";
+  reason: string;
+};
+
+export type DemographicsInsight = DemographicsAvailable | DemographicsNoData;
+
+export type LocationInsightResult = { input: Record<string, string | number | boolean | null>; resolved_location: { address_label: string; latitude: number; longitude: number; geocoding_confidence: string } | null; village_resolution?: VillageResolution; demographics?: DemographicsInsight; geocoding_acceptance?: GeocodingAcceptance | null; radius_m: number; location_score: number | null; category_scores: { transit_score: number; convenience_score: number; education_score: number; green_space_score: number; medical_score: number; risk_score: number }; poi_summary: { transit_count: number; convenience_count: number; school_count: number; park_count: number; medical_count: number; risk_facility_count: number }; nearest_pois: { category: string; name: string; distance_m: number; source: string }[]; strengths: string[]; weaknesses: string[]; buyer_fit: { self_use_family: string; commuter: string; investor: string; elderly: string }; valuation_context: { supports_price_reasonableness: boolean | "unknown"; explanation: string }; data_quality: { status: "good" | "limited" | "unavailable"; missing_sources: string[]; warnings: string[] }; scoring_method: { weights: Record<string, number>; explanation: string }; disclaimer: string };
 export type CommuteAddressLookupResult = { status: "resolved" | "unresolved" | "unavailable"; source: "tdx" | "none"; station_name: string | null; line_ids: string[]; distance_meters: number | null; source_updated_at: string | null; snapshot_generated_at: string | null; message: string };
 export type CommuteRouteMode = "transit" | "driving" | "walking";
 export type CommuteRouteResult = { status: "resolved" | "unresolved" | "unavailable"; source: "google_routes" | "mock" | "none"; mode: CommuteRouteMode; duration_min: number | null; duration_seconds: number | null; distance_m: number | null; partial: boolean; fallback: boolean; message: string; disclaimer: string };

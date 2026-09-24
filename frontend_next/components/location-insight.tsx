@@ -12,6 +12,7 @@ import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { RuntimeCopyKey } from "@/lib/runtime-copy";
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 import { GoogleLocationVisualContext } from "@/components/google-location-visual-context";
+import { DemographicsInsightCard } from "@/components/demographics-insight-card";
 
 
 
@@ -192,6 +193,7 @@ function LocationResults({ result }: { result: LocationInsightResult }) {
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><MetricTile label={copy("location.score")} value={result.location_score ?? copy("common.noData")} note={result.resolved_location?.address_label} />{scoreLabels.map(([key, label]) => <MetricTile key={key} label={`${label}`} value={result.category_scores[key]} />)}</div>
     <div className="grid gap-3 sm:grid-cols-2"><ListCard title={copy("location.strengths")} items={result.strengths} /><ListCard title={copy("location.weaknesses")} items={result.weaknesses} /></div>
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{Object.entries(result.poi_summary).map(([key, value]) => <MetricTile key={key} label={poiLabel(key, copy)} value={`${value}`} />)}</div>
+    <DemographicsInsightCard village={result.village_resolution} demographics={result.demographics} />
     <DetailDisclosure title={copy("location.poiDetails")}><p className="mb-2 text-[10px] font-medium text-slate-400 sm:hidden">{copy("common.tableSwipe")}</p><div className="max-w-full touch-pan-x overflow-x-auto"><table className="w-full min-w-[560px] text-left text-xs"><thead><tr className="bg-stone-50"><th className="p-2">{copy("common.source")}</th><th>{copy("location.address")}</th><th>{copy("location.radius")}</th><th>{copy("common.source")}</th></tr></thead><tbody>{result.nearest_pois.map((item, index) => <tr key={`${item.name}-${index}`} className="border-t border-stone-100"><td className="p-2">{item.category}</td><td>{item.name}</td><td>{item.distance_m}m</td><td>{item.source}</td></tr>)}</tbody></table></div></DetailDisclosure>
     <ListCard title={copy("location.buyerFit")} items={Object.entries(result.buyer_fit).map(([key, value]) => `${buyerLabel(key, copy)}: ${value}`)} />
     <Notice>{result.valuation_context.explanation}</Notice>

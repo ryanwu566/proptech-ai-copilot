@@ -38,28 +38,29 @@ def _sql() -> str:
     return MIGRATION.read_text(encoding="utf-8").lower()
 
 
-def test_migration_018_is_registered_last_without_historical_checksum_drift() -> None:
+def test_migration_018_remains_registered_without_historical_checksum_drift() -> None:
     registrations = load_registry()
     frozen = {item.filename: item.sha256 for item in registrations}
+    registration = next(item for item in registrations if item.filename == MIGRATION.name)
 
     assert {name: frozen[name] for name in FROZEN_001_017} == FROZEN_001_017
-    assert registrations[-1].filename == MIGRATION.name
-    assert registrations[-1].sequence == 18
-    assert registrations[-1].execution_policy == "production_runner"
-    assert registrations[-1].sha256 == checksum(MIGRATION)
-    assert migration_runner.MIGRATIONS[-1] == MIGRATION
-    assert migration_validator.MIGRATIONS[-1] == MIGRATION
-    assert next_safe_sequence(registrations) == 19
-    assert not list(MIGRATION.parent.glob("019_*.sql"))
+    assert registration.sequence == 18
+    assert registration.execution_policy == "production_runner"
+    assert registration.sha256 == checksum(MIGRATION)
+    assert MIGRATION in migration_runner.MIGRATIONS
+    assert MIGRATION in migration_validator.MIGRATIONS
+    assert next_safe_sequence(registrations) == 20
 
 
 def test_registry_contains_exactly_one_new_018_entry() -> None:
     entries = json.loads(REGISTRY.read_text(encoding="utf-8"))["migrations"]
 
-    assert len(entries) == 19
-    assert [item["registry_order"] for item in entries] == list(range(1, 20))
+    assert len(entries) == 20
+    assert [item["registry_order"] for item in entries] == list(range(1, 21))
     assert len([item for item in entries if item["sequence"] == 18]) == 1
-    assert entries[-1]["logical_id"] == "production-018-vnext-case-parcel-set-v1"
+    assert next(item for item in entries if item["sequence"] == 18)["logical_id"] == (
+        "production-018-vnext-case-parcel-set-v1"
+    )
 
 
 def test_production_verifier_requires_the_new_schema_objects() -> None:

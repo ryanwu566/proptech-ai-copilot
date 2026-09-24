@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from services import location_resolver
 from services.location_insight_service import analyze_location
+from services.ris_village_resolver import get_default_ris_village_resolver
 
 
 router = APIRouter(prefix="/location", tags=["location-insight"])
@@ -58,7 +59,7 @@ class LocationResolveResponse(BaseModel):
 
 @router.post("/insight")
 def post_location_insight(request: LocationInsightRequest) -> dict[str, Any]:
-    return analyze_location(**request.model_dump())
+    return analyze_location(**request.model_dump(), village_resolver=get_default_ris_village_resolver())
 
 
 @router.post("/resolve", response_model=LocationResolveResponse)

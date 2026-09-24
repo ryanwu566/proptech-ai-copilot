@@ -26,6 +26,7 @@ def analyze_location(
     use_existing_poi_sources: bool = True,
     searcher: Callable[[str], dict[str, Any]] | None = None,
     nearby_fetcher: Callable[[float, float, int, list[str]], dict[str, Any]] | None = None,
+    village_resolver: Any | None = None,
 ) -> dict[str, Any]:
     """Resolve a location and summarize existing POI evidence with explicit rules."""
 
@@ -41,6 +42,10 @@ def analyze_location(
     }
     if resolved is None:
         return _unavailable_result(input_summary, radius_m, geocoding_acceptance)
+
+    village_resolution, demographics = _resolve_village(
+        resolved["latitude"], resolved["longitude"], village_resolver
+    )
 
     try:
         nearby = nearby_fetcher(resolved["latitude"], resolved["longitude"], radius_m, POI_CATEGORIES) if use_existing_poi_sources else _empty_nearby()
@@ -79,6 +84,8 @@ def analyze_location(
     return {
         "input": input_summary,
         "resolved_location": resolved,
+        "village_resolution": village_resolution,
+        "demographics": demographics,
         "geocoding_acceptance": geocoding_acceptance,
         "radius_m": radius_m,
         "location_score": location_score,
@@ -167,7 +174,7 @@ def _valuation_context(property_price: float | None, area_ping: float | None, lo
 def _unavailable_result(input_summary: dict[str, Any], radius_m: int, geocoding_acceptance: dict[str, Any] | None = None) -> dict[str, Any]:
     acceptance_warning = str((geocoding_acceptance or {}).get("message") or "找不到符合的地點，請輸入完整地址、路段或座標。")
     return {
-        "input": input_summary, "resolved_location": None, "geocoding_acceptance": geocoding_acceptance, "radius_m": radius_m, "location_score": None,
+        "input": input_summary, "resolved_location": None, "village_resolution": {"status": "unavailable", "reason": "location_not_resolved"}, "demographics": {"status": "no_data", "reason": "location_not_resolved"}, "geocoding_acceptance": geocoding_acceptance, "radius_m": radius_m, "location_score": None,
         "category_scores": {"transit_score": 0, "convenience_score": 0, "education_score": 0, "green_space_score": 0, "medical_score": 0, "risk_score": 50},
         "poi_summary": {"transit_count": 0, "convenience_count": 0, "school_count": 0, "park_count": 0, "medical_count": 0, "risk_facility_count": 0},
         "nearest_pois": [], "strengths": [], "weaknesses": ["目前資料不足，建議改用完整地址或手動查詢。"],
@@ -176,6 +183,29 @@ def _unavailable_result(input_summary: dict[str, Any], radius_m: int, geocoding_
         "data_quality": {"status": "unavailable", "missing_sources": ["geocoding", "poi", "risk_facilities"], "warnings": [acceptance_warning]},
         "scoring_method": {"weights": SCORE_WEIGHTS, "explanation": "定位或資料不足，未產生區位總分。"}, "disclaimer": DISCLAIMER,
     }
+
+
+def _resolve_village(
+    latitude: float,
+    longitude: float,
+    village_resolver: Any | None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    try:
+        if village_resolver is None:
+            from services.ris_village_resolver import get_default_ris_village_resolver
+
+            village_resolver = get_default_ris_village_resolver()
+        result = village_resolver.resolve(latitude=latitude, longitude=longitude)
+        village = result.get("location") if isinstance(result, dict) else None
+        demographics = result.get("demographics") if isinstance(result, dict) else None
+        if not isinstance(village, dict) or not isinstance(demographics, dict):
+            raise ValueError("invalid village resolver result")
+        return village, demographics
+    except Exception:
+        return (
+            {"status": "unavailable", "reason": "village_resolver_unavailable"},
+            {"status": "no_data", "reason": "demographics_unavailable"},
+        )
 
 
 def _empty_nearby() -> dict[str, Any]:

@@ -125,10 +125,10 @@ def test_registry_freezes_every_historical_migration_exactly_once() -> None:
     registrations = load_registry()
     actual_files = {path.name for path in MIGRATION_DIRECTORY.glob("*.sql")}
 
-    assert len(registrations) == len(actual_files) == 19
+    assert len(registrations) == len(actual_files) == 20
     assert {item.filename for item in registrations} == actual_files
     assert len({item.logical_id for item in registrations}) == len(registrations)
-    assert [item.registry_order for item in registrations] == list(range(1, 20))
+    assert [item.registry_order for item in registrations] == list(range(1, 21))
     assert [item.filename for item in registrations][1:3] == [
         "002_add_market_direct_query_indexes.sql",
         "002_expand_valuation_import_runs.sql",
@@ -185,10 +185,10 @@ def test_registry_checksum_is_stable_across_checkout_line_endings(tmp_path: Path
     assert checksum(lf) == checksum(crlf)
 
 
-def test_registry_allocates_next_sequence_after_case_parcel_set_v1() -> None:
+def test_registry_allocates_next_sequence_after_ris_demographics() -> None:
     registrations = load_registry()
 
-    assert next_safe_sequence(registrations) == 19
+    assert next_safe_sequence(registrations) == 20
     assert sum(item.filename.startswith("013_") for item in registrations) == 1
     assert sum(item.filename.startswith("014_") for item in registrations) == 1
     assert sum(item.filename.startswith("015_") for item in registrations) == 1
@@ -202,9 +202,9 @@ def test_dry_run_reports_frozen_registry_and_next_allocation() -> None:
 
     assert result == {
         "status": "ready",
-        "migration_count": 14,
-        "registry_count": 19,
-        "next_migration_sequence": "019",
+        "migration_count": 15,
+        "registry_count": 20,
+        "next_migration_sequence": "020",
         "mode": "dry_run",
     }
 
@@ -237,6 +237,7 @@ def test_migration_schema_versions_follow_file_numbers(monkeypatch) -> None:
     assert connection.schema_versions["016_vnext_identity_confirmation_case_links"] == "schema-016"
     assert connection.schema_versions["017_vnext_legacy_saved_case_import"] == "schema-017"
     assert connection.schema_versions["018_vnext_case_parcel_set_v1"] == "schema-018"
+    assert connection.schema_versions["019_add_ris_village_demographics"] == "schema-019"
 
 
 def test_checksum_drift_fails_without_applying_other_migrations(monkeypatch) -> None:
@@ -272,7 +273,7 @@ def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     assert "release_id text not null references official_market_releases" in forward
     assert "create table if not exists market_region_coverage (" not in forward
     assert "idx_official_market_region_coverage_region_period" in forward
-    assert migration_runner.MIGRATIONS[-1].name == "018_vnext_case_parcel_set_v1.sql"
+    assert migration_runner.MIGRATIONS[-1].name == "019_add_ris_village_demographics.sql"
     assert any(path.name == "010_add_plvr_generation_schema.sql" for path in migration_runner.MIGRATIONS)
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
     assert "plvr_dataset_generations" in migration_runner.REQUIRED_TABLES

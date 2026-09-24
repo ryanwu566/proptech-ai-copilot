@@ -159,14 +159,17 @@ def test_stage1_feature_flags_and_example_configuration_are_default_off() -> Non
         assert "feature_case_parcel_set_v1=true" not in text
 
 
-def test_migrations_are_frozen_through_018_and_next_sequence_is_019() -> None:
+def test_migrations_are_frozen_through_019_and_next_sequence_is_020() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 19
-    assert max(item.sequence for item in registrations) == 18
+    assert next_safe_sequence(registrations) == 20
+    assert max(item.sequence for item in registrations) == 19
     assert [
         path.name for path in (ROOT / "database" / "migrations").glob("018_*.sql")
     ] == ["018_vnext_case_parcel_set_v1.sql"]
-    assert not list((ROOT / "database" / "migrations").glob("019_*.sql"))
+    assert [
+        path.name for path in (ROOT / "database" / "migrations").glob("019_*.sql")
+    ] == ["019_add_ris_village_demographics.sql"]
+    assert not list((ROOT / "database" / "migrations").glob("020_*.sql"))
     assert all(len(item.sha256) == 64 for item in registrations)
 
 

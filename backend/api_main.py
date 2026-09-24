@@ -37,6 +37,7 @@ from backend.api.routes_valuation import router as valuation_router
 from backend.api.routes_pilot import router as pilot_router
 from backend.api.routes_performance import router as performance_router
 from backend.api.routes_parcel_geometry import router as parcel_geometry_router
+from backend.api.routes_demographics import router as demographics_router
 from backend.api.v1 import router as vnext_router
 from backend.api.v1.errors import structured_error_response, vnext_error_handler
 from services.metrics import (
@@ -261,6 +262,7 @@ app.include_router(valuation_router)
 app.include_router(pilot_router)
 app.include_router(performance_router)
 app.include_router(parcel_geometry_router)
+app.include_router(demographics_router)
 app.include_router(vnext_router)
 
 http_metrics = BoundedMetricsRegistry(

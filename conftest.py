@@ -25,6 +25,10 @@ VNEXT_RLS_DATABASE_URL_ENV = "VNEXT_RLS_POSTGRES_URL"
 VNEXT_RLS_DISPOSABLE_ENV = "VNEXT_RLS_POSTGRES_DISPOSABLE"
 VNEXT_RLS_DATABASE_PREFIX = "vnext_rls_test"
 
+RIS_POSTGRES_TEST_URL_ENV = "RIS_POSTGRES_TEST_URL"
+RIS_POSTGRES_TEST_DISPOSABLE_ENV = "RIS_POSTGRES_TEST_DISPOSABLE"
+RIS_POSTGRES_TEST_DATABASE_PREFIX = "ris_population_test"
+
 _removed_inherited_database_variables: tuple[str, ...] = ()
 
 
@@ -72,6 +76,45 @@ def validate_vnext_rls_test_contract(environ: MutableMapping[str, str]) -> None:
         )
 
 
+def assert_safe_ris_postgres_test_url(database_url: str) -> str:
+    """Return the allow-listed database name or fail before any connection."""
+
+    parsed = urlsplit(database_url)
+    database_name = unquote(parsed.path.lstrip("/")).split("/", 1)[0]
+    if (
+        parsed.scheme not in {"postgres", "postgresql"}
+        or not parsed.hostname
+        or not database_name.startswith(RIS_POSTGRES_TEST_DATABASE_PREFIX)
+    ):
+        raise pytest.UsageError(
+            "RIS_POSTGRES_TEST_URL must be a PostgreSQL URL for a dedicated "
+            "database beginning with ris_population_test"
+        )
+    return database_name
+
+
+def resolve_ris_postgres_test_url(
+    environ: MutableMapping[str, str],
+) -> str | None:
+    """Resolve only the dedicated disposable RIS test contract; never fall back."""
+
+    database_url = environ.get(RIS_POSTGRES_TEST_URL_ENV, "").strip()
+    if not database_url:
+        return None
+    if environ.get(RIS_POSTGRES_TEST_DISPOSABLE_ENV) != "1":
+        return None
+    assert_safe_ris_postgres_test_url(database_url)
+    return database_url
+
+
+def validate_ris_postgres_test_contract(environ: MutableMapping[str, str]) -> None:
+    """Fail closed at collection and remove incomplete dedicated contracts."""
+
+    database_url = resolve_ris_postgres_test_url(environ)
+    if database_url is None:
+        environ.pop(RIS_POSTGRES_TEST_URL_ENV, None)
+
+
 def pytest_configure(config: pytest.Config) -> None:
     """Sanitize inherited database configuration before tests are collected."""
 
@@ -82,6 +125,19 @@ def pytest_configure(config: pytest.Config) -> None:
     global _removed_inherited_database_variables
     _removed_inherited_database_variables = remove_application_database_urls(os.environ)
     validate_vnext_rls_test_contract(os.environ)
+    validate_ris_postgres_test_contract(os.environ)
+
+
+@pytest.fixture
+def ris_postgres_test_url() -> str:
+    """Provide the explicit disposable RIS URL or skip without connecting."""
+
+    database_url = resolve_ris_postgres_test_url(os.environ)
+    if database_url is None:
+        pytest.skip("RIS disposable PostgreSQL contract is not configured")
+    # Second fail-closed assertion immediately before a test may connect or migrate.
+    assert_safe_ris_postgres_test_url(database_url)
+    return database_url
 
 
 def pytest_report_header(config: pytest.Config) -> str:

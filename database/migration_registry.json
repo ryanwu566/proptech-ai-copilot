@@ -152,6 +152,14 @@
       "filename": "018_vnext_case_parcel_set_v1.sql",
       "execution_policy": "production_runner",
       "sha256": "ec4565c5dd1100dbaeecfdc42bc4bfc39877c9206398bc47dfa42deef5319008"
+    },
+    {
+      "registry_order": 20,
+      "logical_id": "production-019-ris-village-demographics",
+      "sequence": 19,
+      "filename": "019_add_ris_village_demographics.sql",
+      "execution_policy": "production_runner",
+      "sha256": "1a6b9cd87ac4d5a02e8b1d2d866bc390f4f6587630e9e3e24f17f95a1c5e8044"
     }
   ]
 }
