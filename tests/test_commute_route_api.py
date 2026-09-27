@@ -12,7 +12,8 @@ client = TestClient(app)
 
 ALLOWED_KEYS = {
     "status", "source", "mode", "duration_min", "duration_seconds",
-    "distance_m", "partial", "fallback", "message", "disclaimer",
+    "distance_m", "partial", "fallback", "reason_code", "checked_at",
+    "message", "disclaimer",
 }
 
 
@@ -112,13 +113,18 @@ def test_unsupported_mode_is_validation_error() -> None:
     assert response.status_code == 422
 
 
-def test_missing_destination_is_validation_error() -> None:
+def test_missing_destination_is_bounded_destination_required() -> None:
     response = client.post("/commute/route", json={
         "origin_latitude": 25.0330,
         "origin_longitude": 121.5654,
         "mode": "driving",
     })
-    assert response.status_code == 422
+    assert response.status_code == 200
+    body = response.json()
+    _assert_safe_contract(body)
+    assert body["status"] == "unresolved"
+    assert body["reason_code"] == "destination_required"
+    assert body["checked_at"] is not None
 
 
 def test_both_destination_forms_is_validation_error() -> None:
@@ -158,11 +164,12 @@ def test_address_destination_without_providers_is_unavailable(monkeypatch: pytes
         "destination_address": "台北市信義區市府路45號",
         "mode": "transit",
     })
-    assert response.status_code == 503
+    assert response.status_code == 200
     body = response.json()
     _assert_safe_contract(body)
     assert body["status"] == "unavailable"
     assert body["source"] == "none"
+    assert body["reason_code"] == "provider_error"
 
 
 def test_address_destination_resolved_then_estimated(monkeypatch: pytest.MonkeyPatch) -> None:

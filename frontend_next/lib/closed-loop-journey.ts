@@ -1,5 +1,7 @@
 import type {
   HoldingCostResult,
+  CommuteAddressLookupResult,
+  CommuteRouteEvidence,
   LoanCalculationResult,
   LocationInsightResult,
   MarketResult,
@@ -20,6 +22,10 @@ export type ClosedLoopJourneyState = {
   propertySearchResult?: PropertySearchResult;
   locationResult?: LocationInsightResult;
   locationStatus: LocationMarketDisplayStatus;
+  commuteRouteEvidence?: CommuteRouteEvidence;
+  commuteRouteStatus: LocationMarketDisplayStatus;
+  commuteTransitResult?: CommuteAddressLookupResult;
+  commuteTransitStatus: LocationMarketDisplayStatus;
   terrainResult?: TerrainRiskResult;
   terrainReference?: TerrainReferenceEvidence;
   storedTerrainReference?: StoredTerrainReferenceEvidenceV1;
@@ -62,6 +68,8 @@ export function createClosedLoopJourneyState(input?: Partial<JourneyPropertyCont
   return {
     propertyContext,
     locationStatus: "not_started",
+    commuteRouteStatus: "not_started",
+    commuteTransitStatus: "not_started",
     terrainStatus: "not_started",
     marketStatus: "not_started",
     valuationStatus: "not_started",
@@ -82,6 +90,10 @@ export function updateJourneyProperty(state: ClosedLoopJourneyState, input: Part
       ...next,
       locationResult: undefined,
       locationStatus: "not_started",
+      commuteRouteEvidence: undefined,
+      commuteRouteStatus: "not_started",
+      commuteTransitResult: undefined,
+      commuteTransitStatus: "not_started",
       terrainResult: undefined,
       terrainReference: undefined,
       storedTerrainReference: undefined,
@@ -136,6 +148,10 @@ export function updateJourneyMarketLocation(
     propertyContext,
     locationResult: undefined,
     locationStatus: "not_started" as const,
+    commuteRouteEvidence: undefined,
+    commuteRouteStatus: "not_started" as const,
+    commuteTransitResult: undefined,
+    commuteTransitStatus: "not_started" as const,
     terrainResult: undefined,
     terrainReference: undefined,
     storedTerrainReference: undefined,
@@ -155,6 +171,22 @@ export function setJourneyLocationResult(
   status: LocationMarketDisplayStatus,
 ): ClosedLoopJourneyState {
   return { ...state, locationResult: result ?? undefined, locationStatus: status };
+}
+
+export function setJourneyCommuteRoute(
+  state: ClosedLoopJourneyState,
+  evidence: CommuteRouteEvidence | null,
+  status: LocationMarketDisplayStatus,
+): ClosedLoopJourneyState {
+  return { ...state, commuteRouteEvidence: evidence ?? undefined, commuteRouteStatus: status };
+}
+
+export function setJourneyCommuteTransit(
+  state: ClosedLoopJourneyState,
+  result: CommuteAddressLookupResult | null,
+  status: LocationMarketDisplayStatus,
+): ClosedLoopJourneyState {
+  return { ...state, commuteTransitResult: result ?? undefined, commuteTransitStatus: status };
 }
 
 export function setJourneyTerrainResult(

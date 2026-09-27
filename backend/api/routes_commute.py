@@ -199,8 +199,6 @@ class CommuteRouteRequest(BaseModel):
         has_address = bool(self.destination_address)
         if has_coord and has_address:
             raise ValueError("provide either a destination address or coordinate, not both")
-        if not has_coord and not has_address:
-            raise ValueError("a destination address or coordinate is required")
         if has_coord and not (math.isfinite(self.destination_latitude) and math.isfinite(self.destination_longitude)):
             raise ValueError("destination coordinate must be finite")
         return self
@@ -215,44 +213,63 @@ class CommuteRouteResponse(BaseModel):
     distance_m: int | None = None
     partial: bool
     fallback: bool
+    reason_code: Literal[
+        "destination_required", "invalid_input", "provider_timeout",
+        "configuration_error", "provider_error", "malformed_response",
+        "route_not_found", "success",
+    ]
+    checked_at: str
     message: str
     disclaimer: str
 
 
-def _route_unavailable(mode: str, message: str) -> JSONResponse:
-    return JSONResponse(
-        status_code=503,
-        content={
-            "status": "unavailable",
-            "source": "none",
-            "mode": mode,
-            "duration_min": None,
-            "duration_seconds": None,
-            "distance_m": None,
-            "partial": False,
-            "fallback": False,
-            "message": message,
-            "disclaimer": commute_routing_service.ROUTE_DISCLAIMER,
-        },
+def _route_unavailable(mode: str, message: str) -> CommuteRouteResponse:
+    return CommuteRouteResponse(
+        status="unavailable",
+        source="none",
+        mode=mode,  # type: ignore[arg-type]
+        partial=False,
+        fallback=False,
+        reason_code="provider_error",
+        checked_at=commute_routing_service.checked_at(),
+        message=message,
+        disclaimer=commute_routing_service.ROUTE_DISCLAIMER,
     )
 
 
-def _route_unresolved(mode: str, message: str) -> CommuteRouteResponse:
+def _route_unresolved(
+    mode: str,
+    message: str,
+    *,
+    reason_code: Literal["destination_required", "route_not_found"] = "route_not_found",
+) -> CommuteRouteResponse:
     return CommuteRouteResponse(
         status="unresolved",
         source="none",
         mode=mode,  # type: ignore[arg-type]
         partial=False,
         fallback=False,
+        reason_code=reason_code,
+        checked_at=commute_routing_service.checked_at(),
         message=message,
         disclaimer=commute_routing_service.ROUTE_DISCLAIMER,
     )
 
 
 @router.post("/route", response_model=CommuteRouteResponse)
-def post_commute_route(request: CommuteRouteRequest) -> CommuteRouteResponse | JSONResponse:
+def post_commute_route(request: CommuteRouteRequest) -> CommuteRouteResponse:
     """Estimate travel time/distance from a property origin to a destination."""
 
+    if (
+        request.destination_address is None
+        and request.destination_latitude is None
+        and request.destination_longitude is None
+    ):
+        return _route_unresolved(
+            request.mode,
+            "請先輸入通勤目的地。",
+            reason_code="destination_required",
+        )
     if request.destination_latitude is not None and request.destination_longitude is not None:
         destination = (float(request.destination_latitude), float(request.destination_longitude))
     else:

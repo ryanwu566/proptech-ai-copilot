@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { LocationInsight, type LocationInsightPrefill } from "@/components/location-insight";
-import { CommuteLivabilityCard } from "@/components/commute-livability-card";
+import { CommuteEvidencePanel } from "@/components/commute-evidence-panel";
 import { TerrainRiskAnalysis } from "@/components/terrain-risk-analysis";
 import { AmenityCategoryChart } from "@/components/data-visualization/amenity-category-chart";
 import { TerrainStatusMatrix } from "@/components/data-visualization/terrain-status-matrix";
@@ -10,7 +10,7 @@ import { JourneyPropertyContextHeader } from "@/components/guided-journey/journe
 import { LocationMarketSnapshot } from "@/components/guided-journey/location-market-snapshot";
 import { LocationMarketStatusStrip } from "@/components/guided-journey/location-market-status-strip";
 import { LocationMarketToolSelector } from "@/components/guided-journey/location-market-tool-selector";
-import type { CommuteAddressLookupResult, LocationInsightResult, MarketResult, TerrainRiskResult } from "@/lib/api";
+import type { CommuteAddressLookupResult, CommuteRouteEvidence, LocationInsightResult, MarketResult, TerrainRiskResult } from "@/lib/api";
 import type { TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { addVisitedLocationMarketTool, buildAmenityCategoryModel, buildLocationMarketSnapshot, buildLocationMarketStatusItems, getSafeJourneyPropertyContext, type JourneyPropertyContext, type LocationMarketDisplayStatus, type LocationMarketToolId } from "@/lib/location-market-journey";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
@@ -20,10 +20,12 @@ type MarketHandlers = {
   onResult: (result: MarketResult | null) => void;
 };
 
-export function LocationMarketStage({ propertyContext, initialLocationResult, initialTerrainResult, initialMarketResult, initialTerrainStatus = "not_started", initialMarketStatus = "not_started", initialActiveTool, renderMarket, onMap, onBackToProperty, onContinueToPrice, onPropertyContextChange, onLocationEvidenceChange, onTerrainEvidenceChange, onMarketEvidenceChange, onTerrainReferenceReady }: { propertyContext: JourneyPropertyContext; initialLocationResult?: LocationInsightResult; initialTerrainResult?: TerrainRiskResult; initialMarketResult?: MarketResult; initialTerrainStatus?: LocationMarketDisplayStatus; initialMarketStatus?: LocationMarketDisplayStatus; initialActiveTool?: LocationMarketToolId; renderMarket: (context: JourneyPropertyContext, handlers: MarketHandlers) => ReactNode; onMap: () => void; onBackToProperty: () => void; onContinueToPrice: (context: JourneyPropertyContext) => void; onPropertyContextChange?: (context: JourneyPropertyContext) => void; onLocationEvidenceChange?: (result: LocationInsightResult | null, status: LocationMarketDisplayStatus) => void; onTerrainEvidenceChange?: (result: TerrainRiskResult | null, status: LocationMarketDisplayStatus) => void; onMarketEvidenceChange?: (result: MarketResult | null, status: LocationMarketDisplayStatus) => void; onTerrainReferenceReady?: (evidence: TerrainReferenceEvidence) => void }) {
+export function LocationMarketStage({ propertyContext, initialLocationResult, initialCommuteRouteEvidence, initialCommuteRouteStatus = "not_started", initialCommuteTransitResult, initialCommuteTransitStatus = "not_started", initialTerrainResult, initialMarketResult, initialTerrainStatus = "not_started", initialMarketStatus = "not_started", initialActiveTool, renderMarket, onMap, onBackToProperty, onContinueToPrice, onPropertyContextChange, onLocationEvidenceChange, onCommuteRouteEvidenceChange, onCommuteTransitEvidenceChange, onTerrainEvidenceChange, onMarketEvidenceChange, onTerrainReferenceReady }: { propertyContext: JourneyPropertyContext; initialLocationResult?: LocationInsightResult; initialCommuteRouteEvidence?: CommuteRouteEvidence; initialCommuteRouteStatus?: LocationMarketDisplayStatus; initialCommuteTransitResult?: CommuteAddressLookupResult; initialCommuteTransitStatus?: LocationMarketDisplayStatus; initialTerrainResult?: TerrainRiskResult; initialMarketResult?: MarketResult; initialTerrainStatus?: LocationMarketDisplayStatus; initialMarketStatus?: LocationMarketDisplayStatus; initialActiveTool?: LocationMarketToolId; renderMarket: (context: JourneyPropertyContext, handlers: MarketHandlers) => ReactNode; onMap: () => void; onBackToProperty: () => void; onContinueToPrice: (context: JourneyPropertyContext) => void; onPropertyContextChange?: (context: JourneyPropertyContext) => void; onLocationEvidenceChange?: (result: LocationInsightResult | null, status: LocationMarketDisplayStatus) => void; onCommuteRouteEvidenceChange?: (evidence: CommuteRouteEvidence | null, status: LocationMarketDisplayStatus) => void; onCommuteTransitEvidenceChange?: (result: CommuteAddressLookupResult | null, status: LocationMarketDisplayStatus) => void; onTerrainEvidenceChange?: (result: TerrainRiskResult | null, status: LocationMarketDisplayStatus) => void; onMarketEvidenceChange?: (result: MarketResult | null, status: LocationMarketDisplayStatus) => void; onTerrainReferenceReady?: (evidence: TerrainReferenceEvidence) => void }) {
   const [locationResult, setLocationResult] = useState<LocationInsightResult | null>(initialLocationResult ?? null);
-  const [commuteResult, setCommuteResult] = useState<CommuteAddressLookupResult | null>(null);
-  const [commuteDisplayStatus, setCommuteDisplayStatus] = useState<LocationMarketDisplayStatus>("not_started");
+  const [commuteRouteEvidence, setCommuteRouteEvidence] = useState<CommuteRouteEvidence | null>(initialCommuteRouteEvidence ?? null);
+  const [commuteRouteDisplayStatus, setCommuteRouteDisplayStatus] = useState<LocationMarketDisplayStatus>(initialCommuteRouteStatus);
+  const [commuteResult, setCommuteResult] = useState<CommuteAddressLookupResult | null>(initialCommuteTransitResult ?? null);
+  const [commuteDisplayStatus, setCommuteDisplayStatus] = useState<LocationMarketDisplayStatus>(initialCommuteTransitStatus);
   const [terrainResult, setTerrainResult] = useState<TerrainRiskResult | null>(initialTerrainResult ?? null);
   const [terrainDisplayStatus, setTerrainDisplayStatus] = useState<LocationMarketDisplayStatus>(initialTerrainStatus);
   const [marketResult, setMarketResult] = useState<MarketResult | null>(initialMarketResult ?? null);
@@ -33,6 +35,10 @@ export function LocationMarketStage({ propertyContext, initialLocationResult, in
   const { t, copy } = useExperienceLocale();
 
   useEffect(() => { setLocationResult(initialLocationResult ?? null); }, [initialLocationResult]);
+  useEffect(() => { setCommuteRouteEvidence(initialCommuteRouteEvidence ?? null); }, [initialCommuteRouteEvidence]);
+  useEffect(() => { setCommuteRouteDisplayStatus(initialCommuteRouteStatus); }, [initialCommuteRouteStatus]);
+  useEffect(() => { setCommuteResult(initialCommuteTransitResult ?? null); }, [initialCommuteTransitResult]);
+  useEffect(() => { setCommuteDisplayStatus(initialCommuteTransitStatus); }, [initialCommuteTransitStatus]);
   useEffect(() => { setTerrainResult(initialTerrainResult ?? null); }, [initialTerrainResult]);
   useEffect(() => { setMarketResult(initialMarketResult ?? null); }, [initialMarketResult]);
   useEffect(() => { setTerrainDisplayStatus(initialTerrainStatus); }, [initialTerrainStatus]);
@@ -64,6 +70,35 @@ export function LocationMarketStage({ propertyContext, initialLocationResult, in
     setLocationResult(result);
     const status: LocationMarketDisplayStatus = !result ? "not_started" : result.data_quality.status === "unavailable" ? "unavailable" : result.data_quality.status === "limited" ? "partial" : "available";
     onLocationEvidenceChange?.(result, status);
+    if (!result) {
+      setCommuteRouteEvidence(null);
+      setCommuteRouteDisplayStatus("not_started");
+      onCommuteRouteEvidenceChange?.(null, "not_started");
+    }
+  }
+
+  function updateCommuteRouteStatus(status: LocationMarketDisplayStatus) {
+    setCommuteRouteDisplayStatus(status);
+    if (status !== "available") onCommuteRouteEvidenceChange?.(null, status);
+  }
+
+  function updateCommuteRouteEvidence(evidence: CommuteRouteEvidence | null) {
+    setCommuteRouteEvidence(evidence);
+    const status: LocationMarketDisplayStatus = evidence?.status === "resolved" ? "available" : evidence?.status === "unavailable" ? "unavailable" : evidence ? "no_data" : "not_started";
+    setCommuteRouteDisplayStatus(status);
+    onCommuteRouteEvidenceChange?.(evidence, status);
+  }
+
+  function updateCommuteTransitStatus(status: LocationMarketDisplayStatus) {
+    setCommuteDisplayStatus(status);
+    if (status !== "available") onCommuteTransitEvidenceChange?.(null, status);
+  }
+
+  function updateCommuteTransitResult(result: CommuteAddressLookupResult | null) {
+    setCommuteResult(result);
+    const status: LocationMarketDisplayStatus = result?.status === "resolved" ? "available" : result?.status === "unresolved" ? "no_data" : result ? "unavailable" : "not_started";
+    setCommuteDisplayStatus(status);
+    onCommuteTransitEvidenceChange?.(result, status);
   }
 
   function updateTerrainStatus(status: LocationMarketDisplayStatus) {
@@ -97,7 +132,7 @@ export function LocationMarketStage({ propertyContext, initialLocationResult, in
     setActiveTool(tool);
   }
 
-  const statusItems = buildLocationMarketStatusItems({ locationResult, commuteResult, commuteDisplayStatus, terrainResult, terrainDisplayStatus, marketResult, marketDisplayStatus });
+  const statusItems = buildLocationMarketStatusItems({ locationResult, commuteResult, commuteDisplayStatus, commuteRouteResult: commuteRouteEvidence, commuteRouteDisplayStatus, terrainResult, terrainDisplayStatus, marketResult, marketDisplayStatus });
   const snapshot = buildLocationMarketSnapshot(statusItems);
   const amenityCategories = buildAmenityCategoryModel(locationResult);
   const contextAddress = propertyContext.addressSummary || [propertyContext.city, propertyContext.district, propertyContext.road].filter(Boolean).join("");
@@ -120,7 +155,7 @@ export function LocationMarketStage({ propertyContext, initialLocationResult, in
       <div className="rounded-xl border border-stone-200 bg-white p-4"><p className="text-xs font-bold text-slate-900">{t("page.map")}</p><p className="mt-1 text-[11px] leading-5 text-slate-500">{t("evidence.summaryDescription")}</p><button type="button" onClick={onMap} className="mt-3 w-full rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs font-bold text-cyan-800 transition hover:bg-cyan-50 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 sm:w-auto">{t("page.map")}</button></div>
     </section>
     <LocationMarketToolSelector activeTool={activeTool} onSelect={selectTool} />
-    {visitedTools.includes("commute") && <section hidden={activeTool !== "commute"} aria-hidden={activeTool !== "commute"} aria-labelledby="location-market-commute-heading" className="min-w-0 rounded-xl border border-stone-200 bg-white p-4"><h3 id="location-market-commute-heading" className="text-base font-black text-slate-950">{t("journey.location.next")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("trust.referenceOnly")}</p><div className="mt-3"><CommuteLivabilityCard address={contextAddress} onStatusChange={(status) => setCommuteDisplayStatus(status === "idle" ? "not_started" : status === "error" ? "unavailable" : status === "resolved" ? "available" : status === "unresolved" ? "no_data" : status)} onResult={setCommuteResult} /></div></section>}
+    {visitedTools.includes("commute") && <section hidden={activeTool !== "commute"} aria-hidden={activeTool !== "commute"} aria-labelledby="location-market-commute-heading" className="min-w-0 rounded-xl border border-stone-200 bg-white p-4"><h3 id="location-market-commute-heading" className="text-base font-black text-slate-950">{t("journey.location.next")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("trust.referenceOnly")}</p><div className="mt-3"><CommuteEvidencePanel address={contextAddress} locationResult={locationResult} routeEvidence={commuteRouteEvidence ?? undefined} onRouteStatusChange={updateCommuteRouteStatus} onRouteEvidence={updateCommuteRouteEvidence} onTransitStatusChange={updateCommuteTransitStatus} onTransitResult={updateCommuteTransitResult} /></div></section>}
     {visitedTools.includes("terrain") && <section hidden={activeTool !== "terrain"} aria-hidden={activeTool !== "terrain"} aria-labelledby="location-market-terrain-heading" className="min-w-0 rounded-xl border border-stone-200 bg-white p-4"><h3 id="location-market-terrain-heading" className="text-base font-black text-slate-950">{t("page.terrain")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("trust.referenceOnly")}</p><div className="mt-3"><TerrainRiskAnalysis compactFromLocation location={locationResult ?? undefined} resetKey={contextAddress} onStatusChange={updateTerrainStatus} onResult={updateTerrainResult} onReferenceAttach={onTerrainReferenceReady} /></div><div className="mt-4"><TerrainStatusMatrix result={terrainResult} /></div></section>}
     {visitedTools.includes("market") && <section hidden={activeTool !== "market"} aria-hidden={activeTool !== "market"} aria-labelledby="location-market-market-heading" className="min-w-0 rounded-xl border border-stone-200 bg-white p-4"><h3 id="location-market-market-heading" className="text-base font-black text-slate-950">{t("page.market")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("trust.noPurchase")}</p><div className="mt-3">{renderMarket(propertyContext, { onStatusChange: updateMarketStatus, onResult: updateMarketResult })}</div></section>}
     <LocationMarketSnapshot items={statusItems} evidenceAvailable={snapshot.evidenceAvailable} />

@@ -1,5 +1,6 @@
 import type {
   HoldingCostResult,
+  CommuteRouteEvidence,
   LoanCalculationResult,
   LocationInsightResult,
   PropertySearchResult,
@@ -92,6 +93,7 @@ export type PropertyCaseDraftInput = {
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
   marketInsightSnapshot?: MarketInsightSnapshot;
+  commuteRoute?: CommuteRouteEvidence;
 };
 
 export type PropertyCaseDraft = {
@@ -179,7 +181,13 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     ?? (trustedTransfer ? finiteNumber(input.confirmedValuationPrice) ?? finiteNumber(input.valuation?.price_range.mid) : null);
   const locationStatus = input.location ? dataQualityToStatus(input.location.data_quality.status) : "missing";
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
-  const commuteStatus: PropertyCaseStatus = "missing";
+  const commuteStatus: PropertyCaseStatus = !input.commuteRoute
+    ? "missing"
+    : input.commuteRoute.status === "resolved" && input.commuteRoute.source === "google_routes" && input.commuteRoute.reason_code === "success"
+      ? "completed"
+      : input.commuteRoute.status === "unavailable"
+        ? "unavailable"
+        : "incomplete";
   const dueDiligenceItems = normalizeDueDiligenceItems(input.dueDiligenceItems);
   const viewingLogs = normalizeViewingLogs(input.viewingLogs);
   const viewingQuestions = normalizeViewingQuestions(input.viewingQuestions);

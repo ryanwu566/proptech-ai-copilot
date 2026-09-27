@@ -1,4 +1,4 @@
-import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, MarketResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { CommuteAddressLookupResult, CommuteRouteEvidence, HoldingCostResult, LoanCalculationResult, LocationInsightResult, MarketResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { BuyingWizardStep } from "@/lib/buying-wizard-status";
 import type { ValuationInputs } from "@/lib/valuation-share";
@@ -6,6 +6,7 @@ import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/pr
 import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
 import type { JourneyPriceBasis } from "@/lib/closed-loop-journey";
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
+import { compactCommuteRouteEvidence } from "@/lib/commute-route-evidence";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -23,6 +24,8 @@ export type SavedCaseData = {
   loan?: LoanCalculationResult;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
+  commuteRoute?: CommuteRouteEvidence;
+  commuteTransit?: CommuteAddressLookupResult;
   marketInsight?: MarketResult;
   journeyContext?: {
     version: 1;
@@ -140,6 +143,7 @@ function compactCaseData(data: SavedCaseData): SavedCaseData {
       },
     } : undefined,
     locationInsight: data.locationInsight ? { ...data.locationInsight, resolved_location: null, nearest_pois: [] } : undefined,
+    commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),
     terrainReference: normalizeStoredTerrainReferenceEvidence(data.terrainReference) ?? migrateLegacyTerrainReference(data.terrainRisk),
     terrainRisk: undefined,
   };
