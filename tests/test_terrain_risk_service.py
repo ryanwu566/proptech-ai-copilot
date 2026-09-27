@@ -3,7 +3,8 @@
 import time
 import threading
 
-from services.terrain_risk_service import TerrainRiskLocationError, analyze_terrain_risk
+from services.terrain_risk_service import TerrainRiskLocationError, _default_providers, analyze_terrain_risk
+from services.terrain_risk_providers import GsmmaGeologyProvider
 
 
 def searcher(query: str) -> dict:
@@ -176,6 +177,45 @@ def layer(key: str, label: str, status: str, level: str, matched: bool) -> dict:
         "explanation": f"{label} test result",
         "source": {"name": label, "agency": "official", "source_url": "https://example.gov.tw", "status": status},
     }
+
+
+def test_default_geology_provider_is_the_gsmma_composite() -> None:
+    assert isinstance(_default_providers()["geology"], GsmmaGeologyProvider)
+
+
+def test_matched_geological_sensitivity_unknown_stays_visible_without_layer_severity() -> None:
+    matched = layer(
+        "geological_sensitivity", "地質敏感區", "available", "unknown", True
+    )
+    matched["value"] = {
+        "matched_count": 1,
+        "matches": [
+            {
+                "official_category": "活動斷層地質敏感區",
+                "canonical_category": "active_fault_sensitive_area",
+            }
+        ],
+    }
+    geology = GeologyProvider()
+    original = geology.analyze
+
+    def analyze(latitude, longitude, radius_m):
+        result = original(latitude, longitude, radius_m)
+        result["geological_sensitivity"] = matched
+        return result
+
+    geology.analyze = analyze
+    report = analyze_terrain_risk(
+        latitude=25.0,
+        longitude=121.5,
+        include_layers=["geological_sensitivity"],
+        providers=providers(geology=geology),
+    )
+    evidence = report["hazards"]["geological_sensitivity"]
+    factor = next(item for item in report["risk_factors"] if item["key"] == "geological_sensitivity")
+    assert evidence["matched"] is True
+    assert evidence["level"] == "unknown"
+    assert factor["level"] == "unknown"
 
 
 def test_coordinates_take_priority() -> None:

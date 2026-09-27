@@ -16,7 +16,7 @@ from services.map_service import search_location
 from services.official_data_registry import provider_registry
 from services.terrain_risk_providers import (
     ArdswcSlopeHazardProvider,
-    GeologyCloudProvider,
+    GsmmaGeologyProvider,
     NlscTerrainProvider,
     WraFloodProvider,
 )
@@ -181,7 +181,7 @@ def _default_providers() -> dict[str, Any]:
         "terrain": NlscTerrainProvider(),
         "slope_hazard": ArdswcSlopeHazardProvider(),
         "flood": WraFloodProvider(),
-        "geology": GeologyCloudProvider(),
+        "geology": GsmmaGeologyProvider(),
     }
 
 

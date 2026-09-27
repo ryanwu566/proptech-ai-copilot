@@ -34,7 +34,21 @@ All six principal data.gov.tw records above state free use under the **Governmen
 ## Needs offline download/ETL
 
 - **Flood:** the public JSON endpoint is a resource catalog, not a coordinate-risk API. It links 20 regional archives dated 2018-10-31 and ten SHP scenarios dated 2022-08-12: 6-hour 150/250/350 mm, 12-hour 200/300/400 mm, and 24-hour 200/350/500/650 mm. The future ingestion job should download once, verify checksums, normalize CRS and depth attributes, build scenario-aware spatial indexes, retain WRA build dates, and serve immutable versioned snapshots. It must preserve the official restriction that the map is for disaster-prevention reference and not a land-use-control determination.
-- **Geological sensitivity:** the [official CSV index](https://www.gsmma.gov.tw/uploads/1719480931378tHI9XTJa.csv) links individual RAR/ZIP/7z packages for active-fault, landslide, groundwater-recharge, and geological-heritage sensitive areas. A future ETL should fetch each package once, retain type/number/name/announcement date/document number, normalize TWD67/TWD97 central meridians, validate geometry, and create a versioned spatial index. The data.gov.tw metadata was updated 2024-06-27 and declares irregular updates.
+- **Geological sensitivity:** the [official CSV index](https://www.gsmma.gov.tw/uploads/1719480931378tHI9XTJa.csv) links individual RAR/ZIP/7z packages for active-fault, landslide, groundwater-recharge, and geological-heritage sensitive areas. The repository now contains deterministic offline tooling that preserves the official type/number/name/announcement date/document number, validates each package CRS, normalizes accepted Polygon/MultiPolygon geometry to EPSG:4326, emits a checksummed immutable artifact, and serves exact point intersections through a cached STRtree. Runtime selection requires an explicit `GSMMA_GEOLOGICAL_SENSITIVITY_DATASET_VERSION`; there is no `latest` fallback. ZIP is handled with traversal and resource limits; RAR/7z require approved operator extraction. The data.gov.tw metadata was updated 2024-06-27 and declares irregular updates. No real artifact has been generated, uploaded, configured, or production smoke-tested on this branch.
+
+### Geological sensitivity implementation and rollout boundary
+
+The official index columns are `No.`, `地質敏感區類型`, `地質敏感區編號`, `地質敏感區名稱`, `公告日期`, `文號`, `座標系統1`, `座標系統2`, and `下載連結`. The four documented official categories remain preserved verbatim alongside internal canonical identifiers. Package SHP attributes are retained under `original_attributes`; meanings not established by the index or package metadata are not guessed.
+
+The processed object layout is `processed/gsmma/geological-sensitivity/v1/<dataset-version>/`. A successful point miss means only that the point does not intersect polygons in that explicitly configured accepted artifact. Matches return every distinct overlapping announcement and remain `level=unknown`; they are not converted into a fabricated severity class. Source, checksum, artifact, dataset, CRS, and query failures remain separate fail-closed outcomes.
+
+Rollout state as of this branch:
+
+- implementation complete: yes (code, deterministic tooling, tests, and documentation)
+- artifact successfully built from official packages: no
+- artifact uploaded: no
+- production version configured: no
+- production smoke-tested: no
 
 ## Requires application/access approval
 

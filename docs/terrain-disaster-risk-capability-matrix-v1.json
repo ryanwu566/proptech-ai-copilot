@@ -458,26 +458,26 @@
   {
     "hazard_id": "geological_sensitivity",
     "display_name": "地質敏感區",
-    "capability_state": "unavailable",
+    "capability_state": "implemented_but_unverified",
     "provider_present": true,
-    "provider_kind": "placeholder",
+    "provider_kind": "local_snapshot",
     "source_name": "經濟部地質調查及礦業管理中心地質敏感區範圍數值檔",
     "official_source_proven": true,
     "data_asset_present": false,
     "coverage_scope": "官方已公告地質敏感區之逐區 SHP 下載；僅涵蓋公告區域，不是全國連續分類",
     "coverage_proven": false,
-    "spatial_matching_method": "CSV 索引連至逐公告區 RAR/ZIP/SHP；需離線下載、解壓、座標轉換與空間索引",
+    "spatial_matching_method": "離線驗證逐公告區 SHP、依套件 CRS 轉換為 EPSG:4326、建立不可變 artifact；runtime 以明確設定版本載入並用 STRtree 做點位交集",
     "geocoding_dependency": "既有地址定位或直接座標",
     "freshness_available": false,
     "source_version_available": false,
-    "failure_state": "unavailable；來源查詢沒有被實際設定",
-    "no_match_state": "not_assessed；不產生無風險判定",
+    "failure_state": "source_unavailable / checksum_mismatch / artifact_invalid / unsupported_dataset / crs_invalid / query_error；均不得轉成 no-match 或低風險",
+    "no_match_state": "artifact 成功載入且查詢完成後才可回 available、matched=false、level=unknown；不代表安全或沒有地質災害",
     "unknown_preserved": true,
     "not_assessed_preserved": true,
     "unavailable_preserved": true,
     "frontend_present": true,
     "evidence_metadata_present": true,
-    "property_case_transfer": "隨 terrainRisk 結果存在既有資料流；尚無可用可信證據",
+    "property_case_transfer": "結構化公告證據隨 terrainRisk 既有資料流傳遞；正式資料仍需 artifact 上傳與明確版本設定",
     "decision_effect": "reference_only",
     "public_source_audit": {
       "classification": "DOWNLOAD_ETL_REQUIRED",
@@ -504,20 +504,31 @@
         "nearest_distance": "yes, after offline SHP ingestion and indexing",
         "risk_class_or_value_lookup": "designation type/name only; no generic low/medium/high risk class"
       },
-      "implementation_note": "Runtime download and extraction of dozens of official archives is not acceptable; future ingestion must normalize CRS, retain announcement/version metadata, and publish an indexed immutable snapshot."
+      "implementation_note": "已實作離線正規化、幾何修復/隔離、不可變 artifact/manifest/checksum、明確版本 runtime、STRtree 點位查詢及 fail-closed provider；本分支未建立或上傳正式 artifact，也未設定或 smoke-test production。"
     },
     "supporting_files": [
+      "services/gsmma_geological_sensitivity_dataset.py",
+      "services/gsmma_geological_sensitivity_artifact.py",
+      "services/gsmma_geological_sensitivity_runtime.py",
+      "services/terrain_risk_providers/gsmma_geological_sensitivity_provider.py",
+      "services/terrain_risk_providers/gsmma_geology_provider.py",
+      "scripts/build_gsmma_geological_sensitivity_artifact.py",
       "services/terrain_risk_providers/geologycloud_provider.py",
       "services/terrain_risk_service.py",
       "frontend_next/components/data-visualization/terrain-status-matrix.tsx"
     ],
     "supporting_tests": [
+      "tests/test_gsmma_geological_sensitivity_dataset.py",
+      "tests/test_gsmma_geological_sensitivity_artifact.py",
+      "tests/test_gsmma_geological_sensitivity_runtime.py",
+      "tests/test_gsmma_geological_sensitivity_provider.py",
       "tests/test_terrain_risk_providers.py",
       "tests/test_terrain_risk_transparency.py"
     ],
     "confirmed_gaps": [
-      "沒有實際地質敏感區資料 asset",
-      "coverage、freshness 與 source version 未知"
+      "尚未用正式官方套件產生並審核 accepted artifact",
+      "artifact 尚未上傳，production 尚未設定明確 dataset version",
+      "production 尚未 smoke-test，實際套件 SHP 欄位分布仍待正式 build audit"
     ]
   }
 ]
