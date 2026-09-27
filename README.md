@@ -1,252 +1,188 @@
 # PropTech AI Copilot
 
-## Documentation
+[English](README.md) | [繁體中文](README.zh-TW.md)
 
-Start with [the documentation index](docs/README.md). It identifies the
-authoritative architecture, data contracts, trust boundaries, operations,
-release checks, and historical archive. Archived documents are context only;
-active documentation takes precedence.
+**An evidence-grounded decision-support system for property research in Taiwan, combining market, valuation, affordability, location, and spatial-risk evidence in one reviewable workflow.**
 
-> 推薦展示方式：**Next.js + FastAPI**。  
-> `app.py` 的 Streamlit 版本保留為 **legacy backup demo**。
+Property decisions depend on records held by different public agencies, map providers, financial sources, and local systems. PropTech AI Copilot integrates these uneven sources behind explicit trust boundaries: it shows what is available, where it came from, what remains unknown, and which conclusions still require professional or government confirmation. The repository is technically interesting as a full-stack information system—part data-integration platform, part spatial decision-support system, and part experiment in responsible human-AI decision workflows.
 
-這是一個台灣房仲 AI PropTech 競賽展示型 MVP。核心主線是 TaxOracle 稅務先知系統；Market Insight、Aegis-Credit 與 LexProp 則是 Lite 展示模組。
+## Live Deployment
 
-## 最短啟動方式
+**Frontend:** [proptech-ai-copilot.vercel.app](https://proptech-ai-copilot.vercel.app/)
 
-開啟兩個 Windows PowerShell 視窗。
+The public Next.js frontend and its Cloud Run FastAPI backend were reachable on 2026-09-27. The backend reported production mode, readiness, and durable PostgreSQL. A live deployment is not the same as universal data coverage: each result retains source, freshness, coverage, and unavailable-state boundaries.
 
-第一個視窗啟動 backend：
+Current status:
+
+- **Live deployment:** Vercel frontend, production-mode Cloud Run API, PostgreSQL persistence, Google location services, and a partially covered PLVR market/valuation dataset.
+- **Implemented:** the consumer decision workflow, deterministic financial/tax calculations, provider adapters, spatial evidence, data pipelines, release gates, and multilingual/accessibility foundations.
+- **Experimental / partial:** authenticated VNext workspaces, property identity, parcel sets, planning references, satellite context, and some official-data providers.
+- **Planned:** complete professional collaboration, active listings, title/ownership, a document vault, and evidence-grounded generative AI.
+- **Legacy:** the root Streamlit application and competition-era Lite/demo material.
+
+## Why This Project Exists
+
+Evaluating a property in Taiwan is not one database lookup. A buyer or reviewer may need transaction evidence, neighborhood context, loan assumptions, recurring costs, tax conditions, parcel clues, terrain or disaster references, and confirmation from a land office or other competent authority. These facts differ in scale, freshness, authority, and accessibility.
+
+The project explores a practical information-systems problem: how can fragmented evidence be assembled into a useful decision workflow without hiding uncertainty? Its design favors traceable intermediate evidence over a single opaque score. Missing records stay missing. A provider timeout does not become “low risk.” A sample valuation does not become official. A map point does not become a legal parcel boundary.
+
+## What It Does
+
+### Understand a property and its location
+
+The live workflow resolves locations, displays map context, and summarizes nearby places. Google Geocoding and Places run behind server-side adapters; TGOS remains conditional. Leaflet, uploaded GeoJSON/KML/Shapefiles, spatial analysis, and cadastral views provide decision context—not proof of ownership, legal area, or parcel boundaries.
+
+### Review market and valuation evidence
+
+Controlled batches normalize official Ministry of the Interior PLVR transactions into PostgreSQL for aggregates, comparables, search, valuation ranges, and trends. On 2026-09-27, live status reported 451,672 official rows across 21 cities/counties and 317 districts, plus 72 labelled sample rows. This dated snapshot has partial—not complete Taiwan—coverage; its outputs are not appraisals, bank valuations, or price guarantees.
+
+### Test affordability and ownership assumptions
+
+Deterministic services calculate loan, affordability, and holding-cost scenarios. TaxOracle returns eligibility, risk, rule traces, missing information, and follow-up prompts from versioned rules. Template explanations cannot alter outcomes or invent legal conclusions. These outputs are planning references, not underwriting, filings, or professional advice.
+
+### Inspect terrain and disaster-risk evidence
+
+Terrain analysis keeps layers separate rather than producing an unqualified safety score. Paths include ARDSWC tiles, GeologyCloud polygons, WRA flood artifacts, conditional NLSC observations, and optional Sentinel-2 context. Layer states remain explicit; incomplete evidence cannot produce an unrestricted “safe” conclusion or replace official and engineering review.
+
+### Assemble a decision case
+
+The frontend assembles evidence into summaries, comparisons, notes, readiness checks, and reports. Compacted browser cases exclude detailed provider payloads, precise locations, POIs, and comparables. A feature-gated VNext foundation adds authenticated workspaces, durable evidence, identity candidates, human confirmation, parcel sets, and PostgreSQL row-level security; it is not a completed professional product.
+
+## System Architecture
+
+```mermaid
+flowchart LR
+    U[User or reviewer] --> FE[Next.js frontend<br/>Vercel]
+    FE -->|consumer workflow| API[FastAPI API<br/>Cloud Run]
+    FE -->|compacted saved cases| BS[(Browser storage)]
+    FE -->|VNext session| AUTH[Supabase Auth]
+    AUTH -->|JWT, feature-gated| API
+    API --> S[Decision and evidence services]
+    S --> DB[(PostgreSQL)]
+    S --> A[Provider adapters]
+    A --> P[Official and public sources]
+    A --> X[(Validated datasets<br/>and spatial artifacts)]
+    O[Offline imports, migrations,<br/>and preprocessing] --> DB
+    O --> X
+```
+
+The separation is deliberate. FastAPI owns validation, policy, and orchestration; domain services own deterministic calculations and evidence contracts; adapters normalize external sources and bounded artifacts. PostgreSQL stores durable market, evidence, pilot, and VNext data. Heavy imports and spatial preprocessing publish to PostgreSQL or versioned artifacts outside the request path. See [System Architecture](docs/ARCHITECTURE.md) for the consumer/VNext boundary and deployment detail.
+
+## Data & Evidence Sources
+
+| Source | Purpose | Integration status | Trust / coverage note |
+| --- | --- | --- | --- |
+| Ministry of the Interior PLVR | Transactions, market aggregates, comparables, valuation | **Live verified** | Partial, mixed dataset; historical evidence only |
+| Google Geocoding / Places / Routes | Location, POIs, route context | **Live/conditional** | Credential, quota, and provider availability apply |
+| TGOS | Taiwan address observations | **Implemented/conditional** | Not accepted as a complete VNext identity provider |
+| ARDSWC / WRA / GeologyCloud | Landslide, flood, liquefaction references | **Implemented/partial** | Dataset-specific coverage; reference only |
+| NLSC | Basemaps, terrain/cadastral/village seams | **Partial/conditional** | Map context is not legal parcel identity |
+| RIS ODRP014 | Village demographics | **Implemented/conditional** | Loaded coverage and month require runtime evidence |
+| TDX | MRT/commute context | **Implemented; live unavailable during audit** | Manual in-memory snapshot refresh |
+| Central Bank Open Data | Mortgage-rate background | **Implemented/conditional** | Not a borrower-specific lending offer |
+| Sentinel-2 / Earth Engine | Recent satellite reference | **Feature-gated** | Not cadastral or statutory evidence |
+
+The detailed [Data Sources and Integration Status](docs/DATA_SOURCES.md) explains provider code paths, failure semantics, and authority boundaries.
+
+## Engineering Highlights
+
+1. **Fail-closed evidence semantics.** Market, valuation, terrain, identity, and decision layers preserve no-data, limited, unavailable, and unknown states.
+2. **Provider/adaptor architecture.** Normalized contracts expose credentials, timeouts, unsupported regions, demo fallbacks, and provenance to domain logic.
+3. **Data-engineering separation.** PLVR, RIS, and WRA workflows validate public data outside the request path, then serve bounded PostgreSQL or indexed-artifact queries.
+4. **Deterministic decisions before explanation.** Financial and tax services calculate outcomes; downstream explanation cannot alter them.
+5. **Spatial and operational trust controls.** Geometry parsing remains separate from legal authority, while checksums, RLS, origin controls, request limits, privacy-aware storage, release gates, and recovery runbooks protect system boundaries.
+
+## Selected Production / Validation Evidence
+
+- On 2026-09-27, the Vercel frontend returned HTTP 200; the Cloud Run health endpoint reported production mode, readiness, and durable PostgreSQL.
+- Google geocoding/Places reported enabled, while the PLVR market read model reported available with partial coverage.
+- Automated validation spans Python service, API, data, migration, security, and trust-boundary checks; Node/TypeScript contracts; and Playwright user journeys.
+- The hermetic release gate passed the full Python suite and its registry, market, valuation, privacy, deployment, recovery, and accessibility checks during this audit.
+- The Next.js 16.3.3 production build passed compilation, TypeScript validation, and route generation.
+
+These are validation observations, not claims about user adoption or permanent uptime. Reproduction and scope are documented in [Engineering and Validation](docs/ENGINEERING.md).
+
+## Research & Product Relevance
+
+This repository is an engineering artifact with clear relevance to information systems and digital transformation. It studies how heterogeneous public and private-facing data can be normalized, governed, and presented as operational evidence. The property journey is a spatial decision-support problem: location, market, risk, and financial signals must be interpreted together while preserving scale, coverage, and authority.
+
+It also provides a concrete human-AI workflow boundary. Deterministic systems produce facts and calculations; an explanation layer may help a person understand them; the person remains responsible for resolving conflicts and obtaining authoritative confirmation. That architecture creates opportunities for future evaluation of decision quality, data provenance comprehension, interface trust, and the operational effect of evidence-aware automation. It is not presented as a peer-reviewed research contribution.
+
+## My Role
+
+My contributions span product and decision-workflow design, GIS and public-data integration, full-stack implementation, database and pipeline engineering, trust-boundary design, QA, deployment validation, and technical documentation.
+
+The repository documents this work through source code, tests, architecture records, and production-acceptance artifacts. The project has involved collaboration; this section does not imply sole authorship, a particular job title, or a contribution percentage.
+
+## Technology
+
+| Area | Technology |
+| --- | --- |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS, Leaflet |
+| Backend | Python, FastAPI, Pydantic, Uvicorn |
+| Data | PostgreSQL, Supabase, psycopg, SQL migrations, object-storage artifacts |
+| Spatial | Shapely, pyproj, pyshp, Mapbox Vector Tile, GeoJSON/KML/Shapefile |
+| Providers | PLVR, Google Maps services, TGOS, TDX, NLSC, ARDSWC, WRA, RIS, Earth Engine |
+| Quality | Pytest, Playwright, Node test runner, ESLint, TypeScript, GitHub Actions |
+| Deployment | Vercel, Cloud Run, Docker; Render configuration retained |
+
+## Repository Structure
+
+```text
+backend/         FastAPI routes and application entry point
+frontend_next/   Next.js product frontend and browser acceptance tests
+services/        Domain services, adapters, providers, persistence, security
+database/        SQL schemas, migrations, registry, verification
+tests/           Python API, service, contract, migration, and safety tests
+scripts/         Data, migration, release, smoke, and operations tooling
+docs/            Architecture, data, trust, validation, and runbooks
+data/            Curated samples and runtime reference catalogs
+```
+
+## Running Locally
+
+Prerequisites: Python 3.12+, Node.js, npm, and Git.
+
+```powershell
+python -m pip install -r requirements.txt
+cd frontend_next
+npm ci
+cd ..
+```
+
+In separate PowerShell terminals:
 
 ```powershell
 .\scripts\start_backend.ps1
-```
-
-第二個視窗啟動 frontend：
-
-```powershell
 .\scripts\start_frontend.ps1
 ```
 
-瀏覽器開啟：
+Open `http://localhost:3000`. External providers and PostgreSQL-backed capabilities require the environment configuration described in `.env.example`, `frontend_next/.env.example`, and the documentation. Never place production credentials in the repository.
 
-```text
-http://localhost:3000
-```
+## Documentation
 
-展示前可執行：
+Start with the [documentation index](docs/README.md).
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\check_demo.ps1
-```
+- [System architecture](docs/ARCHITECTURE.md)
+- [Data sources and status](docs/DATA_SOURCES.md)
+- [Engineering and validation](docs/ENGINEERING.md)
+- [Technical case study](docs/PORTFOLIO_CASE_STUDY.md)
 
-## 專案亮點
+## Limitations & Responsible Use
 
-- TaxOracle 使用 `TX001` 到 `TX009` deterministic rule engine 判斷資格。
-- `eligibility_status` 與 `risk_score` 分離，風險分數不會取代法規結論。
-- AI 僅根據 structured result 產生中文說明，不會自行判斷資格或新增法規結論。
-- 沒有 `OPENAI_API_KEY` 時仍可使用固定模板 fallback。
-- 提供 Rule Trace、缺件清單、五年列管提醒、SQLite History 與可下載 HTML report。
-- Next.js 產品化展示 UI 與 Streamlit 備援版共存。
+- Public-data coverage and freshness vary. “Unavailable” and “no match” do not mean “no risk.”
+- The live PLVR dataset is substantial but incomplete, partially covered, and mixed with a small labelled sample set.
+- Valuation is not a formal appraisal, transaction guarantee, investment recommendation, or bank valuation.
+- Loan and rate outputs are scenarios, not underwriting or credit approval.
+- TaxOracle is a preliminary rule-based screening aid, not legal, tax, or filing advice.
+- Terrain, flood, liquefaction, satellite, and cadastral views are references; consult current official records and qualified professionals.
+- A map coordinate or raster layer does not establish parcel identity, boundary, area, title, or ownership.
+- Consumer saved cases are browser-local. VNext durable identity/workspace features remain partial and feature-gated.
+- Current explanations are templates. Evidence-grounded generative AI and RAG are future directions, not implemented claims.
+- The product is an active engineering/research portfolio and should not be used as the sole basis for a property, legal, financial, or safety decision.
 
-## 模組
+## License / Status
 
-| 模組 | 定位 |
-| --- | --- |
-| TaxOracle | 稅務資格快篩、風險燈號、Rule Trace、五年列管與 HTML report |
-| Market Insight Lite | mock 區域行情、六期趨勢、POI 與 ESG / SDG 11 Lite |
-| Map Insight v5 | 縣市／鄉鎮／路段快速選擇、手動地址搜尋、生活機能指標卡與三種底圖 |
-| Aegis-Credit Lite | 房貸風險展示型 heuristic，搭配中央銀行 OpenData 五大銀行月資料作市場背景參考 |
-| 銀行牌告利率 | 中央銀行 OpenData set_id=9464；依銀行查詢房貸相關牌告利率，失敗時使用展示資料 |
-| 房價估算 | 使用輕量實價登錄 sample 進行可比成交估算，顯示估值區間與信心分數 |
-| Aegis-Credit Lite | 展示型房貸風險 heuristic，不代表銀行核貸 |
-| LexProp Lite | 公開判決摘要模糊比對，不輸出完整門牌與個資 |
-| History | SQLite 保存並查看 TaxOracle 分析紀錄 |
+**Status:** active engineering/research portfolio and decision-support system with a verified live consumer deployment and experimental professional foundations.
 
-## TaxOracle Demo Cases
-
-| Demo case | 預期資格 | 預期燈號 |
-| --- | --- | --- |
-| `DEMO-LOW` | `eligible` | `green` |
-| `DEMO-MEDIUM` | `manual_review` | `yellow` |
-| `DEMO-HIGH` | `not_eligible` | `red` |
-
-## 完整啟動指令
-
-Backend：
-
-```powershell
-python -m uvicorn backend.api_main:app --reload
-```
-
-Frontend：
-
-```powershell
-cd frontend_next
-npm.cmd install
-npm.cmd run dev
-```
-
-Frontend 預設透過 `frontend_next/.env.example` 說明的設定連線：
-
-```text
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
-```
-
-Location Insight can optionally render fixed Google Maps Embed previews with
-`NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY`. This intentionally public key must be a
-dedicated Maps Embed API credential restricted by API and website/referrer;
-never reuse the server-only `GOOGLE_MAPS_API_KEY`.
-
-Streamlit legacy backup demo：
-
-```powershell
-streamlit run app.py
-```
-
-## 競賽展示流程
-
-1. 從 Dashboard 說明競賽展示模式三步驟。
-2. 進入 TaxOracle，選擇低風險案例並執行分析。
-3. 說明資格狀態、燈號、Rule Trace、缺件與五年列管。
-4. 強調 AI 只負責解釋，資格由 deterministic rule engine 判斷。
-5. 一鍵下載 HTML report。
-6. 快速帶過三個 Lite 模組。
-
-## 目前限制
-
-- 目前僅使用 mock CSV，不串接政府或外部即時 API。
-- Map Insight 可由 backend 使用 Google Places (New) 查詢交通、學校、公園、醫療、商圈與餐飲；API key 不會傳到前端。
-- 未設定 `GOOGLE_MAPS_API_KEY`、Google timeout、quota 或服務錯誤時，Map Insight 自動使用相同 schema 的 mock fallback。
-- Map Insight v2 的生活機能分數同時考慮設施類別、數量與距離，並提供最近設施及客戶溝通建議；結果不代表正式估價、投資或交通分析。
-- Map Insight v3 透過 `GET /map/google-health` 安全顯示 Google Geocoding / Places 啟用狀態，不回傳 API key；有 key 時地址搜尋優先使用 Google Geocoding。
-- 前端底圖可切換 OpenStreetMap、CartoDB Positron 與 Esri World Imagery，皆不需要 Google Maps frontend key。
-- Location Insight 的 Google 視覺情境預覽是獨立、可選功能；未設定瀏覽器 key 時不影響上述 Leaflet 底圖與既有流程。
-- 評分準則固定顯示六類設施權重與距離級距，方便理解分數來源。
-- Map Insight v5 可透過正式專案內的台灣路名資料快速選擇縣市、鄉鎮市區與路段，也保留完整地址手動搜尋。
-- 生活機能總分分為極佳、良好、普通、偏弱、不足五級；六大指標各自顯示權重、分數、POI 數量、最近距離與文字說明。
-- Aegis-Credit 的市場房貸利率參考來自中央銀行 OpenData「五大銀行存放款利率歷史月資料」；資料為月資料，不代表銀行實際核貸利率。
-- 央行 OpenData 無法使用時會自動切換展示資料 fallback，不影響房貸風險分析。
-- 銀行牌告利率僅供市場背景參考，不代表實際核貸利率；房價估算不代表正式鑑價、銀行估價或成交保證。
-- TGOS、TDX、PLVR 真實 adapter 尚未啟用。
-- 未來啟用地圖 adapter 時，API key 必須由 `.env` 或部署環境變數提供，不可寫入程式或 commit。
-- 不提供正式報稅、法律、估價、投資或銀行核貸判斷。
-- 不提供登入、PDF、RAG 或複雜地圖功能。
-- Lite 模組以概念展示為主，不代表正式產品承諾。
-
-## 免責聲明
-
-本系統僅供房仲與客戶進行初步稅務風險溝通與文件準備參考，不構成法律、稅務或申報保證。正式資格與稅額仍以主管稅捐機關、最新法令函釋及專業人士審查為準。
-
-## 測試
-
-Python：
-
-```powershell
-pytest
-```
-
-Next.js production build：
-
-```powershell
-cd frontend_next
-npm.cmd run build
-```
-
-## 常見錯誤排除
-
-- Backend 沒開：執行 `.\scripts\start_backend.ps1`，再確認 `http://localhost:8000/health`。
-- Port `8000` 或 `3000` 被占用：關閉舊程序後重新啟動。
-- `npm install` 失敗：確認 Node.js 與 npm 可用，再執行 `cd frontend_next` 與 `npm.cmd install`。
-- 沒有 Docker CLI：直接使用 PowerShell 腳本或上述手動指令，不需安裝 Docker 才能展示。
-
-## Future Roadmap
-
-- 串接經授權且可稽核的資料來源，保留 mock fallback。
-- 增加規則版本控管、人工覆核流程與操作稽核。
-- 擴充 CRM、案件協作與報告管理能力。
-- 依正式需求評估政府資料介接與資安治理。
-
-## 文件
-
-- [競賽展示講稿](docs/archive/release-history/demo_script.md)
-- [最終展示檢查清單](docs/archive/release-history/final_demo_checklist.md)
-- [展示截圖清單](docs/archive/release-history/screenshot_plan.md)
-- [Legacy 功能盤點](docs/archive/audits/legacy_feature_inventory.md)
-## 資料來源與可信度
-
-- 銀行牌告利率使用中央銀行 OpenData `set_id=9464`；服務失敗時切換 13 家金融機構展示資料。牌告資料不代表實際核貸利率。
-- 房價估算使用 `data/real_price_sample.csv` 的 72 筆展示型可比成交，採 IQR、相似度加權與 P25/P75；不是完整實價登錄、正式估價或銀行鑑價。
-- 房價估算可由後台將人工取得的官方 PLVR OpenData ZIP/CSV 清洗後匯入 Supabase/Postgres；系統不會在 Render runtime 自動下載或執行 ETL。
-- Map Insight 定位順序為 Google Geocoding、TGOS、展示資料；周遭設施使用 Google Places 或展示資料。
-- `OPERATIONAL` 僅表示店家正常營運，不代表目前正在營業；只有 Google 明確回傳 `openNow` 時才顯示目前營業或休息。
-- PLVR adapter 已預留但尚未啟用，不會在部署啟動時下載外部資料。
-
-### 可普及化房價估算
-
-房價估算資料層採 provider 架構，依序嘗試 Supabase/Postgres、SQLite index、`real_price_sample.csv` 與展示資料 fallback。使用者只需輸入估價條件，不需要下載 CSV、ZIP 或執行 ETL。
-
-`GET /valuation/data-status` 會顯示目前資料來源、官方資料期間、最近匯入範圍、官方／展示筆數、覆蓋範圍與更新時間。正式全台版本建議由 GitHub Actions 定期整理官方批次資料，再寫入 Supabase/Postgres；Render runtime 不負責下載或清洗大型資料。
-
-詳見 [房價估算普及化架構](docs/valuation_public_service_architecture.md)。
-
-Supabase/Postgres 建置方式請參考 [Supabase 估價資料庫設定](docs/supabase_valuation_setup.md)。使用 `psycopg[binary]` 作為最小 Postgres driver，避免加入大型 ORM，也避免 Render 需要額外編譯系統套件。
-
-### 手動匯入官方 PLVR OpenData
-
-先套用 `database/migrations/001_add_dedupe_key_to_real_price_transactions.sql` 與 `002_expand_valuation_import_runs.sql`，再以 dry-run 檢查人工取得的買賣實價登錄 ZIP、CSV 或資料夾：
-
-```powershell
-python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市 --dry-run
-python scripts/import_plvr_to_postgres.py --input data/raw/plvr/history --cities 台北市,新北市 --since 2025-01 --until 2026-12 --dry-run
-```
-
-確認品質檢查報告後，在本機或受控 CI 設定 `VALUATION_DATABASE_URL` 再執行正式匯入：
-
-```powershell
-python scripts/import_plvr_to_postgres.py --input C:\temp\plvr.zip --city 台北市
-```
-
-腳本以 `source + dedupe_key` 去重，重複執行不會再次插入相同交易；超過 10,000 筆需明確加入 `--confirm-large-import`。腳本只接受本機檔案，不會下載全台資料；原始 ZIP、完整 CSV 與資料庫連線字串都不可 commit。詳見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)。
-
-正式寫入使用 temporary staging table 分批 upsert，預設 `--chunk-size 200 --progress-every 100 --statement-timeout 30`；可用 `--max-write-rows 100` 先驗證小範圍寫入。
-
-### Rolling 3 年保留與六都擴充
-
-官方 PLVR 採 rolling 3 年保留策略。每季先匯入新資料、檢查 data-status，再以 dry-run 盤點超出保留期間的官方資料；只有維護者明確加入 `--confirm-delete` 才會刪除，展示樣本、社區資料與匯入紀錄不受影響。三年以前若需要長期趨勢，未來將另建統計摘要表。
-
-```powershell
-python scripts/prune_valuation_data.py --keep-years 3 --dry-run
-```
-
-六都近三年資料建議先對 `data/raw/plvr/pending_liudu/` 執行整體 dry-run，再分桃園、台中、台南、高雄逐城匯入。城市比對支援 `臺／台` 正規化。本階段不在 Render runtime 執行 ETL，也不將 raw ZIP、CSV 或資料庫連線字串 commit。
-
-詳見 [PLVR Rolling 3 年資料保留策略](docs/plvr_retention_policy.md) 與 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)。
-
-### 市場趨勢與未來情境
-
-`POST /valuation/trend` 僅使用最近三年內的官方 PLVR OpenData，排除展示樣本、未來月份與異常交易。系統依同路段、同區同型態、同行政區的順序選樣，顯示月／年中位單價、年化趨勢、波動度與 6、12、36 個月保守／中性／樂觀情境。情境年率限制於 -10% 至 +10%，僅供歷史趨勢理解，不代表成交保證、正式鑑價、銀行估價或投資建議。
-### 其他縣市 rolling 3 年準備
-
-六都已建立穩定的 rolling 3 年官方 PLVR 流程；其他縣市可沿用同一套 ETL，依基隆／新竹、苗彰投、雲嘉、屏宜花、東部離島與連江等分組先 dry-run，再分批匯入。Importer 僅辨識買賣主檔，並使用 `dedupe_key v2` 與 natural-key duplicate guard 避免重複交易。
-
-Render runtime 不執行 ETL，raw ZIP／CSV 不 commit，DB URL 與任何 secrets 不寫入 repo。完整流程請見 [PLVR 歷史資料匯入指南](docs/plvr_historical_import_guide.md)，後續功能切分請見 [Product Roadmap](docs/archive/implementation-phases/product_roadmap.md)。
-# PropTech AI Copilot
-
-## Release quality gate
-
-Before a release candidate is handed to production acceptance, run the local
-hermetic gate:
-
-```text
-python scripts/release_quality_gate.py
-```
-
-The gate checks tracked source contracts, the nationwide registry, market and
-valuation trust boundaries, property-case privacy, deployment declarations,
-and frontend recovery/accessibility surfaces. It does not call production,
-providers, a database, or an importer. Use
-`--skip-tests --skip-frontend-build` for contract-only validation.
-# Official data integration
-
-See [docs/official-data-provider-setup.md](docs/official-data-provider-setup.md) for the verified source boundary, offline validation commands, and credential guidance.
+No license file is currently present. Public visibility does not grant permission to copy, modify, or redistribute the code. A license should be selected explicitly by the repository owner before describing the project as open source.
