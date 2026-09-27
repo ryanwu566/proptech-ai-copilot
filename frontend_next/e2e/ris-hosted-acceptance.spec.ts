@@ -5,7 +5,7 @@
  * the rendered UI matches the real backend contract for each state.
  */
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 
 const HOME_HEADING = "用五個步驟整理看房資訊";
 
@@ -27,18 +27,30 @@ async function gotoLocationStage(page: Page) {
   await expect(page.getByRole("heading", { name: HOME_HEADING })).toBeVisible({ timeout: 20000 });
   const viewport = page.viewportSize();
   const isMobile = (viewport?.width ?? 1440) < 1024;
+  let locationButton: Locator;
   if (isMobile) {
-    const mobileSummary = page.locator("details.lg\\:hidden > summary").first();
-    if (await mobileSummary.count()) await mobileSummary.click();
+    const mobileStepper = page.locator("details summary", {
+      hasText: /選擇流程步驟|Select step/,
+    });
+    await expect(mobileStepper).toBeVisible({ timeout: 10000 });
+    await mobileStepper.click();
+
+    const mobileDetails = mobileStepper.locator("..");
+    locationButton = mobileDetails
+      .getByRole("button", { name: /位置與資料證據|Location and evidence/ })
+      .first();
+  } else {
+    const stepNav = page.locator("nav[aria-label='選擇流程步驟']");
+    locationButton = stepNav.getByRole("button", {
+      name: /位置與資料證據|Location and evidence/,
+    });
   }
-  const candidates = page.getByLabel(/位置與資料證據/);
-  const count = await candidates.count();
-  let clicked = false;
-  for (let i = 0; i < count; i += 1) {
-    const candidate = candidates.nth(i);
-    if (await candidate.isVisible()) { await candidate.click(); clicked = true; break; }
-  }
-  if (!clicked && count > 0) await candidates.first().click();
+  await expect(locationButton).toBeVisible({ timeout: 10000 });
+  await locationButton.click();
+  await expect(page.locator("#journey-stage-location")).toBeVisible({ timeout: 10000 }).catch(async () => {
+    await expect(locationButton).toBeVisible({ timeout: 10000 });
+    await locationButton.click();
+  });
   await expect(page.locator("#location-insight-calculator")).toBeVisible({ timeout: 25000 });
 }
 
@@ -56,7 +68,7 @@ async function analyze(page: Page, address: string) {
   await button.click();
 }
 
-test.describe("RIS hosted real-production acceptance", () => {
+test.describe("@hosted RIS hosted real-production acceptance", () => {
   test.describe.configure({ mode: "serial" });
   test.beforeEach(async ({ page }) => { await seedNoOnboarding(page); });
 
@@ -189,7 +201,7 @@ test.describe("RIS hosted real-production acceptance", () => {
   });
 });
 
-test.describe("RIS hosted mobile 390px", () => {
+test.describe("@hosted RIS hosted mobile 390px", () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test.beforeEach(async ({ page }) => { await seedNoOnboarding(page); });
 
@@ -232,7 +244,7 @@ test.describe("RIS hosted mobile 390px", () => {
 });
 
 
-test.describe("RIS hosted existing-product regression", () => {
+test.describe("@hosted RIS hosted existing-product regression", () => {
   test.describe.configure({ mode: "serial" });
   test.beforeEach(async ({ page }) => { await seedNoOnboarding(page); });
 
@@ -251,6 +263,13 @@ test.describe("RIS hosted existing-product regression", () => {
     const target = nav.first();
     await expect(target).toBeVisible({ timeout: 10000 });
     await target.click();
+    await expect.poll(
+      () => page.evaluate(() => document.activeElement?.hasAttribute("data-page-heading")),
+      { timeout: 5000 },
+    ).toBe(true).catch(async () => {
+      await expect(target).toBeVisible({ timeout: 10000 });
+      await target.click();
+    });
   }
 
   test("REGRESSION: Terrain Risk surface renders without fatal error", async ({ page }) => {
@@ -259,7 +278,7 @@ test.describe("RIS hosted existing-product regression", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: HOME_HEADING })).toBeVisible({ timeout: 20000 });
     await navigateTo(page, /Terrain Risk/);
-    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator("#terrain-risk-analysis")).toBeVisible({ timeout: 15000 });
     await expect(page).not.toHaveTitle(/error/i);
     expect(pageErrors, `page errors: ${pageErrors.join(" | ")}`).toEqual([]);
   });
@@ -270,7 +289,7 @@ test.describe("RIS hosted existing-product regression", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: HOME_HEADING })).toBeVisible({ timeout: 20000 });
     await navigateTo(page, /Market Insight/);
-    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator("#main-content")).toContainText(/Market|市場|行情/i, { timeout: 15000 });
     await expect(page).not.toHaveTitle(/error/i);
     expect(pageErrors, `page errors: ${pageErrors.join(" | ")}`).toEqual([]);
   });
@@ -281,7 +300,7 @@ test.describe("RIS hosted existing-product regression", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: HOME_HEADING })).toBeVisible({ timeout: 20000 });
     await navigateTo(page, /房價估算|Valuation/);
-    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 15000 });
     await expect(page).not.toHaveTitle(/error/i);
     expect(pageErrors, `page errors: ${pageErrors.join(" | ")}`).toEqual([]);
   });
