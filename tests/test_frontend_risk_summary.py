@@ -40,7 +40,8 @@ def run_risk_case(case_name: str) -> dict:
         // Inputs engineered so the numeric weighted score crosses the green
         // threshold (>=75): official high-confidence valuation, reasonable
         // price, healthy burdens, strong location.
-        const valuation = {{ confidence_score: 90, estimate_data_composition: "official_plvr", price_range: {{ low: 900, mid: 1000, high: 1100 }} }};
+        const comparable = {{ source: "official_plvr_opendata", area_ping: 30, unit_price_per_ping: 33, total_price: 1000, building_age_years: 10, similarity_score: 90, weight: 1 }};
+        const valuation = {{ valuation_status: "available", result_origin: "official", is_actionable: true, confidence: "high", confidence_score: 90, estimate_data_composition: "official", estimate_total_price: 1000, estimate_unit_price_per_ping: 33, price_range: {{ low: 900, mid: 1000, high: 1100 }}, valuation_explanation: {{ sample_count: 3, average_similarity_score: 90 }}, comparables: [comparable, comparable, comparable] }};
         const loan = {{ property_price_wan: 1000, income_burden_ratio: 0.2 }};
         const holding = {{ property_price_wan: 1000, income_burden_ratio: 0.25 }};
         const location = {{ location_score: 85, data_quality: {{ status: "good", missing_sources: [] }}, poi_summary: {{ risk_facility_count: 0 }}, valuation_context: {{ supports_price_reasonableness: true, explanation: "ok" }} }};
@@ -111,7 +112,7 @@ def test_risk_summary_has_explicit_rule_based_signals_and_weights() -> None:
 
 def test_price_and_burden_rules_are_explicit() -> None:
     # (a) Business logic rules remain intact in risk-summary.ts
-    for rule in ("valuation.price_range.low * 0.95", "valuation.price_range.high * 1.05", "0.3", "0.4", "0.35", "0.45", "location.location_score >= 75", "location.location_score < 55"):
+    for rule in ("valuation.priceRange.low * 0.95", "valuation.priceRange.high * 1.05", "0.3", "0.4", "0.35", "0.45", "location.location_score >= 75", "location.location_score < 55"):
         assert rule in LIB
     for status in ("undervalued", "reasonable", "overpriced"):
         assert status in LIB

@@ -1,6 +1,7 @@
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { buildTerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { classifyTerrainSafety } from "@/lib/terrain-safety-gate";
+import { getActionableValuation, type ActionableValuation } from "@/lib/valuation-result-state";
 
 export type RiskSummary = {
   overallSignal: "green" | "yellow" | "red" | "unknown";
@@ -33,16 +34,17 @@ export type RiskSummaryInputs = {
 
 export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   const { propertySearch, valuation, trend, loan, holding, location } = inputs;
+  const actionableValuation = getActionableValuation(valuation);
   const comparisonPrice = loan?.property_price_wan ?? holding?.property_price_wan;
-  const priceReasonableness = assessPrice(comparisonPrice, valuation);
-  const dataConfidence = assessDataConfidence(valuation);
+  const priceReasonableness = assessPrice(comparisonPrice, actionableValuation);
+  const dataConfidence = assessDataConfidence(actionableValuation);
   const riskFactors: RiskSummary["riskFactors"] = [];
   const positiveFactors: RiskSummary["positiveFactors"] = [];
   const missingChecks: string[] = [];
   const nextActions: string[] = [];
 
   addPriceFactors(priceReasonableness, riskFactors, positiveFactors);
-  addConfidenceFactors(dataConfidence, valuation, riskFactors, positiveFactors);
+  addConfidenceFactors(dataConfidence, actionableValuation, riskFactors, positiveFactors);
   const loanScore = assessBurden("loan", loan?.income_burden_ratio, riskFactors, positiveFactors);
   const holdingScore = assessBurden("holding", holding?.income_burden_ratio, riskFactors, positiveFactors);
   const locationScore = assessLocation(location, riskFactors, positiveFactors);
@@ -50,7 +52,7 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   const terrainReference = buildTerrainReferenceEvidence(inputs.terrainRisk);
   const terrainSafety = classifyTerrainSafety(inputs.terrainRisk);
 
-  if (!valuation) missingChecks.push("riskSummary.missingValuation");
+  if (!actionableValuation) missingChecks.push("riskSummary.missingValuation");
   if (comparisonPrice === undefined) missingChecks.push("riskSummary.missingPrice");
   if (!loan) missingChecks.push("riskSummary.missingLoan");
   else if (loan.income_burden_ratio === null) missingChecks.push("riskSummary.missingIncome");
@@ -73,11 +75,11 @@ export function buildRiskSummary(inputs: RiskSummaryInputs): RiskSummary {
   }
 
   const completedCoreModules = [loan, holding, location].filter(Boolean).length;
-  const hasEnoughData = Boolean(valuation) && completedCoreModules >= 2;
+  const hasEnoughData = Boolean(actionableValuation) && completedCoreModules >= 2;
   const completenessScore = [propertySearch, valuation, trend, loan, holding, location].filter(Boolean).length / 6 * 100;
-  const valuationScore = valuation?.confidence_score ?? 0;
+  const valuationScore = actionableValuation?.confidenceScore;
   const priceScore = { undervalued: 90, reasonable: 80, overpriced: 30, unknown: 45 }[priceReasonableness.status];
-  const weightedScore = Math.round(
+  const weightedScore = valuationScore === undefined ? null : Math.round(
     valuationScore * 0.25
     + priceScore * 0.25
     + loanScore * 0.15
@@ -118,18 +120,18 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-function assessPrice(price: number | undefined, valuation?: ValuationResult): RiskSummary["priceReasonableness"] {
+function assessPrice(price: number | undefined, valuation: ActionableValuation | null): RiskSummary["priceReasonableness"] {
   if (price === undefined || !valuation) return { status: "unknown", label: "riskSummary.priceUnknown", explanation: "riskSummary.priceUnknownExplanation" };
-  if (price < valuation.price_range.low * 0.95) return { status: "undervalued", label: "riskSummary.priceUndervalued", explanation: "riskSummary.priceUndervaluedExplanation", params: { price: price.toLocaleString() } };
-  if (price > valuation.price_range.high * 1.05) return { status: "overpriced", label: "riskSummary.priceOverpriced", explanation: "riskSummary.priceOverpricedExplanation", params: { price: price.toLocaleString() } };
+  if (price < valuation.priceRange.low * 0.95) return { status: "undervalued", label: "riskSummary.priceUndervalued", explanation: "riskSummary.priceUndervaluedExplanation", params: { price: price.toLocaleString() } };
+  if (price > valuation.priceRange.high * 1.05) return { status: "overpriced", label: "riskSummary.priceOverpriced", explanation: "riskSummary.priceOverpricedExplanation", params: { price: price.toLocaleString() } };
   return { status: "reasonable", label: "riskSummary.priceReasonable", explanation: "riskSummary.priceReasonableExplanation", params: { price: price.toLocaleString() } };
 }
 
-function assessDataConfidence(valuation?: ValuationResult): RiskSummary["dataConfidence"] {
+function assessDataConfidence(valuation: ActionableValuation | null): RiskSummary["dataConfidence"] {
   if (!valuation) return "unknown";
-  const official = valuation.estimate_data_composition.startsWith("official");
-  if (valuation.confidence_score >= 80 && official) return "high";
-  if (valuation.confidence_score >= 60) return "medium";
+  const official = valuation.result.estimate_data_composition.startsWith("official");
+  if (valuation.confidenceScore >= 80 && official) return "high";
+  if (valuation.confidenceScore >= 60) return "medium";
   return "low";
 }
 
@@ -171,8 +173,8 @@ function addPriceFactors(price: RiskSummary["priceReasonableness"], risks: RiskS
   if (price.status === "undervalued") positives.push({ key: "price", title: "riskSummary.titlePrice", message: price.explanation, params: { ...price.params, _messageKey: price.explanation } });
 }
 
-function addConfidenceFactors(confidence: RiskSummary["dataConfidence"], valuation: ValuationResult | undefined, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"]) {
-  if (confidence === "high") positives.push({ key: "confidence", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceHighMessage", params: { confidence: valuation?.confidence_score ?? 0 } });
+function addConfidenceFactors(confidence: RiskSummary["dataConfidence"], valuation: ActionableValuation | null, risks: RiskSummary["riskFactors"], positives: RiskSummary["positiveFactors"]) {
+  if (confidence === "high" && valuation) positives.push({ key: "confidence", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceHighMessage", params: { confidence: valuation.confidenceScore } });
   if (confidence === "low") risks.push({ key: "confidence", level: "high", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceLowMessage" });
   if (confidence === "medium") risks.push({ key: "confidence", level: "medium", title: "riskSummary.titleConfidence", message: "riskSummary.confidenceMediumMessage" });
 }

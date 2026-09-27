@@ -43,7 +43,8 @@ def run_summary_case(case_name: str) -> dict:
         const {{ classifyTerrainSafety }} = loadLib("terrain-safety-gate");
 
         // Positive non-terrain baseline.
-        const valuation = {{ confidence: "high", confidence_score: 90, confidence_reason: "ok", price_range: {{ low: 900, mid: 1000, high: 1100 }}, valuation_explanation: {{ sample_count: 5 }} }};
+        const comparable = {{ source: "official_plvr_opendata", area_ping: 30, unit_price_per_ping: 33, total_price: 1000, building_age_years: 10, similarity_score: 90, weight: 1 }};
+        const valuation = {{ valuation_status: "available", result_origin: "official", is_actionable: true, confidence: "high", confidence_score: 90, confidence_reason: "ok", estimate_data_composition: "official", estimate_total_price: 1000, estimate_unit_price_per_ping: 33, price_range: {{ low: 900, mid: 1000, high: 1100 }}, valuation_explanation: {{ sample_count: 5, average_similarity_score: 90 }}, comparables: [comparable, comparable, comparable] }};
         const loan = {{ affordability_level: "comfortable", monthly_payment: 30000, affordability_message: "ok" }};
         const holding = {{ affordability_level: "comfortable", affordability_message: "ok" }};
         const location = {{ location_score: 85, data_quality: {{ status: "good", missing_sources: [] }}, valuation_context: {{ explanation: "ok" }} }};

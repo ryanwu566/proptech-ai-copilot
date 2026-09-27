@@ -50,6 +50,13 @@ def test_zero_grace_period_has_stable_null_fields() -> None:
     assert result["post_grace_monthly_payment"] is None
 
 
+def test_halving_property_price_halves_monthly_payment_with_same_terms() -> None:
+    full_price = calculate_loan(2000, down_payment_ratio=0.2, annual_interest_rate=2.2, loan_years=30)
+    half_price = calculate_loan(1000, down_payment_ratio=0.2, annual_interest_rate=2.2, loan_years=30)
+
+    assert half_price["monthly_payment"] == pytest.approx(full_price["monthly_payment"] / 2, abs=1)
+
+
 @pytest.mark.parametrize(
     ("field", "value"),
     [

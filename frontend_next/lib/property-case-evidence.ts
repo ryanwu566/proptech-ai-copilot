@@ -1,6 +1,6 @@
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import { buildTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
-import { getPropertySearchDisplayState, getValuationTrendDisplayState } from "@/lib/valuation-result-state";
+import { getActionableValuation, getPropertySearchDisplayState, getValuationTrendDisplayState } from "@/lib/valuation-result-state";
 
 export type PropertyCaseEvidenceStatus = "trusted" | "manual" | "partial" | "unavailable" | "not_assessed";
 export type PropertyCaseEvidenceSource = "official_valuation" | "manual_user_input" | "loan_reference" | "holding_reference" | "location_reference" | "terrain_reference" | "tax_reference" | "none";
@@ -34,19 +34,16 @@ export function getTrustedValuationEvidence(result?: ValuationResult | null): Pr
   if (contract.valuation_status === "demo" || contract.result_origin === "demo") return unavailable("官方估價", "示範資料不可轉入案件資料");
   if (contract.valuation_status === "no_data") return partial("官方估價", "官方可比成交資料不足");
   if (contract.valuation_status === "unavailable" || contract.result_origin === "none") return unavailable("官方估價", "官方估價暫時不可用");
-  const values = [result.estimate_total_price, result.estimate_unit_price_per_ping, result.price_range?.low, result.price_range?.mid, result.price_range?.high];
-  if (contract.valuation_status !== "available" || contract.result_origin !== "official" || contract.is_actionable !== true || !values.every((value) => typeof value === "number" && Number.isFinite(value) && value > 0)) {
+  const actionable = getActionableValuation(result);
+  if (!actionable) {
     return unavailable("官方估價", "估價契約或數值不完整");
-  }
-  if (!Array.isArray(result.comparables) || result.comparables.length < 3 || !result.comparables.every((row) => row.source === "official_plvr_opendata")) {
-    return partial("官方估價", "官方可比成交筆數不足或來源不完整");
   }
   return {
     status: "trusted",
     source: "official_valuation",
     label: "官方估價",
-    value: `${result.estimate_total_price} 萬元`,
-    range: `${result.price_range.low}–${result.price_range.high} 萬元`,
+    value: `${actionable.estimateTotal} 萬元`,
+    range: `${actionable.priceRange.low}–${actionable.priceRange.high} 萬元`,
     confidence: result.confidence,
     reason: "官方可比成交資料符合可轉移條件",
     transferable: true,

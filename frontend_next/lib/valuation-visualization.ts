@@ -56,7 +56,7 @@ export function buildValuationVisualModel(result: ValuationResult | undefined, t
   if (!result) return { state: "unavailable", actionable: false, metrics: { estimateTotal: null, estimateUnit: null, confidence: null, comparableCount: null }, priceRange: null, distribution: null, trend: [], evidence: [] };
   const display = getValuationDisplayState(result);
   const priceRange = display.kind === "available" ? validRange(result.price_range.low, result.price_range.mid, result.price_range.high) : null;
-  const distribution = display.kind === "available" ? validRange(result.unit_price_distribution.p25, result.unit_price_distribution.weighted_median, result.unit_price_distribution.p75) : null;
+  const distribution = display.kind === "available" ? validRange(result.unit_price_distribution?.p25, result.unit_price_distribution?.weighted_median, result.unit_price_distribution?.p75) : null;
   const estimate = display.kind === "available" && positive(result.estimate_unit_price_per_ping) ? result.estimate_unit_price_per_ping : null;
   return {
     state: display.kind,

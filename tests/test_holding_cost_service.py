@@ -25,6 +25,15 @@ def test_without_loan_payment_still_calculates_non_loan_costs() -> None:
     assert result["monthly_total_holding_cost"] > 0
 
 
+def test_loan_monthly_payment_remains_canonical_twd_downstream() -> None:
+    result = calculate_holding_cost(1000, loan_monthly_payment=30_376, include_tax_estimate=False, annual_insurance=0)
+
+    assert result["input"]["loan_monthly_payment"] == 30_376
+    assert result["loan_monthly_payment"] == 30_376
+    assert result["cost_breakdown"][0]["monthly_amount"] == 30_376
+    assert result["monthly_total_holding_cost"] == 30_376
+
+
 def test_without_income_is_unknown() -> None:
     result = calculate_holding_cost(1000)
     assert result["income_burden_ratio"] is None

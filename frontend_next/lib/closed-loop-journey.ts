@@ -11,6 +11,7 @@ import type {
 import { getSafeJourneyPropertyContext, type JourneyPropertyContext, type LocationMarketDisplayStatus } from "@/lib/location-market-journey";
 import type { PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
 import type { StoredTerrainReferenceEvidenceV1, TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
+import { getActionableValuation } from "@/lib/valuation-result-state";
 
 export type JourneyPriceBasis = "asking" | "valuation" | "manual";
 
@@ -177,8 +178,8 @@ export function setJourneyValuation(
   result: ValuationResult | undefined,
   status: PriceJourneyDisplayStatus,
 ): ClosedLoopJourneyState {
-  const previousMidpoint = state.valuationResult?.price_range.mid;
-  const nextMidpoint = result?.price_range.mid;
+  const previousMidpoint = getActionableValuation(state.valuationResult)?.priceRange.mid;
+  const nextMidpoint = getActionableValuation(result)?.priceRange.mid;
   let next: ClosedLoopJourneyState = { ...state, valuationResult: result, valuationStatus: status };
   if (state.priceBasis === "valuation") next = { ...next, activePriceWan: positive(nextMidpoint) ? nextMidpoint : undefined };
   if (state.priceBasis !== "asking" && !state.activePriceWan && positive(nextMidpoint)) {
@@ -196,7 +197,7 @@ export function selectJourneyPrice(
   const amount = basis === "asking"
     ? state.propertyContext.askingPriceWan
     : basis === "valuation"
-      ? state.valuationResult?.price_range.mid
+      ? getActionableValuation(state.valuationResult)?.priceRange.mid
       : manualPriceWan;
   const next = {
     ...state,

@@ -57,6 +57,7 @@ function valuationStatus(result: ValuationResult | undefined): PriceJourneyDispl
   if (state.kind === "demo") return "demo";
   if (state.kind === "no_data") return "no_data";
   if (state.kind === "unavailable") return "unavailable";
+  if (state.kind === "error") return "unavailable";
   if (state.kind === "partial") return "partial";
   return "available";
 }
