@@ -7,6 +7,7 @@ import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence,
 import type { JourneyPriceBasis } from "@/lib/closed-loop-journey";
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
 import { compactCommuteRouteEvidence } from "@/lib/commute-route-evidence";
+import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnchorV1 } from "@/lib/journey-property-identity";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -17,6 +18,7 @@ export const MAX_SAVED_CASES = 10;
 
 export type SavedCaseData = {
   inputs: ValuationInputs;
+  propertyIdentityAnchor?: JourneyPropertyIdentityAnchorV1;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
   valuationEvidence?: PropertyCaseEvidence;
@@ -128,6 +130,7 @@ function compactCaseData(data: SavedCaseData): SavedCaseData {
   const valuationEvidence = getTrustedValuationEvidence(data.valuation);
   return {
     ...data,
+    propertyIdentityAnchor: normalizeJourneyPropertyIdentityAnchor(data.propertyIdentityAnchor) ?? undefined,
     propertySearch: data.propertySearch ? { ...data.propertySearch, matched_transactions: [] } : undefined,
     valuationEvidence,
     valuation: data.valuation && valuationEvidence.transferable ? {

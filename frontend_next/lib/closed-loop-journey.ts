@@ -14,11 +14,17 @@ import { getSafeJourneyPropertyContext, type JourneyPropertyContext, type Locati
 import type { PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
 import type { StoredTerrainReferenceEvidenceV1, TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { getActionableValuation } from "@/lib/valuation-result-state";
+import {
+  buildJourneyPropertyIdentityAnchor,
+  reconcileJourneyPropertyIdentityAnchor,
+  type JourneyPropertyIdentityAnchorV1,
+} from "@/lib/journey-property-identity";
 
 export type JourneyPriceBasis = "asking" | "valuation" | "manual";
 
 export type ClosedLoopJourneyState = {
   propertyContext: JourneyPropertyContext;
+  identityAnchor?: JourneyPropertyIdentityAnchorV1;
   propertySearchResult?: PropertySearchResult;
   locationResult?: LocationInsightResult;
   locationStatus: LocationMarketDisplayStatus;
@@ -42,6 +48,11 @@ export type ClosedLoopJourneyState = {
   taxResult?: TaxResult;
 };
 
+type JourneyIdentityTransitionOptions = {
+  now?: () => string;
+  idFactory?: () => string;
+};
+
 function positive(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
@@ -62,11 +73,16 @@ export function journeyValuationKey(context: JourneyPropertyContext): string {
   ].join("|");
 }
 
-export function createClosedLoopJourneyState(input?: Partial<JourneyPropertyContext>): ClosedLoopJourneyState {
+export function createClosedLoopJourneyState(
+  input?: Partial<JourneyPropertyContext>,
+  identityOptions: JourneyIdentityTransitionOptions = {},
+): ClosedLoopJourneyState {
   const propertyContext = getSafeJourneyPropertyContext(input);
   const askingPriceWan = positive(propertyContext.askingPriceWan) ? propertyContext.askingPriceWan : undefined;
+  const hasAddress = Boolean(journeyAddressKey(propertyContext).replaceAll("|", ""));
   return {
     propertyContext,
+    ...(hasAddress ? { identityAnchor: buildJourneyPropertyIdentityAnchor({ context: propertyContext }, identityOptions) } : {}),
     locationStatus: "not_started",
     commuteRouteStatus: "not_started",
     commuteTransitStatus: "not_started",
@@ -78,7 +94,11 @@ export function createClosedLoopJourneyState(input?: Partial<JourneyPropertyCont
   };
 }
 
-export function updateJourneyProperty(state: ClosedLoopJourneyState, input: Partial<JourneyPropertyContext>): ClosedLoopJourneyState {
+export function updateJourneyProperty(
+  state: ClosedLoopJourneyState,
+  input: Partial<JourneyPropertyContext>,
+  identityOptions: JourneyIdentityTransitionOptions = {},
+): ClosedLoopJourneyState {
   const propertyContext = getSafeJourneyPropertyContext({ ...state.propertyContext, ...input });
   const addressChanged = journeyAddressKey(state.propertyContext) !== journeyAddressKey(propertyContext);
   const valuationChanged = journeyValuationKey(state.propertyContext) !== journeyValuationKey(propertyContext);
@@ -86,8 +106,11 @@ export function updateJourneyProperty(state: ClosedLoopJourneyState, input: Part
 
   let next: ClosedLoopJourneyState = { ...state, propertyContext };
   if (addressChanged) {
+    const hasAddress = Boolean(journeyAddressKey(propertyContext).replaceAll("|", ""));
     next = {
       ...next,
+      propertySearchResult: undefined,
+      identityAnchor: hasAddress ? buildJourneyPropertyIdentityAnchor({ context: propertyContext }, identityOptions) : undefined,
       locationResult: undefined,
       locationStatus: "not_started",
       commuteRouteEvidence: undefined,
@@ -169,8 +192,21 @@ export function setJourneyLocationResult(
   state: ClosedLoopJourneyState,
   result: LocationInsightResult | null,
   status: LocationMarketDisplayStatus,
+  identityOptions: JourneyIdentityTransitionOptions = {},
 ): ClosedLoopJourneyState {
-  return { ...state, locationResult: result ?? undefined, locationStatus: status };
+  if (!result) return { ...state, locationResult: undefined, locationStatus: status };
+  const identityAnchor = state.identityAnchor
+    ? reconcileJourneyPropertyIdentityAnchor(state.identityAnchor, state.propertyContext, result, identityOptions)
+    : buildJourneyPropertyIdentityAnchor({ context: state.propertyContext, location: result }, identityOptions);
+  return { ...state, identityAnchor, locationResult: result, locationStatus: status };
+}
+
+export function restoreJourneyLocationResult(
+  state: ClosedLoopJourneyState,
+  result: LocationInsightResult,
+  status: LocationMarketDisplayStatus,
+): ClosedLoopJourneyState {
+  return { ...state, locationResult: result, locationStatus: status };
 }
 
 export function setJourneyCommuteRoute(
