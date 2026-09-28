@@ -94,6 +94,11 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
 
   useEffect(() => { onStatusRef.current = onStatusChange; }, [onStatusChange]);
   useEffect(() => { onEvidenceRef.current = onEvidence; }, [onEvidence]);
+  useEffect(() => () => {
+    requestId.current += 1;
+    onStatusRef.current = undefined;
+    onEvidenceRef.current = undefined;
+  }, []);
 
   function clearRoute(reason: Exclude<CommuteRouteReasonCode, "success"> = "destination_required") {
     requestId.current += 1;

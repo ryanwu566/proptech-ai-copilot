@@ -149,6 +149,7 @@ export function updateJourneyProperty(
 export function updateJourneyMarketLocation(
   state: ClosedLoopJourneyState,
   input: Pick<JourneyPropertyContext, "city" | "district" | "road">,
+  identityOptions: JourneyIdentityTransitionOptions = {},
 ): ClosedLoopJourneyState {
   const propertyContext = getSafeJourneyPropertyContext({
     ...state.propertyContext,
@@ -166,9 +167,12 @@ export function updateJourneyMarketLocation(
     };
   }
 
+  const hasAddress = Boolean(journeyAddressKey(propertyContext).replaceAll("|", ""));
   const next = {
     ...state,
     propertyContext,
+    propertySearchResult: undefined,
+    identityAnchor: hasAddress ? buildJourneyPropertyIdentityAnchor({ context: propertyContext }, identityOptions) : undefined,
     locationResult: undefined,
     locationStatus: "not_started" as const,
     commuteRouteEvidence: undefined,

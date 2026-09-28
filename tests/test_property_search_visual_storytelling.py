@@ -19,7 +19,7 @@ def test_property_search_visual_model_reuses_actionable_state() -> None:
     assert "Number.isFinite" in helper
     assert "?? 0" not in helper
     assert "|| 0" not in helper
-    assert "(result.summary.matched_count ?? 0) > 0" in state
+    assert "(result.summary?.matched_count ?? 0) > 0" in state
 
 
 def test_property_search_visuals_are_accessible_responsive_and_collapsed() -> None:

@@ -93,6 +93,45 @@ export function getActionableValuation(value: unknown): ActionableValuation | nu
   };
 }
 
+/**
+ * Validates the bounded valuation summary stored with a saved case. Comparables
+ * are deliberately removed at that boundary, so this is stricter about the
+ * remaining official-result contract while requiring the array to stay empty.
+ */
+export function getStoredActionableValuation(value: unknown): ActionableValuation | null {
+  const result = record(value);
+  const range = record(result?.price_range);
+  const explanation = record(result?.valuation_explanation);
+  if (
+    result?.valuation_status !== "available"
+    || result.result_origin !== "official"
+    || result.is_actionable !== true
+    || !officialComposition(result.estimate_data_composition)
+    || !positive(result.estimate_total_price)
+    || !positive(result.estimate_unit_price_per_ping)
+    || !positive(range?.low)
+    || !positive(range?.mid)
+    || !positive(range?.high)
+    || range.low > range.mid
+    || range.mid > range.high
+    || !finiteScore(result.confidence_score)
+    || !confidence(result.confidence)
+    || !nonNegativeInteger(explanation?.sample_count)
+    || explanation.sample_count < 3
+    || !finiteScore(explanation.average_similarity_score)
+    || !Array.isArray(result.comparables)
+    || result.comparables.length !== 0
+  ) return null;
+  return {
+    result: value as ActionableValuationResult,
+    estimateTotal: result.estimate_total_price,
+    estimateUnit: result.estimate_unit_price_per_ping,
+    priceRange: { low: range.low, mid: range.mid, high: range.high },
+    confidenceScore: result.confidence_score,
+    sampleCount: explanation.sample_count,
+  };
+}
+
 export function getValuationDisplayState(value: unknown): ValuationDisplayState {
   const result = record(value);
   if (!result) return { kind: "error", actionable: false, message: "目前無法產出可採用的完整估價結果。" };

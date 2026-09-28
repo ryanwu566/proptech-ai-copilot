@@ -55,16 +55,14 @@ _DEFAULT_MOCK_ADAPTER = MockRoutesAdapter()
 def mock_fallback_allowed(environ: Mapping[str, str] | None = None) -> bool:
     """Return whether synthetic mock route estimates may be shown.
 
-    Allowed only when the runtime is not production-like, unless an operator has
-    explicitly opted in with ``DEMO_ROUTES_FALLBACK`` (demo mode). Production-like
-    runtimes never surface a fabricated route.
+    Allowed only when the runtime is not production-like. Production and preview
+    runtimes never surface a fabricated route, even if a legacy demo flag is set.
     """
 
     values = environ if environ is not None else os.environ
     mode = (values.get(APP_ENV_ENV, "development") or "development").strip().lower()
     if mode in PRODUCTION_MODES:
-        # Production/preview: only an explicit demo opt-in enables mock estimates.
-        return (values.get(DEMO_ROUTES_FALLBACK_ENV, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+        return False
     return True
 
 

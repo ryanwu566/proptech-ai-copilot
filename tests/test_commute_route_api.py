@@ -74,7 +74,7 @@ def test_production_without_key_is_unavailable_no_mock_numbers(monkeypatch: pyte
     assert body["fallback"] is False
 
 
-def test_production_demo_optin_allows_marked_mock(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_production_demo_optin_still_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("DEMO_ROUTES_FALLBACK", "true")
     response = client.post("/commute/route", json={
@@ -86,9 +86,11 @@ def test_production_demo_optin_allows_marked_mock(monkeypatch: pytest.MonkeyPatc
     })
     assert response.status_code == 200
     body = response.json()
-    assert body["status"] == "resolved"
-    assert body["source"] == "mock"
-    assert body["fallback"] is True
+    assert body["status"] == "unavailable"
+    assert body["source"] == "none"
+    assert body["duration_min"] is None
+    assert body["distance_m"] is None
+    assert body["fallback"] is False
 
 
 def test_default_mode_is_transit() -> None:

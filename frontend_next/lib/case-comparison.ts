@@ -1,6 +1,6 @@
 import type { SavedCase } from "@/lib/case-storage";
 import { terrainReferenceStateLabel } from "@/lib/terrain-reference-evidence";
-import { getActionableValuation } from "@/lib/valuation-result-state";
+import { getStoredActionableValuation } from "@/lib/valuation-result-state";
 
 // 資料不足，排序信心較低；尚未快篩；本模組不以缺資料補成中性分數。
 
@@ -106,7 +106,7 @@ export function getCaseCompareMissingFields(saved: SavedCase): string[] {
 
 function toComparedCase(saved: SavedCase): ComparedCase {
   const { valuation, loan, holdingCost, locationInsight, terrainReference, riskSummary, taxOracle, inputs, valuationEvidence } = saved.data;
-  const actionableValuation = getActionableValuation(valuation);
+  const actionableValuation = getStoredActionableValuation(valuation);
   const valuationTrusted = valuationEvidence?.transferable === true && actionableValuation !== null;
   return {
     caseId: saved.id,

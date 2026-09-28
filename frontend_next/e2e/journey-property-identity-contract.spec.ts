@@ -5,6 +5,7 @@ import {
   createClosedLoopJourneyState,
   restoreJourneyLocationResult,
   setJourneyLocationResult,
+  updateJourneyMarketLocation,
   updateJourneyProperty,
 } from "../lib/closed-loop-journey";
 import {
@@ -555,6 +556,67 @@ test("changing property identity replaces the anchor and clears all Address A ev
   expect(addressB.loanResult).toBeUndefined();
   expect(addressB.holdingResult).toBeUndefined();
   expect(addressB.taxResult).toBeUndefined();
+});
+
+test("first accepted geocoding enriches an anchor across equivalent Taiwan character variants", () => {
+  const initialContext: JourneyPropertyContext = {
+    city: "\u53f0\u5317\u5e02",
+    district: "\u4fe1\u7fa9\u5340",
+    road: "\u5e02\u5e9c\u8def1\u865f",
+    addressSummary: "\u53f0\u5317\u5e02\u4fe1\u7fa9\u5340\u5e02\u5e9c\u8def1\u865f",
+    sourceLabel: "Property selection",
+    selectionStatus: "selected",
+  };
+  const stored = buildJourneyPropertyIdentityAnchor(
+    { context: initialContext },
+    { now: () => CHECKED_AT, idFactory: () => OPAQUE_UUID },
+  );
+  const accepted = locationResult({
+    resolved_location: {
+      address_label: "\u81fa\u5317\u5e02\u4fe1\u7fa9\u5340\u5e02\u5e9c\u8def1\u865f",
+      latitude: 25.0375,
+      longitude: 121.5637,
+      geocoding_confidence: "high",
+    },
+    geocoding_acceptance: {
+      ...locationResult().geocoding_acceptance!,
+      original_query: initialContext.addressSummary!,
+      normalized_address: "\u81fa\u5317\u5e02\u4fe1\u7fa9\u5340\u5e02\u5e9c\u8def1\u865f",
+    },
+  });
+
+  const reconciled = reconcileJourneyPropertyIdentityAnchor(stored, initialContext, accepted, {
+    now: () => "2026-09-27T09:00:00.000Z",
+  });
+
+  expect(reconciled.journey_anchor_id).toBe(stored.journey_anchor_id);
+  expect(reconciled.revalidation).toEqual({ status: "current", conflicts: [] });
+  expect(reconciled.coordinates).toEqual({ latitude: 25.0375, longitude: 121.5637 });
+  expect(reconciled.normalized_address).toBe("\u81fa\u5317\u5e02\u4fe1\u7fa9\u5340\u5e02\u5e9c\u8def1\u865f");
+});
+
+test("market-driven address changes replace the anchor and clear property-bound evidence", () => {
+  const addressA = {
+    ...createClosedLoopJourneyState(context, {
+      now: () => CHECKED_AT,
+      idFactory: () => OPAQUE_UUID,
+    }),
+    propertySearchResult: { search_status: "available" } as never,
+    commuteRouteEvidence: { status: "resolved" } as never,
+    commuteRouteStatus: "available" as const,
+  };
+
+  const addressB = updateJourneyMarketLocation(addressA, {
+    city: "Taipei",
+    district: "Daan",
+    road: "Renai Road 1",
+  });
+
+  expect(addressB.identityAnchor?.journey_anchor_id).not.toBe(addressA.identityAnchor?.journey_anchor_id);
+  expect(addressB.identityAnchor?.address_input).toBe("TaipeiDaanRenai Road 1");
+  expect(addressB.propertySearchResult).toBeUndefined();
+  expect(addressB.commuteRouteEvidence).toBeUndefined();
+  expect(addressB.commuteRouteStatus).toBe("not_started");
 });
 
 test("non-location valuation edits retain identity and location evidence", () => {

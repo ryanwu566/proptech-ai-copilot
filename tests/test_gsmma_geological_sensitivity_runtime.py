@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
+import gzip
+import hashlib
 import io
 import json
 import threading
@@ -195,13 +197,31 @@ def test_invalid_manifest_and_artifact_are_distinct(tmp_path) -> None:
     objects = _build_objects(tmp_path)
     manifest = json.loads(objects[manifest_key(VERSION)])
     bad = b"not-gzip"
-    manifest["artifact_sha256"] = __import__("hashlib").sha256(bad).hexdigest()
+    manifest["artifact_sha256"] = hashlib.sha256(bad).hexdigest()
     objects[manifest_key(VERSION)] = json.dumps(manifest).encode()
     objects[artifact_key(VERSION)] = bad
     runtime, _ = _runtime(objects)
     with pytest.raises(ArtifactInvalidError, match="artifact"):
         runtime.load_dataset()
 
+
+def test_accepted_empty_artifact_is_rejected(tmp_path) -> None:
+    objects = _build_objects(tmp_path)
+    document = json.loads(gzip.decompress(objects[artifact_key(VERSION)]).decode("utf-8"))
+    document["features"] = []
+    artifact = gzip.compress(
+        json.dumps(document, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8"),
+        mtime=0,
+    )
+    manifest = json.loads(objects[manifest_key(VERSION)])
+    manifest["feature_count"] = 0
+    manifest["artifact_sha256"] = hashlib.sha256(artifact).hexdigest()
+    objects[manifest_key(VERSION)] = json.dumps(manifest).encode()
+    objects[artifact_key(VERSION)] = artifact
+
+    runtime, _ = _runtime(objects)
+    with pytest.raises(ArtifactInvalidError, match="feature count"):
+        runtime.load_dataset()
 
 def test_cold_load_warm_cache_and_clear(tmp_path) -> None:
     objects = _build_objects(tmp_path)

@@ -46,7 +46,8 @@ def test_html_summary_contains_required_sections_and_disclaimer() -> None:
 
 def test_html_summary_allows_missing_trend() -> None:
     assert "trend?: ValuationTrendResult" in HELPER
-    assert "trend ? `" in HELPER
+    assert "const safeTrend = trend && getValuationTrendDisplayState(trend).kind === \"available\" ? trend : undefined" in HELPER
+    assert "safeTrend ? `" in HELPER
     assert ": \"\"" in HELPER
 
 

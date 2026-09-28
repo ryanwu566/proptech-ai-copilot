@@ -35,7 +35,7 @@ REQUIRED_R2_ENV = (
     "R2_REGION",
 )
 MAX_MATCHED_FEATURES = 1_000
-_VERSION_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}\Z")
+_VERSION_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,127}\Z")
 
 
 class GeologicalSensitivityRuntimeError(Exception):
@@ -186,7 +186,7 @@ def _parse_manifest(payload: bytes, version: str) -> dict[str, Any]:
     expected_sha = manifest.get("artifact_sha256")
     if not isinstance(expected_sha, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", expected_sha):
         raise ArtifactInvalidError("manifest artifact SHA256 is invalid", dataset_version=version)
-    if not isinstance(manifest.get("feature_count"), int) or manifest["feature_count"] < 0:
+    if not isinstance(manifest.get("feature_count"), int) or manifest["feature_count"] <= 0:
         raise ArtifactInvalidError("manifest feature count is invalid", dataset_version=version)
     if not isinstance(manifest.get("source_vintage"), str) or not manifest["source_vintage"]:
         raise ArtifactInvalidError("manifest source vintage is invalid", dataset_version=version)
@@ -217,6 +217,8 @@ def _load_uncached(version: str, client: R2Client, bucket: str) -> LoadedDataset
         raise ArtifactInvalidError("artifact metadata mismatch", dataset_version=version)
     if len(features) != manifest["feature_count"]:
         raise ArtifactInvalidError("artifact feature count mismatch", dataset_version=version)
+    if not features:
+        raise ArtifactInvalidError("artifact feature count must be positive", dataset_version=version)
     geometries = [feature.geometry for feature in features]
     return LoadedDataset(
         dataset_version=version,

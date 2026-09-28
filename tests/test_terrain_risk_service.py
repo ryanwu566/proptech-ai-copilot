@@ -3,7 +3,7 @@
 import time
 import threading
 
-from services.terrain_risk_service import TerrainRiskLocationError, _default_providers, analyze_terrain_risk
+from services.terrain_risk_service import TerrainRiskLocationError, _default_providers, _overall, analyze_terrain_risk
 from services.terrain_risk_providers import GsmmaGeologyProvider
 
 
@@ -216,6 +216,19 @@ def test_matched_geological_sensitivity_unknown_stays_visible_without_layer_seve
     assert evidence["matched"] is True
     assert evidence["level"] == "unknown"
     assert factor["level"] == "unknown"
+    assert report["overall"]["level"] == "unknown"
+
+
+def test_unknown_designation_does_not_escalate_another_risk_factor() -> None:
+    result = _overall(
+        [
+            {"key": "geological_sensitivity", "level": "unknown"},
+            {"key": "flood", "level": "medium"},
+        ],
+        {"status": "good"},
+        ["geological_sensitivity", "flood"],
+    )
+    assert result["level"] == "medium"
 
 
 def test_coordinates_take_priority() -> None:

@@ -13,12 +13,13 @@ def test_commute_channels_and_journey_state_with_node() -> None:
     script = r"""
 const vm = require('vm');
 const fs = require('fs');
+const { webcrypto } = require('node:crypto');
 const ts = require('./frontend_next/node_modules/typescript');
 
 function load(path, imports = {}) {
   const source = fs.readFileSync(path, 'utf8');
   const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
-  const sandbox = { console, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {}, require: (name) => imports[name] ?? require(name) };
+  const sandbox = { console, crypto: webcrypto, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {}, require: (name) => imports[name] ?? require(name) };
   vm.createContext(sandbox);
   vm.runInContext(js, sandbox);
   return sandbox.exports;
@@ -40,7 +41,13 @@ if (contextOnly.route !== 'unavailable') throw new Error('route failure was hidd
 if (contextOnly.transit_context !== 'available') throw new Error('TDX success was lost');
 if (contextOnly.overall !== 'partial') throw new Error('TDX-only evidence must not claim a complete route');
 
-const closedLoop = load('frontend_next/lib/closed-loop-journey.ts', { '@/lib/location-market-journey': locationMarket });
+const valuationState = load('frontend_next/lib/valuation-result-state.ts');
+const journeyIdentity = load('frontend_next/lib/journey-property-identity.ts');
+const closedLoop = load('frontend_next/lib/closed-loop-journey.ts', {
+  '@/lib/location-market-journey': locationMarket,
+  '@/lib/valuation-result-state': valuationState,
+  '@/lib/journey-property-identity': journeyIdentity,
+});
 if (typeof closedLoop.setJourneyCommuteRoute !== 'function') throw new Error('setJourneyCommuteRoute is missing');
 let state = closedLoop.createClosedLoopJourneyState({ addressSummary: 'Property A', selectionStatus: 'selected' });
 const evidence = {

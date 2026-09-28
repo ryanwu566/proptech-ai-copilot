@@ -165,11 +165,14 @@ def _valuation_contract() -> tuple[str, str | None]:
 
 def _case_contract() -> tuple[str, str | None]:
     evidence = _read("frontend_next/lib/property-case-evidence.ts")
+    valuation_state = _read("frontend_next/lib/valuation-result-state.ts")
     model = _read("frontend_next/lib/property-case.ts")
     comparison = _read("frontend_next/lib/case-comparison.ts")
     workspace = _read("frontend_next/components/immersive-viewing-workspace.tsx")
     report = _read("frontend_next/components/property-comparison-report.tsx")
-    if not _has_all(evidence, "getTrustedValuationEvidence", "result_origin !== \"official\"", "is_actionable !== true", "comparables.length < 3"):
+    if not _has_all(evidence, "getTrustedValuationEvidence", "getActionableValuation(result)"):
+        return "fail", "case_contract_invalid"
+    if not _has_all(valuation_state, "result.result_origin !== \"official\"", "result.is_actionable !== true", "comparables.length < 3"):
         return "fail", "case_contract_invalid"
     if not _has_all(model, "print_ready", "PARTIAL_CASE_PRINT_NOTICE", "hasBasicCaseInfo"):
         return "fail", "case_contract_invalid"

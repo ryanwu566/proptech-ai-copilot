@@ -449,7 +449,11 @@ export function normalizeJourneyPropertyIdentityAnchor(value: unknown): JourneyP
 }
 
 function comparableAddress(value: string): string {
-  return value.normalize("NFKC").replace(/\s+/gu, "").toLocaleLowerCase("zh-TW");
+  return value
+    .normalize("NFKC")
+    .replace(/\u53f0/gu, "\u81fa")
+    .replace(/[\s,，.。-]+/gu, "")
+    .toLocaleLowerCase("zh-TW");
 }
 
 function coordinateDistanceMetres(
@@ -496,11 +500,13 @@ export function reconcileJourneyPropertyIdentityAnchor(
   const acceptedAddress = location.geocoding_acceptance?.accepted_for_analysis === true
     ? text(location.geocoding_acceptance.normalized_address)
     : null;
+  const hasAcceptedGeocodingEvidence = stored.evidence.sources.some((source) => source.kind === "geocoding");
+  const priorComparableAddress = hasAcceptedGeocodingEvidence ? stored.normalized_address : contextAddress;
 
   const conflicts: JourneyPropertyIdentityAnchorV1["revalidation"]["conflicts"] = [];
   if (contextAddress && acceptedAddress && (
     comparableAddress(contextAddress) !== comparableAddress(stored.address_input)
-    || comparableAddress(acceptedAddress) !== comparableAddress(stored.normalized_address)
+    || comparableAddress(acceptedAddress) !== comparableAddress(priorComparableAddress)
   )) conflicts.push("normalized_address");
   else if (resolvedCoordinates && (!contextAddress || !acceptedAddress)) conflicts.push("incomparable_identity");
 

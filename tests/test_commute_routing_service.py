@@ -158,8 +158,7 @@ def test_mock_fallback_allowed_by_environment() -> None:
     assert svc.mock_fallback_allowed({"APP_ENV": "test"}) is True
     assert svc.mock_fallback_allowed({"APP_ENV": "production"}) is False
     assert svc.mock_fallback_allowed({"APP_ENV": "preview"}) is False
-    # Explicit demo opt-in re-enables mock in production-like runtime.
-    assert svc.mock_fallback_allowed({"APP_ENV": "production", "DEMO_ROUTES_FALLBACK": "true"}) is True
+    assert svc.mock_fallback_allowed({"APP_ENV": "production", "DEMO_ROUTES_FALLBACK": "true"}) is False
 
 
 def test_production_missing_key_is_unavailable_no_mock_numbers() -> None:
