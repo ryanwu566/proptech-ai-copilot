@@ -1,4 +1,4 @@
-import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, MarketResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { CommuteAddressLookupResult, CommuteRouteEvidence, HoldingCostResult, LoanCalculationResult, LocationInsightResult, MarketResult, PropertySearchResult, TaxResult, TerrainRiskResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { BuyingWizardStep } from "@/lib/buying-wizard-status";
 import type { ValuationInputs } from "@/lib/valuation-share";
@@ -6,6 +6,9 @@ import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/pr
 import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
 import type { JourneyPriceBasis } from "@/lib/closed-loop-journey";
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
+import { compactCommuteRouteEvidence } from "@/lib/commute-route-evidence";
+import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnchorV1 } from "@/lib/journey-property-identity";
+import { getStoredActionableValuation } from "@/lib/valuation-result-state";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -16,6 +19,7 @@ export const MAX_SAVED_CASES = 10;
 
 export type SavedCaseData = {
   inputs: ValuationInputs;
+  propertyIdentityAnchor?: JourneyPropertyIdentityAnchorV1;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
   valuationEvidence?: PropertyCaseEvidence;
@@ -23,6 +27,8 @@ export type SavedCaseData = {
   loan?: LoanCalculationResult;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
+  commuteRoute?: CommuteRouteEvidence;
+  commuteTransit?: CommuteAddressLookupResult;
   marketInsight?: MarketResult;
   journeyContext?: {
     version: 1;
@@ -121,13 +127,24 @@ export function clearCurrentCase() {
   window.dispatchEvent(new Event("proptech:workflow-status-updated"));
 }
 
-function compactCaseData(data: SavedCaseData): SavedCaseData {
-  const valuationEvidence = getTrustedValuationEvidence(data.valuation);
+export function compactCaseData(data: SavedCaseData): SavedCaseData {
+  const freshEvidence = getTrustedValuationEvidence(data.valuation);
+  const storedSummary = getStoredActionableValuation(data.valuation);
+  const hasTrustedStoredEvidence = data.valuationEvidence?.status === "trusted"
+    && data.valuationEvidence.source === "official_valuation"
+    && data.valuationEvidence.transferable === true;
+  const valuationEvidence = freshEvidence.transferable
+    ? freshEvidence
+    : storedSummary && hasTrustedStoredEvidence
+      ? data.valuationEvidence
+      : freshEvidence;
+  const transferableValuation = freshEvidence.transferable || (storedSummary !== null && hasTrustedStoredEvidence);
   return {
     ...data,
+    propertyIdentityAnchor: normalizeJourneyPropertyIdentityAnchor(data.propertyIdentityAnchor) ?? undefined,
     propertySearch: data.propertySearch ? { ...data.propertySearch, matched_transactions: [] } : undefined,
     valuationEvidence,
-    valuation: data.valuation && valuationEvidence.transferable ? {
+    valuation: data.valuation && transferableValuation ? {
       ...data.valuation,
       comparables: [],
       source_details: {
@@ -140,6 +157,7 @@ function compactCaseData(data: SavedCaseData): SavedCaseData {
       },
     } : undefined,
     locationInsight: data.locationInsight ? { ...data.locationInsight, resolved_location: null, nearest_pois: [] } : undefined,
+    commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),
     terrainReference: normalizeStoredTerrainReferenceEvidence(data.terrainReference) ?? migrateLegacyTerrainReference(data.terrainRisk),
     terrainRisk: undefined,
   };

@@ -2,12 +2,16 @@
 
 from .ardswc_slope_hazard_provider import ArdswcSlopeHazardProvider
 from .geologycloud_provider import GeologyCloudProvider
+from .gsmma_geological_sensitivity_provider import GsmmaGeologicalSensitivityProvider
+from .gsmma_geology_provider import GsmmaGeologyProvider
 from .nlsc_terrain_provider import NlscTerrainProvider
 from .wra_flood_provider import WraFloodProvider
 
 __all__ = [
     "ArdswcSlopeHazardProvider",
     "GeologyCloudProvider",
+    "GsmmaGeologicalSensitivityProvider",
+    "GsmmaGeologyProvider",
     "NlscTerrainProvider",
     "WraFloodProvider",
 ]

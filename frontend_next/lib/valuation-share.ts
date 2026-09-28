@@ -6,7 +6,7 @@ import { TERRAIN_REFERENCE_NOTICE, terrainReferenceStateLabel, type StoredTerrai
 import { buildDecisionSummary } from "@/lib/decision-summary";
 import { buildRiskSummary } from "@/lib/risk-summary";
 import { readWorkflowSession } from "@/lib/workflow-status";
-import { getValuationDisplayState } from "@/lib/valuation-result-state";
+import { getActionableValuation, getValuationDisplayState, getValuationTrendDisplayState } from "@/lib/valuation-result-state";
 
 export type ValuationInputs = {
   city: string;
@@ -59,23 +59,25 @@ export function buildValuationSummaryHtml(
   terrainReference?: StoredTerrainReferenceEvidenceV1,
 ): string {
   const displayState = getValuationDisplayState(result);
-  if (displayState.kind !== "available") {
+  const actionableValuation = getActionableValuation(result);
+  if (displayState.kind !== "available" || !actionableValuation) {
     return `<!doctype html><html lang="zh-Hant"><meta charset="utf-8"><title>估價摘要</title><body><main><h1>估價摘要</h1><p>${escapeHtml(displayState.message)}</p><p>本摘要未包含不可用或展示狀態的價格數字。</p></main></body></html>`;
   }
+  const safeTrend = trend && getValuationTrendDisplayState(trend).kind === "available" ? trend : undefined;
   const holding = holdingCost ?? readHoldingCostResult();
   const location = locationInsight ?? readLocationInsightResult();
   // The export only has stored terrain reference evidence, which cannot prove a
   // known-low terrain risk level, so terrain safety is "unproven": the quick
   // conclusion must not be promoted to an unrestricted all-clear.
-  const decision = buildDecisionSummary(propertySearch, result, loan, holding, location, "unproven");
-  const risk = buildRiskSummary({ propertySearch, valuation: result, trend, loan, holding, location });
+  const decision = buildDecisionSummary(propertySearch, actionableValuation.result, loan, holding, location, "unproven");
+  const risk = buildRiskSummary({ propertySearch, valuation: actionableValuation.result, trend: safeTrend, loan, holding, location });
   const taxOracle = readWorkflowSession().taxOracleResult;
   const comparableRows = result.comparables.slice(0, 5).map((row) => `
     <tr><td>${escapeHtml(row.transaction_period)}</td><td>${escapeHtml(row.source_label || row.source)}</td>
     <td>${escapeHtml(row.road)}</td><td>${escapeHtml(row.building_type)}</td><td>${row.area_ping}</td>
     <td>${row.unit_price_per_ping} 萬</td><td>${row.total_price.toLocaleString()} 萬</td></tr>`).join("");
-  const trendRows = trend ? (["conservative", "base", "optimistic"] as const).flatMap((key) =>
-    trend.scenario_forecast[key].map((item) => `
+  const trendRows = safeTrend ? (["conservative", "base", "optimistic"] as const).flatMap((key) =>
+    safeTrend.scenario_forecast[key].map((item) => `
       <tr><td>${({ conservative: "保守", base: "中性", optimistic: "樂觀" })[key]}</td>
       <td>${item.horizon_months} 個月</td><td>${item.projected_unit_price_per_ping} 萬</td>
       <td>${item.projected_total_price.toLocaleString()} 萬</td><td>${(item.growth_rate_used * 100).toFixed(1)}%</td></tr>`),
@@ -153,18 +155,18 @@ export function buildValuationSummaryHtml(
   th,td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left}.notice{margin-top:28px;padding:14px;background:#fffbeb;color:#92400e}.cover{padding:28px;background:#0f172a;color:#fff;border-radius:12px}.cover p{color:#cbd5e1}.decision,.risk{margin-top:24px;padding:18px;border:1px solid #bae6fd;background:#f0f9ff;border-radius:10px}.risk.green{border-color:#86efac;background:#f0fdf4}.risk.yellow{border-color:#fde047;background:#fffbeb}.risk.red{border-color:#fda4af;background:#fff1f2}.risk.unknown{border-color:#cbd5e1;background:#f8fafc}.verdict{display:inline-block;padding:7px 12px;background:#fff;border-radius:999px;font-weight:700}.columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:640px){body{padding:12px}main{padding:18px}dl,.columns{grid-template-columns:1fr}.scroll{overflow-x:auto}table{min-width:680px}}
   </style></head><body><main><section class="cover"><p>PropTech AI Copilot 估價摘要升級版</p><h1>看屋決策報告 v2</h1>
-  <p>${escapeHtml(`${inputs.city}${inputs.district}${inputs.road}`)} · ${result.price_range.mid.toLocaleString()} 萬 · ${inputs.area_ping} 坪 · ${escapeHtml(inputs.building_type)}</p>
+  <p>${escapeHtml(`${inputs.city}${inputs.district}${inputs.road}`)} · ${actionableValuation.priceRange.mid.toLocaleString()} 萬 · ${inputs.area_ping} 坪 · ${escapeHtml(inputs.building_type)}</p>
   <p>產生時間：${escapeHtml(new Date().toLocaleString("zh-TW"))}</p><p>資料來源：估價可比成交、找房雷達、趨勢、貸款、持有成本與區位分析之既有結果。</p></section>
   ${riskSection}${decisionSection}
   <h2>查詢條件</h2><dl>${summaryItem("縣市", inputs.city)}${summaryItem("行政區", inputs.district)}
   ${summaryItem("路段", inputs.road)}${summaryItem("建物型態", inputs.building_type)}
   ${summaryItem("坪數", `${inputs.area_ping} 坪`)}${summaryItem("屋齡／樓層", `${inputs.building_age_years} 年／${inputs.floor} 樓`)}</dl>
-  <h2>估價結果</h2><dl>${summaryItem("估價區間", `${result.price_range.low.toLocaleString()} ～ ${result.price_range.high.toLocaleString()} 萬`)}
-  ${summaryItem("估算總價", `${result.estimate_total_price.toLocaleString()} 萬`)}${summaryItem("信心分數", `${result.confidence_score}（${result.confidence}）`)}
+  <h2>估價結果</h2><dl>${summaryItem("估價區間", `${actionableValuation.priceRange.low.toLocaleString()} ～ ${actionableValuation.priceRange.high.toLocaleString()} 萬`)}
+  ${summaryItem("估算總價", `${actionableValuation.estimateTotal.toLocaleString()} 萬`)}${summaryItem("信心分數", `${actionableValuation.confidenceScore}（${actionableValuation.result.confidence}）`)}
   ${summaryItem("信心原因", result.confidence_reason)}${summaryItem("估價資料組成", result.estimate_data_composition)}
   ${summaryItem("本次估算使用", result.estimate_source_label)}${summaryItem("官方／樣本資料數量", `${result.data_status.official_records_count ?? 0}／${result.data_status.sample_records_count ?? 0}`)}</dl>
   <h2>可比成交前 5 筆</h2><div class="scroll"><table><thead><tr><th>期間</th><th>來源</th><th>路段</th><th>型態</th><th>坪數</th><th>每坪單價</th><th>總價</th></tr></thead><tbody>${comparableRows}</tbody></table></div>
-  ${trend ? `<h2>市場趨勢摘要／市場趨勢情境</h2><p>資料期間：${escapeHtml(trend.effective_period_min ?? "資料不足")} ～ ${escapeHtml(trend.effective_period_max ?? "資料不足")}；${escapeHtml(trend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div><p class="notice">${escapeHtml(trend.disclaimer)}</p>` : ""}
+  ${safeTrend ? `<h2>市場趨勢摘要／市場趨勢情境</h2><p>資料期間：${escapeHtml(safeTrend.effective_period_min ?? "資料不足")} ～ ${escapeHtml(safeTrend.effective_period_max ?? "資料不足")}；${escapeHtml(safeTrend.confidence_reason)}</p><div class="scroll"><table><thead><tr><th>情境</th><th>期間</th><th>每坪單價</th><th>總價參考</th><th>採用年率</th></tr></thead><tbody>${trendRows}</tbody></table></div><p class="notice">${escapeHtml(safeTrend.disclaimer)}</p>` : ""}
   ${propertySection}${loanSection}${holdingSection}${locationSection}${terrainSection}${checklistSection}${taxSection}<p class="notice">${disclaimer}</p></main></body></html>`;
 }
 

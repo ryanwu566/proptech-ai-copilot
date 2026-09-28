@@ -1,5 +1,6 @@
 import type {
   HoldingCostResult,
+  CommuteRouteEvidence,
   LoanCalculationResult,
   LocationInsightResult,
   PropertySearchResult,
@@ -92,6 +93,7 @@ export type PropertyCaseDraftInput = {
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
   marketInsightSnapshot?: MarketInsightSnapshot;
+  commuteRoute?: CommuteRouteEvidence;
 };
 
 export type PropertyCaseDraft = {
@@ -179,7 +181,13 @@ export function buildPropertyCaseDraft(input: PropertyCaseDraftInput, now = new 
     ?? (trustedTransfer ? finiteNumber(input.confirmedValuationPrice) ?? finiteNumber(input.valuation?.price_range.mid) : null);
   const locationStatus = input.location ? dataQualityToStatus(input.location.data_quality.status) : "missing";
   const terrainStatus = input.terrainRisk ? terrainToStatus(input.terrainRisk) : "missing";
-  const commuteStatus: PropertyCaseStatus = "missing";
+  const commuteStatus: PropertyCaseStatus = !input.commuteRoute
+    ? "missing"
+    : input.commuteRoute.status === "resolved" && input.commuteRoute.source === "google_routes" && input.commuteRoute.reason_code === "success"
+      ? "completed"
+      : input.commuteRoute.status === "unavailable"
+        ? "unavailable"
+        : "incomplete";
   const dueDiligenceItems = normalizeDueDiligenceItems(input.dueDiligenceItems);
   const viewingLogs = normalizeViewingLogs(input.viewingLogs);
   const viewingQuestions = normalizeViewingQuestions(input.viewingQuestions);
@@ -350,14 +358,23 @@ function propertySearchStatus(result?: PropertySearchResult): PropertyCaseStatus
 
 function isTrustedValuation(result: ValuationResult): boolean {
   const contract = result as ValuationResult & { valuation_status?: string; result_origin?: string; is_actionable?: boolean };
-  const values = [result.estimate_total_price, result.estimate_unit_price_per_ping, result.price_range?.low, result.price_range?.mid, result.price_range?.high];
+  const range = result.price_range;
+  const values = [result.estimate_total_price, result.estimate_unit_price_per_ping, range?.low, range?.mid, range?.high, result.confidence_score, result.valuation_explanation?.average_similarity_score];
   return contract.valuation_status === "available"
     && contract.result_origin === "official"
     && contract.is_actionable === true
+    && ["official", "official_limited", "official_district"].includes(result.estimate_data_composition)
     && values.every((value) => typeof value === "number" && Number.isFinite(value) && value > 0)
+    && typeof range?.low === "number" && typeof range.mid === "number" && typeof range.high === "number"
+    && range.low <= range.mid && range.mid <= range.high
+    && ["high", "medium", "low"].includes(result.confidence ?? "")
+    && typeof result.valuation_explanation?.sample_count === "number"
+    && result.valuation_explanation.sample_count >= 3
     && Array.isArray(result.comparables)
     && result.comparables.length >= 3
-    && result.comparables.every((row) => row.source === "official_plvr_opendata");
+    && result.comparables.every((row) => row.source === "official_plvr_opendata"
+      && [row.area_ping, row.unit_price_per_ping, row.total_price, row.similarity_score, row.weight].every((value) => Number.isFinite(value) && value > 0)
+      && Number.isFinite(row.building_age_years) && row.building_age_years >= 0);
 }
 
 function requiredMissing(
@@ -375,7 +392,7 @@ function requiredMissing(
 
 function buildAnalysisSummary(input: PropertyCaseDraftInput, status: PropertyCaseDraft["analysis_status"]): string[] {
   const rows: string[] = [];
-  if (input.valuation) rows.push(`估價中位數 ${input.valuation.price_range.mid.toLocaleString()} 萬`);
+  if (input.valuation && isTrustedValuation(input.valuation) && typeof input.valuation.price_range.mid === "number") rows.push(`估價中位數 ${input.valuation.price_range.mid.toLocaleString()} 萬`);
   if (input.loan) rows.push(`貸款月付 ${input.loan.monthly_payment.toLocaleString()} 元`);
   if (input.holding) rows.push(`持有成本 ${input.holding.monthly_total_holding_cost.toLocaleString()} 元/月`);
   if (input.location) rows.push(`位置分析 ${status.location}`);

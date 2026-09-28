@@ -18,6 +18,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+from datetime import datetime, timezone
 from typing import Any, Mapping
 
 from services.adapters.routes_adapter import (
@@ -27,6 +28,7 @@ from services.adapters.routes_adapter import (
     RoutesAdapter,
     RoutesAdapterError,
     RouteUnavailableError,
+    RouteReasonCode,
     SUPPORTED_MODES,
     is_supported_mode,
 )
@@ -53,16 +55,14 @@ _DEFAULT_MOCK_ADAPTER = MockRoutesAdapter()
 def mock_fallback_allowed(environ: Mapping[str, str] | None = None) -> bool:
     """Return whether synthetic mock route estimates may be shown.
 
-    Allowed only when the runtime is not production-like, unless an operator has
-    explicitly opted in with ``DEMO_ROUTES_FALLBACK`` (demo mode). Production-like
-    runtimes never surface a fabricated route.
+    Allowed only when the runtime is not production-like. Production and preview
+    runtimes never surface a fabricated route, even if a legacy demo flag is set.
     """
 
     values = environ if environ is not None else os.environ
     mode = (values.get(APP_ENV_ENV, "development") or "development").strip().lower()
     if mode in PRODUCTION_MODES:
-        # Production/preview: only an explicit demo opt-in enables mock estimates.
-        return (values.get(DEMO_ROUTES_FALLBACK_ENV, "") or "").strip().lower() in {"1", "true", "yes", "on"}
+        return False
     return True
 
 
@@ -101,6 +101,10 @@ def _minutes(seconds: int) -> int:
     return int(round(seconds / 60))
 
 
+def checked_at() -> str:
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
 def _resolved_response(route: dict[str, Any]) -> dict[str, Any]:
     source = route["source"]
     fallback = source == "mock"
@@ -113,6 +117,8 @@ def _resolved_response(route: dict[str, Any]) -> dict[str, Any]:
         "distance_m": int(route["distance_m"]),
         "partial": fallback,
         "fallback": fallback,
+        "reason_code": "success",
+        "checked_at": checked_at(),
         "message": MOCK_ROUTE_NOTE if fallback else "已取得路線估算。",
         "disclaimer": ROUTE_DISCLAIMER,
     }
@@ -128,12 +134,14 @@ def _unresolved_response(mode: str) -> dict[str, Any]:
         "distance_m": None,
         "partial": False,
         "fallback": False,
+        "reason_code": "route_not_found",
+        "checked_at": checked_at(),
         "message": "找不到可用路線，請確認起點與目的地是否正確。",
         "disclaimer": ROUTE_DISCLAIMER,
     }
 
 
-def _unavailable_response(mode: str) -> dict[str, Any]:
+def _unavailable_response(mode: str, reason_code: RouteReasonCode = "provider_error") -> dict[str, Any]:
     return {
         "status": "unavailable",
         "source": "none",
@@ -143,6 +151,8 @@ def _unavailable_response(mode: str) -> dict[str, Any]:
         "distance_m": None,
         "partial": False,
         "fallback": False,
+        "reason_code": reason_code,
+        "checked_at": checked_at(),
         "message": "路線服務暫時無法完成查詢，請稍後再試。",
         "disclaimer": ROUTE_DISCLAIMER,
     }
@@ -189,13 +199,27 @@ def estimate_commute_route(
             response = _resolved_response(route)
         except RouteNotFoundError:
             response = _unresolved_response(mode)
-        except RouteUnavailableError:
-            response = _fallback_or_unavailable(mock, origin, destination, mode, allow_mock=mock_ok)
-        except RoutesAdapterError:
+        except RouteUnavailableError as exc:
+            response = _fallback_or_unavailable(
+                mock,
+                origin,
+                destination,
+                mode,
+                allow_mock=mock_ok,
+                reason_code=exc.reason_code,
+            )
+        except RoutesAdapterError as exc:
             # Malformed provider data or provider-side validation: fail closed to unavailable.
-            response = _unavailable_response(mode)
+            response = _unavailable_response(mode, exc.reason_code)
     else:
-        response = _fallback_or_unavailable(mock, origin, destination, mode, allow_mock=mock_ok)
+        response = _fallback_or_unavailable(
+            mock,
+            origin,
+            destination,
+            mode,
+            allow_mock=mock_ok,
+            reason_code="configuration_error",
+        )
 
     # Cache only genuine Google observations and deterministic non-fallback outcomes.
     # Never cache mock/fallback results, so provider recovery is not masked.
@@ -217,12 +241,13 @@ def _fallback_or_unavailable(
     mode: str,
     *,
     allow_mock: bool,
+    reason_code: RouteReasonCode = "provider_error",
 ) -> dict[str, Any]:
     if not allow_mock:
         # Production-like runtime: degrade rather than fabricate a travel time.
-        return _unavailable_response(mode)
+        return _unavailable_response(mode, reason_code)
     try:
         route = mock.compute_route(origin, destination, mode)
     except RoutesAdapterError:
-        return _unavailable_response(mode)
+        return _unavailable_response(mode, "provider_error")
     return _resolved_response(route)

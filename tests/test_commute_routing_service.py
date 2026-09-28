@@ -53,6 +53,18 @@ class FakeMock:
         return {"duration_seconds": 1200, "distance_m": 5000, "mode": mode, "source": "mock"}
 
 
+class ReasonedUnavailable(RouteUnavailableError):
+    def __init__(self, reason_code: str) -> None:
+        super().__init__(reason_code)
+        self.reason_code = reason_code
+
+
+class ReasonedAdapterError(RoutesAdapterError):
+    def __init__(self, reason_code: str) -> None:
+        super().__init__(reason_code)
+        self.reason_code = reason_code
+
+
 def test_resolved_google_route_is_normalized() -> None:
     google = FakeGoogle(result={"duration_seconds": 1500, "distance_m": 8200, "source": "google_routes"})
     result = svc.estimate_commute_route(ORIGIN, DESTINATION, "driving", google_adapter=google, mock_adapter=FakeMock())
@@ -64,6 +76,8 @@ def test_resolved_google_route_is_normalized() -> None:
     assert result["distance_m"] == 8200
     assert result["partial"] is False
     assert result["fallback"] is False
+    assert result["reason_code"] == "success"
+    assert result["checked_at"].endswith("Z")
     assert result["disclaimer"]
 
 
@@ -96,14 +110,16 @@ def test_zero_route_is_unresolved_not_fabricated() -> None:
     assert result["status"] == "unresolved"
     assert result["source"] == "none"
     assert result["duration_min"] is None
+    assert result["reason_code"] == "route_not_found"
     assert mock.calls == 0  # must not fabricate a mock for a genuine zero-result
 
 
 def test_malformed_provider_error_is_unavailable() -> None:
-    google = FakeGoogle(error=RoutesAdapterError("malformed"))
+    google = FakeGoogle(error=ReasonedAdapterError("malformed_response"))
     result = svc.estimate_commute_route(ORIGIN, DESTINATION, "transit", google_adapter=google, mock_adapter=FakeMock())
     assert result["status"] == "unavailable"
     assert result["source"] == "none"
+    assert result["reason_code"] == "malformed_response"
 
 
 def test_unsupported_mode_raises_invalid_request() -> None:
@@ -142,8 +158,7 @@ def test_mock_fallback_allowed_by_environment() -> None:
     assert svc.mock_fallback_allowed({"APP_ENV": "test"}) is True
     assert svc.mock_fallback_allowed({"APP_ENV": "production"}) is False
     assert svc.mock_fallback_allowed({"APP_ENV": "preview"}) is False
-    # Explicit demo opt-in re-enables mock in production-like runtime.
-    assert svc.mock_fallback_allowed({"APP_ENV": "production", "DEMO_ROUTES_FALLBACK": "true"}) is True
+    assert svc.mock_fallback_allowed({"APP_ENV": "production", "DEMO_ROUTES_FALLBACK": "true"}) is False
 
 
 def test_production_missing_key_is_unavailable_no_mock_numbers() -> None:
@@ -157,25 +172,28 @@ def test_production_missing_key_is_unavailable_no_mock_numbers() -> None:
     assert result["duration_seconds"] is None
     assert result["distance_m"] is None
     assert result["fallback"] is False
+    assert result["reason_code"] == "configuration_error"
 
 
 def test_production_timeout_is_unavailable() -> None:
     result = svc.estimate_commute_route(
         ORIGIN, DESTINATION, "transit",
-        google_adapter=FakeGoogle(error=RouteUnavailableError("timeout")), mock_adapter=FakeMock(), allow_mock=False,
+        google_adapter=FakeGoogle(error=ReasonedUnavailable("provider_timeout")), mock_adapter=FakeMock(), allow_mock=False,
     )
     assert result["status"] == "unavailable"
     assert result["distance_m"] is None
+    assert result["reason_code"] == "provider_timeout"
 
 
 def test_production_http_429_is_unavailable() -> None:
     # HTTP failures (including 429) surface as RouteUnavailableError from the adapter.
     result = svc.estimate_commute_route(
         ORIGIN, DESTINATION, "transit",
-        google_adapter=FakeGoogle(error=RouteUnavailableError("429")), mock_adapter=FakeMock(), allow_mock=False,
+        google_adapter=FakeGoogle(error=ReasonedUnavailable("provider_error")), mock_adapter=FakeMock(), allow_mock=False,
     )
     assert result["status"] == "unavailable"
     assert result["duration_min"] is None
+    assert result["reason_code"] == "provider_error"
 
 
 def test_dev_provider_failure_uses_marked_mock() -> None:

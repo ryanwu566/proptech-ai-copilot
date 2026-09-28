@@ -19,10 +19,12 @@ def test_evidence_has_explicit_status_and_source_allowlists() -> None:
 def test_only_actionable_official_valuation_is_transferable() -> None:
     assert "getTrustedValuationEvidence" in EVIDENCE
     assert "transferable: true" in EVIDENCE
-    assert "result_origin !== \"official\"" in EVIDENCE
-    assert "is_actionable !== true" in EVIDENCE
-    assert "comparables.length < 3" in EVIDENCE
-    assert "source === \"official_plvr_opendata\"" in EVIDENCE
+    assert "getActionableValuation(result)" in EVIDENCE
+    helper = (ROOT / "frontend_next/lib/valuation-result-state.ts").read_text(encoding="utf-8")
+    assert "result.result_origin !== \"official\"" in helper
+    assert "result.is_actionable !== true" in helper
+    assert "comparables.length < 3" in helper
+    assert 'item?.source === "official_plvr_opendata"' in helper
     assert "valuationTransferConfirmed === true" in CASE_MODEL
     assert "confirmedValuationPrice" in CASE_MODEL
 

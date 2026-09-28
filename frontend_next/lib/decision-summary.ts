@@ -1,5 +1,6 @@
 import type { HoldingCostResult, LoanCalculationResult, LocationInsightResult, PropertySearchResult, ValuationResult } from "@/lib/api";
 import type { TerrainSafetyClass } from "@/lib/terrain-safety-gate";
+import { getActionableValuation } from "@/lib/valuation-result-state";
 
 export type DecisionSummary = {
   recommendation: "值得進一步看屋" | "需謹慎評估" | "暫不建議";
@@ -25,8 +26,9 @@ export function buildDecisionSummary(
   location?: LocationInsightResult,
   terrainSafety?: DecisionTerrainSafety,
 ): DecisionSummary {
+  const actionableValuation = getActionableValuation(valuation);
   const risky = loan?.affordability_level === "risky" || holding?.affordability_level === "risky";
-  const cautious = loan?.affordability_level === "tight" || holding?.affordability_level === "tight" || valuation?.confidence === "low" || location?.data_quality.status === "unavailable";
+  const cautious = loan?.affordability_level === "tight" || holding?.affordability_level === "tight" || actionableValuation?.result.confidence === "low" || location?.data_quality.status === "unavailable";
   // Terrain gate: known_high blocks a positive conclusion; anything that is not
   // positively known-low (unknown/unavailable/error/not_assessed/absent/
   // caution/limited/partial/no_match/unproven) prevents an unrestricted
@@ -34,29 +36,29 @@ export function buildDecisionSummary(
   // context and legacy behavior is preserved.
   const terrainKnownHigh = terrainSafety === "known_high";
   const terrainBlocksPositive = terrainSafety !== undefined && terrainSafety !== "known_low";
-  const baseRecommendation = risky ? "暫不建議" : cautious ? "需謹慎評估" : valuation && (loan || holding || location) ? "值得進一步看屋" : "需謹慎評估";
+  const baseRecommendation = risky ? "暫不建議" : cautious ? "需謹慎評估" : actionableValuation && (loan || holding || location) ? "值得進一步看屋" : "需謹慎評估";
   const recommendation = terrainKnownHigh
     ? "需謹慎評估"
     : terrainBlocksPositive && baseRecommendation === "值得進一步看屋"
       ? "需謹慎評估"
       : baseRecommendation;
   const reasons = [
-    valuation ? `估價中位約 ${valuation.price_range.mid.toLocaleString()} 萬，已有 ${valuation.valuation_explanation.sample_count} 筆可比成交支持。` : "",
+    actionableValuation ? `估價中位約 ${actionableValuation.priceRange.mid.toLocaleString()} 萬，已有 ${actionableValuation.sampleCount} 筆可比成交支持。` : "",
     loan && loan.affordability_level !== "risky" ? `貸款月付約 ${loan.monthly_payment.toLocaleString()} 元，負擔等級為 ${loan.affordability_level}。` : "",
     location?.location_score !== null && location?.location_score !== undefined ? `區位總分 ${location.location_score}，可作為實地看屋前的生活機能參考。` : "",
     propertySearch?.summary.matched_count ? `找房雷達找到 ${propertySearch.summary.matched_count} 筆符合條件的歷史成交。` : "",
   ].filter(Boolean).slice(0, 3);
   const risks = [
     holding?.affordability_level === "tight" || holding?.affordability_level === "risky" ? `每月總持有成本負擔為 ${holding.affordability_level}，需保留現金緩衝。` : "",
-    valuation?.confidence === "low" ? "估價資料信心偏低，建議補查同社區或同路段成交。" : "",
+    actionableValuation?.result.confidence === "low" ? "估價資料信心偏低，建議補查同社區或同路段成交。" : "",
     location?.data_quality.status !== "good" ? "區位資料來源有限，交通噪音、嫌惡設施與實際環境仍需現場確認。" : "",
     !loan ? "尚未完成貸款月付試算。" : "",
     !holding ? "尚未完成管理費、稅費與修繕等持有成本試算。" : "",
   ].filter(Boolean).slice(0, 3);
-  const completed = [valuation, loan, holding, location].filter(Boolean).length;
-  const dataConfidence = valuation?.confidence === "high" && location?.data_quality.status === "good" && completed >= 4 ? "充足" : valuation && completed >= 2 ? "有限" : "不足";
+  const completed = [actionableValuation, loan, holding, location].filter(Boolean).length;
+  const dataConfidence = actionableValuation?.result.confidence === "high" && location?.data_quality.status === "good" && completed >= 4 ? "充足" : actionableValuation && completed >= 2 ? "有限" : "不足";
   const checklist: DecisionSummary["checklist"] = [
-    { label: "價格是否合理", status: valuation ? (valuation.confidence === "low" ? "需確認" : "通過") : "未完成", detail: valuation ? valuation.confidence_reason : "先完成估價與可比成交確認。" },
+    { label: "價格是否合理", status: actionableValuation ? (actionableValuation.result.confidence === "low" ? "需確認" : "通過") : "未完成", detail: actionableValuation ? actionableValuation.result.confidence_reason : "先完成估價與可比成交確認。" },
     { label: "月付是否可承受", status: affordabilityStatus(loan?.affordability_level), detail: loan ? loan.affordability_message : "尚未完成貸款月付試算。" },
     { label: "持有成本是否可承受", status: affordabilityStatus(holding?.affordability_level), detail: holding ? holding.affordability_message : "尚未完成持有成本試算。" },
     { label: "區位是否符合需求", status: location ? (location.data_quality.status === "unavailable" ? "需確認" : "通過") : "未完成", detail: location ? location.valuation_context.explanation : "尚未完成區位分析。" },

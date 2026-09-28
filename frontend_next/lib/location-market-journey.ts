@@ -1,4 +1,4 @@
-import type { CommuteAddressLookupResult, LocationInsightResult, MarketResult, TerrainRiskResult } from "@/lib/api";
+import type { CommuteAddressLookupResult, CommuteRouteResult, LocationInsightResult, MarketResult, TerrainRiskResult } from "@/lib/api";
 
 export type JourneyPropertyContext = {
   city?: string;
@@ -94,6 +94,35 @@ function commuteStatus(result: CommuteAddressLookupResult | null | undefined, st
   return "unavailable";
 }
 
+type CommuteRouteState = Pick<CommuteRouteResult, "status" | "reason_code">;
+
+function routeStatus(result: CommuteRouteState | null | undefined, status: LocationMarketDisplayStatus): LocationMarketDisplayStatus {
+  if (status === "loading") return status;
+  if (!result) return status;
+  if (result.status === "resolved") return "available";
+  if (result.reason_code === "destination_required") return "not_started";
+  if (result.status === "unresolved") return "no_data";
+  return "unavailable";
+}
+
+export function buildCommuteChannelState(
+  routeResult: CommuteRouteState | null | undefined,
+  routeDisplayStatus: LocationMarketDisplayStatus,
+  transitResult: CommuteAddressLookupResult | null | undefined,
+  transitDisplayStatus: LocationMarketDisplayStatus,
+) {
+  const route = routeStatus(routeResult, routeDisplayStatus);
+  const transit_context = commuteStatus(transitResult, transitDisplayStatus);
+  let overall: LocationMarketDisplayStatus;
+  if (route === "loading" || transit_context === "loading") overall = "loading";
+  else if (route === "available" && transit_context === "available") overall = "available";
+  else if (route === "available" || transit_context === "available") overall = "partial";
+  else if (route === "unavailable" || transit_context === "unavailable") overall = "unavailable";
+  else if (route === "no_data" || transit_context === "no_data") overall = "no_data";
+  else overall = "not_started";
+  return { route, transit_context, overall };
+}
+
 function terrainStatus(result: TerrainRiskResult | null | undefined, status: LocationMarketDisplayStatus): LocationMarketDisplayStatus {
   if (status === "loading") return status;
   if (!result) return status;
@@ -137,14 +166,22 @@ export function buildLocationMarketStatusItems(input: {
   locationResult?: LocationInsightResult | null;
   commuteResult?: CommuteAddressLookupResult | null;
   commuteDisplayStatus?: LocationMarketDisplayStatus;
+  commuteRouteResult?: CommuteRouteState | null;
+  commuteRouteDisplayStatus?: LocationMarketDisplayStatus;
   terrainResult?: TerrainRiskResult | null;
   terrainDisplayStatus?: LocationMarketDisplayStatus;
   marketResult?: MarketResult | null;
   marketDisplayStatus?: LocationMarketDisplayStatus;
 }): LocationMarketStatusItem[] {
+  const commuteChannels = buildCommuteChannelState(
+    input.commuteRouteResult,
+    input.commuteRouteDisplayStatus ?? "not_started",
+    input.commuteResult,
+    input.commuteDisplayStatus ?? "not_started",
+  );
   const statuses = {
     location: locationStatus(input.locationResult),
-    commute: commuteStatus(input.commuteResult, input.commuteDisplayStatus ?? "not_started"),
+    commute: commuteChannels.overall,
     terrain: terrainStatus(input.terrainResult, input.terrainDisplayStatus ?? "not_started"),
     market: marketStatus(input.marketResult, input.marketDisplayStatus ?? "not_started"),
   } satisfies Record<LocationMarketStatusItem["id"], LocationMarketDisplayStatus>;

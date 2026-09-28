@@ -16,7 +16,7 @@ from services.map_service import search_location
 from services.official_data_registry import provider_registry
 from services.terrain_risk_providers import (
     ArdswcSlopeHazardProvider,
-    GeologyCloudProvider,
+    GsmmaGeologyProvider,
     NlscTerrainProvider,
     WraFloodProvider,
 )
@@ -181,7 +181,7 @@ def _default_providers() -> dict[str, Any]:
         "terrain": NlscTerrainProvider(),
         "slope_hazard": ArdswcSlopeHazardProvider(),
         "flood": WraFloodProvider(),
-        "geology": GeologyCloudProvider(),
+        "geology": GsmmaGeologyProvider(),
     }
 
 
@@ -393,9 +393,10 @@ def _overall(risk_factors: list[dict[str, Any]], data_quality: dict[str, Any], l
             "summary": "目前未取得足夠官方圖資做自動比對，請改至官方圖台或專業單位確認。",
             "confidence": "unknown",
         }
-    if any(item["level"] == "high" for item in risk_factors) or len(risk_factors) >= 2:
+    severity_factors = [item for item in risk_factors if item.get("level") != "unknown"]
+    if any(item["level"] == "high" for item in severity_factors) or len(severity_factors) >= 2:
         return {"level": "high", "label": "需要優先確認", "summary": "已命中明確或多項風險提醒，建議先補查官方圖台與現場條件。", "confidence": "medium" if data_quality["status"] == "limited" else "high"}
-    if risk_factors:
+    if severity_factors:
         return {"level": "medium", "label": "有項目需注意", "summary": "有一項地勢或災害相關提醒，建議看屋前補查。", "confidence": "medium"}
     if data_quality["status"] == "good" and set(DEFAULT_LAYERS).issubset(set(layers)):
         return {"level": "low", "label": "目前未比對到明確風險", "summary": "可用官方來源未比對到明確風險，但仍需實地確認。", "confidence": "high"}

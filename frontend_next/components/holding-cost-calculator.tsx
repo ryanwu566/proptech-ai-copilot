@@ -8,6 +8,7 @@ import { buildHoldingCostVisualModel } from "@/lib/holding-cost-visualization";
 import { HoldingCostVisualPanel } from "@/components/data-visualization/holding-cost-visual-panel";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getSurfaceCopy } from "@/lib/surface-copy";
+import { monthlyPaymentTwdToWan, monthlyPaymentWanToTwd } from "@/lib/monetary-units";
 
 // Legacy vocabulary is retained as a source-level compatibility contract while
 // visible labels are supplied by the selected locale at runtime.
@@ -23,7 +24,7 @@ export function HoldingCostCalculator({ prefill, initialResult, onResult, embedd
   const { locale } = useExperienceLocale();
   const copy = getSurfaceCopy(locale).holding;
   const [propertyPrice, setPropertyPrice] = useState<number | "">(prefill?.property_price ?? (embedded ? "" : 2000));
-  const [loanMonthlyPayment, setLoanMonthlyPayment] = useState(prefill?.loan_monthly_payment ?? 0);
+  const [loanMonthlyPayment, setLoanMonthlyPayment] = useState(monthlyPaymentTwdToWan(prefill?.loan_monthly_payment ?? 0) ?? 0);
   const [monthlyIncome, setMonthlyIncome] = useState<number | "">(prefill?.monthly_income ?? "");
   const [areaPing, setAreaPing] = useState<number | "">(prefill?.area_ping ?? "");
   const [managementFee, setManagementFee] = useState(80); const [repairReserve, setRepairReserve] = useState(50);
@@ -43,14 +44,16 @@ export function HoldingCostCalculator({ prefill, initialResult, onResult, embedd
 
   useEffect(() => { setResult(initialResult); }, [initialResult]);
 
-  useEffect(() => { if (!prefill) return; setPropertyPrice(prefill.property_price); setLoanMonthlyPayment(prefill.loan_monthly_payment ?? 0); setMonthlyIncome(prefill.monthly_income ?? ""); setAreaPing(prefill.area_ping ?? ""); setResult(undefined); window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY); }, [prefill]);
-  useEffect(() => { function applyEvent(event: Event) { const detail = (event as CustomEvent<HoldingCostPrefill>).detail; if (!detail?.property_price) return; setPropertyPrice(detail.property_price); setLoanMonthlyPayment(detail.loan_monthly_payment ?? 0); setMonthlyIncome(detail.monthly_income ?? ""); setAreaPing(detail.area_ping ?? ""); setResult(undefined); window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY); } window.addEventListener(HOLDING_COST_PREFILL_EVENT, applyEvent); return () => window.removeEventListener(HOLDING_COST_PREFILL_EVENT, applyEvent); }, []);
+  useEffect(() => { if (!prefill) return; setPropertyPrice(prefill.property_price); setLoanMonthlyPayment(monthlyPaymentTwdToWan(prefill.loan_monthly_payment ?? 0) ?? 0); setMonthlyIncome(prefill.monthly_income ?? ""); setAreaPing(prefill.area_ping ?? ""); setResult(undefined); window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY); }, [prefill]);
+  useEffect(() => { function applyEvent(event: Event) { const detail = (event as CustomEvent<HoldingCostPrefill>).detail; if (!detail?.property_price) return; setPropertyPrice(detail.property_price); setLoanMonthlyPayment(monthlyPaymentTwdToWan(detail.loan_monthly_payment ?? 0) ?? 0); setMonthlyIncome(detail.monthly_income ?? ""); setAreaPing(detail.area_ping ?? ""); setResult(undefined); window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY); } window.addEventListener(HOLDING_COST_PREFILL_EVENT, applyEvent); return () => window.removeEventListener(HOLDING_COST_PREFILL_EVENT, applyEvent); }, []);
   useEffect(() => { function applyResult(event: Event) { setResult((event as CustomEvent<HoldingCostResult>).detail); } window.addEventListener(HOLDING_COST_RESULT_EVENT, applyResult); return () => window.removeEventListener(HOLDING_COST_RESULT_EVENT, applyResult); }, []);
 
   async function calculate() {
     setLoading(true); setError("");
     try {
-      const next = await api.holdingCostCalculate({ property_price: propertyPrice === "" ? 0 : propertyPrice, loan_monthly_payment: loanMonthlyPayment, monthly_income: monthlyIncome === "" ? undefined : monthlyIncome, area_ping: areaPing === "" ? undefined : areaPing, management_fee_per_ping: managementFee, repair_reserve_per_ping: repairReserve, annual_home_tax_rate: homeTaxRate, annual_land_tax_rate: landTaxRate, annual_insurance: annualInsurance, include_tax_estimate: true });
+      const loanMonthlyPaymentTwd = monthlyPaymentWanToTwd(loanMonthlyPayment);
+      if (loanMonthlyPaymentTwd === null) throw new Error("invalid monthly payment");
+      const next = await api.holdingCostCalculate({ property_price: propertyPrice === "" ? 0 : propertyPrice, loan_monthly_payment: loanMonthlyPaymentTwd, monthly_income: monthlyIncome === "" ? undefined : monthlyIncome, area_ping: areaPing === "" ? undefined : areaPing, management_fee_per_ping: managementFee, repair_reserve_per_ping: repairReserve, annual_home_tax_rate: homeTaxRate, annual_land_tax_rate: landTaxRate, annual_insurance: annualInsurance, include_tax_estimate: true });
       setResult(next); window.sessionStorage.setItem(HOLDING_COST_SESSION_KEY, JSON.stringify(next)); window.dispatchEvent(new CustomEvent<HoldingCostResult>(HOLDING_COST_RESULT_EVENT, { detail: next })); onResult?.(next);
     } catch { setError(copy.error); } finally { setLoading(false); }
   }

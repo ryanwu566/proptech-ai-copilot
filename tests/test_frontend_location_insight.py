@@ -31,7 +31,7 @@ def test_property_finder_and_valuation_can_prefill_location() -> None:
     assert "item.median_total_price" in FINDER
     assert "item.total_price" in FINDER
     assert "prefillLocationInsight({city,district,road" in PAGE
-    assert "result?.price_range.mid" in PAGE
+    assert "getActionableValuation(result)?.priceRange.mid" in PAGE
 
 def test_html_summary_contains_location_insight() -> None:
     for text in ("locationInsight?: LocationInsightResult", "區位分析", "區位總分", "區位優點", "區位缺點", "POI 摘要", "資料品質"):

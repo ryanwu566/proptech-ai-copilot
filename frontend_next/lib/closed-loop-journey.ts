@@ -1,5 +1,7 @@
 import type {
   HoldingCostResult,
+  CommuteAddressLookupResult,
+  CommuteRouteEvidence,
   LoanCalculationResult,
   LocationInsightResult,
   MarketResult,
@@ -11,14 +13,25 @@ import type {
 import { getSafeJourneyPropertyContext, type JourneyPropertyContext, type LocationMarketDisplayStatus } from "@/lib/location-market-journey";
 import type { PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
 import type { StoredTerrainReferenceEvidenceV1, TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
+import { getActionableValuation } from "@/lib/valuation-result-state";
+import {
+  buildJourneyPropertyIdentityAnchor,
+  reconcileJourneyPropertyIdentityAnchor,
+  type JourneyPropertyIdentityAnchorV1,
+} from "@/lib/journey-property-identity";
 
 export type JourneyPriceBasis = "asking" | "valuation" | "manual";
 
 export type ClosedLoopJourneyState = {
   propertyContext: JourneyPropertyContext;
+  identityAnchor?: JourneyPropertyIdentityAnchorV1;
   propertySearchResult?: PropertySearchResult;
   locationResult?: LocationInsightResult;
   locationStatus: LocationMarketDisplayStatus;
+  commuteRouteEvidence?: CommuteRouteEvidence;
+  commuteRouteStatus: LocationMarketDisplayStatus;
+  commuteTransitResult?: CommuteAddressLookupResult;
+  commuteTransitStatus: LocationMarketDisplayStatus;
   terrainResult?: TerrainRiskResult;
   terrainReference?: TerrainReferenceEvidence;
   storedTerrainReference?: StoredTerrainReferenceEvidenceV1;
@@ -33,6 +46,11 @@ export type ClosedLoopJourneyState = {
   loanResult?: LoanCalculationResult;
   holdingResult?: HoldingCostResult;
   taxResult?: TaxResult;
+};
+
+type JourneyIdentityTransitionOptions = {
+  now?: () => string;
+  idFactory?: () => string;
 };
 
 function positive(value: unknown): value is number {
@@ -55,12 +73,19 @@ export function journeyValuationKey(context: JourneyPropertyContext): string {
   ].join("|");
 }
 
-export function createClosedLoopJourneyState(input?: Partial<JourneyPropertyContext>): ClosedLoopJourneyState {
+export function createClosedLoopJourneyState(
+  input?: Partial<JourneyPropertyContext>,
+  identityOptions: JourneyIdentityTransitionOptions = {},
+): ClosedLoopJourneyState {
   const propertyContext = getSafeJourneyPropertyContext(input);
   const askingPriceWan = positive(propertyContext.askingPriceWan) ? propertyContext.askingPriceWan : undefined;
+  const hasAddress = Boolean(journeyAddressKey(propertyContext).replaceAll("|", ""));
   return {
     propertyContext,
+    ...(hasAddress ? { identityAnchor: buildJourneyPropertyIdentityAnchor({ context: propertyContext }, identityOptions) } : {}),
     locationStatus: "not_started",
+    commuteRouteStatus: "not_started",
+    commuteTransitStatus: "not_started",
     terrainStatus: "not_started",
     marketStatus: "not_started",
     valuationStatus: "not_started",
@@ -69,7 +94,11 @@ export function createClosedLoopJourneyState(input?: Partial<JourneyPropertyCont
   };
 }
 
-export function updateJourneyProperty(state: ClosedLoopJourneyState, input: Partial<JourneyPropertyContext>): ClosedLoopJourneyState {
+export function updateJourneyProperty(
+  state: ClosedLoopJourneyState,
+  input: Partial<JourneyPropertyContext>,
+  identityOptions: JourneyIdentityTransitionOptions = {},
+): ClosedLoopJourneyState {
   const propertyContext = getSafeJourneyPropertyContext({ ...state.propertyContext, ...input });
   const addressChanged = journeyAddressKey(state.propertyContext) !== journeyAddressKey(propertyContext);
   const valuationChanged = journeyValuationKey(state.propertyContext) !== journeyValuationKey(propertyContext);
@@ -77,10 +106,17 @@ export function updateJourneyProperty(state: ClosedLoopJourneyState, input: Part
 
   let next: ClosedLoopJourneyState = { ...state, propertyContext };
   if (addressChanged) {
+    const hasAddress = Boolean(journeyAddressKey(propertyContext).replaceAll("|", ""));
     next = {
       ...next,
+      propertySearchResult: undefined,
+      identityAnchor: hasAddress ? buildJourneyPropertyIdentityAnchor({ context: propertyContext }, identityOptions) : undefined,
       locationResult: undefined,
       locationStatus: "not_started",
+      commuteRouteEvidence: undefined,
+      commuteRouteStatus: "not_started",
+      commuteTransitResult: undefined,
+      commuteTransitStatus: "not_started",
       terrainResult: undefined,
       terrainReference: undefined,
       storedTerrainReference: undefined,
@@ -113,6 +149,7 @@ export function updateJourneyProperty(state: ClosedLoopJourneyState, input: Part
 export function updateJourneyMarketLocation(
   state: ClosedLoopJourneyState,
   input: Pick<JourneyPropertyContext, "city" | "district" | "road">,
+  identityOptions: JourneyIdentityTransitionOptions = {},
 ): ClosedLoopJourneyState {
   const propertyContext = getSafeJourneyPropertyContext({
     ...state.propertyContext,
@@ -130,11 +167,18 @@ export function updateJourneyMarketLocation(
     };
   }
 
+  const hasAddress = Boolean(journeyAddressKey(propertyContext).replaceAll("|", ""));
   const next = {
     ...state,
     propertyContext,
+    propertySearchResult: undefined,
+    identityAnchor: hasAddress ? buildJourneyPropertyIdentityAnchor({ context: propertyContext }, identityOptions) : undefined,
     locationResult: undefined,
     locationStatus: "not_started" as const,
+    commuteRouteEvidence: undefined,
+    commuteRouteStatus: "not_started" as const,
+    commuteTransitResult: undefined,
+    commuteTransitStatus: "not_started" as const,
     terrainResult: undefined,
     terrainReference: undefined,
     storedTerrainReference: undefined,
@@ -152,8 +196,37 @@ export function setJourneyLocationResult(
   state: ClosedLoopJourneyState,
   result: LocationInsightResult | null,
   status: LocationMarketDisplayStatus,
+  identityOptions: JourneyIdentityTransitionOptions = {},
 ): ClosedLoopJourneyState {
-  return { ...state, locationResult: result ?? undefined, locationStatus: status };
+  if (!result) return { ...state, locationResult: undefined, locationStatus: status };
+  const identityAnchor = state.identityAnchor
+    ? reconcileJourneyPropertyIdentityAnchor(state.identityAnchor, state.propertyContext, result, identityOptions)
+    : buildJourneyPropertyIdentityAnchor({ context: state.propertyContext, location: result }, identityOptions);
+  return { ...state, identityAnchor, locationResult: result, locationStatus: status };
+}
+
+export function restoreJourneyLocationResult(
+  state: ClosedLoopJourneyState,
+  result: LocationInsightResult,
+  status: LocationMarketDisplayStatus,
+): ClosedLoopJourneyState {
+  return { ...state, locationResult: result, locationStatus: status };
+}
+
+export function setJourneyCommuteRoute(
+  state: ClosedLoopJourneyState,
+  evidence: CommuteRouteEvidence | null,
+  status: LocationMarketDisplayStatus,
+): ClosedLoopJourneyState {
+  return { ...state, commuteRouteEvidence: evidence ?? undefined, commuteRouteStatus: status };
+}
+
+export function setJourneyCommuteTransit(
+  state: ClosedLoopJourneyState,
+  result: CommuteAddressLookupResult | null,
+  status: LocationMarketDisplayStatus,
+): ClosedLoopJourneyState {
+  return { ...state, commuteTransitResult: result ?? undefined, commuteTransitStatus: status };
 }
 
 export function setJourneyTerrainResult(
@@ -177,8 +250,8 @@ export function setJourneyValuation(
   result: ValuationResult | undefined,
   status: PriceJourneyDisplayStatus,
 ): ClosedLoopJourneyState {
-  const previousMidpoint = state.valuationResult?.price_range.mid;
-  const nextMidpoint = result?.price_range.mid;
+  const previousMidpoint = getActionableValuation(state.valuationResult)?.priceRange.mid;
+  const nextMidpoint = getActionableValuation(result)?.priceRange.mid;
   let next: ClosedLoopJourneyState = { ...state, valuationResult: result, valuationStatus: status };
   if (state.priceBasis === "valuation") next = { ...next, activePriceWan: positive(nextMidpoint) ? nextMidpoint : undefined };
   if (state.priceBasis !== "asking" && !state.activePriceWan && positive(nextMidpoint)) {
@@ -196,7 +269,7 @@ export function selectJourneyPrice(
   const amount = basis === "asking"
     ? state.propertyContext.askingPriceWan
     : basis === "valuation"
-      ? state.valuationResult?.price_range.mid
+      ? getActionableValuation(state.valuationResult)?.priceRange.mid
       : manualPriceWan;
   const next = {
     ...state,

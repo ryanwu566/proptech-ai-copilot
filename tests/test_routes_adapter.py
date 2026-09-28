@@ -57,8 +57,9 @@ def test_supported_modes() -> None:
 def test_no_key_is_unavailable_and_does_not_call() -> None:
     adapter = GoogleRoutesAdapter(api_key="")
     assert adapter.available is False
-    with pytest.raises(RouteUnavailableError):
+    with pytest.raises(RouteUnavailableError) as error:
         adapter.compute_route(ORIGIN, DESTINATION, "transit")
+    assert error.value.reason_code == "configuration_error"
 
 
 def test_successful_fake_response_normalizes() -> None:
@@ -83,24 +84,27 @@ def test_raw_google_fields_are_not_exposed() -> None:
 def test_timeout_is_sanitized() -> None:
     client = _Client(raise_on_post=httpx.TimeoutException("boom"))
     adapter = GoogleRoutesAdapter(api_key="test", client=client)
-    with pytest.raises(RouteUnavailableError):
+    with pytest.raises(RouteUnavailableError) as error:
         adapter.compute_route(ORIGIN, DESTINATION, "transit")
+    assert error.value.reason_code == "provider_timeout"
 
 
 def test_http_status_error_is_sanitized() -> None:
     error = httpx.HTTPStatusError("429", request=httpx.Request("POST", "https://x"), response=httpx.Response(429))
     client = _Client(_Response(None, error=error))
     adapter = GoogleRoutesAdapter(api_key="test", client=client)
-    with pytest.raises(RouteUnavailableError):
+    with pytest.raises(RouteUnavailableError) as error:
         adapter.compute_route(ORIGIN, DESTINATION, "transit")
+    assert error.value.reason_code == "provider_error"
 
 
 def test_malformed_response_fails_closed() -> None:
     for payload in ([], {"routes": [{"duration": "not-seconds", "distanceMeters": 10}]}, {"routes": [{"distanceMeters": 10}]}, {"routes": [{"duration": "10s"}]}):
         client = _Client(_Response(payload))
         adapter = GoogleRoutesAdapter(api_key="test", client=client)
-        with pytest.raises(RoutesAdapterError):
+        with pytest.raises(RoutesAdapterError) as error:
             adapter.compute_route(ORIGIN, DESTINATION, "transit")
+        assert error.value.reason_code == "malformed_response"
 
 
 def test_zero_route_raises_not_found() -> None:

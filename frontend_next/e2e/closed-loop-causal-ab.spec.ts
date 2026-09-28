@@ -493,6 +493,66 @@ test("A to B to A requires fresh location evidence on every address", async ({ p
   expect(calls).toBe(3);
 });
 
+test("Google route remains usable when TDX is unavailable and retry replaces stale state", async ({ page }) => {
+  await registerJourneyApis(page);
+  await page.route("**/commute/address-lookup", (route) => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ status: "unavailable", source: "none", station_name: null, line_ids: [], distance_meters: null, source_updated_at: null, snapshot_generated_at: null, message: "Transit context unavailable." }),
+  }));
+  let routeCalls = 0;
+  let releaseDeferredRoute: (() => void) | undefined;
+  const deferredRoute = new Promise<void>((resolve) => { releaseDeferredRoute = resolve; });
+  await page.route("**/commute/route", async (route) => {
+    routeCalls += 1;
+    if (routeCalls === 3) await deferredRoute;
+    const base = { mode: "transit", duration_min: null, duration_seconds: null, distance_m: null, partial: false, fallback: false, checked_at: "2026-09-27T00:00:00Z", disclaimer: "Reference only." };
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(routeCalls === 1
+        ? { ...base, status: "unavailable", source: "none", reason_code: "provider_timeout", message: "Route provider timed out." }
+        : { ...base, status: "resolved", source: "google_routes", reason_code: "success", duration_min: 23, duration_seconds: 1380, distance_m: 8100, message: "Route available." }),
+    });
+  });
+
+  await hydrateJourney(page);
+  await goToStep(page, "location");
+  await page.locator("section[aria-labelledby=location-market-tools-heading]").getByRole("button").first().click();
+  await expect(page.getByTestId("commute-route-card")).toBeVisible();
+
+  await page.getByRole("button", { name: "Check commute information" }).click();
+  await expect(page.getByTestId("commute-transit-context-state")).toHaveAttribute("data-status", "unavailable");
+
+  const routeCard = page.getByTestId("commute-route-card");
+  await routeCard.getByLabel("目的地地址").fill("Taipei Main Station");
+  await routeCard.getByRole("button", { name: "估算通勤" }).click();
+  await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "provider_timeout");
+  await routeCard.getByRole("button", { name: "估算通勤" }).click();
+  await expect(routeCard).toContainText("23");
+  await expect(routeCard).toContainText("8.1 km");
+  await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "success");
+  await expect(page.locator("section[aria-labelledby=location-market-status-heading]").getByText("Data is incomplete")).toBeVisible();
+  expect(routeCalls).toBe(2);
+
+  await routeCard.getByLabel("目的地地址").fill("New destination");
+  await expect(routeCard).not.toContainText("8.1 km");
+  await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "destination_required");
+  const deferredResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith("/commute/route"));
+  await routeCard.getByRole("button").last().click();
+  await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-status", "loading");
+
+  await page.locator("#location-insight-calculator").getByLabel("Property address").fill("Property B");
+  await expect(page.getByTestId("commute-route-card")).toHaveCount(0);
+  releaseDeferredRoute?.();
+  await deferredResponse;
+  await page.locator("#location-insight-calculator").getByRole("button", { name: "Start location analysis" }).click();
+  await expect(page.getByTestId("location-result")).toContainText("Property B");
+  await expect(page.getByTestId("commute-route-card")).toBeVisible();
+  await expect(page.getByTestId("commute-route-card")).not.toContainText("8.1 km");
+  expect(routeCalls).toBe(3);
+});
+
 test("area-only change preserves location and terrain while requiring a fresh valuation", async ({ page }) => {
   await registerJourneyApis(page);
   await hydrateJourney(page);

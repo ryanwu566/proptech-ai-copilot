@@ -24,6 +24,8 @@ def test_only_explicit_price_actions_transfer_to_followup_tools() -> None:
     assert 'onTransferToLoan={(priceWan) =>' in price_stage
     assert 'onTransferToHolding={(priceWan, areaPing) =>' in price_stage
     assert 'selectJourneyPrice(current, "valuation", priceWan)' in price_stage
+    closed_loop = (ROOT / "frontend_next/lib/closed-loop-journey.ts").read_text(encoding="utf-8")
+    assert "getActionableValuation(state.valuationResult)?.priceRange.mid" in closed_loop
     assert "actions.goToNextStep()" in price_stage
     assert "useEffect" not in price_stage
     assert 't("trust.noPurchase")' in PRICE_STAGE

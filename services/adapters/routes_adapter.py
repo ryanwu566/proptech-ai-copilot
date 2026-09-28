@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import math
 import os
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 import httpx
 
@@ -32,16 +32,38 @@ SUPPORTED_MODES: dict[str, str] = {
 }
 
 
+RouteReasonCode = Literal[
+    "destination_required",
+    "invalid_input",
+    "provider_timeout",
+    "configuration_error",
+    "provider_error",
+    "malformed_response",
+    "route_not_found",
+    "success",
+]
+
+
 class RoutesAdapterError(RuntimeError):
     """Raised for sanitized routes adapter failures (never leaks provider detail)."""
+
+    def __init__(self, message: str, *, reason_code: RouteReasonCode = "invalid_input") -> None:
+        super().__init__(message)
+        self.reason_code = reason_code
 
 
 class RouteUnavailableError(RoutesAdapterError):
     """Raised when the provider cannot currently answer (timeout, HTTP, quota, malformed)."""
 
+    def __init__(self, message: str, *, reason_code: RouteReasonCode = "provider_error") -> None:
+        super().__init__(message, reason_code=reason_code)
+
 
 class RouteNotFoundError(RoutesAdapterError):
     """Raised when the provider responds successfully but finds no route."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message, reason_code="route_not_found")
 
 
 def is_supported_mode(mode: str) -> bool:
@@ -122,7 +144,10 @@ class GoogleRoutesAdapter:
         """Return a normalized route observation or raise a sanitized error."""
 
         if not self.available:
-            raise RouteUnavailableError("Google Routes credential is not configured")
+            raise RouteUnavailableError(
+                "Google Routes credential is not configured",
+                reason_code="configuration_error",
+            )
         if not is_supported_mode(mode):
             raise RoutesAdapterError(f"Unsupported travel mode: {mode}")
         origin_lat, origin_lng = origin
@@ -147,12 +172,26 @@ class GoogleRoutesAdapter:
             response.raise_for_status()
             data = response.json()
         except httpx.TimeoutException as exc:
-            raise RouteUnavailableError("Google Routes response timed out") from exc
+            raise RouteUnavailableError(
+                "Google Routes response timed out",
+                reason_code="provider_timeout",
+            ) from exc
         except httpx.HTTPStatusError as exc:
             # Covers quota/rate (429) and other HTTP failures without leaking body.
-            raise RouteUnavailableError("Google Routes is currently unavailable") from exc
-        except (httpx.HTTPError, ValueError) as exc:
-            raise RouteUnavailableError("Google Routes returned an unusable response") from exc
+            raise RouteUnavailableError(
+                "Google Routes is currently unavailable",
+                reason_code="provider_error",
+            ) from exc
+        except httpx.HTTPError as exc:
+            raise RouteUnavailableError(
+                "Google Routes is currently unavailable",
+                reason_code="provider_error",
+            ) from exc
+        except ValueError as exc:
+            raise RouteUnavailableError(
+                "Google Routes returned an unusable response",
+                reason_code="malformed_response",
+            ) from exc
 
         return self._normalize(data, mode)
 
@@ -161,14 +200,20 @@ class GoogleRoutesAdapter:
         """Extract only whitelisted fields; fail closed on malformed data."""
 
         if not isinstance(data, dict):
-            raise RouteUnavailableError("Google Routes payload shape was unusable")
+            raise RouteUnavailableError(
+                "Google Routes payload shape was unusable",
+                reason_code="malformed_response",
+            )
         routes = data.get("routes")
         if not isinstance(routes, list) or not routes:
             # Successful response with no route.
             raise RouteNotFoundError("No route found between the requested points")
         first = routes[0]
         if not isinstance(first, dict):
-            raise RouteUnavailableError("Google Routes route shape was unusable")
+            raise RouteUnavailableError(
+                "Google Routes route shape was unusable",
+                reason_code="malformed_response",
+            )
         duration_seconds = _parse_duration_seconds(first.get("duration"))
         distance_raw = first.get("distanceMeters")
         distance_m: int | None
@@ -179,7 +224,10 @@ class GoogleRoutesAdapter:
         else:
             distance_m = None
         if duration_seconds is None or distance_m is None:
-            raise RouteUnavailableError("Google Routes payload was missing required fields")
+            raise RouteUnavailableError(
+                "Google Routes payload was missing required fields",
+                reason_code="malformed_response",
+            )
         return {
             "duration_seconds": duration_seconds,
             "distance_m": distance_m,

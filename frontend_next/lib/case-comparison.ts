@@ -1,5 +1,6 @@
 import type { SavedCase } from "@/lib/case-storage";
 import { terrainReferenceStateLabel } from "@/lib/terrain-reference-evidence";
+import { getStoredActionableValuation } from "@/lib/valuation-result-state";
 
 // 資料不足，排序信心較低；尚未快篩；本模組不以缺資料補成中性分數。
 
@@ -105,7 +106,8 @@ export function getCaseCompareMissingFields(saved: SavedCase): string[] {
 
 function toComparedCase(saved: SavedCase): ComparedCase {
   const { valuation, loan, holdingCost, locationInsight, terrainReference, riskSummary, taxOracle, inputs, valuationEvidence } = saved.data;
-  const valuationTrusted = valuationEvidence?.transferable === true;
+  const actionableValuation = getStoredActionableValuation(valuation);
+  const valuationTrusted = valuationEvidence?.transferable === true && actionableValuation !== null;
   return {
     caseId: saved.id,
     title: saved.title,
@@ -114,9 +116,9 @@ function toComparedCase(saved: SavedCase): ComparedCase {
     areaPing: positive(inputs.area_ping),
     buildingType: inputs.building_type || "尚未填寫",
     completionRate: saved.progress,
-    valuationMid: valuationTrusted ? positive(valuation?.price_range.mid) : null,
-    valuationRange: valuationTrusted && valuation ? valuation.price_range.low.toLocaleString() + "–" + valuation.price_range.high.toLocaleString() + " 萬" : "尚未完成",
-    valuationConfidence: valuationTrusted ? finite(valuation?.confidence_score) : null,
+    valuationMid: valuationTrusted ? actionableValuation.priceRange.mid : null,
+    valuationRange: valuationTrusted ? actionableValuation.priceRange.low.toLocaleString() + "–" + actionableValuation.priceRange.high.toLocaleString() + " 萬" : "尚未完成",
+    valuationConfidence: valuationTrusted ? actionableValuation.confidenceScore : null,
     priceReasonableness: valuationTrusted ? riskSummary?.priceReasonableness.label ?? "未知" : "尚未完成",
     downPaymentWan: positive(loan?.down_payment_wan),
     monthlyPayment: positive(loan?.monthly_payment),

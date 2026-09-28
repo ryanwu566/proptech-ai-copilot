@@ -13,18 +13,23 @@ export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { a
   const [message, setMessage] = useState("");
   const { copy } = useExperienceLocale();
   const latestAddressRef = useRef(address);
+  const onStatusRef = useRef(onStatusChange);
+  const onResultRef = useRef(onResult);
+
+  useEffect(() => { onStatusRef.current = onStatusChange; }, [onStatusChange]);
+  useEffect(() => { onResultRef.current = onResult; }, [onResult]);
 
   useEffect(() => {
     latestAddressRef.current = address;
     setStatus("idle");
     setResult(null);
     setMessage(copy("commute.idle"));
-    onResult?.(null);
+    onResultRef.current?.(null);
   }, [address]);
 
   useEffect(() => {
-    onStatusChange?.(status);
-  }, [onStatusChange, status]);
+    onStatusRef.current?.(status);
+  }, [status]);
 
   async function lookupCommute() {
     const requestedAddress = address.trim();
@@ -44,24 +49,24 @@ export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { a
       if (latestAddressRef.current.trim() !== requestedAddress) return;
       if (next.status === "resolved") {
         setResult(next);
-        onResult?.(next);
+        onResultRef.current?.(next);
         setStatus("resolved");
         setMessage("");
       } else if (next.status === "unresolved") {
         setResult(null);
-        onResult?.(null);
+        onResultRef.current?.(null);
         setStatus("unresolved");
         setMessage(copy("commute.unresolved"));
       } else {
         setResult(null);
-        onResult?.(null);
+        onResultRef.current?.(null);
         setStatus("unavailable");
         setMessage(copy("commute.unavailable"));
       }
     } catch {
       if (latestAddressRef.current.trim() !== requestedAddress) return;
       setResult(null);
-      onResult?.(null);
+      onResultRef.current?.(null);
       setStatus("error");
       setMessage(copy("commute.error"));
     }
@@ -69,6 +74,7 @@ export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { a
 
   return (
     <div className="rounded-xl border border-cyan-100 bg-cyan-50/50 p-3">
+      <span className="sr-only" data-testid="commute-transit-context-state" data-status={status === "resolved" ? "available" : status === "unresolved" ? "no_data" : status === "error" ? "unavailable" : status} />
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-bold text-slate-900">{copy("commute.title")}</p>

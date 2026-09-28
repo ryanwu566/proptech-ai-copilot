@@ -1,6 +1,7 @@
 import { API_BASE, api, type HoldingCostResult, type LoanCalculationResult, type LocationInsightResult, type PropertySearchResult, type TaxResult, type TerrainRiskResult, type ValuationResult, type ValuationTrendResult } from "@/lib/api";
 import { buildRiskSummary, type RiskSummary } from "@/lib/risk-summary";
 import type { ValuationInputs } from "@/lib/valuation-share";
+import { getActionableValuation, getValuationDisplayState } from "@/lib/valuation-result-state";
 
 export const START_GUIDED_DEMO_EVENT = "proptech:start-guided-demo";
 export const GUIDED_DEMO_RESULT_EVENT = "proptech:guided-demo-result";
@@ -110,7 +111,8 @@ async function runStep(step: DemoStepId, results: DemoResults): Promise<string> 
   const valuationPayload = { city: DEMO_INPUT.city, district: DEMO_INPUT.district, road: DEMO_INPUT.road, address_text: "", building_type: DEMO_INPUT.buildingType, area_ping: DEMO_INPUT.areaPing, building_age_years: 15, floor: 8 };
   if (step === "valuation") {
     results.valuation = await api.valuation(valuationPayload);
-    return `估價中位數 ${results.valuation.price_range.mid.toLocaleString()} 萬`;
+    const actionable = getActionableValuation(results.valuation);
+    return actionable ? `估價中位數 ${actionable.priceRange.mid.toLocaleString()} 萬` : getValuationDisplayState(results.valuation).message;
   }
   if (step === "trend") {
     results.trend = await api.valuationTrend({ ...valuationPayload, horizon_months: [6, 12, 36] });
