@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, type CommuteRouteEvidence, type CommuteRouteMode, type CommuteRouteReasonCode, type CommuteRouteResult } from "@/lib/api";
 import type { LocationMarketDisplayStatus } from "@/lib/location-market-journey";
 import { Button, Notice } from "@/components/ui";
+import { formatDistance, formatDuration, formatMissing } from "@/lib/commercial/formatters";
 
 const MODE_LABELS: Record<CommuteRouteMode, string> = { transit: "大眾運輸", driving: "開車", walking: "步行" };
 const SOURCE_LABELS: Record<CommuteRouteResult["source"], string> = {
@@ -183,8 +184,8 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
         <div className="mt-3 grid gap-2 rounded-lg border border-cyan-100 bg-white p-3 text-xs text-slate-700 sm:grid-cols-3">
           {result.fallback && <div className="sm:col-span-3"><div data-testid="commute-route-mock-banner" className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-bold leading-5 text-amber-900">測試／展示模擬路線 — 非 Google 實際結果</div></div>}
           <SafeField label="交通方式" value={MODE_LABELS[result.mode]} />
-          <SafeField label="路線時間" value={result.duration_min === null ? "無資料" : `約 ${result.duration_min} 分鐘${result.fallback ? "（模擬）" : ""}`} />
-          <SafeField label="路線距離" value={result.distance_m === null ? "無資料" : `${(result.distance_m / 1000).toFixed(1)} km`} />
+          <SafeField label="路線時間" value={`${result.duration_min === null ? formatMissing("not_provided") : formatDuration(result.duration_min)}${result.fallback ? "（模擬）" : ""}`} />
+          <SafeField label="路線距離" value={result.distance_m === null ? formatMissing("not_provided") : formatDistance(result.distance_m)} />
           <div className="sm:col-span-3"><SafeField label="資料來源" value={SOURCE_LABELS[result.source]} /></div>
           <div className="sm:col-span-3"><SafeField label="查詢時間" value={result.checked_at} /></div>
           {result.fallback && <div className="sm:col-span-3"><Notice tone="warning">{result.message}</Notice></div>}

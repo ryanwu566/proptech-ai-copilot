@@ -288,10 +288,10 @@ export function clearJourneyAffordability(state: ClosedLoopJourneyState): Closed
 
 export function journeyPriceBasisLabel(basis: JourneyPriceBasis, locale: "zh-TW" | "en" | "ja" | "ko"): string {
   const labels = {
-    "zh-TW": { asking: "開價", valuation: "估價中位數", manual: "手動輸入" },
-    en: { asking: "Asking price", valuation: "Valuation midpoint", manual: "Manual override" },
-    ja: { asking: "売出価格", valuation: "査定中央値", manual: "手動入力" },
-    ko: { asking: "매도 희망가", valuation: "평가 중간값", manual: "수동 입력" },
+    "zh-TW": { asking: "開價", valuation: "成交資料推估中位值", manual: "比較基準價格（依輸入條件）" },
+    en: { asking: "Asking price", valuation: "Transaction-based midpoint estimate", manual: "Comparison-basis price (user-entered)" },
+    ja: { asking: "売出価格", valuation: "取引データによる推定中央値", manual: "比較基準価格（入力条件）" },
+    ko: { asking: "매도 희망가", valuation: "거래 자료 추정 중간값", manual: "비교 기준 가격(입력 조건)" },
   } as const;
   return labels[locale][basis];
 }

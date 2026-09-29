@@ -1,4 +1,5 @@
 import type { TranslationKey } from "@/lib/experience-i18n";
+import type { AnalysisCompletenessState, EvidenceUsabilityState, QueryExecutionState, RiskInterpretationState } from "@/lib/commercial/state";
 
 export type ExperienceState =
   | "empty"
@@ -82,4 +83,22 @@ export function getExperienceStatePresentation(state: ExperienceState, translate
     nextAction: translate(keys.nextAction),
     sourceNote: keys.sourceNote ? translate(keys.sourceNote) : presentation.sourceNote,
   };
+}
+
+export type ExperienceCommercialState = {
+  query: QueryExecutionState;
+  evidence?: EvidenceUsabilityState;
+  completeness: AnalysisCompletenessState;
+  risk: RiskInterpretationState;
+};
+
+/** Conservative compatibility mapping for legacy surfaces that still expose one display state. */
+export function getExperienceCommercialState(state: ExperienceState): ExperienceCommercialState {
+  if (state === "empty" || state === "not_assessed") return { query: "not_started", completeness: "not_started", risk: "not_assessed" };
+  if (state === "loading") return { query: "in_progress", completeness: "not_started", risk: "not_assessed" };
+  if (state === "ready") return { query: "succeeded", evidence: "usable", completeness: "partial", risk: "not_assessed" };
+  if (state === "no_match") return { query: "succeeded", evidence: "no_match", completeness: "insufficient", risk: "unknown" };
+  if (state === "partial" || state === "limited" || state === "no_official_data") return { query: "succeeded", evidence: "limited", completeness: "partial", risk: "unknown" };
+  if (state === "unavailable" || state === "unknown") return { query: "failed", evidence: "unavailable", completeness: "insufficient", risk: "unknown" };
+  return { query: "failed", evidence: "unavailable", completeness: "blocked", risk: "unknown" };
 }

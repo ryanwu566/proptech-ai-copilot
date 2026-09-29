@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
-import { getActionableValuation, getValuationDisplayState } from "./valuation-result-state.ts";
+import { getActionableValuation, getValuationCommercialState, getValuationDisplayState } from "./valuation-result-state.ts";
 
 const officialComparable = {
   transaction_period: "2026-01", city: "Taipei", district: "Daan", road: "Xinyi Road",
@@ -31,6 +31,23 @@ test("complete official valuation is actionable", () => {
   assert.equal(getActionableValuation(result)?.priceRange.mid, 2100);
 });
 
+test("valuation compatibility adapter separates execution, evidence, and completeness", () => {
+  assert.deepEqual(getValuationCommercialState(valuation()), {
+    query: "succeeded",
+    evidence: "usable",
+    completeness: "sufficient_for_task",
+  });
+  assert.deepEqual(getValuationCommercialState(valuation({ valuation_status: "no_data", is_actionable: false })), {
+    query: "succeeded",
+    evidence: "no_match",
+    completeness: "insufficient",
+  });
+  assert.deepEqual(getValuationCommercialState(valuation({ valuation_status: "unavailable", result_origin: "none", is_actionable: false, comparables: [] })), {
+    query: "failed",
+    evidence: "unavailable",
+    completeness: "blocked",
+  });
+});
 test("nullable price range is bounded as an invalid response", () => {
   const result = valuation({ price_range: { low: null, mid: 2100, high: 2300 } });
 

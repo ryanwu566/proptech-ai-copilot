@@ -1,4 +1,5 @@
 import type { PropertySearchResult, ValuationResult, ValuationTrendResult } from "@/lib/api";
+import type { AnalysisCompletenessState, EvidenceUsabilityState, QueryExecutionState } from "@/lib/commercial/state";
 
 export type ValuationDisplayKind = "available" | "partial" | "demo" | "no_data" | "unavailable" | "error";
 
@@ -155,6 +156,22 @@ export function getValuationDisplayState(value: unknown): ValuationDisplayState 
     return { kind: "partial", actionable: false, message: "目前只有部分成交證據，無法形成可採用的估價。" };
   }
   return { kind: "unavailable", actionable: false, message: "估價資料目前無法取得，請稍後再試。" };
+}
+
+export type ValuationCommercialState = {
+  query: QueryExecutionState;
+  evidence: EvidenceUsabilityState;
+  completeness: AnalysisCompletenessState;
+};
+
+export function getValuationCommercialState(value: unknown): ValuationCommercialState {
+  if (value === null || value === undefined) return { query: "not_started", evidence: "unavailable", completeness: "not_started" };
+  const display = getValuationDisplayState(value);
+  if (display.kind === "available") return { query: "succeeded", evidence: "usable", completeness: "sufficient_for_task" };
+  if (display.kind === "partial") return { query: "succeeded", evidence: "limited", completeness: "partial" };
+  if (display.kind === "demo") return { query: "succeeded", evidence: "unverified", completeness: "insufficient" };
+  if (display.kind === "no_data") return { query: "succeeded", evidence: "no_match", completeness: "insufficient" };
+  return { query: "failed", evidence: "unavailable", completeness: "blocked" };
 }
 
 export function getValuationTrendDisplayState(result: ValuationTrendResult): ValuationDisplayState {
