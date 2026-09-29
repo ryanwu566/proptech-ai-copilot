@@ -1,7 +1,11 @@
 import type { ReactNode } from "react";
+import { AsyncState } from "@/components/design-system/async-state";
+import { CommercialButton } from "@/components/design-system/button";
+import { Message } from "@/components/design-system/message";
+import { Panel } from "@/components/design-system/section";
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-xl border border-slate-200 bg-white p-5 shadow-card ${className}`}>{children}</section>;
+  return <Panel className={className}>{children}</Panel>;
 }
 
 export function Badge({ value }: { value: string }) {
@@ -26,18 +30,17 @@ export function Badge({ value }: { value: string }) {
 }
 
 export function Metric({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
-  return <Card className="p-4"><p className="text-xs font-semibold text-slate-500">{label}</p><div className="mt-2 text-2xl font-bold tracking-tight text-ink">{value}</div>{note && <p className="mt-1 text-xs leading-5 text-muted">{note}</p>}</Card>;
+  return <Panel className="p-4"><p className="text-label text-muted">{label}</p><div className="mt-2 text-kpi text-ink" data-numeric>{value}</div>{note && <p className="mt-1 text-helper">{note}</p>}</Panel>;
 }
 
 export function Button({ children, onClick, secondary = false, disabled = false, className = "" }: { children: ReactNode; onClick?: () => void; secondary?: boolean; disabled?: boolean; className?: string }) {
-  return <button disabled={disabled} onClick={onClick} className={`inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${secondary ? "border border-slate-300 bg-white text-ink hover:bg-slate-50" : "bg-slate-950 text-white hover:bg-cyan-800"} ${className}`}>{children}</button>;
+  return <CommercialButton type="submit" disabled={disabled} onClick={onClick} variant={secondary ? "secondary" : "primary"} className={className}>{children}</CommercialButton>;
 }
 
 export function Notice({ children, tone = "info" }: { children: ReactNode; tone?: "info" | "error" | "warning" }) {
-  const tones = { info: "border-blue-200 bg-blue-50 text-blue-800", error: "border-rose-200 bg-rose-50 text-rose-800", warning: "border-amber-200 bg-amber-50 text-amber-800" };
-  return <div className={`rounded-lg border px-4 py-3 text-sm ${tones[tone]}`}>{children}</div>;
+  return <Message variant={tone === "info" ? "information" : tone}>{children}</Message>;
 }
 
 export function EmptyState({ title, detail }: { title: string; detail: string }) {
-  return <div className="flex min-h-40 flex-col items-center justify-center border border-dashed border-slate-300 bg-slate-50/70 px-6 text-center"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm shadow-sm">→</div><h3 className="mt-3 font-bold text-slate-800">{title}</h3><p className="mt-1 max-w-sm text-sm leading-6 text-muted">{detail}</p></div>;
+  return <AsyncState kind="not_started" title={title} detail={detail} />;
 }

@@ -1,9 +1,13 @@
 import type { ReactNode } from "react";
-import { Badge, Button } from "@/components/ui";
+import { Badge } from "@/components/ui";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { HELP_CONTENT, type HelpKey } from "@/lib/help-content";
 import { DetailDisclosure } from "@/components/detail-disclosure";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { AsyncState } from "@/components/design-system/async-state";
+import { Message } from "@/components/design-system/message";
+import { MetricItem } from "@/components/design-system/summary-strip";
+import { Panel } from "@/components/design-system/section";
 
 export function PageHeader({ kicker, title, description, action, helpKey }: { kicker?: string; title: string; description: string; action?: ReactNode; helpKey?: HelpKey }) {
   const resolvedHelpKey = helpKey ?? inferHelpKey(title);
@@ -90,13 +94,13 @@ export function ModuleTile({ title, description, onClick, tone = "cyan", hint }:
 export function StatusBadge({ value }: { value: string }) { return <Badge value={value} />; }
 
 export function MetricTile({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
-  return <div className="rounded-xl border border-stone-200 bg-white px-4 py-3"><p className="text-xs font-semibold text-slate-500">{label}</p><div className="mt-1 text-2xl font-bold text-slate-950">{value}</div>{note && <p className="mt-1 text-xs text-slate-400">{note}</p>}</div>;
+  return <MetricItem label={label} value={value} note={note} />;
 }
 
 export function SectionCard({ title, description, children, className = "", helpKey, collapsible }: { title?: string; description?: string; children: ReactNode; className?: string; helpKey?: HelpKey; collapsible?: boolean }) {
   const resolvedHelpKey = helpKey ?? (title ? inferHelpKey(title) : undefined);
   const technicalDetail = collapsible ?? (title ? ["可比成交", "本次估算依據", "市場趨勢", "估價資料狀態"].some((keyword) => title.includes(keyword)) : false);
-  return <section className={`rounded-xl border border-stone-200 bg-white ${className}`}>{title && <div className="border-b border-stone-100 px-4 py-3.5"><div className="flex items-center gap-2"><h2 className="font-bold text-slate-950">{title}</h2>{resolvedHelpKey && <HelpTooltip title={HELP_CONTENT[resolvedHelpKey].title}>{HELP_CONTENT[resolvedHelpKey].body}</HelpTooltip>}</div>{description && <p className="mt-1 text-xs text-slate-500">{description}</p>}</div>}<div className="p-4">{technicalDetail ? <DetailDisclosure title={`查看${title}詳細資料`}>{children}</DetailDisclosure> : children}</div></section>;
+  return <Panel className={className}>{title && <div className="border-b border-stone-100 pb-3.5"><div className="flex items-center gap-2"><h2 className="text-subsection">{title}</h2>{resolvedHelpKey && <HelpTooltip title={HELP_CONTENT[resolvedHelpKey].title}>{HELP_CONTENT[resolvedHelpKey].body}</HelpTooltip>}</div>{description && <p className="mt-1 text-helper">{description}</p>}</div>}<div className={title ? "pt-4" : ""}>{technicalDetail ? <DetailDisclosure title={`查看${title}詳細資料`}>{children}</DetailDisclosure> : children}</div></Panel>;
 }
 
 function inferHelpKey(title: string): HelpKey | undefined {
@@ -110,8 +114,8 @@ function inferHelpKey(title: string): HelpKey | undefined {
 }
 
 export function ResultSummaryPanel({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-[0_12px_35px_rgba(71,85,105,0.09)] ${className}`}>{children}</section>;
+  return <Panel className={`overflow-hidden p-0 ${className}`}>{children}</Panel>;
 }
 
-export function ErrorState({ message }: { message: string }) { return <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{message}</div>; }
-export function LoadingState({ label = "資料載入中..." }: { label?: string }) { return <div className="flex min-h-32 items-center justify-center rounded-xl border border-dashed border-stone-300 bg-white/60 text-sm text-slate-500">{label}</div>; }
+export function ErrorState({ message }: { message: string }) { return <Message variant="error">{message}</Message>; }
+export function LoadingState({ label = "資料載入中..." }: { label?: string }) { return <AsyncState kind="loading" title={label} />; }
