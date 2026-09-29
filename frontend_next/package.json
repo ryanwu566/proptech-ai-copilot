@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test:design-system": "node --test scripts/commercial-design-foundations.test.mjs",
     "test:reliability": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/monetary-units.test.ts lib/valuation-result-state.test.ts",
     "build:e2e": "node scripts/build-e2e.mjs",
     "test:e2e:runner": "node --test scripts/run-e2e.test.cjs",
