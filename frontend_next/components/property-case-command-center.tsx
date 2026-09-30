@@ -192,7 +192,7 @@ const initialState: CommandCenterState = {
   finalReviewNote: "",
 };
 
-export function PropertyCaseCommandCenter({ caseId, embedded = false, showComparison = true, initialSection = "financial", onSectionChange }: { caseId: string; embedded?: boolean; showComparison?: boolean; initialSection?: WorkspaceSectionId; onSectionChange?: (section: WorkspaceSectionId) => void }) {
+export function PropertyCaseCommandCenter({ caseId, embedded = false, showComparison = true, showPrintAction = false, initialSection = "financial", onSectionChange }: { caseId: string; embedded?: boolean; showComparison?: boolean; showPrintAction?: boolean; initialSection?: WorkspaceSectionId; onSectionChange?: (section: WorkspaceSectionId) => void }) {
   const { locale } = useExperienceLocale();
   const [state, setState] = useState<CommandCenterState>(initialState);
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState<WorkspaceSectionId>("financial");
@@ -403,6 +403,9 @@ export function PropertyCaseCommandCenter({ caseId, embedded = false, showCompar
 
   return <main className={embedded ? "min-w-0 text-slate-900" : "min-h-screen bg-stone-50 px-4 py-8 text-slate-900 sm:px-6 lg:px-8"}>
     <section className="mx-auto max-w-6xl space-y-6">
+      {embedded && showPrintAction && <div className="flex justify-end">
+        <button type="button" onClick={() => window.print()} disabled={!draft.readiness.print_ready} className="rounded-xl bg-cyan-700 px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-45">列印目前摘要</button>
+      </div>}
       {!embedded && <header className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-bold tracking-[0.2em] text-cyan-700">PROPERTY CASE COMMAND CENTER</p>
         <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

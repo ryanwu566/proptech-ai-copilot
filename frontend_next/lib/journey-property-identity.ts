@@ -456,6 +456,10 @@ function comparableAddress(value: string): string {
     .toLocaleLowerCase("zh-TW");
 }
 
+export function areJourneyPropertyAddressesEquivalent(left: string, right: string): boolean {
+  return comparableAddress(left) === comparableAddress(right);
+}
+
 function coordinateDistanceMetres(
   left: { latitude: number; longitude: number },
   right: { latitude: number; longitude: number },

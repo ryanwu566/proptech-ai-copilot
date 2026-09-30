@@ -1,6 +1,6 @@
-import { PropertyCaseCommandCenter } from "@/components/property-case-command-center";
+import { redirect } from "next/navigation";
 
 export default async function PropertyCaseCommandCenterPage({ params }: { params: Promise<{ caseId: string }> }) {
   const { caseId } = await params;
-  return <PropertyCaseCommandCenter caseId={decodeURIComponent(caseId)} />;
+  redirect(`/cases/${encodeURIComponent(decodeURIComponent(caseId))}/overview`);
 }
