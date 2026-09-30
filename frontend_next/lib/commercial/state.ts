@@ -105,6 +105,19 @@ export function resolveCommercialState(axis: CommercialStateAxis, value: unknown
       : `${resolved.label["zh-TW"]}，目前無法進行「${task}」`;
   return { ...resolved, label: { ...resolved.label, "zh-TW": zh }, axis, recognized };
 }
+
+/** Compatibility handoff for E2's generic async-state primitive. */
+export function resolveAsyncStateRole(kind: unknown): CommercialSemanticRole {
+  if (kind === "not_started" || kind === "input_required" || kind === "loading" || kind === "error") {
+    const queryState = kind === "loading" ? "in_progress" : kind === "error" ? "failed" : kind;
+    return resolveCommercialState("query", queryState).role;
+  }
+  if (kind === "no_match" || kind === "no_coverage" || kind === "unavailable" || kind === "unsupported") {
+    return resolveCommercialState("evidence", kind).role;
+  }
+  return resolveCommercialState("query", "failed").role;
+}
+
 export function deriveRiskInterpretation(input: {
   evidenceStatus?: EvidenceUsabilityState;
   signal: "elevated" | "caution" | "no_match" | "not_assessed";
