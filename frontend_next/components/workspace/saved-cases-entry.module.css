@@ -1,0 +1,7 @@
+.page { width: min(100% - 2rem, var(--width-reading)); margin: var(--space-8) auto; display: grid; gap: var(--space-8); }
+.heading { display: grid; gap: var(--space-1); }
+.heading > * { margin: 0; }
+.grid { display: grid; gap: var(--space-4); }
+.rowHeading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
+.rowHeading h2, .rowHeading p { margin: 0; }
+.grid :global(.ds-panel) { display: grid; gap: var(--space-3); justify-items: start; }
