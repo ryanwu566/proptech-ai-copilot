@@ -156,15 +156,27 @@ const timelineJs = ts.transpileModule(timelineSource, { compilerOptions: { modul
 const timelineSandbox = { console, Number, Object, String, Map, Set, Array, RegExp, Math, Date, exports: {}, require };
 vm.createContext(timelineSandbox);
 vm.runInContext(timelineJs, timelineSandbox);
+const monetarySource = fs.readFileSync('frontend_next/lib/monetary-units.ts', 'utf8');
+const monetaryJs = ts.transpileModule(monetarySource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+const monetarySandbox = { console, Number, exports: {}, require };
+vm.createContext(monetarySandbox);
+vm.runInContext(monetaryJs, monetarySandbox);
+const formattersSource = fs.readFileSync('frontend_next/lib/commercial/formatters.ts', 'utf8');
+const formattersJs = ts.transpileModule(formattersSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
+const formattersSandbox = { console, Intl, Number, exports: {}, require: (name) => name === '../monetary-units.ts' ? monetarySandbox.exports : require(name) };
+vm.createContext(formattersSandbox);
+vm.runInContext(formattersJs, formattersSandbox);
 const caseSource = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8')
   .replace(/import \{[\s\S]*?\} from "@\/lib\/property-case-due-diligence";/, '')
   .replace(/import \{[\s\S]*?\} from "@\/lib\/property-case-viewing-offer";/, '')
   .replace(/import \{[\s\S]*?\} from "@\/lib\/property-case-timeline";/, '')
+  .replace(/import \{[\s\S]*?\} from "@\/lib\/monetary-units";/, '')
+  .replace(/import \{[\s\S]*?\} from "@\/lib\/commercial\/formatters";/, '')
   .replace(/import type[\s\S]*?from "@\/lib\/api";/, '')
   .replace(/import type[\s\S]*?from "@\/lib\/risk-summary";/, '')
   .replace(/import type[\s\S]*?from "@\/lib\/valuation-share";/, '');
 const caseJs = ts.transpileModule(caseSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
-const sandbox = { console, Number, Object, String, Map, Set, Date, exports: {}, require, ...dueSandbox.exports, ...viewingSandbox.exports, ...timelineSandbox.exports };
+const sandbox = { console, Number, Object, String, Map, Set, Date, exports: {}, require, ...dueSandbox.exports, ...viewingSandbox.exports, ...timelineSandbox.exports, ...monetarySandbox.exports, ...formattersSandbox.exports };
 vm.createContext(sandbox);
 vm.runInContext(caseJs, sandbox);
 const buildPropertyCaseDraft = sandbox.exports.buildPropertyCaseDraft;

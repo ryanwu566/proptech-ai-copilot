@@ -87,10 +87,14 @@ const due = load('frontend_next/lib/property-case-due-diligence.ts');
 const financial = load('frontend_next/lib/property-case-financials.ts');
 const viewing = load('frontend_next/lib/property-case-viewing-offer.ts', { '@/lib/property-case-financials': financial });
 const timeline = load('frontend_next/lib/property-case-timeline.ts');
+const monetary = load('frontend_next/lib/monetary-units.ts');
+const formatters = load('frontend_next/lib/commercial/formatters.ts', { '../monetary-units.ts': monetary });
 const model = load('frontend_next/lib/property-case.ts', {
   '@/lib/property-case-due-diligence': due,
   '@/lib/property-case-viewing-offer': viewing,
   '@/lib/property-case-timeline': timeline,
+  '@/lib/monetary-units': monetary,
+  '@/lib/commercial/formatters': formatters,
 });
 const base = { caseName: 'Commute case', inputs: { city: 'Taipei', district: 'Xinyi', road: 'City Hall Road' } };
 const success = { status: 'resolved', source: 'google_routes', reason_code: 'success', mode: 'transit', duration_min: 20, duration_seconds: 1200, distance_m: 7000, partial: false, fallback: false, checked_at: '2026-09-27T00:00:00Z', message: 'ok', disclaimer: 'reference', origin: { latitude: 25.033, longitude: 121.5654 }, destination: { address: 'Taipei Main Station' } };
