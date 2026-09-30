@@ -179,6 +179,8 @@ const due = load('frontend_next/lib/property-case-due-diligence.ts');
 const financials = load('frontend_next/lib/property-case-financials.ts');
 const viewingOffer = load('frontend_next/lib/property-case-viewing-offer.ts', { '@/lib/property-case-financials': financials });
 const timeline = load('frontend_next/lib/property-case-timeline.ts');
+const monetary = load('frontend_next/lib/monetary-units.ts');
+const formatters = load('frontend_next/lib/commercial/formatters.ts', { '../monetary-units.ts': monetary });
 const caseSource = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8');
 const caseJs = ts.transpileModule(caseSource, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
 const sandbox = {
@@ -187,6 +189,8 @@ const sandbox = {
     if (name === '@/lib/property-case-due-diligence') return due;
     if (name === '@/lib/property-case-viewing-offer') return viewingOffer;
     if (name === '@/lib/property-case-timeline') return timeline;
+    if (name === '@/lib/monetary-units') return monetary;
+    if (name === '@/lib/commercial/formatters') return formatters;
     return require(name);
   }
 };

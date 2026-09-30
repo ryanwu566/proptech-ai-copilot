@@ -56,12 +56,14 @@ function transpile(relativePath) {
 const jsxRuntimeUrl = import.meta.resolve("react/jsx-runtime");
 const reactUrl = import.meta.resolve("react");
 const typesUrl = dataModule(transpile("components/design-system/types.ts"));
+const commercialStateUrl = dataModule(transpile("lib/commercial/state.ts"));
 
 async function componentModule(relativePath) {
   const source = transpile(relativePath)
     .replaceAll('"react/jsx-runtime"', JSON.stringify(jsxRuntimeUrl))
     .replaceAll('"react"', JSON.stringify(reactUrl))
-    .replaceAll('"./types"', JSON.stringify(typesUrl));
+    .replaceAll('"./types"', JSON.stringify(typesUrl))
+    .replaceAll('"@/lib/commercial/state"', JSON.stringify(commercialStateUrl));
   return import(dataModule(source));
 }
 
@@ -190,6 +192,25 @@ test("status roles include visible wording and a redundant icon", async () => {
   assert.match(markup, /data-visual-role="success"/);
   assert.match(markup, /aria-hidden="true">✓/);
   assert.match(markup, />Verification completed</);
+});
+
+test("async states render the canonical commercial semantic role", async () => {
+  const { AsyncState } = await componentModule("components/design-system/async-state.tsx");
+  const expectedRoles = {
+    not_started: "neutral",
+    input_required: "warning",
+    no_match: "neutral",
+    no_coverage: "warning",
+    unavailable: "warning",
+    unsupported: "disabled",
+    error: "error",
+    loading: "information",
+  };
+
+  for (const [kind, role] of Object.entries(expectedRoles)) {
+    const markup = renderToStaticMarkup(React.createElement(AsyncState, { kind, title: kind }));
+    assert.match(markup, new RegExp(`ds-role-${role}(?:\\s|\")`), `${kind} should render ${role}`);
+  }
 });
 
 test("navigation links preserve identification and accessibility attributes", async () => {

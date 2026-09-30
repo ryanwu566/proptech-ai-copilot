@@ -12,6 +12,8 @@ import type {
 import type { RiskSummary } from "@/lib/risk-summary";
 import type { ValuationInputs } from "@/lib/valuation-share";
 import type { MarketInsightSnapshot } from "@/lib/market-insight-snapshot";
+import { optionalNonNegativeNumber } from "@/lib/monetary-units";
+import { formatMonthlyTwd, formatWan } from "@/lib/commercial/formatters";
 import {
   buildDueDiligenceReadiness,
   normalizeDueDiligenceItems,
@@ -324,8 +326,7 @@ function finiteNumber(value: unknown): number | null {
 }
 
 function finiteNumberOrZero(value: unknown): number | null {
-  const number = Number(value);
-  return Number.isFinite(number) && number >= 0 ? number : null;
+  return optionalNonNegativeNumber(value);
 }
 
 function dataQualityToStatus(status?: string): PropertyCaseStatus {
@@ -392,16 +393,20 @@ function requiredMissing(
 
 function buildAnalysisSummary(input: PropertyCaseDraftInput, status: PropertyCaseDraft["analysis_status"]): string[] {
   const rows: string[] = [];
-  if (input.valuation && isTrustedValuation(input.valuation) && typeof input.valuation.price_range.mid === "number") rows.push(`估價中位數 ${input.valuation.price_range.mid.toLocaleString()} 萬`);
-  if (input.loan) rows.push(`貸款月付 ${input.loan.monthly_payment.toLocaleString()} 元`);
-  if (input.holding) rows.push(`持有成本 ${input.holding.monthly_total_holding_cost.toLocaleString()} 元/月`);
-  if (input.location) rows.push(`位置分析 ${status.location}`);
+  if (input.valuation && isTrustedValuation(input.valuation) && typeof input.valuation.price_range.mid === "number") rows.push(`成交資料推估中位值 ${formatWan(input.valuation.price_range.mid)}`);
+  if (input.loan) rows.push(`每月房貸支出 ${formatMonthlyTwd(input.loan.monthly_payment)}`);
+  if (input.holding) rows.push(`每月持有成本估算 ${formatMonthlyTwd(input.holding.monthly_total_holding_cost)}`);
+  if (input.location) rows.push(`位置分析 ${propertyCaseStatusLabel(status.location)}`);
   if (input.terrainRisk) rows.push(`地勢風險 ${input.terrainRisk.overall.label}`);
   if (input.dueDiligenceItems?.some((item) => item.status && item.status !== "not_started")) rows.push("Due diligence review board has user-entered checklist progress.");
   if (input.viewingLogs?.length || input.viewingQuestions?.length || input.offerPlans?.length) rows.push("Viewing and offer planning board has user-entered planning progress.");
   if (input.timelineEvents?.length || input.caseMilestones?.some((milestone) => milestone.is_done) || input.executiveSummaryNote || input.finalReviewNote) rows.push("Executive decision pack has user-entered timeline progress.");
   if (!rows.length) rows.push("尚未完成可比較的分析");
   return rows;
+}
+
+function propertyCaseStatusLabel(status: PropertyCaseStatus): string {
+  return { completed: "已取得結果", missing: "尚未分析", incomplete: "分析僅完成部分", unavailable: "目前無法取得證據" }[status];
 }
 
 function safeText(value: unknown): string {

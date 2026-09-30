@@ -375,7 +375,7 @@ test("full happy path carries one property through all five steps", async ({ pag
   started = Date.now();
   await valuation.getByRole("button", { name: "Estimate price" }).click();
   await expect(page.getByTestId("valuation-result").first()).toBeVisible();
-  await page.getByRole("button", { name: /Valuation midpoint/ }).click();
+  await page.getByRole("button", { name: /Transaction-based midpoint estimate/ }).click();
   await expect(page.getByTestId("journey-active-price")).toContainText("2,100");
   await page.locator("#journey-stage-price button[data-action-kind='navigation']", { hasText: "Review funding and holding costs" }).click();
   timings.step3 = Date.now() - started;
@@ -392,7 +392,9 @@ test("full happy path carries one property through all five steps", async ({ pag
   await expect(page.getByTestId("decision-evidence-synthesis")).toBeVisible();
   await expect(page.getByTestId("decision-property-address")).toContainText(PROPERTY.road);
   await expect(page.getByTestId("decision-evidence-location")).toContainText(SELECTED_ADDRESS);
-  await expect(page.getByTestId("decision-price-basis")).toContainText("Valuation midpoint: 2,100");
+  await expect(page.getByTestId("decision-price-basis")).toContainText(
+    "Transaction-based midpoint estimate: 2,100",
+  );
   await expect(page.getByTestId("decision-monthly-payment")).toContainText("65,000");
   timings.step5Render = Date.now() - started;
   console.info(`[closed-loop-warm-step-ms] ${JSON.stringify(timings)}`);
@@ -421,7 +423,9 @@ test("price-only A/B clears stale affordability and preserves location and terra
   await goToStep(page, "decision");
   await expect(locationEvidence).toContainText(PROPERTY.address);
   await expect(locationEvidence).toContainText("Controlled terrain reference");
-  await expect(page.getByTestId("decision-price-basis")).toContainText("Manual override: 2,600");
+  await expect(page.getByTestId("decision-price-basis")).toContainText(
+    "Comparison-basis price (user-entered): 2,600",
+  );
   await expect(page.getByTestId("decision-monthly-payment")).toContainText("82,000");
 });
 
@@ -530,13 +534,13 @@ test("Google route remains usable when TDX is unavailable and retry replaces sta
   await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "provider_timeout");
   await routeCard.getByRole("button", { name: "估算通勤" }).click();
   await expect(routeCard).toContainText("23");
-  await expect(routeCard).toContainText("8.1 km");
+  await expect(routeCard).toContainText("8.1 公里");
   await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "success");
   await expect(page.locator("section[aria-labelledby=location-market-status-heading]").getByText("Data is incomplete")).toBeVisible();
   expect(routeCalls).toBe(2);
 
   await routeCard.getByLabel("目的地地址").fill("New destination");
-  await expect(routeCard).not.toContainText("8.1 km");
+  await expect(routeCard).not.toContainText("8.1 公里");
   await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "destination_required");
   const deferredResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith("/commute/route"));
   await routeCard.getByRole("button").last().click();
@@ -549,7 +553,7 @@ test("Google route remains usable when TDX is unavailable and retry replaces sta
   await page.locator("#location-insight-calculator").getByRole("button", { name: "Start location analysis" }).click();
   await expect(page.getByTestId("location-result")).toContainText("Property B");
   await expect(page.getByTestId("commute-route-card")).toBeVisible();
-  await expect(page.getByTestId("commute-route-card")).not.toContainText("8.1 km");
+  await expect(page.getByTestId("commute-route-card")).not.toContainText("8.1 公里");
   expect(routeCalls).toBe(3);
 });
 

@@ -114,12 +114,24 @@ const timelineJs = ts.transpileModule(timelineSource, {{ compilerOptions: {{ mod
 const timelineSandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, Math, exports: {{}}, require }};
 vm.createContext(timelineSandbox);
 vm.runInContext(timelineJs, timelineSandbox);
+const monetarySource = fs.readFileSync('frontend_next/lib/monetary-units.ts', 'utf8');
+const monetaryJs = ts.transpileModule(monetarySource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const monetarySandbox = {{ console, Number, exports: {{}}, require }};
+vm.createContext(monetarySandbox);
+vm.runInContext(monetaryJs, monetarySandbox);
+const formattersSource = fs.readFileSync('frontend_next/lib/commercial/formatters.ts', 'utf8');
+const formattersJs = ts.transpileModule(formattersSource, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
+const formattersSandbox = {{ console, Intl, Number, exports: {{}}, require: (name) => name === '../monetary-units.ts' ? monetarySandbox.exports : require(name) }};
+vm.createContext(formattersSandbox);
+vm.runInContext(formattersJs, formattersSandbox);
 const source = fs.readFileSync('frontend_next/lib/property-case.ts', 'utf8');
 const js = ts.transpileModule(source, {{ compilerOptions: {{ module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 }} }}).outputText;
 const sandbox = {{ console, Date, Number, Object, String, Map, Set, Array, RegExp, exports: {{}}, require: (name) => {{
   if (name === '@/lib/property-case-due-diligence') return dueSandbox.exports;
   if (name === '@/lib/property-case-viewing-offer') return viewingSandbox.exports;
   if (name === '@/lib/property-case-timeline') return timelineSandbox.exports;
+  if (name === '@/lib/monetary-units') return monetarySandbox.exports;
+  if (name === '@/lib/commercial/formatters') return formattersSandbox.exports;
   return require(name);
 }} }};
 vm.createContext(sandbox);

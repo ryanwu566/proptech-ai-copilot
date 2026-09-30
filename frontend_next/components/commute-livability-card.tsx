@@ -5,6 +5,7 @@ import { api, type CommuteAddressLookupResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
 import { COMMUTE_LIVABILITY_NOTICE, isBlankAddress, normalizeCommuteResult, type CommuteLivabilityStatus } from "@/lib/commute-livability-ui";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { formatDistance } from "@/lib/commercial/formatters";
 
 
 export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { address: string; onStatusChange?: (status: CommuteLivabilityStatus) => void; onResult?: (result: CommuteAddressLookupResult | null) => void }) {
@@ -95,7 +96,7 @@ export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { a
         <div className="mt-3 grid gap-2 rounded-lg border border-cyan-100 bg-white p-3 text-xs text-slate-700 sm:grid-cols-2">
           <SafeField label={copy("commute.station")} value={result.station_name ?? copy("commute.noData")} />
           <SafeField label={copy("commute.lines")} value={result.line_ids.length ? result.line_ids.join("、") : copy("commute.noData")} />
-          <SafeField label={copy("commute.distance")} value={result.distance_meters === null ? copy("commute.noData") : `${Math.round(result.distance_meters)} m`} />
+          <SafeField label={copy("commute.distance")} value={result.distance_meters === null ? copy("commute.noData") : formatDistance(result.distance_meters)} />
           <SafeField label={copy("commute.updated")} value={`${copy("commute.source")} / ${result.source_updated_at ?? result.snapshot_generated_at ?? copy("commute.noData")}`} />
           <div className="sm:col-span-2">
             <Notice>{COMMUTE_LIVABILITY_NOTICE}</Notice>

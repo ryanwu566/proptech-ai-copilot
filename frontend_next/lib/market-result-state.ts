@@ -1,4 +1,5 @@
 import type { MarketResult } from "./api";
+import type { AnalysisCompletenessState, EvidenceUsabilityState, QueryExecutionState } from "./commercial/state";
 
 export type MarketDisplayState = "available" | "low_sample" | "partial" | "no_data" | "unavailable" | "stale";
 
@@ -31,4 +32,22 @@ export function getMarketDisplayState(result: MarketResult | undefined): MarketD
 
 export function marketStateHasEvidence(state: MarketDisplayState): boolean {
   return state === "available" || state === "low_sample" || state === "partial" || state === "stale";
+}
+
+export type MarketCommercialState = {
+  query: QueryExecutionState;
+  evidence: EvidenceUsabilityState;
+  completeness: AnalysisCompletenessState;
+};
+
+export function getMarketCommercialState(result: MarketResult | undefined): MarketCommercialState {
+  if (!result) return { query: "not_started", evidence: "unavailable", completeness: "not_started" };
+  if (result.coverage_status === "not_covered") return { query: "succeeded", evidence: "no_coverage", completeness: "insufficient" };
+  if (result.coverage_status === "coverage_unknown" || result.coverage_status === "unknown") return { query: "succeeded", evidence: "unverified", completeness: "insufficient" };
+  const state = getMarketDisplayState(result);
+  if (state === "available") return { query: "succeeded", evidence: "usable", completeness: "sufficient_for_task" };
+  if (state === "low_sample" || state === "partial") return { query: "succeeded", evidence: "limited", completeness: "partial" };
+  if (state === "stale") return { query: "succeeded", evidence: "stale", completeness: "partial" };
+  if (state === "no_data") return { query: "succeeded", evidence: "no_match", completeness: "insufficient" };
+  return { query: "failed", evidence: "unavailable", completeness: "blocked" };
 }

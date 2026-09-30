@@ -1,16 +1,6 @@
 import type { ReactNode } from "react";
-import { joinClassNames, type AsyncStateKind, type VisualRole } from "./types";
-
-const stateRoles: Record<AsyncStateKind, VisualRole> = {
-  not_started: "neutral",
-  input_required: "warning",
-  no_match: "neutral",
-  no_coverage: "warning",
-  unavailable: "warning",
-  unsupported: "neutral",
-  error: "error",
-  loading: "information",
-};
+import { resolveAsyncStateRole } from "@/lib/commercial/state";
+import { joinClassNames, type AsyncStateKind } from "./types";
 
 export function AsyncState({
   kind,
@@ -25,7 +15,7 @@ export function AsyncState({
   action?: ReactNode;
   className?: string;
 }) {
-  const visualRole = stateRoles[kind];
+  const visualRole = resolveAsyncStateRole(kind);
   return (
     <div
       className={joinClassNames("ds-async-state", `ds-role-${visualRole}`, className)}
