@@ -84,7 +84,8 @@ test("Market & Price route distinguishes price bases and presents saved evidence
   await expect(context).toContainText("1,850 萬元");
   await expect(context).toContainText("52.4 萬元／坪");
 
-  await expect(page.getByTestId("market-primary-finding")).toContainText("開價高於");
+  await expect(page.getByTestId("market-primary-finding")).toContainText("物件身分尚未確認");
+  await expect(page.getByTestId("market-primary-finding")).not.toContainText("開價高於");
   await expect(page.locator('[data-evidence-key="market"]')).toContainText("已恢復有限摘要");
   await expect(page.getByRole("heading", { name: "可比成交證據" })).toBeVisible();
   await expect(page.getByText("已儲存案件未保留逐筆可比成交")).toBeVisible();

@@ -79,7 +79,10 @@ export function buildLocationWorkspaceSnapshot(saved: SavedCase): LocationWorksp
 export function buildLocationOverviewHandoff(workspace: PropertyCaseWorkspace): LocationOverviewHandoff {
   const snapshot = workspace.location;
   const identityConfirmed = workspace.identity.state === "confirmed";
-  const route = identityConfirmed && snapshot.routeEvidence?.status === "resolved" ? snapshot.routeEvidence : undefined;
+  const candidateRoute = identityConfirmed && snapshot.routeEvidence?.status === "resolved" ? snapshot.routeEvidence : undefined;
+  const route = candidateRoute?.source === "google_routes" && !candidateRoute.fallback && !candidateRoute.partial
+    ? candidateRoute
+    : undefined;
   const transitAvailable = snapshot.transitContext?.status === "resolved";
   const unresolved: string[] = [];
 
@@ -87,6 +90,7 @@ export function buildLocationOverviewHandoff(workspace: PropertyCaseWorkspace): 
   if (identityConfirmed && !route) {
     unresolved.push(snapshot.routeInvalidated ? "先前目的地路線不屬於目前物件" : snapshot.routeEvidence ? "目的地路線目前無法取得" : "尚未設定通勤目的地");
   }
+  if (candidateRoute && !route) unresolved.push("路線僅為模擬、備援或部分結果，不能建立正式通勤就緒狀態。");
   if (snapshot.transitContext && !transitAvailable) unresolved.push("大眾運輸周邊資料目前無法取得");
 
   const commuteReadiness: TaskReadinessState = !identityConfirmed

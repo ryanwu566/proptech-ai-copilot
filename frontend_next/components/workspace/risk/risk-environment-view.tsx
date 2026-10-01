@@ -12,12 +12,13 @@ import { StatusLabel } from "@/components/design-system/status-label";
 import { MetricItem, SummaryStrip } from "@/components/design-system/summary-strip";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { api, type TerrainRiskResult } from "@/lib/api";
-import { readSavedCases } from "@/lib/case-storage";
+import { readSavedCases, updateSavedCaseRiskEvidence } from "@/lib/case-storage";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import {
   buildRiskEvidenceModel,
   buildRiskQueryContext,
   buildStoredRiskEvidenceModel,
+  buildStoredRiskEvidenceSnapshot,
   canCommitRiskResponse,
   type RiskEvidenceModel,
   type RiskEvidenceRow,
@@ -52,8 +53,8 @@ export function RiskEnvironmentView() {
   const saved = readSavedCases().find((item) => item.id === workspace.caseId);
   const savedModel = useMemo(() => saved?.data.terrainReference ? buildStoredRiskEvidenceModel(saved.data.terrainReference, {
     stale: workspace.identity.state === "revalidation_required",
-    savedAt: saved.updatedAt,
-  }) : null, [saved?.data.terrainReference, saved?.updatedAt, workspace.identity.state]);
+    checkedAt: saved.data.riskEvidenceCheckedAt ?? null,
+  }) : null, [saved?.data.terrainReference, saved?.data.riskEvidenceCheckedAt, workspace.identity.state]);
   const freshModel = useMemo(() => result ? buildRiskEvidenceModel(result) : null, [result]);
   const model = freshModel ?? savedModel;
   const selectedRow = model?.rows.find((row) => row.key === selectedKey) ?? model?.rows[0];
@@ -72,7 +73,18 @@ export function RiskEnvironmentView() {
     try {
       const next = await api.terrainRiskAnalyze(responseContext.payload);
       const current = latestContext.current;
-      if (current && canCommitRiskResponse(current, responseContext)) setResult(next);
+      if (current && canCommitRiskResponse(current, responseContext)) {
+        const model = buildRiskEvidenceModel(next);
+        const anchor = workspace.identity.anchor;
+        if (anchor?.coordinates) {
+          updateSavedCaseRiskEvidence(workspace.caseId, { ...buildStoredRiskEvidenceSnapshot(model), checked_at: model.freshness.checkedAt }, {
+            journeyAnchorId: anchor.journey_anchor_id,
+            normalizedAddress: anchor.normalized_address,
+            coordinates: anchor.coordinates,
+          });
+        }
+        setResult(next);
+      }
     } catch {
       const current = latestContext.current;
       if (current && canCommitRiskResponse(current, responseContext)) setError("目前無法完成風險證據查詢；已保留其他可用內容，請稍後重試。");

@@ -41,6 +41,7 @@ export type SavedCaseData = {
   /** Legacy input only; new saved cases use terrainReference. */
   terrainRisk?: TerrainRiskResult;
   terrainReference?: StoredTerrainReferenceEvidenceV1;
+  riskEvidenceCheckedAt?: string;
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
   reportCompleted?: boolean;
@@ -68,6 +69,26 @@ export type SavedCase = {
 };
 
 export type SaveCaseInput = Omit<SavedCase, "id" | "title" | "createdAt" | "updatedAt" | "version" | "workflowMode"> & { title?: string };
+
+export type SavedCaseIdentityExpectation = {
+  journeyAnchorId: string;
+  normalizedAddress: string;
+  coordinates: { latitude: number; longitude: number };
+};
+
+function identityMatches(current: SavedCase, expected?: SavedCaseIdentityExpectation): boolean {
+  if (!expected) return true;
+  const anchor = current.data.propertyIdentityAnchor;
+  return Boolean(
+    anchor
+    && anchor.revalidation.status === "current"
+    && anchor.journey_anchor_id === expected.journeyAnchorId
+    && anchor.normalized_address === expected.normalizedAddress
+    && anchor.coordinates
+    && Math.abs(anchor.coordinates.latitude - expected.coordinates.latitude) <= 0.000001
+    && Math.abs(anchor.coordinates.longitude - expected.coordinates.longitude) <= 0.000001
+  );
+}
 
 export function readSavedCases(): SavedCase[] {
   if (typeof window === "undefined") return [];
@@ -104,11 +125,12 @@ export function deleteSavedCase(id: string) {
 export function updateSavedCaseLocationEvidence(caseId: string, patch: {
   commuteRoute?: CommuteRouteEvidence | null;
   commuteTransit?: CommuteAddressLookupResult | null;
-}): boolean {
+}, expectedIdentity?: SavedCaseIdentityExpectation): boolean {
   const rows = readSavedCases();
   const index = rows.findIndex((row) => row.id === caseId);
   if (index < 0) return false;
   const current = rows[index];
+  if (!identityMatches(current, expectedIdentity)) return false;
   const data: SavedCaseData = { ...current.data };
   if (Object.prototype.hasOwnProperty.call(patch, "commuteRoute")) {
     data.commuteRoute = compactCommuteRouteEvidence(patch.commuteRoute ?? undefined);
@@ -117,6 +139,33 @@ export function updateSavedCaseLocationEvidence(caseId: string, patch: {
     data.commuteTransit = compactCommuteTransitEvidence(patch.commuteTransit ?? undefined);
   }
   const updated: SavedCase = { ...current, updatedAt: new Date().toISOString(), data };
+  rows[index] = updated;
+  writeCases(rows);
+  window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+  return true;
+}
+
+export function updateSavedCaseRiskEvidence(
+  caseId: string,
+  terrainReference: StoredTerrainReferenceEvidenceV1 & { checked_at?: string | null },
+  expectedIdentity: SavedCaseIdentityExpectation,
+): boolean {
+  const rows = readSavedCases();
+  const index = rows.findIndex((row) => row.id === caseId);
+  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  const { checked_at: checkedAt, ...boundedReference } = terrainReference;
+  const normalized = normalizeStoredTerrainReferenceEvidence(boundedReference);
+  if (!normalized) return false;
+  const updated: SavedCase = {
+    ...rows[index],
+    updatedAt: new Date().toISOString(),
+    data: {
+      ...rows[index].data,
+      terrainReference: normalized,
+      riskEvidenceCheckedAt: checkedAt ?? new Date().toISOString(),
+      terrainRisk: undefined,
+    },
+  };
   rows[index] = updated;
   writeCases(rows);
   window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
@@ -183,6 +232,9 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
     commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),
     commuteTransit: compactCommuteTransitEvidence(data.commuteTransit),
     terrainReference: normalizeStoredTerrainReferenceEvidence(data.terrainReference) ?? migrateLegacyTerrainReference(data.terrainRisk),
+    riskEvidenceCheckedAt: typeof data.riskEvidenceCheckedAt === "string" && Number.isFinite(Date.parse(data.riskEvidenceCheckedAt))
+      ? data.riskEvidenceCheckedAt
+      : undefined,
     terrainRisk: undefined,
   };
 }

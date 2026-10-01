@@ -24,6 +24,9 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
   const onStatusRef = useRef(onStatusChange);
   const onResultRef = useRef(onResult);
   const previousAddressRef = useRef(address);
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   useEffect(() => { onStatusRef.current = onStatusChange; }, [onStatusChange]);
   useEffect(() => { onResultRef.current = onResult; }, [onResult]);
@@ -57,7 +60,7 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
     setMessage(copy("commute.checking"));
     try {
       const next = normalizeCommuteResult(await api.commuteAddressLookup({ address: requestedAddress }));
-      if (latestAddressRef.current.trim() !== requestedAddress) return;
+      if (!mountedRef.current || latestAddressRef.current.trim() !== requestedAddress) return;
       if (next.status === "resolved") {
         setResult(next);
         onResultRef.current?.(next);
@@ -75,7 +78,7 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
         setMessage(copy("commute.unavailable"));
       }
     } catch {
-      if (latestAddressRef.current.trim() !== requestedAddress) return;
+      if (!mountedRef.current || latestAddressRef.current.trim() !== requestedAddress) return;
       setResult(null);
       onResultRef.current?.(null);
       setStatus("error");

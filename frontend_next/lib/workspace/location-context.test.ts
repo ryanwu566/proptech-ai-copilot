@@ -122,6 +122,16 @@ test("Google route success remains ready with limits when TDX context is unavail
   assert.ok(!handoff.unresolved.includes("目的地路線目前無法取得"));
 });
 
+test("mock or fallback routes cannot establish real commute readiness", () => {
+  const workspace = adaptSavedCaseToWorkspace(savedCase({ destination: "台北車站", tdxStatus: "resolved" }) as never);
+  workspace.location.routeEvidence = { ...workspace.location.routeEvidence!, source: "mock", fallback: true };
+  const handoff = buildLocationOverviewHandoff(workspace);
+
+  assert.equal(handoff.commuteReadiness, "not_ready");
+  assert.equal(handoff.selectedRoute, undefined);
+  assert.match(handoff.unresolved.join(" "), /模擬|備援|部分/);
+});
+
 test("missing destination is input-required and stale identity blocks current location evidence", () => {
   const missing = buildLocationOverviewHandoff(adaptSavedCaseToWorkspace(savedCase() as never));
   assert.equal(missing.commuteReadiness, "not_ready");

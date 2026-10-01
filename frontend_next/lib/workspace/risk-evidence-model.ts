@@ -319,7 +319,7 @@ function storedKey(value: string): RiskEvidenceKey | null {
 
 export function buildStoredRiskEvidenceModel(
   reference: StoredTerrainReferenceEvidenceV1,
-  options: { stale: boolean; savedAt: string },
+  options: { stale: boolean; checkedAt: string | null },
 ): RiskEvidenceModel {
   const usability: EvidenceUsabilityState = options.stale ? "stale" : "limited";
   const rows = reference.layers.flatMap((layer): RiskEvidenceRow[] => {
@@ -343,7 +343,33 @@ export function buildStoredRiskEvidenceModel(
       ...(layer.data_version ? { datasetVersion: layer.data_version } : {}),
     }];
   });
-  return assemble(rows, options.savedAt, options.stale ? "stale" : "saved_summary");
+  return assemble(rows, options.checkedAt, options.stale ? "stale" : "saved_summary");
+}
+
+export function buildStoredRiskEvidenceSnapshot(model: RiskEvidenceModel): StoredTerrainReferenceEvidenceV1 {
+  const hasMaterial = model.rows.some((row) => row.matched === true);
+  const hasUnknown = model.rows.some((row) => UNKNOWN_STATES.has(row.usability) || row.interpretation === "unknown");
+  const allNoMatch = model.rows.every((row) => row.usability === "no_match");
+  return {
+    schema_version: 1,
+    kind: "terrain_reference",
+    status: hasMaterial && hasUnknown ? "partial" : hasMaterial ? "available" : allNoMatch ? "no_match" : "limited",
+    summary: hasMaterial
+      ? `保留 ${model.materialEvidenceCount} 項已比對證據；未知或受限項目 ${model.unknownEvidenceCount} 項。`
+      : `未保留可下結論的風險證據；未知或受限項目 ${model.unknownEvidenceCount} 項。`,
+    notice: "此為有界的已儲存摘要；重新開啟時僅供追溯，必須重新查詢才能取得即時完整證據。",
+    layers: model.rows.map((row) => ({
+      layer_id: row.key,
+      display_name: row.label,
+      state: row.usability === "no_match" ? "no_match" : row.matched && row.usability === "usable" ? "available" : "limited",
+      source_name: row.source,
+      ...(row.sourceAgency ? { source_agency: row.sourceAgency } : {}),
+      ...(row.effectivePeriod !== "未知" ? { data_updated_at: row.effectivePeriod } : {}),
+      ...(row.datasetVersion ? { data_version: row.datasetVersion } : {}),
+      coverage_status: row.coverage,
+      caveat: `${row.result} ${row.limitation}`.trim(),
+    })),
+  };
 }
 
 export function buildRiskQueryContext(workspace: PropertyCaseWorkspace): RiskQueryContext | null {

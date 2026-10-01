@@ -56,6 +56,7 @@ export type MarketPriceModel = {
 };
 
 type BuildMarketPriceModelInput = {
+  identityConfirmed?: boolean;
   activePriceBasis: "asking" | "estimate" | "manual";
   activePriceWan?: number;
   askingPriceWan?: number;
@@ -180,7 +181,9 @@ export function buildMarketPriceModel(input: BuildMarketPriceModelInput): Market
       effectivePeriod: period(input.market),
       updatedAt: text(input.market?.source_updated_at),
     },
-    primaryFinding: primaryFinding(input.askingPriceWan, medianTotalWan),
+    primaryFinding: input.identityConfirmed === false
+      ? "物件身分尚未確認；保留開價與市場觀察，但不進行物件價格比較。"
+      : primaryFinding(input.askingPriceWan, medianTotalWan),
     overview: {
       priceBasis: input.activePriceBasis,
       evidenceStatus: status,

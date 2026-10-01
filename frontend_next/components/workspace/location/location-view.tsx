@@ -42,13 +42,19 @@ export function LocationView() {
     ? resolveCommercialState("evidence", workspace.evidence.location.usability)
     : resolveCommercialState("query", workspace.evidence.location.query);
   const readiness = resolveCommercialState("readiness", handoff.commuteReadiness);
+  const anchor = workspace.identity.state === "confirmed" ? workspace.identity.anchor : undefined;
+  const identityExpectation = anchor?.coordinates ? {
+    journeyAnchorId: anchor.journey_anchor_id,
+    normalizedAddress: anchor.normalized_address,
+    coordinates: anchor.coordinates,
+  } : undefined;
 
   function persistRoute(evidence: CommuteRouteEvidence | null) {
-    updateSavedCaseLocationEvidence(workspace.caseId, { commuteRoute: evidence });
+    if (identityExpectation) updateSavedCaseLocationEvidence(workspace.caseId, { commuteRoute: evidence }, identityExpectation);
   }
 
   function persistTransit(result: CommuteAddressLookupResult | null) {
-    updateSavedCaseLocationEvidence(workspace.caseId, { commuteTransit: result });
+    if (identityExpectation) updateSavedCaseLocationEvidence(workspace.caseId, { commuteTransit: result }, identityExpectation);
   }
 
   return <div className="workspace-view" data-testid="commercial-location-workspace">
@@ -133,7 +139,7 @@ export function LocationView() {
         <dl className="grid gap-3 text-dense sm:grid-cols-2">
           <SourceDetail label="物件位置" value={`${friendlySources(snapshot.property.sourceIds)}；核對時間 ${snapshot.property.checkedAt ?? "未提供"}`} />
           <SourceDetail label="行政位置" value={`${snapshot.property.village.name ?? "村里未確認"}${snapshot.insight?.village_resolution?.source_vintage ? `；圖資版本 ${snapshot.insight.village_resolution.source_vintage}` : ""}`} />
-          <SourceDetail label="目的地路線" value={handoff.identityState !== "confirmed" ? "物件位置需重新確認" : snapshot.routeEvidence ? `Google Routes；${snapshot.routeEvidence.checked_at}` : "尚未取得"} />
+          <SourceDetail label="目的地路線" value={handoff.identityState !== "confirmed" ? "物件位置需重新確認" : snapshot.routeEvidence ? `${snapshot.routeEvidence.source === "google_routes" ? "Google Routes" : "模擬／備援路線"}；${snapshot.routeEvidence.checked_at}` : "尚未取得"} />
           <SourceDetail label="大眾運輸周邊" value={snapshot.transitContext ? `TDX；${snapshot.transitContext.source_updated_at ?? snapshot.transitContext.snapshot_generated_at ?? "日期未提供"}` : "尚未取得"} />
           <SourceDetail label="人口背景" value={snapshot.insight?.demographics?.status === "available" ? `RIS；統計期 ${snapshot.insight.demographics.statistic_yyymm ?? "未提供"}` : "目前無可用資料"} />
         </dl>

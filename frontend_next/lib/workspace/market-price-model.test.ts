@@ -73,7 +73,9 @@ test("saved Market evidence keeps asking price, observed median, units, and sour
   assert.equal(workspace.marketPrice.source.sourceName, "內政部不動產實價登錄");
   assert.equal(workspace.marketPrice.source.effectivePeriod, "2025/01–2026/07");
   assert.equal(workspace.marketPrice.source.updatedAt, "2026-08-31");
-  assert.match(workspace.marketPrice.primaryFinding, /開價/);
+  assert.equal(workspace.identity.state, "unconfirmed");
+  assert.match(workspace.marketPrice.primaryFinding, /物件身分尚未確認/);
+  assert.doesNotMatch(workspace.marketPrice.primaryFinding, /高於|低於|接近/);
 });
 
 function storedValuation() {

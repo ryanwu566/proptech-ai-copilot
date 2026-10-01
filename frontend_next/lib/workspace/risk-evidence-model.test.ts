@@ -4,7 +4,11 @@ import test from "node:test";
 import type { TerrainHazardLayer, TerrainRiskResult } from "../api";
 import type { PropertyCaseWorkspace } from "./workspace-model";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
-import { buildRiskEvidenceModel, buildRiskQueryContext, buildStoredRiskEvidenceModel, canCommitRiskResponse } from "./risk-evidence-model.ts";
+import { buildRiskEvidenceModel, buildRiskQueryContext, buildStoredRiskEvidenceModel, buildStoredRiskEvidenceSnapshot, canCommitRiskResponse } from "./risk-evidence-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { normalizeStoredTerrainReferenceEvidence } from "../terrain-reference-evidence.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { buildMarketPriceModel } from "./market-price-model.ts";
 
 const SOURCE = {
   name: "官方測試圖層",
@@ -108,6 +112,18 @@ function workspace(overrides: Partial<PropertyCaseWorkspace> = {}): PropertyCase
       commute: { query: "not_started", completeness: "not_started", summaryOnly: false },
       risk: { query: "not_started", completeness: "not_started", summaryOnly: false },
       finance: { query: "not_started", completeness: "not_started", summaryOnly: false },
+    },
+    marketPrice: buildMarketPriceModel({ activePriceBasis: "asking", stale: false }),
+    location: {
+      property: {
+        address: "臺北市信義區市府路1號",
+        normalizedAddress: "臺北市信義區市府路1號",
+        coordinates: { latitude: 25.033, longitude: 121.5654 },
+        checkedAt: "2026-10-01T01:00:00.000Z",
+        village: { name: null, code: null },
+        sourceIds: [],
+      },
+      routeInvalidated: false,
     },
     saveState: "saved",
     ...overrides,
@@ -271,11 +287,35 @@ test("reopened compact evidence stays limited or stale and does not reconstruct 
     }],
   };
 
-  const limited = buildStoredRiskEvidenceModel(stored, { stale: false, savedAt: "2026-09-30T00:00:00.000Z" });
-  const stale = buildStoredRiskEvidenceModel(stored, { stale: true, savedAt: "2026-09-30T00:00:00.000Z" });
+  const limited = buildStoredRiskEvidenceModel(stored, { stale: false, checkedAt: null });
+  const stale = buildStoredRiskEvidenceModel(stored, { stale: true, checkedAt: "2026-09-30T00:00:00.000Z" });
+  assert.equal(limited.freshness.checkedAt, null);
   assert.equal(limited.rows[0].usability, "limited");
   assert.equal(limited.rows[0].interpretation, "unknown");
   assert.equal(stale.rows[0].usability, "stale");
   assert.equal(stale.rows[0].interpretation, "unknown");
   assert.equal(stale.freshness.checkedAt, "2026-09-30T00:00:00.000Z");
+});
+
+test("fresh mixed risk evidence compacts matched and unavailable rows without raw provider data", () => {
+  const result = terrainResult();
+  result.hazards.flood = hazard({ key: "flood", label: "淹水潛勢", matched: true, level: "high" });
+  result.hazards.debris_flow = hazard({
+    key: "debris_flow",
+    label: "土石流潛勢溪流",
+    status: "error",
+    explanation: "來源查詢失敗。",
+    source: { ...SOURCE, status: "error" },
+  });
+
+  const snapshot = buildStoredRiskEvidenceSnapshot(buildRiskEvidenceModel(result));
+  const debrisFlow = snapshot.layers.find((row) => row.layer_id === "debris_flow");
+
+  assert.equal(snapshot.status, "partial");
+  assert.equal(debrisFlow?.state, "limited");
+  assert.match(debrisFlow?.caveat ?? "", /無法取得|無法判定/);
+  assert.equal("hazards" in snapshot, false);
+  assert.equal("hazard_geometries" in snapshot, false);
+  assert.equal("checked_at" in snapshot, false);
+  assert.ok(normalizeStoredTerrainReferenceEvidence(snapshot));
 });

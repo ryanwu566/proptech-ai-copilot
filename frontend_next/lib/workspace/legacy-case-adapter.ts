@@ -84,8 +84,9 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
         ? askingPriceWan
         : undefined;
   const marketPrice = buildMarketPriceModel({
+    identityConfirmed: identity.state === "confirmed",
     activePriceBasis: basis,
-    activePriceWan,
+    activePriceWan: identity.state === "confirmed" ? activePriceWan : undefined,
     askingPriceWan,
     market: saved.data.marketInsight,
     valuation: saved.data.valuation,

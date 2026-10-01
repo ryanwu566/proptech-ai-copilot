@@ -36,7 +36,7 @@ export default function RiskEvidenceLeafletMap({
     <Recenter center={center} />
     <TileLayer attribution="&copy; OpenStreetMap contributors" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
     {geometries.map(([key, geometry]) => <GeoJSON
-      key={key}
+      key={`${key}:${JSON.stringify(geometry)}`}
       data={geometry as never}
       pathOptions={{
         color: key === selectedKey ? "#a61b16" : "#854d0e",

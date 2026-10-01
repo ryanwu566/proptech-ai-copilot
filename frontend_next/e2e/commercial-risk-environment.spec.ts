@@ -92,12 +92,14 @@ function riskResult() {
   };
 }
 
-async function seed(page: Page, stale = false) {
+async function seed(page: Page, stale = false, withSavedRisk = true) {
+  const row = savedCase(stale);
+  if (!withSavedRisk) Reflect.deleteProperty(row.data, "terrainReference");
   await page.addInitScript(({ key, row }) => {
-    window.localStorage.setItem(key, JSON.stringify([row]));
+    if (!window.localStorage.getItem(key)) window.localStorage.setItem(key, JSON.stringify([row]));
     window.localStorage.setItem("proptech_onboarding_seen", "true");
     window.localStorage.setItem("proptech_onboarding_version", "2");
-  }, { key: "proptech.savedCases.v1", row: savedCase(stale) });
+  }, { key: "proptech.savedCases.v1", row });
   await page.route("https://*.tile.openstreetmap.org/**", (route) => route.fulfill({ status: 204, body: "" }));
   await page.route("**/terrain/satellite-reference", (route) => route.fulfill({
     status: 200,
@@ -118,7 +120,7 @@ test("risk route keeps saved evidence limited until an explicit refresh", async 
 });
 
 test("fresh query renders a primary map, ordered evidence, unknowns, actions, and source details", async ({ page }) => {
-  await seed(page);
+  await seed(page, false, false);
   await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(riskResult()) }));
   await page.goto("/cases/risk-case-1/risk");
   await page.getByRole("button", { name: "查詢目前物件風險證據" }).click();
@@ -138,10 +140,20 @@ test("fresh query renders a primary map, ordered evidence, unknowns, actions, an
   await expect(page.getByLabel("風險證據摘要").getByText("2026-10-01T02:00:00.000Z", { exact: true })).toBeVisible();
   await expect(page.getByText("legacy aggregate")).toHaveCount(0);
 
+  const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("proptech.savedCases.v1") ?? "[]")[0]);
+  expect(stored.data.terrainReference.layers.length).toBeGreaterThan(0);
+  expect(stored.data.terrainReference.layers[0].source_name).toBeTruthy();
+  expect(stored.data.terrainRisk).toBeUndefined();
+  expect(stored.data.hazard_geometries).toBeUndefined();
+
   await page.getByText("來源與方法詳情").click();
   await expect(page.getByText("地質敏感區範圍數值檔", { exact: true })).toBeVisible();
   await page.getByText("衛星影像參考（輔助證據）").click();
   await expect(page.getByTestId("satellite-evidence-card")).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText("已儲存的摘要證據", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("需重新查詢才能檢視完整結果；摘要不會被重建成即時證據。", { exact: true })).toBeVisible();
 });
 
 test("partial provider failure remains local and mobile has no document overflow", async ({ page }) => {

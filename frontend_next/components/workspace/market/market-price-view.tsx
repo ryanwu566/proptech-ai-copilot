@@ -46,9 +46,9 @@ export function MarketPriceView() {
 
   return <div className="min-w-0 space-y-8" data-testid="market-price-workspace">
     <header className="space-y-2">
-      <p className="text-meta text-[color:var(--ds-text-muted)]">目前物件的價格證據</p>
+      <p className="text-meta text-[color:var(--text-muted)]">目前物件的價格證據</p>
       <h1 className="text-page">價格與市場</h1>
-      <p className="text-body text-[color:var(--ds-text-secondary)]">可取得的市場證據對這個物件的價格提供了什麼訊息？</p>
+      <p className="text-body text-[color:var(--text-secondary)]">可取得的市場證據對這個物件的價格提供了什麼訊息？</p>
     </header>
 
     {model.isStale && <div role="alert" className="ds-async-state ds-role-warning">
@@ -70,7 +70,7 @@ export function MarketPriceView() {
     </Section>
 
     <Section title="主要市場發現" description="以目前已儲存的成交證據進行初步比較，不構成正式鑑價或交易建議。">
-      <div data-testid="market-primary-finding" className="border-l-4 border-[color:var(--ds-action)] py-2 pl-4 text-body text-[color:var(--ds-text-primary)]">
+      <div data-testid="market-primary-finding" className="border-l-4 border-[color:var(--action)] py-2 pl-4 text-body text-[color:var(--text-primary)]">
         {model.isStale ? "目前物件需要重新確認，既有價格差異暫不作為結論。" : model.primaryFinding}
       </div>
     </Section>
@@ -80,14 +80,14 @@ export function MarketPriceView() {
         <strong className="text-label">市場資料</strong>
         <EvidenceStatus status={model.market.status} />
       </div>
-      <dl data-testid="market-scope-context" className="mb-4 grid gap-3 border-y border-[color:var(--ds-border-subtle)] py-4 text-dense sm:grid-cols-3" aria-label="市場證據範圍">
+      <dl data-testid="market-scope-context" className="mb-4 grid gap-3 border-y border-[color:var(--border-subtle)] py-4 text-dense sm:grid-cols-3" aria-label="市場證據範圍">
         <div><dt className="font-semibold">有效範圍</dt><dd>{model.market.scopeLabel ?? formatMissing("not_provided")}</dd></div>
         <div><dt className="font-semibold">分析層級</dt><dd>{analysisLevelCopy(model.market.analysisLevel, model.market.fallbackApplied)}</dd></div>
         <div><dt className="font-semibold">有效樣本</dt><dd>{model.market.sampleCount ? `${model.market.sampleCount.toLocaleString("zh-TW")} 筆` : formatMissing("not_provided")}</dd></div>
       </dl>
-      {comparables.length > 0 ? <ComparableTable rows={comparables} /> : <div role="status" className="border-y border-[color:var(--ds-border-subtle)] py-5">
-        <p className="text-body font-semibold text-[color:var(--ds-text-primary)]">已儲存案件未保留逐筆可比成交</p>
-        <p className="mt-1 text-body text-[color:var(--ds-text-secondary)]">系統不會從摘要重建或猜測交易資料；進一步議價前請重新取得逐筆證據。</p>
+      {comparables.length > 0 ? <ComparableTable rows={comparables} /> : <div role="status" className="border-y border-[color:var(--border-subtle)] py-5">
+        <p className="text-body font-semibold text-[color:var(--text-primary)]">已儲存案件未保留逐筆可比成交</p>
+        <p className="mt-1 text-body text-[color:var(--text-secondary)]">系統不會從摘要重建或猜測交易資料；進一步議價前請重新取得逐筆證據。</p>
       </div>}
     </Section>
 
@@ -100,8 +100,8 @@ export function MarketPriceView() {
           <DataTableCell numeric>{formatWanPerPing(row.average_unit_price).replace(" 萬元／坪", "")}</DataTableCell>
           <DataTableCell numeric>{row.transaction_count.toLocaleString("zh-TW")}</DataTableCell>
         </tr>)}</tbody>
-      </DataTable> : <p className="text-body text-[color:var(--ds-text-secondary)]">目前沒有足以呈現近期變化的連續期間資料。</p>}
-      <dl className="mt-4 grid gap-3 border-t border-[color:var(--ds-border-subtle)] pt-4 text-dense sm:grid-cols-3" aria-label="市場證據來源與期間">
+      </DataTable> : <p className="text-body text-[color:var(--text-secondary)]">目前沒有足以呈現近期變化的連續期間資料。</p>}
+      <dl className="mt-4 grid gap-3 border-t border-[color:var(--border-subtle)] pt-4 text-dense sm:grid-cols-3" aria-label="市場證據來源與期間">
         <div><dt className="font-semibold">資料來源</dt><dd>{model.source.sourceName ?? formatMissing("unavailable")}</dd></div>
         <div><dt className="font-semibold">有效期間</dt><dd>{model.source.effectivePeriod ?? formatMissing("not_provided")}</dd></div>
         <div><dt className="font-semibold">資料更新</dt><dd>{model.source.updatedAt ?? formatMissing("not_provided")}</dd></div>
@@ -119,7 +119,7 @@ export function MarketPriceView() {
           <MetricItem label="推估中點" value={model.valuation.estimate.formatted} />
           <MetricItem label="價格推估可信度" value={formatValuationConfidence(valuation?.confidence)} note={valuation?.confidence_reason} />
           <MetricItem label="採用樣本" value={`${valuation?.valuation_explanation.sample_count.toLocaleString("zh-TW")} 筆`} note={model.valuation.comparablesAvailable ? "逐筆證據可檢視" : "案件僅保留驗證後摘要"} />
-        </SummaryStrip> : <p className="text-body text-[color:var(--ds-text-secondary)]">目前尚未取得可安全判讀的價格推估；開價與市場成交證據仍分別保留。</p>}
+        </SummaryStrip> : <p className="text-body text-[color:var(--text-secondary)]">目前尚未取得可安全判讀的價格推估；開價與市場成交證據仍分別保留。</p>}
       </ValuationRenderErrorBoundary>
     </Section>
 
