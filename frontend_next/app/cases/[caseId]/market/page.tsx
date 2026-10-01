@@ -1,5 +1,5 @@
-import { WorkspaceSectionPlaceholder } from "@/components/workspace/section-placeholder";
+import { MarketPriceView } from "@/components/workspace/market/market-price-view";
 
 export default function PropertyMarketPage() {
-  return <WorkspaceSectionPlaceholder section="market" />;
+  return <MarketPriceView />;
 }

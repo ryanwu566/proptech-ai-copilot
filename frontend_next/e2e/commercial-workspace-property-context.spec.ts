@@ -51,7 +51,7 @@ test("section placeholders expose each evidence slice in a mixed restored sectio
   });
   await page.goto("/cases/saved-case-identity/market");
   await expect(page.locator('[data-evidence-key="market"]')).toContainText("市場資料");
-  await expect(page.locator('[data-evidence-key="market"]')).toContainText("已恢復有限摘要");
+  await expect(page.locator('[data-evidence-key="market"]')).toContainText("目前無法取得證據");
   await expect(page.locator('[data-evidence-key="valuation"]')).toContainText("價格推估");
   await expect(page.locator('[data-evidence-key="valuation"]')).toContainText("尚未查詢此區段");
 

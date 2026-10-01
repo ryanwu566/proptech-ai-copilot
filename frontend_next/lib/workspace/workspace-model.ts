@@ -5,6 +5,7 @@ import type {
   PropertyIdentityState,
   QueryExecutionState,
 } from "../commercial/state";
+import type { MarketPriceModel } from "./market-price-model";
 
 export const WORKSPACE_SECTIONS = ["overview", "market", "location", "risk", "finance"] as const;
 export type WorkspaceSection = (typeof WORKSPACE_SECTIONS)[number];
@@ -41,6 +42,7 @@ export type PropertyCaseWorkspace = {
     manualPriceWan?: number;
   };
   evidence: Record<EvidenceKey, WorkspaceEvidenceState>;
+  marketPrice: MarketPriceModel;
   saveState: "saved" | "saving" | "unsaved" | "save_failed";
 };
 
