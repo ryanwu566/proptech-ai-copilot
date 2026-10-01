@@ -1,5 +1,5 @@
-import { WorkspaceSectionPlaceholder } from "@/components/workspace/section-placeholder";
+import { RiskEnvironmentView } from "@/components/workspace/risk/risk-environment-view";
 
 export default function PropertyRiskPage() {
-  return <WorkspaceSectionPlaceholder section="risk" />;
+  return <RiskEnvironmentView />;
 }
