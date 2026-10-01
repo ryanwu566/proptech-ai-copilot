@@ -7,6 +7,8 @@ import { getActionableValuation, getStoredActionableValuation } from "../valuati
 import { EVIDENCE_KEYS, type EvidenceKey, type PropertyCaseWorkspace, type WorkspaceEvidenceState } from "./workspace-model.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { buildMarketPriceModel } from "./market-price-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { buildLocationWorkspaceSnapshot } from "./location-context.ts";
 
 function positive(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -106,6 +108,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     },
     evidence,
     marketPrice,
+    location: buildLocationWorkspaceSnapshot(saved),
     saveState: "saved",
   };
 }

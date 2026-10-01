@@ -170,8 +170,8 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
   return (
     <div className="rounded-xl border border-cyan-100 bg-cyan-50/50 p-3" data-testid="commute-route-card">
       <span className="sr-only" data-testid="commute-route-state" data-status={routeDisplayStatus} data-reason-code={reasonCode} />
-      <p className="text-xs font-bold text-slate-900">Google 路線時間與距離</p>
-      <p className="mt-1 text-[11px] leading-5 text-slate-600">以目前房屋位置為起點，查詢指定目的地的路線證據；與 TDX 大眾運輸情境資料分開呈現。</p>
+      <p className="text-xs font-bold text-slate-900">目的地路線時間與距離</p>
+      <p className="mt-1 text-[11px] leading-5 text-slate-600">以目前物件位置為起點，查詢指定目的地；周邊大眾運輸資料即使暫時不可用，也不會清除有效路線。</p>
       <div className="mt-3 flex flex-col gap-2 sm:flex-row">
         <input aria-label="目的地地址" value={destination} onChange={(event) => { setDestination(event.target.value); clearRoute(); }} placeholder="例如：台北車站" className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
         <select aria-label="交通方式" value={mode} onChange={(event) => { setMode(event.target.value as CommuteRouteMode); clearRoute(); }} className="rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200">

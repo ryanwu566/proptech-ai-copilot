@@ -6,12 +6,13 @@ import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/pr
 import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
 import type { JourneyPriceBasis } from "@/lib/closed-loop-journey";
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
-import { compactCommuteRouteEvidence } from "@/lib/commute-route-evidence";
+import { compactCommuteRouteEvidence, compactCommuteTransitEvidence } from "@/lib/commute-route-evidence";
 import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnchorV1 } from "@/lib/journey-property-identity";
 import { getStoredActionableValuation } from "@/lib/valuation-result-state";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
+export const CASE_UPDATED_EVENT = "proptech:saved-case-updated";
 export const CASE_CLEARED_EVENT = "proptech:current-case-cleared";
 export const MAX_SAVED_CASES = 10;
 
@@ -100,6 +101,28 @@ export function deleteSavedCase(id: string) {
   writeCases(readSavedCases().filter((row) => row.id !== id));
 }
 
+export function updateSavedCaseLocationEvidence(caseId: string, patch: {
+  commuteRoute?: CommuteRouteEvidence | null;
+  commuteTransit?: CommuteAddressLookupResult | null;
+}): boolean {
+  const rows = readSavedCases();
+  const index = rows.findIndex((row) => row.id === caseId);
+  if (index < 0) return false;
+  const current = rows[index];
+  const data: SavedCaseData = { ...current.data };
+  if (Object.prototype.hasOwnProperty.call(patch, "commuteRoute")) {
+    data.commuteRoute = compactCommuteRouteEvidence(patch.commuteRoute ?? undefined);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, "commuteTransit")) {
+    data.commuteTransit = compactCommuteTransitEvidence(patch.commuteTransit ?? undefined);
+  }
+  const updated: SavedCase = { ...current, updatedAt: new Date().toISOString(), data };
+  rows[index] = updated;
+  writeCases(rows);
+  window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+  return true;
+}
+
 export function clearSavedCases() {
   window.localStorage.removeItem(SAVED_CASES_STORAGE_KEY);
 }
@@ -158,6 +181,7 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
     } : undefined,
     locationInsight: data.locationInsight ? { ...data.locationInsight, resolved_location: null, nearest_pois: [] } : undefined,
     commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),
+    commuteTransit: compactCommuteTransitEvidence(data.commuteTransit),
     terrainReference: normalizeStoredTerrainReferenceEvidence(data.terrainReference) ?? migrateLegacyTerrainReference(data.terrainRisk),
     terrainRisk: undefined,
   };

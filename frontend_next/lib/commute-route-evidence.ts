@@ -1,4 +1,4 @@
-import type { CommuteRouteEvidence } from "@/lib/api";
+import type { CommuteAddressLookupResult, CommuteRouteEvidence } from "@/lib/api";
 
 /** Persist only the bounded route provenance contract, never provider payloads. */
 export function compactCommuteRouteEvidence(value: CommuteRouteEvidence | undefined): CommuteRouteEvidence | undefined {
@@ -16,5 +16,20 @@ export function compactCommuteRouteEvidence(value: CommuteRouteEvidence | undefi
     status: value.status,
     partial: value.partial,
     fallback: value.fallback,
+  };
+}
+
+/** Persist only the bounded TDX context contract, never provider payloads or messages. */
+export function compactCommuteTransitEvidence(value: CommuteAddressLookupResult | undefined): CommuteAddressLookupResult | undefined {
+  if (!value) return undefined;
+  return {
+    status: value.status,
+    source: value.source,
+    station_name: value.station_name,
+    line_ids: Array.isArray(value.line_ids) ? value.line_ids.filter((line) => typeof line === "string").slice(0, 16) : [],
+    distance_meters: value.distance_meters,
+    source_updated_at: value.source_updated_at,
+    snapshot_generated_at: value.snapshot_generated_at,
+    message: value.status,
   };
 }

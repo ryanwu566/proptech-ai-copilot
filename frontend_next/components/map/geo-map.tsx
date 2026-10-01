@@ -44,14 +44,14 @@ function Recenter({ center, zoom, selected, selectedLabel, distanceLabel, rating
   return null;
 }
 
-export default function GeoMap({ center, zoom, categories, selectedPlace, onSelectPlace }: { center: { lat: number; lng: number }; zoom: number; categories: NearbyCategory[]; selectedPlace?: NearbyPlace; onSelectPlace?: (place: NearbyPlace) => void }) {
+export default function GeoMap({ center, zoom, categories, selectedPlace, onSelectPlace, centerLabel, radiusMeters = 800, scrollWheelZoomEnabled = true }: { center: { lat: number; lng: number }; zoom: number; categories: NearbyCategory[]; selectedPlace?: NearbyPlace; onSelectPlace?: (place: NearbyPlace) => void; centerLabel?: string; radiusMeters?: number; scrollWheelZoomEnabled?: boolean }) {
   const { copy } = useExperienceLocale();
   const baseLayers = {
     standard: copy("map.baseStandard"),
     light: copy("map.baseLight"),
     satellite: copy("map.baseSatellite"),
   };
-  return <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom className="h-full min-h-[360px] w-full sm:min-h-[500px] xl:min-h-[650px]">
+  return <MapContainer center={[center.lat, center.lng]} zoom={zoom} scrollWheelZoom={scrollWheelZoomEnabled} className="h-full min-h-[360px] w-full sm:min-h-[500px] xl:min-h-[650px]">
     <Recenter center={center} zoom={zoom} selected={selectedPlace} selectedLabel={copy("map.selected")} distanceLabel={copy("map.distance")} ratingLabel={copy("map.rating")} />
     <LayersControl position="topright">
       <LayersControl.BaseLayer checked name={baseLayers.standard}>
@@ -64,8 +64,8 @@ export default function GeoMap({ center, zoom, categories, selectedPlace, onSele
         <TileLayer attribution="Tiles &copy; Esri" url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
       </LayersControl.BaseLayer>
     </LayersControl>
-    <Circle center={[center.lat, center.lng]} radius={800} pathOptions={{ color: "#0891b2", fillColor: "#22d3ee", fillOpacity: 0.05, weight: 2 }} />
-    <Marker position={[center.lat, center.lng]} icon={markerIcon("#0f172a", true)}><Popup>{copy("map.selected")}</Popup></Marker>
+    <Circle center={[center.lat, center.lng]} radius={radiusMeters} pathOptions={{ color: "#0891b2", fillColor: "#22d3ee", fillOpacity: 0.05, weight: 2 }} />
+    <Marker position={[center.lat, center.lng]} icon={markerIcon("#0f172a", true)}><Popup>{centerLabel ?? copy("map.selected")}</Popup></Marker>
     {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={markerIcon(categoryColors[group.category] ?? "#64748b", false, selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {Math.round(place.distance_m)} m{place.rating === null ? "" : ` · ${copy("map.rating")} ${place.rating}`}<br />{place.opening_status_label}<br />{place.address}</Popup></Marker>))}
   </MapContainer>;
 }

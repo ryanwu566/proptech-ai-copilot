@@ -6,6 +6,7 @@ import type {
   QueryExecutionState,
 } from "../commercial/state";
 import type { MarketPriceModel } from "./market-price-model";
+import type { LocationWorkspaceSnapshot } from "./location-context";
 
 export const WORKSPACE_SECTIONS = ["overview", "market", "location", "risk", "finance"] as const;
 export type WorkspaceSection = (typeof WORKSPACE_SECTIONS)[number];
@@ -43,6 +44,7 @@ export type PropertyCaseWorkspace = {
   };
   evidence: Record<EvidenceKey, WorkspaceEvidenceState>;
   marketPrice: MarketPriceModel;
+  location: LocationWorkspaceSnapshot;
   saveState: "saved" | "saving" | "unsaved" | "save_failed";
 };
 
