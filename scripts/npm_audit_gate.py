@@ -15,6 +15,7 @@ from typing import Any
 BLOCKING_SEVERITIES = {"high", "critical"}
 SEVERITIES = ("info", "low", "moderate", "high", "critical")
 SEVERITY_RANK = {severity: rank for rank, severity in enumerate(SEVERITIES)}
+FINGERPRINT_FIELDS = ("severity", "isDirect", "via", "range")
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend_next"
 DEFAULT_POLICY = ROOT / ".github/security/npm-audit-exceptions.json"
@@ -116,7 +117,7 @@ def _audit_schema_error(audit: object) -> str | None:
             ):
                 return "invalid nested advisory CVSS data"
         if not isinstance(finding.get("effects"), list) or not all(
-            isinstance(effect, str) for effect in finding["effects"]
+            isinstance(effect, str) and effect for effect in finding["effects"]
         ):
             return "invalid effect list"
         if not isinstance(finding.get("range"), str):
@@ -172,10 +173,9 @@ def _policy_schema_error(policy: object) -> str | None:
     graph = exception.get("auditGraph")
     if not isinstance(graph, dict) or exception["package"] not in graph:
         return "audit graph is missing the advisory package"
-    fingerprint_fields = {"severity", "isDirect", "via", "effects", "range"}
     if any(
         not isinstance(fingerprint, dict)
-        or set(fingerprint) != fingerprint_fields
+        or set(fingerprint) != set(FINGERPRINT_FIELDS)
         for fingerprint in graph.values()
     ):
         return "audit graph fingerprint fields are invalid"
@@ -211,7 +211,6 @@ def _finding_fingerprint(finding: dict[str, Any]) -> dict[str, Any]:
         "severity": finding.get("severity"),
         "isDirect": finding.get("isDirect"),
         "via": via,
-        "effects": finding.get("effects"),
         "range": finding.get("range"),
     }
 
@@ -350,8 +349,12 @@ def evaluate(
         )
 
     for name in sorted(set(actual_findings) & set(expected_graph)):
-        if _finding_fingerprint(actual_findings[name]) != expected_graph[name]:
-            errors.append(f"Audit graph identity mismatch for {name}")
+        actual_fingerprint = _finding_fingerprint(actual_findings[name])
+        for field in FINGERPRINT_FIELDS:
+            if actual_fingerprint[field] != expected_graph[name][field]:
+                errors.append(
+                    f"Audit graph identity mismatch for {name}: field={field}"
+                )
 
     advisory_package = exception["package"]
     if advisory_package in actual_findings and not _advisory_identity_matches(

@@ -320,42 +320,36 @@ POLICY = {
                     "severity": "high",
                     "isDirect": True,
                     "via": ["fast-glob"],
-                    "effects": [],
                     "range": ">=14.3.0-canary.0",
                 },
                 "braces": {
                     "severity": "high",
                     "isDirect": False,
                     "via": [1240992],
-                    "effects": ["chokidar", "micromatch"],
                     "range": "*",
                 },
                 "chokidar": {
                     "severity": "high",
                     "isDirect": False,
                     "via": ["braces"],
-                    "effects": ["tailwindcss"],
                     "range": "2.0.0 - 3.6.0",
                 },
                 "fast-glob": {
                     "severity": "high",
                     "isDirect": False,
                     "via": ["micromatch"],
-                    "effects": ["@next/eslint-plugin-next"],
                     "range": "*",
                 },
                 "micromatch": {
                     "severity": "high",
                     "isDirect": False,
                     "via": ["braces"],
-                    "effects": ["fast-glob", "tailwindcss"],
                     "range": ">=0.2.0",
                 },
                 "tailwindcss": {
                     "severity": "high",
                     "isDirect": True,
                     "via": ["chokidar", "fast-glob", "micromatch"],
-                    "effects": [],
                     "range": "<=0.0.0-oxide-insiders.ff2c25f || 2.1.0-canary.1 - 3.4.19",
                 },
             },
@@ -420,6 +414,28 @@ def test_alternate_hoisted_nodes_layout_is_accepted() -> None:
         EMPTY_AUDIT,
         CURRENT_EXPLANATION,
         POLICY,
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "pass"
+    assert result["accepted"] == [
+        {"id": "GHSA-vfj7-8cjw-p6xm", "expiresOn": "2026-11-04"}
+    ]
+
+
+def test_captured_linux_effects_difference_is_accepted() -> None:
+    gate = load_gate()
+    full_audit = deepcopy(CURRENT_AUDIT)
+    full_audit["vulnerabilities"]["fast-glob"]["effects"] = [
+        "@next/eslint-plugin-next",
+        "tailwindcss",
+    ]
+
+    result = gate.evaluate_json(
+        json.dumps(full_audit),
+        json.dumps(EMPTY_AUDIT),
+        json.dumps(CURRENT_EXPLANATION),
+        json.dumps(POLICY),
         today=date(2026, 10, 5),
     )
 
@@ -546,6 +562,25 @@ def test_changed_advisory_identity_fails() -> None:
 
     assert result["status"] == "failed"
     assert any("identity" in error.lower() for error in result["errors"])
+
+
+def test_changed_canonical_field_names_the_field() -> None:
+    gate = load_gate()
+    full_audit = deepcopy(CURRENT_AUDIT)
+    full_audit["vulnerabilities"]["fast-glob"]["via"] = ["braces"]
+
+    result = gate.evaluate_json(
+        json.dumps(full_audit),
+        json.dumps(EMPTY_AUDIT),
+        json.dumps(CURRENT_EXPLANATION),
+        json.dumps(POLICY),
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert "Audit graph identity mismatch for fast-glob: field=via" in result[
+        "errors"
+    ]
 
 
 def test_exception_fails_closed_on_expiry_date() -> None:
@@ -726,6 +761,23 @@ def test_empty_node_path_fails_closed() -> None:
     gate = load_gate()
     full_audit = deepcopy(CURRENT_AUDIT)
     full_audit["vulnerabilities"]["fast-glob"]["nodes"] = [""]
+
+    result = gate.evaluate_json(
+        json.dumps(full_audit),
+        json.dumps(EMPTY_AUDIT),
+        json.dumps(CURRENT_EXPLANATION),
+        json.dumps(POLICY),
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert any("interpret" in error.lower() for error in result["errors"])
+
+
+def test_empty_effect_name_fails_closed() -> None:
+    gate = load_gate()
+    full_audit = deepcopy(CURRENT_AUDIT)
+    full_audit["vulnerabilities"]["fast-glob"]["effects"] = [""]
 
     result = gate.evaluate_json(
         json.dumps(full_audit),
