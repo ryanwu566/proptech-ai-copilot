@@ -37,15 +37,17 @@ def test_ci_frontend_toolchain_is_pinned_from_one_version_file() -> None:
     assert all("node-version:" not in source for source in workflows)
 
 
-def test_security_workflow_validates_the_clean_tree_before_full_audit() -> None:
+def test_security_workflow_keeps_production_zero_tolerance_before_policy_gate() -> None:
     workflow = (ROOT / ".github/workflows/security-performance.yml").read_text(encoding="utf-8")
     install = workflow.index("npm ci --prefix frontend_next")
     validate = workflow.index("npm ls --all")
-    audit = workflow.index("npm audit --audit-level=high")
+    production_audit = workflow.index("npm audit --omit=dev --audit-level=high")
+    policy_gate = workflow.index("python ../scripts/npm_audit_gate.py")
 
-    assert install < validate < audit
-    assert "working-directory: frontend_next" in workflow[install:audit]
+    assert install < validate < production_audit < policy_gate
+    assert "working-directory: frontend_next" in workflow[install:policy_gate]
     assert "--package-lock-only" not in workflow
+    assert "|| true" not in workflow[production_audit:policy_gate]
 
 
 def test_e2e_script_builds_before_exercising_the_owned_server_runner() -> None:
