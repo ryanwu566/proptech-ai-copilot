@@ -117,6 +117,28 @@ test("stored official valuation summary remains separate from asking price and r
   assert.equal(model.overview.marketRange, "49.8–55.6 萬元／坪");
 });
 
+test("fresh evidence is available in-session while reopened summaries remain limited", () => {
+  const live = buildMarketPriceModel({
+    activePriceBasis: "asking",
+    askingPriceWan: 2480,
+    market: savedCase().data.marketInsight as never,
+    valuation: {
+      ...storedValuation(),
+      comparables: [
+        { source: "official_plvr_opendata", area_ping: 30, unit_price_per_ping: 60, total_price: 1800, building_age_years: 5, similarity_score: 90, weight: 1 },
+        { source: "official_plvr_opendata", area_ping: 31, unit_price_per_ping: 61, total_price: 1891, building_age_years: 6, similarity_score: 88, weight: 1 },
+        { source: "official_plvr_opendata", area_ping: 29, unit_price_per_ping: 59, total_price: 1711, building_age_years: 4, similarity_score: 86, weight: 1 },
+      ],
+    } as never,
+    stale: false,
+    marketFresh: true,
+    valuationFresh: true,
+  });
+
+  assert.equal(live.market.status, "available");
+  assert.equal(live.valuation.status, "available");
+});
+
 test("nullable or malformed valuation metrics fail closed without becoming zero", () => {
   const malformed = storedValuation();
   malformed.price_range.mid = null as never;
@@ -164,6 +186,23 @@ test("identity change marks property-bound Market and valuation evidence stale",
   assert.equal(model.valuation.status, "stale");
   assert.equal(model.overview.evidenceStatus, "stale");
   assert.ok(model.overview.unresolvedChecks.includes("重新確認目前物件後再採用價格證據"));
+});
+
+test("valuation-input changes stale valuation without relabeling independent Market evidence", () => {
+  const model = buildMarketPriceModel({
+    activePriceBasis: "asking",
+    activePriceWan: 2480,
+    askingPriceWan: 2480,
+    market: savedCase().data.marketInsight as never,
+    valuation: storedValuation() as never,
+    stale: false,
+    valuationStale: true,
+  });
+
+  assert.equal(model.isStale, true);
+  assert.equal(model.market.status, "limited");
+  assert.equal(model.valuation.status, "stale");
+  assert.equal(model.priceContext.activePrice.formatted, "2,480 萬元");
 });
 
 test("Market no-data and unavailable states never retain price metrics", () => {

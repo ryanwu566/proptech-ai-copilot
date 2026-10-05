@@ -6,7 +6,7 @@ import { getMarketDisplayState, marketStateHasEvidence } from "../market-result-
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { getActionableValuation, getStoredActionableValuation } from "../valuation-result-state.ts";
 
-export type MarketPriceEvidenceStatus = "not_started" | "insufficient" | "limited" | "unavailable" | "stale";
+export type MarketPriceEvidenceStatus = "not_started" | "available" | "insufficient" | "limited" | "unavailable" | "stale";
 
 export type MarketPriceValue = {
   label: string;
@@ -64,6 +64,10 @@ type BuildMarketPriceModelInput = {
   valuation?: ValuationResult;
   trend?: ValuationTrendResult;
   stale: boolean;
+  marketStale?: boolean;
+  valuationStale?: boolean;
+  marketFresh?: boolean;
+  valuationFresh?: boolean;
 };
 
 function positive(value: unknown): value is number {
@@ -81,12 +85,13 @@ function period(result: MarketResult | undefined): string | null {
   return text(result?.period);
 }
 
-function marketStatus(result: MarketResult | undefined, stale: boolean): MarketPriceEvidenceStatus {
+function marketStatus(result: MarketResult | undefined, stale: boolean, fresh: boolean): MarketPriceEvidenceStatus {
   if (!result) return "not_started";
   const displayState = getMarketDisplayState(result);
   if (displayState === "no_data" || result.sample_status === "insufficient" || result.sample_status === "no_data") return "insufficient";
   if (displayState === "unavailable" || result.sample_status === "unavailable") return "unavailable";
   if (stale || displayState === "stale") return "stale";
+  if (fresh) return "available";
   return "limited";
 }
 
@@ -101,8 +106,10 @@ function primaryFinding(askingPriceWan: number | undefined, medianTotalWan: numb
 }
 
 export function buildMarketPriceModel(input: BuildMarketPriceModelInput): MarketPriceModel {
+  const marketStale = input.stale || input.marketStale === true;
+  const valuationStale = input.stale || input.valuationStale === true;
   const actionableValuation = getActionableValuation(input.valuation) ?? getStoredActionableValuation(input.valuation);
-  const status = marketStatus(input.market, input.stale);
+  const status = marketStatus(input.market, marketStale, input.marketFresh === true);
   const displayState = getMarketDisplayState(input.market);
   const marketHasEvidence = Boolean(input.market)
     && marketStateHasEvidence(displayState)
@@ -112,7 +119,7 @@ export function buildMarketPriceModel(input: BuildMarketPriceModelInput): Market
   const medianTotalWan = marketHasEvidence && positive(input.market?.median_total_price) ? input.market.median_total_price : null;
   const medianUnitWan = marketHasEvidence && positive(input.market?.median_unit_price_per_ping) ? input.market.median_unit_price_per_ping : null;
   const validatedActivePriceWan = input.activePriceBasis === "estimate"
-    ? input.stale ? undefined : actionableValuation?.estimateTotal
+    ? valuationStale ? undefined : actionableValuation?.estimateTotal
     : input.activePriceWan;
   const activeLabel = input.activePriceBasis === "manual"
     ? PRICE_CONCEPT_LABELS.user_entered_price
@@ -131,21 +138,23 @@ export function buildMarketPriceModel(input: BuildMarketPriceModelInput): Market
         formatted: formatPriceRangeWan(actionableValuation.priceRange.low, actionableValuation.priceRange.high),
       }
     : null;
-  const valuationStatus: MarketPriceEvidenceStatus = input.stale && actionableValuation
+  const valuationStatus: MarketPriceEvidenceStatus = valuationStale && actionableValuation
     ? "stale"
     : actionableValuation
-      ? "limited"
+      ? input.valuationFresh ? "available" : "limited"
       : input.valuation
         ? "unavailable"
         : "not_started";
   const unresolvedChecks = input.stale
     ? ["重新確認目前物件後再採用價格證據"]
+    : input.valuationStale
+      ? ["價格推估輸入已變更，請重新取得可安全判讀的價格推估"]
     : input.valuation && !actionableValuation
       ? ["重新取得可安全判讀的價格推估"]
       : [];
 
   return {
-    isStale: input.stale,
+    isStale: marketStale || valuationStale,
     priceContext: {
       askingPrice: positive(input.askingPriceWan) ? { label: PRICE_CONCEPT_LABELS.asking_price, formatted: formatWan(input.askingPriceWan) } : null,
       activePrice: { label: activeLabel, formatted: formatWan(validatedActivePriceWan, "not_provided") },
