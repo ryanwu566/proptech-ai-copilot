@@ -322,7 +322,6 @@ POLICY = {
                     "via": ["fast-glob"],
                     "effects": [],
                     "range": ">=14.3.0-canary.0",
-                    "nodes": ["node_modules/@next/eslint-plugin-next"],
                 },
                 "braces": {
                     "severity": "high",
@@ -330,7 +329,6 @@ POLICY = {
                     "via": [1240992],
                     "effects": ["chokidar", "micromatch"],
                     "range": "*",
-                    "nodes": ["node_modules/braces"],
                 },
                 "chokidar": {
                     "severity": "high",
@@ -338,7 +336,6 @@ POLICY = {
                     "via": ["braces"],
                     "effects": ["tailwindcss"],
                     "range": "2.0.0 - 3.6.0",
-                    "nodes": ["node_modules/chokidar"],
                 },
                 "fast-glob": {
                     "severity": "high",
@@ -346,10 +343,6 @@ POLICY = {
                     "via": ["micromatch"],
                     "effects": ["@next/eslint-plugin-next"],
                     "range": "*",
-                    "nodes": [
-                        "node_modules/@next/eslint-plugin-next/node_modules/fast-glob",
-                        "node_modules/fast-glob",
-                    ],
                 },
                 "micromatch": {
                     "severity": "high",
@@ -357,7 +350,6 @@ POLICY = {
                     "via": ["braces"],
                     "effects": ["fast-glob", "tailwindcss"],
                     "range": ">=0.2.0",
-                    "nodes": ["node_modules/micromatch"],
                 },
                 "tailwindcss": {
                     "severity": "high",
@@ -365,7 +357,6 @@ POLICY = {
                     "via": ["chokidar", "fast-glob", "micromatch"],
                     "effects": [],
                     "range": "<=0.0.0-oxide-insiders.ff2c25f || 2.1.0-canary.1 - 3.4.19",
-                    "nodes": ["node_modules/tailwindcss"],
                 },
             },
             "dependencyChains": [
@@ -408,6 +399,27 @@ def test_current_exact_dev_only_advisory_is_accepted_before_expiry() -> None:
         EMPTY_AUDIT,
         CURRENT_EXPLANATION,
         policy,
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "pass"
+    assert result["accepted"] == [
+        {"id": "GHSA-vfj7-8cjw-p6xm", "expiresOn": "2026-11-04"}
+    ]
+
+
+def test_alternate_hoisted_nodes_layout_is_accepted() -> None:
+    gate = load_gate()
+    full_audit = deepcopy(CURRENT_AUDIT)
+    full_audit["vulnerabilities"]["fast-glob"]["nodes"] = [
+        "node_modules/fast-glob"
+    ]
+
+    result = gate.evaluate(
+        full_audit,
+        EMPTY_AUDIT,
+        CURRENT_EXPLANATION,
+        POLICY,
         today=date(2026, 10, 5),
     )
 
@@ -585,6 +597,78 @@ def test_changed_dependency_chain_identity_fails() -> None:
     assert any("chain" in error.lower() for error in result["errors"])
 
 
+def test_changed_fast_glob_version_fails() -> None:
+    gate = load_gate()
+    explanation = deepcopy(CURRENT_EXPLANATION)
+    fast_glob = explanation[0]["dependents"][1]["from"]["dependents"][0][
+        "from"
+    ]
+    fast_glob["version"] = "3.3.2"
+
+    result = gate.evaluate(
+        CURRENT_AUDIT,
+        EMPTY_AUDIT,
+        explanation,
+        POLICY,
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert any("chain" in error.lower() for error in result["errors"])
+
+
+def test_missing_reviewed_dependency_chain_fails() -> None:
+    gate = load_gate()
+    explanation = deepcopy(CURRENT_EXPLANATION)
+    micromatch_dependents = explanation[0]["dependents"][1]["from"]["dependents"]
+    del micromatch_dependents[2]
+
+    result = gate.evaluate(
+        CURRENT_AUDIT,
+        EMPTY_AUDIT,
+        explanation,
+        POLICY,
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert any("chain" in error.lower() for error in result["errors"])
+
+
+def test_additional_dependency_chain_fails() -> None:
+    gate = load_gate()
+    explanation = deepcopy(CURRENT_EXPLANATION)
+    micromatch_dependents = explanation[0]["dependents"][1]["from"]["dependents"]
+    additional = deepcopy(micromatch_dependents[2])
+    additional["from"].update(
+        {
+            "name": "unreviewed-tool",
+            "version": "1.0.0",
+            "location": "node_modules/unreviewed-tool",
+            "dependents": [
+                {
+                    "type": "dev",
+                    "name": "unreviewed-tool",
+                    "spec": "1.0.0",
+                    "from": {"location": "."},
+                }
+            ],
+        }
+    )
+    micromatch_dependents.append(additional)
+
+    result = gate.evaluate(
+        CURRENT_AUDIT,
+        EMPTY_AUDIT,
+        explanation,
+        POLICY,
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert any("chain" in error.lower() for error in result["errors"])
+
+
 def test_dependency_explanation_with_production_root_fails() -> None:
     gate = load_gate()
     explanation = deepcopy(CURRENT_EXPLANATION)
@@ -625,6 +709,23 @@ def test_inconsistent_audit_metadata_fails_closed() -> None:
     gate = load_gate()
     full_audit = deepcopy(CURRENT_AUDIT)
     full_audit["metadata"]["vulnerabilities"].update({"high": 0, "total": 0})
+
+    result = gate.evaluate_json(
+        json.dumps(full_audit),
+        json.dumps(EMPTY_AUDIT),
+        json.dumps(CURRENT_EXPLANATION),
+        json.dumps(POLICY),
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert any("interpret" in error.lower() for error in result["errors"])
+
+
+def test_empty_node_path_fails_closed() -> None:
+    gate = load_gate()
+    full_audit = deepcopy(CURRENT_AUDIT)
+    full_audit["vulnerabilities"]["fast-glob"]["nodes"] = [""]
 
     result = gate.evaluate_json(
         json.dumps(full_audit),

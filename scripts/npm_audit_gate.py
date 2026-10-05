@@ -122,7 +122,7 @@ def _audit_schema_error(audit: object) -> str | None:
         if not isinstance(finding.get("range"), str):
             return "invalid affected range"
         if not isinstance(finding.get("nodes"), list) or not finding["nodes"] or not all(
-            isinstance(node, str) for node in finding["nodes"]
+            isinstance(node, str) and node for node in finding["nodes"]
         ):
             return "invalid node list"
         if not isinstance(finding.get("fixAvailable"), (bool, dict)):
@@ -172,6 +172,13 @@ def _policy_schema_error(policy: object) -> str | None:
     graph = exception.get("auditGraph")
     if not isinstance(graph, dict) or exception["package"] not in graph:
         return "audit graph is missing the advisory package"
+    fingerprint_fields = {"severity", "isDirect", "via", "effects", "range"}
+    if any(
+        not isinstance(fingerprint, dict)
+        or set(fingerprint) != fingerprint_fields
+        for fingerprint in graph.values()
+    ):
+        return "audit graph fingerprint fields are invalid"
     chains = exception.get("dependencyChains")
     if (
         not isinstance(chains, list)
@@ -206,7 +213,6 @@ def _finding_fingerprint(finding: dict[str, Any]) -> dict[str, Any]:
         "via": via,
         "effects": finding.get("effects"),
         "range": finding.get("range"),
-        "nodes": finding.get("nodes"),
     }
 
 

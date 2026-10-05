@@ -22,10 +22,7 @@
             "fast-glob"
           ],
           "effects": [],
-          "range": ">=14.3.0-canary.0",
-          "nodes": [
-            "node_modules/@next/eslint-plugin-next"
-          ]
+          "range": ">=14.3.0-canary.0"
         },
         "braces": {
           "severity": "high",
@@ -37,10 +34,7 @@
             "chokidar",
             "micromatch"
           ],
-          "range": "*",
-          "nodes": [
-            "node_modules/braces"
-          ]
+          "range": "*"
         },
         "chokidar": {
           "severity": "high",
@@ -51,10 +45,7 @@
           "effects": [
             "tailwindcss"
           ],
-          "range": "2.0.0 - 3.6.0",
-          "nodes": [
-            "node_modules/chokidar"
-          ]
+          "range": "2.0.0 - 3.6.0"
         },
         "fast-glob": {
           "severity": "high",
@@ -65,11 +56,7 @@
           "effects": [
             "@next/eslint-plugin-next"
           ],
-          "range": "*",
-          "nodes": [
-            "node_modules/@next/eslint-plugin-next/node_modules/fast-glob",
-            "node_modules/fast-glob"
-          ]
+          "range": "*"
         },
         "micromatch": {
           "severity": "high",
@@ -81,10 +68,7 @@
             "fast-glob",
             "tailwindcss"
           ],
-          "range": ">=0.2.0",
-          "nodes": [
-            "node_modules/micromatch"
-          ]
+          "range": ">=0.2.0"
         },
         "tailwindcss": {
           "severity": "high",
@@ -95,10 +79,7 @@
             "micromatch"
           ],
           "effects": [],
-          "range": "<=0.0.0-oxide-insiders.ff2c25f || 2.1.0-canary.1 - 3.4.19",
-          "nodes": [
-            "node_modules/tailwindcss"
-          ]
+          "range": "<=0.0.0-oxide-insiders.ff2c25f || 2.1.0-canary.1 - 3.4.19"
         }
       },
       "dependencyChains": [
