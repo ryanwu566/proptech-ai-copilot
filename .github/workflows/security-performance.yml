@@ -42,7 +42,8 @@ jobs:
         working-directory: frontend_next
         run: |
           npm ls --all
-          npm audit --audit-level=high
+          npm audit --omit=dev --audit-level=high
+          python ../scripts/npm_audit_gate.py
       - name: Run Python security and contract tests
         run: python -m pytest -q --basetemp "${RUNNER_TEMP}/security-performance-pytest"
       - name: Build frontend
