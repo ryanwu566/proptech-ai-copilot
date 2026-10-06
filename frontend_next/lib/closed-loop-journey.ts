@@ -10,7 +10,7 @@ import type {
   TerrainRiskResult,
   ValuationResult,
 } from "@/lib/api";
-import { getSafeJourneyPropertyContext, type JourneyPropertyContext, type LocationMarketDisplayStatus } from "@/lib/location-market-journey";
+import { deriveJourneyRoadFromAcceptedAddress, getSafeJourneyPropertyContext, type JourneyPropertyContext, type LocationMarketDisplayStatus } from "@/lib/location-market-journey";
 import type { PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
 import type { StoredTerrainReferenceEvidenceV1, TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { getActionableValuation } from "@/lib/valuation-result-state";
@@ -202,7 +202,21 @@ export function setJourneyLocationResult(
   const identityAnchor = state.identityAnchor
     ? reconcileJourneyPropertyIdentityAnchor(state.identityAnchor, state.propertyContext, result, identityOptions)
     : buildJourneyPropertyIdentityAnchor({ context: state.propertyContext, location: result }, identityOptions);
-  return { ...state, identityAnchor, locationResult: result, locationStatus: status };
+  if (identityAnchor.revalidation.status !== "current" || result.geocoding_acceptance?.accepted_for_analysis !== true) {
+    return { ...state, identityAnchor, locationResult: result, locationStatus: status };
+  }
+  const city = identityAnchor.administrative_location.city ?? state.propertyContext.city;
+  const district = identityAnchor.administrative_location.district ?? state.propertyContext.district;
+  const road = deriveJourneyRoadFromAcceptedAddress(identityAnchor.normalized_address, city, district)
+    ?? state.propertyContext.road;
+  const propertyContext = getSafeJourneyPropertyContext({
+    ...state.propertyContext,
+    ...(city ? { city } : {}),
+    ...(district ? { district } : {}),
+    ...(road ? { road } : { road: undefined }),
+    addressSummary: identityAnchor.normalized_address,
+  });
+  return { ...state, propertyContext, identityAnchor, locationResult: result, locationStatus: status };
 }
 
 export function restoreJourneyLocationResult(

@@ -20,7 +20,7 @@ type Props = {
 };
 
 export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCleared, onExport }: Props) {
-  const { copy } = useExperienceLocale();
+  const { copy, locale } = useExperienceLocale();
   const [cases, setCases] = useState<SavedCase[]>([]);
   const [feedback, setFeedback] = useState("");
   const [confirmDelete, setConfirmDelete] = useState("");
@@ -36,7 +36,7 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
     if (!current) return;
     const missing = getDraftSaveMissingFields(current);
     if (missing.length) {
-      setFeedback(copy("case.missing", { items: missing.map((field) => field === "case_name" ? copy("case.title") : copy("case.address")).join(" / ") }));
+      setFeedback(copy("case.missing", { items: missing.map((field) => saveMissingFieldLabel(field, locale, copy)).join(" / ") }));
       return;
     }
     const saved = saveCase(current);
@@ -77,6 +77,13 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
       <button type="button" disabled={cases.length === 0} onClick={clearAll} className="mt-4 text-xs font-bold text-rose-700 disabled:opacity-40">{confirmClearAll ? copy("case.confirmDelete") : copy("case.clearAll")}</button>
     </div>}
   </section>;
+}
+
+function saveMissingFieldLabel(field: string, locale: "zh-TW" | "en" | "ja" | "ko", copy: ReturnType<typeof useExperienceLocale>["copy"]): string {
+  if (field === "case_name") return copy("case.title");
+  if (field === "property_identity_revalidation") return locale === "zh-TW" ? "地址已變更；請重新執行位置分析並確認地址" : "Address changed; rerun Location analysis and confirm it";
+  if (field === "accepted_property_coordinates") return locale === "zh-TW" ? "已接受地址的定位座標" : "Coordinates for the accepted address";
+  return copy("case.address");
 }
 
 function getCompareMissingFields(saved: SavedCase): string[] {

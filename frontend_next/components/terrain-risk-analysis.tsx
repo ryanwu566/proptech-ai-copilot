@@ -75,6 +75,10 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
   const requestRef = useRef(0);
   const uploadRequestRef = useRef(0);
   const uploadAbortRef = useRef<AbortController | null>(null);
+  const onResultRef = useRef(onResult);
+  const onStatusChangeRef = useRef(onStatusChange);
+  useEffect(() => { onResultRef.current = onResult; }, [onResult]);
+  useEffect(() => { onStatusChangeRef.current = onStatusChange; }, [onStatusChange]);
   const inputKey = compactFromLocation
     ? [location?.resolved_location?.address_label, location?.resolved_location?.latitude, location?.resolved_location?.longitude, radius, layers.join(",")].join("|")
     : [address, city, district, road, latitude, longitude, radius, layers.join(",")].join("|");
@@ -88,8 +92,8 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     requestRef.current += 1; uploadRequestRef.current += 1; uploadAbortRef.current?.abort();
     setLoading(false); setResult(undefined); setError(""); setProgress("idle");
     setParcelEvidence(undefined); setParcelFileName(""); setParcelPhase("idle"); setParcelError(""); setParcelErrorCode(""); setSpatialEvidence([]);
-    onResult?.(null); onStatusChange?.("not_started");
-  }, [resetKey, onResult, onStatusChange]);
+    onResultRef.current?.(null); onStatusChangeRef.current?.("not_started");
+  }, [resetKey]);
   useEffect(() => {
     if (previousInputKey.current === inputKey) return;
     previousInputKey.current = inputKey;
@@ -98,9 +102,9 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     setResult(undefined);
     setError("");
     setProgress("idle");
-    onResult?.(null);
-    onStatusChange?.("not_started");
-  }, [inputKey, onResult, onStatusChange]);
+    onResultRef.current?.(null);
+    onStatusChangeRef.current?.("not_started");
+  }, [inputKey]);
   useEffect(() => {
     if (previousLocationIdentityKey.current === locationIdentityKey) return;
     previousLocationIdentityKey.current = locationIdentityKey;
@@ -179,9 +183,9 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
   async function analyze() {
     const requestId = ++requestRef.current;
     setLoading(true); setError(""); setProgress("accepted");
-    setResult(undefined); onResult?.(null);
+    setResult(undefined); onResultRef.current?.(null);
     try {
-      onStatusChange?.("loading");
+      onStatusChangeRef.current?.("loading");
       const resolved = location?.resolved_location;
       const request = api.terrainRiskAnalyze({ address: compactFromLocation ? resolved?.address_label ?? address : address, city, district, road, radius_m: radius, latitude: compactFromLocation ? resolved?.latitude : latitude === "" ? undefined : latitude, longitude: compactFromLocation ? resolved?.longitude : longitude === "" ? undefined : longitude, include_layers: layers });
       setProgress("dispatched");
@@ -189,7 +193,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
       const next = await request;
       if (requestId !== requestRef.current) return;
       setProgress("received");
-      setResult(next); setProgress("rendering"); onResult?.(next);
+      setResult(next); setProgress("rendering"); onResultRef.current?.(next);
       if (parcelEvidence?.geometry && parcelEvidence.location_geometry_consistency === "NOT_CHECKED" && next.resolved_location.latitude !== undefined && next.resolved_location.longitude !== undefined) {
         const uploadId = uploadRequestRef.current;
         void api.parcelGeometryConsistency(parcelEvidence.geometry, next.resolved_location.latitude, next.resolved_location.longitude).then((consistency) => {
@@ -198,7 +202,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
       }
       if (parcelEvidence?.geometry) void refreshSpatialEvidence(parcelEvidence, next, uploadRequestRef.current);
       window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next })); window.dispatchEvent(new Event("proptech:workflow-status-updated"));
-    } catch (caught) { if (requestId === requestRef.current) { setError((caught as Error).message); setProgress("idle"); onResult?.(null); onStatusChange?.("unavailable"); } }
+    } catch (caught) { if (requestId === requestRef.current) { setError((caught as Error).message); setProgress("idle"); onResultRef.current?.(null); onStatusChangeRef.current?.("unavailable"); } }
     finally { if (requestId === requestRef.current) setLoading(false); }
   }
 

@@ -85,6 +85,22 @@ test("legacy adapter keeps absent evidence not-started and compacted evidence li
   });
 });
 
+test("legacy adapter preserves an attempted unavailable valuation without inventing a result", () => {
+  const row = savedCase({ anchor: identityAnchor() });
+  (row.data.journeyContext as typeof row.data.journeyContext & { valuationStatus: "unavailable" }).valuationStatus = "unavailable";
+  const workspace = adaptSavedCaseToWorkspace(row as never);
+
+  assert.deepEqual(workspace.evidence.valuation, {
+    query: "failed",
+    usability: "unavailable",
+    completeness: "insufficient",
+    summaryOnly: true,
+  });
+  assert.equal(workspace.marketPrice.valuation.status, "unavailable");
+  assert.equal(workspace.marketPrice.valuation.result, null);
+  assert.equal(workspace.marketPrice.valuation.estimate, null);
+});
+
 test("legacy adapter does not present the case save time as an evidence check time", () => {
   const workspace = adaptSavedCaseToWorkspace(savedCase({ withMarket: true }) as never);
 

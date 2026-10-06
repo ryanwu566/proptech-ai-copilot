@@ -75,6 +75,24 @@ export function getSafeJourneyPropertyContext(input: Partial<JourneyPropertyCont
   };
 }
 
+function withoutTaiwanPostalCode(value: string): string {
+  return value.trim().replace(/^\d{3}(?:\d{2,3})?/u, "");
+}
+
+export function deriveJourneyRoadFromAcceptedAddress(
+  normalizedAddress: string,
+  city?: string | null,
+  district?: string | null,
+): string | undefined {
+  let remainder = withoutTaiwanPostalCode(normalizedAddress);
+  for (const prefix of [city, district]) {
+    const value = safeText(prefix);
+    if (value && remainder.startsWith(value)) remainder = remainder.slice(value.length);
+  }
+  const match = remainder.match(/^(.+?(?:大道|路|街)(?:[一二三四五六七八九十百0-9]+段)?)/u);
+  return safeText(match?.[1]);
+}
+
 export function addVisitedLocationMarketTool(visited: readonly LocationMarketToolId[], tool: LocationMarketToolId): LocationMarketToolId[] {
   return visited.includes(tool) ? [...visited] : [...visited, tool];
 }

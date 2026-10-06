@@ -170,7 +170,8 @@ test("stale saved identity is visibly marked for revalidation", async ({ page })
   await selectStep(page, "decision");
 
   const card = page.locator("#journey-stage-decision").getByTestId("journey-property-identity-card");
-  await expect(card).toContainText("Needs revalidation");
-  await expect(card).toContainText("Stored identity evidence conflicts with newly resolved evidence");
+  await expect(card).toContainText("需要重新確認");
+  await expect(card).toContainText("標準化地址不一致");
+  await expect(card).toContainText("請重新執行位置分析並確認地址");
   await expect(card.getByText("Unknown — address/location evidence only", { exact: true })).toBeVisible();
 });

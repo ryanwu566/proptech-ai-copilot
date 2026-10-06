@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useState } from "react";
 import type { ValuationResult } from "@/lib/api";
 import { JourneyPropertyContextHeader } from "@/components/guided-journey/journey-property-context-header";
 import { JourneyMissingDataPanel } from "@/components/guided-journey/journey-missing-data-panel";
@@ -17,11 +16,9 @@ type PriceHandlers = {
   onStatusChange: (status: PriceJourneyDisplayStatus) => void;
 };
 
-export function PriceDecisionStage({ propertyContext, valuationResult: result, priceBasis, activePriceWan, manualPriceWan, renderValuation, onValuationResult, onPriceBasisChange, onBackToLocation, onContinueToAffordability, onTransferToLoan, onTransferToHolding }: { propertyContext: JourneyPropertyContext; valuationResult?: ValuationResult; priceBasis: JourneyPriceBasis; activePriceWan?: number; manualPriceWan?: number; renderValuation: (context: JourneyPropertyContext, handlers: PriceHandlers) => ReactNode; onValuationResult: (result: ValuationResult | undefined, status: PriceJourneyDisplayStatus) => void; onPriceBasisChange: (basis: JourneyPriceBasis, manualPriceWan?: number) => void; onBackToLocation: () => void; onContinueToAffordability: () => void; onTransferToLoan: (priceWan: number) => void; onTransferToHolding: (priceWan: number, areaPing?: number) => void }) {
-  const [statusOverride, setStatusOverride] = useState<PriceJourneyDisplayStatus>();
+export function PriceDecisionStage({ propertyContext, valuationResult: result, valuationStatus, priceBasis, activePriceWan, manualPriceWan, renderValuation, onValuationResult, onPriceBasisChange, onBackToLocation, onContinueToAffordability, onTransferToLoan, onTransferToHolding }: { propertyContext: JourneyPropertyContext; valuationResult?: ValuationResult; valuationStatus: PriceJourneyDisplayStatus; priceBasis: JourneyPriceBasis; activePriceWan?: number; manualPriceWan?: number; renderValuation: (context: JourneyPropertyContext, handlers: PriceHandlers) => ReactNode; onValuationResult: (result: ValuationResult | undefined, status: PriceJourneyDisplayStatus) => void; onPriceBasisChange: (basis: JourneyPriceBasis, manualPriceWan?: number) => void; onBackToLocation: () => void; onContinueToAffordability: () => void; onTransferToLoan: (priceWan: number) => void; onTransferToHolding: (priceWan: number, areaPing?: number) => void }) {
   const { t } = useExperienceLocale();
-  const context = getSafePriceContext({ propertyContext, result });
-  const displayContext = statusOverride ? { ...context, officialValuationStatus: statusOverride } : context;
+  const displayContext = getSafePriceContext({ propertyContext, result, valuationStatus });
   const snapshot = buildPriceDecisionSnapshot(displayContext, result);
   const actionableValuation = getActionableValuation(result);
   const statusItems = buildPriceTrustStatusItems(displayContext, result);
@@ -34,12 +31,10 @@ export function PriceDecisionStage({ propertyContext, valuationResult: result, p
   ].filter(Boolean);
 
   function handleResult(next: ValuationResult | undefined) {
-    setStatusOverride(undefined);
-    onValuationResult(next, next ? getSafePriceContext({ propertyContext, result: next }).officialValuationStatus : "not_started");
+    onValuationResult(next, next ? getSafePriceContext({ propertyContext, result: next }).officialValuationStatus : valuationStatus);
   }
 
   function handleStatusChange(status: PriceJourneyDisplayStatus) {
-    setStatusOverride(status);
     if (status === "loading" || status === "not_started" || status === "unavailable" || status === "no_data") onValuationResult(undefined, status);
   }
 

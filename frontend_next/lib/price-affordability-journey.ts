@@ -1,10 +1,21 @@
 import type { HoldingCostResult, LoanCalculationResult, TaxResult, ValuationResult } from "@/lib/api";
 import { getValuationDisplayState } from "@/lib/valuation-result-state";
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
+import type { ExperienceLocale } from "@/lib/experience-i18n";
 
 export type PriceJourneyDisplayStatus = "not_started" | "loading" | "available" | "demo" | "no_data" | "unavailable" | "partial";
 export type AffordabilityDisplayStatus = "not_started" | "available" | "unavailable" | "partial" | "unknown";
 export type AffordabilityToolId = "holding" | "tax";
+
+export function priceJourneyStatusLabel(status: PriceJourneyDisplayStatus, locale: ExperienceLocale): string {
+  const labels: Record<ExperienceLocale, Record<PriceJourneyDisplayStatus, string>> = {
+    "zh-TW": { not_started: "尚未執行", loading: "分析中", available: "已有估價證據", demo: "示範資料", no_data: "官方資料不足", unavailable: "已嘗試，目前無法取得", partial: "部分證據可用" },
+    en: { not_started: "Not run", loading: "Analyzing", available: "Valuation evidence available", demo: "Demo data", no_data: "Insufficient official data", unavailable: "Attempted; currently unavailable", partial: "Partial evidence available" },
+    ja: { not_started: "未実行", loading: "分析中", available: "評価根拠あり", demo: "デモデータ", no_data: "公的データ不足", unavailable: "実行済み・現在利用不可", partial: "一部の根拠あり" },
+    ko: { not_started: "실행 전", loading: "분석 중", available: "평가 근거 있음", demo: "데모 데이터", no_data: "공식 데이터 부족", unavailable: "시도됨 · 현재 이용 불가", partial: "일부 근거 있음" },
+  };
+  return labels[locale][status];
+}
 
 export type JourneyPriceContext = {
   propertyContext: JourneyPropertyContext;
@@ -66,7 +77,7 @@ function actionAvailable(result: ValuationResult | undefined): boolean {
   return result ? getValuationDisplayState(result).actionable : false;
 }
 
-export function getSafePriceContext(input: { propertyContext: JourneyPropertyContext; result?: ValuationResult; askingPriceWan?: number }): JourneyPriceContext {
+export function getSafePriceContext(input: { propertyContext: JourneyPropertyContext; result?: ValuationResult; askingPriceWan?: number; valuationStatus?: PriceJourneyDisplayStatus }): JourneyPriceContext {
   const actionable = actionAvailable(input.result);
   const result = input.result;
   const askingPriceWan = finitePositive(input.askingPriceWan) ? input.askingPriceWan : input.propertyContext.askingPriceWan;
@@ -74,7 +85,7 @@ export function getSafePriceContext(input: { propertyContext: JourneyPropertyCon
     propertyContext: input.propertyContext,
     ...(finitePositive(askingPriceWan) ? { askingPriceWan } : {}),
     ...(finitePositive(input.propertyContext.areaPing) ? { propertyAreaPing: input.propertyContext.areaPing } : {}),
-    officialValuationStatus: valuationStatus(result),
+    officialValuationStatus: result ? valuationStatus(result) : input.valuationStatus ?? "not_started",
     ...(actionable && result && finitePositive(result.estimate_total_price) ? { officialEstimateWan: result.estimate_total_price } : {}),
     ...(actionable && result && finitePositive(result.price_range.low) ? { estimateLowWan: result.price_range.low } : {}),
     ...(actionable && result && finitePositive(result.price_range.high) ? { estimateHighWan: result.price_range.high } : {}),
