@@ -133,7 +133,10 @@ test("loan TWD prefill is displayed in wan and submitted without double conversi
   await page.goto("/");
   await page.locator("aside button", { hasText: "Aegis-Credit" }).click();
   await page.getByRole("button", { name: "計算貸款月付" }).click();
-  await page.getByRole("button", { name: /持有成本/ }).first().click();
+  const loanResult = page.getByTestId("loan-result");
+  await expect(loanResult).toBeVisible();
+  await expect(loanResult).toContainText("30,376");
+  await loanResult.getByRole("button", { name: /持有成本/ }).click();
   const holding = page.locator("#holding-cost-calculator");
   await expect(holding.getByLabel("每月貸款支出（萬元）")).toHaveValue("3.0376");
   await holding.getByRole("button", { name: "計算持有成本" }).click();

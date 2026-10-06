@@ -6,6 +6,7 @@ import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/pr
 import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
 import type { JourneyPriceBasis } from "@/lib/closed-loop-journey";
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
+import type { PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
 import { compactCommuteRouteEvidence, compactCommuteTransitEvidence } from "@/lib/commute-route-evidence";
 import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnchorV1 } from "@/lib/journey-property-identity";
 import { getActionableValuation, getStoredActionableValuation } from "@/lib/valuation-result-state";
@@ -39,6 +40,7 @@ export type SavedCaseData = {
     priceBasis: JourneyPriceBasis;
     activePriceWan?: number;
     manualPriceWan?: number;
+    valuationStatus?: PriceJourneyDisplayStatus;
   };
   /** Legacy input only; new saved cases use terrainReference. */
   terrainRisk?: TerrainRiskResult;
@@ -327,7 +329,12 @@ export function getDraftSaveMissingFields(input: SaveCaseInput): string[] {
   const missing: string[] = [];
   if (!input.title?.trim()) missing.push("case_name");
   const address = [input.inputSummary.city, input.inputSummary.district, input.inputSummary.road].filter((value) => typeof value === "string" && value.trim()).join("");
-  if (!address) missing.push("address_or_property_identifier");
+  if (!address) {
+    const anchor = input.data.propertyIdentityAnchor;
+    if (!anchor?.normalized_address.trim()) missing.push("address_or_property_identifier");
+    else if (anchor.revalidation.status !== "current" || anchor.location_status === "stale") missing.push("property_identity_revalidation");
+    else if (!anchor.coordinates) missing.push("accepted_property_coordinates");
+  }
   return missing;
 }
 

@@ -68,6 +68,7 @@ type BuildMarketPriceModelInput = {
   valuationStale?: boolean;
   marketFresh?: boolean;
   valuationFresh?: boolean;
+  valuationAttemptStatus?: "not_started" | "unavailable";
 };
 
 function positive(value: unknown): value is number {
@@ -142,7 +143,7 @@ export function buildMarketPriceModel(input: BuildMarketPriceModelInput): Market
     ? "stale"
     : actionableValuation
       ? input.valuationFresh ? "available" : "limited"
-      : input.valuation
+      : input.valuation || input.valuationAttemptStatus === "unavailable"
         ? "unavailable"
         : "not_started";
   const unresolvedChecks = input.stale

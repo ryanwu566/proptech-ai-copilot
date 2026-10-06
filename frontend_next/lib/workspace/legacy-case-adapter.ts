@@ -73,6 +73,14 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     EVIDENCE_KEYS.map((key) => [key, reopenedEvidence(presence[key], stale)]),
   ) as Record<EvidenceKey, WorkspaceEvidenceState>;
   const journey = saved.data.journeyContext;
+  if (!presence.valuation && journey?.valuationStatus === "unavailable") {
+    evidence.valuation = {
+      query: "failed",
+      usability: "unavailable",
+      completeness: "insufficient",
+      summaryOnly: true,
+    };
+  }
   const askingPriceWan = positive(journey?.propertyContext.askingPriceWan)
     ? journey.propertyContext.askingPriceWan
     : positive(saved.inputSummary.propertyPrice)
@@ -94,6 +102,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     askingPriceWan,
     market: saved.data.marketInsight,
     valuation: saved.data.valuation,
+    valuationAttemptStatus: journey?.valuationStatus === "unavailable" ? "unavailable" : "not_started",
     trend: saved.data.trend,
     stale,
   });

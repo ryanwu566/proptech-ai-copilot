@@ -557,6 +557,58 @@ test("Google route remains usable when TDX is unavailable and retry replaces sta
   expect(routeCalls).toBe(3);
 });
 
+test("guided Terrain click stays observable through loading and a bounded result at 390px", async ({ page }) => {
+  await registerJourneyApis(page);
+  let releaseTerrain: (() => void) | undefined;
+  const terrainGate = new Promise<void>((resolve) => { releaseTerrain = resolve; });
+  await page.route("**/terrain-risk/analyze", async (route) => {
+    await terrainGate;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(terrainResult()) });
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openJourney(page);
+  await page.evaluate((detail) => window.dispatchEvent(new CustomEvent("proptech:guided-demo-result", { detail })), {
+    ...demoResults(),
+    terrainRisk: undefined,
+  });
+  await goToStep(page, "location");
+  await page.locator("section[aria-labelledby=location-market-tools-heading]").getByRole("button").nth(1).click();
+  const terrain = page.locator("#journey-stage-location #terrain-risk-analysis");
+
+  await terrain.getByRole("button", { name: "Check current location risk" }).click();
+  await expect(terrain.getByRole("button", { name: "Checking…" })).toBeVisible();
+  await expect(terrain.getByTestId("terrain-analysis-progress")).toHaveAttribute("data-progress-phase", "waiting");
+  await expect(terrain.getByRole("progressbar")).toBeVisible();
+
+  releaseTerrain?.();
+  await expect(terrain.getByTestId("terrain-data-completeness")).toBeVisible();
+  await expect(terrain.getByTestId("terrain-analysis-progress")).toHaveAttribute("data-progress-phase", "complete");
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test("guided Terrain provider failure remains a local explicit error", async ({ page }) => {
+  await registerJourneyApis(page);
+  await page.route("**/terrain-risk/analyze", (route) => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ detail: "Controlled terrain provider failure." }),
+  }));
+  await openJourney(page);
+  await page.evaluate((detail) => window.dispatchEvent(new CustomEvent("proptech:guided-demo-result", { detail })), {
+    ...demoResults(),
+    terrainRisk: undefined,
+  });
+  await goToStep(page, "location");
+  await page.locator("section[aria-labelledby=location-market-tools-heading]").getByRole("button").nth(1).click();
+  const terrain = page.locator("#journey-stage-location #terrain-risk-analysis");
+
+  await terrain.getByRole("button", { name: "Check current location risk" }).click();
+
+  await expect(terrain.getByText(/Controlled terrain provider failure|temporarily unavailable/i)).toBeVisible();
+  await expect(page.getByTestId("location-result")).toBeVisible();
+});
+
 test("area-only change preserves location and terrain while requiring a fresh valuation", async ({ page }) => {
   await registerJourneyApis(page);
   await hydrateJourney(page);
@@ -593,6 +645,45 @@ test("saved case round-trip restores journey identity, evidence and selected pri
   await expect(page.getByTestId("decision-property-address")).toContainText(PROPERTY.road);
   await expect(page.getByTestId("decision-evidence-location")).toContainText(SELECTED_ADDRESS);
   await expect(page.getByTestId("decision-monthly-payment")).toContainText("60,000");
+});
+
+test("valuation unavailable remains explicit through Decision, Save Case, cases, and reopen", async ({ page }) => {
+  await registerJourneyApis(page);
+  await page.route("**/valuation/estimate", (route) => route.fulfill({
+    status: 503,
+    contentType: "application/json",
+    body: JSON.stringify({ detail: "Controlled valuation provider failure." }),
+  }));
+  await openJourney(page);
+  await page.evaluate((detail) => window.dispatchEvent(new CustomEvent("proptech:guided-demo-result", { detail })), {
+    ...demoResults(), locationInsight: locationResult(SELECTED_ADDRESS), valuation: undefined, trend: undefined,
+  });
+  await goToStep(page, "price");
+  const valuation = page.locator("#valuation-calculator");
+  await expect(valuation.locator("select").nth(2)).toHaveValue(PROPERTY.road);
+  await valuation.getByRole("button", { name: "Estimate price" }).click();
+  await expect(page.getByText("Attempted; currently unavailable").first()).toBeVisible();
+
+  await goToStep(page, "decision");
+  const priceEvidence = page.getByTestId("decision-evidence-price");
+  await expect(priceEvidence).toContainText("Attempted; currently unavailable");
+  await expect(priceEvidence.getByText("unavailable", { exact: true })).toHaveCount(0);
+  await expect(priceEvidence.getByText("not_started", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: /New case/ }).click();
+  await page.getByRole("button", { name: "Save case", exact: true }).click();
+
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1") || "[]") as Array<{ id: string; data: { journeyContext?: { valuationStatus?: string }; valuation?: unknown } }>);
+  expect(saved).toHaveLength(1);
+  expect(saved[0].data.journeyContext?.valuationStatus).toBe("unavailable");
+  expect(saved[0].data.valuation).toBeUndefined();
+  expect(JSON.stringify(saved[0].data)).not.toMatch(/raw_payload|api_key|provider_secret/);
+
+  await page.goto("/cases");
+  await expect(page.getByText(PROPERTY.road).first()).toBeVisible();
+  await page.goto(`/cases/${saved[0].id}/overview`);
+  await expect(page.getByText(PROPERTY.road).first()).toBeVisible();
+  const reopenedStatus = await page.evaluate(() => (JSON.parse(localStorage.getItem("proptech.savedCases.v1") || "[]") as Array<{ data: { journeyContext?: { valuationStatus?: string } } }>)[0]?.data.journeyContext?.valuationStatus);
+  expect(reopenedStatus).toBe("unavailable");
 });
 
 test("valuation clears stale evidence and ignores a late A estimate after B wins", async ({ page }) => {

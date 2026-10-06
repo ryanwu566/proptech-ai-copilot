@@ -451,6 +451,7 @@ export function normalizeJourneyPropertyIdentityAnchor(value: unknown): JourneyP
 function comparableAddress(value: string): string {
   return value
     .normalize("NFKC")
+    .replace(/^\d{3}(?:\d{2,3})?/u, "")
     .replace(/\u53f0/gu, "\u81fa")
     .replace(/[\s,，.。-]+/gu, "")
     .toLocaleLowerCase("zh-TW");
