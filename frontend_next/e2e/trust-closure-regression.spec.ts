@@ -245,6 +245,16 @@ test.describe("TEST 3: Valuation partial visible UI", () => {
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ active_source: "unknown", is_demo_data: false, is_full_taiwan: false, data_composition: "official", official_records_count: 0, sample_records_count: 0, coverage: { cities: [], districts: [], roads_count: 0, records_count: 0 }, last_updated: null, update_frequency_note: "", source_note: "", user_message: "", freshness_status: "unavailable", freshness_reason_code: "UNAVAILABLE", freshness_as_of: null, latest_import_at: null, latest_import_age_days: null, newest_effective_period_lag_months: null, operator_attention_required: false, freshness_user_message: "" }) });
     });
 
+    await page.route("**/roads/cities**", (route) => route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify({ cities: ["臺北市"], message: "OK" }),
+    }));
+    await page.route("**/roads/districts**", (route) => route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify({ city: "臺北市", districts: ["大安區"], message: "OK" }),
+    }));
+    await page.route("**/roads/roads**", (route) => route.fulfill({
+      status: 200, contentType: "application/json", body: JSON.stringify({ city: "臺北市", district: "大安區", roads: ["和平東路二段"], message: "OK" }),
+    }));
+
     // Override BOTH the catch-all valuation route AND the specific estimate route
     // Routes registered later take priority in Playwright
     await page.route("**/valuation/estimate", async (route) => {
@@ -299,8 +309,21 @@ test.describe("TEST 3: Valuation partial visible UI", () => {
     const calcSection = page.locator("#valuation-calculator");
     await expect(calcSection).toBeVisible({ timeout: 8000 });
 
+    const city = calcSection.locator("select").nth(0);
+    const district = calcSection.locator("select").nth(1);
+    const road = calcSection.locator("select").nth(2);
+    await expect(city.locator("option", { hasText: "臺北市" })).toHaveCount(1);
+    await city.selectOption("臺北市");
+    await expect(district.locator("option", { hasText: "大安區" })).toHaveCount(1);
+    await district.selectOption("大安區");
+    await expect(road.locator("option", { hasText: "和平東路二段" })).toHaveCount(1);
+    await road.selectOption("和平東路二段");
+    await expect(road).toHaveValue("和平東路二段");
+
     // Trigger estimation
-    await calcSection.getByRole("button", { name: /估算房價/ }).click();
+    const estimate = calcSection.getByRole("button", { name: /估算房價/ });
+    await expect(estimate).toBeEnabled();
+    await estimate.click();
 
     // Wait for the partial trust status text to appear in the journey strip
     // The text is "可比成交可查閱，估價信心不足" from buildPriceTrustStatusItems

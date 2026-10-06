@@ -108,14 +108,15 @@ test("PROVIDER_ERROR", async ({ page }) => {
   await page.route("**/market-insights/query", (r) => r.fulfill({ status: 500, body: "error" }));
   await goToMarket(page);
   await page.getByTestId("market-county-select").selectOption("臺北市");
-  await page.waitForTimeout(400);
-  await page.getByTestId("market-district-select").selectOption("大安區");
+  const district = page.getByTestId("market-district-select");
+  await expect(district.locator("option", { hasText: "大安區" })).toHaveCount(1);
+  await district.selectOption("大安區");
+  const providerFailure = page.waitForResponse((response) => response.url().includes("/market-insights/query") && response.status() === 500);
   await page.getByTestId("market-insight-search-button").click();
-  // Error visible (network-error or general error text)
-  const body = await page.locator("body").textContent() ?? "";
-  await page.waitForTimeout(3000);
-  const hasError = body.includes("無法") || body.includes("稍後") || await page.getByTestId("market-insight-network-error").isVisible().catch(() => false);
-  expect(hasError).toBe(true);
+  await providerFailure;
+  const error = page.getByTestId("market-insight-unavailable");
+  await expect(error).toBeVisible();
+  await expect(error).toHaveAttribute("data-market-failure-reason", "market_request_http_error");
 });
 
 // ═══════════ STALE PREVENTION ═══════════
