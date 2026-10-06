@@ -2,7 +2,13 @@ import type { SavedCase } from "../case-storage";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { areJourneyPropertyAddressesEquivalent, type JourneyPropertyIdentityAnchorV1 } from "../journey-property-identity.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { getActionableValuation, getStoredActionableValuation } from "../valuation-result-state.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { EVIDENCE_KEYS, type EvidenceKey, type PropertyCaseWorkspace, type WorkspaceEvidenceState } from "./workspace-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { buildMarketPriceModel } from "./market-price-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { buildLocationWorkspaceSnapshot } from "./location-context.ts";
 
 function positive(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -69,11 +75,24 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
       ? saved.inputSummary.propertyPrice
       : undefined;
   const basis = journey?.priceBasis === "valuation" ? "estimate" : journey?.priceBasis ?? "asking";
-  const activePriceWan = positive(journey?.activePriceWan)
-    ? journey.activePriceWan
-    : basis === "asking"
-      ? askingPriceWan
-      : undefined;
+  const actionableValuation = getActionableValuation(saved.data.valuation) ?? getStoredActionableValuation(saved.data.valuation);
+  const activePriceWan = basis === "estimate"
+    ? stale ? undefined : actionableValuation?.estimateTotal
+    : positive(journey?.activePriceWan)
+      ? journey.activePriceWan
+      : basis === "asking"
+        ? askingPriceWan
+        : undefined;
+  const marketPrice = buildMarketPriceModel({
+    identityConfirmed: identity.state === "confirmed",
+    activePriceBasis: basis,
+    activePriceWan: identity.state === "confirmed" ? activePriceWan : undefined,
+    askingPriceWan,
+    market: saved.data.marketInsight,
+    valuation: saved.data.valuation,
+    trend: saved.data.trend,
+    stale,
+  });
 
   return {
     caseId: saved.id,
@@ -89,6 +108,8 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
       ...(positive(journey?.manualPriceWan) ? { manualPriceWan: journey.manualPriceWan } : {}),
     },
     evidence,
+    marketPrice,
+    location: buildLocationWorkspaceSnapshot(saved),
     saveState: "saved",
   };
 }

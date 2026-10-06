@@ -8,20 +8,33 @@ import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { formatDistance } from "@/lib/commercial/formatters";
 
 
-export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { address: string; onStatusChange?: (status: CommuteLivabilityStatus) => void; onResult?: (result: CommuteAddressLookupResult | null) => void }) {
-  const [status, setStatus] = useState<CommuteLivabilityStatus>("idle");
-  const [result, setResult] = useState<CommuteAddressLookupResult | null>(null);
+function restoredStatus(result: CommuteAddressLookupResult | undefined): CommuteLivabilityStatus {
+  if (!result) return "idle";
+  if (result.status === "resolved") return "resolved";
+  if (result.status === "unresolved") return "unresolved";
+  return "unavailable";
+}
+
+export function CommuteLivabilityCard({ address, initialResult, onStatusChange, onResult }: { address: string; initialResult?: CommuteAddressLookupResult; onStatusChange?: (status: CommuteLivabilityStatus) => void; onResult?: (result: CommuteAddressLookupResult | null) => void }) {
+  const [status, setStatus] = useState<CommuteLivabilityStatus>(() => restoredStatus(initialResult));
+  const [result, setResult] = useState<CommuteAddressLookupResult | null>(initialResult?.status === "resolved" ? initialResult : null);
   const [message, setMessage] = useState("");
   const { copy } = useExperienceLocale();
   const latestAddressRef = useRef(address);
   const onStatusRef = useRef(onStatusChange);
   const onResultRef = useRef(onResult);
+  const previousAddressRef = useRef(address);
+  const mountedRef = useRef(true);
+
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   useEffect(() => { onStatusRef.current = onStatusChange; }, [onStatusChange]);
   useEffect(() => { onResultRef.current = onResult; }, [onResult]);
 
   useEffect(() => {
     latestAddressRef.current = address;
+    if (previousAddressRef.current === address) return;
+    previousAddressRef.current = address;
     setStatus("idle");
     setResult(null);
     setMessage(copy("commute.idle"));
@@ -47,7 +60,7 @@ export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { a
     setMessage(copy("commute.checking"));
     try {
       const next = normalizeCommuteResult(await api.commuteAddressLookup({ address: requestedAddress }));
-      if (latestAddressRef.current.trim() !== requestedAddress) return;
+      if (!mountedRef.current || latestAddressRef.current.trim() !== requestedAddress) return;
       if (next.status === "resolved") {
         setResult(next);
         onResultRef.current?.(next);
@@ -55,23 +68,26 @@ export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { a
         setMessage("");
       } else if (next.status === "unresolved") {
         setResult(null);
-        onResultRef.current?.(null);
+        onResultRef.current?.(next);
         setStatus("unresolved");
         setMessage(copy("commute.unresolved"));
       } else {
         setResult(null);
-        onResultRef.current?.(null);
+        onResultRef.current?.(next);
         setStatus("unavailable");
         setMessage(copy("commute.unavailable"));
       }
     } catch {
-      if (latestAddressRef.current.trim() !== requestedAddress) return;
+      if (!mountedRef.current || latestAddressRef.current.trim() !== requestedAddress) return;
       setResult(null);
       onResultRef.current?.(null);
       setStatus("error");
       setMessage(copy("commute.error"));
     }
   }
+
+  const visibleMessage = message
+    || (status === "unresolved" ? copy("commute.unresolved") : status === "unavailable" ? copy("commute.unavailable") : "");
 
   return (
     <div className="rounded-xl border border-cyan-100 bg-cyan-50/50 p-3">
@@ -86,9 +102,9 @@ export function CommuteLivabilityCard({ address, onStatusChange, onResult }: { a
         </Button>
       </div>
 
-      {message && (
-        <p className={`mt-3 text-xs leading-5 ${message === copy("commute.empty") ? "text-amber-700" : "text-slate-600"}`}>
-          {message}
+      {visibleMessage && (
+        <p className={`mt-3 text-xs leading-5 ${visibleMessage === copy("commute.empty") ? "text-amber-700" : "text-slate-600"}`}>
+          {visibleMessage}
         </p>
       )}
 

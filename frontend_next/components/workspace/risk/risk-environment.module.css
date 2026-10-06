@@ -1,0 +1,30 @@
+.page { display: grid; gap: var(--space-8); min-width: 0; }
+.heading { display: grid; gap: var(--space-2); }
+.heading p { max-width: 52rem; color: var(--text-secondary); }
+.headingActions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+.mapGrid { display: grid; min-width: 0; gap: var(--space-4); }
+.mapCanvas { min-height: 360px; width: 100%; z-index: var(--z-base); }
+.mapDetail { display: grid; align-content: start; gap: var(--space-3); }
+.mapDetail dl { display: grid; gap: var(--space-3); }
+.mapDetail dt { color: var(--text-muted); font-size: var(--text-meta-size); font-weight: 650; }
+.mapDetail dd { margin-top: var(--space-1); color: var(--text-secondary); font-size: var(--text-dense-size); line-height: var(--text-dense-line); }
+.tableButton { color: var(--action); font-weight: 650; text-align: left; text-decoration: underline; text-underline-offset: 2px; }
+.statusStack { display: grid; gap: var(--space-2); min-width: 9rem; }
+.resultCell { min-width: 16rem; max-width: 28rem; }
+.metadataCell { min-width: 10rem; }
+.unknownList, .actionList, .categoryList, .sourceList { display: grid; gap: var(--space-3); }
+.unknownItem, .actionItem, .sourceItem { border-top: 1px solid var(--border-subtle); padding-top: var(--space-3); }
+.unknownItem:first-child, .actionItem:first-child, .sourceItem:first-child { border-top: 0; padding-top: 0; }
+.unknownItem p, .actionItem p, .sourceItem p { margin-top: var(--space-1); color: var(--text-secondary); font-size: var(--text-dense-size); line-height: var(--text-dense-line); }
+.categoryList { margin-top: var(--space-2); color: var(--text-secondary); font-size: var(--text-meta-size); }
+.supportingEvidence { max-width: 36rem; }
+
+@media (min-width: 1024px) {
+  .mapGrid { grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr); }
+  .mapCanvas { min-height: 520px; }
+}
+@media (max-width: 639px) {
+  .page { gap: var(--space-6); }
+  .headingActions :global(.ds-button) { width: 100%; }
+  .resultCell { min-width: 14rem; }
+}

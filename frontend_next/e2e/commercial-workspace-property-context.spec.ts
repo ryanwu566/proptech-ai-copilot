@@ -44,22 +44,22 @@ function savedCase(stale = false, evidence: "none" | "valuation" | "commute" | "
   };
 }
 
-test("section placeholders expose each evidence slice in a mixed restored section", async ({ page }) => {
+test("workspace sections expose each evidence slice in a mixed restored section", async ({ page }) => {
   await page.addInitScript(({ storageKey, row }) => window.localStorage.setItem(storageKey, JSON.stringify([row])), {
     storageKey: "proptech.savedCases.v1",
     row: savedCase(false, "primary"),
   });
   await page.goto("/cases/saved-case-identity/market");
   await expect(page.locator('[data-evidence-key="market"]')).toContainText("市場資料");
-  await expect(page.locator('[data-evidence-key="market"]')).toContainText("已恢復有限摘要");
+  await expect(page.locator('[data-evidence-key="market"]')).toContainText("目前無法取得證據");
   await expect(page.locator('[data-evidence-key="valuation"]')).toContainText("價格推估");
   await expect(page.locator('[data-evidence-key="valuation"]')).toContainText("尚未查詢此區段");
 
   await page.goto("/cases/saved-case-identity/location");
-  await expect(page.locator('[data-evidence-key="location"]')).toContainText("地點資料");
-  await expect(page.locator('[data-evidence-key="location"]')).toContainText("已恢復有限摘要");
-  await expect(page.locator('[data-evidence-key="commute"]')).toContainText("通勤資料");
-  await expect(page.locator('[data-evidence-key="commute"]')).toContainText("尚未查詢此區段");
+  await expect(page.getByRole("heading", { level: 1, name: "區位與通勤" })).toBeVisible();
+  await expect(page.locator('[data-evidence-key="location"]')).toContainText("尚未取得周邊設施摘要");
+  await expect(page.locator('[data-evidence-key="location"]')).toContainText("完整設施明細未隨案件保存");
+  await expect(page.locator('[data-evidence-key="commute"]')).toContainText("目的地路線時間與距離");
 });
 
 async function seed(page: import("@playwright/test").Page, stale = false) {

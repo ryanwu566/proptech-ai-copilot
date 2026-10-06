@@ -445,6 +445,108 @@ def test_captured_linux_effects_difference_is_accepted() -> None:
     ]
 
 
+def mixed_severity_audit() -> dict:
+    full_audit = deepcopy(CURRENT_AUDIT)
+    full_audit["vulnerabilities"]["postcss-selector-parser"] = {
+        "name": "postcss-selector-parser",
+        "severity": "moderate",
+        "isDirect": False,
+        "via": [
+            {
+                "source": 1241232,
+                "name": "postcss-selector-parser",
+                "dependency": "postcss-selector-parser",
+                "title": "PostCSS selector parsing CPU exhaustion",
+                "url": "https://github.com/advisories/GHSA-rj75-hqrm-r3gf",
+                "severity": "moderate",
+                "cwe": ["CWE-400"],
+                "cvss": {"score": 5.9, "vectorString": "CVSS:3.1/AV:N"},
+                "range": "<7.1.6",
+            }
+        ],
+        "effects": ["postcss-nested", "tailwindcss"],
+        "range": "<7.1.6",
+        "nodes": ["node_modules/postcss-selector-parser"],
+        "fixAvailable": True,
+    }
+    full_audit["vulnerabilities"]["postcss-nested"] = {
+        "name": "postcss-nested",
+        "severity": "moderate",
+        "isDirect": False,
+        "via": ["postcss-selector-parser"],
+        "effects": [],
+        "range": "2.0.3 - 6.2.0",
+        "nodes": ["node_modules/postcss-nested"],
+        "fixAvailable": True,
+    }
+    full_audit["vulnerabilities"]["tailwindcss"]["via"].extend(
+        ["postcss-nested", "postcss-selector-parser"]
+    )
+    full_audit["vulnerabilities"]["tailwindcss"]["range"] = (
+        "<=0.0.0-oxide-insiders.ff2c25f || 0.5.0 - 3.4.19"
+    )
+    full_audit["metadata"]["vulnerabilities"].update(
+        {"moderate": 2, "total": 8}
+    )
+    return full_audit
+
+
+def test_nonblocking_advisory_does_not_change_reviewed_blocking_graph() -> None:
+    gate = load_gate()
+    full_audit = mixed_severity_audit()
+
+    result = gate.evaluate_json(
+        json.dumps(full_audit),
+        json.dumps(EMPTY_AUDIT),
+        json.dumps(CURRENT_EXPLANATION),
+        json.dumps(POLICY),
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "pass"
+    assert result["accepted"] == [
+        {"id": "GHSA-vfj7-8cjw-p6xm", "expiresOn": "2026-11-04"}
+    ]
+
+
+def test_nonblocking_advisory_cannot_hide_blocking_range_drift() -> None:
+    gate = load_gate()
+    full_audit = mixed_severity_audit()
+    full_audit["vulnerabilities"]["tailwindcss"]["range"] = "*"
+
+    result = gate.evaluate_json(
+        json.dumps(full_audit),
+        json.dumps(EMPTY_AUDIT),
+        json.dumps(CURRENT_EXPLANATION),
+        json.dumps(POLICY),
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert "Audit graph identity mismatch for tailwindcss: field=range" in result[
+        "errors"
+    ]
+
+
+def test_blocking_graph_range_change_still_fails() -> None:
+    gate = load_gate()
+    full_audit = deepcopy(CURRENT_AUDIT)
+    full_audit["vulnerabilities"]["tailwindcss"]["range"] = "<=3.4.19"
+
+    result = gate.evaluate(
+        full_audit,
+        EMPTY_AUDIT,
+        CURRENT_EXPLANATION,
+        POLICY,
+        today=date(2026, 10, 5),
+    )
+
+    assert result["status"] == "failed"
+    assert "Audit graph identity mismatch for tailwindcss: field=range" in result[
+        "errors"
+    ]
+
+
 def test_same_advisory_in_production_dependencies_fails() -> None:
     gate = load_gate()
     production_audit = deepcopy(EMPTY_AUDIT)

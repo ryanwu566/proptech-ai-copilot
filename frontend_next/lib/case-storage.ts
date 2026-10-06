@@ -6,12 +6,14 @@ import { getTrustedValuationEvidence, type PropertyCaseEvidence } from "@/lib/pr
 import { migrateLegacyTerrainReference, normalizeStoredTerrainReferenceEvidence, type StoredTerrainReferenceEvidenceV1 } from "@/lib/terrain-reference-evidence";
 import type { JourneyPriceBasis } from "@/lib/closed-loop-journey";
 import type { JourneyPropertyContext } from "@/lib/location-market-journey";
-import { compactCommuteRouteEvidence } from "@/lib/commute-route-evidence";
+import { compactCommuteRouteEvidence, compactCommuteTransitEvidence } from "@/lib/commute-route-evidence";
 import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnchorV1 } from "@/lib/journey-property-identity";
-import { getStoredActionableValuation } from "@/lib/valuation-result-state";
+import { getActionableValuation, getStoredActionableValuation } from "@/lib/valuation-result-state";
+import { compactActionableValuationSummary, compactActionableValuationTrendSummary, compactMarketInsight } from "@/lib/workspace/market-price-persistence";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
+export const CASE_UPDATED_EVENT = "proptech:saved-case-updated";
 export const CASE_CLEARED_EVENT = "proptech:current-case-cleared";
 export const MAX_SAVED_CASES = 10;
 
@@ -40,6 +42,7 @@ export type SavedCaseData = {
   /** Legacy input only; new saved cases use terrainReference. */
   terrainRisk?: TerrainRiskResult;
   terrainReference?: StoredTerrainReferenceEvidenceV1;
+  riskEvidenceCheckedAt?: string;
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
   reportCompleted?: boolean;
@@ -67,6 +70,26 @@ export type SavedCase = {
 };
 
 export type SaveCaseInput = Omit<SavedCase, "id" | "title" | "createdAt" | "updatedAt" | "version" | "workflowMode"> & { title?: string };
+
+export type SavedCaseIdentityExpectation = {
+  journeyAnchorId: string;
+  normalizedAddress: string;
+  coordinates: { latitude: number; longitude: number };
+};
+
+function identityMatches(current: SavedCase, expected?: SavedCaseIdentityExpectation): boolean {
+  if (!expected) return true;
+  const anchor = current.data.propertyIdentityAnchor;
+  return Boolean(
+    anchor
+    && anchor.revalidation.status === "current"
+    && anchor.journey_anchor_id === expected.journeyAnchorId
+    && anchor.normalized_address === expected.normalizedAddress
+    && anchor.coordinates
+    && Math.abs(anchor.coordinates.latitude - expected.coordinates.latitude) <= 0.000001
+    && Math.abs(anchor.coordinates.longitude - expected.coordinates.longitude) <= 0.000001
+  );
+}
 
 export function readSavedCases(): SavedCase[] {
   if (typeof window === "undefined") return [];
@@ -98,6 +121,103 @@ export function saveCase(input: SaveCaseInput): SavedCase | null {
 
 export function deleteSavedCase(id: string) {
   writeCases(readSavedCases().filter((row) => row.id !== id));
+}
+
+export function updateSavedCaseLocationEvidence(caseId: string, patch: {
+  commuteRoute?: CommuteRouteEvidence | null;
+  commuteTransit?: CommuteAddressLookupResult | null;
+}, expectedIdentity?: SavedCaseIdentityExpectation): boolean {
+  const rows = readSavedCases();
+  const index = rows.findIndex((row) => row.id === caseId);
+  if (index < 0) return false;
+  const current = rows[index];
+  if (!identityMatches(current, expectedIdentity)) return false;
+  const data: SavedCaseData = { ...current.data };
+  if (Object.prototype.hasOwnProperty.call(patch, "commuteRoute")) {
+    data.commuteRoute = compactCommuteRouteEvidence(patch.commuteRoute ?? undefined);
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, "commuteTransit")) {
+    data.commuteTransit = compactCommuteTransitEvidence(patch.commuteTransit ?? undefined);
+  }
+  const updated: SavedCase = { ...current, updatedAt: new Date().toISOString(), data };
+  rows[index] = updated;
+  writeCases(rows);
+  window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+  return true;
+}
+
+export function updateSavedCaseRiskEvidence(
+  caseId: string,
+  terrainReference: StoredTerrainReferenceEvidenceV1 & { checked_at?: string | null },
+  expectedIdentity: SavedCaseIdentityExpectation,
+): boolean {
+  const rows = readSavedCases();
+  const index = rows.findIndex((row) => row.id === caseId);
+  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  const { checked_at: checkedAt, ...boundedReference } = terrainReference;
+  const normalized = normalizeStoredTerrainReferenceEvidence(boundedReference);
+  if (!normalized) return false;
+  const updated: SavedCase = {
+    ...rows[index],
+    updatedAt: new Date().toISOString(),
+    data: {
+      ...rows[index].data,
+      terrainReference: normalized,
+      riskEvidenceCheckedAt: checkedAt ?? new Date().toISOString(),
+      terrainRisk: undefined,
+    },
+  };
+  rows[index] = updated;
+  writeCases(rows);
+  window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+  return true;
+}
+
+export function updateSavedCaseMarketEvidence(
+  caseId: string,
+  marketInsight: MarketResult,
+  expectedIdentity: SavedCaseIdentityExpectation,
+): boolean {
+  const boundedMarket = compactMarketInsight(marketInsight);
+  if (!boundedMarket) return false;
+  const rows = readSavedCases();
+  const index = rows.findIndex((row) => row.id === caseId);
+  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  const updated: SavedCase = {
+    ...rows[index],
+    updatedAt: new Date().toISOString(),
+    data: { ...rows[index].data, marketInsight: boundedMarket },
+  };
+  rows[index] = updated;
+  writeCases(rows);
+  window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+  return true;
+}
+
+export function updateSavedCaseValuationEvidence(
+  caseId: string,
+  valuation: ValuationResult,
+  expectedIdentity: SavedCaseIdentityExpectation,
+): boolean {
+  if (!getActionableValuation(valuation)) return false;
+  const rows = readSavedCases();
+  const index = rows.findIndex((row) => row.id === caseId);
+  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  const updated: SavedCase = {
+    ...rows[index],
+    updatedAt: new Date().toISOString(),
+    data: compactCaseData({
+      ...rows[index].data,
+      valuation,
+      // Trend detail is useful during the active session but is not part of
+      // the bounded actionable valuation summary saved with the case.
+      trend: undefined,
+    }),
+  };
+  rows[index] = updated;
+  writeCases(rows);
+  window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+  return true;
 }
 
 export function clearSavedCases() {
@@ -139,26 +259,24 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
       ? data.valuationEvidence
       : freshEvidence;
   const transferableValuation = freshEvidence.transferable || (storedSummary !== null && hasTrustedStoredEvidence);
+  const compactedValuation = data.valuation && transferableValuation
+    ? compactActionableValuationSummary(data.valuation)
+    : undefined;
   return {
     ...data,
     propertyIdentityAnchor: normalizeJourneyPropertyIdentityAnchor(data.propertyIdentityAnchor) ?? undefined,
     propertySearch: data.propertySearch ? { ...data.propertySearch, matched_transactions: [] } : undefined,
     valuationEvidence,
-    valuation: data.valuation && transferableValuation ? {
-      ...data.valuation,
-      comparables: [],
-      source_details: {
-        file: "",
-        nature: "official summary",
-        complete_real_price_registry: false,
-        formal_appraisal: false,
-        bank_appraisal: false,
-        future_adapter: "",
-      },
-    } : undefined,
+    valuation: compactedValuation ? { ...compactedValuation, comparables: [] } : undefined,
+    trend: compactActionableValuationTrendSummary(data.trend),
     locationInsight: data.locationInsight ? { ...data.locationInsight, resolved_location: null, nearest_pois: [] } : undefined,
+    marketInsight: compactMarketInsight(data.marketInsight),
     commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),
+    commuteTransit: compactCommuteTransitEvidence(data.commuteTransit),
     terrainReference: normalizeStoredTerrainReferenceEvidence(data.terrainReference) ?? migrateLegacyTerrainReference(data.terrainRisk),
+    riskEvidenceCheckedAt: typeof data.riskEvidenceCheckedAt === "string" && Number.isFinite(Date.parse(data.riskEvidenceCheckedAt))
+      ? data.riskEvidenceCheckedAt
+      : undefined,
     terrainRisk: undefined,
   };
 }

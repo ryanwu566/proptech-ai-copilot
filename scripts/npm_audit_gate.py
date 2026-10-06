@@ -16,6 +16,13 @@ BLOCKING_SEVERITIES = {"high", "critical"}
 SEVERITIES = ("info", "low", "moderate", "high", "critical")
 SEVERITY_RANK = {severity: rank for rank, severity in enumerate(SEVERITIES)}
 FINGERPRINT_FIELDS = ("severity", "isDirect", "via", "range")
+KNOWN_NONBLOCKING_RANGE_AGGREGATIONS = {
+    "tailwindcss": {
+        "blockingRange": "<=0.0.0-oxide-insiders.ff2c25f || 2.1.0-canary.1 - 3.4.19",
+        "aggregateRange": "<=0.0.0-oxide-insiders.ff2c25f || 0.5.0 - 3.4.19",
+        "nonblockingVia": {"postcss-nested", "postcss-selector-parser"},
+    }
+}
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend_next"
 DEFAULT_POLICY = ROOT / ".github/security/npm-audit-exceptions.json"
@@ -202,17 +209,50 @@ def _blocked_findings(audit: dict[str, Any]) -> dict[str, dict[str, Any]]:
     }
 
 
-def _finding_fingerprint(finding: dict[str, Any]) -> dict[str, Any]:
-    via = [
-        item.get("source") if isinstance(item, dict) else item
-        for item in finding.get("via", [])
-    ]
+def _finding_fingerprint(
+    finding: dict[str, Any], vulnerabilities: dict[str, Any]
+) -> dict[str, Any]:
+    via: list[int | str] = []
+    for item in finding.get("via", []):
+        if isinstance(item, dict):
+            if item.get("severity") in BLOCKING_SEVERITIES:
+                via.append(item["source"])
+            continue
+        referenced = vulnerabilities[item]
+        if referenced.get("severity") in BLOCKING_SEVERITIES:
+            via.append(item)
     return {
         "severity": finding.get("severity"),
         "isDirect": finding.get("isDirect"),
         "via": via,
         "range": finding.get("range"),
     }
+
+
+def _range_fingerprint_matches(
+    name: str,
+    finding: dict[str, Any],
+    vulnerabilities: dict[str, Any],
+    expected_range: str,
+) -> bool:
+    actual_range = finding.get("range")
+    if actual_range == expected_range:
+        return True
+
+    known = KNOWN_NONBLOCKING_RANGE_AGGREGATIONS.get(name)
+    if (
+        known is None
+        or expected_range != known["blockingRange"]
+        or actual_range != known["aggregateRange"]
+    ):
+        return False
+    nonblocking_via = {
+        item
+        for item in finding.get("via", [])
+        if isinstance(item, str)
+        and vulnerabilities[item].get("severity") not in BLOCKING_SEVERITIES
+    }
+    return nonblocking_via == known["nonblockingVia"]
 
 
 def _advisory_identity_matches(
@@ -348,10 +388,23 @@ def evaluate(
             + ", ".join(missing)
         )
 
+    vulnerabilities = full_audit["vulnerabilities"]
     for name in sorted(set(actual_findings) & set(expected_graph)):
-        actual_fingerprint = _finding_fingerprint(actual_findings[name])
+        actual_fingerprint = _finding_fingerprint(
+            actual_findings[name], vulnerabilities
+        )
         for field in FINGERPRINT_FIELDS:
-            if actual_fingerprint[field] != expected_graph[name][field]:
+            matches = (
+                _range_fingerprint_matches(
+                    name,
+                    actual_findings[name],
+                    vulnerabilities,
+                    expected_graph[name][field],
+                )
+                if field == "range"
+                else actual_fingerprint[field] == expected_graph[name][field]
+            )
+            if not matches:
                 errors.append(
                     f"Audit graph identity mismatch for {name}: field={field}"
                 )

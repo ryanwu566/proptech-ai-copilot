@@ -1,6 +1,6 @@
 "use client";
 
-import { CASE_LOADED_EVENT, SAVED_CASES_STORAGE_KEY, readSavedCases, type SavedCase } from "@/lib/case-storage";
+import { CASE_LOADED_EVENT, CASE_UPDATED_EVENT, SAVED_CASES_STORAGE_KEY, readSavedCases, type SavedCase } from "@/lib/case-storage";
 import { adaptSavedCaseToWorkspace } from "@/lib/workspace/legacy-case-adapter";
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 
@@ -26,9 +26,11 @@ export function createBrowserCaseRepository(): PropertyCaseRepository {
       const onLoaded = (_event: Event) => listener();
       window.addEventListener("storage", onStorage);
       window.addEventListener(CASE_LOADED_EVENT, onLoaded as EventListener);
+      window.addEventListener(CASE_UPDATED_EVENT, onLoaded as EventListener);
       return () => {
         window.removeEventListener("storage", onStorage);
         window.removeEventListener(CASE_LOADED_EVENT, onLoaded as EventListener);
+        window.removeEventListener(CASE_UPDATED_EVENT, onLoaded as EventListener);
       };
     },
   };
