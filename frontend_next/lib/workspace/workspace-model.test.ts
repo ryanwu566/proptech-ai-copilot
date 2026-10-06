@@ -5,6 +5,10 @@ import test from "node:test";
 import { adaptSavedCaseToWorkspace } from "./legacy-case-adapter.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { buildWorkspaceOverview } from "./overview-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { buildFinanceModel } from "./finance-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { createStoredFinanceEvidence } from "./finance-persistence.ts";
 
 const NOW = "2026-09-27T08:00:00.000Z";
 
@@ -156,4 +160,85 @@ test("overview blocks synthesis while identity requires revalidation", () => {
 
   assert.equal(overview.readiness.value, "blocked");
   assert.equal(overview.blockers[0]?.id, "identity-revalidation");
+});
+
+test("legacy adapter reopens bounded finance evidence without restoring raw backend payloads", () => {
+  const row = savedCase({ anchor: identityAnchor() });
+  const finance = buildFinanceModel({
+    caseId: row.id,
+    revision: 1,
+    identityAnchorId: row.data.propertyIdentityAnchor?.journey_anchor_id,
+    identityState: "confirmed",
+    activePriceBasis: "asking",
+    activePriceWan: 2480,
+    areaPing: 30,
+    loanResult: {
+      property_price_wan: 2480, down_payment_ratio: 0.2, down_payment_wan: 496, loan_amount_wan: 1984,
+      annual_interest_rate: 2.2, loan_years: 30, grace_period_years: 0, monthly_income_wan: null,
+      monthly_payment: 75_312, grace_period_monthly_payment: null, post_grace_monthly_payment: null,
+      total_payment: 27_112_320, total_interest: 7_272_320, income_burden_ratio: null,
+      affordability_level: "unknown", affordability_message: "未提供月收入", sensitivity: [], disclaimer: "raw",
+    },
+    calculatedAt: NOW,
+  });
+  (row.data as typeof row.data & { financeEvidence?: ReturnType<typeof createStoredFinanceEvidence> }).financeEvidence = createStoredFinanceEvidence(finance, { caseId: row.id, revision: 1, areaPing: 30 });
+
+  const workspace = adaptSavedCaseToWorkspace(row as never);
+
+  assert.ok(workspace.finance);
+  assert.equal(workspace.finance.freshness.source, "saved_snapshot");
+  assert.equal(workspace.finance.loan.monthlyPaymentTwd, 75_312);
+  assert.equal(workspace.finance.affordability.status, "unassessed");
+  assert.equal(workspace.evidence.finance.usability, "limited");
+});
+
+test("legacy zero area remains missing when reopening a finance snapshot", () => {
+  const row = savedCase({ anchor: identityAnchor() });
+  delete (row.inputSummary as Partial<typeof row.inputSummary>).areaPing;
+  row.data.inputs.area_ping = 0;
+  const finance = buildFinanceModel({ caseId: row.id, revision: 1, identityAnchorId: row.data.propertyIdentityAnchor?.journey_anchor_id, identityState: "confirmed", activePriceBasis: "asking", activePriceWan: 2480, areaPing: null, calculatedAt: NOW });
+  const stored = createStoredFinanceEvidence({
+    ...finance,
+    calculation: { query: "succeeded", usability: "usable", completeness: "partial" },
+    loan: { ...finance.loan, status: "available", propertyPriceWan: 2480, monthlyPaymentTwd: 75_312 },
+    freshness: { status: "current", calculatedAt: NOW, source: "live_calculation" },
+  }, { caseId: row.id, revision: 1, areaPing: null });
+  (row.data as typeof row.data & { financeEvidence?: typeof stored }).financeEvidence = stored;
+
+  const workspace = adaptSavedCaseToWorkspace(row as never);
+
+  assert.equal(workspace.finance?.freshness.status, "current");
+  assert.equal(workspace.assumptions.areaPing, undefined);
+});
+
+test("finance-only area assumptions reopen current when the case area is missing", () => {
+  const row = savedCase({ anchor: identityAnchor() });
+  delete (row.inputSummary as Partial<typeof row.inputSummary>).areaPing;
+  row.data.inputs.area_ping = 0;
+  const finance = buildFinanceModel({
+    caseId: row.id,
+    revision: 1,
+    identityAnchorId: row.data.propertyIdentityAnchor?.journey_anchor_id,
+    identityState: "confirmed",
+    activePriceBasis: "asking",
+    activePriceWan: 2480,
+    areaPing: 26,
+    loanResult: {
+      property_price_wan: 2480, down_payment_ratio: 0.2, down_payment_wan: 496, loan_amount_wan: 1984,
+      annual_interest_rate: 2.65, loan_years: 25, grace_period_years: 0, monthly_income_wan: 15,
+      monthly_payment: 90_000, grace_period_monthly_payment: null, post_grace_monthly_payment: null,
+      total_payment: 27_000_000, total_interest: 7_160_000, income_burden_ratio: 0.6,
+      affordability_level: "risky", affordability_message: "依輸入條件估算", sensitivity: [], disclaimer: "raw",
+    },
+    calculatedAt: NOW,
+  });
+  const stored = createStoredFinanceEvidence(finance, { caseId: row.id, revision: 1, areaPing: 26 });
+  (row.data as typeof row.data & { financeEvidence?: typeof stored }).financeEvidence = stored;
+
+  const workspace = adaptSavedCaseToWorkspace(row as never);
+
+  assert.equal(workspace.finance?.freshness.status, "current");
+  assert.equal(workspace.finance?.holding.assumptions.areaPing, 26);
+  assert.equal(workspace.finance?.loan.annualInterestRate, 2.65);
+  assert.equal(workspace.finance?.loan.loanYears, 25);
 });

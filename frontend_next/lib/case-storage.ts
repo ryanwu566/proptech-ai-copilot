@@ -10,6 +10,7 @@ import { compactCommuteRouteEvidence, compactCommuteTransitEvidence } from "@/li
 import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnchorV1 } from "@/lib/journey-property-identity";
 import { getActionableValuation, getStoredActionableValuation } from "@/lib/valuation-result-state";
 import { compactActionableValuationSummary, compactActionableValuationTrendSummary, compactMarketInsight } from "@/lib/workspace/market-price-persistence";
+import { normalizeStoredFinanceEvidence, type StoredFinanceEvidenceV1 } from "@/lib/workspace/finance-persistence";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -45,6 +46,7 @@ export type SavedCaseData = {
   riskEvidenceCheckedAt?: string;
   riskSummary?: RiskSummary;
   taxOracle?: TaxResult;
+  financeEvidence?: StoredFinanceEvidenceV1;
   reportCompleted?: boolean;
 };
 
@@ -220,6 +222,33 @@ export function updateSavedCaseValuationEvidence(
   return true;
 }
 
+export function updateSavedCaseFinanceEvidence(
+  caseId: string,
+  evidence: StoredFinanceEvidenceV1,
+  expectedIdentity: SavedCaseIdentityExpectation,
+): boolean {
+  const normalized = normalizeStoredFinanceEvidence(evidence);
+  if (!normalized || normalized.case_id !== caseId) return false;
+  const rows = readSavedCases();
+  const index = rows.findIndex((row) => row.id === caseId);
+  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  const updated: SavedCase = {
+    ...rows[index],
+    updatedAt: new Date().toISOString(),
+    data: {
+      ...rows[index].data,
+      financeEvidence: normalized,
+      loan: undefined,
+      holdingCost: undefined,
+      taxOracle: undefined,
+    },
+  };
+  rows[index] = updated;
+  writeCases(rows);
+  window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+  return true;
+}
+
 export function clearSavedCases() {
   window.localStorage.removeItem(SAVED_CASES_STORAGE_KEY);
 }
@@ -262,6 +291,7 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
   const compactedValuation = data.valuation && transferableValuation
     ? compactActionableValuationSummary(data.valuation)
     : undefined;
+  const financeEvidence = normalizeStoredFinanceEvidence(data.financeEvidence) ?? undefined;
   return {
     ...data,
     propertyIdentityAnchor: normalizeJourneyPropertyIdentityAnchor(data.propertyIdentityAnchor) ?? undefined,
@@ -278,6 +308,8 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
       ? data.riskEvidenceCheckedAt
       : undefined,
     terrainRisk: undefined,
+    financeEvidence,
+    ...(financeEvidence ? { loan: undefined, holdingCost: undefined, taxOracle: undefined } : {}),
   };
 }
 

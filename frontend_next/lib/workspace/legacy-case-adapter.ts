@@ -9,6 +9,10 @@ import { EVIDENCE_KEYS, type EvidenceKey, type PropertyCaseWorkspace, type Works
 import { buildMarketPriceModel } from "./market-price-model.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { buildLocationWorkspaceSnapshot } from "./location-context.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { buildFinanceModel } from "./finance-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { restoreFinanceModelFromSnapshot } from "./finance-persistence.ts";
 
 function positive(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -54,7 +58,7 @@ function evidencePresence(saved: SavedCase): Record<EvidenceKey, boolean> {
     location: Boolean(saved.data.locationInsight),
     commute: Boolean(saved.data.commuteRoute || saved.data.commuteTransit),
     risk: Boolean(saved.data.terrainReference || saved.data.terrainRisk),
-    finance: Boolean(saved.data.loan || saved.data.holdingCost || saved.data.taxOracle),
+    finance: Boolean(saved.data.financeEvidence || saved.data.loan || saved.data.holdingCost || saved.data.taxOracle),
   };
 }
 
@@ -93,6 +97,31 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     trend: saved.data.trend,
     stale,
   });
+  const areaPing = typeof saved.inputSummary.areaPing === "number" && Number.isFinite(saved.inputSummary.areaPing) && saved.inputSummary.areaPing > 0
+    ? saved.inputSummary.areaPing
+    : typeof saved.data.inputs.area_ping === "number" && Number.isFinite(saved.data.inputs.area_ping) && saved.data.inputs.area_ping > 0
+      ? saved.data.inputs.area_ping
+      : null;
+  const financeContext = {
+    caseId: saved.id,
+    revision: 1,
+    identityAnchorId: identity.anchor?.journey_anchor_id ?? null,
+    identityState: identity.state,
+    activePriceBasis: basis,
+    activePriceWan,
+    areaPing: saved.data.financeEvidence ? saved.data.financeEvidence.assumptions.area_ping : areaPing,
+  } as const;
+  const finance = saved.data.financeEvidence
+    ? restoreFinanceModelFromSnapshot(saved.data.financeEvidence, financeContext)
+    : buildFinanceModel({
+        ...financeContext,
+        askingPriceWan,
+        loanResult: saved.data.loan,
+        holdingResult: saved.data.holdingCost,
+        taxResult: saved.data.taxOracle,
+        calculatedAt: null,
+        resultSource: "saved_snapshot",
+      });
 
   return {
     caseId: saved.id,
@@ -106,10 +135,12 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
       ...(activePriceWan ? { activePriceWan } : {}),
       ...(askingPriceWan ? { askingPriceWan } : {}),
       ...(positive(journey?.manualPriceWan) ? { manualPriceWan: journey.manualPriceWan } : {}),
+      ...(areaPing !== null && areaPing > 0 ? { areaPing } : {}),
     },
     evidence,
     marketPrice,
     location: buildLocationWorkspaceSnapshot(saved),
+    finance,
     saveState: "saved",
   };
 }

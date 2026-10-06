@@ -7,6 +7,7 @@ import type {
 } from "../commercial/state";
 import type { MarketPriceModel } from "./market-price-model";
 import type { LocationWorkspaceSnapshot } from "./location-context";
+import type { FinanceModel } from "./finance-model";
 
 export const WORKSPACE_SECTIONS = ["overview", "market", "location", "risk", "finance"] as const;
 export type WorkspaceSection = (typeof WORKSPACE_SECTIONS)[number];
@@ -41,10 +42,13 @@ export type PropertyCaseWorkspace = {
     activePriceWan?: number;
     askingPriceWan?: number;
     manualPriceWan?: number;
+    areaPing?: number;
   };
   evidence: Record<EvidenceKey, WorkspaceEvidenceState>;
   marketPrice: MarketPriceModel;
   location: LocationWorkspaceSnapshot;
+  /** Optional only for backwards-compatible test/consumer fixtures; repository adapters always populate it. */
+  finance?: FinanceModel;
   saveState: "saved" | "saving" | "unsaved" | "save_failed";
 };
 

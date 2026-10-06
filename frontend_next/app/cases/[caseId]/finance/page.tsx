@@ -1,5 +1,5 @@
-import { WorkspaceSectionPlaceholder } from "@/components/workspace/section-placeholder";
+import { FinanceWorkspace } from "@/components/workspace/finance/finance-workspace";
 
 export default function PropertyFinancePage() {
-  return <WorkspaceSectionPlaceholder section="finance" />;
+  return <FinanceWorkspace />;
 }
