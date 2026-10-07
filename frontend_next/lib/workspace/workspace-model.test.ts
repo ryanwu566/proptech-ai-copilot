@@ -227,7 +227,7 @@ test("legacy zero area remains missing when reopening a finance snapshot", () =>
   assert.equal(workspace.assumptions.areaPing, undefined);
 });
 
-test("finance-only area assumptions reopen current when the case area is missing", () => {
+test("saved area assumptions remain historical when current case area is missing", () => {
   const row = savedCase({ anchor: identityAnchor() });
   delete (row.inputSummary as Partial<typeof row.inputSummary>).areaPing;
   row.data.inputs.area_ping = 0;
@@ -253,7 +253,8 @@ test("finance-only area assumptions reopen current when the case area is missing
 
   const workspace = adaptSavedCaseToWorkspace(row as never);
 
-  assert.equal(workspace.finance?.freshness.status, "current");
+  assert.equal(workspace.finance?.freshness.status, "stale");
+  assert.equal(workspace.finance?.savedAssumptions?.areaPing, 26);
   assert.equal(workspace.finance?.holding.assumptions.areaPing, 26);
   assert.equal(workspace.finance?.loan.annualInterestRate, 2.65);
   assert.equal(workspace.finance?.loan.loanYears, 25);

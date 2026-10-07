@@ -1,25 +1,40 @@
 "use client";
 
-import { CASE_LOADED_EVENT, CASE_UPDATED_EVENT, SAVED_CASES_STORAGE_KEY, readSavedCases, resaveSavedCaseSnapshot, type SavedCase } from "@/lib/case-storage";
+import { CASE_LOADED_EVENT, CASE_UPDATED_EVENT, SAVED_CASES_STORAGE_KEY, readSavedCasesDiagnostic, resaveSavedCaseSnapshot, type SavedCase } from "@/lib/case-storage";
+import type { SavedCaseReadDiagnostic } from "./saved-case-diagnostics";
 import type { SaveSnapshotResult } from "@/lib/workspace/case-snapshot-save";
 import { adaptSavedCaseToWorkspace } from "@/lib/workspace/legacy-case-adapter";
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 
 export type PropertyCaseRepository = {
+  readDiagnostic(): WorkspaceReadDiagnostic;
   getCase(caseId: string): PropertyCaseWorkspace | null;
   listCases(): PropertyCaseWorkspace[];
   saveSnapshot(workspace: PropertyCaseWorkspace): SaveSnapshotResult;
   subscribe(listener: () => void): () => void;
 };
 
+export type WorkspaceReadDiagnostic = Omit<SavedCaseReadDiagnostic, "cases"> & { cases: PropertyCaseWorkspace[] };
+
+function readWorkspaceDiagnostic(): WorkspaceReadDiagnostic {
+  const read = readSavedCasesDiagnostic();
+  const cases: PropertyCaseWorkspace[] = [];
+  const issues = [...read.issues];
+  for (const saved of read.cases) {
+    try { cases.push(adaptSavedCaseToWorkspace(saved)); }
+    catch { issues.push({ caseId: saved.id, reason: "invalid_record" }); }
+  }
+  return { cases, issues, status: issues.length ? "partial" : read.status };
+}
+
 export function createBrowserCaseRepository(): PropertyCaseRepository {
   return {
+    readDiagnostic: readWorkspaceDiagnostic,
     getCase(caseId) {
-      const saved = readSavedCases().find((row) => row.id === caseId);
-      return saved ? adaptSavedCaseToWorkspace(saved) : null;
+      return readWorkspaceDiagnostic().cases.find((row) => row.caseId === caseId) ?? null;
     },
     listCases() {
-      return readSavedCases().map(adaptSavedCaseToWorkspace);
+      return readWorkspaceDiagnostic().cases;
     },
     saveSnapshot(workspace) {
       const anchor = workspace.identity.anchor;
@@ -31,7 +46,7 @@ export function createBrowserCaseRepository(): PropertyCaseRepository {
     },
     subscribe(listener) {
       const onStorage = (event: StorageEvent) => {
-        if (event.key === SAVED_CASES_STORAGE_KEY) listener();
+        if (event.key === SAVED_CASES_STORAGE_KEY || event.key === null) listener();
       };
       const onLoaded = (_event: Event) => listener();
       window.addEventListener("storage", onStorage);

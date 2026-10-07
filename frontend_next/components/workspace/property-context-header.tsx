@@ -40,7 +40,8 @@ export function PropertyContextHeader() {
       </DetailsDisclosure>
       <ActionSection className="workspace-property-header__actions">
         <Link className="ds-button ds-button--secondary ds-button--compact" href="/cases">已儲存案件</Link>
-        <span className="text-meta" aria-disabled="true">比較與報告為獨立流程，將於後續階段接入。</span>
+        <Link className="ds-button ds-button--secondary ds-button--compact" href={`/compare?cases=${encodeURIComponent(workspace.caseId)}`}>加入比較</Link>
+        <Link className="ds-button ds-button--secondary ds-button--compact" href={`/cases/${encodeURIComponent(workspace.caseId)}/report`}>產生報告</Link>
       </ActionSection>
     </Panel>
   </header>;

@@ -112,6 +112,7 @@ function partialCase() {
 function staleCase() {
   const saved = representativeCase();
   saved.id = "stale-case";
+  saved.data.financeEvidence.case_id = saved.id;
   saved.title = "需重新確認案件";
   saved.data.propertyIdentityAnchor.location_status = "stale";
   saved.data.propertyIdentityAnchor.revalidation = { status: "needs_revalidation", conflicts: ["normalized_address" as never] };
@@ -121,6 +122,7 @@ function staleCase() {
 function unconfirmedCase() {
   const saved = representativeCase();
   saved.id = "unconfirmed-case";
+  saved.data.financeEvidence.case_id = saved.id;
   saved.title = "身分尚未確認案件";
   saved.data.propertyIdentityAnchor.confidence.level = "unknown";
   return saved;
@@ -129,6 +131,7 @@ function unconfirmedCase() {
 function addressConflictCase() {
   const saved = representativeCase();
   saved.id = "address-conflict-case";
+  saved.data.financeEvidence.case_id = saved.id;
   saved.title = "地址衝突案件";
   saved.data.journeyContext.propertyContext.addressSummary = "臺北市信義區松仁路88號";
   return saved;

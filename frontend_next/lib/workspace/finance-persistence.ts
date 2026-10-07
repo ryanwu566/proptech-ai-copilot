@@ -255,7 +255,7 @@ export function restoreFinanceModelFromSnapshot(snapshotValue: unknown, context:
   const snapshot = normalizeStoredFinanceEvidence(snapshotValue);
   if (!snapshot) throw new Error("invalid stored finance evidence");
   const currentFingerprint = createFinanceInputFingerprint(context);
-  const stale = context.identityState !== "confirmed" || snapshot.input_fingerprint !== currentFingerprint;
+  const stale = context.identityState !== "confirmed" || snapshot.input_fingerprint !== currentFingerprint || snapshot.calculation.usability === "stale";
   const loanPresent = snapshot.loan.monthly_payment_twd !== null;
   const holdingPresent = snapshot.holding.known_monthly_subtotal_twd !== null;
   const status = (present: boolean): FinanceModel["loan"]["status"] => !present ? "not_started" : stale ? "stale" : "available";
@@ -267,6 +267,7 @@ export function restoreFinanceModelFromSnapshot(snapshotValue: unknown, context:
   const currentPrice = finiteNonNegative(context.activePriceWan) ? context.activePriceWan : null;
   return {
     inputFingerprint: currentFingerprint,
+    savedAssumptions: { basis: snapshot.assumptions.price_basis, amountWan: snapshot.assumptions.active_price_wan, areaPing: snapshot.assumptions.area_ping },
     priceBasis: { basis: context.activePriceBasis, amountWan: currentPrice, source: "case" },
     calculation: { ...snapshot.calculation, usability: stale ? "stale" : snapshot.calculation.usability },
     loan: {

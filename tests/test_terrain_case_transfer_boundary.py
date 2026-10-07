@@ -34,7 +34,9 @@ def test_saved_terrain_is_a_safe_reference_shape() -> None:
     assert "raw_payload" not in TERRAIN_REFERENCE_KEYS
     assert "latitude" not in TERRAIN_REFERENCE_KEYS
     assert "longitude" not in TERRAIN_REFERENCE_KEYS
-    assert "source_url" not in TERRAIN_REFERENCE_KEYS
+    # E9 permits validated public source references in optional versioned metadata.
+    assert "evidence_metadata?" in TERRAIN_REFERENCE_KEYS
+    assert "safePublicEvidenceUrl(row.source_url)" in TERRAIN_REFERENCE
 
 
 def test_guided_location_stage_exposes_explicit_reference_callback() -> None:

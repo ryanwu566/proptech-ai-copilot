@@ -46,6 +46,8 @@ export type RiskEvidenceRow = {
   nextVerification: string;
   coverage: "covered" | "not_covered" | "unknown";
   datasetVersion?: string;
+  queryCondition?: string;
+  sourceUpdatedAt?: string;
   categories?: GeologicalSensitivityCategory[];
 };
 
@@ -333,12 +335,13 @@ export function buildStoredRiskEvidenceModel(
     if (!key) return [];
     const usability: EvidenceUsabilityState = options.stale
       ? "stale"
+      : layer.evidence_metadata ? layer.evidence_metadata.usability
       : layer.state === "no_match"
         ? "no_match"
         : layer.state === "unavailable" || layer.state === "error"
           ? "unavailable"
           : "limited";
-    const matched = !options.stale && layer.state === "available" ? true : usability === "no_match" ? false : null;
+    const matched = options.stale ? null : layer.evidence_metadata ? layer.evidence_metadata.matched : layer.state === "available" ? true : usability === "no_match" ? false : null;
     const result = options.stale
       ? "此摘要屬於先前物件狀態，不能作為目前證據。"
       : usability === "no_match"
@@ -364,6 +367,9 @@ export function buildStoredRiskEvidenceModel(
       nextVerification: SOURCE_ACTIONS[key],
       coverage: layer.coverage_status,
       ...(layer.data_version ? { datasetVersion: layer.data_version } : {}),
+      ...(layer.data_updated_at ? { sourceUpdatedAt: layer.data_updated_at } : {}),
+      ...(layer.evidence_metadata?.source_url ? { sourceUrl: layer.evidence_metadata.source_url } : {}),
+      queryCondition: layer.evidence_metadata?.query_condition ?? "查詢條件未保存",
     }];
   });
   return assemble(rows, options.checkedAt, options.stale ? "stale" : "saved_summary");
@@ -391,6 +397,13 @@ export function buildStoredRiskEvidenceSnapshot(model: RiskEvidenceModel): Store
       ...(row.datasetVersion ? { data_version: row.datasetVersion } : {}),
       coverage_status: row.coverage,
       caveat: `${row.result} ${row.limitation}`.trim(),
+      evidence_metadata: {
+        version: 1,
+        usability: row.usability,
+        matched: ["stale", "unavailable", "unsupported", "no_coverage"].includes(row.usability) ? null : row.matched,
+        source_url: row.sourceUrl ?? null,
+        query_condition: row.queryCondition ?? (model.freshness.status === "current_query" ? "查詢半徑 500 公尺；依各官方來源比對條件" : "查詢條件未保存"),
+      },
     })),
   };
 }

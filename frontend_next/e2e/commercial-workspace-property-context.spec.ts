@@ -38,8 +38,8 @@ function savedCase(stale = false, evidence: "none" | "valuation" | "commute" | "
       },
       valuation: evidence === "valuation" ? { status: "partial" } : undefined,
       commuteRoute: evidence === "commute" ? { status: "partial" } : undefined,
-      marketInsight: evidence === "primary" ? { status: "partial" } : undefined,
-      locationInsight: evidence === "primary" ? { status: "partial" } : undefined,
+      marketInsight: evidence === "primary" ? { data_status: "unavailable" } : undefined,
+      locationInsight: evidence === "primary" ? { data_quality: { status: "unavailable", missing_sources: [], warnings: [] } } : undefined,
     },
   };
 }

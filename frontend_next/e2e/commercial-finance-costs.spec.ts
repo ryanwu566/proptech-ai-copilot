@@ -205,7 +205,7 @@ test("ordinary income submits and a later edit rejects an in-flight loan respons
   await expect(page.getByTestId("loan-summary")).toContainText("待重新計算");
 });
 
-test("saved non-default assumptions and finance-only area reopen without dropping loan evidence", async ({ page }) => {
+test("saved non-default assumptions remain historical when current case area is missing", async ({ page }) => {
   const customLoan = { ...loanResponse, annual_interest_rate: 2.65, loan_years: 25, monthly_income_wan: 15, income_burden_ratio: 0.37464 };
   const customHolding = { ...holdingResponse, input: { ...holdingResponse.input, monthly_income_wan: 15, area_ping: 26, management_fee_per_ping: 90 }, income_burden_ratio: 0.39892 };
   await page.unroute("**/loan/calculate");
@@ -227,7 +227,7 @@ test("saved non-default assumptions and finance-only area reopen without droppin
   await page.getByTestId("finance-save").click();
   await page.reload();
 
-  await expect(page.getByTestId("freshness-status")).toContainText("已儲存的計算摘要");
+  await expect(page.getByTestId("freshness-status")).toContainText("條件已變更，需重新計算");
   await expect(page.getByTestId("loan-form").getByLabel("年利率")).toHaveValue("2.65");
   await expect(page.getByTestId("loan-form").getByLabel("貸款年期")).toHaveValue("25");
   await expect(page.getByTestId("holding-form").getByLabel("坪數")).toHaveValue("26");

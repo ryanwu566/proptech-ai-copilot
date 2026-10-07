@@ -32,6 +32,8 @@ export type FinanceTaxSummary = {
 };
 
 export type FinanceModel = {
+  /** Original saved calculation context, independently of current workspace inputs. */
+  savedAssumptions?: { basis: FinancePriceBasis; amountWan: number; areaPing: number | null };
   inputFingerprint: string;
   priceBasis: { basis: FinancePriceBasis; amountWan: number | null; source: "case" };
   calculation: {

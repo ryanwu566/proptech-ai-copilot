@@ -14,10 +14,10 @@ def test_case_manager_has_save_recent_load_and_clear_controls() -> None:
         assert f'copy("{key}"' in MANAGER
     assert "alert(" not in MANAGER
 
-def test_case_manager_has_empty_feedback_and_optional_html_export() -> None:
-    for key in ("case.empty", "case.missing", "case.export", "case.confirmDelete"):
+def test_case_manager_has_empty_feedback_and_dedicated_report_entry() -> None:
+    for key in ("case.empty", "case.missing", "case.confirmDelete"):
         assert f'copy("{key}"' in MANAGER
-    assert "onExport" in MANAGER
+    assert 'encodeURIComponent(saved.id) + "/report"' in MANAGER
 
 def test_case_manager_is_available_on_home_and_buying_wizard() -> None:
     assert "<CaseManager listOnly" in PAGE
