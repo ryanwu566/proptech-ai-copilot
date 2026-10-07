@@ -13,6 +13,7 @@ import { getActionableValuation, getStoredActionableValuation } from "@/lib/valu
 import { compactActionableValuationSummary, compactActionableValuationTrendSummary, compactMarketInsight } from "@/lib/workspace/market-price-persistence";
 import { normalizeStoredFinanceEvidence, type StoredFinanceEvidenceV1 } from "@/lib/workspace/finance-persistence";
 import { buildSavedCaseSnapshotUpdate, type SaveSnapshotIdentityState, type SaveSnapshotResult } from "@/lib/workspace/case-snapshot-save";
+import { parseSavedCasesDiagnostic, type SavedCaseReadDiagnostic } from "@/lib/workspace/saved-case-diagnostics";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -97,13 +98,16 @@ function identityMatches(current: SavedCase, expected?: SavedCaseIdentityExpecta
 }
 
 export function readSavedCases(): SavedCase[] {
-  if (typeof window === "undefined") return [];
+  return readSavedCasesDiagnostic().cases;
+}
+
+export function readSavedCasesDiagnostic(): SavedCaseReadDiagnostic {
+  if (typeof window === "undefined") return { status: "storage_unavailable", cases: [], issues: [] };
   try {
     const value = window.localStorage.getItem(SAVED_CASES_STORAGE_KEY);
-    const rows = value ? JSON.parse(value) as SavedCase[] : [];
-    return Array.isArray(rows) ? rows.filter((row) => row?.version === 1).map(normalizeSavedCase).filter((row): row is SavedCase => row !== null).slice(0, MAX_SAVED_CASES) : [];
+    return parseSavedCasesDiagnostic(value, normalizeSavedCase);
   } catch {
-    return [];
+    return { status: "storage_unavailable", cases: [], issues: [] };
   }
 }
 
@@ -269,6 +273,7 @@ export function updateSavedCaseFinanceEvidence(
 
 export function clearSavedCases() {
   window.localStorage.removeItem(SAVED_CASES_STORAGE_KEY);
+  window.dispatchEvent(new Event(CASE_UPDATED_EVENT));
 }
 
 export function loadSavedCase(saved: SavedCase) {
@@ -304,6 +309,8 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
     ? freshEvidence
     : storedSummary && hasTrustedStoredEvidence
       ? data.valuationEvidence
+      : !data.valuation && ["unavailable", "partial"].includes(data.valuationEvidence?.status ?? "")
+        ? { status: data.valuationEvidence!.status, source: "none", label: "成交資料推估", value: null, range: null, confidence: null, reason: "已儲存的查詢未取得可採用的價格推估", transferable: false } as PropertyCaseEvidence
       : freshEvidence;
   const transferableValuation = freshEvidence.transferable || (storedSummary !== null && hasTrustedStoredEvidence);
   const compactedValuation = data.valuation && transferableValuation
@@ -371,6 +378,7 @@ function setSession(key: string, value: unknown) {
 
 function writeCases(rows: SavedCase[]) {
   window.localStorage.setItem(SAVED_CASES_STORAGE_KEY, JSON.stringify(rows));
+  window.dispatchEvent(new Event(CASE_UPDATED_EVENT));
 }
 
 function createId() {

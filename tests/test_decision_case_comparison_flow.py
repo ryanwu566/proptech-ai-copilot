@@ -18,10 +18,9 @@ def test_journey_case_manager_has_one_explicit_comparison_surface() -> None:
     assert "disabled={selectedIds.length < 2}" in CASE_MANAGER
 
 
-def test_saved_cases_require_explicit_selection_and_keep_two_to_three_limit() -> None:
+def test_saved_cases_require_explicit_selection_and_keep_two_to_four_limit() -> None:
     assert "selectedIds.length < 2" in CASE_MANAGER
-    assert "rows.length >= 3" in CASE_MANAGER or "length >= 3" in CASE_MANAGER
-    assert 'copy("case.compareCount"' in CASE_MANAGER
+    assert "rows.length >= 4" in CASE_MANAGER
     assert "checked={selected}" in CASE_MANAGER
     assert "PropertyCaseComparisonWorkbench" in WORKBENCH
 

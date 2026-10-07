@@ -145,8 +145,8 @@ def test_existing_trust_boundaries_remain_referenced() -> None:
 
 
 def test_buttons_and_checkbox_labels_are_keyboard_safe() -> None:
-    comparison = (ROOT / "frontend_next/components/data-visualization/property-case-comparison-workbench.tsx").read_text(encoding="utf-8")
-    assert 'type="button"' in comparison
+    comparison = (ROOT / "frontend_next/components/evidence/compare-view.tsx").read_text(encoding="utf-8")
+    assert 'CommercialButton' in comparison
     assert 'type="checkbox"' in comparison
     assert "aria-label" in comparison
     assert "autofocus" not in comparison.lower()

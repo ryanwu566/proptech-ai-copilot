@@ -1,5 +1,14 @@
 import type { TerrainHazardLayer, TerrainRiskResult, TerrainRiskSourceTransparencyLayer } from "@/lib/api";
 
+/** Public source references only; query/fragment data can contain private property details. */
+export function safePublicEvidenceUrl(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > 2000 || /api[_-]?key|access[_-]?token|postgres(?:ql)?:|service_role|sk-[a-z0-9]/i.test(value)) return null;
+  try {
+    const url = new URL(value);
+    return ["https:", "http:"].includes(url.protocol) && !url.username && !url.password && !url.search && !url.hash ? url.href : null;
+  } catch { return null; }
+}
+
 export type TerrainReferenceState = "available" | "partial" | "limited" | "unknown" | "not_assessed" | "unavailable" | "error" | "no_match";
 
 export type TerrainReferenceLayer = {
@@ -33,6 +42,13 @@ export type StoredTerrainReferenceLayerV1 = {
   data_version?: string;
   coverage_status: "covered" | "not_covered" | "unknown";
   caveat: string;
+  evidence_metadata?: {
+    version: 1;
+    usability: "usable" | "limited" | "no_match" | "no_coverage" | "unavailable" | "stale" | "unverified" | "unsupported";
+    matched: boolean | null;
+    source_url: string | null;
+    query_condition: string;
+  };
 };
 
 export type StoredTerrainReferenceEvidenceV1 = {
@@ -163,7 +179,18 @@ function emptyEvidence(status: TerrainReferenceState, summary: string, reason: s
 const STORED_STATES = new Set<TerrainReferenceState>(["available", "partial", "limited", "unavailable", "no_match"]);
 const EVIDENCE_KEYS = new Set(["status", "notice", "summary", "layers", "attachable", "attachDisabledReason"]);
 const TERRAIN_REFERENCE_KEYS = new Set(["schema_version", "kind", "status", "summary", "notice", "layers"]);
-const TERRAIN_REFERENCE_LAYER_KEYS = new Set(["layer_id", "display_name", "state", "source_name", "source_agency", "data_updated_at", "data_version", "coverage_status", "caveat"]);
+const TERRAIN_REFERENCE_LAYER_KEYS = new Set(["layer_id", "display_name", "state", "source_name", "source_agency", "data_updated_at", "data_version", "coverage_status", "caveat", "evidence_metadata"]);
+
+function validEvidenceMetadata(value: unknown): value is NonNullable<StoredTerrainReferenceLayerV1["evidence_metadata"]> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const row = value as Record<string, unknown>;
+  if (Object.keys(row).some((key) => !["version", "usability", "matched", "source_url", "query_condition"].includes(key)) || row.version !== 1 || !["usable", "limited", "no_match", "no_coverage", "unavailable", "stale", "unverified", "unsupported"].includes(String(row.usability)) || ![true, false, null].includes(row.matched as boolean | null) || !safeStoredText(row.query_condition)) return false;
+  if ((row.query_condition as string).length > 500) return false;
+  if (row.usability === "no_match" && row.matched !== false) return false;
+  if (["unsupported", "unavailable", "no_coverage", "stale"].includes(String(row.usability)) && row.matched !== null) return false;
+  if (row.source_url === null) return true;
+  return safePublicEvidenceUrl(row.source_url) !== null;
+}
 const UNSAFE_REFERENCE_TEXT = /(address|latitude|longitude|resolved_location|coordinate|distance_m|raw|geometry|tile[_ ]?id|map_layers|source_url|https?:\/\/|token|credential|api[_ ]?key|sql|stack[_ ]?trace|risk_factors|recommended_checks)/i;
 
 function safeStoredText(value: unknown): value is string {
@@ -225,6 +252,10 @@ export function normalizeStoredTerrainReferenceEvidence(value: unknown): StoredT
     const layer = valueLayer as Record<string, unknown>;
     if ([...Object.keys(layer)].some((key) => !TERRAIN_REFERENCE_LAYER_KEYS.has(key)) || !STORED_STATES.has(layer.state as TerrainReferenceState) || !safeStoredText(layer.layer_id) || !safeStoredText(layer.display_name) || !safeStoredText(layer.source_name) || !safeStoredText(layer.caveat) || !validCoverageStatus(layer.coverage_status)) return undefined;
     const normalized: StoredTerrainReferenceLayerV1 = { layer_id: layer.layer_id.trim(), display_name: layer.display_name.trim(), state: layer.state as TerrainReferenceState, source_name: layer.source_name.trim(), coverage_status: layer.coverage_status, caveat: layer.caveat.trim() };
+    if (layer.evidence_metadata !== undefined) {
+      if (!validEvidenceMetadata(layer.evidence_metadata)) return undefined;
+      normalized.evidence_metadata = { ...layer.evidence_metadata };
+    }
     for (const key of ["source_agency", "data_updated_at", "data_version"] as const) {
       if (layer[key] !== undefined) {
         if (!safeOptionalMetadata(layer[key])) return undefined;

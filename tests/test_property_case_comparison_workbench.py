@@ -1,76 +1,34 @@
-"""Static contracts for explicit, non-ranking case comparison."""
-
-from pathlib import Path
-
-
-ROOT = Path(__file__).resolve().parents[1]
-HELPER = (ROOT / "frontend_next/lib/property-case-comparison.ts").read_text(encoding="utf-8")
-WORKBENCH = (ROOT / "frontend_next/components/data-visualization/property-case-comparison-workbench.tsx").read_text(encoding="utf-8")
+"""Canonical saved-evidence comparison; responsive UI is exercised by Playwright."""
+from tests.e9_model_probe import probe_models
 
 
-def test_comparison_requires_two_and_caps_at_three_selected_cases() -> None:
-    assert "selectedIds" in HELPER
-    assert ".slice(0, 3)" in HELPER
-    assert "rows.length >= 2" in HELPER
-    assert "rows.length <= 3" in HELPER
-    assert "selectedIds.length >= 3" in WORKBENCH
+def test_missing_selection_is_not_substituted():
+    assert probe_models()["missing"] == "case_not_found"
+    assert probe_models()["one"] == "too_few"
 
 
-def test_comparison_selection_is_explicit_and_local_only() -> None:
-    assert "type=\"checkbox\"" in WORKBENCH
-    assert "selectedIds" in WORKBENCH
-    assert "useState" in WORKBENCH
-    for forbidden in ("localStorage", "sessionStorage", "URLSearchParams", "location.hash", "JSON.stringify"):
-        assert forbidden not in WORKBENCH
+def test_compare_url_contains_only_ordered_opaque_ids():
+    assert probe_models()["href"] == "/compare?cases=case-b,case-a"
 
 
-def test_comparison_uses_saved_case_helper_without_new_storage_schema() -> None:
-    assert "readSavedCases" in WORKBENCH
-    assert "SavedCase" in HELPER
-    assert "buildPropertyCaseComparisonModel" in HELPER
-    assert "new storage" not in HELPER.lower()
+def test_comparison_keeps_saved_finance_without_double_counting():
+    finance = probe_models()["two"]["cases"][0]["finance"]
+    assert finance["interestRate"]["value"] == 0
+    assert finance["monthlyIncome"]["value"] is None
+    assert finance["knownMonthlyHousing"]["value"] == 55111
 
 
-def test_comparison_shows_known_fields_and_missing_data() -> None:
-    for field in (
-        "caseName",
-        "addressSummary",
-        "decisionStatus",
-        "listingPrice",
-        "userEstimatedValue",
-        "initialCashNeeded",
-        "monthlyPayment",
-        "monthlyHoldingCost",
-        "financialStatus",
-        "dueDiligenceReadiness",
-        "viewingOfferReadiness",
-        "timelineReadiness",
-        "missingDataCount",
-    ):
-        assert field in HELPER or field in WORKBENCH
-    assert "未提供" in WORKBENCH or "viz.caseComparisonNotProvided" in WORKBENCH
+def test_no_match_risk_is_scoped_evidence_and_unknowns_remain_visible():
+    case = probe_models()["two"]["cases"][0]
+    assert case["risk"][1]["evidence"]["status"] == "no_match"
+    assert case["risk"][5]["evidence"]["status"] == "unavailable"
+    assert case["risk"][6]["evidence"]["status"] == "unsupported"
+    assert any(gap["reason"] == "not_preserved" for gap in case["gaps"])
 
 
-def test_comparison_does_not_add_rank_score_winner_or_recommendation() -> None:
-    for forbidden in ("ranking", "rank", "score", "winner", "bestCase", "推薦購買", "最佳物件", "第一名"):
-        assert forbidden not in HELPER
-        assert forbidden not in WORKBENCH
-
-
-def test_comparison_is_vertical_on_mobile_and_has_no_main_table_scroll() -> None:
-    assert "md:grid-cols-2 xl:grid-cols-3" in WORKBENCH
-    assert "min-w-0" in WORKBENCH
-    assert "overflow-x-auto" not in WORKBENCH
-    assert "min-w-[" not in WORKBENCH
-
-
-def test_comparison_keeps_market_commute_and_terrain_out_of_decision_fields() -> None:
-    for forbidden in ("marketScore", "commuteScore", "terrainScore", "locationRank", "riskScore"):
-        assert forbidden not in HELPER
-        assert forbidden not in WORKBENCH
-
-
-def test_comparison_notice_is_conservative() -> None:
-    assert "資料不足，僅比較已知欄位" in HELPER
-    assert "不產生排名或購買建議" in HELPER
-    assert "資料不足" in WORKBENCH or "viz.caseComparisonPartialNote" in WORKBENCH
+def test_report_has_all_sections_and_independent_generation_time():
+    report = probe_models()["report"]
+    assert report["status"] == "ready_with_limits"
+    assert len(report["sections"]) == 9
+    assert report["generatedAt"] == "2026-10-07T04:00:00Z"
+    assert report["evidence"]["savedAt"] == "2026-10-07T03:00:00.000Z"

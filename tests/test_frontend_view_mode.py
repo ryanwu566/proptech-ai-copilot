@@ -44,9 +44,10 @@ def test_detail_disclosure_collapses_beginner_and_expands_pro() -> None:
     assert "onToggle" in DISCLOSURE
 
 def test_major_technical_tables_use_disclosure() -> None:
-    for source in (FINDER, LOAN, HOLDING, LOCATION, COMPARE, PAGE):
+    # Compare now uses its dedicated responsive E2 flow, covered in Playwright at 390px.
+    for source in (FINDER, LOAN, HOLDING, LOCATION, PAGE):
         assert "overflow-x-auto" in source
-    for source in (FINDER, LOAN, HOLDING, LOCATION, COMPARE):
+    for source in (FINDER, LOAN, HOLDING, LOCATION):
         assert "DetailDisclosure" in source
     assert "technicalDetail" in PRODUCT_UI
 

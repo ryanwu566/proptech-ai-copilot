@@ -1,43 +1,30 @@
-"""Static contracts for saved-case comparison and candidate ranking."""
-
-from pathlib import Path
-
-
-ROOT = Path(__file__).resolve().parents[1]
-COMPARISON = (ROOT / "frontend_next" / "lib" / "case-comparison.ts").read_text(encoding="utf-8")
-PANEL = (ROOT / "frontend_next" / "components" / "case-comparison-panel.tsx").read_text(encoding="utf-8")
-MANAGER = (ROOT / "frontend_next" / "components" / "case-manager.tsx").read_text(encoding="utf-8")
+"""E9 descriptive comparison contracts replacing retired weighted commercial UI."""
+from tests.e9_model_probe import probe_models
 
 
-def test_case_comparison_is_rule_based_and_uses_saved_data_only() -> None:
-    assert "compareSavedCases" in COMPARISON
-    assert "savedCases.slice(0, 3)" in COMPARISON
-    assert "selected.length < 2" in COMPARISON
-    for weight in ("0.30", "0.25", "0.20", "0.15", "0.10"):
-        assert weight in COMPARISON
-    assert "completionRate" in COMPARISON
-    assert "api." not in COMPARISON
+def test_commercial_comparison_preserves_explicit_order():
+    result = probe_models()["two"]
+    assert result["status"] == "ready"
+    assert [case["caseId"] for case in result["cases"]] == ["case-b", "case-a"]
 
 
-def test_comparison_includes_expected_fields_and_missing_data_warnings() -> None:
-    for field in ("valuationMid", "monthlyPayment", "monthlyHoldingCost", "locationScore", "riskSignal", "taxStatus"):
-        assert field in COMPARISON
-    assert "missingDataWarnings" in COMPARISON
-    for key in ("case.missing", "common.dataLimit", "valuation.level", "location.risk"):
-        assert f'copy("{key}"' in PANEL or f'copy("{key}"' in COMPARISON
+def test_comparison_keeps_price_concepts_and_unavailable_evidence_separate():
+    price = probe_models()["two"]["cases"][0]["price"]
+    assert price["asking"]["value"] == 2480
+    assert price["marketMedianTotal"]["value"] == 1850
+    assert price["valuationEstimate"]["value"] is None
+    assert price["valuationEstimate"]["status"] == "unavailable"
 
-def test_comparison_panel_has_ranking_table_and_html_export() -> None:
-    for key in ("case.compare", "case.export", "case.status", "valuation.comparables", "location.risk"):
-        assert f'copy("{key}"' in PANEL
-    assert "buildCaseComparisonHtml" in PANEL
-    assert "overflow-x-auto" in PANEL
-    assert "min-w-[920px]" in PANEL
-    assert "terrainRiskLevel" in PANEL
-    assert "terrainRiskStatus" in PANEL
 
-def test_case_manager_supports_two_to_three_case_selection() -> None:
-    assert "CaseComparisonPanel" in MANAGER
-    for key in ("case.compare", "case.compareCount", "case.missing"):
-        assert f'copy("{key}"' in MANAGER
-    assert 'type="checkbox"' in MANAGER
-    assert "rows.length >= 3" in MANAGER
+def test_commercial_comparison_does_not_produce_ranking_or_overall_scores():
+    result = probe_models()["four"]
+    for key in ("ranking", "winner", "bestCaseId", "topCandidate", "score"):
+        assert key not in result
+        assert all(key not in case for case in result["cases"])
+
+
+def test_commercial_selection_permits_four_and_rejects_fifth():
+    result = probe_models()
+    assert result["four"]["status"] == "ready"
+    assert result["five"] == "too_many"
+    assert result["duplicate"] == "duplicate"

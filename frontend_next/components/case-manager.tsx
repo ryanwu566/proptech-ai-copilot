@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CaseComparisonPanel } from "@/components/case-comparison-panel";
 import { clearCurrentCase, clearSavedCases, deleteSavedCase, getDraftSaveMissingFields, loadSavedCase, readSavedCases, saveCase, type SaveCaseInput, type SavedCase } from "@/lib/case-storage";
@@ -59,7 +60,7 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
     const target = cases.find((item) => item.id === id);
     const missing = target ? getCompareMissingFields(target) : [];
     if (missing.length > 0) { setFeedback(copy("case.missing", { items: missing.map((field) => field === "案件名稱" ? copy("case.title") : field.includes("地址") ? copy("case.address") : copy("case.price")).join(" / ") })); return; }
-    setSelectedIds((rows) => rows.includes(id) ? rows.filter((row) => row !== id) : rows.length >= 3 ? (setFeedback(copy("case.compareCount", { selected: 3 })), rows) : [...rows, id]);
+    setSelectedIds((rows) => rows.includes(id) ? rows.filter((row) => row !== id) : rows.length >= 4 ? (setFeedback("最多選擇 4 個案件"), rows) : [...rows, id]);
   }
 
   return <section className="min-w-0 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm" aria-label={copy("case.title")}>
@@ -70,7 +71,7 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
     {feedback && <p className="mt-3 rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs text-cyan-900" role="status">{feedback}</p>}
     {(open || listOnly) && <div className="mt-4 border-t border-stone-100 pt-4">
       {cases.length === 0 ? <p className="rounded-xl bg-stone-50 p-4 text-xs text-slate-500">{copy("case.empty")}</p> : <>
-        <div className="mb-3 flex flex-col gap-2 rounded-xl bg-stone-50 p-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-slate-600">{copy("case.compareCount", { selected: selectedIds.length })}</p><button type="button" disabled={selectedIds.length < 2} onClick={() => setCompareOpen((value) => !value)} className="rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs font-bold text-cyan-800 disabled:cursor-not-allowed disabled:opacity-45">{copy("case.compare")}</button></div>
+        <div className="mb-3 flex flex-col gap-2 rounded-xl bg-stone-50 p-3 sm:flex-row sm:items-center sm:justify-between"><p className="text-xs text-slate-600">{`已選取 ${selectedIds.length} / 4 個案件`}</p><button type="button" disabled={selectedIds.length < 2} onClick={() => setCompareOpen((value) => !value)} className="rounded-lg border border-cyan-200 bg-white px-3 py-2 text-xs font-bold text-cyan-800 disabled:cursor-not-allowed disabled:opacity-45">{copy("case.compare")}</button></div>
         <div className="grid gap-3 lg:grid-cols-2">{cases.map((saved) => <div key={saved.id} className="space-y-2"><CaseCard saved={saved} selected={selectedIds.includes(saved.id)} confirmDelete={confirmDelete === saved.id} onToggle={() => toggleCompare(saved.id)} onLoad={() => load(saved)} onExport={onExport} onDelete={() => remove(saved.id)} /><a href={"/cases/" + encodeURIComponent(saved.id)} className="block rounded-lg border border-cyan-200 bg-cyan-50 px-3 py-2 text-center text-xs font-bold text-cyan-800">案件工作台</a></div>)}</div>
         {compareOpen && <CaseComparisonPanel savedCases={cases} selectedIds={selectedIds} />}
       </>}
@@ -90,17 +91,17 @@ function getCompareMissingFields(saved: SavedCase): string[] {
   const missing: string[] = [];
   if (!saved.title.trim()) missing.push("案件名稱");
   if (![saved.inputSummary.city, saved.inputSummary.district, saved.inputSummary.road].some((value) => value?.trim())) missing.push("物件地址／識別");
-  if (!(saved.inputSummary.propertyPrice && saved.inputSummary.propertyPrice > 0)) missing.push("可比較價格資料");
+
   return missing;
 }
 
-function CaseCard({ saved, selected, confirmDelete, onToggle, onLoad, onExport, onDelete }: { saved: SavedCase; selected: boolean; confirmDelete: boolean; onToggle: () => void; onLoad: () => void; onExport?: (saved: SavedCase) => void; onDelete: () => void }) {
+function CaseCard({ saved, selected, confirmDelete, onToggle, onLoad, onDelete }: { saved: SavedCase; selected: boolean; confirmDelete: boolean; onToggle: () => void; onLoad: () => void; onExport?: (saved: SavedCase) => void; onDelete: () => void }) {
   const { copy } = useExperienceLocale();
   const missing = getCompareMissingFields(saved);
   return <article className="min-w-0 rounded-xl border border-stone-200 p-3">
     <div className="flex items-start justify-between gap-2"><label className="flex min-w-0 cursor-pointer items-start gap-2"><input type="checkbox" checked={selected} onChange={onToggle} disabled={missing.length > 0} className="mt-1 shrink-0" aria-label={`${copy("case.compare")} ${saved.title}`} /><span className="min-w-0"><span className="block truncate text-sm font-bold text-slate-900">{saved.title}</span><span className="mt-1 block text-[10px] text-slate-400">{new Date(saved.updatedAt).toLocaleString()} · {saved.progress}%</span></span></label><span className="shrink-0 rounded-full bg-cyan-50 px-2 py-1 text-[9px] font-bold text-cyan-800">{saved.activeWizardStep}</span></div>
     <p className="mt-2 text-[11px] text-slate-600">{saved.inputSummary.propertyPrice ? saved.inputSummary.propertyPrice.toLocaleString() : copy("common.noData")}{saved.inputSummary.areaPing ? " · " + saved.inputSummary.areaPing : ""}</p>
     {missing.length > 0 && <p className="mt-2 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-900">{copy("case.missing", { items: missing.map((field) => field === "案件名稱" ? copy("case.title") : field.includes("地址") ? copy("case.address") : copy("case.price")).join(" / ") })}</p>}
-    <div className="mt-3 grid grid-cols-2 gap-2 sm:flex"><button type="button" onClick={onLoad} className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white">{copy("case.load")}</button>{onExport && <button type="button" disabled={!saved.data.valuation || saved.data.valuationEvidence?.transferable !== true} title={saved.data.valuationEvidence?.transferable ? copy("case.export") : copy("common.noData")} onClick={() => onExport(saved)} className="rounded-lg border border-stone-200 px-3 py-2 text-xs font-bold text-slate-700 disabled:opacity-40">{copy("case.export")}</button>}<button type="button" onClick={onDelete} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700">{confirmDelete ? copy("case.confirmDelete") : copy("case.delete")}</button></div>
+    <div className="mt-3 grid grid-cols-2 gap-2 sm:flex"><button type="button" onClick={onLoad} className="rounded-lg bg-cyan-700 px-3 py-2 text-xs font-bold text-white">{copy("case.load")}</button><Link href={"/cases/" + encodeURIComponent(saved.id) + "/report"} className="ds-button ds-button--secondary">產生報告</Link><button type="button" onClick={onDelete} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700">{confirmDelete ? copy("case.confirmDelete") : copy("case.delete")}</button></div>
   </article>;
 }

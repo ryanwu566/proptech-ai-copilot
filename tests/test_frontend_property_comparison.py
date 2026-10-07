@@ -14,18 +14,18 @@ VIEWING_DECISION = (ROOT / "frontend_next" / "components" / "viewing-decision-pa
 TERRAIN_RISK = (ROOT / "frontend_next" / "components" / "terrain-risk-analysis.tsx").read_text(encoding="utf-8")
 
 
-def test_comparison_case_limit_is_two_to_three() -> None:
+def test_legacy_model_stays_bounded_and_commercial_entry_delegates_to_e9() -> None:
     assert "PROPERTY_COMPARISON_MIN_CASES = 2" in PROPERTY_COMPARISON
     assert "PROPERTY_COMPARISON_MAX_CASES = 3" in PROPERTY_COMPARISON
     assert "savedCases.slice(0, 3)" in CASE_COMPARISON
-    assert "rows.length >= 3" in CASE_MANAGER
-    assert "selectedIds.includes(item.id)).slice(0, 3)" in PANEL
+    assert "rows.length >= 4" in CASE_MANAGER
+    assert "compareHref(selectedIds)" in PANEL
 
 
 def test_report_is_built_from_existing_comparison_result_only() -> None:
     assert "buildPropertyComparisonReport" in PROPERTY_COMPARISON
     assert "CaseComparisonResult" in PROPERTY_COMPARISON
-    assert "PropertyComparisonReport" in PANEL
+    assert "PropertyComparisonReport" not in PANEL
     for source in (PROPERTY_COMPARISON, REPORT, PRINT_REPORT):
       assert "api." not in source
       assert "fetch(" not in source

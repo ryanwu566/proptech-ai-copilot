@@ -34,7 +34,7 @@ function identityState(anchor: JourneyPropertyIdentityAnchorV1 | undefined, disp
   const addressConflicts = Boolean(displayAddress)
     && !areJourneyPropertyAddressesEquivalent(displayAddress!, anchor.address_input)
     && !areJourneyPropertyAddressesEquivalent(displayAddress!, anchor.normalized_address);
-  if (addressConflicts || anchor.revalidation.status === "needs_revalidation" || anchor.location_status === "stale") {
+  if (addressConflicts || anchor.revalidation.conflicts.length > 0 || anchor.revalidation.status === "needs_revalidation" || anchor.location_status === "stale") {
     return { state: "revalidation_required", scope: "journey_browser_anchor", anchor };
   }
   if (anchor.confidence.level === "high" || anchor.confidence.level === "medium") {
@@ -75,7 +75,8 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     EVIDENCE_KEYS.map((key) => [key, reopenedEvidence(presence[key], stale)]),
   ) as Record<EvidenceKey, WorkspaceEvidenceState>;
   const journey = saved.data.journeyContext;
-  if (!presence.valuation && journey?.valuationStatus === "unavailable") {
+  const valuationUnavailable = journey?.valuationStatus === "unavailable" || ["unavailable", "partial"].includes(saved.data.valuationEvidence?.status ?? "");
+  if (!presence.valuation && valuationUnavailable) {
     evidence.valuation = {
       query: "failed",
       usability: "unavailable",
@@ -104,7 +105,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     askingPriceWan,
     market: saved.data.marketInsight,
     valuation: saved.data.valuation,
-    valuationAttemptStatus: journey?.valuationStatus === "unavailable" ? "unavailable" : "not_started",
+    valuationAttemptStatus: valuationUnavailable ? "unavailable" : "not_started",
     trend: saved.data.trend,
     stale,
   });
@@ -120,7 +121,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     identityState: identity.state,
     activePriceBasis: basis,
     activePriceWan,
-    areaPing: saved.data.financeEvidence ? saved.data.financeEvidence.assumptions.area_ping : areaPing,
+    areaPing,
   } as const;
   const finance = saved.data.financeEvidence
     ? restoreFinanceModelFromSnapshot(saved.data.financeEvidence, financeContext)

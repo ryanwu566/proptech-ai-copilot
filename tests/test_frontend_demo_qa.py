@@ -37,7 +37,8 @@ def test_demo_quick_start_only_prefills_property_finder() -> None:
     assert 'copy("finder.search")' in FINDER
 
 def test_major_empty_states_explain_the_next_action() -> None:
-    for source, keys in ((FINDER, ("finder.empty", "finder.emptyDetail")), (LOAN, ("loan.emptyDetail",)), (LOCATION, ("location.empty",)), (CASES, ("case.empty",)), (COMPARE, ("case.compareCount",))):
+    # E9 comparison empty/invalid states are exercised by commercial-compare-report.spec.ts.
+    for source, keys in ((FINDER, ("finder.empty", "finder.emptyDetail")), (LOAN, ("loan.emptyDetail",)), (LOCATION, ("location.empty",)), (CASES, ("case.empty",))):
         for key in keys:
             assert f'copy("{key}")' in source or f'copy("{key}"' in source
     assert 'copy("tax.emptyDetail")' in PAGE or "TaxOracle" in PAGE
@@ -48,7 +49,7 @@ def test_disabled_actions_explain_why_and_tables_stay_contained() -> None:
     assert "loan.invalid" in LOAN
     assert "location.empty" in LOCATION
     assert "max-h-[65vh]" in PAGE
-    for source in (COMPARE, PAGE, FINDER, LOAN, HOLDING, LOCATION):
+    for source in (PAGE, FINDER, LOAN, HOLDING, LOCATION):
         assert "overflow-x-auto" in source
 
 def test_guided_demo_has_product_recovery_actions() -> None:

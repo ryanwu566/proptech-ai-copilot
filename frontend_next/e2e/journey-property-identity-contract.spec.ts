@@ -10,6 +10,7 @@ import {
 } from "../lib/closed-loop-journey";
 import {
   readSavedCases,
+  readSavedCasesDiagnostic,
   saveCase,
   SAVED_CASES_STORAGE_KEY,
   type SaveCaseInput,
@@ -697,7 +698,7 @@ test("saved case round-trip preserves only the bounded identity anchor and prove
   });
 });
 
-test("malformed stored anchor is dropped without losing the saved case", () => {
+test("malformed stored anchor quarantines the case with sanitized diagnostic and no silent rewrite", () => {
   const anchor = buildJourneyPropertyIdentityAnchor(
     { context, location: locationResult() },
     { now: () => CHECKED_AT, idFactory: () => OPAQUE_UUID },
@@ -716,9 +717,12 @@ test("malformed stored anchor is dropped without losing the saved case", () => {
     localStorage.setItem(SAVED_CASES_STORAGE_KEY, JSON.stringify(rows));
 
     const reopened = readSavedCases();
-    expect(reopened).toHaveLength(1);
-    expect(reopened[0].data.propertyIdentityAnchor).toBeUndefined();
-    expect(reopened[0].title).toBe("市府路案件");
+    expect(reopened).toHaveLength(0);
+    const diagnostic = readSavedCasesDiagnostic();
+    expect(diagnostic.status).toBe("partial");
+    expect(diagnostic.issues).toEqual([{ caseId: saved!.id, reason: "invalid_record" }]);
+    expect(JSON.stringify(diagnostic)).not.toContain("must-not-survive");
+    expect(localStorage.getItem(SAVED_CASES_STORAGE_KEY)).toBe(JSON.stringify(rows));
   });
 });
 
