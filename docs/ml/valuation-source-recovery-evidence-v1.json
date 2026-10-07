@@ -1,0 +1,1151 @@
+{
+  "acquisition_accounting": {
+    "additional_duplicate_test_downloads": 1,
+    "bounded_ledger_probe_attempts": 17,
+    "duplicate_test_release": "112S3",
+    "duplicate_test_retrieved_at": "2026-10-07T12:53:33.051442+00:00",
+    "duplicate_test_sha256": "4d9fa7be16bc9aba99e79c0f86ca27b32f46755de04e98e1dd2c8d8297b466c1",
+    "duplicate_test_started_at": "2026-10-07T12:53:29.904145+00:00",
+    "failed_download_retries": 0,
+    "incident": "Reviewer basetemp accidentally satisfied allowed ignored root; test downloaded once successfully. Guaranteed outside-root fixture plus NoNetwork transport now prevents acquisition. Original private acquisition records preserved.",
+    "official_history_inspection": "One official download page and its advertised history-list endpoint inspected; no historical release rows recovered; no archive retries or scope expansion.",
+    "schema_export_error": "Disposable inspection requested uppercase MANIFEST.CSV after successful archive validation; actual member is manifest.csv. Local parser fixed without redownload.",
+    "selected_downloads": 2,
+    "unique_archives_recovered": 2
+  },
+  "age_feature": "DEFERRED; parsed diagnostic only",
+  "approved_geographic_coverage": [],
+  "approved_time_coverage": [],
+  "baseline_readiness": {
+    "district_type_median": false,
+    "global_median": false,
+    "historical_comparables": false
+  },
+  "blocker_reassessment": {
+    "B1": {
+      "remaining": "Full residential rights, single dwelling and registered-area/rights basis unproved; parking diagnostic alone cannot approve target.",
+      "status": "PARTIALLY_EVIDENCED_BLOCKED"
+    },
+    "B2": {
+      "remaining": "Historical publication/availability, stable identifier namespace, supersession and cancellation ordering unproved.",
+      "status": "BLOCKED"
+    },
+    "B3": {
+      "remaining": "Two-member county/district reconstruction succeeds; namespace attestation and legacy county repair are not proven.",
+      "status": "PARTIALLY_EVIDENCED_BLOCKED"
+    },
+    "B4": {
+      "remaining": "Two exact sources restore and staging regenerates locally; fifteen exact objects absent, durable storage unprovisioned and eligible dataset empty.",
+      "status": "PARTIALLY_EVIDENCED_BLOCKED"
+    },
+    "B5": {
+      "remaining": "Zero approved rows; no mature contiguous point-in-time cohort or chronological four-way split.",
+      "status": "BLOCKED"
+    },
+    "B6": {
+      "remaining": "Real strict schemas/details/date/parking transforms evidenced; rights/area-qualified target and nonempty deterministic dataset still unproved.",
+      "status": "PARTIALLY_EVIDENCED_BLOCKED"
+    }
+  },
+  "branch": "research/ml-valuation-source-recovery-v1",
+  "build_contract": {
+    "code_sha256": "cc85979d26b02650c6ecf670385f79e0121544c923dd92f41eb917372f6eaa23",
+    "cutoff": "2026-10-07T12:58:22.826828+00:00",
+    "observation_at": "2026-10-07T12:58:22.826828+00:00",
+    "python_version": "3.13.14",
+    "registry_sha256": "86f0f999f3f80eaf2ca3594fe15dab9a619695cd8a7fa914a72757bf39d5cbe4",
+    "schema_review_version": "plvr-embedded-schema-detail-audit-v1",
+    "source_contract_sha256": "bef6a9a85746a77104dfdf8171d1cc640e321b41e62bed33b8deb92cccc67e46"
+  },
+  "checksum_status_counts": {
+    "EXACT_MATCH": 2,
+    "UNVERIFIABLE": 15
+  },
+  "chronological_split_viability": "BLOCKED; zero approved cohort and historical availability unproved",
+  "cohort_funnel": [
+    {
+      "accepted_count": 37668,
+      "excluded_count": 1,
+      "input_count": 37669,
+      "reason_breakdown": {
+        "TRANSACTION_DAY_REQUIRED": 1
+      },
+      "stage": "schema"
+    },
+    {
+      "accepted_count": 37668,
+      "excluded_count": 0,
+      "input_count": 37668,
+      "reason_breakdown": {},
+      "stage": "identity"
+    },
+    {
+      "accepted_count": 37668,
+      "excluded_count": 0,
+      "input_count": 37668,
+      "reason_breakdown": {},
+      "stage": "geography"
+    },
+    {
+      "accepted_count": 16689,
+      "excluded_count": 20979,
+      "input_count": 37668,
+      "reason_breakdown": {
+        "INVALID_TARGET": 20979
+      },
+      "stage": "target"
+    },
+    {
+      "accepted_count": 13573,
+      "excluded_count": 3116,
+      "input_count": 16689,
+      "reason_breakdown": {
+        "UNKNOWN_OR_NONRESIDENTIAL_USE": 3116
+      },
+      "stage": "use"
+    },
+    {
+      "accepted_count": 13028,
+      "excluded_count": 545,
+      "input_count": 13573,
+      "reason_breakdown": {
+        "UNSUPPORTED_PROPERTY_TYPE": 545
+      },
+      "stage": "type"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 13028,
+      "input_count": 13028,
+      "reason_breakdown": {
+        "RIGHTS_UNPROVEN": 13028
+      },
+      "stage": "rights"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "dwelling"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "parking"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "price_area"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "revision"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "pit"
+    }
+  ],
+  "downloaded_hash_mismatch_count": 0,
+  "field_nonblank_counts": {
+    "主要用途": 32640,
+    "交易年月日": 37669,
+    "交易標的": 37669,
+    "交易筆棟數": 37669,
+    "備註": 26324,
+    "建物型態": 37669,
+    "建物移轉總面積平方公尺": 37669,
+    "移轉層次": 32868,
+    "編號": 37669,
+    "總價元": 37669,
+    "總樓層數": 32866,
+    "車位移轉總面積平方公尺": 37669,
+    "車位總價元": 37669,
+    "車位類別": 16662,
+    "鄉鎮市區": 37669
+  },
+  "final_candidate_count": 0,
+  "first_exclusion_counts": {
+    "INVALID_TARGET": 20979,
+    "RIGHTS_UNPROVEN": 13028,
+    "TRANSACTION_DAY_REQUIRED": 1,
+    "UNKNOWN_OR_NONRESIDENTIAL_USE": 3116,
+    "UNSUPPORTED_PROPERTY_TYPE": 545
+  },
+  "foundation_staging_audit": {
+    "all_semantic_exclusion_reason_counts": {},
+    "availability_cutoff": "2026-10-07T12:58:22.826828+00:00",
+    "cohort_version": "residential-apartment-no-parking-v1",
+    "duplicate_revision_findings": {},
+    "final_candidate_count": 0,
+    "funnel": [
+      {
+        "excluded_count": 37669,
+        "excluded_reasons": {
+          "lineage_unverified": 37669
+        },
+        "input_count": 37669,
+        "remaining_count": 0,
+        "stage": "identity_availability_revision"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "parse_valid"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "geography_valid"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "residential_use"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "rights_valid"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "property_type_supported"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "parking_safe"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "target_valid"
+      },
+      {
+        "excluded_count": 0,
+        "excluded_reasons": {},
+        "input_count": 0,
+        "remaining_count": 0,
+        "stage": "physical_valid"
+      }
+    ],
+    "geography_classification": {},
+    "input_checksum": "8136a497162993e237d76f0447b0458732f534ee481446950af50bb772624dbf",
+    "parking_classification": {},
+    "readiness": "NOT_A_READINESS_APPROVAL",
+    "schema_version": "ml-foundation-staging-audit-v1",
+    "scope": "bounded private staging; evidence references are supplied, not independently authenticated by this tool",
+    "target_validity": {},
+    "target_version": "residential-unit-ntd-ping-log-v1",
+    "transform_version": "plvr-ml-foundation-transform-v1"
+  },
+  "hashes": {
+    "cohort-membership.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exclusions.jsonl": "a7702c0dcc6223ac243c2eafeb730cf026f5cb6b0c6806194011f2086fef9618",
+    "features.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "occurrences.jsonl": "36fbfc5b266fc8d99881cbf41f2481de8e74dc7240b6cd472684f780cff2aea6",
+    "source-records.jsonl": "449c16c4c8a987b4a0523e5cd91307365d6a8695ce28f0afe871a5610144a681",
+    "splits.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targets.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "historical_availability_attested_source_count": 0,
+  "identity_diagnostics": {
+    "cancellation_attested": 0,
+    "changed_payload_families": 0,
+    "distinct_nonmissing_provisional_families": 37669,
+    "exact_payload_repeat_excess": 0,
+    "family_namespace": "provisional county + official 編號; namespace reuse not attested",
+    "physical_occurrences": 37669,
+    "repeated_families": 0,
+    "revision_order_attested": 0
+  },
+  "independent_review": {
+    "critical_remaining": 0,
+    "final_reports_review": "reviewed; no Critical/Important issues; final provenance artifacts verified",
+    "hermetic_fixture_fixed": true,
+    "important_findings_fixed": [
+      "No-parking false negatives from parking notes and blank building-use descriptions",
+      "Retrieval evidence accepted invalid HTTP, timestamps or attempt metadata"
+    ],
+    "important_remaining": 0,
+    "minor_availability_wording_fixed": true
+  },
+  "joins": [
+    {
+      "detail_counts_by_main_key": {
+        "0": 955,
+        "1": 1297,
+        "10": 13,
+        "12": 2,
+        "14": 3,
+        "15": 1,
+        "19": 1,
+        "2": 1861,
+        "3": 1165,
+        "4": 629,
+        "5": 237,
+        "52": 1,
+        "6": 122,
+        "7": 65,
+        "8": 21,
+        "9": 18
+      },
+      "detail_kind": "build",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 14014,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 6391,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_identical_detail_excess": 130
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 78,
+        "1": 4451,
+        "10": 3,
+        "11": 7,
+        "12": 4,
+        "14": 2,
+        "15": 2,
+        "16": 4,
+        "2": 1260,
+        "20": 2,
+        "26": 1,
+        "28": 1,
+        "3": 304,
+        "4": 109,
+        "5": 73,
+        "6": 37,
+        "7": 28,
+        "8": 13,
+        "9": 12
+      },
+      "detail_kind": "land",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 9685,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 6391,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_identical_detail_excess": 23
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 4310,
+        "1": 1649,
+        "10": 1,
+        "12": 1,
+        "120": 1,
+        "15": 1,
+        "2": 333,
+        "28": 1,
+        "3": 54,
+        "38": 1,
+        "4": 24,
+        "5": 7,
+        "6": 6,
+        "7": 1,
+        "9": 1
+      },
+      "detail_kind": "park",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 2883,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 6391,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_identical_detail_excess": 645
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 1622,
+        "1": 2784,
+        "10": 10,
+        "11": 20,
+        "12": 8,
+        "13": 4,
+        "14": 5,
+        "15": 5,
+        "16": 1,
+        "17": 2,
+        "2": 5409,
+        "23": 2,
+        "25": 6,
+        "3": 2677,
+        "33": 4,
+        "4": 997,
+        "45": 1,
+        "5": 277,
+        "6": 185,
+        "7": 73,
+        "8": 33,
+        "9": 18
+      },
+      "detail_kind": "build",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 30089,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 14143,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_identical_detail_excess": 198
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 74,
+        "1": 11344,
+        "10": 11,
+        "11": 15,
+        "12": 13,
+        "13": 13,
+        "14": 5,
+        "15": 3,
+        "16": 5,
+        "17": 4,
+        "18": 3,
+        "19": 5,
+        "2": 1652,
+        "20": 1,
+        "21": 3,
+        "22": 2,
+        "24": 1,
+        "272": 1,
+        "3": 460,
+        "30": 1,
+        "31": 3,
+        "33": 2,
+        "4": 207,
+        "41": 1,
+        "5": 110,
+        "54": 1,
+        "56": 1,
+        "6": 64,
+        "7": 65,
+        "70": 1,
+        "8": 44,
+        "9": 28
+      },
+      "detail_kind": "land",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 20694,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 14143,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_identical_detail_excess": 30
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 7601,
+        "1": 5828,
+        "10": 2,
+        "11": 1,
+        "15": 1,
+        "2": 593,
+        "20": 1,
+        "23": 1,
+        "3": 78,
+        "4": 22,
+        "41": 1,
+        "5": 6,
+        "6": 6,
+        "7": 1,
+        "8": 1
+      },
+      "detail_kind": "park",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 7547,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 14143,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_identical_detail_excess": 850
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 621,
+        "1": 1022,
+        "10": 5,
+        "12": 2,
+        "13": 1,
+        "14": 2,
+        "15": 1,
+        "16": 2,
+        "2": 2062,
+        "21": 1,
+        "24": 1,
+        "28": 1,
+        "292": 1,
+        "3": 969,
+        "4": 523,
+        "43": 1,
+        "5": 221,
+        "6": 87,
+        "7": 47,
+        "8": 23,
+        "9": 14
+      },
+      "detail_kind": "build",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 12981,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 5607,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_identical_detail_excess": 269
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 77,
+        "1": 3970,
+        "10": 5,
+        "11": 4,
+        "12": 2,
+        "13": 1,
+        "15": 1,
+        "16": 3,
+        "17": 2,
+        "2": 1045,
+        "22": 1,
+        "25": 1,
+        "3": 245,
+        "36": 1,
+        "37": 1,
+        "4": 136,
+        "5": 50,
+        "6": 19,
+        "7": 21,
+        "8": 12,
+        "9": 10
+      },
+      "detail_kind": "land",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 8384,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 5607,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_identical_detail_excess": 14
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 3464,
+        "1": 1738,
+        "10": 2,
+        "11": 2,
+        "12": 2,
+        "13": 1,
+        "16": 1,
+        "2": 277,
+        "20": 1,
+        "210": 1,
+        "3": 60,
+        "4": 29,
+        "5": 12,
+        "6": 8,
+        "7": 1,
+        "8": 2,
+        "88": 1,
+        "9": 2,
+        "93": 1,
+        "97": 2
+      },
+      "detail_kind": "park",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 3437,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 5607,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_identical_detail_excess": 1116
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 1044,
+        "1": 2188,
+        "10": 152,
+        "11": 4,
+        "12": 6,
+        "13": 5,
+        "14": 2,
+        "15": 2,
+        "16": 2,
+        "18": 2,
+        "2": 4780,
+        "23": 1,
+        "25": 2,
+        "28": 1,
+        "3": 1816,
+        "33": 1,
+        "4": 844,
+        "5": 326,
+        "6": 104,
+        "66": 1,
+        "7": 44,
+        "8": 112,
+        "9": 89
+      },
+      "detail_kind": "build",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 26858,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 11528,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_identical_detail_excess": 426
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 64,
+        "1": 9107,
+        "10": 11,
+        "11": 10,
+        "12": 2,
+        "13": 5,
+        "14": 1,
+        "15": 3,
+        "16": 5,
+        "17": 3,
+        "18": 2,
+        "19": 1,
+        "2": 1380,
+        "21": 1,
+        "22": 2,
+        "25": 5,
+        "26": 1,
+        "29": 2,
+        "3": 375,
+        "30": 1,
+        "35": 1,
+        "4": 341,
+        "42": 1,
+        "5": 109,
+        "51": 1,
+        "6": 40,
+        "7": 29,
+        "8": 17,
+        "9": 7,
+        "95": 1
+      },
+      "detail_kind": "land",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 16624,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 11528,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_identical_detail_excess": 7
+    },
+    {
+      "detail_counts_by_main_key": {
+        "0": 5761,
+        "1": 5168,
+        "11": 1,
+        "12": 1,
+        "14": 1,
+        "15": 2,
+        "17": 1,
+        "2": 477,
+        "24": 1,
+        "3": 75,
+        "4": 15,
+        "40": 1,
+        "5": 9,
+        "54": 1,
+        "6": 9,
+        "60": 1,
+        "7": 2,
+        "8": 1,
+        "9": 1
+      },
+      "detail_kind": "park",
+      "detail_parse_and_keys_complete": true,
+      "detail_rows": 6799,
+      "join_key": "archive SHA256 + sale county member + 編號",
+      "main_keys_with_multiple_rows": 0,
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 11528,
+      "missing_detail_interpretation": "absence alone is not proof; requires complete file, unique key and agreement",
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_identical_detail_excess": 857
+    }
+  ],
+  "minimum_next_repair": [
+    "Obtain authoritative full-building rights, dwelling and area-basis evidence; otherwise revise the research question explicitly rather than attest missing facts.",
+    "Authenticate historical release availability, official identifier namespace and revisions/cancellations from immutable official evidence.",
+    "Only then recover necessary contiguous releases within the existing ledger, prove a nonempty conserving cohort, chronological train/validation/calibration/test and all point-in-time baselines.",
+    "Regenerate nonempty membership/targets/features/splits twice; prove immutable independent restore and retention before ML-B."
+  ],
+  "missing_exact_archive_count": 15,
+  "ml_b_may_begin": false,
+  "privacy_output_check": {
+    "largest_staged_blob_bytes": 41746,
+    "leak_matches": {
+      "official_transaction_identifiers": 0,
+      "transaction_addresses": 0
+    },
+    "prohibited_staged_artifacts": 0,
+    "raw_artifacts_ignored": true,
+    "staged_files": 11
+  },
+  "profiles": {
+    "age": {
+      "UNAVAILABLE": 13504,
+      "VALID_TRANSACTION_TIME_DIAGNOSTIC": 24165
+    },
+    "build_transfer_status": {
+      "": 114,
+      "全筆移轉": 31629,
+      "持分移轉": 52199
+    },
+    "building_count": {
+      "0": 4232,
+      "1": 32941,
+      "10": 1,
+      "12": 1,
+      "13": 2,
+      "15": 1,
+      "2": 411,
+      "23": 1,
+      "3": 45,
+      "4": 12,
+      "5": 10,
+      "6": 5,
+      "65": 1,
+      "7": 2,
+      "8": 2,
+      "9": 2
+    },
+    "county": {
+      "新北市": 25671,
+      "臺北市": 11998
+    },
+    "date_precision": {
+      "INVALID": 1,
+      "day": 37668
+    },
+    "district": {
+      "新北市/三峽區": 523,
+      "新北市/三芝區": 527,
+      "新北市/三重區": 2863,
+      "新北市/中和區": 2061,
+      "新北市/五股區": 743,
+      "新北市/八里區": 474,
+      "新北市/土城區": 1232,
+      "新北市/坪林區": 28,
+      "新北市/平溪區": 11,
+      "新北市/新店區": 2246,
+      "新北市/新莊區": 2434,
+      "新北市/板橋區": 2650,
+      "新北市/林口區": 1577,
+      "新北市/樹林區": 718,
+      "新北市/永和區": 912,
+      "新北市/汐止區": 1363,
+      "新北市/泰山區": 688,
+      "新北市/淡水區": 2271,
+      "新北市/深坑區": 125,
+      "新北市/烏來區": 3,
+      "新北市/瑞芳區": 156,
+      "新北市/石碇區": 35,
+      "新北市/石門區": 47,
+      "新北市/萬里區": 129,
+      "新北市/蘆洲區": 782,
+      "新北市/貢寮區": 66,
+      "新北市/金山區": 131,
+      "新北市/雙溪區": 97,
+      "新北市/鶯歌區": 779,
+      "臺北市/中山區": 1635,
+      "臺北市/中正區": 709,
+      "臺北市/信義區": 885,
+      "臺北市/內湖區": 1265,
+      "臺北市/北投區": 1094,
+      "臺北市/南港區": 594,
+      "臺北市/士林區": 1036,
+      "臺北市/大同區": 632,
+      "臺北市/大安區": 1316,
+      "臺北市/文山區": 1084,
+      "臺北市/松山區": 847,
+      "臺北市/萬華區": 901
+    },
+    "floor": {
+      "AMBIGUOUS_OR_INVALID": 9140,
+      "VALID_SINGLE_ABOVE_GROUND": 28529
+    },
+    "geography": {
+      "canonical": 37669
+    },
+    "land_transfer_status": {
+      "全筆移轉": 3003,
+      "持分移轉": 52384
+    },
+    "main_use": {
+      "": 5029,
+      "OTHER_VOCABULARY": 592,
+      "住商用": 201,
+      "住家用": 24771,
+      "停車空間": 171,
+      "其他": 3731,
+      "商業用": 1733,
+      "工業用": 481,
+      "辦公用": 960
+    },
+    "month": {
+      "2013-06": 1,
+      "2013-07": 1,
+      "2013-08": 1,
+      "2013-11": 1,
+      "2014-05": 1,
+      "2015-12": 1,
+      "2016-01": 1,
+      "2016-09": 4,
+      "2017-04": 9,
+      "2017-05": 5,
+      "2017-06": 4,
+      "2017-07": 6,
+      "2017-08": 15,
+      "2017-09": 1,
+      "2017-10": 3,
+      "2017-11": 5,
+      "2017-12": 5,
+      "2018-01": 3,
+      "2018-02": 1,
+      "2018-03": 7,
+      "2018-05": 6,
+      "2018-06": 15,
+      "2018-07": 8,
+      "2018-08": 14,
+      "2018-09": 34,
+      "2018-10": 23,
+      "2018-11": 20,
+      "2018-12": 18,
+      "2019-01": 28,
+      "2019-02": 55,
+      "2019-03": 53,
+      "2019-04": 64,
+      "2019-05": 36,
+      "2019-06": 129,
+      "2019-07": 182,
+      "2019-08": 134,
+      "2019-09": 170,
+      "2019-10": 116,
+      "2019-11": 87,
+      "2019-12": 88,
+      "2020-01": 64,
+      "2020-02": 64,
+      "2020-03": 62,
+      "2020-04": 62,
+      "2020-05": 100,
+      "2020-06": 154,
+      "2020-07": 122,
+      "2020-08": 193,
+      "2020-09": 152,
+      "2020-10": 162,
+      "2020-11": 140,
+      "2020-12": 152,
+      "2021-01": 117,
+      "2021-02": 99,
+      "2021-03": 250,
+      "2021-04": 235,
+      "2021-05": 157,
+      "2021-06": 71,
+      "2021-07": 127,
+      "2021-08": 137,
+      "2021-09": 178,
+      "2021-10": 178,
+      "2021-11": 199,
+      "2021-12": 178,
+      "2022-01": 96,
+      "2022-02": 101,
+      "2022-03": 141,
+      "2022-04": 122,
+      "2022-05": 116,
+      "2022-06": 163,
+      "2022-07": 113,
+      "2022-08": 118,
+      "2022-09": 127,
+      "2022-10": 122,
+      "2022-11": 66,
+      "2022-12": 159,
+      "2023-01": 90,
+      "2023-02": 169,
+      "2023-03": 610,
+      "2023-04": 1315,
+      "2023-05": 4474,
+      "2023-06": 5246,
+      "2023-07": 4257,
+      "2023-08": 1262,
+      "2023-09": 53,
+      "2023-10": 82,
+      "2023-11": 83,
+      "2023-12": 96,
+      "2024-01": 75,
+      "2024-02": 84,
+      "2024-03": 83,
+      "2024-04": 87,
+      "2024-05": 86,
+      "2024-06": 67,
+      "2024-07": 54,
+      "2024-08": 57,
+      "2024-09": 46,
+      "2024-10": 20,
+      "2024-11": 63,
+      "2024-12": 46,
+      "2025-01": 45,
+      "2025-02": 38,
+      "2025-03": 63,
+      "2025-04": 52,
+      "2025-05": 31,
+      "2025-06": 44,
+      "2025-07": 50,
+      "2025-08": 63,
+      "2025-09": 84,
+      "2025-10": 177,
+      "2025-11": 389,
+      "2025-12": 1026,
+      "2026-01": 2343,
+      "2026-02": 1935,
+      "2026-03": 3577,
+      "2026-04": 2323,
+      "2026-05": 767,
+      "2026-06": 4,
+      "INVALID": 1
+    },
+    "parking": {
+      "NO_PARKING_CONFIRMED": 13433,
+      "PARKING_PRESENT": 16662,
+      "PARKING_SEMANTICS_AMBIGUOUS": 7311,
+      "UNKNOWN": 263
+    },
+    "positive_raw_price_area": {
+      "INVALID": 4242,
+      "POSITIVE": 33427
+    },
+    "transaction_target": {
+      "土地": 4230,
+      "建物": 95,
+      "房地(土地+建物)": 16689,
+      "房地(土地+建物)+車位": 15417,
+      "車位": 1238
+    },
+    "type": {
+      "UNSUPPORTED": 6433,
+      "住宅大樓": 18649,
+      "公寓": 7122,
+      "華廈": 5465
+    }
+  },
+  "proof_build_manifest_sha256": "fc1d9df39554cf51694bbc87de6220c19796b39be53221cc63da266d7f7c7e47",
+  "raw_main_detail_records": 197664,
+  "raw_main_field_nonblank_counts": {
+    "主建物面積": 37669,
+    "主要建材": 32882,
+    "主要用途": 32640,
+    "交易年月日": 37669,
+    "交易標的": 37669,
+    "交易筆棟數": 37669,
+    "備註": 26324,
+    "單價元平方公尺": 36431,
+    "土地位置建物門牌": 37669,
+    "土地移轉總面積平方公尺": 37669,
+    "建物型態": 37669,
+    "建物現況格局-廳": 37669,
+    "建物現況格局-房": 37669,
+    "建物現況格局-衛": 37669,
+    "建物現況格局-隔間": 37669,
+    "建物移轉總面積平方公尺": 37669,
+    "建築完成年月": 32041,
+    "有無管理組織": 37669,
+    "移轉層次": 32868,
+    "移轉編號": 12320,
+    "編號": 37669,
+    "總價元": 37669,
+    "總樓層數": 32866,
+    "車位移轉總面積平方公尺": 37669,
+    "車位總價元": 37669,
+    "車位類別": 16662,
+    "都市土地使用分區": 34710,
+    "鄉鎮市區": 37669,
+    "附屬建物面積": 37669,
+    "陽台面積": 37669,
+    "電梯": 37669,
+    "非都市土地使用分區": 1895,
+    "非都市土地使用編定": 1842
+  },
+  "raw_main_rows": 37669,
+  "readiness": "BLOCKED",
+  "reproducibility": {
+    "clean_output_directories": [
+      "artifacts/ml/plvr-source-recovery/delivery-build-a",
+      "artifacts/ml/plvr-source-recovery/delivery-build-b"
+    ],
+    "independent_processes": 2,
+    "nonempty_training_dataset_proven": false,
+    "outputs": {
+      "cohort-membership.jsonl": {
+        "byte_identical": true,
+        "bytes": 0,
+        "file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "evidence.json": {
+        "byte_identical": true,
+        "bytes": 17620,
+        "file_sha256": "8987d98ccee6e24ed061db60c72acf399cc7c38a08e30e167f33a056f43e8114"
+      },
+      "exclusions.jsonl": {
+        "byte_identical": true,
+        "bytes": 33216825,
+        "file_sha256": "a7702c0dcc6223ac243c2eafeb730cf026f5cb6b0c6806194011f2086fef9618"
+      },
+      "features.jsonl": {
+        "byte_identical": true,
+        "bytes": 0,
+        "file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "occurrences.jsonl": {
+        "byte_identical": true,
+        "bytes": 89095213,
+        "file_sha256": "36fbfc5b266fc8d99881cbf41f2481de8e74dc7240b6cd472684f780cff2aea6"
+      },
+      "proof-build-manifest.json": {
+        "byte_identical": true,
+        "bytes": 1306,
+        "file_sha256": "41d0e531d6f3d3ae4290c318b2c3cd748d088a07287c1ea161db0ecc84b31a3f"
+      },
+      "source-manifest.json": {
+        "byte_identical": true,
+        "bytes": 33092,
+        "file_sha256": "02d8dfb16798879d982875cf905b692df26452db2b0021a2da79987b43bf7487"
+      },
+      "source-records.jsonl": {
+        "byte_identical": true,
+        "bytes": 208163422,
+        "file_sha256": "449c16c4c8a987b4a0523e5cd91307365d6a8695ce28f0afe871a5610144a681"
+      },
+      "splits.jsonl": {
+        "byte_identical": true,
+        "bytes": 0,
+        "file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "targets.jsonl": {
+        "byte_identical": true,
+        "bytes": 0,
+        "file_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "proof_manifest_canonical_sha256": "fc1d9df39554cf51694bbc87de6220c19796b39be53221cc63da266d7f7c7e47",
+    "source_manifest_canonical_sha256": "be20e41e5fe78f9be7860122094060d9d7e4bf07a5711167033e5f0bcfd3ed27",
+    "timestamp_policy": "Pinned logical snapshot/cutoff is configuration; per-execution wall-clock start/end not hashed."
+  },
+  "reproducibility_scope": "raw staging, exclusions and aggregate proof; empty output hashes are not a nonempty dataset proof",
+  "schema_valid_rows": 37668,
+  "schema_version": "ml-source-recovery-aggregate-evidence-v1",
+  "scope": {
+    "limit": "two quarterly packages; Taipei/New Taipei main and complete associated details only",
+    "sale_members": [
+      "a_lvr_land_a.csv",
+      "f_lvr_land_a.csv"
+    ],
+    "selected_exact_releases": [
+      "112S3",
+      "115S2"
+    ]
+  },
+  "source_count": 17,
+  "source_manifest_sha256": "be20e41e5fe78f9be7860122094060d9d7e4bf07a5711167033e5f0bcfd3ed27",
+  "source_status_counts": {
+    "RECOVERABLE_BUT_IDENTITY_UNCERTAIN": 10,
+    "RECOVERABLE_EXACT": 2,
+    "SOURCE_CHANGED": 5
+  },
+  "starting_sha": "b735c52f698de0355539cdcff170e3ccde5f8d7b",
+  "storage_proof": [
+    {
+      "archive_filename": "season-112S3.zip",
+      "restore_exact_match": true,
+      "sha256": "4d9fa7be16bc9aba99e79c0f86ca27b32f46755de04e98e1dd2c8d8297b466c1"
+    },
+    {
+      "archive_filename": "season-115S2.zip",
+      "restore_exact_match": true,
+      "sha256": "6b4c148bad106a235dddf214001d605ff9ffa45ac50561f7125c6d7fa795d4da"
+    }
+  ],
+  "validation": {
+    "count_conservation": true,
+    "environment_repair": "Existing locked frontend dependencies installed with npm ci --ignore-scripts and workspace-local npm cache; PYTHONUTF8=1 for Windows subprocess decoding.",
+    "focused_ml_tests": 122,
+    "foundation_regression_tests": 89,
+    "full_repository_failed": 0,
+    "full_repository_passed": 2969,
+    "full_repository_skipped": 31,
+    "full_repository_warnings": 1,
+    "local_restore_matches": 2,
+    "manifest_validation": true,
+    "new_parser_tests": 20,
+    "new_source_tests": 13,
+    "warning": "Existing Starlette httpx TestClient deprecation"
+  }
+}
