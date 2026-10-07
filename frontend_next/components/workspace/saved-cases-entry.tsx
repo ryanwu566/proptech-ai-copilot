@@ -9,6 +9,7 @@ import { formatExactDate, formatWan } from "@/lib/commercial/formatters";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { createBrowserCaseRepository } from "@/lib/workspace/case-repository";
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
+import { buildWorkspaceOverview } from "@/lib/workspace/overview-model";
 import styles from "./saved-cases-entry.module.css";
 
 export function SavedCasesEntry() {
@@ -24,7 +25,7 @@ export function SavedCasesEntry() {
     <header className={styles.heading}>
       <p className="text-meta">瀏覽器本機案件</p>
       <h1 className="text-page">已儲存案件</h1>
-      <p className="text-body">從這個瀏覽器恢復物件脈絡與可安全轉移的摘要。</p>
+      <p className="text-body">從這個瀏覽器恢復物件脈絡與符合保存邊界的摘要。</p>
     </header>
     <Section title="最近案件">
       {cases === null
@@ -38,12 +39,14 @@ export function SavedCasesEntry() {
 
 function SavedCaseRow({ workspace }: { workspace: PropertyCaseWorkspace }) {
   const identity = resolveCommercialState("identity", workspace.identity.state);
-  return <Panel>
+  const overview = buildWorkspaceOverview(workspace);
+  return <article aria-label={workspace.title} className={styles.caseArticle}><Panel>
     <div className={styles.rowHeading}>
       <div><h2 className="text-subsection">{workspace.title}</h2><p className="text-dense">{workspace.displayAddress}</p></div>
       <StatusLabel semanticRole={identity.role}>{identity.label["zh-TW"]}</StatusLabel>
     </div>
-    <p className="text-meta">{workspace.assumptions.activePriceWan ? formatWan(workspace.assumptions.activePriceWan) : "價格未提供"} · 更新於 {formatExactDate(workspace.updatedAt)}</p>
+    <p className="text-meta">{workspace.assumptions.activePriceWan ? formatWan(workspace.assumptions.activePriceWan) : "價格未提供"} · 已儲存快照 {formatExactDate(workspace.updatedAt)}</p>
+    <p className="text-dense">{overview.unresolvedCount > 0 ? `${overview.unresolvedCount} 項待確認或限制` : "目前沒有額外待確認摘要"}</p>
     <Link className="ds-button ds-button--primary" href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}>開啟{workspace.title}</Link>
-  </Panel>;
+  </Panel></article>;
 }

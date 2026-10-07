@@ -12,6 +12,7 @@ import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnc
 import { getActionableValuation, getStoredActionableValuation } from "@/lib/valuation-result-state";
 import { compactActionableValuationSummary, compactActionableValuationTrendSummary, compactMarketInsight } from "@/lib/workspace/market-price-persistence";
 import { normalizeStoredFinanceEvidence, type StoredFinanceEvidenceV1 } from "@/lib/workspace/finance-persistence";
+import { buildSavedCaseSnapshotUpdate, type SaveSnapshotIdentityState, type SaveSnapshotResult } from "@/lib/workspace/case-snapshot-save";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -121,6 +122,21 @@ export function saveCase(input: SaveCaseInput): SavedCase | null {
   };
   writeCases([saved, ...readSavedCases()].slice(0, MAX_SAVED_CASES));
   return saved;
+}
+
+export function resaveSavedCaseSnapshot(
+  caseId: string,
+  expected: SavedCaseIdentityExpectation | undefined,
+  identityState: SaveSnapshotIdentityState,
+  expectedUpdatedAt: string,
+  now: () => string = () => new Date().toISOString(),
+): SaveSnapshotResult {
+  const update = buildSavedCaseSnapshotUpdate(readSavedCases(), caseId, expected, identityState, expectedUpdatedAt, now, compactCaseData);
+  if (update.result.status === "saved") {
+    writeCases(update.rows);
+    window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: update.result.saved }));
+  }
+  return update.result;
 }
 
 export function deleteSavedCase(id: string) {
