@@ -1,0 +1,26 @@
+{
+  "candidate_count": 0,
+  "contract": {
+    "code_sha256": "cc85979d26b02650c6ecf670385f79e0121544c923dd92f41eb917372f6eaa23",
+    "cutoff": "2026-10-07T12:58:22.826828+00:00",
+    "observation_at": "2026-10-07T12:58:22.826828+00:00",
+    "python_version": "3.13.14",
+    "registry_sha256": "86f0f999f3f80eaf2ca3594fe15dab9a619695cd8a7fa914a72757bf39d5cbe4",
+    "schema_review_version": "plvr-embedded-schema-detail-audit-v1",
+    "source_contract_sha256": "bef6a9a85746a77104dfdf8171d1cc640e321b41e62bed33b8deb92cccc67e46"
+  },
+  "excluded_count": 37669,
+  "gate": "BLOCKED",
+  "hashes": {
+    "cohort-membership.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exclusions.jsonl": "a7702c0dcc6223ac243c2eafeb730cf026f5cb6b0c6806194011f2086fef9618",
+    "features.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "occurrences.jsonl": "36fbfc5b266fc8d99881cbf41f2481de8e74dc7240b6cd472684f780cff2aea6",
+    "source-records.jsonl": "449c16c4c8a987b4a0523e5cd91307365d6a8695ce28f0afe871a5610144a681",
+    "splits.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targets.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "raw_main_count": 37669,
+  "schema_version": "plvr-offline-recovery-proof-build-v1",
+  "source_manifest_sha256": "be20e41e5fe78f9be7860122094060d9d7e4bf07a5711167033e5f0bcfd3ed27"
+}
