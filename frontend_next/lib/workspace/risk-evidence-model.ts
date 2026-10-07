@@ -51,9 +51,12 @@ export type RiskEvidenceRow = {
 
 export type RiskOverviewHandoff = {
   materialMatchedEvidence: Array<{ key: RiskEvidenceKey; label: string; result: string }>;
+  noMatchEvidence: Array<{ key: RiskEvidenceKey; label: string; result: string }>;
+  unknownOrUnavailableEvidence: Array<{ key: RiskEvidenceKey; label: string; usability: EvidenceUsabilityState; result: string }>;
   unknownOrUnavailableCount: number;
   outstandingVerificationActions: string[];
   evidenceFreshness: string | null;
+  freshnessStatus: "current_query" | "saved_summary" | "stale";
 };
 
 export type RiskEvidenceModel = {
@@ -279,7 +282,8 @@ function uniqueActions(rows: RiskEvidenceRow[]): string[] {
 
 function assemble(rows: RiskEvidenceRow[], checkedAt: string | null, status: RiskEvidenceModel["freshness"]["status"]): RiskEvidenceModel {
   const material = rows.filter((row) => row.matched === true);
-  const unknown = rows.filter((row) => UNKNOWN_STATES.has(row.usability) || row.interpretation === "unknown");
+  const noMatch = rows.filter((row) => row.usability === "no_match");
+  const unknown = rows.filter((row) => row.matched !== true && row.usability !== "no_match" && (UNKNOWN_STATES.has(row.usability) || row.interpretation === "unknown"));
   const verificationActions = uniqueActions(rows);
   return {
     rows,
@@ -289,9 +293,12 @@ function assemble(rows: RiskEvidenceRow[], checkedAt: string | null, status: Ris
     freshness: { checkedAt, status },
     overview: {
       materialMatchedEvidence: material.map((row) => ({ key: row.key, label: row.label, result: row.result })),
+      noMatchEvidence: noMatch.map((row) => ({ key: row.key, label: row.label, result: row.result })),
+      unknownOrUnavailableEvidence: unknown.map((row) => ({ key: row.key, label: row.label, usability: row.usability, result: row.result })),
       unknownOrUnavailableCount: unknown.length,
       outstandingVerificationActions: verificationActions,
       evidenceFreshness: checkedAt,
+      freshnessStatus: status,
     },
   };
 }
@@ -321,18 +328,34 @@ export function buildStoredRiskEvidenceModel(
   reference: StoredTerrainReferenceEvidenceV1,
   options: { stale: boolean; checkedAt: string | null },
 ): RiskEvidenceModel {
-  const usability: EvidenceUsabilityState = options.stale ? "stale" : "limited";
   const rows = reference.layers.flatMap((layer): RiskEvidenceRow[] => {
     const key = storedKey(layer.layer_id);
     if (!key) return [];
+    const usability: EvidenceUsabilityState = options.stale
+      ? "stale"
+      : layer.state === "no_match"
+        ? "no_match"
+        : layer.state === "unavailable" || layer.state === "error"
+          ? "unavailable"
+          : "limited";
+    const matched = !options.stale && layer.state === "available" ? true : usability === "no_match" ? false : null;
+    const result = options.stale
+      ? "此摘要屬於先前物件狀態，不能作為目前證據。"
+      : usability === "no_match"
+        ? "已儲存的查詢摘要為未命中；此結果不代表安全。"
+        : usability === "unavailable"
+          ? "目前無法取得此項已儲存證據，風險仍無法判定。"
+          : matched
+            ? "已儲存摘要記錄此來源曾有符合資料；需重新查詢才能檢視完整結果。"
+            : "此為已儲存的摘要證據；需重新查詢才能檢視完整結果。";
     return [{
       key,
       label: layer.display_name,
       queryStatus: "succeeded",
       usability,
       interpretation: "unknown",
-      matched: null,
-      result: options.stale ? "此摘要屬於先前物件狀態，不能作為目前證據。" : "此為已儲存的摘要證據；需重新查詢才能檢視完整結果。",
+      matched,
+      result,
       source: layer.source_agency ?? layer.source_name,
       ...(layer.source_agency ? { sourceAgency: layer.source_agency } : {}),
       sourceLevel: key === "terrain" ? "not_applicable" : "unknown",
@@ -361,7 +384,7 @@ export function buildStoredRiskEvidenceSnapshot(model: RiskEvidenceModel): Store
     layers: model.rows.map((row) => ({
       layer_id: row.key,
       display_name: row.label,
-      state: row.usability === "no_match" ? "no_match" : row.matched && row.usability === "usable" ? "available" : "limited",
+      state: row.usability === "no_match" ? "no_match" : row.usability === "unavailable" ? "unavailable" : row.matched && row.usability === "usable" ? "available" : "limited",
       source_name: row.source,
       ...(row.sourceAgency ? { source_agency: row.sourceAgency } : {}),
       ...(row.effectivePeriod !== "未知" ? { data_updated_at: row.effectivePeriod } : {}),

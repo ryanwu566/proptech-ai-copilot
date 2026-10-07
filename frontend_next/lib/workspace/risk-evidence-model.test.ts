@@ -125,9 +125,10 @@ function workspace(overrides: Partial<PropertyCaseWorkspace> = {}): PropertyCase
       },
       routeInvalidated: false,
     },
+    risk: null,
     saveState: "saved",
     ...overrides,
-  };
+  } as PropertyCaseWorkspace;
 }
 
 test("matched flood is material evidence without using the backend aggregate score", () => {
@@ -312,10 +313,61 @@ test("fresh mixed risk evidence compacts matched and unavailable rows without ra
   const debrisFlow = snapshot.layers.find((row) => row.layer_id === "debris_flow");
 
   assert.equal(snapshot.status, "partial");
-  assert.equal(debrisFlow?.state, "limited");
+  assert.equal(debrisFlow?.state, "unavailable");
   assert.match(debrisFlow?.caveat ?? "", /無法取得|無法判定/);
   assert.equal("hazards" in snapshot, false);
   assert.equal("hazard_geometries" in snapshot, false);
   assert.equal("checked_at" in snapshot, false);
   assert.ok(normalizeStoredTerrainReferenceEvidence(snapshot));
+});
+
+test("saved risk handoff preserves no-match separately from unknown and never turns it into safety", () => {
+  const model = buildStoredRiskEvidenceModel({
+    schema_version: 1,
+    kind: "terrain_reference",
+    status: "no_match",
+    summary: "已保存查詢摘要。",
+    notice: "未命中不代表沒有風險。",
+    layers: [{
+      layer_id: "flood",
+      display_name: "淹水潛勢",
+      state: "no_match",
+      source_name: "水利署",
+      coverage_status: "covered",
+      caveat: "未命中不代表安全。",
+    }],
+  }, { stale: false, checkedAt: "2026-10-07T03:00:00.000Z" });
+
+  assert.equal(model.rows[0]?.usability, "no_match");
+  assert.equal(model.rows[0]?.interpretation, "unknown");
+  assert.deepEqual(model.overview.noMatchEvidence, [{ key: "flood", label: "淹水潛勢", result: "已儲存的查詢摘要為未命中；此結果不代表安全。" }]);
+  assert.deepEqual(model.overview.unknownOrUnavailableEvidence, []);
+  assert.equal(model.freshness.status, "saved_summary");
+});
+
+test("saved risk handoff preserves unavailable instead of flattening it to limited", () => {
+  const model = buildStoredRiskEvidenceModel({
+    schema_version: 1,
+    kind: "terrain_reference",
+    status: "partial",
+    summary: "部分來源未完成。",
+    notice: "未知仍為未知。",
+    layers: [{
+      layer_id: "geological_sensitivity",
+      display_name: "地質敏感區",
+      state: "unavailable",
+      source_name: "地質調查及礦業管理中心",
+      coverage_status: "unknown",
+      caveat: "來源目前無法取得。",
+    }],
+  }, { stale: false, checkedAt: "2026-10-07T03:00:00.000Z" });
+
+  assert.equal(model.rows[0]?.usability, "unavailable");
+  assert.equal(model.rows[0]?.interpretation, "unknown");
+  assert.deepEqual(model.overview.unknownOrUnavailableEvidence, [{
+    key: "geological_sensitivity",
+    label: "地質敏感區",
+    usability: "unavailable",
+    result: "目前無法取得此項已儲存證據，風險仍無法判定。",
+  }]);
 });

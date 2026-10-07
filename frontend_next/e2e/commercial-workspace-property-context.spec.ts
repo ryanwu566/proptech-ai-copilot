@@ -90,8 +90,8 @@ test("stale identity remains explicit in the header and Overview blocker", async
   await page.goto("/cases/saved-case-identity/overview");
 
   await expect(page.getByRole("banner", { name: "目前物件" })).toContainText("物件資料已變更，需重新確認");
-  await expect(page.getByRole("heading", { name: "需先處理" })).toBeVisible();
-  await expect(page.getByText("重新確認目前物件")).toBeVisible();
+  const attentionGroup = page.getByRole("heading", { name: "需要特別留意" }).locator("..");
+  await expect(attentionGroup.getByText("重新確認目前物件", { exact: true })).toBeVisible();
 });
 
 test("workspace shell has no document overflow at 390px", async ({ page }) => {

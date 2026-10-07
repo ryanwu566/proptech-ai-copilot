@@ -26,7 +26,7 @@ export function PropertyContextHeader() {
       </div>
       <div className="workspace-property-header__secondary">
         <span><span className="text-meta">{priceLabels[workspace.assumptions.activePriceBasis]}</span> <strong data-numeric>{activePrice ? formatWan(activePrice) : "未提供"}</strong></span>
-        <StatusLabel semanticRole="success">已儲存</StatusLabel>
+        <StatusLabel semanticRole="success">已儲存快照</StatusLabel>
         <span className="text-meta">最後儲存：{formatExactDate(workspace.updatedAt)}</span>
       </div>
       {workspace.identity.state === "revalidation_required" && <p className="workspace-property-header__warning">先前受影響的證據保留為過期狀態，重新確認前不會顯示為目前證據。</p>}

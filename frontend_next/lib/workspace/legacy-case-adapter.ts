@@ -13,6 +13,8 @@ import { buildLocationWorkspaceSnapshot } from "./location-context.ts";
 import { buildFinanceModel } from "./finance-model.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { restoreFinanceModelFromSnapshot } from "./finance-persistence.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { buildStoredRiskEvidenceModel } from "./risk-evidence-model.ts";
 
 function positive(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -149,6 +151,12 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     evidence,
     marketPrice,
     location: buildLocationWorkspaceSnapshot(saved),
+    risk: saved.data.terrainReference
+      ? buildStoredRiskEvidenceModel(saved.data.terrainReference, {
+          stale,
+          checkedAt: saved.data.riskEvidenceCheckedAt ?? null,
+        })
+      : null,
     finance,
     saveState: "saved",
   };

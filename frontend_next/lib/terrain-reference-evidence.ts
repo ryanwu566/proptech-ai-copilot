@@ -160,7 +160,7 @@ function emptyEvidence(status: TerrainReferenceState, summary: string, reason: s
   return { status, notice: TERRAIN_REFERENCE_NOTICE, summary, layers, attachable: false, attachDisabledReason: attachDisabledReason || reason };
 }
 
-const STORED_STATES = new Set<TerrainReferenceState>(["available", "partial", "limited", "no_match"]);
+const STORED_STATES = new Set<TerrainReferenceState>(["available", "partial", "limited", "unavailable", "no_match"]);
 const EVIDENCE_KEYS = new Set(["status", "notice", "summary", "layers", "attachable", "attachDisabledReason"]);
 const TERRAIN_REFERENCE_KEYS = new Set(["schema_version", "kind", "status", "summary", "notice", "layers"]);
 const TERRAIN_REFERENCE_LAYER_KEYS = new Set(["layer_id", "display_name", "state", "source_name", "source_agency", "data_updated_at", "data_version", "coverage_status", "caveat"]);

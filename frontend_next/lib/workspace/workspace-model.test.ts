@@ -258,3 +258,26 @@ test("finance-only area assumptions reopen current when the case area is missing
   assert.equal(workspace.finance?.loan.annualInterestRate, 2.65);
   assert.equal(workspace.finance?.loan.loanYears, 25);
 });
+
+test("legacy adapter attaches only the bounded saved risk model to the workspace", () => {
+  const row = savedCase({ anchor: identityAnchor() });
+  (row.data as typeof row.data & { terrainReference?: unknown; riskEvidenceCheckedAt?: string }).terrainReference = {
+    schema_version: 1,
+    kind: "terrain_reference",
+    status: "partial",
+    summary: "已保存一項未命中與一項無法取得。",
+    notice: "未命中或無法取得都不代表安全。",
+    layers: [
+      { layer_id: "flood", display_name: "淹水潛勢", state: "no_match", source_name: "水利署", coverage_status: "covered", caveat: "仍需現場查證。" },
+      { layer_id: "geological_sensitivity", display_name: "地質敏感區", state: "unavailable", source_name: "地質調查及礦業管理中心", coverage_status: "unknown", caveat: "來源目前無法取得。" },
+    ],
+  };
+  (row.data as typeof row.data & { riskEvidenceCheckedAt?: string }).riskEvidenceCheckedAt = NOW;
+
+  const workspace = adaptSavedCaseToWorkspace(row as never);
+
+  assert.equal(workspace.risk?.freshness.status, "saved_summary");
+  assert.equal(workspace.risk?.rows[0]?.usability, "no_match");
+  assert.equal(workspace.risk?.rows[1]?.usability, "unavailable");
+  assert.equal(workspace.risk?.rows.some((risk) => "hazards" in risk || "hazard_geometries" in risk), false);
+});

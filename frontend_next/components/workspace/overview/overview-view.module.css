@@ -1,0 +1,28 @@
+.page { display: grid; gap: var(--space-8); min-width: 0; }
+.decisionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
+.decisionGroup { min-width: 0; border-top: 2px solid var(--border-strong); padding-top: var(--space-3); }
+.decisionGroup h3 { margin: 0 0 var(--space-2); }
+.list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.list li { min-width: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); }
+.list strong, .list p { overflow-wrap: anywhere; }
+.list p { margin: var(--space-1) 0 0; color: var(--text-muted); }
+.list a { display: inline-block; margin-top: var(--space-2); color: var(--action); font-weight: 650; }
+.domain { border-top: 1px solid var(--border-strong); padding-top: var(--space-5); }
+.domainBody { display: grid; gap: var(--space-4); min-width: 0; }
+.domainAction { margin-top: var(--space-4); }
+.metricRows { display: grid; gap: 0; border-block: 1px solid var(--border-subtle); }
+.routeSummary { display: grid; gap: var(--space-2); }
+.routeSummary p { margin: 0; }
+.compactList { margin: 0; padding-left: 1.25rem; color: var(--text-muted); }
+.savePanel { display: grid; gap: var(--space-4); align-items: start; }
+.savePanel p { margin: 0; }
+.provenance { display: grid; gap: var(--space-2); margin: 0; }
+.provenance div { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: var(--space-3); }
+.provenance dt { color: var(--text-muted); }
+.provenance dd { margin: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 767px) {
+  .decisionGrid { grid-template-columns: 1fr; }
+  .provenance div { grid-template-columns: 1fr; gap: 0; }
+  .domainAction :global(.ds-button), .savePanel :global(.ds-button) { width: 100%; min-height: 44px; }
+}
