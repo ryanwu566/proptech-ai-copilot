@@ -72,8 +72,12 @@ test("point-reference result and marker render without waiting for slow base til
   const mapShellMs = Date.now() - started;
   await expect(page.getByTestId("terrain-analyzed-marker")).toBeVisible();
   await expect(page.getByTestId("cadastral-availability-status")).toContainText("未設定可用的地籍圖資服務");
-  await expect(page.getByTestId("cadastral-point-reference-limitation")).toContainText("POINT_REFERENCE_ONLY");
-  await expect(page.getByTestId("cadastral-point-reference-limitation")).toContainText("系統未取得法定地籍向量");
+  await expect(page.getByTestId("terrain-cadastral-evidence")).toHaveAttribute("data-parcel-status", "point_reference_only");
+  const pointReferenceLimitation = page.getByTestId("cadastral-point-reference-limitation");
+  await expect(pointReferenceLimitation).toContainText("點位參考模式");
+  await expect(pointReferenceLimitation).toContainText("系統未取得法定地籍向量");
+  await expect(pointReferenceLimitation).not.toContainText("POINT_REFERENCE_ONLY");
+  await expect(page.getByTestId("terrain-cadastral-map").locator(".leaflet-overlay-pane polygon")).toHaveCount(0);
   const totalUsefulResultMs = Date.now() - started;
   expect(totalUsefulResultMs).toBeLessThan(5000);
   console.log(`GEOSPATIAL_LOCAL_TIMING=${JSON.stringify({ terrain_result_visible_ms: terrainResultVisibleMs, cadastral_map_shell_ms: mapShellMs, total_useful_result_ms: totalUsefulResultMs })}`);
