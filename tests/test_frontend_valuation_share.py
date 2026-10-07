@@ -2,10 +2,22 @@
 
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 HELPER = (ROOT / "frontend_next" / "lib" / "valuation-share.ts").read_text(encoding="utf-8")
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+
+
+def _share_initialization_effect(source: str) -> str:
+    start = source.index("const shared=!embedded?parseValuationShareParams(window.location.search):undefined;")
+    end = source.index("useEffect(()=>{api.valuationDataStatus()", start)
+    return source[start:end]
+
+
+def _assert_share_initialization_does_not_auto_estimate(source: str) -> None:
+    assert "api.valuation(" not in _share_initialization_effect(source)
 
 
 def test_share_link_whitelists_all_valuation_inputs() -> None:
@@ -17,8 +29,28 @@ def test_share_link_whitelists_all_valuation_inputs() -> None:
 def test_share_query_loads_inputs_without_auto_estimate() -> None:
     assert "parseValuationShareParams(window.location.search)" in PAGE
     assert "已載入分享條件，可按下估價重新查詢" in PAGE
-    shared_block = PAGE.split("if(shared){", maxsplit=1)[1].split("}},[]);", maxsplit=1)[0]
-    assert "api.valuation(" not in shared_block
+    shared_block = _share_initialization_effect(PAGE)
+    for assignment in (
+        "setCity(shared.city)",
+        "setDistrict(shared.district)",
+        "setRoad(shared.road)",
+        "setType(shared.building_type)",
+        "setArea(shared.area_ping)",
+        "setAge(shared.building_age_years)",
+        "setFloor(shared.floor)",
+    ):
+        assert assignment in shared_block
+    _assert_share_initialization_does_not_auto_estimate(PAGE)
+
+    estimate_start = PAGE.index("async function estimate()")
+    estimate_end = PAGE.index("const shareInputs:", estimate_start)
+    assert "api.valuation(" in PAGE[estimate_start:estimate_end]
+
+
+def test_share_no_auto_estimate_contract_rejects_an_inserted_call() -> None:
+    injected = PAGE.replace("if(shared){", "if(shared){void api.valuation({});", 1)
+    with pytest.raises(AssertionError):
+        _assert_share_initialization_does_not_auto_estimate(injected)
 
 
 def test_share_and_html_download_buttons_exist_and_are_mobile_safe() -> None:
