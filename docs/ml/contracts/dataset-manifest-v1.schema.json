@@ -1,0 +1,412 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:proptech:ml:dataset-manifest-v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "dataset_version",
+    "target_version",
+    "price_version",
+    "area_version",
+    "feature_schema_version",
+    "feature_columns",
+    "source_ledger_version",
+    "transform_version",
+    "parser_version",
+    "geography_version",
+    "identity_version",
+    "selection_version",
+    "cohort_version",
+    "built_at",
+    "training_data_cutoff",
+    "availability_cutoff",
+    "label_observation_cutoff",
+    "timezone",
+    "prediction_framing",
+    "feature_cutoff_policy",
+    "row_count",
+    "raw_row_count",
+    "excluded_row_count",
+    "dataset_checksum",
+    "exclusion_ledger_checksum",
+    "cohort_definition_hash",
+    "source_ledger_checksum",
+    "transform_code_checksum",
+    "builder_git_commit",
+    "dependency_lock_checksum",
+    "registry_checksum",
+    "split_manifest_checksum",
+    "preprocessing_manifest_checksum",
+    "source_releases",
+    "subgroup_counts",
+    "artifact_format",
+    "output_sort_key",
+    "complete_coverage_evidence",
+    "subject_attribute_availability_evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "residential-valuation-manifest-v1"
+    },
+    "dataset_version": {
+      "type": "string",
+      "pattern": "^residential-valuation-v1\\."
+    },
+    "target_version": {
+      "const": "residential-unit-ntd-ping-log-v1"
+    },
+    "price_version": {
+      "const": "whole-rights-land-and-residential-building-sale-no-parking-v1"
+    },
+    "area_version": {
+      "const": "registered-transferred-building-including-aux-common-no-parking-v1"
+    },
+    "feature_schema_version": {
+      "const": "residential-model-a-v1"
+    },
+    "feature_columns": {
+      "const": [
+        "county_district",
+        "building_type",
+        "area_ping",
+        "floor",
+        "prediction_year",
+        "prediction_month"
+      ]
+    },
+    "source_ledger_version": {
+      "const": "plvr-ml-release-ledger-v1"
+    },
+    "transform_version": {
+      "const": "plvr-ml-foundation-transform-v1"
+    },
+    "parser_version": {
+      "const": "plvr-ml-strict-parser-v1"
+    },
+    "geography_version": {
+      "const": "plvr-source-county-strict-geography-v1"
+    },
+    "identity_version": {
+      "const": "plvr-county-official-family-v1"
+    },
+    "selection_version": {
+      "const": "plvr-explicit-revision-asof-v1"
+    },
+    "cohort_version": {
+      "const": "residential-apartment-no-parking-v1"
+    },
+    "built_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "training_data_cutoff": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "availability_cutoff": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "label_observation_cutoff": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "timezone": {
+      "const": "Asia/Taipei"
+    },
+    "prediction_framing": {
+      "const": "public_information_research"
+    },
+    "feature_cutoff_policy": {
+      "const": "prediction_clock_and_independently_available_subject_attributes"
+    },
+    "row_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "raw_row_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "excluded_row_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "dataset_checksum": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "exclusion_ledger_checksum": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "cohort_definition_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "source_ledger_checksum": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "transform_code_checksum": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "builder_git_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "dependency_lock_checksum": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "registry_checksum": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "split_manifest_checksum": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "preprocessing_manifest_checksum": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "source_releases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_release_id",
+          "archive_sha256",
+          "schema_sha256",
+          "source_release_available_at",
+          "availability_evidence",
+          "members"
+        ],
+        "properties": {
+          "source_release_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "archive_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "schema_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "source_release_available_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availability_evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "sha256",
+              "locator",
+              "version"
+            ],
+            "properties": {
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "locator": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "members": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "member_name",
+                "member_sha256",
+                "schema_sha256",
+                "raw_row_count",
+                "accepted_row_count",
+                "rejected_row_count"
+              ],
+              "properties": {
+                "member_name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "member_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "schema_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "raw_row_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "accepted_row_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "rejected_row_count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "subgroup_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "county_district",
+        "building_type",
+        "transaction_month"
+      ],
+      "properties": {
+        "county_district": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "rows"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rows": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "building_type": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "rows"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rows": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "transaction_month": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label",
+              "rows"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rows": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "artifact_format": {
+      "const": "canonical-jsonl-utf8-v1"
+    },
+    "output_sort_key": {
+      "const": [
+        "transaction_family_id",
+        "version_id"
+      ]
+    },
+    "complete_coverage_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "locator",
+        "version"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "subject_attribute_availability_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "locator",
+        "version"
+      ],
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "locator": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
