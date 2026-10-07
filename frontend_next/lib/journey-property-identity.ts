@@ -448,17 +448,61 @@ export function normalizeJourneyPropertyIdentityAnchor(value: unknown): JourneyP
   };
 }
 
+const TAIWAN_JURISDICTIONS = [
+  "基隆市", "臺北市", "新北市", "桃園市", "新竹市", "新竹縣", "苗栗縣", "臺中市", "彰化縣", "南投縣",
+  "雲林縣", "嘉義市", "嘉義縣", "臺南市", "高雄市", "屏東縣", "宜蘭縣", "花蓮縣", "臺東縣", "澎湖縣",
+  "金門縣", "連江縣",
+] as const;
+
 function comparableAddress(value: string): string {
-  return value
+  const normalized = value
     .normalize("NFKC")
     .replace(/^\d{3}(?:\d{2,3})?/u, "")
     .replace(/\u53f0/gu, "\u81fa")
-    .replace(/[\s,，.。-]+/gu, "")
+    .replace(/[\s,，.。]+/gu, "")
     .toLocaleLowerCase("zh-TW");
+  return normalized.replace(
+    new RegExp(`^臺灣(?=${TAIWAN_JURISDICTIONS.join("|")})`, "u"),
+    "",
+  );
+}
+
+type StructuredTaiwanAddress = {
+  municipality: string;
+  district: string;
+  thoroughfare: string;
+  houseNumber: string;
+};
+
+function structuredTaiwanAddress(value: string): StructuredTaiwanAddress | null {
+  const canonical = comparableAddress(value);
+  const municipality = TAIWAN_JURISDICTIONS.find((item) => canonical.startsWith(item));
+  if (!municipality) return null;
+  const afterMunicipality = canonical.slice(municipality.length);
+  const districtMatch = afterMunicipality.match(/^(.+?(?:區|鄉|鎮|市))/u);
+  if (!districtMatch) return null;
+  const district = districtMatch[1];
+  let local = afterMunicipality.slice(district.length);
+  const villageMatch = local.match(/^(.+?[里村])(?=.+?(?:路|街|大道))/u);
+  if (villageMatch) local = local.slice(villageMatch[1].length);
+  const houseMatch = local.match(/^(.+?(?:路|街|大道).+?)([0-9一二三四五六七八九十百千]+(?:之[0-9一二三四五六七八九十百千]+)?號)$/u)
+    ?? local.match(/^(.+?(?:路|街|大道))([0-9一二三四五六七八九十百千]+(?:之[0-9一二三四五六七八九十百千]+)?號)$/u);
+  if (!houseMatch) return null;
+  return { municipality, district, thoroughfare: houseMatch[1], houseNumber: houseMatch[2] };
 }
 
 export function areJourneyPropertyAddressesEquivalent(left: string, right: string): boolean {
-  return comparableAddress(left) === comparableAddress(right);
+  const leftCanonical = comparableAddress(left);
+  const rightCanonical = comparableAddress(right);
+  if (leftCanonical === rightCanonical) return true;
+  const leftStructured = structuredTaiwanAddress(leftCanonical);
+  const rightStructured = structuredTaiwanAddress(rightCanonical);
+  return leftStructured !== null
+    && rightStructured !== null
+    && leftStructured.municipality === rightStructured.municipality
+    && leftStructured.district === rightStructured.district
+    && leftStructured.thoroughfare === rightStructured.thoroughfare
+    && leftStructured.houseNumber === rightStructured.houseNumber;
 }
 
 function coordinateDistanceMetres(
@@ -510,8 +554,8 @@ export function reconcileJourneyPropertyIdentityAnchor(
 
   const conflicts: JourneyPropertyIdentityAnchorV1["revalidation"]["conflicts"] = [];
   if (contextAddress && acceptedAddress && (
-    comparableAddress(contextAddress) !== comparableAddress(stored.address_input)
-    || comparableAddress(acceptedAddress) !== comparableAddress(priorComparableAddress)
+    !areJourneyPropertyAddressesEquivalent(contextAddress, stored.address_input)
+    || !areJourneyPropertyAddressesEquivalent(acceptedAddress, priorComparableAddress)
   )) conflicts.push("normalized_address");
   else if (resolvedCoordinates && (!contextAddress || !acceptedAddress)) conflicts.push("incomparable_identity");
 

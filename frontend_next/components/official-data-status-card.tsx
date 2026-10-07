@@ -2,6 +2,7 @@
 
 import type { OfficialDataSourceStatus } from "@/lib/api";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { officialRuntimeStatusLabel } from "@/lib/commercial/presentation";
 
 type TaxTrace = {
   rule_version: string;
@@ -24,7 +25,7 @@ export function OfficialDataStatusCard({ sources }: { sources: OfficialDataSourc
   const { locale } = useExperienceLocale();
   const t = copy[locale] ?? copy["zh-TW"];
   if (!sources.length) return null;
-  return <details className="rounded-xl border border-slate-200 bg-slate-50"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-slate-800">{t.sourceTitle}</summary><div className="space-y-2 px-3 pb-3 text-[11px] leading-5 text-slate-700"><p>{t.terrainNote}</p>{sources.map((source) => <div key={source.provider_id} className="rounded-lg border border-slate-200 bg-white p-3"><div className="flex flex-wrap items-center justify-between gap-2"><strong>{source.dataset_name}</strong><span className="rounded-full bg-slate-100 px-2 py-0.5">{source.runtime_status === "not_checked" ? t.notChecked : source.runtime_status}</span></div><p className="mt-1">{source.agency} · {t.status}: {source.runtime_status === "not_checked" ? t.notChecked : source.runtime_status}</p><p>{t.version}: {source.published_version ?? "unknown"} · {t.effective}: {source.effective_date ?? "unknown"}</p><p>{t.access}: {source.access_mode} · {t.auth}: {source.authentication_mode}</p><p className="mt-1 text-amber-800">{t.limitation}: {source.limitation_summary}</p></div>)}</div></details>;
+  return <details className="rounded-xl border border-slate-200 bg-slate-50"><summary className="cursor-pointer px-3 py-2.5 text-xs font-bold text-slate-800">{t.sourceTitle}</summary><div className="space-y-2 px-3 pb-3 text-[11px] leading-5 text-slate-700"><p>{t.terrainNote}</p>{sources.map((source) => { const status = officialRuntimeStatusLabel(source.runtime_status, locale); return <div key={source.provider_id} className="rounded-lg border border-slate-200 bg-white p-3"><div className="flex flex-wrap items-center justify-between gap-2"><strong>{source.dataset_name}</strong><span className="rounded-full bg-slate-100 px-2 py-0.5">{status}</span></div><p className="mt-1">{source.agency} · {t.status}: {status}</p><p>{t.version}: {source.published_version ?? "—"} · {t.effective}: {source.effective_date ?? "—"}</p><p>{t.access}: {source.access_mode} · {t.auth}: {source.authentication_mode}</p><p className="mt-1 text-amber-800">{t.limitation}: {source.limitation_summary}</p></div>;})}</div></details>;
 }
 
 export function OfficialTaxRuleStatusCard({ trace }: { trace?: TaxTrace }) {

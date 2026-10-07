@@ -25,6 +25,7 @@ import {
   type RiskQueryContext,
 } from "@/lib/workspace/risk-evidence-model";
 import { RiskEvidenceMap } from "./risk-evidence-map";
+import { riskSummaryCounts } from "@/lib/workspace/risk-presentation";
 import styles from "./risk-environment.module.css";
 
 const UNKNOWN_USABILITY = new Set(["limited", "unavailable", "stale", "unsupported", "no_coverage"]);
@@ -59,6 +60,7 @@ export function RiskEnvironmentView() {
   const model = freshModel ?? savedModel;
   const selectedRow = model?.rows.find((row) => row.key === selectedKey) ?? model?.rows[0];
   const coordinates = workspace.identity.anchor?.coordinates;
+  const summaryCounts = riskSummaryCounts(model);
 
   useEffect(() => {
     latestContext.current = queryContext;
@@ -109,8 +111,8 @@ export function RiskEnvironmentView() {
 
     <Section title="重要風險證據" description="摘要只計數已符合的來源證據與仍未知的項目，不合併成安全分數。">
       <SummaryStrip label="風險證據摘要">
-        <MetricItem label="符合來源定義" value={model?.materialEvidenceCount ?? 0} unit="項" note="逐項判讀，不跨圖層比較嚴重度" />
-        <MetricItem label="未知／無法取得" value={model?.unknownEvidenceCount ?? (queryContext ? 0 : 1)} unit="項" note="保持可見，待後續查證" />
+        <MetricItem label="符合來源定義" value={summaryCounts.material} unit={model ? "項" : undefined} note="逐項判讀，不跨圖層比較嚴重度" />
+        <MetricItem label="未知／無法取得" value={summaryCounts.unknown} unit={model ? "項" : undefined} note="保持可見，待後續查證" />
         <MetricItem label="證據時間" value={when(model?.freshness.checkedAt)} note={freshModel ? "本次查詢" : savedModel ? "已儲存摘要" : "尚未查詢"} />
       </SummaryStrip>
       {savedModel && !freshModel && <Message variant={workspace.identity.state === "revalidation_required" ? "warning" : "information"} title="已儲存的摘要證據">

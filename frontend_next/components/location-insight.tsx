@@ -13,6 +13,7 @@ import type { RuntimeCopyKey } from "@/lib/runtime-copy";
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 import { GoogleLocationVisualContext } from "@/components/google-location-visual-context";
 import { DemographicsInsightCard } from "@/components/demographics-insight-card";
+import { evidenceStatusLabel } from "@/lib/commercial/presentation";
 
 
 
@@ -207,8 +208,8 @@ function ListCard({ title, items }: { title: string; items: string[] }) {
 }
 
 function DataQuality({ result }: { result: LocationInsightResult }) {
-  const { copy } = useExperienceLocale();
-  return <DetailDisclosure title={copy("location.dataQuality")}><div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"><strong>{copy("common.dataLimit")}: {result.data_quality.status}</strong><ul className="mt-1 space-y-1">{result.data_quality.warnings.map((item) => <li key={item}>• {item}</li>)}</ul></div></DetailDisclosure>;
+  const { copy, locale } = useExperienceLocale();
+  return <DetailDisclosure title={copy("location.dataQuality")}><div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"><strong>{copy("common.dataLimit")}: {evidenceStatusLabel(result.data_quality.status, locale)}</strong><ul className="mt-1 space-y-1">{result.data_quality.warnings.map((item) => <li key={item}>• {item}</li>)}</ul></div></DetailDisclosure>;
 }
 
 function poiLabel(key: string, copy: (key: RuntimeCopyKey) => string) {

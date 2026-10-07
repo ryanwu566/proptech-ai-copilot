@@ -143,3 +143,19 @@ test("missing destination is input-required and stale identity blocks current lo
   assert.equal(stale.selectedRoute, undefined);
   assert.ok(stale.unresolved.includes("物件位置已變更，需重新確認"));
 });
+
+test("reopen treats bounded geocoder enrichment as the same browser property", () => {
+  const row = savedCase() as never as ReturnType<typeof savedCase>;
+  row.data.propertyIdentityAnchor.address_input = "台北市信義區市府路1號";
+  row.data.propertyIdentityAnchor.normalized_address = "106台灣臺北市信義區西村里市府路1號";
+  row.data.journeyContext.propertyContext.addressSummary = "臺北市信義區市府路1號";
+  assert.equal(adaptSavedCaseToWorkspace(row as never).identity.state, "confirmed");
+});
+
+test("reopen still requires revalidation for a different house number", () => {
+  const row = savedCase() as never as ReturnType<typeof savedCase>;
+  row.data.propertyIdentityAnchor.address_input = "台北市信義區市府路1號";
+  row.data.propertyIdentityAnchor.normalized_address = "臺北市信義區市府路1號";
+  row.data.journeyContext.propertyContext.addressSummary = "臺北市信義區市府路2號";
+  assert.equal(adaptSavedCaseToWorkspace(row as never).identity.state, "revalidation_required");
+});

@@ -380,7 +380,7 @@ test.describe("TEST 4: Aegis trust label", () => {
 test.describe("TEST 5: Parcel point reference", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("Terrain shows POINT_REFERENCE_ONLY without parcel geometry", async ({ page }) => {
+  test("Terrain shows point-reference limitations without parcel geometry", async ({ page }) => {
     test.setTimeout(30000);
 
     await page.route("**/terrain-risk/analyze", async (route) => {
@@ -433,10 +433,13 @@ test.describe("TEST 5: Parcel point reference", () => {
     // Hard assert: parcel status
     await expect(cadastral).toHaveAttribute("data-parcel-status", "point_reference_only");
 
-    // Hard assert: POINT_REFERENCE_ONLY text visible
+    // Hard assert: customer copy preserves the point-reference limitation without leaking the raw enum
     const limitation = page.getByTestId("cadastral-point-reference-limitation");
     await expect(limitation).toBeVisible();
-    await expect(limitation).toContainText("POINT_REFERENCE_ONLY");
+    await expect(limitation).toContainText("點位參考模式");
+    await expect(limitation).toContainText("系統未取得法定地籍向量");
+    await expect(limitation).not.toContainText("POINT_REFERENCE_ONLY");
+    await expect(page.getByTestId("terrain-cadastral-map").locator(".leaflet-overlay-pane polygon")).toHaveCount(0);
 
     // Hard assert: LANDSECT semantics
     const landsect = page.getByTestId("landsect-semantics");
@@ -492,14 +495,20 @@ test.describe("TEST 7: Async context race", () => {
 
     let resolveDelayedA: (() => void) | undefined;
     const delayedAGate = new Promise<void>((resolve) => { resolveDelayedA = resolve; });
+    let daanRoadRequests = 0;
+
+    await page.route("**/roads/cities**", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ cities: ["臺北市"], message: "OK" }) });
+    });
 
     await page.route("**/roads/roads?*", async (route) => {
       const url = new URL(route.request().url());
       const district = url.searchParams.get("district") ?? "";
 
       if (district === "大安區") {
-        // DELAY response for A
-        await delayedAGate;
+        daanRoadRequests += 1;
+        // Let deterministic prerequisite initialization finish; delay the later user-triggered A request.
+        if (daanRoadRequests > 1) await delayedAGate;
         await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ city: "臺北市", district: "大安區", roads: ["忠孝東路四段", "和平東路二段"], message: "OK" }) });
       } else if (district === "信義區") {
         // B responds immediately
@@ -548,5 +557,6 @@ test.describe("TEST 7: Async context race", () => {
     expect(finalRoads).toContain("信義路五段");
     expect(finalRoads).not.toContain("忠孝東路四段");
     expect(finalRoads).not.toContain("和平東路二段");
+    expect(daanRoadRequests).toBeGreaterThanOrEqual(2);
   });
 });
