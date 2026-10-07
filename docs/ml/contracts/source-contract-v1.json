@@ -1,0 +1,73 @@
+{
+  "schema_version": "plvr-ml-source-contract-v1",
+  "source_dataset_id": "moi-plvr-existing-sale-main-25119",
+  "agency": "Ministry of the Interior, Department of Land Administration",
+  "catalog_url": "https://data.gov.tw/dataset/25119",
+  "sale_main_member_pattern": "^[a-z]_lvr_land_a\\.csv$",
+  "source_county_code_reference": "services/plvr_import_service.py FILE_CITY_MAP at foundation starting SHA; pinned offline copy in scripts/ml/semantics.py",
+  "required_package_members": [
+    "MANIFEST.CSV",
+    "schema-main.csv",
+    "schema-build.csv",
+    "schema-land.csv",
+    "schema-park.csv"
+  ],
+  "schema_policy": "Preserve exact embedded schemas and hashes. These filenames are an expected contract, not evidence of bytes available locally. Review actual package spelling before parser onboarding; do not guess aliases.",
+  "historical_original_filename_metadata": {
+    "evidence": "Ignored artifacts/plvr_source_manifest.json, verified metadata digest 18203c6347cd2e7c0fd4f274ec1c6e6b3f49cef8d4f890099a01ccacb9d0aa06; inherited claims, bytes absent",
+    "season": "lvr_landcsv.zip",
+    "history": "opendata.zip",
+    "current_20260811": "current-20260811.zip",
+    "limitation": "Acquisition metadata may contain a local fallback filename when Content-Disposition is absent; do not claim every value is an authenticated server filename."
+  },
+  "cohort_policy": {
+    "transaction_target": "房地(土地+建物)",
+    "main_use": "住家用",
+    "building_types": ["住宅大樓", "華廈", "公寓"],
+    "rights": "verified full rights, one dwelling, exactly one building; land parcels may exceed one with verified dwelling land interests",
+    "parking": "NO_PARKING_CONFIRMED only",
+    "area_ping_inclusive": [5, 150],
+    "unit_price_ntd_ping_inclusive": [10000, 5000000],
+    "official_unit_sqm_tolerance": "max(1 NTD/m², 0.001 * raw total / raw area)",
+    "floor": "one above-ground floor, 1 <= floor <= total floors <= 100",
+    "notes": "present and blank; reviewed special_transaction is false",
+    "time": "validated full transaction day; effective day no later than evidenced public availability or cutoff",
+    "age_and_road": "excluded from v1 features",
+    "identity": "unambiguous evidenced official ID namespace; explicit revisions selected before cohort filters"
+  },
+  "parser_version": "plvr-ml-strict-parser-v1",
+  "transform_version": "plvr-ml-foundation-transform-v1",
+  "raw_required_fields": [
+    "交易標的",
+    "主要用途",
+    "建物型態",
+    "交易年月日",
+    "交易筆棟數",
+    "車位類別",
+    "車位總價元",
+    "車位移轉總面積平方公尺",
+    "建物移轉總面積平方公尺",
+    "總價元",
+    "移轉層次",
+    "總樓層數",
+    "鄉鎮市區",
+    "編號",
+    "備註"
+  ],
+  "raw_optional_fields": [
+    "縣市",
+    "單價元平方公尺",
+    "建築完成年月"
+  ],
+  "numeric_policy": "Raw base-10 decimal strings; finite positive target quantities; Decimal precision 28; 0.3025 ping per square metre; no pre-rounding; natural log serialized as finite float64.",
+  "release_ledger_schema": "release-ledger-v1.schema.json",
+  "staging_occurrence_schema": "staging-occurrence-v1.schema.json",
+  "dataset_manifest_schema": "dataset-manifest-v1.schema.json",
+  "rights_policy": "Single-building count and blank notes do not prove full rights or one dwelling. Require externally reviewed source/detail evidence with immutable checksum/locator/version; otherwise exclude.",
+  "parking_policy": "Zero parking count, reviewed zero detail count, blank type and nonpositive-free zero price/area must agree. Blank price/area require explicit reviewed schema meaning. Positive signal always excludes.",
+  "area_policy": "Registered transferred building area including ancillary/common parts; no parking. Evidence must establish compatible full-rights basis and source definition. Never call it interior floor area.",
+  "availability_policy": "Exact historical availability or conservative authenticated public observation bound. Never infer from scheduled days, release labels, registration periods or acquisition claims.",
+  "identity_policy": "County/type/dataset-scoped official ID only with reviewed namespace/reuse evidence; preserve all occurrence locators and explicit predecessor edges; quarantine ambiguity.",
+  "evidence_policy": "References are supplied by a reviewed recovery/staging process. The aggregate audit checks consistency, not authenticity. Synthetic test references never qualify as source evidence.",
+  "build_status": "FOUNDATION_ONLY; full archive parser/detail attestation and versioned dataset builder remain prerequisites."
+}

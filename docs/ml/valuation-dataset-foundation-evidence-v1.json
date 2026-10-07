@@ -1,0 +1,143 @@
+{
+  "canonical_evidence_sha256": "bf7c1acf60b707f0517a32a3699aba0ba4ee57394e4da9f18a9eceb9565b908d",
+  "cohort_definition_hash": "bef6a9a85746a77104dfdf8171d1cc640e321b41e62bed33b8deb92cccc67e46",
+  "cohort_funnel": [
+    {
+      "excluded_count": 72,
+      "reason": "demo_source_excluded",
+      "remaining_count": 451672,
+      "stage": "legacy_official_population"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "parse_valid"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "geography_valid"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "residential_use"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "rights_valid"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "property_type_supported"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "parking_safe"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "target_valid"
+    },
+    {
+      "excluded_count": null,
+      "reason": "raw_fields_and_per_row_source_evidence_unavailable",
+      "remaining_count": null,
+      "stage": "physical_valid"
+    }
+  ],
+  "cohort_version": "residential-apartment-no-parking-v1",
+  "duplicate_revision_findings": {
+    "dedupe_key_duplicate_groups": 0,
+    "dedupe_key_excess_rows": 0,
+    "dedupe_key_groups": 451672,
+    "max_rounded_fact_group": 14,
+    "rounded_fact_collision_excess": 569,
+    "rounded_fact_collision_groups": 457,
+    "rounded_fact_collision_rows": 1026,
+    "rounded_fact_groups": 451103
+  },
+  "evidence_basis": "canonical ML-A aggregates inherited; current bounded local inventory; no database recount or raw row export",
+  "final_blockers": {
+    "B1": "Recover raw sale-main, matching schemas/details, and residential/rights/area/parking proof.",
+    "B2": "Establish evidenced availability and complete ordered revision/cancellation history.",
+    "B3": "Verify source county and official ID namespace; quarantine unresolved conflicts.",
+    "B4": "Restore exact bytes and demonstrate two complete offline dataset builds with matching hashes.",
+    "B5": "Measure actual eligible chronological volume, coverage and label maturity after B1–B4.",
+    "B6": "Strict parser fixtures pass; real-release schema/detail integration remains unverified."
+  },
+  "final_candidate_cohort": null,
+  "geography": {
+    "classification_limits": "Cross-county presence is diagnostic, not a mapping. Historical/encoding/malformed categories describe observable labels; source causes remain unverified without bytes.",
+    "counts": {
+      "city_level_only": 10974,
+      "current_registry_mismatch": 115113,
+      "current_registry_plausible": 325585
+    },
+    "failure_root_cause": "Prior forensic reports identify import county contamination; aggregate labels cannot establish each row's source county.",
+    "mismatch_with_district_found_in_other_county_rows": 115113,
+    "source_proven_repairs_applied": 0,
+    "tai_variant_label_rows": 211170
+  },
+  "identity_disposition": "457 fact collision groups / 1026 rows unresolved; no deletions or merges",
+  "lineage_completeness": {
+    "exact_archives_verified": 0,
+    "historical_archive_hash_claims": 17,
+    "known_historical_publication_timestamps": 0,
+    "legacy_rows_with_proven_release_join": 0,
+    "residential_rights_area_parking_proof": "unavailable"
+  },
+  "ml_b_may_begin": false,
+  "parking_basis": "legacy schema has no parking fields; zero confirmed is an evidence count, not actual no-parking population",
+  "parking_classification": {
+    "NO_PARKING_CONFIRMED": 0,
+    "PARKING_PRESENT": 0,
+    "PARKING_SEMANTICS_AMBIGUOUS": 0,
+    "UNKNOWN": 451672
+  },
+  "parser_version": "plvr-ml-strict-parser-v1",
+  "raw_source_reproducibility": "NOT_DEMONSTRATED",
+  "readiness": "BLOCKED",
+  "registry_sha256": "86f0f999f3f80eaf2ca3594fe15dab9a619695cd8a7fa914a72757bf39d5cbe4",
+  "repository_checksum_policy": "canonical JSON for registry/cohort; UTF-8 LF-normalized code; archives remain exact-byte SHA256",
+  "schema_version": "ml-foundation-aggregate-evidence-v1",
+  "source_counts": {
+    "demo_excluded": 72,
+    "historical_declared_bytes": 253796255,
+    "historical_releases": 17,
+    "legacy_official_observed": 451672,
+    "local_recovery_status_counts": {
+      "MISSING": 17
+    },
+    "official_staging_rows_audited": 0,
+    "type_only_residential_proxy": 351286
+  },
+  "source_ledger_sha256": "8423f6ec5c7149bdc131878c477e58e325075016237093334067f5055af84d42",
+  "starting_sha": "9435233ca38843dbeabbe8327148acd199f405ee",
+  "target_valid_candidate_count": null,
+  "target_validity": {
+    "legacy_gross_area_mismatch_gt_1pct": 76210,
+    "verified": null
+  },
+  "temporal_field_availability": {
+    "age_feature": "DEFERRED; month-age computation tested only on fixtures",
+    "completion_date": "absent",
+    "ingestion": "present; not publication",
+    "legacy_transaction_precision": "month",
+    "release_availability": "absent",
+    "transformation_time": "not row-persisted"
+  },
+  "transform_code_checksum": "01cd857cc0bcbdfbc7e4073d928fbc89f05cd4b82b96de0e92cc6feed05cb705",
+  "transform_version": "plvr-ml-foundation-transform-v1"
+}
