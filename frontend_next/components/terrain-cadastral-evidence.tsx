@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CadastralEvidence, LandsectContext, ParcelGeometryEvidence } from "@/lib/api";
 import type { TerrainSurfaceCopy } from "@/lib/surface-copy";
 import type { ParcelGeometryCopy } from "@/lib/parcel-geometry-copy";
+import { pointReferencePresentation } from "@/lib/commercial/presentation";
 
 type OverlayState = "loading" | "visible" | "unavailable" | "not_configured";
 
@@ -53,6 +54,8 @@ export function TerrainCadastralEvidence({
   const parcelBadge = parcelEvidence?.status === "verified_official" ? parcelCopy.officialVector : parcelEvidence?.status === "user_provided" ? parcelCopy.userProvided : parcelCopy.pointReference;
   const consistency = parcelEvidence?.location_geometry_consistency;
   const consistencyLabel = consistency === "POSSIBLE_MISMATCH" ? parcelCopy.mismatch : consistency === "CONSISTENT" ? parcelCopy.consistent : parcelCopy.notChecked;
+  const parcelSourceLabel = pointReferencePresentation(parcelEvidence?.source_label, parcelCopy.pointReference);
+  const parcelLimitation = pointReferencePresentation(parcelEvidence?.limitation, copy.cadastralLimitation);
 
   return <section data-testid="terrain-cadastral-evidence" data-parcel-status={parcelEvidence?.status ?? "point_reference_only"} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 bg-slate-950 px-4 py-4 text-white">
@@ -75,7 +78,7 @@ export function TerrainCadastralEvidence({
       <EvidenceFact title={copy.cadastralStillNeeded} body={consistencyLabel} detail={copy.cadastralManualVerification} />
     </div>
     <div data-testid="cadastral-point-reference-limitation" className={`border-t px-4 py-3 text-xs leading-6 ${(!parcelEvidence || parcelEvidence.status === "point_reference_only") ? "border-rose-200 bg-rose-50 text-rose-950 font-bold" : "border-amber-200 bg-amber-50 text-amber-950"}`}>
-      <strong className="uppercase">{parcelBadge}</strong>{(!parcelEvidence || parcelEvidence.status === "point_reference_only") && <span className="ml-1">{copy.cadastralPointOnly}</span>}<code className="mx-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black">{parcelEvidence?.source_label ?? "POINT_REFERENCE_ONLY"}</code>{parcelEvidence?.limitation ?? copy.cadastralLimitation}
+      <strong>{parcelBadge}</strong>{(!parcelEvidence || parcelEvidence.status === "point_reference_only") && <span className="ml-1">{copy.cadastralPointOnly}</span>}<span className="mx-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black">{parcelSourceLabel}</span>{parcelLimitation}
     </div>
     <div data-testid="parcel-geometry-facts" className="grid gap-2 border-t border-cyan-100 bg-cyan-50 p-4 text-[11px] leading-5 text-cyan-950 sm:grid-cols-2">
       <p>{parcelEvidence?.area_m2 !== undefined ? `${parcelCopy.computedArea}: ${parcelEvidence.area_m2.toLocaleString()} m²` : parcelCopy.pointReference}</p>

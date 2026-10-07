@@ -92,7 +92,9 @@ test("nullable valuation response stays inside the valuation section", async ({ 
   }));
   await page.goto("/");
   await page.locator("aside button", { hasText: "房價估算" }).click({ force: true });
-  await page.locator("#valuation-calculator").getByRole("button", { name: /估算房價/ }).click();
+  const calculator = page.locator("#valuation-calculator");
+  await calculator.locator("select").nth(2).selectOption("中山路");
+  await calculator.getByRole("button", { name: /估算房價/ }).click();
 
   await expect(page.getByText("官方成交證據不足，無法提供估價。")).toBeVisible();
   await expect(page.locator("#main-content")).toBeVisible();

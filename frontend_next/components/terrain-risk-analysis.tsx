@@ -14,6 +14,7 @@ import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getSurfaceCopy, type TerrainSurfaceCopy } from "@/lib/surface-copy";
 import { getParcelGeometryCopy, type ParcelGeometryCopy } from "@/lib/parcel-geometry-copy";
 import { OfficialDataStatusCard } from "@/components/official-data-status-card";
+import { acceptedTerrainAdministrativeContext } from "@/lib/terrain-admin-context";
 
 // Static UI contract vocabulary remains here for existing source-level regression checks;
 // runtime rendering always reads the selected locale from surface-copy.
@@ -187,7 +188,8 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     try {
       onStatusChangeRef.current?.("loading");
       const resolved = location?.resolved_location;
-      const request = api.terrainRiskAnalyze({ address: compactFromLocation ? resolved?.address_label ?? address : address, city, district, road, radius_m: radius, latitude: compactFromLocation ? resolved?.latitude : latitude === "" ? undefined : latitude, longitude: compactFromLocation ? resolved?.longitude : longitude === "" ? undefined : longitude, include_layers: layers });
+      const acceptedAdmin = compactFromLocation ? acceptedTerrainAdministrativeContext(location) : {};
+      const request = api.terrainRiskAnalyze({ address: compactFromLocation ? resolved?.address_label ?? address : address, city: compactFromLocation ? acceptedAdmin.city : city, district: compactFromLocation ? acceptedAdmin.district : district, road: compactFromLocation ? undefined : road, radius_m: radius, latitude: compactFromLocation ? resolved?.latitude : latitude === "" ? undefined : latitude, longitude: compactFromLocation ? resolved?.longitude : longitude === "" ? undefined : longitude, include_layers: layers });
       setProgress("dispatched");
       setProgress("waiting");
       const next = await request;

@@ -351,3 +351,14 @@ test("Overview remains operable and readable at 390px with keyboard disclosure",
   await expect(page.getByText("瀏覽器案件關聯錨點只用於連結這次案件", { exact: false })).toBeVisible();
   await expect(page.getByTestId("overview-save-status")).toHaveAttribute("aria-live", "polite");
 });
+
+test("Risk pre-query summary stays unknown instead of displaying zero findings", async ({ page }) => {
+  await installCases(page, [partialCase()]);
+  await page.goto("/cases/partial-case/risk");
+  const summary = page.getByLabel("風險證據摘要");
+  await expect(summary).toContainText("符合來源定義");
+  await expect(summary).toContainText("未知／無法取得");
+  await expect(summary).toContainText("尚未查詢");
+  await expect(summary).not.toContainText("0 項");
+  await expect(page.locator("body")).not.toContainText(/\b(?:not_started|partial|available|unavailable|no_match|POINT_REFERENCE)\b/);
+});
