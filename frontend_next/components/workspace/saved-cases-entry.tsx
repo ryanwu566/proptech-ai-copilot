@@ -44,14 +44,14 @@ export function SavedCasesEntry() {
 function SavedCaseRow({ workspace }: { workspace: PropertyCaseWorkspace }) {
   const identity = resolveCommercialState("identity", workspace.identity.state);
   const overview = buildWorkspaceOverview(workspace);
-  return <article aria-label={workspace.title} className={styles.caseArticle}><Panel>
+  return <article aria-label={workspace.title} className={styles.caseArticle}><Panel variant="plain">
     <div className={styles.rowHeading}>
       <div><h2 className="text-subsection">{workspace.title}</h2><p className="text-dense">{workspace.displayAddress}</p></div>
       <StatusLabel semanticRole={identity.role}>{identity.label["zh-TW"]}</StatusLabel>
     </div>
     <p className="text-meta">{workspace.assumptions.activePriceWan ? formatWan(workspace.assumptions.activePriceWan) : "價格未提供"} · 已儲存快照 {formatExactDate(workspace.updatedAt)}</p>
     <p className="text-dense">{overview.unresolvedCount > 0 ? `${overview.unresolvedCount} 項待確認或限制` : "目前沒有額外待確認摘要"}</p>
-    <Link className="ds-button ds-button--primary" href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}>開啟{workspace.title}</Link>
-    <Link className="ds-button ds-button--secondary" href={`/cases/${encodeURIComponent(workspace.caseId)}/report`}>產生報告</Link>
+    <div className={styles.actions}><Link className="ds-button ds-button--secondary" href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}>開啟{workspace.title}</Link>
+    <Link className="ds-button ds-button--tertiary" href={`/cases/${encodeURIComponent(workspace.caseId)}/report`}>產生報告</Link></div>
   </Panel></article>;
 }

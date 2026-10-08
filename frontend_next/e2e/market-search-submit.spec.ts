@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
+import { openMethod } from "./helpers/commercial-navigation";
 
 const COUNTY = String.fromCodePoint(0x6843, 0x5712, 0x5e02);
 const DISTRICT = String.fromCodePoint(0x4e2d, 0x58e2, 0x5340);
@@ -29,7 +30,7 @@ const availableResult = {
 
 async function openMarketInsight(page: Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: /Market Insight/ }).first().click();
+  await openMethod(page, "Market Insight");
   await expect(page.getByRole("heading", { name: "Market Insight" })).toBeVisible();
 }
 

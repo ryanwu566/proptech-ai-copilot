@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { HelpCallout } from "@/components/help-callout";
+import { CommercialHome } from "@/components/commercial-home";
 import { HeroIntro } from "@/components/hero-intro";
 import { HoldingCostCalculator, HoldingCostPrefill, HOLDING_COST_SESSION_KEY, prefillHoldingCost } from "@/components/holding-cost-calculator";
 import { LoanCalculator } from "@/components/loan-calculator";
@@ -91,6 +92,12 @@ export default function Home() {
     return () => observer.disconnect();
   }, [locale]);
   const [page, setPage] = useState<AppPage>("儀表板");
+  const [journeyOpen, setJourneyOpen] = useState(false);
+  useEffect(() => {
+    const reveal = () => setJourneyOpen(true);
+    window.addEventListener("proptech:select-journey-step", reveal);
+    return () => window.removeEventListener("proptech:select-journey-step", reveal);
+  }, []);
   const [requestedCase, setRequestedCase] = useState("");
   const [journeyState, setJourneyState] = useState<ClosedLoopJourneyState>(() => createClosedLoopJourneyState());
   const [journeySecondaryTool, setJourneySecondaryTool] = useState<"holding" | "tax">();
@@ -135,6 +142,10 @@ export default function Home() {
     window.addEventListener(CASE_CLEARED_EVENT, clear);
     return () => { window.removeEventListener(GUIDED_DEMO_RESULT_EVENT, applyDemo); window.removeEventListener(CASE_LOADED_EVENT, applySaved); window.removeEventListener(CASE_CLEARED_EVENT, clear); };
   }, []);
+  useEffect(() => {
+    const tool = new URLSearchParams(window.location.search).get("tool");
+    if (["Map Insight Lite", "房價估算", "Market Insight Lite", "Terrain Risk", "TaxOracle", "Aegis-Credit Lite"].includes(tool ?? "")) setPage(tool as AppPage);
+  }, []);
   const openTax = (caseId = "") => { setRequestedCase(caseId); setPage("TaxOracle"); };
   function applyJourneyPropertySelection(selection: PropertyFinderSelection) {
     setJourneyState((current) => updateJourneyProperty(current, {
@@ -175,6 +186,7 @@ export default function Home() {
   };
   const handleVoiceAction = (action: VoiceAction) => {
     if (action.type === "navigate_step") {
+      setJourneyOpen(true);
       setPage("儀表板");
       window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: action.step }));
     }
@@ -183,10 +195,11 @@ export default function Home() {
     if (action.type === "repeat_summary") window.dispatchEvent(new Event("proptech:repeat-read-aloud"));
   };
   function openJourneyStep(step: JourneyStepId) {
+    setJourneyOpen(true);
     window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: step }));
     window.requestAnimationFrame(() => document.getElementById(`journey-stage-${step}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
-  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <div className="space-y-6"><CompetitionMvpBanner onDemo={() => setPage("Competition Demo" as AppPage)} onEvidence={() => setPage("Evidence Center" as AppPage)} onPilot={() => setPage("Closed Pilot")} /><HeroIntro onStart={() => openJourneyStep("property")} onWorkspace={() => openJourneyStep("property")} reportReady={Boolean(journeyState.valuationResult)} onReport={() => openJourneyStep("decision")} /><GuidedPropertyJourney renderStep={renderJourneyStep} /></div> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <div className="space-y-6"><CommercialHome onStart={(address) => { setJourneyState(createClosedLoopJourneyState({ addressSummary: address, selectionStatus: "partial", sourceLabel: copy("common.source") })); setJourneyLocationInitialTool(undefined); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); openJourneyStep("location"); }} onFinder={() => openJourneyStep("property")} /><div hidden={!journeyOpen}><GuidedPropertyJourney renderStep={renderJourneyStep} /></div></div> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 function buildJourneySaveCase(state: ClosedLoopJourneyState): SaveCaseInput {

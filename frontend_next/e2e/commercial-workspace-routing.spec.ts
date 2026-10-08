@@ -27,6 +27,7 @@ function savedCase() {
 
 test("the overview preserves access to the existing case workbench", async ({ page }) => {
   await page.goto("/cases/saved-case-1/overview");
+  await page.getByText("進階／方法：案件規劃工具", { exact: true }).click();
   await page.getByRole("link", { name: "開啟既有案件規劃工具" }).click();
   await expect(page).toHaveURL(/\/cases\/saved-case-1\/planning$/);
   await expect(page.getByTestId("legacy-case-workbench")).toBeVisible();

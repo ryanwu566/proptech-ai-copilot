@@ -33,6 +33,8 @@ test.beforeEach(async ({ page }) => {
 
 test("assistive narration is explicit opt-in and responds to focus", async ({ page }) => {
   await page.goto("/");
+  await page.locator(".commercial-methods > summary").click();
+  await page.locator(".commercial-methods .ds-disclosure > summary").click();
   const toggle = page.getByRole("button", { name: /assistive|輔助|補助|보조/i });
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await toggle.click();

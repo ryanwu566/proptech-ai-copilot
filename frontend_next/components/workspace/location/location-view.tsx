@@ -70,10 +70,11 @@ export function LocationView() {
       <MetricItem label="目的地通勤" value={<StatusLabel semanticRole={readiness.role}>{readiness.label["zh-TW"]}</StatusLabel>} />
     </SummaryStrip>
 
-    {handoff.mapReady && coordinates ? <MapFrame
+    <div className="commercial-location-grid">
+      <div className="min-w-0">    {handoff.mapReady && coordinates ? <MapFrame
       title="目前物件位置與周邊證據"
       description={<><span className="block">{snapshot.property.normalizedAddress}</span><span className="block font-mono text-[11px]">{coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}</span></>}
-      attribution="地圖底圖依畫面標示；物件點位來自已確認的案件位置"
+      attribution="地圖底圖依畫面標示；點位不是地籍界線"
       detail={<span>位置核對：{snapshot.property.checkedAt ?? "未提供"}</span>}
     >
       <GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} />
@@ -81,17 +82,8 @@ export function LocationView() {
       目前不把先前位置或通勤結果當作本案現況；完成物件位置重新確認後再查看地圖與路線。
     </Message>}
 
-    <Section title="重要周邊證據" description="以實際設施筆數與距離為主；設施較多不代表物件較好。">
-      <div data-evidence-key="location" className="space-y-3">
-      {snapshot.poiSummary ? <SummaryStrip label="周邊設施摘要" className="location-poi-summary">
-        {(Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => <MetricItem key={key} label={POI_LABELS[key]} value={snapshot.poiSummary?.[key] ?? 0} />)}
-      </SummaryStrip> : <Message variant="inline" title="尚未取得周邊設施摘要">此案件尚未保存可供判讀的周邊設施結果。</Message>}
-      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? Object.entries(POI_LABELS).map(([key, label]) => `${label} ${snapshot.poiSummary?.[key as keyof typeof snapshot.poiSummary] ?? 0}`).join("；") : "尚未取得周邊設施摘要"}</div>
-      {snapshot.insight && (!Array.isArray(snapshot.insight.nearest_pois) || snapshot.insight.nearest_pois.length === 0) && <Message variant="information" title="完整設施明細未隨案件保存">已保存的分類筆數仍可作為範圍參考；請勿由摘要重建或推測個別設施。需要最新明細時，應在原位置分析流程重新查詢。</Message>}
-      </div>
-    </Section>
-
-    <Section title="目的地通勤證據" description="目的地路線與大眾運輸周邊資料是兩個獨立來源；其中一項不可用時，另一項仍可判讀。">
+</div>
+      <div className="min-w-0">    <Section title="目的地通勤證據" description="目的地路線與大眾運輸周邊資料是兩個獨立來源；其中一項不可用時，另一項仍可判讀。">
       <div data-evidence-key="commute" className="space-y-3">
       {handoff.selectedRoute && snapshot.transitContext?.status !== "resolved" && <Message variant="warning">目的地路線可用；大眾運輸周邊資料目前無法取得。</Message>}
       {handoff.mapReady && coordinates ? <CommuteEvidencePanel
@@ -105,6 +97,19 @@ export function LocationView() {
         onTransitStatusChange={() => undefined}
         onTransitResult={persistTransit}
       /> : <Message variant="warning">請先重新確認物件位置，再查詢目的地路線。</Message>}
+      </div>
+    </Section>
+
+</div>
+    </div>
+
+    <Section title="重要周邊證據" description="以實際設施筆數與距離為主；設施較多不代表物件較好。">
+      <div data-evidence-key="location" className="space-y-3">
+      {snapshot.poiSummary ? <SummaryStrip label="周邊設施摘要" className="location-poi-summary">
+        {(Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => <MetricItem key={key} label={POI_LABELS[key]} value={snapshot.poiSummary?.[key] ?? "未提供"} />)}
+      </SummaryStrip> : <Message variant="inline" title="尚未取得周邊設施摘要">此案件尚未保存可供判讀的周邊設施結果。</Message>}
+      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? Object.entries(POI_LABELS).map(([key, label]) => `${label} ${snapshot.poiSummary?.[key as keyof typeof snapshot.poiSummary] ?? "未提供"}`).join("；") : "尚未取得周邊設施摘要"}</div>
+      {snapshot.insight && (!Array.isArray(snapshot.insight.nearest_pois) || snapshot.insight.nearest_pois.length === 0) && <Message variant="information" title="完整設施明細未隨案件保存">已保存的分類筆數仍可作為範圍參考；請勿由摘要重建或推測個別設施。需要最新明細時，應在原位置分析流程重新查詢。</Message>}
       </div>
     </Section>
 

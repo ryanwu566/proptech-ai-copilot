@@ -1,4 +1,6 @@
 import { expect, test } from "./fixtures";
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
+import { e9Case } from "../lib/workspace/e9-test-fixtures";
 
 /**
  * Release Certification Smoke Suite
@@ -29,24 +31,27 @@ async function switchLocale(page: import("@playwright/test").Page, locale: strin
 // ═══════════════════════════════════════════════════════════════════════════
 
 test.describe("Release Smoke — Navigation", () => {
-  test("Homepage loads with guided journey", async ({ page }) => {
+  test("Homepage provides explicit property entry", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("nav button[aria-label]", { hasText: /建立物件情境|Establish/ }).first()).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("#commercial-address")).toBeVisible({ timeout: 10000 });
+    await openPropertyEntry(page);
+    await expect(page.locator("#property-finder")).toBeVisible();
   });
 
-  test("Sidebar navigation accessible", async ({ page }) => {
+  test("Methods navigation keeps secondary capabilities accessible", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator("aside button", { hasText: /Aegis-Credit/ })).toBeVisible({ timeout: 5000 });
-    await expect(page.locator("aside button", { hasText: /Market Insight/ })).toBeVisible();
-    await expect(page.locator("aside button", { hasText: /房價估算/ })).toBeVisible();
-    await expect(page.locator("aside button", { hasText: /TaxOracle/ })).toBeVisible();
+    const methods = page.locator(".commercial-methods");
+    await methods.locator(":scope > summary").click();
+    for (const name of [/Aegis-Credit/, /Market Insight/, /房價估算/, /TaxOracle/]) {
+      await expect(methods.getByRole("button", { name })).toBeVisible({ timeout: 5000 });
+    }
   });
 });
 
 test.describe("Release Smoke — Aegis", () => {
   test("Aegis form visible with 6 inputs and submittable", async ({ page }) => {
     await page.goto("/");
-    await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
+    await openMethod(page, "Aegis-Credit");
     const form = page.getByTestId("aegis-scenario-form");
     await expect(form).toBeVisible({ timeout: 8000 });
     // 6 inputs exist within 3 fieldsets
@@ -60,7 +65,7 @@ test.describe("Release Smoke — Aegis", () => {
 test.describe("Release Smoke — Valuation", () => {
   test("Valuation page loads with estimate form", async ({ page }) => {
     await page.goto("/");
-    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await openMethod(page, "房價估算");
     await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 8000 });
     await expect(page.locator("#valuation-calculator select")).toHaveCount(3, { timeout: 3000 }).catch(() => {});
     await expect(page.getByRole("button", { name: /估算房價/ })).toBeVisible();
@@ -70,7 +75,7 @@ test.describe("Release Smoke — Valuation", () => {
 test.describe("Release Smoke — Market", () => {
   test("Market Insight page loads", async ({ page }) => {
     await page.goto("/");
-    await page.locator("aside button", { hasText: "Market Insight" }).click();
+    await openMethod(page, "Market Insight");
     await expect(page.locator("#main-content")).toContainText(/Market|市場|行情/i, { timeout: 8000 });
   });
 });
@@ -78,14 +83,15 @@ test.describe("Release Smoke — Market", () => {
 test.describe("Release Smoke — Loan", () => {
   test("Loan calculator accessible on valuation page", async ({ page }) => {
     await page.goto("/");
-    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await openMethod(page, "房價估算");
     await expect(page.getByRole("heading", { name: /貸款月付試算|Loan/ }).first()).toBeVisible({ timeout: 8000 });
   });
 });
 
 test.describe("Release Smoke — Decision", () => {
-  test("Journey step 5 shows decision components", async ({ page }) => {
+  test("Explicit property workflow reaches decision components", async ({ page }) => {
     await page.goto("/");
+    await openPropertyEntry(page);
     const stepBtn = page.locator("nav button[aria-label]", { hasText: /看房決策摘要|Viewing decision/ }).first();
     await stepBtn.click();
     await expect(page.locator("#decision-readiness-summary-heading")).toBeVisible({ timeout: 8000 });
@@ -96,7 +102,7 @@ test.describe("Release Smoke — Decision", () => {
 test.describe("Release Smoke — Terrain Basic", () => {
   test("Terrain page loads without crash", async ({ page }) => {
     await page.goto("/");
-    await page.locator("aside button", { hasText: /Terrain/ }).click();
+    await openMethod(page, "Terrain Risk");
     await expect(page.locator("#main-content")).toContainText(/Terrain|地勢|災害|地形/i, { timeout: 8000 });
   });
 });
@@ -104,26 +110,50 @@ test.describe("Release Smoke — Terrain Basic", () => {
 test.describe("Release Smoke — Map Basic", () => {
   test("Map page loads without crash", async ({ page }) => {
     await page.goto("/");
-    await page.locator("aside button", { hasText: /Map Insight/ }).click();
+    await openMethod(page, "Map Insight");
     await expect(page.locator("#main-content")).toContainText(/Map|地圖/i, { timeout: 8000 });
   });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PART B: Five-Step Journey Smoke
+// PART B: Case Workspace Smoke
 // ═══════════════════════════════════════════════════════════════════════════
 
-test.describe("Release Smoke — Five-Step Journey", () => {
-  test("All 5 steps navigable without crash", async ({ page }) => {
-    await page.goto("/");
-    const steps = ["建立物件情境", "位置與資料證據", "價格與估價證據", "資金與持有成本", "看房決策摘要"];
-    for (const step of steps) {
-      const btn = page.locator("nav button[aria-label]", { hasText: step }).first();
-      await btn.click();
-      await page.waitForTimeout(300);
+test.describe("Release Smoke — Case Workspaces", () => {
+  test("Overview, market, location, risk, finance and outputs remain reachable", async ({ page }) => {
+    await page.addInitScript((rows) => {
+      window.localStorage.setItem("proptech.savedCases.v1", JSON.stringify(rows));
+    }, [e9Case(), e9Case("case-b")]);
+    await page.goto("/cases/case-a/overview");
+    const tasks = [
+      { name: "物件總覽", section: "overview" },
+      { name: "價格與市場", section: "market" },
+      { name: "區位與通勤", section: "location" },
+      { name: "風險與環境", section: "risk" },
+      { name: "資金與持有成本", section: "finance" },
+    ];
+    for (const task of tasks) {
+      await page.locator(".workspace-navigation").getByRole("link", { name: task.name, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`/cases/case-a/${task.section}$`));
+      await expect(page.getByRole("heading", { level: 1, name: task.name, exact: true })).toBeVisible();
+      await expect(page.getByRole("banner", { name: "目前物件" })).toContainText("臺中市西屯區臺灣大道三段100號");
     }
-    // Final step renders decision
-    await expect(page.locator("#decision-readiness-summary-heading")).toBeVisible({ timeout: 5000 });
+    await page.locator(".workspace-navigation").getByRole("link", { name: "物件總覽", exact: true }).click();
+    await expect(page).toHaveURL(/\/cases\/case-a\/overview$/);
+    await page.locator(".workspace-navigation").getByRole("link", { name: "案件報告", exact: true }).click();
+    await expect(page).toHaveURL(/\/cases\/case-a\/report$/);
+    const report = page.getByTestId("report-evidence");
+    await expect(report.getByRole("heading", { level: 1, name: "案件證據報告 · 案件 A", exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(report).toContainText("臺中市西屯區臺灣大道三段100號");
+    await expect(report).toContainText("55,111");
+    await expect(report).toContainText("內政部不動產實價登錄");
+    await expect(report).toContainText("本報告依已儲存證據快照製作；不是即時重新查詢。");
+    await expect(report).toContainText("已確認僅指瀏覽器案件關聯；不代表地號、建物、所有權或法律身分確認。");
+    await page.goBack();
+    await expect(page).toHaveURL(/\/cases\/case-a\/overview$/);
+    await page.locator(".workspace-navigation").getByRole("link", { name: "比較案件", exact: true }).click();
+    await expect(page).toHaveURL(/\/compare\?cases=case-a$/);
+    await expect(page.getByRole("heading", { level: 1, name: "案件證據比較", exact: true })).toBeVisible();
   });
 });
 
@@ -145,7 +175,7 @@ test.describe("Release Smoke — Aegis Stale-State", () => {
       });
     });
     await page.goto("/");
-    await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
+    await openMethod(page, "Aegis-Credit");
     const form = page.getByTestId("aegis-scenario-form");
     await expect(form).toBeVisible({ timeout: 10000 });
 
@@ -193,13 +223,7 @@ test.describe("Release Smoke — Mobile", () => {
 
       test(`Aegis form accessible at ${width}px`, async ({ page }) => {
         await page.goto("/");
-        // Open mobile menu
-        const menuBtn = page.getByRole("button", { name: /開啟選單|Open menu/ });
-        if (await menuBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-          await menuBtn.click();
-          await page.waitForTimeout(300);
-        }
-        await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
+        await openMethod(page, "Aegis-Credit");
         await expect(page.getByTestId("aegis-scenario-form")).toBeVisible({ timeout: 8000 });
       });
     });
@@ -212,9 +236,11 @@ test.describe("Release Smoke — Mobile", () => {
 
 test.describe("Release Smoke — Locale", () => {
   for (const locale of LOCALES) {
-    test(`${locale}: Journey renders without raw keys`, async ({ page }) => {
+    test(`${locale}: Home and explicit property entry render without raw keys`, async ({ page }) => {
       await page.goto("/");
       await switchLocale(page, locale);
+      await expect(page.locator("#commercial-home-heading")).toBeVisible();
+      await openPropertyEntry(page);
       const mainText = await page.locator("#main-content").innerText();
       // No raw translation keys
       expect(mainText).not.toMatch(/journey\.\w+\.\w+/);

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 import { compareSavedCases } from "../lib/case-comparison";
 import { compactCaseData, type SavedCase, type SavedCaseData } from "../lib/case-storage";
 
@@ -91,7 +92,7 @@ test("nullable valuation response stays inside the valuation section", async ({ 
     }),
   }));
   await page.goto("/");
-  await page.locator("aside button", { hasText: "房價估算" }).click({ force: true });
+  await openMethod(page, "房價估算");
   const calculator = page.locator("#valuation-calculator");
   await calculator.locator("select").nth(2).selectOption("中山路");
   await calculator.getByRole("button", { name: /估算房價/ }).click();
@@ -109,7 +110,7 @@ test("manual 3.0376 wan monthly payment sends canonical 30,376 TWD", async ({ pa
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(holdingResult(payload)) });
   });
   await page.goto("/");
-  await page.locator("aside button", { hasText: "Aegis-Credit" }).click();
+  await openMethod(page, "Aegis-Credit");
   const holding = page.locator("#holding-cost-calculator");
   await holding.getByLabel("每月貸款支出（萬元）").fill("3.0376");
   await holding.getByRole("button", { name: "計算持有成本" }).click();
@@ -133,7 +134,7 @@ test("loan TWD prefill is displayed in wan and submitted without double conversi
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(holdingResult(payload)) });
   });
   await page.goto("/");
-  await page.locator("aside button", { hasText: "Aegis-Credit" }).click();
+  await openMethod(page, "Aegis-Credit");
   await page.getByRole("button", { name: "計算貸款月付" }).click();
   const loanResult = page.getByTestId("loan-result");
   await expect(loanResult).toBeVisible();
@@ -148,7 +149,7 @@ test("loan TWD prefill is displayed in wan and submitted without double conversi
 
 test("holding monthly-payment input states ten-thousand NTD in every locale", async ({ page }) => {
   await page.goto("/");
-  await page.locator("aside button", { hasText: "Aegis-Credit" }).click();
+  await openMethod(page, "Aegis-Credit");
   const locale = page.getByTestId("locale-switcher");
   for (const [value, label] of [
     ["zh-TW", "每月貸款支出（萬元）"],

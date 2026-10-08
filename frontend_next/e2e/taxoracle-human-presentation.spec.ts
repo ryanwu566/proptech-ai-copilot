@@ -1,12 +1,13 @@
 import { test, expect } from "./fixtures";
 import type { Page } from "@playwright/test";
+import { openDemoReference } from "./helpers/commercial-navigation";
 
 const locales = ["zh-TW", "en", "ja", "ko"];
 const widths = [360, 390, 430];
 
 async function openDemo(page: Page) {
   await page.goto("/");
-  await page.getByTestId("competition-demo-start").getByRole("button").click();
+  await openDemoReference(page);
   await expect(page.getByTestId("competition-demo")).toBeVisible();
 }
 
@@ -14,7 +15,7 @@ test("TaxOracle demo is human-readable in every locale", async ({ page }) => {
   for (const locale of locales) {
     await page.goto("/");
     await page.getByRole("combobox", { name: /language|語言|言語|언어/i }).selectOption(locale);
-    await page.getByTestId("competition-demo-start").getByRole("button").click();
+    await openDemoReference(page);
     await page.getByTestId("demo-property-price").fill("2500");
     await page.locator("button.demo-calculate-button").click();
     await expect(page.getByTestId("human-tax-outcome")).toBeVisible();
@@ -30,6 +31,7 @@ for (const width of widths) {
     await openDemo(page);
     await page.getByTestId("demo-property-price").fill("2500");
     await page.locator("button.demo-calculate-button").click();
+    await expect(page.getByTestId("human-tax-outcome")).toBeVisible();
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
     expect(overflow).toBe(false);
   });

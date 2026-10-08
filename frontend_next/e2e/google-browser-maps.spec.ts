@@ -79,11 +79,14 @@ test("accepted coordinates render only fixed view and streetview embeds", async 
   const mapFrame = panel.getByTitle("Google map visual context");
   const streetViewFrame = panel.getByTitle("Google Street View visual context");
   await expect(mapFrame).toBeVisible();
-  await expect(streetViewFrame).toBeVisible();
+  await expect(streetViewFrame).toHaveCount(0);
   await expect(mapFrame).toHaveAttribute("referrerpolicy", "strict-origin-when-cross-origin");
-  await expect(streetViewFrame).toHaveAttribute("referrerpolicy", "strict-origin-when-cross-origin");
 
   const mapUrl = new URL(await mapFrame.getAttribute("src") ?? "");
+  await panel.getByRole("button", { name: "Street View", exact: true }).click();
+  await expect(streetViewFrame).toBeVisible();
+  await expect(mapFrame).toHaveCount(0);
+  await expect(streetViewFrame).toHaveAttribute("referrerpolicy", "strict-origin-when-cross-origin");
   const streetViewUrl = new URL(await streetViewFrame.getAttribute("src") ?? "");
   expect(`${mapUrl.origin}${mapUrl.pathname}`).toBe("https://www.google.com/maps/embed/v1/view");
   expect(Object.fromEntries(mapUrl.searchParams)).toEqual({ key: browserKey, center: "25.033,121.5654", zoom: "17", maptype: "roadmap" });
@@ -156,6 +159,7 @@ test("a local Street View iframe timeout becomes load_not_confirmed, not a no-im
   });
 
   const panel = await openLocationInsight(page);
+  await panel.getByRole("button", { name: "Street View", exact: true }).click();
   const streetView = panel.getByRole("region", { name: "Google Street View preview" });
   await expect(streetView).toHaveAttribute("data-preview-state", "load_not_confirmed");
   await expect(streetView.getByText("Load not confirmed")).toBeVisible();
@@ -172,6 +176,7 @@ test("Street View container is accessible and mobile layout does not overflow", 
   await page.route("https://www.google.com/maps/embed/v1/**", fulfillGoogleEmbed);
 
   const panel = await openLocationInsight(page);
+  await panel.getByRole("button", { name: "Street View", exact: true }).click();
   await expect(panel.getByRole("region", { name: "Google Street View preview" })).toBeVisible();
   await expect(panel.getByTitle("Google Street View visual context")).toHaveAttribute("title", "Google Street View visual context");
   await expect(panel.getByText(DISCLAIMER)).toBeVisible();

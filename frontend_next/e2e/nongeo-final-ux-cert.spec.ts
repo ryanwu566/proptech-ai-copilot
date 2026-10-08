@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
 
 /**
  * Non-Geospatial Final UX Certification
@@ -113,9 +114,7 @@ function marketMock(opts: { status?: string; sample_count?: number } = {}) {
 
 async function navToAegis(page: import("@playwright/test").Page) {
   await page.goto("/");
-  const sidebar = page.locator("aside button", { hasText: /Aegis-Credit/ });
-  if (await sidebar.isVisible()) { await sidebar.click(); }
-  else { await page.getByRole("button", { name: /開啟選單|Open menu/ }).click(); await page.locator("aside button", { hasText: /Aegis-Credit/ }).click(); }
+  await openMethod(page, "Aegis-Credit");
   await expect(page.getByTestId("aegis-scenario-form")).toBeVisible({ timeout: 8000 });
 }
 
@@ -135,16 +134,12 @@ async function submitAegis(page: import("@playwright/test").Page) {
 
 async function navToValuation(page: import("@playwright/test").Page) {
   await page.goto("/");
-  const sidebar = page.locator("aside button", { hasText: /房價估算/ });
-  if (await sidebar.isVisible()) { await sidebar.click(); }
-  else { await page.getByRole("button", { name: /開啟選單|Open menu/ }).click(); await page.locator("aside button", { hasText: /房價估算/ }).click(); }
+  await openMethod(page, "房價估算");
 }
 
 async function navToMarket(page: import("@playwright/test").Page) {
   await page.goto("/");
-  const sidebar = page.locator("aside button", { hasText: /Market Insight/ });
-  if (await sidebar.isVisible()) { await sidebar.click(); }
-  else { await page.getByRole("button", { name: /開啟選單|Open menu/ }).click(); await page.locator("aside button", { hasText: /Market Insight/ }).click(); }
+  await openMethod(page, "Market Insight");
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -257,8 +252,8 @@ test.describe("Valuation A→B", () => {
     });
     await page.goto("/");
 
-    // Navigate to valuation page via sidebar
-    await page.locator("aside button", { hasText: "房價估算" }).click();
+    // Valuation remains available through the secondary Methods disclosure.
+    await openMethod(page, "房價估算");
     await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
 
     // Select city/district/road and estimate
@@ -319,8 +314,8 @@ test.describe("Loan Price Causal", () => {
     });
     await page.goto("/");
 
-    // Navigate to valuation page via sidebar (loan calculator is rendered there)
-    await page.locator("aside button", { hasText: "房價估算" }).click();
+    // The valuation method still includes its loan calculator.
+    await openMethod(page, "房價估算");
     await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
 
     // Find loan section by its heading
@@ -348,8 +343,7 @@ test.describe("Market States", () => {
     await page.route("**/market-insights/query", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(marketMock({ status: "low_sample" })) }));
     await page.goto("/");
 
-    // Navigate to Market via sidebar
-    await page.locator("aside button", { hasText: "Market Insight" }).click();
+    await openMethod(page, "Market Insight");
     await expect(page.locator("#main-content")).toContainText(/Market|市場|行情/i, { timeout: 8000 });
   });
 
@@ -357,7 +351,7 @@ test.describe("Market States", () => {
     await page.route("**/market-insights/query", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(marketMock({ status: "no_data" })) }));
     await page.goto("/");
 
-    await page.locator("aside button", { hasText: "Market Insight" }).click();
+    await openMethod(page, "Market Insight");
     await expect(page.locator("#main-content")).toContainText(/Market|市場|行情/i, { timeout: 8000 });
   });
 
@@ -365,7 +359,7 @@ test.describe("Market States", () => {
     await page.route("**/market-insights/query", (route) => route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ detail: "Server error" }) }));
     await page.goto("/");
 
-    await page.locator("aside button", { hasText: "Market Insight" }).click();
+    await openMethod(page, "Market Insight");
     await expect(page.locator("#main-content")).toContainText(/Market|市場|行情/i, { timeout: 8000 });
   });
 });
@@ -377,10 +371,11 @@ test.describe("Market States", () => {
 test.describe("Decision Closed-Loop", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("Dashboard shows viewing-decision section and workflow steps", async ({ page }) => {
+  test("Explicit property entry reaches the decision evidence summary", async ({ page }) => {
     await page.goto("/");
+    await openPropertyEntry(page);
 
-    // Navigate to Journey step 5 (看房決策摘要)
+    // The optional property workflow retains the decision evidence components.
     const stepBtn = page.locator("nav button[aria-label]", { hasText: "看房決策摘要" }).first();
     await stepBtn.click();
     await expect(page.locator('section[id="journey-stage-decision"]')).toBeVisible({ timeout: 8000 });
@@ -400,6 +395,7 @@ test.describe("Locale Smoke", () => {
 
   const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
   const AEGIS_CTA: Record<string, RegExp> = { "zh-TW": /執行房貸風險分析/, en: /Run risk analysis/, ja: /リスク分析を実行/, ko: /위험 분석 실행/ };
+  const AEGIS_METHOD = { "zh-TW": "Aegis-Credit", en: "Aegis-Credit", ja: "Aegis-Credit ローン計算", ko: "Aegis-Credit 대출 계산" };
 
   for (const locale of LOCALES) {
     test(`${locale}: Aegis page renders with localized CTA`, async ({ page }) => {
@@ -409,9 +405,7 @@ test.describe("Locale Smoke", () => {
         await page.locator("select").first().selectOption(locale);
         await page.waitForTimeout(400);
       }
-      const sidebar = page.locator("aside button", { hasText: /Aegis-Credit/ });
-      if (await sidebar.isVisible()) { await sidebar.click(); }
-      else { await page.getByRole("button", { name: /開啟選單|Open menu/ }).click(); await page.locator("aside button", { hasText: /Aegis-Credit/ }).click(); }
+      await openMethod(page, AEGIS_METHOD[locale]);
       await expect(page.getByRole("button", { name: AEGIS_CTA[locale] })).toBeVisible({ timeout: 8000 });
       await expect(page.getByTestId("aegis-scenario-form")).toBeVisible();
       // No raw translation keys
@@ -433,8 +427,7 @@ test.describe("Mobile Viewports", () => {
       test(`Aegis form usable at ${width}px with no overflow`, async ({ page }) => {
         await mockAegis(page);
         await page.goto("/");
-        await page.getByRole("button", { name: /開啟選單|Open menu/ }).click();
-        await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
+        await openMethod(page, "Aegis-Credit");
         await expect(page.getByTestId("aegis-scenario-form")).toBeVisible({ timeout: 8000 });
         await fillAegis(page, { income: 80000, debt: 5000, cash: 5000000, properties: 0, mortgages: 0, price: 15000000 });
         const btn = page.getByRole("button", { name: /執行房貸風險分析|Run risk analysis/ });

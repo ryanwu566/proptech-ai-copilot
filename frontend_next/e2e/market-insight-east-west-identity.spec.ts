@@ -9,6 +9,7 @@
  */
 
 import { expect, test } from "./fixtures";
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
 
 // ─── Controlled geocoding responses ─────────────────────────────────────────
 
@@ -143,8 +144,9 @@ test.describe("East/West road identity: Location Insight", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Navigate to journey step 2 (Location)
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    // Open property search, then its Location capability.
+    await openPropertyEntry(page);
+    await expect(page.locator("#journey-stage-property")).toBeVisible({ timeout: 10000 });
     const locationStepBtn = page.getByLabel(/位置與資料證據/).first();
     await expect(locationStepBtn).toBeVisible({ timeout: 5000 });
     await locationStepBtn.click();
@@ -191,8 +193,9 @@ test.describe("East/West road identity: Location Insight", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Navigate to journey step 2
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    // Open property search, then its Location capability.
+    await openPropertyEntry(page);
+    await expect(page.locator("#journey-stage-property")).toBeVisible({ timeout: 10000 });
     await page.getByLabel(/位置與資料證據/).first().click();
     await expect(page.locator("section[id='journey-stage-location']")).toBeVisible({ timeout: 8000 });
 
@@ -245,7 +248,7 @@ test.describe("East/West road identity: Map Insight", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // Navigate to Map Insight
-    await page.locator("aside button", { hasText: /Map Insight/ }).click();
+    await openMethod(page, "Map Insight");
 
     // Fill address in the manual search input and submit
     const searchInput = page.getByRole("textbox", { name: /輸入地址|地標|路段/ }).first();
@@ -297,8 +300,9 @@ test.describe("East/West road identity: stale location guard", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Navigate to journey location step
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    // Open property search, then its Location capability.
+    await openPropertyEntry(page);
+    await expect(page.locator("#journey-stage-property")).toBeVisible({ timeout: 10000 });
     await page.getByLabel(/位置與資料證據/).first().click();
     await expect(page.locator("section[id='journey-stage-location']")).toBeVisible({ timeout: 8000 });
 

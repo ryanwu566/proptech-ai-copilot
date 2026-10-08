@@ -1,16 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { CommercialButton } from "@/components/design-system/button";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { Message } from "@/components/design-system/message";
-import { ActionSection, Section } from "@/components/design-system/section";
+import { Section } from "@/components/design-system/section";
 import { MetricItem, MetricRow, SummaryStrip } from "@/components/design-system/summary-strip";
 import { StatusLabel } from "@/components/design-system/status-label";
 import { formatDistance, formatDuration, formatExactDate, formatMonthlyTwd } from "@/lib/commercial/formatters";
-import { resolveCommercialState } from "@/lib/commercial/state";
-import { createBrowserCaseRepository } from "@/lib/workspace/case-repository";
 import { buildWorkspaceOverview, type OverviewItem, type WorkspaceOverviewModel } from "@/lib/workspace/overview-model";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { OverviewSection } from "./overview-section";
@@ -30,39 +26,25 @@ const routeModeLabels: Record<string, string> = { driving: "開車", transit: "�
 
 export function OverviewView() {
   const workspace = useWorkspace();
-  const repository = useMemo(() => createBrowserCaseRepository(), []);
   const overview = buildWorkspaceOverview(workspace);
-  const identity = resolveCommercialState("identity", workspace.identity.state);
-  const [saveStatus, setSaveStatus] = useState("這份總覽顯示已儲存的案件快照；保存不代表分析已完成。");
-
-  function saveSnapshot() {
-    const result = repository.saveSnapshot(workspace);
-    setSaveStatus(result.status === "saved"
-      ? "已保存目前已知狀態；未知、無法取得與尚未完成的項目仍保持原狀。"
-      : result.message);
-  }
-
   return <div className={styles.page} data-testid="commercial-overview-workspace">
     <header className="workspace-view__heading">
       <p className="text-meta">案件版本 {workspace.revision} · 瀏覽器本機快照</p>
       <h1 className="text-page">物件總覽</h1>
-      <p className="text-body">目前掌握什麼、哪些仍未知，以及下一步該查證什麼。總覽不評分、不排名，也不提供購買建議。</p>
+      <p className="text-body">先處理阻擋判讀的事項，再檢視已知證據與下一步查證。</p>
     </header>
-
-    <SummaryStrip label="目前案件狀態">
-      <MetricItem label="物件脈絡" value={<StatusLabel semanticRole={identity.role}>{identity.label["zh-TW"]}</StatusLabel>} note="瀏覽器案件關聯，不是地籍或法律身分" />
-      <MetricItem label="案件快照" value="已儲存" note={`保存於 ${formatExactDate(overview.snapshot.savedAt)}`} />
-      <MetricItem label="看屋前準備" value={<StatusLabel semanticRole={overview.readiness.role}>{overview.readiness.label["zh-TW"]}</StatusLabel>} note={`${overview.unresolvedCount} 項待確認或限制`} />
-    </SummaryStrip>
 
     <Section title="決策摘要" description="只綜合目前案件版本中的有界證據；未查詢、無法取得與過期各自保留。">
       <div className={styles.decisionGrid}>
+        <DecisionGroup title="需要特別留意" items={[...overview.blockers, ...overview.attention]} empty="目前沒有額外需優先留意的狀態；仍應依證據限制查證。" />
         <DecisionGroup title="已掌握" items={overview.known} empty="目前沒有可在證據邊界內綜合的已知項目。" />
         <DecisionGroup title="尚未確認" items={overview.unknown} empty="目前沒有額外尚未確認項目。" />
-        <DecisionGroup title="需要特別留意" items={[...overview.blockers, ...overview.attention]} empty="目前沒有額外需優先留意的狀態；仍應依證據限制查證。" />
-        <DecisionGroup title="下一步" items={overview.actions} empty="目前沒有系統指定的下一步。" links />
       </div>
     </Section>
+
+    <SummaryStrip label="目前案件狀態">
+      <MetricItem label="看屋前準備" value={<StatusLabel semanticRole={overview.readiness.role}>{overview.readiness.label["zh-TW"]}</StatusLabel>} note={`${overview.unresolvedCount} 項待確認或限制`} />
+    </SummaryStrip>
 
     <MarketSummary model={overview} />
     <LocationSummary model={overview} />
@@ -71,14 +53,7 @@ export function OverviewView() {
 
     <Section title="保存、鮮度與來源" description="保存只代表保留目前已知狀態，不代表所有分析已完成。">
       <div className={styles.savePanel}>
-        <Message variant="information" title="已儲存的案件快照，不是即時重新查詢">
-          開啟或重新開啟總覽不會自動執行市場、估價、路線、風險、衛星、稅務、貸款或持有成本分析。
-        </Message>
-        <ActionSection>
-          <CommercialButton size="touch" onClick={saveSnapshot}>保存目前案件快照</CommercialButton>
-          <Link className="ds-button ds-button--secondary" href="/cases">返回已儲存案件</Link>
-        </ActionSection>
-        <p className="text-dense" data-testid="overview-save-status" aria-live="polite">{saveStatus}</p>
+        <p className="text-dense">已儲存的案件快照，不是即時重新查詢。各項結果與時間保留在下面的證據鮮度明細。</p>
         <DetailsDisclosure summary="查看快照與證據鮮度">
           <dl className={styles.provenance}>
             <div><dt>案件保存時間</dt><dd>{formatExactDate(overview.snapshot.savedAt)}</dd></div>
@@ -92,9 +67,10 @@ export function OverviewView() {
       </div>
     </Section>
 
-    <Section title="既有案件規劃工具" description="手動筆記、看屋與出價規劃仍保留在既有工作台。">
+    <Section title="下一步查證"><DecisionGroup title="下一步" items={overview.actions} empty="目前沒有系統指定的下一步。" links /></Section>
+    <DetailsDisclosure summary="進階／方法：案件規劃工具">
       <Link className="ds-button ds-button--secondary ds-button--compact" href={`/cases/${encodeURIComponent(workspace.caseId)}/planning`}>開啟既有案件規劃工具</Link>
-    </Section>
+    </DetailsDisclosure>
   </div>;
 }
 
@@ -136,9 +112,11 @@ function LocationSummary({ model }: { model: WorkspaceOverviewModel }) {
 function RiskSummary({ model }: { model: WorkspaceOverviewModel }) {
   const risk = model.domains.risk;
   return <OverviewSection title="風險與環境" description="逐項保存符合、未命中與未知狀態；沒有任何整體安全分數。" href={risk.href} linkLabel="查看風險與環境" testId="overview-risk-summary">
-    {risk.materialMatchedEvidence.map((row) => <Message key={row.key} variant="warning" title={row.label}>{row.result}</Message>)}
-    {risk.noMatchEvidence.map((row) => <Message key={row.key} title={`${row.label}：保存摘要未命中`}>{row.result} 未命中不代表安全，仍需核對來源範圍與現場。</Message>)}
-    {risk.unknownOrUnavailableEvidence.map((row) => <Message key={row.key} variant="warning" title={`${row.label}仍無法判定`}>{row.result}</Message>)}
+    <div className={styles.metricRows}>
+      {risk.materialMatchedEvidence.map((row) => <MetricRow key={row.key} label={row.label} value={row.result} />)}
+      {risk.noMatchEvidence.map((row) => <MetricRow key={row.key} label={`${row.label}：保存摘要未命中`} value={row.result} />)}
+      {risk.unknownOrUnavailableEvidence.map((row) => <MetricRow key={row.key} label={`${row.label}仍無法判定`} value={row.result} />)}
+    </div>
     {!risk.materialMatchedEvidence.length && !risk.noMatchEvidence.length && !risk.unknownOrUnavailableEvidence.length && <p className="text-body">尚未保存風險與環境證據。</p>}
     <StatusLabel semanticRole={risk.freshness === "stale" || risk.freshness === "unavailable" ? "warning" : "information"}>{freshnessLabels[risk.freshness]}</StatusLabel>
   </OverviewSection>;

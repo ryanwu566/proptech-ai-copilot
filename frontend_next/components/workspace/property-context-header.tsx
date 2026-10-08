@@ -1,7 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { ActionSection, Panel } from "@/components/design-system/section";
+import { useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { CommercialButton } from "@/components/design-system/button";
+import { createBrowserCaseRepository } from "@/lib/workspace/case-repository";
+import { Panel } from "@/components/design-system/section";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { StatusLabel } from "@/components/design-system/status-label";
 import { resolveCommercialState } from "@/lib/commercial/state";
@@ -12,6 +15,20 @@ const priceLabels = { asking: "開價", estimate: "成交資料推估中點", ma
 
 export function PropertyContextHeader() {
   const workspace = useWorkspace();
+  const isFinance = usePathname().endsWith("/finance");
+  const repository = useMemo(createBrowserCaseRepository, []);
+  const [saveStatus, setSaveStatus] = useState("");
+  function saveSnapshot() {
+    setSaveStatus("");
+    try {
+      const result = repository.saveSnapshot(workspace);
+      setSaveStatus(result.status === "saved"
+        ? "已保存目前已知狀態；未知、無法取得與尚未完成的項目仍保持原狀。"
+        : result.message);
+    } catch {
+      setSaveStatus("儲存失敗：瀏覽器儲存空間無法寫入。請保留目前頁面，確認儲存設定後重試。");
+    }
+  }
   const identity = resolveCommercialState("identity", workspace.identity.state);
   const activePrice = workspace.assumptions.activePriceWan;
   const anchor = workspace.identity.anchor;
@@ -23,13 +40,15 @@ export function PropertyContextHeader() {
           <strong>{workspace.displayAddress}</strong>
         </div>
         <StatusLabel semanticRole={identity.role}>{identity.label["zh-TW"]}</StatusLabel>
+        <div className="workspace-property-header__save">{isFinance ? <a className="ds-button ds-button--secondary ds-button--compact" href="#finance-save-section">儲存財務摘要</a> : <CommercialButton size="compact" onClick={saveSnapshot}>保存目前案件快照</CommercialButton>}</div>
       </div>
       <div className="workspace-property-header__secondary">
         <span><span className="text-meta">{priceLabels[workspace.assumptions.activePriceBasis]}</span> <strong data-numeric>{activePrice ? formatWan(activePrice) : "未提供"}</strong></span>
-        <StatusLabel semanticRole="success">已儲存快照</StatusLabel>
+        <StatusLabel semanticRole="information">已儲存快照</StatusLabel>
         <span className="text-meta">最後儲存：{formatExactDate(workspace.updatedAt)}</span>
       </div>
       {workspace.identity.state === "revalidation_required" && <p className="workspace-property-header__warning">先前受影響的證據保留為過期狀態，重新確認前不會顯示為目前證據。</p>}
+      <div data-testid="context-save-status"><p data-testid="overview-save-status" aria-live="polite" className="workspace-property-header__save-status text-dense">{saveStatus}</p></div>
       <DetailsDisclosure summary="物件與來源詳細資料" variant="compact">
         <dl className="workspace-property-header__details text-dense">
           <div><dt>正規化地址</dt><dd>{anchor?.normalized_address || "尚未取得"}</dd></div>
@@ -38,11 +57,6 @@ export function PropertyContextHeader() {
           <div><dt>邊界</dt><dd>不代表地號、建物、所有權或法律身分，也不啟用 VNext PropertyEntity。</dd></div>
         </dl>
       </DetailsDisclosure>
-      <ActionSection className="workspace-property-header__actions">
-        <Link className="ds-button ds-button--secondary ds-button--compact" href="/cases">已儲存案件</Link>
-        <Link className="ds-button ds-button--secondary ds-button--compact" href={`/compare?cases=${encodeURIComponent(workspace.caseId)}`}>加入比較</Link>
-        <Link className="ds-button ds-button--secondary ds-button--compact" href={`/cases/${encodeURIComponent(workspace.caseId)}/report`}>產生報告</Link>
-      </ActionSection>
     </Panel>
   </header>;
 }

@@ -1,4 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
+import { openDemoReference } from "./helpers/commercial-navigation";
 
 const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
 const MOBILE_WIDTHS = [360, 390, 430];
@@ -52,7 +54,14 @@ async function openPilot(page: Page, locale: Locale = "en", options: { rejectAcc
   const api = await mockPilotApi(page, options);
   await page.goto("/");
   if (locale !== "zh-TW") await page.getByTestId("locale-switcher").selectOption(locale);
-  await page.getByTestId("competition-mvp-banner").getByRole("button", { name: "Join closed pilot", exact: true }).click();
+  await openDemoReference(page);
+  await page.locator("button.demo-calculate-button").click();
+  await expect(page.getByTestId("human-tax-outcome")).toBeVisible();
+  await page.getByTestId("competition-demo").getByRole("button", {
+    name: /^(證據與方法|Evidence and methodology|証拠と方法|근거와 방법)$/,
+  }).click();
+  await expect(page.getByTestId("evidence-center")).toBeVisible();
+  await page.getByTestId("evidence-center").getByRole("button", { name: "Join closed pilot", exact: true }).click();
   await expect(page.getByTestId("closed-pilot")).toBeVisible();
   return { errors, api };
 }

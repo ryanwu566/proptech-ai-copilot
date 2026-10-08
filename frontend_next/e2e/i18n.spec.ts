@@ -2,7 +2,8 @@ import { expect, test } from "./fixtures";
 
 async function openMap(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await page.locator("aside[aria-label='分析工具']").getByRole("button", { name: "Map Insight", exact: true }).click();
+  await page.locator(".commercial-methods > summary").click();
+  await page.locator(".commercial-methods").getByRole("button", { name: "Map Insight", exact: true }).click();
   await expect(page.getByTestId("map-search-form")).toBeVisible();
   const advanced = page.getByTestId("map-advanced-settings");
   await advanced.locator("summary").click();
@@ -15,7 +16,7 @@ test("four locale runtime changes document language and visible navigation", asy
   for (const [value, lang] of [["zh-TW", "zh-TW"], ["en", "en"], ["ja", "ja"], ["ko", "ko"]] as const) {
     await locale.selectOption(value);
     await expect.poll(() => page.locator("html").getAttribute("lang")).toBe(lang);
-    await expect(page.locator("aside[aria-label]").first()).toBeVisible();
+    await expect(page.locator(".commercial-global-nav")).toBeVisible();
     await expect(page.locator("#main-content")).toBeVisible();
   }
 });

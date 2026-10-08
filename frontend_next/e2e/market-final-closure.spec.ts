@@ -15,6 +15,7 @@
  *   MOBILE390_MARKET_FLOW = PASS
  */
 import { test, expect } from "@playwright/test";
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -27,7 +28,7 @@ test.beforeEach(async ({ page }) => {
 
 async function goToMarket(page: import("@playwright/test").Page) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.locator("aside[aria-label='分析工具']").getByRole("button", { name: "Market Insight" }).click();
+  await openMethod(page, "Market Insight");
   await expect(page.getByTestId("market-insight-search-form")).toBeVisible({ timeout: 8000 });
 }
 
@@ -430,31 +431,36 @@ test.describe("TASK 8: DESKTOP 1440 MARKET FLOW", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Step 1: Property (journey landing)
-    const journeyHeading = page.getByRole("heading", { name: "用五個步驟整理看房資訊" });
-    await expect(journeyHeading).toBeVisible({ timeout: 10000 });
+    // Open the explicit property-search entry from the task-oriented Home.
+    await openPropertyEntry(page);
+    await expect(page.locator("#journey-stage-property")).toBeVisible({ timeout: 10000 });
 
-    // Step 2: Location — click the step button
+    // Open the Location capability from the property workflow.
     const locationStep = page.getByLabel(/位置與資料證據/).first();
     await expect(locationStep).toBeVisible({ timeout: 5000 });
     await locationStep.click();
     await page.waitForTimeout(1000);
+    await expect(page.locator("#journey-stage-location")).toBeVisible();
 
-    // Step 3: Navigate to Map Insight via sidebar
-    await page.locator("aside[aria-label='分析工具']").getByRole("button", { name: "Map Insight" }).click();
+    // Navigate to Map Insight through Methods.
+    await openMethod(page, "Map Insight");
     await page.waitForTimeout(1500);
+    await expect(page.getByRole("heading", { name: "Map Insight Lite", exact: true })).toBeVisible();
 
-    // Step 4: Navigate to Market Insight
-    await page.locator("aside[aria-label='分析工具']").getByRole("button", { name: "Market Insight" }).click();
+    // Continue to Market Insight.
+    await openMethod(page, "Market Insight");
     await expect(page.getByTestId("market-insight-search-form")).toBeVisible({ timeout: 8000 });
 
     // Execute market search
     await selectAndSearch(page, "臺北市", "大安區");
     await expect(page.locator("body")).toContainText("RESPONSIVE_FLOW_MARKER", { timeout: 8000 });
 
-    // Step 5: Navigate back to journey (Decision)
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    // Return through Home and open the decision capability.
+    await page.locator(".commercial-global-nav").getByRole("button", { name: "首頁", exact: true }).click();
+    await openPropertyEntry(page);
+    await expect(page.locator("#journey-stage-property")).toBeVisible({ timeout: 10000 });
+    await page.getByRole("button", { name: /^看房決策摘要 ·/ }).click();
+    await expect(page.locator("#journey-stage-decision")).toBeVisible();
 
     // HARD ASSERT: viewport is 1440px
     expect(page.viewportSize()?.width).toBe(1440);
@@ -473,14 +479,17 @@ test.describe("TASK 8: MOBILE 390 MARKET FLOW", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Step 1: Journey page loads
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    // Property search is an explicit Home entry on mobile too.
+    await openPropertyEntry(page);
+    await expect(page.locator("#journey-stage-property")).toBeVisible({ timeout: 10000 });
 
-    // Navigate through the user-visible mobile menu with one semantic target.
-    await page.getByRole("button", { name: "開啟選單", exact: true }).click();
-    const sidebar = page.locator("aside[aria-label='分析工具']");
-    await expect(sidebar).toBeVisible();
-    await sidebar.getByRole("button", { name: "Market Insight", exact: true }).click();
+    // Keep Location → Map → Market reachable through real mobile controls.
+    await page.getByRole("navigation", { name: "選擇流程步驟" }).locator("summary").click();
+    await page.getByRole("button", { name: /^位置與資料證據 ·/ }).click();
+    await expect(page.locator("#journey-stage-location")).toBeVisible();
+    await openMethod(page, "Map Insight");
+    await expect(page.getByRole("heading", { name: "Map Insight Lite", exact: true })).toBeVisible();
+    await openMethod(page, "Market Insight");
     await expect(page.getByTestId("market-insight-search-form")).toBeVisible({ timeout: 8000 });
 
     // Execute market search
@@ -490,8 +499,12 @@ test.describe("TASK 8: MOBILE 390 MARKET FLOW", () => {
     // HARD ASSERT: viewport is 390px
     expect(page.viewportSize()?.width).toBe(390);
 
-    // Step 5: Navigate back to journey
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    // Return through Home and open the decision capability.
+    await page.locator(".commercial-global-nav").getByRole("button", { name: "首頁", exact: true }).click();
+    await openPropertyEntry(page);
+    await expect(page.locator("#journey-stage-property")).toBeVisible({ timeout: 10000 });
+    await page.getByRole("navigation", { name: "選擇流程步驟" }).locator("summary").click();
+    await page.getByRole("button", { name: /^看房決策摘要 ·/ }).click();
+    await expect(page.locator("#journey-stage-decision")).toBeVisible();
   });
 });

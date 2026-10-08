@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { openPropertyEntry } from "./helpers/commercial-navigation";
 import type {
   LoanCalculationResult,
   LocationInsightResult,
@@ -309,7 +310,7 @@ async function useEnglish(page: Page) {
 async function openJourney(page: Page, locale: "en" | "zh-TW" = "en") {
   await page.goto("/");
   if (locale === "en") await useEnglish(page);
-  await expect(page.locator("#journey-stage-property")).toBeVisible();
+  await openPropertyEntry(page);
 }
 
 async function hydrateJourney(page: Page) {

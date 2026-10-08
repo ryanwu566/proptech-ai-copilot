@@ -166,7 +166,7 @@ export function FinanceWorkspace() {
     }
   }
 
-  return <div data-testid="finance-workspace" className="min-w-0 space-y-8">
+  return <div data-testid="finance-workspace" className="workspace-view">
     <header className="space-y-2">
       <p className="text-meta">案件財務情境</p>
       <h1 className="text-page">資金與持有成本</h1>
@@ -176,30 +176,31 @@ export function FinanceWorkspace() {
     <Section title="價格與融資基準" description="價格沿用案件目前選定的基準；本頁只讀取，不會改寫開價、手動價格或價格推估。">
       <div data-testid="finance-price-basis"><SummaryStrip label="價格與融資基準">
         <MetricItem label={basisLabel(workspace.assumptions.activePriceBasis)} value={formatWan(activePriceWan)} primary note="沿用案件價格" />
+        <MetricItem label="自備款" value={formatWan(finance.loan.downPaymentWan)} note="未含稅費、仲介、代書與其他交易費用" />
         <MetricItem label="坪數" value={workspace.assumptions.areaPing ? `${workspace.assumptions.areaPing.toLocaleString("zh-TW", { maximumFractionDigits: 1 })} 坪` : "未提供"} note="僅影響依坪數估算的持有成本" />
-        <MetricItem label="案件版本" value={`第 ${workspace.revision} 版`} note="計算結果與此案件版本綁定" />
       </SummaryStrip></div>
       <Freshness model={finance} dirty={loanDirty || holdingDirty} />
     </Section>
 
     <Section title="主要每月結果" description="房貸與持有成本使用相同價格情境；一次性交易成本不會混入每月小計。">
-      <SummaryStrip label="主要每月結果">
+      <SummaryStrip label="主要每月結果" className="commercial-finance-summary">
         <MetricItem label="每月房貸支出" value={monthly(finance.loan.monthlyPaymentTwd)} primary note={finance.loan.status === "stale" ? "舊條件結果，需重新計算" : "依目前房貸假設"} />
         <MetricItem label={finance.holding.totalKind === "known_subtotal" ? "已估算成本小計" : "每月持有成本估算"} value={monthly(finance.holding.knownMonthlySubtotalTwd)} note={finance.holding.totalKind === "known_subtotal" ? "尚有未估算項目，不是完整總額" : "含目前明細中的月支出"} />
+        <MetricItem label="利率／年期" value={`${finance.loan.annualInterestRate ?? "—"}%／${finance.loan.loanYears ?? "—"} 年`} note={`自備款比例：${finance.loan.downPaymentRatio === null ? "未提供" : formatPercent(finance.loan.downPaymentRatio)}`} />
         <MetricItem label="負擔能力" value={finance.affordability.status === "assessed" ? formatPercent(finance.affordability.ratio) : "未評估"} note={finance.affordability.reason ?? "依已提供的月收入與支出"} />
       </SummaryStrip>
     </Section>
 
     <Section title="房貸假設與結果" description="這是還款情境試算，不是銀行核貸或額度承諾。">
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
-        <Panel variant="plain" className="min-w-0"><LoanAssumptionForm key={`loan-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initial={baseFinance.loan} onDirty={() => { setLoanDirty(true); setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onLoanCalculated} /></Panel>
+        <div className="min-w-0"><LoanAssumptionForm key={`loan-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initial={baseFinance.loan} onDirty={() => { setLoanDirty(true); setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onLoanCalculated} /></div>
         <LoanSummary model={finance} dirty={loanDirty} />
       </div>
     </Section>
 
     <Section title="持有成本明細" description="每月與每年費用分開呈現；缺少坪數時，依坪數計算的項目保持未估算。">
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
-        <Panel variant="plain" className="min-w-0"><HoldingAssumptionForm key={`holding-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initialLoanPaymentTwd={loanResult?.monthly_payment ?? finance.loan.monthlyPaymentTwd} initialAreaPing={savedAreaPing} initial={baseFinance.holding.assumptions} onDirty={() => { setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onHoldingCalculated} /></Panel>
+        <div className="min-w-0"><HoldingAssumptionForm key={`holding-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initialLoanPaymentTwd={loanResult?.monthly_payment ?? finance.loan.monthlyPaymentTwd} initialAreaPing={savedAreaPing} initial={baseFinance.holding.assumptions} onDirty={() => { setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onHoldingCalculated} /></div>
         <HoldingSummary model={finance} dirty={holdingDirty} />
       </div>
     </Section>
@@ -229,7 +230,7 @@ export function FinanceWorkspace() {
 
     <Section title="下一步">
       <ol className="list-decimal space-y-2 pl-5 text-body">{finance.unresolvedActions.length > 0 ? finance.unresolvedActions.map((item) => <li key={item}>{item}</li>) : <li>檢查假設後儲存目前的財務摘要。</li>}</ol>
-      <ActionSection className="mt-5">
+      <ActionSection id="finance-save-section" className="mt-5">
         <CommercialButton onClick={saveFinance} disabled={saveDisabled} data-testid="finance-save">儲存財務假設與摘要</CommercialButton>
         {saveDisabled && <p className="text-helper">需先完成一項目前條件下的計算，且物件資料不可為待重新確認。</p>}
       </ActionSection>
@@ -260,7 +261,7 @@ function Freshness({ model, dirty }: { model: FinanceModel; dirty: boolean }) {
 }
 
 function LoanSummary({ model, dirty }: { model: FinanceModel; dirty: boolean }) {
-  return <Panel data-testid="loan-summary" className="min-w-0">
+  return <Panel variant="plain" data-testid="loan-summary" className="min-w-0">
     <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-subsection">房貸結果</h3><StatusLabel semanticRole={dirty || model.loan.status === "stale" ? "warning" : model.loan.status === "available" ? "information" : "neutral"}>{dirty ? "待重新計算" : model.loan.status === "available" ? "房貸試算完成" : model.loan.status === "stale" ? "舊條件結果" : "尚未計算"}</StatusLabel></div>
     {model.loan.monthlyPaymentTwd === null ? <p className="mt-5 text-body">尚未有可用的房貸結果。</p> : <div className="mt-5 space-y-2">
       <MetricRow label="自備款" value={formatWan(model.loan.downPaymentWan)} />
@@ -275,7 +276,7 @@ function LoanSummary({ model, dirty }: { model: FinanceModel; dirty: boolean }) 
 }
 
 function HoldingSummary({ model, dirty }: { model: FinanceModel; dirty: boolean }) {
-  return <Panel data-testid="holding-summary" className="min-w-0">
+  return <Panel variant="plain" data-testid="holding-summary" className="min-w-0">
     <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-subsection">持有成本結果</h3><StatusLabel semanticRole={dirty || model.holding.status === "stale" ? "warning" : model.holding.status === "available" ? "information" : "neutral"}>{dirty ? "待重新計算" : model.holding.status === "available" ? "持有成本估算完成" : model.holding.status === "stale" ? "舊條件結果" : "尚未估算"}</StatusLabel></div>
     {model.holding.knownMonthlySubtotalTwd === null ? <p className="mt-5 text-body">尚未有可用的持有成本結果。</p> : <>
       <div className="mt-5"><SummaryStrip label="持有成本小計"><MetricItem label={model.holding.totalKind === "known_subtotal" ? "已估算成本小計" : "每月持有成本估算"} value={monthly(model.holding.knownMonthlySubtotalTwd)} primary /><MetricItem label="每年換算" value={annual(model.holding.knownAnnualSubtotalTwd)} note="每月估算乘以 12" /></SummaryStrip></div>
