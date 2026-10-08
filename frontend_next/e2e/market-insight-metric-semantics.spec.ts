@@ -1,3 +1,4 @@
+import { openMethod } from "./helpers/commercial-navigation";
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
 
@@ -39,7 +40,7 @@ const directQueryResult = {
 
 async function openMarketInsight(page: Page) {
   await page.goto("/");
-  await page.getByRole("button", { name: /Market Insight/ }).first().click();
+  await openMethod(page, "Market Insight");
   await expect(page.getByRole("heading", { name: "Market Insight" })).toBeVisible();
 }
 

@@ -5,9 +5,10 @@
  * the rendered UI matches the real backend contract for each state.
  */
 import { expect, test } from "@playwright/test";
-import type { Locator, Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
 
-const HOME_HEADING = "用五個步驟整理看房資訊";
+const HOME_HEADING = "看清物件證據，確認下一步";
 
 // Suppress the first-visit onboarding tour modal (it overlays and intercepts
 // pointer events). This mirrors a returning user and does not alter product code.
@@ -25,26 +26,14 @@ async function seedNoOnboarding(page: Page) {
 async function gotoLocationStage(page: Page) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: HOME_HEADING })).toBeVisible({ timeout: 20000 });
-  const viewport = page.viewportSize();
-  const isMobile = (viewport?.width ?? 1440) < 1024;
-  let locationButton: Locator;
-  if (isMobile) {
-    const mobileStepper = page.locator("details summary", {
-      hasText: /選擇流程步驟|Select step/,
-    });
+  await openPropertyEntry(page);
+  const taskNav = page.locator("#guided-property-journey nav[aria-label='選擇流程步驟']");
+  const mobileStepper = taskNav.locator("details > summary");
+  if (await mobileStepper.isVisible()) {
     await expect(mobileStepper).toBeVisible({ timeout: 10000 });
     await mobileStepper.click();
-
-    const mobileDetails = mobileStepper.locator("..");
-    locationButton = mobileDetails
-      .getByRole("button", { name: /位置與資料證據|Location and evidence/ })
-      .first();
-  } else {
-    const stepNav = page.locator("nav[aria-label='選擇流程步驟']");
-    locationButton = stepNav.getByRole("button", {
-      name: /位置與資料證據|Location and evidence/,
-    });
   }
+  const locationButton = taskNav.getByRole("button", { name: /位置與資料證據|Location and evidence/ }).filter({ visible: true });
   await expect(locationButton).toBeVisible({ timeout: 10000 });
   await locationButton.click();
   await expect(page.locator("#journey-stage-location")).toBeVisible({ timeout: 10000 }).catch(async () => {
@@ -55,8 +44,7 @@ async function gotoLocationStage(page: Page) {
 }
 
 async function analyze(page: Page, address: string) {
-  // The guided journey can mount more than one calculator; target the visible one.
-  const calc = page.locator("#location-insight-calculator").filter({ has: page.getByRole("textbox", { name: "物件地址" }) }).first();
+  const calc = page.locator("#journey-stage-location #location-insight-calculator");
   const input = calc.getByRole("textbox", { name: "物件地址" });
   await expect(input).toBeVisible({ timeout: 15000 });
   await input.click();
@@ -192,7 +180,7 @@ test.describe("@hosted RIS hosted real-production acceptance", () => {
     await waitResp;
     await page.waitForTimeout(1500);
     // Change the address — the flow must invalidate and clear any prior result/card.
-    const calc = page.locator("#location-insight-calculator").filter({ has: page.getByRole("textbox", { name: "物件地址" }) }).first();
+    const calc = page.locator("#journey-stage-location #location-insight-calculator");
     const input = calc.getByRole("textbox", { name: "物件地址" });
     await input.click();
     await input.fill("新北市板橋區文化路一段266號");
@@ -248,27 +236,16 @@ test.describe("@hosted RIS hosted existing-product regression", () => {
   test.describe.configure({ mode: "serial" });
   test.beforeEach(async ({ page }) => { await seedNoOnboarding(page); });
 
-  async function openSidebarIfNeeded(page: Page) {
-    const viewport = page.viewportSize();
-    const isMobile = (viewport?.width ?? 1440) < 1024;
-    if (isMobile) {
-      const menu = page.getByRole("button", { name: /選單|Menu|開啟選單/ }).first();
-      if (await menu.count()) await menu.click().catch(() => {});
-    }
-  }
-
   async function navigateTo(page: Page, name: RegExp) {
-    await openSidebarIfNeeded(page);
-    const nav = page.locator("aside").getByRole("button", { name });
-    const target = nav.first();
-    await expect(target).toBeVisible({ timeout: 10000 });
-    await target.click();
+    const methods = page.locator(".commercial-methods");
+    await expect(methods).toBeVisible({ timeout: 10000 });
+    await openMethod(page, name);
     await expect.poll(
       () => page.evaluate(() => document.activeElement?.hasAttribute("data-page-heading")),
       { timeout: 5000 },
     ).toBe(true).catch(async () => {
-      await expect(target).toBeVisible({ timeout: 10000 });
-      await target.click();
+      await expect(methods).toBeVisible({ timeout: 10000 });
+      await openMethod(page, name);
     });
   }
 

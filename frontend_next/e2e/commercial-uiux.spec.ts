@@ -39,8 +39,13 @@ test("mobile methods are keyboard accessible and saved outputs stay reachable", 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const methods = page.locator(".commercial-methods > summary");
+  // The shell moves initial focus to the task heading after hydration.
+  // Finish that navigation lifecycle before exercising keyboard disclosure.
+  await expect(page.locator(".commercial-home [data-page-heading]")).toBeFocused();
   await methods.focus();
+  await expect(methods).toBeFocused();
   await page.keyboard.press("Enter");
+  await expect(page.locator(".commercial-methods")).toHaveAttribute("open", "");
   await expect(page.getByRole("button", { name: "TaxOracle 稅務", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "TaxOracle 稅務", exact: true }).click();
   await expect(page.locator("[data-page-heading]")).toBeVisible();

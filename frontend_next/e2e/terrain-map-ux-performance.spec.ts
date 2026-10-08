@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 const layerNames = {
   landslide: "大規模崩塌潛勢",
@@ -83,7 +84,7 @@ const mapResult = {
 
 async function openTool(page: import("@playwright/test").Page, name: "Terrain Risk" | "Map Insight") {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.locator("aside").getByRole("button", { name, exact: true }).click();
+  await openMethod(page, name);
 }
 
 async function startProgressTracking(page: import("@playwright/test").Page, testId: string) {
@@ -339,9 +340,7 @@ test("Terrain clears old evidence and ignores a late request after inputs change
 for (const tool of ["Terrain Risk", "Map Insight"] as const) {
   test(`${tool} has no horizontal overflow at 390x844`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "開啟選單" }).click();
-    await page.locator("aside").getByRole("button", { name: tool, exact: true }).click();
+    await openTool(page, tool);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(overflow).toBeLessThanOrEqual(0);
   });

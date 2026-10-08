@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+5aq9WQAAAABJRU5ErkJggg==", "base64");
 const hazardKeys = ["landslide", "debris_flow", "flood", "geological_sensitivity", "liquefaction", "active_fault"];
@@ -68,9 +69,7 @@ async function prepare(page: import("@playwright/test").Page, options: { landsec
   await page.route("**/parcel-geometry/spatial-analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ claim_type: "GEOMETRIC_INTERSECTION", geometry_available: true, intersects: true, intersection_area_m2: 11250, intersection_ratio: 1, nearest_distance_m: 0, timing_ms: { spatial_intersection_ms: 3.2 } }) }));
   await page.goto("/", { waitUntil: "networkidle" });
   await page.locator("select").first().selectOption("en");
-  const terrainButton = page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true });
-  if ((page.viewportSize()?.width ?? 1000) <= 430) await terrainButton.evaluate((element) => (element as HTMLButtonElement).click());
-  else await terrainButton.click();
+  await openMethod(page, "Terrain Risk");
   const advanced = page.getByTestId("terrain-advanced-settings");
   await expect(advanced).not.toHaveAttribute("open", "");
   await advanced.locator("summary").click();
@@ -183,8 +182,8 @@ test("latest upload wins, location changes clear geometry, and locale changes do
 
   await input.setInputFiles({ name: "b.geojson", mimeType: "application/geo+json", buffer: Buffer.from("B") });
   await expect(page.getByTestId("parcel-upload-summary")).toBeVisible();
-  await page.locator("aside").getByRole("button", { name: "Valuation", exact: true }).click();
-  await page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true }).click();
+  await openMethod(page, "Valuation");
+  await openMethod(page, "Terrain Risk");
   await page.getByTestId("terrain-advanced-settings").locator("summary").click();
   await expect(page.getByTestId("parcel-upload-summary")).toHaveCount(0);
 });

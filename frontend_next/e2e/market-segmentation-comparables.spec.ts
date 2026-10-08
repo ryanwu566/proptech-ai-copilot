@@ -1,5 +1,6 @@
 import type { Page, Route } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 
 const COUNTY = "新北市";
@@ -53,10 +54,9 @@ async function fulfillJson(route: Route, body: unknown, status = 200) {
   await route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 }
 
-async function openMarket(page: Page, mobile = false) {
+async function openMarket(page: Page) {
   await page.goto("/");
-  if (mobile) await page.getByRole("button", { name: /開啟選單|Open menu|メニューを開く|메뉴 열기/ }).click();
-  await page.getByRole("navigation").getByRole("button", { name: /Market Insight/ }).click();
+  await openMethod(page, "Market Insight");
   await expect(page.getByRole("heading", { name: "Market Insight" })).toBeVisible();
 }
 
@@ -90,7 +90,7 @@ test("desktop 1440 completes the buyer-first segment and comparable workflow", a
 
 test("mobile 390 completes the same workflow without page overflow", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await openMarket(page, true);
+  await openMarket(page);
   await loadOverview(page);
   await installSuccessfulSegmentRoutes(page);
 

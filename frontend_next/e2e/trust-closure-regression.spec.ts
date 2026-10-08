@@ -1,3 +1,4 @@
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
 /**
  * Trust Closure Regression — Hard Browser Proof
  *
@@ -98,7 +99,7 @@ test.describe("TEST 1: Property → Valuation identity", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // Navigate to standalone valuation via sidebar
-    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await openMethod(page, "房價估算");
     await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
 
     const calcSection = page.locator("#valuation-calculator");
@@ -173,7 +174,7 @@ test.describe("TEST 2: A → B → A property cycle", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await openMethod(page, "房價估算");
     await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
 
     const calcSection = page.locator("#valuation-calculator");
@@ -299,7 +300,7 @@ test.describe("TEST 3: Valuation partial visible UI", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // Navigate to journey price step where the trust status strip shows the partial text
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    await openPropertyEntry(page);
     const priceStepBtn = page.getByLabel(/價格與估價證據/).first();
     await expect(priceStepBtn).toBeVisible({ timeout: 5000 });
     await priceStepBtn.click();
@@ -353,7 +354,7 @@ test.describe("TEST 4: Aegis trust label", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
+    await openMethod(page, /Aegis-Credit/);
     await expect(page.getByRole("heading", { name: "房貸風險展示" })).toBeVisible({ timeout: 10000 });
 
     // Hard assert: form is visible
@@ -418,7 +419,7 @@ test.describe("TEST 5: Parcel point reference", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true }).click();
+    await openMethod(page, "Terrain Risk");
 
     // Fill address and trigger analysis
     const addressInput = page.getByRole("textbox", { name: "物件地址" });
@@ -523,7 +524,7 @@ test.describe("TEST 7: Async context race", () => {
     });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await page.locator("aside button", { hasText: "房價估算" }).click();
+    await openMethod(page, "房價估算");
     await expect(page.locator("#valuation-calculator")).toBeVisible({ timeout: 10000 });
 
     const calcSection = page.locator("#valuation-calculator");

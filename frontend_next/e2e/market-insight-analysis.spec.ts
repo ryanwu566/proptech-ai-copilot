@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
 import {
   buildMarketTrendStats,
   formatMarketPeriodChange,
@@ -136,9 +137,7 @@ function propertyFinderResult() {
 
 async function openMarketInsight(page: Page) {
   await page.goto("/");
-  const menuButton = page.getByRole("button", { name: /開啟選單|Open menu|メニューを開く|메뉴 열기/ });
-  if (await menuButton.isVisible()) await menuButton.click();
-  await page.getByRole("button", { name: /Market Insight/ }).first().click();
+  await openMethod(page, "Market Insight");
   await expect(page.getByRole("heading", { name: "Market Insight" })).toBeVisible();
 }
 
@@ -456,6 +455,7 @@ test("Property Finder hands city district and road to Market Insight without aut
   });
 
   await page.goto("/");
+  await openPropertyEntry(page);
   await page.getByRole("button", { name: "搜尋看屋方向" }).click();
   const transactions = page.locator("#property-finder details").filter({ hasText: "查看完整成交樣本" });
   await transactions.locator("summary").click();

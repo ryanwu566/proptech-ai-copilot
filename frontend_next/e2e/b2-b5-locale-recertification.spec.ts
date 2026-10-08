@@ -44,9 +44,11 @@ test.describe("B2-B5 Four-Locale Desktop @1440x900", () => {
       const main = page.locator("#main-content");
       await expect(main).toBeVisible();
 
-      // Sidebar navigation is rendered with aria-label
-      const aside = page.locator("aside[aria-label]").first();
-      await expect(aside).toBeVisible();
+      // E10 global navigation and the optional Methods disclosure are labelled.
+      const navigation = page.locator(".commercial-global-nav[aria-label]");
+      await expect(navigation).toBeVisible();
+      await expect(navigation.getByRole("link", { name: /已儲存案件|Saved cases|保存済み案件|저장된 사례/ })).toBeVisible();
+      await expect(page.locator(".commercial-methods > summary")).toBeVisible();
 
       // Body text should not contain raw runtime copy keys
       const bodyText = await main.innerText();

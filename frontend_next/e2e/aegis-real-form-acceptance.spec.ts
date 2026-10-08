@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { realProviderUrl } from "./real-provider";
+import { openMethod } from "./helpers/commercial-navigation";
 
 /**
  * Aegis-Credit Real Form Acceptance
@@ -37,7 +38,7 @@ async function setup(page: import("@playwright/test").Page, requestCtx: import("
   });
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.locator("aside button", { hasText: /Aegis-Credit/ }).click();
+  await openMethod(page, "Aegis-Credit");
   await expect(page.getByRole("heading", { name: "房貸風險展示" })).toBeVisible({ timeout: 10000 });
 
   return { payload: () => capturedPayload, status: () => realStatus, body: () => realBody };
@@ -68,7 +69,7 @@ async function assertValues(page: import("@playwright/test").Page, v: { income: 
 async function submitAndWait(page: import("@playwright/test").Page) {
   const t0 = Date.now();
   await page.getByRole("button", { name: /執行房貸風險分析|Run risk analysis|リスク分析を実行|위험 분석 실행/ }).click();
-  await expect(page.locator("text=風險分數").or(page.locator("text=Risk score")).or(page.locator("text=リスクスコア")).or(page.locator("text=위험 점수")).first()).toBeVisible({ timeout: 45000 });
+  await expect(page.getByText(/情境風險指標|Scenario risk indicator|シナリオリスク指標|시나리오 위험 지표/, { exact: true }).first()).toBeVisible({ timeout: 45000 });
   return Date.now() - t0;
 }
 
@@ -223,6 +224,9 @@ test.describe("Aegis — Trust Boundary", () => {
     await setup(page, requestCtx);
     const mainText = await page.locator("#main-content").innerText();
     expect(mainText).toMatch(/heuristic|展示型|不代表|不是核貸/i);
+    expect(mainText).toContain("啟發式參考");
+    expect(mainText).toContain("僅供參考");
+    expect(mainText).toContain("輸入與結果為參考情境，不是核貸判定。");
     expect(mainText).not.toMatch(/核貸保證|核貸結果|核准通知|聯徵分數|credit bureau/i);
   });
 });
@@ -248,13 +252,7 @@ test.describe("Aegis — Mobile 390x844", { tag: "@real-provider" }, () => {
     });
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
-    // Open mobile menu
-    const menuBtn = page.getByRole("button", { name: /開啟選單/ });
-    await expect(menuBtn).toBeVisible({ timeout: 5000 });
-    await menuBtn.click();
-    const aegisBtn = page.locator("aside button", { hasText: /Aegis-Credit/ });
-    await expect(aegisBtn).toBeVisible({ timeout: 5000 });
-    await aegisBtn.click();
+    await openMethod(page, "Aegis-Credit");
     await expect(page.getByRole("heading", { name: "房貸風險展示" })).toBeVisible({ timeout: 10000 });
 
     // Fill and submit
@@ -262,7 +260,7 @@ test.describe("Aegis — Mobile 390x844", { tag: "@real-provider" }, () => {
     const submitBtn = page.getByRole("button", { name: "執行房貸風險分析" });
     await submitBtn.scrollIntoViewIfNeeded();
     await submitBtn.click();
-    await expect(page.locator("text=風險分數").first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("情境風險指標", { exact: true }).first()).toBeVisible({ timeout: 45000 });
 
     // No overflow
     const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
@@ -289,8 +287,8 @@ test.describe("Aegis — Locale Verification", { tag: "@real-provider" }, () => 
 
   const EXPECTED_CTA: Record<string, string> = { "zh-TW": "執行房貸風險分析", en: "Run risk analysis", ja: "リスク分析を実行", ko: "위험 분석 실행" };
   const EXPECTED_SECTION: Record<string, string> = { "zh-TW": "買方情境評估", en: "Buyer scenario assessment", ja: "買主シナリオ評価", ko: "매수인 시나리오 평가" };
-  const EXPECTED_SCORE: Record<string, string> = { "zh-TW": "風險分數", en: "Risk score", ja: "リスクスコア", ko: "위험 점수" };
-  const EXPECTED_STATUS: Record<string, string> = { "zh-TW": "風險狀態", en: "Risk status", ja: "リスク状態", ko: "위험 상태" };
+  const EXPECTED_SCORE: Record<string, string> = { "zh-TW": "情境風險指標", en: "Scenario risk indicator", ja: "シナリオリスク指標", ko: "시나리오 위험 지표" };
+  const EXPECTED_STATUS: Record<string, string> = { "zh-TW": "情境狀態", en: "Scenario status", ja: "シナリオ状態", ko: "시나리오 상태" };
   const EXPECTED_HINTS: Record<string, string> = { "zh-TW": "風險提示", en: "Risk hints", ja: "リスク提示", ko: "위험 안내" };
   const EXPECTED_ADVICE: Record<string, string> = { "zh-TW": "對客戶說明建議", en: "Client communication suggestion", ja: "お客様への説明提案", ko: "고객 설명 제안" };
 
@@ -299,7 +297,7 @@ test.describe("Aegis — Locale Verification", { tag: "@real-provider" }, () => 
   const EXPECTED_MORTGAGE_RATE: Record<string, string> = { "zh-TW": "市場房貸利率參考", en: "Market mortgage rate reference", ja: "市場住宅ローン金利参考", ko: "시장 주택 대출 금리 참고" };
   const EXPECTED_VALIDATION: Record<string, string> = { "zh-TW": "月收入必須大於 0", en: "Monthly income must be greater than 0", ja: "月収は0より大きい必要があります", ko: "월 소득은 0보다 커야 합니다" };
 
-  const CHINESE_FRONTEND_LABELS = ["買方情境評估", "收入與負債", "資產與房貸", "目標物件", "執行房貸風險分析", "風險分數", "風險狀態", "風險提示", "對客戶說明建議", "銀行牌告利率查詢", "市場房貸利率參考", "查詢銀行牌告利率", "機動利率", "固定利率", "生效日期", "五大銀行月資料"];
+  const CHINESE_FRONTEND_LABELS = ["買方情境評估", "收入與負債", "資產與房貸", "目標物件", "執行房貸風險分析", "情境風險指標", "情境狀態", "風險提示", "對客戶說明建議", "銀行牌告利率查詢", "市場房貸利率參考", "查詢銀行牌告利率", "機動利率", "固定利率", "生效日期", "五大銀行月資料"];
 
   for (const locale of LOCALES) {
     test(`${locale}: accessible names, outer UI, result labels`, async ({ page, request: requestCtx }) => {
@@ -404,13 +402,7 @@ test.describe("Aegis — Mobile 390x844 EN", { tag: "@real-provider" }, () => {
     await localeSelect.selectOption("en");
     await page.waitForTimeout(400);
 
-    // Open mobile menu and navigate to Aegis
-    const menuBtn = page.getByRole("button", { name: /Open menu|開啟選單/ });
-    await expect(menuBtn).toBeVisible({ timeout: 5000 });
-    await menuBtn.click();
-    const aegisBtn = page.locator("aside button", { hasText: /Aegis-Credit/ });
-    await expect(aegisBtn).toBeVisible({ timeout: 5000 });
-    await aegisBtn.click();
+    await openMethod(page, "Aegis-Credit");
 
     // Wait for page
     await expect(page.getByRole("button", { name: "Run risk analysis" })).toBeVisible({ timeout: 10000 });
@@ -431,7 +423,7 @@ test.describe("Aegis — Mobile 390x844 EN", { tag: "@real-provider" }, () => {
     const submitBtn = page.getByRole("button", { name: "Run risk analysis" });
     await submitBtn.scrollIntoViewIfNeeded();
     await submitBtn.click();
-    await expect(page.locator("text=Risk score").first()).toBeVisible({ timeout: 45000 });
+    await expect(page.getByText("Scenario risk indicator", { exact: true }).first()).toBeVisible({ timeout: 45000 });
 
     // No horizontal overflow
     const bodyWidth = await page.evaluate(() => document.body.scrollWidth);

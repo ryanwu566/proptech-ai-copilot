@@ -4,6 +4,7 @@
  * Verifies actual component rendering, not just absence of raw keys.
  */
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 // Helper: switch locale
 async function switchLocale(page: import("@playwright/test").Page, locale: string) {
@@ -98,12 +99,17 @@ test.describe("True Dynamic: Aegis Real User Flow", () => {
 
     await page.goto("/");
 
-    // Navigate to Aegis
-    const aegisBtn = page.getByRole("button", { name: /Aegis|Credit|信用/i }).first();
-    if (await aegisBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await aegisBtn.click();
-      await page.waitForTimeout(500);
-    }
+    // Navigate through the public Methods entry and require the actual form.
+    await openMethod(page, "Aegis-Credit");
+    await expect(page.getByTestId("aegis-scenario-form")).toBeVisible({ timeout: 3000 });
+    await page.waitForTimeout(500);
+    await page.getByRole("button", { name: "執行房貸風險分析", exact: true }).click();
+
+    const scenarioMetric = page.locator(".ds-metric").filter({ has: page.getByText("情境風險指標", { exact: true }) });
+    await expect(scenarioMetric.getByText("情境風險指標", { exact: true })).toBeVisible();
+    await expect(scenarioMetric.getByText("15", { exact: true })).toBeVisible();
+    await expect(page.getByText("月收入負擔比偏高", { exact: false })).toBeVisible();
+    await expect(page.getByText("自備款佔比需確認", { exact: false })).toBeVisible();
 
     // Look for Aegis form/section
     const aegisSection = page.locator("#main-content");

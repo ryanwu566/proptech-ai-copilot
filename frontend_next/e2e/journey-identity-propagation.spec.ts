@@ -6,6 +6,7 @@
  */
 import { test, expect } from "@playwright/test";
 import { realProviderUrl } from "./real-provider";
+import { openPropertyEntry } from "./helpers/commercial-navigation";
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -43,6 +44,7 @@ test("PropertyFinder A to B race keeps only the latest row identity", async ({ p
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(propertySearchResult("板橋區", "B_WINNER_ROAD")) });
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await openPropertyEntry(page);
   await page.getByRole("textbox", { name: /縣市/ }).fill("新北市");
   const districtInput = page.getByRole("textbox", { name: /行政區/ });
   await districtInput.fill("永和區");
@@ -71,6 +73,7 @@ test("Real PropertyFinder selection + Journey propagation", { tag: "@real-provid
   });
 
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await openPropertyEntry(page);
   await expect(page.getByRole("heading", { name: "建立物件情境" })).toBeVisible({ timeout: 10000 });
 
   // ── PROPERTYFINDER SEARCH ──

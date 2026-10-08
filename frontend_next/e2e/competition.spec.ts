@@ -1,9 +1,9 @@
 import { test, expect } from "./fixtures";
+import { openDemoReference } from "./helpers/commercial-navigation";
 
 test("three-minute TaxOracle demo is editable and causal", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByTestId("competition-mvp-banner")).toBeVisible();
-  await page.getByTestId("competition-demo-start").getByRole("button").click();
+  await openDemoReference(page);
   await expect(page.getByTestId("competition-demo")).toBeVisible();
   await page.getByTestId("demo-property-price").fill("2500");
   await page.getByTestId("demo-residency_condition_met").uncheck();

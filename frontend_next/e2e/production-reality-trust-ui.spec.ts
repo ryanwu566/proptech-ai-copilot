@@ -14,9 +14,10 @@ test.beforeEach(async ({ page }) => {
 
 test("shell uses neutral per-query data language instead of static service health", async ({ page }) => {
   await page.goto("/");
-  const footer = page.getByRole("complementary", { name: "分析工具" });
-  await expect(footer).toContainText("資料狀態");
-  await expect(footer).toContainText("依各次查詢結果");
+  await page.locator(".commercial-methods > summary").click();
+  const footer = page.locator(".commercial-methods__panel");
+  await expect(footer).toContainText("各來源限制");
+  await expect(page.locator(".commercial-home__trust")).toContainText("未知不代表安全");
   await expect(footer).not.toContainText("服務狀態");
   await expect(footer).not.toContainText(/^可用$/);
 });
@@ -24,9 +25,9 @@ test("shell uses neutral per-query data language instead of static service healt
 test("neutral shell remains readable at 390px", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  await page.getByRole("button", { name: /選單|menu/i }).click();
-  const sidebar = page.getByRole("complementary", { name: "分析工具" });
+  await page.locator(".commercial-methods > summary").click();
+  const sidebar = page.locator(".commercial-methods__panel");
   await expect(sidebar).toBeVisible();
-  await expect(sidebar).toContainText("依各次查詢結果");
+  await expect(sidebar).toContainText("各來源限制");
   expect(await sidebar.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 });

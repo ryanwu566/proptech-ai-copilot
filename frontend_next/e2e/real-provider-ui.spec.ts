@@ -9,6 +9,7 @@
  */
 import { test, expect } from "@playwright/test";
 import { realProviderUrl } from "./real-provider";
+import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -83,13 +84,13 @@ function strictClassify(id: string, resp: Record<string, unknown> | null): { cl:
   return { cl: "EXACT", reason: "" };
 }
 
-/** Navigate to journey location step — NO .first()/.nth() on critical controls */
+/** Open the optional property tools, then choose location evidence. */
 async function goToLocationStep(page: import("@playwright/test").Page) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
-  // Journey step buttons are inside nav "選擇流程步驟" — use visible button with exact title text
-  const stepNav = page.locator("nav[aria-label='選擇流程步驟']");
-  await stepNav.getByRole("button", { name: /位置與資料證據/ }).click();
+  await expect(page.getByRole("heading", { name: "看清物件證據，確認下一步" })).toBeVisible({ timeout: 10000 });
+  await openPropertyEntry(page);
+  const taskNav = page.locator("#guided-property-journey nav[aria-label='選擇流程步驟']");
+  await taskNav.getByRole("button", { name: /位置與資料證據/ }).filter({ visible: true }).click();
   await expect(page.locator("section[id='journey-stage-location']")).toBeVisible({ timeout: 8000 });
 }
 
@@ -197,17 +198,17 @@ test.describe.serial("Cross-Module Full Chain — 5 EXACT Cases", { tag: "@real-
       // Verify road identity in location result
       expect(locationText, `Location must show ${truth.road}`).toContain(truth.road);
 
-      // Step 3: Price/Valuation
-      const stepNav = page.locator("nav[aria-label='選擇流程步驟']");
-      await stepNav.getByRole("button", { name: /價格與估價證據/ }).click();
+      // Review price evidence within the explicitly opened property tools.
+      const taskNav = page.locator("#guided-property-journey nav[aria-label='選擇流程步驟']");
+      await taskNav.getByRole("button", { name: /價格與估價證據/ }).filter({ visible: true }).click();
       await expect(page.locator("section[id='journey-stage-price']")).toBeVisible({ timeout: 8000 });
 
-      // Step 4: Affordability (intermediate check)
-      await stepNav.getByRole("button", { name: /資金與持有成本/ }).click();
+      // Funding and holding-cost access remains available.
+      await taskNav.getByRole("button", { name: /資金與持有成本/ }).filter({ visible: true }).click();
       await expect(page.locator("section[id='journey-stage-affordability']")).toBeVisible({ timeout: 8000 });
 
-      // Step 5: Decision
-      await stepNav.getByRole("button", { name: /看房決策摘要/ }).click();
+      // Review the decision evidence without changing the property identity.
+      await taskNav.getByRole("button", { name: /看房決策摘要/ }).filter({ visible: true }).click();
       await expect(page.locator("section[id='journey-stage-decision']")).toBeVisible({ timeout: 8000 });
       const decisionText = await page.locator("section[id='journey-stage-decision']").textContent() ?? "";
 
@@ -225,31 +226,35 @@ test.describe.serial("Cross-Module Full Chain — 5 EXACT Cases", { tag: "@real-
 // ═══════════════════════════════════════════════════════════════════
 // GAP 3: ACCESSIBILITY UNIQUENESS COUNTS
 // ═══════════════════════════════════════════════════════════════════
+async function expectUniqueCommercialControls(page: import("@playwright/test").Page) {
+  await expect(page.getByRole("combobox", { name: "選擇介面語言" })).toHaveCount(1);
+  await expect(page.locator(".commercial-home").getByRole("button", { name: "還沒有特定物件？搜尋官方成交資料", exact: true })).toHaveCount(1);
+  const methods = page.locator(".commercial-methods");
+  const summary = methods.locator(":scope > summary");
+  await expect(summary).toHaveCount(1);
+  await summary.click();
+  await expect(methods).toHaveAttribute("open", "");
+  for (const name of ["Map Insight", "房價估算", "Terrain Risk", "Aegis-Credit", "Market Insight"]) {
+    const control = methods.getByRole("button", { name, exact: true });
+    await expect(control).toHaveCount(1);
+    await expect(control).toBeVisible();
+  }
+  await methods.getByRole("button", { name: "Map Insight", exact: true }).focus();
+  await page.keyboard.press("Escape");
+  await expect(methods).not.toHaveAttribute("open", "");
+  await expect(summary).toBeFocused();
+}
+
 test.describe("Accessibility Counts — Desktop 1440", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
   test("Each critical control has exactly 1 actionable match", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
-
-    const sidebar = page.locator("aside[aria-label='分析工具']");
-
-    // Locale: combobox "選擇介面語言"
-    await expect(page.getByRole("combobox", { name: "選擇介面語言" })).toHaveCount(1);
-    // Property / Journey: sidebar button
-    await expect(sidebar.getByRole("button", { name: "看房決策流程" })).toHaveCount(1);
-    // Map Insight
-    await expect(sidebar.getByRole("button", { name: "Map Insight" })).toHaveCount(1);
-    // Valuation
-    await expect(sidebar.getByRole("button", { name: "房價估算" })).toHaveCount(1);
-    // Terrain
-    await expect(sidebar.getByRole("button", { name: "Terrain Risk" })).toHaveCount(1);
-    // Aegis
-    await expect(sidebar.getByRole("button", { name: "Aegis-Credit" })).toHaveCount(1);
-    // Market Insight
-    await expect(sidebar.getByRole("button", { name: "Market Insight" })).toHaveCount(1);
-    // Five-step CTA (journey heading visible)
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toHaveCount(1);
+    await expect(page.getByRole("heading", { name: "看清物件證據，確認下一步" })).toBeVisible({ timeout: 10000 });
+    await expectUniqueCommercialControls(page);
+    await expect(page.getByRole("heading", { name: "看清物件證據，確認下一步" })).toHaveCount(1);
+    await openPropertyEntry(page);
+    await expect(page.locator("#property-finder")).toBeVisible();
   });
 });
 
@@ -258,22 +263,10 @@ test.describe("Accessibility Counts — Mobile 390", () => {
 
   test("Mobile critical controls unique", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
-
-    // Menu button unique
-    await expect(page.getByRole("button", { name: "開啟選單" })).toHaveCount(1);
-    // Open menu
-    await page.getByRole("button", { name: "開啟選單" }).click();
-    const sidebar = page.locator("aside[aria-label='分析工具']");
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
-
-    // Controls unique within sidebar
-    await expect(sidebar.getByRole("button", { name: "看房決策流程" })).toHaveCount(1);
-    await expect(sidebar.getByRole("button", { name: "Map Insight" })).toHaveCount(1);
-    await expect(sidebar.getByRole("button", { name: "房價估算" })).toHaveCount(1);
-    await expect(sidebar.getByRole("button", { name: "Terrain Risk" })).toHaveCount(1);
-    await expect(sidebar.getByRole("button", { name: "Aegis-Credit" })).toHaveCount(1);
-    await expect(sidebar.getByRole("button", { name: "Market Insight" })).toHaveCount(1);
+    await expect(page.getByRole("heading", { name: "看清物件證據，確認下一步" })).toBeVisible({ timeout: 10000 });
+    await expectUniqueCommercialControls(page);
+    await openPropertyEntry(page);
+    await expect(page.locator("#property-finder")).toBeVisible();
   });
 });
 
@@ -283,74 +276,64 @@ test.describe("Accessibility Counts — Mobile 390", () => {
 test.describe("Desktop 1440 Semantic Agent Flow", () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test("Full navigation: zh→en→all modules→journey", async ({ page }) => {
+  test("Full navigation: zh→en→all methods→property entry", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole("heading", { name: "看清物件證據，確認下一步" })).toBeVisible({ timeout: 10000 });
 
     // Switch locale
     await page.getByRole("combobox", { name: "選擇介面語言" }).selectOption("en");
     await expect(page.locator("html")).toHaveAttribute("lang", "en", { timeout: 5000 });
 
-    // Navigate via sidebar (now in English)
-    const sidebar = page.locator("aside[aria-label='Analysis tools']");
-    await expect(sidebar).toBeVisible({ timeout: 5000 });
-    await sidebar.getByRole("button", { name: "Map Insight" }).click();
+    // Navigate through the current Methods disclosure in English.
+    await expect(page.locator(".commercial-methods")).toBeVisible({ timeout: 5000 });
+    await openMethod(page, "Map Insight");
     await page.waitForTimeout(300);
-    await sidebar.getByRole("button", { name: "Valuation" }).click();
+    await openMethod(page, "Valuation");
     await page.waitForTimeout(300);
-    await sidebar.getByRole("button", { name: "Terrain Risk" }).click();
+    await openMethod(page, "Terrain Risk");
     await page.waitForTimeout(300);
-    await sidebar.getByRole("button", { name: "Aegis-Credit" }).click();
+    await openMethod(page, "Aegis-Credit");
     await page.waitForTimeout(300);
-    await sidebar.getByRole("button", { name: "Market Insight" }).click();
+    await openMethod(page, "Market Insight");
     await page.waitForTimeout(300);
 
-    // Return to journey
-    await sidebar.getByRole("button", { name: "Property decision flow" }).click();
-    await expect(page.getByRole("heading", { name: /five steps/i })).toBeVisible({ timeout: 8000 });
+    await page.locator(".commercial-global-nav").getByRole("button", { name: "Start", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Review property evidence. Know what to verify." })).toBeVisible({ timeout: 8000 });
+    await openPropertyEntry(page);
+    await expect(page.locator("#property-finder")).toBeVisible();
   });
 });
 
 test.describe("Mobile 390 Semantic Agent Flow", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("Full mobile navigation via menu", async ({ page }) => {
+  test("Full mobile navigation via Methods", async ({ page }) => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
-
-    const menu = page.getByRole("button", { name: "開啟選單" });
-    const sidebar = page.locator("aside[aria-label='分析工具']");
-
-    // Navigate to each module via menu
-    await menu.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
-    await sidebar.getByRole("button", { name: "Map Insight" }).click();
+    await expect(page.getByRole("heading", { name: "看清物件證據，確認下一步" })).toBeVisible({ timeout: 10000 });
+    const methods = page.locator(".commercial-methods");
+    await expect(methods).toBeVisible({ timeout: 3000 });
+    await openMethod(page, "Map Insight");
     await page.waitForTimeout(500);
 
-    await menu.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
-    await sidebar.getByRole("button", { name: "房價估算" }).click();
+    await expect(methods).toBeVisible({ timeout: 3000 });
+    await openMethod(page, "房價估算");
     await page.waitForTimeout(500);
 
-    await menu.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
-    await sidebar.getByRole("button", { name: "Terrain Risk" }).click();
+    await expect(methods).toBeVisible({ timeout: 3000 });
+    await openMethod(page, "Terrain Risk");
     await page.waitForTimeout(500);
 
-    await menu.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
-    await sidebar.getByRole("button", { name: "Aegis-Credit" }).click();
+    await expect(methods).toBeVisible({ timeout: 3000 });
+    await openMethod(page, "Aegis-Credit");
     await page.waitForTimeout(500);
 
-    await menu.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
-    await sidebar.getByRole("button", { name: "Market Insight" }).click();
+    await expect(methods).toBeVisible({ timeout: 3000 });
+    await openMethod(page, "Market Insight");
     await page.waitForTimeout(500);
 
-    // Return to journey
-    await menu.click();
-    await expect(sidebar).toBeVisible({ timeout: 3000 });
-    await sidebar.getByRole("button", { name: "看房決策流程" }).click();
-    await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 8000 });
+    await page.locator(".commercial-global-nav").getByRole("button", { name: "首頁", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "看清物件證據，確認下一步" })).toBeVisible({ timeout: 8000 });
+    await openPropertyEntry(page);
+    await expect(page.locator("#property-finder")).toBeVisible();
   });
 });

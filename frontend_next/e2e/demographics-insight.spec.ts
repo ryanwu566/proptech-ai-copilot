@@ -1,3 +1,4 @@
+import { openPropertyEntry } from "./helpers/commercial-navigation";
 /**
  * Phase 3C-2 — RIS Demographics Frontend Integration (里人口概況)
  *
@@ -121,7 +122,7 @@ function locationResponse(options: {
 
 async function gotoLocationStage(page: Page) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 12000 });
+  await openPropertyEntry(page);
 
   // The journey stepper renders a desktop button list (hidden below lg) and a
   // collapsed <details> for mobile. Pick whichever is visible for the viewport.

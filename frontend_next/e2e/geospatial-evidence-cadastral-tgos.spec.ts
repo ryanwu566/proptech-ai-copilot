@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 const transparentPng = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M/wHwAF/gL+5aq9WQAAAABJRU5ErkJggg==", "base64");
 
@@ -42,9 +43,7 @@ function terrainResult(lat = 25.0375, lng = 121.5645, cadastral: Record<string, 
 
 async function openTerrain(page: import("@playwright/test").Page) {
   await page.goto("/", { waitUntil: "networkidle" });
-  const terrainButton = page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true });
-  await expect(terrainButton).toBeVisible();
-  await terrainButton.click();
+  await openMethod(page, "Terrain Risk");
   await expect(page.getByRole("textbox", { name: "物件地址" })).toBeVisible();
 }
 
@@ -221,9 +220,7 @@ test("cadastral map fits 390x844 with attribution and limitation", async ({ page
   await page.setViewportSize({ width: 390, height: 844 });
   await stubBaseTiles(page);
   await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(terrainResult()) }));
-  await page.goto("/", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: "開啟選單" }).click();
-  await page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true }).click();
+  await openTerrain(page);
 
   await analyze(page);
   const mobileMap = page.getByTestId("cadastral-map-shell").locator(".leaflet-container");

@@ -3,6 +3,7 @@
  * CRITICAL_POSITIONAL_SELECTOR_COUNT = 0 (uses data-testid for all controls)
  */
 import { test, expect } from "@playwright/test";
+import { openMethod } from "./helpers/commercial-navigation";
 
 test.use({ viewport: { width: 1440, height: 900 } });
 
@@ -15,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 async function goToMarket(page: import("@playwright/test").Page) {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.locator("aside[aria-label='分析工具']").getByRole("button", { name: "Market Insight" }).click();
+  await openMethod(page, "Market Insight");
   await expect(page.getByTestId("market-insight-search-form")).toBeVisible({ timeout: 8000 });
 }
 
