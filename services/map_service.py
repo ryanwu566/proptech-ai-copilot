@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import atexit
 from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime
 import json
 import logging
+import os
 import time
 from pathlib import Path
 from typing import Any, Callable
@@ -18,6 +20,7 @@ from services.adapters.tgos_geocoding_adapter import TgosGeocodingAdapter
 from services.adapters.poi_adapter import MockPoiAdapter, PoiAdapter
 from services.adapters.traffic_adapter import MockTrafficAdapter, TrafficAdapter
 from services.geocoding_acceptance import evaluate_geocoding_acceptance, unavailable_geocoding_acceptance
+from services.provider_observability import provider_observations
 
 
 DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "mock_map_points.json"
@@ -107,6 +110,8 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     if region is None and adapter is None:
         region = MockGeocodingAdapter().search(query, regions)
     if region is None:
+        reason = getattr(google, "last_reason_code", "provider_unavailable")
+        provider_observations.record("geocoding", status="unavailable", reason_code=reason if reason != "not_checked" else "provider_unavailable", source="google_geocoding" if isinstance(google, GoogleGeocodingAdapter) and google.available else "none")
         geocoding_ms = round((time.perf_counter() - started) * 1000)
         LOGGER.info("map_geocoding timing_ms=%s matched=false source=unavailable", geocoding_ms)
         acceptance = unavailable_geocoding_acceptance(query)
@@ -122,6 +127,7 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     geocoding_ms = round((time.perf_counter() - started) * 1000)
     LOGGER.info("map_geocoding timing_ms=%s matched=true source=%s", geocoding_ms, source)
     acceptance = evaluate_geocoding_acceptance(query, region, source)
+    provider_observations.record("geocoding", status="available" if acceptance.get("accepted_for_analysis") and source != "mock" else "unaccepted", reason_code="success" if acceptance.get("accepted_for_analysis") and source != "mock" else "geocoding_unaccepted", source=source)
     # Mock geocoding must NEVER be accepted as real location evidence
     if source == "mock" and acceptance.get("accepted_for_analysis"):
         acceptance = {
@@ -173,51 +179,16 @@ def get_google_health(
     *,
     before_provider_probe: Callable[[], None] | None = None,
 ) -> dict[str, Any]:
-    """Check Google integrations; guard only uncached, configured live probes."""
+    """Return configuration and recent observations; never probe providers."""
 
-    global GOOGLE_HEALTH_CACHE
-    now = time.monotonic()
-    if not force_refresh and GOOGLE_HEALTH_CACHE and now - GOOGLE_HEALTH_CACHE[0] < GOOGLE_HEALTH_TTL_SECONDS:
-        return GOOGLE_HEALTH_CACHE[1]
-
-    geocoding = GoogleGeocodingAdapter()
-    if not geocoding.available:
-        result = {
-            "google_key_configured": False, "geocoding_enabled": False, "places_enabled": False,
-            "last_error": "", "mode": "mock", "safe_message": "目前使用展示資料",
-        }
-        GOOGLE_HEALTH_CACHE = (now, result)
-        return result
-
-    # Cached and no-key responses stay local. Public callers guard the live
-    # probe here, before either Google adapter performs network work.
-    if before_provider_probe is not None:
-        before_provider_probe()
-    places = GooglePlacesAdapter()
-    geocoding_enabled = geocoding.search("台北101", []) is not None
-    places_enabled = False
-    places_error = ""
-    try:
-        places.nearby(25.0330, 121.5654, 200, "transport", "zh-TW")
-        places_enabled = True
-    except httpx.TimeoutException:
-        places_error = "Google Places 回應逾時"
-    except httpx.HTTPStatusError:
-        places_error = "Google Places 目前無法使用"
-    except (httpx.HTTPError, KeyError, ValueError, TypeError):
-        places_error = "Google Places 未回傳可用資料"
-    enabled = geocoding_enabled and places_enabled
-    errors = [message for message in [geocoding.last_error, places_error] if message]
-    result = {
-        "google_key_configured": True,
-        "geocoding_enabled": geocoding_enabled,
-        "places_enabled": places_enabled,
-        "last_error": "；".join(errors),
-        "mode": "google" if enabled else "mock",
-        "safe_message": "目前使用 Google Places API" if enabled else "Google API 暫不可用，已切換展示資料",
-    }
-    GOOGLE_HEALTH_CACHE = (now, result)
-    return result
+    configured = bool(os.getenv("GOOGLE_MAPS_API_KEY", "").strip())
+    recent = provider_observations.snapshot()
+    def observed(capability: str, expected_source: str):
+        item = recent.get(capability)
+        if item is None or item["source"] != expected_source:
+            return None
+        return item["status"] in {"available", "no_data", "no_match"}
+    return {"google_key_configured": configured, "geocoding_enabled": observed("geocoding", "google_geocoding"), "places_enabled": observed("places", "google_places"), "last_error": "", "mode": "configured" if configured else "mock", "safe_message": "已設定 Google 服務；可用性依最近實際查詢分別確認。" if configured else "目前使用展示資料", "provider_status": "observed" if any(key in recent for key in ("geocoding", "places")) else "not_checked", "recent_results": {key: recent[key] for key in ("geocoding", "places") if key in recent}}
 
 
 def get_map_insight(query: str, geocoding: GeocodingAdapter | None = None, poi: PoiAdapter | None = None, traffic: TrafficAdapter | None = None) -> dict[str, Any] | None:
@@ -282,7 +253,7 @@ def get_nearby_places(
     if source == "mock":
         grouped = [_category_result(category, _mock_places(lat, lng, radius_m, category), source="mock", availability="fallback") for category in requested]
         category_status = {
-            category: {"status": "fallback", "source": "mock", "timing_ms": provider_timing_ms.get(category, 0)}
+            category: category_status.get(category, {"status": "fallback", "source": "mock", "timing_ms": provider_timing_ms.get(category, 0)})
             for category in requested
         }
 
@@ -319,6 +290,7 @@ def get_nearby_places(
         "center": {"lat": lat, "lng": lng},
         "radius_m": radius_m,
         "source": source,
+        "checked_at": datetime.now(UTC).isoformat(),
         "partial": partial,
         "fallback": source == "mock",
         "failed_categories": failed_categories,
@@ -361,6 +333,7 @@ def get_nearby_places(
         source,
         partial,
     )
+    provider_observations.record("places", status="partial" if partial else "available" if source == "google_places" else "demo", reason_code="partial" if partial else "success" if source == "google_places" else "provider_unavailable", source=source)
     return response
 
 

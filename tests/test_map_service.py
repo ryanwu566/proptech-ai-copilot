@@ -204,7 +204,7 @@ def test_google_geocoding_is_used_first_when_available(monkeypatch) -> None:
             return None
 
         def json(self) -> dict:
-            return {"results": [{"place_id": "google-101", "formatted_address": "台北市信義區台北101", "geometry": {"location": {"lat": 25.033, "lng": 121.5654}}}]}
+            return {"status": "OK", "results": [{"place_id": "google-101", "formatted_address": "台北市信義區台北101", "geometry": {"location": {"lat": 25.033, "lng": 121.5654}}}]}
 
     monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *args, **kwargs: Response())
     result = search_location("台北101", adapter=GoogleGeocodingAdapter(api_key="configured-for-test"))
@@ -272,6 +272,7 @@ class _FakeResponse:
 
     def __init__(self, address_components, formatted_address="test address"):
         self._json = {
+            "status": "OK",
             "results": [{
                 "geometry": {"location": {"lat": 25.025, "lng": 121.543}},
                 "address_components": address_components,

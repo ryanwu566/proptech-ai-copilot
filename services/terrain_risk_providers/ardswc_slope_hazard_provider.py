@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
 import httpx
+from shapely.geometry import Point, shape
 
 from .base import source_meta, unavailable_layer
 
@@ -106,6 +107,12 @@ class ArdswcSlopeHazardProvider:
         query_budget_seconds: float = QUERY_BUDGET_SECONDS,
         use_cache: bool = True,
     ) -> None:
+        if not 1 <= max_tiles_per_layer <= MAX_TILE_REQUESTS_PER_MVT_LAYER:
+            raise ValueError("max_tiles_per_layer exceeds the bounded request contract")
+        if not 0 < timeout_seconds <= REQUEST_TIMEOUT_SECONDS:
+            raise ValueError("timeout_seconds exceeds the bounded request contract")
+        if not 0 < query_budget_seconds <= QUERY_BUDGET_SECONDS:
+            raise ValueError("query_budget_seconds exceeds the bounded request contract")
         self.http_get = http_get
         self.decoder = decoder or self._decode_mvt
         self.decoder_ready = decoder is not None or _optional_decoder_available()
@@ -211,18 +218,20 @@ class ArdswcSlopeHazardProvider:
                 errors.append(f"{tile.z}/{tile.y}/{tile.x}: {error}")
 
         if successful_tiles == 0:
-            return self._mvt_result(mvt_key, "error", False, None, [], f"{config['label']}本次無法完成官方 MVT 比對，請稍後重試或前往官方圖台確認。", errors)
+            return self._mvt_result(mvt_key, "error", False, None, [], f"{config['label']}本次無法完成官方 MVT 比對，請稍後重試或前往官方圖台確認。", errors, len(tiles))
 
         features = dedupe_features(decoded_features)
         matches = [match for feature in features if (match := match_feature(feature, latitude, longitude, radius_m, config["geometry_kind"]))]
         if matches:
             nearest = min(item["distance_m"] for item in matches if item["distance_m"] is not None)
             status = "limited" if errors else "available"
-            return self._mvt_result(mvt_key, status, True, round(nearest), [item["feature_id"] for item in matches], config["message"], errors)
+            return self._mvt_result(mvt_key, status, True, round(nearest), [item["feature_id"] for item in matches], config["message"], errors, len(tiles))
 
         status = "limited" if errors else "available"
-        explanation = "此官方圖層未比對到明確重疊，仍須搭配其他待補查來源判斷。"
-        return self._mvt_result(mvt_key, status, False, None, [], explanation, errors)
+        explanation = "本次已取得的官方圖層未比對到指定半徑內的範圍或溪流，不代表此物件安全或無災害風險。"
+        if errors:
+            explanation += " 部分 tile 未取得，無法確認完整查詢範圍。"
+        return self._mvt_result(mvt_key, status, False, None, [], explanation, errors, len(tiles))
 
     def _fetch_tile(self, mvt_key: str, tile: TileCoord, client: httpx.Client | None = None) -> bytes:
         cache_key = (mvt_key, tile.z, tile.x, tile.y)
@@ -281,8 +290,9 @@ class ArdswcSlopeHazardProvider:
                 })
         return features
 
-    def _mvt_result(self, mvt_key: str, status: str, matched: bool, distance_m: int | None, feature_ids: list[str], explanation: str, errors: list[str]) -> dict[str, Any]:
+    def _mvt_result(self, mvt_key: str, status: str, matched: bool, distance_m: int | None, feature_ids: list[str], explanation: str, errors: list[str], tile_count: int) -> dict[str, Any]:
         config = MVT_LAYERS[mvt_key]
+        semantics = "stream_proximity_within_radius" if config["geometry_kind"] == "line" else "polygon_intersection_with_query_radius"
         return {
             "mvt_key": mvt_key,
             "key": config["hazard_key"],
@@ -291,9 +301,12 @@ class ArdswcSlopeHazardProvider:
             "level": config["risk_level"] if matched else "unknown",
             "matched": matched,
             "distance_m": distance_m,
-            "value": {"feature_count": len(feature_ids), "feature_ids": feature_ids[:10], "tile_errors": errors[:5]},
+            "value": {"feature_count": len(feature_ids), "feature_ids": feature_ids[:10], "tile_errors": errors[:5],
+                      "requested_tiles": tile_count, "successful_tiles": tile_count - len(errors), "failed_tiles": len(errors)},
             "explanation": explanation,
-            "source": self._source_meta(status, config["url"]),
+            "source": {**self._source_meta(status, config["url"]), "layer_id": mvt_key,
+                       "dataset_version": "113-public-mvt", "geometry_kind": config["geometry_kind"],
+                       "match_semantics": semantics},
         }
 
     def _skipped_or_empty(self, hazard_key: str, requested: set[str]) -> dict[str, Any]:
@@ -356,6 +369,7 @@ def merge_layer_results(hazard_key: str, rows: list[dict[str, Any]]) -> dict[str
                     "level": row["level"],
                     "distance_m": row["distance_m"],
                     "source": row["source"],
+                    "value": row["value"],
                 }
                 for row in rows
             ]
@@ -396,8 +410,8 @@ _GEOJSON_GEOMETRY_TYPES = frozenset(
 def tile_geometry_to_lonlat(geometry: Any, tile: TileCoord, extent: int) -> Any:
     # Modern mapbox-vector-tile (>=2) decode() returns GeoJSON-shaped geometry
     # dicts ({"type": ..., "coordinates": ...}) whose coordinates are still in
-    # local tile pixel space. Unwrap the coordinate list so the shared nested
-    # conversion below can transform each vertex to lon/lat. Unknown or
+    # local tile pixel space. Preserve type and nested ring topology while the
+    # conversion below transforms each vertex to lon/lat. Unknown or
     # malformed dicts are returned unchanged so downstream matching treats them
     # as non-geometry (no path, no false match).
     if isinstance(geometry, dict):
@@ -407,7 +421,7 @@ def tile_geometry_to_lonlat(geometry: Any, tile: TileCoord, extent: int) -> Any:
         coordinates = geometry.get("coordinates")
         if not isinstance(coordinates, (list, tuple)):
             return geometry
-        return tile_geometry_to_lonlat(coordinates, tile, extent)
+        return {"type": geometry_type, "coordinates": tile_geometry_to_lonlat(coordinates, tile, extent)}
     if isinstance(geometry, (tuple, list)) and len(geometry) == 2 and all(isinstance(value, (int, float)) for value in geometry):
         px, py = geometry
         n = 2**tile.z
@@ -442,7 +456,7 @@ def stable_feature_id(feature: dict[str, Any]) -> str:
 
 def match_feature(feature: dict[str, Any], latitude: float, longitude: float, radius_m: int, geometry_kind: str) -> dict[str, Any] | None:
     geometry = feature.get("geometry")
-    distance = geometry_distance_m(geometry, longitude, latitude)
+    distance = geometry_distance_m(geometry, longitude, latitude, geometry_kind=geometry_kind)
     if distance is None:
         return None
     if distance <= radius_m:
@@ -450,20 +464,48 @@ def match_feature(feature: dict[str, Any], latitude: float, longitude: float, ra
     return None
 
 
-def geometry_distance_m(geometry: Any, lon: float, lat: float) -> float | None:
+def geometry_distance_m(geometry: Any, lon: float, lat: float, *, geometry_kind: str = "polygon") -> float | None:
     paths = extract_paths(geometry)
     distances: list[float] = []
+    if geometry_kind == "polygon":
+        polygon = _polygon_geometry(geometry)
+        if polygon is not None and polygon.intersects(Point(lon, lat)):
+            return 0.0
     for path in paths:
         if len(path) == 1:
             distances.append(distance_m(lon, lat, path[0][0], path[0][1]))
         elif len(path) >= 2:
-            if point_in_ring(lon, lat, path):
-                return 0.0
             distances.extend(point_segment_distance_m(lon, lat, a, b) for a, b in zip(path, path[1:]))
     return min(distances) if distances else None
 
 
+def _polygon_geometry(geometry: Any) -> Any:
+    """Honor exterior/interior ring ownership for decoded and legacy fixtures."""
+    if isinstance(geometry, dict):
+        if geometry.get("type") not in {"Polygon", "MultiPolygon"}:
+            return None
+        document = geometry
+    elif isinstance(geometry, list) and geometry:
+        if all(is_point(item) for item in geometry):
+            document = {"type": "Polygon", "coordinates": [geometry]}
+        elif all(isinstance(ring, list) and ring and all(is_point(item) for item in ring) for ring in geometry):
+            document = {"type": "Polygon", "coordinates": geometry}
+        else:
+            document = {"type": "MultiPolygon", "coordinates": geometry}
+    else:
+        return None
+    try:
+        polygon = shape(document)
+        return polygon if not polygon.is_empty and polygon.is_valid else None
+    except (TypeError, ValueError, KeyError, IndexError):
+        return None
+
+
 def extract_paths(geometry: Any) -> list[list[tuple[float, float]]]:
+    if isinstance(geometry, dict):
+        if geometry.get("type") not in _GEOJSON_GEOMETRY_TYPES:
+            return []
+        return extract_paths(geometry.get("coordinates"))
     if not isinstance(geometry, list) or not geometry:
         return []
     if is_point(geometry):

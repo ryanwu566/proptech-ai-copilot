@@ -33,4 +33,13 @@ def build_metrics_router(registry: BoundedMetricsRegistry) -> APIRouter:
             media_type="text/plain; version=0.0.4",
         )
 
+    @router.get("/provider-status", include_in_schema=False)
+    def get_provider_status(request: Request) -> dict:
+        expected = os.getenv(METRICS_SCRAPE_TOKEN_ENV, "")
+        provided = request.headers.get(METRICS_SCRAPE_TOKEN_HEADER, "")
+        if not valid_scrape_token(expected) or not valid_scrape_token(provided) or not secrets.compare_digest(provided, expected):
+            raise HTTPException(status_code=404, detail="Not Found")
+        from services.provider_observability import provider_status
+        return provider_status(os.environ)
+
     return router

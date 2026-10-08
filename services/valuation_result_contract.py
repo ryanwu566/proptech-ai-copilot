@@ -15,6 +15,7 @@ VALUATION_REASON_CODES = (
 PUBLIC_SOURCE_DETAIL_KEYS = {
     "provider_active", "candidate_pool_size", "query_scope", "requested_city",
     "requested_district", "requested_road", "db_rows_returned", "query_status",
+    "backend", "capability",
 }
 
 

@@ -34,10 +34,51 @@ import re
 import threading
 from contextlib import contextmanager
 from pathlib import Path
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import MagicMock, patch, PropertyMock
 
 import pytest
+
+
+@pytest.mark.parametrize("frozen_year,frozen_month,expected_upper", [(2026, 7, 318), (2099, 1, 321)])
+def test_green_window_filters_before_limit_and_clamps_frozen_future(monkeypatch, frozen_year, frozen_month, expected_upper):
+    import services.compact_green_query as mod
+
+    class FixedDatetime:
+        @classmethod
+        def now(cls, tz):
+            return datetime(2026, 10, 8, tzinfo=UTC)
+
+    monkeypatch.setattr(mod, "datetime", FixedDatetime, raising=False)
+    monkeypatch.setattr(mod, "get_geography_cache", lambda: {("臺北市", "大安區"): 1})
+    monkeypatch.setattr(mod, "get_max_period_code", lambda: mod.encode_period(frozen_year, frozen_month))
+    with _mock_pool() as (pool, _, cursor):
+        monkeypatch.setattr(mod, "_get_pool", lambda: pool)
+        mod.query_green_comparables(_sample_payload())
+        sql, params = cursor.execute.call_args.args
+    assert params["min_period_code"] == 286  # November 2023: 35 preceding months.
+    assert params["max_period_code"] == expected_upper
+    before_limit = sql.split("LIMIT 200")[0]
+    assert "fact.period_code >= %(min_period_code)s" in before_limit
+    assert "fact.period_code <= %(max_period_code)s" in before_limit
+
+
+def test_green_result_reports_actual_estimate_source_and_blue_other_capabilities(monkeypatch):
+    from backend.api.routes_valuation import _safe_estimate_response
+    from services.valuation_service import estimate_property
+
+    monkeypatch.setenv("PLVR_DATA_BACKEND", "green")
+    provider = _fake_provider(monkeypatch)
+    monkeypatch.setattr("services.compact_green_query.query_green_comparables", lambda payload: _green_compatible_rows())
+    result = _safe_estimate_response(estimate_property(_sample_payload()))
+    assert result["valuation_status"] == "available"
+    assert result["source_details"]["provider_active"] == "compact_green"
+    assert result["source_details"]["backend"] == "green"
+    assert result["source_details"]["capability"] == "valuation"
+    assert result["data_status"]["active_source"] == "postgres"
+    assert result["data_status"]["capability_sources"] == {"valuation": "compact_green", "finder": "postgres", "trend": "postgres", "market": "postgres", "coverage": "postgres"}
+    provider.query_comparables.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

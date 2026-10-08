@@ -8,13 +8,14 @@ import gzip
 import hashlib
 import io
 import json
+import math
 from pathlib import Path, PurePosixPath
 import re
 from typing import Any, Iterable
 import zipfile
 
 import shapefile
-from shapely import wkb
+from shapely import get_coordinates, wkb
 from shapely.geometry import shape as geometry_shape
 
 from services.gsmma_geological_sensitivity_dataset import (
@@ -517,6 +518,9 @@ def load_artifact(payload: bytes) -> tuple[dict[str, Any], list[NormalizedFeatur
             geometry = wkb.loads(row["geometry_wkb_hex"], hex=True)
             if geometry.geom_type not in {"Polygon", "MultiPolygon"} or geometry.is_empty or not geometry.is_valid:
                 raise ValueError("artifact contains invalid polygon geometry")
+            if not all(math.isfinite(x) and math.isfinite(y) and -180 <= x <= 180 and -90 <= y <= 90
+                       for x, y in get_coordinates(geometry)):
+                raise ValueError("artifact polygon coordinates are outside finite WGS84 bounds")
             if row["dataset_version"] != dataset_version or row["target_crs"] != "EPSG:4326":
                 raise ValueError("artifact feature metadata mismatch")
             official_category = row["official_category"]

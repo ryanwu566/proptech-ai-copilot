@@ -82,7 +82,9 @@ def test_official_estimate_response_has_no_provider_internals(monkeypatch) -> No
     assert result["result_origin"] == "official"
     assert result["is_actionable"] is True
     assert len(result["comparables"]) >= 3
-    assert set(result["source_details"]) <= {"provider_active", "candidate_pool_size", "query_scope", "requested_city", "requested_district", "requested_road", "db_rows_returned", "query_status"}
+    assert set(result["source_details"]) <= {"provider_active", "candidate_pool_size", "query_scope", "requested_city", "requested_district", "requested_road", "db_rows_returned", "query_status", "backend", "capability"}
+    assert result["source_details"]["backend"] == "blue"
+    assert result["source_details"]["capability"] == "valuation"
 
 
 # ---------------------------------------------------------------------------

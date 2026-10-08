@@ -275,6 +275,23 @@ def test_accepted_geocoding_preserves_region_and_passes_trusted_city_to_geology(
     assert geology.requested_layers == ("liquefaction",)
 
 
+def test_liquefaction_admin_context_is_resolved_per_property_and_raw_city_is_untrusted():
+    geology = AreaHintGeologyProvider()
+    def accepted_searcher(query):
+        city, district = ("臺北市", "大安區") if query == "property-A" else ("新北市", "板橋區")
+        return {"matched": True, "center": {"lat": 25.026, "lng": 121.543},
+                "city": city, "district": district, "source": "google_geocoding",
+                "geocoding_acceptance": {"accepted_for_analysis": True}}
+    for address, expected_city in [("property-A", "臺北市"), ("property-B", "新北市")]:
+        report = analyze_terrain_risk(address=address, searcher=accepted_searcher,
+                                     providers=providers(geology=geology), include_layers=["liquefaction"])
+        assert report["resolved_location"]["city"] == expected_city
+        assert geology.area_hint == expected_city
+    analyze_terrain_risk(city="臺北市", district="大安區", latitude=25.026, longitude=121.543,
+                         providers=providers(geology=geology), include_layers=["liquefaction"])
+    assert geology.area_hint is None
+
+
 def test_area_hint_routing_keeps_old_geology_provider_signature_compatible() -> None:
     def accepted_searcher(query: str) -> dict:
         return {

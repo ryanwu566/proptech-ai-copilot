@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from services.tdx_mrt_client import TdxMrtClient, TdxMrtClientError
-from services.tdx_mrt_snapshot import CommuteSnapshot, CommuteStationSnapshot, TdxMrtSnapshotError, build_tdx_mrt_snapshot
+from services.tdx_mrt_snapshot import STALE_AFTER_DAYS, SNAPSHOT_SCHEMA_VERSION, CommuteSnapshot, CommuteStationSnapshot, TdxMrtSnapshotError, build_tdx_mrt_snapshot
 
 
 ADDRESS_LOOKUP_NOTICE = "僅供通勤與生活機能參考，不影響地勢災害、貸款、法律或看房結論。"
@@ -45,6 +45,14 @@ def get_commute_status() -> dict[str, Any]:
         snapshot = _snapshot
     if snapshot is None:
         return {
+            "snapshot_version": None,
+            "snapshot_schema_version": SNAPSHOT_SCHEMA_VERSION,
+            "source_updated_at": None,
+            "source_age_days": None,
+            "stale_after_days": STALE_AFTER_DAYS,
+            "freshness_status": "unavailable",
+            "freshness_reason_code": "snapshot_missing",
+            "freshness_as_of": _now_iso(),
             "available": False,
             "source": "none",
             "generated_at": None,
@@ -94,7 +102,10 @@ def find_nearest_station(latitude: float, longitude: float, *, message: str | No
     if snapshot is None:
         raise CommuteServiceError("Commute snapshot is unavailable")
     station, distance = _nearest_station(snapshot, latitude, longitude)
+    snapshot_status = snapshot.to_status_dict()
     return {
+        **{key: snapshot_status[key] for key in ("snapshot_version", "snapshot_schema_version", "source_age_days", "stale_after_days", "freshness_status", "freshness_reason_code", "freshness_as_of")},
+        "snapshot_source_updated_at": snapshot_status["source_updated_at"],
         "status": "resolved",
         "source": "tdx",
         "station_name": station.station_name,

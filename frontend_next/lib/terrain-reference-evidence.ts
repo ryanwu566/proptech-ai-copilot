@@ -19,7 +19,7 @@ export type TerrainReferenceLayer = {
   source_agency?: string;
   data_updated_at?: string;
   data_version?: string;
-  coverage_status: "covered" | "not_covered" | "unknown";
+  coverage_status: "covered" | "not_covered" | "partial" | "unknown";
   caveat: string;
 };
 
@@ -40,7 +40,7 @@ export type StoredTerrainReferenceLayerV1 = {
   source_agency?: string;
   data_updated_at?: string;
   data_version?: string;
-  coverage_status: "covered" | "not_covered" | "unknown";
+  coverage_status: "covered" | "not_covered" | "partial" | "unknown";
   caveat: string;
   evidence_metadata?: {
     version: 1;
@@ -206,7 +206,7 @@ function validReferenceState(value: unknown): value is TerrainReferenceState {
 }
 
 function validCoverageStatus(value: unknown): value is StoredTerrainReferenceLayerV1["coverage_status"] {
-  return value === "covered" || value === "not_covered" || value === "unknown";
+  return value === "covered" || value === "not_covered" || value === "partial" || value === "unknown";
 }
 
 function storedLayerFromEvidence(layer: TerrainReferenceLayer): StoredTerrainReferenceLayerV1 | null {

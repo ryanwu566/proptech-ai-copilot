@@ -71,6 +71,7 @@ _DATA_STATUS_FIELDS = {
     "update_frequency_note", "source_note", "user_message", "freshness_status", "freshness_reason_code",
     "freshness_as_of", "latest_import_at", "latest_import_age_days", "newest_effective_period_lag_months",
     "operator_attention_required", "freshness_user_message",
+    "capability_sources",
 }
 
 
@@ -153,7 +154,7 @@ def _safe_trend_response(value: Any) -> dict[str, Any]:
         "trend_annualized_rate", "volatility", "confidence_level", "confidence_reason", "scenario_forecast",
         "methodology", "disclaimer",
     }
-    return {key: value[key] for key in fields if key in value}
+    return {**{key: value[key] for key in fields if key in value}, "source_details": public_source_details(value.get("source_details"))}
 
 
 def _empty_trend_response(status: str, reason_code: str) -> dict[str, Any]:
@@ -177,6 +178,7 @@ def _safe_property_search_response(value: Any) -> dict[str, Any]:
     if not isinstance(summary, dict):
         return _empty_property_search_response("unavailable", "result_contract_unavailable")
     safe["summary"] = {key: summary.get(key) for key in {"matched_count", "city_count", "district_count", "road_count", "budget_min", "budget_max", "period_min", "period_max", "data_source_label", "message", "disclaimer"}}
+    safe["source_details"] = public_source_details(value.get("source_details"))
     return safe
 
 
@@ -197,11 +199,12 @@ def _safe_nonnegative_int(value: Any) -> int:
 
 @router.post("/estimate")
 def estimate(request: ValuationRequest) -> dict[str, Any]:
+    from services.provider_observability import observe_response
     from services.valuation_service import estimate_property
     try:
-        return _safe_estimate_response(estimate_property(request.model_dump()))
+        return observe_response("valuation", _safe_estimate_response(estimate_property(request.model_dump())))
     except Exception:
-        return _safe_estimate_response(None)
+        return observe_response("valuation", _safe_estimate_response(None))
 
 
 @router.post("/trend")
@@ -209,10 +212,11 @@ def trend(request: ValuationTrendRequest) -> dict[str, Any]:
     """Return official-PLVR historical trends and bounded scenarios."""
 
     from services.valuation_trend_service import analyze_valuation_trend
+    from services.provider_observability import observe_response
     try:
-        return _safe_trend_response(analyze_valuation_trend(request.model_dump()))
+        return observe_response("trend", _safe_trend_response(analyze_valuation_trend(request.model_dump())))
     except Exception:
-        return _empty_trend_response("unavailable", "result_contract_unavailable")
+        return observe_response("trend", _empty_trend_response("unavailable", "result_contract_unavailable"))
 
 
 @router.post("/property-search")
@@ -220,7 +224,8 @@ def property_search(request: PropertySearchRequest) -> dict[str, Any]:
     """Return official historical transaction directions, not live listings."""
 
     from services.property_search_service import search_properties
+    from services.provider_observability import observe_response
     try:
-        return _safe_property_search_response(search_properties(request.model_dump()))
+        return observe_response("finder", _safe_property_search_response(search_properties(request.model_dump())))
     except Exception:
-        return _empty_property_search_response("unavailable", "result_contract_unavailable")
+        return observe_response("finder", _empty_property_search_response("unavailable", "result_contract_unavailable"))

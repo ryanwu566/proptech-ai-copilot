@@ -22,6 +22,11 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 from services.wra_flood_artifact import build_processed_artifact, write_build_outputs
 
@@ -31,6 +36,7 @@ def main() -> int:
     parser.add_argument("--input-zip", required=True, help="local operator-provided SHP ZIP path")
     parser.add_argument("--scenario", required=True, help="scenario id, e.g. 24h-350mm")
     parser.add_argument("--source-url", required=True, help="official WRA download URL for provenance")
+    parser.add_argument("--source-vintage", required=True, help="Auditable official source vintage; processing v1 is not a dataset date")
     parser.add_argument("--output-dir", required=True, help="local output directory for the artifact + manifest")
     parser.add_argument("--expected-sha256", default=None, help="optional expected source ZIP SHA256")
     parser.add_argument("--area-tolerance-pct", type=float, default=0.01, help="max allowed area difference percent")
@@ -53,6 +59,7 @@ def main() -> int:
         source_url=args.source_url,
         expected_source_sha256=args.expected_sha256,
         area_tolerance_pct=args.area_tolerance_pct,
+        source_vintage=args.source_vintage,
     )
 
     verifications = []

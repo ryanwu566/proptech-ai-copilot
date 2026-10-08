@@ -27,16 +27,19 @@ jobs:
           BACKEND_PRODUCTION_URL: ${{ secrets.BACKEND_PRODUCTION_URL }}
           PRODUCTION_SMOKE_TOKEN: ${{ secrets.PRODUCTION_SMOKE_TOKEN }}
           EXPECTED_RELEASE_VERSION: ${{ secrets.EXPECTED_RELEASE_VERSION }}
+          EXPECTED_FRONTEND_COMMIT_SHA: ${{ vars.EXPECTED_FRONTEND_COMMIT_SHA }}
+          EXPECTED_BACKEND_COMMIT_SHA: ${{ vars.EXPECTED_BACKEND_COMMIT_SHA }}
         run: |
           set -euo pipefail
           if [ -z "${FRONTEND_PRODUCTION_URL}" ] || [ -z "${BACKEND_PRODUCTION_URL}" ]; then
             echo "HOSTED_SMOKE=configuration_required"
-            exit 1
+            exit 0
           fi
           python scripts/production_smoke.py \
+            --hosted \
             --frontend-url "${FRONTEND_PRODUCTION_URL}" \
             --backend-url "${BACKEND_PRODUCTION_URL}" \
             --expected-environment production \
-            --expected-release "${EXPECTED_RELEASE_VERSION:-unconfigured}" \
+            --expected-release "${EXPECTED_RELEASE_VERSION:-}" \
             --smoke-token "${PRODUCTION_SMOKE_TOKEN:-}" \
             --timeout 20

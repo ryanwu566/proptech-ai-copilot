@@ -373,10 +373,13 @@ def _missing_sources(terrain: dict[str, Any], hazards: dict[str, dict[str, Any]]
 def _data_quality(terrain: dict[str, Any], hazards: dict[str, dict[str, Any]], layers: list[str], missing: list[str]) -> dict[str, Any]:
     checked = len(layers)
     available = 0
-    if "terrain" in layers and terrain.get("status") in {"available", "limited"}:
+    if "terrain" in layers and terrain.get("status") == "available":
         available += 1
-    available += sum(1 for key, value in hazards.items() if key in layers and value.get("status") in {"available", "limited"})
-    status = "good" if checked and available == checked else "limited" if available else "unavailable"
+    available += sum(1 for key, value in hazards.items() if key in layers and value.get("status") == "available")
+    partial = ("terrain" in layers and terrain.get("status") == "limited") or any(
+        key in layers and value.get("status") == "limited" for key, value in hazards.items()
+    )
+    status = "good" if checked and available == checked else "limited" if available or partial else "unavailable"
     warnings = []
     if missing:
         warnings.append("部分官方圖資目前只能提供外部圖台確認，不能自動判定為低風險。")
@@ -398,8 +401,7 @@ def _overall(risk_factors: list[dict[str, Any]], data_quality: dict[str, Any], l
         return {"level": "high", "label": "需要優先確認", "summary": "已命中明確或多項風險提醒，建議先補查官方圖台與現場條件。", "confidence": "medium" if data_quality["status"] == "limited" else "high"}
     if severity_factors:
         return {"level": "medium", "label": "有項目需注意", "summary": "有一項地勢或災害相關提醒，建議看屋前補查。", "confidence": "medium"}
-    if data_quality["status"] == "good" and set(DEFAULT_LAYERS).issubset(set(layers)):
-        return {"level": "low", "label": "目前未比對到明確風險", "summary": "可用官方來源未比對到明確風險，但仍需實地確認。", "confidence": "high"}
+    # Query coverage and absence of matches cannot establish hazard safety.
     return {"level": "unknown", "label": "資料不足，無法判定", "summary": "部分來源不足，不能推論為低風險。", "confidence": "low"}
 
 
@@ -449,6 +451,8 @@ def _source_layer_row(key: str, label: str, payload: dict[str, Any]) -> dict[str
 def _assessment_status(status: str, matched: bool) -> str:
     if status == "skipped":
         return "not_assessed"
+    if status == "limited" and matched:
+        return "matched"
     if status in {"unavailable", "error", "limited"}:
         return "unavailable"
     if status == "available" and matched:
@@ -459,6 +463,8 @@ def _assessment_status(status: str, matched: bool) -> str:
 
 
 def _coverage_status(status: str, assessment_status: str) -> str:
+    if status == "limited":
+        return "partial"
     if assessment_status in {"unavailable", "not_assessed"}:
         return "unknown"
     if status == "available":

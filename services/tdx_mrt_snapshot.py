@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 import math
+import hashlib
+import json
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
+
+SNAPSHOT_SCHEMA_VERSION = "tdx-mrt-v1"
+STALE_AFTER_DAYS = 30
 
 
 class TdxMrtSnapshotError(ValueError):
@@ -42,7 +48,11 @@ class CommuteSnapshot:
     line_relation_available: bool
 
     def to_status_dict(self) -> dict[str, Any]:
+        station_content = json.dumps([station.to_safe_dict() for station in self.stations], ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
         return {
+            "snapshot_schema_version": SNAPSHOT_SCHEMA_VERSION,
+            "snapshot_version": "sha256:" + hashlib.sha256(station_content).hexdigest(),
+            **self.freshness_metadata(),
             "source": self.source,
             "generated_at": self.generated_at,
             "source_station_count": self.source_station_count,
@@ -50,6 +60,23 @@ class CommuteSnapshot:
             "skipped_station_count": self.skipped_station_count,
             "line_relation_available": self.line_relation_available,
         }
+
+    def freshness_metadata(self) -> dict[str, Any]:
+        """Evaluate actual SrcUpdateTime; refreshing old content cannot make it fresh."""
+        checked_at = datetime.now(UTC)
+        base = {"freshness_as_of": checked_at.isoformat(), "stale_after_days": STALE_AFTER_DAYS, "source_updated_at": None, "source_age_days": None}
+        try:
+            timestamps = [datetime.fromisoformat(station.source_updated_at.replace("Z", "+00:00")) for station in self.stations]
+            if not timestamps or any(stamp.tzinfo is None for stamp in timestamps):
+                raise ValueError("source time missing timezone")
+        except (ValueError, TypeError):
+            return {**base, "freshness_status": "unknown", "freshness_reason_code": "source_timestamp_invalid"}
+        if any(stamp > checked_at for stamp in timestamps):
+            return {**base, "freshness_status": "unknown", "freshness_reason_code": "source_timestamp_future"}
+        oldest = min(timestamps).astimezone(UTC)
+        age = (checked_at - oldest).days
+        stale = age > STALE_AFTER_DAYS
+        return {**base, "source_updated_at": oldest.isoformat(), "source_age_days": age, "freshness_status": "stale" if stale else "current", "freshness_reason_code": "snapshot_source_stale" if stale else "snapshot_source_current"}
 
 
 def _as_non_empty_string(value: Any) -> str:

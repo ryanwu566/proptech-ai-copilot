@@ -17,7 +17,7 @@ const ordered = (low: unknown, median: unknown, high: unknown): boolean => posit
 function ranges(items: PropertySearchResult["district_suggestions"] | PropertySearchResult["road_suggestions"]): PropertyRangePoint[] {
   return items.flatMap((item) => {
     if (!item.road && !item.district) return [];
-    if (!positive(item.p25_total_price) || !positive(item.median_total_price) || !positive(item.p75_total_price) || !ordered(item.p25_total_price, item.median_total_price, item.p75_total_price) || !Number.isInteger(item.sample_count) || item.sample_count <= 0) return [];
+    if (!positive(item.p25_total_price) || !positive(item.median_total_price) || !positive(item.p75_total_price) || !ordered(item.p25_total_price, item.median_total_price, item.p75_total_price) || !Number.isInteger(item.sample_count) || item.sample_count < 3) return [];
     return [{ label: item.road ? `${item.district} ${item.road}` : `${item.city} ${item.district}`, low: item.p25_total_price, median: item.median_total_price, high: item.p75_total_price, sampleCount: item.sample_count }];
   });
 }

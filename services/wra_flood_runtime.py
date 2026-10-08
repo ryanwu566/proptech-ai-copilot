@@ -34,7 +34,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
+import re
 import threading
 from dataclasses import dataclass
 from typing import Any, Optional, Protocol
@@ -111,6 +113,10 @@ class ChecksumMismatchError(WraFloodRuntimeError):
 
 class ArtifactInvalidError(WraFloodRuntimeError):
     status = "artifact_invalid"
+
+
+class QueryError(WraFloodRuntimeError):
+    status = "query_error"
 
 
 # ---------------------------------------------------------------------------
@@ -263,15 +269,19 @@ def _load_scenario_uncached(scenario: str, client: R2Client, bucket: str) -> Loa
         raise ArtifactInvalidError(f"manifest is not a JSON object for {scenario}", scenario=scenario)
 
     expected_sha = manifest.get("artifact_sha256")
-    if not isinstance(expected_sha, str) or len(expected_sha) != 64:
+    if not isinstance(expected_sha, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", expected_sha):
         raise ArtifactInvalidError(
             f"manifest missing/invalid artifact_sha256 for {scenario}", scenario=scenario
         )
     manifest_scenario = manifest.get("scenario")
-    if manifest_scenario is not None and manifest_scenario != scenario:
+    if manifest_scenario != scenario:
         raise ArtifactInvalidError(
             f"manifest scenario mismatch: key={scenario} manifest={manifest_scenario}", scenario=scenario
         )
+    if (manifest.get("dataset") != "wra_flood_potential"
+        or manifest.get("target_crs") != "EPSG:4326"
+        or manifest.get("quality_status") != "verified"):
+        raise ArtifactInvalidError("manifest dataset, CRS or quality contract is invalid", scenario=scenario)
 
     # 2. GET artifact bytes.
     artifact_bytes = _get_object_bytes(client, bucket, akey)
@@ -286,9 +296,26 @@ def _load_scenario_uncached(scenario: str, client: R2Client, bucket: str) -> Loa
 
     # 4. Decode using the existing artifact loader (no re-implementation here).
     try:
-        _document, features = load_artifact(artifact_bytes)
+        document, features = load_artifact(artifact_bytes)
     except Exception as exc:  # noqa: BLE001 - gzip/json/wkb decode failures
         raise ArtifactInvalidError(f"artifact decode failed for {scenario}: {exc}", scenario=scenario) from exc
+    if (document.get("schema") != "wra_flood_processed_v1"
+        or document.get("dataset") != "wra_flood_potential"
+        or document.get("scenario") != scenario
+        or document.get("target_crs") != "EPSG:4326"
+        or not features or len(features) != manifest.get("accepted_count")):
+        raise ArtifactInvalidError("artifact metadata or accepted feature count mismatch", scenario=scenario)
+    from services.wra_flood_offline_dataset import CLASS_TO_CANONICAL_DEPTH
+    for feature in features:
+        geometry = feature.geometry
+        if (feature.class_value not in CLASS_TO_CANONICAL_DEPTH
+            or feature.canonical_depth != CLASS_TO_CANONICAL_DEPTH[feature.class_value]
+            or geometry.is_empty or not geometry.is_valid
+            or geometry.geom_type not in {"Polygon", "MultiPolygon"}
+            or not all(math.isfinite(value) for value in geometry.bounds)
+            or not (-180 <= geometry.bounds[0] <= geometry.bounds[2] <= 180
+                    and -90 <= geometry.bounds[1] <= geometry.bounds[3] <= 90)):
+            raise ArtifactInvalidError("invalid scenario feature geometry or depth contract", scenario=scenario)
 
     # 5. Build the STRtree over feature geometries.
     geometries = [feature.geometry for feature in features]
@@ -398,8 +425,16 @@ class WraFloodRuntime:
         downgraded to ``no_match``.
         """
 
+        validate_scenario(scenario)
+        try:
+            lon_value, lat_value = float(lon), float(lat)
+        except (TypeError, ValueError) as exc:
+            raise QueryError("point coordinates must be numeric", scenario=scenario) from exc
+        if (not math.isfinite(lon_value) or not math.isfinite(lat_value)
+            or not -180 <= lon_value <= 180 or not -90 <= lat_value <= 90):
+            raise QueryError("point coordinates are outside WGS84 bounds", scenario=scenario)
         loaded = self.load_scenario(scenario)
-        return _query_loaded(loaded, lon, lat)
+        return _query_loaded(loaded, lon_value, lat_value)
 
     def is_cached(self, scenario: str) -> bool:
         return scenario in self._cache
@@ -417,6 +452,12 @@ class WraFloodRuntime:
 
 def _query_loaded(loaded: LoadedScenario, lon: float, lat: float) -> dict[str, Any]:
     point = Point(float(lon), float(lat))
+    provenance = {
+        "dataset_version": "v1",
+        "artifact_sha256": loaded.artifact_sha256,
+        "source_vintage": loaded.manifest.get("source_vintage") or "unknown",
+        "match_semantics": "point_intersects_scenario_polygon",
+    }
 
     # STRtree.query returns integer indices into the geometry list (Shapely 2.x).
     candidate_indices = loaded.tree.query(point)
@@ -433,6 +474,7 @@ def _query_loaded(loaded: LoadedScenario, lon: float, lat: float) -> dict[str, A
             "scenario": loaded.scenario,
             "matched": False,
             "matched_count": 0,
+            **provenance,
         }
 
     # Deepest Class wins (largest canonical range).
@@ -449,6 +491,7 @@ def _query_loaded(loaded: LoadedScenario, lon: float, lat: float) -> dict[str, A
         "flood_dept_malformed": bool(primary.flood_dept_malformed),
         "city_name": props.get("city_name"),
         "town_name": props.get("town_name"),
+        **provenance,
     }
 
 

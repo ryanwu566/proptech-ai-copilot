@@ -19,6 +19,12 @@ const SOURCE = {
   data_vintage: "2026 年版",
 };
 
+test("partial positive hazard coverage remains partial through Save/Reopen", () => {
+  const snapshot = { kind: "terrain_reference", schema_version: 1, status: "partial", notice: "Partial source", summary: "Positive point match", layers: [{ layer_id: "flood", display_name: "Flood", state: "partial", source_name: "WRA", coverage_status: "partial", caveat: "Partial source; manual verification required" }] };
+  const restored = normalizeStoredTerrainReferenceEvidence(snapshot);
+  assert.equal(restored?.layers[0].coverage_status, "partial");
+});
+
 function hazard(overrides: Partial<TerrainHazardLayer> & Pick<TerrainHazardLayer, "key" | "label">): TerrainHazardLayer {
   return {
     status: "available",

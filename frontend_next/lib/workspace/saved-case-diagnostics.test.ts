@@ -4,6 +4,12 @@ import test from "node:test";
 const featureModule = await import("./saved-case-diagnostics.ts").catch(() => null);
 const row = { id: "case-a", title: "案件 A", version: 1, workflowMode: "buying_wizard", activeWizardStep: "report", progress: 50, createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-07T00:00:00Z", inputSummary: { road: "市府路1號" }, data: { inputs: { city: "臺北市", district: "信義區", road: "市府路1號", area_ping: 30, building_type: "大樓", building_age_years: 5, floor: 8 } } };
 const read = (raw: string | null) => featureModule?.parseSavedCasesDiagnostic(raw, (item) => item) ?? { status: "missing", cases: [], issues: [] };
+test("partial Location survives Save/Reopen with unknown failed-category counts", () => {
+  const saved = { ...row, data: { ...row.data, locationInsight: { data_quality: { status: "limited", missing_sources: ["poi:school"], warnings: [] }, poi_summary: { transit_count: 1, convenience_count: 2, school_count: null, park_count: 0, medical_count: 1, risk_facility_count: null } } } };
+  const result = read(JSON.stringify([saved]));
+  assert.equal(result.status, "ready");
+  assert.equal(result.cases.length, 1);
+});
 test("valid unavailable location evidence remains an attempted query without requiring absent POI data", () => {
   const saved = { ...row, data: { ...row.data, locationInsight: { data_quality: { status: "unavailable", missing_sources: [], warnings: [] } } } };
   assert.equal(read(JSON.stringify([saved])).status, "ready");

@@ -2,6 +2,32 @@ name: Import Official PLVR Market Data
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Reviewed artifact dry-run or explicit production import
+        type: choice
+        options: [dry-run, import]
+        default: dry-run
+      release:
+        description: Explicit official current release label YYYYMMDD
+        required: true
+        type: string
+      expected_sha256:
+        description: Independently reviewed SHA256 of the official ZIP
+        required: true
+        type: string
+      city:
+        description: One approved county/city (split larger runs explicitly)
+        required: true
+        type: string
+      since:
+        description: First accepted transaction month YYYY-MM
+        required: true
+        type: string
+      until:
+        description: Last accepted transaction month YYYY-MM
+        required: true
+        type: string
   schedule:
     - cron: "17 4 1,15 * *"
 
@@ -17,24 +43,58 @@ jobs:
     runs-on: ubuntu-latest
     environment: production-market-import
     permissions: {}
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate pipeline configuration
+      - name: Scheduled readiness notice
+        if: ${{ github.event_name == 'schedule' }}
+        run: |
+          echo 'PLVR_UPDATE_STATUS=configuration_required'
+          echo 'PLVR_UPDATE_REASON=reviewed_release_and_scheduler_acceptance_required'
+      - name: Install existing dependencies
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: python -m pip install -r backend/requirements.txt
+      - name: Validate explicit import environment
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'import' }}
         env:
-          MARKET_PIPELINE_DATABASE_URL: ${{ secrets.MARKET_PIPELINE_DATABASE_URL }}
+          PLVR_UPDATE_DATABASE_URL: ${{ secrets.PLVR_UPDATE_DATABASE_URL }}
+          PLVR_UPDATE_ENVIRONMENT: ${{ vars.PLVR_UPDATE_ENVIRONMENT }}
         run: |
           set -euo pipefail
-          python scripts/plvr_market_pipeline.py discover
-          test -n "$MARKET_PIPELINE_DATABASE_URL"
-      - name: Run operator-approved import
+          if [ -z "$PLVR_UPDATE_DATABASE_URL" ] || [ "$PLVR_UPDATE_ENVIRONMENT" != 'production-market-import' ]; then
+            echo 'PLVR_UPDATE_STATUS=configuration_required'
+            exit 2
+          fi
+      - name: Acquire checksum-bound official release once
         if: ${{ github.event_name == 'workflow_dispatch' }}
         env:
-          MARKET_PIPELINE_DATABASE_URL: ${{ secrets.MARKET_PIPELINE_DATABASE_URL }}
+          RELEASE: ${{ inputs.release }}
+          EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
         run: |
           set -euo pipefail
-          echo "MARKET_IMPORT_STATUS=configuration_required"
-          echo "MARKET_IMPORT_STATUS=operator_approval_required"
+          [[ "$RELEASE" =~ ^[0-9]{8}$ ]] && [[ "$EXPECTED_SHA256" =~ ^[a-fA-F0-9]{64}$ ]] || exit 2
+          timeout 240s python scripts/acquire_official_plvr_artifacts.py \
+            --current-release "$RELEASE" --download --timeout 120 \
+            --expected-sha256 "moi-plvr-sale-current-$RELEASE=$EXPECTED_SHA256" \
+            --output-dir "$RUNNER_TEMP/plvr-source" --manifest "$RUNNER_TEMP/plvr-source/source_manifest.json"
+      - name: Verify parse and accept complete approved scope
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          PLVR_UPDATE_DATABASE_URL: ${{ secrets.PLVR_UPDATE_DATABASE_URL }}
+          PLVR_UPDATE_ENVIRONMENT: ${{ vars.PLVR_UPDATE_ENVIRONMENT }}
+          RELEASE: ${{ inputs.release }}
+          CITY: ${{ inputs.city }}
+          SINCE: ${{ inputs.since }}
+          UNTIL: ${{ inputs.until }}
+          MODE: ${{ inputs.mode }}
+        run: |
+          set -euo pipefail
+          mode_flag='--dry-run'
+          if [ "$MODE" = 'import' ]; then mode_flag='--import'; fi
+          timeout 300s python scripts/update_valuation_data.py \
+            --manifest "$RUNNER_TEMP/plvr-source/source_manifest.json" \
+            --artifact-id "moi-plvr-sale-current-$RELEASE" --city "$CITY" \
+            --since "$SINCE" --until "$UNTIL" "$mode_flag"

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 from typing import Any, Protocol
 
@@ -36,6 +37,7 @@ class GoogleGeocodingAdapter:
         self.api_key = (api_key if api_key is not None else os.getenv("GOOGLE_MAPS_API_KEY", "")).strip()
         self.timeout_seconds = timeout_seconds
         self.last_error = ""
+        self.last_reason_code = "not_checked"
 
     @property
     def available(self) -> bool:
@@ -44,6 +46,7 @@ class GoogleGeocodingAdapter:
         return bool(self.api_key)
 
     def search(self, query: str, regions: list[dict[str, Any]]) -> dict[str, Any] | None:
+        self.last_reason_code = "configuration_required" if not self.available else "invalid_input"
         if not self.available or not query.strip():
             return None
         try:
@@ -53,9 +56,28 @@ class GoogleGeocodingAdapter:
                 timeout=self.timeout_seconds,
             )
             response.raise_for_status()
-            results = response.json().get("results", [])
+            payload = response.json()
+            if not isinstance(payload, dict):
+                self.last_reason_code = "malformed_response"
+                return None
+            provider_status = payload.get("status")
+            if provider_status in {"REQUEST_DENIED", "OVER_QUERY_LIMIT", "OVER_DAILY_LIMIT", "INVALID_REQUEST"}:
+                self.last_error = "Google Geocoding 目前無法使用"
+                self.last_reason_code = "provider_rejected"
+                return None
+            if provider_status is None or "results" not in payload:
+                self.last_reason_code = "malformed_response"
+                return None
+            if provider_status not in {"OK", "ZERO_RESULTS"}:
+                self.last_reason_code = "provider_error"
+                return None
+            results = payload.get("results", [])
+            if not isinstance(results, list):
+                self.last_reason_code = "malformed_response"
+                return None
             if not results:
                 self.last_error = "Google Geocoding 未回傳結果"
+                self.last_reason_code = "no_match"
                 return None
             self.last_error = ""
             # Evaluate top candidates (up to 3) and prefer street-address level results
@@ -71,22 +93,31 @@ class GoogleGeocodingAdapter:
                     best = parsed
                 elif is_street_level and not best.get("_is_street_level"):
                     best = parsed  # Prefer street-level over landmark
+            self.last_reason_code = "success" if best else "malformed_response"
             return best
         except httpx.TimeoutException:
             self.last_error = "Google Geocoding 回應逾時"
+            self.last_reason_code = "provider_timeout"
             return None
         except httpx.HTTPStatusError:
             self.last_error = "Google Geocoding 目前無法使用"
+            self.last_reason_code = "provider_rejected"
             return None
         except (httpx.HTTPError, IndexError, KeyError, TypeError, ValueError):
             self.last_error = "Google Geocoding 未回傳可用定位"
+            self.last_reason_code = "malformed_response"
             return None
 
     def _parse_candidate(self, result: dict[str, Any], query: str) -> dict[str, Any] | None:
         """Parse a single Google Geocoding result into structured fields."""
         try:
             location = result["geometry"]["location"]
+            latitude, longitude = location["lat"], location["lng"]
         except (KeyError, TypeError):
+            return None
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) for value in (latitude, longitude)):
+            return None
+        if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
             return None
         city = ""
         district = ""
@@ -123,7 +154,7 @@ class GoogleGeocodingAdapter:
             "road": canonical_road or result.get("formatted_address", query),
             "formatted_address": result.get("formatted_address", query),
             "place_id": result.get("place_id", ""),
-            "center": {"lat": float(location["lat"]), "lng": float(location["lng"])},
+            "center": {"lat": float(latitude), "lng": float(longitude)},
             "zoom": 15,
             "area_summary": f"{result.get('formatted_address', query)} 周遭生活機能查詢。",
             "poi_summary": "周遭設施將由 Google Places 或 mock fallback 提供。",

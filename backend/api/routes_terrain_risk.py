@@ -40,7 +40,15 @@ class TerrainRiskRequest(BaseModel):
 
 @router.post("/analyze")
 def post_terrain_risk(request: TerrainRiskRequest) -> dict[str, Any]:
+    from services.provider_observability import observe_response
     try:
-        return analyze_terrain_risk(**request.model_dump())
+        result = analyze_terrain_risk(**request.model_dump())
+        observe_response("nlsc", result.get("terrain", {}))
+        for key, capability in {"flood": "wra", "debris_flow": "ardswc-debris-flow", "landslide": "ardswc-landslide", "geological_sensitivity": "gsmma", "liquefaction": "liquefaction"}.items():
+            hazard = result.get("hazards", {}).get(key, {})
+            if hazard and hazard.get("status") != "skipped":
+                source = hazard.get("source") or {}
+                observe_response(capability, {"status": hazard.get("status"), "reason_code": "matched" if hazard.get("matched") else "not_matched_in_loaded_layer" if hazard.get("status") == "available" else "source_unavailable", "dataset_version": hazard.get("dataset_version") or source.get("dataset_version") if isinstance(source, dict) else None})
+        return result
     except TerrainRiskLocationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
