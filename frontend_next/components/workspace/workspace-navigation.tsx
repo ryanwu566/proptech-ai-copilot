@@ -19,5 +19,9 @@ export function WorkspaceNavigation({ caseId }: { caseId: string }) {
       const href = `/cases/${encodeURIComponent(caseId)}/${section}`;
       return <NavigationItem key={section} href={href} current={pathname === href}>{labels[section]}</NavigationItem>;
     })}
+    <span className="workspace-navigation__label text-meta">輸出與方法</span>
+    <NavigationItem href={`/compare?cases=${encodeURIComponent(caseId)}`}>比較案件</NavigationItem>
+    <NavigationItem href={`/cases/${encodeURIComponent(caseId)}/report`}>案件報告</NavigationItem>
+    <NavigationItem href={`/cases/${encodeURIComponent(caseId)}/planning`} current={pathname.endsWith("/planning")}>進階案件規劃</NavigationItem>
   </DesignSystemNavigation>;
 }

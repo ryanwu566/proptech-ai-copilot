@@ -6,6 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HERO = (ROOT / "frontend_next" / "components" / "hero-intro.tsx").read_text(encoding="utf-8")
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
+HOME = (ROOT / "frontend_next" / "components" / "commercial-home.tsx").read_text(encoding="utf-8")
 CSS = (ROOT / "frontend_next" / "app" / "globals.css").read_text(encoding="utf-8")
 WALKTHROUGH = (ROOT / "frontend_next" / "components" / "friendly-intro-walkthrough.tsx").read_text(encoding="utf-8")
 
@@ -30,14 +31,22 @@ def test_hero_ctas_keep_real_navigation_handlers() -> None:
     assert 'data-action-kind="primary"' in HERO
     assert 'data-action-kind="secondary"' in HERO
     active_home = PAGE.split("export default function Home()", 1)[1].split("function buildJourneySaveCase", 1)[0]
-    assert 'reportReady={Boolean(journeyState.valuationResult)}' in active_home
-    assert 'onReport={() => openJourneyStep("decision")}' in active_home
+    assert '<CommercialHome onStart=' in active_home
+    assert 'createClosedLoopJourneyState({ addressSummary: address' in active_home
+    assert 'openJourneyStep("location")' in active_home
+    assert 'onFinder={() => openJourneyStep("property")}' in active_home
+    assert 'onStart(address.trim())' in HOME
+    assert 'href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}' in HOME
 
 
-def test_active_homepage_renders_one_hero_before_the_guided_journey() -> None:
+def test_active_homepage_renders_one_address_entry_before_the_optional_guided_journey() -> None:
     home = PAGE.split("export default function Home()", 1)[1].split("function buildJourneySaveCase", 1)[0]
-    assert home.count("<HeroIntro ") == 1
-    assert home.index("<HeroIntro ") < home.index("<GuidedPropertyJourney ")
+    assert home.count("<CommercialHome ") == 1
+    assert "<HeroIntro " not in home
+    assert home.index("<CommercialHome ") < home.index("<GuidedPropertyJourney ")
+    assert "hidden={!journeyOpen}" in home
+    assert "<h1" in HOME
+    assert "<form onSubmit={start}" in HOME
     assert 'openJourneyStep("property")' in home
     journey = (ROOT / "frontend_next" / "components" / "guided-journey" / "guided-property-journey.tsx").read_text(encoding="utf-8")
     sidebar = (ROOT / "frontend_next" / "components" / "sidebar.tsx").read_text(encoding="utf-8")

@@ -108,7 +108,9 @@ function satelliteResponse(status: "available" | "limited" | "unavailable") {
 
 async function openTerrain(page: import("@playwright/test").Page) {
   await page.goto("/", { waitUntil: "networkidle" });
-  await page.locator("aside").getByRole("button", { name: "Terrain Risk", exact: true }).click();
+  await page.getByTestId("locale-switcher").selectOption("en");
+  await page.locator(".commercial-methods > summary").click();
+  await page.locator(".commercial-methods").getByRole("button", { name: "Terrain Risk", exact: true }).click();
   await expect(page.locator("#terrain-risk-analysis")).toBeVisible();
 }
 
@@ -148,7 +150,7 @@ for (const status of ["available", "limited", "unavailable"] as const) {
     });
     await openTerrain(page);
     await page.locator("#terrain-risk-analysis input").first().fill("Taipei accepted fixture");
-    await page.getByRole("button", { name: "開始地勢／災害檢查" }).click();
+    await page.getByRole("button", { name: "Start terrain and hazard check", exact: true }).click();
 
     const card = page.getByTestId("satellite-evidence-card");
     await expect(card).toBeVisible();

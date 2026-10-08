@@ -43,7 +43,7 @@ export function GuidedPropertyJourney({ renderStep }: { renderStep: (step: Journ
 
   const activeCopy = getJourneyStepCopy(activeStep, t);
   return <section id="guided-property-journey" aria-label={t("journey.title")} className="space-y-5">
-    <header className="rounded-2xl border border-cyan-200 bg-slate-950 px-4 py-6 text-white shadow-lg sm:px-6 sm:py-8">
+    <header className="commercial-journey-heading rounded-2xl border border-cyan-200 bg-slate-950 px-4 py-6 text-white shadow-lg sm:px-6 sm:py-8">
       <p className="text-[10px] font-bold tracking-[0.2em] text-cyan-200">{t("journey.eyebrow")}</p>
       <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-tight sm:text-4xl">{t("journey.title")}</h2>
       <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300 sm:text-base">{t("journey.description")}</p>
@@ -54,9 +54,9 @@ export function GuidedPropertyJourney({ renderStep }: { renderStep: (step: Journ
         <JourneyProgressSummary visitedSteps={visitedSteps} totalSteps={JOURNEY_STEPS.length} />
         <JourneyStepper steps={JOURNEY_STEPS} activeStep={activeStep} visitedSteps={visitedSteps} onSelect={selectStep} />
       </aside>
-      <main className="min-w-0 space-y-4">
+      <div className="min-w-0 space-y-4">
         {JOURNEY_STEPS.filter((step) => visitedSteps.includes(step.id)).map((step) => <JourneyStage key={step.id} step={step} active={activeStep === step.id} onPrevious={() => moveTo(getPreviousJourneyStep(step.id))} onNext={() => moveTo(getNextJourneyStep(step.id))} hasPrevious={Boolean(getPreviousJourneyStep(step.id))} hasNext={Boolean(getNextJourneyStep(step.id))}>{renderStep(step.id, actions)}</JourneyStage>)}
-      </main>
+      </div>
     </div>
   </section>;
 }

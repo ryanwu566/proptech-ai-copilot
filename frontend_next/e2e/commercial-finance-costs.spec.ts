@@ -137,6 +137,18 @@ test("Finance save persists a bounded snapshot and reopens it as saved evidence"
   await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196／月");
 });
 
+test("context save entry preserves pending Finance results until the finance save action", async ({ page }) => {
+  await page.goto("/cases/finance-case/finance");
+  await page.getByTestId("calculate-loan").click();
+  await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196／月");
+  const before = await page.evaluate(() => localStorage.getItem("proptech.savedCases.v1"));
+  await page.getByRole("banner", { name: "目前物件" }).getByRole("link", { name: "儲存財務摘要", exact: true }).click();
+  expect(await page.evaluate(() => localStorage.getItem("proptech.savedCases.v1"))).toBe(before);
+  await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196／月");
+  await page.getByTestId("finance-save").click();
+  await expect(page.getByTestId("finance-save-status")).toContainText("已儲存財務假設與摘要");
+});
+
 test("holding failure remains local and preserves a valid loan result", async ({ page }) => {
   await page.unroute("**/holding-cost/calculate");
   await page.route("**/holding-cost/calculate", (route) => route.fulfill({ status: 503, body: "unavailable" }));

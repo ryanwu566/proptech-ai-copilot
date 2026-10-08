@@ -1,7 +1,8 @@
-.page { display: grid; gap: var(--space-8); min-width: 0; }
+.page { display: grid; gap: var(--space-6); min-width: 0; }
 .decisionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
 .decisionGroup { min-width: 0; border-top: 2px solid var(--border-strong); padding-top: var(--space-3); }
 .decisionGroup h3 { margin: 0 0 var(--space-2); }
+.decisionGrid .decisionGroup:first-child { grid-column: 1/-1; border-top-color: var(--status-warning-border); }
 .list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
 .list li { min-width: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); }
 .list strong, .list p { overflow-wrap: anywhere; }

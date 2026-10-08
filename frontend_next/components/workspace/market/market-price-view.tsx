@@ -263,7 +263,7 @@ export function MarketPriceView() {
     });
   }
 
-  return <div className="min-w-0 space-y-8" data-testid="market-price-workspace">
+  return <div className="workspace-view" data-testid="market-price-workspace">
     <header className="space-y-2">
       <p className="text-meta text-[color:var(--text-muted)]">目前物件的價格證據</p>
       <h1 className="text-page">價格與市場</h1>
@@ -330,7 +330,7 @@ export function MarketPriceView() {
       </div>
     </Section>
 
-    <Section title="可比成交證據" description="逐筆成交是判斷物件條件差異的主要證據；只顯示目前案件實際保留的資料。">
+    <Section title="市場範圍與近期變化" description="用同一個每坪單價口徑查看觀察範圍與最近期間，缺漏期間不補成零。">
       <div data-evidence-key="market" className="mb-4 flex flex-wrap items-center gap-3">
         <strong className="text-label">市場資料</strong>
         <EvidenceStatus status={model.market.status} />
@@ -340,13 +340,6 @@ export function MarketPriceView() {
         <div><dt className="font-semibold">分析層級</dt><dd>{analysisLevelCopy(model.market.analysisLevel, model.market.fallbackApplied)}</dd></div>
         <div><dt className="font-semibold">有效樣本</dt><dd>{model.market.sampleCount ? `${model.market.sampleCount.toLocaleString("zh-TW")} 筆` : formatMissing("not_provided")}</dd></div>
       </dl>
-      {comparables.length > 0 ? <ComparableTable rows={comparables} /> : <div role="status" className="border-y border-[color:var(--border-subtle)] py-5">
-        <p className="text-body font-semibold text-[color:var(--text-primary)]">已儲存案件未保留逐筆可比成交</p>
-        <p className="mt-1 text-body text-[color:var(--text-secondary)]">系統不會從摘要重建或猜測交易資料；進一步議價前請重新取得逐筆證據。</p>
-      </div>}
-    </Section>
-
-    <Section title="市場範圍與近期變化" description="用同一個每坪單價口徑查看觀察範圍與最近期間，缺漏期間不補成零。">
       {model.overview.marketRange && <p className="mb-4 text-number font-semibold tabular-nums">觀察四分位範圍：{model.overview.marketRange}</p>}
       {history.length > 0 ? <DataTable caption="近期市場成交趨勢" regionLabel="近期市場成交趨勢">
         <thead><tr><DataTableHeader>成交期間</DataTableHeader><DataTableHeader numeric unit="萬元／坪">平均成交單價</DataTableHeader><DataTableHeader numeric unit="筆">成交筆數</DataTableHeader></tr></thead>
@@ -381,6 +374,13 @@ export function MarketPriceView() {
           <div><dt className="font-semibold">年化趨勢</dt><dd>{typeof model.valuation.trend.trend_annualized_rate === "number" ? `${model.valuation.trend.trend_annualized_rate.toFixed(1)}%` : formatMissing("unavailable")}</dd></div>
         </dl>}
       </ValuationRenderErrorBoundary>
+    </Section>
+
+    <Section title="可比成交證據" description="逐筆成交是判斷物件條件差異的主要證據；只顯示目前案件實際保留的資料。">
+      {comparables.length > 0 ? <ComparableTable rows={comparables} /> : <div role="status" className="border-y border-[color:var(--border-subtle)] py-5">
+        <p className="text-body font-semibold text-[color:var(--text-primary)]">已儲存案件未保留逐筆可比成交</p>
+        <p className="mt-1 text-body text-[color:var(--text-secondary)]">系統不會從摘要重建或猜測交易資料；進一步議價前請重新取得逐筆證據。</p>
+      </div>}
     </Section>
 
     <Section title="證據限制與下一步" description="先處理會改變價格判讀的缺口，再用於議價或客戶討論。">

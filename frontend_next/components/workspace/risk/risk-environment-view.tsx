@@ -121,6 +121,8 @@ export function RiskEnvironmentView() {
       {error && <Message variant="error" title="查詢未完成" action={<CommercialButton variant="secondary" onClick={() => void refreshEvidence()}>重試此項查詢</CommercialButton>}>{error}</Message>}
     </Section>
 
+    <EvidenceTable model={model} selectedKey={selectedRow?.key} onSelect={setSelectedKey} />
+
     {coordinates && <Section title="風險／環境地圖" description="位置、查詢半徑與來源提供的幾何是分析脈絡，不以裝飾漸層推測風險。">
       <div className={styles.mapGrid}>
         <MapFrame title="風險與環境圖" description="物件位置、500 公尺查詢範圍與可用證據圖層" attribution="OpenStreetMap；其他圖層依各證據來源" detail={<span>點位／半徑不等於地籍或工程界線</span>}>
@@ -136,7 +138,6 @@ export function RiskEnvironmentView() {
       </div>
     </Section>}
 
-    <EvidenceTable model={model} selectedKey={selectedRow?.key} onSelect={setSelectedKey} />
     <UnknownEvidence rows={unknownRows} />
     <VerificationActions actions={model?.verificationActions ?? []} />
 
@@ -152,13 +153,13 @@ export function RiskEnvironmentView() {
 function EvidenceTable({ model, selectedKey, onSelect }: { model: RiskEvidenceModel | null; selectedKey?: string; onSelect: (key: string) => void }) {
   return <Section title="證據表" description="各圖層保留自己的來源分類與限制；查詢完成不等於風險較低。">
     {model?.rows.length ? <DataTable caption="風險證據表" regionLabel="風險證據表"><thead><tr>
-      <DataTableHeader>證據類型</DataTableHeader><DataTableHeader>狀態</DataTableHeader><DataTableHeader>結果</DataTableHeader>
-      <DataTableHeader>來源</DataTableHeader><DataTableHeader>有效期間／版本</DataTableHeader><DataTableHeader>限制與下一步</DataTableHeader>
+      <DataTableHeader>來源／證據類型</DataTableHeader><DataTableHeader>狀態</DataTableHeader><DataTableHeader>結果</DataTableHeader>
+      <DataTableHeader>涵蓋範圍</DataTableHeader><DataTableHeader>有效期間／版本</DataTableHeader><DataTableHeader>限制與下一步</DataTableHeader>
     </tr></thead><tbody>{model.rows.map((row) => <tr key={row.key}>
-      <DataTableCell><button type="button" className={styles.tableButton} aria-pressed={row.key === selectedKey} onClick={() => onSelect(row.key)}>{row.label}</button></DataTableCell>
+      <DataTableCell className={styles.sourceCell}><p className="text-meta">{row.sourceAgency ?? row.source}</p><button type="button" className={styles.tableButton} aria-pressed={row.key === selectedKey} onClick={() => onSelect(row.key)}>{row.label}</button></DataTableCell>
       <DataTableCell><RowStatuses row={row} /></DataTableCell>
-      <DataTableCell className={styles.resultCell}>{row.result}{row.categories && <ul className={styles.categoryList}>{row.categories.map((category) => <li key={`${category.official}-${category.canonical}`}>{category.official}（{category.canonical}）</li>)}</ul>}</DataTableCell>
-      <DataTableCell className={styles.metadataCell}>{row.source}{row.sourceAgency && row.sourceAgency !== row.source ? <><br /><span className="text-meta">{row.sourceAgency}</span></> : null}</DataTableCell>
+      <DataTableCell className={styles.resultCell}>{row.result}{row.categories && <ul className={styles.categoryList}>{row.categories.map((category) => <li key={`${category.official}-${category.canonical}`}>{category.official}</li>)}</ul>}</DataTableCell>
+      <DataTableCell className={styles.metadataCell}>{row.coverage === "covered" ? "本次範圍已涵蓋" : row.coverage === "not_covered" ? "不在涵蓋範圍" : "涵蓋狀態未知"}</DataTableCell>
       <DataTableCell className={styles.metadataCell}>{row.datasetVersion ?? row.effectivePeriod}</DataTableCell>
       <DataTableCell className={styles.resultCell}>{row.limitation}<br /><strong>{row.nextVerification}</strong></DataTableCell>
     </tr>)}</tbody></DataTable> : <Message title="尚未查詢風險證據">確認目前物件後，使用上方按鈕查詢各項來源；未查詢不代表沒有風險。</Message>}
@@ -179,6 +180,7 @@ function VerificationActions({ actions }: { actions: string[] }) {
 }
 
 function SourceDetails({ model, result, coordinates }: { model: RiskEvidenceModel; result: TerrainRiskResult; coordinates: { latitude: number; longitude: number } }) {
+  const [satelliteOpen, setSatelliteOpen] = useState(false);
   return <Section title="方法與輔助證據">
     <DetailsDisclosure summary="來源與方法詳情"><div className={styles.sourceList}>
       {model.rows.map((row) => <div className={styles.sourceItem} key={row.key}>
@@ -191,6 +193,6 @@ function SourceDetails({ model, result, coordinates }: { model: RiskEvidenceMode
         <strong>{source.dataset_name}</strong><p>{source.agency}；涵蓋：{source.coverage}；發布版本：{source.published_version ?? "未設定"}；生效日：{source.effective_date ?? "未提供"}</p><p>{source.limitation_summary}</p>
       </div>)}
     </div></DetailsDisclosure>
-    <DetailsDisclosure summary="衛星影像參考（輔助證據）"><div className={styles.supportingEvidence}><SatelliteEvidence coordinate={{ ...coordinates, accepted: true }} /></div></DetailsDisclosure>
+    <DetailsDisclosure summary="衛星影像參考（輔助證據）" onToggle={(event) => setSatelliteOpen(event.currentTarget.open)}><div className={styles.supportingEvidence}>{satelliteOpen && <SatelliteEvidence coordinate={{ ...coordinates, accepted: true }} />}</div></DetailsDisclosure>
   </Section>;
 }

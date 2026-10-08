@@ -144,6 +144,7 @@ test.describe("East/West road identity: Location Insight", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // Navigate to journey step 2 (Location)
+    await page.locator(".commercial-home").getByRole("button", { name: "還沒有特定物件？搜尋官方成交資料", exact: true }).click();
     await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
     const locationStepBtn = page.getByLabel(/位置與資料證據/).first();
     await expect(locationStepBtn).toBeVisible({ timeout: 5000 });
@@ -192,6 +193,7 @@ test.describe("East/West road identity: Location Insight", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // Navigate to journey step 2
+    await page.locator(".commercial-home").getByRole("button", { name: "還沒有特定物件？搜尋官方成交資料", exact: true }).click();
     await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
     await page.getByLabel(/位置與資料證據/).first().click();
     await expect(page.locator("section[id='journey-stage-location']")).toBeVisible({ timeout: 8000 });
@@ -298,6 +300,7 @@ test.describe("East/West road identity: stale location guard", () => {
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // Navigate to journey location step
+    await page.locator(".commercial-home").getByRole("button", { name: "還沒有特定物件？搜尋官方成交資料", exact: true }).click();
     await expect(page.getByRole("heading", { name: "用五個步驟整理看房資訊" })).toBeVisible({ timeout: 10000 });
     await page.getByLabel(/位置與資料證據/).first().click();
     await expect(page.locator("section[id='journey-stage-location']")).toBeVisible({ timeout: 8000 });
