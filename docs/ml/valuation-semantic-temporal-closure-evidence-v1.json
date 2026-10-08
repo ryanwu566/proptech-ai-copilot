@@ -1,0 +1,942 @@
+{
+  "acquisition_note": "Prior 17-release preflight observations reused as historical ledger inputs; only the two exact prior archives were restored once each in this worktree. No new 17-probe scan, retry, other seasonal download, or moving latest source.",
+  "approved_candidate_count": 0,
+  "approved_coverage": {
+    "building_type": {},
+    "county": {},
+    "district": {},
+    "month": {},
+    "release": {}
+  },
+  "approved_scope": null,
+  "availability": {
+    "authenticated_historical_occurrences": 0,
+    "authenticated_historical_publication_releases": 0,
+    "class_totals_recovered_releases": {
+      "CONSERVATIVE_UPPER_BOUND": 2,
+      "DATE_ONLY_PUBLICATION": 0,
+      "EXACT_PUBLICATION_TIME": 0,
+      "SYSTEM_FIRST_SEEN": 0,
+      "UNKNOWN": 0
+    },
+    "policy": "Current verified exact HTTPS retrieval only; no earlier historical eligibility; system first-seen alone is insufficient.",
+    "release_bounds": [
+      {
+        "archive_sha256": "4d9fa7be16bc9aba99e79c0f86ca27b32f46755de04e98e1dd2c8d8297b466c1",
+        "available_at": "2026-10-08T06:23:17.233018+00:00",
+        "quality": "CONSERVATIVE_UPPER_BOUND",
+        "release_id": "moi-plvr-sale-season-112S3",
+        "release_published_at": null
+      },
+      {
+        "archive_sha256": "6b4c148bad106a235dddf214001d605ff9ffa45ac50561f7125c6d7fa795d4da",
+        "available_at": "2026-10-08T06:23:31.096999+00:00",
+        "quality": "CONSERVATIVE_UPPER_BOUND",
+        "release_id": "moi-plvr-sale-season-115S2",
+        "release_published_at": null
+      }
+    ],
+    "unrecovered_prior_ledger_releases_unknown": 15,
+    "verified_current_upper_bound_releases": 2
+  },
+  "baseline_readiness": {
+    "district_type_median": false,
+    "global_median": false,
+    "historical_comparables": false
+  },
+  "blockers": [
+    "Building detail has no building identifier, private/common object role or numeric building transfer fraction; no reviewed whole-dwelling interest evidence.",
+    "No dwelling-unit/object-count evidence beyond main building count; detail multiplicity includes unresolved common portions.",
+    "Only current availability upper bounds recovered; no exact-byte authenticated availability for 2023–2026 historical fold freezes.",
+    "No stable cross-release official ID namespace, complete predecessor/cancellation evidence or supported changed-ID linkage.",
+    "Zero approved rows; no nonempty reproducibility or mature contiguous four-block evaluation."
+  ],
+  "branch": "research/ml-valuation-semantic-temporal-closure-v1",
+  "contract": {
+    "acquisition_manifest_sha256": "c1710072417113dd8ffd661493d18830377bad50dbc836b7f802bf952176680e",
+    "area_version": "registered-transferred-building-including-aux-common-no-parking-v1",
+    "availability_version": "plvr-evidence-qualified-availability-v1",
+    "candidate_count": 0,
+    "closure_contract_sha256": "b1e93c245ad7ec16997dd8078ed5c2c1364bf089677884eb50f8da442a496109",
+    "code_sha256": "8852973af685fc73e72d1dc781e24d63701047d7cc67918d3da623518535c00b",
+    "cutoff": "2026-10-08T06:30:00+00:00",
+    "dataset_contract": "residential-semantic-temporal-cohort-v1",
+    "excluded_count": 37669,
+    "feature_columns": [
+      "county_district",
+      "building_type",
+      "area_ping",
+      "floor",
+      "prediction_year",
+      "prediction_month"
+    ],
+    "hashes": {
+      "cohort-membership.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exclusions.jsonl": "87d50bbaa6bd2522e4425076c9794749d1ed0ba76fe174f54958d64199de3481",
+      "features.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "occurrences.jsonl": "a1baaffb596d546505d3562fdea5d7d01ddf44a88bcb30526b645caf47eb9b2a",
+      "revision-edges.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "revision-lineage.jsonl": "d2a905ec0f790761fd109888c5245c7af37510285546f0cd6d82c1aebbf1dade",
+      "semantic-classifications.jsonl": "1d335f294356ac959fbc6687787059cf37d3e58611560c357d495b98dc32563c",
+      "source-records.jsonl": "449c16c4c8a987b4a0523e5cd91307365d6a8695ce28f0afe871a5610144a681",
+      "splits.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "targets.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "logical_observation_at": "2026-10-08T06:30:00+00:00",
+    "python_version": "3.13.14",
+    "raw_main_count": 37669,
+    "readiness_approval": false,
+    "registry_sha256": "86f0f999f3f80eaf2ca3594fe15dab9a619695cd8a7fa914a72757bf39d5cbe4",
+    "rights_version": "plvr-whole-dwelling-interests-v1",
+    "schema_version": "ml-semantic-temporal-closure-v1-build-manifest",
+    "source_bindings": [
+      {
+        "detail_sha256": {
+          "build": "72b89f0f49652cf7513f27c42237999891a25e313b40188b93d7cac7a8d574b7",
+          "land": "904b1279d80fc00cf3e2a087f17831dd5dd381cde808cd958469af3bf23a8301",
+          "park": "cf6f9ae6dfd8d15c826972f29287dcd5bbf7e34a83f6ec05bc8136597fbd333d"
+        },
+        "main_member": "a_lvr_land_a.csv",
+        "main_sha256": "dde051ecfde883421fc0f97e2c6efb2d02df1591e7875168bd4140fc86a8a86b",
+        "release_id": "moi-plvr-sale-season-112S3",
+        "schema_sha256": {
+          "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+          "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+          "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+          "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+        }
+      },
+      {
+        "detail_sha256": {
+          "build": "462d83f40d09289b0e69bd4dda886189ae390fcb8a084e77f9fca945de88ff54",
+          "land": "c60f1d05bcd335a1625fb0321c9606802446f2f17ffd16ca27869c8df9e36dda",
+          "park": "2da0539a798578472446fc90f06306d96141958c7fac3f9bd0cfe3a18811fb8c"
+        },
+        "main_member": "f_lvr_land_a.csv",
+        "main_sha256": "fb5b881ce4e80b5160a795054d9439389ba919ee144cf3bda4b0854db8610de4",
+        "release_id": "moi-plvr-sale-season-112S3",
+        "schema_sha256": {
+          "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+          "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+          "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+          "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+        }
+      },
+      {
+        "detail_sha256": {
+          "build": "5606fdb253e86b51b949b98ed81d1c5b7db79b02a53942ce9acf80339a9c1bde",
+          "land": "9175a8d578806cc22bed74b2b97460d4cd8affa888329b35688aa7572142c038",
+          "park": "f2f2d683d23dd86a420b084dc7e8c5dc20ad6502f070694eaa8f668c4c090db7"
+        },
+        "main_member": "a_lvr_land_a.csv",
+        "main_sha256": "033ee4548b8e826fe5d9f61542485e1864a239e28bf32ddebf02554e2614f86f",
+        "release_id": "moi-plvr-sale-season-115S2",
+        "schema_sha256": {
+          "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+          "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+          "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+          "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+        }
+      },
+      {
+        "detail_sha256": {
+          "build": "06aed3ba78edd693f61e66b5092ceb8b55daa490cf6e2baea0cbdbb783330ecf",
+          "land": "6b2d4754b693e94deac2c204a1da0abefea6c400f30a5c397865fe759f21ecaf",
+          "park": "594b97936b5f5b5665b82ec3181cbeb5ad6a6ac5071a47e6b4dd9907fb3d82f4"
+        },
+        "main_member": "f_lvr_land_a.csv",
+        "main_sha256": "142f58d9bccdfe065536219ee80b6a21f801aaf5c48480d2e1d3aa197af744cf",
+        "release_id": "moi-plvr-sale-season-115S2",
+        "schema_sha256": {
+          "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+          "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+          "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+          "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+        }
+      }
+    ],
+    "source_contract_sha256": "bef6a9a85746a77104dfdf8171d1cc640e321b41e62bed33b8deb92cccc67e46",
+    "source_manifest_sha256": "565e3938e317b8d71cf19c8d8406f9a7330b037d8f1e63b168671981e6734603",
+    "split_version": "plvr-contiguous-four-block-maturity-v1",
+    "target_version": "residential-unit-ntd-ping-log-v1",
+    "timezone": "Asia/Taipei"
+  },
+  "deterministic_hashes": {
+    "cohort-membership.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "dataset_manifest": "9bc247495ba7fbc28692ded7522968d6fbea3d1a62d8a9f354f3e9ead0767a71",
+    "exclusions.jsonl": "87d50bbaa6bd2522e4425076c9794749d1ed0ba76fe174f54958d64199de3481",
+    "features.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "occurrences.jsonl": "a1baaffb596d546505d3562fdea5d7d01ddf44a88bcb30526b645caf47eb9b2a",
+    "revision-edges.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "revision-lineage.jsonl": "d2a905ec0f790761fd109888c5245c7af37510285546f0cd6d82c1aebbf1dade",
+    "semantic-classifications.jsonl": "1d335f294356ac959fbc6687787059cf37d3e58611560c357d495b98dc32563c",
+    "source-records.jsonl": "449c16c4c8a987b4a0523e5cd91307365d6a8695ce28f0afe871a5610144a681",
+    "source_manifest": "565e3938e317b8d71cf19c8d8406f9a7330b037d8f1e63b168671981e6734603",
+    "splits.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "targets.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "evidence_sources": [
+    {
+      "supports": "Official dataset/schema-family identity; update schedule is not archive publication evidence.",
+      "url": "https://data.gov.tw/dataset/25119"
+    },
+    {
+      "supports": "Official seasonal archive entry point and bounded release identity; current download alone gives only current upper bound.",
+      "url": "https://plvr.land.moi.gov.tw/DownloadOpenData"
+    },
+    {
+      "supports": "Registered transferred building area can contain common/ancillary portions; parking price treatment requires attention.",
+      "url": "https://lvr.land.moi.gov.tw/R11/jsp/qa.jsp"
+    },
+    {
+      "supports": "Official declared building/parcel counts are reference values, not registered dwelling-unit proof.",
+      "url": "https://lvr.land.moi.gov.tw/jsp/index.jsp"
+    }
+  ],
+  "field_nonblank_counts": {
+    "build": {
+      "主要建材": 83924,
+      "主要用途": 83632,
+      "屋齡": 60640,
+      "建物分層": 36699,
+      "建物移轉面積平方公尺": 83942,
+      "建築完成日期": 83008,
+      "移轉情形": 83828,
+      "編號": 83942,
+      "總層數": 83864
+    },
+    "land": {
+      "使用分區或編定": 55122,
+      "土地位置": 55387,
+      "土地移轉面積平方公尺": 55387,
+      "地號": 55387,
+      "權利人持分分子": 55387,
+      "權利人持分分母": 55387,
+      "移轉情形": 55387,
+      "編號": 55387
+    },
+    "main": {
+      "主建物面積": 37669,
+      "主要建材": 32882,
+      "主要用途": 32640,
+      "交易年月日": 37669,
+      "交易標的": 37669,
+      "交易筆棟數": 37669,
+      "備註": 26324,
+      "單價元平方公尺": 36431,
+      "土地位置建物門牌": 37669,
+      "土地移轉總面積平方公尺": 37669,
+      "建物型態": 37669,
+      "建物現況格局-廳": 37669,
+      "建物現況格局-房": 37669,
+      "建物現況格局-衛": 37669,
+      "建物現況格局-隔間": 37669,
+      "建物移轉總面積平方公尺": 37669,
+      "建築完成年月": 32041,
+      "有無管理組織": 37669,
+      "移轉層次": 32868,
+      "移轉編號": 12320,
+      "編號": 37669,
+      "總價元": 37669,
+      "總樓層數": 32866,
+      "車位移轉總面積平方公尺": 37669,
+      "車位總價元": 37669,
+      "車位類別": 16662,
+      "都市土地使用分區": 34710,
+      "鄉鎮市區": 37669,
+      "附屬建物面積": 37669,
+      "陽台面積": 37669,
+      "電梯": 37669,
+      "非都市土地使用分區": 1895,
+      "非都市土地使用編定": 1842
+    },
+    "park": {
+      "編號": 20666,
+      "車位價格": 20666,
+      "車位所在樓層": 20285,
+      "車位面積平方公尺": 17971,
+      "車位類別": 20666
+    }
+  },
+  "final_validation": {
+    "all_ml_tests_passed": 191,
+    "credential_pattern_scan": "No credential/private-key patterns found in the 12 proposed files.",
+    "existing_ml_tests_passed": 122,
+    "full_python_regression": "3035 passed, 31 skipped, 1 warning in 262.31s (0:04:22)",
+    "git_diff_check": "Passed before staging; final post-commit result supplied in final response.",
+    "interim_regression_findings": [
+      "Initial run required restoring existing locked frontend TypeScript dependencies; npm ci --ignore-scripts --no-audit --no-fund, no tracked lock/package changes.",
+      "One later full run failed test_two_active_two_queued_and_fifth_fails_closed while concurrent real builds exceeded worker readiness timing. Isolated rerun passed after builds ended. Final regression runs after builds and code freeze.",
+      "Interim test runs during fixture edits are not final verification."
+    ],
+    "new_semantic_temporal_tests_passed": 69,
+    "review": {
+      "independent_authored_report_review": "Complete; no Critical, Important or Minor findings. Independent all-12-file real ID/address substring scan found zero matches.",
+      "independent_code_review": "No remaining Critical, Important or Minor findings.",
+      "independent_delivery_artifact_review": "Complete; no findings; 13 matching files, current code/contract bindings and conservation verified.",
+      "unresolved_critical": 0,
+      "unresolved_important": 0,
+      "unresolved_minor": 0
+    }
+  },
+  "first_exclusion_counts": {
+    "INVALID_DATE": 1,
+    "NON_RESIDENTIAL_USE": 3116,
+    "RIGHTS_AMBIGUOUS": 13007,
+    "RIGHTS_UNKNOWN": 21,
+    "UNSUPPORTED_BUILDING_TYPE": 545,
+    "UNSUPPORTED_TARGET": 20979
+  },
+  "funnel": [
+    {
+      "accepted_count": 37668,
+      "excluded_count": 1,
+      "input_count": 37669,
+      "reason_breakdown": {
+        "INVALID_DATE": 1
+      },
+      "stage": "schema"
+    },
+    {
+      "accepted_count": 37668,
+      "excluded_count": 0,
+      "input_count": 37668,
+      "reason_breakdown": {},
+      "stage": "source_identity"
+    },
+    {
+      "accepted_count": 37668,
+      "excluded_count": 0,
+      "input_count": 37668,
+      "reason_breakdown": {},
+      "stage": "geography"
+    },
+    {
+      "accepted_count": 16689,
+      "excluded_count": 20979,
+      "input_count": 37668,
+      "reason_breakdown": {
+        "UNSUPPORTED_TARGET": 20979
+      },
+      "stage": "transaction_target"
+    },
+    {
+      "accepted_count": 13573,
+      "excluded_count": 3116,
+      "input_count": 16689,
+      "reason_breakdown": {
+        "NON_RESIDENTIAL_USE": 3116
+      },
+      "stage": "residential_use"
+    },
+    {
+      "accepted_count": 13028,
+      "excluded_count": 545,
+      "input_count": 13573,
+      "reason_breakdown": {
+        "UNSUPPORTED_BUILDING_TYPE": 545
+      },
+      "stage": "building_type"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 13028,
+      "input_count": 13028,
+      "reason_breakdown": {
+        "RIGHTS_AMBIGUOUS": 13007,
+        "RIGHTS_UNKNOWN": 21
+      },
+      "stage": "rights"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "dwelling"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "parking"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "price_area"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "physical"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "revision"
+    },
+    {
+      "accepted_count": 0,
+      "excluded_count": 0,
+      "input_count": 0,
+      "reason_breakdown": {},
+      "stage": "availability"
+    }
+  ],
+  "gate": "BLOCKED",
+  "joins": [
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 14014,
+      "kind": "build",
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 6391,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_detail_excess": 130
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 9685,
+      "kind": "land",
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 6391,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_detail_excess": 23
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 2883,
+      "kind": "park",
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 6391,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_detail_excess": 645
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 30089,
+      "kind": "build",
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 14143,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_detail_excess": 198
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 20694,
+      "kind": "land",
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 14143,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_detail_excess": 30
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 7547,
+      "kind": "park",
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 14143,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-112S3",
+      "repeated_detail_excess": 850
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 12981,
+      "kind": "build",
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 5607,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_detail_excess": 269
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 8384,
+      "kind": "land",
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 5607,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_detail_excess": 14
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 3437,
+      "kind": "park",
+      "main_member": "a_lvr_land_a.csv",
+      "main_rows": 5607,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_detail_excess": 1116
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 26858,
+      "kind": "build",
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 11528,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_detail_excess": 426
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 16624,
+      "kind": "land",
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 11528,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_detail_excess": 7
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_rows": 6799,
+      "kind": "park",
+      "main_member": "f_lvr_land_a.csv",
+      "main_rows": 11528,
+      "orphan_detail_rows": 0,
+      "release_id": "moi-plvr-sale-season-115S2",
+      "repeated_detail_excess": 857
+    }
+  ],
+  "ml_b_handoff": null,
+  "ml_b_may_begin": false,
+  "nonempty_build_proven": false,
+  "profiles": {
+    "availability_occurrence": {
+      "CONSERVATIVE_UPPER_BOUND": 37669
+    },
+    "availability_release": {
+      "CONSERVATIVE_UPPER_BOUND": 2
+    },
+    "building_type": {
+      "UNSUPPORTED": 6433,
+      "住宅大樓": 18649,
+      "公寓": 7122,
+      "華廈": 5465
+    },
+    "county": {
+      "新北市": 25671,
+      "臺北市": 11998
+    },
+    "date_precision": {
+      "INVALID": 1,
+      "day": 37668
+    },
+    "district": {
+      "新北市/三峽區": 523,
+      "新北市/三芝區": 527,
+      "新北市/三重區": 2863,
+      "新北市/中和區": 2061,
+      "新北市/五股區": 743,
+      "新北市/八里區": 474,
+      "新北市/土城區": 1232,
+      "新北市/坪林區": 28,
+      "新北市/平溪區": 11,
+      "新北市/新店區": 2246,
+      "新北市/新莊區": 2434,
+      "新北市/板橋區": 2650,
+      "新北市/林口區": 1577,
+      "新北市/樹林區": 718,
+      "新北市/永和區": 912,
+      "新北市/汐止區": 1363,
+      "新北市/泰山區": 688,
+      "新北市/淡水區": 2271,
+      "新北市/深坑區": 125,
+      "新北市/烏來區": 3,
+      "新北市/瑞芳區": 156,
+      "新北市/石碇區": 35,
+      "新北市/石門區": 47,
+      "新北市/萬里區": 129,
+      "新北市/蘆洲區": 782,
+      "新北市/貢寮區": 66,
+      "新北市/金山區": 131,
+      "新北市/雙溪區": 97,
+      "新北市/鶯歌區": 779,
+      "臺北市/中山區": 1635,
+      "臺北市/中正區": 709,
+      "臺北市/信義區": 885,
+      "臺北市/內湖區": 1265,
+      "臺北市/北投區": 1094,
+      "臺北市/南港區": 594,
+      "臺北市/士林區": 1036,
+      "臺北市/大同區": 632,
+      "臺北市/大安區": 1316,
+      "臺北市/文山區": 1084,
+      "臺北市/松山區": 847,
+      "臺北市/萬華區": 901
+    },
+    "dwelling": {
+      "DWELLING_AMBIGUOUS": 26330,
+      "DWELLING_UNKNOWN": 11094,
+      "MULTI_DWELLING": 245
+    },
+    "dwelling_reason": {
+      "DECLARED_MULTIPLE_BUILDINGS": 245,
+      "MAIN_BUILD_DETAIL_AREA_DISAGREEMENT": 3467,
+      "MAIN_LAND_DETAIL_COUNT_DISAGREEMENT": 13,
+      "MULTIPLE_DETAIL_ROLES_UNRESOLVED": 6425,
+      "REGISTERED_UNIT_EVIDENCE_ABSENT": 11094,
+      "REPEATED_DETAIL_OBJECT_IDENTITY_UNRESOLVED": 160,
+      "UNSUPPORTED_OBJECT_STRUCTURE": 16265
+    },
+    "geography": {
+      "canonical": 37669
+    },
+    "no_parking_residential_reconciliation": {
+      "NOT_COMPUTED_OUTSIDE_SCOPE": 84,
+      "WITHIN_TOLERANCE": 10758
+    },
+    "parking": {
+      "NO_PARKING_CONFIRMED": 13433,
+      "PARKING_PRESENT": 16662,
+      "PARKING_SEMANTICS_AMBIGUOUS": 7311,
+      "UNKNOWN": 263
+    },
+    "release": {
+      "moi-plvr-sale-season-112S3": 20534,
+      "moi-plvr-sale-season-115S2": 17135
+    },
+    "rights": {
+      "RIGHTS_AMBIGUOUS": 32602,
+      "RIGHTS_UNKNOWN": 5067
+    },
+    "rights_reason": {
+      "FRACTIONAL_INTEREST_ROLE_UNRESOLVED": 12697,
+      "MAIN_BUILD_DETAIL_AREA_DISAGREEMENT": 3467,
+      "MAIN_LAND_DETAIL_COUNT_DISAGREEMENT": 13,
+      "OBJECT_RIGHTS_EVIDENCE_ABSENT": 5067,
+      "REPEATED_DETAIL_OBJECT_IDENTITY_UNRESOLVED": 160,
+      "UNSUPPORTED_OBJECT_STRUCTURE": 16265
+    },
+    "transaction_month": {
+      "2013-06": 1,
+      "2013-07": 1,
+      "2013-08": 1,
+      "2013-11": 1,
+      "2014-05": 1,
+      "2015-12": 1,
+      "2016-01": 1,
+      "2016-09": 4,
+      "2017-04": 9,
+      "2017-05": 5,
+      "2017-06": 4,
+      "2017-07": 6,
+      "2017-08": 15,
+      "2017-09": 1,
+      "2017-10": 3,
+      "2017-11": 5,
+      "2017-12": 5,
+      "2018-01": 3,
+      "2018-02": 1,
+      "2018-03": 7,
+      "2018-05": 6,
+      "2018-06": 15,
+      "2018-07": 8,
+      "2018-08": 14,
+      "2018-09": 34,
+      "2018-10": 23,
+      "2018-11": 20,
+      "2018-12": 18,
+      "2019-01": 28,
+      "2019-02": 55,
+      "2019-03": 53,
+      "2019-04": 64,
+      "2019-05": 36,
+      "2019-06": 129,
+      "2019-07": 182,
+      "2019-08": 134,
+      "2019-09": 170,
+      "2019-10": 116,
+      "2019-11": 87,
+      "2019-12": 88,
+      "2020-01": 64,
+      "2020-02": 64,
+      "2020-03": 62,
+      "2020-04": 62,
+      "2020-05": 100,
+      "2020-06": 154,
+      "2020-07": 122,
+      "2020-08": 193,
+      "2020-09": 152,
+      "2020-10": 162,
+      "2020-11": 140,
+      "2020-12": 152,
+      "2021-01": 117,
+      "2021-02": 99,
+      "2021-03": 250,
+      "2021-04": 235,
+      "2021-05": 157,
+      "2021-06": 71,
+      "2021-07": 127,
+      "2021-08": 137,
+      "2021-09": 178,
+      "2021-10": 178,
+      "2021-11": 199,
+      "2021-12": 178,
+      "2022-01": 96,
+      "2022-02": 101,
+      "2022-03": 141,
+      "2022-04": 122,
+      "2022-05": 116,
+      "2022-06": 163,
+      "2022-07": 113,
+      "2022-08": 118,
+      "2022-09": 127,
+      "2022-10": 122,
+      "2022-11": 66,
+      "2022-12": 159,
+      "2023-01": 90,
+      "2023-02": 169,
+      "2023-03": 610,
+      "2023-04": 1315,
+      "2023-05": 4474,
+      "2023-06": 5246,
+      "2023-07": 4257,
+      "2023-08": 1262,
+      "2023-09": 53,
+      "2023-10": 82,
+      "2023-11": 83,
+      "2023-12": 96,
+      "2024-01": 75,
+      "2024-02": 84,
+      "2024-03": 83,
+      "2024-04": 87,
+      "2024-05": 86,
+      "2024-06": 67,
+      "2024-07": 54,
+      "2024-08": 57,
+      "2024-09": 46,
+      "2024-10": 20,
+      "2024-11": 63,
+      "2024-12": 46,
+      "2025-01": 45,
+      "2025-02": 38,
+      "2025-03": 63,
+      "2025-04": 52,
+      "2025-05": 31,
+      "2025-06": 44,
+      "2025-07": 50,
+      "2025-08": 63,
+      "2025-09": 84,
+      "2025-10": 177,
+      "2025-11": 389,
+      "2025-12": 1026,
+      "2026-01": 2343,
+      "2026-02": 1935,
+      "2026-03": 3577,
+      "2026-04": 2323,
+      "2026-05": 767,
+      "2026-06": 4,
+      "INVALID": 1
+    }
+  },
+  "raw_main_detail_rows": 197664,
+  "raw_main_rows": 37669,
+  "reconciliation": {
+    "all_raw_counts": {
+      "MISMATCH": 10411,
+      "NOT_COMPUTABLE": 4242,
+      "NOT_COMPUTED_OUTSIDE_SCOPE": 664,
+      "OFFICIAL_UNIT_PRICE_ABSENT": 1108,
+      "WITHIN_TOLERANCE": 21244
+    },
+    "basis": "Diagnostic only; mixed parking, partial rights and multiple objects can explain differences; no target substitution.",
+    "tolerance": "max(1 NTD/m², 0.001 * total_price / registered_area)"
+  },
+  "remaining_exact_evidence_requirements": [
+    "Reviewed authoritative building-object evidence tied to archive SHA256, member, physical main record and main/build/land payload hashes: private/common role, registered building identity, dwelling unit count, complete transferred building fraction, and complete common/land interests required for that unit.",
+    "Official immutable archive/version publication logs or trustworthy historical byte-bound observation records at/before each proposed fold freeze, plus stable ID namespace and complete correction/supersession/cancellation coverage or justified authenticated snapshot semantics.",
+    "Sufficient releases with complete mature coverage for >=21 contiguous admitted months (>=12 train +3 validation +3 calibration +3 test), >=20 rows/month and >=20 district/type rows per block; two matching nonempty builds."
+  ],
+  "revisions": {
+    "cancellation_attested": 0,
+    "classifications": {
+      "REVISION_UNVERIFIED": 37669
+    },
+    "namespace_evidenced": 0,
+    "note": "Absent repeats do not establish stable namespace or complete correction/cancellation history.",
+    "predecessor_edges": 0,
+    "provisional_family_count": 37669,
+    "supersession_attested": 0
+  },
+  "schema_version": "ml-semantic-temporal-closure-v1-aggregate-evidence",
+  "scope": {
+    "members": [
+      "a_lvr_land_a.csv",
+      "f_lvr_land_a.csv"
+    ],
+    "releases": [
+      "112S3",
+      "115S2"
+    ]
+  },
+  "semantic_class_totals": {
+    "dwelling": {
+      "DWELLING_AMBIGUOUS": 26330,
+      "DWELLING_UNKNOWN": 11094,
+      "MULTI_DWELLING": 245,
+      "SINGLE_DWELLING_CONFIRMED": 0
+    },
+    "revision": {
+      "AMBIGUOUS_COLLISION": 0,
+      "CANCELLATION": 0,
+      "CORRECTION": 0,
+      "DISTINCT_TRANSACTION": 0,
+      "EXACT_REPUBLICATION": 0,
+      "REVISION_UNVERIFIED": 37669,
+      "SUPERSESSION": 0
+    },
+    "rights": {
+      "FULL_RIGHTS_CONFIRMED": 0,
+      "PARTIAL_RIGHTS": 0,
+      "RIGHTS_AMBIGUOUS": 32602,
+      "RIGHTS_UNKNOWN": 5067
+    }
+  },
+  "split_design": {
+    "assignments": [],
+    "blockers": [
+      "COMPLETE_MATURE_COVERAGE_UNPROVEN",
+      "EMPTY_COHORT",
+      "INSUFFICIENT_CHRONOLOGICAL_MONTHS"
+    ],
+    "blocks": {},
+    "calibration_policy": "Never used for model fitting or model selection.",
+    "maturity_rule": "Availability strictly before next block freeze; calendar dates never imply publication.",
+    "monthly_counts": {},
+    "version": "plvr-contiguous-four-block-maturity-v1",
+    "viable": false
+  },
+  "starting_sha": "d06ed4f062a212fed4ce0adf092c2fdc515a3f62",
+  "two_build_verification": {
+    "actual_execution_clocks_not_invented": true,
+    "build_environments": [
+      {
+        "TZ": "UTC",
+        "hashseed": "11"
+      },
+      {
+        "TZ": "Asia/Taipei",
+        "hashseed": "29"
+      }
+    ],
+    "code_and_contract_binding_verified": true,
+    "funnel_and_occurrence_conservation_verified": true,
+    "jsonl_record_counts": {
+      "cohort-membership.jsonl": 0,
+      "exclusions.jsonl": 37669,
+      "features.jsonl": 0,
+      "occurrences.jsonl": 37669,
+      "revision-edges.jsonl": 0,
+      "revision-lineage.jsonl": 37669,
+      "semantic-classifications.jsonl": 37669,
+      "source-records.jsonl": 197664,
+      "splits.jsonl": 0,
+      "targets.jsonl": 0
+    },
+    "matching_files": {
+      "cohort-membership.jsonl": {
+        "bytes": 0,
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "dataset-manifest.json": {
+        "bytes": 5275,
+        "match": true,
+        "sha256": "8b261a456f56677b765f384d6b0f1cbb9b6d11c1a00d665d07fe57a7affc8b3a"
+      },
+      "evidence.json": {
+        "bytes": 19357,
+        "match": true,
+        "sha256": "c083a411eaf53f190abc006aefae36a04f6fb3f2f72f6289799c3e6f1e8e3e01"
+      },
+      "exclusions.jsonl": {
+        "bytes": 30091522,
+        "match": true,
+        "sha256": "87d50bbaa6bd2522e4425076c9794749d1ed0ba76fe174f54958d64199de3481"
+      },
+      "features.jsonl": {
+        "bytes": 0,
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "occurrences.jsonl": {
+        "bytes": 147320386,
+        "match": true,
+        "sha256": "a1baaffb596d546505d3562fdea5d7d01ddf44a88bcb30526b645caf47eb9b2a"
+      },
+      "revision-edges.jsonl": {
+        "bytes": 0,
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "revision-lineage.jsonl": {
+        "bytes": 28515433,
+        "match": true,
+        "sha256": "d2a905ec0f790761fd109888c5245c7af37510285546f0cd6d82c1aebbf1dade"
+      },
+      "semantic-classifications.jsonl": {
+        "bytes": 34302812,
+        "match": true,
+        "sha256": "1d335f294356ac959fbc6687787059cf37d3e58611560c357d495b98dc32563c"
+      },
+      "source-manifest.json": {
+        "bytes": 33332,
+        "match": true,
+        "sha256": "9be9c424caee52362e88598ea0fd89bb2020e2c8493751eee4c6a8e6c41fb1a6"
+      },
+      "source-records.jsonl": {
+        "bytes": 208163422,
+        "match": true,
+        "sha256": "449c16c4c8a987b4a0523e5cd91307365d6a8695ce28f0afe871a5610144a681"
+      },
+      "splits.jsonl": {
+        "bytes": 0,
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "targets.jsonl": {
+        "bytes": 0,
+        "match": true,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "nonempty_reproducibility_proven": false,
+    "privacy": {
+      "changed_files_checked": 12,
+      "dependencies_tracked": false,
+      "raw_artifacts_tracked": false,
+      "real_address_substring_matches": 0,
+      "real_official_id_substring_matches": 0
+    },
+    "two_builds_byte_identical": true
+  }
+}

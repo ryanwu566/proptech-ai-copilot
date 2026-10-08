@@ -1,0 +1,60 @@
+{
+  "schema_version": "ml-semantic-temporal-closure-contract-v1",
+  "source_contract": "source-contract-v1.json",
+  "cohort_version": "residential-semantic-temporal-cohort-v1",
+  "rights_version": "plvr-whole-dwelling-interests-v1",
+  "availability_version": "plvr-evidence-qualified-availability-v1",
+  "split_version": "plvr-contiguous-four-block-maturity-v1",
+  "source_scope": {
+    "releases": ["112S3", "115S2"],
+    "members": ["a_lvr_land_a.csv", "f_lvr_land_a.csv"],
+    "join_key": ["archive_sha256", "sale_county_member_family", "raw_official_id"],
+    "detail_policy": "Complete parsed member, unique nonmissing main key, zero orphans. Retain repeated detail occurrences; unresolved object multiplicity excludes."
+  },
+  "supplemental_semantics": {
+    "authority": "Reviewed external evidence is supplied input. Shape/content binding validates consistency, not legal authority. No actual supplement was recovered or used.",
+    "scope_fields": ["archive_sha256", "member_name", "physical_row_number", "schema_sha256"],
+    "content_fields": ["main_sha256", "build_sha256", "land_sha256"],
+    "building_object_fields": ["role", "object_id", "dwelling_units", "transferred_fraction", "required_fraction"],
+    "common_link_field": "unit_id",
+    "land_interest_fields": ["unit_id", "required_fraction"],
+    "fraction_basis": "Native land fraction is a parcel ownership interest. Compare to the evidenced complete interest required for this dwelling; never reinterpret it as a dwelling transfer fraction.",
+    "positive_rights": "Every private dwelling transfers 1/1; each linked common/ancillary and land interest equals the complete required interest. Native status and fractions agree.",
+    "positive_dwelling": "Exactly one mapped private residential dwelling with explicit one-unit count, compatible main count, single agreeing floor and exact sum of transferred detail area. Common portions must identify the same dwelling and have native common use.",
+    "missing_native_fields": ["building_identifier", "private_common_object_role", "building_transfer_fraction", "registered_dwelling_unit_count", "required_land_interest_for_dwelling"],
+    "real_native_positive_attestation": false
+  },
+  "rights_classes": ["FULL_RIGHTS_CONFIRMED", "PARTIAL_RIGHTS", "RIGHTS_AMBIGUOUS", "RIGHTS_UNKNOWN"],
+  "dwelling_classes": ["SINGLE_DWELLING_CONFIRMED", "MULTI_DWELLING", "DWELLING_AMBIGUOUS", "DWELLING_UNKNOWN"],
+  "area": {
+    "field": "建物移轉總面積平方公尺",
+    "unit": "m²",
+    "ping_per_sqm": "0.3025",
+    "basis": "Registered transferred building area; may include common and ancillary portions. No interior/net/usable-area claim."
+  },
+  "availability": {
+    "EXACT_PUBLICATION_TIME": "Timezone-aware evidenced timestamp bound to exact archive/version.",
+    "DATE_ONLY_PUBLICATION": "Eligible from next midnight Asia/Taipei, converted to UTC; not a fabricated intraday publication instant.",
+    "CONSERVATIVE_UPPER_BOUND": "Eligible only from the evidenced bound, including exact current verified HTTPS retrieval. Earlier publication remains unknown.",
+    "SYSTEM_FIRST_SEEN": "No standalone public availability assertion; excludes under public-information framing.",
+    "UNKNOWN": "Excluded.",
+    "current_real_evidence": "Two exact current retrieval upper bounds only. No 2023–2026 historical fold availability authenticated."
+  },
+  "revision_policy": "Reuse explicit predecessor selection before admission. Full supplied semantic/detail evidence participates in same-version conflicts. No changed-ID inferred linkage; ambiguous or unknown namespace/cancellation state excludes.",
+  "clock_policy": "Logical snapshot/cutoff is configuration. Actual ingestion/transformation remain null without captured event evidence; no system replay assertion.",
+  "chronology": {
+    "train_minimum_months": 12,
+    "validation_months": 3,
+    "calibration_months": 3,
+    "test_months": 3,
+    "minimum_rows_per_month": 20,
+    "minimum_county_district_type_rows_per_block": 20,
+    "complete_mature_coverage_evidence_required": true,
+    "label_observation_cutoff_required": true,
+    "historical_membership": "Re-select the entire supplied version ledger at each block freeze and bind its digest. Global-cutoff membership/version differences reject the proposal, including later cancellations; no historical population is reconstructed from current admitted rows alone.",
+    "maturity": "Train and validation labels before next block; calibration labels before test. Test labels by separate observation cutoff. No universal lag guessed.",
+    "primary_split": "Contiguous chronological; no random fallback. Unknown coverage/insufficient volume produces no assignments."
+  },
+  "baseline_history": "Full version ledger as of min(prediction_at, fitting_cutoff), then eligibility, strict earlier effective time, subject-family exclusion and required frozen fitting-family membership. Unknown evidence abstains. No baseline estimation or model fitting performed.",
+  "gate_policy": "Nonempty semantic/PIT cohort, proper chronology and two matching nonempty builds remain mandatory. Consistency tests or matching empty outputs do not authorize ML-B."
+}

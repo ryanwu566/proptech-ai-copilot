@@ -56,7 +56,14 @@ def lineage_valid(item: dict) -> bool:
             and s.evidence_valid(item.get("identity_evidence"))
             and isinstance(item.get("raw"),dict) and isinstance(item.get("context"),dict)
             and item["context"].get("member_name") == item.get("member_name")
+            and ("cancellation_state_evidenced" not in item or item["cancellation_state_evidenced"] is True)
             and type(item.get("cancelled")) is bool)
+
+
+def semantic_payload(item: dict) -> dict:
+    """All supplied model-affecting evidence participates in conflict detection."""
+    return {key:item.get(key) for key in ('context','semantic','area_contract',
+            'detail_payload_sha256','detail_member_sha256','cancellation_state_evidenced')}
 
 
 def select_as_of(items: list[dict], cutoff: str) -> dict:
@@ -67,12 +74,24 @@ def select_as_of(items: list[dict], cutoff: str) -> dict:
     reasons = Counter()
     classifications = Counter()
     selected = []
+    dispositions = []
+    relations = []
+    def disposition(item, ids, reason):
+        return {**ids, "source_record_version_id":ids["version_id"],
+                "physical_occurrence_id":ids["occurrence_id"], "release_id":item.get("release_id"),
+                "release_available_at":item.get("source_release_available_at"),
+                "predecessor_version_id":item.get("supersedes_version_id"),
+                "selected_as_of_cutoff":reason is None, "cutoff":boundary.isoformat(),
+                "reason":reason}
+    def exclude(entries, reason):
+        reasons[reason] += len(entries)
+        dispositions.extend(disposition(item,ids,reason) for item,ids in entries)
     global_locators = defaultdict(set)
     release_metadata = defaultdict(set)
     member_metadata = defaultdict(set)
     for item in items:
         if item.get("source_dataset_id") != s.SOURCE_DATASET_ID:
-            reasons["unsupported_source"] += 1
+            exclude([(item,identify(item))],"unsupported_source")
             continue
         identity = identify(item)
         # Index every canonical-source physical occurrence, including missing IDs.
@@ -83,7 +102,7 @@ def select_as_of(items: list[dict], cutoff: str) -> dict:
         member_metadata[(item.get("archive_sha256"),item.get("member_name"))].add(
             digest(item.get("member_sha256")))
         if identity["transaction_family_id"] is None:
-            reasons["identity_missing"] += 1
+            exclude([(item,identity)],"identity_missing")
         else:
             families[identity["transaction_family_id"]].append((item,identity))
     conflicting_locators={key for key,values in global_locators.items() if len(values)>1}
@@ -93,21 +112,22 @@ def select_as_of(items: list[dict], cutoff: str) -> dict:
         entries = families[family]
         if any(x.get("release_id") in conflicting_releases
                or (x.get("archive_sha256"),x.get("member_name")) in conflicting_members for x,_ in entries):
-            reasons["immutable_lineage_conflict"] += len(entries)
+            exclude(entries,"immutable_lineage_conflict")
             continue
         if any(ids["occurrence_id"] in conflicting_locators for _,ids in entries):
-            reasons["occurrence_conflict"] += len(entries)
+            exclude(entries,"occurrence_conflict")
             classifications["ambiguous_collision_families"] += 1
             continue
         if any(not lineage_valid(x) for x,_ in entries):
-            reasons["lineage_unverified"] += len(entries)
+            exclude(entries,"lineage_unverified")
             continue
         if any(timestamp(x.get("source_release_available_at")) is None
                or not s.evidence_valid(x.get("availability_evidence")) for x,_ in entries):
-            reasons["availability_unknown"] += len(entries)
+            exclude(entries,"availability_unknown")
             continue
         eligible = [(x,ids) for x,ids in entries if timestamp(x["source_release_available_at"]) <= boundary]
-        reasons["after_availability_cutoff"] += len(entries) - len(eligible)
+        exclude([(x,ids) for x,ids in entries if timestamp(x["source_release_available_at"]) > boundary],
+                "after_availability_cutoff")
         if not eligible:
             continue
         # An occurrence locator cannot describe two payloads. No hash tie-break resolves that conflict.
@@ -115,18 +135,27 @@ def select_as_of(items: list[dict], cutoff: str) -> dict:
         for x,ids in eligible:
             locators[ids["occurrence_id"]].add(ids["version_id"])
         if any(len(v)>1 for v in locators.values()):
-            reasons["occurrence_conflict"] += len(eligible)
+            exclude(eligible,"occurrence_conflict")
             classifications["ambiguous_collision_families"] += 1
             continue
         versions = defaultdict(list)
         for x,ids in eligible:
             versions[ids["version_id"]].append((x,ids))
-        if any(len({digest(x["context"]) for x,_ in group}) != 1 for group in versions.values()):
-            reasons["semantic_evidence_conflict"] += len(eligible)
+        if any(len({digest(semantic_payload(x)) for x,_ in group}) != 1 for group in versions.values()):
+            exclude(eligible,"semantic_evidence_conflict")
             continue
         # Same payload's supersession evidence must agree across republications.
         if any(len({x.get("supersedes_version_id") for x,_ in group}) != 1 for group in versions.values()):
-            reasons["revision_ambiguous"] += len(eligible)
+            exclude(eligible,"revision_ambiguous")
+            classifications["ambiguous_collision_families"] += 1
+            continue
+        if any(len({digest([x.get("revision_kind"),x.get("revision_evidence")]) for x,_ in group})!=1
+               or any(x.get("revision_kind") is not None and
+                      (x["revision_kind"] not in {"CORRECTION","SUPERSESSION","CANCELLATION"}
+                       or not s.evidence_valid(x.get("revision_evidence"))
+                       or (x["revision_kind"]=="CANCELLATION")!=x["cancelled"]) for x,_ in group)
+               for group in versions.values()):
+            exclude(eligible,"revision_ambiguous")
             classifications["ambiguous_collision_families"] += 1
             continue
         order = sorted(versions, key=lambda v:(min(timestamp(x["source_release_available_at"]) for x,_ in versions[v]),v))
@@ -142,28 +171,37 @@ def select_as_of(items: list[dict], cutoff: str) -> dict:
                 if current_time <= prior_time:
                     ambiguous = True
         if ambiguous:
-            reasons["revision_ambiguous"] += len(eligible)
+            exclude(eligible,"revision_ambiguous")
             classifications["ambiguous_collision_families"] += 1
             continue
         if len(order)>1:
             classifications["explicit_correction_families"] += 1
+            for prior,current in zip(order,order[1:]):
+                relations.append({"predecessor_version_id":prior,"successor_version_id":current,
+                                  "classification":versions[current][0][0].get("revision_kind") or
+                                  ("CANCELLATION" if versions[current][0][0]["cancelled"] else "CORRECTION")})
         latest = order[-1]
         for version in order[:-1]:
-            reasons["superseded_version"] += len(versions[version])
+            exclude(versions[version],"superseded_version")
         representatives = sorted(versions[latest], key=lambda pair:(timestamp(pair[0]["source_release_available_at"]),pair[1]["occurrence_id"],pair[0]["release_id"]))
         choice, ids = representatives[0]
         seen_releases = {choice["release_id"]}
-        for duplicate,_ in representatives[1:]:
+        for duplicate,duplicate_ids in representatives[1:]:
             reason = "exact_duplicate" if duplicate["release_id"] in seen_releases else "republication"
             seen_releases.add(duplicate["release_id"])
-            reasons[reason] += 1
+            exclude([(duplicate,duplicate_ids)],reason)
             classifications[reason + "_occurrences"] += 1
         if choice["cancelled"]:
-            reasons["cancelled_as_of_cutoff"] += 1
+            exclude([(choice,ids)],"cancelled_as_of_cutoff")
         else:
             selected.append({**choice, **ids})
+            dispositions.append(disposition(choice,ids,None))
     reasons += Counter()  # remove zero counts for stable sparse output
     assert len(items) == len(selected) + sum(reasons.values())
+    assert len(dispositions) == len(items)
+    assert len({x["occurrence_id"] for x in selected}) == len(selected)
     return {"selected":selected,"input_occurrences":len(items),
             "excluded_reasons":dict(sorted(reasons.items())),
-            "classifications":dict(sorted(classifications.items())),"selection_version":SELECTION_VERSION}
+            "classifications":dict(sorted(classifications.items())),"selection_version":SELECTION_VERSION,
+            "dispositions":sorted(dispositions,key=canonical_bytes),
+            "relations":sorted(relations,key=canonical_bytes)}
