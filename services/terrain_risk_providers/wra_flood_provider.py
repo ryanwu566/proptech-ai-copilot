@@ -57,6 +57,9 @@ class WraFloodProvider:
         # the cache without re-downloading from R2).  Tests may inject a fake.
         self._query_point = query_point or _default_query_point
         self._scenario = scenario
+        parts = scenario.split("-")
+        self._scenario_label = (f"{parts[0][:-1]} 小時 / {parts[1]} 淹水潛勢情境"
+                                if len(parts) == 2 else scenario)
 
     def analyze(self, latitude: float, longitude: float, radius_m: int) -> dict[str, Any]:
         # The WRA flood dataset is a point-in-polygon potential map; radius_m is
@@ -92,9 +95,11 @@ class WraFloodProvider:
             )
 
         scenario = result.get("scenario", self._scenario)
+        if scenario != self._scenario:
+            return self._error_layer("error", "淹水潛勢回傳情境與設定不符，已停止使用該結果。")
         if result.get("matched"):
             return self._matched_layer(result, scenario)
-        return self._no_match_layer(scenario)
+        return self._no_match_layer(scenario, result)
 
     # -- response builders -------------------------------------------------
 
@@ -105,8 +110,10 @@ class WraFloodProvider:
             self.source_url,
             status,
             scenario=self._scenario,
-            scenario_label=SCENARIO_LABEL,
+            scenario_label=self._scenario_label,
             dataset="wra_flood_potential",
+            match_semantics="point_intersects_scenario_polygon",
+            limitation="僅比對查詢座標點與此儲存情境，不代表整筆土地或整棟建物覆蓋；未命中不代表無淹水風險。",
             **{k: v for k, v in extra.items() if v is not None},
         )
 
@@ -129,7 +136,7 @@ class WraFloodProvider:
         town_name = result.get("town_name")
         where = "".join(part for part in (city_name, town_name) if part)
         explanation = (
-            f"此位置落在水利署「{SCENARIO_LABEL}」的淹水潛勢範圍內，"
+            f"此位置落在水利署「{self._scenario_label}」的淹水潛勢範圍內，"
             f"官方淹水潛勢級距為 {canonical_depth}。"
             + (f"（{where}）" if where else "")
             + " 此為情境模擬潛勢，非實際淹水保證，仍需以現地與主管機關為準。"
@@ -145,7 +152,7 @@ class WraFloodProvider:
             "distance_m": 0,
             "value": {
                 "scenario": scenario,
-                "scenario_label": SCENARIO_LABEL,
+                "scenario_label": self._scenario_label,
                 "class": class_value,
                 "canonical_depth": canonical_depth,
                 "flood_dept_raw": result.get("flood_dept_raw"),
@@ -157,15 +164,15 @@ class WraFloodProvider:
             "explanation": explanation,
             "source": self._scenario_source(
                 "available",
-                data_vintage="官方 SHP 處理後圖資（processed v1）",
+                **self._provenance(result),
             ),
         }
 
-    def _no_match_layer(self, scenario: str) -> dict[str, Any]:
+    def _no_match_layer(self, scenario: str, result: dict[str, Any]) -> dict[str, Any]:
         # Source loaded successfully but the point is not inside any polygon for
         # THIS scenario.  This is NOT safe / low-risk / flood-impossible.
         explanation = (
-            f"在水利署「{SCENARIO_LABEL}」情境下，此位置未落在該情境的淹水潛勢範圍內；"
+            f"在水利署「{self._scenario_label}」情境下，此位置未落在該情境的淹水潛勢範圍內；"
             "此結果僅代表未命中此情境圖資，並不代表無淹水風險或低風險，"
             "其他降雨情境或實際狀況仍需另行確認。"
         )
@@ -178,15 +185,21 @@ class WraFloodProvider:
             "distance_m": None,
             "value": {
                 "scenario": scenario,
-                "scenario_label": SCENARIO_LABEL,
+                "scenario_label": self._scenario_label,
                 "matched": False,
             },
             "explanation": explanation,
             "source": self._scenario_source(
                 "available",
-                data_vintage="官方 SHP 處理後圖資（processed v1）",
+                **self._provenance(result),
             ),
         }
+
+    @staticmethod
+    def _provenance(result: dict[str, Any]) -> dict[str, Any]:
+        return {"data_vintage": result.get("source_vintage") or "unknown",
+                "dataset_version": result.get("dataset_version") or "v1",
+                "artifact_sha256": result.get("artifact_sha256")}
 
     def _unavailable_layer(self, explanation: str, *, detail: str | None = None) -> dict[str, Any]:
         payload = unavailable_layer(

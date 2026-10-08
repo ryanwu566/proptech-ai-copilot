@@ -163,7 +163,7 @@ function assessLocation(location: LocationInsightResult | undefined, risks: Risk
   if (location.location_score >= 75) positives.push({ key: "location", title: "riskSummary.titleLocation", message: "riskSummary.locationGood", params: { score: location.location_score } });
   else if (location.location_score < 55) risks.push({ key: "location", level: "high", title: "riskSummary.titleLocation", message: "riskSummary.locationLow", params: { score: location.location_score } });
   else risks.push({ key: "location", level: "medium", title: "riskSummary.titleLocation", message: "riskSummary.locationMedium", params: { score: location.location_score } });
-  if (location.poi_summary.risk_facility_count > 0) risks.push({ key: "risk-facilities", level: "high", title: "riskSummary.titleRiskFacilities", message: "riskSummary.riskFacilityWarning", params: { count: location.poi_summary.risk_facility_count } });
+  if (location.poi_summary.risk_facility_count !== null && location.poi_summary.risk_facility_count > 0) risks.push({ key: "risk-facilities", level: "high", title: "riskSummary.titleRiskFacilities", message: "riskSummary.riskFacilityWarning", params: { count: location.poi_summary.risk_facility_count } });
   return location.location_score;
 }
 

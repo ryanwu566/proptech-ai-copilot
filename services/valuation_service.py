@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import math
 import os
+import re
 import sqlite3
 import statistics
 from datetime import UTC, date, datetime
@@ -163,7 +164,18 @@ def get_valuation_provider(
 def get_valuation_data_status() -> dict[str, Any]:
     """Return a user-safe summary of the active valuation data source."""
 
-    return get_valuation_provider().data_status()
+    provider = get_valuation_provider()
+    from services.compact_green_query import is_green_enabled
+    return _capability_data_status(provider.data_status(), provider, is_green_enabled() and isinstance(provider, PostgresValuationProvider))
+
+
+def _capability_data_status(status: dict[str, Any], provider: ValuationProvider, use_green: bool) -> dict[str, Any]:
+    """Coverage remains BLUE even when the estimate reads GREEN comparables."""
+    return {**status, "capability_sources": {
+        "valuation": "compact_green" if use_green else provider.source,
+        "finder": provider.source, "trend": provider.source,
+        "market": provider.source, "coverage": provider.source,
+    }}
 
 
 def _truthy(value: str) -> bool:
@@ -186,6 +198,14 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         _use_green_comparables = is_green_enabled() and isinstance(provider, PostgresValuationProvider)
     except ImportError:
         _use_green_comparables = False
+    data_status = _capability_data_status(data_status, provider, _use_green_comparables)
+    query_metadata = {
+        "provider_active": "compact_green" if _use_green_comparables else provider.source,
+        "backend": "green" if _use_green_comparables else "blue" if isinstance(provider, PostgresValuationProvider) else "demo",
+        "capability": "valuation", "query_scope": "district_pool" if _use_green_comparables else "local_provider",
+        "candidate_pool_size": 0, "db_rows_returned": 0, "query_status": "ok",
+        "requested_city": payload.get("city", ""), "requested_district": payload.get("district", ""), "requested_road": payload.get("road", ""),
+    }
     try:
         if _use_green_comparables:
             all_rows = query_green_comparables(payload)
@@ -194,12 +214,11 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         else:
             all_rows = list(provider.load_transactions())
     except Exception:
-        return empty_estimate_result(data_status, status="unavailable", reason_code="provider_query_failed", result_origin="none", provider_source=provider.source)
+        return empty_estimate_result(data_status, status="unavailable", reason_code="provider_query_failed", result_origin="none", provider_source=provider.source, query_metadata={**query_metadata, "query_status": "failed"})
     all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider) or _use_green_comparables)
-    query_metadata = provider.last_query_metadata if isinstance(provider, PostgresValuationProvider) and not _use_green_comparables else {
-        "provider_active": provider.source,
+    query_metadata = {**query_metadata, **provider.last_query_metadata} if isinstance(provider, PostgresValuationProvider) and not _use_green_comparables else {
+        **query_metadata,
         "candidate_pool_size": len(all_rows),
-        "query_scope": "local_provider",
         "requested_city": payload.get("city", ""),
         "requested_district": payload.get("district", ""),
         "requested_road": payload.get("road", ""),
@@ -307,7 +326,7 @@ def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], c
 def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], enforce_scope: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Choose an explicit road-first valuation scope before scoring."""
 
-    prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if not _is_future_official(row)]
+    prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if _within_official_window(row)]
     if enforce_scope:
         prepared = [row for row in prepared if row.get("source") == "official_plvr_opendata" and _row_has_positive_metrics(row)]
     target_road = normalize_road(str(target.get("road", "")))
@@ -343,14 +362,12 @@ def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], 
     return [], selection
 
 
-def _is_future_official(row: dict[str, Any]) -> bool:
+def _within_official_window(row: dict[str, Any]) -> bool:
     if row.get("source") != "official_plvr_opendata":
-        return False
-    try:
-        year, month = (int(part) for part in str(row.get("transaction_period", ""))[:7].split("-"))
-        return (year, month) > (date.today().year, date.today().month)
-    except (TypeError, ValueError):
         return True
+    period = str(row.get("transaction_period", ""))
+    current = datetime.now(UTC).strftime("%Y-%m")
+    return re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", period) is not None and _shift_month(current, -35) <= period <= current
 
 
 def _comparable_sort_key(row: dict[str, Any]) -> tuple[int, int, float, int, float]:

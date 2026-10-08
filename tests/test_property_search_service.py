@@ -2,6 +2,8 @@
 
 from datetime import UTC, datetime
 
+import pytest
+
 from services.property_search_service import search_properties
 
 
@@ -53,3 +55,24 @@ def test_property_search_suggestion_contract_and_explainable_methodology() -> No
     road = result["road_suggestions"][0]
     assert {"sample_count", "median_total_price", "p25_total_price", "p75_total_price", "score", "reason"} <= set(district)
     assert {"road", "sample_count", "median_unit_price_per_ping", "score", "reason"} <= set(road)
+
+
+def test_road_quartiles_use_actual_road_samples_without_district_fallback() -> None:
+    rows = [row(index, total_price=price) for index, price in enumerate([1000, 2000, 3000, 4000])]
+    rows += [row(9, road="Small Road", total_price=9000)]
+    result = search_properties({"budget_max": 10000}, rows)
+    road = next(item for item in result["road_suggestions"] if item["road"] == "Example Road")
+    assert (road["p25_total_price"], road["median_total_price"], road["p75_total_price"]) == (1750, 2500, 3250)
+    assert road["period_min"] == road["period_max"] == datetime.now(UTC).strftime("%Y-%m")
+    small = next(item for item in result["road_suggestions"] if item["road"] == "Small Road")
+    assert small["p25_total_price"] is None
+    assert small["p75_total_price"] is None
+    assert small["range_reason_code"] == "insufficient_sample"
+
+
+@pytest.mark.parametrize("key,value", [("total_price", float("nan")), ("total_price", float("inf")), ("area_ping", float("inf")), ("unit_price_per_ping", "invalid")])
+def test_finder_excludes_invalid_numeric_rows_without_erasing_valid_evidence(key, value) -> None:
+    result = search_properties({"budget_max": 10000}, [row(index) for index in range(3)] + [row(9, **{key: value})])
+    assert result["search_status"] == "available"
+    assert result["summary"]["matched_count"] == 3
+    assert result["road_suggestions"][0]["sample_count"] == 3

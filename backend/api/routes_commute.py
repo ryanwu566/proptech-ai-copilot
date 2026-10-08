@@ -16,7 +16,17 @@ from services import commute_routing_service, commute_service, location_resolver
 router = APIRouter(prefix="/commute", tags=["commute"])
 
 
-class CommuteRefreshResponse(BaseModel):
+class SnapshotProvenance(BaseModel):
+    snapshot_version: str | None = None
+    snapshot_schema_version: str | None = None
+    source_age_days: int | None = None
+    stale_after_days: int | None = None
+    freshness_status: Literal["current", "stale", "unknown", "unavailable"] = "unknown"
+    freshness_reason_code: str | None = None
+    freshness_as_of: str | None = None
+
+
+class CommuteRefreshResponse(SnapshotProvenance):
     status: Literal["resolved", "unavailable"]
     source: Literal["tdx", "none"]
     generated_at: str | None = None
@@ -24,9 +34,10 @@ class CommuteRefreshResponse(BaseModel):
     included_station_count: int
     skipped_station_count: int
     line_relation_available: bool
+    source_updated_at: str | None = None
 
 
-class CommuteStatusResponse(BaseModel):
+class CommuteStatusResponse(SnapshotProvenance):
     available: bool
     source: Literal["tdx", "none"]
     generated_at: str | None = None
@@ -34,6 +45,7 @@ class CommuteStatusResponse(BaseModel):
     included_station_count: int
     skipped_station_count: int
     line_relation_available: bool
+    source_updated_at: str | None = None
 
 
 class CommuteNearestRequest(BaseModel):
@@ -64,7 +76,7 @@ class CommuteAddressLookupRequest(BaseModel):
         return normalized
 
 
-class CommuteLookupResponse(BaseModel):
+class CommuteLookupResponse(SnapshotProvenance):
     status: Literal["resolved", "unresolved", "unavailable"]
     source: Literal["tdx", "none"]
     station_name: str | None = None
@@ -72,6 +84,7 @@ class CommuteLookupResponse(BaseModel):
     distance_meters: float | None = None
     source_updated_at: str | None = None
     snapshot_generated_at: str | None = None
+    snapshot_source_updated_at: str | None = None
     message: str
 
 

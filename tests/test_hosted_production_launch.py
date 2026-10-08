@@ -49,14 +49,14 @@ def test_postgres_connection_timeout_and_ssl_are_bounded_without_printing_url(mo
 
 def test_release_and_compatibility_endpoints_are_bounded(monkeypatch) -> None:
     monkeypatch.setenv("RELEASE_VERSION", "release-1")
-    monkeypatch.setenv("RELEASE_COMMIT_SHA", "abc123")
+    monkeypatch.setenv("RELEASE_COMMIT_SHA", "a" * 40)
     with TestClient(app) as client:
         release = client.get("/release-version")
         compatibility = client.get("/compatibility")
     assert release.status_code == 200
     payload = release.json()
     assert payload["release_version"] == "release-1"
-    assert payload["commit_sha"] == "abc123"
+    assert payload["commit_sha"] == "a" * 40
     assert "DATABASE_URL" not in json.dumps(payload)
     assert compatibility.status_code == 200
     assert compatibility.json()["status"] == "compatible"
@@ -76,7 +76,7 @@ def test_hosted_smoke_uses_only_safe_categories(monkeypatch) -> None:
         if url.endswith("/"):
             return 200, {}, {}
         if url.endswith("/release-version"):
-            return 200, {"content-security-policy": "default-src 'none'", "referrer-policy": "strict-origin", "x-content-type-options": "nosniff", "x-frame-options": "DENY", "cache-control": "no-store"}, {"environment": "preview", "release_version": "r1"}
+            return 200, {"content-security-policy": "default-src 'none'", "referrer-policy": "strict-origin", "x-content-type-options": "nosniff", "x-frame-options": "DENY", "cache-control": "no-store"}, {"environment": "preview", "release_version": "r1", "commit_sha": "a" * 40}
         return 200, {}, {"status": "ok"}
 
     monkeypatch.setattr(production_smoke, "_hosted_json", fake_json)

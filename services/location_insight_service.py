@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any, Callable
 
 from services.map_service import get_nearby_places, search_location
@@ -51,35 +52,46 @@ def analyze_location(
         nearby = nearby_fetcher(resolved["latitude"], resolved["longitude"], radius_m, POI_CATEGORIES) if use_existing_poi_sources else _empty_nearby()
     except Exception:
         nearby = _empty_nearby()
+    quality = _poi_quality(nearby)
+    failed = set(quality["failed_categories"])
+    counts = {group["category"]: int(group.get("count", 0)) for group in nearby.get("categories", [])}
+    # A missing/failed category is unknown. Only a successful query can say zero.
+    def count(category: str) -> int | None:
+        return counts.get(category) if category not in failed or quality["source"] == "mock" else None
+
     score_map = nearby.get("category_score_map", {})
+    def score(category: str) -> int | None:
+        return _score(score_map.get(category)) if count(category) is not None else None
+
     category_scores = {
-        "transit_score": _score(score_map.get("transport")),
-        "convenience_score": round((_score(score_map.get("shopping")) + _score(score_map.get("food"))) / 2),
-        "education_score": _score(score_map.get("school")),
-        "green_space_score": _score(score_map.get("park")),
-        "medical_score": _score(score_map.get("medical")),
+        "transit_score": score("transport"),
+        "convenience_score": round((score("shopping") + score("food")) / 2) if score("shopping") is not None and score("food") is not None else None,
+        "education_score": score("school"),
+        "green_space_score": score("park"),
+        "medical_score": score("medical"),
         "risk_score": 50,
     }
     has_poi_evidence = any(group.get("count", 0) for group in nearby.get("categories", []))
-    location_score = round(sum(category_scores[key] * weight for key, weight in SCORE_WEIGHTS.items())) if has_poi_evidence else None
-    counts = {group["category"]: int(group.get("count", 0)) for group in nearby.get("categories", [])}
+    location_score = round(sum(category_scores[key] * weight for key, weight in SCORE_WEIGHTS.items())) if has_poi_evidence and all(value is not None for value in category_scores.values()) else None
     poi_summary = {
-        "transit_count": counts.get("transport", 0),
-        "convenience_count": counts.get("shopping", 0) + counts.get("food", 0),
-        "school_count": counts.get("school", 0),
-        "park_count": counts.get("park", 0),
-        "medical_count": counts.get("medical", 0),
-        "risk_facility_count": 0,
+        "transit_count": count("transport"),
+        "convenience_count": count("shopping") + count("food") if count("shopping") is not None and count("food") is not None else None,
+        "school_count": count("school"),
+        "park_count": count("park"),
+        "medical_count": count("medical"),
+        "risk_facility_count": None,
     }
     strengths, weaknesses = _strengths_and_weaknesses(category_scores, has_poi_evidence)
     source = nearby.get("source", "unavailable")
-    missing_sources = ["risk_facilities"]
+    missing_sources = ["risk_facilities", *[f"poi:{category}" for category in POI_CATEGORIES if category in failed or count(category) is None]]
     warnings = ["目前沒有既有嫌惡設施資料來源，風險分數採中性 50，請實地確認。"]
     if source == "mock":
         warnings.append("附近 POI 使用既有展示資料 fallback，僅供流程與比較參考。")
     if not has_poi_evidence:
         warnings.append("目前資料不足，建議改用完整地址或手動查詢。")
-    status = "good" if source == "google_places" and has_poi_evidence else "limited" if has_poi_evidence else "unavailable"
+    if quality["partial"]:
+        warnings.append("部分 POI 類別目前無法取得；已成功類別保留，缺失類別不代表零處設施。")
+    status = quality["status"]
 
     return {
         "input": input_summary,
@@ -107,7 +119,7 @@ def analyze_location(
             "supports_price_reasonableness": "unknown",
             "explanation": _valuation_context(property_price, area_ping, location_score),
         },
-        "data_quality": {"status": status, "missing_sources": missing_sources, "warnings": warnings},
+        "data_quality": {**quality, "status": status, "missing_sources": missing_sources, "warnings": warnings},
         "scoring_method": {"weights": SCORE_WEIGHTS, "explanation": "沿用既有 POI 數量與距離分數，再依交通 30%、便利 25%、教育 15%、公園 10%、醫療 10%、風險 10% 加權。"},
         "disclaimer": DISCLAIMER,
     }
@@ -145,17 +157,18 @@ def _resolve_location(query: str, latitude: float | None, longitude: float | Non
     }, acceptance
 
 
-def _strengths_and_weaknesses(scores: dict[str, int], has_evidence: bool) -> tuple[list[str], list[str]]:
+def _strengths_and_weaknesses(scores: dict[str, int | None], has_evidence: bool) -> tuple[list[str], list[str]]:
     if not has_evidence:
         return [], ["目前資料不足，建議改用完整地址或手動查詢。"]
     labels = {"transit_score": "交通便利", "convenience_score": "日常採買與餐飲", "education_score": "教育資源", "green_space_score": "公園綠地", "medical_score": "醫療資源"}
-    strengths = [f"{labels[key]}覆蓋較完整（{scores[key]} 分）。" for key in labels if scores[key] >= 65]
-    weaknesses = [f"{labels[key]}覆蓋偏弱（{scores[key]} 分），建議實地確認。" for key in labels if scores[key] < 40]
+    strengths = [f"{labels[key]}覆蓋較完整（{scores[key]} 分）。" for key in labels if scores[key] is not None and scores[key] >= 65]
+    weaknesses = [f"{labels[key]}覆蓋偏弱（{scores[key]} 分），建議實地確認。" for key in labels if scores[key] is not None and scores[key] < 40]
+    weaknesses.extend(f"{labels[key]}資料目前無法取得。" for key in labels if scores[key] is None)
     return strengths or ["各類生活機能分布相對均衡。"], weaknesses or ["未發現明顯弱項，但仍需實地確認尖峰交通與環境狀況。"]
 
 
-def _buyer_fit(scores: dict[str, int], has_evidence: bool) -> dict[str, str]:
-    if not has_evidence:
+def _buyer_fit(scores: dict[str, int | None], has_evidence: bool) -> dict[str, str]:
+    if not has_evidence or any(value is None for value in scores.values()):
         return {key: "資料不足" for key in ("self_use_family", "commuter", "investor", "elderly")}
     return {
         "self_use_family": "適合" if scores["education_score"] >= 60 and scores["green_space_score"] >= 50 else "需確認教育與休憩資源",
@@ -175,8 +188,8 @@ def _unavailable_result(input_summary: dict[str, Any], radius_m: int, geocoding_
     acceptance_warning = str((geocoding_acceptance or {}).get("message") or "找不到符合的地點，請輸入完整地址、路段或座標。")
     return {
         "input": input_summary, "resolved_location": None, "village_resolution": {"status": "unavailable", "reason": "location_not_resolved"}, "demographics": {"status": "no_data", "reason": "location_not_resolved"}, "geocoding_acceptance": geocoding_acceptance, "radius_m": radius_m, "location_score": None,
-        "category_scores": {"transit_score": 0, "convenience_score": 0, "education_score": 0, "green_space_score": 0, "medical_score": 0, "risk_score": 50},
-        "poi_summary": {"transit_count": 0, "convenience_count": 0, "school_count": 0, "park_count": 0, "medical_count": 0, "risk_facility_count": 0},
+        "category_scores": {"transit_score": None, "convenience_score": None, "education_score": None, "green_space_score": None, "medical_score": None, "risk_score": 50},
+        "poi_summary": {"transit_count": None, "convenience_count": None, "school_count": None, "park_count": None, "medical_count": None, "risk_facility_count": None},
         "nearest_pois": [], "strengths": [], "weaknesses": ["目前資料不足，建議改用完整地址或手動查詢。"],
         "buyer_fit": {key: "資料不足" for key in ("self_use_family", "commuter", "investor", "elderly")},
         "valuation_context": {"supports_price_reasonableness": "unknown", "explanation": "定位失敗，無法提供價格合理性補充。"},
@@ -210,6 +223,20 @@ def _resolve_village(
 
 def _empty_nearby() -> dict[str, Any]:
     return {"source": "unavailable", "categories": [], "category_score_map": {}, "nearest_places": []}
+
+
+def _poi_quality(nearby: dict[str, Any]) -> dict[str, Any]:
+    source = str(nearby.get("source") or "unavailable")
+    groups = {group["category"]: group for group in nearby.get("categories", [])}
+    statuses = nearby.get("category_status") or {
+        category: {"status": "available" if source == "google_places" else "fallback", "source": source}
+        for category in groups
+    }
+    failed = [category for category in POI_CATEGORIES if category in nearby.get("failed_categories", []) or statuses.get(category, {}).get("status") == "error"]
+    successful = sum(statuses.get(category, {}).get("status") == "available" and source == "google_places" for category in POI_CATEGORIES)
+    partial = source == "google_places" and (bool(failed) or successful < len(POI_CATEGORIES) or nearby.get("partial") is True or nearby.get("evidence_quality", {}).get("status") == "partial")
+    status = "good" if source == "google_places" and not partial else "limited" if source == "google_places" and successful or source == "mock" and groups else "unavailable"
+    return {"status": status, "source": source, "partial": partial, "failed_categories": failed, "category_status": statuses, "coverage": {"requested": len(POI_CATEGORIES), "successful": successful, "failed": len(failed)}, "checked_at": nearby.get("checked_at") or datetime.now(UTC).isoformat()}
 
 
 def _score(value: Any) -> int:

@@ -44,7 +44,7 @@ export type RiskEvidenceRow = {
   effectivePeriod: string;
   limitation: string;
   nextVerification: string;
-  coverage: "covered" | "not_covered" | "unknown";
+  coverage: "covered" | "not_covered" | "partial" | "unknown";
   datasetVersion?: string;
   queryCondition?: string;
   sourceUpdatedAt?: string;

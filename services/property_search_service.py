@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import statistics
 from collections import Counter, defaultdict
 from datetime import UTC, datetime
@@ -10,6 +11,7 @@ from typing import Any
 from services.valuation_service import get_valuation_provider, normalize_building_type, normalize_city
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
 from services.valuation_providers.unavailable_provider import UnavailableValuationProvider
+from services.valuation_result_contract import public_source_details
 
 DISCLAIMER = "這是歷史成交資料篩選，不代表目前有待售物件，亦非正式鑑價、投資建議或成交保證。"
 
@@ -19,25 +21,28 @@ def search_properties(payload: dict[str, Any], rows: list[dict[str, Any]] | None
 
     request = {**payload, "limit": max(1, min(int(payload.get("limit") or 50), 100))}
     provider = get_valuation_provider()
+    source_details = {"provider_active": provider.source, "backend": "blue" if isinstance(provider, PostgresValuationProvider) else provider.source, "capability": "finder"}
     if rows is None:
         if isinstance(provider, UnavailableValuationProvider):
-            return _empty_search("unavailable", "provider_unavailable", request)
+            return _empty_search("unavailable", "provider_unavailable", request, source_details)
         if not isinstance(provider, PostgresValuationProvider):
-            return _empty_search("no_data", "official_data_missing", request)
+            return _empty_search("no_data", "official_data_missing", request, source_details)
         try:
             rows = provider.query_property_search_rows(request)
         except Exception:
-            return _empty_search("unavailable", "provider_query_failed", request)
+            return _empty_search("unavailable", "provider_query_failed", request, {**source_details, "query_status": "failed"})
+        source_details.update(public_source_details(provider.last_query_metadata))
         if provider.last_query_metadata.get("query_status") == "failed":
-            return _empty_search("unavailable", "provider_query_failed", request)
+            return _empty_search("unavailable", "provider_query_failed", request, source_details)
     try:
         selected = _filter_rows(rows, request)
     except (TypeError, ValueError, OverflowError):
-        return _empty_search("unavailable", "result_metrics_invalid", request)
+        return _empty_search("unavailable", "result_metrics_invalid", request, source_details)
     if not selected:
-        return _empty_search("no_data", "official_data_missing", request)
+        return _empty_search("no_data", "official_data_missing", request, source_details)
     periods = sorted(str(row["transaction_period"]) for row in selected)
     return {
+        "source_details": source_details,
         "search_status": "available",
         "search_reason_code": "official_result_available",
         "is_actionable": True,
@@ -62,11 +67,12 @@ def search_properties(payload: dict[str, Any], rows: list[dict[str, Any]] | None
     }
 
 
-def _empty_search(status: str, reason_code: str, request: dict[str, Any]) -> dict[str, Any]:
+def _empty_search(status: str, reason_code: str, request: dict[str, Any], source_details: dict[str, Any] | None = None) -> dict[str, Any]:
     unavailable = status == "unavailable"
     empty_count = None if unavailable else 0
     message = "市場資料目前無法使用，請稍後再試。" if unavailable else "目前篩選條件沒有可用的官方交易資料。"
     return {
+        "source_details": public_source_details(source_details),
         "search_status": status,
         "search_reason_code": reason_code,
         "is_actionable": False,
@@ -98,10 +104,13 @@ def _filter_rows(rows: list[dict[str, Any]], request: dict[str, Any]) -> list[di
     result = []
     for row in rows:
         period = str(row.get("transaction_period") or "")
-        total, area, unit = _number(row, "total_price"), _number(row, "area_ping"), _number(row, "unit_price_per_ping")
+        try:
+            total, area, unit = _number(row, "total_price"), _number(row, "area_ping"), _number(row, "unit_price_per_ping")
+        except (TypeError, ValueError, OverflowError):
+            continue
         if row.get("source") != "official_plvr_opendata" or not (start <= period <= current):
             continue
-        if total <= 0 or area <= 0 or not (0 < unit <= 500):
+        if not all(math.isfinite(value) for value in (total, area, unit)) or total <= 0 or area <= 0 or not (0 < unit <= 500):
             continue
         if request.get("city") and normalize_city(str(row.get("city", ""))) != normalize_city(str(request["city"])):
             continue
@@ -138,13 +147,13 @@ def _suggestions(rows: list[dict[str, Any]], request: dict[str, Any], keys: tupl
             "score": _score(items, median_total, request),
             "reason": _reason(items, median_total, request),
         }
-        if len(keys) == 2:
-            item.update({
-                "p25_total_price": round(_percentile(totals, 0.25), 1),
-                "p75_total_price": round(_percentile(totals, 0.75), 1),
-                "period_min": min(str(row["transaction_period"]) for row in items),
-                "period_max": max(str(row["transaction_period"]) for row in items),
-            })
+        item.update({
+            "p25_total_price": round(_percentile(totals, 0.25), 1) if len(items) >= 3 else None,
+            "p75_total_price": round(_percentile(totals, 0.75), 1) if len(items) >= 3 else None,
+            "range_reason_code": "available" if len(items) >= 3 else "insufficient_sample",
+            "period_min": min(str(row["transaction_period"]) for row in items),
+            "period_max": max(str(row["transaction_period"]) for row in items),
+        })
         result.append(item)
     return sorted(result, key=lambda item: (-float(item["score"]), -int(item["sample_count"])))[:limit]
 

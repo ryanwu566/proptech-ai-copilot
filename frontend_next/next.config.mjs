@@ -53,6 +53,11 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_RELEASE_COMMIT_SHA: /^[a-f0-9]{40}$/i.test(process.env.RELEASE_COMMIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "")
+      ? (process.env.RELEASE_COMMIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA).toLowerCase()
+      : "unconfigured",
+  },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },

@@ -12,6 +12,7 @@ from typing import Any
 from services.valuation_service import get_valuation_provider, normalize_building_type, normalize_city, normalize_road
 from services.valuation_providers.postgres_provider import PostgresValuationProvider
 from services.valuation_providers.unavailable_provider import UnavailableValuationProvider
+from services.valuation_result_contract import public_source_details
 
 DISCLAIMER = "此為依官方實價登錄歷史資料推估之情境參考，不代表成交保證、正式鑑價、銀行估價或投資建議。"
 METHODOLOGY = [
@@ -28,21 +29,23 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
     window_start = _shift_month(current, -35)
     request = {**payload, "current_period": current, "window_start": window_start}
     provider = get_valuation_provider()
+    source_details = {"provider_active": provider.source, "backend": "blue" if isinstance(provider, PostgresValuationProvider) else provider.source, "capability": "trend"}
     if rows is None:
         if isinstance(provider, UnavailableValuationProvider):
-            return _empty_trend("unavailable", "provider_unavailable")
+            return _empty_trend("unavailable", "provider_unavailable", source_details=source_details)
         if not isinstance(provider, PostgresValuationProvider):
-            return _empty_trend("no_data", "official_data_missing")
+            return _empty_trend("no_data", "official_data_missing", source_details=source_details)
         try:
             rows = provider.query_trend_rows(request)
         except Exception:
-            return _empty_trend("unavailable", "provider_query_failed")
+            return _empty_trend("unavailable", "provider_query_failed", source_details={**source_details, "query_status": "failed"})
+        source_details.update(public_source_details(provider.last_query_metadata))
         if provider.last_query_metadata.get("query_status") == "failed":
-            return _empty_trend("unavailable", "provider_query_failed")
+            return _empty_trend("unavailable", "provider_query_failed", source_details=source_details)
     try:
         official, quality = _valid_official_rows(rows, window_start, current)
     except (TypeError, ValueError, OverflowError):
-        return _empty_trend("unavailable", "result_metrics_invalid")
+        return _empty_trend("unavailable", "result_metrics_invalid", source_details=source_details)
     road_rows = [row for row in official if normalize_road(str(row.get("road", ""))) == normalize_road(str(payload.get("road", "")))]
     district_type_rows = [
         row for row in official
@@ -62,6 +65,7 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
             "official_comparables_insufficient",
             sample_count=len(selected),
             quality=quality,
+            source_details=source_details,
         )
     yearly = _yearly_series(selected)
     recent = _recent_median(monthly)
@@ -77,6 +81,7 @@ def analyze_valuation_trend(payload: dict[str, Any], rows: list[dict[str, Any]] 
         confidence,
     )
     return {
+        "source_details": source_details,
         "source": "official_plvr_opendata",
         "trend_status": "available",
         "trend_reason_code": "official_result_available",
@@ -112,9 +117,11 @@ def _empty_trend(
     *,
     sample_count: int = 0,
     quality: dict[str, Any] | None = None,
+    source_details: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     quality = quality or {}
     return {
+        "source_details": public_source_details(source_details),
         "source": "official_plvr_opendata",
         "trend_status": status,
         "trend_reason_code": reason_code,
@@ -162,9 +169,12 @@ def _valid_official_rows(
         if period < start:
             excluded_out_of_window += 1
             continue
-        price = float(row.get("unit_price_per_ping", 0) or 0)
-        area = float(row.get("area_ping", 0) or 0)
-        if price <= 0 or area <= 0 or price > 500:
+        try:
+            price = float(row.get("unit_price_per_ping", 0) or 0)
+            area = float(row.get("area_ping", 0) or 0)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        if not math.isfinite(price) or not math.isfinite(area) or price <= 0 or area <= 0 or price > 500:
             continue
         valid.append({**row, "unit_price_per_ping": price, "area_ping": area})
     return valid, {

@@ -38,6 +38,7 @@ from pyproj import CRS
 
 from services.wra_flood_artifact import build_processed_artifact, sha256_bytes
 from services.wra_flood_runtime import (
+    WraFloodRuntimeError,
     CANONICAL_SCENARIOS,
     RELEASE_PREFIX,
     ArtifactInvalidError,
@@ -184,6 +185,41 @@ def _objects_for(scenario: str, records: list[dict] | None = None):
         f"{RELEASE_PREFIX}/{scenario}/features.json.gz": artifact_bytes,
     }
     return objects, manifest_bytes, artifact_bytes, features
+
+
+@pytest.mark.parametrize("field,value", [
+    ("scenario", None), ("dataset", "other_dataset"), ("target_crs", "EPSG:3826"),
+    ("quality_status", "review_required"), ("accepted_count", 99),
+])
+def test_runtime_rejects_manifest_contract_drift(field, value):
+    objects, manifest_bytes, _, _ = _objects_for("24h-350mm")
+    manifest = json.loads(manifest_bytes)
+    manifest[field] = value
+    objects[manifest_key("24h-350mm")] = json.dumps(manifest).encode()
+    runtime, _ = _runtime_with(objects)
+    with pytest.raises(ArtifactInvalidError):
+        runtime.load_scenario("24h-350mm")
+
+
+def test_query_preserves_artifact_version_checksum_and_point_scope():
+    objects, _, artifact_bytes, features = _objects_for("24h-350mm")
+    runtime, _ = _runtime_with(objects)
+    lon, lat = _wgs84_point_in(features[0])
+    for point in [(lon, lat), (123.9, 24.0)]:
+        outcome = runtime.query_point("24h-350mm", *point)
+        assert outcome["dataset_version"] == "v1"
+        assert outcome["artifact_sha256"] == sha256_bytes(artifact_bytes)
+        assert outcome["match_semantics"] == "point_intersects_scenario_polygon"
+        assert outcome["source_vintage"] == "unknown"
+
+
+@pytest.mark.parametrize("lon,lat", [(181, 25), (121, 91), (float("nan"), 25)])
+def test_invalid_point_fails_before_any_artifact_access(lon, lat):
+    runtime, client = _runtime_with({})
+    with pytest.raises(WraFloodRuntimeError) as failure:
+        runtime.query_point("24h-350mm", lon, lat)
+    assert failure.value.status == "query_error"
+    assert client.get_counts == {}
 
 
 # ===========================================================================

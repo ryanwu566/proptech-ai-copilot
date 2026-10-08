@@ -321,6 +321,12 @@ def test_artifact_roundtrip_preserves_features() -> None:
     assert by_class[3].properties["city_name"] == "新北市"
 
 
+def test_wra_manifest_explicitly_identifies_immutable_processing_version():
+    result = _build(_build_zip())
+    assert result.manifest.get("dataset_version") == "v1"
+    assert result.manifest.get("source_vintage") == "unknown"
+
+
 def test_artifact_is_gzip_json_with_wkb_base64_not_pickle() -> None:
     result = _build(_build_zip())
     raw = gzip.decompress(result.artifact_bytes)

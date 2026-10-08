@@ -500,6 +500,7 @@ def build_manifest(
     artifact_sha256: str,
     stats: BuildStats,
     area_tolerance_pct: float,
+    source_vintage: str = "unknown",
 ) -> dict[str, Any]:
     """Assemble the processed-artifact manifest (no local absolute paths)."""
 
@@ -507,6 +508,8 @@ def build_manifest(
     quality_status = "verified" if diff_pct <= area_tolerance_pct and stats.accepted_count > 0 else "review_required"
     return {
         "dataset": DATASET_NAME,
+        "dataset_version": "v1",
+        "source_vintage": source_vintage.strip() or "unknown",
         "provider": PROVIDER_ID,
         "scenario": scenario,
         "source_url": source_url,
@@ -551,6 +554,7 @@ def build_processed_artifact(
     source_url: str,
     expected_source_sha256: str | None = None,
     area_tolerance_pct: float = DEFAULT_AREA_TOLERANCE_PCT,
+    source_vintage: str = "unknown",
 ) -> BuildResult:
     """Build a processed artifact + manifest from raw ZIP bytes (in memory)."""
 
@@ -577,6 +581,7 @@ def build_processed_artifact(
         artifact_sha256=artifact_sha256,
         stats=stats,
         area_tolerance_pct=area_tolerance_pct,
+        source_vintage=source_vintage,
     )
     return BuildResult(manifest=manifest, artifact_bytes=artifact_bytes, features=features, stats=stats)
 

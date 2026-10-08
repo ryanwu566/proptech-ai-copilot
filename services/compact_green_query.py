@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import os
 import threading
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -283,6 +284,7 @@ WITH target_ids AS (
     FROM compact_green.compact_transaction_facts fact, target_ids t
     WHERE fact.generation_key = 1
       AND fact.geographic_unit_id = t.geographic_unit_id
+      AND fact.period_code >= %(min_period_code)s
       AND fact.period_code <= %(max_period_code)s
     ORDER BY
       CASE WHEN fact.road_id = t.road_id THEN 0 ELSE 1 END,
@@ -340,8 +342,11 @@ def query_green_comparables(payload: dict[str, Any]) -> list[dict[str, Any]]:
             f"district not found in GREEN geography cache: ({city}, {district})"
         )
 
-    # Use the frozen generation's actual max period_code — NOT wall-clock time.
-    max_period_code = get_max_period_code()
+    # Frozen coverage caps the upper bound; the active policy still excludes
+    # future and older-than-36-month records before the candidate limit.
+    current = datetime.now(UTC)
+    current_period_code = encode_period(current.year, current.month)
+    max_period_code = min(get_max_period_code(), current_period_code)
 
     # Build query parameters
     params = {
@@ -350,6 +355,7 @@ def query_green_comparables(payload: dict[str, Any]) -> list[dict[str, Any]]:
         "city": city,
         "district": district,
         "max_period_code": max_period_code,
+        "min_period_code": current_period_code - 35,
         "area_ping": float(payload.get("area_ping", 0) or 0),
         "building_age_years": float(payload.get("building_age_years", 0) or 0),
     }

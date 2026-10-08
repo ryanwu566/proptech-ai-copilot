@@ -393,6 +393,7 @@ def source_status() -> dict[str, Any]:
 
 @router.get("/release-version")
 def release_version() -> dict[str, str]:
+    from services.provider_config_contract import valid_sha
     config = load_runtime_configuration()
 
     def safe_metadata(name: str, default: str) -> str:
@@ -404,7 +405,7 @@ def release_version() -> dict[str, str]:
     return {
         "product_version": "0.1.0",
         "release_version": safe_metadata("RELEASE_VERSION", "unconfigured"),
-        "commit_sha": safe_metadata("RELEASE_COMMIT_SHA", "unconfigured"),
+        "commit_sha": os.getenv("RELEASE_COMMIT_SHA", "").strip().lower() if valid_sha(os.getenv("RELEASE_COMMIT_SHA", "").strip()) else "unconfigured",
         "build_timestamp": safe_metadata("BUILD_TIMESTAMP", "unconfigured"),
         "environment": config.mode,
         "api_contract_version": API_CONTRACT_VERSION,

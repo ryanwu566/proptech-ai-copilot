@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+import re
 from datetime import UTC, datetime
 from typing import Any
 
@@ -97,9 +98,21 @@ class PostgresValuationProvider:
             return []
 
     def query_trend_rows(self, request: dict[str, Any], limit: int = 10_000) -> list[dict[str, Any]]:
-        """Return an official district pool; the trend service applies period quality rules."""
+        """Bound the official pool before LIMIT; the service also checks row quality.
+
+        Trend raw/excluded counters describe the delivered bounded pool. They
+        are not a database-wide census; data_status supplies that separate view.
+        """
 
         try:
+            current = datetime.now(UTC).strftime("%Y-%m")
+            window_start = _shift_month(current, -35)
+            requested_start = str(request.get("window_start") or "")
+            requested_current = str(request.get("current_period") or "")
+            if re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", requested_start):
+                window_start = max(window_start, requested_start)
+            if re.fullmatch(r"\d{4}-(0[1-9]|1[0-2])", requested_current):
+                current = min(current, requested_current)
             with self._connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
@@ -109,21 +122,27 @@ class PostgresValuationProvider:
                                source
                         from real_price_transactions
                         where source = 'official_plvr_opendata'
+                          and transaction_period ~ '^\d{4}-(0[1-9]|1[0-2])$'
+                          and transaction_period >= %s and transaction_period <= %s
                           and replace(trim(city), '臺', '台') = %s
                           and trim(district) = %s
-                          and unit_price_per_ping > 0
-                          and area_ping > 0
+                          and unit_price_per_ping > 0 and unit_price_per_ping <= 500
+                          and area_ping > 0 and area_ping < 'Infinity'::numeric
                         order by transaction_period desc
                         limit %s
                         """,
                         [
+                            window_start, current,
                             _normalize_city(str(request.get("city", ""))),
                             str(request.get("district", "")).strip(),
                             max(1, min(int(limit), 20_000)),
                         ],
                     )
-                    return [_normalize_row(dict(row)) for row in cursor.fetchall()]
-        except Exception:
+                    rows = [_normalize_row(dict(row)) for row in cursor.fetchall()]
+                    self.last_query_metadata = {**_query_metadata(request, "district_pool", len(rows)), "capability": "trend"}
+                    return rows
+        except Exception as error:
+            self.last_query_metadata = {**_query_metadata(request, "district_pool", 0), "capability": "trend", "query_status": "failed", "safe_error": type(error).__name__}
             return []
 
     def query_property_search_rows(self, request: dict[str, Any], limit: int = 5_000) -> list[dict[str, Any]]:
@@ -170,8 +189,11 @@ class PostgresValuationProvider:
                         """,
                         params,
                     )
-                    return [_normalize_row(dict(row)) for row in cursor.fetchall()]
-        except Exception:
+                    rows = [_normalize_row(dict(row)) for row in cursor.fetchall()]
+                    self.last_query_metadata = {**_query_metadata(request, "search", len(rows)), "capability": "finder"}
+                    return rows
+        except Exception as error:
+            self.last_query_metadata = {**_query_metadata(request, "search", 0), "capability": "finder", "query_status": "failed", "safe_error": type(error).__name__}
             return []
 
     def match_community(self, request: dict[str, Any]) -> dict[str, Any] | None:
@@ -432,8 +454,18 @@ def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:
 
 
 def _comparable_query(request: dict[str, Any], scope: str, limit: int) -> tuple[str, list[Any]]:
-    clauses: list[str] = ["(source <> 'official_plvr_opendata' or transaction_period <= %s)"]
-    scope_params: list[Any] = [datetime.now(UTC).strftime("%Y-%m")]
+    current_period = datetime.now(UTC).strftime("%Y-%m")
+    # Match the service's official, finite-positive eligibility before ranking
+    # and LIMIT so sample/invalid rows cannot displace usable comparables.
+    clauses: list[str] = [
+        "source = 'official_plvr_opendata'",
+        r"transaction_period ~ '^\d{4}-(0[1-9]|1[0-2])$'",
+        "transaction_period >= %s and transaction_period <= %s",
+        "area_ping > 0 and area_ping < 'Infinity'::numeric",
+        "total_price > 0 and total_price < 'Infinity'::numeric",
+        "unit_price_per_ping > 0 and unit_price_per_ping < 'Infinity'::numeric",
+    ]
+    scope_params: list[Any] = [_shift_month(current_period, -35), current_period]
     for field in ("city", "district", "road"):
         if field == "district" and scope not in {"road", "district"}:
             continue
@@ -495,6 +527,8 @@ def _query_metadata(request: dict[str, Any], scope: str, rows: int) -> dict[str,
 
     return {
         "provider_active": "postgres",
+        "backend": "blue",
+        "capability": "valuation",
         "candidate_pool_size": rows,
         "query_scope": scope,
         "requested_city": request.get("city", ""),

@@ -33,6 +33,7 @@ from services.adapters.routes_adapter import (
     is_supported_mode,
 )
 from services.production_config import PRODUCTION_MODES
+from services.provider_observability import observe_response
 
 
 ROUTE_DISCLAIMER = "通勤時間為外部路線估算，僅供生活機能與可及性參考，不代表實際交通、估價或看房結論。"
@@ -108,7 +109,7 @@ def checked_at() -> str:
 def _resolved_response(route: dict[str, Any]) -> dict[str, Any]:
     source = route["source"]
     fallback = source == "mock"
-    return {
+    return observe_response("routes", {
         "status": "resolved",
         "source": source,
         "mode": route["mode"],
@@ -121,11 +122,11 @@ def _resolved_response(route: dict[str, Any]) -> dict[str, Any]:
         "checked_at": checked_at(),
         "message": MOCK_ROUTE_NOTE if fallback else "已取得路線估算。",
         "disclaimer": ROUTE_DISCLAIMER,
-    }
+    })
 
 
 def _unresolved_response(mode: str) -> dict[str, Any]:
-    return {
+    return observe_response("routes", {
         "status": "unresolved",
         "source": "none",
         "mode": mode,
@@ -138,11 +139,11 @@ def _unresolved_response(mode: str) -> dict[str, Any]:
         "checked_at": checked_at(),
         "message": "找不到可用路線，請確認起點與目的地是否正確。",
         "disclaimer": ROUTE_DISCLAIMER,
-    }
+    })
 
 
 def _unavailable_response(mode: str, reason_code: RouteReasonCode = "provider_error") -> dict[str, Any]:
-    return {
+    return observe_response("routes", {
         "status": "unavailable",
         "source": "none",
         "mode": mode,
@@ -155,7 +156,7 @@ def _unavailable_response(mode: str, reason_code: RouteReasonCode = "provider_er
         "checked_at": checked_at(),
         "message": "路線服務暫時無法完成查詢，請稍後再試。",
         "disclaimer": ROUTE_DISCLAIMER,
-    }
+    })
 
 
 def estimate_commute_route(

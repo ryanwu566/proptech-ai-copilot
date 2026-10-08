@@ -610,3 +610,21 @@ def test_normalization_ignores_non_geometry_dict() -> None:
     tile = TileCoord(14, 13722, 7024)
     normalized = tile_geometry_to_lonlat({"foo": "bar"}, tile, 4096)
     assert geometry_distance_m(normalized, 121.5287, 24.83863) is None
+
+
+@pytest.mark.parametrize("geometry_type", ["Polygon", "MultiPolygon"])
+def test_real_decoder_preserves_hole_ownership(geometry_type):
+    lon, lat = 121.55, 25.05
+    tile = _tile_for(lon, lat)
+    def pixel_ring(left, bottom, right, top):
+        return [_lonlat_to_tile_pixel(x, y, tile) for x, y in
+                [(left, bottom), (right, bottom), (right, top), (left, top), (left, bottom)]]
+    polygon = [pixel_ring(121.50, 25.0, 121.60, 25.10), pixel_ring(121.52, 25.02, 121.58, 25.08)]
+    coordinates = polygon if geometry_type == "Polygon" else [polygon]
+    payload = _encode_layer("debris_affect", [{"geometry": {"type": geometry_type, "coordinates": coordinates},
+                                              "properties": {"OBJECTID": "hole"}}])
+    provider = ArdswcSlopeHazardProvider(use_cache=False)
+    features = dedupe_features(provider._decode_mvt(payload, tile))
+    assert len(features) == 1
+    assert match_feature(features[0], lat, lon, 100, "polygon") is None
+    assert match_feature(features[0], 25.01, 121.51, 100, "polygon") is not None
