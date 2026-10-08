@@ -89,6 +89,7 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
   const [routeDisplayStatus, setRouteDisplayStatus] = useState<LocationMarketDisplayStatus>(restored ? displayStatus(restored) : "not_started");
   const [message, setMessage] = useState("");
   const requestId = useRef(0);
+  const activeRequest = useRef<number | null>(null);
   const onStatusRef = useRef(onStatusChange);
   const onEvidenceRef = useRef(onEvidence);
   const mountedOrigin = useRef(false);
@@ -97,12 +98,14 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
   useEffect(() => { onEvidenceRef.current = onEvidence; }, [onEvidence]);
   useEffect(() => () => {
     requestId.current += 1;
+    activeRequest.current = null;
     onStatusRef.current = undefined;
     onEvidenceRef.current = undefined;
   }, []);
 
   function clearRoute(reason: Exclude<CommuteRouteReasonCode, "success"> = "destination_required") {
     requestId.current += 1;
+    activeRequest.current = null;
     setLoading(false);
     setResult(null);
     setReasonCode(reason);
@@ -127,9 +130,10 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
       setMessage(SAFE_MESSAGES.destination_required);
       return;
     }
-    if (loading) return;
+    if (activeRequest.current !== null) return;
     const currentRequest = requestId.current + 1;
     requestId.current = currentRequest;
+    activeRequest.current = currentRequest;
     setLoading(true);
     setResult(null);
     setReasonCode("destination_required");
@@ -163,7 +167,7 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
       onEvidenceRef.current?.(failedEvidence("provider_error", originLatitude, originLongitude, trimmed, mode));
       onStatusRef.current?.("unavailable");
     } finally {
-      if (requestId.current === currentRequest) setLoading(false);
+      if (requestId.current === currentRequest) { activeRequest.current = null; setLoading(false); }
     }
   }
 

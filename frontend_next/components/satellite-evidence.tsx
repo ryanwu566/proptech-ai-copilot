@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import Image from "next/image";
 
@@ -11,6 +11,7 @@ export type AcceptedSatelliteCoordinate = {
   latitude: number;
   longitude: number;
   accepted: boolean;
+  propertyKey?: string;
 };
 
 const DISCLAIMER = "Satellite reference imagery — not cadastral or statutory evidence.";
@@ -34,36 +35,58 @@ const fallbackResponse: SatelliteReference = {
 
 export function SatelliteEvidence({ coordinate }: { coordinate: AcceptedSatelliteCoordinate | null }) {
   const { t, locale } = useExperienceLocale();
-  const [evidence, setEvidence] = useState<SatelliteReference | null>(null);
-  const [loading, setLoading] = useState(false);
+  const requestKey = coordinate?.accepted
+    ? JSON.stringify([coordinate.propertyKey ?? "", coordinate.latitude, coordinate.longitude])
+    : null;
+  const latestKey = useRef(requestKey);
+  latestKey.current = requestKey;
+  const pending = useRef<{ key: string; controller: AbortController } | null>(null);
+  const [stored, setStored] = useState<{ key: string; value: SatelliteReference } | null>(null);
+  const [loadingKey, setLoadingKey] = useState<string | null>(null);
+  const evidence = stored?.key === requestKey ? stored.value : null;
+  const loading = requestKey !== null && loadingKey === requestKey;
 
   useEffect(() => {
-    if (!coordinate?.accepted) {
-      setEvidence(null);
-      setLoading(false);
-      return;
-    }
-    const controller = new AbortController();
-    setEvidence(null);
-    setLoading(true);
-    void api.satelliteReference(
-      { latitude: coordinate.latitude, longitude: coordinate.longitude },
-      controller.signal,
-    ).then((result) => {
-      if (!controller.signal.aborted) setEvidence(result);
-    }).catch(() => {
-      if (!controller.signal.aborted) setEvidence(fallbackResponse);
-    }).finally(() => {
-      if (!controller.signal.aborted) setLoading(false);
-    });
-    return () => controller.abort();
-  }, [coordinate?.accepted, coordinate?.latitude, coordinate?.longitude]);
+    setStored(null);
+    setLoadingKey(null);
+    return () => {
+      if (pending.current?.key === requestKey) {
+        pending.current.controller.abort();
+        pending.current = null;
+      }
+    };
+  }, [requestKey]);
 
-  const status = evidence?.status ?? "unavailable";
+  async function requestReference() {
+    if (!coordinate?.accepted || !requestKey || pending.current?.key === requestKey) return;
+    const controller = new AbortController();
+    pending.current = { key: requestKey, controller };
+    setStored(null);
+    setLoadingKey(requestKey);
+    const isCurrent = () => !controller.signal.aborted
+      && latestKey.current === requestKey && pending.current?.controller === controller;
+    try {
+      const result = await api.satelliteReference(
+        { latitude: coordinate.latitude, longitude: coordinate.longitude }, controller.signal,
+      );
+      if (isCurrent()) setStored({ key: requestKey, value: result });
+    } catch {
+      if (isCurrent()) setStored({ key: requestKey, value: fallbackResponse });
+    } finally {
+      if (isCurrent()) {
+        pending.current = null;
+        setLoadingKey(null);
+      }
+    }
+  }
+
+  const status = evidence?.status ?? "not_run";
   const statusLabel = !coordinate?.accepted
     ? t("commercial.confirmationRequired")
     : loading
       ? t("commercial.referenceLoading")
+      : !evidence
+        ? t("commercial.satelliteNotRun")
       : status === "available"
         ? t("commercial.referenceAvailable")
         : status === "limited"
@@ -85,6 +108,8 @@ export function SatelliteEvidence({ coordinate }: { coordinate: AcceptedSatellit
     </div>
 
     {!coordinate?.accepted && <p className="mt-3 text-xs leading-5 text-amber-800">{t("commercial.satelliteConfirm")}</p>}
+    {coordinate?.accepted && !evidence && !loading && <p className="mt-3 text-xs leading-5 text-slate-600">{t("commercial.satelliteManual")}</p>}
+    <button type="button" data-testid="satellite-request-action" disabled={!coordinate?.accepted || loading} onClick={() => void requestReference()} className="mt-3 rounded-lg border border-sky-700 bg-white px-3 py-2 text-xs font-bold text-sky-900 focus:outline-none focus:ring-2 focus:ring-sky-600 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">{t("commercial.satelliteRequest")}</button>
     {loading && <p className="mt-3 text-xs leading-5 text-slate-600">{t("commercial.satelliteLoading")}</p>}
 
     {evidence && <>

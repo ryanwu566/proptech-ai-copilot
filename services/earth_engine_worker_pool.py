@@ -14,6 +14,7 @@ import time
 from typing import Any, Callable, Literal
 from uuid import uuid4
 
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.satellite_reference import (
     AOI_RADIUS_M,
     CLOUD_FILTER_PERCENT,
@@ -428,6 +429,11 @@ class EarthEngineWorkerManager:
         except BaseException as exc:
             self._retire_slot(slot, replace=True)
             raise EarthEngineProviderError("Earth Engine worker communication failed") from exc
+
+        # One bounded generation was actually dispatched. Admission rejection,
+        # waiting for a slot and failed pipe sends do not create a cost unit.
+        # The SDK's thumbnail RPC and image download are stages of this unit.
+        PROVIDER_COST_METRICS.record("satellite", "physical_calls")
 
         while True:
             remaining = deadline - time.monotonic()

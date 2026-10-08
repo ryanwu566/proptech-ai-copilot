@@ -11,14 +11,17 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from contextlib import nullcontext
 import hashlib
 import math
-import threading
-import time
+import sys
 from dataclasses import dataclass
 from typing import Any, Callable, Iterable
 
 import httpx
 from shapely.geometry import Point, shape
 
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.provider_request_cache import BoundedRequestCache
+
+from . import base
 from .base import source_meta, unavailable_layer
 
 
@@ -29,6 +32,9 @@ LIMITATION = "官方平台另有較新年度之圖台或下載資料，但本系
 MVT_ZOOM = 14
 MAX_TILE_REQUESTS_PER_MVT_LAYER = 36
 TILE_CACHE_TTL_SECONDS = 600
+TILE_CACHE_MAX_ENTRIES = 256
+TILE_CACHE_MAX_BYTES = 16 * 1024 * 1024
+DATASET_VERSION = "113-public-mvt"
 REQUEST_TIMEOUT_SECONDS = 1.5
 QUERY_BUDGET_SECONDS = 2.5
 MAX_TILE_WORKERS = 6
@@ -74,8 +80,10 @@ HAZARD_TO_MVT = {
     "landslide": ("potential_landslide_affect", "potential_landslide"),
 }
 
-_TILE_CACHE: dict[tuple[str, int, int, int], tuple[float, bytes]] = {}
-_TILE_CACHE_LOCK = threading.Lock()
+_DECODED_TILE_CACHE = BoundedRequestCache(
+    "ardswc", ttl_seconds=TILE_CACHE_TTL_SECONDS,
+    max_entries=TILE_CACHE_MAX_ENTRIES, max_bytes=TILE_CACHE_MAX_BYTES,
+)
 
 
 @dataclass(frozen=True)
@@ -83,6 +91,32 @@ class TileCoord:
     z: int
     x: int
     y: int
+
+
+class DecodedTileFeatures(list):
+    """Decoded geometry plus its physical-fetch time, retained together."""
+
+    def __init__(self, features: list[dict[str, Any]]) -> None:
+        super().__init__(features)
+        self.fetched_at = base.utc_now()
+
+
+def decoded_tile_size(features: DecodedTileFeatures) -> int:
+    """Account for retained Python containers, rather than encoded JSON bytes."""
+    seen: set[int] = set()
+
+    def measure(value: Any) -> int:
+        if id(value) in seen:
+            return 0
+        seen.add(id(value))
+        size = sys.getsizeof(value)
+        if isinstance(value, dict):
+            size += sum(measure(key) + measure(item) for key, item in value.items())
+        elif isinstance(value, (list, tuple)):
+            size += sum(measure(item) for item in value)
+        return size
+
+    return measure(features) + measure(features.__dict__)
 
 
 def _optional_decoder_available() -> bool:
@@ -122,6 +156,11 @@ class ArdswcSlopeHazardProvider:
         self.tile_workers = max(1, min(tile_workers, MAX_TILE_WORKERS))
         self.query_budget_seconds = query_budget_seconds
         self.use_cache = use_cache
+        # Injected transport/decoder contracts must never read production tiles.
+        self._tile_cache = _DECODED_TILE_CACHE if http_get is None and decoder is None else BoundedRequestCache(
+            "ardswc", ttl_seconds=TILE_CACHE_TTL_SECONDS,
+            max_entries=TILE_CACHE_MAX_ENTRIES, max_bytes=TILE_CACHE_MAX_BYTES,
+        )
 
     def analyze(self, latitude: float, longitude: float, radius_m: int, include_layers: Iterable[str] | None = None) -> dict[str, Any]:
         requested = set(include_layers or HAZARD_TO_MVT)
@@ -193,8 +232,28 @@ class ArdswcSlopeHazardProvider:
         }
 
     def _fetch_and_decode_tile(self, mvt_key: str, tile: TileCoord, client: httpx.Client | None) -> list[dict[str, Any]]:
-        payload = self._fetch_tile(mvt_key, tile, client)
-        return self.decoder(payload, tile)
+        def operation() -> list[dict[str, Any]]:
+            try:
+                payload = self._fetch_tile(mvt_key, tile, client)
+                features = DecodedTileFeatures(self.decoder(payload, tile))
+            except (httpx.TimeoutException, TimeoutError):
+                PROVIDER_COST_METRICS.record("ardswc", "provider_timeout")
+                raise
+            except Exception:
+                PROVIDER_COST_METRICS.record("ardswc", "provider_failure")
+                raise
+            PROVIDER_COST_METRICS.record("ardswc", "provider_success")
+            return features
+
+        if not self.use_cache:
+            return operation()
+        key = (MVT_LAYERS[mvt_key]["url"], DATASET_VERSION, DATA_VINTAGE, mvt_key, tile.z, tile.x, tile.y)
+        # Cache decoded features only after successful retrieval and decoding.
+        # Matching remains per query, preserving exact coordinates and radius.
+        return self._tile_cache.run(
+            key, operation,
+            size_of=decoded_tile_size,
+        )
 
     def _build_mvt_result(
         self,
@@ -209,11 +268,14 @@ class ArdswcSlopeHazardProvider:
         decoded_features: list[dict[str, Any]] = []
         errors: list[str] = []
         successful_tiles = 0
+        fetched_times: list[str] = []
         for tile in tiles:
             features, error = outcomes[(mvt_key, tile)]
             if error is None:
                 decoded_features.extend(features)
                 successful_tiles += 1
+                if isinstance(features, DecodedTileFeatures):
+                    fetched_times.append(features.fetched_at)
             else:
                 errors.append(f"{tile.z}/{tile.y}/{tile.x}: {error}")
 
@@ -221,28 +283,22 @@ class ArdswcSlopeHazardProvider:
             return self._mvt_result(mvt_key, "error", False, None, [], f"{config['label']}本次無法完成官方 MVT 比對，請稍後重試或前往官方圖台確認。", errors, len(tiles))
 
         features = dedupe_features(decoded_features)
+        fetched_at = min(fetched_times, default=None)
         matches = [match for feature in features if (match := match_feature(feature, latitude, longitude, radius_m, config["geometry_kind"]))]
         if matches:
             nearest = min(item["distance_m"] for item in matches if item["distance_m"] is not None)
             status = "limited" if errors else "available"
-            return self._mvt_result(mvt_key, status, True, round(nearest), [item["feature_id"] for item in matches], config["message"], errors, len(tiles))
+            return self._mvt_result(mvt_key, status, True, round(nearest), [item["feature_id"] for item in matches], config["message"], errors, len(tiles), fetched_at)
 
         status = "limited" if errors else "available"
         explanation = "本次已取得的官方圖層未比對到指定半徑內的範圍或溪流，不代表此物件安全或無災害風險。"
         if errors:
             explanation += " 部分 tile 未取得，無法確認完整查詢範圍。"
-        return self._mvt_result(mvt_key, status, False, None, [], explanation, errors, len(tiles))
+        return self._mvt_result(mvt_key, status, False, None, [], explanation, errors, len(tiles), fetched_at)
 
     def _fetch_tile(self, mvt_key: str, tile: TileCoord, client: httpx.Client | None = None) -> bytes:
-        cache_key = (mvt_key, tile.z, tile.x, tile.y)
-        now = time.monotonic()
-        with _TILE_CACHE_LOCK:
-            cached = _TILE_CACHE.get(cache_key) if self.use_cache else None
-        if cached:
-            cached_at, payload = cached
-            if now - cached_at <= TILE_CACHE_TTL_SECONDS:
-                return payload
         url = MVT_LAYERS[mvt_key]["url"].format(z=tile.z, x=tile.x, y=tile.y)
+        PROVIDER_COST_METRICS.record("ardswc", "physical_calls")
         if self.http_get is not None:
             payload = self.http_get(url, self.timeout_seconds)
         else:
@@ -251,9 +307,6 @@ class ArdswcSlopeHazardProvider:
                     payload = self._http_get(local_client, url)
             else:
                 payload = self._http_get(client, url)
-        if self.use_cache:
-            with _TILE_CACHE_LOCK:
-                _TILE_CACHE[cache_key] = (time.monotonic(), payload)
         return payload
 
     def _new_client(self) -> httpx.Client:
@@ -290,7 +343,7 @@ class ArdswcSlopeHazardProvider:
                 })
         return features
 
-    def _mvt_result(self, mvt_key: str, status: str, matched: bool, distance_m: int | None, feature_ids: list[str], explanation: str, errors: list[str], tile_count: int) -> dict[str, Any]:
+    def _mvt_result(self, mvt_key: str, status: str, matched: bool, distance_m: int | None, feature_ids: list[str], explanation: str, errors: list[str], tile_count: int, fetched_at: str | None = None) -> dict[str, Any]:
         config = MVT_LAYERS[mvt_key]
         semantics = "stream_proximity_within_radius" if config["geometry_kind"] == "line" else "polygon_intersection_with_query_radius"
         return {
@@ -304,8 +357,8 @@ class ArdswcSlopeHazardProvider:
             "value": {"feature_count": len(feature_ids), "feature_ids": feature_ids[:10], "tile_errors": errors[:5],
                       "requested_tiles": tile_count, "successful_tiles": tile_count - len(errors), "failed_tiles": len(errors)},
             "explanation": explanation,
-            "source": {**self._source_meta(status, config["url"]), "layer_id": mvt_key,
-                       "dataset_version": "113-public-mvt", "geometry_kind": config["geometry_kind"],
+            "source": {**self._source_meta(status, config["url"]), **({"fetched_at": fetched_at} if fetched_at else {}), "layer_id": mvt_key,
+                       "dataset_version": DATASET_VERSION, "geometry_kind": config["geometry_kind"],
                        "match_semantics": semantics},
         }
 

@@ -38,6 +38,10 @@ export function prefillLocationInsight(prefill: LocationInsightPrefill) {
 
 export function LocationInsight({ onMap, onContextChange, onResult, initialContext, initialResult, embeddedJourney = false }: { onMap?: () => void; onContextChange?: (context: LocationInsightPrefill) => void; onResult?: (result: LocationInsightResult | null) => void; initialContext?: LocationInsightPrefill; initialResult?: LocationInsightResult; embeddedJourney?: boolean }) {
   const { copy } = useExperienceLocale();
+  const contextKey = JSON.stringify([Boolean(initialContext), initialContext?.city, initialContext?.district, initialContext?.road, initialContext?.address, initialContext?.property_price, initialContext?.area_ping, initialContext?.building_type]);
+  const latestContextKey = useRef(contextKey);
+  latestContextKey.current = contextKey;
+  const previousContextKey = useRef(contextKey);
   const [city, setCity] = useState(initialContext?.city ?? "台北市");
   const [district, setDistrict] = useState(initialContext?.district ?? "大安區");
   const [road, setRoad] = useState(initialContext?.road ?? "和平東路二段");
@@ -46,13 +50,18 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
   const [propertyPrice, setPropertyPrice] = useState<number | "">(initialContext?.property_price ?? "");
   const [areaPing, setAreaPing] = useState<number | "">(initialContext?.area_ping ?? "");
   const [buildingType, setBuildingType] = useState(initialContext?.building_type ?? "");
-  const [result, setResult] = useState<LocationInsightResult | undefined>(initialResult);
+  const [storedResult, setResult] = useState<LocationInsightResult | undefined>(initialResult);
+  const [resultContextKey, setResultContextKey] = useState(contextKey);
+  const result = resultContextKey === contextKey ? storedResult : undefined;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const requestRef = useRef(0);
+  const activeRequestRef = useRef<number | null>(null);
+  useEffect(() => () => { requestRef.current += 1; activeRequestRef.current = null; }, []);
 
   function invalidateLocationFlow() {
     requestRef.current += 1;
+    activeRequestRef.current = null;
     setResult(undefined);
     setLoading(false);
     setError("");
@@ -61,6 +70,13 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
   }
 
   useEffect(() => {
+    if (previousContextKey.current !== contextKey) {
+      previousContextKey.current = contextKey;
+      requestRef.current += 1;
+      activeRequestRef.current = null;
+      setResult(undefined); setLoading(false); setError("");
+      window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
+    }
     if (!initialContext) return;
     setCity(initialContext.city ?? "");
     setDistrict(initialContext.district ?? "");
@@ -69,9 +85,17 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
     setPropertyPrice(initialContext.property_price ?? "");
     setAreaPing(initialContext.area_ping ?? "");
     setBuildingType(initialContext.building_type ?? "");
-  }, [initialContext]);
+  }, [contextKey]);
 
-  useEffect(() => { setResult(initialResult); }, [initialResult]);
+  useEffect(() => {
+    if (initialResult) {
+      requestRef.current += 1;
+      activeRequestRef.current = null;
+      setLoading(false);
+    }
+    setResultContextKey(latestContextKey.current);
+    setResult(initialResult);
+  }, [initialResult]);
 
   useEffect(() => {
     function applyPrefill(event: Event) {
@@ -92,6 +116,10 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
 
   useEffect(() => {
     function applyResult(event: Event) {
+      requestRef.current += 1;
+      activeRequestRef.current = null;
+      setLoading(false);
+      setResultContextKey(latestContextKey.current);
       setResult((event as CustomEvent<LocationInsightResult>).detail);
     }
     window.addEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
@@ -99,11 +127,14 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
   }, []);
 
   async function analyze() {
+    if (activeRequestRef.current !== null) return;
     if (!address.trim()) {
       setError(copy("location.empty"));
       return;
     }
     const requestId = ++requestRef.current;
+    const requestContextKey = contextKey;
+    activeRequestRef.current = requestId;
     setLoading(true);
     setError("");
     setResult(undefined);
@@ -116,15 +147,16 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
         building_type: buildingType,
         use_existing_poi_sources: true,
       });
-      if (requestId !== requestRef.current) return;
+      if (requestId !== requestRef.current || latestContextKey.current !== requestContextKey) return;
+      setResultContextKey(requestContextKey);
       setResult(next);
       onResult?.(next);
       window.sessionStorage.setItem(LOCATION_INSIGHT_SESSION_KEY, JSON.stringify(next));
       window.dispatchEvent(new CustomEvent<LocationInsightResult>(LOCATION_INSIGHT_RESULT_EVENT, { detail: next }));
-    } catch (caught) {
-      if (requestId === requestRef.current) setError(copy("location.error"));
+    } catch {
+      if (requestId === requestRef.current && latestContextKey.current === requestContextKey) setError(copy("location.error"));
     } finally {
-      if (requestId === requestRef.current) setLoading(false);
+      if (requestId === requestRef.current) { activeRequestRef.current = null; setLoading(false); }
     }
   }
 
@@ -143,7 +175,7 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
         <label className="text-xs text-slate-500">{copy("location.address")}<input className={inputClass} value={address} onChange={(event) => { const value = event.target.value; setAddress(value); emitContext({ address: value }); invalidateLocationFlow(); }} placeholder={copy("location.address")} /></label>
-        <label className="text-xs text-slate-500">{copy("location.radius")}<input type="number" min="100" max="1500" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
+        <label className="text-xs text-slate-500">{copy("location.radius")}<input type="number" min="100" max="1500" className={inputClass} value={radius} onChange={(event) => { setRadius(Number(event.target.value)); invalidateLocationFlow(); }} /></label>
         <label className="text-xs text-slate-500">{copy("location.propertyPrice")}<input type="number" min="0" className={inputClass} value={propertyPrice} onChange={(event) => { const value = event.target.value === "" ? "" : Number(event.target.value); setPropertyPrice(value); emitContext({ property_price: value === "" ? undefined : value }); }} /></label>
         <label className="text-xs text-slate-500">{copy("location.area")}<input type="number" min="0" className={inputClass} value={areaPing} onChange={(event) => { const value = event.target.value === "" ? "" : Number(event.target.value); setAreaPing(value); emitContext({ area_ping: value === "" ? undefined : value }); }} /></label>
         <Button className="w-full" disabled={loading || !address.trim()} onClick={analyze}>{loading ? copy("location.analyzing") : copy("location.start")}</Button>

@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import math
 import os
+import threading
 from typing import Any, Protocol
 
 import httpx
+
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.provider_request_cache import BoundedRequestCache
 
 
 class GeocodingAdapter(Protocol):
@@ -36,8 +40,27 @@ class GoogleGeocodingAdapter:
     def __init__(self, api_key: str | None = None, timeout_seconds: float = 5.0) -> None:
         self.api_key = (api_key if api_key is not None else os.getenv("GOOGLE_MAPS_API_KEY", "")).strip()
         self.timeout_seconds = timeout_seconds
+        self._request_state = threading.local()
+        # No completed Google response is retained; only concurrent identical work.
+        self._requests = BoundedRequestCache("geocoding", ttl_seconds=0, max_entries=256)
         self.last_error = ""
         self.last_reason_code = "not_checked"
+
+    @property
+    def last_error(self) -> str:
+        return getattr(self._request_state, "error", "")
+
+    @last_error.setter
+    def last_error(self, value: str) -> None:
+        self._request_state.error = value
+
+    @property
+    def last_reason_code(self) -> str:
+        return getattr(self._request_state, "reason", "not_checked")
+
+    @last_reason_code.setter
+    def last_reason_code(self, value: str) -> None:
+        self._request_state.reason = value
 
     @property
     def available(self) -> bool:
@@ -46,10 +69,30 @@ class GoogleGeocodingAdapter:
         return bool(self.api_key)
 
     def search(self, query: str, regions: list[dict[str, Any]]) -> dict[str, Any] | None:
+        normalized = " ".join(query.split())
+        if not self.available or not normalized:
+            self.last_error = ""
+            self.last_reason_code = "configuration_required" if not self.available else "invalid_input"
+            return None
+
+        def resolve():
+            result = self._search_provider(normalized)
+            reason = self.last_reason_code
+            event = "provider_success" if reason in {"success", "no_match"} else "provider_timeout" if reason == "provider_timeout" else "provider_failure"
+            PROVIDER_COST_METRICS.record("geocoding", event)
+            return result, reason, self.last_error
+
+        key = ("google-geocoding-v1", normalized, "zh-TW", "tw", self.timeout_seconds)
+        result, self.last_reason_code, self.last_error = self._requests.run(key, resolve)
+        return result
+
+    def _search_provider(self, query: str) -> dict[str, Any] | None:
+        self.last_error = ""
         self.last_reason_code = "configuration_required" if not self.available else "invalid_input"
         if not self.available or not query.strip():
             return None
         try:
+            PROVIDER_COST_METRICS.record("geocoding", "physical_calls")
             response = httpx.get(
                 "https://maps.googleapis.com/maps/api/geocode/json",
                 params={"address": query, "language": "zh-TW", "region": "tw", "key": self.api_key},

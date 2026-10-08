@@ -12,9 +12,12 @@ from __future__ import annotations
 
 import math
 import os
+import threading
 from typing import Any, Literal, Protocol
 
 import httpx
+
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
 
 
 ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes"
@@ -128,6 +131,13 @@ class GoogleRoutesAdapter:
         self.timeout_seconds = timeout_seconds
         self._client = client
         self._owns_client = client is None
+        self._client_lock = threading.Lock()
+        self.cache_namespace = object()
+
+    def request_configuration(self) -> tuple[Any, ...]:
+        # No departureTime/options exist in this API. Keep the service's existing
+        # 600-second freshness window for implicit provider-now route estimates.
+        return ("compute-route-v1", ROUTES_URL, FIELD_MASK, tuple(sorted(SUPPORTED_MODES.items())), self.timeout_seconds)
 
     @property
     def available(self) -> bool:
@@ -168,32 +178,46 @@ class GoogleRoutesAdapter:
             "X-Goog-FieldMask": FIELD_MASK,
         }
         try:
+            PROVIDER_COST_METRICS.record("routes", "physical_calls")
             response = self._get_client().post(ROUTES_URL, json=payload, headers=headers)
             response.raise_for_status()
             data = response.json()
         except httpx.TimeoutException as exc:
+            PROVIDER_COST_METRICS.record("routes", "provider_timeout")
             raise RouteUnavailableError(
                 "Google Routes response timed out",
                 reason_code="provider_timeout",
             ) from exc
         except httpx.HTTPStatusError as exc:
+            PROVIDER_COST_METRICS.record("routes", "provider_failure")
             # Covers quota/rate (429) and other HTTP failures without leaking body.
             raise RouteUnavailableError(
                 "Google Routes is currently unavailable",
                 reason_code="provider_error",
             ) from exc
         except httpx.HTTPError as exc:
+            PROVIDER_COST_METRICS.record("routes", "provider_failure")
             raise RouteUnavailableError(
                 "Google Routes is currently unavailable",
                 reason_code="provider_error",
             ) from exc
         except ValueError as exc:
+            PROVIDER_COST_METRICS.record("routes", "provider_failure")
             raise RouteUnavailableError(
                 "Google Routes returned an unusable response",
                 reason_code="malformed_response",
             ) from exc
 
-        return self._normalize(data, mode)
+        try:
+            result = self._normalize(data, mode)
+        except RouteNotFoundError:
+            PROVIDER_COST_METRICS.record("routes", "provider_success")
+            raise
+        except RoutesAdapterError:
+            PROVIDER_COST_METRICS.record("routes", "provider_failure")
+            raise
+        PROVIDER_COST_METRICS.record("routes", "provider_success")
+        return result
 
     @staticmethod
     def _normalize(data: Any, mode: str) -> dict[str, Any]:
@@ -205,7 +229,12 @@ class GoogleRoutesAdapter:
                 reason_code="malformed_response",
             )
         routes = data.get("routes")
-        if not isinstance(routes, list) or not routes:
+        if "error" in data or not isinstance(routes, list):
+            raise RouteUnavailableError(
+                "Google Routes payload shape was unusable",
+                reason_code="malformed_response",
+            )
+        if not routes:
             # Successful response with no route.
             raise RouteNotFoundError("No route found between the requested points")
         first = routes[0]
@@ -237,12 +266,14 @@ class GoogleRoutesAdapter:
 
     def _get_client(self) -> httpx.Client:
         if self._client is None:
-            timeout = httpx.Timeout(
-                self.timeout_seconds,
-                connect=min(1.5, self.timeout_seconds),
-                pool=min(1.0, self.timeout_seconds),
-            )
-            self._client = httpx.Client(timeout=timeout)
+            with self._client_lock:
+                if self._client is None:
+                    timeout = httpx.Timeout(
+                        self.timeout_seconds,
+                        connect=min(1.5, self.timeout_seconds),
+                        pool=min(1.0, self.timeout_seconds),
+                    )
+                    self._client = httpx.Client(timeout=timeout)
         return self._client
 
     def close(self) -> None:
@@ -250,7 +281,8 @@ class GoogleRoutesAdapter:
 
         if not self._owns_client:
             return
-        client, self._client = self._client, None
+        with self._client_lock:
+            client, self._client = self._client, None
         if client is not None:
             client.close()
 

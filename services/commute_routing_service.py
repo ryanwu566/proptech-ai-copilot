@@ -16,8 +16,7 @@ Property Identity, cadastral evidence, or any persistent store.
 from __future__ import annotations
 
 import os
-import threading
-import time
+import weakref
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
@@ -34,6 +33,7 @@ from services.adapters.routes_adapter import (
 )
 from services.production_config import PRODUCTION_MODES
 from services.provider_observability import observe_response
+from services.provider_request_cache import BoundedRequestCache
 
 
 ROUTE_DISCLAIMER = "通勤時間為外部路線估算，僅供生活機能與可及性參考，不代表實際交通、估價或看房結論。"
@@ -43,14 +43,32 @@ APP_ENV_ENV = "APP_ENV"
 DEMO_ROUTES_FALLBACK_ENV = "DEMO_ROUTES_FALLBACK"
 
 CACHE_TTL_SECONDS = 600
-_CACHE_COORD_PRECISION = 5
-
-_cache: dict[tuple[Any, ...], tuple[float, dict[str, Any]]] = {}
-_cache_lock = threading.Lock()
+_cache = BoundedRequestCache("routes", ttl_seconds=CACHE_TTL_SECONDS, max_entries=256)
 
 # A single default Google adapter reuses its connection pool across requests.
 _DEFAULT_GOOGLE_ADAPTER = GoogleRoutesAdapter()
 _DEFAULT_MOCK_ADAPTER = MockRoutesAdapter()
+
+
+class _AdapterIdentity:
+    """A weak identity key cannot retain credentials or collide after ID reuse."""
+
+    __slots__ = ("_object_id", "_reference")
+
+    def __init__(self, adapter: RoutesAdapter) -> None:
+        self._object_id = id(adapter)
+        self._reference = weakref.ref(adapter)
+
+    def __hash__(self) -> int:
+        return self._object_id
+
+    def __eq__(self, other: object) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, _AdapterIdentity):
+            return NotImplemented
+        adapter = self._reference()
+        return adapter is not None and adapter is other._reference()
 
 
 def mock_fallback_allowed(environ: Mapping[str, str] | None = None) -> bool:
@@ -83,10 +101,10 @@ def _cache_key(
     mode: str,
 ) -> tuple[Any, ...]:
     return (
-        round(float(origin[0]), _CACHE_COORD_PRECISION),
-        round(float(origin[1]), _CACHE_COORD_PRECISION),
-        round(float(destination[0]), _CACHE_COORD_PRECISION),
-        round(float(destination[1]), _CACHE_COORD_PRECISION),
+        float(origin[0]),
+        float(origin[1]),
+        float(destination[0]),
+        float(destination[1]),
         mode,
     )
 
@@ -94,8 +112,7 @@ def _cache_key(
 def clear_route_cache() -> None:
     """Clear the in-memory route cache (used by tests)."""
 
-    with _cache_lock:
-        _cache.clear()
+    _cache.clear()
 
 
 def _minutes(seconds: int) -> int:
@@ -186,12 +203,31 @@ def estimate_commute_route(
     mock = mock_adapter if mock_adapter is not None else _DEFAULT_MOCK_ADAPTER
     mock_ok = mock_fallback_allowed() if allow_mock is None else allow_mock
 
-    key = _cache_key(origin, destination, mode)
-    if use_cache:
-        with _cache_lock:
-            cached = _cache.get(key)
-        if cached and time.monotonic() - cached[0] < CACHE_TTL_SECONDS:
-            return dict(cached[1])
+    # Provider identity is process-local and opaque; credentials never enter keys.
+    configuration = google.request_configuration() if isinstance(google, GoogleRoutesAdapter) else ("routes-v1",)
+    if isinstance(google, GoogleRoutesAdapter):
+        namespace = google.cache_namespace
+    else:
+        try:
+            namespace = _AdapterIdentity(google)
+        except TypeError:
+            # Some caller-owned Protocol adapters cannot be weakly referenced.
+            # Bypass reuse instead of retaining their credential-bearing object.
+            namespace = None
+    key = (namespace, bool(google.available), configuration, mock_ok, *_cache_key(origin, destination, mode))
+    if use_cache and namespace is not None:
+        return _cache.run(
+            key,
+            lambda: _estimate_uncached(origin, destination, mode, google, mock, mock_ok),
+            cacheable=lambda response: response.get("status") in {"resolved", "unresolved"} and not response.get("fallback") and response.get("source") != "mock",
+        )
+    return _estimate_uncached(origin, destination, mode, google, mock, mock_ok)
+
+
+def _estimate_uncached(
+    origin: tuple[float, float], destination: tuple[float, float], mode: str,
+    google: RoutesAdapter, mock: RoutesAdapter, mock_ok: bool,
+) -> dict[str, Any]:
 
     response: dict[str, Any]
     if google.available:
@@ -222,16 +258,6 @@ def estimate_commute_route(
             reason_code="configuration_error",
         )
 
-    # Cache only genuine Google observations and deterministic non-fallback outcomes.
-    # Never cache mock/fallback results, so provider recovery is not masked.
-    cacheable = (
-        response.get("status") in {"resolved", "unresolved"}
-        and not response.get("fallback")
-        and response.get("source") != "mock"
-    )
-    if use_cache and cacheable:
-        with _cache_lock:
-            _cache[key] = (time.monotonic(), dict(response))
     return response
 
 

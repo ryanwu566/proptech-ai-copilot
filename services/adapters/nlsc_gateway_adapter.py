@@ -8,6 +8,8 @@ from typing import Any, Mapping
 
 import httpx
 
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
+
 from services.production_config import (
     NLSC_GATEWAY_BASE_URL_ENV,
     NLSC_GATEWAY_CLIENT_TOKEN_ENV,
@@ -68,6 +70,11 @@ class NlscGatewayAdapter:
     def available(self) -> bool:
         return self.configuration_status == "configured"
 
+    @property
+    def cache_identity(self) -> str:
+        """Public provider origin; credentials are never part of cache storage."""
+        return self._base_url.rstrip("/")
+
     def terrain_point(self, lat: float, lng: float, radius_m: int) -> dict[str, Any]:
         """Return bounded NLSC measurements or an explicit unavailable result."""
 
@@ -78,6 +85,7 @@ class NlscGatewayAdapter:
         if not isinstance(radius_m, int) or isinstance(radius_m, bool) or not 100 <= radius_m <= 2000:
             return _unavailable()
         try:
+            PROVIDER_COST_METRICS.record("nlsc", "physical_calls")
             response = self._get_client().post(
                 self._base_url.rstrip("/") + _TERRAIN_PATH,
                 json={"lat": float(lat), "lng": float(lng), "radius_m": radius_m},
@@ -86,10 +94,16 @@ class NlscGatewayAdapter:
                 follow_redirects=False,
             )
             response.raise_for_status()
-            return _normalize(response.json())
+            result = _normalize(response.json())
+            PROVIDER_COST_METRICS.record("nlsc", "provider_success" if result["status"] == "available" else "provider_failure")
+            return result
+        except (httpx.TimeoutException, TimeoutError):
+            PROVIDER_COST_METRICS.record("nlsc", "provider_timeout")
+            return _unavailable()
         except Exception:
             # Transport and decoder errors may embed request headers. Never
             # surface their text (or traceback) with the backend credential.
+            PROVIDER_COST_METRICS.record("nlsc", "provider_failure")
             return _unavailable()
 
     def _get_client(self) -> httpx.Client:

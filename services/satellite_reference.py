@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 import base64
+import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 import time
+import weakref
 from typing import Literal, Protocol
 
 from pydantic import BaseModel, Field
+
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.provider_request_cache import BoundedRequestCache
 
 
 DATASET_ID = "COPERNICUS/S2_SR_HARMONIZED"
@@ -20,6 +25,14 @@ MAX_IMAGE_REFERENCE_CHARS = 360_000
 MAX_PROVIDER_IMAGE_BYTES = 250_000
 MAX_RESPONSE_BYTES = 365_000
 EXTERNAL_TIMEOUT_SECONDS = 8.0
+SATELLITE_CONFIG_VERSION = "sentinel2-reference-v1-rgb-0-3000"
+SATELLITE_CACHE_TTL_SECONDS = 300
+SATELLITE_CACHE_MAX_ENTRIES = 16
+SATELLITE_CACHE_MAX_BYTES = 4 * 1024 * 1024
+_SATELLITE_CACHE = BoundedRequestCache(
+    "satellite", ttl_seconds=SATELLITE_CACHE_TTL_SECONDS,
+    max_entries=SATELLITE_CACHE_MAX_ENTRIES, max_bytes=SATELLITE_CACHE_MAX_BYTES,
+)
 DISCLAIMER = "Satellite reference imagery — not cadastral or statutory evidence."
 LIMITATIONS = (
     "Cloud filtering and masking may leave residual cloud, haze, or incomplete coverage.",
@@ -68,6 +81,22 @@ class SatelliteAdapterResult:
 
 class SatelliteAdapter(Protocol):
     def fetch(self, query: SatelliteQuery) -> SatelliteAdapterResult: ...
+
+
+class _ProviderIdentity:
+    """Instance identity without retaining provider state or recycled-ID hits."""
+    def __init__(self, provider) -> None:
+        self._id = id(provider)
+        self._reference = weakref.ref(provider)
+
+    def __hash__(self) -> int:
+        return self._id
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, _ProviderIdentity):
+            return NotImplemented
+        provider = self._reference()
+        return provider is not None and provider is other._reference()
 
 
 class EarthEngineCredentialUnavailable(RuntimeError):
@@ -167,20 +196,67 @@ async def fetch_satellite_reference(
     if checked_at.tzinfo is None:
         checked_at = checked_at.replace(tzinfo=timezone.utc)
     query = _fixed_query(latitude, longitude, checked_at)
+    try:
+        manager = _get_earth_engine_worker_manager() if adapter is None else None
+    except Exception:
+        PROVIDER_COST_METRICS.record("satellite", "provider_failure")
+        return build_response(status="unavailable", reason_code="provider_error", now=checked_at)
+    # Production's manager captures one fixed project at startup. Its lifecycle
+    # clears this cache before reconfiguration; weak identities isolate adapters.
+    key = (SATELLITE_CONFIG_VERSION, _ProviderIdentity(adapter if adapter is not None else manager),
+           getattr(manager, "state", None), query)
+    async def generate() -> SatelliteReferenceResponse:
+        if deadline <= time.monotonic():
+            return build_response(status="unavailable", reason_code="provider_timeout", now=checked_at)
+        return await _generate_reference(query, adapter, manager, checked_at, deadline)
+
+    # Native async waiters do not occupy executor threads. The worker manager
+    # retains its original absolute deadline and bounded process containment.
+    try:
+        response = await asyncio.wait_for(_SATELLITE_CACHE.async_run(
+            key, generate, cacheable=_cacheable_response,
+            size_of=lambda value: len(value.model_dump_json().encode("utf-8")),
+        ), timeout=max(0, deadline - time.monotonic()))
+    except asyncio.TimeoutError:
+        return build_response(status="unavailable", reason_code="provider_timeout", now=checked_at)
+    return response.model_copy(deep=True)
+
+
+def clear_satellite_reference_cache() -> None:
+    """Invalidate completed imagery when the fixed provider lifecycle changes."""
+    _SATELLITE_CACHE.clear()
+
+
+def _cacheable_response(response: SatelliteReferenceResponse) -> bool:
+    # Only downloaded embedded imagery is reused: no signed provider URLs or
+    # credentials survive generation, and URL expiration cannot break a hit.
+    return (response.status == "available" and response.reason_code is None
+            and bool(response.image_reference)
+            and response.image_reference.startswith("data:image/jpeg;base64,"))
+
+
+async def _generate_reference(
+    query: SatelliteQuery, adapter: SatelliteAdapter | None, manager,
+    checked_at: datetime, deadline: float,
+) -> SatelliteReferenceResponse:
 
     try:
         if adapter is None:
-            image_bytes = await _get_earth_engine_worker_manager().fetch(
-                latitude=latitude,
-                longitude=longitude,
+            # The manager counts only actual worker generation dispatches,
+            # after admission and slot acquisition have succeeded.
+            image_bytes = await manager.fetch(
+                latitude=query.latitude,
+                longitude=query.longitude,
                 window_start=query.window_start,
                 window_end=query.window_end,
                 deadline=deadline,
             )
             provider_result = SatelliteAdapterResult(image_bytes=image_bytes)
         else:
-            provider_result = adapter.fetch(query)
+            PROVIDER_COST_METRICS.record("satellite", "physical_calls")
+            provider_result = await asyncio.to_thread(adapter.fetch, query)
     except EarthEngineProviderTimeout:
+        PROVIDER_COST_METRICS.record("satellite", "provider_timeout")
         return build_response(status="unavailable", reason_code="provider_timeout", now=checked_at)
     except EarthEngineFeatureDisabled:
         return build_response(status="unavailable", reason_code="feature_disabled", now=checked_at)
@@ -191,8 +267,10 @@ async def fetch_satellite_reference(
     except EarthEngineImageGenerationError:
         return build_response(status="unavailable", reason_code="image_generation_failed", now=checked_at)
     except EarthEngineProviderError:
+        PROVIDER_COST_METRICS.record("satellite", "provider_failure")
         return build_response(status="unavailable", reason_code="provider_error", now=checked_at)
     except Exception:
+        PROVIDER_COST_METRICS.record("satellite", "provider_failure")
         return build_response(status="unavailable", reason_code="provider_error", now=checked_at)
 
     if not provider_result.image_bytes or len(provider_result.image_bytes) > MAX_PROVIDER_IMAGE_BYTES:
@@ -222,4 +300,5 @@ async def fetch_satellite_reference(
             reason_code="image_generation_failed",
             now=checked_at,
         )
+    PROVIDER_COST_METRICS.record("satellite", "provider_success")
     return response

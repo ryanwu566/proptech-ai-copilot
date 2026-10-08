@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 import json
 import logging
 import os
+import threading
 import time
 from pathlib import Path
 from typing import Any, Callable
@@ -37,6 +38,8 @@ CATEGORY_LABELS = {
 }
 CATEGORY_WEIGHTS = {"transport": 25, "food": 20, "shopping": 20, "school": 15, "medical": 10, "park": 10}
 DEFAULT_GOOGLE_PLACES_ADAPTER = GooglePlacesAdapter()
+DEFAULT_GOOGLE_GEOCODING_ADAPTER = GoogleGeocodingAdapter()
+_DEFAULT_GEOCODING_LOCK = threading.Lock()
 DEFAULT_TGOS_GEOCODING_ADAPTER = TgosGeocodingAdapter()
 GOOGLE_HEALTH_CACHE: tuple[float, dict[str, Any]] | None = None
 GOOGLE_HEALTH_TTL_SECONDS = 300
@@ -81,7 +84,7 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     regions = load_map_data()["regions"]
     source_chain = ["google_geocoding", "tgos_geocoding", "mock"]
     source = "mock"
-    google = adapter if adapter is not None else GoogleGeocodingAdapter()
+    google = adapter if adapter is not None else _get_google_geocoding_adapter()
     region = google.search(query, regions)
     if region is not None and isinstance(google, GoogleGeocodingAdapter):
         source = "google_geocoding"
@@ -99,13 +102,13 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
                 tgos_acceptance = evaluate_geocoding_acceptance(query, tgos_region, "tgos_geocoding")
                 if tgos_acceptance["accepted_for_analysis"]:
                     # TGOS recovered — use TGOS result
-                    LOGGER.info("multi_provider_recovery query=%s google_quality=%s tgos_quality=%s action=tgos_accepted", query[:30], google_acceptance["match_quality"], tgos_acceptance["match_quality"])
+                    LOGGER.info("multi_provider_recovery google_quality=%s tgos_quality=%s action=tgos_accepted", google_acceptance["match_quality"], tgos_acceptance["match_quality"])
                     region = tgos_region
                     source = "tgos_geocoding"
                 else:
-                    LOGGER.info("multi_provider_recovery query=%s google_quality=%s tgos_quality=%s action=both_refused", query[:30], google_acceptance["match_quality"], tgos_acceptance["match_quality"])
+                    LOGGER.info("multi_provider_recovery google_quality=%s tgos_quality=%s action=both_refused", google_acceptance["match_quality"], tgos_acceptance["match_quality"])
             else:
-                LOGGER.info("multi_provider_recovery query=%s google_quality=%s tgos=unavailable", query[:30], google_acceptance["match_quality"])
+                LOGGER.info("multi_provider_recovery google_quality=%s tgos=unavailable", google_acceptance["match_quality"])
 
     if region is None and adapter is None:
         region = MockGeocodingAdapter().search(query, regions)
@@ -174,6 +177,16 @@ def search_location(query: str, adapter: GeocodingAdapter | None = None) -> dict
     }
 
 
+def _get_google_geocoding_adapter() -> GoogleGeocodingAdapter:
+    """Reuse in-flight state; rotate the instance when credential config changes."""
+    global DEFAULT_GOOGLE_GEOCODING_ADAPTER
+    configured_key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+    with _DEFAULT_GEOCODING_LOCK:
+        if DEFAULT_GOOGLE_GEOCODING_ADAPTER.api_key != configured_key:
+            DEFAULT_GOOGLE_GEOCODING_ADAPTER = GoogleGeocodingAdapter()
+        return DEFAULT_GOOGLE_GEOCODING_ADAPTER
+
+
 def get_google_health(
     force_refresh: bool = False,
     *,
@@ -221,15 +234,29 @@ def get_nearby_places(
 ) -> dict[str, Any]:
     """Return Google Places nearby results or a normalized mock fallback."""
 
-    total_started = time.perf_counter()
-    supported = [category for category in categories if category in CATEGORY_LABELS]
+    supported = list(dict.fromkeys(category for category in categories if category in CATEGORY_LABELS))
     requested = supported or list(CATEGORY_LABELS)
     google = adapter or DEFAULT_GOOGLE_PLACES_ADAPTER
+    if isinstance(google, GooglePlacesAdapter) and google.available:
+        key = (float(lat), float(lng), float(radius_m), tuple(requested), language_code, google.request_configuration(requested))
+        # Whole fan-out sharing is in-flight only. Failed categories are retried
+        # on the next logical request while successful categories retain their TTL.
+        return google._fanout_requests.run(key, lambda: _get_nearby_places(lat, lng, radius_m, requested, language_code, google))
+    return _get_nearby_places(lat, lng, radius_m, requested, language_code, google)
+
+
+def _get_nearby_places(
+    lat: float, lng: float, radius_m: int, requested: list[str], language_code: str,
+    google: GooglePlacesAdapter,
+) -> dict[str, Any]:
+
+    total_started = time.perf_counter()
     grouped: list[dict[str, Any]] = []
     source = "google_places" if google.available else "mock"
     failed_categories: list[str] = []
     provider_timing_ms: dict[str, int] = {}
     category_status: dict[str, dict[str, str | int]] = {}
+    observation_times: list[str] = []
 
     if google.available:
         with ThreadPoolExecutor(max_workers=min(MAX_CATEGORY_WORKERS, len(requested)), thread_name_prefix="map-category") as executor:
@@ -237,7 +264,9 @@ def get_nearby_places(
             # Read futures in request order so response order stays deterministic.
             for category, future in futures:
                 try:
-                    places, elapsed_ms = future.result()
+                    places, elapsed_ms, observed_at = future.result()
+                    if observed_at:
+                        observation_times.append(observed_at)
                     provider_timing_ms[category] = elapsed_ms
                     grouped.append(_category_result(category, places, source="google_places", availability="available"))
                     category_status[category] = {"status": "available", "source": "google_places", "timing_ms": elapsed_ms}
@@ -290,7 +319,7 @@ def get_nearby_places(
         "center": {"lat": lat, "lng": lng},
         "radius_m": radius_m,
         "source": source,
-        "checked_at": datetime.now(UTC).isoformat(),
+        "checked_at": min(observation_times) if observation_times else datetime.now(UTC).isoformat(),
         "partial": partial,
         "fallback": source == "mock",
         "failed_categories": failed_categories,
@@ -344,14 +373,14 @@ def _timed_nearby_call(
     radius_m: int,
     category: str,
     language_code: str,
-) -> tuple[list[dict[str, Any]], int]:
+) -> tuple[list[dict[str, Any]], int, str | None]:
     started = time.perf_counter()
     try:
         places = adapter.nearby(lat, lng, radius_m, category, language_code)
     except Exception as exc:
         setattr(exc, "provider_timing_ms", round((time.perf_counter() - started) * 1000))
         raise
-    return places, round((time.perf_counter() - started) * 1000)
+    return places, round((time.perf_counter() - started) * 1000), getattr(adapter, "last_checked_at", None)
 
 
 def calculate_livability_score(categories: list[dict[str, Any]], radius_m: int) -> int:
