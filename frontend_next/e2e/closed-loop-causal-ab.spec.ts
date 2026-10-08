@@ -610,7 +610,20 @@ test("guided Terrain provider failure remains a local explicit error", async ({ 
   await expect(page.getByTestId("location-result")).toBeVisible();
 });
 
+function spatialRequestCounts(page: Page) {
+  const calls = { location: 0, geocoding: 0, places: 0, terrain: 0 };
+  page.on("request", (request) => {
+    const path = new URL(request.url()).pathname;
+    if (path.endsWith("/location/insight")) calls.location += 1;
+    if (path.endsWith("/map/search") || path.endsWith("/location/resolve")) calls.geocoding += 1;
+    if (path.endsWith("/map/nearby")) calls.places += 1;
+    if (path.endsWith("/terrain-risk/analyze")) calls.terrain += 1;
+  });
+  return calls;
+}
+
 test("area-only change preserves location and terrain while requiring a fresh valuation", async ({ page }) => {
+  const calls = spatialRequestCounts(page);
   await registerJourneyApis(page);
   await hydrateJourney(page);
   await goToStep(page, "location");
@@ -618,6 +631,8 @@ test("area-only change preserves location and terrain while requiring a fresh va
   await calculator.getByLabel("Area (ping, optional)").fill("35");
   await expect(page.getByTestId("location-result")).toContainText(PROPERTY.address);
   await expect(page.getByTestId("journey-property-context").first()).toContainText("35 Ping");
+  await expect(page.getByTestId("location-result")).toContainText("57.1 萬／坪");
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem("proptech:location-insight-result") || "null")?.valuation_context.explanation)).toContain("57.1 萬／坪");
 
   await goToStep(page, "price");
   await expect(page.getByTestId("valuation-result")).toHaveCount(0);
@@ -628,6 +643,94 @@ test("area-only change preserves location and terrain while requiring a fresh va
   await expect(page.getByTestId("decision-evidence-location")).toContainText(PROPERTY.address);
   await expect(page.getByTestId("decision-evidence-location")).toContainText("Controlled terrain reference");
   await expect(page.getByTestId("decision-evidence-price")).toContainText("2,400");
+  expect(calls).toEqual({ location: 0, geocoding: 0, places: 0, terrain: 0 });
+});
+
+test("asking-price-only edit preserves spatial evidence and updates only its local unit-price advisory", async ({ page }) => {
+  const calls = spatialRequestCounts(page);
+  await registerJourneyApis(page);
+  await hydrateJourney(page);
+  await goToStep(page, "location");
+  await page.locator("#location-insight-calculator").getByLabel("Property price (TWD ten-thousands, optional)").fill("2600");
+  await expect(page.getByTestId("location-result")).toContainText(PROPERTY.address);
+  await expect(page.getByTestId("location-result")).toContainText("86.7 萬／坪");
+  await goToStep(page, "decision");
+  await expect(page.getByTestId("decision-evidence-location")).toContainText("Controlled terrain reference");
+  expect(calls).toEqual({ location: 0, geocoding: 0, places: 0, terrain: 0 });
+});
+
+test("building-type-only prefill preserves spatial evidence while requiring fresh comparable valuation", async ({ page }) => {
+  const calls = spatialRequestCounts(page);
+  await registerJourneyApis(page);
+  await hydrateJourney(page);
+  await goToStep(page, "location");
+  const address = await page.locator("#location-insight-calculator").getByLabel("Property address", { exact: true }).inputValue();
+  await page.evaluate((address) => window.dispatchEvent(new CustomEvent("proptech:location-insight-prefill", { detail: {
+    city: "臺北市", district: "大安區", road: "和平東路二段", address,
+    property_price: 2_000, area_ping: 30, building_type: "公寓",
+  } })), address);
+  await expect(page.getByTestId("location-result")).toContainText(PROPERTY.address);
+  await expect(page.getByTestId("journey-property-context").first()).toContainText("公寓");
+  await goToStep(page, "price");
+  await expect(page.getByTestId("valuation-result")).toHaveCount(0);
+  await goToStep(page, "decision");
+  await expect(page.getByTestId("decision-evidence-location")).toContainText("Controlled terrain reference");
+  expect(calls).toEqual({ location: 0, geocoding: 0, places: 0, terrain: 0 });
+});
+
+test("radius edit invalidates accepted POI evidence without automatically querying providers", async ({ page }) => {
+  const calls = spatialRequestCounts(page);
+  await registerJourneyApis(page);
+  await hydrateJourney(page);
+  await goToStep(page, "location");
+  await expect(page.getByTestId("location-result")).toContainText(PROPERTY.address);
+  await page.locator("#location-insight-calculator").getByLabel("Analysis radius (m)").fill("1100");
+  await expect(page.getByTestId("location-result")).toHaveCount(0);
+  expect(calls).toEqual({ location: 0, geocoding: 0, places: 0, terrain: 0 });
+});
+
+test("area edit during a Location request accepts the same spatial response with current advisory inputs", async ({ page }) => {
+  const calls = spatialRequestCounts(page);
+  await registerJourneyApis(page);
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => { release = resolve; });
+  await page.route("**/location/insight", async (route) => {
+    const payload = route.request().postDataJSON() as { address: string };
+    await pending;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(locationResult(payload.address)) });
+  });
+  await hydrateJourney(page);
+  await goToStep(page, "location");
+  const calculator = page.locator("#location-insight-calculator");
+  const address = await calculator.getByLabel("Property address", { exact: true }).inputValue();
+  await calculator.getByRole("button", { name: "Start location analysis" }).click();
+  await expect.poll(() => calls.location).toBe(1);
+  await calculator.getByLabel("Area (ping, optional)").fill("35");
+  await expect(calculator.getByRole("button", { name: "Analyzing…" })).toBeDisabled();
+  release();
+  await expect(page.getByTestId("location-result")).toContainText(address);
+  await expect(page.getByTestId("location-result")).toContainText("57.1 萬／坪");
+  expect(calls).toEqual({ location: 1, geocoding: 0, places: 0, terrain: 0 });
+});
+
+test("external current Location props replace stale session advisory without new spatial requests", async ({ page }) => {
+  const calls = spatialRequestCounts(page);
+  await registerJourneyApis(page);
+  await hydrateJourney(page);
+  await goToStep(page, "location");
+  const area = page.locator("#location-insight-calculator").getByLabel("Area (ping, optional)");
+  await area.evaluate((node) => node.setAttribute("data-mounted-instance", "retained"));
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem("proptech:location-insight-result") || "null")?.valuation_context.explanation)).toContain("66.7 萬／坪");
+  const demo = demoResults();
+  await page.evaluate((detail) => window.dispatchEvent(new CustomEvent("proptech:guided-demo-result", { detail })), {
+    ...demo, inputs: { ...demo.inputs, area_ping: 35 },
+    locationInsight: { ...locationResult(), valuation_context: { supports_price_reasonableness: "unknown" as const, explanation: "本物件約 57.1 萬／坪；區位總分 78，仍需搭配可比成交判斷價格。" } },
+  });
+  await expect(area).toHaveValue("35");
+  await expect(area).toHaveAttribute("data-mounted-instance", "retained");
+  await expect(page.getByTestId("location-result")).toContainText(PROPERTY.address);
+  await expect.poll(() => page.evaluate(() => JSON.parse(sessionStorage.getItem("proptech:location-insight-result") || "null")?.valuation_context.explanation)).toContain("57.1 萬／坪");
+  expect(calls).toEqual({ location: 0, geocoding: 0, places: 0, terrain: 0 });
 });
 
 test("saved case round-trip restores journey identity, evidence and selected price basis", async ({ page }) => {
