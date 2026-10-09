@@ -91,6 +91,9 @@ async def app_lifespan(_app: FastAPI):
     """Validate production configuration before accepting requests."""
 
     assert_startup_configuration()
+    from services.satellite_reference import clear_satellite_reference_cache
+
+    clear_satellite_reference_cache()
     earth_engine_manager = None
     try:
         try:
@@ -104,6 +107,7 @@ async def app_lifespan(_app: FastAPI):
             pass
         yield
     finally:
+        clear_satellite_reference_cache()
         try:
             if earth_engine_manager is not None:
                 earth_engine_manager.shutdown()

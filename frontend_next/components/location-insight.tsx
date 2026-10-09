@@ -14,6 +14,7 @@ import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-not
 import { GoogleLocationVisualContext } from "@/components/google-location-visual-context";
 import { DemographicsInsightCard } from "@/components/demographics-insight-card";
 import { evidenceStatusLabel } from "@/lib/commercial/presentation";
+import { locationEvidenceKey, withLocationAdvisoryContext } from "@/lib/location-evidence-context";
 
 
 
@@ -38,21 +39,36 @@ export function prefillLocationInsight(prefill: LocationInsightPrefill) {
 
 export function LocationInsight({ onMap, onContextChange, onResult, initialContext, initialResult, embeddedJourney = false }: { onMap?: () => void; onContextChange?: (context: LocationInsightPrefill) => void; onResult?: (result: LocationInsightResult | null) => void; initialContext?: LocationInsightPrefill; initialResult?: LocationInsightResult; embeddedJourney?: boolean }) {
   const { copy } = useExperienceLocale();
+  const [radius, setRadius] = useState(800);
+  const contextKey = locationEvidenceKey(initialContext, radius);
+  const latestContextKey = useRef(contextKey);
+  latestContextKey.current = contextKey;
+  const previousContextKey = useRef(contextKey);
   const [city, setCity] = useState(initialContext?.city ?? "台北市");
   const [district, setDistrict] = useState(initialContext?.district ?? "大安區");
   const [road, setRoad] = useState(initialContext?.road ?? "和平東路二段");
   const [address, setAddress] = useState(initialContext?.address ?? "");
-  const [radius, setRadius] = useState(800);
   const [propertyPrice, setPropertyPrice] = useState<number | "">(initialContext?.property_price ?? "");
   const [areaPing, setAreaPing] = useState<number | "">(initialContext?.area_ping ?? "");
   const [buildingType, setBuildingType] = useState(initialContext?.building_type ?? "");
-  const [result, setResult] = useState<LocationInsightResult | undefined>(initialResult);
+  const latestSpatialInputs = useRef({ city, district, road, address });
+  latestSpatialInputs.current = { city, district, road, address };
+  const [storedResult, setResult] = useState<LocationInsightResult | undefined>(initialResult);
+  const publishedResultRef = useRef<LocationInsightResult | undefined>(undefined);
+  const [resultContextKey, setResultContextKey] = useState(contextKey);
+  const advisoryInputs = { price: propertyPrice === "" ? undefined : propertyPrice, area: areaPing === "" ? undefined : areaPing };
+  const latestAdvisoryInputs = useRef(advisoryInputs);
+  latestAdvisoryInputs.current = advisoryInputs;
+  const result = resultContextKey === contextKey && storedResult ? withLocationAdvisoryContext(storedResult, advisoryInputs.price, advisoryInputs.area) : undefined;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const requestRef = useRef(0);
+  const activeRequestRef = useRef<number | null>(null);
+  useEffect(() => () => { requestRef.current += 1; activeRequestRef.current = null; }, []);
 
   function invalidateLocationFlow() {
     requestRef.current += 1;
+    activeRequestRef.current = null;
     setResult(undefined);
     setLoading(false);
     setError("");
@@ -61,6 +77,13 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
   }
 
   useEffect(() => {
+    if (previousContextKey.current !== contextKey) {
+      previousContextKey.current = contextKey;
+      requestRef.current += 1;
+      activeRequestRef.current = null;
+      setResult(undefined); setLoading(false); setError("");
+      window.sessionStorage.removeItem(LOCATION_INSIGHT_SESSION_KEY);
+    }
     if (!initialContext) return;
     setCity(initialContext.city ?? "");
     setDistrict(initialContext.district ?? "");
@@ -69,13 +92,26 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
     setPropertyPrice(initialContext.property_price ?? "");
     setAreaPing(initialContext.area_ping ?? "");
     setBuildingType(initialContext.building_type ?? "");
-  }, [initialContext]);
+  }, [contextKey, initialContext?.property_price, initialContext?.area_ping, initialContext?.building_type]);
 
-  useEffect(() => { setResult(initialResult); }, [initialResult]);
+  useEffect(() => {
+    if (initialResult) {
+      requestRef.current += 1;
+      activeRequestRef.current = null;
+      setLoading(false);
+    }
+    setResultContextKey(latestContextKey.current);
+    setResult(initialResult);
+  }, [initialResult]);
 
   useEffect(() => {
     function applyPrefill(event: Event) {
       const detail = (event as CustomEvent<LocationInsightPrefill>).detail;
+      const nextSpatialInputs = {
+        city: detail.city ?? "", district: detail.district ?? "", road: detail.road ?? "",
+        address: detail.address ?? `${detail.city ?? ""}${detail.district ?? ""}${detail.road ?? ""}`,
+      };
+      const spatialChanged = locationEvidenceKey(nextSpatialInputs, radius) !== locationEvidenceKey(latestSpatialInputs.current, radius);
       setCity(detail.city ?? "");
       setDistrict(detail.district ?? "");
       setRoad(detail.road ?? "");
@@ -84,47 +120,66 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
       setAreaPing(detail.area_ping ?? "");
       setBuildingType(detail.building_type ?? "");
       onContextChange?.(detail);
-      invalidateLocationFlow();
+      if (spatialChanged) invalidateLocationFlow();
     }
     window.addEventListener(LOCATION_INSIGHT_PREFILL_EVENT, applyPrefill);
     return () => window.removeEventListener(LOCATION_INSIGHT_PREFILL_EVENT, applyPrefill);
-  }, [onContextChange]);
+  }, [onContextChange, radius]);
 
   useEffect(() => {
     function applyResult(event: Event) {
+      requestRef.current += 1;
+      activeRequestRef.current = null;
+      setLoading(false);
+      setResultContextKey(latestContextKey.current);
       setResult((event as CustomEvent<LocationInsightResult>).detail);
     }
     window.addEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
     return () => window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
   }, []);
 
+  useEffect(() => {
+    if (!result || publishedResultRef.current === result) return;
+    publishedResultRef.current = result;
+    // Publish only updated advisory text. Spatial observation timestamps and
+    // acceptance stay intact; the journey updates its own advisory on edits.
+    if (result !== storedResult) setResult(result);
+    window.sessionStorage.setItem(LOCATION_INSIGHT_SESSION_KEY, JSON.stringify(result));
+    window.dispatchEvent(new CustomEvent<LocationInsightResult>(LOCATION_INSIGHT_RESULT_EVENT, { detail: result }));
+  }, [result, storedResult]);
+
   async function analyze() {
+    if (activeRequestRef.current !== null) return;
     if (!address.trim()) {
       setError(copy("location.empty"));
       return;
     }
     const requestId = ++requestRef.current;
+    const requestContextKey = contextKey;
+    activeRequestRef.current = requestId;
     setLoading(true);
     setError("");
     setResult(undefined);
     onResult?.(null);
     try {
-      const next = await api.locationInsight({
+      const next = withLocationAdvisoryContext(await api.locationInsight({
         city, district, road, address, radius_m: radius,
         property_price: propertyPrice === "" ? undefined : propertyPrice,
         area_ping: areaPing === "" ? undefined : areaPing,
         building_type: buildingType,
         use_existing_poi_sources: true,
-      });
-      if (requestId !== requestRef.current) return;
+      }), latestAdvisoryInputs.current.price, latestAdvisoryInputs.current.area);
+      if (requestId !== requestRef.current || latestContextKey.current !== requestContextKey) return;
+      setResultContextKey(requestContextKey);
       setResult(next);
       onResult?.(next);
+      publishedResultRef.current = next;
       window.sessionStorage.setItem(LOCATION_INSIGHT_SESSION_KEY, JSON.stringify(next));
       window.dispatchEvent(new CustomEvent<LocationInsightResult>(LOCATION_INSIGHT_RESULT_EVENT, { detail: next }));
-    } catch (caught) {
-      if (requestId === requestRef.current) setError(copy("location.error"));
+    } catch {
+      if (requestId === requestRef.current && latestContextKey.current === requestContextKey) setError(copy("location.error"));
     } finally {
-      if (requestId === requestRef.current) setLoading(false);
+      if (requestId === requestRef.current) { activeRequestRef.current = null; setLoading(false); }
     }
   }
 
@@ -143,7 +198,7 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
     <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
       <div className="grid min-w-0 gap-3">
         <label className="text-xs text-slate-500">{copy("location.address")}<input className={inputClass} value={address} onChange={(event) => { const value = event.target.value; setAddress(value); emitContext({ address: value }); invalidateLocationFlow(); }} placeholder={copy("location.address")} /></label>
-        <label className="text-xs text-slate-500">{copy("location.radius")}<input type="number" min="100" max="1500" className={inputClass} value={radius} onChange={(event) => setRadius(Number(event.target.value))} /></label>
+        <label className="text-xs text-slate-500">{copy("location.radius")}<input type="number" min="100" max="1500" className={inputClass} value={radius} onChange={(event) => { setRadius(Number(event.target.value)); invalidateLocationFlow(); }} /></label>
         <label className="text-xs text-slate-500">{copy("location.propertyPrice")}<input type="number" min="0" className={inputClass} value={propertyPrice} onChange={(event) => { const value = event.target.value === "" ? "" : Number(event.target.value); setPropertyPrice(value); emitContext({ property_price: value === "" ? undefined : value }); }} /></label>
         <label className="text-xs text-slate-500">{copy("location.area")}<input type="number" min="0" className={inputClass} value={areaPing} onChange={(event) => { const value = event.target.value === "" ? "" : Number(event.target.value); setAreaPing(value); emitContext({ area_ping: value === "" ? undefined : value }); }} /></label>
         <Button className="w-full" disabled={loading || !address.trim()} onClick={analyze}>{loading ? copy("location.analyzing") : copy("location.start")}</Button>

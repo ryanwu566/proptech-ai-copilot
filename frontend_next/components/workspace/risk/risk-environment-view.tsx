@@ -47,7 +47,11 @@ export function RiskEnvironmentView() {
   const workspace = useWorkspace();
   const queryContext = useMemo(() => buildRiskQueryContext(workspace), [workspace]);
   const latestContext = useRef<RiskQueryContext | null>(queryContext);
-  const [result, setResult] = useState<TerrainRiskResult | null>(null);
+  latestContext.current = queryContext;
+  const requestId = useRef(0);
+  const activeRequest = useRef<string | null>(null);
+  const [storedResult, setResult] = useState<{ fingerprint: string; value: TerrainRiskResult } | null>(null);
+  const result = storedResult?.fingerprint === queryContext?.fingerprint ? storedResult?.value ?? null : null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedKey, setSelectedKey] = useState<string>();
@@ -63,19 +67,23 @@ export function RiskEnvironmentView() {
   const summaryCounts = riskSummaryCounts(model);
 
   useEffect(() => {
-    latestContext.current = queryContext;
+    requestId.current += 1;
+    activeRequest.current = null;
     setResult(null); setError(""); setLoading(false);
   }, [queryContext?.fingerprint]);
+  useEffect(() => () => { requestId.current += 1; activeRequest.current = null; }, []);
   useEffect(() => { setSelectedKey(defaultSelection(model)); }, [model]);
 
   async function refreshEvidence() {
-    if (!queryContext) return;
+    if (!queryContext || activeRequest.current === queryContext.fingerprint) return;
     const responseContext = queryContext;
+    const responseId = ++requestId.current;
+    activeRequest.current = responseContext.fingerprint;
     setLoading(true); setError("");
     try {
       const next = await api.terrainRiskAnalyze(responseContext.payload);
       const current = latestContext.current;
-      if (current && canCommitRiskResponse(current, responseContext)) {
+      if (requestId.current === responseId && current && canCommitRiskResponse(current, responseContext)) {
         const model = buildRiskEvidenceModel(next);
         const anchor = workspace.identity.anchor;
         if (anchor?.coordinates) {
@@ -85,14 +93,17 @@ export function RiskEnvironmentView() {
             coordinates: anchor.coordinates,
           });
         }
-        setResult(next);
+        setResult({ fingerprint: responseContext.fingerprint, value: next });
       }
     } catch {
       const current = latestContext.current;
-      if (current && canCommitRiskResponse(current, responseContext)) setError("目前無法完成風險證據查詢；已保留其他可用內容，請稍後重試。");
+      if (requestId.current === responseId && current && canCommitRiskResponse(current, responseContext)) setError("目前無法完成風險證據查詢；已保留其他可用內容，請稍後重試。");
     } finally {
       const current = latestContext.current;
-      if (current && canCommitRiskResponse(current, responseContext)) setLoading(false);
+      if (requestId.current === responseId && current && canCommitRiskResponse(current, responseContext)) {
+        activeRequest.current = null;
+        setLoading(false);
+      }
     }
   }
 
@@ -146,7 +157,7 @@ export function RiskEnvironmentView() {
       <p className="text-meta">來源有效期間以證據表為準；查詢時間不等於資料發布時間。</p>
     </Section>
 
-    {freshModel && coordinates && <SourceDetails model={freshModel} result={result!} coordinates={coordinates} />}
+    {freshModel && coordinates && <SourceDetails key={`${workspace.caseId}|${queryContext?.fingerprint}`} model={freshModel} result={result!} coordinates={coordinates} />}
   </div>;
 }
 

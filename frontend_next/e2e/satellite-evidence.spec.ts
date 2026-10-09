@@ -154,6 +154,9 @@ for (const status of ["available", "limited", "unavailable"] as const) {
 
     const card = page.getByTestId("satellite-evidence-card");
     await expect(card).toBeVisible();
+    await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
+    expect(requestBodies).toEqual([]);
+    await page.getByTestId("satellite-request-action").click();
     await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", status);
     await expect(card).toContainText("Sentinel-2 / Copernicus");
     await expect(card).toContainText("COPERNICUS/S2_SR_HARMONIZED");
@@ -171,3 +174,162 @@ for (const status of ["available", "limited", "unavailable"] as const) {
     }
   });
 }
+
+test("accepted Satellite mounts, rerenders, locale changes and remounts add zero requests", async ({ page }) => {
+  let calls = 0;
+  await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(terrainResult()) }));
+  await page.route("**/terrain/satellite-reference", (route) => {
+    calls += 1;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(satelliteResponse("available")) });
+  });
+  await openTerrain(page);
+  await page.locator("#terrain-risk-analysis input").first().fill("Taipei accepted fixture");
+  await page.getByRole("button", { name: "Start terrain and hazard check", exact: true }).click();
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
+  for (const locale of ["ja", "ko", "zh-TW", "en"]) await page.getByTestId("locale-switcher").selectOption(locale);
+  await expect(page.getByTestId("satellite-request-action")).toBeEnabled();
+  expect(calls).toBe(0);
+  await page.getByTestId("satellite-request-action").click();
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "available");
+  await page.getByTestId("locale-switcher").selectOption("ja");
+  await page.getByTestId("locale-switcher").selectOption("en");
+  expect(calls).toBe(1);
+  // A new Terrain result remounts Satellite; remounting itself must remain free.
+  await page.getByRole("button", { name: "Start terrain and hazard check", exact: true }).click();
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
+  expect(calls).toBe(1);
+});
+
+test("Satellite action synchronously blocks duplicate clicks and ignores stale property A", async ({ page }) => {
+  const requests: unknown[] = [];
+  let finishA!: () => void;
+  const pendingA = new Promise<void>((resolve) => { finishA = resolve; });
+  await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(terrainResult()) }));
+  await page.route("**/terrain/satellite-reference", async (route) => {
+    requests.push(route.request().postDataJSON());
+    if (requests.length === 1) await pendingA;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(satelliteResponse("available")) }).catch(() => undefined);
+  });
+  await openTerrain(page);
+  await page.locator("#terrain-risk-analysis input").first().fill("Taipei accepted fixture");
+  await page.getByRole("button", { name: "Start terrain and hazard check", exact: true }).click();
+  const button = page.getByTestId("satellite-request-action");
+  await button.evaluate((node) => { (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click(); });
+  await expect.poll(() => requests.length).toBe(1);
+  await expect(button).toBeDisabled();
+  const propertyB = terrainResult();
+  propertyB.resolved_location.latitude = 25.1;
+  await page.evaluate((result) => window.dispatchEvent(new CustomEvent("proptech:terrain-risk-result-ready", { detail: result })), propertyB);
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
+  finishA();
+  await page.waitForTimeout(100);
+  await expect(page.getByTestId("satellite-reference-image")).toHaveCount(0);
+  await expect(button).toBeEnabled();
+  await button.click();
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "available");
+  expect(requests).toEqual([{ latitude: 25.0375, longitude: 121.5645 }, { latitude: 25.1, longitude: 121.5645 }]);
+});
+
+test("Terrain explicit action suppresses duplicate same-turn provider fan-out", async ({ page }) => {
+  let calls = 0;
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/terrain-risk/analyze", async (route) => {
+    calls += 1;
+    await pending;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(terrainResult()) });
+  });
+  await openTerrain(page);
+  await page.locator("#terrain-risk-analysis input").first().fill("Taipei accepted fixture");
+  await page.getByRole("button", { name: "Start terrain and hazard check", exact: true }).evaluate((node) => {
+    (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click();
+  });
+  await expect.poll(() => calls).toBe(1);
+  finish();
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
+});
+
+test("Location explicit action suppresses duplicate same-turn Places fan-out", async ({ page }) => {
+  let calls = 0;
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/location/insight", async (route) => {
+    calls += 1;
+    await pending;
+    await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ detail: "Fixture unavailable" }) });
+  });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.getByTestId("locale-switcher").selectOption("en");
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: "location" })));
+  await expect(page.locator("#location-insight-calculator")).toBeVisible();
+  await page.locator("#location-insight-calculator").getByLabel("Property address", { exact: true }).fill("Accepted fixture address");
+  await page.getByRole("button", { name: "Start location analysis", exact: true }).evaluate((node) => {
+    (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click();
+  });
+  await expect.poll(() => calls).toBe(1);
+  finish();
+  await expect(page.getByRole("button", { name: "Start location analysis", exact: true })).toBeEnabled();
+});
+
+test("changed Location radius invalidates in-flight evidence without starting another request", async ({ page }) => {
+  let calls = 0;
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/location/insight", async (route) => {
+    calls += 1;
+    await pending;
+    await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ detail: "Fixture unavailable" }) });
+  });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.getByTestId("locale-switcher").selectOption("en");
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: "location" })));
+  const calculator = page.locator("#location-insight-calculator");
+  await calculator.getByLabel("Property address", { exact: true }).fill("Accepted fixture address");
+  await calculator.getByRole("button", { name: "Start location analysis", exact: true }).click();
+  await expect.poll(() => calls).toBe(1);
+  await calculator.getByLabel("Analysis radius (m)", { exact: true }).fill("1100");
+  await expect(calculator.getByRole("button", { name: "Start location analysis", exact: true })).toBeEnabled();
+  finish();
+  await page.waitForTimeout(100);
+  await expect(calculator).not.toContainText("Location data is temporarily unavailable");
+  expect(calls).toBe(1);
+});
+
+test("external Location property props replace A with B while A is pending", async ({ page }) => {
+  let calls = 0;
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  const resultA = {
+    input: { address: "Property A" }, resolved_location: { address_label: "Property A", latitude: 25.03, longitude: 121.56, geocoding_confidence: "high" },
+    radius_m: 800, location_score: 78,
+    category_scores: { transit_score: 80, convenience_score: 70, education_score: 60, green_space_score: 50, medical_score: 40, risk_score: 30 },
+    poi_summary: { transit_count: 4 }, nearest_pois: [], strengths: [], weaknesses: [], buyer_fit: {},
+    valuation_context: { supports_price_reasonableness: "unknown", explanation: "Reference only" },
+    data_quality: { status: "good", missing_sources: [], warnings: [] }, scoring_method: { weights: {}, explanation: "Fixture" }, disclaimer: "Reference only",
+  };
+  await page.route("**/location/insight", async (route) => {
+    calls += 1;
+    await pending;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(resultA) });
+  });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.getByTestId("locale-switcher").selectOption("en");
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: "location" })));
+  const input = page.locator("#location-insight-calculator").getByLabel("Property address", { exact: true });
+  await input.fill("Property A");
+  await input.evaluate((node) => node.setAttribute("data-mounted-instance", "retained"));
+  await page.getByRole("button", { name: "Start location analysis", exact: true }).click();
+  await expect.poll(() => calls).toBe(1);
+  await page.evaluate(() => {
+    window.dispatchEvent(new CustomEvent("proptech:guided-demo-result", { detail: {
+      inputs: { city: "臺北市", district: "信義區", road: "Property B", building_type: "住宅大樓", area_ping: 30, building_age_years: 5, floor: 8 },
+    } }));
+    window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: "location" }));
+  });
+  await expect(input).toHaveValue("臺北市信義區Property B");
+  await expect(input).toHaveAttribute("data-mounted-instance", "retained");
+  finish();
+  await page.waitForTimeout(100);
+  await expect(page.getByTestId("location-result")).toHaveCount(0);
+  expect(calls).toBe(1);
+});

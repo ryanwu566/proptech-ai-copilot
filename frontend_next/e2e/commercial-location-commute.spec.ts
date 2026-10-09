@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 const CHECKED_AT = "2026-09-27T08:00:00.000Z";
 const STORAGE_KEY = "proptech.savedCases.v1";
 
+test.beforeEach(async ({ page }) => {
+  await page.route("https://*.tile.openstreetmap.org/**", (route) => route.fulfill({ status: 204, body: "" }));
+});
+
 function savedCase(stale = false) {
   return {
     id: "location-case",
@@ -55,6 +59,8 @@ async function seed(page: import("@playwright/test").Page, stale = false) {
 }
 
 test("location workspace leads with the active property map and explainable evidence", async ({ page }) => {
+  let providerCalls = 0;
+  await page.route(/\/(commute\/(route|address-lookup)|location-insight\/analyze)$/, (route) => { providerCalls += 1; return route.abort(); });
   await seed(page);
   await page.goto("/cases/location-case/location");
 
@@ -74,6 +80,33 @@ test("location workspace leads with the active property map and explainable evid
   await expect(page.getByText("目的地路線可用；大眾運輸周邊資料目前無法取得。")).toBeVisible();
   await expect(page.getByText("次要里鄰人口背景", { exact: true })).toBeVisible();
   await expect(page.getByText("來源與查詢細節", { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByTestId("commute-route-card")).toContainText("約 23 分鐘");
+  expect(providerCalls).toBe(0);
+});
+
+test("route and TDX explicit actions synchronously suppress accidental duplicate submits", async ({ page }) => {
+  await seed(page);
+  const calls = { routes: 0, tdx: 0 };
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/commute/route", async (route) => {
+    calls.routes += 1;
+    await pending;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ...savedCase().data.commuteRoute, message: "Reference", disclaimer: "Reference only" }) });
+  });
+  await page.route("**/commute/address-lookup", async (route) => {
+    calls.tdx += 1;
+    await pending;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(savedCase().data.commuteTransit) });
+  });
+  await page.goto("/cases/location-case/location");
+  await page.getByRole("button", { name: "估算通勤" }).evaluate((node) => { (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click(); });
+  await page.getByRole("button", { name: "查看通勤資訊" }).evaluate((node) => { (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click(); });
+  await expect.poll(() => calls).toEqual({ routes: 1, tdx: 1 });
+  finish();
+  await expect(page.getByTestId("commute-route-state")).toHaveAttribute("data-status", "available");
+  await expect(page.getByTestId("commute-transit-context-state")).toHaveAttribute("data-status", "unavailable");
 });
 
 test("destination changes clear stale route evidence, preserve TDX, and save only the bounded route", async ({ page }) => {

@@ -25,16 +25,23 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
   const onResultRef = useRef(onResult);
   const previousAddressRef = useRef(address);
   const mountedRef = useRef(true);
+  const requestId = useRef(0);
+  const activeRequest = useRef<number | null>(null);
+  latestAddressRef.current = address;
 
-  useEffect(() => () => { mountedRef.current = false; }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; requestId.current += 1; activeRequest.current = null; };
+  }, []);
 
   useEffect(() => { onStatusRef.current = onStatusChange; }, [onStatusChange]);
   useEffect(() => { onResultRef.current = onResult; }, [onResult]);
 
   useEffect(() => {
-    latestAddressRef.current = address;
     if (previousAddressRef.current === address) return;
     previousAddressRef.current = address;
+    requestId.current += 1;
+    activeRequest.current = null;
     setStatus("idle");
     setResult(null);
     setMessage(copy("commute.idle"));
@@ -53,14 +60,16 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
       setMessage(copy("commute.empty"));
       return;
     }
-    if (status === "loading") return;
+    if (activeRequest.current !== null) return;
+    const currentRequest = ++requestId.current;
+    activeRequest.current = currentRequest;
 
     setStatus("loading");
     setResult(null);
     setMessage(copy("commute.checking"));
     try {
       const next = normalizeCommuteResult(await api.commuteAddressLookup({ address: requestedAddress }));
-      if (!mountedRef.current || latestAddressRef.current.trim() !== requestedAddress) return;
+      if (!mountedRef.current || requestId.current !== currentRequest || latestAddressRef.current.trim() !== requestedAddress) return;
       if (next.status === "resolved") {
         setResult(next);
         onResultRef.current?.(next);
@@ -78,11 +87,13 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
         setMessage(copy("commute.unavailable"));
       }
     } catch {
-      if (!mountedRef.current || latestAddressRef.current.trim() !== requestedAddress) return;
+      if (!mountedRef.current || requestId.current !== currentRequest || latestAddressRef.current.trim() !== requestedAddress) return;
       setResult(null);
       onResultRef.current?.(null);
       setStatus("error");
       setMessage(copy("commute.error"));
+    } finally {
+      if (requestId.current === currentRequest) activeRequest.current = null;
     }
   }
 

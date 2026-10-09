@@ -74,6 +74,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
   const [parcelErrorCode, setParcelErrorCode] = useState("");
   const [spatialEvidence, setSpatialEvidence] = useState<{ layer: string; analysis: ParcelSpatialAnalysis }[]>([]);
   const requestRef = useRef(0);
+  const activeRequestRef = useRef<number | null>(null);
   const uploadRequestRef = useRef(0);
   const uploadAbortRef = useRef<AbortController | null>(null);
   const onResultRef = useRef(onResult);
@@ -88,9 +89,11 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     ? [location?.resolved_location?.address_label, location?.resolved_location?.latitude, location?.resolved_location?.longitude].join("|")
     : [address, city, district, road, latitude, longitude].join("|");
   const previousLocationIdentityKey = useRef(locationIdentityKey);
+  useEffect(() => () => { requestRef.current += 1; activeRequestRef.current = null; }, []);
 
   useEffect(() => {
     requestRef.current += 1; uploadRequestRef.current += 1; uploadAbortRef.current?.abort();
+    activeRequestRef.current = null;
     setLoading(false); setResult(undefined); setError(""); setProgress("idle");
     setParcelEvidence(undefined); setParcelFileName(""); setParcelPhase("idle"); setParcelError(""); setParcelErrorCode(""); setSpatialEvidence([]);
     onResultRef.current?.(null); onStatusChangeRef.current?.("not_started");
@@ -99,6 +102,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     if (previousInputKey.current === inputKey) return;
     previousInputKey.current = inputKey;
     requestRef.current += 1;
+    activeRequestRef.current = null;
     setLoading(false);
     setResult(undefined);
     setError("");
@@ -117,13 +121,13 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     function applyPrefill(event: Event) {
       const detail = (event as CustomEvent<TerrainRiskPrefill>).detail;
       setAddress(detail.address ?? ""); setCity(detail.city ?? ""); setDistrict(detail.district ?? ""); setRoad(detail.road ?? "");
-      requestRef.current += 1; setLoading(false); setLatitude(detail.latitude ?? ""); setLongitude(detail.longitude ?? ""); setRadius(detail.radius_m ?? 500); setResult(undefined);
+      requestRef.current += 1; activeRequestRef.current = null; setLoading(false); setLatitude(detail.latitude ?? ""); setLongitude(detail.longitude ?? ""); setRadius(detail.radius_m ?? 500); setResult(undefined);
     }
     window.addEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
     return () => window.removeEventListener(TERRAIN_RISK_PREFILL_EVENT, applyPrefill);
   }, []);
   useEffect(() => {
-    function applyResult(event: Event) { requestRef.current += 1; setLoading(false); setResult((event as CustomEvent<TerrainRiskResult>).detail); setProgress("rendering"); }
+    function applyResult(event: Event) { requestRef.current += 1; activeRequestRef.current = null; setLoading(false); setResult((event as CustomEvent<TerrainRiskResult>).detail); setProgress("rendering"); }
     window.addEventListener(TERRAIN_RISK_RESULT_EVENT, applyResult);
     return () => window.removeEventListener(TERRAIN_RISK_RESULT_EVENT, applyResult);
   }, []);
@@ -182,7 +186,9 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
     setParcelEvidence(undefined); setParcelFileName(""); setParcelPhase("idle"); setParcelError(""); setParcelErrorCode(""); setSpatialEvidence([]);
   }
   async function analyze() {
+    if (activeRequestRef.current !== null) return;
     const requestId = ++requestRef.current;
+    activeRequestRef.current = requestId;
     setLoading(true); setError(""); setProgress("accepted");
     setResult(undefined); onResultRef.current?.(null);
     try {
@@ -205,7 +211,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
       if (parcelEvidence?.geometry) void refreshSpatialEvidence(parcelEvidence, next, uploadRequestRef.current);
       window.dispatchEvent(new CustomEvent<TerrainRiskResult>(TERRAIN_RISK_RESULT_EVENT, { detail: next })); window.dispatchEvent(new Event("proptech:workflow-status-updated"));
     } catch (caught) { if (requestId === requestRef.current) { setError((caught as Error).message); setProgress("idle"); onResultRef.current?.(null); onStatusChangeRef.current?.("unavailable"); } }
-    finally { if (requestId === requestRef.current) setLoading(false); }
+    finally { if (requestId === requestRef.current) { activeRequestRef.current = null; setLoading(false); } }
   }
 
   const canAnalyze = compactFromLocation ? Boolean(location?.resolved_location) : Boolean(address.trim() || road.trim() || (latitude !== "" && longitude !== ""));
@@ -238,7 +244,7 @@ export function TerrainRiskAnalysis({ location, compactFromLocation = false, res
           {!canAnalyze && <p className="text-[10px] leading-5 text-amber-700">{compactFromLocation ? copy.compactMissing : copy.standaloneMissing}</p>}
           {error && <ErrorState message={error} />}
         </div>
-        <div className="min-w-0">{!result ? <div className="space-y-4"><div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500"><p>{copy.empty}<br /><span className="text-xs">{copy.emptyDetail}</span></p></div><SatelliteEvidence coordinate={null} /></div> : <TerrainRiskResults result={result} satelliteCoordinate={{ latitude: Number(result.resolved_location.latitude), longitude: Number(result.resolved_location.longitude), accepted: true }} parcelEvidence={parcelEvidence} copy={copy} parcelCopy={parcelCopy} onReferenceAttach={onReferenceAttach} />}</div>
+        <div className="min-w-0">{!result ? <div className="space-y-4"><div className="grid min-h-52 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-5 text-center text-sm leading-7 text-slate-500"><p>{copy.empty}<br /><span className="text-xs">{copy.emptyDetail}</span></p></div><SatelliteEvidence coordinate={null} /></div> : <TerrainRiskResults result={result} satelliteCoordinate={{ latitude: Number(result.resolved_location.latitude), longitude: Number(result.resolved_location.longitude), accepted: true, propertyKey: result.resolved_location.address_label }} parcelEvidence={parcelEvidence} copy={copy} parcelCopy={parcelCopy} onReferenceAttach={onReferenceAttach} />}</div>
       </div>
     </SectionCard>
   </section>;

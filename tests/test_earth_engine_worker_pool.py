@@ -191,6 +191,35 @@ def test_manager_owns_exactly_two_worker_slots_and_never_starts_a_third() -> Non
     assert manager.live_worker_count == 0
 
 
+def test_physical_generation_metric_counts_worker_dispatch_not_startup(monkeypatch) -> None:
+    from services.provider_cost_metrics import PROVIDER_COST_METRICS
+
+    manager = worker_pool.EarthEngineWorkerManager(worker_target=_successful_worker,
+                                                   startup_timeout_seconds=5.0)
+    before = PROVIDER_COST_METRICS.snapshot().get(("satellite", "physical_calls"), 0)
+    try:
+        manager.start(enabled=True, project="mock-project")
+        _wait_for_state(manager, "available")
+        assert PROVIDER_COST_METRICS.snapshot().get(("satellite", "physical_calls"), 0) == before
+        monkeypatch.setattr(satellite, "_get_earth_engine_worker_manager", lambda: manager)
+        satellite.clear_satellite_reference_cache()
+
+        async def journey():
+            results = await asyncio.gather(*(
+                satellite.fetch_satellite_reference(latitude=25.0375, longitude=121.5645)
+                for _ in range(2)
+            ))
+            results.append(await satellite.fetch_satellite_reference(latitude=25.0375, longitude=121.5645))
+            return results
+
+        results = asyncio.run(journey())
+        assert all(result.status == "available" for result in results)
+        assert PROVIDER_COST_METRICS.snapshot().get(("satellite", "physical_calls"), 0) - before == 1
+    finally:
+        satellite.clear_satellite_reference_cache()
+        manager.shutdown()
+
+
 def test_request_dto_contains_only_version_generation_id_coordinate_and_dates() -> None:
     assert [field.name for field in fields(worker_pool.SatelliteWorkerRequest)] == [
         "version",

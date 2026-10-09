@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 
 from services.metrics import BoundedMetricsRegistry, valid_scrape_token
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.production_config import METRICS_SCRAPE_TOKEN_ENV
 
 
@@ -29,7 +30,7 @@ def build_metrics_router(registry: BoundedMetricsRegistry) -> APIRouter:
         ):
             raise HTTPException(status_code=404, detail="Not Found")
         return PlainTextResponse(
-            registry.render_prometheus(),
+            registry.render_prometheus() + PROVIDER_COST_METRICS.render_prometheus(),
             media_type="text/plain; version=0.0.4",
         )
 

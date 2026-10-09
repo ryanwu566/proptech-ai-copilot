@@ -5,10 +5,13 @@ from __future__ import annotations
 import math
 import os
 import threading
-import time
+from datetime import UTC, datetime
 from typing import Any
 
 import httpx
+
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.provider_request_cache import BoundedRequestCache
 
 
 PLACES_URL = "https://places.googleapis.com/v1/places:searchNearby"
@@ -72,12 +75,26 @@ class GooglePlacesAdapter:
     def __init__(self, api_key: str | None = None, timeout_seconds: float = 3.5, client: httpx.Client | None = None) -> None:
         self.api_key = (api_key if api_key is not None else os.getenv("GOOGLE_MAPS_API_KEY", "")).strip()
         self.timeout_seconds = timeout_seconds
-        self._cache: dict[tuple[Any, ...], tuple[float, list[dict[str, Any]]]] = {}
-        self._cache_lock = threading.Lock()
+        self._cache = BoundedRequestCache("places", ttl_seconds=600, max_entries=256)
+        self._fanout_requests = BoundedRequestCache("places_request", ttl_seconds=0, max_entries=256)
+        self._observation = threading.local()
         self._client_lock = threading.Lock()
         self._client = client
         self._owns_client = client is None
         self.cache_ttl_seconds = 600
+
+    @property
+    def last_checked_at(self) -> str | None:
+        """Observation time of this thread's last nearby result, including cache hits."""
+        return getattr(self._observation, "checked_at", None)
+
+    def request_configuration(self, categories: list[str]) -> tuple[Any, ...]:
+        """Material provider/query/filter configuration; no credentials in keys."""
+        return (
+            "nearby-v1", PLACES_URL, FIELD_MASK, self.timeout_seconds, 10, "DISTANCE",
+            tuple((category, tuple(CATEGORY_TYPES[category]), tuple(CATEGORY_ACCEPTED_TYPES[category]), tuple(sorted(CATEGORY_DISALLOWED_TYPES.get(category, ())))) for category in categories),
+            tuple(sorted(_TRAIL_KEYWORDS)),
+        )
 
     @property
     def available(self) -> bool:
@@ -97,11 +114,18 @@ class GooglePlacesAdapter:
 
         if not self.available:
             return []
-        cache_key = (round(lat, 5), round(lng, 5), radius_m, category, language_code)
-        with self._cache_lock:
-            cached = self._cache.get(cache_key)
-        if cached and time.monotonic() - cached[0] < self.cache_ttl_seconds:
-            return cached[1]
+        self._cache.ttl_seconds = self.cache_ttl_seconds
+        cache_key = (float(lat), float(lng), float(radius_m), category, language_code, self.request_configuration([category]))
+
+        def fetch():
+            places = self._fetch_nearby(lat, lng, radius_m, category, language_code)
+            return places, datetime.now(UTC).isoformat()
+
+        places, observed_at = self._cache.run(cache_key, fetch)
+        self._observation.checked_at = observed_at
+        return places
+
+    def _fetch_nearby(self, lat: float, lng: float, radius_m: int, category: str, language_code: str) -> list[dict[str, Any]]:
 
         payload = {
             "includedTypes": CATEGORY_TYPES[category],
@@ -120,13 +144,39 @@ class GooglePlacesAdapter:
             "X-Goog-Api-Key": self.api_key,
             "X-Goog-FieldMask": FIELD_MASK,
         }
-        response = self._get_client().post(PLACES_URL, json=payload, headers=headers)
-        response.raise_for_status()
-        normalized = [self._normalize(row, lat, lng, category) for row in response.json().get("places", [])]
-        places = [place for place in normalized if is_valid_place_type(category, place.get("types"), place.get("name", ""))]
-        with self._cache_lock:
-            self._cache[cache_key] = (time.monotonic(), places)
+        try:
+            PROVIDER_COST_METRICS.record("places", "physical_calls")
+            response = self._get_client().post(PLACES_URL, json=payload, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            if not isinstance(data, dict) or "error" in data or not isinstance(data.get("places", []), list):
+                raise ValueError("Google Places returned an unusable response")
+            rows = data.get("places", [])
+            if any(not self._verifiable_place(row) for row in rows):
+                raise ValueError("Google Places returned an unverifiable place")
+            normalized = [self._normalize(row, lat, lng, category) for row in rows]
+            places = [place for place in normalized if is_valid_place_type(category, place.get("types"), place.get("name", ""))]
+        except httpx.TimeoutException:
+            PROVIDER_COST_METRICS.record("places", "provider_timeout")
+            raise
+        except Exception:
+            PROVIDER_COST_METRICS.record("places", "provider_failure")
+            raise
+        PROVIDER_COST_METRICS.record("places", "provider_success")
         return places
+
+    @staticmethod
+    def _verifiable_place(row: Any) -> bool:
+        if not isinstance(row, dict) or not isinstance(row.get("id"), str) or not row["id"].strip():
+            return False
+        location = row.get("location")
+        types = row.get("types")
+        if not isinstance(location, dict) or not isinstance(types, list) or not types or not all(isinstance(item, str) and item.strip() for item in types):
+            return False
+        lat, lng = location.get("latitude"), location.get("longitude")
+        if any(isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) for value in (lat, lng)):
+            return False
+        return -90 <= lat <= 90 and -180 <= lng <= 180
 
     def _get_client(self) -> httpx.Client:
         # A single client reuses connections and is safe for the bounded map

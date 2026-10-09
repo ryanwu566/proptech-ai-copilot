@@ -9,6 +9,9 @@ from urllib.parse import urlencode
 
 import httpx
 
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.provider_request_cache import BoundedRequestCache
+
 from .base import source_meta, unavailable_layer
 
 
@@ -23,6 +26,10 @@ MAX_RESPONSE_BYTES = 1_000_000
 MAX_FEATURES_PER_CLASSIFICATION = 1_000
 RESPONSE_CHUNK_BYTES = 64 * 1024
 EARTH_RADIUS_M = 6_378_137.0
+QUERY_CACHE_TTL_SECONDS = 300
+QUERY_CACHE_MAX_ENTRIES = 64
+QUERY_CONTRACT_VERSION = "official-liquefaction-v1"
+_QUERY_CACHE = BoundedRequestCache("liquefaction", ttl_seconds=QUERY_CACHE_TTL_SECONDS, max_entries=QUERY_CACHE_MAX_ENTRIES)
 
 OFFICIAL_CLASSIFICATIONS = ("低潛勢", "中潛勢", "高潛勢")
 CLASSIFICATION_LEVELS = {"低潛勢": "low", "中潛勢": "medium", "高潛勢": "high"}
@@ -67,11 +74,16 @@ class GeologyCloudProvider:
         timeout_seconds: float = REQUEST_TIMEOUT_SECONDS,
         max_response_bytes: int = MAX_RESPONSE_BYTES,
         max_features: int = MAX_FEATURES_PER_CLASSIFICATION,
+        use_cache: bool = True,
     ) -> None:
         self.http_get = http_get
         self.timeout_seconds = min(float(timeout_seconds), 5.0)
         self.max_response_bytes = max_response_bytes
         self.max_features = max_features
+        self.use_cache = use_cache
+        self._query_cache = _QUERY_CACHE if http_get is None else BoundedRequestCache(
+            "liquefaction", ttl_seconds=QUERY_CACHE_TTL_SECONDS, max_entries=QUERY_CACHE_MAX_ENTRIES,
+        )
 
     def analyze(
         self,
@@ -115,7 +127,16 @@ class GeologyCloudProvider:
             )
             return result
 
-        result["liquefaction"] = self._query_liquefaction(latitude, longitude, area, bbox)
+        operation = lambda: self._query_liquefaction(latitude, longitude, area, bbox)
+        # Exact coordinates and radius remain material even when the emitted
+        # seven-decimal bbox is identical. Administrative hints remain distinct.
+        key = (float(latitude), float(longitude), radius_m, str(area_hint).strip().replace("台", "臺"),
+               area, API_URL, QUERY_CONTRACT_VERSION, OFFICIAL_CLASSIFICATIONS,
+               DATA_LIMITATION, COVERAGE_LIMITATION, self.max_response_bytes, self.max_features,
+               self.timeout_seconds)
+        result["liquefaction"] = self._query_cache.run(
+            key, operation, cacheable=lambda layer: layer["status"] == "available",
+        ) if self.use_cache else operation()
         return result
 
     def _query_liquefaction(
@@ -139,7 +160,10 @@ class GeologyCloudProvider:
                         for feature in features
                     ),
                 }
+                PROVIDER_COST_METRICS.record("liquefaction", "provider_success")
             except Exception as exc:
+                event = "provider_timeout" if isinstance(exc, (httpx.TimeoutException, TimeoutError)) else "provider_failure"
+                PROVIDER_COST_METRICS.record("liquefaction", event)
                 errors[classification] = type(exc).__name__
 
         matched_classifications = [
@@ -210,6 +234,7 @@ class GeologyCloudProvider:
         }
 
     def _fetch(self, url: str) -> bytes:
+        PROVIDER_COST_METRICS.record("liquefaction", "physical_calls")
         if self.http_get is not None:
             payload = self.http_get(url, self.timeout_seconds)
             if not isinstance(payload, bytes):

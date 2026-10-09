@@ -109,6 +109,8 @@ async function seed(page: Page, stale = false, withSavedRisk = true) {
 }
 
 test("risk route keeps saved evidence limited until an explicit refresh", async ({ page }) => {
+  let analysisCalls = 0;
+  await page.route("**/terrain-risk/analyze", (route) => { analysisCalls += 1; return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(riskResult()) }); });
   await seed(page);
   await page.goto("/cases/risk-case-1/risk");
 
@@ -117,6 +119,37 @@ test("risk route keeps saved evidence limited until an explicit refresh", async 
   await expect(page.getByText("已儲存的摘要證據", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("需重新查詢才能檢視完整結果；摘要不會被重建成即時證據。", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "查詢目前物件風險證據" })).toBeEnabled();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "查詢目前物件風險證據" })).toBeEnabled();
+  expect(analysisCalls).toBe(0);
+});
+
+test("risk refresh blocks duplicate same-turn submit and disclosure remains free", async ({ page }) => {
+  await seed(page, false, false);
+  let calls = 0;
+  let satelliteCalls = 0;
+  let finish!: () => void;
+  const pending = new Promise<void>((resolve) => { finish = resolve; });
+  await page.route("**/terrain-risk/analyze", async (route) => {
+    calls += 1;
+    await pending;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(riskResult()) });
+  });
+  await page.route("**/terrain/satellite-reference", (route) => { satelliteCalls += 1; return route.abort(); });
+  await page.goto("/cases/risk-case-1/risk");
+  await page.getByRole("button", { name: "查詢目前物件風險證據" }).evaluate((node) => {
+    (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click();
+  });
+  await expect.poll(() => calls).toBe(1);
+  finish();
+  await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
+  await page.getByText("衛星影像參考（輔助證據）").click();
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
+  expect(satelliteCalls).toBe(0);
+  await page.reload();
+  await expect(page.getByText("已儲存的摘要證據", { exact: true }).first()).toBeVisible();
+  expect(calls).toBe(1);
+  expect(satelliteCalls).toBe(0);
 });
 
 test("fresh query renders a primary map, ordered evidence, unknowns, actions, and source details", async ({ page }) => {

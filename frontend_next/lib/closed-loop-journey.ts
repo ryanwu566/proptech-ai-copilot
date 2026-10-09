@@ -14,6 +14,7 @@ import { deriveJourneyRoadFromAcceptedAddress, getSafeJourneyPropertyContext, ty
 import type { PriceJourneyDisplayStatus } from "@/lib/price-affordability-journey";
 import type { StoredTerrainReferenceEvidenceV1, TerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { getActionableValuation } from "@/lib/valuation-result-state";
+import { withLocationAdvisoryContext } from "@/lib/location-evidence-context";
 import {
   buildJourneyPropertyIdentityAnchor,
   reconcileJourneyPropertyIdentityAnchor,
@@ -103,8 +104,12 @@ export function updateJourneyProperty(
   const addressChanged = journeyAddressKey(state.propertyContext) !== journeyAddressKey(propertyContext);
   const valuationChanged = journeyValuationKey(state.propertyContext) !== journeyValuationKey(propertyContext);
   const askingChanged = state.propertyContext.askingPriceWan !== propertyContext.askingPriceWan;
+  const advisoryChanged = askingChanged || state.propertyContext.areaPing !== propertyContext.areaPing;
 
-  let next: ClosedLoopJourneyState = { ...state, propertyContext };
+  let next: ClosedLoopJourneyState = {
+    ...state, propertyContext,
+    locationResult: advisoryChanged && state.locationResult ? withLocationAdvisoryContext(state.locationResult, propertyContext.askingPriceWan, propertyContext.areaPing) : state.locationResult,
+  };
   if (addressChanged) {
     const hasAddress = Boolean(journeyAddressKey(propertyContext).replaceAll("|", ""));
     next = {
