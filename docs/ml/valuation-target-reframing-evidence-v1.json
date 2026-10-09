@@ -1,0 +1,998 @@
+{
+  "availability": {
+    "bounds": [
+      {
+        "archive_sha256": "4d9fa7be16bc9aba99e79c0f86ca27b32f46755de04e98e1dd2c8d8297b466c1",
+        "available_at": "2026-10-08T06:23:17.233018+00:00",
+        "historical_publication_proven": false,
+        "publication_at": null,
+        "publication_date": null,
+        "quality": "CONSERVATIVE_UPPER_BOUND",
+        "release_id": "moi-plvr-sale-season-112S3",
+        "version": "plvr-evidence-qualified-availability-v1"
+      },
+      {
+        "archive_sha256": "6b4c148bad106a235dddf214001d605ff9ffa45ac50561f7125c6d7fa795d4da",
+        "available_at": "2026-10-08T06:23:31.096999+00:00",
+        "historical_publication_proven": false,
+        "publication_at": null,
+        "publication_date": null,
+        "quality": "CONSERVATIVE_UPPER_BOUND",
+        "release_id": "moi-plvr-sale-season-115S2",
+        "version": "plvr-evidence-qualified-availability-v1"
+      }
+    ],
+    "candidates_public_by_current_cutoff_only": 2267,
+    "historical_evaluation_availability_proven_count": 0,
+    "historical_publication_proven_releases": 0
+  },
+  "baseline_readiness": {
+    "contracts_prepared": true,
+    "district_building_type_median": false,
+    "frozen_asof_history_implemented": true,
+    "global_median": false,
+    "historical_comparable_estimator": false
+  },
+  "blockers": [
+    "TARGET_A_COMPLETE_RIGHTS_AND_REGISTERED_SINGLE_DWELLING_UNPROVEN",
+    "STABLE_CROSS_RELEASE_NAMESPACE_AND_COMPLETE_REVISION_CANCELLATION_HISTORY_UNPROVEN",
+    "EXACT_BYTE_HISTORICAL_AVAILABILITY_AT_FOLD_FREEZES_UNPROVEN",
+    "COMPLETE_MATURE_CONTIGUOUS_PANEL_AND_NONEMPTY_FOUR_BLOCKS_UNPROVEN"
+  ],
+  "branch": "research/ml-target-reframing-evidence-v1",
+  "candidate_all_exclusion_counts": {
+    "AREA_OUTSIDE_V1_SCOPE": 652,
+    "DUPLICATE_DETAIL_PAYLOAD": 2035,
+    "FLOOR_AMBIGUOUS": 9140,
+    "INCOMPLETE_OR_AMBIGUOUS_DETAIL_JOIN": 4525,
+    "INVALID_AREA": 4242,
+    "INVALID_DATE": 1,
+    "NON_RESIDENTIAL_USE": 12898,
+    "NO_REPORTED_LAND": 283,
+    "OFFICIAL_UNIT_PRICE_REQUIRED": 1238,
+    "PARKING_PRESENT": 16662,
+    "PARKING_SEMANTICS_AMBIGUOUS": 7311,
+    "PARKING_UNKNOWN": 263,
+    "PRICE_OUTSIDE_V1_SCOPE": 12,
+    "REPORTED_BUILDING_COUNT_NOT_ONE": 4728,
+    "REPORTED_NOTE_REQUIRES_REVIEW": 26324,
+    "TARGET_RECONCILIATION_FAILED": 10411,
+    "TRANSFERRED_AREA_DETAIL_MISMATCH": 7265,
+    "UNSUPPORTED_BUILDING_TYPE": 6433,
+    "UNSUPPORTED_OR_MIXED_DETAIL_USE": 25111,
+    "UNSUPPORTED_TRANSACTION_TYPE": 20980
+  },
+  "candidate_coverage": {
+    "building_type": {
+      "住宅大樓": 792,
+      "公寓": 1018,
+      "華廈": 457
+    },
+    "county": {
+      "新北市": 1560,
+      "臺北市": 707
+    },
+    "district": {
+      "新北市/三峽區": 40,
+      "新北市/三芝區": 36,
+      "新北市/三重區": 127,
+      "新北市/中和區": 158,
+      "新北市/五股區": 34,
+      "新北市/八里區": 33,
+      "新北市/土城區": 93,
+      "新北市/新店區": 133,
+      "新北市/新莊區": 128,
+      "新北市/板橋區": 152,
+      "新北市/林口區": 14,
+      "新北市/樹林區": 58,
+      "新北市/永和區": 59,
+      "新北市/汐止區": 146,
+      "新北市/泰山區": 17,
+      "新北市/淡水區": 155,
+      "新北市/深坑區": 11,
+      "新北市/瑞芳區": 17,
+      "新北市/石門區": 3,
+      "新北市/萬里區": 26,
+      "新北市/蘆洲區": 77,
+      "新北市/貢寮區": 3,
+      "新北市/金山區": 13,
+      "新北市/鶯歌區": 27,
+      "臺北市/中山區": 121,
+      "臺北市/中正區": 32,
+      "臺北市/信義區": 55,
+      "臺北市/內湖區": 85,
+      "臺北市/北投區": 60,
+      "臺北市/南港區": 25,
+      "臺北市/士林區": 60,
+      "臺北市/大同區": 22,
+      "臺北市/大安區": 83,
+      "臺北市/文山區": 54,
+      "臺北市/松山區": 58,
+      "臺北市/萬華區": 52
+    },
+    "month": {
+      "2022-07": 1,
+      "2022-08": 2,
+      "2022-10": 1,
+      "2022-12": 1,
+      "2023-01": 4,
+      "2023-02": 6,
+      "2023-03": 14,
+      "2023-04": 89,
+      "2023-05": 404,
+      "2023-06": 423,
+      "2023-07": 393,
+      "2023-08": 96,
+      "2025-03": 2,
+      "2025-04": 1,
+      "2025-07": 3,
+      "2025-09": 1,
+      "2025-10": 9,
+      "2025-11": 14,
+      "2025-12": 56,
+      "2026-01": 150,
+      "2026-02": 138,
+      "2026-03": 256,
+      "2026-04": 161,
+      "2026-05": 42
+    },
+    "release": {
+      "moi-plvr-sale-season-112S3": 1434,
+      "moi-plvr-sale-season-115S2": 833
+    }
+  },
+  "candidate_detail_composition": {
+    "MULTIPLE_REGISTERED_PORTIONS_UNIT_ROLES_UNVERIFIED": 1440,
+    "SINGLE_DETAIL_PORTION_UNIT_COUNT_UNVERIFIED": 827
+  },
+  "candidate_dwelling_status": "UNVERIFIED_REGISTERED_UNIT_COUNT",
+  "candidate_first_exclusion_counts": {
+    "AREA_OUTSIDE_V1_SCOPE": 64,
+    "DUPLICATE_DETAIL_PAYLOAD": 5,
+    "FLOOR_AMBIGUOUS": 1821,
+    "INVALID_DATE": 1,
+    "NON_RESIDENTIAL_USE": 3116,
+    "PARKING_SEMANTICS_AMBIGUOUS": 16,
+    "REPORTED_BUILDING_COUNT_NOT_ONE": 162,
+    "REPORTED_NOTE_REQUIRES_REVIEW": 5419,
+    "TRANSFERRED_AREA_DETAIL_MISMATCH": 254,
+    "UNSUPPORTED_BUILDING_TYPE": 545,
+    "UNSUPPORTED_OR_MIXED_DETAIL_USE": 3020,
+    "UNSUPPORTED_TRANSACTION_TYPE": 20979
+  },
+  "candidate_outputs_nonempty": true,
+  "candidate_reported_transfer_labels": {
+    "全筆移轉": 2240,
+    "持分移轉": 2088
+  },
+  "candidate_rights_status": "UNVERIFIED_COMPLETE_DWELLING_RIGHTS",
+  "chronological_coverage": {
+    "approved_calibration_period": null,
+    "approved_test_period": null,
+    "approved_train_period": null,
+    "approved_validation_period": null,
+    "candidate_first_month": "2022-07",
+    "candidate_last_month": "2026-05",
+    "longest_observed_contiguous_month_run": 9,
+    "missing_calendar_months_between_extremes": 23,
+    "observed_month_count": 24
+  },
+  "counts": {
+    "approved_training_cohort": 0,
+    "chronologically_evaluable_observations": 0,
+    "point_in_time_valid_observations": 0,
+    "raw_detail_observations": 159995,
+    "raw_observations": 37669,
+    "structurally_valid_observations": 37668,
+    "target_valid_candidates": 2267
+  },
+  "evidence_classification": [
+    "Inherited historical reports/ledger",
+    "Fresh exact archive bytes and scoped aggregates",
+    "Current official explanatory web content",
+    "Synthetic executed contract proof",
+    "Future admission conditions; no training approval"
+  ],
+  "hashes": {
+    "approved-membership.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "candidate-exclusions.jsonl": "05d7ecd80a81faaa9b1f2a9403745291483a67673c50c11b54453113a59f70f2",
+    "candidate-features.jsonl": "b10b413a469eabc5766c93feff456949727769ab256ad040786f64af81a9476e",
+    "candidate-membership.jsonl": "90d19626fbe205bf93d525ce7b97249869dbd531bc3f08f00ee4f88c157fbf8c",
+    "candidate-targets.jsonl": "5eeb8a85b0fc81bc45bcbe3af1199445be34f3f90b31181bda0a483f428720db",
+    "dataset-manifest.json": "652d540e0f9bc50c956585ef3133b2f10bdb1c496301237489cad731972c9093",
+    "eligibility-ledger.jsonl": "8855457a8783f97d3ef162cccc813d74a21e16f21d00ad78f11c150cec1a813a",
+    "occurrences.jsonl": "75706ad0af0773345bb0a12aeba30ddbd1fc7de693ae2b6bd9a7b6ae213addb8",
+    "pit-membership.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "revision-dispositions.jsonl": "0c748d04dbbd205842c80e441e5bfbceb2b618d6a1ba839374b2b38b4810b651",
+    "revision-edges.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "source-manifest.json": "757ed26da97d791bd7d6c51e1bd345cd4e62b59839d59fa56c4921aff908ebee",
+    "splits.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "identity": {
+    "cancellation_history_attested_count": 0,
+    "candidate_pit_exclusion_counts": {
+      "lineage_unverified": 2267
+    },
+    "namespace_attested_count": 0,
+    "provisional_family_count": 37669,
+    "repeated_family_excess": 0,
+    "repeated_provisional_family_count": 0,
+    "revision_edge_count": 0
+  },
+  "implementation_files": [
+    "docs/ml/contracts/observed-transaction-target-v1.json",
+    "docs/ml/valuation-target-reframing-evidence-v1.json",
+    "docs/ml/valuation-target-reframing-evidence-v1.md",
+    "docs/ml/valuation-target-reframing-plan-v1.md",
+    "scripts/ml/audit_target_reframing.py",
+    "scripts/ml/observed_transaction.py",
+    "tests/test_ml_target_reframing.py",
+    "scripts/ml/chronology.py"
+  ],
+  "independent_review": {
+    "code_and_report_reviewed": true,
+    "critical_unresolved": 0,
+    "fixed_findings": [
+      "Availability evidence bound to final persisted enriched source-manifest hash; regression RED to GREEN.",
+      "Building-type normalization consistent in B features and chronology; regression RED to GREEN."
+    ],
+    "important_unresolved": 0,
+    "limitations": "Reviewer did not independently reparse archives or verify live web pages; final build/hash and full-suite validation performed by implementing agent.",
+    "minor_unresolved": 0,
+    "verification": "Independent focused tests: 53 passed; aggregate/claim/privacy review matched actual source build evidence."
+  },
+  "joins": [
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 14014,
+      "kind": "build",
+      "main_count": 6391,
+      "member": "a_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-112S3"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 9685,
+      "kind": "land",
+      "main_count": 6391,
+      "member": "a_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-112S3"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 2883,
+      "kind": "park",
+      "main_count": 6391,
+      "member": "a_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-112S3"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 30089,
+      "kind": "build",
+      "main_count": 14143,
+      "member": "f_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-112S3"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 20694,
+      "kind": "land",
+      "main_count": 14143,
+      "member": "f_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-112S3"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 7547,
+      "kind": "park",
+      "main_count": 14143,
+      "member": "f_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-112S3"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 12981,
+      "kind": "build",
+      "main_count": 5607,
+      "member": "a_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-115S2"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 8384,
+      "kind": "land",
+      "main_count": 5607,
+      "member": "a_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-115S2"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 3437,
+      "kind": "park",
+      "main_count": 5607,
+      "member": "a_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-115S2"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 26858,
+      "kind": "build",
+      "main_count": 11528,
+      "member": "f_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-115S2"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 16624,
+      "kind": "land",
+      "main_count": 11528,
+      "member": "f_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-115S2"
+    },
+    {
+      "ambiguous_main_keys": 0,
+      "complete_parse": true,
+      "detail_count": 6799,
+      "kind": "park",
+      "main_count": 11528,
+      "member": "f_lvr_land_a.csv",
+      "orphan_count": 0,
+      "release_id": "moi-plvr-sale-season-115S2"
+    }
+  ],
+  "ml_b_may_begin": false,
+  "pit_coverage": {},
+  "raw_coverage": {
+    "building_type": {
+      "UNSUPPORTED": 6433,
+      "住宅大樓": 18649,
+      "公寓": 7122,
+      "華廈": 5465
+    },
+    "county": {
+      "新北市": 25671,
+      "臺北市": 11998
+    },
+    "district": {
+      "新北市/三峽區": 523,
+      "新北市/三芝區": 527,
+      "新北市/三重區": 2863,
+      "新北市/中和區": 2061,
+      "新北市/五股區": 743,
+      "新北市/八里區": 474,
+      "新北市/土城區": 1232,
+      "新北市/坪林區": 28,
+      "新北市/平溪區": 11,
+      "新北市/新店區": 2246,
+      "新北市/新莊區": 2434,
+      "新北市/板橋區": 2650,
+      "新北市/林口區": 1577,
+      "新北市/樹林區": 718,
+      "新北市/永和區": 912,
+      "新北市/汐止區": 1363,
+      "新北市/泰山區": 688,
+      "新北市/淡水區": 2271,
+      "新北市/深坑區": 125,
+      "新北市/烏來區": 3,
+      "新北市/瑞芳區": 156,
+      "新北市/石碇區": 35,
+      "新北市/石門區": 47,
+      "新北市/萬里區": 129,
+      "新北市/蘆洲區": 782,
+      "新北市/貢寮區": 66,
+      "新北市/金山區": 131,
+      "新北市/雙溪區": 97,
+      "新北市/鶯歌區": 779,
+      "臺北市/中山區": 1635,
+      "臺北市/中正區": 709,
+      "臺北市/信義區": 885,
+      "臺北市/內湖區": 1265,
+      "臺北市/北投區": 1094,
+      "臺北市/南港區": 594,
+      "臺北市/士林區": 1036,
+      "臺北市/大同區": 632,
+      "臺北市/大安區": 1316,
+      "臺北市/文山區": 1084,
+      "臺北市/松山區": 847,
+      "臺北市/萬華區": 901
+    },
+    "month": {
+      "2013-06": 1,
+      "2013-07": 1,
+      "2013-08": 1,
+      "2013-11": 1,
+      "2014-05": 1,
+      "2015-12": 1,
+      "2016-01": 1,
+      "2016-09": 4,
+      "2017-04": 9,
+      "2017-05": 5,
+      "2017-06": 4,
+      "2017-07": 6,
+      "2017-08": 15,
+      "2017-09": 1,
+      "2017-10": 3,
+      "2017-11": 5,
+      "2017-12": 5,
+      "2018-01": 3,
+      "2018-02": 1,
+      "2018-03": 7,
+      "2018-05": 6,
+      "2018-06": 15,
+      "2018-07": 8,
+      "2018-08": 14,
+      "2018-09": 34,
+      "2018-10": 23,
+      "2018-11": 20,
+      "2018-12": 18,
+      "2019-01": 28,
+      "2019-02": 55,
+      "2019-03": 53,
+      "2019-04": 64,
+      "2019-05": 36,
+      "2019-06": 129,
+      "2019-07": 182,
+      "2019-08": 134,
+      "2019-09": 170,
+      "2019-10": 116,
+      "2019-11": 87,
+      "2019-12": 88,
+      "2020-01": 64,
+      "2020-02": 64,
+      "2020-03": 62,
+      "2020-04": 62,
+      "2020-05": 100,
+      "2020-06": 154,
+      "2020-07": 122,
+      "2020-08": 193,
+      "2020-09": 152,
+      "2020-10": 162,
+      "2020-11": 140,
+      "2020-12": 152,
+      "2021-01": 117,
+      "2021-02": 99,
+      "2021-03": 250,
+      "2021-04": 235,
+      "2021-05": 157,
+      "2021-06": 71,
+      "2021-07": 127,
+      "2021-08": 137,
+      "2021-09": 178,
+      "2021-10": 178,
+      "2021-11": 199,
+      "2021-12": 178,
+      "2022-01": 96,
+      "2022-02": 101,
+      "2022-03": 141,
+      "2022-04": 122,
+      "2022-05": 116,
+      "2022-06": 163,
+      "2022-07": 113,
+      "2022-08": 118,
+      "2022-09": 127,
+      "2022-10": 122,
+      "2022-11": 66,
+      "2022-12": 159,
+      "2023-01": 90,
+      "2023-02": 169,
+      "2023-03": 610,
+      "2023-04": 1315,
+      "2023-05": 4474,
+      "2023-06": 5246,
+      "2023-07": 4257,
+      "2023-08": 1262,
+      "2023-09": 53,
+      "2023-10": 82,
+      "2023-11": 83,
+      "2023-12": 96,
+      "2024-01": 75,
+      "2024-02": 84,
+      "2024-03": 83,
+      "2024-04": 87,
+      "2024-05": 86,
+      "2024-06": 67,
+      "2024-07": 54,
+      "2024-08": 57,
+      "2024-09": 46,
+      "2024-10": 20,
+      "2024-11": 63,
+      "2024-12": 46,
+      "2025-01": 45,
+      "2025-02": 38,
+      "2025-03": 63,
+      "2025-04": 52,
+      "2025-05": 31,
+      "2025-06": 44,
+      "2025-07": 50,
+      "2025-08": 63,
+      "2025-09": 84,
+      "2025-10": 177,
+      "2025-11": 389,
+      "2025-12": 1026,
+      "2026-01": 2343,
+      "2026-02": 1935,
+      "2026-03": 3577,
+      "2026-04": 2323,
+      "2026-05": 767,
+      "2026-06": 4,
+      "INVALID": 1
+    },
+    "release": {
+      "moi-plvr-sale-season-112S3": 20534,
+      "moi-plvr-sale-season-115S2": 17135
+    }
+  },
+  "recommendation": "Retain Target B candidates for offline source research only. No ML-B training or product valuation change.",
+  "recovered_archives": [
+    {
+      "byte_size": 14876099,
+      "official_url": "https://plvr.land.moi.gov.tw/DownloadSeason?season=112S3&type=zip&fileName=lvr_landcsv.zip",
+      "release_version": "112S3",
+      "retrieved_at": "2026-10-08T06:23:17.233018+00:00",
+      "sha256": "4d9fa7be16bc9aba99e79c0f86ca27b32f46755de04e98e1dd2c8d8297b466c1",
+      "source_archive_id": "moi-plvr-sale-season-112S3"
+    },
+    {
+      "byte_size": 14705972,
+      "official_url": "https://plvr.land.moi.gov.tw/DownloadSeason?season=115S2&type=zip&fileName=lvr_landcsv.zip",
+      "release_version": "115S2",
+      "retrieved_at": "2026-10-08T06:23:31.096999+00:00",
+      "sha256": "6b4c148bad106a235dddf214001d605ff9ffa45ac50561f7125c6d7fa795d4da",
+      "source_archive_id": "moi-plvr-sale-season-115S2"
+    }
+  ],
+  "reproducibility": {
+    "approved_nonempty_proof": false,
+    "build_directories": [
+      "artifacts/ml/plvr-source-recovery/target-final-a",
+      "artifacts/ml/plvr-source-recovery/target-final-b"
+    ],
+    "changed_files": [
+      "docs/ml/contracts/observed-transaction-target-v1.json",
+      "docs/ml/valuation-target-reframing-evidence-v1.json",
+      "docs/ml/valuation-target-reframing-evidence-v1.md",
+      "docs/ml/valuation-target-reframing-plan-v1.md",
+      "scripts/ml/audit_target_reframing.py",
+      "scripts/ml/observed_transaction.py",
+      "tests/test_ml_target_reframing.py",
+      "scripts/ml/chronology.py"
+    ],
+    "code_contract_cutoff_sources_identical": true,
+    "counts": {
+      "approved_training_cohort": 0,
+      "chronologically_evaluable_observations": 0,
+      "point_in_time_valid_observations": 0,
+      "raw_detail_observations": 159995,
+      "raw_observations": 37669,
+      "structurally_valid_observations": 37668,
+      "target_valid_candidates": 2267
+    },
+    "feature_schema_sha256": "9c101a96f5aea9c1fdc566af5761d725b49d4f2eba6ebea8a573b445a4b79d79",
+    "file_count": 14,
+    "file_matches": {
+      "approved-membership.jsonl": true,
+      "candidate-exclusions.jsonl": true,
+      "candidate-features.jsonl": true,
+      "candidate-membership.jsonl": true,
+      "candidate-targets.jsonl": true,
+      "dataset-manifest.json": true,
+      "eligibility-ledger.jsonl": true,
+      "evidence.json": true,
+      "occurrences.jsonl": true,
+      "pit-membership.jsonl": true,
+      "revision-dispositions.jsonl": true,
+      "revision-edges.jsonl": true,
+      "source-manifest.json": true,
+      "splits.jsonl": true
+    },
+    "initial_diagnostic_build": "Pre-review diagnostic retained; not one of the two final builds.",
+    "line_counts": {
+      "approved-membership.jsonl": 0,
+      "candidate-exclusions.jsonl": 35402,
+      "candidate-features.jsonl": 2267,
+      "candidate-membership.jsonl": 2267,
+      "candidate-targets.jsonl": 2267,
+      "eligibility-ledger.jsonl": 37669,
+      "splits.jsonl": 0
+    },
+    "matching_files": 14,
+    "nonempty_candidate_build_proven": true,
+    "privacy": {
+      "passed": true,
+      "real_addresses_checked_count": 35976,
+      "real_ids_checked_count": 37669
+    },
+    "source_manifest_canonical_sha256": "017706a2da5b5dbe2fa2bbac265b3dd8077af6577d7a2ac3066bbfc36a48ab2e",
+    "status": "PASS_NONEMPTY_RESEARCH_CANDIDATES_ONLY"
+  },
+  "safe_to_push_or_open_pr": "Research-only changes suitable for review after user-controlled push; no ML or product approval. No push/PR performed.",
+  "schema_version": "ml-target-reframing-evidence-v1-aggregate",
+  "scope": {
+    "acquisition": "Local restore of prior exact bytes; prior HTTP observations preserved.",
+    "archive_downloads_this_wave": 0,
+    "members": [
+      "a_lvr_land_a.csv",
+      "f_lvr_land_a.csv"
+    ],
+    "releases": [
+      "112S3",
+      "115S2"
+    ]
+  },
+  "selection_bias": "Official disclosure screening, transaction-only population, no-parking/blank-note/exact-use/floor support, partial rights and common portions, two isolated quarters, and target truncation. No population or nationwide generalization.",
+  "semantic_profiles": {
+    "dwelling": {
+      "DWELLING_AMBIGUOUS": 26330,
+      "DWELLING_UNKNOWN": 11094,
+      "MULTI_DWELLING": 245
+    },
+    "parking": {
+      "NO_PARKING_CONFIRMED": 13433,
+      "PARKING_PRESENT": 16662,
+      "PARKING_SEMANTICS_AMBIGUOUS": 7311,
+      "UNKNOWN": 263
+    },
+    "rights": {
+      "RIGHTS_AMBIGUOUS": 32602,
+      "RIGHTS_UNKNOWN": 5067
+    }
+  },
+  "source_bindings": [
+    {
+      "archive_sha256": "4d9fa7be16bc9aba99e79c0f86ca27b32f46755de04e98e1dd2c8d8297b466c1",
+      "detail_sha256": {
+        "build": "72b89f0f49652cf7513f27c42237999891a25e313b40188b93d7cac7a8d574b7",
+        "land": "904b1279d80fc00cf3e2a087f17831dd5dd381cde808cd958469af3bf23a8301",
+        "park": "cf6f9ae6dfd8d15c826972f29287dcd5bbf7e34a83f6ec05bc8136597fbd333d"
+      },
+      "main_sha256": "dde051ecfde883421fc0f97e2c6efb2d02df1591e7875168bd4140fc86a8a86b",
+      "member": "a_lvr_land_a.csv",
+      "release_id": "moi-plvr-sale-season-112S3",
+      "schema_sha256": {
+        "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+        "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+        "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+        "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+      }
+    },
+    {
+      "archive_sha256": "4d9fa7be16bc9aba99e79c0f86ca27b32f46755de04e98e1dd2c8d8297b466c1",
+      "detail_sha256": {
+        "build": "462d83f40d09289b0e69bd4dda886189ae390fcb8a084e77f9fca945de88ff54",
+        "land": "c60f1d05bcd335a1625fb0321c9606802446f2f17ffd16ca27869c8df9e36dda",
+        "park": "2da0539a798578472446fc90f06306d96141958c7fac3f9bd0cfe3a18811fb8c"
+      },
+      "main_sha256": "fb5b881ce4e80b5160a795054d9439389ba919ee144cf3bda4b0854db8610de4",
+      "member": "f_lvr_land_a.csv",
+      "release_id": "moi-plvr-sale-season-112S3",
+      "schema_sha256": {
+        "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+        "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+        "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+        "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+      }
+    },
+    {
+      "archive_sha256": "6b4c148bad106a235dddf214001d605ff9ffa45ac50561f7125c6d7fa795d4da",
+      "detail_sha256": {
+        "build": "5606fdb253e86b51b949b98ed81d1c5b7db79b02a53942ce9acf80339a9c1bde",
+        "land": "9175a8d578806cc22bed74b2b97460d4cd8affa888329b35688aa7572142c038",
+        "park": "f2f2d683d23dd86a420b084dc7e8c5dc20ad6502f070694eaa8f668c4c090db7"
+      },
+      "main_sha256": "033ee4548b8e826fe5d9f61542485e1864a239e28bf32ddebf02554e2614f86f",
+      "member": "a_lvr_land_a.csv",
+      "release_id": "moi-plvr-sale-season-115S2",
+      "schema_sha256": {
+        "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+        "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+        "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+        "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+      }
+    },
+    {
+      "archive_sha256": "6b4c148bad106a235dddf214001d605ff9ffa45ac50561f7125c6d7fa795d4da",
+      "detail_sha256": {
+        "build": "06aed3ba78edd693f61e66b5092ceb8b55daa490cf6e2baea0cbdbb783330ecf",
+        "land": "6b2d4754b693e94deac2c204a1da0abefea6c400f30a5c397865fe759f21ecaf",
+        "park": "594b97936b5f5b5665b82ec3181cbeb5ad6a6ac5071a47e6b4dd9907fb3d82f4"
+      },
+      "main_sha256": "142f58d9bccdfe065536219ee80b6a21f801aaf5c48480d2e1d3aa197af744cf",
+      "member": "f_lvr_land_a.csv",
+      "release_id": "moi-plvr-sale-season-115S2",
+      "schema_sha256": {
+        "schema-build.csv": "2d77ea26d2470eb8db72791e62c0720c459a4b866ac5649edbafd686328cd116",
+        "schema-land.csv": "77e2a663340c7ecefd280dad742c634871b6664b1761accedeb9dbd23fd31158",
+        "schema-main.csv": "6103a05ac97f9b308d346d6a8b038d022ff5fbbfbbd090dccded77e03377d12a",
+        "schema-park.csv": "97eb5f6523255a9c8049b905368c02e2c53380b4ee1d2d8bea8cbae9e37b745e"
+      }
+    }
+  ],
+  "starting_sha": "95018f6fc2a366656cb798414dc54860d009e536",
+  "target_a": {
+    "approved_count": 0,
+    "funnel": [
+      {
+        "accepted_count": 37668,
+        "excluded_count": 1,
+        "input_count": 37669,
+        "reason_breakdown": {
+          "INVALID_DATE": 1
+        },
+        "stage": "schema"
+      },
+      {
+        "accepted_count": 37668,
+        "excluded_count": 0,
+        "input_count": 37668,
+        "reason_breakdown": {},
+        "stage": "source_identity"
+      },
+      {
+        "accepted_count": 37668,
+        "excluded_count": 0,
+        "input_count": 37668,
+        "reason_breakdown": {},
+        "stage": "geography"
+      },
+      {
+        "accepted_count": 16689,
+        "excluded_count": 20979,
+        "input_count": 37668,
+        "reason_breakdown": {
+          "UNSUPPORTED_TARGET": 20979
+        },
+        "stage": "transaction_target"
+      },
+      {
+        "accepted_count": 13573,
+        "excluded_count": 3116,
+        "input_count": 16689,
+        "reason_breakdown": {
+          "NON_RESIDENTIAL_USE": 3116
+        },
+        "stage": "residential_use"
+      },
+      {
+        "accepted_count": 13028,
+        "excluded_count": 545,
+        "input_count": 13573,
+        "reason_breakdown": {
+          "UNSUPPORTED_BUILDING_TYPE": 545
+        },
+        "stage": "building_type"
+      },
+      {
+        "accepted_count": 0,
+        "excluded_count": 13028,
+        "input_count": 13028,
+        "reason_breakdown": {
+          "RIGHTS_AMBIGUOUS": 13007,
+          "RIGHTS_UNKNOWN": 21
+        },
+        "stage": "rights"
+      },
+      {
+        "accepted_count": 0,
+        "excluded_count": 0,
+        "input_count": 0,
+        "reason_breakdown": {},
+        "stage": "dwelling"
+      },
+      {
+        "accepted_count": 0,
+        "excluded_count": 0,
+        "input_count": 0,
+        "reason_breakdown": {},
+        "stage": "parking"
+      },
+      {
+        "accepted_count": 0,
+        "excluded_count": 0,
+        "input_count": 0,
+        "reason_breakdown": {},
+        "stage": "price_area"
+      },
+      {
+        "accepted_count": 0,
+        "excluded_count": 0,
+        "input_count": 0,
+        "reason_breakdown": {},
+        "stage": "physical"
+      },
+      {
+        "accepted_count": 0,
+        "excluded_count": 0,
+        "input_count": 0,
+        "reason_breakdown": {},
+        "stage": "revision"
+      },
+      {
+        "accepted_count": 0,
+        "excluded_count": 0,
+        "input_count": 0,
+        "reason_breakdown": {},
+        "stage": "availability"
+      }
+    ],
+    "gates_changed": false
+  },
+  "target_a_status": "BLOCKED",
+  "target_b_funnel": [
+    {
+      "accepted_count": 37668,
+      "excluded_count": 1,
+      "input_count": 37669,
+      "reason_breakdown": {
+        "INVALID_DATE": 1
+      },
+      "stage": "schema"
+    },
+    {
+      "accepted_count": 37668,
+      "excluded_count": 0,
+      "input_count": 37668,
+      "reason_breakdown": {},
+      "stage": "source"
+    },
+    {
+      "accepted_count": 37668,
+      "excluded_count": 0,
+      "input_count": 37668,
+      "reason_breakdown": {},
+      "stage": "geography"
+    },
+    {
+      "accepted_count": 16689,
+      "excluded_count": 20979,
+      "input_count": 37668,
+      "reason_breakdown": {
+        "UNSUPPORTED_TRANSACTION_TYPE": 20979
+      },
+      "stage": "transaction"
+    },
+    {
+      "accepted_count": 13573,
+      "excluded_count": 3116,
+      "input_count": 16689,
+      "reason_breakdown": {
+        "NON_RESIDENTIAL_USE": 3116
+      },
+      "stage": "use"
+    },
+    {
+      "accepted_count": 13028,
+      "excluded_count": 545,
+      "input_count": 13573,
+      "reason_breakdown": {
+        "UNSUPPORTED_BUILDING_TYPE": 545
+      },
+      "stage": "type"
+    },
+    {
+      "accepted_count": 12866,
+      "excluded_count": 162,
+      "input_count": 13028,
+      "reason_breakdown": {
+        "REPORTED_BUILDING_COUNT_NOT_ONE": 162
+      },
+      "stage": "objects"
+    },
+    {
+      "accepted_count": 9587,
+      "excluded_count": 3279,
+      "input_count": 12866,
+      "reason_breakdown": {
+        "DUPLICATE_DETAIL_PAYLOAD": 5,
+        "TRANSFERRED_AREA_DETAIL_MISMATCH": 254,
+        "UNSUPPORTED_OR_MIXED_DETAIL_USE": 3020
+      },
+      "stage": "details"
+    },
+    {
+      "accepted_count": 9571,
+      "excluded_count": 16,
+      "input_count": 9587,
+      "reason_breakdown": {
+        "PARKING_SEMANTICS_AMBIGUOUS": 16
+      },
+      "stage": "parking"
+    },
+    {
+      "accepted_count": 9507,
+      "excluded_count": 64,
+      "input_count": 9571,
+      "reason_breakdown": {
+        "AREA_OUTSIDE_V1_SCOPE": 64
+      },
+      "stage": "target"
+    },
+    {
+      "accepted_count": 2267,
+      "excluded_count": 7240,
+      "input_count": 9507,
+      "reason_breakdown": {
+        "FLOOR_AMBIGUOUS": 1821,
+        "REPORTED_NOTE_REQUIRES_REVIEW": 5419
+      },
+      "stage": "physical"
+    }
+  ],
+  "target_b_status": "BLOCKED",
+  "training_outputs_nonempty": false,
+  "validation": {
+    "environment_rerun": {
+      "failed": 1,
+      "failure": "Existing worker-replacement timing test under concurrent build load.",
+      "passed": 39
+    },
+    "environment_setup": "npm ci --ignore-scripts --no-audit --no-fund; existing lockfile unchanged; no ML dependencies.",
+    "focused_target_tests": {
+      "failed": 0,
+      "passed": 53,
+      "skipped": 0
+    },
+    "full_python_suite": {
+      "command": "python -m pytest -q -ra",
+      "failed": 0,
+      "passed": 3385,
+      "seconds": "399.55",
+      "skipped": 32,
+      "warnings": 1
+    },
+    "git_diff_check": "PASS",
+    "initial_full_run": {
+      "causes": "Missing locked TypeScript dependency and worker/spatial timing failures during concurrent setup/builds.",
+      "failed": 40,
+      "passed": 3343,
+      "skipped": 32
+    },
+    "ml_regression": {
+      "failed": 0,
+      "passed": 244,
+      "skipped": 0
+    },
+    "red_green": "Target module, builder, provenance and whitespace regression failures observed before fixes."
+  },
+  "viability": {
+    "complete_mature_panel_proven": false,
+    "maximum_candidate_month_share": "0.18659020732245257",
+    "nonzero_research_candidates": true,
+    "split_design": {
+      "assignments": [],
+      "blockers": [
+        "COMPLETE_MATURE_COVERAGE_UNPROVEN",
+        "EMPTY_COHORT",
+        "INSUFFICIENT_CHRONOLOGICAL_MONTHS"
+      ],
+      "blocks": {},
+      "calibration_policy": "Never used for model fitting or model selection.",
+      "maturity_rule": "Availability strictly before next block freeze; calendar dates never imply publication.",
+      "monthly_counts": {},
+      "version": "plvr-contiguous-four-block-maturity-v1",
+      "viable": false
+    }
+  }
+}
