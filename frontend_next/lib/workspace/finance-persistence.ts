@@ -1,15 +1,21 @@
 import type { PropertyIdentityState } from "../commercial/state";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
-import { createFinanceInputFingerprint, type FinanceBreakdownRow, type FinanceInputFingerprintInput, type FinanceModel, type FinanceTaxSummary } from "./finance-model.ts";
+import { buildFinanceModel, createFinanceInputFingerprint, type FinanceBreakdownRow, type FinanceInputFingerprintInput, type FinanceModel, type FinanceTaxSummary } from "./finance-model.ts";
+// @ts-expect-error Native TS runner extension.
+import { normalizeFinancePriceEvidence, priceSourceFromBasis, type FinancePriceSource } from "../finance-price-provenance.ts";
+import type { SavedCase } from "../case-storage";
 
 export type StoredFinanceEvidenceV1 = {
   version: 1;
   case_id: string;
   revision: number;
   input_fingerprint: string;
+  case_input_fingerprint?: string;
   assumptions: {
     price_basis: FinanceModel["priceBasis"]["basis"];
     active_price_wan: number;
+    price_twd?: number;
+    price_source?: FinancePriceSource;
     area_ping: number | null;
   };
   calculation: FinanceModel["calculation"];
@@ -58,6 +64,30 @@ export type StoredFinanceEvidenceV1 = {
 
 type SnapshotContext = FinanceInputFingerprintInput & { identityState: PropertyIdentityState };
 
+/** Bind explicitly provenanced journey results at Save; this projects results and never recalculates. */
+export function captureJourneyFinanceEvidence(saved: SavedCase): StoredFinanceEvidenceV1 | null {
+  if (saved.data.financeEvidence) return null;
+  const price = normalizeFinancePriceEvidence(saved.data.financePriceEvidence);
+  if (!price || (!saved.data.loan && !saved.data.holdingCost)) return null;
+  if (saved.data.holdingCost && !saved.data.holdingCost.input) return null;
+  if (saved.data.loan && saved.data.loan.property_price_wan !== price.price_twd / 10000 || saved.data.holdingCost && saved.data.holdingCost.property_price_wan !== price.price_twd / 10000) return null;
+  const journey = saved.data.journeyContext;
+  const anchor = saved.data.propertyIdentityAnchor;
+  const area = saved.inputSummary.areaPing ?? saved.data.inputs.area_ping;
+  const areaPing = finitePositive(area) ? area : null;
+  const basis = journey?.priceBasis === "valuation" ? "estimate" : journey?.priceBasis === "manual" ? "manual" : "asking";
+  const context: FinanceInputFingerprintInput = { caseId: saved.id, revision: 1, identityAnchorId: anchor?.journey_anchor_id,
+    activePriceBasis: basis, activePriceWan: journey?.activePriceWan ?? (basis === "asking" ? journey?.propertyContext.askingPriceWan : undefined), areaPing };
+  const calculationBasis = price.source === "ASKING_PRICE" ? "asking" : price.source === "COMPARABLE_ESTIMATE" ? "estimate" : "manual";
+  const calculationArea = saved.data.holdingCost ? saved.data.holdingCost.input.area_ping : areaPing;
+  const model = buildFinanceModel({ ...context, areaPing: calculationArea, activePriceBasis: calculationBasis, activePriceWan: price.price_twd / 10000,
+    identityState: anchor?.revalidation.status === "current" && anchor.revalidation.conflicts.length === 0 && anchor.coordinates ? "confirmed" : "unconfirmed",
+    loanResult: saved.data.loan, holdingResult: saved.data.holdingCost, taxResult: saved.data.taxOracle,
+    resultSource: "saved_snapshot", resultPriceEvidence: price, calculatedAt: price.calculated_at });
+  if (model.calculation.query !== "succeeded") return null;
+  return normalizeStoredFinanceEvidence(createStoredFinanceEvidence(model, { caseId: saved.id, revision: 1, areaPing: calculationArea, caseInputFingerprint: createFinanceInputFingerprint(context) }));
+}
+
 function finiteNonNegative(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
@@ -100,7 +130,7 @@ function validTaxSummary(value: unknown): value is FinanceTaxSummary | null {
 
 export function createStoredFinanceEvidence(
   model: FinanceModel,
-  context: { caseId: string; revision: number; areaPing?: number | null },
+  context: { caseId: string; revision: number; areaPing?: number | null; caseInputFingerprint?: string },
 ): StoredFinanceEvidenceV1 {
   if (model.priceBasis.amountWan === null || model.freshness.calculatedAt === null) {
     throw new Error("finance evidence requires a calculated price-bound result");
@@ -110,9 +140,12 @@ export function createStoredFinanceEvidence(
     case_id: context.caseId,
     revision: context.revision,
     input_fingerprint: model.inputFingerprint,
+    ...(context.caseInputFingerprint ? { case_input_fingerprint: context.caseInputFingerprint } : {}),
     assumptions: {
       price_basis: model.priceBasis.basis,
       active_price_wan: model.priceBasis.amountWan,
+      price_twd: model.priceBasis.amountWan * 10000,
+      price_source: priceSourceFromBasis(model.priceBasis.basis),
       area_ping: finiteNonNegative(context.areaPing) ? context.areaPing : null,
     },
     calculation: { ...model.calculation },
@@ -164,15 +197,21 @@ export function normalizeStoredFinanceEvidence(value: unknown): StoredFinanceEvi
   if (!value || typeof value !== "object") return null;
   const row = value as Partial<StoredFinanceEvidenceV1>;
   if (row.version !== 1 || !text(row.case_id) || !Number.isInteger(row.revision) || Number(row.revision) < 0 || !text(row.input_fingerprint)) return null;
+  if (row.case_input_fingerprint !== undefined && !text(row.case_input_fingerprint)) return null;
   if (!row.assumptions || !["asking", "estimate", "manual"].includes(row.assumptions.price_basis) || !finitePositive(row.assumptions.active_price_wan) || !nullableAmount(row.assumptions.area_ping)) return null;
+  if (row.assumptions.price_twd !== undefined && row.assumptions.price_twd !== row.assumptions.active_price_wan * 10000) return null;
+  if (row.assumptions.price_source !== undefined && row.assumptions.price_source !== priceSourceFromBasis(row.assumptions.price_basis)) return null;
   if (!row.calculation
     || !["not_started", "input_required", "in_progress", "succeeded", "failed", "cancelled"].includes(row.calculation.query)
     || ![null, "usable", "limited", "no_match", "no_coverage", "unavailable", "stale", "unverified", "unsupported"].includes(row.calculation.usability)
     || !["not_started", "insufficient", "partial", "sufficient_for_task", "blocked"].includes(row.calculation.completeness)) return null;
   if (!row.loan || !nullableAmount(row.loan.property_price_wan) || !nullableAmount(row.loan.down_payment_ratio) || !nullableAmount(row.loan.down_payment_wan) || !nullableAmount(row.loan.principal_wan) || !nullableAmount(row.loan.annual_interest_rate) || !nullableAmount(row.loan.loan_years) || !nullableAmount(row.loan.grace_period_years) || !nullableAmount(row.loan.monthly_income_wan) || !nullableAmount(row.loan.monthly_payment_twd) || !nullableAmount(row.loan.grace_period_monthly_payment_twd) || !nullableAmount(row.loan.post_grace_monthly_payment_twd) || !nullableAmount(row.loan.total_interest_twd)) return null;
+  if (row.loan.property_price_wan !== null && row.loan.property_price_wan !== row.assumptions.active_price_wan) return null;
+  if (row.loan.monthly_payment_twd !== null && (row.loan.property_price_wan === null || row.loan.down_payment_ratio === null || row.loan.down_payment_ratio > 1 || !finitePositive(row.loan.loan_years) || !Number.isInteger(row.loan.loan_years) || row.loan.annual_interest_rate === null || row.loan.grace_period_years === null || row.loan.grace_period_years >= row.loan.loan_years)) return null;
   const holdingAssumptions = row.holding?.assumptions;
   if (!row.holding || !holdingAssumptions || !nullableAmount(row.holding.known_monthly_subtotal_twd) || !nullableAmount(row.holding.known_annual_subtotal_twd) || !["complete_estimate", "known_subtotal", "unavailable"].includes(row.holding.total_kind) || !validBreakdown(row.holding.breakdown)) return null;
   if (![holdingAssumptions.loan_monthly_payment_twd, holdingAssumptions.monthly_income_wan, holdingAssumptions.area_ping, holdingAssumptions.management_fee_per_ping_twd, holdingAssumptions.repair_reserve_per_ping_twd, holdingAssumptions.annual_home_tax_rate_percent, holdingAssumptions.annual_land_tax_rate_percent, holdingAssumptions.annual_insurance_twd].every(nullableAmount)) return null;
+  if (row.loan.monthly_payment_twd !== null && row.holding.known_monthly_subtotal_twd !== null && holdingAssumptions.loan_monthly_payment_twd !== row.loan.monthly_payment_twd) return null;
   if (!row.affordability || !["assessed", "unassessed"].includes(row.affordability.status) || !nullableAmount(row.affordability.ratio) || (row.affordability.reason !== null && typeof row.affordability.reason !== "string") || ![null, "loan_payment", "total_housing_cost"].includes(row.affordability.basis)) return null;
   if (!row.tax || !["not_started", "input_required", "in_progress", "succeeded", "failed", "cancelled"].includes(row.tax.query) || !validTaxSummary(row.tax.summary)) return null;
   if (!Array.isArray(row.missing_costs) || row.missing_costs.length > 20 || !row.missing_costs.every(text) || !Array.isArray(row.unresolved_actions) || row.unresolved_actions.length > 20 || !row.unresolved_actions.every(text)) return null;
@@ -182,9 +221,12 @@ export function normalizeStoredFinanceEvidence(value: unknown): StoredFinanceEvi
     case_id: row.case_id,
     revision: Number(row.revision),
     input_fingerprint: row.input_fingerprint,
+    ...(row.case_input_fingerprint ? { case_input_fingerprint: row.case_input_fingerprint } : {}),
     assumptions: {
       price_basis: row.assumptions.price_basis,
       active_price_wan: row.assumptions.active_price_wan,
+      ...(row.assumptions.price_twd !== undefined ? { price_twd: row.assumptions.price_twd } : {}),
+      ...(row.assumptions.price_source !== undefined ? { price_source: row.assumptions.price_source } : {}),
       area_ping: row.assumptions.area_ping,
     },
     calculation: {
@@ -254,8 +296,15 @@ export function normalizeStoredFinanceEvidence(value: unknown): StoredFinanceEvi
 export function restoreFinanceModelFromSnapshot(snapshotValue: unknown, context: SnapshotContext): FinanceModel {
   const snapshot = normalizeStoredFinanceEvidence(snapshotValue);
   if (!snapshot) throw new Error("invalid stored finance evidence");
-  const currentFingerprint = createFinanceInputFingerprint(context);
-  const stale = context.identityState !== "confirmed" || snapshot.input_fingerprint !== currentFingerprint || snapshot.calculation.usability === "stale";
+  if (snapshot.case_id !== context.caseId) throw new Error("finance evidence belongs to a different case");
+  // A saved manual scenario may stand alone; it is never promoted to a case asking price.
+  const comparisonContext = snapshot.case_input_fingerprint || (context.activePriceWan == null && snapshot.assumptions.price_basis === "manual")
+    ? { ...context, activePriceBasis: "manual" as const, activePriceWan: snapshot.assumptions.active_price_wan, ...(snapshot.case_input_fingerprint ? { areaPing: snapshot.assumptions.area_ping } : {}) }
+    : context;
+  if (snapshot.case_input_fingerprint) comparisonContext.activePriceBasis = snapshot.assumptions.price_basis;
+  const currentFingerprint = createFinanceInputFingerprint(comparisonContext);
+  const caseChanged = snapshot.case_input_fingerprint !== undefined && snapshot.case_input_fingerprint !== createFinanceInputFingerprint(context);
+  const stale = context.identityState !== "confirmed" || caseChanged || snapshot.input_fingerprint !== currentFingerprint || snapshot.calculation.usability === "stale";
   const loanPresent = snapshot.loan.monthly_payment_twd !== null;
   const holdingPresent = snapshot.holding.known_monthly_subtotal_twd !== null;
   const status = (present: boolean): FinanceModel["loan"]["status"] => !present ? "not_started" : stale ? "stale" : "available";
@@ -266,6 +315,7 @@ export function restoreFinanceModelFromSnapshot(snapshotValue: unknown, context:
   const knownRecurringMonthlyTwd = snapshot.holding.known_monthly_subtotal_twd ?? snapshot.loan.monthly_payment_twd;
   const currentPrice = finiteNonNegative(context.activePriceWan) ? context.activePriceWan : null;
   return {
+    priceSource: snapshot.assumptions.price_source ?? priceSourceFromBasis(snapshot.assumptions.price_basis),
     inputFingerprint: currentFingerprint,
     savedAssumptions: { basis: snapshot.assumptions.price_basis, amountWan: snapshot.assumptions.active_price_wan, areaPing: snapshot.assumptions.area_ping },
     priceBasis: { basis: context.activePriceBasis, amountWan: currentPrice, source: "case" },
@@ -309,7 +359,7 @@ export function restoreFinanceModelFromSnapshot(snapshotValue: unknown, context:
     unresolvedActions,
     freshness: { status: stale ? "stale" : "current", calculatedAt: snapshot.calculated_at, source: "saved_snapshot" },
     overview: {
-      activePriceBasis: context.activePriceBasis,
+      activePriceBasis: snapshot.assumptions.price_basis,
       calculationStatus: snapshot.calculation.query,
       monthlyPaymentTwd: snapshot.loan.monthly_payment_twd,
       knownRecurringMonthlyTwd,

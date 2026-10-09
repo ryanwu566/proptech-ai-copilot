@@ -15,6 +15,7 @@ import { GoogleLocationVisualContext } from "@/components/google-location-visual
 import { DemographicsInsightCard } from "@/components/demographics-insight-card";
 import { evidenceStatusLabel } from "@/lib/commercial/presentation";
 import { locationEvidenceKey, withLocationAdvisoryContext } from "@/lib/location-evidence-context";
+import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidence";
 
 
 
@@ -162,13 +163,13 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
     setResult(undefined);
     onResult?.(null);
     try {
-      const next = withLocationAdvisoryContext(await api.locationInsight({
+      const next = withLocationAdvisoryContext(normalizeLocationInsightEvidence(await api.locationInsight({
         city, district, road, address, radius_m: radius,
         property_price: propertyPrice === "" ? undefined : propertyPrice,
         area_ping: areaPing === "" ? undefined : areaPing,
         building_type: buildingType,
         use_existing_poi_sources: true,
-      }), latestAdvisoryInputs.current.price, latestAdvisoryInputs.current.area);
+      })), latestAdvisoryInputs.current.price, latestAdvisoryInputs.current.area);
       if (requestId !== requestRef.current || latestContextKey.current !== requestContextKey) return;
       setResultContextKey(requestContextKey);
       setResult(next);
@@ -236,8 +237,9 @@ function FlowBadge({ label, active }: { label: string; active?: boolean }) {
   return <span className={`rounded-lg px-2.5 py-2 font-bold ${active ? "bg-cyan-50 text-cyan-800" : "bg-white text-slate-400"}`}>{label}</span>;
 }
 
-function LocationResults({ result }: { result: LocationInsightResult }) {
+function LocationResults({ result: rawResult }: { result: LocationInsightResult }) {
   const { copy } = useExperienceLocale();
+  const result = normalizeLocationInsightEvidence(rawResult);
   if (result.geocoding_acceptance && !result.geocoding_acceptance.accepted_for_analysis) {
     return <div data-testid="location-result" className="space-y-3"><GeocodingAcceptanceNotice acceptance={result.geocoding_acceptance} /><Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
   }

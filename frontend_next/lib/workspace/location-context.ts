@@ -3,6 +3,10 @@ import type { SavedCase } from "../case-storage";
 import type { TaskReadinessState } from "../commercial/state";
 import type { JourneyPropertyIdentityAnchorV1 } from "../journey-property-identity";
 import type { PropertyCaseWorkspace } from "./workspace-model";
+// @ts-expect-error Native TS runner extension.
+import { normalizeLocationInsightEvidence } from "../location-insight-evidence.ts";
+// @ts-expect-error Native TS runner extension.
+import { areJourneyPropertyAddressesEquivalent } from "../journey-property-identity.ts";
 
 export type LocationPropertyContext = {
   address: string;
@@ -53,6 +57,14 @@ export function buildLocationWorkspaceSnapshot(saved: SavedCase): LocationWorksp
   const coordinates = anchor?.coordinates ?? null;
   const storedRoute = saved.data.commuteRoute;
   const routeCurrent = Boolean(storedRoute && coordinates && routeMatchesOrigin(storedRoute, coordinates));
+  const insight = saved.data.locationInsight ? normalizeLocationInsightEvidence(saved.data.locationInsight) : undefined;
+  const insightAddress = insight?.input?.address;
+  const wrongAddress = typeof insightAddress === "string" && Boolean(insightAddress.trim()) && Boolean(anchor?.normalized_address)
+    && !areJourneyPropertyAddressesEquivalent(insightAddress, anchor!.normalized_address);
+  if (insight && wrongAddress) {
+    insight.risk_facility_evidence = { status: "unavailable", count: null, source: insight.risk_facility_evidence?.source ?? null, checked_at: insight.risk_facility_evidence?.checked_at ?? null, reason: "property_identity_mismatch", limitation: "先前設施證據不屬於目前物件。" };
+    insight.poi_summary = Object.fromEntries(Object.keys(insight.poi_summary).map((key) => [key, null])) as LocationInsightResult["poi_summary"];
+  }
 
   return {
     property: {
@@ -66,9 +78,9 @@ export function buildLocationWorkspaceSnapshot(saved: SavedCase): LocationWorksp
       },
       sourceIds: anchor?.evidence.sources.map((source) => source.source_id) ?? [],
     },
-    ...(saved.data.locationInsight ? {
-      insight: saved.data.locationInsight,
-      poiSummary: saved.data.locationInsight.poi_summary,
+    ...(insight ? {
+      insight,
+      poiSummary: insight.poi_summary,
     } : {}),
     ...(routeCurrent ? { routeEvidence: storedRoute } : {}),
     routeInvalidated: Boolean(storedRoute && !routeCurrent),

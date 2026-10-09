@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { resolveAsyncStateRole } from "@/lib/commercial/state";
+import { resolveAsyncStateRole } from "@/lib/commercial/async-state-role";
 import { joinClassNames, type AsyncStateKind } from "./types";
 
 export function AsyncState({

@@ -76,13 +76,14 @@ test("property header shows bounded identity, price basis, saved state, and prov
 
   const header = page.getByRole("banner", { name: "目前物件" });
   await expect(header).toContainText("臺北市信義區市府路1號");
-  await expect(header).toContainText("物件已確認");
+  await expect(header).toContainText("地址與座標已關聯");
+  await expect(header).not.toContainText("物件已確認");
   await expect(header).toContainText("開價");
   await expect(header).toContainText("2,480 萬元");
   await expect(header).toContainText("已儲存");
   await header.getByText("物件與來源詳細資料").click();
   await expect(header).toContainText("瀏覽器案件關聯錨點");
-  await expect(header).toContainText("不代表地號、建物、所有權或法律身分");
+  await expect(header).toContainText("不代表官方地號、建物、所有權或法律身分確認");
 });
 
 test("stale identity remains explicit in the header and Overview blocker", async ({ page }) => {

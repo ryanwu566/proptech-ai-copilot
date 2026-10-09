@@ -1,6 +1,8 @@
 import type { HoldingCostResult, LoanCalculationResult, TaxResult } from "../api";
 import type { AnalysisCompletenessState, EvidenceUsabilityState, QueryExecutionState } from "../commercial/state";
 import type { PropertyIdentityState } from "../commercial/state";
+// @ts-expect-error Native TS runner extension.
+import { normalizeFinancePriceEvidence, priceSourceFromBasis, type FinancePriceEvidence, type FinancePriceSource } from "../finance-price-provenance.ts";
 
 export type FinancePriceBasis = "asking" | "estimate" | "manual";
 export type FinanceResultStatus = "not_started" | "available" | "stale" | "unavailable";
@@ -32,6 +34,7 @@ export type FinanceTaxSummary = {
 };
 
 export type FinanceModel = {
+  priceSource?: FinancePriceSource | null;
   /** Original saved calculation context, independently of current workspace inputs. */
   savedAssumptions?: { basis: FinancePriceBasis; amountWan: number; areaPing: number | null };
   inputFingerprint: string;
@@ -118,6 +121,7 @@ export type BuildFinanceModelInput = FinanceInputFingerprintInput & {
   calculatedAt?: string | null;
   savedFingerprint?: string | null;
   resultSource?: "live_calculation" | "saved_snapshot";
+  resultPriceEvidence?: FinancePriceEvidence | null;
 };
 
 const BREAKDOWN_LABELS: Record<string, string> = {
@@ -246,13 +250,21 @@ export function buildFinanceModel(input: BuildFinanceModelInput): FinanceModel {
   const malformed = (loanSupplied && !loanValid) || (holdingSupplied && !holdingValid);
   const fingerprintMismatch = Boolean(input.savedFingerprint && input.savedFingerprint !== inputFingerprint);
   const identityStale = input.identityState !== "confirmed";
+  const priceEvidence = normalizeFinancePriceEvidence(input.resultPriceEvidence);
+  const savedManual = input.resultSource === "saved_snapshot" && priceEvidence?.source === "MANUAL_SCENARIO"
+    && (!loanResult || samePrice(loanResult.property_price_wan, priceEvidence.price_twd / 10000))
+    && (!holdingResult || samePrice(holdingResult.property_price_wan, priceEvidence.price_twd / 10000));
   const priceStale = Boolean(
-    activePriceWan
+    activePriceWan && !savedManual
     && ((loanResult && !samePrice(loanResult.property_price_wan, activePriceWan))
       || (holdingResult && !samePrice(holdingResult.property_price_wan, activePriceWan))),
   );
   const stale = fingerprintMismatch || identityStale || priceStale;
   const hasResult = loanValid || holdingValid;
+  const saved = input.resultSource === "saved_snapshot";
+  const resultPriceWan = loanResult?.property_price_wan ?? holdingResult?.property_price_wan ?? null;
+  const priceSource = saved ? priceEvidence && priceEvidence.price_twd / 10000 === resultPriceWan ? priceEvidence.source : null : priceSourceFromBasis(input.activePriceBasis);
+  const savedBasis: FinancePriceBasis = priceSource === "ASKING_PRICE" ? "asking" : priceSource === "COMPARABLE_ESTIMATE" ? "estimate" : "manual";
   const missingCosts: string[] = [];
   if (holdingValid && areaPing === null) {
     missingCosts.push("管理費（缺少坪數）", "修繕準備（缺少坪數）");
@@ -282,7 +294,7 @@ export function buildFinanceModel(input: BuildFinanceModelInput): FinanceModel {
     ? { status: "assessed" as const, ratio: affordabilityRatio, reason: null, basis: affordabilityBasis }
     : { status: "unassessed" as const, ratio: null, reason: "未提供月收入", basis: null };
 
-  const query: QueryExecutionState = activePriceWan === null
+  const query: QueryExecutionState = activePriceWan === null && !hasResult
     ? "input_required"
     : malformed
       ? "failed"
@@ -315,6 +327,8 @@ export function buildFinanceModel(input: BuildFinanceModelInput): FinanceModel {
       : null;
 
   const model: FinanceModel = {
+    priceSource,
+    ...(saved && resultPriceWan !== null ? { savedAssumptions: { basis: savedBasis, amountWan: resultPriceWan, areaPing } } : {}),
     inputFingerprint,
     priceBasis: { basis: input.activePriceBasis, amountWan: activePriceWan, source: "case" },
     calculation: { query, usability, completeness },
@@ -360,7 +374,7 @@ export function buildFinanceModel(input: BuildFinanceModelInput): FinanceModel {
     unresolvedActions: [...new Set(unresolvedActions)],
     freshness: { status: freshnessStatus, calculatedAt: hasResult && typeof input.calculatedAt === "string" ? input.calculatedAt : null, source: hasResult ? input.resultSource ?? "live_calculation" : null },
     overview: {
-      activePriceBasis: input.activePriceBasis,
+      activePriceBasis: saved && hasResult ? savedBasis : input.activePriceBasis,
       calculationStatus: query,
       monthlyPaymentTwd: loanResult?.monthly_payment ?? null,
       knownRecurringMonthlyTwd: knownMonthlySubtotal,
@@ -384,4 +398,53 @@ export function buildFinanceModel(input: BuildFinanceModelInput): FinanceModel {
 
 function holdingResultIncomePresent(result: HoldingCostResult): boolean {
   return result.input.monthly_income_wan !== null && result.income_burden_ratio !== null;
+}
+
+export function mergeFinanceEvidence(base: FinanceModel, live: FinanceModel, hasLoanResult: boolean, hasHoldingResult: boolean): FinanceModel {
+  // A new result may retain only compatible current evidence. Old results stay
+  // in the saved snapshot, never become current merely because another tool ran.
+  if (base.freshness.status !== "current" || base.inputFingerprint !== live.inputFingerprint || base.priceSource !== live.priceSource) base = live;
+  let loan = hasLoanResult ? live.loan : base.loan;
+  const holding = hasHoldingResult ? live.holding : base.holding;
+  if (hasHoldingResult && loan.monthlyPaymentTwd !== null && holding.assumptions.loanMonthlyPaymentTwd !== loan.monthlyPaymentTwd) {
+    loan = buildFinanceModel({ caseId: "", revision: 0, identityState: "unconfirmed", activePriceBasis: live.priceBasis.basis }).loan;
+  }
+  let affordability = hasHoldingResult
+    ? live.affordability.status === "assessed" || hasLoanResult || base.affordability.basis !== "loan_payment" || loan.monthlyPaymentTwd === null ? live.affordability : base.affordability
+    : hasLoanResult ? live.affordability : base.affordability;
+  if (loan.monthlyPaymentTwd === null && affordability.basis === "loan_payment") affordability = { status: "unassessed", ratio: null, reason: "未提供月收入", basis: null };
+  const missingCosts = hasHoldingResult ? live.missingCosts : base.missingCosts;
+  const unresolvedActions = live.unresolvedActions.filter((item) => {
+    if (loan.status !== "not_started" && ["尚未完成房貸試算", "尚未計算房貸情境"].includes(item)) return false;
+    if (holding.status !== "not_started" && item === "尚未估算持有成本") return false;
+    return true;
+  });
+  if (loan.status === "not_started" && !unresolvedActions.some(item => ["尚未完成房貸試算", "尚未計算房貸情境"].includes(item))) unresolvedActions.push("尚未計算房貸情境");
+  const knownRecurringMonthlyTwd = holding.knownMonthlySubtotalTwd ?? loan.monthlyPaymentTwd;
+  return {
+    ...live,
+    calculation: { ...live.calculation, completeness: loan.status === "available" && holding.status === "available" ? live.calculation.completeness : "partial" },
+    loan,
+    holding,
+    affordability,
+    tax: base.tax,
+    missingCosts,
+    unresolvedActions,
+    overview: {
+      ...live.overview,
+      monthlyPaymentTwd: loan.monthlyPaymentTwd,
+      knownRecurringMonthlyTwd,
+      missingCosts,
+      affordabilityStatus: affordability.status,
+      unresolvedActions,
+    },
+    comparison: {
+      ...live.comparison,
+      downPaymentWan: loan.downPaymentWan,
+      loanPrincipalWan: loan.principalWan,
+      monthlyPaymentTwd: loan.monthlyPaymentTwd,
+      knownRecurringMonthlyTwd,
+      missingCosts,
+    },
+  };
 }

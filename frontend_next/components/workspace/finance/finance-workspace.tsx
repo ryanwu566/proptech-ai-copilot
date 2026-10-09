@@ -9,9 +9,10 @@ import { Message } from "@/components/design-system/message";
 import { ActionSection, Panel, Section } from "@/components/design-system/section";
 import { MetricItem, MetricRow, SummaryStrip } from "@/components/design-system/summary-strip";
 import { StatusLabel } from "@/components/design-system/status-label";
-import { formatMissing, formatPercent, formatTwd, formatWan } from "@/lib/commercial/formatters";
+import { formatMissing, formatPercent, formatTwd, formatWan, formatExactDate } from "@/lib/commercial/formatters";
+import { financePriceSourceLabel } from "@/lib/finance-price-provenance";
 import { updateSavedCaseFinanceEvidence, type SavedCaseIdentityExpectation } from "@/lib/case-storage";
-import { buildFinanceModel, type FinanceModel } from "@/lib/workspace/finance-model";
+import { buildFinanceModel, createFinanceInputFingerprint, mergeFinanceEvidence, type FinanceModel } from "@/lib/workspace/finance-model";
 import { createStoredFinanceEvidence } from "@/lib/workspace/finance-persistence";
 import { HoldingAssumptionForm, LoanAssumptionForm } from "./finance-assumption-forms";
 
@@ -42,55 +43,21 @@ function identityExpectation(model: ReturnType<typeof useWorkspace>): SavedCaseI
   };
 }
 
-function mergeFinanceEvidence(base: FinanceModel, live: FinanceModel, hasLoanResult: boolean, hasHoldingResult: boolean): FinanceModel {
-  const loan = hasLoanResult ? live.loan : base.loan;
-  const holding = hasHoldingResult ? live.holding : base.holding;
-  const affordability = hasHoldingResult
-    ? live.affordability.status === "assessed" || hasLoanResult || base.affordability.basis !== "loan_payment" ? live.affordability : base.affordability
-    : hasLoanResult ? live.affordability : base.affordability;
-  const missingCosts = hasHoldingResult ? live.missingCosts : base.missingCosts;
-  const unresolvedActions = live.unresolvedActions.filter((item) => {
-    if (loan.status !== "not_started" && item === "尚未完成房貸試算") return false;
-    if (holding.status !== "not_started" && item === "尚未估算持有成本") return false;
-    return true;
-  });
-  const knownRecurringMonthlyTwd = holding.knownMonthlySubtotalTwd ?? loan.monthlyPaymentTwd;
-  return {
-    ...live,
-    loan,
-    holding,
-    affordability,
-    tax: base.tax,
-    missingCosts,
-    unresolvedActions,
-    overview: {
-      ...live.overview,
-      monthlyPaymentTwd: loan.monthlyPaymentTwd,
-      knownRecurringMonthlyTwd,
-      missingCosts,
-      affordabilityStatus: affordability.status,
-      unresolvedActions,
-    },
-    comparison: {
-      ...live.comparison,
-      downPaymentWan: loan.downPaymentWan,
-      loanPrincipalWan: loan.principalWan,
-      monthlyPaymentTwd: loan.monthlyPaymentTwd,
-      knownRecurringMonthlyTwd,
-      missingCosts,
-    },
-  };
-}
 
 export function FinanceWorkspace() {
   const workspace = useWorkspace();
-  const activePriceWan = workspace.assumptions.activePriceWan ?? null;
-  const baseFinance = workspace.finance ?? buildFinanceModel({
+  const [scenarioInput, setScenarioInput] = useState("");
+  const [scenario, setScenario] = useState<{ caseId: string; revision: number; amountWan: number } | null>(null);
+  const scenarioPrice = scenario?.caseId === workspace.caseId && scenario.revision === workspace.revision ? scenario.amountWan : null;
+  const activePriceWan = scenarioPrice ?? workspace.assumptions.activePriceWan ?? null;
+  const activePriceBasis = scenarioPrice !== null ? "manual" : workspace.assumptions.activePriceBasis;
+  const reuseSavedScenario = scenarioPrice === null || (workspace.finance?.savedAssumptions?.amountWan === scenarioPrice && workspace.finance.priceSource === "MANUAL_SCENARIO" && workspace.finance.freshness.status === "current");
+  const baseFinance = (reuseSavedScenario ? workspace.finance : undefined) ?? buildFinanceModel({
     caseId: workspace.caseId,
     revision: workspace.revision,
     identityAnchorId: workspace.identity.anchor?.journey_anchor_id ?? null,
     identityState: workspace.identity.state,
-    activePriceBasis: workspace.assumptions.activePriceBasis,
+    activePriceBasis,
     activePriceWan,
     areaPing: workspace.assumptions.areaPing ?? null,
   });
@@ -120,7 +87,7 @@ export function FinanceWorkspace() {
       revision: workspace.revision,
       identityAnchorId: workspace.identity.anchor?.journey_anchor_id ?? null,
       identityState: workspace.identity.state,
-      activePriceBasis: workspace.assumptions.activePriceBasis,
+      activePriceBasis,
       activePriceWan,
       askingPriceWan: workspace.assumptions.askingPriceWan,
       areaPing: holdingAreaPing,
@@ -129,11 +96,21 @@ export function FinanceWorkspace() {
       calculatedAt,
     });
     return mergeFinanceEvidence(baseFinance, computed, loanResult !== null, holdingResult !== null);
-  }, [activePriceWan, baseFinance, calculatedAt, holdingAreaPing, holdingResult, loanResult, workspace]);
+  }, [activePriceBasis, activePriceWan, baseFinance, calculatedAt, holdingAreaPing, holdingResult, loanResult, workspace]);
 
   if (activePriceWan === null) return <div data-testid="finance-workspace" className="min-w-0 space-y-6">
     <header className="space-y-2"><p className="text-meta">案件財務情境</p><h1 className="text-page">資金與持有成本</h1><p className="text-body">在不改動案件價格的前提下，計算房貸、持有成本與仍待補充的費用。</p></header>
-    <Message variant="warning" title="需要可用的物件價格">請先回到「價格與市場」確認開價、推估價格或手動價格基準。</Message>
+    <Message variant="warning" title="新計算需要明確價格基準">目前案件沒有選定價格。保存結果依原始假設供唯讀查閱；新計算需明確設定價格基準。</Message>
+    {baseFinance.loan.monthlyPaymentTwd !== null || baseFinance.holding.knownMonthlySubtotalTwd !== null ? <>
+      <SavedFinanceAssumptions model={baseFinance} />
+      <Freshness model={baseFinance} dirty={false} />
+      <LoanSummary model={baseFinance} dirty={false} />
+      <HoldingSummary model={baseFinance} dirty={false} />
+    </> : <Message variant="information">尚無保存的財務試算。</Message>}
+    <Section title="建立新的手動試算情境" description="只用於本次財務試算；不會改寫案件開價。">
+      <label className="block text-body">新試算情境價格（萬元）<input type="number" min="0.01" step="0.01" value={scenarioInput} onChange={(event) => setScenarioInput(event.target.value)} className="mt-2 block w-full rounded border border-stone-300 px-3 py-2" /></label>
+      <CommercialButton className="mt-3" disabled={!Number.isFinite(Number(scenarioInput)) || Number(scenarioInput) <= 0} onClick={() => setScenario({ caseId: workspace.caseId, revision: workspace.revision, amountWan: Number(scenarioInput) })}>使用此手動試算情境</CommercialButton>
+    </Section>
   </div>;
 
   const expectation = identityExpectation(workspace);
@@ -159,7 +136,9 @@ export function FinanceWorkspace() {
   function saveFinance() {
     if (saveDisabled || !expectation) return;
     try {
-      const evidence = createStoredFinanceEvidence(finance, { caseId: workspace.caseId, revision: workspace.revision, areaPing: holdingAreaPing });
+      const caseInputFingerprint = createFinanceInputFingerprint({ caseId: workspace.caseId, revision: workspace.revision, identityAnchorId: workspace.identity.anchor?.journey_anchor_id,
+        activePriceBasis: workspace.assumptions.activePriceBasis, activePriceWan: workspace.assumptions.activePriceWan, areaPing: workspace.assumptions.areaPing });
+      const evidence = createStoredFinanceEvidence(finance, { caseId: workspace.caseId, revision: workspace.revision, areaPing: holdingAreaPing, caseInputFingerprint });
       setSaveStatus(updateSavedCaseFinanceEvidence(workspace.caseId, evidence, expectation) ? "saved" : "failed");
     } catch {
       setSaveStatus("failed");
@@ -175,11 +154,12 @@ export function FinanceWorkspace() {
 
     <Section title="價格與融資基準" description="價格沿用案件目前選定的基準；本頁只讀取，不會改寫開價、手動價格或價格推估。">
       <div data-testid="finance-price-basis"><SummaryStrip label="價格與融資基準">
-        <MetricItem label={basisLabel(workspace.assumptions.activePriceBasis)} value={formatWan(activePriceWan)} primary note="沿用案件價格" />
+        <MetricItem label={basisLabel(activePriceBasis)} value={formatWan(activePriceWan)} primary note={scenarioPrice !== null ? "本次手動試算情境" : "沿用案件價格"} />
         <MetricItem label="自備款" value={formatWan(finance.loan.downPaymentWan)} note="未含稅費、仲介、代書與其他交易費用" />
         <MetricItem label="坪數" value={workspace.assumptions.areaPing ? `${workspace.assumptions.areaPing.toLocaleString("zh-TW", { maximumFractionDigits: 1 })} 坪` : "未提供"} note="僅影響依坪數估算的持有成本" />
       </SummaryStrip></div>
       <Freshness model={finance} dirty={loanDirty || holdingDirty} />
+      {finance.freshness.source === "saved_snapshot" && <SavedFinanceAssumptions model={finance} />}
     </Section>
 
     <Section title="主要每月結果" description="房貸與持有成本使用相同價格情境；一次性交易成本不會混入每月小計。">
@@ -254,10 +234,29 @@ function Freshness({ model, dirty }: { model: FinanceModel; dirty: boolean }) {
   const stale = dirty || model.freshness.status === "stale";
   return <div data-testid="freshness-status" className="mt-4">
     {stale ? <Message variant="warning" title="條件已變更，需重新計算">舊結果保留供辨識，但不再視為目前條件的有效結果。</Message>
-      : model.freshness.source === "saved_snapshot" ? <Message variant="information" title="已儲存的計算摘要">計算時間：{model.freshness.calculatedAt ?? "未提供"}。這不是本次開啟後重新計算的即時結果。</Message>
+      : model.freshness.source === "saved_snapshot" ? <Message variant="information" title="已儲存的計算摘要">計算時間：{formatExactDate(model.freshness.calculatedAt)}。這不是本次開啟後重新計算的即時結果。</Message>
         : model.freshness.source === "live_calculation" ? <Message variant="information" title="本次計算尚未儲存">檢查假設後，可儲存財務摘要供下次開啟。</Message>
           : <Message variant="information" title="尚未計算">先設定房貸或持有成本假設，再計算需要的結果。</Message>}
   </div>;
+}
+
+function SavedFinanceAssumptions({ model }: { model: FinanceModel }) {
+  return <Panel variant="plain" data-testid="saved-finance-assumptions">
+    <h2 className="text-subsection">原始保存假設（唯讀）</h2>
+    <dl className="mt-3 space-y-2">
+      <MetricRow label="試算價格來源" value={financePriceSourceLabel(model.priceSource)} />
+      <MetricRow label="原始試算價格" value={formatWan(model.savedAssumptions?.amountWan ?? model.loan.propertyPriceWan)} />
+      <MetricRow label="自備款比例" value={formatPercent(model.loan.downPaymentRatio)} />
+      <MetricRow label="利率／年期／寬限期" value={`${model.loan.annualInterestRate ?? "—"}%／${model.loan.loanYears ?? "—"} 年／${model.loan.gracePeriodYears ?? "—"} 年`} />
+      <MetricRow label="原始坪數" value={model.savedAssumptions?.areaPing == null ? "未提供" : `${model.savedAssumptions.areaPing} 坪`} />
+      <MetricRow label="原始月收入" value={formatWan(model.loan.monthlyIncomeWan ?? model.holding.assumptions.monthlyIncomeWan)} />
+      <MetricRow label="管理費／修繕準備假設" value={`${model.holding.assumptions.managementFeePerPingTwd ?? "—"}／${model.holding.assumptions.repairReservePerPingTwd ?? "—"} 元／坪／月`} />
+      <MetricRow label="房屋稅／土地稅率假設" value={`${model.holding.assumptions.annualHomeTaxRatePercent ?? "—"}%／${model.holding.assumptions.annualLandTaxRatePercent ?? "—"}%`} />
+      <MetricRow label="年保險假設" value={formatTwd(model.holding.assumptions.annualInsuranceTwd)} />
+      <MetricRow label="保存計算時間" value={formatExactDate(model.freshness.calculatedAt)} />
+    </dl>
+    {model.priceSource == null && <p className="mt-3 text-helper">舊快照未保存價格來源與計算時間；不能推定為開價或即時結果。</p>}
+  </Panel>;
 }
 
 function LoanSummary({ model, dirty }: { model: FinanceModel; dirty: boolean }) {

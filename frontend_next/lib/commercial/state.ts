@@ -62,7 +62,7 @@ export const RISK_STATE_REGISTRY: Record<RiskInterpretationState, CommercialStat
 export const IDENTITY_STATE_REGISTRY: Record<PropertyIdentityState, CommercialStateContract<PropertyIdentityState>> = {
   unconfirmed: contract("unconfirmed", label("物件尚待確認", "Property not confirmed", "物件未確認", "매물 미확인"), "瀏覽器案件的物件錨點尚未確認。", "neutral", true),
   confirming: contract("confirming", label("正在確認物件", "Confirming property", "物件を確認中", "매물 확인 중"), "正在比對地址、座標與物件指紋。", "information", false),
-  confirmed: contract("confirmed", label("物件已確認", "Property confirmed", "物件確認済み", "매물 확인됨"), "瀏覽器案件錨點在目前版本內一致；不代表法律或地籍身分。", "success", false),
+  confirmed: contract("confirmed", label("地址與座標已關聯", "Address and coordinates associated", "住所と座標を関連付け済み", "주소와 좌표 연결됨"), "瀏覽器案件錨點在目前版本內一致；不代表法律或地籍身分。", "information", false),
   conflict: contract("conflict", label("物件資料不一致，需要確認", "Property details conflict and need confirmation", "物件情報の不一致を確認してください", "매물 정보 불일치 확인 필요"), "物件識別輸入互相衝突，需阻擋不安全的綜合結果。", "error", true),
   revalidation_required: contract("revalidation_required", label("物件資料已變更，需重新確認", "Property changed and needs revalidation", "物件変更の再確認が必要", "매물 변경 재확인 필요"), "物件或相關假設變更，受影響證據不可視為目前有效。", "warning", true),
 };
@@ -106,17 +106,8 @@ export function resolveCommercialState(axis: CommercialStateAxis, value: unknown
   return { ...resolved, label: { ...resolved.label, "zh-TW": zh }, axis, recognized };
 }
 
-/** Compatibility handoff for E2's generic async-state primitive. */
-export function resolveAsyncStateRole(kind: unknown): CommercialSemanticRole {
-  if (kind === "not_started" || kind === "input_required" || kind === "loading" || kind === "error") {
-    const queryState = kind === "loading" ? "in_progress" : kind === "error" ? "failed" : kind;
-    return resolveCommercialState("query", queryState).role;
-  }
-  if (kind === "no_match" || kind === "no_coverage" || kind === "unavailable" || kind === "unsupported") {
-    return resolveCommercialState("evidence", kind).role;
-  }
-  return resolveCommercialState("query", "failed").role;
-}
+// @ts-expect-error Native TS runner extension.
+export { resolveAsyncStateRole } from "./async-state-role.ts";
 
 export function deriveRiskInterpretation(input: {
   evidenceStatus?: EvidenceUsabilityState;

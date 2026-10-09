@@ -134,17 +134,17 @@ test("Location and Decision expose one bounded journey identity without cadastra
 
   const locationCard = page.locator("#journey-stage-location").getByTestId("journey-property-identity-card");
   await expect(locationCard).toBeVisible();
-  await expect(locationCard).toContainText("Journey property identity");
+  await expect(locationCard).toContainText("地址與座標關聯");
   await expect(locationCard).toContainText("臺北市信義區市府路1號");
   await expect(locationCard).toContainText("臺北市 · 信義區");
   await expect(locationCard).toContainText("西村里");
-  await expect(locationCard).toContainText("Parcel: Unavailable");
-  await expect(locationCard).toContainText("Building: Unavailable");
-  await expect(locationCard).toContainText("High — address/location evidence only");
+  await expect(locationCard).toContainText("地號證據尚無可用證據");
+  await expect(locationCard).toContainText("建物證據尚無可用證據");
+  await expect(locationCard).toContainText("高 · 僅限地址與位置證據");
   await expect(locationCard).toContainText("Google geocoding");
-  await expect(locationCard).toContainText("NLSC village boundary");
-  await expect(locationCard).toContainText("not an official cadastral, government, legal, or durable VNext property ID");
-  await expect(locationCard).toContainText("does not confirm parcel, building, ownership, title, or legal boundary");
+  await expect(locationCard).toContainText("國土測繪村里界");
+  await expect(locationCard).toContainText("僅用於瀏覽器流程的地址與位置關聯");
+  await expect(locationCard).toContainText("不代表官方地號、建物、所有權或法律身分確認");
 
   await selectStep(page, "decision");
   const decisionCard = page.locator("#journey-stage-decision").getByTestId("journey-property-identity-card");
@@ -161,8 +161,8 @@ test("parcel and building unavailability do not gate later journey stages", asyn
   }
 
   const decisionCard = page.locator("#journey-stage-decision").getByTestId("journey-property-identity-card");
-  await expect(decisionCard).toContainText("Parcel: Unavailable");
-  await expect(decisionCard).toContainText("Building: Unavailable");
+  await expect(decisionCard).toContainText("地號證據尚無可用證據");
+  await expect(decisionCard).toContainText("建物證據尚無可用證據");
 });
 
 test("stale saved identity is visibly marked for revalidation", async ({ page }) => {
@@ -171,7 +171,7 @@ test("stale saved identity is visibly marked for revalidation", async ({ page })
 
   const card = page.locator("#journey-stage-decision").getByTestId("journey-property-identity-card");
   await expect(card).toContainText("需要重新確認");
-  await expect(card).toContainText("標準化地址不一致");
+  await expect(card).toContainText("目前資料與已接受的物件資料不一致");
   await expect(card).toContainText("請重新執行位置分析並確認地址");
-  await expect(card.getByText("Unknown — address/location evidence only", { exact: true })).toBeVisible();
+  await expect(card.getByText("未知 · 僅限地址與位置證據", { exact: true })).toBeVisible();
 });

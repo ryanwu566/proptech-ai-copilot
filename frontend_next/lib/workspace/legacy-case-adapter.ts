@@ -86,9 +86,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
   }
   const askingPriceWan = positive(journey?.propertyContext.askingPriceWan)
     ? journey.propertyContext.askingPriceWan
-    : positive(saved.inputSummary.propertyPrice)
-      ? saved.inputSummary.propertyPrice
-      : undefined;
+    : undefined;
   const basis = journey?.priceBasis === "valuation" ? "estimate" : journey?.priceBasis ?? "asking";
   const actionableValuation = getActionableValuation(saved.data.valuation) ?? getStoredActionableValuation(saved.data.valuation);
   const activePriceWan = basis === "estimate"
@@ -131,8 +129,9 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
         loanResult: saved.data.loan,
         holdingResult: saved.data.holdingCost,
         taxResult: saved.data.taxOracle,
-        calculatedAt: null,
         resultSource: "saved_snapshot",
+        resultPriceEvidence: saved.data.financePriceEvidence,
+        calculatedAt: saved.data.financePriceEvidence?.calculated_at ?? null,
       });
 
   return {

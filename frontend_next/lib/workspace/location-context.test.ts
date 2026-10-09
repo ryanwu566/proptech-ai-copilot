@@ -102,7 +102,7 @@ test("location snapshot uses the canonical identity coordinate and never a compe
   assert.equal(snapshot.property.normalizedAddress, "臺北市信義區市府路1號");
   assert.deepEqual(snapshot.property.sourceIds, ["google_geocoding", "nlsc_village_boundary"]);
   assert.equal(snapshot.insight?.resolved_location?.latitude, 24.1);
-  assert.deepEqual(snapshot.poiSummary, { transit_count: 4, convenience_count: 8, school_count: 3, park_count: 2, medical_count: 4, risk_facility_count: 1 });
+  assert.deepEqual(snapshot.poiSummary, { transit_count: 4, convenience_count: 8, school_count: 3, park_count: 2, medical_count: 4, risk_facility_count: null });
 });
 
 test("a route from another property is invalidated instead of presented as current", () => {

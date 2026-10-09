@@ -83,12 +83,15 @@ export function deriveJourneyRoadFromAcceptedAddress(
   normalizedAddress: string,
   city?: string | null,
   district?: string | null,
+  village?: string | null,
 ): string | undefined {
-  let remainder = withoutTaiwanPostalCode(normalizedAddress);
+  let remainder = withoutTaiwanPostalCode(normalizedAddress).trim().replace(/^(?:(?:台灣|臺灣|中華民國|Taiwan)\s*)/iu, "");
   for (const prefix of [city, district]) {
     const value = safeText(prefix);
-    if (value && remainder.startsWith(value)) remainder = remainder.slice(value.length);
+    if (value && remainder.replaceAll("台", "臺").startsWith(value.replaceAll("台", "臺"))) remainder = remainder.slice(value.length);
   }
+  const villagePrefix = safeText(village);
+  if (villagePrefix && remainder.startsWith(villagePrefix)) remainder = remainder.slice(villagePrefix.length);
   const match = remainder.match(/^(.+?(?:大道|路|街)(?:[一二三四五六七八九十百0-9]+段)?)/u);
   return safeText(match?.[1]);
 }
