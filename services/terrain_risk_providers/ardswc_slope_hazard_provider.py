@@ -19,6 +19,7 @@ import httpx
 from shapely.geometry import Point, shape
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.anti_abuse import provider_operation
 from services.provider_request_cache import BoundedRequestCache
 
 from . import base
@@ -296,6 +297,7 @@ class ArdswcSlopeHazardProvider:
             explanation += " 部分 tile 未取得，無法確認完整查詢範圍。"
         return self._mvt_result(mvt_key, status, False, None, [], explanation, errors, len(tiles), fetched_at)
 
+    @provider_operation("ardswc")
     def _fetch_tile(self, mvt_key: str, tile: TileCoord, client: httpx.Client | None = None) -> bytes:
         url = MVT_LAYERS[mvt_key]["url"].format(z=tile.z, x=tile.x, y=tile.y)
         PROVIDER_COST_METRICS.record("ardswc", "physical_calls")

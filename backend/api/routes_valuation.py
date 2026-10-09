@@ -2,6 +2,9 @@
 
 from typing import Any
 
+from services.input_limits import BoundedInputModel
+from services.anti_abuse import provider_operation
+
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
@@ -10,7 +13,7 @@ from services.valuation_result_contract import empty_estimate_result, public_sou
 router = APIRouter(prefix="/valuation", tags=["valuation"])
 
 
-class ValuationRequest(BaseModel):
+class ValuationRequest(BoundedInputModel):
     city: str
     district: str
     road: str
@@ -18,24 +21,24 @@ class ValuationRequest(BaseModel):
     area_ping: float = Field(gt=0, le=500, description="建物面積（坪）")
     building_age_years: float = Field(ge=0)
     floor: int = Field(ge=0)
-    lat: float | None = None
-    lng: float | None = None
+    lat: float | None = Field(default=None, ge=-90, le=90)
+    lng: float | None = Field(default=None, ge=-180, le=180)
     address_text: str = ""
 
 
-class ValuationTrendRequest(BaseModel):
+class ValuationTrendRequest(BoundedInputModel):
     city: str
     district: str
     road: str
     building_type: str
     area_ping: float = Field(gt=0, le=500, description="建物面積（坪）")
     building_age_years: float = Field(ge=0)
-    horizon_months: list[int] = Field(default_factory=lambda: [6, 12, 36])
+    horizon_months: list[int] = Field(default_factory=lambda: [6, 12, 36], max_length=12)
 
 
-class PropertySearchRequest(BaseModel):
+class PropertySearchRequest(BoundedInputModel):
     city: str = ""
-    districts: list[str] = Field(default_factory=list)
+    districts: list[str] = Field(default_factory=list, max_length=30)
     budget_min: float | None = Field(default=None, ge=0)
     budget_max: float = Field(gt=0)
     area_ping_min: float | None = Field(default=None, ge=0)
@@ -198,6 +201,7 @@ def _safe_nonnegative_int(value: Any) -> int:
 
 
 @router.post("/estimate")
+@provider_operation("valuation")
 def estimate(request: ValuationRequest) -> dict[str, Any]:
     from services.provider_observability import observe_response
     from services.valuation_service import estimate_property
@@ -208,6 +212,7 @@ def estimate(request: ValuationRequest) -> dict[str, Any]:
 
 
 @router.post("/trend")
+@provider_operation("trend")
 def trend(request: ValuationTrendRequest) -> dict[str, Any]:
     """Return official-PLVR historical trends and bounded scenarios."""
 
@@ -220,6 +225,7 @@ def trend(request: ValuationTrendRequest) -> dict[str, Any]:
 
 
 @router.post("/property-search")
+@provider_operation("finder")
 def property_search(request: PropertySearchRequest) -> dict[str, Any]:
     """Return official historical transaction directions, not live listings."""
 

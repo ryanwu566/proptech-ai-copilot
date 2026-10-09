@@ -9,6 +9,7 @@ from typing import Any, Mapping
 import httpx
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.anti_abuse import provider_operation
 
 from services.production_config import (
     NLSC_GATEWAY_BASE_URL_ENV,
@@ -75,6 +76,7 @@ class NlscGatewayAdapter:
         """Public provider origin; credentials are never part of cache storage."""
         return self._base_url.rstrip("/")
 
+    @provider_operation("nlsc")
     def terrain_point(self, lat: float, lng: float, radius_m: int) -> dict[str, Any]:
         """Return bounded NLSC measurements or an explicit unavailable result."""
 

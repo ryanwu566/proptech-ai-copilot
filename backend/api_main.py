@@ -53,6 +53,8 @@ from services.security import safe_origin, security_headers
 from services.production_config import MAINTENANCE_MODE_ENV
 from services.satellite_reference import feature_enabled
 from services.vnext.errors import ErrorCode, VNextError
+from backend.api.abuse_middleware import AbuseMiddleware
+from services.anti_abuse import AbuseRejected, capability_enabled
 
 
 DEFAULT_DEV_CORS_ORIGINS = ("http://localhost:3000", "http://127.0.0.1:3000")
@@ -99,7 +101,7 @@ async def app_lifespan(_app: FastAPI):
         try:
             earth_engine_manager = _get_earth_engine_worker_manager()
             earth_engine_manager.start(
-                enabled=feature_enabled(os.getenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "")),
+                enabled=feature_enabled(os.getenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "")) and capability_enabled("satellite"),
                 project=os.getenv("EARTH_ENGINE_PROJECT", ""),
             )
         except Exception:
@@ -126,6 +128,8 @@ app = FastAPI(
     version="0.1.0",
     lifespan=app_lifespan,
 )
+
+app.add_middleware(AbuseMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -161,17 +165,6 @@ async def privacy_safe_observability(request: Request, call_next):
     request.state.correlation_id = correlation_id
     started = time.monotonic()
     route_label = UNMATCHED_ROUTE
-    content_length = request.headers.get("content-length")
-    request_body_limit = 11_000_000 if request.url.path == "/parcel-geometry/upload" else 1_000_000
-    if content_length and content_length.isdigit() and int(content_length) > request_body_limit:
-        if request.url.path.startswith("/v1"):
-            response = structured_error_response(request, VNextError.validation_failed())
-        else:
-            response = JSONResponse(status_code=413, content={"status": "error", "message": "Request body is too large.", "support_reference": correlation_id})
-        response.headers["X-Correlation-ID"] = correlation_id
-        for name, value in security_headers(private=True).items():
-            response.headers.setdefault(name, value)
-        return _record_http_metrics(request, response, started, route_label)
     origin = safe_origin(request.headers.get("origin"))
     if origin and request.method not in {"GET", "HEAD", "OPTIONS"} and origin not in {item.lower().rstrip("/") for item in configured_cors_origins()}:
         if request.url.path.startswith("/v1"):
@@ -239,6 +232,14 @@ async def validation_exception_handler(request: Request, error: RequestValidatio
 @app.exception_handler(StarletteHTTPException)
 async def api_http_exception_handler(request: Request, error: StarletteHTTPException):
     if request.url.path.startswith("/v1"):
+        if isinstance(error, AbuseRejected):
+            code = ErrorCode.RATE_LIMITED if error.status_code == 429 else ErrorCode.PROVIDER_UNAVAILABLE
+            safe_error = VNextError(code, details={"reason_code": error.detail["reason_code"]})
+            safe_error.message = error.detail["message"]
+            safe_error.retryable = False
+            response = structured_error_response(request, safe_error)
+            response.headers.update(error.headers or {})
+            return response
         code = {
             401: ErrorCode.AUTHENTICATION_REQUIRED,
             403: ErrorCode.PERMISSION_DENIED,

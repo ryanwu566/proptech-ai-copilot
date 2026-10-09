@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 import backend.api.routes_map as routes_map
+from services import anti_abuse
 from backend.api_main import app
 from services.rate_limit import FixedWindowRateLimiter
 
@@ -13,7 +14,7 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def _isolate_map_limiter(monkeypatch):
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter())
+    monkeypatch.setattr(anti_abuse, "CONTROLS", anti_abuse.AbuseControls(anti_abuse.POLICIES))
 
 
 def test_public_map_search_rejects_after_default_budget(monkeypatch) -> None:
@@ -40,7 +41,8 @@ def test_public_map_rejection_precedes_provider_work(monkeypatch, path, payload,
         calls.append((args, kwargs))
         return {"ok": True}
 
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+    for name in ("geocoding", "metadata", "places"):
+        monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, name, FixedWindowRateLimiter(limit=1))
     monkeypatch.setattr(routes_map, provider_name, provider)
     assert client.post(path, json=payload).status_code == 200
     rejected = client.post(path, json=payload)
@@ -49,20 +51,22 @@ def test_public_map_rejection_precedes_provider_work(monkeypatch, path, payload,
     assert len(calls) == 1
 
 
-def test_malformed_map_request_does_not_consume_budget(monkeypatch) -> None:
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+def test_malformed_map_request_consumes_admission_but_not_provider_budget(monkeypatch) -> None:
+    for name in ("geocoding", "metadata", "places"):
+        monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, name, FixedWindowRateLimiter(limit=1))
     monkeypatch.setattr(routes_map, "get_nearby_places", lambda *args, **kwargs: {"ok": True})
     assert client.post("/map/nearby", json={"lat": 999, "lng": 0}).status_code == 422
-    assert client.post("/map/nearby", json={"lat": 25.03, "lng": 121.53}).status_code == 200
     assert client.post("/map/nearby", json={"lat": 25.03, "lng": 121.53}).status_code == 429
+    assert anti_abuse.CONTROLS.operation_limiters["places"].tracked_key_count() == 0
 
 
-def test_three_provider_routes_share_one_budget(monkeypatch) -> None:
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+def test_different_map_capabilities_have_independent_budgets(monkeypatch) -> None:
+    for name in ("geocoding", "metadata", "places"):
+        monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, name, FixedWindowRateLimiter(limit=1))
     monkeypatch.setattr(routes_map, "search_location", lambda query: {"ok": True})
     monkeypatch.setattr(routes_map, "get_map_insight", lambda query: {"ok": True})
     assert client.post("/map/search", json={"query": "address"}).status_code == 200
-    assert client.post("/map/insight", json={"query": "address"}).status_code == 429
+    assert client.post("/map/insight", json={"query": "address"}).status_code == 200
 
 
 @pytest.mark.parametrize(
@@ -74,7 +78,8 @@ def test_three_provider_routes_share_one_budget(monkeypatch) -> None:
     ],
 )
 def test_forwarded_headers_cannot_select_fresh_key(monkeypatch, header, spoofed_value) -> None:
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+    for name in ("geocoding", "metadata", "places"):
+        monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, name, FixedWindowRateLimiter(limit=1))
     monkeypatch.setattr(routes_map, "search_location", lambda query: {"ok": True})
     assert client.post("/map/search", json={"query": "address"}).status_code == 200
     rejected = client.post("/map/search", json={"query": "address"}, headers={header: spoofed_value})
@@ -82,7 +87,8 @@ def test_forwarded_headers_cannot_select_fresh_key(monkeypatch, header, spoofed_
 
 
 def test_distinct_direct_peers_have_separate_budgets(monkeypatch) -> None:
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+    for name in ("geocoding", "metadata", "places"):
+        monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, name, FixedWindowRateLimiter(limit=1))
     monkeypatch.setattr(routes_map, "search_location", lambda query: {"ok": True})
     first_peer = TestClient(app, client=("198.51.100.4", 12345))
     second_peer = TestClient(app, client=("198.51.100.5", 12345))
@@ -91,29 +97,30 @@ def test_distinct_direct_peers_have_separate_budgets(monkeypatch) -> None:
     assert second_peer.post("/map/search", json={"query": "address"}).status_code == 200
 
 
-def test_limiter_internal_failure_fails_open(monkeypatch, caplog) -> None:
+def test_limiter_internal_failure_fails_closed(monkeypatch, caplog) -> None:
     class BrokenLimiter:
         def check(self, key):
             raise RuntimeError("limiter unavailable")
 
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", BrokenLimiter())
+    monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, "geocoding", BrokenLimiter())
     monkeypatch.setattr(routes_map, "search_location", lambda query: {"ok": True})
-    assert client.post("/map/search", json={"query": "address"}).status_code == 200
-    assert "rate_limiter_failed_open" in caplog.text
+    assert client.post("/map/search", json={"query": "address"}).status_code == 503
+    assert "limiter unavailable" not in caplog.text
 
 
-def test_invalid_limiter_decision_fails_open(monkeypatch) -> None:
+def test_invalid_limiter_decision_fails_closed(monkeypatch) -> None:
     class BadDecisionLimiter:
         def check(self, key):
             return object()
 
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", BadDecisionLimiter())
+    monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, "geocoding", BadDecisionLimiter())
     monkeypatch.setattr(routes_map, "search_location", lambda query: {"ok": True})
-    assert client.post("/map/search", json={"query": "address"}).status_code == 200
+    assert client.post("/map/search", json={"query": "address"}).status_code == 503
 
 
 def test_metadata_without_provider_work_does_not_consume_map_budget(monkeypatch) -> None:
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", FixedWindowRateLimiter(limit=1))
+    for name in ("geocoding", "metadata", "places"):
+        monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, name, FixedWindowRateLimiter(limit=1))
     monkeypatch.setattr(routes_map, "search_location", lambda query: {"ok": True})
     assert client.get("/map/regions").status_code == 200
     assert client.get("/map/poi-categories").status_code == 200
@@ -121,21 +128,19 @@ def test_metadata_without_provider_work_does_not_consume_map_budget(monkeypatch)
     assert client.post("/map/search", json={"query": "address"}).status_code == 429
 
 
-@pytest.mark.parametrize("raw", ["garbage", "0", "-2", ""])
-def test_invalid_env_values_use_default_budget(monkeypatch, raw) -> None:
-    monkeypatch.setenv(routes_map.PUBLIC_MAP_RATE_LIMIT_REQUESTS_ENV, raw)
-    monkeypatch.setenv(routes_map.PUBLIC_MAP_RATE_LIMIT_WINDOW_SECONDS_ENV, raw)
-    limiter = routes_map._build_map_rate_limiter()
-    assert limiter.limit == 30
-    assert limiter.window_seconds == 60
+@pytest.mark.parametrize("raw", ["garbage", "0", "-2"])
+def test_invalid_env_values_fail_closed(monkeypatch, raw) -> None:
+    monkeypatch.setenv("ANTI_ABUSE_GEOCODING_REQUESTS", raw)
+    with pytest.raises(RuntimeError, match="Invalid anti-abuse configuration"):
+        anti_abuse.configured_policies()
 
 
 def test_oversized_env_values_are_clamped(monkeypatch) -> None:
-    monkeypatch.setenv(routes_map.PUBLIC_MAP_RATE_LIMIT_REQUESTS_ENV, "10000000")
-    monkeypatch.setenv(routes_map.PUBLIC_MAP_RATE_LIMIT_WINDOW_SECONDS_ENV, "10000000")
-    limiter = routes_map._build_map_rate_limiter()
-    assert limiter.limit == 100_000
-    assert limiter.window_seconds == 3_600
+    monkeypatch.setenv("ANTI_ABUSE_GEOCODING_REQUESTS", "10000000")
+    monkeypatch.setenv("ANTI_ABUSE_GEOCODING_WINDOW_SECONDS", "10000000")
+    policy = anti_abuse.configured_policies()["geocoding"]
+    assert policy.requests == 100_000
+    assert policy.window == 3_600
 
 
 def test_map_metadata_endpoints() -> None:
@@ -169,7 +174,7 @@ def test_google_health_without_key_does_not_spend_budget_or_probe(monkeypatch) -
     monkeypatch.setattr(map_service, "GOOGLE_HEALTH_CACHE", None)
     monkeypatch.setattr(map_service.GoogleGeocodingAdapter, "search", unexpected_provider)
     monkeypatch.setattr(map_service.GooglePlacesAdapter, "nearby", unexpected_provider)
-    monkeypatch.setattr(routes_map, "_MAP_RATE_LIMITER", limiter)
+    monkeypatch.setitem(anti_abuse.CONTROLS.request_limiters, "geocoding", limiter)
     response = client.get("/map/google-health")
     assert response.status_code == 200
     assert response.json()["mode"] == "mock"

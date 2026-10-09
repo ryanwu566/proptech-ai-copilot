@@ -150,11 +150,38 @@ def _project(geometry: BaseGeometry, destination: CRS | None = None) -> BaseGeom
     return transform(transformer.transform, geometry)
 
 
+def validate_geometry_resources(value: Any) -> None:
+    """Bound native geometry construction before GEOS sees user coordinates."""
+    stack = [(value, 0)]
+    coordinates = 0
+    nodes = 0
+    while stack:
+        item, depth = stack.pop()
+        nodes += 1
+        if depth > 16 or nodes > MAX_COORDINATES * 4:
+            raise ParcelGeometryError("INVALID_GEOMETRY", "Geometry exceeds the resource limit.")
+        if isinstance(item, dict):
+            if len(item) > 64:
+                raise ParcelGeometryError("INVALID_GEOMETRY", "Geometry exceeds the resource limit.")
+            stack.extend((child, depth + 1) for child in item.values())
+        elif isinstance(item, (list, tuple)):
+            if len(item) > MAX_COORDINATES:
+                raise ParcelGeometryError("INVALID_GEOMETRY", "Geometry exceeds the coordinate limit.")
+            if item and all(isinstance(child, (int, float)) for child in item):
+                coordinates += 1
+                if coordinates > MAX_COORDINATES:
+                    raise ParcelGeometryError("INVALID_GEOMETRY", "Geometry exceeds the coordinate limit.")
+            else:
+                stack.extend((child, depth + 1) for child in item)
+
+
 def assess_location_geometry_consistency(
     geometry: BaseGeometry | dict[str, Any], *, latitude: float | None, longitude: float | None, tolerance_m: float = 100
 ) -> str:
     if latitude is None or longitude is None:
         return "NOT_CHECKED"
+    if isinstance(geometry, dict):
+        validate_geometry_resources(geometry)
     polygon = shape(geometry) if isinstance(geometry, dict) else geometry
     point = Point(float(longitude), float(latitude))
     if polygon.covers(point):
@@ -212,6 +239,7 @@ def _geojson(data: bytes) -> tuple[BaseGeometry, float]:
         raise ParcelGeometryError("NO_POLYGON_FOUND", "Only GeoJSON Polygon and MultiPolygon are supported.")
     if not raw or any(item.get("type") not in {"Polygon", "MultiPolygon"} for item in raw):
         raise ParcelGeometryError("NO_POLYGON_FOUND", "Every uploaded GeoJSON feature must be polygonal.")
+    validate_geometry_resources(raw)
     try:
         return unary_union([shape(item) for item in raw]), _elapsed_ms(started)
     except (TypeError, ValueError, KeyError) as exc:
@@ -237,6 +265,8 @@ def _kml_coordinates(text: str | None) -> list[tuple[float, float]]:
             if len(pieces) < 2 or not all(math.isfinite(value) for value in (longitude, latitude)):
                 raise ValueError
             result.append((longitude, latitude))
+            if len(result) > MAX_COORDINATES:
+                raise ParcelGeometryError("INVALID_GEOMETRY", "Geometry exceeds the coordinate limit.")
     except (ValueError, IndexError) as exc:
         raise ParcelGeometryError("PARSE_FAILED", "KML contains malformed longitude,latitude coordinates.") from exc
     if result and result[0] != result[-1]:
@@ -253,6 +283,7 @@ def _kml(data: bytes) -> tuple[BaseGeometry, float]:
     except Exception as exc:
         raise ParcelGeometryError("PARSE_FAILED", "KML XML is malformed or contains prohibited entities.") from exc
     polygons: list[Polygon] = []
+    coordinate_total = 0
     for element in (item for item in root.iter() if _local(item.tag) == "Polygon"):
         outer = _first(element, "outerBoundaryIs")
         coordinates = _first(outer, "coordinates") if outer is not None else None
@@ -262,7 +293,11 @@ def _kml(data: bytes) -> tuple[BaseGeometry, float]:
         for boundary in (item for item in element.iter() if _local(item.tag) == "innerBoundaryIs"):
             inner = _first(boundary, "coordinates")
             holes.append(_kml_coordinates(inner.text if inner is not None else None))
-        polygons.append(Polygon(_kml_coordinates(coordinates.text), holes))
+        shell = _kml_coordinates(coordinates.text)
+        coordinate_total += len(shell) + sum(len(ring) for ring in holes)
+        if coordinate_total > MAX_COORDINATES:
+            raise ParcelGeometryError("INVALID_GEOMETRY", "Geometry exceeds the coordinate limit.")
+        polygons.append(Polygon(shell, holes))
         if len(polygons) > MAX_FEATURES:
             raise ParcelGeometryError("INVALID_GEOMETRY", f"KML exceeds {MAX_FEATURES:,} polygons.")
     if not polygons:
@@ -323,8 +358,18 @@ def _shapefile(data: bytes) -> tuple[BaseGeometry, str, float]:
             )
             if len(reader) > MAX_FEATURES:
                 raise ParcelGeometryError("INVALID_GEOMETRY", f"Shapefile exceeds {MAX_FEATURES:,} features.")
-            geometries = [shape(record.__geo_interface__) for record in reader.iterShapes()]
-            reader.close()
+            raw = []
+            coordinate_total = 0
+            try:
+                for record in reader.iterShapes():
+                    coordinate_total += len(record.points)
+                    if coordinate_total > MAX_COORDINATES:
+                        raise ParcelGeometryError("INVALID_GEOMETRY", "Geometry exceeds the coordinate limit.")
+                    raw.append(record.__geo_interface__)
+                validate_geometry_resources(raw)
+                geometries = [shape(item) for item in raw]
+            finally:
+                reader.close()
         except ParcelGeometryError:
             raise
         except Exception as exc:
@@ -410,6 +455,10 @@ def spatial_intersection(
         return {"claim_type": "NO_GEOMETRY_AVAILABLE", "geometry_available": False,
                 "timing_ms": {"spatial_intersection_ms": _elapsed_ms(started)}}
     try:
+        if isinstance(parcel_geometry, dict):
+            validate_geometry_resources(parcel_geometry)
+        if isinstance(hazard_geometry, dict):
+            validate_geometry_resources(hazard_geometry)
         parcel = shape(parcel_geometry) if isinstance(parcel_geometry, dict) else parcel_geometry
         hazard = shape(hazard_geometry) if isinstance(hazard_geometry, dict) else hazard_geometry
         parcel, _, _ = _normalize_polygonal(parcel)

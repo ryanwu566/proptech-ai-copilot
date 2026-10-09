@@ -12,6 +12,7 @@ import httpx
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.provider_request_cache import BoundedRequestCache
+from services.anti_abuse import provider_operation
 
 
 LocationResolveStatus = Literal["resolved", "unresolved", "unavailable"]
@@ -118,7 +119,12 @@ class TgosAddressProvider:
     def resolve(self, address: str) -> LocationResolveResult:
         if not self.configured:
             return _unavailable()
+        return self._resolve_provider(address)
+
+    @provider_operation("tgos")
+    def _resolve_provider(self, address: str) -> LocationResolveResult:
         try:
+            PROVIDER_COST_METRICS.record("tgos", "physical_calls")
             response = httpx.get(
                 TGOS_URL,
                 params={
@@ -183,6 +189,7 @@ class GoogleAddressProvider:
 
         return self._requests.run(key, resolve)
 
+    @provider_operation("geocoding")
     def _resolve_provider(self, address: str) -> LocationResolveResult:
         try:
             PROVIDER_COST_METRICS.record("geocoding", "physical_calls")

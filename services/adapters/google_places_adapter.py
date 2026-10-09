@@ -12,6 +12,7 @@ import httpx
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.provider_request_cache import BoundedRequestCache
+from services.anti_abuse import ensure_enabled, provider_operation
 
 
 PLACES_URL = "https://places.googleapis.com/v1/places:searchNearby"
@@ -112,6 +113,7 @@ class GooglePlacesAdapter:
     ) -> list[dict[str, Any]]:
         """Return normalized Google Places for one supported category."""
 
+        ensure_enabled("places")
         if not self.available:
             return []
         self._cache.ttl_seconds = self.cache_ttl_seconds
@@ -125,6 +127,7 @@ class GooglePlacesAdapter:
         self._observation.checked_at = observed_at
         return places
 
+    @provider_operation("places")
     def _fetch_nearby(self, lat: float, lng: float, radius_m: int, category: str, language_code: str) -> list[dict[str, Any]]:
 
         payload = {

@@ -11,6 +11,7 @@ import httpx
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.provider_request_cache import BoundedRequestCache
+from services.anti_abuse import provider_operation
 
 
 class GeocodingAdapter(Protocol):
@@ -86,6 +87,7 @@ class GoogleGeocodingAdapter:
         result, self.last_reason_code, self.last_error = self._requests.run(key, resolve)
         return result
 
+    @provider_operation("geocoding")
     def _search_provider(self, query: str) -> dict[str, Any] | None:
         self.last_error = ""
         self.last_reason_code = "configuration_required" if not self.available else "invalid_input"

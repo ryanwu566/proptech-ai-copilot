@@ -205,6 +205,73 @@ rows. It reports query plans, index usage, p50/p95, lock errors, and transaction
 errors; no synthetic row is written to production evidence. The bounded load
 stages are local ASGI smoke measurements, not a high-scale readiness claim.
 
+### Bounded load admission contract (PR 166 follow-up)
+
+The default five-loop smoke retains 1/5/10/20 concurrent workers and the same
+four real API scenarios. Stages 1/5/10 are ordinary traffic: every response must
+be 2xx. Stage 20 is overload: only `/roads/cities` HTTP 429 with
+`detail.reason_code=rate_limited`, and `/taxoracle/report` HTTP 503 with
+`detail.reason_code=capacity_exhausted`, may count as intended rejections.
+Both require an ASCII integer `Retry-After` between 1 and 3,600 seconds.
+Wrong scenarios/reasons, malformed envelopes, invalid/missing headers, other
+4xx/5xx, timeouts, transport errors and request exceptions fail acceptance.
+Production limits, middleware, shared counters and CI configuration are
+unchanged. Stricter configuration or increased `--loops` can exceed the
+ordinary envelope and fail; the harness never raises limits or resets budgets
+to hide that result.
+
+Local diagnosis reproduced the previously aggregate-only failure: TaxOracle
+report POSTs encountered the existing sixteen-write-body capacity guard and
+returned safe 503/capacity_exhausted with Retry-After 1. The reproduced run had
+four such responses (raw error rate 0.01); the supplied CI aggregate had one
+failure (0.0025), without a per-response record. Scheduling changes the count;
+the exact historical CI response cannot be recovered from that aggregate.
+No runtime defect was demonstrated. The sixty 429s are independently explained:
+the earlier stages make 5+25+50=80 road lookups, leaving forty of the shared
+metadata policy's 120/minute admissions for the final hundred lookups. The
+remaining sixty are rate-limited when the run stays within that window.
+
+Output provides separate ordinary/overload verdicts, successful and intended
+rejection counts, unexpected 5xx/HTTP/exception/timeout counts, measured elapsed
+time and aggregate diagnostics by stage, fixed scenario, status category,
+sanitized reason and exception category. No body, address, token, peer,
+exception message or stack is emitted. The original raw `error_rate` remains
+5xx/exception evidence, including controlled 503s; `unexpected_error_rate`
+and ordinary/overload criteria govern acceptance. `p50_ms`, `p95_ms`, `p99_ms`
+and `admitted_request_latency_p95` use successful responses only, with explicit
+sample count. Throughput uses measured wall time, with successful throughput
+reported separately, rather than treating rejected calls as completed work.
+
+A separate deterministic streamed-body probe runs twenty requests through the
+real middleware and shared semaphore against a minimal local endpoint. It must
+observe sixteen held admissions and exactly four verified capacity rejections,
+keep health available while saturated, then recover all sixteen simultaneous
+admissions. Removed/bypassed guards, leaked permits, unexpected failures or
+missing saturation evidence fail. Requests have bounded deadlines and cleanup
+releases held streams even on failure/cancellation. Probe timings include
+deliberately held bodies and are not real endpoint performance samples.
+
+Focused regressions cover classification, invalid headers, safe diagnostics,
+unexpected errors, transport/timeout categories, admitted-only latency,
+ordinary rejection failures, real rate-limit state across runs, independent
+capability admission, twenty-request capacity rejection, guard bypass and full
+permit recovery. Existing anti-abuse tests also cover bounded memory,
+concurrency races and cancellation. Independent read-only review found no
+Critical/Important/Minor issues; its focused run passed all 34 new tests.
+
+Local follow-up validation: two default CLI smokes passed both verdicts with
+zero unexpected failures. Each had 20/100/200 successful requests at 1/5/10
+workers; at twenty workers, 336 succeeded, sixty were rate-limited and four
+were capacity-rejected. Each deterministic probe admitted sixteen, rejected
+four and recovered all sixteen permits. Mixed-suite focused validation passed
+98 tests; the full Python suite passed 3,330 with 32 existing skips and one
+Starlette TestClient deprecation warning. The local security/performance gate,
+API and SQLite benchmarks, bundle/route budgets, repository hygiene and diff
+checks passed. Frontend/runtime/config/dependencies/CI were not changed, so
+frontend rebuild/browser and dependency-audit reruns were outside this fix.
+The hosted PR check remains to be rerun after an authorized push; no push,
+merge, deployment or external-provider traffic was performed.
+
 ## Residual risks
 
 The repository cannot prove production CDN behavior, durable database

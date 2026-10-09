@@ -16,6 +16,8 @@ from typing import Any, Callable, Mapping
 from urllib.parse import urlsplit
 
 import httpx
+from services.anti_abuse import provider_operation
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from defusedxml import ElementTree as DefusedElementTree
 
 from services.production_config import (
@@ -306,6 +308,7 @@ class NlscCadGatewayAdapter:
             parser=lambda payload: _parse_cad_001(payload, crs=crs),
         )
 
+    @provider_operation("identity")
     def _post_xml(
         self,
         *,
@@ -315,6 +318,7 @@ class NlscCadGatewayAdapter:
         parser: Callable[[bytes], list[dict[str, object]]],
     ) -> dict[str, Any]:
         try:
+            PROVIDER_COST_METRICS.record("identity", "physical_calls")
             with self._get_client().stream(
                 "POST",
                 self._base_url.rstrip("/") + path,
