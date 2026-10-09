@@ -18,14 +18,19 @@ function load(name) {
   runInNewContext(output, { exports, require: (path) => load(path.replace("@/lib/", "")), Intl });
   cache.set(name, exports); return exports;
 }
-test("all four locale outputs, interpolated values and coverage match the starting release", () => {
+test("all legacy locale outputs, interpolated values and coverage match the starting release", () => {
   const experience = load("experience-i18n"); const runtime = load("runtime-copy");
   const values = { count: 7, total: 19, name: "fixture", source: "fixture", amount: 123 };
   const output = experience.SUPPORTED_LOCALES.map((locale) => ({ locale,
     experience: experience.testKeys.map((key) => [key, experience.translateExperience(locale, key)]),
-    runtime: runtime.RUNTIME_COPY_KEYS.map((key) => [key, runtime.translateRuntimeCopy(locale, key), runtime.translateRuntimeCopy(locale, key, values)]),
+    runtime: runtime.RUNTIME_COPY_KEYS.filter((key) => !key.startsWith("guide.")).map((key) => [key, runtime.translateRuntimeCopy(locale, key), runtime.translateRuntimeCopy(locale, key, values)]),
   }));
-  const digest = createHash("sha256").update(JSON.stringify({ output, experience: experience.getExperienceLocaleCoverage(), runtime: runtime.getRuntimeCopyCoverage() })).digest("hex");
+  // Preserve the original release fingerprint; new guide keys have their own coverage tests.
+  const guideKeyCount = runtime.RUNTIME_COPY_KEYS.filter((key) => key.startsWith("guide.")).length;
+  const legacyCoverage = Object.fromEntries(Object.entries(runtime.getRuntimeCopyCoverage()).map(([locale, coverage]) => [locale, {
+    total: coverage.total - guideKeyCount, missing: coverage.missing.filter((key) => !key.startsWith("guide.")),
+  }]));
+  const digest = createHash("sha256").update(JSON.stringify({ output, experience: experience.getExperienceLocaleCoverage(), runtime: legacyCoverage })).digest("hex");
   assert.equal(digest, "15385f48773907e8e72ed1f55b68941342ee6500cee30787604c88f9b9d38b24");
 });
 
