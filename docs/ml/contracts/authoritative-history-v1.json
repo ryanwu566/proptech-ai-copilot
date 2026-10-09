@@ -1,0 +1,31 @@
+{
+  "schema_version": "plvr-authoritative-history-contract-v1",
+  "data_gate_version": "ml-data-gate-v2",
+  "selector_version": "plvr-authoritative-history-selector-v1",
+  "target_contract": "observed-residential-transfer-ntd-ping-v1",
+  "evidence_classes": ["AUTHENTICATED", "SUPPORTED", "CURRENT_ONLY", "UNVERIFIED", "UNAVAILABLE"],
+  "authority_boundary": "Evidence dictionaries are reviewed inputs. Syntax, hashes and Boolean attestations do not authenticate external claims. Real proof requires independently reviewed authoritative source material. This lane supplies no positive historical or namespace certificate.",
+  "publication": "Bind release ID and archive SHA256 to independent exact publication time, date-only next Taipei midnight, or trustworthy conservative observation upper bound. Current capture never backdates a release.",
+  "complete_history_certificate": "Bind dataset, exact timezone cutoff and canonical visible-ledger SHA256; explicitly attest stable namespace, complete revision/cancellation history and complete replacement links. Each fold freeze needs its own reviewed certificate. Unknown publication invalidates completeness.",
+  "lineage": "Select complete visible event ledger before eligibility. Strict predecessor chain and cancellation-state evidence; same-payload duplicates collapse. Changed-ID replacements quarantine both families pending authoritative resolution. Disappearance never establishes cancellation.",
+  "namespace": "Existing county/dataset/serial SHA256 is a derived research identifier. Stable namespace not inferred from apparent uniqueness. Archive/member/physical record is an occurrence locator only.",
+  "parking": "Only confirmed no-parking included enters Target B v1. Separately reported price/area is a diagnostic, not authorization for deduction. Ambiguous, missing and structurally inseparable cases exclude.",
+  "minimum_chronology": {
+    "contiguous_months": 21,
+    "minimum_rows_per_month": 20,
+    "minimum_district_type_rows_per_block": 20,
+    "train_months_minimum": 12,
+    "validation_months": 3,
+    "calibration_months": 3,
+    "test_months": 3,
+    "requires_complete_mature_coverage_evidence": true,
+    "requires_full_ledger_freeze_reselection": true,
+    "random_split_allowed": false
+  },
+  "threshold_rationale": "Preserve the existing maturity contract: a full annual training cycle and three distinct three-month blocks for model selection, calibration and untouched test. Twenty monthly/subgroup observations are conservative sparsity screens, not statistical power guarantees; passing still requires authoritative completeness and frozen-version consistency. No threshold was tuned to observed counts.",
+  "target_a": "Existing rights/single-unit/area/parking gates unchanged; require the stricter history evidence as well.",
+  "approval": "Nonempty qualified PIT cohort AND viable authoritative chronological frozen folds. Positive semantic or marginal counts cannot grant ML-B approval.",
+  "baseline_policy": "Prepare new evaluation contracts only after approved nonzero viable cohort. No models, headline MAE/RMSE or ML UI in this lane.",
+  "privacy": "Commit only bounded marginal aggregates, source hashes and configuration. No raw identifiers, addresses, notes or transaction-level data in generated outputs. No absolute machine paths in deterministic outputs.",
+  "production_valuation_approval": false
+}
