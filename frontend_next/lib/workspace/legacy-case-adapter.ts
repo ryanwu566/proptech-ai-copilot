@@ -158,6 +158,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
         })
       : null,
     finance,
+    checklistReview: saved.data.checklistReview,
     saveState: "saved",
   };
 }

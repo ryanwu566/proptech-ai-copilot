@@ -1,5 +1,8 @@
 import type { PropertyCaseWorkspace, WorkspaceSection } from "./workspace-model";
 import type { RiskEvidenceKey } from "./risk-evidence-model";
+import type { StoredChecklistReviewV1 } from "./checklist-persistence";
+// @ts-expect-error Native TS runner extension.
+import { checklistToken } from "./checklist-persistence.ts";
 // @ts-expect-error Native TS runner extension.
 import { RISK_QUERY_LAYERS } from "./risk-evidence-model.ts";
 // @ts-expect-error Native TS runner extension.
@@ -47,6 +50,8 @@ export type CaseEvidenceModel = {
     missingCosts: Text; tax: Text; breakdown: Array<{ key: string; amount: Numeric }>;
   };
   gaps: EvidenceGap[]; sources: EvidenceSource[];
+  checklistReview?: StoredChecklistReviewV1;
+  checklistIdentityToken?: string;
 };
 
 // @ts-expect-error Native TS runner extension.
@@ -167,6 +172,10 @@ export function projectCaseEvidence(workspace: PropertyCaseWorkspace): CaseEvide
   const model: CaseEvidenceModel = { schemaVersion: 1, caseId: workspace.caseId, snapshotToken: "", title: workspace.title, displayAddress: workspace.displayAddress, savedAt: workspace.updatedAt, identity: { state: workspace.identity.state, scope: workspace.identity.scope, limitation: "已確認僅指瀏覽器案件關聯；不代表地號、建物、所有權或法律身分確認。" }, price, location: locationModel, commute, risk, finance: financeModel, gaps: [], sources };
   model.gaps = evidenceFields(model).filter((item) => item.missingReason !== null && !["finance-grace-payment", "finance-post-grace"].includes(item.id)).map((item) => ({ caseId: model.caseId, domain: item.domain, id: item.id, item: item.label, reason: item.missingReason!, impact: item.limitation, nextAction: item.nextAction, href: `/cases/${encodeURIComponent(model.caseId)}/${item.domain}` }));
   for (const cost of finance?.missingCosts ?? []) model.gaps.push({ caseId: model.caseId, domain: "finance", id: `cost-${encodeURIComponent(cost)}`, item: cost, reason: "missing_input", impact: "已知住宅支出未涵蓋所有成本。", nextAction: ACTIONS.finance, href: `/cases/${encodeURIComponent(model.caseId)}/finance` });
+  model.gaps.unshift({ caseId: model.caseId, domain: "overview", id: "identity-legal", item: "地籍、建物與權利身分", reason: validIdentity ? "unsupported" : "missing_input", impact: model.identity.limitation, nextAction: "先確認本案件地址與定位；地籍、建物與權利文件需另行人工查證。", href: `/cases/${encodeURIComponent(model.caseId)}/overview` });
+  const anchor = workspace.identity.anchor;
+  model.checklistIdentityToken = checklistToken([workspace.caseId, workspace.displayAddress, workspace.identity.state, anchor?.journey_anchor_id, anchor?.normalized_address, anchor?.coordinates, anchor?.evidence.checked_at, anchor?.revalidation]);
+  model.checklistReview = workspace.checklistReview;
   model.snapshotToken = JSON.stringify(model); // Canonical projection order, in memory only; no durable revision claim.
   return model;
 }

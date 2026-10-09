@@ -16,6 +16,7 @@ import { buildSavedCaseSnapshotUpdate, type SaveSnapshotIdentityState, type Save
 import { parseSavedCasesDiagnostic, type SavedCaseReadDiagnostic } from "@/lib/workspace/saved-case-diagnostics";
 import { normalizeFinancePriceEvidence, type FinancePriceEvidence } from "@/lib/finance-price-provenance";
 import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidence";
+import { invalidateChangedChecklist, normalizeChecklistReview, type StoredChecklistReviewV1 } from "@/lib/workspace/checklist-persistence";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -55,6 +56,7 @@ export type SavedCaseData = {
   taxOracle?: TaxResult;
   financeEvidence?: StoredFinanceEvidenceV1;
   reportCompleted?: boolean;
+  checklistReview?: StoredChecklistReviewV1;
 };
 
 export type SavedCase = {
@@ -125,10 +127,10 @@ export function saveCase(input: SaveCaseInput): SavedCase | null {
     updatedAt: now,
     version: 1,
     workflowMode: "buying_wizard",
-    data: compactCaseData(input.data),
+    data: compactCaseData({ ...input.data, checklistReview: undefined }),
   };
   const financeEvidence = captureJourneyFinanceEvidence({ ...saved, data: input.data });
-  if (financeEvidence) saved.data = compactCaseData({ ...input.data, financeEvidence });
+  if (financeEvidence) saved.data = compactCaseData({ ...input.data, checklistReview: undefined, financeEvidence });
   writeCases([saved, ...readSavedCases()].slice(0, MAX_SAVED_CASES));
   return saved;
 }
@@ -139,8 +141,11 @@ export function resaveSavedCaseSnapshot(
   identityState: SaveSnapshotIdentityState,
   expectedUpdatedAt: string,
   now: () => string = () => new Date().toISOString(),
+  checklistReview?: StoredChecklistReviewV1,
 ): SaveSnapshotResult {
-  const update = buildSavedCaseSnapshotUpdate(readSavedCases(), caseId, expected, identityState, expectedUpdatedAt, now, compactCaseData);
+  const read = readSavedCasesDiagnostic();
+  if (["parse_error", "invalid_storage", "storage_unavailable", "partial"].includes(read.status)) return { status: "blocked", reason: "storage_unavailable", message: "本機案件儲存無法安全讀取；請檢查儲存資料後再保存。" };
+  const update = buildSavedCaseSnapshotUpdate(read.cases, caseId, expected, identityState, expectedUpdatedAt, now, compactCaseData, checklistReview);
   if (update.result.status === "saved") {
     writeCases(update.rows);
     window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: update.result.saved }));
@@ -340,6 +345,7 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
       : undefined,
     terrainRisk: undefined,
     financeEvidence,
+    checklistReview: normalizeChecklistReview(data.checklistReview) ?? undefined,
     ...(financeEvidence ? { loan: undefined, holdingCost: undefined, taxOracle: undefined } : {}),
   };
 }
@@ -383,7 +389,9 @@ function setSession(key: string, value: unknown) {
 }
 
 function writeCases(rows: SavedCase[]) {
-  window.localStorage.setItem(SAVED_CASES_STORAGE_KEY, JSON.stringify(rows));
+  const previous = readSavedCases();
+  const bounded = rows.map((row) => row.data.checklistReview ? { ...row, data: { ...row.data, checklistReview: invalidateChangedChecklist(previous.find((item) => item.id === row.id), row) } } : row);
+  window.localStorage.setItem(SAVED_CASES_STORAGE_KEY, JSON.stringify(bounded));
   window.dispatchEvent(new Event(CASE_UPDATED_EVENT));
 }
 

@@ -12,6 +12,7 @@ import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { OverviewSection } from "./overview-section";
 import styles from "./overview-view.module.css";
 import { financePriceSourceLabel } from "@/lib/finance-price-provenance";
+import { ChecklistView } from "@/components/evidence/checklist-view";
 
 const freshnessLabels: Record<string, string> = {
   current: "本次工作階段證據",
@@ -50,6 +51,8 @@ export function OverviewView() {
     <LocationSummary model={overview} />
     <RiskSummary model={overview} />
     <FinanceSummary model={overview} />
+
+    <ChecklistView key={workspace.caseId} workspace={workspace} />
 
     <Section title="保存、鮮度與來源" description="保存只代表保留目前已知狀態，不代表所有分析已完成。">
       <div className={styles.savePanel}>

@@ -2,50 +2,10 @@ import type { ExperienceLocale } from "@/lib/experience-i18n";
 
 type RuntimeCopyOverride = Partial<Record<string, string>>;
 
-const ja: RuntimeCopyOverride = {
-  "common.optional": "任意",
-  "common.noData": "データ不足",
-  "common.unavailable": "一時的に利用できません",
-  "common.notStarted": "未開始",
-  "common.yes": "はい",
-  "common.no": "いいえ",
-  "common.source": "データソース",
-  "common.updated": "更新日時",
-  "common.period": "期間",
-  "common.count": "件数",
-  "common.records": "件",
-  "common.dataLimit": "データの制限",
-  "common.tableSwipe": "表を左右にスワイプできます",
-  "common.selectCounty": "都道府県・市を選択",
-  "common.selectDistrict": "区・郡を選択",
-  "common.selectRoad": "道路・場所を選択",
-  "map.kicker": "地図と生活機能",
-  "map.title": "地図インサイト",
-  "map.description": "場所を検索し、周辺の生活機能とデータソースを確認します。",
-  "map.help": "地図の結果は立地の参考情報です。データの範囲や利用状況に制限がある場合があります。",
-  "map.quickMode": "簡単選択",
-  "map.manualMode": "手動入力",
-  "map.city": "市・県",
-  "map.district": "区・郡",
-  "map.road": "道路・場所",
-  "map.searchPlaceholder": "住所、ランドマーク、道路を入力",
-  "map.radius": "検索半径（m）",
-  "map.search": "場所を検索",
-  "map.searching": "検索中…",
-  "map.empty": "場所はまだ検索されていません",
-  "map.emptyDetail": "場所を入力して検索すると、地図と周辺データを表示します。",
-  "map.nearby": "周辺の生活機能",
-  "map.nearbyDescription": "結果はカテゴリと距離ごとに整理した参考情報です。",
-  "map.noResult": "利用できる地図結果がありません。",
-  "map.searchError": "地図データを一時的に取得できません。後でもう一度お試しください。",
-  "map.healthUnavailable": "地図サービスの状態を確認できません。",
-  "map.sourceNote": "ソースと利用状況は現在のサービス応答に基づきます。",
+const ja = {
   "map.baseStandard": "標準地図",
   "map.baseLight": "ライト地図",
   "map.baseSatellite": "衛星画像",
-  "map.selected": "選択した場所",
-  "map.distance": "距離",
-  "map.rating": "評価",
   "map.advanced": "詳細な場所設定",
   "map.partialNotice": "一部の周辺カテゴリは一時利用できません。利用可能な結果は保持しています。",
   "map.progressTitle": "地図分析の進行状況",
@@ -101,8 +61,6 @@ const ja: RuntimeCopyOverride = {
   "finder.tableSwipe": "表を左右にスワイプできます",
   "commute.title": "通勤と生活機能",
   "commute.description": "最寄りのMRT駅と公式スナップショット時刻だけを確認します。リスクや内見判断は変更しません。",
-  "commute.check": "通勤情報を確認",
-  "commute.checking": "通勤情報を確認中…",
   "commute.empty": "物件住所を入力してください。",
   "commute.noData": "データ不足",
   "commute.station": "最寄りのMRT駅",
@@ -111,8 +69,6 @@ const ja: RuntimeCopyOverride = {
   "commute.updated": "ソース／更新日時",
   "commute.source": "TDX",
   "commute.idle": "まだ検索していません",
-  "commute.unresolved": "この住所から信頼できる通勤情報を取得できませんでした。",
-  "commute.unavailable": "通勤データは一時的に利用できません。後でもう一度お試しください。",
   "commute.error": "通勤データを読み込めませんでした。",
   "loan.title": "Aegis-Credit ローン試算",
   "loan.description": "透明な計算式で頭金、月々の返済額、利息合計、金利感度を試算します。入力だけで送信されることはありません。",
@@ -158,50 +114,10 @@ const ja: RuntimeCopyOverride = {
   "case.price": "価格データ",
 };
 
-const ko: RuntimeCopyOverride = {
-  "common.optional": "선택 사항",
-  "common.noData": "데이터 부족",
-  "common.unavailable": "일시적으로 사용할 수 없음",
-  "common.notStarted": "시작하지 않음",
-  "common.yes": "예",
-  "common.no": "아니요",
-  "common.source": "데이터 출처",
-  "common.updated": "업데이트",
-  "common.period": "기간",
-  "common.count": "건수",
-  "common.records": "건",
-  "common.dataLimit": "데이터 제한",
-  "common.tableSwipe": "표를 좌우로 스와이프하세요",
-  "common.selectCounty": "시·현 선택",
-  "common.selectDistrict": "구·군 선택",
-  "common.selectRoad": "도로·장소 선택",
-  "map.kicker": "지도와 생활 편의",
-  "map.title": "지도 인사이트",
-  "map.description": "장소를 검색하고 주변 생활 편의 정보와 데이터 출처를 확인합니다.",
-  "map.help": "지도 결과는 입지 참고 정보입니다. 출처 범위와 이용 가능성에 제한이 있을 수 있습니다.",
-  "map.quickMode": "빠른 선택",
-  "map.manualMode": "직접 입력",
-  "map.city": "시·현",
-  "map.district": "구·군",
-  "map.road": "도로·장소",
-  "map.searchPlaceholder": "주소, 랜드마크 또는 도로 입력",
-  "map.radius": "검색 반경(m)",
-  "map.search": "장소 검색",
-  "map.searching": "검색 중…",
-  "map.empty": "검색한 장소가 없습니다",
-  "map.emptyDetail": "장소를 입력하고 검색하면 지도와 주변 데이터를 확인할 수 있습니다.",
-  "map.nearby": "주변 생활 편의",
-  "map.nearbyDescription": "결과는 카테고리와 거리별 참고 정보로 정리됩니다.",
-  "map.noResult": "사용 가능한 지도 결과가 없습니다.",
-  "map.searchError": "지도 데이터를 일시적으로 가져올 수 없습니다. 나중에 다시 시도하세요.",
-  "map.healthUnavailable": "지도 서비스 상태를 확인할 수 없습니다.",
-  "map.sourceNote": "출처와 이용 가능성은 현재 서비스 응답을 따릅니다.",
+const ko = {
   "map.baseStandard": "기본 지도",
   "map.baseLight": "밝은 지도",
   "map.baseSatellite": "위성 이미지",
-  "map.selected": "선택한 위치",
-  "map.distance": "거리",
-  "map.rating": "평점",
   "map.advanced": "고급 위치 설정",
   "map.partialNotice": "일부 주변 카테고리를 일시적으로 사용할 수 없습니다. 사용 가능한 결과는 유지됩니다.",
   "map.progressTitle": "지도 분석 진행",
@@ -257,8 +173,6 @@ const ko: RuntimeCopyOverride = {
   "finder.tableSwipe": "표를 좌우로 스와이프하세요",
   "commute.title": "통근과 생활 편의",
   "commute.description": "가까운 MRT 역과 공식 스냅샷 시간만 확인하며 위험이나 매물 판단을 바꾸지 않습니다.",
-  "commute.check": "통근 정보 확인",
-  "commute.checking": "통근 정보 확인 중…",
   "commute.empty": "매물 주소를 입력하세요.",
   "commute.noData": "데이터 부족",
   "commute.station": "가까운 MRT 역",
@@ -267,8 +181,6 @@ const ko: RuntimeCopyOverride = {
   "commute.updated": "출처／업데이트 시간",
   "commute.source": "TDX",
   "commute.idle": "아직 조회하지 않음",
-  "commute.unresolved": "이 주소에서 신뢰할 수 있는 통근 정보를 찾지 못했습니다.",
-  "commute.unavailable": "통근 데이터를 일시적으로 사용할 수 없습니다. 나중에 다시 시도하세요.",
   "commute.error": "통근 데이터를 불러오지 못했습니다.",
   "loan.title": "Aegis-Credit 대출 계산",
   "loan.description": "투명한 공식으로 계약금, 월 상환액, 총이자와 금리 민감도를 계산합니다. 입력만으로 전송되지 않습니다.",
@@ -314,7 +226,7 @@ const ko: RuntimeCopyOverride = {
   "case.price": "가격 데이터",
 };
 
-const jaProduction: RuntimeCopyOverride = {
+const jaProduction = {
   "locale.switcherLabel": "言語を選択",
   "common.optional": "任意",
   "common.noData": "利用できるデータがありません",
@@ -366,7 +278,7 @@ const jaProduction: RuntimeCopyOverride = {
   "commute.unresolved": "この住所から信頼できる通勤参考結果を取得できません。",
 };
 
-const koProduction: RuntimeCopyOverride = {
+const koProduction = {
   "locale.switcherLabel": "언어 선택",
   "common.optional": "선택 사항",
   "common.noData": "사용 가능한 데이터 없음",
@@ -418,10 +330,12 @@ const koProduction: RuntimeCopyOverride = {
   "commute.unresolved": "이 주소에서 신뢰할 수 있는 통근 참고 결과를 가져올 수 없습니다.",
 };
 
-const overrides: Partial<Record<ExperienceLocale, RuntimeCopyOverride>> = {
+export const RUNTIME_COPY_OVERRIDES = {
   ja: { ...ja, ...jaProduction },
   ko: { ...ko, ...koProduction },
 };
+
+const overrides: Partial<Record<ExperienceLocale, RuntimeCopyOverride>> = RUNTIME_COPY_OVERRIDES;
 
 export function getRuntimeCopyOverride(locale: ExperienceLocale, key: string, values: Record<string, string | number> = {}) {
   const template = overrides[locale]?.[key];

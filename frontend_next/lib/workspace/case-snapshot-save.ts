@@ -1,6 +1,8 @@
 import type { SavedCase, SavedCaseData, SavedCaseIdentityExpectation } from "../case-storage";
+// @ts-expect-error Native TS runner extension.
+import { normalizeChecklistReview, type StoredChecklistReviewV1 } from "./checklist-persistence.ts";
 
-export type SaveSnapshotBlockedReason = "case_not_found" | "identity_unconfirmed" | "identity_revalidation_required" | "identity_mismatch" | "revision_mismatch";
+export type SaveSnapshotBlockedReason = "case_not_found" | "identity_unconfirmed" | "identity_revalidation_required" | "identity_mismatch" | "revision_mismatch" | "invalid_checklist" | "storage_unavailable";
 export type SaveSnapshotIdentityState = "confirmed" | "confirming" | "unconfirmed" | "revalidation_required" | "conflict";
 
 export type SaveSnapshotResult =
@@ -25,6 +27,7 @@ export function buildSavedCaseSnapshotUpdate(
   expectedUpdatedAt: string,
   now: () => string,
   compact: (data: SavedCaseData) => SavedCaseData,
+  checklistReview?: StoredChecklistReviewV1,
 ): SnapshotUpdate {
   const index = rows.findIndex((row) => row.id === caseId);
   if (index < 0) return blocked(rows, "case_not_found", "找不到目前案件；請返回已儲存案件重新開啟。");
@@ -53,7 +56,9 @@ export function buildSavedCaseSnapshotUpdate(
     return blocked(rows, "revision_mismatch", "案件已在另一個畫面更新；請重新開啟案件後再保存，以免覆蓋較新的內容。");
   }
 
-  const saved: SavedCase = { ...current, updatedAt: now(), data: compact(current.data) };
+  const review = checklistReview === undefined ? undefined : normalizeChecklistReview(checklistReview);
+  if (checklistReview !== undefined && (!review || review.caseId !== caseId)) return blocked(rows, "invalid_checklist", "人工核對紀錄格式或案件關聯不正確，未保存。");
+  const saved: SavedCase = { ...current, updatedAt: now(), data: compact(review ? { ...current.data, checklistReview: review } : current.data) };
   const nextRows = [...rows];
   nextRows[index] = saved;
   return { result: { status: "saved", saved }, rows: nextRows };

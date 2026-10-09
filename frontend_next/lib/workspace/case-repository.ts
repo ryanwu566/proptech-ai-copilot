@@ -5,12 +5,14 @@ import type { SavedCaseReadDiagnostic } from "./saved-case-diagnostics";
 import type { SaveSnapshotResult } from "@/lib/workspace/case-snapshot-save";
 import { adaptSavedCaseToWorkspace } from "@/lib/workspace/legacy-case-adapter";
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
+import type { StoredChecklistReviewV1 } from "./checklist-persistence";
 
 export type PropertyCaseRepository = {
   readDiagnostic(): WorkspaceReadDiagnostic;
   getCase(caseId: string): PropertyCaseWorkspace | null;
   listCases(): PropertyCaseWorkspace[];
   saveSnapshot(workspace: PropertyCaseWorkspace): SaveSnapshotResult;
+  saveChecklist(workspace: PropertyCaseWorkspace, review: StoredChecklistReviewV1): SaveSnapshotResult;
   subscribe(listener: () => void): () => void;
 };
 
@@ -43,6 +45,12 @@ export function createBrowserCaseRepository(): PropertyCaseRepository {
         normalizedAddress: anchor.normalized_address,
         coordinates: anchor.coordinates,
       } : undefined, workspace.identity.state, workspace.updatedAt);
+    },
+    saveChecklist(workspace, review) {
+      const anchor = workspace.identity.anchor;
+      return resaveSavedCaseSnapshot(workspace.caseId, anchor?.coordinates ? {
+        journeyAnchorId: anchor.journey_anchor_id, normalizedAddress: anchor.normalized_address, coordinates: anchor.coordinates,
+      } : undefined, workspace.identity.state, workspace.updatedAt, () => new Date().toISOString(), review);
     },
     subscribe(listener) {
       const onStorage = (event: StorageEvent) => {
