@@ -1,0 +1,17 @@
+{
+  "schema_version": "ml-a2-reviewed-source-notes-v1",
+  "review_date_taipei": "2026-10-09",
+  "archive_network_downloads": 0,
+  "web_scope": "Bounded official explanatory pages and targeted primary-source search; no account, paid download, mirror acquisition or API transaction query.",
+  "sources": [
+    {"url": "https://data.gov.tw/dataset/25119", "classification": "CURRENT_ONLY", "finding": "Official main and detail schema catalog; no inspected historical archive-hash publication binding."},
+    {"url": "https://plvr.land.moi.gov.tw/DownloadOpenData", "classification": "CURRENT_ONLY", "finding": "Static release data distinct from dynamic query data; release schedule is not exact-byte availability evidence."},
+    {"url": "https://plvr.land.moi.gov.tw/Index", "classification": "CURRENT_ONLY", "finding": "Public supply landing page; indexed change-data-service lead is uncorroborated in the inspected live page and not historical lineage proof."},
+    {"url": "https://lvr.land.moi.gov.tw/jsp/qa.jsp", "classification": "CURRENT_ONLY", "finding": "Parking-dependent unit price, registered transferred area, reported building counts and disclosure filtering explained; no per-row rights/unit or revision certificate."}
+  ],
+  "search_leads": [
+    {"classification": "UNVERIFIED", "finding": "Indexed notice refers to a change-data service from ROC 114/08/01; no lawfully obtained complete change feed, deletion map or exact-byte historical snapshots available in scope."}
+  ],
+  "historical_publication_evidence_recovered": 0,
+  "limitation": "Current explanatory pages and historical release labels are not authenticated archival evidence. Search coverage is bounded; absence in this inventory is not proof no external archive exists. Page content was reviewed in browser; full webpage bytes were not retained or given fabricated hashes. The notes hash binds these findings only."
+}
