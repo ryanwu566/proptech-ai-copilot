@@ -138,6 +138,15 @@ def run_hosted(*, frontend_url: str, backend_url: str, expected_environment: str
             checks["backend_security_headers"] = "pass" if all(header in response_headers for header in ("content-security-policy", "referrer-policy", "x-content-type-options", "x-frame-options")) else "fail"
             checks["cache_safety"] = "pass" if "no-store" in response_headers.get("cache-control", "").lower() else "fail"
         if name == "release" and isinstance(body, dict):
+            from services.production_identity import BUILD_ID, utc_timestamp
+            checks["backend_build_identity"] = "pass" if (
+                body.get("service") == "proptech-api"
+                and body.get("identity_status") == "PASS"
+                and body.get("identity_source") in {"git-checkout", "render-checkout", "ci-build-argument"}
+                and BUILD_ID.fullmatch(str(body.get("build_id", "")))
+                and utc_timestamp(body.get("build_timestamp"))
+                and body.get("runtime_sha_matches_build") is not False
+            ) else "fail"
             sha = str(body.get("commit_sha", ""))
             if valid_sha(sha):
                 identity["backend_sha"] = sha.lower()

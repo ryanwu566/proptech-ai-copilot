@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 from backend.api_main import app
@@ -47,7 +48,13 @@ def test_postgres_connection_timeout_and_ssl_are_bounded_without_printing_url(mo
     assert seen["sslmode"] == "verify-full"
 
 
-def test_release_and_compatibility_endpoints_are_bounded(monkeypatch) -> None:
+def test_release_and_compatibility_endpoints_are_bounded(monkeypatch, tmp_path) -> None:
+    from services import production_identity
+    from scripts.write_backend_build_identity import write_identity
+    path = tmp_path / 'build.json'
+    write_identity(path, commit='a' * 40)
+    original = production_identity.backend_identity
+    monkeypatch.setattr(production_identity, 'backend_identity', lambda: original(path))
     monkeypatch.setenv("RELEASE_VERSION", "release-1")
     monkeypatch.setenv("RELEASE_COMMIT_SHA", "a" * 40)
     with TestClient(app) as client:
@@ -57,6 +64,9 @@ def test_release_and_compatibility_endpoints_are_bounded(monkeypatch) -> None:
     payload = release.json()
     assert payload["release_version"] == "release-1"
     assert payload["commit_sha"] == "a" * 40
+    assert payload['identity_status'] == 'PASS'
+    assert payload['runtime_sha_matches_build'] is True
+    assert payload['build_id'].startswith('sha256:')
     assert "DATABASE_URL" not in json.dumps(payload)
     assert compatibility.status_code == 200
     assert compatibility.json()["status"] == "compatible"
@@ -76,7 +86,9 @@ def test_hosted_smoke_uses_only_safe_categories(monkeypatch) -> None:
         if url.endswith("/"):
             return 200, {}, {}
         if url.endswith("/release-version"):
-            return 200, {"content-security-policy": "default-src 'none'", "referrer-policy": "strict-origin", "x-content-type-options": "nosniff", "x-frame-options": "DENY", "cache-control": "no-store"}, {"environment": "preview", "release_version": "r1", "commit_sha": "a" * 40}
+            return 200, {"content-security-policy": "default-src 'none'", "referrer-policy": "strict-origin", "x-content-type-options": "nosniff", "x-frame-options": "DENY", "cache-control": "no-store"}, {"environment": "preview", "release_version": "r1", "commit_sha": "a" * 40,
+                'service': 'proptech-api', 'identity_status': 'PASS', 'identity_source': 'ci-build-argument',
+                'build_id': 'sha256:' + 'b' * 64, 'build_timestamp': '2026-10-09T00:00:00Z', 'runtime_sha_matches_build': True}
         if url.endswith("/readiness"):
             return 200, {}, {"status": "ready", "runtime": {"ready": True}}
         if url.endswith("/source-status"):
@@ -126,3 +138,84 @@ def test_release_evidence_generator_is_non_secret_and_allowlisted() -> None:
     assert payload["privacy"] == {"secrets_included": False, "raw_payloads_included": False, "customer_data_included": False}
     assert payload["validation"]["preview"] == "pending"
     assert "hosted-owner-launch-checklist.md" in (ROOT / "docs/hosted-production-launch.md").read_text(encoding="utf-8")
+
+
+def test_release_cli_combines_acceptance_and_closure_without_trusting_go(tmp_path) -> None:
+    import subprocess
+    import sys
+
+    gates = tmp_path / "gates.json"
+    gates.write_text(json.dumps([{
+        "capability": "local_software", "classification": "PASS", "mode": "local",
+        "test_result": "pass", "reason_code": "local_regression_passed", "owner_action": "none",
+    }]), encoding="utf-8")
+    closure = tmp_path / "closure.json"
+    closure.write_text(json.dumps({
+        "schema_version": "production-provider-closure-v1", "sections": {},
+        "acceptance": {"lane_status": "PASS", "product_go": True}, "secret": "private-value",
+    }), encoding="utf-8")
+    output = tmp_path / "release.json"
+    result = subprocess.run([
+        sys.executable, str(ROOT / "scripts/generate_release_evidence.py"),
+        "--output", str(output), "--release-id", "release-1", "--commit", "a" * 40,
+        "--schema-version", "schema-007", "--acceptance-input", str(gates),
+        "--closure-json", str(closure),
+    ], cwd=tmp_path, capture_output=True, text=True, timeout=30)
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "final-production-acceptance-v1"
+    assert payload["gates"][0]["classification"] == "PASS"
+    assert payload["verdict"] == "NO-GO"
+    assert payload["closure_acceptance"]["lane_status"] == "BLOCKED"
+    assert payload["closure_acceptance"]["product_go"] is False
+    assert "private-value" not in json.dumps(payload)
+
+
+def test_blocked_closure_prevents_complete_scorecard_go() -> None:
+    from scripts import generate_release_evidence as evidence
+
+    rows = [{
+        "capability": capability, "classification": "PASS", "test_result": "pass",
+        "mode": "local" if capability in evidence.LOCAL_GATES else "hosted",
+        "confirmed_environment": "production", "frontend_sha": "a" * 40, "backend_sha": "a" * 40,
+        "frontend_release_version": "r1", "backend_release_version": "r1",
+        "data_version": "v1", "artifact_version": "v1", "source_release_date": "2026-01-01",
+        "import_timestamp": "2026-10-09T00:00:00Z", "latest_effective_period": "2026-Q3",
+        "geographic_coverage": "Taipei", "scenario": "24h-350mm",
+        "manifest_sha256": "b" * 64, "artifact_sha256": "c" * 64, "evidence_sha256": "d" * 64,
+        **{key: True for key in (
+            "code_implemented", "configuration_valid", "accepted_artifact_present",
+            "deployed_release_verified", "bounded_live_verified", "owner_evidence_verified",
+            "positive_fixture_verified", "negative_fixture_verified", "unknown_semantics_verified",
+        )},
+    } for capability in evidence.REQUIRED_GATES]
+    assert evidence.build_acceptance_evidence(expected_main_sha="a" * 40, release_version="r1", gates=rows)["verdict"] == "GO"
+    result = build_evidence(release_id="r1", commit="a" * 40, schema_version="schema-007",
+                            acceptance_gates=rows, closure={"schema_version": "production-provider-closure-v1", "sections": {}})
+    assert result["verdict"] == "NO-GO"
+    assert result["closure_acceptance"]["product_go"] is False
+
+
+@pytest.mark.parametrize(("extra", "reason"), [
+    ({"max_requests": 0}, "live_request_ceiling"),
+    ({"max_requests": True}, "live_request_ceiling"),
+    ({"disabled": "true"}, "live_acceptance_disabled"),
+    ({"disabled": "malformed"}, "live_acceptance_disabled"),
+    ({"confirmed_environment": None}, "live_contract_required"),
+    ({"request_budget": None}, "live_contract_required"),
+    ({"allow_live": False}, "live_contract_required"),
+])
+def test_combined_provider_safeguards_block_fully_configured_probe(monkeypatch, extra, reason) -> None:
+    from scripts import provider_acceptance
+
+    monkeypatch.setattr(provider_acceptance, "_geocoding", lambda **kwargs: pytest.fail("unexpected provider call"))
+    options = {"capability": "geocoding", "mode": "bounded-live", "allow_live": True,
+               "confirmed_environment": "production", "request_budget": 1, "max_requests": 1}
+    values = {"GOOGLE_MAPS_API_KEY": "private-key", "PROVIDER_ACCEPTANCE_DISABLED": extra.get("disabled", "false")}
+    options.update({key: value for key, value in extra.items() if key != "disabled"})
+    result = provider_acceptance.run(environ=values, **options)
+    assert result["reason_code"] == reason
+    assert result["result"] == "configuration_required"
+    assert result["network_requests"] == 0
+    assert result["provider_status"] == "not_checked"
+    assert result["production_readiness"] == "unproven"

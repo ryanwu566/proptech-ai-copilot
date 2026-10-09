@@ -8,6 +8,7 @@ from urllib.parse import urlsplit
 
 R2 = ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT", "R2_BUCKET", "R2_REGION")
 REQUIREMENTS = {
+    "tgos": ("TGOS_APP_ID", "TGOS_API_KEY"),
     "geocoding": ("GOOGLE_MAPS_API_KEY",),
     "routes": ("GOOGLE_MAPS_API_KEY",),
     "places": ("GOOGLE_MAPS_API_KEY",),
@@ -34,6 +35,7 @@ REQUIREMENTS = {
 }
 SOURCES = {"geocoding": "google_geocoding", "routes": "google_routes", "places": "google_places", "valuation": "blue_or_green", "finder": "blue", "trend": "blue", "market": "blue", "plvr": "official_plvr_opendata", "wra": "WRA", "gsmma": "GSMMA", "ardswc": "ARDSWC", "liquefaction": "GeologyCloud", "tdx": "TDX", "ris": "RIS_ODRP014", "nlsc": "NLSC_gateway", "satellite": "Sentinel-2", "maps": "Google_Maps", "street-view": "Google_Street_View", "hosted": "deployed_release", "active-fault": "official_manual_verification", "tax-legal": "professional_manual_verification"}
 SOURCES.update({"ardswc-landslide": "ARDSWC", "ardswc-debris-flow": "ARDSWC"})
+SOURCES["tgos"] = "TGOS"
 
 
 def valid_sha(value: str) -> bool:
