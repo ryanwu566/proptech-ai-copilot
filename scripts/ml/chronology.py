@@ -27,14 +27,15 @@ def split_rows_from_items(items: list[dict]) -> list[dict]:
         rows.append({'family_id':item['transaction_family_id'],'effective_date':effective['value'],
             'precision':effective['precision'],'available_at':item['source_release_available_at'],
             'source_record_version_id':item['version_id'],'physical_occurrence_id':item['occurrence_id'],
-            'county_district':geo['city']+'/'+geo['district'],'building_type':s.TYPES[item['raw']['建物型態']]})
+            'county_district':geo['city']+'/'+geo['district'],'building_type':s.TYPES[s.text(item['raw']['建物型態'])]})
     return rows
 
 
 def design_splits(rows: list[dict], *, coverage_evidence: dict | None,
                   ledger_items: list[dict] | None = None,
                   label_observation_cutoff: str | None = None,
-                  min_month_rows: int = 20, min_block_subgroup_rows: int = 20) -> dict:
+                  min_month_rows: int = 20, min_block_subgroup_rows: int = 20,
+                  cohort_selector=build_cohort) -> dict:
     blockers=[]; blocks={}; assignments=[]
     months=Counter(x['effective_date'][:7] for x in rows)
     keys=sorted(months)
@@ -71,7 +72,7 @@ def design_splits(rows: list[dict], *, coverage_evidence: dict | None,
             # population. Reject a global-cutoff proposal that differs; callers
             # must supply historical populations before any positive handoff.
             cutoff=freezes[name] if name=='TEST' else freezes[name]-timedelta(microseconds=1)
-            frozen=build_cohort(ledger_items,cutoff.isoformat())
+            frozen=cohort_selector(ledger_items,cutoff.isoformat())
             historical=[x for x in split_rows_from_items(frozen['selected_rows'])
                         if x['effective_date'][:7] in periods]
             if sorted(map(l.canonical_bytes,selected))!=sorted(map(l.canonical_bytes,historical)):
