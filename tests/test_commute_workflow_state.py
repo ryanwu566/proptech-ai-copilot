@@ -43,10 +43,12 @@ if (contextOnly.overall !== 'partial') throw new Error('TDX-only evidence must n
 
 const valuationState = load('frontend_next/lib/valuation-result-state.ts');
 const journeyIdentity = load('frontend_next/lib/journey-property-identity.ts');
+const locationEvidence = load('frontend_next/lib/location-evidence-context.ts');
 const closedLoop = load('frontend_next/lib/closed-loop-journey.ts', {
   '@/lib/location-market-journey': locationMarket,
   '@/lib/valuation-result-state': valuationState,
   '@/lib/journey-property-identity': journeyIdentity,
+  '@/lib/location-evidence-context': locationEvidence,
 });
 if (typeof closedLoop.setJourneyCommuteRoute !== 'function') throw new Error('setJourneyCommuteRoute is missing');
 let state = closedLoop.createClosedLoopJourneyState({ addressSummary: 'Property A', selectionStatus: 'selected' });
