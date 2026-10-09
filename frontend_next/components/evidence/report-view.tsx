@@ -10,6 +10,7 @@ import { projectCaseEvidence, type CaseEvidenceModel } from "@/lib/workspace/cas
 import { assessReportSnapshot, buildReportModel } from "@/lib/workspace/compare-report-model";
 import { EvidenceValue, EvidenceGaps, EvidenceSources, RepositoryNotice, storageBlocked, date } from "./evidence-view";
 import styles from "./evidence.module.css";
+import { ManualReviewSummary } from "./manual-review-summary";
 function currentEvidence(read: WorkspaceReadDiagnostic, caseId: string): CaseEvidenceModel | null { const workspace = read.cases.find((item) => item.caseId === caseId); return workspace ? projectCaseEvidence(workspace) : null; }
 function invalid(read: WorkspaceReadDiagnostic, caseId: string): boolean { return storageBlocked(read) || read.issues.some((issue) => issue.caseId === caseId); }
 export function ReportView({ caseId }: { caseId: string }) {
@@ -73,7 +74,7 @@ export function ReportView({ caseId }: { caseId: string }) {
             {section.evidenceSection && <table className={styles.reportTable}><caption className="sr-only">{section.title}</caption><tbody>{section.evidenceSection.rows.map((row) => <tr key={row.id}><th scope="row">{row.label}</th><td><EvidenceValue field={row.cells[0]} /></td></tr>)}</tbody></table>}
             {section.id === "summary" && <ul>{report.summary.map((sentence) => <li key={sentence}>{sentence}</li>)}</ul>}
             {section.id === "limits" && <EvidenceGaps cases={[report.evidence!]} />}
-            {section.id === "actions" && <EvidenceGaps cases={[report.evidence!]} actionsOnly />}
+            {section.id === "actions" && <><EvidenceGaps cases={[report.evidence!]} actionsOnly /><ManualReviewSummary evidence={report.evidence!} /></>}
             {section.id === "sources" && <EvidenceSources cases={[report.evidence!]} />}
           </Section>)}
         </article>

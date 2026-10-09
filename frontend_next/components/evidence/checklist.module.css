@@ -1,0 +1,13 @@
+.checklist { min-width: 0; overflow-wrap: anywhere; }
+.checklist p { margin-block: var(--space-2); }
+.checklist ul { padding-left: var(--space-5); list-style: disc; }
+.preview { margin-bottom: var(--space-4); }
+.domain { margin-block: var(--space-4); }
+.item { padding-block: var(--space-4); border-bottom: 1px solid var(--border-subtle); }
+.item h4 { font-weight: 600; }
+.item a { text-decoration: underline; display: inline-flex; align-items: center; min-height: 44px; }
+.controls { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-3); }
+.controls label { min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); min-height: 44px; }
+.controls input { width: 20px; height: 20px; flex-shrink: 0; }
+.controls select { min-height: 44px; max-width: 100%; background: var(--surface-primary); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); padding: var(--space-2); }
+@media print { .checklist li { break-inside: avoid; margin-bottom: 2mm; } }

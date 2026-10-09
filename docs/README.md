@@ -27,6 +27,7 @@ Status labels:
 
 - [Product capability surface](product-capability-surface-v1.md) — **REFERENCE** — detailed user-facing capability and trust-state inventory.
 - [Property Case Decision System](property-case-decision-system-v1.md) — **ACTIVE** — current browser-local case, readiness, comparison, and report boundaries.
+- [Evidence verification checklist V1](evidence-verification-checklist-v1.md) — **REFERENCE** — implemented manual-review workflow, browser persistence/invalidation contract, and dated validation evidence.
 - [Experience architecture audit](experience-architecture-v3-audit.md) — **REFERENCE** — journey, navigation, accessibility, privacy, and release-surface analysis.
 - [Frontend design brief](../frontend_next/DESIGN_BRIEF.md) — **REFERENCE** — package-level interaction and visual guidance.
 

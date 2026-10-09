@@ -5,6 +5,8 @@ import { normalizeJourneyPropertyIdentityAnchor } from "../journey-property-iden
 import { normalizeStoredFinanceEvidence } from "./finance-persistence.ts";
 // @ts-expect-error Native TS runner extension.
 import { normalizeStoredTerrainReferenceEvidence } from "../terrain-reference-evidence.ts";
+// @ts-expect-error Native TS runner extension.
+import { normalizeChecklistReview } from "./checklist-persistence.ts";
 
 export type SavedCaseReadIssue = { caseId: string | null; reason: "invalid_record" | "duplicate_id" | "limit_exceeded" };
 export type SavedCaseReadDiagnostic = {
@@ -25,6 +27,7 @@ function date(value: unknown): boolean {
 }
 function strings(value: unknown): boolean { return Array.isArray(value) && value.length <= 100 && value.every((item) => typeof item === "string" && item.length <= 4000); }
 function optionalEvidence(data: Record<string, unknown>, caseId: string): boolean {
+  if (data.checklistReview !== undefined) { const review = normalizeChecklistReview(data.checklistReview); if (!review || review.caseId !== caseId) return false; }
   if (data.propertyIdentityAnchor !== undefined && !normalizeJourneyPropertyIdentityAnchor(data.propertyIdentityAnchor)) return false;
   if (data.financeEvidence !== undefined) { const normalized = normalizeStoredFinanceEvidence(data.financeEvidence); if (!normalized || normalized.case_id !== caseId) return false; }
   if (data.terrainReference !== undefined && !normalizeStoredTerrainReferenceEvidence(data.terrainReference)) return false;

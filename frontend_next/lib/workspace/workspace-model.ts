@@ -9,6 +9,7 @@ import type { MarketPriceModel } from "./market-price-model";
 import type { LocationWorkspaceSnapshot } from "./location-context";
 import type { FinanceModel } from "./finance-model";
 import type { RiskEvidenceModel } from "./risk-evidence-model";
+import type { StoredChecklistReviewV1 } from "./checklist-persistence";
 
 export const WORKSPACE_SECTIONS = ["overview", "market", "location", "risk", "finance"] as const;
 export type WorkspaceSection = (typeof WORKSPACE_SECTIONS)[number];
@@ -51,6 +52,7 @@ export type PropertyCaseWorkspace = {
   risk: RiskEvidenceModel | null;
   /** Optional only for backwards-compatible test/consumer fixtures; repository adapters always populate it. */
   finance?: FinanceModel;
+  checklistReview?: StoredChecklistReviewV1;
   saveState: "saved" | "saving" | "unsaved" | "save_failed";
 };
 
