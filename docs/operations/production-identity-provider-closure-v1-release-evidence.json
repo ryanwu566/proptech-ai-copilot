@@ -1,0 +1,38 @@
+{
+  "schema_version": "production-release-evidence-v2",
+  "generated_at": "2026-10-09T14:58:51.540646+00:00",
+  "release_id": "production-provider-closure-v1",
+  "commit": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+  "schema_compatibility": "declared",
+  "validation": {
+    "local": "generated",
+    "ci": "pending",
+    "preview": "pending",
+    "production": "pending"
+  },
+  "owner_actions": [
+    "verify-deployed-identities",
+    "accept-production-config",
+    "verify-active-artifacts",
+    "authorize-live-provider-acceptance",
+    "audit-deployed-runtime-image"
+  ],
+  "privacy": {
+    "secrets_included": false,
+    "raw_payloads_included": false,
+    "customer_data_included": false
+  },
+  "closure_acceptance": {
+    "schema_version": "final-production-acceptance-v2-input",
+    "lane_status": "BLOCKED",
+    "blockers": [
+      "deployment",
+      "configuration",
+      "artifacts",
+      "providers",
+      "runtime_dependencies"
+    ],
+    "product_go": false,
+    "scope": "assigned_closure_lane_only"
+  }
+}

@@ -113,11 +113,11 @@ def _safe(value: str, default: str = "pending") -> str:
     return value if SAFE_VALUE.fullmatch(value) else default
 
 
-def build_evidence(*, release_id: str, commit: str, schema_version: str, local_status: str = "pending", ci_status: str = "pending", preview_status: str = "pending", production_status: str = "pending", owner_actions: list[str] | None = None) -> dict[str, object]:
+def build_evidence(*, release_id: str, commit: str, schema_version: str, local_status: str = "pending", ci_status: str = "pending", preview_status: str = "pending", production_status: str = "pending", owner_actions: list[str] | None = None, closure: dict | None = None, acceptance_gates: list[dict[str, object]] | None = None) -> dict[str, object]:
     statuses = (local_status, ci_status, preview_status, production_status)
     if any(status not in ALLOWED_STATUS for status in statuses):
         raise ValueError("evidence status is not allowlisted")
-    return {
+    result = {
         "schema_version": "production-release-evidence-v1",
         "generated_at": datetime.now(UTC).isoformat(),
         "release_id": _safe(release_id),
@@ -132,6 +132,19 @@ def build_evidence(*, release_id: str, commit: str, schema_version: str, local_s
         "owner_actions": [_safe(item) for item in (owner_actions or [])],
         "privacy": {"secrets_included": False, "raw_payloads_included": False, "customer_data_included": False},
     }
+    if acceptance_gates is not None:
+        result = build_acceptance_evidence(expected_main_sha=commit, release_version=release_id, gates=acceptance_gates)
+    if closure is not None:
+        from services.production_closure import SCHEMA, acceptance_projection
+        sections = closure.get('sections', {}) if isinstance(closure, dict) and closure.get('schema_version') == SCHEMA else {}
+        # Only the fixed acceptance projection is copied; untrusted input fields,
+        # raw audits and arbitrary caller-provided PASS/GO claims are not emitted.
+        if acceptance_gates is None:
+            result['schema_version'] = 'production-release-evidence-v2'
+        result['closure_acceptance'] = acceptance_projection(sections, expected_backend_commit=commit)
+        if acceptance_gates is not None and result['closure_acceptance']['lane_status'] != 'PASS':
+            result['verdict'] = 'NO-GO'
+    return result
 
 
 def write_evidence(output: Path, **kwargs: object) -> dict[str, object]:
@@ -155,23 +168,33 @@ def main() -> int:
     parser.add_argument("--production-status", choices=sorted(ALLOWED_STATUS), default="pending")
     parser.add_argument("--owner-action", action="append", default=[])
     parser.add_argument("--acceptance-input", type=Path, help="Categorical gate observations, never raw provider payloads")
+    parser.add_argument("--closure-json", type=Path)
     args = parser.parse_args()
-    if args.acceptance_input:
-        if args.acceptance_input.stat().st_size > 64_000:
-            parser.error("acceptance input exceeds size limit")
-        try:
+    closure = None
+    gates = None
+    try:
+        if args.closure_json:
+            # Direct script execution must also find repository services.
+            import sys
+            sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+            if args.closure_json.stat().st_size > 2_000_000:
+                raise ValueError("closure evidence exceeds bounded limit")
+            closure = json.loads(args.closure_json.read_text(encoding="utf-8-sig"))
+            if not isinstance(closure, dict):
+                raise ValueError("closure evidence must be an object")
+        if args.acceptance_input:
+            if args.acceptance_input.stat().st_size > 64_000:
+                raise ValueError("acceptance input exceeds size limit")
             gates = json.loads(args.acceptance_input.read_text(encoding="utf-8"))
             if not isinstance(gates, list):
                 raise ValueError("acceptance input must be a list")
-            payload = build_acceptance_evidence(expected_main_sha=args.commit, release_version=args.release_id, gates=gates)
-        except (ValueError, TypeError):
-            parser.error("invalid categorical acceptance input")
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        temporary = args.output.with_name(f".{args.output.name}.tmp")
-        temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        os.replace(temporary, args.output)
-    else:
-        write_evidence(args.output, release_id=args.release_id, commit=args.commit, schema_version=args.schema_version, local_status=args.local_status, ci_status=args.ci_status, preview_status=args.preview_status, production_status=args.production_status, owner_actions=args.owner_action)
+        write_evidence(args.output, release_id=args.release_id, commit=args.commit,
+                       schema_version=args.schema_version, local_status=args.local_status,
+                       ci_status=args.ci_status, preview_status=args.preview_status,
+                       production_status=args.production_status, owner_actions=args.owner_action,
+                       closure=closure, acceptance_gates=gates)
+    except (OSError, ValueError, TypeError):
+        parser.error("invalid bounded release evidence input")
     print("RELEASE_EVIDENCE=written")
     print("RELEASE_EVIDENCE_SECRETS_INCLUDED=no")
     return 0

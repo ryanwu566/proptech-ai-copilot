@@ -6,5 +6,7 @@ COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
 COPY . .
+ARG BACKEND_BUILD_COMMIT
+RUN python scripts/write_backend_build_identity.py --commit "$BACKEND_BUILD_COMMIT"
 
 CMD ["sh", "-c", "exec uvicorn backend.api_main:app --host 0.0.0.0 --port ${PORT:-8080} --no-proxy-headers"]

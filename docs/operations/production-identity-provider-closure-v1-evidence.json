@@ -1,0 +1,2277 @@
+{
+  "acceptance": {
+    "blockers": [
+      "deployment",
+      "configuration",
+      "artifacts",
+      "providers",
+      "runtime_dependencies"
+    ],
+    "lane_status": "BLOCKED",
+    "product_go": false,
+    "schema_version": "final-production-acceptance-v2-input",
+    "scope": "assigned_closure_lane_only"
+  },
+  "as_of": "2026-10-09",
+  "backend_build": {
+    "build_id": "unconfigured",
+    "build_timestamp": "unconfigured",
+    "commit_sha": "unconfigured",
+    "identity_source": "not_built",
+    "identity_status": "UNKNOWN",
+    "runtime_sha_matches_build": null,
+    "service": "proptech-api"
+  },
+  "network_requests": 0,
+  "privacy": {
+    "raw_payloads_included": false,
+    "secrets_included": false
+  },
+  "schema_version": "production-provider-closure-v1",
+  "scope": "local_checkout_not_production",
+  "sections": {
+    "artifacts": {
+      "network_requests": 0,
+      "records": [
+        {
+          "built_at": null,
+          "dataset_version": "v1",
+          "expected_schema": "wra_flood_processed_v1",
+          "expected_storage": "processed/wra/flood/v1/{scenario}/features.json.gz",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "wra-flood",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "WRA",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "r2"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "gsmma_geological_sensitivity_features:1",
+          "expected_storage": "processed/gsmma/geological-sensitivity/v1/{dataset_version}/features.json.gz",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "gsmma-sensitivity",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "GSMMA",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "r2"
+        },
+        {
+          "built_at": null,
+          "dataset_version": "113-public-mvt",
+          "expected_schema": "official-mvt",
+          "expected_storage": "ardswc/potential_landslide+potential_landslide_affect",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "ardswc-landslide",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "ARDSWC",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "remote_mvt"
+        },
+        {
+          "built_at": null,
+          "dataset_version": "113-public-mvt",
+          "expected_schema": "official-mvt",
+          "expected_storage": "ardswc/debris_flow+debris_affect",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "ardswc-debris-flow",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "ARDSWC",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "remote_mvt"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "official-liquefaction-v1",
+          "expected_storage": "GeologyCloud/liquefaction",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "gsmma-liquefaction",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "GSMMA",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "remote_api"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "GeoJSON-FeatureCollection",
+          "expected_storage": "NLSC_VILLAGE_BOUNDARY_ARTIFACT_PATH|NLSC_VILLAGE_BOUNDARY_R2_KEY",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "nlsc-village-boundary",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "NLSC",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "local_or_r2"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "nlsc-numeric-terrain",
+          "expected_storage": "NLSC_GATEWAY_BASE_URL",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "nlsc-terrain",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "NLSC",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "remote_gateway"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "ris-raw-archive-manifest-v1",
+          "expected_storage": "RIS monthly observations; raw/ris/population/{month}/manifest.json",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "ris-population",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "RIS",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "database"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "official_market_releases+official_market_artifacts+market_transactions",
+          "expected_storage": "VALUATION_DATABASE_URL",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "plvr-blue",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "PLVR",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "database"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "compact-green-v1",
+          "expected_storage": "COMPACT_GREEN_DATABASE_URL",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "plvr-green",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": false,
+          "provider": "PLVR",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "database"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "tdx-mrt-v1",
+          "expected_storage": "services.commute_service._snapshot",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence.",
+          "logical_name": "tdx-mrt",
+          "presence": "UNKNOWN",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "TDX",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "process_memory"
+        },
+        {
+          "built_at": null,
+          "dataset_version": "v2",
+          "expected_schema": "road-display-v2",
+          "expected_storage": "data/road-display-catalog-v2/manifest.json",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Local manifest presence/schema only; member integrity, publication and deployed activation unverified.",
+          "local_contract": "PASS",
+          "logical_name": "road-display",
+          "presence": "PRESENT",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "repository-road-catalog",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": "400f6280d28d4fce3e467c77177127700e055c947d92c8e9e5fc203da59711cb",
+          "status": "UNKNOWN",
+          "storage_kind": "local"
+        },
+        {
+          "built_at": null,
+          "dataset_version": null,
+          "expected_schema": "city,site_id,road",
+          "expected_storage": "data/taiwan_roads.csv",
+          "freshness": "UNKNOWN",
+          "freshness_as_of": "2026-10-09",
+          "limitation": "Local manifest presence/schema only; member integrity, publication and deployed activation unverified.",
+          "logical_name": "road-source",
+          "presence": "PRESENT",
+          "production_active": "UNKNOWN",
+          "production_required": true,
+          "provider": "repository-road-catalog",
+          "published_at": null,
+          "retrieved_at": null,
+          "sha256": null,
+          "status": "UNKNOWN",
+          "storage_kind": "local"
+        }
+      ],
+      "schema_version": "production-provider-closure-v1",
+      "scope": "local_inventory",
+      "status": "BLOCKED"
+    },
+    "configuration": {
+      "authorization_proven": false,
+      "component": "backend",
+      "frontend_configuration": "UNKNOWN",
+      "items": {
+        "api_contract_version": {
+          "reason_code": "missing_invalid_or_placeholder",
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "backend_public_origin": {
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "cors_origins": {
+          "reason_code": "missing_invalid_or_placeholder",
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "database": {
+          "reason_code": "missing_invalid_or_placeholder",
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "production_environment": {
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "public_base_url": {
+          "reason_code": "missing_invalid_or_placeholder",
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "release_version": {
+          "reason_code": "missing_invalid_or_placeholder",
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "runtime_readiness": {
+          "required": true,
+          "status": "PASS"
+        },
+        "schema_version": {
+          "reason_code": "missing_invalid_or_placeholder",
+          "required": true,
+          "status": "BLOCKED"
+        },
+        "session_secret": {
+          "reason_code": "missing_invalid_or_placeholder",
+          "required": true,
+          "status": "BLOCKED"
+        }
+      },
+      "limitation": "Backend runtime contract only; frontend build configuration, secret rotation, IAM and schema migration remain unverified.",
+      "projection_sha256": "e0e7bbe497bfebe299984434f065c9a5072f291b932be64694eace233e6f4b06",
+      "schema_version": "production-provider-closure-v1",
+      "scope": "runtime_configuration_contract",
+      "status": "BLOCKED"
+    },
+    "deployment": {
+      "backend_sha": null,
+      "frontend_sha": null,
+      "reason_code": "hosted_observation_missing",
+      "schema_version": "production-provider-closure-v1",
+      "status": "UNKNOWN"
+    },
+    "providers": {
+      "network_requests": 0,
+      "records": [
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "active-fault",
+          "configuration": {},
+          "configured": "NOT_APPLICABLE",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "official_manual_verification",
+          "reachable": "NOT_TESTED",
+          "reason_code": "manual_verification_required",
+          "status": "NOT_APPLICABLE",
+          "unavailable": true
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "ardswc",
+          "configuration": {},
+          "configured": "NOT_APPLICABLE",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "ARDSWC",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "UNKNOWN",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "ardswc-debris-flow",
+          "configuration": {},
+          "configured": "NOT_APPLICABLE",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "ARDSWC",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "UNKNOWN",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "ardswc-landslide",
+          "configuration": {},
+          "configured": "NOT_APPLICABLE",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "ARDSWC",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "UNKNOWN",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "finder",
+          "configuration": {
+            "VALUATION_DATABASE_URL": "missing-or-placeholder",
+            "VALUATION_DEMO_MODE": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "blue",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "geocoding",
+          "configuration": {
+            "GOOGLE_MAPS_API_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "google_geocoding",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "gsmma",
+          "configuration": {
+            "GSMMA_GEOLOGICAL_SENSITIVITY_DATASET_VERSION": "missing-or-placeholder",
+            "R2_ACCESS_KEY_ID": "missing-or-placeholder",
+            "R2_BUCKET": "missing-or-placeholder",
+            "R2_ENDPOINT": "missing-or-placeholder",
+            "R2_REGION": "missing-or-placeholder",
+            "R2_SECRET_ACCESS_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "GSMMA",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "liquefaction",
+          "configuration": {},
+          "configured": "NOT_APPLICABLE",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "GeologyCloud",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "UNKNOWN",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "maps",
+          "configuration": {
+            "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "Google_Maps",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "market",
+          "configuration": {
+            "VALUATION_DATABASE_URL": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "blue",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "nlsc",
+          "configuration": {
+            "NLSC_GATEWAY_BASE_URL": "missing-or-placeholder",
+            "NLSC_GATEWAY_CLIENT_TOKEN": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "NLSC_gateway",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "places",
+          "configuration": {
+            "GOOGLE_MAPS_API_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "google_places",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "plvr",
+          "configuration": {
+            "PLVR_UPDATE_DATABASE_URL": "missing-or-placeholder",
+            "PLVR_UPDATE_ENVIRONMENT": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "official_plvr_opendata",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "ris",
+          "configuration": {
+            "DATABASE_URL": "missing-or-placeholder",
+            "NLSC_VILLAGE_BOUNDARY_ARTIFACT_SHA256": "missing-or-placeholder",
+            "NLSC_VILLAGE_BOUNDARY_R2_KEY": "missing-or-placeholder",
+            "NLSC_VILLAGE_BOUNDARY_SOURCE_VINTAGE": "missing-or-placeholder",
+            "R2_ACCESS_KEY_ID": "missing-or-placeholder",
+            "R2_BUCKET": "missing-or-placeholder",
+            "R2_ENDPOINT": "missing-or-placeholder",
+            "R2_REGION": "missing-or-placeholder",
+            "R2_SECRET_ACCESS_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "RIS_ODRP014",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "routes",
+          "configuration": {
+            "GOOGLE_MAPS_API_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "google_routes",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "satellite",
+          "configuration": {
+            "EARTH_ENGINE_PROJECT": "missing-or-placeholder",
+            "EARTH_ENGINE_SATELLITE_REFERENCE_V1": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "Sentinel-2",
+          "reachable": "NOT_TESTED",
+          "reason_code": "intentionally_disabled",
+          "status": "NOT_APPLICABLE",
+          "unavailable": true
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "street-view",
+          "configuration": {
+            "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "Google_Street_View",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "tax-legal",
+          "configuration": {},
+          "configured": "NOT_APPLICABLE",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "professional_manual_verification",
+          "reachable": "NOT_TESTED",
+          "reason_code": "manual_verification_required",
+          "status": "NOT_APPLICABLE",
+          "unavailable": true
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "tdx",
+          "configuration": {
+            "COMMUTE_REFRESH_TOKEN": "missing-or-placeholder",
+            "TDX_CLIENT_ID": "missing-or-placeholder",
+            "TDX_CLIENT_SECRET": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "TDX",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "tgos",
+          "configuration": {
+            "TGOS_API_KEY": "missing-or-placeholder",
+            "TGOS_APP_ID": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "TGOS",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "trend",
+          "configuration": {
+            "VALUATION_DATABASE_URL": "missing-or-placeholder",
+            "VALUATION_DEMO_MODE": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "blue",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "valuation",
+          "configuration": {
+            "PLVR_DATA_BACKEND": "missing-or-placeholder",
+            "VALUATION_DATABASE_URL": "missing-or-placeholder",
+            "VALUATION_DEMO_MODE": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "blue_or_green",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        },
+        {
+          "authorized": "NOT_TESTED",
+          "capability": "wra",
+          "configuration": {
+            "R2_ACCESS_KEY_ID": "missing-or-placeholder",
+            "R2_BUCKET": "missing-or-placeholder",
+            "R2_ENDPOINT": "missing-or-placeholder",
+            "R2_REGION": "missing-or-placeholder",
+            "R2_SECRET_ACCESS_KEY": "missing-or-placeholder"
+          },
+          "configured": "BLOCKED",
+          "contract_compatible": "NOT_TESTED",
+          "degraded": null,
+          "fresh": "UNKNOWN",
+          "production_accepted": false,
+          "provider": "WRA",
+          "reachable": "NOT_TESTED",
+          "reason_code": "production_not_tested",
+          "status": "BLOCKED",
+          "unavailable": null
+        }
+      ],
+      "schema_version": "production-provider-closure-v1",
+      "status": "BLOCKED"
+    },
+    "runtime_dependencies": {
+      "alternate_python": {
+        "deployed_runtime": "UNKNOWN",
+        "findings": [],
+        "invalid_or_skipped_dependencies": 0,
+        "manifest_sha256": "76fd43c289e82220cae8c9035395d3a8ea80ed1d4da091b35b06447b1d4d2f2e",
+        "packages": [
+          {
+            "name": "altair",
+            "version": "6.3.0"
+          },
+          {
+            "name": "annotated-doc",
+            "version": "0.0.5"
+          },
+          {
+            "name": "annotated-types",
+            "version": "0.8.0"
+          },
+          {
+            "name": "anyio",
+            "version": "4.15.1"
+          },
+          {
+            "name": "attrs",
+            "version": "26.1.0"
+          },
+          {
+            "name": "boto3",
+            "version": "1.43.110"
+          },
+          {
+            "name": "botocore",
+            "version": "1.43.110"
+          },
+          {
+            "name": "certifi",
+            "version": "2026.7.22"
+          },
+          {
+            "name": "cffi",
+            "version": "2.1.1"
+          },
+          {
+            "name": "charset-normalizer",
+            "version": "3.5.2"
+          },
+          {
+            "name": "click",
+            "version": "8.5.0"
+          },
+          {
+            "name": "cryptography",
+            "version": "50.0.2"
+          },
+          {
+            "name": "defusedxml",
+            "version": "0.7.1"
+          },
+          {
+            "name": "earthengine-api",
+            "version": "1.7.47"
+          },
+          {
+            "name": "fastapi",
+            "version": "0.143.0"
+          },
+          {
+            "name": "google-api-core",
+            "version": "2.42.0"
+          },
+          {
+            "name": "google-api-python-client",
+            "version": "2.201.0"
+          },
+          {
+            "name": "google-auth",
+            "version": "2.61.0"
+          },
+          {
+            "name": "google-auth-httplib2",
+            "version": "0.4.4"
+          },
+          {
+            "name": "google-cloud-core",
+            "version": "2.8.0"
+          },
+          {
+            "name": "google-cloud-storage",
+            "version": "3.17.0"
+          },
+          {
+            "name": "google-crc32c",
+            "version": "1.9.0"
+          },
+          {
+            "name": "google-resumable-media",
+            "version": "2.11.0"
+          },
+          {
+            "name": "googleapis-common-protos",
+            "version": "1.75.5"
+          },
+          {
+            "name": "h11",
+            "version": "0.16.0"
+          },
+          {
+            "name": "httpcore",
+            "version": "1.0.9"
+          },
+          {
+            "name": "httplib2",
+            "version": "0.32.0"
+          },
+          {
+            "name": "httptools",
+            "version": "0.8.0"
+          },
+          {
+            "name": "httpx",
+            "version": "0.28.1"
+          },
+          {
+            "name": "idna",
+            "version": "3.20"
+          },
+          {
+            "name": "itsdangerous",
+            "version": "2.2.0"
+          },
+          {
+            "name": "jinja2",
+            "version": "3.1.6"
+          },
+          {
+            "name": "jmespath",
+            "version": "1.1.0"
+          },
+          {
+            "name": "jsonschema",
+            "version": "4.26.0"
+          },
+          {
+            "name": "jsonschema-specifications",
+            "version": "2025.9.1"
+          },
+          {
+            "name": "mapbox-vector-tile",
+            "version": "2.2.0"
+          },
+          {
+            "name": "markupsafe",
+            "version": "3.0.4"
+          },
+          {
+            "name": "narwhals",
+            "version": "2.26.0"
+          },
+          {
+            "name": "numpy",
+            "version": "2.5.3"
+          },
+          {
+            "name": "opentelemetry-api",
+            "version": "1.45.1"
+          },
+          {
+            "name": "pandas",
+            "version": "2.3.3"
+          },
+          {
+            "name": "pillow",
+            "version": "12.3.0"
+          },
+          {
+            "name": "proto-plus",
+            "version": "1.29.0"
+          },
+          {
+            "name": "protobuf",
+            "version": "6.33.6"
+          },
+          {
+            "name": "psycopg",
+            "version": "3.3.6"
+          },
+          {
+            "name": "psycopg-binary",
+            "version": "3.3.6"
+          },
+          {
+            "name": "psycopg-pool",
+            "version": "3.3.3"
+          },
+          {
+            "name": "pyarrow",
+            "version": "25.0.1"
+          },
+          {
+            "name": "pyasn1",
+            "version": "0.6.4"
+          },
+          {
+            "name": "pyasn1-modules",
+            "version": "0.4.2"
+          },
+          {
+            "name": "pyclipper",
+            "version": "1.4.0"
+          },
+          {
+            "name": "pycparser",
+            "version": "3.11"
+          },
+          {
+            "name": "pydantic",
+            "version": "2.14.0"
+          },
+          {
+            "name": "pydantic-core",
+            "version": "2.50.0"
+          },
+          {
+            "name": "pydeck",
+            "version": "0.9.3"
+          },
+          {
+            "name": "pyjwt",
+            "version": "2.15.1"
+          },
+          {
+            "name": "pyparsing",
+            "version": "3.3.3"
+          },
+          {
+            "name": "pyproj",
+            "version": "3.8.0"
+          },
+          {
+            "name": "pyshp",
+            "version": "2.4.2"
+          },
+          {
+            "name": "python-dateutil",
+            "version": "2.9.0.post0"
+          },
+          {
+            "name": "python-dotenv",
+            "version": "1.2.4"
+          },
+          {
+            "name": "python-multipart",
+            "version": "0.0.32"
+          },
+          {
+            "name": "pytz",
+            "version": "2026.5"
+          },
+          {
+            "name": "pyyaml",
+            "version": "6.0.3"
+          },
+          {
+            "name": "referencing",
+            "version": "0.37.0"
+          },
+          {
+            "name": "requests",
+            "version": "2.34.2"
+          },
+          {
+            "name": "rpds-py",
+            "version": "2026.9.1"
+          },
+          {
+            "name": "s3transfer",
+            "version": "0.19.2"
+          },
+          {
+            "name": "shapely",
+            "version": "2.2.0"
+          },
+          {
+            "name": "six",
+            "version": "1.17.0"
+          },
+          {
+            "name": "starlette",
+            "version": "1.7.0"
+          },
+          {
+            "name": "streamlit",
+            "version": "1.65.0"
+          },
+          {
+            "name": "toml",
+            "version": "0.10.2"
+          },
+          {
+            "name": "typing-extensions",
+            "version": "4.16.0"
+          },
+          {
+            "name": "typing-inspection",
+            "version": "0.4.4"
+          },
+          {
+            "name": "tzdata",
+            "version": "2026.5"
+          },
+          {
+            "name": "uritemplate",
+            "version": "4.2.0"
+          },
+          {
+            "name": "urllib3",
+            "version": "2.8.0"
+          },
+          {
+            "name": "uvicorn",
+            "version": "0.54.0"
+          },
+          {
+            "name": "watchdog",
+            "version": "6.0.0"
+          },
+          {
+            "name": "watchfiles",
+            "version": "1.3.0"
+          },
+          {
+            "name": "websockets",
+            "version": "17.2"
+          }
+        ],
+        "reason_code": "resolution_audit_clean",
+        "scope": "alternate_streamlit_docker_manifest_resolution",
+        "status": "PASS"
+      },
+      "audit_tool_contract": "pip-audit>=2,<3; npm auditReportVersion=2",
+      "collector_platform": "win32",
+      "collector_python": "3.13.14",
+      "deployment_python_contract": "3.12/Linux",
+      "deployment_resolution_locked": false,
+      "development_exception_policy": {
+        "accepted": [
+          {
+            "expiresOn": "2026-11-04",
+            "id": "GHSA-vfj7-8cjw-p6xm"
+          }
+        ],
+        "error_count": 0,
+        "status": "pass"
+      },
+      "development_test_manifest": "requirements-dev.txt; CI workflows declare separate test dependencies",
+      "frontend": {
+        "deployed_runtime": "UNKNOWN",
+        "findings": [],
+        "invalid_entries": 0,
+        "lock_sha256": "663d46dc8957b9ca4ae71df21652795a0954d5e522bb0d32adf6c2ac86837dd6",
+        "reason_code": "audit_complete",
+        "scope": "frontend_production_lock",
+        "status": "PASS"
+      },
+      "frontend_all": {
+        "deployed_runtime": "UNKNOWN",
+        "findings": [
+          {
+            "advisories": [],
+            "package": "@next/eslint-plugin-next",
+            "severity": "high"
+          },
+          {
+            "advisories": [
+              "GHSA-vfj7-8cjw-p6xm"
+            ],
+            "package": "braces",
+            "severity": "high"
+          },
+          {
+            "advisories": [],
+            "package": "chokidar",
+            "severity": "high"
+          },
+          {
+            "advisories": [],
+            "package": "fast-glob",
+            "severity": "high"
+          },
+          {
+            "advisories": [],
+            "package": "micromatch",
+            "severity": "high"
+          },
+          {
+            "advisories": [],
+            "package": "postcss-nested",
+            "severity": "moderate"
+          },
+          {
+            "advisories": [
+              "GHSA-rj75-hqrm-r3gf"
+            ],
+            "package": "postcss-selector-parser",
+            "severity": "moderate"
+          },
+          {
+            "advisories": [],
+            "package": "tailwindcss",
+            "severity": "high"
+          }
+        ],
+        "invalid_entries": 0,
+        "lock_sha256": "663d46dc8957b9ca4ae71df21652795a0954d5e522bb0d32adf6c2ac86837dd6",
+        "reason_code": "audit_complete",
+        "scope": "frontend_all_dependencies",
+        "status": "BLOCKED"
+      },
+      "machine_global": {
+        "deployed_runtime": "UNKNOWN",
+        "findings": [
+          {
+            "fix_versions": [
+              "50.0.0"
+            ],
+            "id": "PYSEC-2026-3552",
+            "package": "cryptography",
+            "severity": "UNKNOWN",
+            "version": "49.0.0"
+          },
+          {
+            "fix_versions": [
+              "50.0.0"
+            ],
+            "id": "PYSEC-2026-3552",
+            "package": "cryptography",
+            "severity": "UNKNOWN",
+            "version": "49.0.0"
+          },
+          {
+            "fix_versions": [
+              "26.2"
+            ],
+            "id": "PYSEC-2026-3721",
+            "package": "pip",
+            "severity": "UNKNOWN",
+            "version": "26.1.2"
+          },
+          {
+            "fix_versions": [
+              "26.2.0"
+            ],
+            "id": "PYSEC-2026-3721",
+            "package": "pip",
+            "severity": "UNKNOWN",
+            "version": "26.1.2"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4145",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [],
+            "id": "PYSEC-2026-4146",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4149",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4152",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4144",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4143",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4148",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4140",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.15.0"
+            ],
+            "id": "PYSEC-2026-4141",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4147",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4151",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4150",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.14.0"
+            ],
+            "id": "PYSEC-2026-4142",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "2.15.0"
+            ],
+            "id": "PYSEC-2026-4183",
+            "package": "pyjwt",
+            "severity": "UNKNOWN",
+            "version": "2.13.0"
+          },
+          {
+            "fix_versions": [
+              "6.19.0"
+            ],
+            "id": "PYSEC-2026-4160",
+            "package": "pypdf",
+            "severity": "UNKNOWN",
+            "version": "6.18.1"
+          },
+          {
+            "fix_versions": [
+              "6.19.0"
+            ],
+            "id": "PYSEC-2026-4159",
+            "package": "pypdf",
+            "severity": "UNKNOWN",
+            "version": "6.18.1"
+          },
+          {
+            "fix_versions": [
+              "6.19.0"
+            ],
+            "id": "PYSEC-2026-4157",
+            "package": "pypdf",
+            "severity": "UNKNOWN",
+            "version": "6.18.1"
+          },
+          {
+            "fix_versions": [
+              "9.0.3"
+            ],
+            "id": "PYSEC-2026-1845",
+            "package": "pytest",
+            "severity": "UNKNOWN",
+            "version": "8.4.2"
+          },
+          {
+            "fix_versions": [
+              "9.0.3"
+            ],
+            "id": "PYSEC-2026-1845",
+            "package": "pytest",
+            "severity": "UNKNOWN",
+            "version": "8.4.2"
+          },
+          {
+            "fix_versions": [
+              "2.8.0"
+            ],
+            "id": "PYSEC-2026-4177",
+            "package": "urllib3",
+            "severity": "UNKNOWN",
+            "version": "2.7.0"
+          },
+          {
+            "fix_versions": [
+              "2.8.0"
+            ],
+            "id": "PYSEC-2026-4176",
+            "package": "urllib3",
+            "severity": "UNKNOWN",
+            "version": "2.7.0"
+          },
+          {
+            "fix_versions": [
+              "2.8.0"
+            ],
+            "id": "PYSEC-2026-4175",
+            "package": "urllib3",
+            "severity": "UNKNOWN",
+            "version": "2.7.0"
+          }
+        ],
+        "invalid_or_skipped_dependencies": 0,
+        "manifest_sha256": null,
+        "packages": [
+          {
+            "name": "altair",
+            "version": "6.2.2"
+          },
+          {
+            "name": "annotated-doc",
+            "version": "0.0.5"
+          },
+          {
+            "name": "annotated-types",
+            "version": "0.7.0"
+          },
+          {
+            "name": "anyio",
+            "version": "4.14.2"
+          },
+          {
+            "name": "attrs",
+            "version": "26.1.0"
+          },
+          {
+            "name": "beautifulsoup4",
+            "version": "4.15.0"
+          },
+          {
+            "name": "blinker",
+            "version": "1.9.0"
+          },
+          {
+            "name": "boolean-py",
+            "version": "5.0"
+          },
+          {
+            "name": "boto3",
+            "version": "1.43.92"
+          },
+          {
+            "name": "botocore",
+            "version": "1.43.92"
+          },
+          {
+            "name": "cachecontrol",
+            "version": "0.14.4"
+          },
+          {
+            "name": "certifi",
+            "version": "2026.6.17"
+          },
+          {
+            "name": "cffi",
+            "version": "2.1.0"
+          },
+          {
+            "name": "charset-normalizer",
+            "version": "3.4.9"
+          },
+          {
+            "name": "click",
+            "version": "8.4.2"
+          },
+          {
+            "name": "colorama",
+            "version": "0.4.6"
+          },
+          {
+            "name": "cryptography",
+            "version": "49.0.0"
+          },
+          {
+            "name": "curl-cffi",
+            "version": "0.16.0"
+          },
+          {
+            "name": "cyclonedx-python-lib",
+            "version": "11.11.0"
+          },
+          {
+            "name": "defusedxml",
+            "version": "0.7.1"
+          },
+          {
+            "name": "earthengine-api",
+            "version": "1.7.43"
+          },
+          {
+            "name": "et-xmlfile",
+            "version": "2.0.0"
+          },
+          {
+            "name": "fastapi",
+            "version": "0.142.2"
+          },
+          {
+            "name": "filelock",
+            "version": "3.32.2"
+          },
+          {
+            "name": "google-ai-generativelanguage",
+            "version": "0.6.15"
+          },
+          {
+            "name": "google-api-core",
+            "version": "2.31.0"
+          },
+          {
+            "name": "google-api-python-client",
+            "version": "2.198.0"
+          },
+          {
+            "name": "google-auth",
+            "version": "2.56.0"
+          },
+          {
+            "name": "google-auth-httplib2",
+            "version": "0.4.0"
+          },
+          {
+            "name": "google-cloud-core",
+            "version": "2.7.0"
+          },
+          {
+            "name": "google-cloud-storage",
+            "version": "3.14.1"
+          },
+          {
+            "name": "google-crc32c",
+            "version": "1.8.0"
+          },
+          {
+            "name": "google-generativeai",
+            "version": "0.8.6"
+          },
+          {
+            "name": "google-resumable-media",
+            "version": "2.10.2"
+          },
+          {
+            "name": "googleapis-common-protos",
+            "version": "1.75.0"
+          },
+          {
+            "name": "grpcio",
+            "version": "1.82.1"
+          },
+          {
+            "name": "grpcio-status",
+            "version": "1.71.2"
+          },
+          {
+            "name": "h11",
+            "version": "0.16.0"
+          },
+          {
+            "name": "httpcore",
+            "version": "1.0.9"
+          },
+          {
+            "name": "httplib2",
+            "version": "0.32.0"
+          },
+          {
+            "name": "httptools",
+            "version": "0.8.0"
+          },
+          {
+            "name": "httpx",
+            "version": "0.28.1"
+          },
+          {
+            "name": "idna",
+            "version": "3.18"
+          },
+          {
+            "name": "iniconfig",
+            "version": "2.3.0"
+          },
+          {
+            "name": "itsdangerous",
+            "version": "2.2.0"
+          },
+          {
+            "name": "jinja2",
+            "version": "3.1.6"
+          },
+          {
+            "name": "jmespath",
+            "version": "1.1.0"
+          },
+          {
+            "name": "joblib",
+            "version": "1.5.3"
+          },
+          {
+            "name": "jsonschema",
+            "version": "4.26.0"
+          },
+          {
+            "name": "jsonschema-specifications",
+            "version": "2025.9.1"
+          },
+          {
+            "name": "license-expression",
+            "version": "30.4.4"
+          },
+          {
+            "name": "mapbox-vector-tile",
+            "version": "2.2.0"
+          },
+          {
+            "name": "markdown-it-py",
+            "version": "4.2.0"
+          },
+          {
+            "name": "markupsafe",
+            "version": "3.0.3"
+          },
+          {
+            "name": "mdurl",
+            "version": "0.1.2"
+          },
+          {
+            "name": "msgpack",
+            "version": "1.2.1"
+          },
+          {
+            "name": "msoffcrypto-tool",
+            "version": "6.0.0"
+          },
+          {
+            "name": "multitasking",
+            "version": "0.0.13"
+          },
+          {
+            "name": "narwhals",
+            "version": "2.24.0"
+          },
+          {
+            "name": "numpy",
+            "version": "2.5.3"
+          },
+          {
+            "name": "odfpy",
+            "version": "1.4.1"
+          },
+          {
+            "name": "olefile",
+            "version": "0.47"
+          },
+          {
+            "name": "openpyxl",
+            "version": "3.1.5"
+          },
+          {
+            "name": "opentelemetry-api",
+            "version": "1.45.0"
+          },
+          {
+            "name": "packageurl-python",
+            "version": "0.17.6"
+          },
+          {
+            "name": "packaging",
+            "version": "26.2"
+          },
+          {
+            "name": "pandas",
+            "version": "2.3.3"
+          },
+          {
+            "name": "peewee",
+            "version": "4.3.0"
+          },
+          {
+            "name": "pillow",
+            "version": "12.3.0"
+          },
+          {
+            "name": "pip",
+            "version": "26.1.2"
+          },
+          {
+            "name": "pip-api",
+            "version": "0.0.34"
+          },
+          {
+            "name": "pip-audit",
+            "version": "2.10.1"
+          },
+          {
+            "name": "pip-requirements-parser",
+            "version": "32.0.1"
+          },
+          {
+            "name": "platformdirs",
+            "version": "4.11.0"
+          },
+          {
+            "name": "plotly",
+            "version": "6.9.0"
+          },
+          {
+            "name": "pluggy",
+            "version": "1.6.0"
+          },
+          {
+            "name": "proto-plus",
+            "version": "1.28.1"
+          },
+          {
+            "name": "protobuf",
+            "version": "6.33.6"
+          },
+          {
+            "name": "psycopg",
+            "version": "3.3.4"
+          },
+          {
+            "name": "psycopg-binary",
+            "version": "3.3.4"
+          },
+          {
+            "name": "psycopg-pool",
+            "version": "3.3.1"
+          },
+          {
+            "name": "py-serializable",
+            "version": "2.1.0"
+          },
+          {
+            "name": "pyais",
+            "version": "3.2.3"
+          },
+          {
+            "name": "pyarrow",
+            "version": "25.0.1"
+          },
+          {
+            "name": "pyasn1",
+            "version": "0.6.4"
+          },
+          {
+            "name": "pyasn1-modules",
+            "version": "0.4.2"
+          },
+          {
+            "name": "pyclipper",
+            "version": "1.4.0"
+          },
+          {
+            "name": "pycparser",
+            "version": "3.0"
+          },
+          {
+            "name": "pydantic",
+            "version": "2.13.5"
+          },
+          {
+            "name": "pydantic-core",
+            "version": "2.46.5"
+          },
+          {
+            "name": "pydeck",
+            "version": "0.9.3"
+          },
+          {
+            "name": "pygments",
+            "version": "2.20.0"
+          },
+          {
+            "name": "pyjwt",
+            "version": "2.13.0"
+          },
+          {
+            "name": "pymupdf",
+            "version": "1.28.2"
+          },
+          {
+            "name": "pyparsing",
+            "version": "3.3.2"
+          },
+          {
+            "name": "pypdf",
+            "version": "6.18.1"
+          },
+          {
+            "name": "pyproj",
+            "version": "3.8.0"
+          },
+          {
+            "name": "pyshp",
+            "version": "2.4.2"
+          },
+          {
+            "name": "pytest",
+            "version": "8.4.2"
+          },
+          {
+            "name": "python-dateutil",
+            "version": "2.9.0.post0"
+          },
+          {
+            "name": "python-dotenv",
+            "version": "1.2.2"
+          },
+          {
+            "name": "python-multipart",
+            "version": "0.0.32"
+          },
+          {
+            "name": "pytz",
+            "version": "2026.3.post1"
+          },
+          {
+            "name": "pyyaml",
+            "version": "6.0.3"
+          },
+          {
+            "name": "referencing",
+            "version": "0.37.0"
+          },
+          {
+            "name": "requests",
+            "version": "2.34.2"
+          },
+          {
+            "name": "rich",
+            "version": "15.0.0"
+          },
+          {
+            "name": "rpds-py",
+            "version": "2026.6.3"
+          },
+          {
+            "name": "s3transfer",
+            "version": "0.19.2"
+          },
+          {
+            "name": "scikit-learn",
+            "version": "1.9.1"
+          },
+          {
+            "name": "scipy",
+            "version": "1.18.0"
+          },
+          {
+            "name": "shapely",
+            "version": "2.1.2"
+          },
+          {
+            "name": "six",
+            "version": "1.17.0"
+          },
+          {
+            "name": "sortedcontainers",
+            "version": "2.4.0"
+          },
+          {
+            "name": "soupsieve",
+            "version": "2.9.2"
+          },
+          {
+            "name": "starlette",
+            "version": "1.7.0"
+          },
+          {
+            "name": "streamlit",
+            "version": "1.61.1"
+          },
+          {
+            "name": "tenacity",
+            "version": "9.1.4"
+          },
+          {
+            "name": "threadpoolctl",
+            "version": "3.6.0"
+          },
+          {
+            "name": "toml",
+            "version": "0.10.2"
+          },
+          {
+            "name": "tomli",
+            "version": "2.4.1"
+          },
+          {
+            "name": "tomli-w",
+            "version": "1.2.0"
+          },
+          {
+            "name": "tqdm",
+            "version": "4.68.4"
+          },
+          {
+            "name": "truststore",
+            "version": "0.10.4"
+          },
+          {
+            "name": "typing-extensions",
+            "version": "4.16.0"
+          },
+          {
+            "name": "typing-inspection",
+            "version": "0.4.2"
+          },
+          {
+            "name": "tzdata",
+            "version": "2026.3"
+          },
+          {
+            "name": "uritemplate",
+            "version": "4.2.0"
+          },
+          {
+            "name": "urllib3",
+            "version": "2.7.0"
+          },
+          {
+            "name": "uvicorn",
+            "version": "0.52.1"
+          },
+          {
+            "name": "watchdog",
+            "version": "6.0.0"
+          },
+          {
+            "name": "watchfiles",
+            "version": "1.2.0"
+          },
+          {
+            "name": "websockets",
+            "version": "13.1"
+          },
+          {
+            "name": "xlrd",
+            "version": "2.0.2"
+          },
+          {
+            "name": "yfinance",
+            "version": "1.5.2"
+          }
+        ],
+        "reason_code": "vulnerabilities_found",
+        "scope": "machine_global_not_deployable_runtime",
+        "status": "BLOCKED"
+      },
+      "manifests": {
+        "alternate_runtime": [
+          "Dockerfile",
+          "docker-compose.yml",
+          "requirements.txt"
+        ],
+        "backend": [
+          "Dockerfile.cloudrun",
+          "render.yaml",
+          "backend/requirements.txt"
+        ],
+        "frontend": [
+          "frontend_next/package.json",
+          "frontend_next/package-lock.json"
+        ]
+      },
+      "python": {
+        "deployed_runtime": "UNKNOWN",
+        "findings": [],
+        "invalid_or_skipped_dependencies": 0,
+        "manifest_sha256": "3867b2869c6dcc82de736e2eb8283061224d0a875eeda30023696c5a812b33f7",
+        "packages": [
+          {
+            "name": "annotated-doc",
+            "version": "0.0.5"
+          },
+          {
+            "name": "annotated-types",
+            "version": "0.8.0"
+          },
+          {
+            "name": "anyio",
+            "version": "4.15.1"
+          },
+          {
+            "name": "boto3",
+            "version": "1.43.110"
+          },
+          {
+            "name": "botocore",
+            "version": "1.43.110"
+          },
+          {
+            "name": "certifi",
+            "version": "2026.7.22"
+          },
+          {
+            "name": "cffi",
+            "version": "2.1.1"
+          },
+          {
+            "name": "charset-normalizer",
+            "version": "3.5.2"
+          },
+          {
+            "name": "click",
+            "version": "8.5.0"
+          },
+          {
+            "name": "cryptography",
+            "version": "50.0.2"
+          },
+          {
+            "name": "defusedxml",
+            "version": "0.7.1"
+          },
+          {
+            "name": "earthengine-api",
+            "version": "1.7.47"
+          },
+          {
+            "name": "fastapi",
+            "version": "0.143.0"
+          },
+          {
+            "name": "google-api-core",
+            "version": "2.42.0"
+          },
+          {
+            "name": "google-api-python-client",
+            "version": "2.201.0"
+          },
+          {
+            "name": "google-auth",
+            "version": "2.61.0"
+          },
+          {
+            "name": "google-auth-httplib2",
+            "version": "0.4.4"
+          },
+          {
+            "name": "google-cloud-core",
+            "version": "2.8.0"
+          },
+          {
+            "name": "google-cloud-storage",
+            "version": "3.17.0"
+          },
+          {
+            "name": "google-crc32c",
+            "version": "1.9.0"
+          },
+          {
+            "name": "google-resumable-media",
+            "version": "2.11.0"
+          },
+          {
+            "name": "googleapis-common-protos",
+            "version": "1.75.5"
+          },
+          {
+            "name": "h11",
+            "version": "0.16.0"
+          },
+          {
+            "name": "httpcore",
+            "version": "1.0.9"
+          },
+          {
+            "name": "httplib2",
+            "version": "0.32.0"
+          },
+          {
+            "name": "httptools",
+            "version": "0.8.0"
+          },
+          {
+            "name": "httpx",
+            "version": "0.28.1"
+          },
+          {
+            "name": "idna",
+            "version": "3.20"
+          },
+          {
+            "name": "jinja2",
+            "version": "3.1.6"
+          },
+          {
+            "name": "jmespath",
+            "version": "1.1.0"
+          },
+          {
+            "name": "mapbox-vector-tile",
+            "version": "2.2.0"
+          },
+          {
+            "name": "markupsafe",
+            "version": "3.0.4"
+          },
+          {
+            "name": "numpy",
+            "version": "2.5.3"
+          },
+          {
+            "name": "opentelemetry-api",
+            "version": "1.45.1"
+          },
+          {
+            "name": "pandas",
+            "version": "2.3.3"
+          },
+          {
+            "name": "proto-plus",
+            "version": "1.29.0"
+          },
+          {
+            "name": "protobuf",
+            "version": "6.33.6"
+          },
+          {
+            "name": "psycopg",
+            "version": "3.3.6"
+          },
+          {
+            "name": "psycopg-binary",
+            "version": "3.3.6"
+          },
+          {
+            "name": "psycopg-pool",
+            "version": "3.3.3"
+          },
+          {
+            "name": "pyasn1",
+            "version": "0.6.4"
+          },
+          {
+            "name": "pyasn1-modules",
+            "version": "0.4.2"
+          },
+          {
+            "name": "pyclipper",
+            "version": "1.4.0"
+          },
+          {
+            "name": "pycparser",
+            "version": "3.11"
+          },
+          {
+            "name": "pydantic",
+            "version": "2.14.0"
+          },
+          {
+            "name": "pydantic-core",
+            "version": "2.50.0"
+          },
+          {
+            "name": "pyjwt",
+            "version": "2.15.1"
+          },
+          {
+            "name": "pyparsing",
+            "version": "3.3.3"
+          },
+          {
+            "name": "pyproj",
+            "version": "3.8.0"
+          },
+          {
+            "name": "pyshp",
+            "version": "2.4.2"
+          },
+          {
+            "name": "python-dateutil",
+            "version": "2.9.0.post0"
+          },
+          {
+            "name": "python-dotenv",
+            "version": "1.2.4"
+          },
+          {
+            "name": "python-multipart",
+            "version": "0.0.32"
+          },
+          {
+            "name": "pytz",
+            "version": "2026.5"
+          },
+          {
+            "name": "pyyaml",
+            "version": "6.0.3"
+          },
+          {
+            "name": "requests",
+            "version": "2.34.2"
+          },
+          {
+            "name": "s3transfer",
+            "version": "0.19.2"
+          },
+          {
+            "name": "shapely",
+            "version": "2.2.0"
+          },
+          {
+            "name": "six",
+            "version": "1.17.0"
+          },
+          {
+            "name": "starlette",
+            "version": "1.7.0"
+          },
+          {
+            "name": "typing-extensions",
+            "version": "4.16.0"
+          },
+          {
+            "name": "typing-inspection",
+            "version": "0.4.4"
+          },
+          {
+            "name": "tzdata",
+            "version": "2026.5"
+          },
+          {
+            "name": "uritemplate",
+            "version": "4.2.0"
+          },
+          {
+            "name": "urllib3",
+            "version": "2.8.0"
+          },
+          {
+            "name": "uvicorn",
+            "version": "0.54.0"
+          },
+          {
+            "name": "watchfiles",
+            "version": "1.3.0"
+          },
+          {
+            "name": "websockets",
+            "version": "17.2"
+          }
+        ],
+        "reason_code": "resolution_audit_clean",
+        "scope": "manifest_resolution",
+        "status": "PASS"
+      },
+      "reason_code": "deployed_runtime_inventory_missing",
+      "schema_version": "production-provider-closure-v1",
+      "status": "UNKNOWN"
+    }
+  },
+  "source_checkout_dirty": true,
+  "source_checkout_sha": "b4eb441a8ccf90965102f0646006dc4b0e145491"
+}
