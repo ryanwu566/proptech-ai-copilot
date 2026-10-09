@@ -8,6 +8,8 @@ import threading
 from typing import Any
 
 import httpx
+from services.anti_abuse import provider_operation
+from services.provider_cost_metrics import PROVIDER_COST_METRICS
 
 
 TGOS_URL = "https://addr.tgos.tw/addrws/v30/QueryAddr.asmx/QueryAddr"
@@ -60,7 +62,7 @@ class TgosGeocodingAdapter:
             "oReturnMaxCount": "1",
         }
         try:
-            response = self._get_client().get(TGOS_URL, params=params)
+            response = self._request(params)
             response.raise_for_status()
             payload = response.json()
             item = (payload.get("AddressList") or payload.get("addressList") or [])[0]
@@ -98,6 +100,11 @@ class TgosGeocodingAdapter:
         except (httpx.HTTPError, AttributeError, IndexError, KeyError, TypeError, ValueError):
             self.last_error = "TGOS 暫時無法取得定位結果"
         return None
+
+    @provider_operation("tgos")
+    def _request(self, params) -> httpx.Response:
+        PROVIDER_COST_METRICS.record("tgos", "physical_calls")
+        return self._get_client().get(TGOS_URL, params=params)
 
     def _get_client(self) -> httpx.Client:
         if self._client is None:

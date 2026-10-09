@@ -6,6 +6,9 @@ import math
 import os
 from typing import Literal
 
+from services.input_limits import BoundedInputModel
+from services.anti_abuse import provider_operation
+
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -48,7 +51,7 @@ class CommuteStatusResponse(SnapshotProvenance):
     source_updated_at: str | None = None
 
 
-class CommuteNearestRequest(BaseModel):
+class CommuteNearestRequest(BoundedInputModel):
     model_config = ConfigDict(extra="forbid")
 
     latitude: float = Field(ge=-90, le=90)
@@ -62,7 +65,7 @@ class CommuteNearestRequest(BaseModel):
         return value
 
 
-class CommuteAddressLookupRequest(BaseModel):
+class CommuteAddressLookupRequest(BoundedInputModel):
     model_config = ConfigDict(extra="forbid")
 
     address: str
@@ -172,7 +175,7 @@ def post_commute_address_lookup(request: CommuteAddressLookupRequest) -> Commute
     return CommuteLookupResponse(**result)
 
 
-class CommuteRouteRequest(BaseModel):
+class CommuteRouteRequest(BoundedInputModel):
     """Single origin -> destination travel-time request for a bounded mode.
 
     ``destination`` accepts either a coordinate pair or a text address (resolved via

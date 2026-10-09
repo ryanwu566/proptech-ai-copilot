@@ -1,8 +1,12 @@
 """Request-scoped parcel geometry upload and analysis API."""
 
 from typing import Any
+import asyncio
+from services.input_limits import BoundedInputModel
+from services.anti_abuse import provider_operation
+
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from services.landsect_context import build_landsect_context
 from services.parcel_geometry import (
     MAX_UPLOAD_BYTES, NlscCadastralProvider, ParcelGeometryError, UploadedParcelProvider,
@@ -33,6 +37,7 @@ def parcel_geometry_status() -> dict[str, Any]:
 
 
 @router.post("/upload")
+@provider_operation("parcel")
 async def upload_parcel_geometry(
     file: UploadFile = File(...),
     latitude: float | None = Form(default=None, ge=-90, le=90),
@@ -41,20 +46,22 @@ async def upload_parcel_geometry(
     if (latitude is None) != (longitude is None):
         raise HTTPException(status_code=422, detail={"code": "INVALID_GEOMETRY", "message": "Latitude and longitude must be supplied together."})
     try:
-        return UploadedParcelProvider().resolve(filename=file.filename or "", data=await _read_limited(file), latitude=latitude, longitude=longitude)
+        data = await _read_limited(file)
+        return await asyncio.to_thread(UploadedParcelProvider().resolve, filename=file.filename or "", data=data, latitude=latitude, longitude=longitude)
     except ParcelGeometryError as exc:
         raise HTTPException(status_code=exc.status_code, detail=exc.detail()) from exc
     finally:
         await file.close()
 
 
-class ConsistencyRequest(BaseModel):
+class ConsistencyRequest(BoundedInputModel):
     geometry: dict[str, Any]
     latitude: float = Field(ge=-90, le=90)
     longitude: float = Field(ge=-180, le=180)
 
 
 @router.post("/consistency")
+@provider_operation("parcel")
 def geometry_consistency(request: ConsistencyRequest) -> dict[str, str]:
     try:
         status = assess_location_geometry_consistency(request.geometry, latitude=request.latitude, longitude=request.longitude)
@@ -67,7 +74,19 @@ class SpatialRequest(BaseModel):
     parcel_geometry: dict[str, Any] | None = None
     hazard_geometry: dict[str, Any] | None = None
 
+    @field_validator("parcel_geometry", "hazard_geometry")
+    @classmethod
+    def bounded_geometry(cls, value):
+        from services.parcel_geometry import validate_geometry_resources
+        if value is not None:
+            try:
+                validate_geometry_resources(value)
+            except ParcelGeometryError:
+                raise ValueError("Geometry exceeds the resource limit.") from None
+        return value
+
 
 @router.post("/spatial-analyze")
+@provider_operation("parcel")
 def analyze_spatial(request: SpatialRequest) -> dict[str, Any]:
     return spatial_intersection(request.parcel_geometry, request.hazard_geometry)

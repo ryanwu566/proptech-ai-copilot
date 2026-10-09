@@ -18,6 +18,7 @@ from typing import Any, Literal, Protocol
 import httpx
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.anti_abuse import provider_operation
 
 
 ROUTES_URL = "https://routes.googleapis.com/directions/v2:computeRoutes"
@@ -145,6 +146,7 @@ class GoogleRoutesAdapter:
 
         return bool(self.api_key)
 
+    @provider_operation("routes")
     def compute_route(
         self,
         origin: tuple[float, float],

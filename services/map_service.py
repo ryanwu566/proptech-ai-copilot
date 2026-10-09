@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 import httpx
+from services.anti_abuse import AbuseRejected, ensure_enabled
 
 from services.adapters.geocoding_adapter import GeocodingAdapter, GoogleGeocodingAdapter, MockGeocodingAdapter
 from services.adapters.google_places_adapter import GooglePlacesAdapter, distance_meters, is_valid_place_type
@@ -234,6 +235,7 @@ def get_nearby_places(
 ) -> dict[str, Any]:
     """Return Google Places nearby results or a normalized mock fallback."""
 
+    ensure_enabled("places")
     supported = list(dict.fromkeys(category for category in categories if category in CATEGORY_LABELS))
     requested = supported or list(CATEGORY_LABELS)
     google = adapter or DEFAULT_GOOGLE_PLACES_ADAPTER
@@ -257,6 +259,7 @@ def _get_nearby_places(
     provider_timing_ms: dict[str, int] = {}
     category_status: dict[str, dict[str, str | int]] = {}
     observation_times: list[str] = []
+    blocked_categories: list[AbuseRejected] = []
 
     if google.available:
         with ThreadPoolExecutor(max_workers=min(MAX_CATEGORY_WORKERS, len(requested)), thread_name_prefix="map-category") as executor:
@@ -271,11 +274,17 @@ def _get_nearby_places(
                     grouped.append(_category_result(category, places, source="google_places", availability="available"))
                     category_status[category] = {"status": "available", "source": "google_places", "timing_ms": elapsed_ms}
                 except Exception as exc:
+                    if isinstance(exc, AbuseRejected):
+                        blocked_categories.append(exc)
                     failed_categories.append(category)
                     elapsed_ms = int(getattr(exc, "provider_timing_ms", 0))
                     provider_timing_ms[category] = elapsed_ms
                     category_status[category] = {"status": "error", "source": "unavailable", "timing_ms": elapsed_ms}
+                    if isinstance(exc, AbuseRejected):
+                        category_status[category]["reason_code"] = exc.detail["reason_code"]
 
+        if not grouped and blocked_categories:
+            raise blocked_categories[0]
         if not grouped:
             source = "mock"
 

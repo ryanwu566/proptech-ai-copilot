@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import threading
 
-CAPABILITIES = frozenset({"geocoding", "address_resolution", "places", "places_request", "routes", "satellite", "ardswc", "liquefaction", "nlsc"})
-EVENTS = frozenset({"logical_requests", "physical_calls", "cache_hit", "cache_miss", "coalesced", "operation_success", "operation_failure", "operation_timeout", "avoided_operations", "provider_success", "provider_failure", "provider_timeout", "capacity_bypass"})
+CAPABILITIES = frozenset({"geocoding", "address_resolution", "places", "places_request", "routes", "satellite", "ardswc", "liquefaction", "nlsc", "tgos", "location", "terrain", "valuation", "trend", "finder", "market", "market_ops", "parcel", "metadata", "identity"})
+EVENTS = frozenset({"logical_requests", "physical_calls", "cache_hit", "cache_miss", "coalesced", "operation_success", "operation_failure", "operation_timeout", "avoided_operations", "provider_success", "provider_failure", "provider_timeout", "capacity_bypass", "admitted_requests", "rejected_requests", "rate_limited", "capacity_exhausted", "capability_disabled", "guard_unavailable", "provider_budget_exhausted", "operation_reservations"})
 
 
 class ProviderCostMetrics:

@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.provider_request_cache import BoundedRequestCache
+from services.anti_abuse import ensure_enabled, provider_operation
 
 
 DATASET_ID = "COPERNICUS/S2_SR_HARMONIZED"
@@ -192,6 +193,7 @@ async def fetch_satellite_reference(
     timeout_seconds: float = EXTERNAL_TIMEOUT_SECONDS,
 ) -> SatelliteReferenceResponse:
     deadline = time.monotonic() + timeout_seconds
+    ensure_enabled("satellite")
     checked_at = now or datetime.now(timezone.utc)
     if checked_at.tzinfo is None:
         checked_at = checked_at.replace(tzinfo=timezone.utc)
@@ -235,6 +237,7 @@ def _cacheable_response(response: SatelliteReferenceResponse) -> bool:
             and response.image_reference.startswith("data:image/jpeg;base64,"))
 
 
+@provider_operation("satellite")
 async def _generate_reference(
     query: SatelliteQuery, adapter: SatelliteAdapter | None, manager,
     checked_at: datetime, deadline: float,

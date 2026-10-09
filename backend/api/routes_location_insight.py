@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from services.input_limits import BoundedInputModel
+from services.anti_abuse import provider_operation
+
 from fastapi import APIRouter
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -15,7 +18,7 @@ from services.ris_village_resolver import get_default_ris_village_resolver
 router = APIRouter(prefix="/location", tags=["location-insight"])
 
 
-class LocationInsightRequest(BaseModel):
+class LocationInsightRequest(BoundedInputModel):
     city: str = ""
     district: str = ""
     road: str = ""
@@ -35,7 +38,7 @@ class LocationInsightRequest(BaseModel):
         return self
 
 
-class LocationResolveRequest(BaseModel):
+class LocationResolveRequest(BoundedInputModel):
     address: str
 
     @field_validator("address")
@@ -58,6 +61,7 @@ class LocationResolveResponse(BaseModel):
 
 
 @router.post("/insight")
+@provider_operation("location")
 def post_location_insight(request: LocationInsightRequest) -> dict[str, Any]:
     return analyze_location(**request.model_dump(), village_resolver=get_default_ris_village_resolver())
 

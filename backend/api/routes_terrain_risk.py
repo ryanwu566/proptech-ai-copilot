@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from services.input_limits import BoundedInputModel
+from services.anti_abuse import provider_operation
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field, model_validator
 
@@ -21,7 +24,7 @@ def get_terrain_source_status() -> dict[str, object]:
     return public_source_status("terrain")
 
 
-class TerrainRiskRequest(BaseModel):
+class TerrainRiskRequest(BoundedInputModel):
     address: str = ""
     city: str = ""
     district: str = ""
@@ -29,7 +32,7 @@ class TerrainRiskRequest(BaseModel):
     latitude: float | None = Field(default=None, ge=-90, le=90)
     longitude: float | None = Field(default=None, ge=-180, le=180)
     radius_m: int = Field(default=500, ge=100, le=2000)
-    include_layers: list[str] | None = None
+    include_layers: list[str] | None = Field(default=None, max_length=16)
 
     @model_validator(mode="after")
     def coordinates_are_paired(self) -> "TerrainRiskRequest":
@@ -39,6 +42,7 @@ class TerrainRiskRequest(BaseModel):
 
 
 @router.post("/analyze")
+@provider_operation("terrain")
 def post_terrain_risk(request: TerrainRiskRequest) -> dict[str, Any]:
     from services.provider_observability import observe_response
     try:

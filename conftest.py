@@ -18,6 +18,13 @@ from urllib.parse import unquote, urlsplit
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def isolated_anti_abuse_state(monkeypatch):
+    """Keep each mocked test's process budgets independent, not disabled."""
+    from services import anti_abuse
+    monkeypatch.setattr(anti_abuse, "CONTROLS", anti_abuse.AbuseControls(anti_abuse.POLICIES))
+
+
 APPLICATION_DATABASE_URL_SUFFIX = "_DATABASE_URL"
 APPLICATION_DATABASE_URL_NAME = "DATABASE_URL"
 

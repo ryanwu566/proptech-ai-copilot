@@ -32,6 +32,7 @@ from services.adapters.routes_adapter import (
     is_supported_mode,
 )
 from services.production_config import PRODUCTION_MODES
+from services.anti_abuse import ensure_enabled
 from services.provider_observability import observe_response
 from services.provider_request_cache import BoundedRequestCache
 
@@ -196,6 +197,7 @@ def estimate_commute_route(
     later Google recovery is not masked.
     """
 
+    ensure_enabled("routes")
     if not is_supported_mode(mode):
         raise InvalidRouteRequestError(f"Unsupported travel mode: {mode}")
 

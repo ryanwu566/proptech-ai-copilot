@@ -10,6 +10,7 @@ from urllib.parse import urlencode
 import httpx
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
+from services.anti_abuse import provider_operation
 from services.provider_request_cache import BoundedRequestCache
 
 from .base import source_meta, unavailable_layer
@@ -233,6 +234,7 @@ class GeologyCloudProvider:
             "source": source,
         }
 
+    @provider_operation("liquefaction")
     def _fetch(self, url: str) -> bytes:
         PROVIDER_COST_METRICS.record("liquefaction", "physical_calls")
         if self.http_get is not None:

@@ -9,6 +9,10 @@ import logging
 import uuid
 from typing import Any
 
+from services.input_limits import BoundedInputModel
+from services.anti_abuse import provider_operation
+from services import anti_abuse
+
 from fastapi import APIRouter, Header, Response, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -43,7 +47,7 @@ MARKET_REFRESH_TOKEN_UNAVAILABLE_MESSAGE = "市場讀取模型刷新設定尚未
 MARKET_REFRESH_FORBIDDEN_MESSAGE = "沒有權限刷新市場讀取模型。"
 
 
-class MarketInsightQuery(BaseModel):
+class MarketInsightQuery(BoundedInputModel):
     """Region selector for Market Insight."""
 
     model_config = ConfigDict(extra="forbid")
@@ -83,7 +87,7 @@ class MarketInsightQuery(BaseModel):
         return self
 
 
-class MarketCoverageReconcileRequest(BaseModel):
+class MarketCoverageReconcileRequest(BoundedInputModel):
     """Bounded operator request for one county coverage reconcile."""
 
     model_config = ConfigDict(extra="forbid")
@@ -101,7 +105,7 @@ class MarketCoverageReconcileRequest(BaseModel):
         return normalized.county
 
 
-class MarketComparableRequest(BaseModel):
+class MarketComparableRequest(BoundedInputModel):
     """Bounded aggregate/comparable query; raw address and arbitrary SQL are forbidden."""
 
     model_config = ConfigDict(extra="forbid")
@@ -126,7 +130,7 @@ class MarketComparableRequest(BaseModel):
         return value
 
 
-class MarketSegmentRequest(BaseModel):
+class MarketSegmentRequest(BoundedInputModel):
     """Validated, bounded filters for the read-only PLVR segmentation engine."""
 
     model_config = ConfigDict(extra="forbid")
@@ -213,6 +217,7 @@ def get_market_insight_catalog() -> dict[str, Any]:
 
 
 @router.get("/market-insights/regions")
+@provider_operation("market")
 def get_market_insight_regions(county: str = "") -> dict[str, Any]:
     """Return available PLVR aggregate regions, optionally filtered by county."""
 
@@ -222,6 +227,7 @@ def get_market_insight_regions(county: str = "") -> dict[str, Any]:
 
 
 @router.get("/market-insights")
+@provider_operation("market")
 def get_market_insights() -> dict[str, Any]:
     """Return available aggregate regions for selector controls."""
 
@@ -245,6 +251,7 @@ def get_market_insight_releases() -> dict[str, Any]:
 
 
 @router.post("/market-insights/comparables")
+@provider_operation("market")
 def post_market_insight_comparables(request: MarketComparableRequest) -> dict[str, Any]:
     from services.official_market_query import query_comparables
 
@@ -252,6 +259,7 @@ def post_market_insight_comparables(request: MarketComparableRequest) -> dict[st
 
 
 @router.post("/market-insights/segments")
+@provider_operation("market")
 def post_market_segment(request: MarketSegmentRequest) -> dict[str, Any]:
     """Return read-only segment statistics from current official PLVR rows."""
 
@@ -261,6 +269,7 @@ def post_market_segment(request: MarketSegmentRequest) -> dict[str, Any]:
 
 
 @router.post("/market-insights/segment-comparables")
+@provider_operation("market")
 def post_market_segment_comparables(request: MarketSegmentComparableRequest) -> dict[str, Any]:
     """Return transparent comparable facts without a synthesized score."""
 
@@ -272,6 +281,7 @@ def post_market_segment_comparables(request: MarketSegmentComparableRequest) -> 
 
 
 @router.post("/market-insights/query")
+@provider_operation("market")
 def post_market_insight_query(request: MarketInsightQuery) -> dict[str, Any]:
     """Return one traceable Market Insight summary, or unavailable."""
 
@@ -650,10 +660,11 @@ def post_market_read_model_refresh(
     from services.market_insight_service import refresh_market_read_model
     from services.plvr_market_aggregate_service import safe_market_refresh_reason_code
 
-    try:
-        result = refresh_market_read_model()
-    except Exception:
-        result = _safe_refresh_unavailable("unknown_safe_failure", MARKET_REFRESH_UNAVAILABLE_MESSAGE)
+    with anti_abuse.CONTROLS.operation("market_ops"):
+        try:
+            result = refresh_market_read_model()
+        except Exception:
+            result = _safe_refresh_unavailable("unknown_safe_failure", MARKET_REFRESH_UNAVAILABLE_MESSAGE)
 
     if result.get("status") != "resolved":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
@@ -682,7 +693,8 @@ def post_market_coverage_bootstrap(
 
     from services.plvr_market_aggregate_service import bootstrap_market_coverage_metadata
 
-    result = bootstrap_market_coverage_metadata()
+    with anti_abuse.CONTROLS.operation("market_ops"):
+        result = bootstrap_market_coverage_metadata()
     safe_result = {
         "status": result.get("status") or "unavailable",
         "operation": "bootstrap",
@@ -710,7 +722,8 @@ def post_market_coverage_reconcile(
 
     from services.plvr_market_aggregate_service import reconcile_market_coverage, safe_market_coverage_reconcile_reason_code
 
-    result = reconcile_market_coverage(request.county)
+    with anti_abuse.CONTROLS.operation("market_ops"):
+        result = reconcile_market_coverage(request.county)
     if result.get("status") != "resolved":
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
         return {
@@ -747,7 +760,8 @@ def post_market_coverage_audit(
 
     from services.plvr_market_aggregate_service import audit_market_coverage
 
-    result = audit_market_coverage()
+    with anti_abuse.CONTROLS.operation("market_ops"):
+        result = audit_market_coverage()
     return {
         "MARKET_COVERAGE": result.get("status") or "UNKNOWN",
         "EXPECTED_REGION_COUNT": int(result.get("expected_region_count") or 0),
