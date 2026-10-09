@@ -5,6 +5,29 @@ import test from "node:test";
 import { buildLocationOverviewHandoff, buildLocationWorkspaceSnapshot } from "./location-context.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { adaptSavedCaseToWorkspace } from "./legacy-case-adapter.ts";
+// @ts-expect-error Native TS runner extension.
+import { projectCaseEvidence } from "./case-evidence.ts";
+
+test("foreign location evidence cannot leak demographics, village, scores or source details", () => {
+  const saved = savedCase();
+  const insight = saved.data.locationInsight!;
+  insight.input = { address: "臺中市西屯區臺灣大道三段100號" };
+  insight.demographics = { status: "available", total_population: 987654 } as never;
+  const original = JSON.stringify(insight);
+  const workspace = adaptSavedCaseToWorkspace(saved);
+  assert.equal(projectCaseEvidence(workspace).location.population.value, null);
+  assert.equal(workspace.location.insight, undefined);
+  assert.equal(workspace.location.poiSummary, undefined);
+  assert.equal(JSON.stringify(insight), original);
+});
+
+test("foreign unavailable legacy location without POI fields does not hide the saved case", () => {
+  const saved = savedCase();
+  saved.data.locationInsight = { input: { address: "臺中市西屯區臺灣大道三段100號" }, data_quality: { status: "unavailable", missing_sources: [], warnings: [] } } as never;
+  const workspace = adaptSavedCaseToWorkspace(saved);
+  assert.equal(workspace.caseId, saved.id);
+  assert.equal(workspace.location.insight, undefined);
+});
 
 const CHECKED_AT = "2026-09-27T08:00:00.000Z";
 

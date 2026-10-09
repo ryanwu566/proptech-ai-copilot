@@ -22,11 +22,11 @@ test("partial Location reopens with unknown failed counts and preserves unrelate
   await expect(summary).toContainText("交通");
   await expect(summary).toContainText("1");
   await expect(summary).toContainText("學校");
-  await expect(summary).toContainText("學校 未提供");
+  await expect(summary).toContainText("學校 未知／未取得");
   await expect(summary).toContainText("公園綠地 0");
   await expect(page.getByTestId("commute-route-card")).toContainText("24");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.reload();
-  await expect(page.getByTestId("poi-summary")).toContainText("學校 未提供");
+  await expect(page.getByTestId("poi-summary")).toContainText("學校 未知／未取得");
   expect(automaticCalls).toEqual([]);
 });

@@ -56,6 +56,25 @@ async function seed(page: Page) {
     sessionStorage.setItem("proptech:holding-cost-result", JSON.stringify({ monthly_total_holding_cost: 999999999 }));
   }, [manualCase(), e9Case("case-b")]);
 }
+
+test("legacy Load opens bounded saved finance without losing assumptions or requesting analysis", async ({ page }) => {
+  await seed(page);
+  const analysis: string[] = [];
+  page.on("request", request => {
+    if (request.method() === "POST" && /\/(loan|holding-cost|valuation|location|terrain|commute)(\/|$)/.test(new URL(request.url()).pathname)) analysis.push(new URL(request.url()).pathname);
+  });
+  await page.goto("/");
+  await page.locator("#commercial-address").fill("臺北市信義區市府路1號");
+  await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
+  await page.getByRole("navigation", { name: "選擇流程步驟" }).getByRole("button", { name: /看房決策摘要/ }).click();
+  await page.getByRole("button", { name: /^已儲存案件/ }).click();
+  await page.getByRole("button", { name: "載入", exact: true }).first().click();
+  await expect(page).toHaveURL(/\/cases\/case-a\/finance$/);
+  await expect(page.getByTestId("loan-summary")).toContainText("55,111");
+  await expect(page.getByTestId("saved-finance-assumptions")).toContainText("手動試算情境");
+  await expect(page.getByTestId("holding-summary")).toContainText("55,111");
+  expect(analysis).toEqual([]);
+});
 const address = "臺北市信義區市府路1號";
 function liveLocation() {
   return {
