@@ -45,6 +45,7 @@ const valuationState = load('frontend_next/lib/valuation-result-state.ts');
 const journeyIdentity = load('frontend_next/lib/journey-property-identity.ts');
 const locationEvidence = load('frontend_next/lib/location-evidence-context.ts');
 const closedLoop = load('frontend_next/lib/closed-loop-journey.ts', {
+  '@/lib/finance-price-provenance': load('frontend_next/lib/finance-price-provenance.ts'),
   '@/lib/location-market-journey': locationMarket,
   '@/lib/valuation-result-state': valuationState,
   '@/lib/journey-property-identity': journeyIdentity,

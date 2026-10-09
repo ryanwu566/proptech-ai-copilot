@@ -40,7 +40,7 @@ def test_hero_ctas_keep_real_navigation_handlers() -> None:
 
 
 def test_active_homepage_renders_one_address_entry_before_the_optional_guided_journey() -> None:
-    home = PAGE.split("export default function Home()", 1)[1].split("function buildJourneySaveCase", 1)[0]
+    home = PAGE.split("export default function Home()", 1)[1].split("function renderPage", 1)[0]
     assert home.count("<CommercialHome ") == 1
     assert "<HeroIntro " not in home
     assert home.index("<CommercialHome ") < home.index("<GuidedPropertyJourney ")

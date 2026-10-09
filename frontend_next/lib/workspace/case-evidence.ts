@@ -18,7 +18,7 @@ export type EvidenceField<T extends string | number> = {
   id: string; label: string; domain: WorkspaceSection; unit: string;
   value: T | null; historicalValue: T | null; status: EvidenceStatus;
   freshness: EvidenceFreshness; missingReason: GapReason | null;
-  source: string; limitation: string; nextAction: string;
+  source: string; limitation: string; nextAction: string; sourceReason?: string | null;
 };
 export type EvidenceGap = {
   caseId: string; domain: WorkspaceSection; id: string; item: string; reason: GapReason;
@@ -51,6 +51,8 @@ export type CaseEvidenceModel = {
 
 // @ts-expect-error Native TS runner extension.
 import { PRICE_BASIS_LABELS, EVIDENCE_STATUS_LABELS } from "./evidence-labels.ts";
+// @ts-expect-error Native TS runner extension.
+import { financePriceSourceLabel } from "../finance-price-provenance.ts";
 const ACTIONS: { [D in WorkspaceSection]: string } = { overview: "回到物件總覽確認案件條件", market: "回到價格與市場，明確執行查詢確認證據", location: "回到區位與通勤，確認條件後明確查詢", risk: "回到風險與環境，核對官方來源與現場條件", finance: "回到資金與成本，補齊假設後明確計算" };
 const riskLabels: { [K in RiskEvidenceKey]: string } = { terrain: "地形／坡度", flood: "淹水", landslide: "山崩", debris_flow: "土石流", liquefaction: "土壤液化", geological_sensitivity: "地質敏感區", active_fault: "活動斷層／人工查證" };
 function number(value: unknown): number | null { return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null; }
@@ -58,7 +60,7 @@ function text(value: unknown): string | null { return typeof value === "string" 
 export function safeEvidenceUrl(value: unknown): string | null {
   return safePublicEvidenceUrl(value);
 }
-type FieldOptions = Partial<Pick<EvidenceField<string>, "status" | "source" | "limitation" | "missingReason" | "nextAction">> & { checkedAt?: string | null; updatedAt?: string | null; inputRelation?: EvidenceFreshness["inputRelation"]; timeRelation?: EvidenceFreshness["timeRelation"] };
+type FieldOptions = Partial<Pick<EvidenceField<string>, "status" | "source" | "limitation" | "missingReason" | "sourceReason" | "nextAction">> & { checkedAt?: string | null; updatedAt?: string | null; inputRelation?: EvidenceFreshness["inputRelation"]; timeRelation?: EvidenceFreshness["timeRelation"] };
 function field<T extends string | number>(id: string, label: string, domain: WorkspaceSection, value: T | null, unit = "", options: FieldOptions = {}): EvidenceField<T> {
   const status = options.status ?? (value === null ? "not_run" : "limited");
   const stale = status === "stale" || options.inputRelation === "stale" || options.timeRelation === "stale";
@@ -67,7 +69,7 @@ function field<T extends string | number>(id: string, label: string, domain: Wor
   const missingReason = options.missingReason ?? (stale ? "stale" : primary === null ? ["not_run", "unavailable", "unsupported", "no_coverage", "insufficient"].includes(status) ? status as GapReason : "not_preserved" : null);
   return { id, label, domain, unit, value: primary, historicalValue: stale ? value : null, status: stale ? "stale" : status,
     freshness: { origin: "saved_snapshot", inputRelation: options.inputRelation ?? "unknown", timeRelation: options.timeRelation ?? "unknown", checkedAt: text(options.checkedAt), sourceUpdatedAt: text(options.updatedAt) },
-    missingReason, source: options.source ?? "來源未保存", limitation: options.limitation ?? "僅依已儲存摘要；不是即時重新查詢。", nextAction: options.nextAction ?? ACTIONS[domain] };
+    missingReason, ...(options.sourceReason ? { sourceReason: options.sourceReason } : {}), source: options.source ?? "來源未保存", limitation: options.limitation ?? "僅依已儲存摘要；不是即時重新查詢。", nextAction: options.nextAction ?? ACTIONS[domain] };
 }
 function status(value: string | undefined): EvidenceStatus { return value === "not_started" ? "not_run" : value === "usable" ? "available" : value === "unverified" ? "limited" : value && value in EVIDENCE_STATUS_LABELS ? value as EvidenceStatus : "limited"; }
 
@@ -111,7 +113,11 @@ export function projectCaseEvidence(workspace: PropertyCaseWorkspace): CaseEvide
     school: field("poi-school", "學校", "location", number(poi?.school_count), "處", locationOptions),
     park: field("poi-park", "公園", "location", number(poi?.park_count), "處", locationOptions),
     medical: field("poi-medical", "醫療設施", "location", number(poi?.medical_count), "處", locationOptions),
-    riskFacility: field("poi-risk", "需留意設施", "location", number(poi?.risk_facility_count), "處", locationOptions),
+    riskFacility: field("poi-risk", "需留意設施", "location", number(poi?.risk_facility_count), "處", { ...locationOptions,
+      status: !insight ? "not_run" : insight.risk_facility_evidence?.status === "no_match" ? "no_match" : ["available", "unknown"].includes(insight.risk_facility_evidence?.status ?? "") ? "limited" : insight.risk_facility_evidence?.status === "no_coverage" ? "no_coverage" : "unavailable",
+      inputRelation: inputRelation === "stale" ? "stale" : "unknown", source: insight?.risk_facility_evidence?.source ?? "設施來源未保存", checkedAt: insight?.risk_facility_evidence?.checked_at,
+      sourceReason: insight?.risk_facility_evidence?.reason,
+      limitation: `${insight?.risk_facility_evidence?.limitation ?? "未知涵蓋不等於零處設施。"} 物件關聯未完整保存。`, }),
     poiDetails: field<string>("poi-details", "POI 明細与個別來源", "location", null, "", { ...locationOptions, missingReason: "not_preserved" }),
     population: field("demographics-population", "行政區人口（次要脈絡）", "location", demographic?.status === "available" ? number(demographic.total_population) : null, "人", { ...locationOptions, source: demographic?.status === "available" ? demographic.source_provider : "人口資料來源未保存", status: demographic?.status === "available" ? "limited" : demographic ? "insufficient" : "not_run", limitation: "行政區域統計，不代表本物件住戶特徵。" }),
     demographicsContext: field("demographics-context", "人口資料範圍", "location", demographic?.status === "available" ? `${location.property.village.name ?? "行政區"}；${demographic.last_month ?? "期間未保存"}` : null, "", { ...locationOptions, limitation: "僅為行政區次要脈絡；不能推論本物件住戶。" }),
@@ -138,7 +144,7 @@ export function projectCaseEvidence(workspace: PropertyCaseWorkspace): CaseEvide
   const holding = finance?.holding.assumptions;
   const financeModel: CaseEvidenceModel["finance"] = {
     price: n("price", "試算採用價格", finance?.loan.propertyPriceWan ?? finance?.savedAssumptions?.amountWan, "萬元"),
-    basis: field("finance-basis", "試算價格基準", "finance", finance ? PRICE_BASIS_LABELS[finance.savedAssumptions?.basis ?? finance.priceBasis.basis] : null, "", financeOptions),
+    basis: field("finance-basis", "試算價格基準", "finance", finance ? financePriceSourceLabel(finance.priceSource) : null, "", financeOptions),
     downPaymentRatio: n("down-ratio", "自備款比例", finance?.loan.downPaymentRatio === null || finance?.loan.downPaymentRatio === undefined ? null : finance.loan.downPaymentRatio * 100, "%"),
     downPayment: n("down", "自備款金額", finance?.loan.downPaymentWan, "萬元"), principal: n("principal", "貸款本金", finance?.loan.principalWan, "萬元"), interestRate: n("rate", "年利率", finance?.loan.annualInterestRate, "%"), term: n("term", "貸款年限", finance?.loan.loanYears, "年"), gracePeriod: n("grace", "寬限期", finance?.loan.gracePeriodYears, "年"),
     monthlyPayment: n("payment", "房貸月付", finance?.loan.monthlyPaymentTwd, "元／月"), gracePayment: n("grace-payment", "寬限期月付（適用時）", finance?.loan.gracePeriodMonthlyPaymentTwd, "元／月"), postGracePayment: n("post-grace", "寬限期後月付（適用時）", finance?.loan.postGraceMonthlyPaymentTwd, "元／月"),

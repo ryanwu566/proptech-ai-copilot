@@ -116,11 +116,12 @@ test("legacy adapter requires revalidation when the displayed address conflicts 
   assert.equal(workspace.evidence.market.usability, "stale");
 });
 
-test("legacy adapter uses the asking-price fallback as the active asking price", () => {
+test("legacy adapter keeps an ambiguous summary price unavailable rather than assuming asking provenance", () => {
   const workspace = adaptSavedCaseToWorkspace(savedCase({ withoutJourney: true }) as never);
 
   assert.equal(workspace.assumptions.activePriceBasis, "asking");
-  assert.equal(workspace.assumptions.activePriceWan, 2480);
+  assert.equal(workspace.assumptions.activePriceWan, undefined);
+  assert.equal(workspace.assumptions.askingPriceWan, undefined);
 });
 
 test("legacy adapter exposes identity revalidation instead of showing stale evidence as current", () => {
@@ -216,7 +217,7 @@ test("legacy zero area remains missing when reopening a finance snapshot", () =>
   const stored = createStoredFinanceEvidence({
     ...finance,
     calculation: { query: "succeeded", usability: "usable", completeness: "partial" },
-    loan: { ...finance.loan, status: "available", propertyPriceWan: 2480, monthlyPaymentTwd: 75_312 },
+    loan: { ...finance.loan, status: "available", propertyPriceWan: 2480, downPaymentRatio: .2, annualInterestRate: 2.2, loanYears: 30, gracePeriodYears: 0, monthlyPaymentTwd: 75_312 },
     freshness: { status: "current", calculatedAt: NOW, source: "live_calculation" },
   }, { caseId: row.id, revision: 1, areaPing: null });
   (row.data as typeof row.data & { financeEvidence?: typeof stored }).financeEvidence = stored;

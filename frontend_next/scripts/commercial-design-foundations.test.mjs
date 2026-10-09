@@ -56,14 +56,16 @@ function transpile(relativePath) {
 const jsxRuntimeUrl = import.meta.resolve("react/jsx-runtime");
 const reactUrl = import.meta.resolve("react");
 const typesUrl = dataModule(transpile("components/design-system/types.ts"));
-const commercialStateUrl = dataModule(transpile("lib/commercial/state.ts"));
+const asyncStateRoleUrl = dataModule(transpile("lib/commercial/async-state-role.ts"));
+const commercialStateUrl = dataModule(transpile("lib/commercial/state.ts").replaceAll('"./async-state-role.ts"', JSON.stringify(asyncStateRoleUrl)));
 
 async function componentModule(relativePath) {
   const source = transpile(relativePath)
     .replaceAll('"react/jsx-runtime"', JSON.stringify(jsxRuntimeUrl))
     .replaceAll('"react"', JSON.stringify(reactUrl))
     .replaceAll('"./types"', JSON.stringify(typesUrl))
-    .replaceAll('"@/lib/commercial/state"', JSON.stringify(commercialStateUrl));
+    .replaceAll('"@/lib/commercial/state"', JSON.stringify(commercialStateUrl))
+    .replaceAll('"@/lib/commercial/async-state-role"', JSON.stringify(asyncStateRoleUrl));
   return import(dataModule(source));
 }
 

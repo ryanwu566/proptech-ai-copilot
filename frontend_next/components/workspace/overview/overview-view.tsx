@@ -11,6 +11,7 @@ import { buildWorkspaceOverview, type OverviewItem, type WorkspaceOverviewModel 
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { OverviewSection } from "./overview-section";
 import styles from "./overview-view.module.css";
+import { financePriceSourceLabel } from "@/lib/finance-price-provenance";
 
 const freshnessLabels: Record<string, string> = {
   current: "本次工作階段證據",
@@ -21,7 +22,6 @@ const freshnessLabels: Record<string, string> = {
   not_started: "尚未查詢",
 };
 
-const priceBasisLabels = { asking: "開價", estimate: "成交資料推估", manual: "比較基準價格" } as const;
 const routeModeLabels: Record<string, string> = { driving: "開車", transit: "大眾運輸", walking: "步行", bicycling: "自行車" };
 
 export function OverviewView() {
@@ -126,7 +126,7 @@ function FinanceSummary({ model }: { model: WorkspaceOverviewModel }) {
   const finance = model.domains.finance;
   return <OverviewSection title="資金與持有成本" description="計算狀態、已知成本與負擔能力分開呈現；缺少收入不會變成零。" href={finance.href} linkLabel="查看資金與持有成本" testId="overview-finance-summary">
     <div className={styles.metricRows}>
-      <MetricRow label="採用價格基準" value={priceBasisLabels[finance.activePriceBasis]} />
+      <MetricRow label="採用價格基準" value={financePriceSourceLabel(finance.priceSource)} />
       <MetricRow label="每月房貸試算" value={finance.freshness === "stale" ? "先前快照已過期" : formatMonthlyTwd(finance.monthlyPaymentTwd)} />
       <MetricRow label="已知每月住房成本" value={finance.freshness === "stale" ? "先前快照已過期" : formatMonthlyTwd(finance.knownRecurringMonthlyTwd)} />
       <MetricRow label="負擔能力" value={finance.affordabilityStatus === "stale" ? "先前評估已過期" : finance.affordabilityStatus === "assessed" ? "已依收入評估" : "尚未評估（未提供月收入）"} />

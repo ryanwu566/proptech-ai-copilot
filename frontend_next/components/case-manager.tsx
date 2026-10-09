@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CaseComparisonPanel } from "@/components/case-comparison-panel";
 import { clearCurrentCase, clearSavedCases, deleteSavedCase, getDraftSaveMissingFields, loadSavedCase, readSavedCases, saveCase, type SaveCaseInput, type SavedCase } from "@/lib/case-storage";
@@ -21,6 +22,7 @@ type Props = {
 };
 
 export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCleared, onExport }: Props) {
+  const router = useRouter();
   const { copy, locale } = useExperienceLocale();
   const [cases, setCases] = useState<SavedCase[]>([]);
   const [feedback, setFeedback] = useState("");
@@ -45,7 +47,10 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
     refresh(copy("case.save"));
     onSaved?.(saved);
   }
-  function load(saved: SavedCase) { loadSavedCase(saved); setFeedback(copy("case.load")); onLoaded?.(saved); }
+  function load(saved: SavedCase) {
+    if (saved.data.financeEvidence) { router.push(`/cases/${encodeURIComponent(saved.id)}/finance`); return; }
+    loadSavedCase(saved); setFeedback(copy("case.load")); onLoaded?.(saved);
+  }
   function remove(id: string) {
     if (confirmDelete !== id) return setConfirmDelete(id);
     deleteSavedCase(id); setSelectedIds((rows) => rows.filter((row) => row !== id)); setConfirmDelete(""); refresh(copy("case.delete"));

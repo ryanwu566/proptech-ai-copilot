@@ -402,6 +402,7 @@ test("full happy path carries one property through all five steps", async ({ pag
 });
 
 test("price-only A/B clears stale affordability and preserves location and terrain", async ({ page }) => {
+  const calls = spatialRequestCounts(page);
   await registerJourneyApis(page);
   await hydrateJourney(page);
   await goToStep(page, "decision");
@@ -425,9 +426,11 @@ test("price-only A/B clears stale affordability and preserves location and terra
   await expect(locationEvidence).toContainText(PROPERTY.address);
   await expect(locationEvidence).toContainText("Controlled terrain reference");
   await expect(page.getByTestId("decision-price-basis")).toContainText(
-    "Comparison-basis price (user-entered): 2,600",
+    "Manual calculation scenario: 2,600",
   );
+  await expect(page.getByTestId("decision-price-basis")).not.toContainText("Asking price");
   await expect(page.getByTestId("decision-monthly-payment")).toContainText("82,000");
+  expect(calls).toEqual({ location: 0, geocoding: 0, places: 0, terrain: 0 });
 });
 
 test("income-only A/B preserves property, location, valuation and replaces affordability", async ({ page }) => {

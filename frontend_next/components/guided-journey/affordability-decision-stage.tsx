@@ -10,6 +10,7 @@ import type { JourneyPropertyContext } from "@/lib/location-market-journey";
 import { addVisitedAffordabilityTool, buildAffordabilityStatusItems, buildJourneyAffordabilityContext, type AffordabilityToolId, type JourneyPriceContext } from "@/lib/price-affordability-journey";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { journeyPriceBasisLabel, type JourneyPriceBasis } from "@/lib/closed-loop-journey";
+import { financeWanUnit } from "@/lib/finance-price-provenance";
 
 type LoanHandlers = { onResult: (result: LoanCalculationResult | undefined) => void; onHoldingCost: (result: LoanCalculationResult) => void };
 type HoldingHandlers = { onResult: (result: HoldingCostResult | undefined) => void };
@@ -34,8 +35,11 @@ export function AffordabilityDecisionStage({ propertyContext, priceContext: _pri
   useEffect(() => { setLoanResult(initialLoanResult); }, [initialLoanResult]);
   useEffect(() => { setHoldingResult(initialHoldingResult); }, [initialHoldingResult]);
   useEffect(() => { setTaxResult(initialTaxResult); }, [initialTaxResult]);
-  const context = useMemo(() => buildJourneyAffordabilityContext({ propertyPriceWan: explicitPriceWan, loanResult, holdingResult, taxResult }), [explicitPriceWan, holdingResult, loanResult, taxResult]);
+  const context = useMemo(() => buildJourneyAffordabilityContext({ propertyPriceWan: loanResult?.property_price_wan ?? holdingResult?.property_price_wan ?? explicitPriceWan, loanResult, holdingResult, taxResult }), [explicitPriceWan, holdingResult, loanResult, taxResult]);
   const statusItems = buildAffordabilityStatusItems(context);
+  const calculatedPrice = loanResult?.property_price_wan ?? holdingResult?.property_price_wan;
+  const displayBasis = calculatedPrice !== undefined && calculatedPrice !== explicitPriceWan ? "manual" : priceBasis;
+  const displayPrice = calculatedPrice ?? explicitPriceWan;
   useEffect(() => { onContextChange?.(context); }, [context, onContextChange]);
 
   function selectTool(tool: AffordabilityToolId) {
@@ -54,7 +58,7 @@ export function AffordabilityDecisionStage({ propertyContext, priceContext: _pri
 
   return <div className="min-w-0 space-y-4">
     <JourneyPropertyContextHeader context={propertyContext} onBackToProperty={onBackToPrice} />
-    <section data-testid="affordability-price-context" aria-labelledby="affordability-price-context-heading" className="rounded-xl border border-violet-100 bg-violet-50/50 p-4"><h3 id="affordability-price-context-heading" className="text-sm font-black text-slate-950">{t("journey.price.title")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("trust.noPurchase")}</p><p className="mt-2 text-sm font-bold text-slate-900">{journeyPriceBasisLabel(priceBasis, locale)} · {explicitPriceWan === undefined ? t("state.empty.next") : formatNumber(explicitPriceWan)}</p></section>
+    <section data-testid="affordability-price-context" aria-labelledby="affordability-price-context-heading" className="rounded-xl border border-violet-100 bg-violet-50/50 p-4"><h3 id="affordability-price-context-heading" className="text-sm font-black text-slate-950">{t("journey.price.title")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("trust.noPurchase")}</p><p className="mt-2 text-sm font-bold text-slate-900">{journeyPriceBasisLabel(displayBasis, locale)} · {displayPrice === undefined ? t("state.empty.next") : `${formatNumber(displayPrice)} ${financeWanUnit(locale)}`}</p></section>
     <AffordabilityStatusStrip items={statusItems} />
     <section aria-labelledby="affordability-loan-heading" className="min-w-0 space-y-3"><div><h3 id="affordability-loan-heading" className="text-lg font-black text-slate-950">{t("journey.affordability.title")}</h3><p className="mt-1 text-xs leading-5 text-slate-600">{t("trust.loanEstimate")}</p></div>{renderLoan(explicitPriceWan, { onResult: updateLoanResult, onHoldingCost: transferToHolding })}</section>
     <AffordabilityToolSelector activeTool={activeSecondaryTool} onSelect={selectTool} />

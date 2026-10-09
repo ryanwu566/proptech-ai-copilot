@@ -60,7 +60,8 @@ def test_six_successes_preserve_google_source_and_query_time():
     assert result["data_quality"]["status"] == "good"
     assert result["data_quality"]["source"] == "google_places"
     assert result["data_quality"]["checked_at"]
-    assert result["location_score"] is not None
+    assert result["location_score"] is None
+    assert result["category_scores"]["risk_score"] is None
 
 
 def test_total_failure_retains_failure_categories_when_demo_fallback_exists():

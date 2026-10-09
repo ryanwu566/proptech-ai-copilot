@@ -17,7 +17,8 @@ def nearby(*args):
 def test_coordinates_take_priority_and_produce_explainable_score() -> None:
     result = analyze_location(latitude=25.03, longitude=121.56, nearby_fetcher=nearby)
     assert result["resolved_location"]["geocoding_confidence"] == "provided_coordinates"
-    assert 0 <= result["location_score"] <= 100
+    assert result["location_score"] is None  # Missing risk source prevents a complete score.
+    assert result["category_scores"]["risk_score"] is None
     assert result["category_scores"]["transit_score"] == 80
     assert result["category_scores"]["convenience_score"] == 65
     assert result["data_quality"]["status"] == "good"

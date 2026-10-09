@@ -44,6 +44,8 @@ export function LoanCalculator({
   const previousInputKey = useRef(inputKey);
   const requestRef = useRef(0);
 
+  useEffect(() => () => { requestRef.current += 1; }, []);
+
   useEffect(() => {
     if (previousInputKey.current === inputKey) return;
     previousInputKey.current = inputKey;

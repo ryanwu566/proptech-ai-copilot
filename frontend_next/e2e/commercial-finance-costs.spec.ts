@@ -217,7 +217,7 @@ test("ordinary income submits and a later edit rejects an in-flight loan respons
   await expect(page.getByTestId("loan-summary")).toContainText("待重新計算");
 });
 
-test("saved non-default assumptions remain historical when current case area is missing", async ({ page }) => {
+test("saved non-default assumptions survive reopen and remain historical after case inputs change", async ({ page }) => {
   const customLoan = { ...loanResponse, annual_interest_rate: 2.65, loan_years: 25, monthly_income_wan: 15, income_burden_ratio: 0.37464 };
   const customHolding = { ...holdingResponse, input: { ...holdingResponse.input, monthly_income_wan: 15, area_ping: 26, management_fee_per_ping: 90 }, income_burden_ratio: 0.39892 };
   await page.unroute("**/loan/calculate");
@@ -239,11 +239,19 @@ test("saved non-default assumptions remain historical when current case area is 
   await page.getByTestId("finance-save").click();
   await page.reload();
 
+  await expect(page.getByTestId("freshness-status")).toContainText("已儲存的計算摘要");
+  await page.evaluate(() => {
+    const rows = JSON.parse(localStorage.getItem("proptech.savedCases.v1")!);
+    rows[0].inputSummary.areaPing = 40;
+    rows[0].data.inputs.area_ping = 40;
+    localStorage.setItem("proptech.savedCases.v1", JSON.stringify(rows));
+    window.dispatchEvent(new StorageEvent("storage", { key: "proptech.savedCases.v1" }));
+  });
   await expect(page.getByTestId("freshness-status")).toContainText("條件已變更，需重新計算");
   await expect(page.getByTestId("loan-form").getByLabel("年利率")).toHaveValue("2.65");
   await expect(page.getByTestId("loan-form").getByLabel("貸款年期")).toHaveValue("25");
   await expect(page.getByTestId("holding-form").getByLabel("坪數")).toHaveValue("26");
   await expect(page.getByTestId("holding-form").getByLabel("每坪管理費")).toHaveValue("90");
   await page.getByTestId("calculate-holding").click();
-  await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196／月");
+  await expect(page.getByTestId("loan-summary")).not.toContainText("NT$56,196／月");
 });

@@ -11,9 +11,11 @@ import { compactCommuteRouteEvidence, compactCommuteTransitEvidence } from "@/li
 import { normalizeJourneyPropertyIdentityAnchor, type JourneyPropertyIdentityAnchorV1 } from "@/lib/journey-property-identity";
 import { getActionableValuation, getStoredActionableValuation } from "@/lib/valuation-result-state";
 import { compactActionableValuationSummary, compactActionableValuationTrendSummary, compactMarketInsight } from "@/lib/workspace/market-price-persistence";
-import { normalizeStoredFinanceEvidence, type StoredFinanceEvidenceV1 } from "@/lib/workspace/finance-persistence";
+import { captureJourneyFinanceEvidence, normalizeStoredFinanceEvidence, type StoredFinanceEvidenceV1 } from "@/lib/workspace/finance-persistence";
 import { buildSavedCaseSnapshotUpdate, type SaveSnapshotIdentityState, type SaveSnapshotResult } from "@/lib/workspace/case-snapshot-save";
 import { parseSavedCasesDiagnostic, type SavedCaseReadDiagnostic } from "@/lib/workspace/saved-case-diagnostics";
+import { normalizeFinancePriceEvidence, type FinancePriceEvidence } from "@/lib/finance-price-provenance";
+import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidence";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -31,6 +33,7 @@ export type SavedCaseData = {
   valuationEvidence?: PropertyCaseEvidence;
   trend?: ValuationTrendResult;
   loan?: LoanCalculationResult;
+  financePriceEvidence?: FinancePriceEvidence;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
   commuteRoute?: CommuteRouteEvidence;
@@ -124,6 +127,8 @@ export function saveCase(input: SaveCaseInput): SavedCase | null {
     workflowMode: "buying_wizard",
     data: compactCaseData(input.data),
   };
+  const financeEvidence = captureJourneyFinanceEvidence({ ...saved, data: input.data });
+  if (financeEvidence) saved.data = compactCaseData({ ...input.data, financeEvidence });
   writeCases([saved, ...readSavedCases()].slice(0, MAX_SAVED_CASES));
   return saved;
 }
@@ -324,7 +329,8 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
     valuationEvidence,
     valuation: compactedValuation ? { ...compactedValuation, comparables: [] } : undefined,
     trend: compactActionableValuationTrendSummary(data.trend),
-    locationInsight: data.locationInsight ? { ...data.locationInsight, resolved_location: null, nearest_pois: [] } : undefined,
+    locationInsight: data.locationInsight ? { ...normalizeLocationInsightEvidence(data.locationInsight), resolved_location: null, nearest_pois: [] } : undefined,
+    financePriceEvidence: normalizeFinancePriceEvidence(data.financePriceEvidence) ?? undefined,
     marketInsight: compactMarketInsight(data.marketInsight),
     commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),
     commuteTransit: compactCommuteTransitEvidence(data.commuteTransit),

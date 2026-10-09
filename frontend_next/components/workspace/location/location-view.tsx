@@ -12,7 +12,8 @@ import { StatusLabel } from "@/components/design-system/status-label";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import type { CommuteAddressLookupResult, CommuteRouteEvidence } from "@/lib/api";
 import { updateSavedCaseLocationEvidence } from "@/lib/case-storage";
-import { formatDistance, formatDuration } from "@/lib/commercial/formatters";
+import { formatDistance, formatDuration, formatExactDate } from "@/lib/commercial/formatters";
+import { riskFacilityReasonLabel } from "@/lib/location-insight-evidence";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { buildLocationOverviewHandoff } from "@/lib/workspace/location-context";
 
@@ -106,9 +107,15 @@ export function LocationView() {
     <Section title="重要周邊證據" description="以實際設施筆數與距離為主；設施較多不代表物件較好。">
       <div data-evidence-key="location" className="space-y-3">
       {snapshot.poiSummary ? <SummaryStrip label="周邊設施摘要" className="location-poi-summary">
-        {(Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => <MetricItem key={key} label={POI_LABELS[key]} value={snapshot.poiSummary?.[key] ?? "未提供"} />)}
+        {(Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => <MetricItem key={key} label={POI_LABELS[key]} value={snapshot.poiSummary?.[key] ?? "未知／未取得"} />)}
       </SummaryStrip> : <Message variant="inline" title="尚未取得周邊設施摘要">此案件尚未保存可供判讀的周邊設施結果。</Message>}
-      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? Object.entries(POI_LABELS).map(([key, label]) => `${label} ${snapshot.poiSummary?.[key as keyof typeof snapshot.poiSummary] ?? "未提供"}`).join("；") : "尚未取得周邊設施摘要"}</div>
+      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? Object.entries(POI_LABELS).map(([key, label]) => `${label} ${snapshot.poiSummary?.[key as keyof typeof snapshot.poiSummary] ?? "未知／未取得"}`).join("；") : "尚未取得周邊設施摘要"}</div>
+      {snapshot.insight?.risk_facility_evidence && <Panel variant="plain" data-testid="risk-facility-source">
+        <h3 className="text-subsection">需留意設施的來源與限制</h3>
+        <p className="text-body">{({ available: "已取得來源涵蓋", no_match: "來源查詢無符合設施，不代表安全", no_coverage: "不在來源涵蓋範圍", unavailable: "來源目前無法取得", unknown: "涵蓋未知／未取得" } as Record<string, string>)[snapshot.insight.risk_facility_evidence.status] ?? "涵蓋未知／未取得"}</p>
+        <p className="text-helper">{snapshot.insight.risk_facility_evidence.source ?? "來源未保存"} · {formatExactDate(snapshot.insight.risk_facility_evidence.checked_at)}</p>
+        <p className="text-helper">{riskFacilityReasonLabel(snapshot.insight.risk_facility_evidence.reason)}；{snapshot.insight.risk_facility_evidence.limitation}</p>
+      </Panel>}
       {snapshot.insight && (!Array.isArray(snapshot.insight.nearest_pois) || snapshot.insight.nearest_pois.length === 0) && <Message variant="information" title="完整設施明細未隨案件保存">已保存的分類筆數仍可作為範圍參考；請勿由摘要重建或推測個別設施。需要最新明細時，應在原位置分析流程重新查詢。</Message>}
       </div>
     </Section>

@@ -123,7 +123,8 @@ test("saved compact finance evidence reopens as distinguishable saved evidence",
 
 test("property or price changes reopen saved finance evidence as stale", () => {
   const stored = createStoredFinanceEvidence(currentModel(), { caseId: "property-a", revision: 7, areaPing: null });
-  const propertyB = restoreFinanceModelFromSnapshot(stored, { caseId: "property-b", revision: 8, identityState: "confirmed", activePriceBasis: "asking", activePriceWan: 1_900, areaPing: null });
+  assert.throws(() => restoreFinanceModelFromSnapshot(stored, { caseId: "property-b", revision: 8, identityState: "confirmed", activePriceBasis: "asking", activePriceWan: 1_900, areaPing: null }), /different case/);
+  const propertyB = restoreFinanceModelFromSnapshot(stored, { caseId: "property-a", revision: 8, identityState: "confirmed", activePriceBasis: "asking", activePriceWan: 1_900, areaPing: null });
 
   assert.equal(propertyB.freshness.status, "stale");
   assert.equal(propertyB.calculation.usability, "stale");

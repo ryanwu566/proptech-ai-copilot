@@ -32,10 +32,15 @@ export function HoldingCostCalculator({ prefill, initialResult, onResult, embedd
   const [result, setResult] = useState<HoldingCostResult>(); const [loading, setLoading] = useState(false); const [error, setError] = useState("");
   const inputKey = [propertyPrice, loanMonthlyPayment, monthlyIncome, areaPing, managementFee, repairReserve, homeTaxRate, landTaxRate, annualInsurance].join("|");
   const previousInputKey = useRef(inputKey);
+  const requestRef = useRef(0);
+
+  useEffect(() => () => { requestRef.current += 1; }, []);
 
   useEffect(() => {
     if (previousInputKey.current === inputKey) return;
     previousInputKey.current = inputKey;
+    requestRef.current += 1;
+    setLoading(false);
     setResult(undefined);
     setError("");
     window.sessionStorage.removeItem(HOLDING_COST_SESSION_KEY);
@@ -49,13 +54,15 @@ export function HoldingCostCalculator({ prefill, initialResult, onResult, embedd
   useEffect(() => { function applyResult(event: Event) { setResult((event as CustomEvent<HoldingCostResult>).detail); } window.addEventListener(HOLDING_COST_RESULT_EVENT, applyResult); return () => window.removeEventListener(HOLDING_COST_RESULT_EVENT, applyResult); }, []);
 
   async function calculate() {
+    const requestId = ++requestRef.current;
     setLoading(true); setError("");
     try {
       const loanMonthlyPaymentTwd = monthlyPaymentWanToTwd(loanMonthlyPayment);
       if (loanMonthlyPaymentTwd === null) throw new Error("invalid monthly payment");
       const next = await api.holdingCostCalculate({ property_price: propertyPrice === "" ? 0 : propertyPrice, loan_monthly_payment: loanMonthlyPaymentTwd, monthly_income: monthlyIncome === "" ? undefined : monthlyIncome, area_ping: areaPing === "" ? undefined : areaPing, management_fee_per_ping: managementFee, repair_reserve_per_ping: repairReserve, annual_home_tax_rate: homeTaxRate, annual_land_tax_rate: landTaxRate, annual_insurance: annualInsurance, include_tax_estimate: true });
+      if (requestId !== requestRef.current) return;
       setResult(next); window.sessionStorage.setItem(HOLDING_COST_SESSION_KEY, JSON.stringify(next)); window.dispatchEvent(new CustomEvent<HoldingCostResult>(HOLDING_COST_RESULT_EVENT, { detail: next })); onResult?.(next);
-    } catch { setError(copy.error); } finally { setLoading(false); }
+    } catch { if (requestId === requestRef.current) setError(copy.error); } finally { if (requestId === requestRef.current) setLoading(false); }
   }
 
   return <div id="holding-cost-calculator" className="scroll-mt-20"><span id="holding-cost" className="block scroll-mt-20" aria-hidden="true" /><SectionCard title={copy.title} description={copy.description}><div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)]"><div className="grid min-w-0 gap-3">

@@ -1,4 +1,5 @@
 import { openPropertyEntry } from "./helpers/commercial-navigation";
+import { expectConservativeLocation, trackSpatialAnalysis } from "./helpers/location-trust";
 /**
  * Phase 3C-2 — RIS Demographics Frontend Integration (里人口概況)
  *
@@ -325,12 +326,15 @@ test.describe("里人口概況 demographics card", () => {
     expect(forbidden, `Frontend must not call data sources directly: ${forbidden.join(", ")}`).toEqual([]);
   });
 
-  test("CASE 19: Location Insight regression — score + POI still render with card", async ({ page }) => {
+  test("CASE 19: Location Insight regression — supported POI and demographics render without an unsupported total score", async ({ page }) => {
+    const calls = trackSpatialAnalysis(page);
     await routeLocation(page, locationResponse({}));
     await gotoLocationStage(page);
     await analyze(page);
-    await expect(page.getByTestId("location-result")).toContainText("72");
+    await expectConservativeLocation(page, "zh-TW");
     await expect(page.getByTestId("demographics-insight")).toBeVisible();
+    await expect(page.getByTestId("demographics-available")).toContainText("12,345");
+    expect(calls).toEqual(["/location/insight"]);
   });
 });
 

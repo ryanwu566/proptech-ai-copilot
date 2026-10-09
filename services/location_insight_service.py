@@ -69,7 +69,7 @@ def analyze_location(
         "education_score": score("school"),
         "green_space_score": score("park"),
         "medical_score": score("medical"),
-        "risk_score": 50,
+        "risk_score": None,
     }
     has_poi_evidence = any(group.get("count", 0) for group in nearby.get("categories", []))
     location_score = round(sum(category_scores[key] * weight for key, weight in SCORE_WEIGHTS.items())) if has_poi_evidence and all(value is not None for value in category_scores.values()) else None
@@ -84,7 +84,7 @@ def analyze_location(
     strengths, weaknesses = _strengths_and_weaknesses(category_scores, has_poi_evidence)
     source = nearby.get("source", "unavailable")
     missing_sources = ["risk_facilities", *[f"poi:{category}" for category in POI_CATEGORIES if category in failed or count(category) is None]]
-    warnings = ["目前沒有既有嫌惡設施資料來源，風險分數採中性 50，請實地確認。"]
+    warnings = ["需留意設施來源目前無法取得；風險分數與區位總分資料不足，請實地確認。"]
     if source == "mock":
         warnings.append("附近 POI 使用既有展示資料 fallback，僅供流程與比較參考。")
     if not has_poi_evidence:
@@ -103,6 +103,7 @@ def analyze_location(
         "location_score": location_score,
         "category_scores": category_scores,
         "poi_summary": poi_summary,
+        "risk_facility_evidence": {"status": "unavailable", "count": None, "source": None, "checked_at": None, "reason": "risk_facilities_source_unavailable", "limitation": "未知涵蓋不代表零處設施或安全。"},
         "nearest_pois": [
             {
                 "category": item.get("category", ""),
@@ -120,7 +121,7 @@ def analyze_location(
             "explanation": _valuation_context(property_price, area_ping, location_score),
         },
         "data_quality": {**quality, "status": status, "missing_sources": missing_sources, "warnings": warnings},
-        "scoring_method": {"weights": SCORE_WEIGHTS, "explanation": "沿用既有 POI 數量與距離分數，再依交通 30%、便利 25%、教育 15%、公園 10%、醫療 10%、風險 10% 加權。"},
+        "scoring_method": {"weights": SCORE_WEIGHTS, "explanation": "個別生活機能分數沿用既有 POI 數量與距離。風險來源缺失，未產生區位總分；不重新分配缺失維度的權重。"},
         "disclaimer": DISCLAIMER,
     }
 
@@ -164,7 +165,9 @@ def _strengths_and_weaknesses(scores: dict[str, int | None], has_evidence: bool)
     strengths = [f"{labels[key]}覆蓋較完整（{scores[key]} 分）。" for key in labels if scores[key] is not None and scores[key] >= 65]
     weaknesses = [f"{labels[key]}覆蓋偏弱（{scores[key]} 分），建議實地確認。" for key in labels if scores[key] is not None and scores[key] < 40]
     weaknesses.extend(f"{labels[key]}資料目前無法取得。" for key in labels if scores[key] is None)
-    return strengths or ["各類生活機能分布相對均衡。"], weaknesses or ["未發現明顯弱項，但仍需實地確認尖峰交通與環境狀況。"]
+    if scores["risk_score"] is None:
+        weaknesses.append("風險來源未取得，整體適用性資料不足。")
+    return strengths, weaknesses
 
 
 def _buyer_fit(scores: dict[str, int | None], has_evidence: bool) -> dict[str, str]:
@@ -188,7 +191,7 @@ def _unavailable_result(input_summary: dict[str, Any], radius_m: int, geocoding_
     acceptance_warning = str((geocoding_acceptance or {}).get("message") or "找不到符合的地點，請輸入完整地址、路段或座標。")
     return {
         "input": input_summary, "resolved_location": None, "village_resolution": {"status": "unavailable", "reason": "location_not_resolved"}, "demographics": {"status": "no_data", "reason": "location_not_resolved"}, "geocoding_acceptance": geocoding_acceptance, "radius_m": radius_m, "location_score": None,
-        "category_scores": {"transit_score": None, "convenience_score": None, "education_score": None, "green_space_score": None, "medical_score": None, "risk_score": 50},
+        "category_scores": {"transit_score": None, "convenience_score": None, "education_score": None, "green_space_score": None, "medical_score": None, "risk_score": None},
         "poi_summary": {"transit_count": None, "convenience_count": None, "school_count": None, "park_count": None, "medical_count": None, "risk_facility_count": None},
         "nearest_pois": [], "strengths": [], "weaknesses": ["目前資料不足，建議改用完整地址或手動查詢。"],
         "buyer_fit": {key: "資料不足" for key in ("self_use_family", "commuter", "investor", "elderly")},

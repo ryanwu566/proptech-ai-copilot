@@ -1,4 +1,4 @@
-import type { LocationInsightResult } from "./api";
+import type { LocationAdvisoryContext, LocationInsightResult } from "./api";
 
 type SpatialLocationContext = { city?: string; district?: string; road?: string; address?: string };
 
@@ -18,12 +18,19 @@ export function locationValuationExplanation(price: number | undefined, area: nu
   return `本物件約 ${unitPrice} 萬／坪；區位總分 ${score ?? "資料不足"}，仍需搭配可比成交判斷價格。`;
 }
 
-type AdvisoryEvidence = Pick<LocationInsightResult, "resolved_location" | "location_score" | "valuation_context" | "data_quality" | "geocoding_acceptance">;
+export function createLocationAdvisoryContext(price: unknown, area: unknown): LocationAdvisoryContext {
+  const amount = (value: unknown) => typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+  return { version: 1, property_price_wan: amount(price), area_ping: amount(area) };
+}
+
+type AdvisoryEvidence = Pick<LocationInsightResult, "resolved_location" | "location_score" | "valuation_context" | "data_quality" | "geocoding_acceptance" | "advisory_context">;
 
 export function withLocationAdvisoryContext<T extends AdvisoryEvidence>(result: T, price: number | undefined, area: number | undefined): T {
   if (!result.resolved_location || result.data_quality.status === "unavailable" || result.geocoding_acceptance?.accepted_for_analysis === false) return result;
-  const explanation = locationValuationExplanation(price, area, result.location_score);
-  return explanation === result.valuation_context.explanation ? result : {
-    ...result, valuation_context: { ...result.valuation_context, explanation },
+  const advisory_context = createLocationAdvisoryContext(price, area);
+  const explanation = locationValuationExplanation(advisory_context.property_price_wan ?? undefined, advisory_context.area_ping ?? undefined, result.location_score);
+  return explanation === result.valuation_context.explanation && result.advisory_context?.version === 1
+    && result.advisory_context.property_price_wan === advisory_context.property_price_wan && result.advisory_context.area_ping === advisory_context.area_ping ? result : {
+    ...result, advisory_context, valuation_context: { ...result.valuation_context, explanation },
   };
 }

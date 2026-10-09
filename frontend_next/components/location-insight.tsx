@@ -15,6 +15,7 @@ import { GoogleLocationVisualContext } from "@/components/google-location-visual
 import { DemographicsInsightCard } from "@/components/demographics-insight-card";
 import { evidenceStatusLabel } from "@/lib/commercial/presentation";
 import { locationEvidenceKey, withLocationAdvisoryContext } from "@/lib/location-evidence-context";
+import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidence";
 
 
 
@@ -53,7 +54,7 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
   const [buildingType, setBuildingType] = useState(initialContext?.building_type ?? "");
   const latestSpatialInputs = useRef({ city, district, road, address });
   latestSpatialInputs.current = { city, district, road, address };
-  const [storedResult, setResult] = useState<LocationInsightResult | undefined>(initialResult);
+  const [storedResult, setResult] = useState<LocationInsightResult | undefined>(() => initialResult && normalizeLocationInsightEvidence(initialResult));
   const publishedResultRef = useRef<LocationInsightResult | undefined>(undefined);
   const [resultContextKey, setResultContextKey] = useState(contextKey);
   const advisoryInputs = { price: propertyPrice === "" ? undefined : propertyPrice, area: areaPing === "" ? undefined : areaPing };
@@ -101,7 +102,7 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
       setLoading(false);
     }
     setResultContextKey(latestContextKey.current);
-    setResult(initialResult);
+    setResult(initialResult && normalizeLocationInsightEvidence(initialResult));
   }, [initialResult]);
 
   useEffect(() => {
@@ -128,11 +129,13 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
 
   useEffect(() => {
     function applyResult(event: Event) {
+      const incoming = (event as CustomEvent<LocationInsightResult>).detail;
+      if (incoming === publishedResultRef.current) return;
       requestRef.current += 1;
       activeRequestRef.current = null;
       setLoading(false);
       setResultContextKey(latestContextKey.current);
-      setResult((event as CustomEvent<LocationInsightResult>).detail);
+      setResult(normalizeLocationInsightEvidence(incoming));
     }
     window.addEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
     return () => window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
@@ -162,13 +165,13 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
     setResult(undefined);
     onResult?.(null);
     try {
-      const next = withLocationAdvisoryContext(await api.locationInsight({
+      const next = withLocationAdvisoryContext(normalizeLocationInsightEvidence(await api.locationInsight({
         city, district, road, address, radius_m: radius,
         property_price: propertyPrice === "" ? undefined : propertyPrice,
         area_ping: areaPing === "" ? undefined : areaPing,
         building_type: buildingType,
         use_existing_poi_sources: true,
-      }), latestAdvisoryInputs.current.price, latestAdvisoryInputs.current.area);
+      })), latestAdvisoryInputs.current.price, latestAdvisoryInputs.current.area);
       if (requestId !== requestRef.current || latestContextKey.current !== requestContextKey) return;
       setResultContextKey(requestContextKey);
       setResult(next);
@@ -236,8 +239,9 @@ function FlowBadge({ label, active }: { label: string; active?: boolean }) {
   return <span className={`rounded-lg px-2.5 py-2 font-bold ${active ? "bg-cyan-50 text-cyan-800" : "bg-white text-slate-400"}`}>{label}</span>;
 }
 
-function LocationResults({ result }: { result: LocationInsightResult }) {
+function LocationResults({ result: rawResult }: { result: LocationInsightResult }) {
   const { copy } = useExperienceLocale();
+  const result = normalizeLocationInsightEvidence(rawResult);
   if (result.geocoding_acceptance && !result.geocoding_acceptance.accepted_for_analysis) {
     return <div data-testid="location-result" className="space-y-3"><GeocodingAcceptanceNotice acceptance={result.geocoding_acceptance} /><Notice tone="warning">{copy("location.noResult")}</Notice><DataQuality result={result} /></div>;
   }

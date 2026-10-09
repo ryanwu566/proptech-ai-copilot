@@ -22,6 +22,7 @@ import {
 } from "@/lib/journey-property-identity";
 
 export type JourneyPriceBasis = "asking" | "valuation" | "manual";
+import { priceSourceFromBasis, type FinancePriceEvidence } from "@/lib/finance-price-provenance";
 
 export type ClosedLoopJourneyState = {
   propertyContext: JourneyPropertyContext;
@@ -45,6 +46,7 @@ export type ClosedLoopJourneyState = {
   activePriceWan?: number;
   manualPriceWan?: number;
   loanResult?: LoanCalculationResult;
+  financePriceEvidence?: FinancePriceEvidence;
   holdingResult?: HoldingCostResult;
   taxResult?: TaxResult;
 };
@@ -212,7 +214,7 @@ export function setJourneyLocationResult(
   }
   const city = identityAnchor.administrative_location.city ?? state.propertyContext.city;
   const district = identityAnchor.administrative_location.district ?? state.propertyContext.district;
-  const road = deriveJourneyRoadFromAcceptedAddress(identityAnchor.normalized_address, city, district)
+  const road = deriveJourneyRoadFromAcceptedAddress(identityAnchor.normalized_address, city, district, identityAnchor.administrative_location.village)
     ?? state.propertyContext.road;
   const propertyContext = getSafeJourneyPropertyContext({
     ...state.propertyContext,
@@ -302,15 +304,33 @@ export function selectJourneyPrice(
 }
 
 export function clearJourneyAffordability(state: ClosedLoopJourneyState): ClosedLoopJourneyState {
-  return { ...state, loanResult: undefined, holdingResult: undefined, taxResult: undefined };
+  return { ...state, loanResult: undefined, holdingResult: undefined, taxResult: undefined, financePriceEvidence: undefined };
+}
+
+/** Capture the calculator's actual input. Editing it never overwrites the case asking price. */
+export function setJourneyLoanResult(state: ClosedLoopJourneyState, loanResult: LoanCalculationResult | undefined, now = () => new Date().toISOString()): ClosedLoopJourneyState {
+  if (!loanResult) return { ...state, loanResult: undefined, holdingResult: undefined, financePriceEvidence: undefined };
+  const price = loanResult.property_price_wan;
+  const selected = positive(state.activePriceWan) && price === state.activePriceWan;
+  return { ...state, loanResult, holdingResult: state.holdingResult?.property_price_wan === price && state.holdingResult.input?.loan_monthly_payment === loanResult.monthly_payment ? state.holdingResult : undefined,
+    financePriceEvidence: positive(price) ? { price_twd: price * 10000, source: selected ? priceSourceFromBasis(state.priceBasis) : "MANUAL_SCENARIO", calculated_at: now() } : undefined };
+}
+
+export function setJourneyHoldingResult(state: ClosedLoopJourneyState, holdingResult: HoldingCostResult | undefined, now = () => new Date().toISOString()): ClosedLoopJourneyState {
+  if (!holdingResult) return { ...state, holdingResult: undefined };
+  const price = holdingResult.property_price_wan;
+  const sameLoan = state.loanResult?.property_price_wan === price && state.loanResult.monthly_payment === holdingResult.input?.loan_monthly_payment;
+  const selected = positive(state.activePriceWan) && price === state.activePriceWan;
+  return { ...state, holdingResult, loanResult: sameLoan ? state.loanResult : undefined,
+    financePriceEvidence: sameLoan && state.financePriceEvidence ? { ...state.financePriceEvidence, calculated_at: now() } : positive(price) ? { price_twd: price * 10000, source: selected ? priceSourceFromBasis(state.priceBasis) : "MANUAL_SCENARIO", calculated_at: now() } : undefined };
 }
 
 export function journeyPriceBasisLabel(basis: JourneyPriceBasis, locale: "zh-TW" | "en" | "ja" | "ko"): string {
   const labels = {
-    "zh-TW": { asking: "開價", valuation: "成交資料推估中位值", manual: "比較基準價格（依輸入條件）" },
-    en: { asking: "Asking price", valuation: "Transaction-based midpoint estimate", manual: "Comparison-basis price (user-entered)" },
-    ja: { asking: "売出価格", valuation: "取引データによる推定中央値", manual: "比較基準価格（入力条件）" },
-    ko: { asking: "매도 희망가", valuation: "거래 자료 추정 중간값", manual: "비교 기준 가격(입력 조건)" },
+    "zh-TW": { asking: "開價", valuation: "成交資料推估中位值", manual: "手動試算情境" },
+    en: { asking: "Asking price", valuation: "Transaction-based midpoint estimate", manual: "Manual calculation scenario" },
+    ja: { asking: "売出価格", valuation: "取引データによる推定中央値", manual: "手動試算シナリオ" },
+    ko: { asking: "매도 희망가", valuation: "거래 자료 추정 중간값", manual: "수동 계산 시나리오" },
   } as const;
   return labels[locale][basis];
 }

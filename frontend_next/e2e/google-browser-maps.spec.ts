@@ -1,6 +1,7 @@
 import type { Page, Route } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
+import { expectConservativeLocation, trackSpatialAnalysis } from "./helpers/location-trust";
 import type { LocationInsightResult } from "../lib/api";
 
 const DISCLAIMER = "Google visual context — not property identity, parcel geometry, cadastral boundary, ownership, or zoning evidence.";
@@ -186,10 +187,14 @@ test("Street View container is accessible and mobile layout does not overflow", 
 });
 
 test("Location Insight results and existing map navigation remain available", async ({ page }) => {
+  const calls = trackSpatialAnalysis(page);
   if (browserKey) await page.route("https://www.google.com/maps/embed/v1/**", fulfillGoogleEmbed);
   const panel = await openLocationInsight(page);
 
-  await expect(page.getByTestId("location-result")).toContainText("72");
+  await expectConservativeLocation(page, "en");
   await expect(panel.getByText(DISCLAIMER)).toBeVisible();
   await expect(page.getByRole("button", { name: "Map Insight", exact: true }).last()).toBeVisible();
+  await page.getByRole("button", { name: "Map Insight", exact: true }).last().click();
+  await expect(page.locator("#map-insight")).toBeVisible();
+  expect(calls).toEqual([]);
 });

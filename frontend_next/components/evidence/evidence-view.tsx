@@ -7,19 +7,21 @@ import type { EvidenceField, CaseEvidenceModel } from "@/lib/workspace/case-evid
 import { EVIDENCE_STATUS_LABELS, GAP_LABELS } from "@/lib/workspace/evidence-labels";
 import type { WorkspaceReadDiagnostic } from "@/lib/workspace/case-repository";
 import styles from "./evidence.module.css";
+import { riskFacilityReasonLabel } from "@/lib/location-insight-evidence";
 
 export function date(value: string | null): string { return value ? formatExactDate(value) : "未保存／未知"; }
 function valueText(value: string | number, unit: string): string { return `${typeof value === "number" ? value.toLocaleString("zh-TW", { maximumFractionDigits: 2 }) : value}${unit ? ` ${unit}` : ""}`; }
 function Provenance({ field }: { field: EvidenceField<string | number> }) {
   return <div className={styles.provenance}>
     <p>來源：{field.source}</p><p>檢查／計算時間：{date(field.freshness.checkedAt)}</p><p>來源更新時間：{date(field.freshness.sourceUpdatedAt)}</p>
+    {field.sourceReason && <p>查詢狀態說明：{riskFacilityReasonLabel(field.sourceReason)}</p>}
     <p>保存快照 · 輸入關聯：{{ matches: "符合保存條件", stale: "已失效", unknown: "未知" }[field.freshness.inputRelation]} · 時間：{{ within_source_policy: "依來源政策有效", stale: "來源已標示過期", unknown: "未保存有效期政策" }[field.freshness.timeRelation]}</p>
     <p>限制：{field.limitation}</p><p>下一步：{field.nextAction}</p>
   </div>;
 }
 export function EvidenceValue({ field }: { field: EvidenceField<string | number> }) {
   return <div className={styles.value} data-evidence-status={field.status}>
-    <strong className={typeof field.value === "number" ? styles.numeric : undefined} data-numeric={typeof field.value === "number" || undefined}>{field.value === null ? field.missingReason ? GAP_LABELS[field.missingReason] : "未保存" : valueText(field.value, field.unit)}</strong>
+    <strong className={typeof field.value === "number" ? styles.numeric : undefined} data-numeric={typeof field.value === "number" || undefined}>{field.value === null ? field.id === "poi-risk" ? "未知／未取得" : field.missingReason ? GAP_LABELS[field.missingReason] : "未保存" : valueText(field.value, field.unit)}</strong>
     <StatusLabel semanticRole="neutral">{EVIDENCE_STATUS_LABELS[field.status]}</StatusLabel>
     {field.historicalValue !== null && <p className="text-meta">先前保存值（不能視為目前）：{valueText(field.historicalValue, field.unit)}</p>}
     <div className={styles.screenOnly}><DetailsDisclosure summary={`${field.label}：來源與限制`} variant="compact"><Provenance field={field} /></DetailsDisclosure></div>

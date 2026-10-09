@@ -51,6 +51,8 @@ export function LoanAssumptionForm({
   const [loading, setLoading] = useState(false);
   const requestRef = useRef(0);
 
+  useEffect(() => () => { requestRef.current += 1; }, []);
+
   useEffect(() => {
     requestRef.current += 1;
     setLoading(false);
@@ -155,6 +157,8 @@ export function HoldingAssumptionForm({
   const [requestError, setRequestError] = useState("");
   const [loading, setLoading] = useState(false);
   const requestRef = useRef(0);
+
+  useEffect(() => () => { requestRef.current += 1; }, []);
 
   useEffect(() => {
     requestRef.current += 1;
