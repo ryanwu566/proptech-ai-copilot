@@ -1,7 +1,9 @@
 import type { ExperienceLocale } from "@/lib/experience-i18n";
+import { GUIDED_TOUR_COPY, GUIDED_TOUR_COPY_KEYS } from "@/lib/guided-tour-copy";
 import { getRuntimeCopyOverride, RUNTIME_COPY_OVERRIDES } from "@/lib/runtime-copy-overrides";
 
 export const RUNTIME_COPY_KEYS = [
+  ...GUIDED_TOUR_COPY_KEYS,
   "action.retry", "action.reset", "action.expand", "action.open", "action.search", "action.loading", "action.submit", "action.download", "action.copy", "action.calculate", "action.startAnalysis", "action.loadDemo", "action.save", "action.load", "action.delete", "action.clear", "action.compare",
   "common.optional", "common.noData", "common.unavailable", "common.notStarted", "common.yes", "common.no", "common.source", "common.updated", "common.period", "common.count", "common.records", "common.dataLimit", "common.tableSwipe", "common.selectCounty", "common.selectDistrict", "common.selectRoad",
   "map.kicker", "map.title", "map.description", "map.help", "map.quickMode", "map.manualMode", "map.city", "map.district", "map.road", "map.searchPlaceholder", "map.radius", "map.search", "map.searching", "map.empty", "map.emptyDetail", "map.nearby", "map.nearbyDescription", "map.noResult", "map.searchError", "map.healthUnavailable", "map.sourceNote", "map.baseStandard", "map.baseLight", "map.baseSatellite", "map.selected", "map.distance", "map.rating", "map.advanced", "map.partialNotice", "map.progressTitle", "map.progressAccepted", "map.progressDispatched", "map.progressWaiting", "map.progressReceived", "map.progressRendering", "map.progressComplete",
@@ -119,6 +121,7 @@ export type RuntimeCopyKey = (typeof RUNTIME_COPY_KEYS)[number];
 type RuntimeResource = Record<RuntimeCopyKey, string>;
 
 const zhTW: RuntimeResource = {
+  ...GUIDED_TOUR_COPY["zh-TW"],
   "action.retry": "再試一次", "action.reset": "重設", "action.expand": "展開", "action.open": "開啟", "action.search": "搜尋", "action.loading": "載入中…", "action.submit": "送出", "action.download": "下載", "action.copy": "複製", "action.calculate": "計算", "action.startAnalysis": "開始分析", "action.loadDemo": "載入示範條件", "action.save": "儲存", "action.load": "載入", "action.delete": "刪除", "action.clear": "清除", "action.compare": "比較",
   "common.optional": "可選", "common.noData": "資料不足", "common.unavailable": "暫時無法使用", "common.notStarted": "尚未開始", "common.yes": "是", "common.no": "否", "common.source": "資料來源", "common.updated": "更新時間", "common.period": "期間", "common.count": "筆數", "common.records": "筆", "common.dataLimit": "資料限制", "common.tableSwipe": "表格可左右滑動", "common.selectCounty": "選擇縣市", "common.selectDistrict": "選擇鄉鎮市區", "common.selectRoad": "選擇路段",
   "map.kicker": "地圖與生活機能", "map.title": "Map Insight Lite", "map.description": "搜尋位置並查看附近的生活機能與資料來源。", "map.help": "地圖結果僅供區位參考；資料可能受來源、範圍與可用性限制。", "map.quickMode": "快速選擇", "map.manualMode": "手動輸入", "map.city": "縣市", "map.district": "行政區", "map.road": "路段或地點", "map.searchPlaceholder": "輸入地址、地標或路段", "map.radius": "搜尋半徑（公尺）", "map.search": "搜尋位置", "map.searching": "搜尋中…", "map.empty": "尚未搜尋位置", "map.emptyDetail": "輸入位置後，按下搜尋查看地圖與附近資料。", "map.nearby": "附近生活機能", "map.nearbyDescription": "結果依類別與距離整理，僅供參考。", "map.noResult": "目前沒有可用的地圖結果。", "map.searchError": "地圖資料暫時無法取得，請稍後再試。", "map.healthUnavailable": "地圖服務狀態暫時無法確認。", "map.sourceNote": "來源與可用性依目前服務回應為準。", "map.baseStandard": "標準地圖", "map.baseLight": "淺色地圖", "map.baseSatellite": "衛星影像", "map.selected": "目前位置", "map.distance": "距離", "map.rating": "評分",
@@ -236,6 +239,7 @@ const zhTW: RuntimeResource = {
 };
 
 const en: RuntimeResource = {
+  ...GUIDED_TOUR_COPY.en,
   "action.retry": "Try again", "action.reset": "Reset", "action.expand": "Expand", "action.open": "Open", "action.search": "Search", "action.loading": "Loading…", "action.submit": "Submit", "action.download": "Download", "action.copy": "Copy", "action.calculate": "Calculate", "action.startAnalysis": "Start analysis", "action.loadDemo": "Load demo conditions", "action.save": "Save", "action.load": "Load", "action.delete": "Delete", "action.clear": "Clear", "action.compare": "Compare",
   "common.optional": "optional", "common.noData": "Insufficient data", "common.unavailable": "Temporarily unavailable", "common.notStarted": "Not started", "common.yes": "Yes", "common.no": "No", "common.source": "Source", "common.updated": "Updated", "common.period": "Period", "common.count": "Count", "common.records": "records", "common.dataLimit": "Data limits", "common.tableSwipe": "Swipe to view the table", "common.selectCounty": "Select county/city", "common.selectDistrict": "Select district", "common.selectRoad": "Select road",
   "map.kicker": "Maps and livability", "map.title": "Map Insight Lite", "map.description": "Search a place and review nearby livability information and sources.", "map.help": "Map results are location references only and may be limited by source coverage and availability.", "map.quickMode": "Quick select", "map.manualMode": "Manual input", "map.city": "County/city", "map.district": "District", "map.road": "Road or place", "map.searchPlaceholder": "Enter an address, landmark, or road", "map.radius": "Search radius (m)", "map.search": "Search location", "map.searching": "Searching…", "map.empty": "No location searched", "map.emptyDetail": "Enter a location and search to view the map and nearby data.", "map.nearby": "Nearby livability", "map.nearbyDescription": "Results are grouped by category and distance for reference only.", "map.noResult": "No usable map result is available.", "map.searchError": "Map data is temporarily unavailable. Try again later.", "map.healthUnavailable": "Map service status is temporarily unavailable.", "map.sourceNote": "Source and availability follow the current service response.", "map.baseStandard": "Standard map", "map.baseLight": "Light map", "map.baseSatellite": "Satellite imagery", "map.selected": "Selected location", "map.distance": "Distance", "map.rating": "Rating",
@@ -353,6 +357,7 @@ const en: RuntimeResource = {
 };
 
 const ja: RuntimeResource = {
+  ...GUIDED_TOUR_COPY.ja,
   ...RUNTIME_COPY_OVERRIDES.ja,
   "action.reset": "Reset",
   "action.expand": "Expand",
@@ -680,6 +685,7 @@ const ja: RuntimeResource = {
 };
 
 const ko: RuntimeResource = {
+  ...GUIDED_TOUR_COPY.ko,
   ...RUNTIME_COPY_OVERRIDES.ko,
   "action.reset": "Reset",
   "action.expand": "Expand",

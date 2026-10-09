@@ -181,10 +181,6 @@ export default function Home() {
     const currentCase = buildJourneySaveCase(journeyState);
     return <DecisionCaseStage propertyContext={journeyState.propertyContext} identityAnchor={journeyState.identityAnchor} priceContext={priceContext} affordabilityContext={journeyAffordabilityContext} locationResult={journeyState.locationResult} locationStatus={journeyState.locationStatus} terrainResult={journeyState.terrainResult} terrainStatus={journeyState.terrainStatus} marketResult={journeyState.marketResult} marketStatus={journeyState.marketStatus} priceBasis={journeyState.financePriceEvidence?.source === 'MANUAL_SCENARIO' ? 'manual' : journeyState.priceBasis} activePriceWan={journeyState.financePriceEvidence ? journeyState.financePriceEvidence.price_twd / 10000 : journeyState.activePriceWan} renderCommandCenter={() => <CaseManager current={currentCase} />} renderSavedCases={() => <CaseManager listOnly />} onBackToProperty={() => actions.goToTool("property-finder")} onBackToPrice={() => actions.goToTool("valuation")} onBackToAffordability={() => actions.goToTool("loan")} onNavigateToAction={(action) => { if (action === "property") actions.goToTool("property-finder"); if (action === "price") actions.goToTool("valuation"); if (action === "affordability") actions.goToTool("loan"); }} />;
   }
-  const handleTourAction = (action: "tax-low" | "map" | "explore") => {
-    if (action === "tax-low") openTax("DEMO-LOW");
-    if (action === "map") setPage("Map Insight Lite");
-  };
   const handleVoiceAction = (action: VoiceAction) => {
     if (action.type === "navigate_step") {
       setJourneyOpen(true);
@@ -200,7 +196,7 @@ export default function Home() {
     window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: step }));
     window.requestAnimationFrame(() => document.getElementById(`journey-stage-${step}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
   }
-  return <AppShell page={page} onNavigate={setPage} onTourAction={handleTourAction} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <div className="space-y-6"><CommercialHome onStart={(address) => { setJourneyState(createClosedLoopJourneyState({ addressSummary: address, selectionStatus: "partial", sourceLabel: copy("common.source") })); setJourneyLocationInitialTool(undefined); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); openJourneyStep("location"); }} onFinder={() => openJourneyStep("property")} /><div hidden={!journeyOpen}><GuidedPropertyJourney renderStep={renderJourneyStep} /></div></div> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  return <AppShell page={page} onNavigate={setPage} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <div className="space-y-6"><CommercialHome onStart={(address) => { setJourneyState(createClosedLoopJourneyState({ addressSummary: address, selectionStatus: "partial", sourceLabel: copy("common.source") })); setJourneyLocationInitialTool(undefined); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); openJourneyStep("location"); }} onFinder={() => openJourneyStep("property")} /><div hidden={!journeyOpen}><GuidedPropertyJourney renderStep={renderJourneyStep} /></div></div> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
 }
 
 
