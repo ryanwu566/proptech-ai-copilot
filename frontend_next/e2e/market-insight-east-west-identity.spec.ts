@@ -10,6 +10,7 @@
 
 import { expect, test } from "./fixtures";
 import { openMethod, openPropertyEntry } from "./helpers/commercial-navigation";
+import { expectConservativeLocation, trackSpatialAnalysis } from "./helpers/location-trust";
 
 // ─── Controlled geocoding responses ─────────────────────────────────────────
 
@@ -175,6 +176,7 @@ test.describe("East/West road identity: Location Insight", () => {
 
   test("CASE 3: 忠孝東路四段45號 resolved correctly shows results without gate", async ({ page }) => {
     test.setTimeout(25000);
+    const calls = trackSpatialAnalysis(page);
 
     await page.route("**/location/insight", async (route) => {
       await route.fulfill({
@@ -208,8 +210,10 @@ test.describe("East/West road identity: Location Insight", () => {
     // HARD ASSERT: NO acceptance gate
     await expect(page.getByTestId("geocoding-acceptance-gate")).not.toBeVisible({ timeout: 5000 });
 
-    // HARD ASSERT: location score IS visible
-    await expect(page.locator("[data-testid='location-result']")).toContainText("72", { timeout: 8000 });
+    // Accepted identity permits supported POIs, while missing risk remains unknown.
+    const result = await expectConservativeLocation(page, "zh-TW");
+    await expect(result).toContainText("忠孝東路四段");
+    expect(calls).toEqual(["/location/insight"]);
   });
 });
 

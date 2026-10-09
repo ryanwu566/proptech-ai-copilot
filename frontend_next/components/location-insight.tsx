@@ -54,7 +54,7 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
   const [buildingType, setBuildingType] = useState(initialContext?.building_type ?? "");
   const latestSpatialInputs = useRef({ city, district, road, address });
   latestSpatialInputs.current = { city, district, road, address };
-  const [storedResult, setResult] = useState<LocationInsightResult | undefined>(initialResult);
+  const [storedResult, setResult] = useState<LocationInsightResult | undefined>(() => initialResult && normalizeLocationInsightEvidence(initialResult));
   const publishedResultRef = useRef<LocationInsightResult | undefined>(undefined);
   const [resultContextKey, setResultContextKey] = useState(contextKey);
   const advisoryInputs = { price: propertyPrice === "" ? undefined : propertyPrice, area: areaPing === "" ? undefined : areaPing };
@@ -102,7 +102,7 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
       setLoading(false);
     }
     setResultContextKey(latestContextKey.current);
-    setResult(initialResult);
+    setResult(initialResult && normalizeLocationInsightEvidence(initialResult));
   }, [initialResult]);
 
   useEffect(() => {
@@ -129,11 +129,13 @@ export function LocationInsight({ onMap, onContextChange, onResult, initialConte
 
   useEffect(() => {
     function applyResult(event: Event) {
+      const incoming = (event as CustomEvent<LocationInsightResult>).detail;
+      if (incoming === publishedResultRef.current) return;
       requestRef.current += 1;
       activeRequestRef.current = null;
       setLoading(false);
       setResultContextKey(latestContextKey.current);
-      setResult((event as CustomEvent<LocationInsightResult>).detail);
+      setResult(normalizeLocationInsightEvidence(incoming));
     }
     window.addEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);
     return () => window.removeEventListener(LOCATION_INSIGHT_RESULT_EVENT, applyResult);

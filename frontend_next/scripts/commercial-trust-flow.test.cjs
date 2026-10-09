@@ -134,3 +134,38 @@ test('guided holding overrides discard a mortgage calculated from another paymen
   assert.equal(updated.loanResult, undefined);
   assert.equal(updated.holdingResult.input.loan_monthly_payment, 99999);
 });
+
+test('Save/Reopen retains local Location advisory and finance provenance without inventing risk evidence', () => {
+  const { normalizeLocationInsightEvidence } = load('lib/location-insight-evidence.ts');
+  const { withLocationAdvisoryContext } = load('lib/location-evidence-context.ts');
+  const { buildJourneySaveCase } = load('lib/journey-case-snapshot.ts');
+  const { compactCaseData, saveCase, readSavedCases } = load('lib/case-storage.ts');
+  const seed = e9Case();
+  let state = journey.createClosedLoopJourneyState({ ...seed.data.journeyContext.propertyContext, askingPriceWan: undefined });
+  state.identityAnchor = seed.data.propertyIdentityAnchor;
+  state = journey.setJourneyLoanResult(state, { property_price_wan: 3000, down_payment_ratio: .2, down_payment_wan: 600, loan_amount_wan: 2400, annual_interest_rate: 2.2, loan_years: 30, grace_period_years: 0, monthly_income_wan: null, monthly_payment: 91117, total_payment: 32802120, total_interest: 8802120, income_burden_ratio: null, sensitivity: [] }, () => '2026-10-09T01:00:00Z');
+  const raw = { input: { property_price_wan: 2000, area_ping: 30 }, resolved_location: { address_label: seed.title, latitude: 24.16525, longitude: 120.64555 }, location_score: 72, category_scores: { transit_score: 80, risk_score: 50 }, poi_summary: { transit_count: 4, convenience_count: 6, school_count: 2, park_count: 1, medical_count: 3, risk_facility_count: 0 }, data_quality: { status: 'good', missing_sources: ['risk_facilities'], checked_at: '2026-10-09T00:00:00Z', warnings: [] } };
+  state.locationResult = withLocationAdvisoryContext(normalizeLocationInsightEvidence(raw), 2000, 35);
+  state.locationStatus = 'available';
+  const values = new Map();
+  global.window = { localStorage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }, dispatchEvent: () => {} };
+  try {
+    saveCase(buildJourneySaveCase(state));
+    const saved = readSavedCases()[0];
+    const compacted = { ...saved, data: compactCaseData(saved.data) };
+    const workspace = adaptSavedCaseToWorkspace(compacted);
+    assert.match(workspace.location.insight.valuation_context.explanation, /57\.1 萬／坪/);
+    assert.deepEqual(compacted.data.locationInsight.input, raw.input);
+    assert.equal(compacted.data.locationInsight.data_quality.checked_at, raw.data_quality.checked_at);
+    assert.equal(compacted.data.locationInsight.resolved_location, null);
+    assert.equal(compacted.data.financePriceEvidence.source, 'MANUAL_SCENARIO');
+    assert.equal(compacted.data.financePriceEvidence.calculated_at, '2026-10-09T01:00:00Z');
+    const evidence = projectCaseEvidence(workspace);
+    assert.equal(evidence.location.riskFacility.value, null);
+    assert.equal(evidence.finance.basis.value, '手動試算情境');
+    const { buildReportModel } = load('lib/workspace/compare-report-model.ts');
+    const report = buildReportModel(evidence);
+    assert.match(JSON.stringify(report), /手動試算情境/);
+    assert.equal(evidence.location.transit.value, 4);
+  } finally { delete global.window; }
+});

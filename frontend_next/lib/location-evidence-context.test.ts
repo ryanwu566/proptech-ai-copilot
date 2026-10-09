@@ -3,6 +3,46 @@ import test from "node:test";
 
 // @ts-expect-error Node's native TypeScript runner requires the source extension.
 import { locationEvidenceKey, locationValuationExplanation, withLocationAdvisoryContext } from "./location-evidence-context.ts";
+// @ts-expect-error Native TS runner extension.
+import { normalizeLocationInsightEvidence } from "./location-insight-evidence.ts";
+import type { LocationInsightResult } from "./api";
+
+function legacyLocation(): LocationInsightResult {
+  return {
+    input: { property_price_wan: 2000, area_ping: 30 },
+    resolved_location: { address_label: "Property A", latitude: 25.03, longitude: 121.56, geocoding_confidence: "high" },
+    location_score: 72, category_scores: { transit_score: 80, risk_score: 50 },
+    poi_summary: { transit_count: 4, risk_facility_count: 0 },
+    valuation_context: { supports_price_reasonableness: true, explanation: "Legacy suitable score 72" },
+    data_quality: { status: "good", checked_at: "2026-10-09T01:00:00Z", missing_sources: ["risk_facilities"], warnings: [] },
+  } as unknown as LocationInsightResult;
+}
+
+test("repeated normalization preserves newer advisory inputs independently of raw provider inputs", () => {
+  for (const [price, area, unit] of [[2000, 35, "57.1"], [2600, 30, "86.7"]] as const) {
+    const raw = legacyLocation();
+    const current = withLocationAdvisoryContext(normalizeLocationInsightEvidence(raw), price, area);
+    const twice = normalizeLocationInsightEvidence(normalizeLocationInsightEvidence(current));
+    assert.match(twice.valuation_context.explanation, new RegExp(`${unit} 萬／坪`));
+    assert.match(twice.valuation_context.explanation, /區位總分 資料不足/);
+    assert.equal(twice.input, raw.input);
+    assert.equal(twice.data_quality.checked_at, raw.data_quality.checked_at);
+    assert.equal(twice.location_score, null);
+    assert.equal(twice.category_scores.risk_score, null);
+    assert.equal(twice.poi_summary.risk_facility_count, null);
+    assert.equal(twice.valuation_context.supports_price_reasonableness, "unknown");
+  }
+});
+
+test("serialized saved advisory survives stripped coordinates while cleared current inputs remain unknown", () => {
+  const raw = legacyLocation();
+  const current = withLocationAdvisoryContext(normalizeLocationInsightEvidence(raw), 2000, 35);
+  const reopened = normalizeLocationInsightEvidence(JSON.parse(JSON.stringify({ ...current, resolved_location: null })));
+  assert.match(reopened.valuation_context.explanation, /57\.1 萬／坪/);
+  const cleared = normalizeLocationInsightEvidence(withLocationAdvisoryContext(current, undefined, 35));
+  assert.match(cleared.valuation_context.explanation, /未提供完整價格與坪數/);
+  assert.doesNotMatch(cleared.valuation_context.explanation, /66\.7|57\.1/);
+});
 
 const context = { city: "臺北市", district: "大安區", road: "和平東路二段", address: "和平東路二段100號", property_price: 2_000, area_ping: 30, building_type: "住宅大樓" };
 

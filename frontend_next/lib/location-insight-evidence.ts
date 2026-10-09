@@ -1,9 +1,11 @@
 import type { LocationInsightResult } from "./api";
 // @ts-expect-error Native TS runner extension.
-import { locationValuationExplanation } from "./location-evidence-context.ts";
+import { createLocationAdvisoryContext, locationValuationExplanation } from "./location-evidence-context.ts";
 
 /** Legacy counts alone cannot prove coverage. Apply at live display and Save/Reopen boundaries. */
 export function normalizeLocationInsightEvidence(result: LocationInsightResult): LocationInsightResult {
+  const inputs = result.advisory_context?.version === 1 ? result.advisory_context : result.input;
+  const advisory = createLocationAdvisoryContext(inputs?.property_price_wan, inputs?.area_ping);
   const evidence = result.risk_facility_evidence;
   const missing = result.data_quality?.missing_sources?.includes("risk_facilities");
   const observed = !missing && (evidence?.status === "available" || evidence?.status === "no_match")
@@ -18,12 +20,13 @@ export function normalizeLocationInsightEvidence(result: LocationInsightResult):
     limitation: typeof evidence?.limitation === "string" ? evidence.limitation : "來源涵蓋未保存；未知不等於零處設施或安全。" };
   // No supported source-to-score method exists for the risk dimension. Never retain the old 50.
   return { ...result, risk_facility_evidence: normalized,
+    ...(result.advisory_context?.version === 1 ? { advisory_context: advisory } : { advisory_context: undefined }),
     poi_summary: result.poi_summary && { ...result.poi_summary, risk_facility_count: normalized.count },
     category_scores: result.category_scores && { ...result.category_scores, risk_score: null }, location_score: null,
     buyer_fit: { self_use_family: "資料不足", commuter: "資料不足", investor: "資料不足", elderly: "資料不足" },
     strengths: (result.strengths ?? []).filter((item) => typeof item === "string" && /^(交通便利|日常採買與餐飲|教育資源|公園綠地|醫療資源)覆蓋較完整（\d+ 分）。$/.test(item)),
     weaknesses: [...(result.weaknesses ?? []).filter((item) => typeof item === "string" && /^(交通便利|日常採買與餐飲|教育資源|公園綠地|醫療資源)(覆蓋偏弱|資料目前無法取得)/.test(item)), "缺少完整風險評分證據，整體適用性資料不足。"],
-    valuation_context: { supports_price_reasonableness: "unknown", explanation: locationValuationExplanation(typeof result.input?.property_price_wan === "number" ? result.input.property_price_wan : undefined, typeof result.input?.area_ping === "number" ? result.input.area_ping : undefined, null) },
+    valuation_context: { supports_price_reasonableness: "unknown", explanation: locationValuationExplanation(advisory.property_price_wan ?? undefined, advisory.area_ping ?? undefined, null) },
     data_quality: { ...result.data_quality, warnings: (result.data_quality?.warnings ?? []).filter((item) => typeof item === "string" && !/中性\s*50|風險分數.*50/.test(item)) },
   };
 }
