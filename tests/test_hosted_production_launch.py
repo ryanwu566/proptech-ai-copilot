@@ -77,11 +77,19 @@ def test_hosted_smoke_uses_only_safe_categories(monkeypatch) -> None:
             return 200, {}, {}
         if url.endswith("/release-version"):
             return 200, {"content-security-policy": "default-src 'none'", "referrer-policy": "strict-origin", "x-content-type-options": "nosniff", "x-frame-options": "DENY", "cache-control": "no-store"}, {"environment": "preview", "release_version": "r1", "commit_sha": "a" * 40}
+        if url.endswith("/readiness"):
+            return 200, {}, {"status": "ready", "runtime": {"ready": True}}
+        if url.endswith("/source-status"):
+            return 200, {}, {"status": "available", "test_fixtures_excluded": True}
+        if url.endswith("/compatibility"):
+            return 200, {}, {"status": "compatible"}
+        if url.endswith("/demo-cases"):
+            return 200, {}, [{"case_id": "fixture"}]
         return 200, {}, {"status": "ok"}
 
     monkeypatch.setattr(production_smoke, "_hosted_json", fake_json)
     monkeypatch.setattr(production_smoke, "_hosted_text", lambda url, *, timeout: (200, {"content-security-policy": "default-src 'none'", "referrer-policy": "strict-origin", "x-content-type-options": "nosniff"}, "Explicit offline competition example"))
-    result = production_smoke.run_hosted(frontend_url="https://front.example", backend_url="https://api.example", expected_environment="preview", expected_release="r1")
+    result = production_smoke.run_hosted(frontend_url="https://front.example", backend_url="https://api.example", expected_environment="preview", expected_release="r1", expected_frontend_sha="a" * 40, expected_backend_sha="a" * 40)
     assert result["status"] == "pass"
     assert all(value in {"pass", "fail"} for value in result["checks"].values())
 

@@ -1,0 +1,1260 @@
+{
+  "schema_version": "final-production-acceptance-validation-v1",
+  "acceptance_timestamp": "2026-10-09T14:14:24.997817+00:00",
+  "candidate": {
+    "starting_sha": "95018f6fc2a366656cb798414dc54860d009e536",
+    "branch": "release/final-production-acceptance-v1",
+    "starting_worktree_clean": true,
+    "head_and_origin_main_matched": true,
+    "github_main_matched": true,
+    "tooling_revision_scope": "acceptance_changes_not_deployed_final_commit_identified_in_delivery_response"
+  },
+  "hosted": {
+    "mode": "hosted",
+    "network_requests": 1,
+    "provider_requests": 0,
+    "http_status": 200,
+    "frontend_sha": "95018f6fc2a366656cb798414dc54860d009e536",
+    "classification": "NOT VERIFIED",
+    "reason_code": "backend_target_and_release_contract_missing",
+    "matched_frozen_candidate": true
+  },
+  "hosted_smoke": {
+    "status": "configuration_required",
+    "reason_code": "configuration_required",
+    "mode": "hosted",
+    "checks": {
+      "configuration": "fail"
+    },
+    "external_provider_called": false,
+    "classification": "CONFIGURATION REQUIRED",
+    "network_requests": 0
+  },
+  "provider_acceptance": [
+    {
+      "capability": "geocoding",
+      "config_status": {
+        "GOOGLE_MAPS_API_KEY": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "success",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "routes",
+      "config_status": {
+        "GOOGLE_MAPS_API_KEY": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "success",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "places",
+      "config_status": {
+        "GOOGLE_MAPS_API_KEY": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "valuation",
+      "config_status": {
+        "VALUATION_DATABASE_URL": "missing",
+        "VALUATION_DEMO_MODE": "missing",
+        "PLVR_DATA_BACKEND": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "finder",
+      "config_status": {
+        "VALUATION_DATABASE_URL": "missing",
+        "VALUATION_DEMO_MODE": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "trend",
+      "config_status": {
+        "VALUATION_DATABASE_URL": "missing",
+        "VALUATION_DEMO_MODE": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "market",
+      "config_status": {
+        "VALUATION_DATABASE_URL": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "plvr",
+      "config_status": {
+        "PLVR_UPDATE_DATABASE_URL": "missing",
+        "PLVR_UPDATE_ENVIRONMENT": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "wra",
+      "config_status": {
+        "R2_ACCESS_KEY_ID": "missing",
+        "R2_SECRET_ACCESS_KEY": "missing",
+        "R2_ENDPOINT": "missing",
+        "R2_BUCKET": "missing",
+        "R2_REGION": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "OWNER ACTION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "gsmma",
+      "config_status": {
+        "R2_ACCESS_KEY_ID": "missing",
+        "R2_SECRET_ACCESS_KEY": "missing",
+        "R2_ENDPOINT": "missing",
+        "R2_BUCKET": "missing",
+        "R2_REGION": "missing",
+        "GSMMA_GEOLOGICAL_SENSITIVITY_DATASET_VERSION": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "OWNER ACTION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "ardswc",
+      "config_status": {},
+      "configuration_result": "ready_for_production_acceptance",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "NOT VERIFIED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "liquefaction",
+      "config_status": {},
+      "configuration_result": "ready_for_production_acceptance",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "NOT VERIFIED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "tdx",
+      "config_status": {
+        "TDX_CLIENT_ID": "missing",
+        "TDX_CLIENT_SECRET": "missing",
+        "COMMUTE_REFRESH_TOKEN": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "ris",
+      "config_status": {
+        "DATABASE_URL": "present",
+        "NLSC_VILLAGE_BOUNDARY_ARTIFACT_SHA256": "missing",
+        "NLSC_VILLAGE_BOUNDARY_SOURCE_VINTAGE": "missing",
+        "NLSC_VILLAGE_BOUNDARY_R2_KEY": "missing",
+        "R2_ACCESS_KEY_ID": "missing",
+        "R2_SECRET_ACCESS_KEY": "missing",
+        "R2_ENDPOINT": "missing",
+        "R2_BUCKET": "missing",
+        "R2_REGION": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "nlsc",
+      "config_status": {
+        "NLSC_GATEWAY_BASE_URL": "missing",
+        "NLSC_GATEWAY_CLIENT_TOKEN": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "satellite",
+      "config_status": {
+        "EARTH_ENGINE_SATELLITE_REFERENCE_V1": "missing",
+        "EARTH_ENGINE_PROJECT": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "OWNER ACTION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "maps",
+      "config_status": {
+        "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "street-view",
+      "config_status": {
+        "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY": "missing"
+      },
+      "configuration_result": "configuration_required",
+      "fixture_result": "pass",
+      "fixture_reason_code": "offline_contract_verified",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "CONFIGURATION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "active-fault",
+      "config_status": {},
+      "configuration_result": "manual_verification_only",
+      "fixture_result": "manual_verification_only",
+      "fixture_reason_code": "manual_verification_required",
+      "network_requests": 0,
+      "deployed_release_verified": false,
+      "accepted_official_artifact_present": null,
+      "bounded_live_verified": false,
+      "production_readiness": "unproven",
+      "classification": "OWNER ACTION REQUIRED",
+      "configuration_scope": "local_process_only_hosted_configuration_unverified",
+      "code_implemented": true,
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    }
+  ],
+  "official_artifacts": [
+    {
+      "capability": "plvr",
+      "classification": "OWNER ACTION REQUIRED",
+      "expected_runtime_version": null,
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "wra",
+      "classification": "OWNER ACTION REQUIRED",
+      "expected_runtime_version": "v1",
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "gsmma",
+      "classification": "OWNER ACTION REQUIRED",
+      "expected_runtime_version": null,
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "nlsc-village-boundary",
+      "classification": "OWNER ACTION REQUIRED",
+      "expected_runtime_version": null,
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "ardswc",
+      "classification": "NOT VERIFIED",
+      "expected_runtime_version": "113",
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "liquefaction",
+      "classification": "NOT VERIFIED",
+      "expected_runtime_version": null,
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "tdx",
+      "classification": "NOT VERIFIED",
+      "expected_runtime_version": null,
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    },
+    {
+      "capability": "ris",
+      "classification": "NOT VERIFIED",
+      "expected_runtime_version": null,
+      "accepted_source_version": null,
+      "source_release_date": null,
+      "import_timestamp": null,
+      "latest_effective_transaction_period": null,
+      "manifest_sha256": null,
+      "artifact_sha256": null,
+      "scenario_coverage": null,
+      "geographic_coverage": null,
+      "official_positive_fixture": null,
+      "official_negative_fixture": null,
+      "official_unknown_semantics": null,
+      "synthetic_contract_fixtures": "pass",
+      "deployed_artifact_verified": false,
+      "reason_code": "official_artifact_unverified",
+      "acceptance_timestamp": "2026-10-09T13:47:21.798186+00:00"
+    }
+  ],
+  "api_cost": {
+    "mode": "local",
+    "fixture_only": true,
+    "external_provider_requests": 0,
+    "physical_provider_operations": 17,
+    "tile_decodes": 4,
+    "first": {
+      "geocoding": 1,
+      "places": 6,
+      "routes": 1,
+      "ardswc": 4,
+      "tile_decodes": 4,
+      "liquefaction": 3,
+      "nlsc": 1,
+      "satellite": 1
+    },
+    "repeated": {
+      "geocoding": 1,
+      "places": 6,
+      "routes": 1,
+      "ardswc": 4,
+      "tile_decodes": 4,
+      "liquefaction": 3,
+      "nlsc": 1,
+      "satellite": 1
+    },
+    "historical_documented_baseline": {
+      "operations": 23,
+      "tile_decodes": 8
+    },
+    "baseline_reexecuted": false,
+    "currency_savings_claimed": false,
+    "satellite_generation": "mock_only"
+  },
+  "test_runs": [
+    {
+      "name": "full_python",
+      "command": "python -m pytest -q -rs --basetemp .local/pytest-final-serial",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "57d656b1e97a42ff506e30d1fe7dbba95220a7a53e9dd796b1571d818518415d",
+      "passed": 3377,
+      "skipped": 32,
+      "warnings": 1,
+      "duration_seconds": 266.28,
+      "skips_reason": "explicit_disposable_PostgreSQL_not_configured",
+      "scope": "final_backend_and_acceptance_software_before_equivalent_CSS_consolidation"
+    },
+    {
+      "name": "frontend_units",
+      "command": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test <all_rg_discovered_lib_and_scripts_test_paths>",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "250d89fbbfd3ed51a90f0b0fe735993d28475990f2cb4a2eac1af93e15045fed",
+      "passed": 239,
+      "failed": 0
+    },
+    {
+      "name": "browser_comprehensive",
+      "command": "node e2e/run-e2e.cjs e2e/commercial- e2e/api-cost-journey.spec.ts e2e/provider-closure.spec.ts e2e/final-production-acceptance.spec.ts --workers=2 --retries=0",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "84f44cf659c4e8af26e599fb6435aaaf57404cd3e1549773dfb2da040c874023",
+      "passed": 244,
+      "projects": {
+        "chromium": 122,
+        "installed_chrome": 122
+      },
+      "scope": "all_relevant_workflows_before_equivalent_CSS_consolidation"
+    },
+    {
+      "name": "browser_final_layout",
+      "command": "node e2e/run-e2e.cjs e2e/commercial-compare e2e/final-production-acceptance.spec.ts --workers=2 --retries=0",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "4c77a47dc45d76c8798d2659ccdcfa384798f7666715e84e6fc4290503fd1ae8",
+      "passed": 78,
+      "projects": {
+        "chromium": 39,
+        "installed_chrome": 39
+      },
+      "scope": "all_changed_CSS_views_compare_report_and_actual_PDFs"
+    },
+    {
+      "name": "production_build",
+      "command": "npm run build",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "60f2a5de2b12a42fd0bb90168e34aaf4ade9101fa9f2f2f34d3977bdd829a52a"
+    },
+    {
+      "name": "e2e_build",
+      "command": "npm run build:e2e",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "08a3d4d45bec040c93a87c564444e714bfe4ddf28169ed4d80a9c498d20b8cc2"
+    },
+    {
+      "name": "lint",
+      "command": "npm run lint",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "c0f9b7f95d4539d0224ef5f7c6609dbf7b56281a2e237cab1eaa7c5db0040c6d",
+      "errors": 0,
+      "warnings": 23
+    },
+    {
+      "name": "provider_offline_fixtures",
+      "command": "provider_acceptance.run(mode=offline-fixture,environ={}) for all requested capabilities",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "0c63d712e090d150d628a9a54a226871a83808eb3b1b7bab6f47f5a7e87bf17f",
+      "passed": 18,
+      "provider_requests": 0
+    },
+    {
+      "name": "worker_pool_isolated",
+      "command": "python -m pytest -q tests/test_earth_engine_worker_pool.py",
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "18739cf683848a7641cf9df41eda0b527523b10222143fc309d23e1ad51f7682",
+      "passed": 26
+    }
+  ],
+  "pdf_inspection": [
+    {
+      "artifact": "commercial-compare-report--2cac2-rols-or-horizontal-clipping-chrome-e9-report-a4.pdf",
+      "sha256": "52e24c9e5a0bd87745350d8114f629e899d7efa27d4af88812b9934d407652db",
+      "bytes": 1020427,
+      "pages": 17,
+      "page_size_pt": [
+        595.9199829101562,
+        842.8800048828125
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14052,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS WITH RESTRICTIONS",
+      "expected_price_basis": "user_asking_price",
+      "visual_inspection": "geometry_and_text_checked_representative_layout_visually_sampled",
+      "empty_pages": [
+        17
+      ]
+    },
+    {
+      "artifact": "commercial-compare-report--2cac2-rols-or-horizontal-clipping-chromium-e9-report-a4.pdf",
+      "sha256": "981586bd351fe0bcd4a5727524632218b570f19d84bc48f96cc316bd0c6d4729",
+      "bytes": 1020312,
+      "pages": 17,
+      "page_size_pt": [
+        595.9199829101562,
+        842.8800048828125
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14052,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS WITH RESTRICTIONS",
+      "expected_price_basis": "user_asking_price",
+      "visual_inspection": "contact_sheet_all_pages_plus_finance_and_last_nonempty_sources_sampled",
+      "finance_visual_page": 9,
+      "empty_pages": [
+        17
+      ]
+    },
+    {
+      "artifact": "final-production-acceptanc-45584--Reopen-preserve-provenance-chrome-acceptance-1024-a4.pdf",
+      "sha256": "06c3ff00285c5c3a2ba1d78c790f56424beccbfb98b7003618c85301f8f2e8d3",
+      "bytes": 1006235,
+      "pages": 17,
+      "page_size_pt": [
+        594.9599609375,
+        841.9199829101562
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14536,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS",
+      "expected_price_basis": "manual_scenario",
+      "visual_inspection": "geometry_and_text_checked_representative_layout_visually_sampled",
+      "empty_pages": []
+    },
+    {
+      "artifact": "final-production-acceptanc-45584--Reopen-preserve-provenance-chromium-acceptance-1024-a4.pdf",
+      "sha256": "8b9c3aec93f2351ba86dff67c9527da724a37c8fa77f801ef4d98002faab08ed",
+      "bytes": 1006120,
+      "pages": 17,
+      "page_size_pt": [
+        594.9599609375,
+        841.9199829101562
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14536,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS",
+      "expected_price_basis": "manual_scenario",
+      "visual_inspection": "geometry_and_text_checked_representative_layout_visually_sampled",
+      "empty_pages": []
+    },
+    {
+      "artifact": "final-production-acceptanc-5b410--Reopen-preserve-provenance-chrome-acceptance-390-a4.pdf",
+      "sha256": "c1d9ae94addde23990fff5c065c0c2cdbfb45e8d810cedad79bb1cc42a9bff71",
+      "bytes": 1006235,
+      "pages": 17,
+      "page_size_pt": [
+        594.9599609375,
+        841.9199829101562
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14536,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS",
+      "expected_price_basis": "manual_scenario",
+      "visual_inspection": "geometry_and_text_checked_representative_layout_visually_sampled",
+      "empty_pages": []
+    },
+    {
+      "artifact": "final-production-acceptanc-5b410--Reopen-preserve-provenance-chromium-acceptance-390-a4.pdf",
+      "sha256": "3f982b452638052927b402b009c61cb92277cbe38fc0320f33a0da4b384db238",
+      "bytes": 1006120,
+      "pages": 17,
+      "page_size_pt": [
+        594.9599609375,
+        841.9199829101562
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14536,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS",
+      "expected_price_basis": "manual_scenario",
+      "visual_inspection": "geometry_and_text_checked_representative_layout_visually_sampled",
+      "empty_pages": []
+    },
+    {
+      "artifact": "final-production-acceptanc-e0381--Reopen-preserve-provenance-chrome-acceptance-1440-a4.pdf",
+      "sha256": "64460d3957fd94dd2b43bd52e31b38fa6a49ad9f75e01bfa5048bb3f25d063c5",
+      "bytes": 1006235,
+      "pages": 17,
+      "page_size_pt": [
+        594.9599609375,
+        841.9199829101562
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14536,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS",
+      "expected_price_basis": "manual_scenario",
+      "visual_inspection": "geometry_and_text_checked_representative_layout_visually_sampled",
+      "empty_pages": []
+    },
+    {
+      "artifact": "final-production-acceptanc-e0381--Reopen-preserve-provenance-chromium-acceptance-1440-a4.pdf",
+      "sha256": "86257d32be502d41a1e0a387e95a4efe7eb756dee409deb57ac3f6b098e89f63",
+      "bytes": 1006120,
+      "pages": 17,
+      "page_size_pt": [
+        594.9599609375,
+        841.9199829101562
+      ],
+      "portrait_a4": true,
+      "out_of_page_text_count": 0,
+      "text_spans_checked": 14536,
+      "text_checks": {
+        "missing_evidence": true,
+        "risk_limit": true,
+        "source": true,
+        "timestamp": true,
+        "finance_value": true,
+        "price_provenance": true
+      },
+      "classification": "PASS",
+      "expected_price_basis": "manual_scenario",
+      "visual_inspection": "contact_sheet_all_pages_plus_finance_and_last_nonempty_sources_sampled",
+      "finance_visual_page": 9,
+      "empty_pages": []
+    }
+  ],
+  "dependency_audits": {
+    "npm_production": {
+      "status": "pass",
+      "vulnerabilities": 0
+    },
+    "npm_full": {
+      "status": "pass_with_existing_exception",
+      "exception": "GHSA-vfj7-8cjw-p6xm",
+      "expires": "2026-11-04",
+      "exception_changed": false
+    },
+    "backend_declared_requirements": {
+      "status": "pass",
+      "known_vulnerabilities": 0,
+      "scope": "fresh_resolution_of_backend_requirements_not_hosted_inventory"
+    },
+    "machine_python": {
+      "status": "fail",
+      "advisory_records": 26,
+      "affected_packages": 6,
+      "scope": "machine_wide_not_certified_for_deployment",
+      "owner_action": "audit_actual_runtime_and_rebuild_clean_environment"
+    },
+    "classification": "PASS WITH RESTRICTIONS"
+  },
+  "privacy": {
+    "secrets_included": false,
+    "raw_payloads_included": false,
+    "customer_data_included": false
+  },
+  "actual_external_requests": {
+    "github_main_read": 1,
+    "hosted_frontend_identity_get": 1,
+    "hosted_backend": 0,
+    "live_provider": 0,
+    "satellite_generation": 0,
+    "production_database": 0,
+    "scope": "acceptance_service_requests_excludes_package_install_and_audit_registry_traffic"
+  },
+  "local_gates": [
+    {
+      "name": "typecheck",
+      "command": [
+        "cmd",
+        "/c",
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "efa8edc724289b92fe92a62be50db132be45829df257f0a3f475a66678500d3c"
+    },
+    {
+      "name": "security_performance",
+      "command": [
+        "python",
+        "scripts/security_performance_release_gate.py",
+        "--json"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "result": {
+        "checks": {
+          "environment": "pass",
+          "migration": "pass",
+          "persistence": "pass",
+          "required_files": "pass",
+          "route_budgets": "pass",
+          "threat_model": "pass"
+        },
+        "missing": [],
+        "status": "pass"
+      },
+      "log_sha256": "f6130959c4797e423ddc506f889f52ace58ccea3b1dc5b61da7cf1abbadd9106"
+    },
+    {
+      "name": "operations",
+      "command": [
+        "python",
+        "scripts/production_ops_gate.py"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "result": {
+        "checks": {
+          "fail_closed": true,
+          "migration": true,
+          "postgres_required": true,
+          "privacy": true,
+          "required_files": true,
+          "workflow": true
+        },
+        "missing": [],
+        "status": "pass"
+      },
+      "log_sha256": "aa5aeb51567a0916f96a7ab1ed15e6bdfe35cea73be539ba2c567f78e67501c6"
+    },
+    {
+      "name": "bundle",
+      "command": [
+        "python",
+        "scripts/check_frontend_bundle_budget.py"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "result": {
+        "initial_javascript_bytes": 2851891,
+        "largest_chunk_budget_bytes": 900000,
+        "largest_client_chunk_bytes": 608747,
+        "status": "pass",
+        "total_budget_bytes": 8000000,
+        "total_static_bytes": 2999975
+      },
+      "log_sha256": "2954271f8ea80180e52a4a2c34f4186f455119ef1ab1450ded68e2010997decb"
+    },
+    {
+      "name": "routes",
+      "command": [
+        "python",
+        "scripts/check_route_budgets.py"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "result": {
+        "largest_client_chunk_bytes": 608747,
+        "routes": {
+          "admin": {
+            "largest_js_bytes": 900000,
+            "status": "pass",
+            "total_static_bytes": 4500000
+          },
+          "competition_demo": {
+            "largest_js_bytes": 900000,
+            "status": "pass",
+            "total_static_bytes": 4000000
+          },
+          "homepage": {
+            "largest_js_bytes": 900000,
+            "status": "pass",
+            "total_static_bytes": 3000000
+          },
+          "map_insight": {
+            "largest_js_bytes": 900000,
+            "status": "pass",
+            "total_static_bytes": 4500000
+          },
+          "pilot": {
+            "largest_js_bytes": 900000,
+            "status": "pass",
+            "total_static_bytes": 4500000
+          },
+          "taxoracle": {
+            "largest_js_bytes": 900000,
+            "status": "pass",
+            "total_static_bytes": 4000000
+          }
+        },
+        "status": "pass",
+        "total_static_bytes": 2999975
+      },
+      "log_sha256": "b6afd0077673200914607723c3ee36dd97e5477f0eaefaaf47c5c621b59d74f5"
+    },
+    {
+      "name": "release_quality",
+      "command": [
+        "python",
+        "scripts/release_quality_gate.py",
+        "--skip-tests",
+        "--skip-frontend-build"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "5742d736a81b1fbb67ad48b88dcbb467f5de76855404667000e1df8f19246138"
+    },
+    {
+      "name": "local_smoke",
+      "command": [
+        "python",
+        "scripts/production_smoke.py"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "result": {
+        "checks": {
+          "compatibility": "pass",
+          "health": "pass",
+          "liveness": "pass",
+          "readiness": "pass",
+          "release_version": "pass",
+          "source_status": "pass"
+        },
+        "external_provider_called": false,
+        "mode": "local",
+        "status": "pass"
+      },
+      "log_sha256": "745d9a934ba21e165451fab7f5165dde39579185ee61ae72d64931a12ce3b604"
+    },
+    {
+      "name": "compile",
+      "command": [
+        "python",
+        "-m",
+        "compileall",
+        "-q",
+        "scripts",
+        "tests"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "diff",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "staged_hygiene",
+      "command": [
+        "python",
+        "scripts/check_repository_hygiene.py"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "9f8b621c02bac86093505c6a455aa4346260f2b637c0d6cedeefaa9dee9fb5ad"
+    },
+    {
+      "name": "staged_diff",
+      "command": [
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exit_code": 0,
+      "classification": "PASS",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "pdf_restriction": "two_existing_long_address_URL_fixtures_have_one_empty_trailing_page_each_all_source_and_finance_text_retained",
+  "responsive_accessibility": {
+    "classification": "PASS WITH RESTRICTIONS",
+    "projects": [
+      "chromium",
+      "installed_chrome"
+    ],
+    "widths_px": [
+      1440,
+      1024,
+      390
+    ],
+    "views": [
+      "homepage",
+      "overview",
+      "market",
+      "location",
+      "risk",
+      "finance",
+      "compare",
+      "report"
+    ],
+    "view_checks": 48,
+    "checks": [
+      "horizontal_overflow",
+      "visible_control_labels",
+      "Tab_focus_outline",
+      "reduced_motion",
+      "sampled_heading_contrast"
+    ],
+    "provider_requests": 0,
+    "full_WCAG_certification": false,
+    "screen_reader_audit": false
+  },
+  "failed_run_history": [
+    {
+      "scope": "initial_full_python",
+      "failed": 1,
+      "passed": 3339,
+      "skipped": 32,
+      "cause": "existing_public_release_variable_allowlist_needed_two_new_nonsecret_fields",
+      "resolution": "updated_contract_allowlist_final_full_suite_passed"
+    },
+    {
+      "scope": "frontend_units_during_concurrent_build",
+      "cause": "owned_runner_test_observed_incomplete_BUILD_ID",
+      "resolution": "rerun_after_completed_build_239_passed"
+    },
+    {
+      "scope": "initial_new_browser_acceptance",
+      "cause": "combined_view_test_exceeded_existing_30s_timeout",
+      "resolution": "split_into_individual_view_tests_without_increasing_deadline"
+    },
+    {
+      "scope": "initial_report_browser",
+      "failed": 6,
+      "cause": "Windows_stdin_encoding_corrupted_Chinese_fixture_literals",
+      "resolution": "UTF8_source_patch_and_final_browser_pass"
+    },
+    {
+      "scope": "PDF_pagination",
+      "observed_pages": [
+        32,
+        26
+      ],
+      "cause": "print_spacing_and_repeated_provenance_density",
+      "resolution": "all_disclosures_retained_final_17_pages_with_maximum_20_page_assertion"
+    },
+    {
+      "scope": "concurrent_full_python",
+      "failed": 5,
+      "passed": 3370,
+      "skipped": 32,
+      "cause": "unchanged_worker_pool_timing_failures_under_concurrent_heavy_work",
+      "failed_tests": [
+        "test_failed_replacement_cleans_other_worker_and_all_pipes",
+        "test_cancellation_before_executor_entry_returns_assigned_worker_slots",
+        "test_expired_queued_request_never_acquires_worker_or_sends_ipc",
+        "test_admission_slot_is_released_exactly_once_in_cancel_race",
+        "test_active_cancellation_contains_worker_before_releasing_admission"
+      ],
+      "resolution": "unchanged_isolated_26_pass_and_final_serial_3377_pass_no_deadline_or_gate_relaxation"
+    },
+    {
+      "scope": "initial_production_route_budget",
+      "total_static_bytes": 3000515,
+      "homepage_budget_bytes": 3000000,
+      "resolution": "equivalent_CSS_consolidation_and_final_production_build_2999975_bytes_all_route_gates_pass"
+    },
+    {
+      "scope": "inspection_of_long_asking_price_PDF",
+      "cause": "inspection_expected_manual_provenance_on_existing_asking_price_fixture",
+      "resolution": "verified_actual_trial_price_basis_is_asking_price_in_PDF_and_checked_fixture_specific_provenance"
+    },
+    {
+      "scope": "machine_wide_dependency_audit",
+      "advisory_records": 26,
+      "affected_packages": 6,
+      "resolution": "unresolved_deployment_environment_restriction_owner_actual_runtime_audit_and_clean_rebuild_required"
+    }
+  ],
+  "production_bundle_headroom_bytes": 25,
+  "production_bundle_restriction": "recompute_unchanged_budget_on_actual_successor_build_with_its_real_release_environment",
+  "independent_review": {
+    "reviewer": "acceptance_review",
+    "fresh_read_only_review": true,
+    "critical_remaining": 0,
+    "important_remaining": 0,
+    "corrections": [
+      "missing_owner_dimensions_false_GO",
+      "preview_proof_for_production",
+      "unknown_version_aliases",
+      "missing_matching_deployed_release_versions",
+      "demo_array_response_support",
+      "real_refresh_endpoint_detection",
+      "allowlisted_reason_action_codes",
+      "successor_SHA_requirement"
+    ],
+    "artifact_consistency_review": "PASS",
+    "all_log_and_PDF_hashes_verified": true
+  },
+  "production_verdict": "NO-GO",
+  "safe_to_open_software_review_PR": true
+}

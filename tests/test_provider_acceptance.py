@@ -82,7 +82,7 @@ def test_live_failure_is_one_attempt_and_sanitized(monkeypatch):
         calls.append(1)
         raise httpx.ReadTimeout("private-key")
     monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", timeout)
-    result = run(capability="geocoding", mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, query="新北市板橋區文化路二段100號", allow_live=True)
+    result = run(capability="geocoding", mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, query="新北市板橋區文化路二段100號", allow_live=True, confirmed_environment="preview", request_budget=1)
     assert calls == [1]
     assert result["network_requests"] == 1
     assert result["reason_code"] == "provider_timeout"
@@ -101,7 +101,7 @@ def test_live_without_explicit_opt_in_never_calls_provider(monkeypatch):
 def test_invalid_live_inputs_report_zero_requests(monkeypatch, capability, inputs):
     from scripts.provider_acceptance import run
     monkeypatch.setattr(socket.socket, "connect", lambda *args: (_ for _ in ()).throw(AssertionError("no request allowed")))
-    result = run(capability=capability, mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, allow_live=True, **inputs)
+    result = run(capability=capability, mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, allow_live=True, confirmed_environment="preview", request_budget=1, **inputs)
     assert result["result"] == "fail"
     assert result["reason_code"] == "invalid_input"
     assert result["network_requests"] == 0
@@ -120,7 +120,7 @@ def test_geocoding_acceptance_distinguishes_rejection_empty_and_malformed(monkey
     from scripts.provider_acceptance import run
     response = httpx.Response(200, json=payload, request=httpx.Request("GET", "https://fixture.invalid"))
     monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *args, **kwargs: response)
-    result = run(capability="geocoding", mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, allow_live=True)
+    result = run(capability="geocoding", mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, allow_live=True, confirmed_environment="preview", request_budget=1)
     assert result["reason_code"] == reason
     assert "private-key" not in json.dumps(result)
 
@@ -135,6 +135,6 @@ def test_google_invalid_provider_coordinates_cannot_be_accepted(monkeypatch, lat
     response = httpx.Response(200, request=httpx.Request("GET", "https://fixture.invalid"))
     monkeypatch.setattr(response, "json", lambda: payload)
     monkeypatch.setattr("services.adapters.geocoding_adapter.httpx.get", lambda *args, **kwargs: response)
-    result = run(capability="geocoding", mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, allow_live=True)
+    result = run(capability="geocoding", mode="bounded-live", environ={"GOOGLE_MAPS_API_KEY": "private-key"}, allow_live=True, confirmed_environment="preview", request_budget=1)
     assert result["result"] == "fail"
     assert result["reason_code"] == "malformed_response"

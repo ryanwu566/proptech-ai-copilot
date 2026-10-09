@@ -54,6 +54,8 @@ const securityHeaders = [
 
 const nextConfig = {
   env: {
+    NEXT_PUBLIC_RELEASE_VERSION: /^[A-Za-z0-9._:-]{1,80}$/.test(process.env.RELEASE_VERSION ?? "") ? process.env.RELEASE_VERSION : "unconfigured",
+    NEXT_PUBLIC_RELEASE_ENVIRONMENT: ["preview", "production"].includes(process.env.APP_ENV ?? "") ? process.env.APP_ENV : "unconfigured",
     NEXT_PUBLIC_RELEASE_COMMIT_SHA: /^[a-f0-9]{40}$/i.test(process.env.RELEASE_COMMIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? "")
       ? (process.env.RELEASE_COMMIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA).toLowerCase()
       : "unconfigured",
