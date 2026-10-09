@@ -192,6 +192,7 @@ class BoundedMetricsRegistry:
         self._request_totals: dict[tuple[str, str, str], int] = {}
         self._latencies: dict[tuple[str, str], _Histogram] = {}
         self._responses_429 = 0
+        self._responses_503 = 0
         self._responses_5xx = 0
         self._lock = threading.Lock()
 
@@ -227,6 +228,8 @@ class BoundedMetricsRegistry:
                 self._responses_5xx += 1
             if status_code == 429:
                 self._responses_429 += 1
+            if status_code == 503:
+                self._responses_503 += 1
 
     def render_prometheus(self) -> str:
         """Render a deterministic Prometheus text exposition snapshot."""
@@ -238,6 +241,7 @@ class BoundedMetricsRegistry:
                 for key, value in self._latencies.items()
             }
             responses_429 = self._responses_429
+            responses_503 = self._responses_503
             responses_5xx = self._responses_5xx
 
         lines = [
@@ -255,6 +259,9 @@ class BoundedMetricsRegistry:
                 "# HELP proptech_http_responses_429_total Total HTTP 429 responses.",
                 "# TYPE proptech_http_responses_429_total counter",
                 f"proptech_http_responses_429_total {responses_429}",
+                "# HELP proptech_http_responses_503_total Total HTTP 503 responses.",
+                "# TYPE proptech_http_responses_503_total counter",
+                f"proptech_http_responses_503_total {responses_503}",
                 "# HELP proptech_http_responses_5xx_total Total HTTP 5xx responses.",
                 "# TYPE proptech_http_responses_5xx_total counter",
                 f"proptech_http_responses_5xx_total {responses_5xx}",

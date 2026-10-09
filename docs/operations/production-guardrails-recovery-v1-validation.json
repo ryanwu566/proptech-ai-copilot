@@ -1,0 +1,578 @@
+{
+  "schema_version": "production-guardrails-recovery-validation-v1",
+  "starting_sha": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+  "branch": "ops/production-guardrails-recovery-v1",
+  "scope": "local_worktree_implementation_not_deployed",
+  "python": {
+    "command": "python -m pytest -q",
+    "state": "PASS",
+    "passed": 3407,
+    "skipped": 32,
+    "warnings": 1,
+    "seconds": 404.23
+  },
+  "focused_review_fixes": {
+    "state": "PASS",
+    "passed": 44
+  },
+  "first_full_run": {
+    "passed": 3402,
+    "skipped": 32,
+    "failed": 1,
+    "failure": "test_rollback_rejects_mutable_refs_missing_artifacts_and_contract_changes",
+    "resolution": "frontend metadata regression corrected; final full suite rerun"
+  },
+  "gates": {
+    "release_quality_contract": "PASS",
+    "security_performance": "PASS",
+    "production_operations": "PASS",
+    "route_budget": "PASS",
+    "frontend_bundle_budget": "PASS",
+    "npm_audit": "PASS",
+    "repository_hygiene": "PASS",
+    "diff_check": "PASS",
+    "evidence_schema": "PASS",
+    "python_compile": "PASS",
+    "frontend_build": "PASS",
+    "provider_free_smoke": "PASS"
+  },
+  "npm_exception": {
+    "id": "GHSA-vfj7-8cjw-p6xm",
+    "scope": "existing_unchanged_dev_only_exception",
+    "expires_on": "2026-11-04",
+    "verified_as_of": "2026-10-09"
+  },
+  "bounded_load": {
+    "state": "PASS",
+    "local_only": true,
+    "capacity_rejections": 4,
+    "recovery_successes": 16
+  },
+  "drills": {
+    "restore": {
+      "state": "PASS",
+      "scope": "synthetic_disposable",
+      "result_file": "production-guardrails-recovery-v1-local-restore.json"
+    },
+    "rollback": {
+      "state": "PASS",
+      "scope": "offline_compatibility_only",
+      "result_file": "production-guardrails-recovery-v1-local-rollback.json"
+    }
+  },
+  "independent_review": {
+    "critical_remaining": 0,
+    "important_remaining": 0,
+    "resolved_important": [
+      "frontend_and_backend_rollback_contract"
+    ],
+    "resolved_minor": [
+      "backup_metadata_hardlink_overwrite"
+    ],
+    "additional_safety_fixes": [
+      "local_docker_socket",
+      "creation_timeout_ownership_cleanup",
+      "historical_registry_inventory",
+      "malformed_evidence_types_and_numbers"
+    ]
+  },
+  "production_mutations": 0,
+  "production_decision": "NO_GO",
+  "external_controls": "BLOCKED",
+  "ci_execution": "NOT_RUN",
+  "hosted_execution": "NOT_RUN",
+  "frontend_source_changed": false,
+  "frontend_lint_and_browser_tests": "NOT_RUN_frontend_source_unchanged",
+  "post_integration": {
+    "original_implementation_baseline": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+    "original_feature_commit": "f0baa31af02c93908c2b27719470b75413c88b77",
+    "integration_baseline": "602830c8d4d405bb401afa902d5bf69f2c61066f",
+    "reviewed_code_commit_before_documentation_amend": "fb0b78c5754c1c13dcabc28a7cf1c3c80051f7fc",
+    "backup_branch": "backup/production-guardrails-recovery-pre-integration",
+    "scope": "local_integration_not_deployed",
+    "conflicts": [
+      "scripts/generate_release_evidence.py"
+    ],
+    "semantic_resolution": [
+      "retain_datetime_date_for_PR170_and_sys_path_for_LaneE",
+      "preserve_original_PR170_gate_identity_version_and_owner_checks",
+      "both_CLI_modes_consume_guardrail_owner_records_and_proof_root",
+      "reuse_production_guardrails_v1_extension_in_both_existing_output_modes",
+      "missing_or_invalid_required_guardrail_proof_clamps_acceptance_to_NO_GO",
+      "retain_64KB_acceptance_limit_reject_duplicate_keys_and_nonstandard_numbers",
+      "invalid_input_returns_bounded_category_without_echoing_private_data"
+    ],
+    "python": {
+      "command": "python -m pytest -q",
+      "state": "PASS",
+      "passed": 3459,
+      "skipped": 32,
+      "warnings": 1,
+      "seconds": 258.45
+    },
+    "focused": {
+      "state": "PASS",
+      "passed": 195,
+      "warnings": 1
+    },
+    "initial_full_run": {
+      "failed": 1,
+      "passed": 3458,
+      "skipped": 32,
+      "warnings": 1,
+      "seconds": 395.44,
+      "failure": "test_admission_slot_is_released_exactly_once_in_cancel_race",
+      "failed_stage": "worker_startup_unavailable_before_cancel_scenario",
+      "resolution": "unchanged_worker_pool_tests_26_passed_then_full_suite_rerun_without_concurrent_build_no_assertion_timeout_or_budget_change"
+    },
+    "gates": {
+      "release_quality_contract": "PASS",
+      "security_performance": "PASS",
+      "production_operations": "PASS",
+      "provider_free_smoke": "PASS",
+      "evidence_schema": "PASS",
+      "python_compile": "PASS",
+      "repository_hygiene": "PASS",
+      "diff_check": "PASS",
+      "frontend_deterministic": "PASS",
+      "frontend_lint": "PASS",
+      "frontend_typecheck": "PASS",
+      "frontend_build": "PASS",
+      "npm_audit": "PASS",
+      "route_budget": "PASS",
+      "frontend_bundle_budget": "PASS"
+    },
+    "release_quality_skipped_duplicate_checks": [
+      "python_tests_run_separately",
+      "frontend_build_run_separately"
+    ],
+    "frontend_source_changed_against_integration_baseline": false,
+    "frontend_deterministic": {
+      "passed": 65,
+      "workspace_contract": "PASS",
+      "browser_tests": "NOT_RUN_frontend_source_unchanged"
+    },
+    "frontend_lint": {
+      "errors": 0,
+      "existing_warnings": 23
+    },
+    "frontend_bundle_measurement": {
+      "initial_javascript_bytes": 2848217,
+      "largest_chunk_budget_bytes": 900000,
+      "largest_client_chunk_bytes": 608747,
+      "status": "pass",
+      "total_budget_bytes": 8000000,
+      "total_static_bytes": 2997577
+    },
+    "npm_exception": {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "scope": "existing_unchanged_dev_only_exception",
+      "expires_on": "2026-11-04"
+    },
+    "restore_drill": {
+      "schema_version": "postgres-recovery-drill-v1",
+      "scope": "synthetic_disposable",
+      "state": "PASS",
+      "reason": "synthetic_restore_verified",
+      "production_connections": 0,
+      "image_id": "sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94",
+      "postgres_major": 16,
+      "managed_migrations": 15,
+      "backup_sha256": "607b1e631955cbf864b906f69b2b55d9a05af1edb3d8c057c454c2ddb9e30cb3",
+      "backup_bytes": 359312,
+      "restore_seconds": 4.55,
+      "row_constraint_ledger_validation": "PASS",
+      "validation_sha256": "01cb1a33d9f9b47be73a13f4c29686dcdd29e65e470f513c6c009a97120d2c79",
+      "constraint_validation_scope": "inventory_and_synthetic_fk_check_rejection",
+      "production_backup": "BLOCKED",
+      "production_restore": "BLOCKED",
+      "production_acl_role_restore": "NOT_TESTED",
+      "daemon_scope": "local_socket",
+      "cleanup": "PASS"
+    },
+    "rollback_drill": {
+      "state": "PASS",
+      "checks": {
+        "frontend_immutable": true,
+        "backend_immutable": true,
+        "frontend_consumer_tree": true,
+        "api_contract": true,
+        "schema": true,
+        "artifacts": true
+      },
+      "scope": "offline_compatibility_only",
+      "production_rollback": "BLOCKED",
+      "schema_version": "rollback-drill-v1",
+      "current_frontend": "fb0b78c5754c1c13dcabc28a7cf1c3c80051f7fc",
+      "current_backend": "fb0b78c5754c1c13dcabc28a7cf1c3c80051f7fc",
+      "candidate_frontend": "602830c8d4d405bb401afa902d5bf69f2c61066f",
+      "candidate_backend": "602830c8d4d405bb401afa902d5bf69f2c61066f",
+      "artifact_manifest_scope": "synthetic_retained_artifact_map"
+    },
+    "bounded_load": {
+      "state": "PASS",
+      "local_only": true,
+      "capacity_rejections": 4,
+      "recovery_successes": 16
+    },
+    "independent_review": {
+      "critical_remaining": 0,
+      "important_remaining": 0,
+      "minor_remaining": 0,
+      "documentation_corrections": [
+        "standalone_extension_vs_parent_acceptance_verdict",
+        "shared_extension_consumed_by_PR170_and_future_v2"
+      ]
+    },
+    "required_topology": {
+      "main_only": 0,
+      "feature_only": 1
+    },
+    "changed_files_against_integration_baseline": 37,
+    "production_mutations": 0,
+    "production_decision": "NO_GO",
+    "external_controls": "BLOCKED",
+    "hosted_execution": "NOT_RUN",
+    "ci_execution": "NOT_RUN"
+  },
+  "latest_main_integration": {
+    "recorded_on": "2026-10-10",
+    "timezone": "Asia/Taipei",
+    "scope": "local_integration_not_deployed",
+    "original_implementation_baseline": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+    "first_integration_baseline": "602830c8d4d405bb401afa902d5bf69f2c61066f",
+    "integration_baseline": "8469c1f22b64a0e03be03a0099c59a8483d9e0c8",
+    "original_feature_commit": "f0baa31af02c93908c2b27719470b75413c88b77",
+    "previous_integrated_commit": "726b66c8a74c6ddc868ebc51c647bbfc1996da82",
+    "cherry_pick_commit_before_working_tree_amend": "07f6b933524f2048b16f5c2dac399f008f6115cb",
+    "final_commit_resolution": "git rev-parse ops/production-guardrails-recovery-v1; actual amended SHA is recorded after commit in the handoff and ignored .local/latest-main-integration/final-handoff.json; a commit cannot embed its own SHA",
+    "backup_branch": "backup/production-guardrails-recovery-pre-latest-main",
+    "conflicts": [
+      "scripts/generate_release_evidence.py"
+    ],
+    "semantic_resolution": [
+      "retain_PR170_acceptance_validation",
+      "retain_PR172_supplied_closure_projection_and_veto",
+      "require_LaneE_guardrail_archive_in_both_shared_output_modes",
+      "combine_all_three_CLI_inputs_without_duplicate_framework"
+    ],
+    "migration_investigation": {
+      "historical_job_url": "https://github.com/ryanwu566/proptech-ai-copilot/actions/runs/37955394478/job/113904493407",
+      "historical_validator": "PASS_15_managed_migrations_rollback_transaction",
+      "historical_contract_tests": "PASS_3_tests",
+      "historical_failure_stage": "database_ready",
+      "historical_exact_exception": "NOT_RETAINED_IN_LOGS_AND_NOT_REPRODUCED",
+      "historical_exact_cause": "UNPROVEN_HISTORICAL_EXCEPTION_UNRECOVERED",
+      "fresh_CI_purpose": "Validate_final_branch_not_recover_the_lost_historical_exception",
+      "not_classified_as_transient_or_stale_base": true,
+      "migration_SQL_registry_runner_validator_bootstrap_and_ops_workflow_unchanged_between_bases": true,
+      "unmodified_windows_and_linux_full_drills": "PASS_including_exact_CI_image",
+      "unmodified_linux_startup_repetitions": {
+        "attempts": 30,
+        "passed": 30
+      },
+      "confirmed_defect_category": "E_readiness_test_contract_bug",
+      "confirmed_defect": "Official image temporary init server accepts Unix socket while listen_addresses is empty and TCP is not ready; entrypoint subsequently restarts into final server",
+      "historical_link": "Consistent_with_stage_and_duration_but_inference_not_proof",
+      "fix": "Use 127.0.0.1 TCP for readiness and validation SQL inside same network-none no-port owned container",
+      "retry_attempts": 30,
+      "retry_interval_seconds": 0.5,
+      "timeouts_changed": false,
+      "regression": "Temporary_socket_server_false_readiness_RED_before_fix_GREEN_after_fix; bounded_unready_rejection_and_cleanup_GREEN",
+      "fixture_fixes": [
+        "authoritative_registry_exact_inventory_instead_of_stale_14_migration_assumption",
+        "checksum_drift_rejection_added",
+        "Stage1_operator_fixtures_through017_only_other_RLS_fixtures_retain018"
+      ],
+      "local_harness_fix": "Create separate market_e2e database; no market source or tests changed"
+    },
+    "migration_inventory": {
+      "registry_entries": 20,
+      "managed_production_runner": 15,
+      "terminal_schema_version": "schema-019",
+      "next_sequence": "020"
+    },
+    "postgres_e2e": {
+      "state": "PASS",
+      "passed": 32,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 1,
+      "seconds": 124.72,
+      "failed_tests": [],
+      "local_log": ".local/latest-main-integration/migration-e2e-final.log",
+      "fresh_validator_runs": 2,
+      "empty_catalog_after_each_rollback": true,
+      "fresh_apply_repeat_prefix_upgrade": "PASS",
+      "exact_ledger_catalog_RLS_constraints_and_checksum_drift": "PASS",
+      "cleanup": "PASS",
+      "production_connections": 0,
+      "command": "python .local/latest-main-integration/migration_e2e.py",
+      "test_files": [
+        "tests/test_production_postgres_ops.py",
+        "tests/test_vnext_migration_rehearsal_postgres.py",
+        "tests/test_vnext_rls_postgres.py",
+        "tests/test_ris_population_postgres_integration.py",
+        "tests/test_market_postgres_e2e.py",
+        "tests/test_market_direct_query_postgres.py"
+      ]
+    },
+    "python": {
+      "state": "PASS",
+      "passed": 3567,
+      "failed": 0,
+      "skipped": 33,
+      "warnings": 155,
+      "seconds": 275.2,
+      "failed_tests": [],
+      "local_log": ".local/latest-main-integration/full-python-linux.log",
+      "environment": "Linux_Python3.12.14_Node24.21.0",
+      "command": "python -m pytest -q --basetemp /tmp/production-release-pytest"
+    },
+    "first_full_run": {
+      "state": "FAIL",
+      "passed": 3566,
+      "failed": 2,
+      "skipped": 32,
+      "warnings": 155,
+      "seconds": 545.72,
+      "failed_tests": [
+        "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+        "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes"
+      ],
+      "local_log": ".local/latest-main-integration/full-python.log",
+      "environment": "Windows_Python3.12.13_Node24.14.1",
+      "failures": [
+        "test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+        "test_failed_replacement_cleans_other_worker_and_all_pipes"
+      ],
+      "context": "Overlapped disposable database/build/dependency checks; resource contention is possible but not established",
+      "resolution": "Unchanged worker source, tests, assertions and timeouts; isolated whole worker file PASS; Windows complete serial rerun still fails; complete Linux suite run with repository-pinned Node"
+    },
+    "windows_serial_full_run": {
+      "state": "FAIL",
+      "passed": 3564,
+      "failed": 4,
+      "skipped": 32,
+      "warnings": 155,
+      "seconds": 635.01,
+      "failed_tests": [
+        "tests/test_earth_engine_worker_pool.py::test_physical_generation_metric_counts_worker_dispatch_not_startup",
+        "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+        "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+        "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes"
+      ],
+      "local_log": ".local/latest-main-integration/full-python-serial.log",
+      "environment": "Windows_Python3.12.13_Node24.14.1",
+      "scope": "Retained_platform_verification_gap_not_suppressed",
+      "worker_source_and_tests_unchanged_against_main": true,
+      "same_environment_main_control": "NOT_RUN_preexisting_failure_not_claimed"
+    },
+    "worker_diagnostic": {
+      "state": "PASS",
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 0,
+      "seconds": 43.05,
+      "failed_tests": [],
+      "local_log": ".local/latest-main-integration/worker-diagnostic.log",
+      "command": "python -m pytest -q tests/test_earth_engine_worker_pool.py"
+    },
+    "formal_ML_schema_supplement": {
+      "state": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 0,
+      "seconds": 1.92,
+      "failed_tests": [],
+      "local_log": ".local/latest-main-integration/ml-schema.log",
+      "command": "python -m pytest -q tests/test_ml_dataset_foundation.py::test_local_contracts_also_pass_formal_json_schema_validation",
+      "environment": "Windows_with_jsonschema",
+      "reason": "Linux workflow dependencies omit optional jsonschema; additional Linux skip was separately exercised with dependency installed"
+    },
+    "focused": {
+      "state": "PASS",
+      "passed": 464,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": 4,
+      "seconds": 61.46,
+      "failed_tests": [],
+      "local_log": ".local/latest-main-integration/final-focused.log",
+      "command_file": ".local/latest-main-integration/run_final_focused.ps1",
+      "test_files": [
+        "tests/test_production_guardrails.py",
+        "tests/test_guardrail_recovery.py",
+        "tests/test_final_production_acceptance.py",
+        "tests/test_production_identity_closure.py",
+        "tests/test_production_provider_evidence.py",
+        "tests/test_hosted_production_launch.py",
+        "tests/test_production_readiness.py",
+        "tests/test_production_postgres_ops.py",
+        "tests/test_apply_production_migrations.py",
+        "tests/test_rate_limit.py",
+        "tests/test_anti_abuse.py",
+        "tests/test_security_hardening.py",
+        "tests/test_api_cost_journey.py",
+        "tests/test_google_provider_cost_optimization.py",
+        "tests/test_satellite_cost_optimization.py",
+        "tests/test_terrain_provider_cost.py",
+        "tests/test_production_ops_gate.py",
+        "tests/test_release_ops_workflow.py",
+        "tests/test_bounded_load.py",
+        "tests/test_provider_acceptance.py",
+        "tests/test_ml_target_reframing.py",
+        "tests/test_ml_authoritative_history.py",
+        "tests/test_runtime_dependency_evidence.py"
+      ],
+      "command": "python -m pytest -q <test_files> --basetemp .local/latest-main-integration/final-focused-temp"
+    },
+    "production_identity_provider_closure": "PASS_missing_deployed_proof_remains_NO_GO",
+    "ML_A2": {
+      "target_a": "BLOCKED",
+      "target_b": "BLOCKED",
+      "PIT_valid": 0,
+      "approved_training_cohort": 0,
+      "ML_B": "MAY_NOT_BEGIN",
+      "source_and_evidence_unchanged": true
+    },
+    "frontend": {
+      "source_changed": false,
+      "deterministic_tests_passed": 30,
+      "workspace_contract": "PASS",
+      "typecheck": "PASS",
+      "build": "PASS",
+      "lint_errors": 0,
+      "existing_lint_warnings": 23,
+      "npm_ls_all": "PASS",
+      "production_audit_vulnerabilities": 0,
+      "existing_audit_gate": "PASS",
+      "dev_only_exception": "GHSA-vfj7-8cjw-p6xm_unchanged_expires_2026-11-04",
+      "browser_tour": "NOT_RERUN_frontend_source_unchanged_user_authorized"
+    },
+    "budgets": {
+      "static_total_bytes": 2998938,
+      "largest_client_JS_bytes": 597008,
+      "ceiling_bytes": 3000000,
+      "ceiling_changed": false,
+      "route_and_bundle_gate": "PASS"
+    },
+    "gates": {
+      "release_quality": "PASS_separate_full_Python_and_build",
+      "security_performance": "PASS",
+      "production_operations": "PASS_external_acceptance_BLOCKED",
+      "cost_guardrails": "PASS",
+      "production_provider_free_smoke": "PASS",
+      "strict_python_dependency_audit": "PASS_no_known_vulnerabilities",
+      "SBOM": "PASS",
+      "compile": "PASS",
+      "repository_hygiene": "PASS",
+      "diff_check": "PASS",
+      "both_shared_guardrail_schemas": "PASS"
+    },
+    "restore_drill": {
+      "backup_bytes": 359299,
+      "backup_sha256": "e53a426c15a1f129ff8801ede4ea70442f9dd662eaf9b63d4cdb75913a3f0434",
+      "cleanup": "PASS",
+      "constraint_validation_scope": "inventory_and_synthetic_fk_check_rejection",
+      "daemon_scope": "local_socket",
+      "image_id": "sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d",
+      "managed_migrations": 15,
+      "postgres_major": 16,
+      "production_acl_role_restore": "NOT_TESTED",
+      "production_backup": "BLOCKED",
+      "production_connections": 0,
+      "production_restore": "BLOCKED",
+      "reason": "synthetic_restore_verified",
+      "restore_seconds": 1.117,
+      "row_constraint_ledger_validation": "PASS",
+      "schema_version": "postgres-recovery-drill-v1",
+      "scope": "synthetic_disposable",
+      "state": "PASS",
+      "validation_sha256": "01cb1a33d9f9b47be73a13f4c29686dcdd29e65e470f513c6c009a97120d2c79"
+    },
+    "rollback_drill_before_documentation_amend": {
+      "state": "PASS",
+      "checks": {
+        "frontend_immutable": true,
+        "backend_immutable": true,
+        "frontend_consumer_tree": true,
+        "api_contract": true,
+        "schema": true,
+        "artifacts": true
+      },
+      "scope": "offline_compatibility_only",
+      "production_rollback": "BLOCKED",
+      "schema_version": "rollback-drill-v1",
+      "current_frontend": "07f6b933524f2048b16f5c2dac399f008f6115cb",
+      "current_backend": "07f6b933524f2048b16f5c2dac399f008f6115cb",
+      "candidate_frontend": "8469c1f22b64a0e03be03a0099c59a8483d9e0c8",
+      "candidate_backend": "8469c1f22b64a0e03be03a0099c59a8483d9e0c8",
+      "artifact_manifest_scope": "synthetic_retained_artifact_map"
+    },
+    "final_rollback_resolution": "Rerun with actual amended SHA and record in ignored final-handoff.json; historical tracked rollback snapshots remain historical",
+    "bounded_load": {
+      "state": "PASS",
+      "local_only": true,
+      "capacity_rejections": 4,
+      "recovery_successes": 16
+    },
+    "CI_parity": {
+      "python_windows": "3.12.13",
+      "python_linux": "3.12.14",
+      "python_historical_CI": "3.12.15",
+      "linux_helper_OS": "Debian13.7_trixie",
+      "GitHub_runner_OS": "ubuntu-latest",
+      "node_local": "24.14.1",
+      "node_repository_CI_pin": "24.21.0",
+      "postgres_major": 16,
+      "postgres_image_digest": "sha256:ca0bd484cb98bf4b24eb1010e73fb3fcbd6714d240fbc1a10eea5b7dbecb641d",
+      "linux_recovery_helper": "Python3.12_Docker28_same_historical_postgres_image_exact_repository_command",
+      "database_port": "Owned_loopback_ephemeral_replaces_Windows_reserved5432",
+      "dependencies": "backend/requirements.txt_and_pytest>=8,<9; full Linux suite uses exact portable TypeScript package from completed Windows npm ci",
+      "full_linux_source_archive_sha256": "3806f5fd6c49f4f8fe02351d578f7a55a5bba3d99c4b51aef82d63954c221ddc",
+      "full_linux_source_scope": "Reviewed working source and shallow Git metadata copied into owned internal filesystem; archive input read only; no external network",
+      "GitHub_on_final_commit": "NOT_RUN_REQUIRED_BEFORE_MERGE",
+      "workflow_checks_weakened": false
+    },
+    "independent_review": {
+      "critical_remaining": 0,
+      "important_remaining": 0,
+      "actionable_minor_remaining": 0,
+      "resolved_minor_documentation": [
+        "contention_not_established_as_sole_explanation",
+        "fresh_CI_cannot_recover_lost_historical_cause",
+        "label_first_full_environment_Windows"
+      ],
+      "scope": "read_only_full_main_to_feature_diff_including_working_tree_source_test_fixes"
+    },
+    "changed_files_against_integration_baseline": 40,
+    "required_topology": {
+      "main_only": 0,
+      "feature_only": 1
+    },
+    "external_guardrail_controls": {
+      "count": 15,
+      "state": "BLOCKED"
+    },
+    "production_decision": "NO_GO",
+    "production_connections": 0,
+    "production_mutations": 0,
+    "pushes": 0,
+    "merges": 0,
+    "deployments": 0,
+    "cloud_mutations": 0,
+    "remaining_owner_actions": [
+      "Deployed_frontend_backend_identity_configuration",
+      "Artifact_provider_runtime_acceptance",
+      "Allowed_hosts_ingress_bypass_and_atomic_fleet_admission",
+      "Deployed_edge_WAF_and_provider_global_cost_controls",
+      "Delivered_monitoring_billing_alerts",
+      "Production_backup_offsite_access_staging_restore_RPO_RTO",
+      "Immutable_hosted_rollback",
+      "Incident_authority_primary_backup_paging_receipts"
+    ]
+  }
+}

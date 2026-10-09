@@ -68,8 +68,14 @@ def safe_identifier(value: str, *, field: str = "identifier") -> str:
 def safe_origin(origin: str | None) -> str | None:
     if not origin:
         return None
-    parsed = urlsplit(origin.strip())
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc or parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
+    if any(ord(char) < 32 for char in origin) or "\\" in origin:
+        return None
+    try:
+        parsed = urlsplit(origin.strip())
+        port = parsed.port
+    except ValueError:
+        return None
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname or parsed.username or parsed.password or (port is not None and not 1 <= port <= 65535) or parsed.path not in {"", "/"} or parsed.query or parsed.fragment:
         return None
     return f"{parsed.scheme}://{parsed.netloc}".lower()
 

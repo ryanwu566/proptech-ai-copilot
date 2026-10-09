@@ -1,5 +1,10 @@
 # Backup and Restore
 
+For the isolated PostgreSQL rehearsal, integrity metadata and production-owner
+retention/offsite/role coverage requirements, use the
+[guardrails recovery runbook](operations/production-guardrails-recovery-v1-runbook.md#backup-and-restore).
+The SQLite commands below continue to prove local SQLite recovery only.
+
 ## What is backed up
 
 The managed Postgres provider is the system of record for pilot sessions,

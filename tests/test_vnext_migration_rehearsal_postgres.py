@@ -9,7 +9,7 @@ import pytest
 
 from scripts import apply_production_migrations as runner
 from scripts.disposable_postgres_auth import bootstrap_disposable_supabase_auth
-from scripts.migration_registry import load_registry, next_safe_sequence
+from scripts.migration_registry import load_registry, next_safe_sequence, production_migrations
 from scripts.validate_postgres_migration import _statements
 from services.postgres_runtime import connect
 
@@ -42,9 +42,10 @@ def _reset_database(connection) -> None:
 
 
 def _assert_ledger(connection) -> None:
+    managed = [row for row in load_registry() if row.execution_policy == "production_runner"]
     expected = {
-        path.stem: runner._checksum(path)
-        for path in runner.MIGRATIONS
+        Path(row.filename).stem: row.sha256
+        for row in managed
     }
     actual = dict(
         connection.execute(
@@ -52,9 +53,14 @@ def _assert_ledger(connection) -> None:
         ).fetchall()
     )
     assert actual == expected
-    assert len(actual) == 14
+    assert len(actual) == len(managed)
     assert any(migration_id.startswith("018_") for migration_id in actual)
-    assert not any(migration_id.startswith("019_") for migration_id in actual)
+    assert any(migration_id.startswith("019_") for migration_id in actual)
+    versions = dict(connection.execute(
+        "SELECT migration_id, schema_version FROM public.schema_migration_ledger"
+    ).fetchall())
+    assert versions == {Path(row.filename).stem: f"schema-{row.sequence:03d}" for row in managed}
+    assert connection.execute("SELECT to_regclass('public.ris_village_demographics')").fetchone()[0] is not None
 
 
 def _assert_catalog(connection) -> None:
@@ -143,8 +149,10 @@ def _install_existing_production_prefix(connection) -> None:
 
 def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 19
-    assert len(runner.MIGRATIONS) == 14
+    managed = production_migrations(registrations)
+    expected_next = max(row.sequence for row in registrations) + 1
+    assert next_safe_sequence(registrations) == expected_next
+    assert runner.MIGRATIONS == managed
 
     with connect(DATABASE_URL) as connection:
         _reset_database(connection)
@@ -155,9 +163,9 @@ def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> N
     )
     assert clean == {
         "status": "pass",
-        "migration_count": 14,
-        "registry_count": 19,
-        "next_migration_sequence": "019",
+        "migration_count": len(managed),
+        "registry_count": len(registrations),
+        "next_migration_sequence": f"{expected_next:03d}",
         "ledger": "applied",
         "verification": "tables_indexes_foreign_keys",
     }
@@ -169,6 +177,19 @@ def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> N
     with connect(DATABASE_URL) as connection:
         _assert_ledger(connection)
         _assert_catalog(connection)
+        connection.execute(
+            "UPDATE public.schema_migration_ledger SET checksum = %s WHERE migration_id = %s",
+            ("f" * 64, "019_add_ris_village_demographics"),
+        )
+        connection.commit()
+    assert runner.apply(DATABASE_URL, release_version="checksum-drift-rejected") == {
+        "status": "unavailable", "reason": "migration_checksum_drift",
+    }
+    with connect(DATABASE_URL) as connection:
+        assert connection.execute(
+            "SELECT checksum FROM public.schema_migration_ledger WHERE migration_id = %s",
+            ("019_add_ris_village_demographics",),
+        ).fetchone()[0] == "f" * 64
         _reset_database(connection)
         _install_existing_production_prefix(connection)
         assert connection.execute(

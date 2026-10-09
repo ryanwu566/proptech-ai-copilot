@@ -54,6 +54,8 @@ from services.production_config import MAINTENANCE_MODE_ENV
 from services.satellite_reference import feature_enabled
 from services.vnext.errors import ErrorCode, VNextError
 from backend.api.abuse_middleware import AbuseMiddleware
+from backend.api.ingress_middleware import IngressMiddleware
+from services.production_guardrails import assert_guardrail_configuration
 from services.anti_abuse import AbuseRejected, capability_enabled
 
 
@@ -93,6 +95,7 @@ async def app_lifespan(_app: FastAPI):
     """Validate production configuration before accepting requests."""
 
     assert_startup_configuration()
+    assert_guardrail_configuration()
     from services.satellite_reference import clear_satellite_reference_cache
 
     clear_satellite_reference_cache()
@@ -130,6 +133,7 @@ app = FastAPI(
 )
 
 app.add_middleware(AbuseMiddleware)
+app.add_middleware(IngressMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

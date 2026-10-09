@@ -1,0 +1,18 @@
+{
+  "state": "PASS",
+  "checks": {
+    "frontend_immutable": true,
+    "backend_immutable": true,
+    "frontend_consumer_tree": true,
+    "api_contract": true,
+    "schema": true,
+    "artifacts": true
+  },
+  "scope": "offline_compatibility_only",
+  "production_rollback": "BLOCKED",
+  "schema_version": "rollback-drill-v1",
+  "current_frontend": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+  "current_backend": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+  "candidate_frontend": "9d680023618538ba6815ed3f217a1f9ea33bb565",
+  "candidate_backend": "9d680023618538ba6815ed3f217a1f9ea33bb565"
+}

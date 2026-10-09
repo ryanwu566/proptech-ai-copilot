@@ -1,0 +1,47 @@
+{
+  "trusted_ingress": {
+    "state": "BLOCKED"
+  },
+  "cross_instance": {
+    "state": "BLOCKED"
+  },
+  "edge_waf": {
+    "state": "BLOCKED"
+  },
+  "google_quota": {
+    "state": "BLOCKED"
+  },
+  "google_browser_quota": {
+    "state": "BLOCKED"
+  },
+  "earth_engine_quota": {
+    "state": "BLOCKED"
+  },
+  "other_metered_providers": {
+    "state": "BLOCKED"
+  },
+  "billing_alerts": {
+    "state": "BLOCKED"
+  },
+  "global_cost_ceiling": {
+    "state": "BLOCKED"
+  },
+  "kill_switch_rollout": {
+    "state": "BLOCKED"
+  },
+  "monitoring": {
+    "state": "BLOCKED"
+  },
+  "production_backup": {
+    "state": "BLOCKED"
+  },
+  "production_restore": {
+    "state": "BLOCKED"
+  },
+  "hosted_rollback": {
+    "state": "BLOCKED"
+  },
+  "incident_escalation": {
+    "state": "BLOCKED"
+  }
+}

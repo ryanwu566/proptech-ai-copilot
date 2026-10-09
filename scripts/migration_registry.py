@@ -105,6 +105,12 @@ def load_registry(
         payload = json.loads(registry_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         raise MigrationRegistryError("migration_registry_unavailable") from exc
+    return parse_registry(payload, migration_directory=migration_directory, verify_files=verify_files)
+
+
+def parse_registry(payload: Any, *, migration_directory: Path = MIGRATION_DIRECTORY,
+                   verify_files: bool = True) -> tuple[MigrationRegistration, ...]:
+    """Validate either working-tree or read-only historical registry content."""
     if not isinstance(payload, dict) or payload.get("registry_version") != 1:
         raise MigrationRegistryError("migration_registry_version_invalid")
     raw_migrations = payload.get("migrations")

@@ -38,6 +38,7 @@ def test_readiness_does_not_expose_config_details_in_production(monkeypatch) -> 
     monkeypatch.setenv("PILOT_SESSION_SIGNING_KEY", "s" * 32)
     monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://frontend.example")
     monkeypatch.setenv("PUBLIC_APP_BASE_URL", "https://frontend.example")
+    monkeypatch.setenv("API_ALLOWED_HOSTS", "testserver")
     monkeypatch.setenv("PILOT_ADMIN_TOKEN", "admin-test-token")
     # Mock database connectivity so endpoint reaches HTTP 200 path
     monkeypatch.setattr(

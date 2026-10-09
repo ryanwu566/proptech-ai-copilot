@@ -25,6 +25,14 @@ The backend entry point is `backend.api_main:app`. Render should not use the roo
 Backend boot and CORS:
 
 - `CORS_ALLOWED_ORIGINS`
+- `API_ALLOWED_HOSTS` (required exact backend/probe hosts in production/preview;
+  no schemes, ports or wildcards)
+- `ANTI_ABUSE_ENFORCEMENT_MODE=local_only` (the only implemented mode; no global
+  enforcement claim)
+
+See the [guardrails owner runbook](operations/production-guardrails-recovery-v1-runbook.md)
+before deploying this change. Missing host configuration fails startup.
+These repository settings do not prove deployed ingress or WAF protection.
 
 Optional backend feature configuration:
 
