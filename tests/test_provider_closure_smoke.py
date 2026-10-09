@@ -24,7 +24,7 @@ def test_release_mismatch_cannot_pass_hosted_smoke(monkeypatch):
             return 204, {"access-control-allow-origin": "https://frontend.example"}, None
         return 200, headers, {"commit_sha": "a" * 40, "environment": "preview", "release_version": "old"}
     monkeypatch.setattr(production_smoke, "_hosted_json", response)
-    result = production_smoke.run_hosted(frontend_url="https://frontend.example", backend_url="https://backend.example", expected_environment="production", expected_release="new")
+    result = production_smoke.run_hosted(frontend_url="https://frontend.example", backend_url="https://backend.example", expected_environment="production", expected_release="new", expected_frontend_sha="a" * 40, expected_backend_sha="a" * 40)
     assert result["status"] == "fail"
     assert result["checks"]["release_identity"] == "fail"
 
@@ -32,6 +32,6 @@ def test_release_mismatch_cannot_pass_hosted_smoke(monkeypatch):
 def test_unknown_deployed_shas_cannot_prove_current_main(monkeypatch):
     monkeypatch.setattr(production_smoke, "_hosted_text", lambda *args, **kwargs: (200, {}, "offline"))
     monkeypatch.setattr(production_smoke, "_hosted_json", lambda *args, **kwargs: (200, {}, {}))
-    result = production_smoke.run_hosted(frontend_url="https://frontend.example", backend_url="https://backend.example")
+    result = production_smoke.run_hosted(frontend_url="https://frontend.example", backend_url="https://backend.example", expected_environment="production", expected_release="r1", expected_frontend_sha="a" * 40, expected_backend_sha="a" * 40)
     assert result["release_identity"] == {"frontend_sha": "unconfigured", "backend_sha": "unconfigured"}
     assert result["checks"]["deployed_identity"] != "pass"

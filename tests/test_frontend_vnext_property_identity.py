@@ -76,6 +76,8 @@ def test_production_auth_deployment_contract_and_browser_boundary() -> None:
         "NEXT_PUBLIC_API_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
         "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY",
         "NEXT_PUBLIC_RELEASE_COMMIT_SHA",
+        "NEXT_PUBLIC_RELEASE_VERSION",
+        "NEXT_PUBLIC_RELEASE_ENVIRONMENT",
     }
     browser_source = AUTH + CLIENT + AUTH_GATE + LIVE_ROUTE + PROFESSIONAL_WORKSPACE
     for forbidden in ("sb_secret_", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "signInWithOAuth", "signUp("):

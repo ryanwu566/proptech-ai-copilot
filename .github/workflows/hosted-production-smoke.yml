@@ -31,7 +31,7 @@ jobs:
           EXPECTED_BACKEND_COMMIT_SHA: ${{ vars.EXPECTED_BACKEND_COMMIT_SHA }}
         run: |
           set -euo pipefail
-          if [ -z "${FRONTEND_PRODUCTION_URL}" ] || [ -z "${BACKEND_PRODUCTION_URL}" ]; then
+          if [ -z "${FRONTEND_PRODUCTION_URL}" ] || [ -z "${BACKEND_PRODUCTION_URL}" ] || [ -z "${EXPECTED_RELEASE_VERSION}" ] || [ -z "${EXPECTED_FRONTEND_COMMIT_SHA}" ] || [ -z "${EXPECTED_BACKEND_COMMIT_SHA}" ]; then
             echo "HOSTED_SMOKE=configuration_required"
             exit 0
           fi

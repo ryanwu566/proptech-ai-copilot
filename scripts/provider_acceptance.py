@@ -109,7 +109,7 @@ def _valid_endpoint(endpoint: tuple[float, float]) -> bool:
         return False
 
 
-def run(*, capability: str, mode: str = "config-only", environ: Mapping[str, str] | None = None, allow_live: bool = False, query: str = "台北市大安區敦化南路二段100號", origin: tuple[float, float] | None = None, destination: tuple[float, float] | None = None, manifest: Path | None = None, artifact: Path | None = None, dataset_version: str | None = None, scenario: str = "24h-350mm", fixtures: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def run(*, capability: str, mode: str = "config-only", environ: Mapping[str, str] | None = None, allow_live: bool = False, confirmed_environment: str | None = None, request_budget: int | None = None, query: str = "台北市大安區敦化南路二段100號", origin: tuple[float, float] | None = None, destination: tuple[float, float] | None = None, manifest: Path | None = None, artifact: Path | None = None, dataset_version: str | None = None, scenario: str = "24h-350mm", fixtures: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     values = os.environ if environ is None else environ
     config = configuration_status(capability, values)
     version = dataset_version or values.get("GSMMA_GEOLOGICAL_SENSITIVITY_DATASET_VERSION", "") if capability == "gsmma" else "v1" if capability == "wra" else "113" if capability == "ardswc" else "not_checked"
@@ -121,7 +121,7 @@ def run(*, capability: str, mode: str = "config-only", environ: Mapping[str, str
             result.update(result="configuration_required", reason_code="configuration_required")
         return result
     if mode == "bounded-live":
-        if not allow_live or capability not in {"geocoding", "routes"} or any(value != "present" for value in config.values()) or capability == "routes" and (origin is None or destination is None):
+        if not allow_live or confirmed_environment not in {"preview", "production"} or type(request_budget) is not int or request_budget != 1 or capability not in {"geocoding", "routes"} or any(value != "present" for value in config.values()) or capability == "routes" and (origin is None or destination is None):
             return {**result, "result": "configuration_required", "reason_code": "live_contract_required"}
         if capability == "geocoding" and (not isinstance(query, str) or not query.strip() or len(query) > 500) or capability == "routes" and (not _valid_endpoint(origin) or not _valid_endpoint(destination)):
             return {**result, "result": "fail", "provider_status": "unavailable", "reason_code": "invalid_input"}
@@ -159,6 +159,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", choices=("config-only", "offline-fixture", "bounded-live"), default="config-only")
     parser.add_argument("--dry-run", action="store_true", help="Alias for config-only, no requests")
     parser.add_argument("--allow-live", action="store_true", help="One Google capability request, no retry; follow runbook budget")
+    parser.add_argument("--confirmed-environment", choices=("preview", "production"))
+    parser.add_argument("--request-budget", type=int, help="Must equal 1 for live acceptance; no retries")
     parser.add_argument("--query", default="台北市大安區敦化南路二段100號")
     parser.add_argument("--origin", nargs=2, type=float, metavar=("LAT", "LNG"))
     parser.add_argument("--destination", nargs=2, type=float, metavar=("LAT", "LNG"))
@@ -176,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
             fixtures = json.loads(args.fixtures_json.read_text(encoding="utf-8"))
             if not isinstance(fixtures, list) or len(fixtures) > 3:
                 raise ValueError("fixture contract")
-        result = run(capability=args.capability, mode="config-only" if args.dry_run else args.mode, allow_live=args.allow_live, query=args.query, origin=tuple(args.origin) if args.origin else None, destination=tuple(args.destination) if args.destination else None, manifest=args.manifest, artifact=args.artifact, dataset_version=args.dataset_version, scenario=args.scenario, fixtures=fixtures)
+        result = run(capability=args.capability, mode="config-only" if args.dry_run else args.mode, allow_live=args.allow_live, confirmed_environment=args.confirmed_environment, request_budget=args.request_budget, query=args.query, origin=tuple(args.origin) if args.origin else None, destination=tuple(args.destination) if args.destination else None, manifest=args.manifest, artifact=args.artifact, dataset_version=args.dataset_version, scenario=args.scenario, fixtures=fixtures)
     except Exception:
         result = {"capability": args.capability, "result": "fail", "reason_code": "acceptance_input_invalid", "network_requests": 0}
     print(json.dumps(result, sort_keys=True, ensure_ascii=True))
