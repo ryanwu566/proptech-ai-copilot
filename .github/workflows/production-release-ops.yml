@@ -80,6 +80,10 @@ jobs:
         run: python scripts/validate_postgres_migration.py --database-url "postgresql://postgres@127.0.0.1:5432/proptech_test"
       - name: Run migration and backup contract tests
         run: python -m pytest -q tests/test_production_postgres_ops.py --basetemp "${RUNNER_TEMP}/production-ops-pytest"
+      - name: Rehearse PostgreSQL backup and restore in an isolated disposable container
+        run: |
+          docker pull postgres:16
+          python scripts/postgres_recovery_drill.py --execute-disposable --output "${RUNNER_TEMP}/postgres-recovery-drill.json"
 
   browser:
     needs: quality

@@ -1,8 +1,10 @@
 """Final acceptance fails closed before traffic or readiness claims."""
 
 import importlib
+import hashlib
 import json
 import socket
+from datetime import UTC, datetime
 
 import pytest
 
@@ -157,3 +159,107 @@ def test_exact_artifact_observation_preserved_but_missing_other_gates_still_bloc
 def test_deployed_release_version_must_match_expected(field):
     with pytest.raises(ValueError):
         evidence.build_acceptance_evidence(expected_main_sha=SHA, release_version="r1", gates=[{**artifact_observation(), field: "old-release"}])
+
+
+def complete_acceptance_observations():
+    return [{**artifact_observation(), "capability": capability,
+             "mode": "local" if capability in evidence.LOCAL_GATES else "hosted",
+             "owner_evidence_verified": True, "evidence_sha256": "e" * 64,
+             "latest_effective_period": "2026-Q3"}
+            for capability in evidence.REQUIRED_GATES]
+
+
+def test_complete_acceptance_scorecard_cannot_bypass_missing_guardrail_proofs():
+    result = evidence.build_acceptance_evidence(expected_main_sha=SHA, release_version="r1", gates=complete_acceptance_observations())
+    assert all(row["classification"] == "PASS" for row in result["gates"])
+    assert result["verdict"] == "NO-GO"
+    assert result["production_guardrails"]["external_acceptance"] == "BLOCKED"
+    assert all(row["state"] == "BLOCKED" for row in result["production_guardrails"]["controls"].values())
+
+
+def synthetic_guardrail_archive(tmp_path):
+    from services.guardrail_evidence import EXPECTATIONS
+    support = tmp_path / "support.json"
+    support.write_text('{"scope":"synthetic_test_only"}', encoding="utf-8")
+    records = {}
+    for control, (owner, expected) in EXPECTATIONS.items():
+        proof = tmp_path / f"{control}.json"
+        proof.write_text(json.dumps({"control": control, "release_commit": SHA,
+                         "facts": {key: value[0] if isinstance(value, tuple) else value for key, value in expected.items()},
+                         "evidence_files": [{"file": support.name, "sha256": hashlib.sha256(support.read_bytes()).hexdigest(), "kind": "owner_review"}]}), encoding="utf-8")
+        records[control] = {"state": "PASS", "owner_role": owner, "verified_at": datetime.now(UTC).isoformat(),
+                            "release_commit": SHA, "proof_file": proof.name, "proof_sha256": hashlib.sha256(proof.read_bytes()).hexdigest()}
+    return records
+
+
+@pytest.mark.parametrize("restricted", [False, True])
+def test_acceptance_verdict_requires_complete_scorecard_and_valid_guardrail_archive(tmp_path, restricted):
+    records = synthetic_guardrail_archive(tmp_path)
+    support = tmp_path / "support.json"
+    gates = complete_acceptance_observations()
+    if restricted:
+        gates[0]["classification"] = "PASS WITH RESTRICTIONS"
+    result = evidence.build_acceptance_evidence(expected_main_sha=SHA, release_version="r1", gates=gates, guardrail_records=records, proof_root=tmp_path)
+    assert result["verdict"] == ("CONDITIONAL GO" if restricted else "GO")
+    assert result["production_guardrails"]["external_acceptance"] == "PASS"
+    # Hashes validate an offline assertion archive, not live cloud authenticity.
+    support.write_text("{}", encoding="utf-8")
+    changed = evidence.build_acceptance_evidence(expected_main_sha=SHA, release_version="r1", gates=gates, guardrail_records=records, proof_root=tmp_path)
+    assert changed["verdict"] == "NO-GO"
+
+
+def test_combined_cli_keeps_guardrail_archive_and_blocks_forged_closure(tmp_path, monkeypatch, capsys):
+    from services.production_closure import SCHEMA
+    records = synthetic_guardrail_archive(tmp_path)
+    inputs = {"gates": complete_acceptance_observations(), "owners": records,
+              "closure": {"schema_version": SCHEMA, "sections": {},
+                          "acceptance": {"lane_status": "PASS", "product_go": True},
+                          "secret": "private-closure-value"}}
+    for name, payload in inputs.items():
+        (tmp_path / f"{name}.json").write_text(json.dumps(payload), encoding="utf-8")
+    output = tmp_path / "output.json"
+    monkeypatch.setattr("sys.argv", ["generate_release_evidence", "--output", str(output),
+                        "--release-id", "r1", "--commit", SHA, "--schema-version", "v1",
+                        "--acceptance-input", str(tmp_path / "gates.json"),
+                        "--guardrail-owner-records", str(tmp_path / "owners.json"),
+                        "--closure-json", str(tmp_path / "closure.json"), "--proof-root", str(tmp_path)])
+    assert evidence.main() == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["production_guardrails"]["external_acceptance"] == "PASS"
+    assert all(row["classification"] == "PASS" for row in payload["gates"])
+    assert payload["closure_acceptance"]["lane_status"] == "BLOCKED"
+    assert payload["closure_acceptance"]["product_go"] is False
+    assert payload["verdict"] == "NO-GO"
+    assert "private-closure-value" not in json.dumps(payload)
+    assert str(tmp_path) not in capsys.readouterr().out
+
+
+def test_acceptance_cli_consumes_guardrail_records_without_leaking_input(tmp_path, monkeypatch, capsys):
+    gates = tmp_path / "gates.json"
+    records = tmp_path / "owners.json"
+    output = tmp_path / "output.json"
+    gates.write_text(json.dumps(complete_acceptance_observations()), encoding="utf-8")
+    records.write_text(json.dumps({"trusted_ingress": {"state": "PASS"}}), encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["generate_release_evidence", "--output", str(output),
+                        "--release-id", "r1", "--commit", SHA, "--schema-version", "v1",
+                        "--acceptance-input", str(gates), "--guardrail-owner-records", str(records),
+                        "--proof-root", str(tmp_path)])
+    assert evidence.main() == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "final-production-acceptance-v1"
+    assert payload["verdict"] == "NO-GO"
+    assert payload["production_guardrails"]["controls"]["trusted_ingress"]["state"] == "FAIL"
+    assert str(tmp_path) not in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("raw", ['{"state":"BLOCKED","state":"PASS"}', '[NaN]', '"private-input"'])
+def test_acceptance_cli_rejects_ambiguous_or_invalid_input(tmp_path, monkeypatch, capsys, raw):
+    source = tmp_path / "gates.json"
+    output = tmp_path / "output.json"
+    source.write_text(raw, encoding="utf-8")
+    monkeypatch.setattr("sys.argv", ["generate_release_evidence", "--output", str(output),
+                        "--release-id", "r1", "--commit", SHA, "--schema-version", "v1",
+                        "--acceptance-input", str(source)])
+    assert evidence.main() == 1
+    assert not output.exists()
+    assert capsys.readouterr().out == "RELEASE_EVIDENCE=invalid_input\n"

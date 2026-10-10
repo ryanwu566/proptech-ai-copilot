@@ -56,6 +56,7 @@ def test_coordinate_destination_returns_mock_fallback_without_key() -> None:
 
 def test_production_without_key_is_unavailable_no_mock_numbers(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("API_ALLOWED_HOSTS", "testserver")
     monkeypatch.delenv("DEMO_ROUTES_FALLBACK", raising=False)
     response = client.post("/commute/route", json={
         "origin_latitude": 25.0330,
@@ -76,6 +77,7 @@ def test_production_without_key_is_unavailable_no_mock_numbers(monkeypatch: pyte
 
 def test_production_demo_optin_still_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("API_ALLOWED_HOSTS", "testserver")
     monkeypatch.setenv("DEMO_ROUTES_FALLBACK", "true")
     response = client.post("/commute/route", json={
         "origin_latitude": 25.0330,

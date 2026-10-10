@@ -1,5 +1,12 @@
 # Hosted Rollback Runbook
 
+Record independent full frontend/backend commit SHAs, retained immutable
+deployment/image identities, live migration ledger and artifact checksums.
+Run the read-only verifier in the
+[guardrails recovery runbook](operations/production-guardrails-recovery-v1-runbook.md#rollback-and-incident-decisions)
+before an owner-approved staging drill. Mutable names, missing retained
+artifacts or schema mismatch remain BLOCKED; no automatic down migration.
+
 ## Detection
 
 Use bounded liveness/readiness/release/compatibility checks and the hosted

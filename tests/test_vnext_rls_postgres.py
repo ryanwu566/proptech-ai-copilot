@@ -216,7 +216,7 @@ def _seed(connection) -> None:
 
 
 @contextmanager
-def _prepared_database():
+def _prepared_database(*, stage2: bool = True):
     import psycopg
     from psycopg import sql
     from psycopg.conninfo import conninfo_to_dict, make_conninfo
@@ -239,8 +239,9 @@ def _prepared_database():
         assert admin.execute(
             "SELECT to_regclass('vnext_core.case_parcel_sets')"
         ).fetchone()[0] is None
-        for statement in _statements(MIGRATIONS[-1]):
-            admin.execute(statement)
+        if stage2:
+            for statement in _statements(MIGRATIONS[-1]):
+                admin.execute(statement)
         _seed(admin)
         admin.execute(
             sql.SQL("ALTER ROLE vnext_api PASSWORD {}").format(sql.Literal(password))
@@ -950,7 +951,8 @@ def test_real_postgres_stage1_acceptance_bundle_is_reversible_and_drift_safe() -
     property_id = UUID("30000000-0000-4000-8000-000000000002")
     config = AcceptanceConfig(USERS["none"], workspace_id, property_id)
 
-    with _prepared_database() as (admin, _pool, _context):
+    # The Stage 1 operator deliberately rejects the later Stage 2 catalog.
+    with _prepared_database(stage2=False) as (admin, _pool, _context):
         _install_acceptance_ledger(admin)
         store = PostgresAcceptanceStore(admin)
 
@@ -1049,7 +1051,7 @@ def test_real_postgres_stage1_preflight_rejects_policy_and_owner_drift() -> None
         UUID("30000000-0000-4000-8000-000000000012"),
     )
 
-    with _prepared_database() as (admin, _pool, _context):
+    with _prepared_database(stage2=False) as (admin, _pool, _context):
         _install_acceptance_ledger(admin)
         store = PostgresAcceptanceStore(admin)
         assert execute_acceptance(store, config, mode="dry_run")["status"] == "ready"
@@ -1064,7 +1066,7 @@ def test_real_postgres_stage1_preflight_rejects_policy_and_owner_drift() -> None
             "reason": "request_rls_unsafe",
         }
 
-    with _prepared_database() as (admin, _pool, _context):
+    with _prepared_database(stage2=False) as (admin, _pool, _context):
         _install_acceptance_ledger(admin)
         admin.execute(
             "ALTER TABLE vnext_core.property_entities OWNER TO vnext_api"

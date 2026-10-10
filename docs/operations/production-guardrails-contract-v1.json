@@ -1,0 +1,318 @@
+{
+  "schema_version": "production-guardrail-expectations-v1",
+  "scope": "proposed_beta_owner_requirements",
+  "maximum_evidence_bytes": 262144,
+  "maximum_age_days": 7,
+  "controls": {
+    "trusted_ingress": {
+      "owner_role": "ingress_owner",
+      "required": true,
+      "facts": {
+        "proxy_headers": {
+          "equals": "disabled"
+        },
+        "direct_backend_bypass": {
+          "equals": "denied"
+        },
+        "all_ingress_paths_reviewed": {
+          "equals": true
+        }
+      }
+    },
+    "cross_instance": {
+      "owner_role": "reliability_owner",
+      "required": true,
+      "facts": {
+        "atomic_shared_reservations": {
+          "equals": true
+        },
+        "all_workers_revisions_covered": {
+          "equals": true
+        },
+        "store_failure": {
+          "equals": "reject_503"
+        },
+        "two_instance_drill": {
+          "equals": "PASS"
+        }
+      }
+    },
+    "edge_waf": {
+      "owner_role": "ingress_owner",
+      "required": true,
+      "facts": {
+        "expensive_routes_covered": {
+          "equals": true
+        },
+        "aggregate_rules": {
+          "equals": true
+        },
+        "bot_rules": {
+          "equals": true
+        },
+        "body_limit_bytes": {
+          "minimum": 1,
+          "maximum": 1000000
+        },
+        "upload_limit_bytes": {
+          "minimum": 1,
+          "maximum": 11000000
+        },
+        "backend_bypass": {
+          "equals": "denied"
+        },
+        "emergency_deny_test": {
+          "equals": "PASS"
+        }
+      }
+    },
+    "google_quota": {
+      "owner_role": "provider_owner",
+      "required": true,
+      "facts": {
+        "geocoding_per_minute": {
+          "minimum": 1,
+          "maximum": 30
+        },
+        "places_per_minute": {
+          "minimum": 1,
+          "maximum": 30
+        },
+        "routes_per_minute": {
+          "minimum": 1,
+          "maximum": 10
+        },
+        "all_projects_keys_consumers_covered": {
+          "equals": true
+        },
+        "effective_quota_verified": {
+          "equals": true
+        }
+      }
+    },
+    "google_browser_quota": {
+      "owner_role": "provider_owner",
+      "required": true,
+      "facts": {
+        "api_restrictions": {
+          "equals": true
+        },
+        "referrer_restrictions": {
+          "equals": true
+        },
+        "effective_quotas_verified": {
+          "equals": true
+        },
+        "separate_browser_consumers_reviewed": {
+          "equals": true
+        }
+      }
+    },
+    "earth_engine_quota": {
+      "owner_role": "provider_owner",
+      "required": true,
+      "facts": {
+        "daily_eecu_seconds": {
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "concurrent_requests": {
+          "minimum": 1,
+          "maximum": 2
+        },
+        "effective_quota_verified": {
+          "equals": true
+        },
+        "approximate_quota_acknowledged": {
+          "equals": true
+        }
+      }
+    },
+    "other_metered_providers": {
+      "owner_role": "provider_owner",
+      "required": true,
+      "facts": {
+        "r2_storage_requests_egress_reviewed": {
+          "equals": true
+        },
+        "tdx_tgos_gateway_entitlements_reviewed": {
+          "equals": true
+        },
+        "all_active_consumers_inventoried": {
+          "equals": true
+        }
+      }
+    },
+    "billing_alerts": {
+      "owner_role": "billing_owner",
+      "required": true,
+      "facts": {
+        "actual_percent_thresholds": {
+          "equals": [
+            50,
+            80,
+            100
+          ]
+        },
+        "forecast_percent_threshold": {
+          "equals": 100
+        },
+        "primary_delivery_test": {
+          "equals": "PASS"
+        },
+        "backup_delivery_test": {
+          "equals": "PASS"
+        }
+      }
+    },
+    "global_cost_ceiling": {
+      "owner_role": "billing_owner",
+      "required": true,
+      "facts": {
+        "all_metered_services_covered": {
+          "equals": true
+        },
+        "enforced_currency_ceiling": {
+          "equals": true
+        },
+        "alert_only": {
+          "equals": false
+        },
+        "overshoot_delay_reviewed": {
+          "equals": true
+        },
+        "shutdown_drill": {
+          "equals": "PASS"
+        }
+      }
+    },
+    "kill_switch_rollout": {
+      "owner_role": "incident_owner",
+      "required": true,
+      "facts": {
+        "all_active_revisions_covered": {
+          "equals": true
+        },
+        "safe_disable_drill": {
+          "equals": "PASS"
+        },
+        "recovery_drill": {
+          "equals": "PASS"
+        },
+        "inflight_work_reviewed": {
+          "equals": true
+        }
+      }
+    },
+    "monitoring": {
+      "owner_role": "reliability_owner",
+      "required": true,
+      "facts": {
+        "protected_scrape": {
+          "equals": true
+        },
+        "all_instances_scraped": {
+          "equals": true
+        },
+        "bounded_labels": {
+          "equals": true
+        },
+        "health_alert": {
+          "equals": true
+        },
+        "error_latency_budget_alerts": {
+          "equals": true
+        },
+        "artifact_release_alerts": {
+          "equals": true
+        },
+        "notification_delivery_test": {
+          "equals": "PASS"
+        }
+      }
+    },
+    "production_backup": {
+      "owner_role": "database_owner",
+      "required": true,
+      "facts": {
+        "encrypted_offsite": {
+          "equals": true
+        },
+        "retention_days": {
+          "minimum": 7,
+          "maximum": 90
+        },
+        "backup_age_hours": {
+          "minimum": 0,
+          "maximum": 24
+        },
+        "checksum_verified": {
+          "equals": true
+        },
+        "restore_access_verified": {
+          "equals": true
+        },
+        "all_datastores_covered": {
+          "equals": true
+        }
+      }
+    },
+    "production_restore": {
+      "owner_role": "database_owner",
+      "required": true,
+      "facts": {
+        "target": {
+          "equals": "disposable_or_staging"
+        },
+        "row_constraint_ledger_validation": {
+          "equals": "PASS"
+        },
+        "artifact_compatibility": {
+          "equals": "PASS"
+        },
+        "owner_rpo_rto_reviewed": {
+          "equals": true
+        }
+      }
+    },
+    "hosted_rollback": {
+      "owner_role": "release_owner",
+      "required": true,
+      "facts": {
+        "immutable_frontend": {
+          "equals": true
+        },
+        "immutable_backend": {
+          "equals": true
+        },
+        "schema_artifact_compatibility": {
+          "equals": "PASS"
+        },
+        "staging_drill": {
+          "equals": "PASS"
+        },
+        "health_identity_verification": {
+          "equals": "PASS"
+        }
+      }
+    },
+    "incident_escalation": {
+      "owner_role": "incident_owner",
+      "required": true,
+      "facts": {
+        "primary_backup_named_privately": {
+          "equals": true
+        },
+        "paging_delivery_test": {
+          "equals": "PASS"
+        },
+        "runbook_reviewed": {
+          "equals": true
+        },
+        "decision_authority_recorded": {
+          "equals": true
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "schema_version": "production-release-evidence-v1",
+  "generated_at": "2026-10-09T14:52:09.601644+00:00",
+  "release_id": "production-guardrails-recovery-v1",
+  "commit": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+  "schema_compatibility": "schema-007",
+  "validation": {
+    "local": "generated",
+    "ci": "pending",
+    "preview": "pending",
+    "production": "pending"
+  },
+  "owner_actions": [],
+  "production_guardrails": {
+    "schema_version": "production-guardrails-v1",
+    "release_commit": "b4eb441a8ccf90965102f0646006dc4b0e145491",
+    "controls": {
+      "trusted_ingress": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "ingress_owner"
+      },
+      "cross_instance": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "reliability_owner"
+      },
+      "edge_waf": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "ingress_owner"
+      },
+      "google_quota": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "google_browser_quota": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "earth_engine_quota": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "other_metered_providers": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "billing_alerts": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "billing_owner"
+      },
+      "global_cost_ceiling": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "billing_owner"
+      },
+      "kill_switch_rollout": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "incident_owner"
+      },
+      "monitoring": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "reliability_owner"
+      },
+      "production_backup": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "database_owner"
+      },
+      "production_restore": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "database_owner"
+      },
+      "hosted_rollback": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "release_owner"
+      },
+      "incident_escalation": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "incident_owner"
+      }
+    },
+    "external_acceptance": "BLOCKED",
+    "production_decision": "NO_GO",
+    "unrelated_acceptance": "UNKNOWN",
+    "verification_scope": "offline_owner_proof"
+  },
+  "privacy": {
+    "secrets_included": false,
+    "raw_payloads_included": false,
+    "customer_data_included": false
+  }
+}

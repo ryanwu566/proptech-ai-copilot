@@ -19,6 +19,29 @@ checklist, not an automated production call.
 Do not place credentials, database settings, provider payloads, addresses, or
 production response bodies in this checklist or in release evidence.
 
+## Production guardrails and recovery acceptance
+
+Consume the `production_guardrails` extension of the existing
+`production-release-evidence-v1` and PR #170's `final-production-acceptance-v1` outputs from
+`scripts/generate_release_evidence.py`. Its contract/schema and
+[owner runbook](operations/production-guardrails-recovery-v1-runbook.md) cover
+trusted ingress, coordinated abuse limits, backend edge/WAF, provider quotas,
+billing/global cost, fleet kill switches/monitoring, production backup/restore,
+hosted rollback and escalation. Missing owner proof is BLOCKED, never PASS.
+Repository operations-gate PASS and local recovery PASS do not close external
+controls. Every required external control and every unrelated final acceptance
+item needs independent evidence before changing the NO_GO decision.
+
+The existing `--acceptance-input` mode retains #170's pinned deployed identity,
+exact source versions, owner evidence and categorical gate checks. Supply
+`--guardrail-owner-records` and `--proof-root` to the same invocation. Its verdict
+is NO-GO while any required guardrail lacks valid proof, even if every scorecard
+gate says PASS. The nested `production-guardrails-v1` schema is shared across
+both outputs and is an input for future acceptance v2, not another acceptance
+framework. Proof hashes check archive identity and assertions; independent
+review must establish deployed authenticity. Local drills never substitute for
+production proof.
+
 ## Phase 5A manual acceptance
 
 Every item below starts as `PENDING`. The default release decision is

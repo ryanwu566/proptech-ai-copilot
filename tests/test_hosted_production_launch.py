@@ -171,8 +171,11 @@ def test_release_cli_combines_acceptance_and_closure_without_trusting_go(tmp_pat
     assert "private-value" not in json.dumps(payload)
 
 
-def test_blocked_closure_prevents_complete_scorecard_go() -> None:
+def test_blocked_closure_prevents_complete_scorecard_go(tmp_path) -> None:
     from scripts import generate_release_evidence as evidence
+    from tests.test_final_production_acceptance import synthetic_guardrail_archive
+
+    owners = synthetic_guardrail_archive(tmp_path)
 
     rows = [{
         "capability": capability, "classification": "PASS", "test_result": "pass",
@@ -189,9 +192,12 @@ def test_blocked_closure_prevents_complete_scorecard_go() -> None:
             "positive_fixture_verified", "negative_fixture_verified", "unknown_semantics_verified",
         )},
     } for capability in evidence.REQUIRED_GATES]
-    assert evidence.build_acceptance_evidence(expected_main_sha="a" * 40, release_version="r1", gates=rows)["verdict"] == "GO"
+    assert evidence.build_acceptance_evidence(expected_main_sha="a" * 40, release_version="r1", gates=rows,
+                                               guardrail_records=owners, proof_root=tmp_path)["verdict"] == "GO"
     result = build_evidence(release_id="r1", commit="a" * 40, schema_version="schema-007",
-                            acceptance_gates=rows, closure={"schema_version": "production-provider-closure-v1", "sections": {}})
+                            acceptance_gates=rows, guardrail_records=owners, proof_root=tmp_path,
+                            closure={"schema_version": "production-provider-closure-v1", "sections": {}})
+    assert result["production_guardrails"]["external_acceptance"] == "PASS"
     assert result["verdict"] == "NO-GO"
     assert result["closure_acceptance"]["product_go"] is False
 

@@ -1,0 +1,932 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Production guardrails release evidence extension",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "release_commit",
+    "controls",
+    "external_acceptance",
+    "production_decision",
+    "unrelated_acceptance",
+    "verification_scope"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "production-guardrails-v1"
+    },
+    "release_commit": {
+      "type": "string",
+      "pattern": "^(?:[a-f0-9]{40}|unconfigured)$"
+    },
+    "controls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "trusted_ingress",
+        "cross_instance",
+        "edge_waf",
+        "google_quota",
+        "google_browser_quota",
+        "earth_engine_quota",
+        "other_metered_providers",
+        "billing_alerts",
+        "global_cost_ceiling",
+        "kill_switch_rollout",
+        "monitoring",
+        "production_backup",
+        "production_restore",
+        "hosted_rollback",
+        "incident_escalation"
+      ],
+      "properties": {
+        "trusted_ingress": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "cross_instance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "edge_waf": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "google_quota": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "google_browser_quota": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "earth_engine_quota": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "other_metered_providers": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "billing_alerts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "global_cost_ceiling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "kill_switch_rollout": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "monitoring": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "production_backup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "production_restore": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "hosted_rollback": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        },
+        "incident_escalation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "owner_role"
+          ],
+          "properties": {
+            "state": {
+              "enum": [
+                "BLOCKED",
+                "FAIL",
+                "NOT_APPLICABLE",
+                "PASS",
+                "UNKNOWN"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "owner_role": {
+              "type": "string",
+              "maxLength": 40
+            },
+            "proof_sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "verified_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "release_commit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "state": {
+                    "const": "PASS"
+                  }
+                }
+              },
+              "then": {
+                "required": [
+                  "proof_sha256",
+                  "verified_at",
+                  "release_commit"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "external_acceptance": {
+      "enum": [
+        "PASS",
+        "BLOCKED"
+      ]
+    },
+    "production_decision": {
+      "const": "NO_GO"
+    },
+    "unrelated_acceptance": {
+      "const": "UNKNOWN"
+    },
+    "verification_scope": {
+      "const": "offline_owner_proof"
+    }
+  }
+}

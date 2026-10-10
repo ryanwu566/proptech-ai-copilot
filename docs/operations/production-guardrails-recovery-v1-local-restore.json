@@ -1,0 +1,21 @@
+{
+  "schema_version": "postgres-recovery-drill-v1",
+  "scope": "synthetic_disposable",
+  "state": "PASS",
+  "reason": "synthetic_restore_verified",
+  "production_connections": 0,
+  "image_id": "sha256:f1c3376c26f2609ab9f29f71f824103fe2fcd8ee0346485cb6122a4f93df6f94",
+  "postgres_major": 16,
+  "managed_migrations": 15,
+  "backup_sha256": "e31679b4a4294c29f7fb925055ffd21aac1eb69230633431fd5acdeee9601e4d",
+  "backup_bytes": 359302,
+  "restore_seconds": 1.513,
+  "row_constraint_ledger_validation": "PASS",
+  "validation_sha256": "01cb1a33d9f9b47be73a13f4c29686dcdd29e65e470f513c6c009a97120d2c79",
+  "constraint_validation_scope": "inventory_and_synthetic_fk_check_rejection",
+  "production_backup": "BLOCKED",
+  "production_restore": "BLOCKED",
+  "production_acl_role_restore": "NOT_TESTED",
+  "daemon_scope": "local_socket",
+  "cleanup": "PASS"
+}
