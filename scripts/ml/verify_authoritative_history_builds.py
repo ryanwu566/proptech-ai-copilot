@@ -14,6 +14,8 @@ PRIVATE_KEYS = {'occurrence_id', 'physical_occurrence_id', 'transaction_family_i
                 'version_id', 'raw_payload_sha256', '編號', '土地位置建物門牌', '建物門牌', '土地位置',
                 '姓名', '電話', '手機', '身分證字號', '統一編號', 'address', 'phone', 'email',
                 'notes', '備註', 'target', 'features', 'records', 'rows'}
+PRIVATE_KEYS |= {'name', 'phone_number', 'owner_identity', 'owner_name', 'personal_identifier',
+                 '身分證號', '所有權人', '權利人姓名', '聯絡電話'}
 
 
 def check_privacy(value) -> None:
