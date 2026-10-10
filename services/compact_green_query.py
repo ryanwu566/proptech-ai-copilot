@@ -385,6 +385,7 @@ def _map_green_row(row: dict[str, Any]) -> dict[str, Any]:
     period_code = int(row["period_code"])
     return {
         "transaction_period": decode_period(period_code),
+        "_explanation_missing_fields": [key for key in ("area_ping", "unit_price_per_ping", "total_price", "building_age_years", "floor") if row.get(key) is None],
         "city": str(row.get("city") or ""),
         "district": str(row.get("district") or ""),
         "road": str(row.get("road") or ""),
