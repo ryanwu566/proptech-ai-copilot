@@ -1,0 +1,69 @@
+{
+  "validation": "PASS",
+  "schema_version": "1.0",
+  "research_date": "2026-10-10",
+  "validation_date": "2026-10-11",
+  "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e",
+  "checks": [
+    "JSON parsing / Unicode",
+    "source uniqueness / checked dates / local references",
+    "claim source references",
+    "64x21 matrix / evidence status / acquisition targets",
+    "CSV matrix equality",
+    "gap coverage / scores / ranks / acyclic dependencies",
+    "parity and differentiation arithmetic",
+    "100-point Work rubric",
+    "Markdown local links",
+    "ML and production boundaries"
+  ],
+  "counts": {
+    "capabilities": 64,
+    "product_columns": 21,
+    "matrix_cells": 1344,
+    "established_products": 13,
+    "emerging_products": 7,
+    "github_repositories": 10,
+    "source_records": 167,
+    "cell_values": {
+      "PARTIAL": 136,
+      "YES": 72,
+      "UNKNOWN": 1109,
+      "NO": 27
+    },
+    "backlog_priorities": {
+      "P0": 5,
+      "P1": 6,
+      "P2": 7,
+      "P3": 7,
+      "DO_NOT_BUILD": 8
+    }
+  },
+  "scores": {
+    "research_parity": 36.4,
+    "internal_differentiation_strength": 90.0,
+    "deployed_work_score": null
+  },
+  "limitations": [
+    "Artifact integrity validation, not competitor/app execution or legal/model/data acceptance.",
+    "No application tests/build/live provider requests performed in research lane.",
+    "Final commit SHA belongs in delivery response to avoid self-reference."
+  ],
+  "external_requests_from_validator": 0,
+  "production_application_changes": false,
+  "independent_review": {
+    "date": "2026-10-11",
+    "review_scopes": [
+      "Precise competitor/emerging capability mapping, parity eligibility and readiness claims",
+      "Scoring arithmetic, dependencies, 100-point rubric, GitHub reuse/activity and scope"
+    ],
+    "critical_remaining": 0,
+    "important_remaining": 0,
+    "corrections": [
+      "Excluded restricted AI beta and professional/report-subscription scope from commodity parity",
+      "Separated after-repair property value from renovation cash costs",
+      "Qualified personalized-fit and memory patterns as inferred",
+      "Scoped comparative leadership claims to repository strengths",
+      "Corrected and scoped substantive GitHub update evidence"
+    ]
+  }
+}

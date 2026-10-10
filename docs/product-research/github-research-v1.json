@@ -1,0 +1,1392 @@
+{
+  "schema_version": "1.0",
+  "research_date": "2026-10-10",
+  "timezone": "Asia/Taipei",
+  "title": "Public GitHub implementation references for Taiwan property intelligence",
+  "methodology": {
+    "selection": "Ten actual public repositories selected for property tools, auditable comparables/AVM, Taiwan government ingestion, mortgage scenarios, spatial risk joins, document conversion, monitoring and reproducible reports. Generic enabling tools are explicitly labeled. Low-value dashboard demos were omitted.",
+    "verification": "Web discovery plus unauthenticated GitHub REST metadata and default-branch history; official raw README/license/source inspection. Star counts are exact API values at recorded UTC snapshot times.",
+    "activity_definition": "Selected date is the latest observed substantive source/application/pipeline behavior within the bounded inspected default-branch sample (eight recent commits per repository; thirty for changedetection). Merge wrappers, badges, documentation, dependency bumps and publishing-only CI are separated. Substantive UI and pipeline source changes count. Commit detail review is selective, and the research does not claim exhaustive all-branch recency. Head, pushed_at and updated_at remain separately recorded.",
+    "license_caution": "Conditional technical candidates and architecture references only; no compatibility clearance, source-code copying or dependency audit. Permissive repository license does not grant rights to vendor data, websites or model weights.",
+    "maturity_caution": "Stars and maintainer test claims do not establish production readiness. Only assessor operational lineage has direct property-model institutional evidence; deployments/tests were not independently reproduced.",
+    "temporal_integrity": "UTC timestamps were compared after conversion to Asia/Taipei against the client research date. No recorded selected repository/commit timestamp falls after 2026-10-10 in Asia/Taipei. Future-dated source evidence must be excluded from current claims if added later.",
+    "limits": [
+      "No end-to-end government/API integrations executed.",
+      "No security, financial correctness, Chinese OCR, AVM calibration or performance benchmark performed.",
+      "Default-branch source and metadata can change after the snapshot; recheck license and pin an audited release before adoption."
+    ],
+    "supplemental_activity_review": "2026-10-11: corrected changedetection to October 8 login-language behavior and Cook County AVM to September 11 dvc.lock pipeline upload; reviewed newer GeoPandas maintenance diff. Original October 10 star snapshots and acquisition dates remain unchanged; new detailed verification sources carry the actual October 11 date."
+  },
+  "summary": {
+    "project_count": 10,
+    "property_specific_count": 5,
+    "prioritize_prototype": [
+      "taiwan-property-price-cli",
+      "mcp-imo",
+      "mortgagemath"
+    ],
+    "architecture_only": [
+      "real-estate-mcp",
+      "cook-county-residential-avm",
+      "posland"
+    ],
+    "enabling_tools": [
+      "geopandas",
+      "docling",
+      "changedetection",
+      "quarto"
+    ],
+    "recommended_sequence": [
+      "Use official Taiwan batch data as historical backbone and validate live-query normalization.",
+      "Build an auditable comp baseline before a locally trained AVM; expose uncertainty and missing-data limits.",
+      "Add bank-validated deterministic mortgage scenarios and official dated risk overlays.",
+      "Preserve source/page provenance through ingestion, reports and change alerts."
+    ],
+    "notable_findings": [
+      "AGPL applies to agentic-ops/real-estate-mcp and Cook County model-res-avm; treat them as architecture references pending license compatibility review.",
+      "Taiwan CLI and French comp MCP are young zero-star projects at this snapshot, useful for prototyping rather than assumed production readiness.",
+      "g0v/posland metadata activity is much newer than its 2015 source changes.",
+      "Quarto official core COPYING.md is MIT despite GitHub API NOASSERTION."
+    ]
+  },
+  "projects": [
+    {
+      "id": "real-estate-mcp",
+      "name": "agentic-ops/real-estate-mcp",
+      "owner": "agentic-ops",
+      "repo": "real-estate-mcp",
+      "url": "https://github.com/agentic-ops/real-estate-mcp",
+      "category": "property-specific MCP workflow",
+      "property_specific": true,
+      "stars": 68,
+      "stars_snapshot": {
+        "count": 68,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "real-estate-mcp.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "main",
+        "created_at_utc": "2025-06-28T04:31:05Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "70ad9bdcf6ede15314c373eb4ff6972a7f4e3054",
+          "committed_at_utc": "2026-07-05T07:33:19Z",
+          "message": "Merge pull request #5 from agentic-ops/genego-io/add-free-integrations-and-zillow-de4c",
+          "source_id": "real-estate-mcp.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "cf7d88191c3c7a4dde11e196b8e72614f72b3b71",
+          "committed_at_utc": "2026-07-05T07:25:13Z",
+          "message": "Add live-integration workflow example; fix NOAA coordinate-precision bug",
+          "selection_note": "Latest observed non-merge source behavior change in the inspected eight-commit sample; documentation, badges, dependency bumps and publishing-only commits were excluded.",
+          "source_id": "real-estate-mcp.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-08-26T08:02:55Z",
+        "repository_updated_at_utc": "2026-10-10T02:16:48Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "AGPL-3.0",
+        "github_api_spdx": "AGPL-3.0",
+        "official_file_url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/LICENSE",
+        "source_id": "real-estate-mcp.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": "API uses legacy AGPL-3.0 identifier; only-versus-or-later scope was not resolved from per-file notices."
+      },
+      "capabilities": [
+        "Property search and comparable valuation",
+        "Deterministic mortgage and investment calculations",
+        "Document/report tools and analysis queue"
+      ],
+      "architecture_patterns": [
+        "FastMCP transport with category feature flags",
+        "Pure financial functions separated from MCP tools",
+        "Offline seed data with explicitly enabled external adapters; SQLite analysis queue"
+      ],
+      "taiwan_fit": "Useful workflow reference; US adapters and seeded property records require replacement with Taiwan records.",
+      "production_maturity": "Community reference implementation; README claims tests, but deployment quality and production adoption were not independently verified.",
+      "reuse_assessment": {
+        "mode": "pattern-only",
+        "blanket_clearance": false,
+        "conditions": [
+          "AGPL copyleft requires compatibility review before any integration or modified network service; no source was copied.",
+          "Commercial provider access and data rights are separate from code licensing.",
+          "Do not treat offline sample properties as live inventory."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "real-estate-mcp.api",
+        "real-estate-mcp.commits",
+        "real-estate-mcp.head",
+        "real-estate-mcp.source-commit",
+        "real-estate-mcp.readme",
+        "real-estate-mcp.license",
+        "real-estate-mcp.architecture-1",
+        "real-estate-mcp.architecture-2"
+      ]
+    },
+    {
+      "id": "mcp-imo",
+      "name": "zedd75/mcp-imo",
+      "owner": "zedd75",
+      "repo": "mcp-imo",
+      "url": "https://github.com/zedd75/mcp-imo",
+      "category": "property-specific MCP and comparable valuation",
+      "property_specific": true,
+      "stars": 0,
+      "stars_snapshot": {
+        "count": 0,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "mcp-imo.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "main",
+        "created_at_utc": "2026-07-15T23:26:04Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "8094233e9ddd10d1eac162ce21f9df7b4e330d29",
+          "committed_at_utc": "2026-08-17T11:05:01Z",
+          "message": "Add npm Trusted Publishing workflow (OIDC, no token)",
+          "source_id": "mcp-imo.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "4ed189ef6b12701516c56afc8399f7578cff48b9",
+          "committed_at_utc": "2026-08-17T09:44:03Z",
+          "message": "v0.3.0: fix intermittent property_report failures (coalescing + retry)",
+          "selection_note": "Latest observed non-merge source behavior change in the inspected eight-commit sample; documentation, badges, dependency bumps and publishing-only commits were excluded.",
+          "source_id": "mcp-imo.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-08-17T11:05:05Z",
+        "repository_updated_at_utc": "2026-08-17T11:07:00Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "MIT",
+        "github_api_spdx": "MIT",
+        "official_file_url": "https://github.com/zedd75/mcp-imo/blob/main/LICENSE",
+        "source_id": "mcp-imo.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": null
+      },
+      "capabilities": [
+        "Official French sales, rent, energy and risk sources",
+        "Auditable comparable valuation",
+        "Joined property dossier"
+      ],
+      "architecture_patterns": [
+        "Weighted median with distance, area, recency and market adjustments",
+        "Returns comp weights and effective sample size; minimum-sample refusal",
+        "Government adapters share address keys; request coalescing and retry"
+      ],
+      "taiwan_fit": "Strong design reference for Taiwan comp explanations and risk joins; French schemas, geography and rent assumptions cannot be reused unchanged.",
+      "production_maturity": "Early community project (created July 2026); unit/smoke workflows are visible, but no production adoption was verified.",
+      "reuse_assessment": {
+        "mode": "conditional-component",
+        "blanket_clearance": false,
+        "conditions": [
+          "MIT notice retention and dependency/data license review remain required.",
+          "Weighted quartile range is not a calibrated statistical confidence interval.",
+          "Validate Taiwan floors, parking allocation, condition, transaction lag and selection bias before valuation use."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "mcp-imo.api",
+        "mcp-imo.commits",
+        "mcp-imo.head",
+        "mcp-imo.source-commit",
+        "mcp-imo.readme",
+        "mcp-imo.license",
+        "mcp-imo.architecture-1",
+        "mcp-imo.architecture-2"
+      ]
+    },
+    {
+      "id": "taiwan-property-price-cli",
+      "name": "felixfu824/taiwan-property-price-cli",
+      "owner": "felixfu824",
+      "repo": "taiwan-property-price-cli",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli",
+      "category": "Taiwan government property-data integration",
+      "property_specific": true,
+      "stars": 0,
+      "stars_snapshot": {
+        "count": 0,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "taiwan-property-price-cli.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "master",
+        "created_at_utc": "2026-05-26T18:18:13Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "ac919c6dff19048327c812492cc07d45a503b5d0",
+          "committed_at_utc": "2026-07-09T16:23:49Z",
+          "message": "Point homepage to https://byfkc.com/taiwan-property-price/ (site migrated off pages.dev)",
+          "source_id": "taiwan-property-price-cli.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "2448cee6f5575b94b98f86322e88732d76a4e608",
+          "committed_at_utc": "2026-07-06T14:38:08Z",
+          "message": "Auto-close the warm browser after 15s idle so library consumers exit",
+          "selection_note": "Latest observed non-merge source behavior change in the inspected eight-commit sample; documentation, badges, dependency bumps and publishing-only commits were excluded.",
+          "source_id": "taiwan-property-price-cli.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-07-09T16:23:51Z",
+        "repository_updated_at_utc": "2026-07-09T16:23:55Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "Apache-2.0",
+        "github_api_spdx": "Apache-2.0",
+        "official_file_url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/LICENSE",
+        "source_id": "taiwan-property-price-cli.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": null
+      },
+      "capabilities": [
+        "Existing-home, presale and transacted-rent extraction",
+        "JSON/CSV output and typed library",
+        "Separate rent schema and parking-adjusted price fields"
+      ],
+      "architecture_patterns": [
+        "Playwright chrome-headless-shell reused across queries",
+        "Fetch, resolve, normalize and refine modules separated",
+        "Large results written to disk; explicit network/site-change/partial exit codes"
+      ],
+      "taiwan_fit": "Direct Taiwan LVR integration candidate, especially typed normalization and transacted-versus-asking-rent separation.",
+      "production_maturity": "Early small-maintainer package; no independent uptime or accuracy validation. Browser dependency and government site changes create operational risk.",
+      "reuse_assessment": {
+        "mode": "conditional-component",
+        "blanket_clearance": false,
+        "conditions": [
+          "Apache-2.0 LICENSE/NOTICE and dependency terms require preservation/review.",
+          "Government batch dataset has OGDL-1.0 attribution; confirm exact query response terms separately.",
+          "Prefer official batch downloads for historical/backfill workflows; prototype live CLI queries before committing to reliability."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "taiwan-property-price-cli.api",
+        "taiwan-property-price-cli.commits",
+        "taiwan-property-price-cli.head",
+        "taiwan-property-price-cli.source-commit",
+        "taiwan-property-price-cli.readme",
+        "taiwan-property-price-cli.license",
+        "taiwan-property-price-cli.architecture-1",
+        "taiwan-property-price-cli.architecture-2",
+        "taiwan-lvr-dataset",
+        "taiwan-ogdl"
+      ]
+    },
+    {
+      "id": "cook-county-residential-avm",
+      "name": "ccao-data/model-res-avm",
+      "owner": "ccao-data",
+      "repo": "model-res-avm",
+      "url": "https://github.com/ccao-data/model-res-avm",
+      "category": "government-operated property AVM",
+      "property_specific": true,
+      "stars": 72,
+      "stars_snapshot": {
+        "count": 72,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "cook-county-residential-avm.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "master",
+        "created_at_utc": "2023-06-26T15:41:32Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "feec9b79229e5ea9cfcbe042184855c2e047ae14",
+          "committed_at_utc": "2026-09-11T21:25:34Z",
+          "message": "428 Add build and run model workflow option to allow batch job to push to dvc (#535)",
+          "source_id": "cook-county-residential-avm.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "feec9b79229e5ea9cfcbe042184855c2e047ae14",
+          "committed_at_utc": "2026-09-11T21:25:34Z",
+          "message": "428 Add build and run model workflow option to allow batch job to push to dvc (#535)",
+          "selection_note": "Latest substantive pipeline behavior located in the inspected eight-commit default-branch sample. Diff changes pipeline/06-upload.R to upload dvc.lock as well as workflow DVC commands and file metadata; this is not merely a publishing/CI-only update. Commit diff inspected in the supplemental review.",
+          "source_id": "cook-county-residential-avm.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-09-28T13:51:05Z",
+        "repository_updated_at_utc": "2026-10-04T07:08:07Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "AGPL-3.0",
+        "github_api_spdx": "AGPL-3.0",
+        "official_file_url": "https://github.com/ccao-data/model-res-avm/blob/master/LICENSE",
+        "source_id": "cook-county-residential-avm.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": "API uses legacy AGPL-3.0 identifier; only-versus-or-later scope was not resolved from per-file notices."
+      },
+      "capabilities": [
+        "Residential mass appraisal using LightGBM",
+        "Cross-validation, assessment and quality/performance reporting",
+        "Versioned assessment-year models"
+      ],
+      "architecture_patterns": [
+        "R/tidymodels pipeline with DVC stage dependencies",
+        "Run IDs and S3 artifacts; Athena ingestion and AWS Batch execution",
+        "Training, assessment, performance and export stages are explicit"
+      ],
+      "taiwan_fit": "Useful benchmark for reproducibility and evaluation governance; Cook County classes, features and staff infrastructure are not Taiwan-ready.",
+      "production_maturity": "Institutional operational use is documented by the official assessor repository and annual model lineage; no independent appraisal-quality audit was performed.",
+      "reuse_assessment": {
+        "mode": "pattern-only",
+        "blanket_clearance": false,
+        "conditions": [
+          "AGPL compatibility must be reviewed before copying/integrating code; no code copied.",
+          "County data rights and internal infrastructure access are separate.",
+          "Requires local retraining, temporal/spatial validation and Taiwan condo/parking feature engineering."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "cook-county-residential-avm.api",
+        "cook-county-residential-avm.commits",
+        "cook-county-residential-avm.head",
+        "cook-county-residential-avm.source-commit",
+        "cook-county-residential-avm.readme",
+        "cook-county-residential-avm.license",
+        "cook-county-residential-avm.architecture-1",
+        "cook-county-residential-avm.architecture-2",
+        "cook-county-residential-avm.activity-diff-review"
+      ]
+    },
+    {
+      "id": "mortgagemath",
+      "name": "murraystokely/mortgagemath",
+      "owner": "murraystokely",
+      "repo": "mortgagemath",
+      "url": "https://github.com/murraystokely/mortgagemath",
+      "category": "mortgage finance calculation library",
+      "property_specific": false,
+      "stars": 5,
+      "stars_snapshot": {
+        "count": 5,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "mortgagemath.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "main",
+        "created_at_utc": "2026-04-28T06:50:29Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "efec448a3a3d5f9c916a98db06f530d9f895d736",
+          "committed_at_utc": "2026-05-18T09:31:21Z",
+          "message": "ci: update coverage badge [skip ci]",
+          "source_id": "mortgagemath.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "08a2d9df442dac64b357f994df53efafda678279",
+          "committed_at_utc": "2026-05-06T13:52:15Z",
+          "message": "Add LoanSummary balloon fields, CLI summary command, and pre-PR checklist",
+          "selection_note": "Latest observed non-merge source behavior change in the inspected eight-commit sample; documentation, badges, dependency bumps and publishing-only commits were excluded.",
+          "source_id": "mortgagemath.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-08-24T04:19:47Z",
+        "repository_updated_at_utc": "2026-09-26T18:18:03Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "MIT",
+        "github_api_spdx": "MIT",
+        "official_file_url": "https://github.com/murraystokely/mortgagemath/blob/main/LICENSE",
+        "source_id": "mortgagemath.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": null
+      },
+      "capabilities": [
+        "Decimal amortization with configurable rounding",
+        "Rate schedules, interest-only and balloon variants",
+        "Published schedule fixtures and summary outputs"
+      ],
+      "architecture_patterns": [
+        "Pure Python dataclasses; zero runtime dependency claim",
+        "Payment, schedule, types and summary modules separated",
+        "Reference fixtures record country-specific loan conventions"
+      ],
+      "taiwan_fit": "Good calculation candidate for explainable mortgage scenarios; verify Taiwan lender day counts, variable rates, fees and NTD rounding.",
+      "production_maturity": "Young low-adoption library; test/fixture directories are visible. README validation claims were inspected, not executed or independently reproduced.",
+      "reuse_assessment": {
+        "mode": "conditional-component",
+        "blanket_clearance": false,
+        "conditions": [
+          "MIT notices and any fixture/reference copyright must be reviewed.",
+          "Do not import foreign affordability rules or loan eligibility.",
+          "Test bank examples and refinance/extra-payment behavior locally before financial output."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "mortgagemath.api",
+        "mortgagemath.commits",
+        "mortgagemath.head",
+        "mortgagemath.source-commit",
+        "mortgagemath.readme",
+        "mortgagemath.license",
+        "mortgagemath.architecture-1",
+        "mortgagemath.architecture-2"
+      ]
+    },
+    {
+      "id": "geopandas",
+      "name": "geopandas/geopandas",
+      "owner": "geopandas",
+      "repo": "geopandas",
+      "url": "https://github.com/geopandas/geopandas",
+      "category": "generic geospatial enabling library",
+      "property_specific": false,
+      "stars": 5276,
+      "stars_snapshot": {
+        "count": 5276,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "geopandas.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "main",
+        "created_at_utc": "2013-06-27T17:03:47Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "2c7a44284275ec32e83a7acef4e038e4c894191c",
+          "committed_at_utc": "2026-10-07T10:40:08Z",
+          "message": "MAINT: update ruff version in pre-commit and associated fixes (#3876)",
+          "source_id": "geopandas.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "cf7059fe76411297bf732d28f62edd499a7773c3",
+          "committed_at_utc": "2026-10-05T11:04:34Z",
+          "message": "CLN: remove _isna helper from geopandas.testing (#3869)",
+          "selection_note": "Latest observed library/test-helper API cleanup within the inspected eight-commit sample. The newer October 7 commit diff was checked: production edits reorder type alternatives and use an equivalent raw regex string; remaining edits concern formatting/lint/test encoding. The selected October 5 cleanup removes a testing helper API. This is a bounded source-behavior observation, not a latest-feature or exhaustive-history claim.",
+          "source_id": "geopandas.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-10-07T10:40:08Z",
+        "repository_updated_at_utc": "2026-10-09T10:11:20Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "BSD-3-Clause",
+        "github_api_spdx": "BSD-3-Clause",
+        "official_file_url": "https://github.com/geopandas/geopandas/blob/main/LICENSE.txt",
+        "source_id": "geopandas.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": null
+      },
+      "capabilities": [
+        "Spatial joins, geographic table IO and coordinate transforms",
+        "Point-in-polygon and distance joins for risk overlays"
+      ],
+      "architecture_patterns": [
+        "GeoDataFrame carries geometry and CRS",
+        "Spatial index predicates including intersects and dwithin",
+        "Separate ingestion, reprojection and overlay stages can retain source attribution"
+      ],
+      "taiwan_fit": "Useful for joining Taiwan property coordinates to flood, landslide or planning polygons. It supplies operations, not hazard datasets or certified risk scores.",
+      "production_maturity": "Established multi-contributor library with release/test infrastructure; suitable infrastructure candidate after dependency and CRS validation.",
+      "reuse_assessment": {
+        "mode": "conditional-dependency",
+        "blanket_clearance": false,
+        "conditions": [
+          "BSD-3-Clause notices/non-endorsement and geospatial dependency terms remain required.",
+          "Obtain official Taiwan hazard layers with their own licenses and effective dates.",
+          "Validate coordinate systems, boundary uncertainty and dataset coverage; absence of an intersecting polygon does not prove safety."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "geopandas.api",
+        "geopandas.commits",
+        "geopandas.head",
+        "geopandas.source-commit",
+        "geopandas.readme",
+        "geopandas.license",
+        "geopandas.architecture-1",
+        "geopandas.activity-diff-review"
+      ]
+    },
+    {
+      "id": "docling",
+      "name": "docling-project/docling",
+      "owner": "docling-project",
+      "repo": "docling",
+      "url": "https://github.com/docling-project/docling",
+      "category": "generic document-ingestion enabling library",
+      "property_specific": false,
+      "stars": 68635,
+      "stars_snapshot": {
+        "count": 68635,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "docling.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "main",
+        "created_at_utc": "2024-07-09T07:50:26Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "a8c01dc6ac269d0232214735819d529cb666e0dd",
+          "committed_at_utc": "2026-10-10T08:23:43Z",
+          "message": "fix(docx): keep footnote text that is not a plain paragraph (#4735)",
+          "source_id": "docling.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "a8c01dc6ac269d0232214735819d529cb666e0dd",
+          "committed_at_utc": "2026-10-10T08:23:43Z",
+          "message": "fix(docx): keep footnote text that is not a plain paragraph (#4735)",
+          "selection_note": "Latest observed non-merge source behavior change in the inspected eight-commit sample; documentation, badges, dependency bumps and publishing-only commits were excluded.",
+          "source_id": "docling.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-10-10T08:23:44Z",
+        "repository_updated_at_utc": "2026-10-10T15:26:25Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "MIT",
+        "github_api_spdx": "MIT",
+        "official_file_url": "https://github.com/docling-project/docling/blob/main/LICENSE",
+        "source_id": "docling.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": null
+      },
+      "capabilities": [
+        "PDF and office-document conversion",
+        "Layout, table and OCR processing",
+        "Structured document, Markdown and JSON exports"
+      ],
+      "architecture_patterns": [
+        "Format backends and processing pipelines separated",
+        "Local processing option for sensitive documents",
+        "Typed intermediate document supports downstream chunking and evidence references"
+      ],
+      "taiwan_fit": "Candidate for Taiwan listing PDFs, public notices and uploaded due-diligence documents; Chinese OCR, tables and page provenance need evaluation.",
+      "production_maturity": "Established actively maintained ecosystem project; property-document accuracy and deployment throughput were not benchmarked.",
+      "reuse_assessment": {
+        "mode": "conditional-dependency",
+        "blanket_clearance": false,
+        "conditions": [
+          "MIT code notice retention; model weights, OCR engines and dependencies have separate terms.",
+          "Do not assume a converted PDF has verified legal meaning.",
+          "Keep source files and page evidence; review OCR errors and isolate untrusted documents."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "docling.api",
+        "docling.commits",
+        "docling.head",
+        "docling.source-commit",
+        "docling.readme",
+        "docling.license",
+        "docling.architecture-1"
+      ]
+    },
+    {
+      "id": "changedetection",
+      "name": "dgtlmoon/changedetection.io",
+      "owner": "dgtlmoon",
+      "repo": "changedetection.io",
+      "url": "https://github.com/dgtlmoon/changedetection.io",
+      "category": "generic monitoring enabling application",
+      "property_specific": false,
+      "stars": 34876,
+      "stars_snapshot": {
+        "count": 34876,
+        "observed_at_utc": "2026-10-10T15:45:29+00:00",
+        "source_id": "changedetection.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "master",
+        "created_at_utc": "2021-01-27T16:03:30Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "75a508fecc37483e936795f1e3f9b076e375cf0f",
+          "committed_at_utc": "2026-10-09T18:35:13Z",
+          "message": "Update pytest-mock requirement from ~=3.15 to ~=3.16 (#4532)",
+          "source_id": "changedetection.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "6a23dcdca5bfbff6957b06f34861d0e1d98533b8",
+          "committed_at_utc": "2026-10-08T08:30:05Z",
+          "message": "UI - Language selector should be available on the login page (#4490) (#4501)",
+          "selection_note": "Latest substantive application behavior located in the inspected 30-commit default-branch sample. Login-page language selection changes runtime UI behavior and is included. Newer dependency and CI/container-publishing maintenance commits do not establish newer application behavior. Commit diff inspected in the supplemental review.",
+          "source_id": "changedetection.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-10-09T18:48:23Z",
+        "repository_updated_at_utc": "2026-10-10T15:44:10Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "Apache-2.0",
+        "github_api_spdx": "Apache-2.0",
+        "official_file_url": "https://github.com/dgtlmoon/changedetection.io/blob/master/LICENSE",
+        "source_id": "changedetection.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": null
+      },
+      "capabilities": [
+        "Webpage/JSON content diffs",
+        "Selectors and browser-backed fetches",
+        "Notification and webhook workflows"
+      ],
+      "architecture_patterns": [
+        "Domain-specific post-processors separate fetching from comparison",
+        "Watch configuration, stored snapshots and notification templates",
+        "Text/JSON diff processors can underpin evidence change alerts"
+      ],
+      "taiwan_fit": "Useful for official dataset release pages, policy notices and permissible listing-page changes. It is not a property data license or listing feed.",
+      "production_maturity": "Established self-hosted application with commercial hosting; hosted-only features must be distinguished from repository features.",
+      "reuse_assessment": {
+        "mode": "conditional-component",
+        "blanket_clearance": false,
+        "conditions": [
+          "Apache-2.0 notices and dependency review required.",
+          "Website permission, rate limits and provider terms remain separate.",
+          "README labels some AI summaries/intent filters as hosted-service features; do not assume self-hosted parity."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "changedetection.api",
+        "changedetection.commits",
+        "changedetection.head",
+        "changedetection.source-commit",
+        "changedetection.readme",
+        "changedetection.license",
+        "changedetection.architecture-1",
+        "changedetection.activity-diff-review"
+      ]
+    },
+    {
+      "id": "posland",
+      "name": "g0v/posland",
+      "owner": "g0v",
+      "repo": "posland",
+      "url": "https://github.com/g0v/posland",
+      "category": "legacy Taiwan parcel/address integration",
+      "property_specific": true,
+      "stars": 29,
+      "stars_snapshot": {
+        "count": 29,
+        "observed_at_utc": "2026-10-10T15:45:30+00:00",
+        "source_id": "posland.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "master",
+        "created_at_utc": "2013-12-22T20:41:20Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "325ac1431f5469aa502721b0a0214a498e0add8e",
+          "committed_at_utc": "2015-04-21T11:58:27Z",
+          "message": "Merge pull request #6 from thewayiam/master",
+          "source_id": "posland.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "261c89719ae54da0b77833c417c04d5ff9dc252f",
+          "committed_at_utc": "2015-04-19T17:40:38Z",
+          "message": "#5: increase area length limit",
+          "selection_note": "Latest observed non-merge source behavior change in the inspected eight-commit sample; documentation, badges, dependency bumps and publishing-only commits were excluded.",
+          "source_id": "posland.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2016-05-06T14:03:44Z",
+        "repository_updated_at_utc": "2026-07-13T13:00:08Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "GPL-3.0",
+        "github_api_spdx": "GPL-3.0",
+        "official_file_url": "https://github.com/g0v/posland/blob/master/LICENSE",
+        "source_id": "posland.license",
+        "scope_note": "Repository code classification only; dependencies, data, models, third-party services and assets require separate review.",
+        "version_scope_uncertainty": "API uses legacy GPL-3.0 identifier; only-versus-or-later scope was not resolved from per-file notices."
+      },
+      "capabilities": [
+        "Taiwan parcel-number resolution",
+        "Address or parcel input to geolocation request"
+      ],
+      "architecture_patterns": [
+        "Separates land-number lookup through NLSC from Google address geocoding",
+        "Local administrative section and land-number parsing"
+      ],
+      "taiwan_fit": "Historical reference for parcel versus address identity. Old endpoint assumptions and dependencies make it unsuitable as a direct integration.",
+      "production_maturity": "Legacy inactive code: latest meaningful source change found is April 2015; recent updated_at reflects repository metadata, not renewed development.",
+      "reuse_assessment": {
+        "mode": "pattern-only",
+        "blanket_clearance": false,
+        "conditions": [
+          "GPLv3 classification and distribution compatibility require review; no code copied.",
+          "Google geocoding has independent service terms; historical free-quota text is obsolete.",
+          "Rebuild against current authorized NLSC/geocoding services and verify parcel identity accuracy."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "posland.api",
+        "posland.commits",
+        "posland.head",
+        "posland.source-commit",
+        "posland.readme",
+        "posland.license",
+        "posland.architecture-1"
+      ]
+    },
+    {
+      "id": "quarto",
+      "name": "quarto-dev/quarto-cli",
+      "owner": "quarto-dev",
+      "repo": "quarto-cli",
+      "url": "https://github.com/quarto-dev/quarto-cli",
+      "category": "generic reproducible-report enabling tool",
+      "property_specific": false,
+      "stars": 6073,
+      "stars_snapshot": {
+        "count": 6073,
+        "observed_at_utc": "2026-10-10T15:45:30+00:00",
+        "source_id": "quarto.api",
+        "exact_api_snapshot": true
+      },
+      "activity": {
+        "default_branch": "main",
+        "created_at_utc": "2020-09-25T13:25:46Z",
+        "archived": false,
+        "head_commit": {
+          "sha": "a57cc76458d91a0577c162a474929119e6b663ba",
+          "committed_at_utc": "2026-10-09T18:34:37Z",
+          "message": "Fix notebook preview back link having no href in websites (#15018)",
+          "source_id": "quarto.head"
+        },
+        "latest_meaningful_source_commit": {
+          "sha": "a57cc76458d91a0577c162a474929119e6b663ba",
+          "committed_at_utc": "2026-10-09T18:34:37Z",
+          "message": "Fix notebook preview back link having no href in websites (#15018)",
+          "selection_note": "Latest observed non-merge source behavior change in the inspected eight-commit sample; documentation, badges, dependency bumps and publishing-only commits were excluded.",
+          "source_id": "quarto.source-commit",
+          "claim_scope": "Latest observed substantive source update within the bounded inspected default-branch sample; not an exhaustive all-branch activity claim.",
+          "supplemental_review_date": "2026-10-11"
+        },
+        "pushed_at_utc": "2026-10-09T19:03:56Z",
+        "repository_updated_at_utc": "2026-10-10T11:08:29Z",
+        "timestamp_warning": "pushed_at covers repository refs; updated_at may reflect metadata/stars. Neither is the source-change date.",
+        "future_of_client_date": false,
+        "activity_review_date": "2026-10-11"
+      },
+      "license": {
+        "spdx": "MIT",
+        "github_api_spdx": "NOASSERTION",
+        "official_file_url": "https://github.com/quarto-dev/quarto-cli/blob/main/COPYING.md",
+        "source_id": "quarto.license",
+        "scope_note": "Core COPYING.md is MIT; API classification is NOASSERTION; bundled licenses require separate review.",
+        "version_scope_uncertainty": null
+      },
+      "capabilities": [
+        "Code-backed Markdown publishing",
+        "HTML/PDF/office report formats and citations",
+        "Python/R/Julia/Jupyter/Knitr integration"
+      ],
+      "architecture_patterns": [
+        "Data analysis and rendered narrative share one source",
+        "Parameterized publishing can regenerate reports from versioned evidence",
+        "CLI rendering fits scheduled report artifacts"
+      ],
+      "taiwan_fit": "Useful for downloadable valuation dossiers with source dates, comp tables, scenario assumptions and methods. It supplies publishing, not property reasoning.",
+      "production_maturity": "Established publishing project with release and smoke-test workflows; exact exporter/toolchain behavior was not executed here.",
+      "reuse_assessment": {
+        "mode": "conditional-tool-use",
+        "blanket_clearance": false,
+        "conditions": [
+          "Official COPYING.md is MIT for core source, while GitHub API returns NOASSERTION; bundled components have independent licenses.",
+          "Review Pandoc, PDF engines, templates, fonts and dependencies for the chosen packaging/distribution.",
+          "Do not equate rendered reports with independently validated appraisals."
+        ],
+        "copied_source_code": false
+      },
+      "evidence_level": "Primary README, repository metadata/history, license file and selected source inspected; software not installed or executed.",
+      "source_ids": [
+        "quarto.api",
+        "quarto.commits",
+        "quarto.head",
+        "quarto.source-commit",
+        "quarto.readme",
+        "quarto.license"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "real-estate-mcp.api",
+      "url": "https://api.github.com/repos/agentic-ops/real-estate-mcp",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "real-estate-mcp.commits",
+      "url": "https://api.github.com/repos/agentic-ops/real-estate-mcp/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.head",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/commit/70ad9bdcf6ede15314c373eb4ff6972a7f4e3054",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.source-commit",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/commit/cf7d88191c3c7a4dde11e196b8e72614f72b3b71",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "real-estate-mcp.readme",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.license",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.architecture-1",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/tools/finance_helpers.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.architecture-2",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/tools/valuation_tools.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.api",
+      "url": "https://api.github.com/repos/zedd75/mcp-imo",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "mcp-imo.commits",
+      "url": "https://api.github.com/repos/zedd75/mcp-imo/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.head",
+      "url": "https://github.com/zedd75/mcp-imo/commit/8094233e9ddd10d1eac162ce21f9df7b4e330d29",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.source-commit",
+      "url": "https://github.com/zedd75/mcp-imo/commit/4ed189ef6b12701516c56afc8399f7578cff48b9",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "mcp-imo.readme",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.license",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.architecture-1",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/src/estimator.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.architecture-2",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/src/apis/georisques.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.api",
+      "url": "https://api.github.com/repos/felixfu824/taiwan-property-price-cli",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "taiwan-property-price-cli.commits",
+      "url": "https://api.github.com/repos/felixfu824/taiwan-property-price-cli/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.head",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/commit/ac919c6dff19048327c812492cc07d45a503b5d0",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.source-commit",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/commit/2448cee6f5575b94b98f86322e88732d76a4e608",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "taiwan-property-price-cli.readme",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/README.en.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.license",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.architecture-1",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/src/fetch.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.architecture-2",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/src/normalize.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.api",
+      "url": "https://api.github.com/repos/ccao-data/model-res-avm",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "cook-county-residential-avm.commits",
+      "url": "https://api.github.com/repos/ccao-data/model-res-avm/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.head",
+      "url": "https://github.com/ccao-data/model-res-avm/commit/feec9b79229e5ea9cfcbe042184855c2e047ae14",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.source-commit",
+      "url": "https://github.com/ccao-data/model-res-avm/commit/feec9b79229e5ea9cfcbe042184855c2e047ae14",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-11",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Commit appeared in the original 2026-10-10 history sample; detailed diff verified on 2026-10-11 and selected after activity review."
+    },
+    {
+      "id": "cook-county-residential-avm.readme",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.license",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.architecture-1",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/dvc.yaml",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.architecture-2",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/pipeline/00-ingest.R",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.api",
+      "url": "https://api.github.com/repos/murraystokely/mortgagemath",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "mortgagemath.commits",
+      "url": "https://api.github.com/repos/murraystokely/mortgagemath/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.head",
+      "url": "https://github.com/murraystokely/mortgagemath/commit/efec448a3a3d5f9c916a98db06f530d9f895d736",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.source-commit",
+      "url": "https://github.com/murraystokely/mortgagemath/commit/08a2d9df442dac64b357f994df53efafda678279",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "mortgagemath.readme",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.license",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.architecture-1",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/src/mortgagemath/_schedule.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.architecture-2",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/tests/schedules/README.md",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.api",
+      "url": "https://api.github.com/repos/geopandas/geopandas",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "geopandas.commits",
+      "url": "https://api.github.com/repos/geopandas/geopandas/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.head",
+      "url": "https://github.com/geopandas/geopandas/commit/2c7a44284275ec32e83a7acef4e038e4c894191c",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.source-commit",
+      "url": "https://github.com/geopandas/geopandas/commit/cf7059fe76411297bf732d28f62edd499a7773c3",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "geopandas.readme",
+      "url": "https://github.com/geopandas/geopandas/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.license",
+      "url": "https://github.com/geopandas/geopandas/blob/main/LICENSE.txt",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.architecture-1",
+      "url": "https://github.com/geopandas/geopandas/blob/main/geopandas/tools/sjoin.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.api",
+      "url": "https://api.github.com/repos/docling-project/docling",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "docling.commits",
+      "url": "https://api.github.com/repos/docling-project/docling/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.head",
+      "url": "https://github.com/docling-project/docling/commit/a8c01dc6ac269d0232214735819d529cb666e0dd",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.source-commit",
+      "url": "https://github.com/docling-project/docling/commit/a8c01dc6ac269d0232214735819d529cb666e0dd",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "docling.readme",
+      "url": "https://github.com/docling-project/docling/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.license",
+      "url": "https://github.com/docling-project/docling/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.architecture-1",
+      "url": "https://github.com/docling-project/docling/blob/main/docling/document_converter.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.api",
+      "url": "https://api.github.com/repos/dgtlmoon/changedetection.io",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "changedetection.commits",
+      "url": "https://api.github.com/repos/dgtlmoon/changedetection.io/commits?per_page=30",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.head",
+      "url": "https://github.com/dgtlmoon/changedetection.io/commit/75a508fecc37483e936795f1e3f9b076e375cf0f",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.source-commit",
+      "url": "https://github.com/dgtlmoon/changedetection.io/commit/6a23dcdca5bfbff6957b06f34861d0e1d98533b8",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-11",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Commit appeared in the original 2026-10-10 history sample; detailed diff verified on 2026-10-11 and selected after activity review."
+    },
+    {
+      "id": "changedetection.readme",
+      "url": "https://github.com/dgtlmoon/changedetection.io/blob/master/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.license",
+      "url": "https://github.com/dgtlmoon/changedetection.io/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.architecture-1",
+      "url": "https://github.com/dgtlmoon/changedetection.io/blob/master/changedetectionio/processors/README.md",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.api",
+      "url": "https://api.github.com/repos/g0v/posland",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:30+00:00"
+    },
+    {
+      "id": "posland.commits",
+      "url": "https://api.github.com/repos/g0v/posland/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.head",
+      "url": "https://github.com/g0v/posland/commit/325ac1431f5469aa502721b0a0214a498e0add8e",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.source-commit",
+      "url": "https://github.com/g0v/posland/commit/261c89719ae54da0b77833c417c04d5ff9dc252f",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "posland.readme",
+      "url": "https://github.com/g0v/posland/blob/master/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.license",
+      "url": "https://github.com/g0v/posland/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.architecture-1",
+      "url": "https://github.com/g0v/posland/blob/master/package.json",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.api",
+      "url": "https://api.github.com/repos/quarto-dev/quarto-cli",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:30+00:00"
+    },
+    {
+      "id": "quarto.commits",
+      "url": "https://api.github.com/repos/quarto-dev/quarto-cli/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.head",
+      "url": "https://github.com/quarto-dev/quarto-cli/commit/a57cc76458d91a0577c162a474929119e6b663ba",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.source-commit",
+      "url": "https://github.com/quarto-dev/quarto-cli/commit/a57cc76458d91a0577c162a474929119e6b663ba",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "quarto.readme",
+      "url": "https://github.com/quarto-dev/quarto-cli/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.license",
+      "url": "https://github.com/quarto-dev/quarto-cli/blob/main/COPYING.md",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-lvr-dataset",
+      "url": "https://data.gov.tw/dataset/25119",
+      "type": "official Taiwan government dataset",
+      "checked_date": "2026-10-10",
+      "note": "Official LVR batch-data entry lists government provider and OGDL v1; description says releases on 1/11/21 while metadata frequency says irregular. Query-interface parity was not assumed."
+    },
+    {
+      "id": "taiwan-ogdl",
+      "url": "https://data.gov.tw/license",
+      "type": "official government license",
+      "checked_date": "2026-10-10",
+      "note": "Attribution is required. Official text states compatibility with CC BY 4.0; code licensing is distinct from data licensing."
+    },
+    {
+      "id": "changedetection.activity-diff-review",
+      "url": "https://api.github.com/repos/dgtlmoon/changedetection.io/commits/6a23dcdca5bfbff6957b06f34861d0e1d98533b8",
+      "type": "GitHub REST commit detail and changed-file diff",
+      "checked_date": "2026-10-11",
+      "note": "Supplemental verification of changed source files; no software execution or code copying."
+    },
+    {
+      "id": "cook-county-residential-avm.activity-diff-review",
+      "url": "https://api.github.com/repos/ccao-data/model-res-avm/commits/feec9b79229e5ea9cfcbe042184855c2e047ae14",
+      "type": "GitHub REST commit detail and changed-file diff",
+      "checked_date": "2026-10-11",
+      "note": "Supplemental verification of changed source files; no software execution or code copying."
+    },
+    {
+      "id": "geopandas.activity-diff-review",
+      "url": "https://api.github.com/repos/geopandas/geopandas/commits/2c7a44284275ec32e83a7acef4e038e4c894191c",
+      "type": "GitHub REST commit detail and changed-file diff",
+      "checked_date": "2026-10-11",
+      "note": "Supplemental verification of changed source files; no software execution or code copying."
+    }
+  ],
+  "supplemental_review_date": "2026-10-11"
+}
