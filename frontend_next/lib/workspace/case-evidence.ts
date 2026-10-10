@@ -4,6 +4,8 @@ import type { StoredChecklistReviewV1 } from "./checklist-persistence";
 // @ts-expect-error Native TS runner extension.
 import { checklistToken } from "./checklist-persistence.ts";
 // @ts-expect-error Native TS runner extension.
+import { compactComparableExplanation, type ComparableExplanation } from "./comparable-explanation.ts";
+// @ts-expect-error Native TS runner extension.
 import { RISK_QUERY_LAYERS } from "./risk-evidence-model.ts";
 // @ts-expect-error Native TS runner extension.
 import { safePublicEvidenceUrl } from "../terrain-reference-evidence.ts";
@@ -52,6 +54,7 @@ export type CaseEvidenceModel = {
   gaps: EvidenceGap[]; sources: EvidenceSource[];
   checklistReview?: StoredChecklistReviewV1;
   checklistIdentityToken?: string;
+  comparableExplanation?: ComparableExplanation;
 };
 
 // @ts-expect-error Native TS runner extension.
@@ -176,6 +179,7 @@ export function projectCaseEvidence(workspace: PropertyCaseWorkspace): CaseEvide
   const anchor = workspace.identity.anchor;
   model.checklistIdentityToken = checklistToken([workspace.caseId, workspace.displayAddress, workspace.identity.state, anchor?.journey_anchor_id, anchor?.normalized_address, anchor?.coordinates, anchor?.evidence.checked_at, anchor?.revalidation]);
   model.checklistReview = workspace.checklistReview;
+  model.comparableExplanation = compactComparableExplanation(valuation.result?.comparable_decision_trace);
   model.snapshotToken = JSON.stringify(model); // Canonical projection order, in memory only; no durable revision claim.
   return model;
 }

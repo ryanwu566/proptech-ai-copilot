@@ -11,6 +11,7 @@ import { assessReportSnapshot, buildReportModel } from "@/lib/workspace/compare-
 import { EvidenceValue, EvidenceGaps, EvidenceSources, RepositoryNotice, storageBlocked, date } from "./evidence-view";
 import styles from "./evidence.module.css";
 import { ManualReviewSummary } from "./manual-review-summary";
+import { ComparableExplanation } from "../workspace/market/comparable-explanation";
 function currentEvidence(read: WorkspaceReadDiagnostic, caseId: string): CaseEvidenceModel | null { const workspace = read.cases.find((item) => item.caseId === caseId); return workspace ? projectCaseEvidence(workspace) : null; }
 function invalid(read: WorkspaceReadDiagnostic, caseId: string): boolean { return storageBlocked(read) || read.issues.some((issue) => issue.caseId === caseId); }
 export function ReportView({ caseId }: { caseId: string }) {
@@ -73,6 +74,7 @@ export function ReportView({ caseId }: { caseId: string }) {
             {section.id === "context" && <p>{report.evidence!.title} · {report.evidence!.displayAddress}。{report.evidence!.identity.limitation}</p>}
             {section.evidenceSection && <table className={styles.reportTable}><caption className="sr-only">{section.title}</caption><tbody>{section.evidenceSection.rows.map((row) => <tr key={row.id}><th scope="row">{row.label}</th><td><EvidenceValue field={row.cells[0]} /></td></tr>)}</tbody></table>}
             {section.id === "summary" && <ul>{report.summary.map((sentence) => <li key={sentence}>{sentence}</li>)}</ul>}
+            {section.id === "market" && <ComparableExplanation report value={report.evidence!.comparableExplanation} stale={report.evidence!.price.valuationEstimate.status === "stale"} />}
             {section.id === "limits" && <EvidenceGaps cases={[report.evidence!]} />}
             {section.id === "actions" && <><EvidenceGaps cases={[report.evidence!]} actionsOnly /><ManualReviewSummary evidence={report.evidence!} /></>}
             {section.id === "sources" && <EvidenceSources cases={[report.evidence!]} />}

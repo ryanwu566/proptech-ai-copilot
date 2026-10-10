@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { CaseRouteLayout } from "@/components/workspace/case-route-layout";
+import { CaseRouteLayout } from "@/components/evidence/evidence-entry";
 
 export default async function PropertyCaseLayout({ children, params }: { children: ReactNode; params: Promise<{ caseId: string }> }) {
   const { caseId } = await params;
