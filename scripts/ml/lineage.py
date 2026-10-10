@@ -63,7 +63,8 @@ def lineage_valid(item: dict) -> bool:
 def semantic_payload(item: dict) -> dict:
     """All supplied model-affecting evidence participates in conflict detection."""
     return {key:item.get(key) for key in ('context','semantic','area_contract',
-            'detail_payload_sha256','detail_member_sha256','cancellation_state_evidenced')}
+            'detail_payload_sha256','detail_member_sha256','cancellation_state_evidenced',
+            'required_source_dependencies')}
 
 
 def select_as_of(items: list[dict], cutoff: str) -> dict:

@@ -7,6 +7,7 @@ certificate is supplied or manufactured by the ML-A2 builder.
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+import re
 
 from . import chronology, lineage as l, observed_transaction as b
 from . import plvr_raw_parser as p, semantics as s, strict_cohort, temporal as t
@@ -14,9 +15,58 @@ from . import plvr_raw_parser as p, semantics as s, strict_cohort, temporal as t
 VERSION = 'plvr-authoritative-history-selector-v1'
 GATE_VERSION = 'ml-data-gate-v2'
 EVIDENCE_CLASSES = {'AUTHENTICATED', 'SUPPORTED', 'CURRENT_ONLY', 'UNVERIFIED', 'UNAVAILABLE'}
+PROOF_CLASSES = {'AUTHENTICATED_HISTORICAL', 'SUPPORTED_HISTORICAL',
+                 'CURRENT_ONLY', 'UNVERIFIED', 'UNAVAILABLE'}
+
+
+def historical_proof(record: dict | None, item: dict) -> dict:
+    """Convert a reviewed exact-byte attestation, never infer it from a URL/date.
+
+    This validates binding and time, not institutional authenticity. The
+    evidence locator/hash must refer to independently reviewed retained material.
+    Retrieval timestamps and publication-period labels never supply the time.
+    """
+    record = record if isinstance(record, dict) else {}
+    quality = record.get('time_quality', 'EXACT_PUBLICATION_TIME')
+    accepted = record.get('proof_class') in {'AUTHENTICATED_HISTORICAL', 'SUPPORTED_HISTORICAL'}
+    if (not accepted or record.get('exact_byte_publication_binding') is not True
+            or not record.get('official_url') or not record.get('proof_basis')
+            or not isinstance(record.get('hash'), str)
+            or not re.fullmatch('[0-9a-f]{64}', record['hash'])):
+        return {'available_at': None, 'quality': 'UNKNOWN'}
+    converted = {'release_id': record.get('source_id'), 'archive_sha256': record.get('hash'),
+                 'quality': quality, 'value': record.get('publication_timestamp'),
+                 'evidence': record.get('evidence')}
+    resolved = t.resolve_availability(converted, item.get('release_id'), item.get('archive_sha256'))
+    retrieved = l.timestamp(record.get('retrieval_timestamp'))
+    available = l.timestamp(resolved.get('available_at'))
+    if retrieved is None or available is None or retrieved < available:
+        return {'available_at': None, 'quality': 'UNKNOWN'}
+    return resolved
+
+
+def ml_b_admission(*, approved_cohort: int, historical_publication: bool,
+                   lineage: bool, stable_namespace: bool, no_known_temporal_leakage: bool,
+                   chronological_coverage: bool, deterministic_rebuild: bool,
+                   privacy: bool, target_contract_frozen: bool) -> dict:
+    conditions = {
+        'approved_cohort': type(approved_cohort) is int and approved_cohort > 0,
+        'historical_publication': historical_publication is True,
+        'lineage': lineage is True, 'stable_namespace': stable_namespace is True,
+        'no_known_temporal_leakage': no_known_temporal_leakage is True,
+        'chronological_coverage': chronological_coverage is True,
+        'deterministic_rebuild': deterministic_rebuild is True,
+        'privacy': privacy is True, 'target_contract_frozen': target_contract_frozen is True,
+    }
+    passed = all(conditions.values())
+    return {'version': 'ml-b-admission-gate-v1', 'result': 'PASS' if passed else 'BLOCKED',
+            'may_begin': passed, 'conditions': conditions,
+            'blockers': sorted(k for k, value in conditions.items() if not value)}
 
 
 def publication(item: dict) -> dict:
+    if 'historical_proof_record' in item:
+        return historical_proof(item['historical_proof_record'], item)
     record = item.get('publication_evidence')
     if not isinstance(record, dict) or record.get('classification') not in {'AUTHENTICATED', 'SUPPORTED'}:
         return {'available_at': None, 'quality': 'UNKNOWN'}
@@ -127,7 +177,8 @@ def select_as_of(items: list[dict], cutoff: str, *, history_certificate: dict | 
         # Canonical availability is reconstructed from the bound proof, never
         # trusted from an independently mutable row timestamp.
         qualified.append({**x, 'source_release_available_at': resolved['available_at'],
-                          'availability_evidence': x['publication_evidence']['evidence'],
+                          'availability_evidence': (x['historical_proof_record'] if 'historical_proof_record' in x
+                                                    else x['publication_evidence'])['evidence'],
                           'detail_payload_sha256': {
                               **{k: l.digest(v) for k, v in x.get('details', {}).items()},
                               '_join_contract': l.digest([x.get('details_complete'), x.get('main_key_unique'), x.get('parse_error')])}})
@@ -140,6 +191,98 @@ def select_as_of(items: list[dict], cutoff: str, *, history_certificate: dict | 
             'dispositions': sorted(dispositions, key=l.canonical_bytes),
             'historically_supported': len(original_visible),
             'history_certificate_valid': not unknown and certificate_valid(history_certificate, original_visible, cutoff)}
+
+
+def dependencies_available(item: dict, cutoff: str) -> bool:
+    dependencies = item.get('required_source_dependencies')
+    if not isinstance(dependencies, list) or len(dependencies) > 32:
+        return False
+    seen = set()
+    for dependency in dependencies:
+        if not isinstance(dependency, dict):
+            return False
+        source = dependency.get('source_id')
+        sha256 = dependency.get('sha256')
+        if (not isinstance(source, str) or not source or source in seen
+                or not isinstance(sha256, str) or not re.fullmatch('[0-9a-f]{64}', sha256)):
+            return False
+        seen.add(source)
+        resolved = publication({'release_id': source, 'archive_sha256': sha256,
+                                'publication_evidence': dependency.get('publication_evidence')})
+        if not t.available_by(resolved, cutoff):
+            return False
+    return True
+
+
+def select_pit_v3(items: list[dict], cutoff: str, *, history_certificate: dict | None) -> dict:
+    """Resolve full history first, then dependencies and the frozen Target B.
+
+    Filtering dependencies before supersession could resurrect an obsolete
+    predecessor. Embedded schemas/details are bound by the archive proof and
+    existing join/hash checks; the explicit list declares external supplements.
+    Missing dependency declarations fail closed.
+    """
+    result = select_as_of(items, cutoff, history_certificate=history_certificate)
+    reasons = Counter(result['excluded_reasons'])
+    selected = []; dispositions = []
+    rejected = {}
+    for x in result['selected']:
+        reason = None
+        if not dependencies_available(x, cutoff):
+            reason = 'SOURCE_DEPENDENCIES_UNPROVEN'
+        elif not b.classify(x, cutoff)['target_valid'] or not parking_treatment(x)['target_b_allowed']:
+            reason = 'TARGET_B_OR_PARKING_INVALID'
+        if reason:
+            rejected[l.identify(x)['occurrence_id']] = reason
+            reasons[reason] += 1
+        else:
+            selected.append(x)
+    for entry in result['dispositions']:
+        reason = rejected.get(entry['occurrence_id'])
+        dispositions.append({**entry, 'reason': reason, 'selected_as_of_cutoff': False} if reason else entry)
+    assert len(items) == len(selected) + sum(reasons.values())
+    return {**result, 'selected': selected, 'dispositions': dispositions,
+            'excluded_reasons': dict(sorted(reasons.items())),
+            'selection_version': 'plvr-authoritative-pit-v3'}
+
+
+def lineage_events(items: list[dict], cutoff: str, *, history_certificate: dict | None) -> list[dict]:
+    """Private event ledger; export aggregates only. Unknowns remain unknown."""
+    result = select_as_of(items, cutoff, history_certificate=history_certificate)
+    dispositions = {x['occurrence_id']: x for x in result['dispositions']}
+    edges = {x['successor_version_id']: x for x in result['relations']}
+    known_reasons = {None, 'superseded_version', 'cancelled_as_of_cutoff'}
+    events = []
+    seen_versions = set()
+    for x in sorted(items, key=lambda x: (publication(x).get('available_at') or '',
+                                         l.identify(x)['occurrence_id'])):
+        ids = l.identify(x); reason = dispositions[ids['occurrence_id']]['reason']
+        resolved = publication(x)
+        if reason == 'after_availability_cutoff':
+            continue
+        edge = edges.get(ids['version_id'])
+        if reason in {'exact_duplicate', 'republication'}:
+            kind = 'DUPLICATE_RELEASE'
+        elif reason in known_reasons:
+            kind = {'CORRECTION': 'REVISION', 'SUPERSESSION': 'REPLACEMENT',
+                    'CANCELLATION': 'CANCELLATION'}.get(edge['classification'], 'UNKNOWN') if edge else 'ORIGINAL'
+            if ids['version_id'] in seen_versions:
+                kind = 'DUPLICATE_RELEASE'
+            seen_versions.add(ids['version_id'])
+        elif reason in {'occurrence_conflict', 'revision_ambiguous', 'semantic_evidence_conflict',
+                        'immutable_lineage_conflict', 'CROSS_NAMESPACE_REPLACEMENT_UNRESOLVED'}:
+            kind = 'AMBIGUOUS'
+        else:
+            kind = 'UNKNOWN'
+        events.append({'derived_transaction_key': ids['transaction_family_id'],
+                       'identifier_kind': 'DERIVED_RESEARCH_TRANSACTION_ID',
+                       'source_publication': x.get('release_id'), 'version': ids['version_id'],
+                       'predecessor': edge['predecessor_version_id'] if edge else None,
+                       'change_type': kind, 'effective_publication_timestamp': resolved.get('available_at'),
+                       'evidence_class': 'REVIEWED_HISTORY_INPUT' if kind not in {'UNKNOWN', 'AMBIGUOUS'} else 'UNPROVEN',
+                       'reason': reason})
+    return sorted(events, key=lambda x: (x['effective_publication_timestamp'] or '',
+                                        x['change_type'] == 'DUPLICATE_RELEASE', l.canonical_bytes(x)))
 
 
 def parking_treatment(item: dict) -> dict:
@@ -224,9 +367,11 @@ def namespace_analysis(items: list[dict]) -> dict:
             'repeated_key_excess': sum(len(xs)-1 for xs in repeated_keys),
             'cross_release_repeated_groups': sum(len({x['release_id'] for x in xs}) > 1 for xs in repeated_keys),
             'different_main_serial_groups': sum(len({s.text(x['raw'].get('編號')) for x in xs}) > 1 for xs in repeated_keys),
+            'ambiguous_groups': len(repeated_keys), 'unresolved_groups': len(repeated_keys),
             'stability_verdict': 'UNVERIFIED: no authoritative reuse/revision/replacement contract recovered',
             'privacy': 'Values remain private; only scoped aggregate key counts emitted.'}
-    return {'verdict': 'UNVERIFIED_STABLE_NAMESPACE', 'identifier_kind': 'derived_research_identifier',
+    return {'verdict': 'UNVERIFIED_STABLE_NAMESPACE', 'identifier_kind': 'DERIVED_RESEARCH_TRANSACTION_ID',
+            'cross_release_stability': 'UNPROVEN',
             'basis': 'SHA256(version,dataset,source county,reported official serial); no address/name inputs',
             'observations': len(items), 'missing_namespace_observations': missing, 'unique_derived_families': len(families),
             'repeated_family_groups': len(repeated), 'repeated_family_excess': sum(len(xs)-1 for xs in repeated),
@@ -242,11 +387,12 @@ def namespace_analysis(items: list[dict]) -> dict:
 
 
 def data_gate(items: list[dict], cutoff: str, *, history_certificate: dict | None,
-              coverage_evidence: dict | None) -> dict:
+              coverage_evidence: dict | None, pit_v3: bool = False) -> dict:
     occurrence_ids = [l.identify(x)['occurrence_id'] for x in items]
     if len(set(occurrence_ids)) != len(occurrence_ids):
         raise ValueError('duplicate_physical_occurrence_input')
-    selection = select_as_of(items, cutoff, history_certificate=history_certificate)
+    selector = select_pit_v3 if pit_v3 else select_as_of
+    selection = selector(items, cutoff, history_certificate=history_certificate)
     normalized = [{**x, 'source_release_available_at': publication(x).get('available_at')
                    or x.get('source_release_available_at')} for x in items]
     evaluations = {l.identify(x)['occurrence_id']: b.classify(x, cutoff) for x in normalized}
@@ -257,7 +403,7 @@ def data_gate(items: list[dict], cutoff: str, *, history_certificate: dict | Non
     # requalifies the full history at each freeze; a final-cutoff certificate is
     # never silently reused to prove an earlier fold.
     def cohort_selector(xs, freeze):
-        frozen = select_as_of(xs, freeze, history_certificate=history_certificate)
+        frozen = selector(xs, freeze, history_certificate=history_certificate)
         return {'selected_rows': [x for x in frozen['selected'] if b.classify(x, freeze)['target_valid']]}
     splits = chronology.design_splits(chronology.split_rows_from_items(pit), coverage_evidence=coverage_evidence,
                                      ledger_items=items, label_observation_cutoff=cutoff,
@@ -279,6 +425,8 @@ def data_gate(items: list[dict], cutoff: str, *, history_certificate: dict | Non
               'target_valid': len(candidates), 'historically_supported': len(historical),
               'lineage_valid': len(lineage), 'namespace_valid': len(candidates) if certificate_ok else 0,
               'parking_valid': len(parking), 'PIT_valid': len(pit), 'approved_training': len(approved)}
+    if pit_v3:
+        counts['chronological_viable'] = len(approved)
     groups = [('structurally_valid', [x for x in items if evaluations[l.identify(x)['occurrence_id']]['structurally_valid']], 'INVALID_STRUCTURE'),
               ('target_valid', candidates, 'TARGET_B_CONTRACT_EXCLUSION'),
               ('parking_valid', parking, 'NO_PARKING_NOT_CONFIRMED'),
@@ -287,6 +435,8 @@ def data_gate(items: list[dict], cutoff: str, *, history_certificate: dict | Non
               ('lineage_valid', lineage, 'COMPLETE_REVISION_CANCELLATION_HISTORY_UNPROVEN'),
               ('PIT_valid', pit, 'ASOF_VERSION_EXCLUDED'),
               ('approved_training', approved, 'CHRONOLOGICAL_FOLDS_UNPROVEN')]
+    if pit_v3:
+        groups.insert(-1, ('chronological_viable', approved, 'CHRONOLOGICAL_FOLDS_UNPROVEN'))
     active = {l.identify(x)['occurrence_id'] for x in items}; waterfall = []
     for stage, xs, reason in groups:
         remaining = active & {l.identify(x)['occurrence_id'] for x in xs}
@@ -301,7 +451,7 @@ def data_gate(items: list[dict], cutoff: str, *, history_certificate: dict | Non
         target_funnel.append({'stage': stage, 'input_count': len(active), 'accepted_count': len(active-rejected),
                               'excluded_count': len(rejected), 'reason_counts': dict(sorted(reason_counts.items()))})
         active -= rejected
-    return {'version': GATE_VERSION, 'target_a': 'PASS' if a_approved else 'BLOCKED',
+    return {'version': 'ml-data-gate-v3' if pit_v3 else GATE_VERSION, 'target_a': 'PASS' if a_approved else 'BLOCKED',
             'target_b': 'PASS' if approved else 'BLOCKED', 'ml_b_may_begin': bool(approved),
             'counts': counts, 'counts_semantics': 'Marginal diagnostics within target candidates; waterfall is sequential.',
             'waterfall': waterfall, 'asof_exclusions': selection['excluded_reasons'],
