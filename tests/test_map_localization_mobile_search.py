@@ -1,17 +1,18 @@
-"""Static contracts for the localized map and location search surface."""
+"""Resolved localization and static provider/UI contracts for map/search surfaces."""
 
 from __future__ import annotations
 
 from pathlib import Path
+from tests.runtime_copy_probe import (
+    EXPERIENCE_KEYS, MAP_KEYS, SURFACE_KEYS,
+    assert_experience_keys_localized, assert_runtime_keys_localized,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = (ROOT / "frontend_next/app/page.tsx").read_text(encoding="utf-8")
 MAP = (ROOT / "frontend_next/components/map/geo-map.tsx").read_text(encoding="utf-8")
 SEARCH = (ROOT / "frontend_next/lib/map-search.ts").read_text(encoding="utf-8")
-RUNTIME = (ROOT / "frontend_next/lib/runtime-copy.ts").read_text(encoding="utf-8")
-RUNTIME_OVERRIDES = (ROOT / "frontend_next/lib/runtime-copy-overrides.ts").read_text(encoding="utf-8")
-EXPERIENCE_OVERRIDES = (ROOT / "frontend_next/lib/experience-i18n-overrides.ts").read_text(encoding="utf-8")
 DECISION_PANEL = (ROOT / "frontend_next/components/viewing-decision-panel.tsx").read_text(encoding="utf-8")
 DECISION_REPORT = (ROOT / "frontend_next/components/decision-report.tsx").read_text(encoding="utf-8")
 
@@ -30,9 +31,7 @@ def test_multilingual_search_normalization_covers_script_and_romanized_aliases()
 
 
 def test_map_is_localized_without_changing_provider_tile_urls() -> None:
-    for key in ("map.baseStandard", "map.baseLight", "map.baseSatellite", "map.selected", "map.distance", "map.rating"):
-        assert key in RUNTIME
-        assert key in RUNTIME_OVERRIDES
+    assert_runtime_keys_localized(MAP_KEYS)
     assert 'copy("map.baseStandard")' in MAP
     assert 'copy("map.selected")' in MAP
     assert "tile.openstreetmap.org" in MAP
@@ -65,10 +64,8 @@ def test_locale_switching_does_not_add_storage_or_locale_triggered_search() -> N
 
 
 def test_shared_surfaces_have_localized_runtime_entry_points() -> None:
-    for key in ("location.title", "commute.title", "loan.title", "tax.title", "case.title"):
-        assert key in RUNTIME_OVERRIDES
-    for key in ("page.terrain", "journey.location.title", "trust.referenceOnly"):
-        assert key in EXPERIENCE_OVERRIDES
+    assert_runtime_keys_localized(SURFACE_KEYS)
+    assert_experience_keys_localized(EXPERIENCE_KEYS)
     assert "function TerrainRiskPage()" in PAGE
     assert "function History()" not in PAGE
 

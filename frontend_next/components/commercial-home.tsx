@@ -12,9 +12,11 @@ import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { createBrowserCaseRepository, type WorkspaceReadDiagnostic } from "@/lib/workspace/case-repository";
 import { formatExactDate } from "@/lib/commercial/formatters";
 import { resolveCommercialState } from "@/lib/commercial/state";
+import { useStartGuidedExample } from "@/components/app-shell";
 
 export function CommercialHome({ onStart, onFinder }: { onStart: (address: string) => void; onFinder: () => void }) {
-  const { t, locale } = useExperienceLocale();
+  const { t, copy, locale } = useExperienceLocale();
+  const startDemo = useStartGuidedExample();
   const [address, setAddress] = useState("");
   const repository = useMemo(createBrowserCaseRepository, []);
   const [read, setRead] = useState<WorkspaceReadDiagnostic | null>(null);
@@ -29,6 +31,7 @@ export function CommercialHome({ onStart, onFinder }: { onStart: (address: strin
         <CommercialButton type="submit" size="touch">{t("commercial.start")}</CommercialButton>
       </form>
       <button type="button" className="commercial-text-action" onClick={onFinder}>{t("commercial.finder")}</button>
+      <button type="button" data-testid="demo-start" className="ds-button ds-button--secondary" onClick={(event) => startDemo?.(event.currentTarget)}>{copy("guide.demoStart")}</button>
     </section>
     <Section title={t("commercial.recent")} description={t("commercial.localNote")}>
       {read && <RepositoryNotice read={read} />}

@@ -9,6 +9,13 @@ import ts from "typescript";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cache = new Map();
+function dictionaryKeys(node) {
+  if (ts.isCallExpression(node) && node.expression.getText() === "expandCopyGroups") {
+    return node.arguments[0].properties.flatMap((group) => group.initializer.properties.map((property) => `${group.name.text}.${property.name.text}`));
+  }
+  if (!ts.isObjectLiteralExpression(node)) return [];
+  return node.properties.flatMap((property) => ts.isSpreadAssignment(property) ? dictionaryKeys(property.expression) : ts.isPropertyAssignment(property) ? [property.name.text] : []);
+}
 function load(name) {
   if (cache.has(name)) return cache.get(name);
   const filename = resolve(root, "lib", `${name}.ts`);
@@ -39,9 +46,9 @@ test("runtime resources contain no literals already supplied by locale overrides
   const source = ts.createSourceFile(filename, readFileSync(filename, "utf8"), ts.ScriptTarget.Latest, true);
   const overrides = load("runtime-copy-overrides"); const duplicates = [];
   function visit(node) {
-    if (ts.isVariableDeclaration(node) && ["ja", "ko"].includes(node.name.getText(source)) && node.initializer && ts.isObjectLiteralExpression(node.initializer)) {
+    if (ts.isVariableDeclaration(node) && ["ja", "ko"].includes(node.name.getText(source)) && node.initializer) {
       const locale = node.name.getText(source);
-      for (const property of node.initializer.properties) if (ts.isPropertyAssignment(property) && ts.isStringLiteral(property.name) && overrides.getRuntimeCopyOverride(locale, property.name.text) !== undefined) duplicates.push(`${locale}:${property.name.text}`);
+      for (const key of dictionaryKeys(node.initializer)) if (overrides.getRuntimeCopyOverride(locale, key) !== undefined) duplicates.push(`${locale}:${key}`);
     }
     ts.forEachChild(node, visit);
   }
@@ -55,7 +62,7 @@ test("base override dictionaries contain no literals replaced by production over
     const source = ts.createSourceFile(filename, readFileSync(filename, "utf8"), ts.ScriptTarget.Latest, true);
     const dictionaries = new Map();
     function visit(node) {
-      if (ts.isVariableDeclaration(node) && node.initializer && ts.isObjectLiteralExpression(node.initializer)) dictionaries.set(node.name.getText(source), node.initializer.properties.filter(ts.isPropertyAssignment).map((property) => property.name.text));
+      if (ts.isVariableDeclaration(node) && node.initializer) dictionaries.set(node.name.getText(source), dictionaryKeys(node.initializer));
       ts.forEachChild(node, visit);
     }
     visit(source);
