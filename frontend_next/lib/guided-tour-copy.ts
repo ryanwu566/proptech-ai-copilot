@@ -2,7 +2,7 @@ import type { ExperienceLocale } from "@/lib/experience-i18n";
 
 // Guide resources join the existing runtime-copy catalogue; components use copy().
 export const GUIDED_TOUR_COPY_KEYS = [
-  "guide.title", "guide.path", "guide.progress", "guide.next", "guide.back",
+  "guide.demoStart", "guide.title", "guide.path", "guide.progress", "guide.next", "guide.back",
   "guide.skip", "guide.finish", "guide.restart", "guide.context", "guide.boundary",
   "guide.property.label", "guide.property.heading", "guide.property.description",
   "guide.market.label", "guide.market.heading", "guide.market.description",
@@ -16,6 +16,7 @@ export type GuidedTourCopyKey = typeof GUIDED_TOUR_COPY_KEYS[number];
 
 export const GUIDED_TOUR_COPY: Record<ExperienceLocale, Record<GuidedTourCopyKey, string>> = {
   "zh-TW": {
+    "guide.demoStart": "體驗引導示範",
     "guide.title": "物件決策導覽", "guide.path": "決策流程", "guide.progress": "第 {{current}} 步，共 {{total}} 步",
     "guide.next": "下一步", "guide.back": "上一步", "guide.skip": "略過導覽", "guide.finish": "完成導覽", "guide.restart": "重新開啟導覽",
     "guide.context": "這是流程導覽。關閉後，可在工作區依需要查看各項證據。",
@@ -36,6 +37,7 @@ export const GUIDED_TOUR_COPY: Record<ExperienceLocale, Record<GuidedTourCopyKey
     "guide.save.description": "保存目前案件，重新開啟時檢查證據時效。比較案件或產生報告時，一併保留來源、限制與待查證事項，方便下一次討論。",
   },
   en: {
+    "guide.demoStart": "Try a guided example",
     "guide.title": "Property decision guide", "guide.path": "Decision workflow", "guide.progress": "Step {{current}} of {{total}}",
     "guide.next": "Next", "guide.back": "Back", "guide.skip": "Skip tour", "guide.finish": "Finish", "guide.restart": "Restart tour",
     "guide.context": "This is a workflow guide. Close it to inspect evidence in the workspace when you need it.",
@@ -56,6 +58,7 @@ export const GUIDED_TOUR_COPY: Record<ExperienceLocale, Record<GuidedTourCopyKey
     "guide.save.description": "Save the current case and check evidence freshness when you reopen it. Compare cases or generate a report with sources, limitations and pending checks for your next discussion.",
   },
   ja: {
+    "guide.demoStart": "ガイド付きの例を体験",
     "guide.title": "物件の意思決定ガイド", "guide.path": "検討の流れ", "guide.progress": "ステップ {{current}} / {{total}}",
     "guide.next": "次へ", "guide.back": "前へ", "guide.skip": "ガイドをスキップ", "guide.finish": "ガイドを完了", "guide.restart": "ガイドを再開",
     "guide.context": "検討手順のガイドです。閉じた後、必要に応じてワークスペースで資料を確認できます。",
@@ -76,6 +79,7 @@ export const GUIDED_TOUR_COPY: Record<ExperienceLocale, Record<GuidedTourCopyKey
     "guide.save.description": "現在の案件を保存し、再度開くときに資料の更新時点を確認します。比較やレポートには出典、制約、未確認事項も残し、次の相談に役立ててください。",
   },
   ko: {
+    "guide.demoStart": "안내 예시 체험",
     "guide.title": "부동산 의사결정 안내", "guide.path": "검토 과정", "guide.progress": "{{total}}단계 중 {{current}}단계",
     "guide.next": "다음", "guide.back": "이전", "guide.skip": "안내 건너뛰기", "guide.finish": "안내 완료", "guide.restart": "안내 다시 시작",
     "guide.context": "검토 과정 안내입니다. 닫은 후 필요에 따라 작업공간에서 근거를 확인하세요.",

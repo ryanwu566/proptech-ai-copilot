@@ -8,11 +8,13 @@ Verifies:
 - All 4 locales have correct copy for new keys.
 """
 from pathlib import Path
+from tests.runtime_copy_probe import (
+    CONFIDENCE_KEYS, LOCATION_PRICE_KEYS, assert_runtime_keys_localized, probe_runtime_copy,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 RISK_SUMMARY = (ROOT / "frontend_next" / "lib" / "risk-summary.ts").read_text(encoding="utf-8")
 LOCALIZERS = (ROOT / "frontend_next" / "lib" / "dynamic-copy-localizers.ts").read_text(encoding="utf-8")
-RUNTIME_COPY = (ROOT / "frontend_next" / "lib" / "runtime-copy.ts").read_text(encoding="utf-8")
 
 
 def test_confidence_factor_uses_confidence_semantics_not_burden():
@@ -36,26 +38,12 @@ def test_confidence_factor_uses_confidence_semantics_not_burden():
 
 def test_confidence_copy_keys_exist_in_all_4_locales():
     """All confidence message keys must exist in zh-TW, en, ja, ko dictionaries."""
-    keys = [
-        "riskSummary.confidenceHighMessage",
-        "riskSummary.confidenceMediumMessage",
-        "riskSummary.confidenceLowMessage",
-    ]
-    for key in keys:
-        occurrences = RUNTIME_COPY.count(f'"{key}"')
-        # Key appears in KEYS array + 4 locale dicts = at least 5
-        assert occurrences >= 5, f"{key} found only {occurrences} times, expected >= 5 (key def + 4 locales)"
+    assert_runtime_keys_localized(CONFIDENCE_KEYS)
 
 
 def test_location_price_title_keys_exist_in_all_4_locales():
     """Location-price support/not-support title keys must exist in all 4 locales."""
-    keys = [
-        "riskSummary.titleLocationSupportsPrice",
-        "riskSummary.titleLocationNotSupportsPrice",
-    ]
-    for key in keys:
-        occurrences = RUNTIME_COPY.count(f'"{key}"')
-        assert occurrences >= 5, f"{key} found only {occurrences} times, expected >= 5"
+    assert_runtime_keys_localized(LOCATION_PRICE_KEYS)
 
 
 def test_localizer_handles_price_factor_without_raw_key():
@@ -108,12 +96,7 @@ def test_factor_title_keys_cover_all_known_factor_types():
 
 def test_confidence_en_copy_contains_confidence_semantics():
     """EN copy for confidence high must contain 'confidence' wording, not 'burden'."""
-    # Find the EN confidenceHighMessage value
-    idx = RUNTIME_COPY.index('"riskSummary.confidenceHighMessage": "')
-    # Read until the next quote
-    start = idx + len('"riskSummary.confidenceHighMessage": "')
-    end = RUNTIME_COPY.index('"', start)
-    en_msg = RUNTIME_COPY[start:end]
+    en_msg = probe_runtime_copy()["runtime"]["en"]["riskSummary.confidenceHighMessage"]
     # Must contain confidence-related wording
     assert "confidence" in en_msg.lower() or "Confidence" in en_msg
     # Must NOT contain burden-related wording
