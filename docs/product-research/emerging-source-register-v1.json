@@ -1,0 +1,1352 @@
+{
+    "schema_version":  "1.0",
+    "research_scope":  "Emerging AI property products: public first-party evidence",
+    "as_of":  "2026-10-10",
+    "timezone":  "Asia/Taipei",
+    "methodology":  {
+                        "discovery":  "Actual web queries followed by opening official pages and launch documentation.",
+                        "claim_rule":  "Capabilities require source IDs. Missing evidence is UNKNOWN, never NO. Shipped means vendor documents a present capability; no authenticated or transactional feature test performed.",
+                        "statuses":  [
+                                         "documented_shipped",
+                                         "documented_beta",
+                                         "documented_limited_release",
+                                         "candidate_unverified",
+                                         "historically_documented_shipped_current_unknown"
+                                     ],
+                        "limitations":  [
+                                            "Current website access alone does not prove functionality or adoption.",
+                                            "Undated live pages establish current documented positioning; launch dates remain UNKNOWN unless explicit.",
+                                            "The seven products include AI products inside larger established platforms, not only newly formed companies."
+                                        ]
+                    },
+    "products":  [
+                     {
+                         "id":  "jitty",
+                         "name":  "Jitty",
+                         "official_url":  "https://jitty.com/",
+                         "company":  {
+                                         "value":  "Get Complete Ltd",
+                                         "source_ids":  [
+                                                            "EM-S01"
+                                                        ]
+                                     },
+                         "target_users":  {
+                                              "value":  [
+                                                            "UK homebuyers"
+                                                        ],
+                                              "source_ids":  [
+                                                                 "EM-S02"
+                                                             ]
+                                          },
+                         "geography":  {
+                                           "value":  "United Kingdom",
+                                           "source_ids":  [
+                                                              "EM-S01"
+                                                          ],
+                                           "qualification":  "Observed city links include England and Scotland; completeness of listing coverage UNKNOWN."
+                                       },
+                         "ai_orientation":  {
+                                                "value":  "AI-led home search",
+                                                "source_ids":  [
+                                                                   "EM-S01"
+                                                               ]
+                                            },
+                         "lifecycle":  {
+                                           "value":  "active_public_product_page",
+                                           "source_ids":  [
+                                                              "EM-S01"
+                                                          ]
+                                       },
+                         "verified_at":  "2026-10-10",
+                         "launch_or_update_date":  {
+                                                       "value":  "UNKNOWN",
+                                                       "source_ids":  [
+
+                                                                      ]
+                                                   },
+                         "availability":  {
+                                              "value":  "Public search; app download advertised",
+                                              "source_ids":  [
+                                                                 "EM-S01",
+                                                                 "EM-S02"
+                                                             ]
+                                          },
+                         "capabilities":  [
+                                              {
+                                                  "capability_id":  "jitty.natural_language_search",
+                                                  "summary":  "Search homes with free-text preferences.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S01"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "jitty.commute_search",
+                                                  "summary":  "Discover areas by a typed commute-time request.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S01"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "jitty.visual_attribute_search",
+                                                  "summary":  "Text queries match visual attributes of homes.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S02"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "jitty.price_comparison",
+                                                  "summary":  "Compare price per square foot with nearby properties.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S01"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "jitty.collaboration",
+                                                  "summary":  "Share collections and save photos, notes and feedback.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S02"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              }
+                                          ],
+                         "uncertainties":  [
+                                               {
+                                                   "claim":  "Complete coverage and launch date UNKNOWN; About page contains placeholder text and stale coming-soon cards.",
+                                                   "source_ids":  [
+                                                                      "EM-S02"
+                                                                  ]
+                                               }
+                                           ],
+                         "unverified_capabilities":  [
+                                                         "inspection_report_analysis",
+                                                         "legal_due_diligence",
+                                                         "risk_scoring",
+                                                         "autonomous_offer_submission"
+                                                     ]
+                     },
+                     {
+                         "id":  "claire",
+                         "name":  "Claire",
+                         "official_url":  "https://www.realpha.com/",
+                         "company":  {
+                                         "value":  "reAlpha Tech Corp.",
+                                         "source_ids":  [
+                                                            "EM-S03"
+                                                        ]
+                                     },
+                         "target_users":  {
+                                              "value":  [
+                                                            "Homebuyers"
+                                                        ],
+                                              "source_ids":  [
+                                                                 "EM-S03"
+                                                             ]
+                                          },
+                         "geography":  {
+                                           "value":  "United States, with state-dependent service coverage",
+                                           "source_ids":  [
+                                                              "EM-S03",
+                                                              "EM-S04"
+                                                          ],
+                                           "qualification":  "The 2025 release said all three bundled services were then available only in Florida; current site lists broader brokerage licenses. National end-to-end availability UNKNOWN."
+                                       },
+                         "ai_orientation":  {
+                                                "value":  "Generative AI homebuying concierge",
+                                                "source_ids":  [
+                                                                   "EM-S03"
+                                                               ]
+                                            },
+                         "lifecycle":  {
+                                           "value":  "documented_shipped_update; explicitly still promoted in March 2026",
+                                           "source_ids":  [
+                                                              "EM-S03",
+                                                              "EM-S21"
+                                                          ]
+                                       },
+                         "verified_at":  "2026-10-10",
+                         "launch_or_update_date":  {
+                                                       "value":  "2025-09-15",
+                                                       "source_ids":  [
+                                                                          "EM-S03"
+                                                                      ],
+                                                       "qualification":  "Concierge expansion date, not original launch."
+                                                   },
+                         "availability":  {
+                                              "value":  "Via reAlpha platform; professional services vary by state",
+                                              "source_ids":  [
+                                                                 "EM-S03",
+                                                                 "EM-S04"
+                                                             ]
+                                          },
+                         "capabilities":  [
+                                              {
+                                                  "capability_id":  "claire.personalized_search",
+                                                  "summary":  "Capture preferences and refine property recommendations.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S03"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "claire.match_explanations",
+                                                  "summary":  "Explain property fit with AI summaries.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S03"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "claire.concierge",
+                                                  "summary":  "Answer questions and provide stage-aware guidance.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S03"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "claire.tour_handoff",
+                                                  "summary":  "Schedule showings within the connected buyer flow.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S03"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "claire.mortgage_handoff",
+                                                  "summary":  "Start preapproval and connect buyers with licensed professionals.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S03"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "claire.inspection_report_summary",
+                                                  "summary":  "Review with Claire summarized inspection and settlement documents in 2024 launch documentation.",
+                                                  "status":  "historically_documented_shipped_current_unknown",
+                                                  "source_ids":  [
+                                                                     "EM-S22"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              }
+                                          ],
+                         "uncertainties":  [
+                                               {
+                                                   "claim":  "No session or purchase flow tested. March 2026 official article describes Claire as available, while the current homepage extracted text does not mention Claire by name.",
+                                                   "source_ids":  [
+                                                                      "EM-S21",
+                                                                      "EM-S04"
+                                                                  ]
+                                               },
+                                               {
+                                                   "claim":  "Inspection/settlement summaries and natural-language search were documented in August 2024; retention of those features in current concierge is UNKNOWN.",
+                                                   "source_ids":  [
+                                                                      "EM-S22",
+                                                                      "EM-S03"
+                                                                  ]
+                                               },
+                                               {
+                                                   "claim":  "Platform renamed from Claire to reAlpha in August 2024; Claire remains the embedded assistant.",
+                                                   "source_ids":  [
+                                                                      "EM-S22"
+                                                                  ]
+                                               }
+                                           ],
+                         "unverified_capabilities":  [
+                                                         "source_citations",
+                                                         "autonomous_closing",
+                                                         "current_inspection_report_feature_retention"
+                                                     ]
+                     },
+                     {
+                         "id":  "orbital",
+                         "name":  "Orbital",
+                         "official_url":  "https://www.orbital.tech/",
+                         "company":  {
+                                         "value":  "Orbital",
+                                         "source_ids":  [
+                                                            "EM-S05"
+                                                        ]
+                                     },
+                         "target_users":  {
+                                              "value":  [
+                                                            "Real estate legal teams",
+                                                            "Developers",
+                                                            "Owner-operators",
+                                                            "Conveyancing firms"
+                                                        ],
+                                              "source_ids":  [
+                                                                 "EM-S05",
+                                                                 "EM-S06"
+                                                             ]
+                                          },
+                         "geography":  {
+                                           "value":  "United States and United Kingdom",
+                                           "source_ids":  [
+                                                              "EM-S05",
+                                                              "EM-S06"
+                                                          ],
+                                           "qualification":  "US/GB region selector and UK-specific platform observed; exact jurisdiction coverage UNKNOWN."
+                                       },
+                         "ai_orientation":  {
+                                                "value":  "AI platform for property legal work",
+                                                "source_ids":  [
+                                                                   "EM-S05"
+                                                               ]
+                                            },
+                         "lifecycle":  {
+                                           "value":  "active_public_product_pages",
+                                           "source_ids":  [
+                                                              "EM-S05",
+                                                              "EM-S06"
+                                                          ]
+                                       },
+                         "verified_at":  "2026-10-10",
+                         "launch_or_update_date":  {
+                                                       "value":  "UNKNOWN",
+                                                       "source_ids":  [
+
+                                                                      ]
+                                                   },
+                         "availability":  {
+                                              "value":  "Demo-led enterprise access",
+                                              "source_ids":  [
+                                                                 "EM-S05"
+                                                             ]
+                                          },
+                         "capabilities":  [
+                                              {
+                                                  "capability_id":  "orbital.document_qa",
+                                                  "summary":  "Analyze connected title, survey and lease documents with source-backed answers.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S05"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "orbital.title_risk",
+                                                  "summary":  "Surface restrictions, consent rights and easements.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S05"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "orbital.property_visualization",
+                                                  "summary":  "Overlay boundaries, easements, zoning, flood and environmental records.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S05"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "orbital.closing_checklists",
+                                                  "summary":  "Generate checklist from purchase agreement.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S05"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "orbital.source_linked_outputs",
+                                                  "summary":  "Present source-linked outputs and audit trails.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S06"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              }
+                                          ],
+                         "uncertainties":  [
+                                               {
+                                                   "claim":  "Older Orbital Copilot report URL failed; current platform name is Orbital. Precise legacy-product migration date UNKNOWN.",
+                                                   "source_ids":  [
+                                                                      "EM-S07",
+                                                                      "EM-S05"
+                                                                  ]
+                                               }
+                                           ],
+                         "unverified_capabilities":  [
+                                                         "consumer_home_search",
+                                                         "homebuyer_self_serve_pricing",
+                                                         "tested_legal_accuracy"
+                                                     ]
+                     },
+                     {
+                         "id":  "landtech",
+                         "name":  "LandTech AI Assistant",
+                         "official_url":  "https://land.tech/assess-sites/ai-assistant",
+                         "company":  {
+                                         "value":  "Land Technologies Ltd",
+                                         "source_ids":  [
+                                                            "EM-S08"
+                                                        ]
+                                     },
+                         "target_users":  {
+                                              "value":  [
+                                                            "UK developers",
+                                                            "Land and planning professionals"
+                                                        ],
+                                              "source_ids":  [
+                                                                 "EM-S09"
+                                                             ]
+                                          },
+                         "geography":  {
+                                           "value":  "United Kingdom",
+                                           "source_ids":  [
+                                                              "EM-S09"
+                                                          ]
+                                       },
+                         "ai_orientation":  {
+                                                "value":  "Native AI assistant inside LandInsight",
+                                                "source_ids":  [
+                                                                   "EM-S08"
+                                                               ]
+                                            },
+                         "lifecycle":  {
+                                           "value":  "documented_shipped; explicitly live in Unlimited workspace",
+                                           "source_ids":  [
+                                                              "EM-S08"
+                                                          ]
+                                       },
+                         "verified_at":  "2026-10-10",
+                         "launch_or_update_date":  {
+                                                       "value":  "UNKNOWN",
+                                                       "source_ids":  [
+
+                                                                      ]
+                                                   },
+                         "availability":  {
+                                              "value":  "LandInsight Unlimited subscription",
+                                              "source_ids":  [
+                                                                 "EM-S08"
+                                                             ]
+                                          },
+                         "capabilities":  [
+                                              {
+                                                  "capability_id":  "landtech.site_qa",
+                                                  "summary":  "Ask about site ownership, planning history and constraints.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S08"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "landtech.citations",
+                                                  "summary":  "Follow answer citations to official records.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S08"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "landtech.saved_sites",
+                                                  "summary":  "Analyze saved sites within LandInsight.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S08"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "landtech.site_report",
+                                                  "summary":  "Generate source-linked site reports.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S09"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              }
+                                          ],
+                         "uncertainties":  [
+                                               {
+                                                   "claim":  "No authenticated workspace or report tested; exact launch date UNKNOWN.",
+                                                   "source_ids":  [
+                                                                      "EM-S08"
+                                                                  ]
+                                               }
+                                           ],
+                         "unverified_capabilities":  [
+                                                         "consumer_home_search",
+                                                         "inspection_report_analysis",
+                                                         "automated_planning_approval"
+                                                     ]
+                     },
+                     {
+                         "id":  "clara",
+                         "name":  "Clara",
+                         "official_url":  "https://www.coadjute.com/",
+                         "company":  {
+                                         "value":  "Coadjute Ltd",
+                                         "source_ids":  [
+                                                            "EM-S10"
+                                                        ]
+                                     },
+                         "target_users":  {
+                                              "value":  [
+                                                            "Estate agents",
+                                                            "Conveyancers",
+                                                            "Property buyers and sellers"
+                                                        ],
+                                              "source_ids":  [
+                                                                 "EM-S10"
+                                                             ]
+                                          },
+                         "geography":  {
+                                           "value":  "United Kingdom",
+                                           "source_ids":  [
+                                                              "EM-S10"
+                                                          ]
+                                       },
+                         "ai_orientation":  {
+                                                "value":  "Conversational digital human in AI-native AML platform",
+                                                "source_ids":  [
+                                                                   "EM-S10"
+                                                               ]
+                                            },
+                         "lifecycle":  {
+                                           "value":  "documented_limited_release",
+                                           "source_ids":  [
+                                                              "EM-S10"
+                                                          ],
+                                           "qualification":  "April release made access available to selected new customers and planned six-month rollout to existing users; completion UNKNOWN."
+                                       },
+                         "verified_at":  "2026-10-10",
+                         "launch_or_update_date":  {
+                                                       "value":  "2026-04-13",
+                                                       "source_ids":  [
+                                                                          "EM-S10"
+                                                                      ]
+                                                   },
+                         "availability":  {
+                                              "value":  "Selected customers and rollout; provider account required",
+                                              "source_ids":  [
+                                                                 "EM-S10"
+                                                             ]
+                                          },
+                         "capabilities":  [
+                                              {
+                                                  "capability_id":  "clara.aml_guidance",
+                                                  "summary":  "Explain AML checks and required documents.",
+                                                  "status":  "documented_limited_release",
+                                                  "source_ids":  [
+                                                                     "EM-S10"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "clara.document_upload",
+                                                  "summary":  "Assist buyers and sellers with document upload.",
+                                                  "status":  "documented_limited_release",
+                                                  "source_ids":  [
+                                                                     "EM-S10"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "clara.followup",
+                                                  "summary":  "Request additional information as evidence arrives.",
+                                                  "status":  "documented_limited_release",
+                                                  "source_ids":  [
+                                                                     "EM-S10"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "clara.human_review",
+                                                  "summary":  "Completed checks retain qualified compliance sign-off.",
+                                                  "status":  "documented_limited_release",
+                                                  "source_ids":  [
+                                                                     "EM-S10"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              }
+                                          ],
+                         "uncertainties":  [
+                                               {
+                                                   "claim":  "Broad rollout completion and account-level availability UNKNOWN.",
+                                                   "source_ids":  [
+                                                                      "EM-S10"
+                                                                  ]
+                                               }
+                                           ],
+                         "unverified_capabilities":  [
+                                                         "property_search",
+                                                         "physical_property_risk_report",
+                                                         "legal_document_qa_beyond_aml"
+                                                     ]
+                     },
+                     {
+                         "id":  "heyleo",
+                         "name":  "HeyLeo",
+                         "official_url":  "https://heyleo.com/",
+                         "company":  {
+                                         "value":  "The Real Brokerage Inc.; app developer Real Broker LLC",
+                                         "source_ids":  [
+                                                            "EM-S11",
+                                                            "EM-S12"
+                                                        ]
+                                     },
+                         "target_users":  {
+                                              "value":  [
+                                                            "Homebuyers in supported MLS markets",
+                                                            "Real Brokerage agents"
+                                                        ],
+                                              "source_ids":  [
+                                                                 "EM-S11",
+                                                                 "EM-S12"
+                                                             ]
+                                          },
+                         "geography":  {
+                                           "value":  "Selected United States MLS markets",
+                                           "source_ids":  [
+                                                              "EM-S11"
+                                                          ],
+                                           "qualification":  "Beta launch covered key markets across 20 states. Parent company presence in Canada does not establish consumer product coverage."
+                                       },
+                         "ai_orientation":  {
+                                                "value":  "Voice/text AI consumer concierge with connected agent workspace",
+                                                "source_ids":  [
+                                                                   "EM-S11"
+                                                               ]
+                                            },
+                         "lifecycle":  {
+                                           "value":  "documented_consumer_beta; current_agent_app_listing",
+                                           "source_ids":  [
+                                                              "EM-S11",
+                                                              "EM-S12"
+                                                          ],
+                                           "qualification":  "Present consumer web access UNKNOWN due retrieval error."
+                                       },
+                         "verified_at":  "2026-10-10",
+                         "launch_or_update_date":  {
+                                                       "value":  "2025-11-04",
+                                                       "source_ids":  [
+                                                                          "EM-S11"
+                                                                      ],
+                                                       "qualification":  "Consumer beta launch; agent app lists update 2026-07-17."
+                                                   },
+                         "availability":  {
+                                              "value":  "Consumer web beta in selected MLS markets; mobile agent app requires active Real account",
+                                              "source_ids":  [
+                                                                 "EM-S11",
+                                                                 "EM-S12"
+                                                             ]
+                                          },
+                         "capabilities":  [
+                                              {
+                                                  "capability_id":  "heyleo.voice_text_search",
+                                                  "summary":  "Search through voice or natural text preferences.",
+                                                  "status":  "documented_beta",
+                                                  "source_ids":  [
+                                                                     "EM-S11"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "heyleo.property_qa",
+                                                  "summary":  "Answer property-specific questions using listing data.",
+                                                  "status":  "documented_beta",
+                                                  "source_ids":  [
+                                                                     "EM-S11"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "heyleo.agent_handoff",
+                                                  "summary":  "Connect buyers to agent or mortgage preapproval.",
+                                                  "status":  "documented_beta",
+                                                  "source_ids":  [
+                                                                     "EM-S11"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "heyleo.agent_workspace",
+                                                  "summary":  "Agents monitor conversations and take over.",
+                                                  "status":  "documented_beta",
+                                                  "source_ids":  [
+                                                                     "EM-S11"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "heyleo.agent_lead_qualification",
+                                                  "summary":  "Current mobile listing advertises AI replies, qualification and next-step scheduling.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S12"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              }
+                                          ],
+                         "uncertainties":  [
+                                               {
+                                                   "claim":  "Current app description is agent-only; search index previously described consumer home search. Treat these as distinct surfaces and do not imply public consumer mobile access.",
+                                                   "source_ids":  [
+                                                                      "EM-S12"
+                                                                  ]
+                                               },
+                                               {
+                                                   "claim":  "Consumer site open returned Internal Error.",
+                                                   "source_ids":  [
+                                                                      "EM-S13"
+                                                                  ]
+                                               },
+                                               {
+                                                   "claim":  "Flyhomes portal assets incorporated into HeyLeo; original Flyhomes search product is no longer a separate current candidate.",
+                                                   "source_ids":  [
+                                                                      "EM-S11",
+                                                                      "EM-S14"
+                                                                  ]
+                                               }
+                                           ],
+                         "unverified_capabilities":  [
+                                                         "inspection_report_analysis",
+                                                         "source_citations",
+                                                         "current_consumer_web_functionality"
+                                                     ]
+                     },
+                     {
+                         "id":  "canaryai",
+                         "name":  "CanaryAI",
+                         "official_url":  "https://www.housecanary.com/products/canary-ai",
+                         "company":  {
+                                         "value":  "HouseCanary, Inc.",
+                                         "source_ids":  [
+                                                            "EM-S16",
+                                                            "EM-S17"
+                                                        ]
+                                     },
+                         "target_users":  {
+                                              "value":  [
+                                                            "Real estate agents",
+                                                            "Investors",
+                                                            "Loan officers",
+                                                            "Lenders",
+                                                            "Servicers"
+                                                        ],
+                                              "source_ids":  [
+                                                                 "EM-S15"
+                                                             ]
+                                          },
+                         "geography":  {
+                                           "value":  "United States nationwide property data",
+                                           "source_ids":  [
+                                                              "EM-S15"
+                                                          ]
+                                       },
+                         "ai_orientation":  {
+                                                "value":  "GenAI real estate data assistant",
+                                                "source_ids":  [
+                                                                   "EM-S15"
+                                                               ]
+                                            },
+                         "lifecycle":  {
+                                           "value":  "documented_shipped; current paid access listed",
+                                           "source_ids":  [
+                                                              "EM-S16",
+                                                              "EM-S18"
+                                                          ]
+                                       },
+                         "verified_at":  "2026-10-10",
+                         "launch_or_update_date":  {
+                                                       "value":  "2025-01-06",
+                                                       "source_ids":  [
+                                                                          "EM-S16"
+                                                                      ],
+                                                       "qualification":  "Official self-serve launch; July 30, 2025 feature update also documented."
+                                                   },
+                         "availability":  {
+                                              "value":  "Paid self-serve HouseCanary plans include CanaryAI",
+                                              "source_ids":  [
+                                                                 "EM-S18"
+                                                             ]
+                                          },
+                         "capabilities":  [
+                                              {
+                                                  "capability_id":  "canaryai.property_qa",
+                                                  "summary":  "Query property, neighborhood and market information conversationally.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S15"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "canaryai.valuation",
+                                                  "summary":  "Retrieve valuations, comparables and rental forecasts.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S15"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "canaryai.photo_valuation",
+                                                  "summary":  "Use uploaded photos to adjust valuation for condition.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S17"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "canaryai.arv",
+                                                  "summary":  "Estimate after-repair value in chat.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S17"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              },
+                                              {
+                                                  "capability_id":  "canaryai.source_documents",
+                                                  "summary":  "Download ownership, financing and assessor-map source images.",
+                                                  "status":  "documented_shipped",
+                                                  "source_ids":  [
+                                                                     "EM-S17"
+                                                                 ],
+                                                  "evidence_scope":  "public_documentation_only",
+                                                  "hands_on_verified":  false
+                                              }
+                                          ],
+                         "uncertainties":  [
+                                               {
+                                                   "claim":  "Document download capability does not establish uploaded inspection or legal-document analysis. Model accuracy not independently tested.",
+                                                   "source_ids":  [
+                                                                      "EM-S17",
+                                                                      "EM-S15"
+                                                                  ]
+                                               }
+                                           ],
+                         "unverified_capabilities":  [
+                                                         "inspection_report_analysis",
+                                                         "legal_document_qa",
+                                                         "answer_level_citations",
+                                                         "independent_accuracy"
+                                                     ]
+                     }
+                 ],
+    "sources":  [
+                    {
+                        "id":  "EM-S01",
+                        "title":  "Jitty homepage",
+                        "url":  "https://jitty.com/",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Live UK search page describes AI search, commute queries, attribute filters and local price comparisons.",
+                        "supports":  [
+                                         "jitty.identity",
+                                         "jitty.geography",
+                                         "jitty.active",
+                                         "jitty.natural_language_search",
+                                         "jitty.commute_search",
+                                         "jitty.semantic_filters",
+                                         "jitty.price_comparison"
+                                     ],
+                        "locator":  "lines 0-33,119-164"
+                    },
+                    {
+                        "id":  "EM-S02",
+                        "title":  "About Jitty",
+                        "url":  "https://jitty.com/about",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Describes text search over visual attributes, shared collections and search notes; page also contains template text and stale coming-soon city cards.",
+                        "supports":  [
+                                         "jitty.target",
+                                         "jitty.visual_attribute_search",
+                                         "jitty.collaboration",
+                                         "jitty.source_quality"
+                                     ],
+                        "locator":  "lines 47-85,94-124",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S03",
+                        "title":  "Claire concierge expansion",
+                        "url":  "https://ir.realpha.com/press-release/re-alpha-expands-claire-its-ai-powered-concierge-to-guide-the-homebuying-journey",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Dated upgrade describes personalized recommendations, match explanations, showings and connected financing handoff.",
+                        "supports":  [
+                                         "claire.identity",
+                                         "claire.target",
+                                         "claire.concierge",
+                                         "claire.personalized_search",
+                                         "claire.match_explanations",
+                                         "claire.tour_handoff",
+                                         "claire.mortgage_handoff",
+                                         "claire.update_date"
+                                     ],
+                        "locator":  "lines 15-36,73",
+                        "publication_date":  "2025-09-15"
+                    },
+                    {
+                        "id":  "EM-S04",
+                        "title":  "reAlpha homepage",
+                        "url":  "https://www.realpha.com/",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Current company site continues to offer home search and brokerage; state licensing and service availability vary.",
+                        "supports":  [
+                                         "claire.company_active",
+                                         "claire.geography"
+                                     ],
+                        "locator":  "current homepage and footer licensing",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S05",
+                        "title":  "Orbital real estate business solutions",
+                        "url":  "https://www.orbital.tech/solutions/real-estate-businesses",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Commercial real estate AI page documents connected document analysis, title risk, property mapping and transaction preparation.",
+                        "supports":  [
+                                         "orbital.identity",
+                                         "orbital.target",
+                                         "orbital.active",
+                                         "orbital.document_qa",
+                                         "orbital.title_risk",
+                                         "orbital.property_visualization",
+                                         "orbital.closing_checklists"
+                                     ],
+                        "locator":  "lines 8-13,31-41,55-56",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S06",
+                        "title":  "Orbital UK platform",
+                        "url":  "https://www.orbital.tech/uk",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "UK product page markets AI real estate legal workflows and source-linked outputs to law firms, businesses and conveyancers.",
+                        "supports":  [
+                                         "orbital.geography",
+                                         "orbital.target",
+                                         "orbital.source_linked_outputs"
+                                     ],
+                        "locator":  "lines 114-151",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S07",
+                        "title":  "Orbital legacy report URL",
+                        "url":  "https://www.orbital.tech/report",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "open_failed",
+                        "status":  "blocked",
+                        "summary":  "Older indexed result calls the product Orbital Copilot; open returned Internal Error. Current platform pages were used for capability evidence.",
+                        "supports":  [
+                                         "orbital.naming_uncertainty"
+                                     ],
+                        "access_blocker":  "web open Internal Error",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S08",
+                        "title":  "LandTech AI Assistant",
+                        "url":  "https://land.tech/assess-sites/ai-assistant",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Assistant is explicitly live for LandInsight Unlimited; site answers cite ownership, planning and constraints records.",
+                        "supports":  [
+                                         "landtech.identity",
+                                         "landtech.active",
+                                         "landtech.site_qa",
+                                         "landtech.citations",
+                                         "landtech.saved_sites",
+                                         "landtech.access"
+                                     ],
+                        "locator":  "lines 121-125,132-163,191-203",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S09",
+                        "title":  "LandTech homepage",
+                        "url":  "https://land.tech/",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "UK developer platform homepage lists AI Assistant as a new feature and describes source-linked site reports.",
+                        "supports":  [
+                                         "landtech.geography",
+                                         "landtech.target",
+                                         "landtech.site_report"
+                                     ],
+                        "publication_date":  "UNKNOWN",
+                        "locator":  "lines 131-147,355-359"
+                    },
+                    {
+                        "id":  "EM-S10",
+                        "title":  "Coadjute Clara deployment",
+                        "url":  "https://www.coadjute.com/resources/coadjutes-first-digital-human-to-help-battle-against-money-laundering",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Dated deployment includes AML document guidance and human sign-off; selected new customers have access while existing users roll out over six months.",
+                        "supports":  [
+                                         "clara.identity",
+                                         "clara.target",
+                                         "clara.geography",
+                                         "clara.active",
+                                         "clara.launch_date",
+                                         "clara.aml_guidance",
+                                         "clara.document_upload",
+                                         "clara.followup",
+                                         "clara.human_review",
+                                         "clara.access"
+                                     ],
+                        "locator":  "lines 15,23-32",
+                        "publication_date":  "2026-04-13"
+                    },
+                    {
+                        "id":  "EM-S11",
+                        "title":  "HeyLeo official launch release",
+                        "url":  "https://s205.q4cdn.com/544743641/files/doc_news/Real-Doubles-Down-on-AI-With-Launch-of-HeyLeo--A-Gamechanging-Conversational-Search-Experience-for-Consumers-2025.pdf",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Real reports live consumer beta with voice/text search in selected MLS markets across 20 states and agent handoff.",
+                        "supports":  [
+                                         "heyleo.identity",
+                                         "heyleo.target",
+                                         "heyleo.geography",
+                                         "heyleo.launch_date",
+                                         "heyleo.voice_text_search",
+                                         "heyleo.property_qa",
+                                         "heyleo.agent_handoff",
+                                         "heyleo.agent_workspace",
+                                         "heyleo.flyhomes_successor"
+                                     ],
+                        "locator":  "PDF pages 1-3",
+                        "publication_date":  "2025-11-04"
+                    },
+                    {
+                        "id":  "EM-S12",
+                        "title":  "HeyLeo app listing by Real Broker LLC",
+                        "url":  "https://play.google.com/store/apps/details?id=com.realbrokerage.airm",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party_developer_on_app_store",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Current developer listing describes an agent-only client concierge app, lead qualification, AI replies and agent takeover.",
+                        "supports":  [
+                                         "heyleo.agent_app_active",
+                                         "heyleo.agent_app_access",
+                                         "heyleo.agent_lead_qualification",
+                                         "heyleo.app_update",
+                                         "heyleo.scope_conflict"
+                                     ],
+                        "locator":  "lines 76-101,157-163",
+                        "publication_date":  "2026-07-17"
+                    },
+                    {
+                        "id":  "EM-S13",
+                        "title":  "HeyLeo web entry",
+                        "url":  "https://heyleo.com/",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "open_failed",
+                        "status":  "blocked",
+                        "summary":  "Consumer web entry returned Internal Error; present public availability was not tested.",
+                        "supports":  [
+                                         "heyleo.web_access_unknown"
+                                     ],
+                        "access_blocker":  "web open Internal Error",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S14",
+                        "title":  "Flyhomes search transition notice",
+                        "url":  "https://flyhomes.com/insights/a-new-chapter-for-flyhomes-search-and-how-well-continue-working-together",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Flyhomes says search technology moved to Real and original search portal would operate only through July 2, 2025; company itself continued.",
+                        "supports":  [
+                                         "flyhomes.portal_lifecycle",
+                                         "heyleo.flyhomes_successor"
+                                     ],
+                        "locator":  "lines 43-50,78-96",
+                        "publication_date":  "2025-07-01"
+                    },
+                    {
+                        "id":  "EM-S15",
+                        "title":  "CanaryAI product page",
+                        "url":  "https://www.housecanary.com/products/canary-ai",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "GenAI assistant queries US property data for valuations, comparables, rental forecasts and market context.",
+                        "supports":  [
+                                         "canaryai.identity",
+                                         "canaryai.target",
+                                         "canaryai.geography",
+                                         "canaryai.property_qa",
+                                         "canaryai.valuation",
+                                         "canaryai.comparables",
+                                         "canaryai.market_context"
+                                     ],
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S16",
+                        "title":  "CanaryAI official self-serve launch",
+                        "url":  "https://www.housecanary.com/blog/founders-letter-introducing-canaryai",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Founder announces official CanaryAI launch and self-serve platform.",
+                        "supports":  [
+                                         "canaryai.launch_date"
+                                     ],
+                        "locator":  "lines 24-42",
+                        "publication_date":  "2025-01-06"
+                    },
+                    {
+                        "id":  "EM-S17",
+                        "title":  "HouseCanary H1 2025 product update",
+                        "url":  "https://www.housecanary.com/blog/h1-2025-housecanary-product-highlights-innovation-in-action",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Shipped updates include photo-adjusted valuation, area questions, ARV estimates and source document downloads.",
+                        "supports":  [
+                                         "canaryai.photo_valuation",
+                                         "canaryai.arv",
+                                         "canaryai.source_documents",
+                                         "canaryai.update_date"
+                                     ],
+                        "locator":  "lines 9,49-57",
+                        "publication_date":  "2025-07-30"
+                    },
+                    {
+                        "id":  "EM-S18",
+                        "title":  "HouseCanary current pricing",
+                        "url":  "https://www.housecanary.com/pricing",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "Current self-serve paid plans explicitly include full CanaryAI access.",
+                        "supports":  [
+                                         "canaryai.active",
+                                         "canaryai.access"
+                                     ],
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S19",
+                        "title":  "LocalizeOS solutions indexed result",
+                        "url":  "https://localizeos.com/solutions/",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "search_index_only",
+                        "status":  "limited_evidence",
+                        "summary":  "Official indexed text describes hunter lead nurturing and CRM connections in four US regions; opening yielded zero extracted lines.",
+                        "supports":  [
+                                         "localize.candidate",
+                                         "localize.indexed_geography"
+                                     ],
+                        "access_blocker":  "opened URL returned zero extracted lines",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S20",
+                        "title":  "LocalizeOS homepage",
+                        "url":  "https://localizeos.com/",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "open_failed",
+                        "status":  "blocked",
+                        "summary":  "Homepage opened but yielded zero extracted lines; current product status remains unresolved.",
+                        "supports":  [
+                                         "localize.current_status_unknown"
+                                     ],
+                        "access_blocker":  "zero extracted lines",
+                        "publication_date":  "UNKNOWN"
+                    },
+                    {
+                        "id":  "EM-S21",
+                        "title":  "Claire AI March 2026 official article",
+                        "url":  "https://www.realpha.com/blog/claire-worlds-first-free-realestate-agent",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "March 2026 article describes Claire as available around the clock for property discovery and buyer questions.",
+                        "supports":  [
+                                         "claire.active"
+                                     ],
+                        "locator":  "lines 5-12",
+                        "publication_date":  "2026-03-23"
+                    },
+                    {
+                        "id":  "EM-S22",
+                        "title":  "reAlpha Super App launch and Claire naming change",
+                        "url":  "https://ir.realpha.com/press-release/realpha-super-app-nar-changes",
+                        "checked_at":  "2026-10-10",
+                        "timezone":  "Asia/Taipei",
+                        "publisher_type":  "first_party",
+                        "retrieval":  "opened",
+                        "status":  "retrieved",
+                        "summary":  "2024 mobile launch renamed platform reAlpha, retained Claire assistant, and documented inspection/settlement summaries.",
+                        "supports":  [
+                                         "claire.naming_transition",
+                                         "claire.inspection_report_summary",
+                                         "claire.historical_natural_language_search"
+                                     ],
+                        "locator":  "lines 20-28,35",
+                        "publication_date":  "2024-08-20"
+                    }
+                ],
+    "findings":  [
+                     {
+                         "id":  "EM-F01",
+                         "finding":  "Seven products have opened first-party evidence; current public documentation is vendor evidence, not hands-on functionality verification.",
+                         "source_ids":  [
+                                            "EM-S01",
+                                            "EM-S03",
+                                            "EM-S05",
+                                            "EM-S08",
+                                            "EM-S10",
+                                            "EM-S11",
+                                            "EM-S15"
+                                        ]
+                     },
+                     {
+                         "id":  "EM-F02",
+                         "finding":  "Flyhomes search should be classified as a transitioned historical product; company remains active, while the original search portal ended July 2, 2025 and assets appear in HeyLeo.",
+                         "source_ids":  [
+                                            "EM-S14",
+                                            "EM-S11"
+                                        ],
+                         "status":  "documented_transition"
+                     },
+                     {
+                         "id":  "EM-F03",
+                         "finding":  "LocalizeOS hunter was investigated but excluded from the main seven because official page extraction failed and current operating status remains UNKNOWN. Indexed descriptions support only provisional lead-nurturing and geographic claims.",
+                         "source_ids":  [
+                                            "EM-S19",
+                                            "EM-S20"
+                                        ],
+                         "status":  "candidate_unverified"
+                     },
+                     {
+                         "id":  "EM-F04",
+                         "finding":  "Coadjute Clara is AML onboarding assistance; evidence does not establish home-condition risk scoring.",
+                         "source_ids":  [
+                                            "EM-S10"
+                                        ],
+                         "status":  "scope_boundary"
+                     },
+                     {
+                         "id":  "EM-F05",
+                         "finding":  "Most distinctive documented evidence: LandTech explicitly live with official-record citations; Orbital linked document-to-map risk; CanaryAI source-document downloads and photo-adjusted valuation.",
+                         "source_ids":  [
+                                            "EM-S08",
+                                            "EM-S05",
+                                            "EM-S17"
+                                        ],
+                         "status":  "research_synthesis"
+                     }
+                 ]
+}

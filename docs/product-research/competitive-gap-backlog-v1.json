@@ -1,0 +1,3801 @@
+{
+  "schema_version": "1.0",
+  "research_date": "2026-10-10",
+  "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e",
+  "scoring_model": {
+    "weights": {
+      "user_value": 20,
+      "competitive_necessity": 10,
+      "differentiation": 15,
+      "evidence_availability": 10,
+      "monetization_potential": 5,
+      "implementation_complexity": 12,
+      "legal_data_risk": 10,
+      "provider_cost": 7,
+      "bundle_frontend_impact": 5,
+      "operational_burden": 6
+    },
+    "benefit_dimensions": [
+      "user_value",
+      "competitive_necessity",
+      "differentiation",
+      "evidence_availability",
+      "monetization_potential"
+    ],
+    "cost_dimensions": [
+      "bundle_frontend_impact",
+      "implementation_complexity",
+      "legal_data_risk",
+      "operational_burden",
+      "provider_cost"
+    ],
+    "scale": "1 = low; 5 = high. Benefit increases score; complexity/risk/cost/bundle/operations decrease it.",
+    "formula": "sum(weight * benefit_rating / 5) + sum(weight * (6 - cost_rating) / 5)",
+    "interpretation": "0–100 weighted desirability index; with the 1–5 bounded scale attainable range is 20–100. Not readiness, ROI, market demand or probability.",
+    "priority_rules": {
+      "P0": "Non-compensable current acceptance/security/cost/recovery/budget prerequisite; score does not move it below optional features.",
+      "P1": "Focused next workflow/value slices using lawful existing structured evidence, after relevant P0 gates.",
+      "P2": "Subsequent high-value dependent AI/storage/accounts/collaboration/monitoring features.",
+      "P3": "Demand-, rights- or business-validation dependent extension; no commitment.",
+      "DO_NOT_BUILD": "Excluded by architecture, evidence, legal/data or positioning constraints; score irrelevant."
+    },
+    "uncertainty": "All ordinal ratings are analyst estimates. Re-score after pilot task success, user interviews, data-rights confirmation and implementation sizing."
+  },
+  "items": [
+    {
+      "id": "G01",
+      "title": "Close exact hosted release identity and regression evidence",
+      "priority": "P0",
+      "capability_ids": [
+        "production_reliability"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "TRUST_DIFFERENTIATOR"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 5,
+        "differentiation": 4,
+        "evidence_availability": 5,
+        "monetization_potential": 3,
+        "implementation_complexity": 2,
+        "legal_data_risk": 1,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 1,
+        "operational_burden": 3
+      },
+      "weighted_score": 90.2,
+      "dependencies": [],
+      "source_ids": [
+        "L11",
+        "L12",
+        "L18"
+      ],
+      "proposal": "Freeze actual successor FE/BE SHA/version/environment and accepted artifact contract; rerun current full release gate and actual deployed core journey.",
+      "acceptance_criteria": "Matching independent endpoints and release-bound real browser evidence; failed/unknown dimensions keep NO-GO.",
+      "release_gate": "Non-compensable Controlled Beta prerequisite.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 1,
+      "benchmark_source_ids": [],
+      "benchmark_basis": "Current repository hard-gate evidence"
+    },
+    {
+      "id": "G05",
+      "title": "Recover bundle headroom and verify deployed mobile / print journey",
+      "priority": "P0",
+      "capability_ids": [
+        "mobile",
+        "accessibility",
+        "professional_report",
+        "production_reliability"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "COMMODITY_EXPECTATION"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 4,
+        "differentiation": 3,
+        "evidence_availability": 5,
+        "monetization_potential": 3,
+        "implementation_complexity": 2,
+        "legal_data_risk": 1,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 2
+      },
+      "weighted_score": 84.4,
+      "dependencies": [
+        "G01"
+      ],
+      "source_ids": [
+        "L18",
+        "L02",
+        "L03",
+        "L04"
+      ],
+      "proposal": "Remeasure actual successor production build under unchanged ceiling; create headroom before new lanes. Work tests real 390px keyboard/mobile/report workflow, long PDF and missing-data paths.",
+      "acceptance_criteria": "Actual build below unchanged 3,000,000-byte ceiling; explicit new-lane budgets and deployed task/print evidence; no claim based on fixture screenshots alone.",
+      "release_gate": "No heavy feature/package expansion before budget evidence.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 2,
+      "benchmark_source_ids": [
+        "EM-S09",
+        "SHC-01",
+        "SHC-03",
+        "SHM-03",
+        "SPH-02",
+        "SPH-03",
+        "SQM-02",
+        "SRC-02",
+        "SRF-05"
+      ],
+      "benchmark_basis": "Current repository hard-gate evidence"
+    },
+    {
+      "id": "G04",
+      "title": "Prove managed recovery and named incident/support ownership",
+      "priority": "P0",
+      "capability_ids": [
+        "production_reliability",
+        "support"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "PROFESSIONAL_FEATURE"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 5,
+        "differentiation": 4,
+        "evidence_availability": 4,
+        "monetization_potential": 4,
+        "implementation_complexity": 3,
+        "legal_data_risk": 2,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 1,
+        "operational_burden": 5
+      },
+      "weighted_score": 82.4,
+      "dependencies": [
+        "G01"
+      ],
+      "source_ids": [
+        "L12",
+        "L13",
+        "L11"
+      ],
+      "proposal": "Actual production-origin staging restore/rollback with managed roles, constraints, ledger/artifacts, measured RPO/RTO; owners/backup contacts and support intake.",
+      "acceptance_criteria": "Release-bound production backup coverage and recoverable access; staging restore and rollback evidence, incident paging receipt.",
+      "release_gate": "Non-compensable reliability prerequisite.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 3,
+      "benchmark_source_ids": [],
+      "benchmark_basis": "Current repository hard-gate evidence"
+    },
+    {
+      "id": "G02",
+      "title": "Accept official provider bytes and bounded hosted evidence",
+      "priority": "P0",
+      "capability_ids": [
+        "official_taiwan_data",
+        "valuation",
+        "market_trends",
+        "disaster_risk",
+        "environmental_risk",
+        "poi",
+        "map",
+        "street_view",
+        "single_commute",
+        "neighborhood"
+      ],
+      "classifications": [
+        "TRUST_DIFFERENTIATOR",
+        "HIGH_USER_VALUE",
+        "LEGAL_OR_DATA_RISK"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 5,
+        "differentiation": 5,
+        "evidence_availability": 3,
+        "monetization_potential": 4,
+        "implementation_complexity": 3,
+        "legal_data_risk": 3,
+        "provider_cost": 3,
+        "bundle_frontend_impact": 1,
+        "operational_burden": 4
+      },
+      "weighted_score": 79.8,
+      "dependencies": [
+        "G01"
+      ],
+      "source_ids": [
+        "L10",
+        "L11",
+        "L12"
+      ],
+      "proposal": "Accept PLVR/WRA/GSMMA/NLSC/TDX/RIS vintages/checksums/coverage and exact deployed loaders; owner-scoped live checks of launch capabilities. Keep unsupported regions/features disabled or visibly unknown.",
+      "acceptance_criteria": "Source versions, dates, periods, positive/negative/unknown fixtures and separate deployed/live proof; no implied national coverage.",
+      "release_gate": "Non-compensable prerequisite for all advertised data capabilities.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 4,
+      "benchmark_source_ids": [
+        "EM-S01",
+        "EM-S05",
+        "EM-S15",
+        "S591-01",
+        "SAT-01",
+        "SAT-02",
+        "SCT-01",
+        "SHC-01",
+        "SHC-02",
+        "SHM-01",
+        "SHM-03",
+        "SLJ-01",
+        "SLJ-03",
+        "SPH-01",
+        "SPH-02",
+        "SPH-03",
+        "SQM-01",
+        "SQM-02",
+        "SRC-01",
+        "SRF-01",
+        "SRF-03",
+        "SRF-04",
+        "SSY-01",
+        "SSY-02",
+        "SYC-01",
+        "SYC-03",
+        "SZL-01",
+        "SZL-02"
+      ],
+      "benchmark_basis": "Current repository hard-gate evidence"
+    },
+    {
+      "id": "G03",
+      "title": "Close fleet ingress, quotas, cost and emergency control proof",
+      "priority": "P0",
+      "capability_ids": [
+        "cost_controls",
+        "production_reliability"
+      ],
+      "classifications": [
+        "TRUST_DIFFERENTIATOR",
+        "HIGH_USER_VALUE"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 5,
+        "differentiation": 4,
+        "evidence_availability": 4,
+        "monetization_potential": 4,
+        "implementation_complexity": 4,
+        "legal_data_risk": 2,
+        "provider_cost": 2,
+        "bundle_frontend_impact": 1,
+        "operational_burden": 5
+      },
+      "weighted_score": 78.6,
+      "dependencies": [
+        "G01"
+      ],
+      "source_ids": [
+        "L12",
+        "L13",
+        "L22"
+      ],
+      "proposal": "Satisfy existing 15-control release-bound owner contract: bypass prevention, actual shared enforcement or approved bounded topology, effective provider quotas, delivered billing alerts and kill/recovery across revisions.",
+      "acceptance_criteria": "No assertion that per-process counters or billing alerts are monetary caps; collect redacted real topology/control evidence.",
+      "release_gate": "Non-compensable security/cost prerequisite; research does not change infrastructure.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 5,
+      "benchmark_source_ids": [],
+      "benchmark_basis": "Current repository hard-gate evidence"
+    },
+    {
+      "id": "G06",
+      "title": "Property Decision Room: viewing log, questions and local case continuity",
+      "priority": "P1",
+      "capability_ids": [
+        "decision_room",
+        "viewing_notes",
+        "viewing_questions"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "COMMODITY_EXPECTATION",
+        "TRUST_DIFFERENTIATOR"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 4,
+        "differentiation": 5,
+        "evidence_availability": 5,
+        "monetization_potential": 4,
+        "implementation_complexity": 2,
+        "legal_data_risk": 1,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 2
+      },
+      "weighted_score": 92.4,
+      "dependencies": [
+        "G05"
+      ],
+      "source_ids": [
+        "L04",
+        "L05",
+        "L08",
+        "L23"
+      ],
+      "proposal": "Integrate existing notes with dated viewing observations, question/status list and evidence-linked verification; bounded browser persistence first, explicit export/deletion and lost-device disclosure.",
+      "acceptance_criteria": "Save/reopen/switch preserves the right case; manual observations never become official facts; local storage failure visible; no provider calls on passive actions.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 1,
+      "benchmark_source_ids": [
+        "EM-S02",
+        "EM-S05",
+        "EM-S08",
+        "EM-S10",
+        "SHM-01",
+        "SRC-02",
+        "SRF-02",
+        "SYC-02"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G08",
+      "title": "Deterministic multi-property trade-off explanation",
+      "priority": "P1",
+      "capability_ids": [
+        "tradeoff_explanation"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "TRUST_DIFFERENTIATOR"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 4,
+        "differentiation": 5,
+        "evidence_availability": 5,
+        "monetization_potential": 4,
+        "implementation_complexity": 2,
+        "legal_data_risk": 1,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 2
+      },
+      "weighted_score": 92.4,
+      "dependencies": [
+        "G07"
+      ],
+      "source_ids": [
+        "L09",
+        "L03"
+      ],
+      "proposal": "Explain saved field differences against explicit priorities and detect incomparable price/route/POI/finance assumptions. First use deterministic prose, cited snapshot fields and visible unresolved trade-offs.",
+      "acceptance_criteria": "All numbers trace to saved evidence; different destinations/time/modes/coverage flagged; no rank, fake score or purchase verdict.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 2,
+      "benchmark_source_ids": [
+        "EM-S03",
+        "SRC-01"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G11",
+      "title": "Evidence contract / citation adapter for future grounded copilot",
+      "priority": "P1",
+      "capability_ids": [
+        "property_qa",
+        "cross_property_qa",
+        "provenance",
+        "unknown_states"
+      ],
+      "classifications": [
+        "TRUST_DIFFERENTIATOR",
+        "PROFESSIONAL_FEATURE"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 3,
+        "differentiation": 5,
+        "evidence_availability": 5,
+        "monetization_potential": 4,
+        "implementation_complexity": 3,
+        "legal_data_risk": 2,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 3
+      },
+      "weighted_score": 84.8,
+      "dependencies": [
+        "G02",
+        "G06"
+      ],
+      "source_ids": [
+        "L09",
+        "L15",
+        "L23"
+      ],
+      "proposal": "Allowlist frozen structured evidence IDs/values/units/source/date/coverage/limitations and user assertions separately; identify compacted/missing comparable detail before model input.",
+      "acceptance_criteria": "Round-trip citations resolve to exact snapshot; no unavailable data silently substituted; minimize personal data; regression set contains stale, conflicting and incomplete cases.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 3,
+      "benchmark_source_ids": [
+        "EM-S03",
+        "EM-S05",
+        "EM-S06",
+        "EM-S08",
+        "EM-S11",
+        "EM-S15",
+        "SRC-01",
+        "SRC-02",
+        "SSY-02",
+        "SYC-01",
+        "SYC-03",
+        "SZL-04",
+        "SZL-05"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G10",
+      "title": "Unify acquisition / renovation / holding-period scenario",
+      "priority": "P1",
+      "capability_ids": [
+        "acquisition_costs",
+        "renovation_scenario",
+        "mortgage_scenarios",
+        "holding_costs"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "TRUST_DIFFERENTIATOR"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 4,
+        "differentiation": 5,
+        "evidence_availability": 4,
+        "monetization_potential": 4,
+        "implementation_complexity": 3,
+        "legal_data_risk": 3,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 2
+      },
+      "weighted_score": 84.0,
+      "dependencies": [
+        "G06"
+      ],
+      "source_ids": [
+        "L07",
+        "L08"
+      ],
+      "proposal": "Scenario Simulator reuses mortgage calculations and manual buyer/renovation inputs; adds explicit closing-cost line items and cash reserve/holding-period assumptions without claiming verified tax/repair quotes.",
+      "acceptance_criteria": "Unknown costs remain missing; down payment excludes closing costs unless explicitly added; saved base/alternative assumptions and provenance survive comparison/report.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 4,
+      "benchmark_source_ids": [
+        "S591-01",
+        "S591-03",
+        "SHM-01",
+        "SHM-03",
+        "SRC-01",
+        "SRF-03",
+        "SSY-01",
+        "SYC-01",
+        "SZL-03"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G07",
+      "title": "Reusable Preference Profile with explicit user priorities",
+      "priority": "P1",
+      "capability_ids": [
+        "preference_profile",
+        "preference_memory"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "COMMODITY_EXPECTATION"
+      ],
+      "dimension_scores": {
+        "user_value": 4,
+        "competitive_necessity": 4,
+        "differentiation": 3,
+        "evidence_availability": 5,
+        "monetization_potential": 3,
+        "implementation_complexity": 2,
+        "legal_data_risk": 2,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 2
+      },
+      "weighted_score": 79.4,
+      "dependencies": [
+        "G06"
+      ],
+      "source_ids": [
+        "L05",
+        "L23"
+      ],
+      "proposal": "User-editable budget, destinations, locations, risk concerns and must-have attributes; local scope initially, opt-in persistence/reset.",
+      "acceptance_criteria": "No inferred sensitive demographic preferences; user can review/change/reset; distinguish preference from evidence and cannot change risk/valuation facts.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 5,
+      "benchmark_source_ids": [
+        "EM-S03",
+        "EM-S11"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G09",
+      "title": "Multi-destination household commute",
+      "priority": "P1",
+      "capability_ids": [
+        "multi_commute",
+        "single_commute"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "COMMODITY_EXPECTATION"
+      ],
+      "dimension_scores": {
+        "user_value": 4,
+        "competitive_necessity": 3,
+        "differentiation": 4,
+        "evidence_availability": 4,
+        "monetization_potential": 3,
+        "implementation_complexity": 3,
+        "legal_data_risk": 2,
+        "provider_cost": 3,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 3
+      },
+      "weighted_score": 72.0,
+      "dependencies": [
+        "G02",
+        "G07"
+      ],
+      "source_ids": [
+        "L24",
+        "L10",
+        "L21"
+      ],
+      "proposal": "Bounded 2–3 explicit destinations, agreed mode/time where supported, separate provider states and reusable user-controlled inputs.",
+      "acceptance_criteria": "No automatic route fan-out on mount/reopen; cap per action, cache by full context; household comparison labels timing and unavailable routes.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 6,
+      "benchmark_source_ids": [
+        "EM-S01",
+        "SRC-01",
+        "SRF-03"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G12",
+      "title": "Grounded Property Copilot and cross-case questions",
+      "priority": "P2",
+      "capability_ids": [
+        "property_qa",
+        "cross_property_qa"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "TRUST_DIFFERENTIATOR"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 4,
+        "differentiation": 5,
+        "evidence_availability": 4,
+        "monetization_potential": 5,
+        "implementation_complexity": 4,
+        "legal_data_risk": 3,
+        "provider_cost": 4,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 4
+      },
+      "weighted_score": 75.0,
+      "dependencies": [
+        "G11",
+        "G08",
+        "G03"
+      ],
+      "source_ids": [
+        "L15",
+        "L09"
+      ],
+      "proposal": "LLM explains/summarizes structured facts, differences, missing evidence and questions; citations mandatory, deterministic fallback and refusal for unsupported answers.",
+      "acceptance_criteria": "Adversarial prompt-injection and missing-source tests; numeric/source citations faithful; no official identity/price/comps/hazard/valuation creation; per-user budget and model outage fallback.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 1,
+      "benchmark_source_ids": [
+        "EM-S03",
+        "EM-S05",
+        "EM-S08",
+        "EM-S11",
+        "EM-S15",
+        "SRC-01",
+        "SRC-02",
+        "SSY-02",
+        "SYC-01",
+        "SYC-03",
+        "SZL-04",
+        "SZL-05"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G15",
+      "title": "Revocable read-only report sharing and permissions",
+      "priority": "P2",
+      "capability_ids": [
+        "shareable_report",
+        "permissions",
+        "family_collaboration"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "PROFESSIONAL_FEATURE",
+        "GROWTH_FEATURE"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 4,
+        "differentiation": 4,
+        "evidence_availability": 4,
+        "monetization_potential": 5,
+        "implementation_complexity": 4,
+        "legal_data_risk": 4,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 73.0,
+      "dependencies": [
+        "G14",
+        "G04"
+      ],
+      "source_ids": [
+        "L20",
+        "L25",
+        "L19"
+      ],
+      "proposal": "Frozen shareable evidence pack with viewer role, minimum data, expiry/revocation and authenticated advisor options. PDF export remains available.",
+      "acceptance_criteria": "Unauthorized/expired/revoked access fails; report carries snapshot date and source restrictions; do not expose address/input query URL as private room.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 2,
+      "benchmark_source_ids": [
+        "EM-S02",
+        "EM-S11",
+        "SHC-01",
+        "SHM-01",
+        "SPH-02",
+        "SRC-02",
+        "SRF-02",
+        "SYC-01",
+        "SZL-01"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G25",
+      "title": "Transparent comparable-assumption sensitivity workbench",
+      "priority": "P2",
+      "capability_ids": [
+        "valuation_sensitivity"
+      ],
+      "classifications": [
+        "PROFESSIONAL_FEATURE",
+        "TRUST_DIFFERENTIATOR"
+      ],
+      "dimension_scores": {
+        "user_value": 4,
+        "competitive_necessity": 3,
+        "differentiation": 5,
+        "evidence_availability": 3,
+        "monetization_potential": 4,
+        "implementation_complexity": 4,
+        "legal_data_risk": 3,
+        "provider_cost": 2,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 3
+      },
+      "weighted_score": 70.0,
+      "dependencies": [
+        "G02",
+        "G10",
+        "G11"
+      ],
+      "source_ids": [
+        "L02",
+        "L10",
+        "L09"
+      ],
+      "proposal": "User-controlled sensitivity over existing lawful comparable inputs and declared deterministic methodology; show baseline versus trial assumptions and inclusion/exclusion effects. Reuse scenario lane only if professional pilot demand justifies it.",
+      "acceptance_criteria": "No invented comps/adjustments or confidence interval; trial result labeled separately from saved base valuation; unresolved compacted input disables scenario; never authorizes ML-B.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 3,
+      "benchmark_source_ids": [
+        "EM-S17",
+        "SHC-01",
+        "SHC-03"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G14",
+      "title": "Consumer accounts and cross-device case sync",
+      "priority": "P2",
+      "capability_ids": [
+        "accounts",
+        "cross_device_sync"
+      ],
+      "classifications": [
+        "COMMODITY_EXPECTATION",
+        "HIGH_USER_VALUE",
+        "MONETIZATION_FEATURE"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 5,
+        "differentiation": 2,
+        "evidence_availability": 4,
+        "monetization_potential": 5,
+        "implementation_complexity": 4,
+        "legal_data_risk": 4,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 69.0,
+      "dependencies": [
+        "G06",
+        "G04"
+      ],
+      "source_ids": [
+        "L05",
+        "L06",
+        "L19"
+      ],
+      "proposal": "Design bounded integration with existing gated auth/workspace foundation; migration preview, explicit import consent, revision conflict policy and delete/export.",
+      "acceptance_criteria": "Tenant isolation and account recovery verified; consumer imports copy rather than overwrite; browser/local and server identities remain explicit.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 4,
+      "benchmark_source_ids": [
+        "S591-01",
+        "S591-02",
+        "SHM-01",
+        "SHM-02",
+        "SLJ-01",
+        "SLJ-02",
+        "SRC-01",
+        "SRC-02",
+        "SRF-01",
+        "SRF-02",
+        "SSY-01",
+        "SYC-02",
+        "SZL-01",
+        "SZL-03"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G16",
+      "title": "Watchlist and evidence freshness/change monitoring",
+      "priority": "P2",
+      "capability_ids": [
+        "property_monitoring",
+        "freshness_alerts",
+        "watchlists"
+      ],
+      "classifications": [
+        "COMMODITY_EXPECTATION",
+        "HIGH_USER_VALUE",
+        "TRUST_DIFFERENTIATOR"
+      ],
+      "dimension_scores": {
+        "user_value": 4,
+        "competitive_necessity": 4,
+        "differentiation": 5,
+        "evidence_availability": 3,
+        "monetization_potential": 4,
+        "implementation_complexity": 4,
+        "legal_data_risk": 3,
+        "provider_cost": 4,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 5
+      },
+      "weighted_score": 67.8,
+      "dependencies": [
+        "G14",
+        "G02",
+        "G03"
+      ],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L21"
+      ],
+      "proposal": "User subscriptions to accepted evidence releases, saved-case review reminders and material changes; prefer release events/bounded batching to polling every case.",
+      "acceptance_criteria": "Notify fact and source/version change, not inferred safety; deduplicate delivery; consent/quiet hours/unsubscribe; retry/provider spend caps and stale marker maintained.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 5,
+      "benchmark_source_ids": [
+        "EM-S02",
+        "EM-S08",
+        "S591-01",
+        "SHM-01",
+        "SLJ-01",
+        "SLJ-02",
+        "SRF-01",
+        "SSY-01",
+        "SSY-02",
+        "SYC-01",
+        "SYC-02",
+        "SZL-01"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G13",
+      "title": "Private document intake with page-cited extraction",
+      "priority": "P2",
+      "capability_ids": [
+        "document_upload",
+        "disclosure_extraction",
+        "inspection_analysis",
+        "photos_attachments"
+      ],
+      "classifications": [
+        "PROFESSIONAL_FEATURE",
+        "HIGH_USER_VALUE",
+        "LEGAL_OR_DATA_RISK"
+      ],
+      "dimension_scores": {
+        "user_value": 5,
+        "competitive_necessity": 4,
+        "differentiation": 5,
+        "evidence_availability": 3,
+        "monetization_potential": 5,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 3,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 66.8,
+      "dependencies": [
+        "G06",
+        "G14",
+        "G15",
+        "G11"
+      ],
+      "source_ids": [
+        "L14",
+        "L19",
+        "L23"
+      ],
+      "proposal": "Document ingestion opt-in private storage, type/size/malware controls, deletion/retention, page/section citations and user review. Start disclosure/inspection issue extraction; keep documents and extracted claims unverified.",
+      "acceptance_criteria": "Signed access isolated per case; prompt injection cannot grant tools or override evidence; no legal approval/title conclusion; document deletion removes derived/index data too.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 6,
+      "benchmark_source_ids": [
+        "EM-S02",
+        "EM-S05",
+        "EM-S10",
+        "EM-S17"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G17",
+      "title": "Shared comments / advisor review",
+      "priority": "P2",
+      "capability_ids": [
+        "comments",
+        "family_collaboration"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "PROFESSIONAL_FEATURE"
+      ],
+      "dimension_scores": {
+        "user_value": 4,
+        "competitive_necessity": 3,
+        "differentiation": 3,
+        "evidence_availability": 4,
+        "monetization_potential": 4,
+        "implementation_complexity": 4,
+        "legal_data_risk": 4,
+        "provider_cost": 1,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 63.0,
+      "dependencies": [
+        "G15"
+      ],
+      "source_ids": [
+        "L19",
+        "L23"
+      ],
+      "proposal": "Evidence-linked comments, manual questions and review states with author attribution; read-only shared report precedes coediting.",
+      "acceptance_criteria": "No untrusted comment elevates official facts; clear review ownership and conflict/deletion semantics; permission changes take effect across channels.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 7,
+      "benchmark_source_ids": [
+        "EM-S02",
+        "EM-S11",
+        "SHC-01",
+        "SHM-01",
+        "SPH-02",
+        "SRC-02",
+        "SRF-02",
+        "SYC-01",
+        "SYC-02",
+        "SZL-01"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G18",
+      "title": "Paid entitlements, support and privacy-preserving activation metrics",
+      "priority": "P3",
+      "capability_ids": [
+        "payments",
+        "support",
+        "product_analytics"
+      ],
+      "classifications": [
+        "MONETIZATION_FEATURE",
+        "GROWTH_FEATURE"
+      ],
+      "dimension_scores": {
+        "user_value": 4,
+        "competitive_necessity": 3,
+        "differentiation": 2,
+        "evidence_availability": 3,
+        "monetization_potential": 5,
+        "implementation_complexity": 4,
+        "legal_data_risk": 4,
+        "provider_cost": 2,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 5
+      },
+      "weighted_score": 58.6,
+      "dependencies": [
+        "G14",
+        "G15",
+        "G04"
+      ],
+      "source_ids": [
+        "L12",
+        "L14",
+        "L22"
+      ],
+      "proposal": "Only after pilot validates willingness to pay: billing/receipt/refund/entitlements, support intake/escalation, and consented aggregate activation/retention with no property address telemetry.",
+      "acceptance_criteria": "Actual checkout/cancellation/receipt/access/refund tested; support staffed; agreed unit economics incl provider/storage/model costs; events respect consent/deletion.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 1,
+      "benchmark_source_ids": [],
+      "benchmark_basis": "Repository trust/architecture boundary or explicit positioning exclusion; not an external parity claim."
+    },
+    {
+      "id": "G24",
+      "title": "Official canonical identity integration",
+      "priority": "P3",
+      "capability_ids": [
+        "canonical_identity"
+      ],
+      "classifications": [
+        "PROFESSIONAL_FEATURE",
+        "LEGAL_OR_DATA_RISK"
+      ],
+      "dimension_scores": {
+        "user_value": 4,
+        "competitive_necessity": 3,
+        "differentiation": 4,
+        "evidence_availability": 1,
+        "monetization_potential": 4,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 3,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 5
+      },
+      "weighted_score": 53.8,
+      "dependencies": [
+        "G02"
+      ],
+      "source_ids": [
+        "L19",
+        "L14",
+        "L11"
+      ],
+      "proposal": "Preserve experimental foundations but do not imply official cadastral/building identity from geocoding or visual map tiles. Separate authorized professional evidence lane if required by pilot.",
+      "acceptance_criteria": "Accepted lawful provider and exact relation evidence; human confirmation and ambiguity retained; legal identity claims independently reviewed.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 2,
+      "benchmark_source_ids": [],
+      "benchmark_basis": "Repository trust/architecture boundary or explicit positioning exclusion; not an external parity claim."
+    },
+    {
+      "id": "G20",
+      "title": "Legally appropriate school catchment / context",
+      "priority": "P3",
+      "capability_ids": [
+        "schools",
+        "neighborhood"
+      ],
+      "classifications": [
+        "HIGH_USER_VALUE",
+        "LEGAL_OR_DATA_RISK"
+      ],
+      "dimension_scores": {
+        "user_value": 3,
+        "competitive_necessity": 3,
+        "differentiation": 2,
+        "evidence_availability": 2,
+        "monetization_potential": 2,
+        "implementation_complexity": 3,
+        "legal_data_risk": 4,
+        "provider_cost": 2,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 4
+      },
+      "weighted_score": 53.2,
+      "dependencies": [
+        "G02"
+      ],
+      "source_ids": [
+        "L10",
+        "L02"
+      ],
+      "proposal": "Official dated education/catchment references where available; distinguish nearby POI from enrollment eligibility and user priorities.",
+      "acceptance_criteria": "Authority/source/date/area visible; no admission guarantee or protected-class desirability score.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 3,
+      "benchmark_source_ids": [
+        "EM-S15",
+        "S591-01",
+        "SHC-02",
+        "SHM-01",
+        "SLJ-01",
+        "SPH-03",
+        "SRC-01",
+        "SSY-01",
+        "SSY-02",
+        "SYC-01",
+        "SYC-03",
+        "SZL-01"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G21",
+      "title": "Homeowner lifecycle review",
+      "priority": "P3",
+      "capability_ids": [
+        "homeowner_lifecycle"
+      ],
+      "classifications": [
+        "GROWTH_FEATURE",
+        "MONETIZATION_FEATURE"
+      ],
+      "dimension_scores": {
+        "user_value": 3,
+        "competitive_necessity": 2,
+        "differentiation": 2,
+        "evidence_availability": 2,
+        "monetization_potential": 3,
+        "implementation_complexity": 4,
+        "legal_data_risk": 3,
+        "provider_cost": 3,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 48.2,
+      "dependencies": [
+        "G16"
+      ],
+      "source_ids": [
+        "L14",
+        "L23"
+      ],
+      "proposal": "Candidate J: optional evidence review, maintenance reminders and refinance scenario continuity only after owner interviews establish demand.",
+      "acceptance_criteria": "No automated appraisal/refinance recommendation; demonstrated repeat-use need before dedicated lane; reuse monitoring not separate platform.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 4,
+      "benchmark_source_ids": [],
+      "benchmark_basis": "Repository trust/architecture boundary or explicit positioning exclusion; not an external parity claim."
+    },
+    {
+      "id": "G23",
+      "title": "Natural-language search over licensed listings",
+      "priority": "P3",
+      "capability_ids": [
+        "natural_language_search",
+        "search_filters"
+      ],
+      "classifications": [
+        "COMMODITY_EXPECTATION",
+        "NOT_RECOMMENDED",
+        "LEGAL_OR_DATA_RISK"
+      ],
+      "dimension_scores": {
+        "user_value": 3,
+        "competitive_necessity": 3,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 3,
+        "implementation_complexity": 4,
+        "legal_data_risk": 5,
+        "provider_cost": 3,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 4
+      },
+      "weighted_score": 42.4,
+      "dependencies": [
+        "G19"
+      ],
+      "source_ids": [
+        "L14",
+        "L15"
+      ],
+      "proposal": "Use eventual natural-language navigation/Q&A over known cases first. Broad listing discovery is not the target workspace and needs licensed inventory.",
+      "acceptance_criteria": "No scrape/unauthorized connector; production facts from provider contracts; only revisit after actual search-to-decision demand.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 5,
+      "benchmark_source_ids": [
+        "EM-S01",
+        "EM-S02",
+        "EM-S03",
+        "EM-S11",
+        "S591-01",
+        "SHM-01",
+        "SHM-02",
+        "SLJ-01",
+        "SRC-01",
+        "SRC-02",
+        "SRF-02",
+        "SRF-03",
+        "SSY-01",
+        "SYC-01",
+        "SYC-03",
+        "SZL-01",
+        "SZL-04",
+        "SZL-05"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G19",
+      "title": "Licensed listing price history / price-drop alerts",
+      "priority": "P3",
+      "capability_ids": [
+        "property_price_history",
+        "price_drop_alerts",
+        "licensed_listings"
+      ],
+      "classifications": [
+        "COMMODITY_EXPECTATION",
+        "LEGAL_OR_DATA_RISK"
+      ],
+      "dimension_scores": {
+        "user_value": 3,
+        "competitive_necessity": 3,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 3,
+        "implementation_complexity": 4,
+        "legal_data_risk": 5,
+        "provider_cost": 3,
+        "bundle_frontend_impact": 2,
+        "operational_burden": 5
+      },
+      "weighted_score": 42.2,
+      "dependencies": [
+        "G16"
+      ],
+      "source_ids": [
+        "L14",
+        "L10"
+      ],
+      "proposal": "Only a narrow user-selected-property connector after explicit data rights/retention and source identity reconciliation; no discovery portal expansion.",
+      "acceptance_criteria": "Contracted feed scope/territory/freshness, display/storage rights and takedown handling established; missing listings/withdrawals are not inferred sales.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 6,
+      "benchmark_source_ids": [
+        "S591-01",
+        "SHC-02",
+        "SHM-01",
+        "SHM-03",
+        "SQM-02",
+        "SRF-01",
+        "SSY-01",
+        "SYC-02",
+        "SZL-01",
+        "SZL-06"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "G22",
+      "title": "Portfolio monitoring for residential investors",
+      "priority": "P3",
+      "capability_ids": [
+        "portfolio_monitoring"
+      ],
+      "classifications": [
+        "PROFESSIONAL_FEATURE",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 2,
+        "competitive_necessity": 2,
+        "differentiation": 1,
+        "evidence_availability": 2,
+        "monetization_potential": 3,
+        "implementation_complexity": 5,
+        "legal_data_risk": 4,
+        "provider_cost": 4,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 35.4,
+      "dependencies": [
+        "G16"
+      ],
+      "source_ids": [
+        "L14",
+        "L23"
+      ],
+      "proposal": "Deferred beyond first paid-SaaS scope; requires separate portfolio user/data/business case.",
+      "acceptance_criteria": "Do not use multi-case comparisons to imply yield forecasts, investor portfolio grade or accepted monitoring service.",
+      "release_gate": "Research recommendation only; not authorization to implement.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 7,
+      "benchmark_source_ids": [],
+      "benchmark_basis": "Repository trust/architecture boundary or explicit positioning exclusion; not an external parity claim."
+    },
+    {
+      "id": "D01",
+      "title": "Fake AI property / desirability score",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "tradeoff_explanation"
+      ],
+      "classifications": [
+        "LOW_VALUE_DEMO",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "Opaque score erases source scope, preferences and unknowns; cannot support decisions.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 1,
+      "benchmark_source_ids": [
+        "EM-S03",
+        "SRC-01"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "D02",
+      "title": "Unsupported safety score or no-hazard clearance",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "disaster_risk",
+        "environmental_risk"
+      ],
+      "classifications": [
+        "LEGAL_OR_DATA_RISK",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "No-match, unavailable and missing coverage cannot establish safety.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 2,
+      "benchmark_source_ids": [
+        "EM-S05",
+        "SHC-02",
+        "SRF-04"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "D03",
+      "title": "Unauthorized scraping of commercial listing data",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "licensed_listings",
+        "property_price_history",
+        "price_drop_alerts"
+      ],
+      "classifications": [
+        "LEGAL_OR_DATA_RISK",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "No approved display/storage/derivative rights; product parity does not grant data rights.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 3,
+      "benchmark_source_ids": [
+        "S591-01",
+        "SHC-02",
+        "SHM-01",
+        "SHM-03",
+        "SQM-02",
+        "SRF-01",
+        "SSY-01",
+        "SYC-02",
+        "SZL-01",
+        "SZL-06"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "D04",
+      "title": "AI buy/no-buy verdict or generated price facts/comps",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "property_qa",
+        "valuation"
+      ],
+      "classifications": [
+        "LEGAL_OR_DATA_RISK",
+        "LOW_VALUE_DEMO",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "LLM may explain supplied structured evidence; never create facts or purchase verdicts.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 4,
+      "benchmark_source_ids": [
+        "EM-S03",
+        "EM-S05",
+        "EM-S08",
+        "EM-S11",
+        "EM-S15",
+        "SAT-01",
+        "SAT-02",
+        "SCT-01",
+        "SHC-01",
+        "SHC-02",
+        "SHM-03",
+        "SPH-01",
+        "SPH-02",
+        "SQM-01",
+        "SQM-02",
+        "SRC-01",
+        "SRC-02",
+        "SRF-03",
+        "SSY-02",
+        "SYC-01",
+        "SYC-03",
+        "SZL-02",
+        "SZL-04",
+        "SZL-05"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "D05",
+      "title": "False valuation confidence or rushed ML-B",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "ml_avm",
+        "valuation_sensitivity"
+      ],
+      "classifications": [
+        "LEGAL_OR_DATA_RISK",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "Target A/B BLOCKED, PIT-valid=0, approved cohort=0. No approved calibration/cohort or handoff.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 5,
+      "benchmark_source_ids": [
+        "EM-S17",
+        "SHC-01",
+        "SHC-03"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "D06",
+      "title": "Generic social feed / portal clone",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "natural_language_search",
+        "licensed_listings"
+      ],
+      "classifications": [
+        "LOW_VALUE_DEMO",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "Unsubstantiated engagement/parity work dilutes Taiwan evidence decision workflow.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 6,
+      "benchmark_source_ids": [
+        "EM-S01",
+        "EM-S03",
+        "EM-S11",
+        "SRC-01",
+        "SRC-02",
+        "SRF-03",
+        "SYC-01",
+        "SYC-03",
+        "SZL-04",
+        "SZL-05"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "D07",
+      "title": "Legal/title/disclosure approval from extracted documents",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "disclosure_extraction",
+        "canonical_identity"
+      ],
+      "classifications": [
+        "LEGAL_OR_DATA_RISK",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "User documents and model extraction are claims to verify, not official legal/engineering clearance.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 7,
+      "benchmark_source_ids": [
+        "EM-S05"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    },
+    {
+      "id": "D08",
+      "title": "Protected-class neighborhood ranking or guaranteed school admission",
+      "priority": "DO_NOT_BUILD",
+      "capability_ids": [
+        "schools",
+        "neighborhood"
+      ],
+      "classifications": [
+        "LEGAL_OR_DATA_RISK",
+        "NOT_RECOMMENDED"
+      ],
+      "dimension_scores": {
+        "user_value": 1,
+        "competitive_necessity": 1,
+        "differentiation": 1,
+        "evidence_availability": 1,
+        "monetization_potential": 1,
+        "implementation_complexity": 5,
+        "legal_data_risk": 5,
+        "provider_cost": 5,
+        "bundle_frontend_impact": 3,
+        "operational_burden": 5
+      },
+      "weighted_score": 22.0,
+      "dependencies": [],
+      "source_ids": [
+        "L04",
+        "L10",
+        "L14",
+        "L16",
+        "L17"
+      ],
+      "proposal": "Use authority references and neutral user-controlled needs; reject discriminatory or unsupported guarantees.",
+      "acceptance_criteria": "Reject or redesign to grounded, source-cited, user-controlled evidence; score cannot override exclusion.",
+      "release_gate": "Hard architecture/data/trust exclusion.",
+      "confidence": "MEDIUM",
+      "estimate_basis": "Ordinal analyst judgment; no completed customer interviews or implementation spike.",
+      "rank_in_priority": 8,
+      "benchmark_source_ids": [
+        "EM-S15",
+        "S591-01",
+        "SHC-02",
+        "SHM-01",
+        "SLJ-01",
+        "SPH-03",
+        "SRC-01",
+        "SSY-01",
+        "SSY-02",
+        "SYC-01",
+        "SYC-03",
+        "SZL-01"
+      ],
+      "benchmark_basis": "External documented capability pattern plus repository gap; professional/territory scopes do not imply Taiwan availability."
+    }
+  ],
+  "approval": "Recommendations only; no feature implementation, ML-B, provider traffic or deployment authorized by this research.",
+  "sources": [
+    {
+      "id": "L01",
+      "path": "docs/product-capability-surface-v1.md",
+      "title": "product-capability-surface-v1.md",
+      "summary": "Historical detailed surface; superseded for Compare limits and hosted readiness.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L02",
+      "path": "docs/commercial-uiux-v1-acceptance.md",
+      "title": "commercial-uiux-v1-acceptance.md",
+      "summary": "Repository implementation and deterministic local UI acceptance; not live provider proof.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L03",
+      "path": "docs/commercial-compare-report-e9-validation.md",
+      "title": "commercial-compare-report-e9-validation.md",
+      "summary": "2–4 case comparison and frozen nine-section browser report.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L04",
+      "path": "docs/evidence-verification-checklist-v1.md",
+      "title": "evidence-verification-checklist-v1.md",
+      "summary": "Manual verification workflow, browser binding, recheck invalidation, source separation.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L05",
+      "path": "frontend_next/lib/workspace/case-repository.ts",
+      "title": "case-repository.ts",
+      "summary": "Browser consumer case repository, revision guards and no server sync.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L06",
+      "path": "frontend_next/lib/case-storage.ts",
+      "title": "case-storage.ts",
+      "summary": "Current browser storage and bounded compact saved cases; current code overrides old privacy key prose.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L07",
+      "path": "frontend_next/lib/workspace/finance-model.ts",
+      "title": "finance-model.ts",
+      "summary": "Mortgage sensitivity/holding costs; explicit missing acquisition costs and null knownOneTimeCosts.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L08",
+      "path": "frontend_next/components/property-case-command-center.tsx",
+      "title": "property-case-command-center.tsx",
+      "summary": "Legacy manual notes, renovation reserve and estimated buyer-cost inputs; not unified commercial Finance.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L09",
+      "path": "frontend_next/lib/workspace/compare-report-model.ts",
+      "title": "compare-report-model.ts",
+      "summary": "Compare assumptions, no ranking, frozen report and source limitations.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L10",
+      "path": "docs/DATA_SOURCES.md",
+      "title": "DATA_SOURCES.md",
+      "summary": "Official integration coverage and conditional providers; dated September live observations.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L11",
+      "path": "docs/operations/final-production-acceptance-evidence-v1.json",
+      "title": "final-production-acceptance-evidence-v1.json",
+      "summary": "Categorical production NO-GO; local evidence separate from hosted gates.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L12",
+      "path": "docs/operations/production-guardrails-recovery-v1.md",
+      "title": "production-guardrails-recovery-v1.md",
+      "summary": "Latest guardrails implementation; 15 external control dimensions BLOCKED; local full-suite result.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L13",
+      "path": "docs/operations/production-guardrails-recovery-v1-evidence.json",
+      "title": "production-guardrails-recovery-v1-evidence.json",
+      "summary": "Release-bound owner/control evidence; no hosted recovery acceptance.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L14",
+      "path": "docs/ARCHITECTURE.md",
+      "title": "ARCHITECTURE.md",
+      "summary": "Browser-local consumer versus gated professional foundation; deterministic AI explanations.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L15",
+      "path": "services/llm_service.py",
+      "title": "llm_service.py",
+      "summary": "Templates only even when API key set; no model call or RAG.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L16",
+      "path": "docs/ml/valuation-target-reframing-evidence-v1.md",
+      "title": "valuation-target-reframing-evidence-v1.md",
+      "summary": "Target A and B blocked; no approved model.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L17",
+      "path": "docs/ml/valuation-semantic-temporal-closure-evidence-v1.json",
+      "title": "valuation-semantic-temporal-closure-evidence-v1.json",
+      "summary": "Zero approved candidates, no approved coverage or ML-B handoff.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L18",
+      "path": "docs/guided-tour-i18n-motion-v2.md",
+      "title": "guided-tour-i18n-motion-v2.md",
+      "summary": "Manual contextual tour, four locales, accessibility checks; integration bundle 2,998,938 bytes.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L19",
+      "path": "docs/vnext/stage-1-exit-signoff.md",
+      "title": "stage-1-exit-signoff.md",
+      "summary": "Feature-gated professional foundation; not integrated consumer account/collaboration product.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L20",
+      "path": "frontend_next/lib/valuation-share.ts",
+      "title": "valuation-share.ts",
+      "summary": "Allowlisted input URL and HTML export; not permissioned case report hosting.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L21",
+      "path": "docs/operations/api-cost-optimization-v1.md",
+      "title": "api-cost-optimization-v1.md",
+      "summary": "Explicit provider action, caches/coalescing and zero analysis calls in reopen/Compare/Report contracts.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L22",
+      "path": "docs/operations/anti-abuse-hardening-v1.md",
+      "title": "anti-abuse-hardening-v1.md",
+      "summary": "Local admission budgets, limits and owner-required global control proof.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L23",
+      "path": "frontend_next/lib/workspace/workspace-model.ts",
+      "title": "workspace-model.ts",
+      "summary": "Current structured commercial consumer case sections; no documents/attachments/team fields.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L24",
+      "path": "frontend_next/lib/commute-route-evidence.ts",
+      "title": "commute-route-evidence.ts",
+      "summary": "Single origin/destination stored route evidence.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L25",
+      "path": "docs/privacy_and_storage_inventory.md",
+      "title": "privacy_and_storage_inventory.md",
+      "summary": "Sanitized client/export boundaries; historical storage-key text is superseded by current code.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "S591-01",
+      "product_id": "591",
+      "title": "591 房屋交易網首頁",
+      "url": "https://www.591.com.tw/",
+      "publisher": "數字科技 / 591",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "WATCHLISTS",
+        "PRICE_ALERTS",
+        "BROWSING_HISTORY",
+        "TRANSACTION_HISTORY",
+        "DOCUMENTS",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Lists buy/rent/map/community/transaction-price services, favorites and browsing-history panels, price-alert app promotion, mortgage and affordability tools, and rental contract downloads.",
+      "evidence_limitations": "AI self-service controls concern account/listing support; they do not establish conversational home search. Contract links are templates, not a document vault.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "S591-02",
+      "product_id": "591",
+      "title": "591 官方關於我們",
+      "url": "https://help.591.com.tw/content/74/291/tw/關於我們.html",
+      "publisher": "數字科技 / 591",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Identifies 數字科技股份有限公司 as operator and 591 as a company platform.",
+      "evidence_limitations": "Older company-history content retained only for identity; no financial figures reused.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "S591-03",
+      "product_id": "591",
+      "title": "房貸計算器－2026版",
+      "url": "https://mortgage.591.com.tw/calculator",
+      "publisher": "591",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "FINANCE"
+      ],
+      "paraphrase": "Offers mortgage repayment calculation on an official live tool page.",
+      "evidence_limitations": "Calculation was not submitted; no current bank rate or loan approval claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SLJ-01",
+      "product_id": "leju",
+      "title": "樂居首頁",
+      "url": "https://www.leju.com.tw/",
+      "publisher": "樂居科技股份有限公司",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "TRANSACTION_HISTORY",
+        "WATCHLISTS",
+        "NEIGHBORHOOD",
+        "ACCOUNTS",
+        "REPORTS"
+      ],
+      "paraphrase": "Navigation exposes map/list transaction-price search, property/community search, membership and observation lists.",
+      "evidence_limitations": "看屋筆記 navigation is editorial content, not proof of user-created notes. Seller/report navigation does not establish a completed report export.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SLJ-02",
+      "product_id": "leju",
+      "title": "常見問答：網站功能",
+      "url": "https://www.leju.com.tw/faq/5",
+      "publisher": "樂居",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "WATCHLISTS",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Explains adding/removing community watchlist entries and following recent transaction markets.",
+      "evidence_limitations": "FAQ's future strengthening promises do not establish alerts or a side-by-side comparison UI.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SLJ-03",
+      "product_id": "leju",
+      "title": "抽屜模式全新上線！一眼就看懂社區房價",
+      "url": "https://www.leju.com.tw/page_blog/view/1163",
+      "publisher": "樂居",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2021-08-02",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "TRANSACTION_HISTORY",
+        "VALUATION_EXPLAINABILITY"
+      ],
+      "paraphrase": "Documents a visual drawer display of full community transaction details.",
+      "evidence_limitations": "Historical launch article, still publicly accessible; not a current UI test and not a property AVM.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SSY-01",
+      "product_id": "sinyi",
+      "title": "信義房屋實價登錄",
+      "url": "https://www.sinyi.com.tw/tradeinfo/list",
+      "publisher": "信義房屋",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "TRANSACTION_HISTORY",
+        "SEARCH_ALERTS",
+        "VALUATION_EXPLAINABILITY",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Shows listing/transaction subscriptions, government versus Sinyi sale provenance, repeat-transfer estimates, special-transaction exclusion notes, MRT/location search and mortgage links.",
+      "evidence_limitations": "Transfer counts are estimated; disclosure lag and incomplete monthly data explicitly acknowledged. MRT proximity does not establish commute-time analysis.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SSY-02",
+      "product_id": "sinyi",
+      "title": "懂你的 AI 房仲，伴你安心成家",
+      "url": "https://www.sinyi.com.tw/ai-proptech/?sinfrom=sinyi_banner_m",
+      "publisher": "信義房屋",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "AI_VISUALIZATION",
+        "SEARCH_ALERTS",
+        "VIEWING_SCHEDULING",
+        "NEIGHBORHOOD",
+        "COLLABORATION"
+      ],
+      "paraphrase": "義起聊 combines AI recommendations, a human agent, LINE push notifications and viewing reminders; AI decluttering and lifestyle-area search have instructions and experience links.",
+      "evidence_limitations": "AI plus human chat is narrower than an autonomous financial/legal assistant. DiNDON virtual viewing is not scheduling evidence by itself.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SYC-01",
+      "product_id": "yungching",
+      "title": "永慶 AI 特助",
+      "url": "https://buy.yungching.com.tw/aiassistant",
+      "publisher": "永慶房產集團",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "AI_ASSISTANT",
+        "AI_VISUALIZATION",
+        "WATCHLISTS",
+        "SEARCH_ALERTS",
+        "VIEWING_SCHEDULING",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "COLLABORATION"
+      ],
+      "paraphrase": "AI找房 covers properties, communities and markets; LINE i特助 pushes new cases, tracks communities, computes mortgages, arranges viewings and invites family; AI declutter/staging/tour features are described.",
+      "evidence_limitations": "i特助, AI清空, AI煥裝 and AI導覽 explicitly limited to Taipei/New Taipei direct-operated area; do not extrapolate to all franchises.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SYC-02",
+      "product_id": "yungching",
+      "title": "追蹤社區、降價通知：會員功能",
+      "url": "https://knowhow.yungching.com.tw/article/3229",
+      "publisher": "永慶房屋",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2023-07",
+      "date_precision": "month",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "WATCHLISTS",
+        "PRICE_ALERTS",
+        "SEARCH_ALERTS",
+        "VIEWING_NOTES",
+        "VIEWING_SCHEDULING",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Members save followed properties and communities, write property remarks, receive community new-listing notices and arrange/remind viewings.",
+      "evidence_limitations": "Historical article retained with live membership navigation; a remarks field is not a structured inspection checklist.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SYC-03",
+      "product_id": "yungching",
+      "title": "AI 找房：對話時代",
+      "url": "https://knowhow.yungching.com.tw/article/5193",
+      "publisher": "永慶房屋",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-06",
+      "date_precision": "month",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "SEARCH_FILTERS",
+        "TRANSACTION_HISTORY",
+        "NEIGHBORHOOD"
+      ],
+      "paraphrase": "Describes released natural-language property/community search and querying government registered plus YungChing recent sales prices.",
+      "evidence_limitations": "Provider claim about retrieval; answer accuracy and source attribution per generated answer not tested.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-01",
+      "product_id": "zillow",
+      "title": "Advanced search guide",
+      "url": "https://www.zillow.com/learn/zillow-advanced-search/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "WATCHLISTS",
+        "SEARCH_ALERTS",
+        "PRICE_ALERTS",
+        "PROPERTY_COMPARISON",
+        "COLLABORATION",
+        "ACCOUNTS",
+        "NEIGHBORHOOD"
+      ],
+      "paraphrase": "Documents saved searches, notification cadence, saved-home changes, partner tags/shares and side-by-side saved-home comparison.",
+      "evidence_limitations": "Co-shopping tags/shared notifications are not evidence of transaction document collaboration.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-02",
+      "product_id": "zillow",
+      "title": "What is a Zestimate?",
+      "url": "https://www.zillow.com/zestimate/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "TRANSACTION_HISTORY"
+      ],
+      "paraphrase": "Explains public/MLS/user inputs, neural model, prior sales/market signals, estimated sale range and regional accuracy statistics.",
+      "evidence_limitations": "AVM is not an appraisal; provider accuracy metrics are not independently validated or comparable across providers.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-03",
+      "product_id": "zillow",
+      "title": "What Is BuyAbility?",
+      "url": "https://www.zillow.com/learn/what-is-buyability/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-03-05",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "FINANCE",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "BuyAbility retains buyer inputs and uses current personalized mortgage rates to update purchase budget and monthly payment, labeling eligible listings.",
+      "evidence_limitations": "Estimate is distinct from prequalification/preapproval; no acquisition-cost completeness claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-04",
+      "product_id": "zillow",
+      "title": "Zillow debuts AI mode",
+      "url": "https://www.zillow.com/news/zillow-debuts-ai-mode/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-03-25",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "VIEWING_SCHEDULING"
+      ],
+      "paraphrase": "Describes AI mode shipped in beta to a limited user group, with expansion planned through 2026.",
+      "evidence_limitations": "Do not treat expansion as generally available. Public product behavior was not exercised.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-05",
+      "product_id": "zillow",
+      "title": "How Zillow’s new AI mode works",
+      "url": "https://www.zillow.com/news/how-zillows-new-ai-mode-works-throughout-the-real-estate-journey/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-03-25",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "PROPERTY_COMPARISON"
+      ],
+      "paraphrase": "Explains routing conversational questions to property, financing and valuation tools; maintains conversational/activity context.",
+      "evidence_limitations": "Architecture description does not prove every action succeeds or establish a user-visible browsing-history page.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-06",
+      "product_id": "zillow",
+      "title": "Example listing: First Street referral",
+      "url": "https://www.zillow.com/homedetails/223-1st-St-SW-Naples-FL-34117/103038983_zpid/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY_PARTIAL",
+      "supported_capability_ids": [
+        "CLIMATE_RISK",
+        "TRANSACTION_HISTORY"
+      ],
+      "paraphrase": "Opened sample listing provides dated sale/listing/price-change and public tax history; indexed primary text separately mentions external First Street referral.",
+      "evidence_limitations": "Direct extraction did not reliably include the risk section; native risk scores remain UNKNOWN. Old 2024 launch materials not used to prove current availability.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRC-01",
+      "product_id": "realtor",
+      "title": "RealAssist AI launch",
+      "url": "https://mediaroom.realtor.com/2026-06-02-Realtor-com-R-Launches-RealAssist-TM-AI-A-Completely-Reimagined-Way-to-Find-A-Home",
+      "publisher": "Realtor.com / Move, Inc.",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-06-02",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "PROPERTY_COMPARISON",
+        "VIEWING_SCHEDULING",
+        "COMMUTE",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "AI_VISUALIZATION",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Launch release describes natural-language search, affordability, side-by-side comparisons, commute/routine maps, visualization and tour connections; select logged-in users had beta access.",
+      "evidence_limitations": "Broad availability was planned. Sophisticated example prompts are product claims, not independently verified answer accuracy or calculation completeness.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRC-02",
+      "product_id": "realtor",
+      "title": "Realtor.com+ Fall Release 2026",
+      "url": "https://www.realtor.com/plus-learn/product-updates/fall2026/",
+      "publisher": "Realtor.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "COLLABORATION",
+        "VIEWING_NOTES",
+        "REPORTS",
+        "ACCOUNTS",
+        "AI_ASSISTANT"
+      ],
+      "paraphrase": "Published release page describes agent/client/co-buyer shared workspace, persistent listing notes, notification digest and RPR-linked reports.",
+      "evidence_limitations": "Realtor.com+ eligibility/participating MLS scope; full RPR reports require appropriate REALTOR access. Exact release day not stated.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRC-03",
+      "product_id": "realtor",
+      "title": "Quarterly product update July 2026",
+      "url": "https://www.realtor.com/homemade/quarterly-product-update-july-2026/",
+      "publisher": "Realtor.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-07-22",
+      "date_precision": "day",
+      "retrieval_level": "SEARCH_SNIPPET_PRIMARY",
+      "supported_capability_ids": [
+        "COLLABORATION",
+        "VIEWING_SCHEDULING",
+        "REPORTS"
+      ],
+      "paraphrase": "Indexed official update says Realtor.com+ lets agents/clients search, share, chat and plan tours; mentions relaunch of My Home.",
+      "evidence_limitations": "Direct open redirected to Europe-region availability block. Main claims rely on other opened official sources; this is supplemental.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-01",
+      "product_id": "redfin",
+      "title": "Favorites & Favorite Lists",
+      "url": "https://support.redfin.com/hc/en-us/articles/12559140934939-Favorites-Favorite-Lists",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-02-05",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "WATCHLISTS",
+        "PRICE_ALERTS",
+        "MAP_SEARCH",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Documents custom favorite lists stored in account and listing/open-house alert subscriptions.",
+      "evidence_limitations": "Website/iOS documented; Android list rollout described as later in year and not assumed complete. Download/map favorites described as future.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-02",
+      "product_id": "redfin",
+      "title": "Shared Saved Searches",
+      "url": "https://support.redfin.com/hc/en-us/articles/360007862251-Shared-Saved-Searches",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2024-01-17",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "SEARCH_ALERTS",
+        "COLLABORATION",
+        "VIEWING_NOTES",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Explains inviting a registered search partner, sharing saved searches and seeing prior/future property comments.",
+      "evidence_limitations": "Comments are general listing remarks, not a formal viewing checklist.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-03",
+      "product_id": "redfin",
+      "title": "Conversational Search guide",
+      "url": "https://www.redfin.com/blog/redfin-conversational-search/",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-05-01",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "AI_ASSISTANT",
+        "FINANCE",
+        "AVM",
+        "COMMUTE"
+      ],
+      "paraphrase": "Provides web/iOS/Android conversational-search entry instructions and examples constrained by commute time; identifies Redfin Estimate and Buying Power as existing products.",
+      "evidence_limitations": "AVM mention is high-level; uncertainty/per-property explanation not established by this source.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-04",
+      "product_id": "redfin",
+      "title": "Air quality risk data for U.S. homes",
+      "url": "https://www.redfin.com/news/redfin-adds-air-quality-risk-data-for-homes/",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2024-02-12",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "CLIMATE_RISK"
+      ],
+      "paraphrase": "Documents property climate tab containing First Street air-quality, wildfire, flood, heat and wind risks.",
+      "evidence_limitations": "Historical launch document remains published; current risk coverage/extraction not independently sampled. Android timing originally prospective.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHM-01",
+      "product_id": "homes",
+      "title": "Homes.com Real Estate App",
+      "url": "https://www.homes.com/real-estate-app/",
+      "publisher": "CoStar Group / Homes.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "WATCHLISTS",
+        "SEARCH_ALERTS",
+        "PRICE_ALERTS",
+        "PROPERTY_COMPARISON",
+        "VIEWING_NOTES",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "COLLABORATION",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Describes map layers, full inventory search, push new-listing/price/open-house updates and co-shopper favorites comparison, notes and messages; finance tools in navigation.",
+      "evidence_limitations": "3D tours not equated with viewing scheduling; generic home-value map layer not a confidence metric.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHM-02",
+      "product_id": "homes",
+      "title": "How do I save my search?",
+      "url": "https://www.homes.com/support/2022/07/19/how-do-i-save-my-search/",
+      "publisher": "Homes.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2022-07-19",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "WATCHLISTS",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Instructions cover saving location/filters and editing/deleting saved searches through profile.",
+      "evidence_limitations": "Does not independently prove cross-device sync correctness.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHM-03",
+      "product_id": "homes",
+      "title": "Example live property: 8808 Quadro Court",
+      "url": "https://www.homes.com/property/8808-quadro-ct-las-vegas-nv/mqhln5sjwrb01/",
+      "publisher": "Homes.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "TRANSACTION_HISTORY",
+        "REPORTS",
+        "VIEWING_SCHEDULING",
+        "PROPERTY_COMPARISON",
+        "FINANCE"
+      ],
+      "paraphrase": "Page exposes four named AVM providers, value/report controls, tax/sales/deed/mortgage histories and open-house calendar links.",
+      "evidence_limitations": "Opened page returned current-month AVMs Not Available although indexed snippet had values. Multi-provider value range is model disagreement, not a calibrated confidence interval. Report button not executed.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHC-01",
+      "product_id": "housecanary",
+      "title": "Property Explorer",
+      "url": "https://www.housecanary.com/products/property-explorer",
+      "publisher": "HouseCanary",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "PROPERTY_COMPARISON",
+        "VALUATION_EXPLAINABILITY",
+        "REPORTS",
+        "COLLABORATION"
+      ],
+      "paraphrase": "Interactive valuation workbench selects comps, compares AVM/after-repair values, condition scenarios, generates value reports and shares editable links/API reports.",
+      "evidence_limitations": "Single-family focus; vendor accuracy/speed/superiority statements not accepted as independently established.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHC-02",
+      "product_id": "housecanary",
+      "title": "Data Explorer / API",
+      "url": "https://www.housecanary.com/products/data-explorer",
+      "publisher": "HouseCanary",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "DATA_API",
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "TRANSACTION_HISTORY",
+        "CLIMATE_RISK",
+        "NEIGHBORHOOD",
+        "REPORTS"
+      ],
+      "paraphrase": "Named endpoints cover AVM confidence/data density/next steps, sales/tax/liens, rental reports, FEMA flood/disaster and earthquake/weather risk.",
+      "evidence_limitations": "Premium endpoints may cost extra. Professional risk data separate from Property Explorer UI availability.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHC-03",
+      "product_id": "housecanary",
+      "title": "Property Explorer Quick Start Guide",
+      "url": "https://www.housecanary.com/blog/property-explorer-quick-start-guide",
+      "publisher": "HouseCanary",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "PROPERTY_COMPARISON",
+        "VALUATION_EXPLAINABILITY",
+        "REPORTS"
+      ],
+      "paraphrase": "Documents similarity-based comp selection, adjustments, instant comparable value recalculation and selecting a final report value.",
+      "evidence_limitations": "Professional adjustment evidence; not a consumer affordability calculator or full model feature attribution.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SPH-01",
+      "product_id": "pricehubble",
+      "title": "UK automated valuation models",
+      "url": "https://www.pricehubble.com/uk/use-cases/automated-valuation-model-uk",
+      "publisher": "PriceHubble",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "PROPERTY_COMPARISON",
+        "VALUATION_EXPLAINABILITY",
+        "DATA_API",
+        "REPORTS"
+      ],
+      "paraphrase": "Describes sale/rent comps, confidence/range outputs, licensed multi-source data, traceable provenance and real-time API/report valuation.",
+      "evidence_limitations": "This source establishes UK scope; marketing statements about regulatory alignment not treated as regulatory approval.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SPH-02",
+      "product_id": "pricehubble",
+      "title": "Property Advisor dossier overview",
+      "url": "https://support.pricehubble.com/hc/en-gb/articles/27048508370961-Understanding-the-Overview-section-of-a-Dossier",
+      "publisher": "PriceHubble",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2025-08-15",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "REPORTS",
+        "COLLABORATION"
+      ],
+      "paraphrase": "Explains estimated price/range, high/medium/low confidence reasons, manual recommendation override and PDF/Property Page/permalink output.",
+      "evidence_limitations": "Shared report/page is weaker than concurrent case editing. Article uses automated translation.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SPH-03",
+      "product_id": "pricehubble",
+      "title": "UK property valuation software",
+      "url": "https://www.pricehubble.com/uk/use-cases/property-valuation-software",
+      "publisher": "PriceHubble",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "REPORTS",
+        "DATA_API",
+        "NEIGHBORHOOD"
+      ],
+      "paraphrase": "Documents branded PDF/online property reports, market analysis and spreadsheet portfolio valuation/API integration.",
+      "evidence_limitations": "UK-specific product family; no consumer closing-cost or commute tool claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SCT-01",
+      "product_id": "cotality",
+      "title": "Total Home Value X",
+      "url": "https://www.cotality.com/products/total-home-value-x",
+      "publisher": "Cotality",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "TRANSACTION_HISTORY",
+        "DATA_API"
+      ],
+      "paraphrase": "THVx offers U.S. property valuation tunings, confidence/FSD, last market sale, nearby listings, HPI trends and API/file/cloud deliveries.",
+      "evidence_limitations": "Nearby listings not sufficient to claim adjustable comparable grids. Underwriting use case not a consumer finance tool. No causal explainability claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SCT-02",
+      "product_id": "cotality",
+      "title": "CoreLogic rebrands to Cotality",
+      "url": "https://www.cotality.com/uk/press-releases/meet-cotality",
+      "publisher": "Cotality",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2025-03-24",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [],
+      "paraphrase": "First-party release establishes CoreLogic to Cotality brand transition and global business context.",
+      "evidence_limitations": "Used for identity only; global company operations do not imply THVx availability in Taiwan.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SQM-01",
+      "product_id": "quantarium",
+      "title": "Quantarium Valuation Models",
+      "url": "https://www.quantarium.com/valuation-models/",
+      "publisher": "Quantarium",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM"
+      ],
+      "paraphrase": "Offers AI/computer-vision residential U.S. property valuations and collateral/geographic use cases.",
+      "evidence_limitations": "Vendor number-one/Fitch-related superiority claims not independently verified and omitted from benchmark score.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SQM-02",
+      "product_id": "quantarium",
+      "title": "Reports Marketplace",
+      "url": "https://www.quantarium.com/marketplace/",
+      "publisher": "Quantarium",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "PROPERTY_COMPARISON",
+        "TRANSACTION_HISTORY",
+        "REPORTS",
+        "VALUATION_EXPLAINABILITY"
+      ],
+      "paraphrase": "Named report tiers include value range/confidence, comparable sales/listings/maps, transaction/price/listing histories and QCMA automated adjustments; ProxyPics condition plus AVM report available.",
+      "evidence_limitations": "Features vary by report tier. Ordering, report output and confidence calibration not tested.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SAT-01",
+      "product_id": "attom",
+      "title": "ATTOM AVM",
+      "url": "https://www.attomdata.com/solutions/ai-powered/valuation-analytics/avm/",
+      "publisher": "ATTOM",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "DATA_API"
+      ],
+      "paraphrase": "Residential AVM combines validated county/MLS data, local time normalization and blended ML; outputs ranges/confidence through API/bulk.",
+      "evidence_limitations": "Single-family/condo/townhouse scope. Explainability is documented methodology, not per-property causal drivers.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SAT-02",
+      "product_id": "attom",
+      "title": "ATTOM Cloud AVM dataset help",
+      "url": "https://cloud-help.attomdata.com/article/510-avm",
+      "publisher": "ATTOM",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "DATA_API"
+      ],
+      "paraphrase": "Defines valuation date, min/max, FSD and score calculation with uncertainty interpretation and permanent property ID.",
+      "evidence_limitations": "Provider documentation; no independent calibration validation. Numerical performance claims differ from marketing guide, so no cross-vendor accuracy ranking.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SAT-03",
+      "product_id": "attom",
+      "title": "A Quick Guide to Real Estate AVMs",
+      "url": "https://www.attomdata.com/news/company-news/data-solutions/a-quick-guide-to-real-estate-avms/",
+      "publisher": "ATTOM",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-06-01",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_EXPLAINABILITY"
+      ],
+      "paraphrase": "Details cleaning non-arm-length sales, hyperlocal index adjustments and blended ML valuation; documents rental AVM scope.",
+      "evidence_limitations": "Accuracy figures differ from Cloud help; sample/period not reconciled. No accuracy leadership assertion.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-05",
+      "product_id": "redfin",
+      "title": "Notification Settings",
+      "url": "https://support.redfin.com/hc/en-us/articles/360001454951-Notification-Settings",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2023-11-04",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_ALERTS",
+        "PRICE_ALERTS",
+        "VIEWING_SCHEDULING",
+        "REPORTS"
+      ],
+      "paraphrase": "Controls saved-search/favorite alerts and frequency, agent-tour text reminders, and home/market report subscriptions.",
+      "evidence_limitations": "Older help article; alert delivery not independently tested.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "EM-S01",
+      "title": "Jitty homepage",
+      "url": "https://jitty.com/",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Live UK search page describes AI search, commute queries, attribute filters and local price comparisons.",
+      "supports": [
+        "jitty.identity",
+        "jitty.geography",
+        "jitty.active",
+        "jitty.natural_language_search",
+        "jitty.commute_search",
+        "jitty.semantic_filters",
+        "jitty.price_comparison"
+      ],
+      "locator": "lines 0-33,119-164"
+    },
+    {
+      "id": "EM-S02",
+      "title": "About Jitty",
+      "url": "https://jitty.com/about",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Describes text search over visual attributes, shared collections and search notes; page also contains template text and stale coming-soon city cards.",
+      "supports": [
+        "jitty.target",
+        "jitty.visual_attribute_search",
+        "jitty.collaboration",
+        "jitty.source_quality"
+      ],
+      "locator": "lines 47-85,94-124",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S03",
+      "title": "Claire concierge expansion",
+      "url": "https://ir.realpha.com/press-release/re-alpha-expands-claire-its-ai-powered-concierge-to-guide-the-homebuying-journey",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Dated upgrade describes personalized recommendations, match explanations, showings and connected financing handoff.",
+      "supports": [
+        "claire.identity",
+        "claire.target",
+        "claire.concierge",
+        "claire.personalized_search",
+        "claire.match_explanations",
+        "claire.tour_handoff",
+        "claire.mortgage_handoff",
+        "claire.update_date"
+      ],
+      "locator": "lines 15-36,73",
+      "publication_date": "2025-09-15"
+    },
+    {
+      "id": "EM-S04",
+      "title": "reAlpha homepage",
+      "url": "https://www.realpha.com/",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Current company site continues to offer home search and brokerage; state licensing and service availability vary.",
+      "supports": [
+        "claire.company_active",
+        "claire.geography"
+      ],
+      "locator": "current homepage and footer licensing",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S05",
+      "title": "Orbital real estate business solutions",
+      "url": "https://www.orbital.tech/solutions/real-estate-businesses",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Commercial real estate AI page documents connected document analysis, title risk, property mapping and transaction preparation.",
+      "supports": [
+        "orbital.identity",
+        "orbital.target",
+        "orbital.active",
+        "orbital.document_qa",
+        "orbital.title_risk",
+        "orbital.property_visualization",
+        "orbital.closing_checklists"
+      ],
+      "locator": "lines 8-13,31-41,55-56",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S06",
+      "title": "Orbital UK platform",
+      "url": "https://www.orbital.tech/uk",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "UK product page markets AI real estate legal workflows and source-linked outputs to law firms, businesses and conveyancers.",
+      "supports": [
+        "orbital.geography",
+        "orbital.target",
+        "orbital.source_linked_outputs"
+      ],
+      "locator": "lines 114-151",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S07",
+      "title": "Orbital legacy report URL",
+      "url": "https://www.orbital.tech/report",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "open_failed",
+      "status": "blocked",
+      "summary": "Older indexed result calls the product Orbital Copilot; open returned Internal Error. Current platform pages were used for capability evidence.",
+      "supports": [
+        "orbital.naming_uncertainty"
+      ],
+      "access_blocker": "web open Internal Error",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S08",
+      "title": "LandTech AI Assistant",
+      "url": "https://land.tech/assess-sites/ai-assistant",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Assistant is explicitly live for LandInsight Unlimited; site answers cite ownership, planning and constraints records.",
+      "supports": [
+        "landtech.identity",
+        "landtech.active",
+        "landtech.site_qa",
+        "landtech.citations",
+        "landtech.saved_sites",
+        "landtech.access"
+      ],
+      "locator": "lines 121-125,132-163,191-203",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S09",
+      "title": "LandTech homepage",
+      "url": "https://land.tech/",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "UK developer platform homepage lists AI Assistant as a new feature and describes source-linked site reports.",
+      "supports": [
+        "landtech.geography",
+        "landtech.target",
+        "landtech.site_report"
+      ],
+      "publication_date": "UNKNOWN",
+      "locator": "lines 131-147,355-359"
+    },
+    {
+      "id": "EM-S10",
+      "title": "Coadjute Clara deployment",
+      "url": "https://www.coadjute.com/resources/coadjutes-first-digital-human-to-help-battle-against-money-laundering",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Dated deployment includes AML document guidance and human sign-off; selected new customers have access while existing users roll out over six months.",
+      "supports": [
+        "clara.identity",
+        "clara.target",
+        "clara.geography",
+        "clara.active",
+        "clara.launch_date",
+        "clara.aml_guidance",
+        "clara.document_upload",
+        "clara.followup",
+        "clara.human_review",
+        "clara.access"
+      ],
+      "locator": "lines 15,23-32",
+      "publication_date": "2026-04-13"
+    },
+    {
+      "id": "EM-S11",
+      "title": "HeyLeo official launch release",
+      "url": "https://s205.q4cdn.com/544743641/files/doc_news/Real-Doubles-Down-on-AI-With-Launch-of-HeyLeo--A-Gamechanging-Conversational-Search-Experience-for-Consumers-2025.pdf",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Real reports live consumer beta with voice/text search in selected MLS markets across 20 states and agent handoff.",
+      "supports": [
+        "heyleo.identity",
+        "heyleo.target",
+        "heyleo.geography",
+        "heyleo.launch_date",
+        "heyleo.voice_text_search",
+        "heyleo.property_qa",
+        "heyleo.agent_handoff",
+        "heyleo.agent_workspace",
+        "heyleo.flyhomes_successor"
+      ],
+      "locator": "PDF pages 1-3",
+      "publication_date": "2025-11-04"
+    },
+    {
+      "id": "EM-S12",
+      "title": "HeyLeo app listing by Real Broker LLC",
+      "url": "https://play.google.com/store/apps/details?id=com.realbrokerage.airm",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party_developer_on_app_store",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Current developer listing describes an agent-only client concierge app, lead qualification, AI replies and agent takeover.",
+      "supports": [
+        "heyleo.agent_app_active",
+        "heyleo.agent_app_access",
+        "heyleo.agent_lead_qualification",
+        "heyleo.app_update",
+        "heyleo.scope_conflict"
+      ],
+      "locator": "lines 76-101,157-163",
+      "publication_date": "2026-07-17"
+    },
+    {
+      "id": "EM-S13",
+      "title": "HeyLeo web entry",
+      "url": "https://heyleo.com/",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "open_failed",
+      "status": "blocked",
+      "summary": "Consumer web entry returned Internal Error; present public availability was not tested.",
+      "supports": [
+        "heyleo.web_access_unknown"
+      ],
+      "access_blocker": "web open Internal Error",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S14",
+      "title": "Flyhomes search transition notice",
+      "url": "https://flyhomes.com/insights/a-new-chapter-for-flyhomes-search-and-how-well-continue-working-together",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Flyhomes says search technology moved to Real and original search portal would operate only through July 2, 2025; company itself continued.",
+      "supports": [
+        "flyhomes.portal_lifecycle",
+        "heyleo.flyhomes_successor"
+      ],
+      "locator": "lines 43-50,78-96",
+      "publication_date": "2025-07-01"
+    },
+    {
+      "id": "EM-S15",
+      "title": "CanaryAI product page",
+      "url": "https://www.housecanary.com/products/canary-ai",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "GenAI assistant queries US property data for valuations, comparables, rental forecasts and market context.",
+      "supports": [
+        "canaryai.identity",
+        "canaryai.target",
+        "canaryai.geography",
+        "canaryai.property_qa",
+        "canaryai.valuation",
+        "canaryai.comparables",
+        "canaryai.market_context"
+      ],
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S16",
+      "title": "CanaryAI official self-serve launch",
+      "url": "https://www.housecanary.com/blog/founders-letter-introducing-canaryai",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Founder announces official CanaryAI launch and self-serve platform.",
+      "supports": [
+        "canaryai.launch_date"
+      ],
+      "locator": "lines 24-42",
+      "publication_date": "2025-01-06"
+    },
+    {
+      "id": "EM-S17",
+      "title": "HouseCanary H1 2025 product update",
+      "url": "https://www.housecanary.com/blog/h1-2025-housecanary-product-highlights-innovation-in-action",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Shipped updates include photo-adjusted valuation, area questions, ARV estimates and source document downloads.",
+      "supports": [
+        "canaryai.photo_valuation",
+        "canaryai.arv",
+        "canaryai.source_documents",
+        "canaryai.update_date"
+      ],
+      "locator": "lines 9,49-57",
+      "publication_date": "2025-07-30"
+    },
+    {
+      "id": "EM-S18",
+      "title": "HouseCanary current pricing",
+      "url": "https://www.housecanary.com/pricing",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "Current self-serve paid plans explicitly include full CanaryAI access.",
+      "supports": [
+        "canaryai.active",
+        "canaryai.access"
+      ],
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S19",
+      "title": "LocalizeOS solutions indexed result",
+      "url": "https://localizeos.com/solutions/",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "search_index_only",
+      "status": "limited_evidence",
+      "summary": "Official indexed text describes hunter lead nurturing and CRM connections in four US regions; opening yielded zero extracted lines.",
+      "supports": [
+        "localize.candidate",
+        "localize.indexed_geography"
+      ],
+      "access_blocker": "opened URL returned zero extracted lines",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S20",
+      "title": "LocalizeOS homepage",
+      "url": "https://localizeos.com/",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "open_failed",
+      "status": "blocked",
+      "summary": "Homepage opened but yielded zero extracted lines; current product status remains unresolved.",
+      "supports": [
+        "localize.current_status_unknown"
+      ],
+      "access_blocker": "zero extracted lines",
+      "publication_date": "UNKNOWN"
+    },
+    {
+      "id": "EM-S21",
+      "title": "Claire AI March 2026 official article",
+      "url": "https://www.realpha.com/blog/claire-worlds-first-free-realestate-agent",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "March 2026 article describes Claire as available around the clock for property discovery and buyer questions.",
+      "supports": [
+        "claire.active"
+      ],
+      "locator": "lines 5-12",
+      "publication_date": "2026-03-23"
+    },
+    {
+      "id": "EM-S22",
+      "title": "reAlpha Super App launch and Claire naming change",
+      "url": "https://ir.realpha.com/press-release/realpha-super-app-nar-changes",
+      "checked_at": "2026-10-10",
+      "timezone": "Asia/Taipei",
+      "publisher_type": "first_party",
+      "retrieval": "opened",
+      "status": "retrieved",
+      "summary": "2024 mobile launch renamed platform reAlpha, retained Claire assistant, and documented inspection/settlement summaries.",
+      "supports": [
+        "claire.naming_transition",
+        "claire.inspection_report_summary",
+        "claire.historical_natural_language_search"
+      ],
+      "locator": "lines 20-28,35",
+      "publication_date": "2024-08-20"
+    },
+    {
+      "id": "real-estate-mcp.api",
+      "url": "https://api.github.com/repos/agentic-ops/real-estate-mcp",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "real-estate-mcp.commits",
+      "url": "https://api.github.com/repos/agentic-ops/real-estate-mcp/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.head",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/commit/70ad9bdcf6ede15314c373eb4ff6972a7f4e3054",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.source-commit",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/commit/cf7d88191c3c7a4dde11e196b8e72614f72b3b71",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "real-estate-mcp.readme",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.license",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.architecture-1",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/tools/finance_helpers.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "real-estate-mcp.architecture-2",
+      "url": "https://github.com/agentic-ops/real-estate-mcp/blob/main/tools/valuation_tools.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.api",
+      "url": "https://api.github.com/repos/zedd75/mcp-imo",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "mcp-imo.commits",
+      "url": "https://api.github.com/repos/zedd75/mcp-imo/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.head",
+      "url": "https://github.com/zedd75/mcp-imo/commit/8094233e9ddd10d1eac162ce21f9df7b4e330d29",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.source-commit",
+      "url": "https://github.com/zedd75/mcp-imo/commit/4ed189ef6b12701516c56afc8399f7578cff48b9",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "mcp-imo.readme",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.license",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.architecture-1",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/src/estimator.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mcp-imo.architecture-2",
+      "url": "https://github.com/zedd75/mcp-imo/blob/main/src/apis/georisques.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.api",
+      "url": "https://api.github.com/repos/felixfu824/taiwan-property-price-cli",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "taiwan-property-price-cli.commits",
+      "url": "https://api.github.com/repos/felixfu824/taiwan-property-price-cli/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.head",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/commit/ac919c6dff19048327c812492cc07d45a503b5d0",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.source-commit",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/commit/2448cee6f5575b94b98f86322e88732d76a4e608",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "taiwan-property-price-cli.readme",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/README.en.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.license",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.architecture-1",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/src/fetch.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-property-price-cli.architecture-2",
+      "url": "https://github.com/felixfu824/taiwan-property-price-cli/blob/master/src/normalize.ts",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.api",
+      "url": "https://api.github.com/repos/ccao-data/model-res-avm",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "cook-county-residential-avm.commits",
+      "url": "https://api.github.com/repos/ccao-data/model-res-avm/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.head",
+      "url": "https://github.com/ccao-data/model-res-avm/commit/feec9b79229e5ea9cfcbe042184855c2e047ae14",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.source-commit",
+      "url": "https://github.com/ccao-data/model-res-avm/commit/feec9b79229e5ea9cfcbe042184855c2e047ae14",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-11",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Commit appeared in the original 2026-10-10 history sample; detailed diff verified on 2026-10-11 and selected after activity review."
+    },
+    {
+      "id": "cook-county-residential-avm.readme",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.license",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.architecture-1",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/dvc.yaml",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "cook-county-residential-avm.architecture-2",
+      "url": "https://github.com/ccao-data/model-res-avm/blob/master/pipeline/00-ingest.R",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.api",
+      "url": "https://api.github.com/repos/murraystokely/mortgagemath",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "mortgagemath.commits",
+      "url": "https://api.github.com/repos/murraystokely/mortgagemath/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.head",
+      "url": "https://github.com/murraystokely/mortgagemath/commit/efec448a3a3d5f9c916a98db06f530d9f895d736",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.source-commit",
+      "url": "https://github.com/murraystokely/mortgagemath/commit/08a2d9df442dac64b357f994df53efafda678279",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "mortgagemath.readme",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.license",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.architecture-1",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/src/mortgagemath/_schedule.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "mortgagemath.architecture-2",
+      "url": "https://github.com/murraystokely/mortgagemath/blob/main/tests/schedules/README.md",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.api",
+      "url": "https://api.github.com/repos/geopandas/geopandas",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "geopandas.commits",
+      "url": "https://api.github.com/repos/geopandas/geopandas/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.head",
+      "url": "https://github.com/geopandas/geopandas/commit/2c7a44284275ec32e83a7acef4e038e4c894191c",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.source-commit",
+      "url": "https://github.com/geopandas/geopandas/commit/cf7059fe76411297bf732d28f62edd499a7773c3",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "geopandas.readme",
+      "url": "https://github.com/geopandas/geopandas/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.license",
+      "url": "https://github.com/geopandas/geopandas/blob/main/LICENSE.txt",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "geopandas.architecture-1",
+      "url": "https://github.com/geopandas/geopandas/blob/main/geopandas/tools/sjoin.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.api",
+      "url": "https://api.github.com/repos/docling-project/docling",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "docling.commits",
+      "url": "https://api.github.com/repos/docling-project/docling/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.head",
+      "url": "https://github.com/docling-project/docling/commit/a8c01dc6ac269d0232214735819d529cb666e0dd",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.source-commit",
+      "url": "https://github.com/docling-project/docling/commit/a8c01dc6ac269d0232214735819d529cb666e0dd",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "docling.readme",
+      "url": "https://github.com/docling-project/docling/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.license",
+      "url": "https://github.com/docling-project/docling/blob/main/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "docling.architecture-1",
+      "url": "https://github.com/docling-project/docling/blob/main/docling/document_converter.py",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.api",
+      "url": "https://api.github.com/repos/dgtlmoon/changedetection.io",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:29+00:00"
+    },
+    {
+      "id": "changedetection.commits",
+      "url": "https://api.github.com/repos/dgtlmoon/changedetection.io/commits?per_page=30",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.head",
+      "url": "https://github.com/dgtlmoon/changedetection.io/commit/75a508fecc37483e936795f1e3f9b076e375cf0f",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.source-commit",
+      "url": "https://github.com/dgtlmoon/changedetection.io/commit/6a23dcdca5bfbff6957b06f34861d0e1d98533b8",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-11",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Commit appeared in the original 2026-10-10 history sample; detailed diff verified on 2026-10-11 and selected after activity review."
+    },
+    {
+      "id": "changedetection.readme",
+      "url": "https://github.com/dgtlmoon/changedetection.io/blob/master/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.license",
+      "url": "https://github.com/dgtlmoon/changedetection.io/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "changedetection.architecture-1",
+      "url": "https://github.com/dgtlmoon/changedetection.io/blob/master/changedetectionio/processors/README.md",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.api",
+      "url": "https://api.github.com/repos/g0v/posland",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:30+00:00"
+    },
+    {
+      "id": "posland.commits",
+      "url": "https://api.github.com/repos/g0v/posland/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.head",
+      "url": "https://github.com/g0v/posland/commit/325ac1431f5469aa502721b0a0214a498e0add8e",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.source-commit",
+      "url": "https://github.com/g0v/posland/commit/261c89719ae54da0b77833c417c04d5ff9dc252f",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "posland.readme",
+      "url": "https://github.com/g0v/posland/blob/master/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.license",
+      "url": "https://github.com/g0v/posland/blob/master/LICENSE",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "posland.architecture-1",
+      "url": "https://github.com/g0v/posland/blob/master/package.json",
+      "type": "repository source or architectural specification",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.api",
+      "url": "https://api.github.com/repos/quarto-dev/quarto-cli",
+      "type": "GitHub REST repository metadata",
+      "checked_date": "2026-10-10",
+      "note": "Exact public API star snapshot, not a popularity/quality score.",
+      "observed_at_utc": "2026-10-10T15:45:30+00:00"
+    },
+    {
+      "id": "quarto.commits",
+      "url": "https://api.github.com/repos/quarto-dev/quarto-cli/commits?per_page=8",
+      "type": "GitHub REST default-branch commit history",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.head",
+      "url": "https://github.com/quarto-dev/quarto-cli/commit/a57cc76458d91a0577c162a474929119e6b663ba",
+      "type": "default-branch head commit",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.source-commit",
+      "url": "https://github.com/quarto-dev/quarto-cli/commit/a57cc76458d91a0577c162a474929119e6b663ba",
+      "type": "selected meaningful source commit",
+      "checked_date": "2026-10-10",
+      "supplemental_review_date": "2026-10-11",
+      "note": "Selected substantive source update from bounded original history sample; selection reviewed on 2026-10-11. Original acquisition date retained."
+    },
+    {
+      "id": "quarto.readme",
+      "url": "https://github.com/quarto-dev/quarto-cli/blob/main/README.md",
+      "type": "maintainer README",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "quarto.license",
+      "url": "https://github.com/quarto-dev/quarto-cli/blob/main/COPYING.md",
+      "type": "official license file",
+      "checked_date": "2026-10-10"
+    },
+    {
+      "id": "taiwan-lvr-dataset",
+      "url": "https://data.gov.tw/dataset/25119",
+      "type": "official Taiwan government dataset",
+      "checked_date": "2026-10-10",
+      "note": "Official LVR batch-data entry lists government provider and OGDL v1; description says releases on 1/11/21 while metadata frequency says irregular. Query-interface parity was not assumed."
+    },
+    {
+      "id": "taiwan-ogdl",
+      "url": "https://data.gov.tw/license",
+      "type": "official government license",
+      "checked_date": "2026-10-10",
+      "note": "Attribution is required. Official text states compatibility with CC BY 4.0; code licensing is distinct from data licensing."
+    },
+    {
+      "id": "changedetection.activity-diff-review",
+      "url": "https://api.github.com/repos/dgtlmoon/changedetection.io/commits/6a23dcdca5bfbff6957b06f34861d0e1d98533b8",
+      "type": "GitHub REST commit detail and changed-file diff",
+      "checked_date": "2026-10-11",
+      "note": "Supplemental verification of changed source files; no software execution or code copying."
+    },
+    {
+      "id": "cook-county-residential-avm.activity-diff-review",
+      "url": "https://api.github.com/repos/ccao-data/model-res-avm/commits/feec9b79229e5ea9cfcbe042184855c2e047ae14",
+      "type": "GitHub REST commit detail and changed-file diff",
+      "checked_date": "2026-10-11",
+      "note": "Supplemental verification of changed source files; no software execution or code copying."
+    },
+    {
+      "id": "geopandas.activity-diff-review",
+      "url": "https://api.github.com/repos/geopandas/geopandas/commits/2c7a44284275ec32e83a7acef4e038e4c894191c",
+      "type": "GitHub REST commit detail and changed-file diff",
+      "checked_date": "2026-10-11",
+      "note": "Supplemental verification of changed source files; no software execution or code copying."
+    }
+  ]
+}

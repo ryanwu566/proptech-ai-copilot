@@ -1,0 +1,1437 @@
+{
+  "schema_version": "1.0",
+  "research_date": "2026-10-10",
+  "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e",
+  "branch": "research/competitive-benchmark-gap-matrix-v1",
+  "scope": "Targeted documentation-first inventory with selective current source reads; not a full repository or deployed-site audit.",
+  "classification_definitions": {
+    "STRONG": "Meaningful current repository implementation with documented bounded local validation; not a deployed certification.",
+    "PARTIAL": "Implemented subset, conditional data/provider, legacy-only flow or incomplete integrated workflow.",
+    "FOUNDATION_ONLY": "Schema, gated experimental slice or template exists without integrated production consumer workflow.",
+    "BLOCKED": "Explicit acceptance/ML gates disallow claiming readiness.",
+    "NOT_IMPLEMENTED": "No current capability in scoped authoritative surface and selected runtime contracts."
+  },
+  "sources": [
+    {
+      "id": "L01",
+      "path": "docs/product-capability-surface-v1.md",
+      "title": "product-capability-surface-v1.md",
+      "summary": "Historical detailed surface; superseded for Compare limits and hosted readiness.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L02",
+      "path": "docs/commercial-uiux-v1-acceptance.md",
+      "title": "commercial-uiux-v1-acceptance.md",
+      "summary": "Repository implementation and deterministic local UI acceptance; not live provider proof.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L03",
+      "path": "docs/commercial-compare-report-e9-validation.md",
+      "title": "commercial-compare-report-e9-validation.md",
+      "summary": "2–4 case comparison and frozen nine-section browser report.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L04",
+      "path": "docs/evidence-verification-checklist-v1.md",
+      "title": "evidence-verification-checklist-v1.md",
+      "summary": "Manual verification workflow, browser binding, recheck invalidation, source separation.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L05",
+      "path": "frontend_next/lib/workspace/case-repository.ts",
+      "title": "case-repository.ts",
+      "summary": "Browser consumer case repository, revision guards and no server sync.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L06",
+      "path": "frontend_next/lib/case-storage.ts",
+      "title": "case-storage.ts",
+      "summary": "Current browser storage and bounded compact saved cases; current code overrides old privacy key prose.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L07",
+      "path": "frontend_next/lib/workspace/finance-model.ts",
+      "title": "finance-model.ts",
+      "summary": "Mortgage sensitivity/holding costs; explicit missing acquisition costs and null knownOneTimeCosts.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L08",
+      "path": "frontend_next/components/property-case-command-center.tsx",
+      "title": "property-case-command-center.tsx",
+      "summary": "Legacy manual notes, renovation reserve and estimated buyer-cost inputs; not unified commercial Finance.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L09",
+      "path": "frontend_next/lib/workspace/compare-report-model.ts",
+      "title": "compare-report-model.ts",
+      "summary": "Compare assumptions, no ranking, frozen report and source limitations.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L10",
+      "path": "docs/DATA_SOURCES.md",
+      "title": "DATA_SOURCES.md",
+      "summary": "Official integration coverage and conditional providers; dated September live observations.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L11",
+      "path": "docs/operations/final-production-acceptance-evidence-v1.json",
+      "title": "final-production-acceptance-evidence-v1.json",
+      "summary": "Categorical production NO-GO; local evidence separate from hosted gates.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L12",
+      "path": "docs/operations/production-guardrails-recovery-v1.md",
+      "title": "production-guardrails-recovery-v1.md",
+      "summary": "Latest guardrails implementation; 15 external control dimensions BLOCKED; local full-suite result.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L13",
+      "path": "docs/operations/production-guardrails-recovery-v1-evidence.json",
+      "title": "production-guardrails-recovery-v1-evidence.json",
+      "summary": "Release-bound owner/control evidence; no hosted recovery acceptance.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L14",
+      "path": "docs/ARCHITECTURE.md",
+      "title": "ARCHITECTURE.md",
+      "summary": "Browser-local consumer versus gated professional foundation; deterministic AI explanations.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L15",
+      "path": "services/llm_service.py",
+      "title": "llm_service.py",
+      "summary": "Templates only even when API key set; no model call or RAG.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L16",
+      "path": "docs/ml/valuation-target-reframing-evidence-v1.md",
+      "title": "valuation-target-reframing-evidence-v1.md",
+      "summary": "Target A and B blocked; no approved model.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L17",
+      "path": "docs/ml/valuation-semantic-temporal-closure-evidence-v1.json",
+      "title": "valuation-semantic-temporal-closure-evidence-v1.json",
+      "summary": "Zero approved candidates, no approved coverage or ML-B handoff.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L18",
+      "path": "docs/guided-tour-i18n-motion-v2.md",
+      "title": "guided-tour-i18n-motion-v2.md",
+      "summary": "Manual contextual tour, four locales, accessibility checks; integration bundle 2,998,938 bytes.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L19",
+      "path": "docs/vnext/stage-1-exit-signoff.md",
+      "title": "stage-1-exit-signoff.md",
+      "summary": "Feature-gated professional foundation; not integrated consumer account/collaboration product.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L20",
+      "path": "frontend_next/lib/valuation-share.ts",
+      "title": "valuation-share.ts",
+      "summary": "Allowlisted input URL and HTML export; not permissioned case report hosting.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L21",
+      "path": "docs/operations/api-cost-optimization-v1.md",
+      "title": "api-cost-optimization-v1.md",
+      "summary": "Explicit provider action, caches/coalescing and zero analysis calls in reopen/Compare/Report contracts.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L22",
+      "path": "docs/operations/anti-abuse-hardening-v1.md",
+      "title": "anti-abuse-hardening-v1.md",
+      "summary": "Local admission budgets, limits and owner-required global control proof.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L23",
+      "path": "frontend_next/lib/workspace/workspace-model.ts",
+      "title": "workspace-model.ts",
+      "summary": "Current structured commercial consumer case sections; no documents/attachments/team fields.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L24",
+      "path": "frontend_next/lib/commute-route-evidence.ts",
+      "title": "commute-route-evidence.ts",
+      "summary": "Single origin/destination stored route evidence.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    },
+    {
+      "id": "L25",
+      "path": "docs/privacy_and_storage_inventory.md",
+      "title": "privacy_and_storage_inventory.md",
+      "summary": "Sanitized client/export boundaries; historical storage-key text is superseded by current code.",
+      "checked_at": "2026-10-10",
+      "status": "REPOSITORY_OBSERVED",
+      "retrieval": "read_current_worktree",
+      "scope_sha": "c2ddf1890897f44659b91079a563691fe337295e"
+    }
+  ],
+  "categories": [
+    {
+      "category": "Property discovery",
+      "status": "PARTIAL",
+      "note": "Official transactions/address intake; no licensed listing clone."
+    },
+    {
+      "category": "Case management",
+      "status": "PARTIAL",
+      "note": "Mature local snapshots; no durable multi-device room."
+    },
+    {
+      "category": "Market evidence",
+      "status": "PARTIAL",
+      "note": "Strong semantics; partial/conditional accepted hosted coverage."
+    },
+    {
+      "category": "Valuation",
+      "status": "PARTIAL",
+      "note": "Comparable-based estimates, not approved ML model or appraisal."
+    },
+    {
+      "category": "Comparable transparency",
+      "status": "STRONG",
+      "note": "Inclusion/exclusion and method explanations."
+    },
+    {
+      "category": "Location",
+      "status": "PARTIAL",
+      "note": "POI/maps/demographics; runtime proof missing."
+    },
+    {
+      "category": "Commute",
+      "status": "PARTIAL",
+      "note": "Single route plus secondary TDX evidence."
+    },
+    {
+      "category": "Risk",
+      "status": "PARTIAL",
+      "note": "Good unknown handling; artifact and hosted acceptance missing."
+    },
+    {
+      "category": "Finance",
+      "status": "PARTIAL",
+      "note": "Strong mortgage/holding; acquisition and unified scenarios incomplete."
+    },
+    {
+      "category": "Evidence verification",
+      "status": "STRONG",
+      "note": "Source-based actions and manually reported recheck workflow."
+    },
+    {
+      "category": "Viewing workflow",
+      "status": "PARTIAL",
+      "note": "Generic notes/readiness; no structured viewing log."
+    },
+    {
+      "category": "Documents",
+      "status": "NOT_IMPLEMENTED",
+      "note": "Document proposals and geometry upload do not establish a property vault."
+    },
+    {
+      "category": "Notes",
+      "status": "PARTIAL",
+      "note": "Legacy free text; no integrated rich viewing record."
+    },
+    {
+      "category": "Comparison",
+      "status": "STRONG",
+      "note": "2–4 snapshots with consistent missing and assumption semantics."
+    },
+    {
+      "category": "Reports",
+      "status": "STRONG",
+      "note": "Frozen evidence pack and A4 export; long-document usability still a pilot test."
+    },
+    {
+      "category": "Collaboration",
+      "status": "FOUNDATION_ONLY",
+      "note": "Gated role/workspace foundations; no accepted consumer collaboration."
+    },
+    {
+      "category": "Monitoring",
+      "status": "PARTIAL",
+      "note": "Static freshness and saved shortlist; no scheduler/alerts."
+    },
+    {
+      "category": "AI assistance",
+      "status": "FOUNDATION_ONLY",
+      "note": "Deterministic structured explanations; no live grounded LLM Q&A."
+    },
+    {
+      "category": "ML",
+      "status": "BLOCKED",
+      "note": "Target A/B blocked; PIT-valid 0; approved cohort 0."
+    },
+    {
+      "category": "Accounts",
+      "status": "FOUNDATION_ONLY",
+      "note": "VNext auth is gated and separate from consumer cases."
+    },
+    {
+      "category": "Sharing",
+      "status": "PARTIAL",
+      "note": "Allowlisted input URL and local export; no revocable hosted evidence room."
+    },
+    {
+      "category": "Commercial operations",
+      "status": "BLOCKED",
+      "note": "Local controls meaningful; hosted global security/cost/recovery unaccepted."
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "search_filters",
+      "label": "Structured property / transaction discovery",
+      "category": "Property discovery",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L01",
+          "L10",
+          "L11"
+        ],
+        "note": "Official-transaction finder is not licensed active listing inventory; hosted evidence unverified.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "natural_language_search",
+      "label": "Natural-language property search",
+      "category": "Property discovery",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L15"
+        ],
+        "note": "No live conversational listing search; independent search breadth is out of positioning.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "preference_memory",
+      "label": "Preference memory across cases",
+      "category": "Case management",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L05",
+          "L23"
+        ],
+        "note": "Per-case inputs are not a reusable user preference profile.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "decision_room",
+      "label": "Property Decision Room",
+      "category": "Case management",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L04",
+          "L05",
+          "L23"
+        ],
+        "note": "Evidence workspace exists; viewing, questions, attachments and document workflows are not integrated.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "viewing_notes",
+      "label": "Viewing notes",
+      "category": "Notes",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L08",
+          "L23"
+        ],
+        "note": "Generic manual notes exist in legacy command center; no structured viewing log in current commercial case.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "viewing_questions",
+      "label": "Viewing questions and follow-up tasks",
+      "category": "Viewing workflow",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L04",
+          "L08"
+        ],
+        "note": "Evidence next actions exist; no persistent question/task owner and resolution workflow.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "photos_attachments",
+      "label": "Photos / attachments",
+      "category": "Documents",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L23"
+        ],
+        "note": "No consumer attachment vault; parcel geometry uploads are a separate request-scoped tool.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "document_upload",
+      "label": "Property document upload",
+      "category": "Documents",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L23",
+          "L19"
+        ],
+        "note": "Sensitive document architecture proposals do not establish upload/storage/extraction product.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "disclosure_extraction",
+      "label": "Contract / disclosure extraction",
+      "category": "Documents",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L15",
+          "L23"
+        ],
+        "note": "No property document extraction with source page citations.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "inspection_analysis",
+      "label": "Inspection analysis",
+      "category": "Documents",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L15",
+          "L23"
+        ],
+        "note": "No inspection ingestion or issue extraction; risk overlays are not building inspection.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "evidence_checklist",
+      "label": "Evidence Verification Checklist",
+      "category": "Evidence verification",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L04"
+        ],
+        "note": "Implemented local manual actions, dates and invalidation; user marks are not authenticated verification.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "comparable_explanation",
+      "label": "Comparable inclusion and valuation explanation",
+      "category": "Comparable transparency",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10"
+        ],
+        "note": "Deterministic comparable methodology; data availability and stored detail can be limited.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "comparable_exclusion",
+      "label": "Comparable exclusion explanation",
+      "category": "Comparable transparency",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10"
+        ],
+        "note": "Retain transparent rejection reasons; not professional appraisal certification.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "property_price_history",
+      "label": "Property-specific price / listing history",
+      "category": "Market evidence",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L10",
+          "L14"
+        ],
+        "note": "Regional transaction trends do not prove one property's longitudinal listing history.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "market_trends",
+      "label": "Transaction market trends",
+      "category": "Market evidence",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10",
+          "L11"
+        ],
+        "note": "Implemented distribution/trend evidence; partial coverage and hosted provider gates.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "valuation",
+      "label": "Comparable-based valuation",
+      "category": "Valuation",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10",
+          "L11"
+        ],
+        "note": "Deterministic comparable estimate; no approved ML AVM or hosted provider acceptance.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "valuation_sensitivity",
+      "label": "Valuation sensitivity to comparable assumptions",
+      "category": "Valuation",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10"
+        ],
+        "note": "Method/comparable transparency exists; no unified interactively persisted scenario explanation.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "renovation_scenario",
+      "label": "Repair / renovation cash scenario",
+      "category": "Finance",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L07",
+          "L08"
+        ],
+        "note": "Manual renovation reserve and recurring repair reserve; no integrated renovation/holding-period simulator.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "mortgage_scenarios",
+      "label": "Mortgage scenarios",
+      "category": "Finance",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L07",
+          "L02"
+        ],
+        "note": "Deterministic rate/term/down-payment/grace sensitivity; not lender approval.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "acquisition_costs",
+      "label": "Acquisition / closing costs",
+      "category": "Finance",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L07",
+          "L08"
+        ],
+        "note": "Legacy manual buyer costs exist; commercial Finance excludes deed/registration/broker costs from totals.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "holding_costs",
+      "label": "Holding costs",
+      "category": "Finance",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L07"
+        ],
+        "note": "Known subtotal versus unavailable costs disclosed; assumptions are user-entered reference estimates.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "single_commute",
+      "label": "Single-destination commute",
+      "category": "Commute",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L24",
+          "L10",
+          "L11"
+        ],
+        "note": "One stored destination; provider/deployment acceptance unverified; secondary TDX distinct.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "multi_commute",
+      "label": "Multi-destination commute",
+      "category": "Commute",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L24",
+          "L23"
+        ],
+        "note": "No multiple household destinations and consistently timed route comparison.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "poi",
+      "label": "POI evidence",
+      "category": "Location",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10",
+          "L11"
+        ],
+        "note": "Implemented bounded categories; null is not zero; hosted key/quota evidence missing.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "neighborhood",
+      "label": "Neighborhood context / demographics",
+      "category": "Location",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10",
+          "L11"
+        ],
+        "note": "POI/demographics implemented conditionally; no complete neighborhood review product.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "schools",
+      "label": "School information and catchment evidence",
+      "category": "Location",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L10",
+          "L02"
+        ],
+        "note": "Education POI can be shown; no authoritative admission-zone or eligibility verification.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "disaster_risk",
+      "label": "Disaster / terrain risk evidence",
+      "category": "Risk",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L10",
+          "L11"
+        ],
+        "note": "Source-specific overlays/unknown states implemented; official artifact/live acceptance missing.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "environmental_risk",
+      "label": "Environmental risk evidence",
+      "category": "Risk",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L10",
+          "L11"
+        ],
+        "note": "Bounded spatial/reference sources; not complete pollution/noise/engineering coverage.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "map",
+      "label": "Map context",
+      "category": "Location",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L10",
+          "L11"
+        ],
+        "note": "Map integration exists; cadastral-looking tiles are reference only and hosted key acceptance missing.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "street_view",
+      "label": "Street View",
+      "category": "Location",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L11"
+        ],
+        "note": "Explicit view action and no-panorama semantics; hosted browser restrictions/provider proof unverified.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "property_monitoring",
+      "label": "Property change monitoring",
+      "category": "Monitoring",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L05",
+          "L14"
+        ],
+        "note": "Saved snapshots do not schedule refresh or observe external property changes.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "price_drop_alerts",
+      "label": "Price-drop alerts",
+      "category": "Monitoring",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L05",
+          "L14"
+        ],
+        "note": "No authorized listing-change feed/notifications.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "freshness_alerts",
+      "label": "Evidence freshness alerts",
+      "category": "Monitoring",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L04",
+          "L09",
+          "L10"
+        ],
+        "note": "Stale badges/manual recheck exist; no background freshness notification or schedule.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "watchlists",
+      "label": "Watchlists",
+      "category": "Monitoring",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L05",
+          "L06"
+        ],
+        "note": "Saved cases approximate a shortlist; no watch subscription/search alert workflow.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "multi_compare",
+      "label": "Multi-property comparison",
+      "category": "Comparison",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L03",
+          "L09"
+        ],
+        "note": "2–4 saved cases, two at a time on mobile, assumption warnings, no ranking.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "tradeoff_explanation",
+      "label": "Multi-property trade-off explanation",
+      "category": "Comparison",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L09"
+        ],
+        "note": "Side-by-side fields and assumption warnings; no preference-grounded narrative synthesis.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "professional_report",
+      "label": "Professional single-case report / A4 PDF",
+      "category": "Reports",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L03",
+          "L04",
+          "L09"
+        ],
+        "note": "Frozen nine-section browser print report; not formal appraisal; long PDF usability requires review.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "shareable_report",
+      "label": "Hosted shareable report",
+      "category": "Sharing",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L20",
+          "L03",
+          "L25"
+        ],
+        "note": "PDF/HTML and input URL export exist; no hosted permissioned evidence report/revocation.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "family_collaboration",
+      "label": "Family / advisor collaboration",
+      "category": "Collaboration",
+      "copilot_classification": "FOUNDATION_ONLY",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L19",
+          "L14"
+        ],
+        "note": "VNext tenant/workspace schema is gated; no end-to-end consumer collaboration.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "comments",
+      "label": "Shared comments",
+      "category": "Collaboration",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L23",
+          "L19"
+        ],
+        "note": "Generic private notes are not shared discussion threads.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "permissions",
+      "label": "Consumer case / report permissions",
+      "category": "Collaboration",
+      "copilot_classification": "FOUNDATION_ONLY",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L19",
+          "L14"
+        ],
+        "note": "RLS/role foundations not an accepted consumer authorization/sharing workflow.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "property_qa",
+      "label": "Natural-language Q&A over a property",
+      "category": "AI assistance",
+      "copilot_classification": "FOUNDATION_ONLY",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L15",
+          "L14"
+        ],
+        "note": "Structured/template explanations exist; no live grounded conversational assistant.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "cross_property_qa",
+      "label": "Cross-property Q&A",
+      "category": "AI assistance",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L15",
+          "L09"
+        ],
+        "note": "Deterministic comparisons do not implement grounded cross-case Q&A.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "next_steps",
+      "label": "Evidence-based next verification steps",
+      "category": "Evidence verification",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L04",
+          "L09"
+        ],
+        "note": "Deterministic actionable verification; no buy/no-buy recommendation.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "preference_profile",
+      "label": "Property preference profile",
+      "category": "Case management",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L23",
+          "L05"
+        ],
+        "note": "No reusable prioritized budget/commute/risk/attributes profile.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "homeowner_lifecycle",
+      "label": "Homeowner lifecycle",
+      "category": "Monitoring",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L23"
+        ],
+        "note": "No ownership maintenance/refinance/review workflow.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "portfolio_monitoring",
+      "label": "Portfolio monitoring",
+      "category": "Monitoring",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L23"
+        ],
+        "note": "Multi-case comparison is not a portfolio service.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "accounts",
+      "label": "Consumer accounts",
+      "category": "Accounts",
+      "copilot_classification": "FOUNDATION_ONLY",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L19",
+          "L14"
+        ],
+        "note": "Gated professional auth foundation does not supply integrated consumer accounts.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "cross_device_sync",
+      "label": "Cross-device sync",
+      "category": "Accounts",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L05",
+          "L06"
+        ],
+        "note": "Cases local to browser; storage events are same-browser/tab behavior.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "payments",
+      "label": "Payments / subscriptions",
+      "category": "Commercial operations",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L23"
+        ],
+        "note": "No implemented end-to-end consumer subscription/entitlement workflow in reviewed surface.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "support",
+      "label": "Commercial support workflow",
+      "category": "Commercial operations",
+      "copilot_classification": "FOUNDATION_ONLY",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L12",
+          "L14"
+        ],
+        "note": "Operations runbooks are not a staffed customer support service or demonstrated SLA.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "product_analytics",
+      "label": "Privacy-preserving product analytics",
+      "category": "Commercial operations",
+      "copilot_classification": "FOUNDATION_ONLY",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L12",
+          "L22"
+        ],
+        "note": "Operational counters exist; no measured activation/retention/payment funnel.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "provenance",
+      "label": "Provider provenance",
+      "category": "Evidence verification",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L04",
+          "L09",
+          "L10"
+        ],
+        "note": "Sources/dates/coverage separate from user claims; partial compact snapshot details.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "unknown_states",
+      "label": "Explicit unknown / unavailable / no-match states",
+      "category": "Evidence verification",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L04",
+          "L09",
+          "L10"
+        ],
+        "note": "Do not equate missing with zero or no-match with safety.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "official_taiwan_data",
+      "label": "Official Taiwan data integration",
+      "category": "Market evidence",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L10",
+          "L11"
+        ],
+        "note": "Implemented PLVR/spatial adapters; accepted byte versions and hosted coverage not yet proved.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "cost_controls",
+      "label": "Cost-aware provider architecture",
+      "category": "Commercial operations",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L21",
+          "L22",
+          "L12"
+        ],
+        "note": "Local explicit action/caching/admission controls strong; no verified fleet monetary ceiling.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "onboarding",
+      "label": "Guided Tour / Guided Case Simulation",
+      "category": "Case management",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L18",
+          "L02"
+        ],
+        "note": "Manual four-locale contextual tour and guided flows; demos clearly separated from evidence.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "multilingual",
+      "label": "zh-TW / en / ja / ko",
+      "category": "Case management",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L18",
+          "L02"
+        ],
+        "note": "Four-locale journey/tour runtime; historical secondary metadata may retain source language.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "mobile",
+      "label": "Mobile core journey",
+      "category": "Case management",
+      "copilot_classification": "STRONG",
+      "copilot_cell": {
+        "value": "YES",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L18"
+        ],
+        "note": "Deterministic local viewport acceptance; deployed target still must be tested.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "accessibility",
+      "label": "Keyboard / contrast / reduced-motion support",
+      "category": "Case management",
+      "copilot_classification": "PARTIAL",
+      "copilot_cell": {
+        "value": "PARTIAL",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L02",
+          "L18"
+        ],
+        "note": "Meaningful local accessibility evidence; exhaustive assistive-technology certification absent.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "production_reliability",
+      "label": "Hosted production reliability and recovery",
+      "category": "Commercial operations",
+      "copilot_classification": "BLOCKED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L11",
+          "L12",
+          "L13"
+        ],
+        "note": "Production NO-GO; local tests/recovery drills are not hosted release-bound acceptance.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "ml_avm",
+      "label": "Approved ML valuation model",
+      "category": "ML",
+      "copilot_classification": "BLOCKED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L16",
+          "L17"
+        ],
+        "note": "Target A BLOCKED; Target B BLOCKED; PIT-valid=0; approved cohort=0; ML-B prohibited.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "licensed_listings",
+      "label": "Licensed live listing integration",
+      "category": "Property discovery",
+      "copilot_classification": "NOT_IMPLEMENTED",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L14",
+          "L10"
+        ],
+        "note": "Official transaction search is not licensed active inventory; no unauthorized scraping.",
+        "production_verified": false
+      }
+    },
+    {
+      "id": "canonical_identity",
+      "label": "Official parcel / building identity",
+      "category": "Case management",
+      "copilot_classification": "FOUNDATION_ONLY",
+      "copilot_cell": {
+        "value": "NO",
+        "evidence_status": "REPOSITORY_OBSERVED",
+        "source_ids": [
+          "L19",
+          "L14",
+          "L11"
+        ],
+        "note": "Browser-confirmed address anchor is not official identity; gated identity foundation lacks accepted provider.",
+        "production_verified": false
+      }
+    }
+  ],
+  "ml_boundary": {
+    "target_a": "BLOCKED",
+    "target_b": "BLOCKED",
+    "pit_valid": 0,
+    "approved_cohort": 0,
+    "ml_b_may_begin": false
+  },
+  "production_verdict": "NO-GO",
+  "inventory_cautions": [
+    "Historical capability surface Compare 2–3 is superseded by E9/E10 current 2–4.",
+    "Historical privacy prose storage key is superseded by current case-storage implementation.",
+    "Notes, renovation reserve and manual buyer costs already exist in legacy command center: these are integration gaps, not zero capability.",
+    "Old commercial/UI scores and dated live September data are not current hosted acceptance.",
+    "Latest tour integration documents 2,998,938 static bytes / 3,000,000 ceiling (1,062 bytes headroom); remeasure successor actual release before any engineering expansion.",
+    "No fresh application test/build/live provider requests in this research lane; historical validation retains its original scope."
+  ]
+}

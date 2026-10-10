@@ -1,0 +1,3607 @@
+{
+  "schema_version": "1.0.0",
+  "research_date_local": "2026-10-10",
+  "timezone": "Asia/Taipei",
+  "language": "zh-TW",
+  "scope": "13 benchmark product families: 4 Taiwan, 4 international consumer portals, 5 professional valuation/data providers",
+  "methodology": {
+    "hands_on_ui_tested": false,
+    "primary_sources_only": true,
+    "status_definitions": {
+      "VERIFIED_CURRENT": "First-party public documentation describes a currently supplied or shipped capability, including restricted beta where explicitly stated. Documentation verified; feature behavior, accuracy, entitlement and production reliability were not independently UI tested.",
+      "ANNOUNCED": "First-party source describes future rollout or planned availability; not counted as generally shipped.",
+      "INFERRED": "Analyst inference from named evidence; never treated as documented functionality.",
+      "UNVERIFIED": "Relevant first-party claim exists but retrieval, currentness or scope cannot support verification.",
+      "UNKNOWN": "No sufficiently specific claim established by this bounded review; means unknown, not absent."
+    },
+    "retrieval_levels": {
+      "OPENED_PRIMARY": "Official page opened and relevant readable content retrieved.",
+      "OPENED_PRIMARY_PARTIAL": "Official page opened but extraction omitted, failed intermittently, or returned only partial shell; limitation recorded.",
+      "SEARCH_SNIPPET_PRIMARY": "First-party indexed snippet only; direct page blocked or content unavailable."
+    },
+    "absence_policy": "All capability cells initialized UNKNOWN. No absence inferred from missing marketing or inaccessible login areas.",
+    "copyright_policy": "Concise original paraphrases only; no copied article passages.",
+    "date_policy": "Exclude publication dates later than 2026-10-10. Undated live pages record publication_date=null and date_precision=not_stated; date_checked does not imply recent product launch.",
+    "product_family_policy": "Related subproducts included only where claim explicitly names its scope; vendor-wide functionality must not be attributed to every subproduct."
+  },
+  "interpretation_notes": [
+    {
+      "subject": "Taiwan garbled broker name",
+      "interpretation": "\u4fe1\u7fa9\u623f\u5c4b / Sinyi Realty",
+      "status": "INFERRED",
+      "reason": "Assigned scope says garbled user name likely this; interpretation retained explicitly, not silently corrected."
+    }
+  ],
+  "capability_catalog": [
+    {
+      "id": "SEARCH_FILTERS",
+      "label": "\u641c\u5c0b\u53ca\u689d\u4ef6\u7be9\u9078",
+      "scope": "Listing discovery; professional address lookup alone does not qualify."
+    },
+    {
+      "id": "MAP_SEARCH",
+      "label": "\u5730\u5716\u627e\u623f",
+      "scope": "Map-based listing or community discovery."
+    },
+    {
+      "id": "WATCHLISTS",
+      "label": "\u6536\u85cf\uff0f\u793e\u5340\u89c0\u5bdf\u540d\u55ae",
+      "scope": "Saved properties or communities; portfolio monitoring is separately scoped."
+    },
+    {
+      "id": "SEARCH_ALERTS",
+      "label": "\u65b0\u6848\uff0f\u641c\u5c0b\u689d\u4ef6\u63d0\u9192",
+      "scope": "Notifications for matching or community listings."
+    },
+    {
+      "id": "PRICE_ALERTS",
+      "label": "\u964d\u50f9\uff0f\u50f9\u683c\u63d0\u9192",
+      "scope": "Notifications of price changes."
+    },
+    {
+      "id": "BROWSING_HISTORY",
+      "label": "\u700f\u89bd\u6b77\u53f2",
+      "scope": "User-visible revisit history; AI memory alone does not qualify."
+    },
+    {
+      "id": "TRANSACTION_HISTORY",
+      "label": "\u6210\u4ea4\uff0f\u50f9\u683c\u6b77\u53f2",
+      "scope": "Recorded sales, transaction prices or property listing history."
+    },
+    {
+      "id": "PROPERTY_COMPARISON",
+      "label": "\u7269\u4ef6\u6bd4\u8f03\uff0f\u6210\u4ea4\u53c3\u7167",
+      "scope": "Side-by-side homes or comparable-property analysis; scope specified per claim."
+    },
+    {
+      "id": "AVM",
+      "label": "\u81ea\u52d5\u4f30\u50f9",
+      "scope": "Automated property value; area transaction averages alone do not qualify."
+    },
+    {
+      "id": "VALUATION_UNCERTAINTY",
+      "label": "\u4f30\u50f9\u5340\u9593\uff0f\u4fe1\u5fc3",
+      "scope": "Value range, confidence score or FSD; multi-provider spread is not statistical confidence."
+    },
+    {
+      "id": "VALUATION_EXPLAINABILITY",
+      "label": "\u4f30\u50f9\uff0f\u6578\u64da\u89e3\u91cb",
+      "scope": "Comps, adjustment controls, data provenance or method explanation; not automatically causal model explanations."
+    },
+    {
+      "id": "DOCUMENTS",
+      "label": "\u6587\u4ef6\uff0f\u5951\u7d04",
+      "scope": "Documents available or document workflow; template download is weaker than a case document vault."
+    },
+    {
+      "id": "VIEWING_SCHEDULING",
+      "label": "\u770b\u5c4b\u5b89\u6392",
+      "scope": "Scheduling, reminders or calendar linkage; virtual tours alone do not qualify."
+    },
+    {
+      "id": "VIEWING_NOTES",
+      "label": "\u770b\u5c4b\uff0f\u7269\u4ef6\u7b46\u8a18",
+      "scope": "User-created listing notes or comments; editorial articles named \u770b\u5c4b\u7b46\u8a18 do not qualify."
+    },
+    {
+      "id": "COMMUTE",
+      "label": "\u901a\u52e4\u6642\u9593",
+      "scope": "Route/time analysis; MRT proximity filter alone does not qualify."
+    },
+    {
+      "id": "NEIGHBORHOOD",
+      "label": "\u751f\u6d3b\u5708\uff0f\u9130\u91cc",
+      "scope": "Schools, amenities, transit, neighborhood or community information."
+    },
+    {
+      "id": "CLIMATE_RISK",
+      "label": "\u707d\u5bb3\uff0f\u6c23\u5019\u98a8\u96aa",
+      "scope": "Property risk data; external referrals distinguished from native scores."
+    },
+    {
+      "id": "FINANCE",
+      "label": "\u623f\u8cb8\uff0f\u8cfc\u8cb7\u529b\uff0f\u6210\u672c",
+      "scope": "Consumer mortgage or affordability; lender valuation input alone does not qualify."
+    },
+    {
+      "id": "REPORTS",
+      "label": "\u5831\u544a\uff0f\u532f\u51fa",
+      "scope": "Property/market report or downloadable result; output generation not executed."
+    },
+    {
+      "id": "COLLABORATION",
+      "label": "\u5171\u540c\u627e\u623f\uff0f\u5206\u4eab\uff0f\u5354\u4f5c",
+      "scope": "Sharing scope stated: public link, co-shopper workspace or multiuser editing."
+    },
+    {
+      "id": "ACCOUNTS",
+      "label": "\u5e33\u865f\uff0f\u8de8\u88dd\u7f6e",
+      "scope": "Documented registration/login; not an authentication security audit."
+    },
+    {
+      "id": "AI_ASSISTANT",
+      "label": "\u5c0d\u8a71\u5f0f AI",
+      "scope": "Consumer/professional conversational assistant; ML-powered AVM alone does not qualify."
+    },
+    {
+      "id": "AI_VISUALIZATION",
+      "label": "AI \u7a7a\u9593\u793a\u610f",
+      "scope": "Generated property/staging/decluttering visualizations."
+    },
+    {
+      "id": "DATA_API",
+      "label": "\u8cc7\u6599\uff0f\u4f30\u50f9 API",
+      "scope": "Documented machine access; requires separate commercial and licensing review."
+    }
+  ],
+  "sources": [
+    {
+      "id": "S591-01",
+      "product_id": "591",
+      "title": "591 \u623f\u5c4b\u4ea4\u6613\u7db2\u9996\u9801",
+      "url": "https://www.591.com.tw/",
+      "publisher": "\u6578\u5b57\u79d1\u6280 / 591",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "WATCHLISTS",
+        "PRICE_ALERTS",
+        "BROWSING_HISTORY",
+        "TRANSACTION_HISTORY",
+        "DOCUMENTS",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Lists buy/rent/map/community/transaction-price services, favorites and browsing-history panels, price-alert app promotion, mortgage and affordability tools, and rental contract downloads.",
+      "evidence_limitations": "AI self-service controls concern account/listing support; they do not establish conversational home search. Contract links are templates, not a document vault.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "S591-02",
+      "product_id": "591",
+      "title": "591 \u5b98\u65b9\u95dc\u65bc\u6211\u5011",
+      "url": "https://help.591.com.tw/content/74/291/tw/\u95dc\u65bc\u6211\u5011.html",
+      "publisher": "\u6578\u5b57\u79d1\u6280 / 591",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Identifies \u6578\u5b57\u79d1\u6280\u80a1\u4efd\u6709\u9650\u516c\u53f8 as operator and 591 as a company platform.",
+      "evidence_limitations": "Older company-history content retained only for identity; no financial figures reused.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "S591-03",
+      "product_id": "591",
+      "title": "\u623f\u8cb8\u8a08\u7b97\u5668\uff0d2026\u7248",
+      "url": "https://mortgage.591.com.tw/calculator",
+      "publisher": "591",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "FINANCE"
+      ],
+      "paraphrase": "Offers mortgage repayment calculation on an official live tool page.",
+      "evidence_limitations": "Calculation was not submitted; no current bank rate or loan approval claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SLJ-01",
+      "product_id": "leju",
+      "title": "\u6a02\u5c45\u9996\u9801",
+      "url": "https://www.leju.com.tw/",
+      "publisher": "\u6a02\u5c45\u79d1\u6280\u80a1\u4efd\u6709\u9650\u516c\u53f8",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "TRANSACTION_HISTORY",
+        "WATCHLISTS",
+        "NEIGHBORHOOD",
+        "ACCOUNTS",
+        "REPORTS"
+      ],
+      "paraphrase": "Navigation exposes map/list transaction-price search, property/community search, membership and observation lists.",
+      "evidence_limitations": "\u770b\u5c4b\u7b46\u8a18 navigation is editorial content, not proof of user-created notes. Seller/report navigation does not establish a completed report export.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SLJ-02",
+      "product_id": "leju",
+      "title": "\u5e38\u898b\u554f\u7b54\uff1a\u7db2\u7ad9\u529f\u80fd",
+      "url": "https://www.leju.com.tw/faq/5",
+      "publisher": "\u6a02\u5c45",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "WATCHLISTS",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Explains adding/removing community watchlist entries and following recent transaction markets.",
+      "evidence_limitations": "FAQ's future strengthening promises do not establish alerts or a side-by-side comparison UI.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SLJ-03",
+      "product_id": "leju",
+      "title": "\u62bd\u5c5c\u6a21\u5f0f\u5168\u65b0\u4e0a\u7dda\uff01\u4e00\u773c\u5c31\u770b\u61c2\u793e\u5340\u623f\u50f9",
+      "url": "https://www.leju.com.tw/page_blog/view/1163",
+      "publisher": "\u6a02\u5c45",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2021-08-02",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "TRANSACTION_HISTORY",
+        "VALUATION_EXPLAINABILITY"
+      ],
+      "paraphrase": "Documents a visual drawer display of full community transaction details.",
+      "evidence_limitations": "Historical launch article, still publicly accessible; not a current UI test and not a property AVM.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SSY-01",
+      "product_id": "sinyi",
+      "title": "\u4fe1\u7fa9\u623f\u5c4b\u5be6\u50f9\u767b\u9304",
+      "url": "https://www.sinyi.com.tw/tradeinfo/list",
+      "publisher": "\u4fe1\u7fa9\u623f\u5c4b",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "TRANSACTION_HISTORY",
+        "SEARCH_ALERTS",
+        "VALUATION_EXPLAINABILITY",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Shows listing/transaction subscriptions, government versus Sinyi sale provenance, repeat-transfer estimates, special-transaction exclusion notes, MRT/location search and mortgage links.",
+      "evidence_limitations": "Transfer counts are estimated; disclosure lag and incomplete monthly data explicitly acknowledged. MRT proximity does not establish commute-time analysis.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SSY-02",
+      "product_id": "sinyi",
+      "title": "\u61c2\u4f60\u7684 AI \u623f\u4ef2\uff0c\u4f34\u4f60\u5b89\u5fc3\u6210\u5bb6",
+      "url": "https://www.sinyi.com.tw/ai-proptech/?sinfrom=sinyi_banner_m",
+      "publisher": "\u4fe1\u7fa9\u623f\u5c4b",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "AI_VISUALIZATION",
+        "SEARCH_ALERTS",
+        "VIEWING_SCHEDULING",
+        "NEIGHBORHOOD",
+        "COLLABORATION"
+      ],
+      "paraphrase": "\u7fa9\u8d77\u804a combines AI recommendations, a human agent, LINE push notifications and viewing reminders; AI decluttering and lifestyle-area search have instructions and experience links.",
+      "evidence_limitations": "AI plus human chat is narrower than an autonomous financial/legal assistant. DiNDON virtual viewing is not scheduling evidence by itself.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SYC-01",
+      "product_id": "yungching",
+      "title": "\u6c38\u6176 AI \u7279\u52a9",
+      "url": "https://buy.yungching.com.tw/aiassistant",
+      "publisher": "\u6c38\u6176\u623f\u7522\u96c6\u5718",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "AI_ASSISTANT",
+        "AI_VISUALIZATION",
+        "WATCHLISTS",
+        "SEARCH_ALERTS",
+        "VIEWING_SCHEDULING",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "COLLABORATION"
+      ],
+      "paraphrase": "AI\u627e\u623f covers properties, communities and markets; LINE i\u7279\u52a9 pushes new cases, tracks communities, computes mortgages, arranges viewings and invites family; AI declutter/staging/tour features are described.",
+      "evidence_limitations": "i\u7279\u52a9, AI\u6e05\u7a7a, AI\u7165\u88dd and AI\u5c0e\u89bd explicitly limited to Taipei/New Taipei direct-operated area; do not extrapolate to all franchises.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SYC-02",
+      "product_id": "yungching",
+      "title": "\u8ffd\u8e64\u793e\u5340\u3001\u964d\u50f9\u901a\u77e5\uff1a\u6703\u54e1\u529f\u80fd",
+      "url": "https://knowhow.yungching.com.tw/article/3229",
+      "publisher": "\u6c38\u6176\u623f\u5c4b",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2023-07",
+      "date_precision": "month",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "WATCHLISTS",
+        "PRICE_ALERTS",
+        "SEARCH_ALERTS",
+        "VIEWING_NOTES",
+        "VIEWING_SCHEDULING",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Members save followed properties and communities, write property remarks, receive community new-listing notices and arrange/remind viewings.",
+      "evidence_limitations": "Historical article retained with live membership navigation; a remarks field is not a structured inspection checklist.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SYC-03",
+      "product_id": "yungching",
+      "title": "AI \u627e\u623f\uff1a\u5c0d\u8a71\u6642\u4ee3",
+      "url": "https://knowhow.yungching.com.tw/article/5193",
+      "publisher": "\u6c38\u6176\u623f\u5c4b",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-06",
+      "date_precision": "month",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "SEARCH_FILTERS",
+        "TRANSACTION_HISTORY",
+        "NEIGHBORHOOD"
+      ],
+      "paraphrase": "Describes released natural-language property/community search and querying government registered plus YungChing recent sales prices.",
+      "evidence_limitations": "Provider claim about retrieval; answer accuracy and source attribution per generated answer not tested.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-01",
+      "product_id": "zillow",
+      "title": "Advanced search guide",
+      "url": "https://www.zillow.com/learn/zillow-advanced-search/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "WATCHLISTS",
+        "SEARCH_ALERTS",
+        "PRICE_ALERTS",
+        "PROPERTY_COMPARISON",
+        "COLLABORATION",
+        "ACCOUNTS",
+        "NEIGHBORHOOD"
+      ],
+      "paraphrase": "Documents saved searches, notification cadence, saved-home changes, partner tags/shares and side-by-side saved-home comparison.",
+      "evidence_limitations": "Co-shopping tags/shared notifications are not evidence of transaction document collaboration.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-02",
+      "product_id": "zillow",
+      "title": "What is a Zestimate?",
+      "url": "https://www.zillow.com/zestimate/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "TRANSACTION_HISTORY"
+      ],
+      "paraphrase": "Explains public/MLS/user inputs, neural model, prior sales/market signals, estimated sale range and regional accuracy statistics.",
+      "evidence_limitations": "AVM is not an appraisal; provider accuracy metrics are not independently validated or comparable across providers.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-03",
+      "product_id": "zillow",
+      "title": "What Is BuyAbility?",
+      "url": "https://www.zillow.com/learn/what-is-buyability/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-03-05",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "FINANCE",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "BuyAbility retains buyer inputs and uses current personalized mortgage rates to update purchase budget and monthly payment, labeling eligible listings.",
+      "evidence_limitations": "Estimate is distinct from prequalification/preapproval; no acquisition-cost completeness claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-04",
+      "product_id": "zillow",
+      "title": "Zillow debuts AI mode",
+      "url": "https://www.zillow.com/news/zillow-debuts-ai-mode/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-03-25",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "VIEWING_SCHEDULING"
+      ],
+      "paraphrase": "Describes AI mode shipped in beta to a limited user group, with expansion planned through 2026.",
+      "evidence_limitations": "Do not treat expansion as generally available. Public product behavior was not exercised.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-05",
+      "product_id": "zillow",
+      "title": "How Zillow\u2019s new AI mode works",
+      "url": "https://www.zillow.com/news/how-zillows-new-ai-mode-works-throughout-the-real-estate-journey/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-03-25",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "PROPERTY_COMPARISON"
+      ],
+      "paraphrase": "Explains routing conversational questions to property, financing and valuation tools; maintains conversational/activity context.",
+      "evidence_limitations": "Architecture description does not prove every action succeeds or establish a user-visible browsing-history page.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SZL-06",
+      "product_id": "zillow",
+      "title": "Example listing: First Street referral",
+      "url": "https://www.zillow.com/homedetails/223-1st-St-SW-Naples-FL-34117/103038983_zpid/",
+      "publisher": "Zillow",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY_PARTIAL",
+      "supported_capability_ids": [
+        "CLIMATE_RISK",
+        "TRANSACTION_HISTORY"
+      ],
+      "paraphrase": "Opened sample listing provides dated sale/listing/price-change and public tax history; indexed primary text separately mentions external First Street referral.",
+      "evidence_limitations": "Direct extraction did not reliably include the risk section; native risk scores remain UNKNOWN. Old 2024 launch materials not used to prove current availability.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRC-01",
+      "product_id": "realtor",
+      "title": "RealAssist AI launch",
+      "url": "https://mediaroom.realtor.com/2026-06-02-Realtor-com-R-Launches-RealAssist-TM-AI-A-Completely-Reimagined-Way-to-Find-A-Home",
+      "publisher": "Realtor.com / Move, Inc.",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-06-02",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AI_ASSISTANT",
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "PROPERTY_COMPARISON",
+        "VIEWING_SCHEDULING",
+        "COMMUTE",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "AI_VISUALIZATION",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Launch release describes natural-language search, affordability, side-by-side comparisons, commute/routine maps, visualization and tour connections; select logged-in users had beta access.",
+      "evidence_limitations": "Broad availability was planned. Sophisticated example prompts are product claims, not independently verified answer accuracy or calculation completeness.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRC-02",
+      "product_id": "realtor",
+      "title": "Realtor.com+ Fall Release 2026",
+      "url": "https://www.realtor.com/plus-learn/product-updates/fall2026/",
+      "publisher": "Realtor.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "COLLABORATION",
+        "VIEWING_NOTES",
+        "REPORTS",
+        "ACCOUNTS",
+        "AI_ASSISTANT"
+      ],
+      "paraphrase": "Published release page describes agent/client/co-buyer shared workspace, persistent listing notes, notification digest and RPR-linked reports.",
+      "evidence_limitations": "Realtor.com+ eligibility/participating MLS scope; full RPR reports require appropriate REALTOR access. Exact release day not stated.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRC-03",
+      "product_id": "realtor",
+      "title": "Quarterly product update July 2026",
+      "url": "https://www.realtor.com/homemade/quarterly-product-update-july-2026/",
+      "publisher": "Realtor.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-07-22",
+      "date_precision": "day",
+      "retrieval_level": "SEARCH_SNIPPET_PRIMARY",
+      "supported_capability_ids": [
+        "COLLABORATION",
+        "VIEWING_SCHEDULING",
+        "REPORTS"
+      ],
+      "paraphrase": "Indexed official update says Realtor.com+ lets agents/clients search, share, chat and plan tours; mentions relaunch of My Home.",
+      "evidence_limitations": "Direct open redirected to Europe-region availability block. Main claims rely on other opened official sources; this is supplemental.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-01",
+      "product_id": "redfin",
+      "title": "Favorites & Favorite Lists",
+      "url": "https://support.redfin.com/hc/en-us/articles/12559140934939-Favorites-Favorite-Lists",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-02-05",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "WATCHLISTS",
+        "PRICE_ALERTS",
+        "MAP_SEARCH",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Documents custom favorite lists stored in account and listing/open-house alert subscriptions.",
+      "evidence_limitations": "Website/iOS documented; Android list rollout described as later in year and not assumed complete. Download/map favorites described as future.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-02",
+      "product_id": "redfin",
+      "title": "Shared Saved Searches",
+      "url": "https://support.redfin.com/hc/en-us/articles/360007862251-Shared-Saved-Searches",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2024-01-17",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "SEARCH_ALERTS",
+        "COLLABORATION",
+        "VIEWING_NOTES",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Explains inviting a registered search partner, sharing saved searches and seeing prior/future property comments.",
+      "evidence_limitations": "Comments are general listing remarks, not a formal viewing checklist.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-03",
+      "product_id": "redfin",
+      "title": "Conversational Search guide",
+      "url": "https://www.redfin.com/blog/redfin-conversational-search/",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-05-01",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "AI_ASSISTANT",
+        "FINANCE",
+        "AVM",
+        "COMMUTE"
+      ],
+      "paraphrase": "Provides web/iOS/Android conversational-search entry instructions and examples constrained by commute time; identifies Redfin Estimate and Buying Power as existing products.",
+      "evidence_limitations": "AVM mention is high-level; uncertainty/per-property explanation not established by this source.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-04",
+      "product_id": "redfin",
+      "title": "Air quality risk data for U.S. homes",
+      "url": "https://www.redfin.com/news/redfin-adds-air-quality-risk-data-for-homes/",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2024-02-12",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "CLIMATE_RISK"
+      ],
+      "paraphrase": "Documents property climate tab containing First Street air-quality, wildfire, flood, heat and wind risks.",
+      "evidence_limitations": "Historical launch document remains published; current risk coverage/extraction not independently sampled. Android timing originally prospective.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHM-01",
+      "product_id": "homes",
+      "title": "Homes.com Real Estate App",
+      "url": "https://www.homes.com/real-estate-app/",
+      "publisher": "CoStar Group / Homes.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "MAP_SEARCH",
+        "WATCHLISTS",
+        "SEARCH_ALERTS",
+        "PRICE_ALERTS",
+        "PROPERTY_COMPARISON",
+        "VIEWING_NOTES",
+        "NEIGHBORHOOD",
+        "FINANCE",
+        "COLLABORATION",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Describes map layers, full inventory search, push new-listing/price/open-house updates and co-shopper favorites comparison, notes and messages; finance tools in navigation.",
+      "evidence_limitations": "3D tours not equated with viewing scheduling; generic home-value map layer not a confidence metric.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHM-02",
+      "product_id": "homes",
+      "title": "How do I save my search?",
+      "url": "https://www.homes.com/support/2022/07/19/how-do-i-save-my-search/",
+      "publisher": "Homes.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2022-07-19",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_FILTERS",
+        "WATCHLISTS",
+        "ACCOUNTS"
+      ],
+      "paraphrase": "Instructions cover saving location/filters and editing/deleting saved searches through profile.",
+      "evidence_limitations": "Does not independently prove cross-device sync correctness.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHM-03",
+      "product_id": "homes",
+      "title": "Example live property: 8808 Quadro Court",
+      "url": "https://www.homes.com/property/8808-quadro-ct-las-vegas-nv/mqhln5sjwrb01/",
+      "publisher": "Homes.com",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "TRANSACTION_HISTORY",
+        "REPORTS",
+        "VIEWING_SCHEDULING",
+        "PROPERTY_COMPARISON",
+        "FINANCE"
+      ],
+      "paraphrase": "Page exposes four named AVM providers, value/report controls, tax/sales/deed/mortgage histories and open-house calendar links.",
+      "evidence_limitations": "Opened page returned current-month AVMs Not Available although indexed snippet had values. Multi-provider value range is model disagreement, not a calibrated confidence interval. Report button not executed.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHC-01",
+      "product_id": "housecanary",
+      "title": "Property Explorer",
+      "url": "https://www.housecanary.com/products/property-explorer",
+      "publisher": "HouseCanary",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "PROPERTY_COMPARISON",
+        "VALUATION_EXPLAINABILITY",
+        "REPORTS",
+        "COLLABORATION"
+      ],
+      "paraphrase": "Interactive valuation workbench selects comps, compares AVM/after-repair values, condition scenarios, generates value reports and shares editable links/API reports.",
+      "evidence_limitations": "Single-family focus; vendor accuracy/speed/superiority statements not accepted as independently established.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHC-02",
+      "product_id": "housecanary",
+      "title": "Data Explorer / API",
+      "url": "https://www.housecanary.com/products/data-explorer",
+      "publisher": "HouseCanary",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "DATA_API",
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "TRANSACTION_HISTORY",
+        "CLIMATE_RISK",
+        "NEIGHBORHOOD",
+        "REPORTS"
+      ],
+      "paraphrase": "Named endpoints cover AVM confidence/data density/next steps, sales/tax/liens, rental reports, FEMA flood/disaster and earthquake/weather risk.",
+      "evidence_limitations": "Premium endpoints may cost extra. Professional risk data separate from Property Explorer UI availability.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SHC-03",
+      "product_id": "housecanary",
+      "title": "Property Explorer Quick Start Guide",
+      "url": "https://www.housecanary.com/blog/property-explorer-quick-start-guide",
+      "publisher": "HouseCanary",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "PROPERTY_COMPARISON",
+        "VALUATION_EXPLAINABILITY",
+        "REPORTS"
+      ],
+      "paraphrase": "Documents similarity-based comp selection, adjustments, instant comparable value recalculation and selecting a final report value.",
+      "evidence_limitations": "Professional adjustment evidence; not a consumer affordability calculator or full model feature attribution.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SPH-01",
+      "product_id": "pricehubble",
+      "title": "UK automated valuation models",
+      "url": "https://www.pricehubble.com/uk/use-cases/automated-valuation-model-uk",
+      "publisher": "PriceHubble",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "PROPERTY_COMPARISON",
+        "VALUATION_EXPLAINABILITY",
+        "DATA_API",
+        "REPORTS"
+      ],
+      "paraphrase": "Describes sale/rent comps, confidence/range outputs, licensed multi-source data, traceable provenance and real-time API/report valuation.",
+      "evidence_limitations": "This source establishes UK scope; marketing statements about regulatory alignment not treated as regulatory approval.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SPH-02",
+      "product_id": "pricehubble",
+      "title": "Property Advisor dossier overview",
+      "url": "https://support.pricehubble.com/hc/en-gb/articles/27048508370961-Understanding-the-Overview-section-of-a-Dossier",
+      "publisher": "PriceHubble",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2025-08-15",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "REPORTS",
+        "COLLABORATION"
+      ],
+      "paraphrase": "Explains estimated price/range, high/medium/low confidence reasons, manual recommendation override and PDF/Property Page/permalink output.",
+      "evidence_limitations": "Shared report/page is weaker than concurrent case editing. Article uses automated translation.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SPH-03",
+      "product_id": "pricehubble",
+      "title": "UK property valuation software",
+      "url": "https://www.pricehubble.com/uk/use-cases/property-valuation-software",
+      "publisher": "PriceHubble",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "REPORTS",
+        "DATA_API",
+        "NEIGHBORHOOD"
+      ],
+      "paraphrase": "Documents branded PDF/online property reports, market analysis and spreadsheet portfolio valuation/API integration.",
+      "evidence_limitations": "UK-specific product family; no consumer closing-cost or commute tool claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SCT-01",
+      "product_id": "cotality",
+      "title": "Total Home Value X",
+      "url": "https://www.cotality.com/products/total-home-value-x",
+      "publisher": "Cotality",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "TRANSACTION_HISTORY",
+        "DATA_API"
+      ],
+      "paraphrase": "THVx offers U.S. property valuation tunings, confidence/FSD, last market sale, nearby listings, HPI trends and API/file/cloud deliveries.",
+      "evidence_limitations": "Nearby listings not sufficient to claim adjustable comparable grids. Underwriting use case not a consumer finance tool. No causal explainability claim.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SCT-02",
+      "product_id": "cotality",
+      "title": "CoreLogic rebrands to Cotality",
+      "url": "https://www.cotality.com/uk/press-releases/meet-cotality",
+      "publisher": "Cotality",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2025-03-24",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [],
+      "paraphrase": "First-party release establishes CoreLogic to Cotality brand transition and global business context.",
+      "evidence_limitations": "Used for identity only; global company operations do not imply THVx availability in Taiwan.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SQM-01",
+      "product_id": "quantarium",
+      "title": "Quantarium Valuation Models",
+      "url": "https://www.quantarium.com/valuation-models/",
+      "publisher": "Quantarium",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM"
+      ],
+      "paraphrase": "Offers AI/computer-vision residential U.S. property valuations and collateral/geographic use cases.",
+      "evidence_limitations": "Vendor number-one/Fitch-related superiority claims not independently verified and omitted from benchmark score.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SQM-02",
+      "product_id": "quantarium",
+      "title": "Reports Marketplace",
+      "url": "https://www.quantarium.com/marketplace/",
+      "publisher": "Quantarium",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "PROPERTY_COMPARISON",
+        "TRANSACTION_HISTORY",
+        "REPORTS",
+        "VALUATION_EXPLAINABILITY"
+      ],
+      "paraphrase": "Named report tiers include value range/confidence, comparable sales/listings/maps, transaction/price/listing histories and QCMA automated adjustments; ProxyPics condition plus AVM report available.",
+      "evidence_limitations": "Features vary by report tier. Ordering, report output and confidence calibration not tested.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SAT-01",
+      "product_id": "attom",
+      "title": "ATTOM AVM",
+      "url": "https://www.attomdata.com/solutions/ai-powered/valuation-analytics/avm/",
+      "publisher": "ATTOM",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "DATA_API"
+      ],
+      "paraphrase": "Residential AVM combines validated county/MLS data, local time normalization and blended ML; outputs ranges/confidence through API/bulk.",
+      "evidence_limitations": "Single-family/condo/townhouse scope. Explainability is documented methodology, not per-property causal drivers.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SAT-02",
+      "product_id": "attom",
+      "title": "ATTOM Cloud AVM dataset help",
+      "url": "https://cloud-help.attomdata.com/article/510-avm",
+      "publisher": "ATTOM",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": null,
+      "date_precision": "not_stated",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_UNCERTAINTY",
+        "VALUATION_EXPLAINABILITY",
+        "DATA_API"
+      ],
+      "paraphrase": "Defines valuation date, min/max, FSD and score calculation with uncertainty interpretation and permanent property ID.",
+      "evidence_limitations": "Provider documentation; no independent calibration validation. Numerical performance claims differ from marketing guide, so no cross-vendor accuracy ranking.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SAT-03",
+      "product_id": "attom",
+      "title": "A Quick Guide to Real Estate AVMs",
+      "url": "https://www.attomdata.com/news/company-news/data-solutions/a-quick-guide-to-real-estate-avms/",
+      "publisher": "ATTOM",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2026-06-01",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "AVM",
+        "VALUATION_EXPLAINABILITY"
+      ],
+      "paraphrase": "Details cleaning non-arm-length sales, hyperlocal index adjustments and blended ML valuation; documents rental AVM scope.",
+      "evidence_limitations": "Accuracy figures differ from Cloud help; sample/period not reconciled. No accuracy leadership assertion.",
+      "hands_on_ui_tested": false
+    },
+    {
+      "id": "SRF-05",
+      "product_id": "redfin",
+      "title": "Notification Settings",
+      "url": "https://support.redfin.com/hc/en-us/articles/360001454951-Notification-Settings",
+      "publisher": "Redfin",
+      "source_type": "FIRST_PARTY",
+      "date_checked": "2026-10-10",
+      "publication_date": "2023-11-04",
+      "date_precision": "day",
+      "retrieval_level": "OPENED_PRIMARY",
+      "supported_capability_ids": [
+        "SEARCH_ALERTS",
+        "PRICE_ALERTS",
+        "VIEWING_SCHEDULING",
+        "REPORTS"
+      ],
+      "paraphrase": "Controls saved-search/favorite alerts and frequency, agent-tour text reminders, and home/market report subscriptions.",
+      "evidence_limitations": "Older help article; alert delivery not independently tested.",
+      "hands_on_ui_tested": false
+    }
+  ],
+  "products": [
+    {
+      "id": "591",
+      "name": "591 \u623f\u5c4b\u4ea4\u6613\u7db2",
+      "company": "\u6578\u5b57\u79d1\u6280\u80a1\u4efd\u6709\u9650\u516c\u53f8 / AddCN",
+      "official_url": "https://www.591.com.tw/",
+      "segment": "TAIWAN_CONSUMER_PORTAL",
+      "target_users": "Buyers, renters, sellers, landlords, brokers and new-project advertisers",
+      "geography": "Taiwan platform; separate Hong Kong service not benchmarked",
+      "source_ids": [
+        "S591-01",
+        "S591-02",
+        "S591-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "Buy/rent/new-project/commercial property discovery.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "MAP_SEARCH": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "Buy/rent map and MRT/school discovery entrypoints.",
+          "limitations": "MRT proximity is not a commute-time tool."
+        },
+        "WATCHLISTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "Public favorite-record panel for saved listings.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "App promotion explicitly offers immediate selected price-reduction reminders.",
+          "limitations": "Alert delivery/subscription specifics not tested."
+        },
+        "BROWSING_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "Browser-history panel exposes previous viewed properties.",
+          "limitations": "Persistence/retention/cross-device behavior unknown."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "Registered-price/community market services linked.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AVM": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DOCUMENTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "Rental contract template downloads.",
+          "limitations": "Partial scope: templates; no case-level upload/secure document vault established."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01"
+          ],
+          "claim": "Community search and school/MRT location discovery.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01",
+            "S591-03"
+          ],
+          "claim": "Mortgage repayment calculator and purchase-affordability assessment tools.",
+          "limitations": "Not proof of all-in acquisition cost planning."
+        },
+        "REPORTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COLLABORATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "S591-01",
+            "S591-02"
+          ],
+          "claim": "Registration/member center/login documented.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "leju",
+      "name": "\u6a02\u5c45 Leju",
+      "company": "\u6a02\u5c45\u79d1\u6280\u80a1\u4efd\u6709\u9650\u516c\u53f8",
+      "official_url": "https://www.leju.com.tw/",
+      "segment": "TAIWAN_CONSUMER_RESEARCH",
+      "target_users": "Buyers/homeowners researching communities and registered prices",
+      "geography": "Taiwan",
+      "source_ids": [
+        "SLJ-01",
+        "SLJ-02",
+        "SLJ-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SLJ-01"
+          ],
+          "claim": "Search by community, road and administrative area.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "MAP_SEARCH": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SLJ-01"
+          ],
+          "claim": "Property and registered-price map/list modes.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "WATCHLISTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SLJ-01",
+            "SLJ-02"
+          ],
+          "claim": "Member community observation list with add/remove instructions.",
+          "limitations": "Watchlist is not evidence of automatic alerts."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SLJ-01",
+            "SLJ-03"
+          ],
+          "claim": "Community registered transactions and visual full-transaction drawer.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AVM": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SLJ-03"
+          ],
+          "claim": "Visual explanation of community transaction details.",
+          "limitations": "Partial: transaction interpretability, not AVM model explanation."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SLJ-01"
+          ],
+          "claim": "Community-oriented research/discovery.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "REPORTS": {
+          "status": "UNVERIFIED",
+          "source_ids": [
+            "SLJ-01"
+          ],
+          "claim": "Homepage links seller and property-market report entries.",
+          "limitations": "Navigation exists; output contents/generation not retrieved."
+        },
+        "COLLABORATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SLJ-01",
+            "SLJ-02"
+          ],
+          "claim": "Membership and observation-list access documented.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "sinyi",
+      "name": "\u4fe1\u7fa9\u623f\u5c4b Sinyi",
+      "company": "\u4fe1\u7fa9\u623f\u5c4b\u80a1\u4efd\u6709\u9650\u516c\u53f8 / Sinyi Realty",
+      "official_url": "https://www.sinyi.com.tw/",
+      "segment": "TAIWAN_BROKER_PORTAL",
+      "target_users": "Buyers, sellers and renters with broker-assisted journey",
+      "geography": "Taiwan consumer site; overseas placement links do not prove feature parity",
+      "source_ids": [
+        "SSY-01",
+        "SSY-02"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01"
+          ],
+          "claim": "Area/map/MRT/lifestyle/own-funds listing discovery entries and registered-price filters.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "MAP_SEARCH": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01"
+          ],
+          "claim": "Listing and registered-price map discovery.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "WATCHLISTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "SEARCH_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01",
+            "SSY-02"
+          ],
+          "claim": "Registered-price/listing subscriptions plus LINE pushes and viewing reminders.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01"
+          ],
+          "claim": "Government registered sales and own latest sales with repeat-transfer estimates.",
+          "limitations": "History estimates and disclosure lag explained by site."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AVM": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01"
+          ],
+          "claim": "Shows data provenance, inferred transaction classifications, special-transaction filtering and historical-change formulas.",
+          "limitations": "Partial: data/market transparency, not property AVM causal drivers."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-02"
+          ],
+          "claim": "AI plus human LINE journey automatically reminds appointment information.",
+          "limitations": "Booking confirmation path not executed."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01",
+            "SSY-02"
+          ],
+          "claim": "Lifestyle-area recommendations include schools, supermarkets, parks and MRT.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01"
+          ],
+          "claim": "Mortgage section/calculator and own-funds search entries.",
+          "limitations": "Navigation-level tool existence; no all-in purchase cost completeness."
+        },
+        "REPORTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-02"
+          ],
+          "claim": "AI recommendations connected to real human agent chat in LINE.",
+          "limitations": "Agent interaction; family multiuser shared-case workspace not established."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-01"
+          ],
+          "claim": "Login/registration exposed.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-02"
+          ],
+          "claim": "\u7fa9\u8d77\u804a blends AI property recommendations with human agent conversation.",
+          "limitations": "No claim of fully autonomous agent."
+        },
+        "AI_VISUALIZATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SSY-02"
+          ],
+          "claim": "AI one-click photo decluttering and DiNDON space visualization instructions.",
+          "limitations": "Generated imagery does not independently establish physical condition."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "yungching",
+      "name": "\u6c38\u6176\u623f\u4ef2\u7db2 / AI \u7279\u52a9",
+      "company": "\u6c38\u6176\u623f\u5c4b\u4ef2\u4ecb\u80a1\u4efd\u6709\u9650\u516c\u53f8 / \u6c38\u6176\u623f\u7522\u96c6\u5718",
+      "official_url": "https://www.yungching.com.tw/",
+      "segment": "TAIWAN_BROKER_PORTAL",
+      "target_users": "Buyers/sellers using broker and family-assisted search",
+      "geography": "Taiwan network; advanced i\u7279\u52a9/visual services restricted to Taipei/New Taipei direct-operated areas",
+      "source_ids": [
+        "SYC-01",
+        "SYC-02",
+        "SYC-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01",
+            "SYC-03"
+          ],
+          "claim": "Natural-language property/community/market discovery plus condition-based search.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "MAP_SEARCH": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "WATCHLISTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01",
+            "SYC-02"
+          ],
+          "claim": "Follow listings and communities through member/LINE services.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "SEARCH_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01",
+            "SYC-02"
+          ],
+          "claim": "Community new-case notices and LINE new-listing push.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PRICE_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-02"
+          ],
+          "claim": "Official membership page title/navigation documents followed price-reduction listings.",
+          "limitations": "Delivery mechanics not independently exercised."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-03"
+          ],
+          "claim": "AI queries government registered and own recent sale markets.",
+          "limitations": "Per-answer source attribution/accuracy not checked."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AVM": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01",
+            "SYC-02"
+          ],
+          "claim": "Viewing arrangements/reminders supported by membership and LINE i\u7279\u52a9.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VIEWING_NOTES": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-02"
+          ],
+          "claim": "Followed-listing remarks field records property advantages.",
+          "limitations": "Partial: freeform notes; structured inspection/photo checklist unknown."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01",
+            "SYC-03"
+          ],
+          "claim": "Community and lifestyle information in AI search/tours.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01"
+          ],
+          "claim": "i\u7279\u52a9 mortgage calculation and viewing journey.",
+          "limitations": "i\u7279\u52a9 restricted to Taipei/New Taipei direct-operated area."
+        },
+        "REPORTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01"
+          ],
+          "claim": "LINE agent discussion can include invited family.",
+          "limitations": "Restricted i\u7279\u52a9 scope; no enterprise permission model established."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-02"
+          ],
+          "claim": "Member registration, saved property/community/search entries.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01",
+            "SYC-03"
+          ],
+          "claim": "Released web AI\u627e\u623f plus LINE i\u7279\u52a9 property/market assistance.",
+          "limitations": "Web search versus restricted LINE assistant distinguished."
+        },
+        "AI_VISUALIZATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SYC-01"
+          ],
+          "claim": "AI decluttering, eight-style staging and generated guided videos.",
+          "limitations": "Taipei/New Taipei direct-operated inventory only; simulated visuals."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "zillow",
+      "name": "Zillow",
+      "company": "Zillow Group / Zillow, Inc.",
+      "official_url": "https://www.zillow.com/",
+      "segment": "INTERNATIONAL_CONSUMER_PORTAL",
+      "target_users": "Buyers, renters, homeowners and agents",
+      "geography": "United States focus; Canadian listings have different feature coverage",
+      "source_ids": [
+        "SZL-01",
+        "SZL-02",
+        "SZL-03",
+        "SZL-04",
+        "SZL-05",
+        "SZL-06"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "Advanced filters and saved searches.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "MAP_SEARCH": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "Draw custom area and search by school attendance zones.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "WATCHLISTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "Saved homes and searches.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "SEARCH_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "Configurable instant/daily matching-home and area-market alerts.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PRICE_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "Saved-home price-change/off-market/open-house notifications.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-06"
+          ],
+          "claim": "Opened sample property exposes dated sale/listing/price-change and tax history with source labels.",
+          "limitations": "Sample page only; full coverage not established."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "Side-by-side saved-home comparison.",
+          "limitations": "Consumers; not adjustable appraisal comparable grid."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-02"
+          ],
+          "claim": "Zestimate model supplies estimated home market value.",
+          "limitations": "Not a licensed appraisal; coverage varies."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-02"
+          ],
+          "claim": "Estimated sale range plus regional on/off-market accuracy context.",
+          "limitations": "Range is model output, not guaranteed sale or property-specific confidence score."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-02"
+          ],
+          "claim": "Published model input categories and regional accuracy explanation.",
+          "limitations": "Partial: methodology/inputs; no feature attribution or editable comp adjustments established."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-04"
+          ],
+          "claim": "AI beta links search to touring next steps.",
+          "limitations": "Limited beta scope; actual confirmed appointment not executed."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "School/district discovery and area-market updates.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNVERIFIED",
+          "source_ids": [
+            "SZL-06"
+          ],
+          "claim": "Indexed listing provides external First Street risk referral.",
+          "limitations": "Native embedded scores UNKNOWN; risk section absent from consistent opened extraction."
+        },
+        "FINANCE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-03"
+          ],
+          "claim": "BuyAbility preserves finances and updates price/monthly-payment estimates with current personalized rates.",
+          "limitations": "Estimate distinct from prequalification/preapproval; cost completeness untested."
+        },
+        "REPORTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01"
+          ],
+          "claim": "Partner tags and home sharing through app/email alerts.",
+          "limitations": "Share/compare scope; secure transaction workspace unknown."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-01",
+            "SZL-03"
+          ],
+          "claim": "Account-managed saves/notifications and stored BuyAbility inputs.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SZL-04",
+            "SZL-05"
+          ],
+          "claim": "AI mode conversational housing assistance shipped to limited beta users.",
+          "limitations": "Expansion through 2026 ANNOUNCED separately; broad general availability unverified."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "realtor",
+      "name": "Realtor.com / Realtor.com+",
+      "company": "Move, Inc. / News Corp",
+      "official_url": "https://www.realtor.com/",
+      "segment": "INTERNATIONAL_CONSUMER_PORTAL",
+      "target_users": "Consumers; agent/client teams on participating Realtor.com+ MLS programs",
+      "geography": "United States; regional and membership eligibility restrictions",
+      "source_ids": [
+        "SRC-01",
+        "SRC-02",
+        "SRC-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "RealAssist natural-language home discovery.",
+          "limitations": "Select logged-in beta in launch source; universal access unverified."
+        },
+        "MAP_SEARCH": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "Neighborhood/routine maps in RealAssist beta.",
+          "limitations": "Beta; no independently exercised result."
+        },
+        "WATCHLISTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "RealAssist compares home/neighborhood lifestyle, location and cost side by side.",
+          "limitations": "Beta documented; accuracy/tested functionality unknown."
+        },
+        "AVM": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "RealAssist connects to agent/tour scheduling without leaving experience.",
+          "limitations": "Beta; booking execution not tested."
+        },
+        "VIEWING_NOTES": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-02"
+          ],
+          "claim": "Realtor.com+ persistent group-shared listing notes.",
+          "limitations": "Participating MLS/eligibility scope; general listing notes, not structured inspection checklist."
+        },
+        "COMMUTE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "RealAssist commute/routine mapping for workplace, school and daily stops.",
+          "limitations": "Beta; travel-time correctness not validated."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "Neighborhood parks/business/transit and routine discovery.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "Income/expense and monthly-payment affordability breakdown examples.",
+          "limitations": "Beta product claim; taxes/insurance/HOA included in example but completeness and calculation accuracy untested."
+        },
+        "REPORTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-02"
+          ],
+          "claim": "RPR market charts and links to full property/market reports in Realtor.com+.",
+          "limitations": "Full report access restricted to qualified RPR users; report sharing not executed."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-02"
+          ],
+          "claim": "Agent/client/co-buyer shared workspace, messages/digests and shared listing notes.",
+          "limitations": "Realtor.com+ eligible participating MLS users; not all consumer accounts."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01",
+            "SRC-02"
+          ],
+          "claim": "Logged-in beta and Realtor.com+ agent/client access.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01",
+            "SRC-02"
+          ],
+          "claim": "RealAssist consumer beta and Realtor.com+ assistant drafts follow-ups pending approval.",
+          "limitations": "Broad consumer rollout ANNOUNCED; account entitlement not tested."
+        },
+        "AI_VISUALIZATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRC-01"
+          ],
+          "claim": "Beta property seasonal/night/exterior visualizations described.",
+          "limitations": "Synthetic image simulation; physical accuracy not established."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "redfin",
+      "name": "Redfin",
+      "company": "Redfin / Rocket",
+      "official_url": "https://www.redfin.com/",
+      "segment": "INTERNATIONAL_BROKER_PORTAL",
+      "target_users": "Buyers/sellers/renters and co-shoppers",
+      "geography": "United States benchmark; no cross-market parity assumed",
+      "source_ids": [
+        "SRF-01",
+        "SRF-02",
+        "SRF-03",
+        "SRF-04",
+        "SRF-05"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-02",
+            "SRF-03"
+          ],
+          "claim": "Saved and conversational listing searches.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "MAP_SEARCH": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-01"
+          ],
+          "claim": "Favorite selection from property map.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "WATCHLISTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-01"
+          ],
+          "claim": "Account favorites and customizable lists.",
+          "limitations": "Custom lists web/iOS shipped; Android rollout not established."
+        },
+        "SEARCH_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-05"
+          ],
+          "claim": "Saved searches usable in shared search workflow.",
+          "limitations": "Notification types not fully inventoried here."
+        },
+        "PRICE_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-01"
+          ],
+          "claim": "Subscribe to favorite price/open-house changes.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-03"
+          ],
+          "claim": "Redfin Estimate identified as existing home-value product.",
+          "limitations": "High-level named product; uncertainty/methodology not established here."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-05"
+          ],
+          "claim": "Agent-tour reminders by email and optional text subscription.",
+          "limitations": "Reminder scope; tour confirmation/booking execution not tested."
+        },
+        "VIEWING_NOTES": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-02"
+          ],
+          "claim": "Search partners see prior and future home comments.",
+          "limitations": "General listing comments; photo/inspection checklist unestablished."
+        },
+        "COMMUTE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-03"
+          ],
+          "claim": "Conversational search accepts desired commute-time constraints; guide illustrates rush-hour work travel.",
+          "limitations": "Natural-language search example, not independently exercised route/time calculation or native multi-stop map."
+        },
+        "NEIGHBORHOOD": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "CLIMATE_RISK": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-04"
+          ],
+          "claim": "Published climate-tab property air/flood/fire/heat/wind risk.",
+          "limitations": "Historical shipped documentation; current independent UI sampling and Android availability not verified."
+        },
+        "FINANCE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-03"
+          ],
+          "claim": "Buying Power identified as personalized affordability calculator.",
+          "limitations": "High-level named product; full cost scope unknown."
+        },
+        "REPORTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-05"
+          ],
+          "claim": "Subscribe to home and market-trend reports.",
+          "limitations": "Partial: report subscriptions, not independently generated custom decision PDF."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-02"
+          ],
+          "claim": "Registered partner can share searches and property comments.",
+          "limitations": "Both users require accounts."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-01",
+            "SRF-02"
+          ],
+          "claim": "Account favorites, registered partner invitations.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SRF-03"
+          ],
+          "claim": "Conversational home search has web/iOS/Android usage instructions.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "homes",
+      "name": "Homes.com",
+      "company": "CoStar Group / Homes.com",
+      "official_url": "https://www.homes.com/",
+      "segment": "INTERNATIONAL_CONSUMER_PORTAL",
+      "target_users": "Buyers, sellers, renters, agents and co-shoppers",
+      "geography": "United States",
+      "source_ids": [
+        "SHM-01",
+        "SHM-02",
+        "SHM-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01",
+            "SHM-02"
+          ],
+          "claim": "Full inventory including listed, rented, sold and off-market homes; saved location/filter searches.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "MAP_SEARCH": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01"
+          ],
+          "claim": "Layer-based map discovery with values/noise/crime/property attributes.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "WATCHLISTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01"
+          ],
+          "claim": "Favorites and co-shopper favorites.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "SEARCH_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01"
+          ],
+          "claim": "Push notifications for new area listings/open houses.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PRICE_ALERTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01"
+          ],
+          "claim": "Price-change push notifications.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-03"
+          ],
+          "claim": "Tax, sale/listing, deed and mortgage histories shown for sample property.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01",
+            "SHM-03"
+          ],
+          "claim": "Co-shopper compare-favorites and property valuation-report comparable scope.",
+          "limitations": "No adjustable appraisal-style comp grid independently documented."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-03"
+          ],
+          "claim": "Property page names Collateral Analytics, ICE, First American and Quantarium valuations.",
+          "limitations": "Sample opened page shows Not Available for current month; no universal hit-rate assumption."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-03"
+          ],
+          "claim": "Provider-value range/disagreement interface exists.",
+          "limitations": "Partial: multi-model spread; no calibrated confidence score established, and sample current values unavailable."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-03"
+          ],
+          "claim": "Open-house calendar links and contact listing agent to arrange tour.",
+          "limitations": "Calendar/contact workflow; no confirmed in-app booking tested."
+        },
+        "VIEWING_NOTES": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01"
+          ],
+          "claim": "Co-shoppers save listing notes and send messages.",
+          "limitations": "General notes; structured viewing checklist unknown."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01"
+          ],
+          "claim": "Neighborhood/school discovery and environmental/location layers.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01",
+            "SHM-03"
+          ],
+          "claim": "Mortgage/affordability tool links and estimated monthly payment on listing.",
+          "limitations": "No all-in purchase cost or closing-cost completeness claim."
+        },
+        "REPORTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-03"
+          ],
+          "claim": "Home valuation report generation control and comparable-analysis description.",
+          "limitations": "Control publicly present; report generation not executed; requires available data/entitlement."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01"
+          ],
+          "claim": "Co-shopper shared listings, favorite comparison, notes and messages.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "ACCOUNTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHM-01",
+            "SHM-02"
+          ],
+          "claim": "Sign-in/register plus saved-search profile management.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "housecanary",
+      "name": "HouseCanary Property Explorer / Data Explorer",
+      "company": "HouseCanary",
+      "official_url": "https://www.housecanary.com/",
+      "segment": "PROFESSIONAL_VALUATION",
+      "target_users": "Lenders, investors, agents, single-family operators and enterprise analytics teams",
+      "geography": "United States; property-type and endpoint coverage vary",
+      "source_ids": [
+        "SHC-01",
+        "SHC-02",
+        "SHC-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "MAP_SEARCH": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "WATCHLISTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-02"
+          ],
+          "claim": "Recorded sales, tax and mortgage-lien histories available by endpoint.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-01",
+            "SHC-03"
+          ],
+          "claim": "Select and adjust comparables, compare condition and valuation scenarios.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-01",
+            "SHC-02"
+          ],
+          "claim": "Property/rent/after-repair and condition-sensitive valuation products.",
+          "limitations": "Endpoints and workbench have differing entitlements/property scope."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-02"
+          ],
+          "claim": "Value-analysis confidence/data-density and next-step context.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-02",
+            "SHC-03"
+          ],
+          "claim": "Similarity comp selection, value adjustments, density checks, neighborhood comparison.",
+          "limitations": "Strong professional evidence/adjustment controls; not proof of causal feature attribution."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-02"
+          ],
+          "claim": "Schools/block/ZIP/market context endpoints.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-02"
+          ],
+          "claim": "Flood, disaster, earthquake and weather risk endpoints.",
+          "limitations": "Data Explorer professional API scope; not every Property Explorer screen."
+        },
+        "FINANCE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "REPORTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-01",
+            "SHC-03"
+          ],
+          "claim": "Custom valuation/CMA reports with final value selection.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-01"
+          ],
+          "claim": "Share report links clients/colleagues can adjust.",
+          "limitations": "Professional report scope."
+        },
+        "ACCOUNTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SHC-02"
+          ],
+          "claim": "Named property/valuation/history/risk endpoints.",
+          "limitations": "Documentation verified; no independent UI execution."
+        }
+      }
+    },
+    {
+      "id": "pricehubble",
+      "name": "PriceHubble AVM / Property Advisor",
+      "company": "PriceHubble",
+      "official_url": "https://www.pricehubble.com/",
+      "segment": "PROFESSIONAL_VALUATION",
+      "target_users": "Banks/lenders, insurers, estate agents, investors and developers",
+      "geography": "European provider; UK-specific product pages and general Property Advisor help benchmarked; Taiwan coverage unestablished",
+      "source_ids": [
+        "SPH-01",
+        "SPH-02",
+        "SPH-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "MAP_SEARCH": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "WATCHLISTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-01"
+          ],
+          "claim": "Comparable sales/rent datasets for valuations.",
+          "limitations": "Not consumer portal shortlist comparison."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-01",
+            "SPH-02"
+          ],
+          "claim": "Residential sale/rental automated valuation and Property Advisor suggested price.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-01",
+            "SPH-02"
+          ],
+          "claim": "Price ranges and confidence levels with textual uncertainty explanation.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-01",
+            "SPH-02"
+          ],
+          "claim": "Traceable data provenance, confidence reasons and manual recommendation overrides.",
+          "limitations": "Not independently verified model feature attribution."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-03"
+          ],
+          "claim": "Market/local data in professional research tools.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "REPORTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-02",
+            "SPH-03"
+          ],
+          "claim": "Branded PDFs, Property Pages and permalinks.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "COLLABORATION": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-02"
+          ],
+          "claim": "Shareable PDF/property-page/permalink outputs.",
+          "limitations": "Partial: sharing, not demonstrated concurrent multiuser editing."
+        },
+        "ACCOUNTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SPH-01",
+            "SPH-03"
+          ],
+          "claim": "Real-time valuation/API and portfolio spreadsheet workflows.",
+          "limitations": "Market and license-specific; Taiwan availability unknown."
+        }
+      }
+    },
+    {
+      "id": "cotality",
+      "name": "Cotality / CoreLogic Total Home Value X",
+      "company": "Cotality (formerly CoreLogic)",
+      "official_url": "https://www.cotality.com/",
+      "segment": "PROFESSIONAL_VALUATION",
+      "target_users": "Mortgage originators, risk teams, investors, portals and data platforms",
+      "geography": "THVx United States; vendor global operations not equivalent to international product coverage",
+      "source_ids": [
+        "SCT-01",
+        "SCT-02"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "MAP_SEARCH": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "WATCHLISTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SCT-01"
+          ],
+          "claim": "Last market-sale amount and HPI trend data.",
+          "limitations": "Partial: last sale/trends, not complete property transaction-history UI."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SCT-01"
+          ],
+          "claim": "THVx AI valuations with marketing/risk/origination/consumer tunings.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SCT-01"
+          ],
+          "claim": "Confidence score/FSD in product attributes; MISMO CCS alignment documented.",
+          "limitations": "No independently tested confidence calibration."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "REPORTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COLLABORATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "ACCOUNTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SCT-01"
+          ],
+          "claim": "API/SFTP file/cloud data deliveries.",
+          "limitations": "Documentation verified; no independent UI execution."
+        }
+      }
+    },
+    {
+      "id": "quantarium",
+      "name": "Quantarium QVM / Reports Marketplace",
+      "company": "Quantarium",
+      "official_url": "https://www.quantarium.com/",
+      "segment": "PROFESSIONAL_VALUATION",
+      "target_users": "Lenders, servicers, valuation professionals, agents and investors",
+      "geography": "United States residential QVM; report-tier and property coverage vary",
+      "source_ids": [
+        "SQM-01",
+        "SQM-02"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "MAP_SEARCH": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "WATCHLISTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SQM-02"
+          ],
+          "claim": "Comprehensive report includes transaction, price and listing histories.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SQM-02"
+          ],
+          "claim": "Sales/listing comparable maps; QCMA tier automated adjustments.",
+          "limitations": "Tier dependent; no hands-on report generation."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SQM-01",
+            "SQM-02"
+          ],
+          "claim": "AI/computer-vision QVM residential value products.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SQM-02"
+          ],
+          "claim": "Named report tiers carry ranges and confidence scores.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SQM-02"
+          ],
+          "claim": "Comparables and QCMA automated adjustments provide evidence context.",
+          "limitations": "Partial: evidence/adjustment layer; no feature-level causal attribution claim."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "REPORTS": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SQM-02"
+          ],
+          "claim": "Marketplace valuation/CMA and combined condition reports.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "COLLABORATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "ACCOUNTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        }
+      }
+    },
+    {
+      "id": "attom",
+      "name": "ATTOM AVM / Cloud",
+      "company": "ATTOM",
+      "official_url": "https://www.attomdata.com/",
+      "segment": "PROFESSIONAL_VALUATION_DATA",
+      "target_users": "Lenders, investors, portals, insurers and analytics/data teams",
+      "geography": "United States; single-family, condominiums and townhouses",
+      "source_ids": [
+        "SAT-01",
+        "SAT-02",
+        "SAT-03"
+      ],
+      "hands_on_ui_tested": false,
+      "capabilities": {
+        "SEARCH_FILTERS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "MAP_SEARCH": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "WATCHLISTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "SEARCH_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PRICE_ALERTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "BROWSING_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "TRANSACTION_HISTORY": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "PROPERTY_COMPARISON": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AVM": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SAT-01",
+            "SAT-02"
+          ],
+          "claim": "U.S. residential property automated valuations via data products.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_UNCERTAINTY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SAT-01",
+            "SAT-02"
+          ],
+          "claim": "Value range, valuation date, property-specific FSD and confidence score.",
+          "limitations": "Documentation verified; no independent UI execution."
+        },
+        "VALUATION_EXPLAINABILITY": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SAT-01",
+            "SAT-02",
+            "SAT-03"
+          ],
+          "claim": "Data cleaning, time-normalization, blended-model methodology and FSD interpretation.",
+          "limitations": "Methodology-level transparency; no per-property driver/adjustable-comp output proven."
+        },
+        "DOCUMENTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_SCHEDULING": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "VIEWING_NOTES": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COMMUTE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "NEIGHBORHOOD": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "CLIMATE_RISK": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "FINANCE": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "REPORTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "COLLABORATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "ACCOUNTS": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_ASSISTANT": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "AI_VISUALIZATION": {
+          "status": "UNKNOWN",
+          "source_ids": [],
+          "claim": "Not established by this bounded first-party review.",
+          "limitations": "UNKNOWN does not mean the product lacks this capability."
+        },
+        "DATA_API": {
+          "status": "VERIFIED_CURRENT",
+          "source_ids": [
+            "SAT-01",
+            "SAT-02"
+          ],
+          "claim": "AVM API/bulk/cloud delivery.",
+          "limitations": "Documentation verified; no independent UI execution."
+        }
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "F01",
+      "status": "INFERRED",
+      "title": "Consumer continuity",
+      "source_ids": [
+        "S591-01",
+        "SLJ-02",
+        "SYC-02",
+        "SZL-01",
+        "SRF-01",
+        "SHM-01"
+      ],
+      "finding": "Saved homes/communities and listing/price alerts recur in consumer competitors. Leju community watchlist established; automated alert availability UNKNOWN."
+    },
+    {
+      "id": "F02",
+      "status": "INFERRED",
+      "title": "Notes and collaboration",
+      "source_ids": [
+        "SYC-02",
+        "SRC-02",
+        "SRF-02",
+        "SHM-01"
+      ],
+      "finding": "\u6c38\u6176 records property remarks; Redfin partners see previous/future comments; Homes.com co-shoppers share notes/messages; Realtor.com+ has persistent group notes. Editorial \u770b\u5c4b\u7b46\u8a18 is not a user notes feature."
+    },
+    {
+      "id": "F03",
+      "status": "INFERRED",
+      "title": "Valuation evidence and uncertainty",
+      "source_ids": [
+        "SHC-02",
+        "SHC-03",
+        "SPH-01",
+        "SPH-02",
+        "SCT-01",
+        "SQM-02",
+        "SAT-02"
+      ],
+      "finding": "All five professional providers publish ranges/confidence. HouseCanary adjustable comp evidence and PriceHubble confidence/manual-override help are stronger evidence workflows than a point estimate alone."
+    },
+    {
+      "id": "F04",
+      "status": "INFERRED",
+      "title": "Conversational search with restricted access",
+      "source_ids": [
+        "SSY-02",
+        "SYC-03",
+        "SZL-04",
+        "SRC-01",
+        "SRF-03"
+      ],
+      "finding": "Taiwan brokers and Redfin document usable search/conversation surfaces. Zillow AI mode and June Realtor consumer launch are limited beta; general expansion remains separately ANNOUNCED."
+    },
+    {
+      "id": "F05",
+      "status": "INFERRED",
+      "title": "Climate data currentness",
+      "source_ids": [
+        "SZL-06",
+        "SRF-04",
+        "SHC-02"
+      ],
+      "finding": "Redfin historical shipped climate-tab docs and HouseCanary risk endpoints exist. Zillow old native-score launch cannot prove current native score availability; indexed external-link snippet remained unverified in opened listing."
+    },
+    {
+      "id": "F06",
+      "status": "INFERRED",
+      "title": "No unsupported accuracy ranking",
+      "source_ids": [
+        "SZL-02",
+        "SHC-01",
+        "SQM-01",
+        "SAT-02",
+        "SAT-03"
+      ],
+      "finding": "Different self-reported vendor metrics have incompatible samples/timeframes. ATTOM Cloud help versus June 2026 guide numbers differ; no most-accurate winner or Taiwan transfer accuracy asserted."
+    },
+    {
+      "id": "F07",
+      "status": "INFERRED",
+      "title": "Entitlements and geography",
+      "source_ids": [
+        "SYC-01",
+        "SRC-02",
+        "SPH-01",
+        "SCT-01",
+        "SHC-02"
+      ],
+      "finding": "\u96d9\u5317 direct-operated AI/LINE, participating MLS collaboration, UK regional products, U.S. residential AVMs and premium endpoints have distinct availability. No Taiwan coverage or redistribution license inferred."
+    }
+  ],
+  "additional_announcements": [
+    {
+      "product_id": "zillow",
+      "status": "ANNOUNCED",
+      "capability_id": "AI_ASSISTANT",
+      "source_ids": [
+        "SZL-04"
+      ],
+      "claim": "Expand limited-user AI mode throughout 2026.",
+      "limitations": "No later opened source in this bounded review proves universal rollout."
+    },
+    {
+      "product_id": "realtor",
+      "status": "ANNOUNCED",
+      "capability_id": "AI_ASSISTANT",
+      "source_ids": [
+        "SRC-01"
+      ],
+      "claim": "Full consumer RealAssist availability rolling out after June limited beta.",
+      "limitations": "Realtor.com+ release is separate entitlement; not proof of every consumer receiving beta."
+    },
+    {
+      "product_id": "redfin",
+      "status": "ANNOUNCED",
+      "capability_id": "WATCHLISTS",
+      "source_ids": [
+        "SRF-01"
+      ],
+      "claim": "Favorite Lists on Android described as later in 2026.",
+      "limitations": "Web/iOS documented shipped; Android completion not verified."
+    }
+  ],
+  "research_limitations": [
+    "Public first-party documentation review only: no accounts created, app installed, paid report purchased or end-to-end workflow executed.",
+    "VERIFIED_CURRENT means publicly documented shipped capability (restricted beta identified), not independent UI behavior, uptime, accuracy or reliable data completeness.",
+    "All UNKNOWN cells mean insufficient evidence, never NO. Feature family boundaries/regions/report tiers preserved.",
+    "Realtor main July article redirected to Europe block; opened official mediaroom and Realtor.com+ release pages are core authority.",
+    "Sinyi plain app/AI URLs intermittently failed; official query-bearing AI page opened successfully. App download claims excluded.",
+    "Zillow risk section and Homes month-specific valuations differed between indexed snippets and opened pages; this is explicitly recorded.",
+    "General listing comments differ from structured inspection notes; rental template downloads differ from secure case document vaults; shared reports differ from concurrent case editing.",
+    "Undated pages use publication_date=null. Date checked is not a release date. No sources after 2026-10-10 cutoff included.",
+    "Vendor claimed accuracy/coverage is not independently validated; no geographic transfer or financial completeness inferred.",
+    "No source authorizes bulk scraping, ingestion, redistribution or report resale by this project; licensing needs separate review."
+  ],
+  "summary": {
+    "product_count": 13,
+    "source_count": 41,
+    "capability_count": 24,
+    "matrix_cell_count": 312,
+    "status_counts": {
+      "VERIFIED_CURRENT": 134,
+      "ANNOUNCED": 0,
+      "INFERRED": 0,
+      "UNVERIFIED": 2,
+      "UNKNOWN": 176
+    },
+    "announcement_count": 3,
+    "retrieval_counts": {
+      "OPENED_PRIMARY": 39,
+      "OPENED_PRIMARY_PARTIAL": 1,
+      "SEARCH_SNIPPET_PRIMARY": 1
+    },
+    "hands_on_tested_product_count": 0
+  }
+}
