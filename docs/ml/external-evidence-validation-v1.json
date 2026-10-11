@@ -1,0 +1,1414 @@
+{
+  "actual_precommit_parent": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+  "ancestry_note": "Branch reflog records a rebase onto origin/main at 2026-10-11 13:54:26 +08:00. Two upstream commits follow the supplied starting SHA; they are preserved. Exactly one new research commit is created, not a claim that start..final has only one ancestor.",
+  "baseline_worker_failure": {
+    "baseline_worktree_sha": "68bc80aee454ce263ed348f284d0c42f21c483d3",
+    "reproduced_test": "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+    "result": "1 failed, 25 deselected in 9.37s",
+    "scope_note": "Historical comparison against an earlier parent only; superseded for closure by the exact ef1c49c parent worktree and controlled paired evidence under full_suite_closure.",
+    "test_source_blob_at_both_revisions": "66bb32744ea983a42a8f0821168d19c5e6883760",
+    "worker_source_blob_at_both_revisions": "d41d953a070881b070fcdf09e1ee19cf8ec961de"
+  },
+  "ci_dependency_contract_followup": {
+    "approved_cohort": 0,
+    "canonical_fix": "All full-suite jobs install requirements-dev.txt, including root runtime requirements which cover all backend dependencies. Remove the duplicated backend installation in release quality. No ad-hoc jsonschema installs.",
+    "classification": "CI dependency-contract defect; no algorithm/Data Gate regression",
+    "determinism_verification": {
+      "approved_cohort": 0,
+      "byte_identical": true,
+      "conditions": {
+        "city_month_representation": false,
+        "contiguous_months": false,
+        "existing_complete_history_and_chronology": false,
+        "fresh_sources_revalidated": true,
+        "independent_determinism": true,
+        "minimum_pit_rows": false,
+        "privacy": true,
+        "target_contracts_frozen": true,
+        "usable_months": false
+      },
+      "may_ml_b_begin": false,
+      "output_sha256": "4b5adfa626299ce1b226241ab1d3f830a5aebd73c9c28ece1a207544ef7f0629",
+      "privacy": "PASS",
+      "status": "PASS"
+    },
+    "final_full_python_environment": {
+      "PYTHONIOENCODING": "utf-8",
+      "PYTHONUTF8": "1"
+    },
+    "installed_verification_environment": {
+      "include_system_site_packages": false,
+      "jsonschema": "4.26.0",
+      "pytest": "9.1.1",
+      "python": "3.12.13"
+    },
+    "lease_expected_remote_sha": "1c09bd81d1295c72d9efb75a46c3a3a4654611a0",
+    "local_verification": {
+      "all-ml": {
+        "collected": 425,
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests",
+          "-k",
+          "ml_",
+          "-q",
+          "--junitxml=artifacts/ml0-ci-dependencies/all-ml.xml"
+        ],
+        "elapsed_seconds": 112.25,
+        "exit_code": 0,
+        "failed": 0,
+        "label": "all-ml",
+        "log_path": "artifacts/ml0-ci-dependencies/all-ml.log",
+        "log_sha256": "9cc8b67da8d738453161d44bc4ef08584ecc7fb1c735cb0a1495c809ba60c663",
+        "passed": 425,
+        "skipped": 0,
+        "xml_path": "artifacts/ml0-ci-dependencies/all-ml.xml",
+        "xml_sha256": "1ca3fee1b1560cca6420d0520fee5ddfad46a026259fcf9e1dad66616b50ef1c"
+      },
+      "canonical-install": {
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pip",
+          "install",
+          "-r",
+          "requirements-dev.txt"
+        ],
+        "elapsed_seconds": 93.265,
+        "exit_code": 0,
+        "label": "canonical-install",
+        "log_path": "artifacts/ml0-ci-dependencies/canonical-install.log",
+        "log_sha256": "28045106df664472cb1cef1979e40010f60459404b8c7364c42c62526f794874"
+      },
+      "dependency-import": {
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-c",
+          "import sys, importlib.metadata as m; from jsonschema import Draft202012Validator, FormatChecker; import scripts.ml.external_evidence; print(sys.version); print({n:m.version(n) for n in (\"pytest\",\"jsonschema\")})"
+        ],
+        "elapsed_seconds": 1.813,
+        "exit_code": 0,
+        "label": "dependency-import",
+        "log_path": "artifacts/ml0-ci-dependencies/dependency-import.log",
+        "log_sha256": "604904d65c96989a4968b716b57ab3a1249cc5bb9058119ae144701a31e20efc"
+      },
+      "determinism": {
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "scripts.ml.refresh_external_evidence",
+          "verify",
+          "--first",
+          "artifacts/ml/external-evidence/final-a/refresh.json",
+          "--second",
+          "artifacts/ml/external-evidence/final-b/refresh.json",
+          "--revalidate"
+        ],
+        "elapsed_seconds": 193.297,
+        "exit_code": 0,
+        "label": "determinism",
+        "log_path": "artifacts/ml0-ci-dependencies/determinism.log",
+        "log_sha256": "998f3f4d99e170b3ba45358061e1d852a4180ce95ad5bde6de72b12c0f17d5dd"
+      },
+      "focused": {
+        "collected": 51,
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_ml_external_evidence.py",
+          "-q",
+          "--junitxml=artifacts/ml0-ci-dependencies/focused.xml"
+        ],
+        "elapsed_seconds": 7.0,
+        "exit_code": 0,
+        "failed": 0,
+        "label": "focused",
+        "log_path": "artifacts/ml0-ci-dependencies/focused.log",
+        "log_sha256": "5c7791bd3d2990aeaea571a99ca8187848a1dc6e0d9d005d87ef7e96104140c5",
+        "passed": 51,
+        "skipped": 0,
+        "xml_path": "artifacts/ml0-ci-dependencies/focused.xml",
+        "xml_sha256": "fe9083d385128f9bbf02be82dce85ea6f77dd9ef0c35dc59590c86cb63b6b999"
+      },
+      "full-python": {
+        "collected": 3698,
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-ci-dependencies/full-python.xml"
+        ],
+        "elapsed_seconds": 411.875,
+        "exit_code": 1,
+        "failed": 3,
+        "label": "full-python",
+        "log_path": "artifacts/ml0-ci-dependencies/full-python.log",
+        "log_sha256": "d67db4bb4a2d6e7b57078f8395b8a53567089a8eded5e41cff0702240c2c5218",
+        "passed": 3663,
+        "skipped": 32,
+        "xml_path": "artifacts/ml0-ci-dependencies/full-python.xml",
+        "xml_sha256": "b5208c194df7d58ee1f4c22d01ce531728cfdac2238d4c0f8b10587aeeecb685"
+      },
+      "full-python-final": {
+        "collected": 3698,
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-ci-dependencies/full-python-final.xml"
+        ],
+        "elapsed_seconds": 1312.953,
+        "exit_code": 0,
+        "failed": 0,
+        "label": "full-python-final",
+        "log_path": "artifacts/ml0-ci-dependencies/full-python-final.log",
+        "log_sha256": "10fa76455d6aad6511e9e643a8d150ce13d21e82e60d02bbc2440471b947b15e",
+        "passed": 3666,
+        "skipped": 32,
+        "xml_path": "artifacts/ml0-ci-dependencies/full-python-final.xml",
+        "xml_sha256": "7a5a6431b8ed4396751e031330393d71ed7460ce2ec7d4c4e0c5c6c121b22aec"
+      },
+      "hygiene": {
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "scripts/check_repository_hygiene.py"
+        ],
+        "elapsed_seconds": 12.079,
+        "exit_code": 0,
+        "label": "hygiene",
+        "log_path": "artifacts/ml0-ci-dependencies/hygiene.log",
+        "log_sha256": "9f8b621c02bac86093505c6a455aa4346260f2b637c0d6cedeefaa9dee9fb5ad"
+      },
+      "old-contract-focused": {
+        "collected": 51,
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_ml_external_evidence.py",
+          "-q",
+          "--junitxml=artifacts/ml0-ci-dependencies/old-contract-focused.xml"
+        ],
+        "elapsed_seconds": 11.625,
+        "exit_code": 1,
+        "failed": 49,
+        "label": "old-contract-focused",
+        "log_path": "artifacts/ml0-ci-dependencies/old-contract-focused.log",
+        "log_sha256": "cdcbda1fe7672d140a797d4846a82ed835d8cef861ae0c7accfafe777b8d3776",
+        "passed": 2,
+        "skipped": 0,
+        "xml_path": "artifacts/ml0-ci-dependencies/old-contract-focused.xml",
+        "xml_sha256": "fd033d22e162ba31d1720a236a8d33b06e9b8f4cbb084ad9335f16a986aab25c"
+      },
+      "pip-check": {
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pip",
+          "check"
+        ],
+        "elapsed_seconds": 2.484,
+        "exit_code": 0,
+        "label": "pip-check",
+        "log_path": "artifacts/ml0-ci-dependencies/pip-check.log",
+        "log_sha256": "672aec65a45bed50e70229c70934a7eebf0462595c459b83023027645d57cccf"
+      },
+      "privacy": {
+        "collected": 11,
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_ml_authoritative_history.py",
+          "tests/test_ml_authoritative_lineage.py",
+          "tests/test_ml_external_evidence.py",
+          "-k",
+          "privacy or personal",
+          "-q",
+          "--junitxml=artifacts/ml0-ci-dependencies/privacy.xml"
+        ],
+        "elapsed_seconds": 4.875,
+        "exit_code": 0,
+        "failed": 0,
+        "label": "privacy",
+        "log_path": "artifacts/ml0-ci-dependencies/privacy.log",
+        "log_sha256": "23dcc56c1c5e1dc0a725adca83878f6007133214eb96ce1cd1e21bd628aa2544",
+        "passed": 11,
+        "skipped": 0,
+        "xml_path": "artifacts/ml0-ci-dependencies/privacy.xml",
+        "xml_sha256": "6acef5bdaa00ecc1397ff54ec3129a91c5f269a03b21c1ff8eec55c98ab7a453"
+      },
+      "workflow-contract": {
+        "collected": 17,
+        "command": [
+          "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+          "-m",
+          "pytest",
+          "tests/test_release_quality_workflow.py",
+          "tests/test_deployment_configuration_contract.py",
+          "tests/test_security_performance_contract.py",
+          "-q",
+          "--junitxml=artifacts/ml0-ci-dependencies/workflow-contract.xml"
+        ],
+        "elapsed_seconds": 2.781,
+        "exit_code": 0,
+        "failed": 0,
+        "label": "workflow-contract",
+        "log_path": "artifacts/ml0-ci-dependencies/workflow-contract.log",
+        "log_sha256": "f8b5b535c2908873fc46813ebc6d52e98afdfbb6e31541bfce6307dbeb8915c1",
+        "passed": 17,
+        "skipped": 0,
+        "xml_path": "artifacts/ml0-ci-dependencies/workflow-contract.xml",
+        "xml_sha256": "7fd55ab918c90e05d57008bb0a08abce758d64641f2bb1e143fdee72d7516a3c"
+      }
+    },
+    "may_ml_b_begin": false,
+    "merge_ready": false,
+    "observed_github_failure_runs": [
+      {
+        "job_id": 114447186135,
+        "missing_jsonschema": true,
+        "run_id": 38131699930,
+        "summary": "2026-10-11T10:23:57.2148317Z 49 failed, 3616 passed, 33 skipped, 155 warnings in 65.15s (0:01:05)",
+        "workflow": "Production Release Operations Gate"
+      },
+      {
+        "job_id": 114447186035,
+        "missing_jsonschema": true,
+        "run_id": 38131699929,
+        "summary": "2026-10-11T10:23:48.4471930Z 49 failed, 3616 passed, 33 skipped, 155 warnings in 61.42s (0:01:01)",
+        "workflow": "Security and Performance Release Gate"
+      },
+      {
+        "job_id": 114447186267,
+        "missing_jsonschema": true,
+        "run_id": 38131699966,
+        "summary": "2026-10-11T10:24:06.1677368Z 49 failed, 3616 passed, 33 skipped, 155 warnings in 77.08s (0:01:17)",
+        "workflow": "Release Candidate Quality Gate"
+      }
+    ],
+    "old_focused_log_encoding": "Windows cp950; subsequent logs explicitly use UTF-8",
+    "pit_valid_rows": 0,
+    "policy_sources": [
+      "requirements-dev.txt",
+      "requirements.txt",
+      "backend/requirements.txt",
+      "Dockerfile",
+      "Dockerfile.cloudrun"
+    ],
+    "pr": "https://github.com/ryanwu566/proptech-ai-copilot/pull/180",
+    "pre_update_pr_head_sha": "1c09bd81d1295c72d9efb75a46c3a3a4654611a0",
+    "production_runtime_dependencies_changed": false,
+    "read_only_ci_fix_review": {
+      "critical": 0,
+      "important": 0,
+      "minor": 0
+    },
+    "receipt_validation_readiness_assertions_timeouts_admission_gates_changed": false,
+    "remaining_local_failures": [],
+    "required_github_checks": "Pending fresh CI on the amended PR head; local test closure does not establish merge readiness.",
+    "root_cause": "ModuleNotFoundError: No module named 'jsonschema' importing Draft202012Validator and FormatChecker in scripts/ml/external_evidence.py; full-suite jobs installed backend requirements plus pytest, bypassing the existing dev/test manifest.",
+    "windows_encoding_cause": "The first verification harness forced PYTHONIOENCODING=utf-8 without aligning default Windows cp950 subprocess text decoding. The exact same three cases fail on branch and clean parent with PYTHONUTF8=0, and pass on both with PYTHONUTF8=1. Classification: ENVIRONMENTAL. Only the private verification harness was corrected; no product, test or GitHub workflow encoding changes.",
+    "windows_encoding_closure": {
+      "classifications": {
+        "tests/test_gsmma_geological_sensitivity_artifact.py::test_operator_cli_builds_local_outputs_without_uploading": "ENVIRONMENTAL",
+        "tests/test_market_coverage_registry.py::test_coverage_audit_script_outputs_safe_lines": "ENVIRONMENTAL",
+        "tests/test_market_coverage_rollout_workflow.py::test_market_coverage_county_helper_outputs_tracked_counties_safely": "ENVIRONMENTAL"
+      },
+      "exact_nodes": [
+        "tests/test_gsmma_geological_sensitivity_artifact.py::test_operator_cli_builds_local_outputs_without_uploading",
+        "tests/test_market_coverage_registry.py::test_coverage_audit_script_outputs_safe_lines",
+        "tests/test_market_coverage_rollout_workflow.py::test_market_coverage_county_helper_outputs_tracked_counties_safely"
+      ],
+      "identical_test_and_cli_blobs": {
+        "scripts/audit_market_coverage.py": "097f850407a7abe043887cfff8966847fe3f55c2",
+        "scripts/build_gsmma_geological_sensitivity_artifact.py": "c7a40fb04c3b4f69113f8ba97224acf8ac57e8ab",
+        "scripts/list_market_coverage_counties.py": "42b13036dbe388e96a0e8ee2ab7f3105125713d9",
+        "tests/test_gsmma_geological_sensitivity_artifact.py": "c820c3eca557fb85b5c3d539d7bddb50efe041e7",
+        "tests/test_market_coverage_registry.py": "5e21cd0fdb3f655dd0b5281477174e8eaf5d0ffa",
+        "tests/test_market_coverage_rollout_workflow.py": "e329d1eca4ae7c0bb03ecebba897e21d3ca27e41"
+      },
+      "parent_clean": true,
+      "parent_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+      "runs": [
+        {
+          "command": [
+            "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+            "-m",
+            "pytest",
+            "tests/test_gsmma_geological_sensitivity_artifact.py::test_operator_cli_builds_local_outputs_without_uploading",
+            "tests/test_market_coverage_registry.py::test_coverage_audit_script_outputs_safe_lines",
+            "tests/test_market_coverage_rollout_workflow.py::test_market_coverage_county_helper_outputs_tracked_counties_safely",
+            "-q",
+            "--junitxml=artifacts/ml0-ci-dependencies/encoding-0-branch.xml"
+          ],
+          "exit_code": 1,
+          "failed": 3,
+          "label": "branch",
+          "log_path": "artifacts/ml0-ci-dependencies/encoding-0-branch.log",
+          "log_sha256": "3ff7f02143f870223ec55c9a6ff547c9bb2d5094b1b65f94ec6fa1fabde80d00",
+          "passed": 0,
+          "python_io_encoding": "utf-8",
+          "python_utf8": "0",
+          "xml_sha256": "6e4f0f9e3fdcce6b76681438d4fbf0baed181e70e9eb33ef1f82111a29c7d306"
+        },
+        {
+          "command": [
+            "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+            "-m",
+            "pytest",
+            "tests/test_gsmma_geological_sensitivity_artifact.py::test_operator_cli_builds_local_outputs_without_uploading",
+            "tests/test_market_coverage_registry.py::test_coverage_audit_script_outputs_safe_lines",
+            "tests/test_market_coverage_rollout_workflow.py::test_market_coverage_county_helper_outputs_tracked_counties_safely",
+            "-q",
+            "--junitxml=artifacts/ml0-ci-dependencies/encoding-0-parent.xml"
+          ],
+          "exit_code": 1,
+          "failed": 3,
+          "label": "parent",
+          "log_path": "artifacts/ml0-ci-dependencies/encoding-0-parent.log",
+          "log_sha256": "b61d8ad88c04cf9619c530aee09b67187db62e011b592fb194bf4a5862703d96",
+          "passed": 0,
+          "python_io_encoding": "utf-8",
+          "python_utf8": "0",
+          "xml_sha256": "8fab9e9ce8a4b10db8896c85bfed600908d70acd352dcbdfd1184a710d508c30"
+        },
+        {
+          "command": [
+            "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+            "-m",
+            "pytest",
+            "tests/test_gsmma_geological_sensitivity_artifact.py::test_operator_cli_builds_local_outputs_without_uploading",
+            "tests/test_market_coverage_registry.py::test_coverage_audit_script_outputs_safe_lines",
+            "tests/test_market_coverage_rollout_workflow.py::test_market_coverage_county_helper_outputs_tracked_counties_safely",
+            "-q",
+            "--junitxml=artifacts/ml0-ci-dependencies/encoding-1-branch.xml"
+          ],
+          "exit_code": 0,
+          "failed": 0,
+          "label": "branch",
+          "log_path": "artifacts/ml0-ci-dependencies/encoding-1-branch.log",
+          "log_sha256": "6c938faaae01c367676e57460d99b8388afc9f591ee7057c3c4713d564326e45",
+          "passed": 3,
+          "python_io_encoding": "utf-8",
+          "python_utf8": "1",
+          "xml_sha256": "f1e6dd98796b1287506fa8fda5df1c3fc9075816967610af8b79754c4cd6e3e0"
+        },
+        {
+          "command": [
+            "artifacts/ml0-ci-dependencies/venv/Scripts/python.exe",
+            "-m",
+            "pytest",
+            "tests/test_gsmma_geological_sensitivity_artifact.py::test_operator_cli_builds_local_outputs_without_uploading",
+            "tests/test_market_coverage_registry.py::test_coverage_audit_script_outputs_safe_lines",
+            "tests/test_market_coverage_rollout_workflow.py::test_market_coverage_county_helper_outputs_tracked_counties_safely",
+            "-q",
+            "--junitxml=artifacts/ml0-ci-dependencies/encoding-1-parent.xml"
+          ],
+          "exit_code": 0,
+          "failed": 0,
+          "label": "parent",
+          "log_path": "artifacts/ml0-ci-dependencies/encoding-1-parent.log",
+          "log_sha256": "56ed7bbee8350533d684acdab984021679c111bef2c79895ac0114eed6cea3cb",
+          "passed": 3,
+          "python_io_encoding": "utf-8",
+          "python_utf8": "1",
+          "xml_sha256": "f188d2596dcf098a8de13499b55922c0596700f884099b892133c793223e5e6f"
+        }
+      ]
+    },
+    "workflow_audit": {
+      "backend_dependencies_covered_by_root_runtime": true,
+      "dev_manifest": "requirements-dev.txt",
+      "existing_dev_jsonschema_range": ">=4.26,<5",
+      "existing_dev_pytest_range": ">=9.0.3,<10",
+      "full_suite_jobs": [
+        "production-release-ops.yml/quality",
+        "release-quality.yml/quality",
+        "security-performance.yml/gate"
+      ],
+      "production_dependency_files_unchanged": [
+        "requirements.txt",
+        "backend/requirements.txt",
+        "Dockerfile",
+        "Dockerfile.cloudrun",
+        "render.yaml"
+      ],
+      "status": "PASS",
+      "workflows": [
+        {
+          "jobs": [
+            {
+              "installation_commands": [],
+              "job": "read-only-smoke",
+              "pytest_commands": []
+            },
+            {
+              "installation_commands": [],
+              "job": "write-smoke-gate",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "authenticated-identity-smoke.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [],
+              "job": "smoke",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "hosted-production-smoke.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [
+                "python -m pip install -r backend/requirements.txt"
+              ],
+              "job": "discover-and-import",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "import-official-market-data.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [
+                "python -m pip install -r backend/requirements.txt \"pytest>=8,<9\""
+              ],
+              "job": "market-postgres-e2e",
+              "pytest_commands": [
+                {
+                  "command": "python -m pytest -q tests/test_market_postgres_e2e.py tests/test_market_direct_query_postgres.py --basetemp \"${RUNNER_TEMP}/market-postgres-e2e\" --junitxml \"${RUNNER_TEMP}/market-postgres-e2e.xml\"",
+                  "full_suite": false
+                }
+              ]
+            }
+          ],
+          "workflow": "market-postgres-e2e.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [
+                "python -m pip install -r requirements-dev.txt\nnpm ci --prefix frontend_next\n"
+              ],
+              "job": "quality",
+              "pytest_commands": [
+                {
+                  "command": "python -m pytest -q --basetemp \"${RUNNER_TEMP}/production-release-pytest\"",
+                  "full_suite": true
+                }
+              ]
+            },
+            {
+              "installation_commands": [
+                "python -m pip install -r backend/requirements.txt \"pytest>=8,<9\""
+              ],
+              "job": "migration",
+              "pytest_commands": [
+                {
+                  "command": "python -m pytest -q tests/test_production_postgres_ops.py --basetemp \"${RUNNER_TEMP}/production-ops-pytest\"",
+                  "full_suite": false
+                }
+              ]
+            },
+            {
+              "installation_commands": [],
+              "job": "browser",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "production-release-ops.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [],
+              "job": "reconcile-market-coverage",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "reconcile-market-coverage.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [],
+              "job": "refresh",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "refresh-commute-snapshot.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [],
+              "job": "refresh-market-read-model",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "refresh-market-read-model.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [
+                "python -m pip install -r requirements-dev.txt"
+              ],
+              "job": "quality",
+              "pytest_commands": [
+                {
+                  "command": "python -m pytest -q --basetemp \"${RUNNER_TEMP}/release-quality-pytest\"",
+                  "full_suite": true
+                }
+              ]
+            }
+          ],
+          "workflow": "release-quality.yml"
+        },
+        {
+          "jobs": [
+            {
+              "installation_commands": [
+                "python -m pip install -r requirements-dev.txt",
+                "python -m pip install \"pip-audit>=2,<3\"\npython -m pip_audit -r backend/requirements.txt --strict\n"
+              ],
+              "job": "gate",
+              "pytest_commands": [
+                {
+                  "command": "python -m pytest -q --basetemp \"${RUNNER_TEMP}/security-performance-pytest\"",
+                  "full_suite": true
+                }
+              ]
+            },
+            {
+              "installation_commands": [
+                "python -m pip install -r backend/requirements.txt \"pytest>=8,<9\"\nnpm ci --prefix frontend_next\nnpm --prefix frontend_next exec -- playwright install chromium --with-deps\n"
+              ],
+              "job": "performance-smoke",
+              "pytest_commands": []
+            }
+          ],
+          "workflow": "security-performance.yml"
+        }
+      ],
+      "workflows_audited": 10
+    }
+  },
+  "compile_check": "python -m compileall -q scripts/ml: PASS",
+  "delivery": "One research commit, amended after final tests for required closure documentation and the canonical CI test-dependency installation fix. PR #180 update is authorized only with force-with-lease; no merge. Final SHA is reported outside its own contents.",
+  "determinism": {
+    "builds": [
+      "artifacts/ml/external-evidence/final-a/refresh.json",
+      "artifacts/ml/external-evidence/final-b/refresh.json"
+    ],
+    "byte_identical": true,
+    "byte_only_verification": {
+      "approved_cohort": 0,
+      "byte_identical": true,
+      "conditions": {
+        "city_month_representation": false,
+        "contiguous_months": false,
+        "existing_complete_history_and_chronology": false,
+        "fresh_sources_revalidated": false,
+        "independent_determinism": true,
+        "minimum_pit_rows": false,
+        "privacy": true,
+        "target_contracts_frozen": true,
+        "usable_months": false
+      },
+      "may_ml_b_begin": false,
+      "output_sha256": "4b5adfa626299ce1b226241ab1d3f830a5aebd73c9c28ece1a207544ef7f0629",
+      "privacy": "PASS",
+      "status": "PASS"
+    },
+    "command": "python -m scripts.ml.refresh_external_evidence verify --first artifacts/ml/external-evidence/final-a/refresh.json --second artifacts/ml/external-evidence/final-b/refresh.json --revalidate",
+    "fresh_source_approval_note": "Fresh archives/receipt gates were revalidated and matched the reports; the real cohort remains zero. Byte-only verification always withholds approval. Future positive admission additionally requires complete gate coverage.",
+    "output_sha256": "4b5adfa626299ce1b226241ab1d3f830a5aebd73c9c28ece1a207544ef7f0629",
+    "verification": {
+      "approved_cohort": 0,
+      "byte_identical": true,
+      "conditions": {
+        "city_month_representation": false,
+        "contiguous_months": false,
+        "existing_complete_history_and_chronology": false,
+        "fresh_sources_revalidated": true,
+        "independent_determinism": true,
+        "minimum_pit_rows": false,
+        "privacy": true,
+        "target_contracts_frozen": true,
+        "usable_months": false
+      },
+      "may_ml_b_begin": false,
+      "output_sha256": "4b5adfa626299ce1b226241ab1d3f830a5aebd73c9c28ece1a207544ef7f0629",
+      "privacy": "PASS",
+      "status": "PASS"
+    },
+    "verification_log_path": "artifacts/ml0-suite-closure/determinism.log",
+    "verification_log_sha256": "998f3f4d99e170b3ba45358061e1d852a4180ce95ad5bde6de72b12c0f17d5dd"
+  },
+  "environment": {
+    "jsonschema": "4.26.0",
+    "platform": "Windows; PowerShell; Asia/Taipei",
+    "pytest": "8.4.2",
+    "python": "3.13.14",
+    "typescript": "5.9.3"
+  },
+  "environment_repair": "npm ci --ignore-scripts restored the lockfile-defined local TypeScript dependency. No tracked frontend files changed.",
+  "final_code_text_sha256": {
+    "scripts/ml/acquire_external_metadata.py": "a384de529e908b14d8e478d70720880b47bf4795c23735660c44fa07f42529a6",
+    "scripts/ml/audit_target_reframing.py": "1667e6b5db8514ebae70f534009c288c9693f3ec3f3584ee6704002dab319eaa",
+    "scripts/ml/external_evidence.py": "f0c02b25e0acb52cb4926c554bc1d747c77e5eb4b99419ac0a5f08b8dbed44f0",
+    "scripts/ml/refresh_external_evidence.py": "1b422430166bba9dffd3331fb04a9d6649f73494e188072dbbeb417bb2759fb2",
+    "tests/test_ml_external_evidence.py": "ce8d56e38ff975afc11f4141fa894b1a1cd1e60befdd12bce42ecf8347361f94"
+  },
+  "final_integration_fix": {
+    "correction": "Bind the freshly restaged manifest digest into the recomputed report; mismatch still rejects.",
+    "full_suite_timing": "Both closure full-suite runs occurred after the final metadata-binding fix; the final run follows serial ML/receipt/privacy/fresh-source determinism checks. Exact-code hashes are unchanged.",
+    "problem": "CLI recovery-manifest metadata omitted from the fresh gate comparison caused fail-closed rejection of valid rebuilds.",
+    "verification": "RED regression then 51 focused tests; final all-ML and real verify --revalidate rerun."
+  },
+  "full_suite_closure": {
+    "affected_git_blobs": {
+      "conftest.py": {
+        "baseline": "4ffbf95b721a89a953960746e6e471f4a9441a38",
+        "branch": "4ffbf95b721a89a953960746e6e471f4a9441a38",
+        "identical": true
+      },
+      "scripts/update_valuation_data.py": {
+        "baseline": "04c73a5ea56de9780d5fc184911877eae1dad960",
+        "branch": "04c73a5ea56de9780d5fc184911877eae1dad960",
+        "identical": true
+      },
+      "services/earth_engine_worker_pool.py": {
+        "baseline": "d41d953a070881b070fcdf09e1ee19cf8ec961de",
+        "branch": "d41d953a070881b070fcdf09e1ee19cf8ec961de",
+        "identical": true
+      },
+      "tests/test_earth_engine_worker_pool.py": {
+        "baseline": "66bb32744ea983a42a8f0821168d19c5e6883760",
+        "branch": "66bb32744ea983a42a8f0821168d19c5e6883760",
+        "identical": true
+      },
+      "tests/test_plvr_provider_update.py": {
+        "baseline": "2aade9ef389431ce0c78dbd5a8d2b5dca8fc6b3a",
+        "branch": "2aade9ef389431ce0c78dbd5a8d2b5dca8fc6b3a",
+        "identical": true
+      }
+    },
+    "amend_reason": "Documentation-only final full-suite counts and exact-parent failure classification; preserve one research commit.",
+    "branch_regressions_found": 0,
+    "classification_definitions": {
+      "BASELINE_EXISTING": "Repeatable failure also present on the clean exact parent.",
+      "BRANCH_REGRESSION": "Controlled branch failure absent on parent, supported by relevant branch difference; must fix before closure.",
+      "ENVIRONMENTAL": "Specific external configuration/resource cause demonstrated, rather than inferred from timing alone.",
+      "NON_REPRODUCING_FLAKE": "A prior failure did not recur in three exact-node reruns on either side; this is bounded non-reproduction, not proof that the test can never fail.",
+      "REPRODUCIBLE_FLAKE": "Both pass and fail outcomes observed in controlled exact-node reruns; parent evidence states whether it predates the branch."
+    },
+    "classifications": [
+      {
+        "baseline": {
+          "failed": 1,
+          "passed": 2,
+          "seconds": [
+            5.506,
+            1.199,
+            2.588
+          ]
+        },
+        "branch": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            1.208,
+            2.621,
+            2.56
+          ]
+        },
+        "classification": "REPRODUCIBLE_FLAKE",
+        "final_full_status": "PASS",
+        "initial_post_fix_full_status": "PASS",
+        "nodeid": "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+        "preexisting_flake_proven_on_exact_parent": true
+      },
+      {
+        "baseline": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            3.726,
+            2.598,
+            2.83
+          ]
+        },
+        "branch": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            3.07,
+            3.555,
+            2.977
+          ]
+        },
+        "classification": "NON_REPRODUCING_FLAKE",
+        "final_full_status": "PASS",
+        "initial_post_fix_full_status": "PASS",
+        "nodeid": "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+        "preexisting_flake_proven_on_exact_parent": false
+      },
+      {
+        "baseline": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            4.288,
+            3.654,
+            2.097
+          ]
+        },
+        "branch": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            6.476,
+            3.288,
+            2.202
+          ]
+        },
+        "classification": "NON_REPRODUCING_FLAKE",
+        "final_full_status": "PASS",
+        "initial_post_fix_full_status": "PASS",
+        "nodeid": "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+        "preexisting_flake_proven_on_exact_parent": false
+      },
+      {
+        "baseline": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            2.581,
+            1.347,
+            1.287
+          ]
+        },
+        "branch": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            1.795,
+            1.588,
+            1.346
+          ]
+        },
+        "classification": "NON_REPRODUCING_FLAKE",
+        "final_full_status": "PASS",
+        "initial_post_fix_full_status": "PASS",
+        "nodeid": "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+        "preexisting_flake_proven_on_exact_parent": false
+      },
+      {
+        "baseline": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            1.328,
+            1.07,
+            0.971
+          ]
+        },
+        "branch": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            0.78,
+            1.084,
+            1.2
+          ]
+        },
+        "classification": "NON_REPRODUCING_FLAKE",
+        "final_full_status": "PASS",
+        "initial_post_fix_full_status": "PASS",
+        "nodeid": "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]",
+        "preexisting_flake_proven_on_exact_parent": false
+      },
+      {
+        "baseline": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            1.889,
+            1.293,
+            1.496
+          ]
+        },
+        "branch": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            0.732,
+            1.298,
+            1.264
+          ]
+        },
+        "classification": "NON_REPRODUCING_FLAKE",
+        "final_full_status": "PASS",
+        "initial_post_fix_full_status": "FAIL",
+        "nodeid": "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+        "preexisting_flake_proven_on_exact_parent": false
+      },
+      {
+        "baseline": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            3.018,
+            1.755,
+            1.48
+          ]
+        },
+        "branch": {
+          "failed": 0,
+          "passed": 3,
+          "seconds": [
+            0.686,
+            1.406,
+            1.34
+          ]
+        },
+        "classification": "NON_REPRODUCING_FLAKE",
+        "final_full_status": "PASS",
+        "initial_post_fix_full_status": "FAIL",
+        "nodeid": "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project",
+        "preexisting_flake_proven_on_exact_parent": false
+      }
+    ],
+    "clean_parent_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+    "exact_cases": 7,
+    "final_check_runs": [
+      {
+        "began_at": "2026-10-11T09:55:57.448184+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests",
+          "-k",
+          "ml_",
+          "-q"
+        ],
+        "elapsed_seconds": 60.273,
+        "exit_code": 0,
+        "label": "all-ml",
+        "log_path": "artifacts/ml0-suite-closure/all-ml.log",
+        "log_sha256": "31dacf8788b198ac1dd84a08fef4b07f3e308f80da6dbec3e9db62a2f1f76af5"
+      },
+      {
+        "began_at": "2026-10-11T09:56:57.749367+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_ml_external_evidence.py",
+          "-q"
+        ],
+        "elapsed_seconds": 3.998,
+        "exit_code": 0,
+        "label": "focused",
+        "log_path": "artifacts/ml0-suite-closure/focused.log",
+        "log_sha256": "c8e001692e911709fd1a644efd6e9e3d03d48a769ab28c6902c2d19df411a380"
+      },
+      {
+        "began_at": "2026-10-11T09:57:01.770229+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_ml_authoritative_history.py",
+          "tests/test_ml_authoritative_lineage.py",
+          "tests/test_ml_external_evidence.py",
+          "-k",
+          "privacy or personal",
+          "-q"
+        ],
+        "elapsed_seconds": 3.858,
+        "exit_code": 0,
+        "label": "privacy",
+        "log_path": "artifacts/ml0-suite-closure/privacy.log",
+        "log_sha256": "a8b53f825ff3c7c93bc84243975cb3b6e8647128915e08927b674b660ac16b65"
+      },
+      {
+        "began_at": "2026-10-11T09:57:05.645217+00:00",
+        "command": [
+          "python",
+          "-m",
+          "scripts.ml.refresh_external_evidence",
+          "verify",
+          "--first",
+          "artifacts/ml/external-evidence/final-a/refresh.json",
+          "--second",
+          "artifacts/ml/external-evidence/final-b/refresh.json",
+          "--revalidate"
+        ],
+        "elapsed_seconds": 149.154,
+        "exit_code": 0,
+        "label": "determinism",
+        "log_path": "artifacts/ml0-suite-closure/determinism.log",
+        "log_sha256": "998f3f4d99e170b3ba45358061e1d852a4180ce95ad5bde6de72b12c0f17d5dd"
+      },
+      {
+        "began_at": "2026-10-11T09:59:34.824880+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "-q",
+          "-ra",
+          "--durations=10"
+        ],
+        "elapsed_seconds": 298.171,
+        "exit_code": 0,
+        "label": "full-final",
+        "log_path": "artifacts/ml0-suite-closure/full-final.log",
+        "log_sha256": "f14063dff83fd88c02a20aa30f79af5d4a86be77102a15b91436c63ba13b2aad"
+      }
+    ],
+    "may_ml_b_begin": false,
+    "merge_ready": false,
+    "merge_ready_scope": "Local suite closure passed; PR #180 merge readiness is withheld until all required fresh GitHub checks pass after the CI dependency-contract fix. Does not authorize ML-B, production acceptance, or a merge.",
+    "method": "Serial exact node IDs; same Python/packages; alternating branch/parent order. No self-created heavy test/build job runs concurrently. Command/artifact locations are represented relative to the branch root; actual exports were private absolute locations.",
+    "paired_record_path": "artifacts/ml0-suite-closure/paired-runs.json",
+    "paired_record_sha256": "879bc23897c9a0a31f2145ce504182fa840379a6149926d7d080d2ef6c6b491f",
+    "paired_rounds": 3,
+    "paired_runs": [
+      {
+        "began_at": "2026-10-11T09:53:19.106068+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+          "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+          "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+          "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+          "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]",
+          "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+          "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-suite-closure/exact-branch-1.xml"
+        ],
+        "elapsed_seconds": 16.474,
+        "exit_code": 0,
+        "kind": "branch",
+        "log_path": "artifacts/ml0-suite-closure/exact-branch-1.log",
+        "log_sha256": "7f5fe3e8e38378f51ac16062fc38a44c9e266bf38c4c652e427536a15693623c",
+        "round": 1,
+        "tracked_status": "",
+        "xml_path": "artifacts/ml0-suite-closure/exact-branch-1.xml",
+        "xml_sha256": "008d0651a4704b4f9f8f38ca3e4596851d226e111ec4132f8e6037c705856aa6"
+      },
+      {
+        "began_at": "2026-10-11T09:53:35.697065+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+          "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+          "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+          "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+          "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]",
+          "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+          "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-suite-closure/exact-baseline-1.xml"
+        ],
+        "elapsed_seconds": 30.349,
+        "exit_code": 1,
+        "kind": "baseline",
+        "log_path": "artifacts/ml0-suite-closure/exact-baseline-1.log",
+        "log_sha256": "dc09c1fe2d1e78fac14b34ea453309f5edab2a8b1e255bbe3ecb9352c71e6fee",
+        "round": 1,
+        "tracked_status": "",
+        "xml_path": "artifacts/ml0-suite-closure/exact-baseline-1.xml",
+        "xml_sha256": "cf449c5c646b6d88c680264a9adb66603dd51f9b22a59e12c27afb9600456214"
+      },
+      {
+        "began_at": "2026-10-11T09:54:06.210496+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+          "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+          "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+          "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+          "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]",
+          "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+          "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-suite-closure/exact-baseline-2.xml"
+        ],
+        "elapsed_seconds": 15.906,
+        "exit_code": 0,
+        "kind": "baseline",
+        "log_path": "artifacts/ml0-suite-closure/exact-baseline-2.log",
+        "log_sha256": "9b5d3775cea91d66b1ad2e0aec6718a91cbc9a701edba247ff82ffd2cf65278e",
+        "round": 2,
+        "tracked_status": "",
+        "xml_path": "artifacts/ml0-suite-closure/exact-baseline-2.xml",
+        "xml_sha256": "a84af684bf7ae65d49dcd0b77362646d0733afeecd5b3fb77a0122c70fadc6ab"
+      },
+      {
+        "began_at": "2026-10-11T09:54:22.307228+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+          "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+          "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+          "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+          "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]",
+          "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+          "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-suite-closure/exact-branch-2.xml"
+        ],
+        "elapsed_seconds": 18.373,
+        "exit_code": 0,
+        "kind": "branch",
+        "log_path": "artifacts/ml0-suite-closure/exact-branch-2.log",
+        "log_sha256": "294c931bfee67058e5aec2413c3e3a93b9675bfd63dcbdb224408f231542659d",
+        "round": 2,
+        "tracked_status": "",
+        "xml_path": "artifacts/ml0-suite-closure/exact-branch-2.xml",
+        "xml_sha256": "0d970b18040715a4000b2797f12225752d6ecd55512c6ec32d1f21a6fe6e42a4"
+      },
+      {
+        "began_at": "2026-10-11T09:54:40.921208+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+          "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+          "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+          "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+          "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]",
+          "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+          "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-suite-closure/exact-branch-3.xml"
+        ],
+        "elapsed_seconds": 16.249,
+        "exit_code": 0,
+        "kind": "branch",
+        "log_path": "artifacts/ml0-suite-closure/exact-branch-3.log",
+        "log_sha256": "df0459a3b1f9167bc0049446bf7e08bf37fd995dc1331f89fe8ab0b6ec82d152",
+        "round": 3,
+        "tracked_status": "",
+        "xml_path": "artifacts/ml0-suite-closure/exact-branch-3.xml",
+        "xml_sha256": "7138602ceff762f741a0d189e6180e3f831beeadb5d50441f04548380febb2cc"
+      },
+      {
+        "began_at": "2026-10-11T09:54:57.321687+00:00",
+        "command": [
+          "python",
+          "-m",
+          "pytest",
+          "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+          "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+          "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+          "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+          "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]",
+          "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+          "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project",
+          "-q",
+          "-ra",
+          "--durations=10",
+          "--junitxml=artifacts/ml0-suite-closure/exact-baseline-3.xml"
+        ],
+        "elapsed_seconds": 16.148,
+        "exit_code": 0,
+        "kind": "baseline",
+        "log_path": "artifacts/ml0-suite-closure/exact-baseline-3.log",
+        "log_sha256": "3c91252a60652dd91087703ecd4dc3029e71786353a52e1bb22f7c42895db0f7",
+        "round": 3,
+        "tracked_status": "",
+        "xml_path": "artifacts/ml0-suite-closure/exact-baseline-3.xml",
+        "xml_sha256": "4c85ed45745b37476edb3787a7692cc2e46306621f7f33390bb07017b97f588d"
+      }
+    ],
+    "paired_test_executions": 42,
+    "plvr_timeout_seconds": 30,
+    "plvr_timing_measure": "JUnit whole-test durations including setup/call/teardown; conservative context, not isolated subprocess wall time.",
+    "product_behavior_changed": false,
+    "readiness_assertions_changed": false,
+    "remaining_final_failures": [],
+    "tested_research_sha": "229348a77a41d6bde899976fb4a8ca557b49d659",
+    "timeouts_changed": false,
+    "version": "ml0-full-suite-closure-v1"
+  },
+  "hygiene": {
+    "allowed_changes": "ML research scripts/tests/contracts/docs and development-only jsonschema dependency",
+    "diff_check": "PASS",
+    "production_database_frontend_training_changes": false,
+    "raw_storage": "Ignored artifacts only"
+  },
+  "independent_review": {
+    "critical": 0,
+    "fix_verification": "Author regression tests; corrected patch not independently re-reviewed",
+    "important": 3,
+    "important_resolved": 3,
+    "minor": 0,
+    "report": "docs/ml/external-evidence-independent-review-v1.md"
+  },
+  "may_ml_b_begin": false,
+  "metadata_acquisition": {
+    "all_retained_hashes_and_sizes_rechecked": true,
+    "attempted": 19,
+    "authenticated_historical_proofs": 0,
+    "retained": 5,
+    "tls_failures": 14
+  },
+  "pit_contiguous_months": 0,
+  "pit_usable_months": 0,
+  "privacy": {
+    "aggregate_outputs_checked": true,
+    "raw_and_personal_material_committed": false,
+    "scope": "Structural aggregate check plus manual artifact/request review; not a general PII detector. Requested supplements remain unlicensed until reviewed.",
+    "status": "PASS"
+  },
+  "real_counts": {
+    "PIT_valid": 0,
+    "approved_training": 0,
+    "chronological_viable": 0,
+    "historically_supported": 0,
+    "lineage_valid": 0,
+    "namespace_valid": 0,
+    "parking_valid": 2267,
+    "raw_observations": 37669,
+    "structurally_valid": 37668,
+    "target_valid": 2267
+  },
+  "real_inputs": {
+    "admission_policy_sha256": "6e36391a22dc5b43425fd837903b4e65f265e07dbe7a1bf2ca2085b2aeff95c0",
+    "receipt_bundle_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "receipt_contract_sha256": "5c5cd5cdd95b9c85f63697ff5870d0667cfcd179fe54c2cfc83dfec1186bb575",
+    "source_ledger_sha256": "3cc48fb6bd5d4ed23f4a8cd696eaa133e15cb05b078629df6c6225a0e13b9311",
+    "source_recovery_manifest_sha256": "017706a2da5b5dbe2fa2bbac265b3dd8077af6577d7a2ac3066bbfc36a48ab2e"
+  },
+  "real_receipt_validation": {
+    "accepted_receipts": 0,
+    "history_certificates": 0,
+    "identifier_kind": "DERIVED_RESEARCH_TRANSACTION_ID",
+    "rejected_receipts": 0,
+    "rejection_reasons": {},
+    "supplied_receipts": 0
+  },
+  "schema_check": "Draft202012Validator.check_schema: root and all four receipt definitions PASS",
+  "skipped_integration_requirements": {
+    "disposable_market_postgresql": 4,
+    "isolated_phase_2e_postgresql": 1,
+    "isolated_phase_2f_postgresql": 1,
+    "provider_disposable_loopback_postgresql": 1,
+    "ris_disposable_postgresql": 1,
+    "vnext_disposable_migration_postgresql": 1,
+    "vnext_disposable_rls_postgresql": 23
+  },
+  "starting_sha": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+  "target_a": "BLOCKED",
+  "target_b": "BLOCKED",
+  "tests": {
+    "all_ml": {
+      "collected": 425,
+      "command": "python -m pytest tests -k ml_ -q",
+      "deselected": 3273,
+      "failed": 0,
+      "failed_tests": [],
+      "log_path": "artifacts/ml0-suite-closure/all-ml.log",
+      "log_sha256": "31dacf8788b198ac1dd84a08fef4b07f3e308f80da6dbec3e9db62a2f1f76af5",
+      "passed": 425,
+      "seconds": 55.601,
+      "skipped": 0,
+      "status": "PASS",
+      "xml_path": "artifacts/ml0-suite-closure/all-ml.xml",
+      "xml_sha256": "79f0e8e38be6286a5fb30c3e873a96eab14b1b40f35326003440256ea1e621a0"
+    },
+    "focused": {
+      "collected": 51,
+      "command": "python -m pytest tests/test_ml_external_evidence.py -q",
+      "deselected": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "log_path": "artifacts/ml0-suite-closure/focused.log",
+      "log_sha256": "c8e001692e911709fd1a644efd6e9e3d03d48a769ab28c6902c2d19df411a380",
+      "passed": 51,
+      "seconds": 2.292,
+      "skipped": 0,
+      "status": "PASS",
+      "xml_path": "artifacts/ml0-suite-closure/focused.xml",
+      "xml_sha256": "0fe846d0044603b73134cd594eec1a404f2478e0b25b058ab07d5880673620a1"
+    },
+    "full_python": {
+      "collected": 3698,
+      "command": "python -m pytest -q -ra --durations=10",
+      "deselected": 0,
+      "failed": 0,
+      "failed_tests": [],
+      "log_path": "artifacts/ml0-suite-closure/full-final.log",
+      "log_sha256": "f14063dff83fd88c02a20aa30f79af5d4a86be77102a15b91436c63ba13b2aad",
+      "passed": 3666,
+      "seconds": 293.166,
+      "skipped": 32,
+      "status": "PASS",
+      "xml_path": "artifacts/ml0-suite-closure/full-final.xml",
+      "xml_sha256": "d11a9467fdbd71e908fb1ac70c6694c315b6b53629a734b07b1f21eec1460cda"
+    },
+    "historical_pre_metadata_fix_full_python": {
+      "command": "python -m pytest -q -ra",
+      "deselected": 0,
+      "failed": 4,
+      "failed_tests": [
+        "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+        "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+        "tests/test_earth_engine_worker_pool.py::test_two_active_two_queued_and_fifth_fails_closed",
+        "tests/test_plvr_provider_update.py::test_failed_acceptance_cannot_write_or_accept_any_rows[dates2]"
+      ],
+      "log_path": "artifacts/ml0-final-full-python.log",
+      "log_sha256": "fcf8e379aa31cf700995c6330bcb39092cb4128a09853399d7b8d1382d341311",
+      "passed": 3661,
+      "skipped": 32,
+      "status": "FAIL",
+      "summary": "4 failed, 3661 passed, 32 skipped, 1 warning in 994.03s (0:16:34)"
+    },
+    "historical_preclosure_failure_recheck": {
+      "command": "python -m pytest tests/test_earth_engine_worker_pool.py tests/test_plvr_provider_update.py -k 'crashed_worker_is_joined or failed_replacement_cleans or two_active_two_queued or (failed_acceptance_cannot_write and dates2)' -q",
+      "deselected": 52,
+      "failed": 2,
+      "failed_tests": [
+        "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+        "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes"
+      ],
+      "log_path": "artifacts/ml0-final-failure-recheck.log",
+      "log_sha256": "c443d8ba38e4b38100bed41be5c5cc72f31ddb324c76d75190bc99c41ce030b5",
+      "passed": 2,
+      "skipped": 0,
+      "status": "FAIL",
+      "summary": "2 failed, 2 passed, 52 deselected in 32.09s"
+    },
+    "initial_full_python": {
+      "command": "python -m pytest -q",
+      "deselected": 0,
+      "failed": 42,
+      "failed_tests": [
+        "tests/test_commute_workflow_state.py::test_commute_channels_and_journey_state_with_node",
+        "tests/test_commute_workflow_state.py::test_property_case_commute_status_is_derived_with_node",
+        "tests/test_commute_workflow_state.py::test_saved_route_evidence_is_allowlisted_with_node",
+        "tests/test_earth_engine_worker_pool.py::test_crashed_worker_is_joined_and_replaced_once_without_request_replay",
+        "tests/test_earth_engine_worker_pool.py::test_timeout_kills_worker_before_one_bounded_replacement",
+        "tests/test_earth_engine_worker_pool.py::test_failed_replacement_cleans_other_worker_and_all_pipes",
+        "tests/test_factor_localization_correctness.py::test_confidence_copy_keys_exist_in_all_4_locales",
+        "tests/test_factor_localization_correctness.py::test_location_price_title_keys_exist_in_all_4_locales",
+        "tests/test_factor_localization_correctness.py::test_confidence_en_copy_contains_confidence_semantics",
+        "tests/test_frontend_decision_report.py::test_known_low_allows_positive_headline",
+        "tests/test_frontend_decision_report.py::test_known_high_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_unknown_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_unavailable_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_error_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_not_assessed_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_limited_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_no_match_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_stored_reference_only_export_is_conservative",
+        "tests/test_frontend_property_case_decision_system.py::test_property_case_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_due_diligence.py::test_due_diligence_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_due_diligence.py::test_property_case_runtime_round_trip_with_due_diligence",
+        "tests/test_frontend_property_case_financial_lab.py::test_financial_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_timeline.py::test_timeline_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_timeline.py::test_property_case_runtime_round_trip_with_timeline_and_executive_summary",
+        "tests/test_frontend_property_case_viewing_offer.py::test_viewing_offer_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_viewing_offer.py::test_property_case_runtime_round_trip_with_viewing_offer",
+        "tests/test_frontend_risk_summary.py::test_terrain_known_low_allows_green_signal",
+        "tests/test_frontend_risk_summary.py::test_terrain_known_high_forces_red_signal",
+        "tests/test_frontend_risk_summary.py::test_green_numeric_plus_unavailable_terrain_is_not_unrestricted_green",
+        "tests/test_frontend_risk_summary.py::test_absent_terrain_is_not_unrestricted_green",
+        "tests/test_frontend_viewing_decision.py::test_case1_known_low_terrain_allows_ready",
+        "tests/test_frontend_viewing_decision.py::test_case2_known_high_terrain_clarifies_risk",
+        "tests/test_frontend_viewing_decision.py::test_case3_unknown_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case4_unavailable_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case5_error_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case6_not_assessed_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case7_limited_terrain_not_all_clear",
+        "tests/test_frontend_viewing_decision.py::test_case8_no_match_terrain_not_all_clear",
+        "tests/test_frontend_viewing_decision.py::test_case9_known_risk_dominates_terrain_uncertainty",
+        "tests/test_frontend_viewing_decision.py::test_case10_missing_critical_still_needs_more_data",
+        "tests/test_map_localization_mobile_search.py::test_map_is_localized_without_changing_provider_tile_urls",
+        "tests/test_map_localization_mobile_search.py::test_shared_surfaces_have_localized_runtime_entry_points"
+      ],
+      "log_path": "artifacts/ml0-full-python.log",
+      "log_sha256": "83d8f67527662e6a680102c0f6e41a7bbfb467e3b4879849ac782c7e5537b3f3",
+      "passed": 3617,
+      "skipped": 32,
+      "status": "FAIL",
+      "summary": "42 failed, 3617 passed, 32 skipped, 1 warning in 918.38s (0:15:18)"
+    },
+    "post_metadata_fix_full_python_initial": {
+      "collected": 3698,
+      "command": "python -m pytest -q -ra --durations=10",
+      "deselected": 0,
+      "failed": 2,
+      "failed_tests": [
+        "tests/test_earth_engine_worker_pool.py::test_result_with_wrong_request_id_or_generation_is_rejected",
+        "tests/test_earth_engine_worker_pool.py::test_manager_captures_project_once_and_never_accepts_per_request_project"
+      ],
+      "log_path": "artifacts/ml0-suite-closure/full-post-fix.log",
+      "log_sha256": "85ce4b2fe10cc4669141c6dca4022b805a835ef6bdd70d422eccab3ca26efb45",
+      "passed": 3664,
+      "seconds": 6583.208,
+      "skipped": 32,
+      "status": "FAIL",
+      "xml_path": "artifacts/ml0-suite-closure/full-post-fix.xml",
+      "xml_sha256": "3a85bf84c479949fa4d039984b39fd7a04e478b3d82ea06713804625853cdc98"
+    },
+    "privacy": {
+      "collected": 11,
+      "command": "python -m pytest tests/test_ml_authoritative_history.py tests/test_ml_authoritative_lineage.py tests/test_ml_external_evidence.py -k privacy or personal -q",
+      "deselected": 121,
+      "failed": 0,
+      "failed_tests": [],
+      "log_path": "artifacts/ml0-suite-closure/privacy.log",
+      "log_sha256": "a8b53f825ff3c7c93bc84243975cb3b6e8647128915e08927b674b660ac16b65",
+      "passed": 11,
+      "seconds": 1.976,
+      "skipped": 0,
+      "status": "PASS",
+      "xml_path": "artifacts/ml0-suite-closure/privacy.xml",
+      "xml_sha256": "36231796ebe6f474577d6ed960a5f5d40a12d02c08c41894b8cad70cc5cc94b5"
+    }
+  },
+  "version": "ml0-external-evidence-validation-v1"
+}

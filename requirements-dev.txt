@@ -1,3 +1,4 @@
 # Test tooling is separate from the Streamlit production image.
 -r requirements.txt
 pytest>=9.0.3,<10
+jsonschema>=4.26,<5

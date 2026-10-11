@@ -1,0 +1,1167 @@
+{
+  "$defs": {
+    "HistoricalPublicationReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "archive_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "contract_version": {
+          "enum": [
+            "ml-external-evidence-v1"
+          ]
+        },
+        "effective_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "evidence_bytes": {
+          "maximum": 2097152,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "exact_byte_publication_binding": {
+          "enum": [
+            true
+          ]
+        },
+        "immutable_version_id": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "license": {
+          "additionalProperties": false,
+          "properties": {
+            "reuse_scope": {
+              "enum": [
+                "RESEARCH_ONLY",
+                "OPEN_DATA_V1"
+              ]
+            },
+            "status": {
+              "enum": [
+                "RESEARCH_ALLOWED"
+              ]
+            },
+            "terms_url": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "terms_url",
+            "reuse_scope"
+          ],
+          "type": "object"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 0,
+          "type": "array"
+        },
+        "official_url": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "original_filename": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "privacy": {
+          "enum": [
+            "NON_PERSONAL"
+          ]
+        },
+        "proof_class": {
+          "enum": [
+            "AUTHENTICATED_HISTORICAL",
+            "SUPPORTED_HISTORICAL"
+          ]
+        },
+        "published_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "receipt_id": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "receipt_type": {
+          "enum": [
+            "HistoricalPublicationReceipt"
+          ]
+        },
+        "release_id": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "retained_path": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": false,
+          "properties": {
+            "county_codes": {
+              "items": {
+                "enum": [
+                  "a",
+                  "f"
+                ]
+              },
+              "maxItems": 2,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "dataset_id": {
+              "enum": [
+                "moi-plvr-existing-sale-main-25119"
+              ]
+            },
+            "release_ids": {
+              "items": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "dataset_id",
+            "county_codes",
+            "release_ids"
+          ],
+          "type": "object"
+        },
+        "source_authority": {
+          "enum": [
+            "MOI_LAND",
+            "MODA",
+            "NLSC",
+            "TAIPEI_LAND",
+            "NEW_TAIPEI_LAND",
+            "TAIPEI_BUILDING",
+            "NEW_TAIPEI_BUILDING"
+          ]
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "time_quality": {
+          "enum": [
+            "EXACT_PUBLICATION_TIME",
+            "CONSERVATIVE_UPPER_BOUND"
+          ]
+        },
+        "verification": {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "reviewer_role": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "REVIEWED_AUTHORITY"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "reviewer_role",
+            "basis"
+          ],
+          "type": "object"
+        },
+        "version": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_version",
+        "receipt_type",
+        "receipt_id",
+        "source_authority",
+        "official_url",
+        "retained_path",
+        "evidence_sha256",
+        "evidence_bytes",
+        "retrieved_at",
+        "published_at",
+        "effective_at",
+        "scope",
+        "version",
+        "limitations",
+        "synthetic",
+        "privacy",
+        "license",
+        "verification",
+        "release_id",
+        "archive_sha256",
+        "proof_class",
+        "exact_byte_publication_binding",
+        "time_quality",
+        "original_filename",
+        "immutable_version_id"
+      ],
+      "type": "object"
+    },
+    "RightsUnitMappingReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "build_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "building_objects": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "dwelling_units": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "object_id": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              "required_fraction": {
+                "items": {
+                  "pattern": "^[0-9]{1,30}$",
+                  "type": "string"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "role": {
+                "enum": [
+                  "PRIVATE_DWELLING",
+                  "COMMON_ANCILLARY"
+                ]
+              },
+              "transferred_fraction": {
+                "items": {
+                  "pattern": "^[0-9]{1,30}$",
+                  "type": "string"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "unit_id": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "object_id",
+              "role",
+              "dwelling_units",
+              "unit_id",
+              "transferred_fraction",
+              "required_fraction"
+            ],
+            "type": "object"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "type": "array"
+        },
+        "contract_version": {
+          "enum": [
+            "ml-external-evidence-v1"
+          ]
+        },
+        "effective_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "evidence_bytes": {
+          "maximum": 2097152,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "land_interests": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "required_fraction": {
+                "items": {
+                  "pattern": "^[0-9]{1,30}$",
+                  "type": "string"
+                },
+                "maxItems": 2,
+                "minItems": 2,
+                "type": "array"
+              },
+              "unit_id": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "unit_id",
+              "required_fraction"
+            ],
+            "type": "object"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "type": "array"
+        },
+        "land_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "license": {
+          "additionalProperties": false,
+          "properties": {
+            "reuse_scope": {
+              "enum": [
+                "RESEARCH_ONLY",
+                "OPEN_DATA_V1"
+              ]
+            },
+            "status": {
+              "enum": [
+                "RESEARCH_ALLOWED"
+              ]
+            },
+            "terms_url": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "terms_url",
+            "reuse_scope"
+          ],
+          "type": "object"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 0,
+          "type": "array"
+        },
+        "main_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "mapping_scope": {
+          "additionalProperties": false,
+          "properties": {
+            "archive_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "member_name": {
+              "enum": [
+                "a_lvr_land_a.csv",
+                "f_lvr_land_a.csv"
+              ]
+            },
+            "physical_row_number": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "schema_sha256": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "archive_sha256",
+            "member_name",
+            "physical_row_number",
+            "schema_sha256"
+          ],
+          "type": "object"
+        },
+        "occurrence_id": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "official_url": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "privacy": {
+          "enum": [
+            "NON_PERSONAL"
+          ]
+        },
+        "published_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "receipt_id": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "receipt_type": {
+          "enum": [
+            "RightsUnitMappingReceipt"
+          ]
+        },
+        "registered_unit_count": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "retained_path": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": false,
+          "properties": {
+            "county_codes": {
+              "items": {
+                "enum": [
+                  "a",
+                  "f"
+                ]
+              },
+              "maxItems": 2,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "dataset_id": {
+              "enum": [
+                "moi-plvr-existing-sale-main-25119"
+              ]
+            },
+            "release_ids": {
+              "items": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "dataset_id",
+            "county_codes",
+            "release_ids"
+          ],
+          "type": "object"
+        },
+        "source_authority": {
+          "enum": [
+            "MOI_LAND",
+            "MODA",
+            "NLSC",
+            "TAIPEI_LAND",
+            "NEW_TAIPEI_LAND",
+            "TAIPEI_BUILDING",
+            "NEW_TAIPEI_BUILDING"
+          ]
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "verification": {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "reviewer_role": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "REVIEWED_AUTHORITY"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "reviewer_role",
+            "basis"
+          ],
+          "type": "object"
+        },
+        "version": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_version",
+        "receipt_type",
+        "receipt_id",
+        "source_authority",
+        "official_url",
+        "retained_path",
+        "evidence_sha256",
+        "evidence_bytes",
+        "retrieved_at",
+        "published_at",
+        "effective_at",
+        "scope",
+        "version",
+        "limitations",
+        "synthetic",
+        "privacy",
+        "license",
+        "verification",
+        "occurrence_id",
+        "main_sha256",
+        "build_sha256",
+        "land_sha256",
+        "mapping_scope",
+        "registered_unit_count",
+        "building_objects",
+        "land_interests"
+      ],
+      "type": "object"
+    },
+    "TransactionLineageReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "complete_cancellation_history": {
+          "enum": [
+            true
+          ]
+        },
+        "complete_revision_history": {
+          "enum": [
+            true
+          ]
+        },
+        "contract_version": {
+          "enum": [
+            "ml-external-evidence-v1"
+          ]
+        },
+        "cutoff": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "effective_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "events": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "archive_sha256": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "cancelled": {
+                "type": "boolean"
+              },
+              "duplicate_of_occurrence_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "effective_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "event_kind": {
+                "enum": [
+                  "ORIGINAL",
+                  "REVISION",
+                  "CANCELLATION",
+                  "REPLACEMENT",
+                  "DUPLICATE_RELEASE"
+                ]
+              },
+              "later_version_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "occurrence_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "previous_version_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "published_at": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "reason_public": {
+                "maxLength": 2048,
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "release_id": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              "replaces_family_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "version_id": {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "event_kind",
+              "occurrence_id",
+              "version_id",
+              "previous_version_id",
+              "later_version_id",
+              "release_id",
+              "archive_sha256",
+              "effective_at",
+              "published_at",
+              "cancelled",
+              "replaces_family_id",
+              "duplicate_of_occurrence_id",
+              "reason_public"
+            ],
+            "type": "object"
+          },
+          "maxItems": 100000,
+          "minItems": 0,
+          "type": "array"
+        },
+        "evidence_bytes": {
+          "maximum": 2097152,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "license": {
+          "additionalProperties": false,
+          "properties": {
+            "reuse_scope": {
+              "enum": [
+                "RESEARCH_ONLY",
+                "OPEN_DATA_V1"
+              ]
+            },
+            "status": {
+              "enum": [
+                "RESEARCH_ALLOWED"
+              ]
+            },
+            "terms_url": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "terms_url",
+            "reuse_scope"
+          ],
+          "type": "object"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 0,
+          "type": "array"
+        },
+        "official_url": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "privacy": {
+          "enum": [
+            "NON_PERSONAL"
+          ]
+        },
+        "published_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "receipt_id": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "receipt_type": {
+          "enum": [
+            "TransactionLineageReceipt"
+          ]
+        },
+        "replacement_links_complete": {
+          "enum": [
+            true
+          ]
+        },
+        "retained_path": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": false,
+          "properties": {
+            "county_codes": {
+              "items": {
+                "enum": [
+                  "a",
+                  "f"
+                ]
+              },
+              "maxItems": 2,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "dataset_id": {
+              "enum": [
+                "moi-plvr-existing-sale-main-25119"
+              ]
+            },
+            "release_ids": {
+              "items": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "dataset_id",
+            "county_codes",
+            "release_ids"
+          ],
+          "type": "object"
+        },
+        "source_authority": {
+          "enum": [
+            "MOI_LAND",
+            "MODA",
+            "NLSC",
+            "TAIPEI_LAND",
+            "NEW_TAIPEI_LAND",
+            "TAIPEI_BUILDING",
+            "NEW_TAIPEI_BUILDING"
+          ]
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "verification": {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "reviewer_role": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "REVIEWED_AUTHORITY"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "reviewer_role",
+            "basis"
+          ],
+          "type": "object"
+        },
+        "version": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "visible_ledger_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_version",
+        "receipt_type",
+        "receipt_id",
+        "source_authority",
+        "official_url",
+        "retained_path",
+        "evidence_sha256",
+        "evidence_bytes",
+        "retrieved_at",
+        "published_at",
+        "effective_at",
+        "scope",
+        "version",
+        "limitations",
+        "synthetic",
+        "privacy",
+        "license",
+        "verification",
+        "cutoff",
+        "visible_ledger_sha256",
+        "complete_revision_history",
+        "complete_cancellation_history",
+        "replacement_links_complete",
+        "events"
+      ],
+      "type": "object"
+    },
+    "TransactionNamespaceAuthority": {
+      "additionalProperties": false,
+      "properties": {
+        "ambiguous": {
+          "enum": [
+            false
+          ]
+        },
+        "cancellation_key_policy": {
+          "enum": [
+            "TOMBSTONE"
+          ]
+        },
+        "contract_version": {
+          "enum": [
+            "ml-external-evidence-v1"
+          ]
+        },
+        "correction_key_policy": {
+          "enum": [
+            "PRESERVE",
+            "EXPLICIT_MAPPING"
+          ]
+        },
+        "effective_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "evidence_bytes": {
+          "maximum": 2097152,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "identifier_field": {
+          "enum": [
+            "編號"
+          ]
+        },
+        "license": {
+          "additionalProperties": false,
+          "properties": {
+            "reuse_scope": {
+              "enum": [
+                "RESEARCH_ONLY",
+                "OPEN_DATA_V1"
+              ]
+            },
+            "status": {
+              "enum": [
+                "RESEARCH_ALLOWED"
+              ]
+            },
+            "terms_url": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "terms_url",
+            "reuse_scope"
+          ],
+          "type": "object"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 0,
+          "type": "array"
+        },
+        "official_url": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "privacy": {
+          "enum": [
+            "NON_PERSONAL"
+          ]
+        },
+        "published_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "receipt_id": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "receipt_type": {
+          "enum": [
+            "TransactionNamespaceAuthority"
+          ]
+        },
+        "replacement_key_policy": {
+          "enum": [
+            "EXPLICIT_MAPPING"
+          ]
+        },
+        "retained_path": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": false,
+          "properties": {
+            "county_codes": {
+              "items": {
+                "enum": [
+                  "a",
+                  "f"
+                ]
+              },
+              "maxItems": 2,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "dataset_id": {
+              "enum": [
+                "moi-plvr-existing-sale-main-25119"
+              ]
+            },
+            "release_ids": {
+              "items": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "dataset_id",
+            "county_codes",
+            "release_ids"
+          ],
+          "type": "object"
+        },
+        "serial_reuse_policy": {
+          "enum": [
+            "NO_REUSE"
+          ]
+        },
+        "source_authority": {
+          "enum": [
+            "MOI_LAND",
+            "MODA",
+            "NLSC",
+            "TAIPEI_LAND",
+            "NEW_TAIPEI_LAND",
+            "TAIPEI_BUILDING",
+            "NEW_TAIPEI_BUILDING"
+          ]
+        },
+        "stable_across_releases": {
+          "enum": [
+            true
+          ]
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "verification": {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "reviewer_role": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "REVIEWED_AUTHORITY"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "reviewer_role",
+            "basis"
+          ],
+          "type": "object"
+        },
+        "version": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_version",
+        "receipt_type",
+        "receipt_id",
+        "source_authority",
+        "official_url",
+        "retained_path",
+        "evidence_sha256",
+        "evidence_bytes",
+        "retrieved_at",
+        "published_at",
+        "effective_at",
+        "scope",
+        "version",
+        "limitations",
+        "synthetic",
+        "privacy",
+        "license",
+        "verification",
+        "identifier_field",
+        "stable_across_releases",
+        "correction_key_policy",
+        "cancellation_key_policy",
+        "replacement_key_policy",
+        "serial_reuse_policy",
+        "ambiguous"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "urn:proptech:ml-external-evidence:v1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Reviewed input shapes only. Runtime additionally validates retained bytes, source authority, temporal/event/object bindings. Synthetic test positives never enter the real CLI.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/HistoricalPublicationReceipt"
+    },
+    {
+      "$ref": "#/$defs/TransactionNamespaceAuthority"
+    },
+    {
+      "$ref": "#/$defs/TransactionLineageReceipt"
+    },
+    {
+      "$ref": "#/$defs/RightsUnitMappingReceipt"
+    }
+  ]
+}

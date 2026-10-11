@@ -1,0 +1,159 @@
+{
+  "bounded_scope": "19 selected public metadata URLs, no transaction/API crawl; indexed leads labeled separately.",
+  "research_date_taipei": "2026-10-11",
+  "sources": [
+    {
+      "authority": "MOI_LAND",
+      "license_note": "Catalog Open Government Data License v1; requested products reviewed separately.",
+      "official_url": "https://plvr.land.moi.gov.tw/DownloadOpenData",
+      "purpose": "Current static release mechanism; not historical byte attestation.",
+      "source_id": "plvr-open",
+      "title": "PLVR static Open Data"
+    },
+    {
+      "authority": "MOI_LAND",
+      "license_note": "Service-specific terms; not blanket commercial reuse approval.",
+      "official_url": "https://plvr.land.moi.gov.tw/Index",
+      "purpose": "Public downloads versus application/login route.",
+      "source_id": "plvr-supply",
+      "title": "PLVR supply and applications"
+    },
+    {
+      "authority": "MOI_LAND",
+      "license_note": "Official explanatory page; dataset license is separate.",
+      "official_url": "https://lvr.land.moi.gov.tw/jsp/qa.jsp",
+      "purpose": "Area/parking disclosure semantics; cannot prove registered unit/right mapping.",
+      "source_id": "plvr-faq",
+      "title": "PLVR FAQ"
+    },
+    {
+      "authority": "MOI_LAND",
+      "license_note": "Government Open Data License v1 displayed by catalog.",
+      "official_url": "https://data.gov.tw/dataset/25119",
+      "purpose": "Publisher, update schedule, schemas and public-batch license.",
+      "source_id": "catalog-sale",
+      "title": "Dataset 25119"
+    },
+    {
+      "authority": "MOI_LAND",
+      "license_note": "Government Open Data License v1 displayed by catalog.",
+      "official_url": "https://data.gov.tw/dataset/77051",
+      "purpose": "Current all-transaction product metadata, not archived versions.",
+      "source_id": "catalog-all",
+      "title": "Dataset 77051"
+    },
+    {
+      "authority": "MODA",
+      "license_note": "Metadata terms; individual archived resources need separate scope checks.",
+      "official_url": "https://data.gov.tw/datasets/history",
+      "purpose": "Bounded archive discovery; no exact PLVR 112S3/115S2 proof found on inspected page.",
+      "source_id": "catalog-history",
+      "title": "Historical catalog area"
+    },
+    {
+      "authority": "MODA",
+      "license_note": "Government Open Data License v1; excludes rights not covered by license.",
+      "official_url": "https://data.gov.tw/licenses",
+      "purpose": "Public license boundary and attribution; no extension to requested records.",
+      "source_id": "catalog-license",
+      "title": "Open Data license"
+    },
+    {
+      "authority": "MOI_LAND",
+      "license_note": "Current explanatory metadata; named unit treated as indexed lead pending owner routing verification.",
+      "official_url": "https://www.moi.gov.tw/News_toggle3.aspx?n=8357&sms=11281",
+      "purpose": "Search-index lead identifies 地政資訊作業科; live page inspected but exact entry not located.",
+      "source_id": "moi-faq",
+      "title": "MOI FAQ application route"
+    },
+    {
+      "authority": "MOI_LAND",
+      "license_note": "Indexed form limits purpose and third-party/commercial reuse; current acceptance/terms require confirmation.",
+      "official_url": "https://ws.moi.gov.tw/Download.ashx?n=55Sz6KuL6KGoLnBkZg%3D%3D&u=LzAwMS9VcGxvYWQvT2xkRmlsZS9zaXRlX25vZGVfZmlsZS81OTEyL%2BeUs%2Biri%2BihqC5wZGY%3D",
+      "purpose": "Government-information request fallback, blank form only.",
+      "source_id": "moi-form",
+      "title": "Official information application template"
+    },
+    {
+      "authority": "NLSC",
+      "license_note": "Viewing availability does not establish bulk reuse terms.",
+      "official_url": "https://www.nlsc.gov.tw/cp.aspx?n=16732",
+      "purpose": "Public viewing and geographic context; no registry entitlement proof.",
+      "source_id": "nlsc-cloud",
+      "title": "Map cloud description"
+    },
+    {
+      "authority": "NLSC",
+      "license_note": "Product-specific application/use and fee terms; unknown for requested historical mapping.",
+      "official_url": "https://www.nlsc.gov.tw/cp.aspx?n=16739",
+      "purpose": "Certificate login and application channels.",
+      "source_id": "nlsc-store",
+      "title": "Map store application"
+    },
+    {
+      "authority": "NLSC",
+      "license_note": "Service-specific terms, not PLVR rights linkage.",
+      "official_url": "https://maps.nlsc.gov.tw/S09SOA/homePage.action?Language=ZH",
+      "purpose": "Distinguish public map endpoints from reviewed subscription services.",
+      "source_id": "nlsc-api",
+      "title": "Service application description"
+    },
+    {
+      "authority": "TAIPEI_LAND",
+      "license_note": "Registration excerpts require separate purpose/privacy/reuse review.",
+      "official_url": "https://land.gov.taipei/Content_List.aspx?n=D37BA350BBD48584",
+      "purpose": "Local transcript/application routes; eligibility varies by class.",
+      "source_id": "taipei-transcript",
+      "title": "Taipei registration transcript services"
+    },
+    {
+      "authority": "TAIPEI_LAND",
+      "license_note": "No assumption of personal-data-free transcripts or bulk redistribution.",
+      "official_url": "https://land.gov.taipei/cp.aspx?n=D590300A57853E80",
+      "purpose": "Second-class transcript may retain personal information; request non-personal extracts.",
+      "source_id": "taipei-privacy",
+      "title": "Partial address suppression"
+    },
+    {
+      "authority": "NEW_TAIPEI_LAND",
+      "license_note": "Request deidentified lineage under separately specified reuse terms.",
+      "official_url": "https://www.tamsui.land.ntpc.gov.tw/cp.aspx?n=14312",
+      "purpose": "Correction procedure exists; does not expose public version/tombstone feed.",
+      "source_id": "ntpc-correction",
+      "title": "Correction application description"
+    },
+    {
+      "authority": "NEW_TAIPEI_LAND",
+      "license_note": "Official explanatory page; source registry mapping rights remain unproven.",
+      "official_url": "https://www.land.ntpc.gov.tw/News_Content.aspx?n=2&s=40576",
+      "purpose": "Common portions may receive distinct building numbers; not automatically separate dwellings.",
+      "source_id": "ntpc-common",
+      "title": "Exclusive/common drawings"
+    },
+    {
+      "authority": "NEW_TAIPEI_LAND",
+      "license_note": "License applicability not established by inspected dynamic page.",
+      "official_url": "https://data.ntpc.gov.tw/datasets/ACCE802D-58CC-4DFF-9E7A-9ECC517F78BE",
+      "purpose": "Local field lead includes 移轉編號; field presence does not prove stable namespace.",
+      "source_id": "ntpc-catalog",
+      "title": "Local sale Open Data"
+    },
+    {
+      "authority": "TAIPEI_BUILDING",
+      "license_note": "Specific permit-copy reuse/privacy review required.",
+      "official_url": "https://cmo.gov.taipei/News_toggle.aspx?PageSize=20&n=961284F845E9477B&page=5&sms=87415A8B9CE81B16",
+      "purpose": "Permit copy/query application context; permit is not ownership/transfer proof.",
+      "source_id": "taipei-building",
+      "title": "Building administration FAQ"
+    },
+    {
+      "authority": "NEW_TAIPEI_BUILDING",
+      "license_note": "Page has copyright reservation; historical non-personal extract license UNKNOWN.",
+      "official_url": "https://service.ntpc.gov.tw/eservice/CaseData.action?itemId=106036",
+      "purpose": "Confirms 工務局施工科使照股 for issuance; NOT a confirmed historical-copy request endpoint.",
+      "source_id": "ntpc-building",
+      "title": "Occupancy permit issuance"
+    }
+  ],
+  "version": "ml0-official-source-registry-v1"
+}

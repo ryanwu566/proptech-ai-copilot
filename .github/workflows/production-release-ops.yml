@@ -34,7 +34,7 @@ jobs:
           cache-dependency-path: frontend_next/package-lock.json
       - name: Install dependencies
         run: |
-          python -m pip install -r backend/requirements.txt "pytest>=8,<9"
+          python -m pip install -r requirements-dev.txt
           npm ci --prefix frontend_next
       - name: Run complete Python suite
         run: python -m pytest -q --basetemp "${RUNNER_TEMP}/production-release-pytest"
