@@ -1,0 +1,266 @@
+{
+  "blockers": [
+    {
+      "acquired_status": "NO_AUTHENTICATED_HISTORICAL_PROOF",
+      "api_download_request_form": [
+        "https://plvr.land.moi.gov.tw/DownloadSeason?season=112S3&type=zip&fileName=lvr_landcsv.zip",
+        "https://plvr.land.moi.gov.tw/DownloadSeason?season=115S2&type=zip&fileName=lvr_landcsv.zip",
+        "https://plvr.land.moi.gov.tw/Index"
+      ],
+      "blocker": "E1",
+      "current_public_url": "https://plvr.land.moi.gov.tw/DownloadOpenData",
+      "expected_fields": [
+        "release_id",
+        "original_filename",
+        "archive_url",
+        "immutable_version_id",
+        "byte_size",
+        "checksum_algorithm",
+        "checksum",
+        "publication_manifest",
+        "replacement_release",
+        "attestation_basis",
+        "limitations"
+      ],
+      "expected_format": "Original ZIP; UTF-8 CSV/JSON release ledger/manifest; signed letter/PDF if originals unavailable.",
+      "expected_timestamps": [
+        "original_publication_at",
+        "generated_at",
+        "withdrawn_at",
+        "replaced_at",
+        "attestation_issued_at",
+        "retrieved_at",
+        "timezone",
+        "precision"
+      ],
+      "historical_mechanism": "Current quarterly/dated download routes do not attest original bytes or original publication. Request provider release log, retained original ZIPs and signed hash/time binding.",
+      "licensing_reuse": "Catalog public batch lists Government Open Data License v1; requested proof/raw historical product terms must be confirmed separately. No project-wide commercial right claimed.",
+      "login_application": "Public quarterly files: no login. Special/historical attestation: application; electronic supply may require login/payment/review.",
+      "personal_data": "Public batches contain property location/notes and potentially identifying material; metadata request excludes parties. No new transaction download in ML-0.",
+      "product": "PLVR 25119 sale batch; exact archived quarterly/dated-release bytes or official attestation",
+      "public_unit": "地政司; 地政資訊作業科 is an indexed official FAQ lead, not independently confirmed on live page",
+      "request_channel": "R1; formal MOI information application by published written route; supply system for routing/special product applications",
+      "responsible_body": "內政部",
+      "source_ids": [
+        "plvr-open",
+        "plvr-supply",
+        "catalog-sale",
+        "catalog-all",
+        "moi-form"
+      ]
+    },
+    {
+      "acquired_status": "UNPROVEN_STABLE_NAMESPACE; identifier remains DERIVED_RESEARCH_TRANSACTION_ID",
+      "api_download_request_form": [
+        "https://plvr.land.moi.gov.tw/Index",
+        "https://data.ntpc.gov.tw/datasets/ACCE802D-58CC-4DFF-9E7A-9ECC517F78BE"
+      ],
+      "blocker": "E2",
+      "current_public_url": "https://data.gov.tw/dataset/25119",
+      "expected_fields": [
+        "namespace",
+        "identifier_field",
+        "county_scope",
+        "uniqueness_scope",
+        "serial_reuse_policy",
+        "correction_key_policy",
+        "cancellation_key_policy",
+        "replacement_key_policy",
+        "quarterly_full_refresh_stability"
+      ],
+      "expected_format": "Versioned official field dictionary/specification; CSV/JSON non-personal alias mappings; signed response.",
+      "expected_timestamps": [
+        "rule_effective_from",
+        "rule_effective_to",
+        "specification_publication_at",
+        "mapping_effective_at",
+        "attestation_issued_at"
+      ],
+      "historical_mechanism": "Embedded schema/catalog field presence; no reviewed stability/reuse/correction namespace specification acquired.",
+      "licensing_reuse": "Normative specification and mapping terms require explicit review; Open Data catalog license alone does not supply stability or mapping authority.",
+      "login_application": "Catalog metadata public; normative rule/attestation request requires application. No observed public identity-semantics API.",
+      "personal_data": "No identity of buyers/sellers requested. Transaction tokens remain private even if publicly disclosed.",
+      "product": "Official 編號/移轉編號 namespace specification and cross-release/key-change policy",
+      "public_unit": "地政司；轄管地政事務所",
+      "request_channel": "R2 via MOI formal information application; request local authoritative clarification when appropriate.",
+      "responsible_body": "內政部；地方地政局協助",
+      "source_ids": [
+        "catalog-sale",
+        "ntpc-catalog",
+        "plvr-open"
+      ]
+    },
+    {
+      "acquired_status": "REVISION/CANCELLATION/REPLACEMENT_AUTHORITY_UNAVAILABLE_IN_BOUNDED_RESEARCH",
+      "api_download_request_form": [
+        "https://plvr.land.moi.gov.tw/Index",
+        "https://www.tamsui.land.ntpc.gov.tw/cp.aspx?n=14312"
+      ],
+      "blocker": "E3",
+      "current_public_url": "https://www.tamsui.land.ntpc.gov.tw/cp.aspx?n=14312",
+      "expected_fields": [
+        "event_id",
+        "event_kind",
+        "source_release",
+        "archive_hash",
+        "previous_version_id",
+        "later_version_id",
+        "duplicate_of_occurrence",
+        "cancellation_status",
+        "replacement_relation",
+        "public_reason_code",
+        "complete_history_scope",
+        "known_gaps"
+      ],
+      "expected_format": "UTF-8 JSONL/CSV event ledger with dictionary; signed scope/completeness attestation.",
+      "expected_timestamps": [
+        "event_effective_at",
+        "event_first_publication_at",
+        "withdrawal_at",
+        "replacement_at",
+        "certificate_cutoff",
+        "attestation_issued_at"
+      ],
+      "historical_mechanism": "Official correction procedure confirmed; procedure does not reveal public event ledger/tombstones or immutable before/after bytes.",
+      "licensing_reuse": "Non-personal lineage extract reuse UNKNOWN until written response; source procedure is not an Open Data grant.",
+      "login_application": "Correction application limited to entitled parties/agents; research requests ask existing non-personal event extracts, not private contracts. No complete public feed verified.",
+      "personal_data": "Private correction forms/contracts contain parties; not acquired. Ask agency-prepared non-personal metadata.",
+      "product": "Authoritative original/revision/cancellation/replacement/duplicate event stream and completeness certificates",
+      "public_unit": "地政司；交易標的轄管地政事務所",
+      "request_channel": "R2 MOI; local land office referral via R3/R4. Do not submit a party correction request as a researcher.",
+      "responsible_body": "內政部；臺北市及新北市地政局",
+      "source_ids": [
+        "ntpc-correction",
+        "plvr-open",
+        "plvr-faq"
+      ]
+    },
+    {
+      "acquired_status": "CONTINUITY_UNPROVEN",
+      "api_download_request_form": [
+        "https://data.gov.tw/dataset/25119",
+        "https://data.gov.tw/datasets/history",
+        "https://plvr.land.moi.gov.tw/DownloadOpenData"
+      ],
+      "blocker": "E4",
+      "current_public_url": "https://data.gov.tw/datasets/history",
+      "expected_fields": [
+        "all_release_ids",
+        "archive_hash",
+        "predecessor_release",
+        "later_release",
+        "supersession_relation",
+        "publication_manifest_hash",
+        "coverage_begin",
+        "coverage_end",
+        "gaps",
+        "retention_policy"
+      ],
+      "expected_format": "CSV/JSON manifests, original archived ZIPs, signed completeness response.",
+      "expected_timestamps": [
+        "publication_at",
+        "version_effective_at",
+        "fold_freeze_at",
+        "complete_through",
+        "withdrawal_at",
+        "replacement_at"
+      ],
+      "historical_mechanism": "Inspected history catalog landing contains no recovered exact PLVR proof; not an exhaustive archive search. Original 1/11/21 snapshots and quarter refresh continuity must come from provider.",
+      "licensing_reuse": "Catalog metadata and public batch v1 license are distinct from requested release logs/attestations; applicability UNKNOWN for requested products.",
+      "login_application": "Catalog/landing public; catalog comment login; complete provider version ledger requires request.",
+      "personal_data": "Release-level metadata can be non-personal. No individual contacts required.",
+      "product": "Complete release manifest/version continuity for every fold and availability dependency",
+      "public_unit": "地政司；平臺非PLVR版本權責機關",
+      "request_channel": "R1 MOI; data.gov.tw dataset feedback for routing only (login required for comments).",
+      "responsible_body": "內政部；政府資料開放平臺作目錄轉介",
+      "source_ids": [
+        "catalog-history",
+        "catalog-sale",
+        "catalog-all",
+        "plvr-open"
+      ]
+    },
+    {
+      "acquired_status": "NO_AUTHORITATIVE_RIGHTS_UNIT_MAPPING; all 1,440 multi-portion candidates remain unresolved",
+      "api_download_request_form": [
+        "https://www.land.ntpc.gov.tw/",
+        "https://www.nlsc.gov.tw/cp.aspx?n=16739",
+        "https://maps.nlsc.gov.tw/S09SOA/homePage.action?Language=ZH",
+        "https://cmo.gov.taipei/News_toggle.aspx?PageSize=20&n=961284F845E9477B&page=5&sms=87415A8B9CE81B16",
+        "https://service.ntpc.gov.tw/eservice/CaseData.action?itemId=106036"
+      ],
+      "blocker": "E5",
+      "current_public_url": "https://land.gov.taipei/Content_List.aspx?n=D37BA350BBD48584",
+      "expected_fields": [
+        "registered_unit_count",
+        "dwelling_unit_token",
+        "building_object_token",
+        "object_role",
+        "main_accessory_common_link",
+        "required_right_fraction",
+        "transferred_right_fraction",
+        "PLVR_release_hash_row_binding",
+        "address_unit_token",
+        "mapping_basis",
+        "limitations"
+      ],
+      "expected_format": "Non-personal CSV/JSON authority-prepared mappings, registered marking extract or signed correspondence. Geospatial/permit files only if necessary and separately authorized.",
+      "expected_timestamps": [
+        "registration_effective_at",
+        "mapping_publication_at",
+        "historical_valid_from",
+        "historical_valid_to",
+        "permit_issued_at",
+        "revised_at",
+        "retrieved_at"
+      ],
+      "historical_mechanism": "Current maps/transcripts/permits cannot establish historical unit or rights transfer. Request historical registered marking/role/rights linkage, originals/official attestation.",
+      "licensing_reuse": "Transcript/object/rights/permit extract reuse UNKNOWN. NLSC viewing terms do not confer rights-unit evidence or unrestricted bulk reuse. Third-class transcripts not assumed non-personal.",
+      "login_application": "Land excerpts: application/fees/class entitlement; NLSC public viewer no login, map-store certificate/login or written purchase; permit historical non-personal extract entitlement/route unconfirmed. No entitlement inferred for project.",
+      "personal_data": "Ordinary transcripts/permit files can expose owners/applicants/contacts. Do not download these; require agency-redacted property-only extract.",
+      "product": "Non-personal registration/marking extracts, object/required-interest mappings, permit role/version supplements",
+      "public_unit": "轄管地政事務所；臺北建管處適用資料保管單位未確認；新北工務局施工科使照股為核發業務公開單位，歷史摘錄承辦待轉介",
+      "request_channel": "R3/R4 local land authorities first; R6/R7 permit supplements and R5 NLSC referral/product history.",
+      "responsible_body": "臺北市地政局／建築管理工程處；新北市地政局／工務局；NLSC作圖資與權責輔助",
+      "source_ids": [
+        "taipei-transcript",
+        "taipei-privacy",
+        "ntpc-common",
+        "nlsc-cloud",
+        "nlsc-store",
+        "nlsc-api",
+        "taipei-building",
+        "ntpc-building"
+      ]
+    }
+  ],
+  "common": {
+    "non_personal_fulfillment": "Request authority-prepared non-personal extracts/attestations. Feasibility and lawful entitlement await authority response; not presumed.",
+    "priority_periods": [
+      "112S3",
+      "115S2"
+    ],
+    "privacy": "No owner/party names, national IDs, phone/email/contact/party details. Official deidentified object/transaction tokens preferred; committed output aggregates only.",
+    "requested_periods": [
+      "111S3",
+      "111S4",
+      "112S1",
+      "112S2",
+      "112S3",
+      "112S4",
+      "113S1",
+      "113S2",
+      "113S3",
+      "113S4",
+      "114S1",
+      "114S2",
+      "114S3",
+      "114S4",
+      "115S1",
+      "115S2"
+    ],
+    "scope": "Taipei/New Taipei public existing-home sale; transactions 2022-07-01 through 2026-06-30; version/publication history through explicit 2026-10-11 attestation cutoff.",
+    "timestamp_rule": "Publication, registration/effectivity, revision, withdrawal, replacement and capture are distinct. Quarter labels, transaction dates, local mtime and metadata updates do not prove historical bytes."
+  },
+  "version": "ml0-external-acquisition-map-v1"
+}

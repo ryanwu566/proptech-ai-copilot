@@ -23,11 +23,16 @@ MEMBERS = ('a_lvr_land_a.csv', 'f_lvr_land_a.csv')
 CONTRACT_PATH = s.ROOT/'docs/ml/contracts/observed-transaction-target-v1.json'
 
 
-def stage_sources(preflight: dict, downloads: list[dict], observation_at: str) -> tuple[list, dict, dict]:
+def stage_sources(preflight: dict, downloads: list[dict], observation_at: str,
+                  *, required_releases: tuple[str, ...] = ('112S3', '115S2')) -> tuple[list, dict, dict]:
     """Reuse verified recovery, strict raw parser and existing evidence classifiers."""
+    if (not isinstance(required_releases, tuple) or not 1 <= len(required_releases) <= 17
+            or any(not isinstance(x, str) for x in required_releases)
+            or len(set(required_releases)) != len(required_releases)):
+        raise ValueError('bounded_release_scope_required')
     manifest = r.build_manifest(preflight, downloads)
     recovered = [x for x in manifest['sources'] if x['checksum_status'] == 'EXACT_MATCH' and x['package_valid']]
-    if {x['release_version'] for x in recovered} != {'112S3', '115S2'} or len(recovered) != 2:
+    if {x['release_version'] for x in recovered} != set(required_releases) or len(recovered) != len(required_releases):
         raise ValueError('exact_bounded_two_release_scope_required')
     acquisition_hash = l.digest(manifest)
     items, bindings, joins, bounds = [], [], [], []

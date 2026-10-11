@@ -28,7 +28,7 @@ def test_workflow_is_read_only_and_bounded() -> None:
     assert "fetch-depth: 1" in WORKFLOW
     assert "persist-credentials: false" in WORKFLOW
     assert "Install test dependencies" in WORKFLOW
-    assert 'python -m pip install "pytest>=8,<9"' in WORKFLOW
+    assert "python -m pip install -r requirements-dev.txt" in WORKFLOW
     assert "python -m pytest -q --basetemp \"${RUNNER_TEMP}/release-quality-pytest\"" in WORKFLOW
     assert "npm --prefix frontend_next run build" in WORKFLOW
     assert "python scripts/release_quality_gate.py --skip-tests --skip-frontend-build" in WORKFLOW

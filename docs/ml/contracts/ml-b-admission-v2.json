@@ -1,0 +1,29 @@
+{
+  "version": "ml-b-admission-v2-frozen-2026-10-11",
+  "minimum_pit_rows": 840,
+  "minimum_usable_months": 21,
+  "minimum_contiguous_months": 21,
+  "minimum_month_rows": 40,
+  "minimum_city_month_rows": 20,
+  "required_cities": ["臺北市", "新北市"],
+  "block_months": {"TRAIN": 12, "VALIDATION": 3, "CALIBRATION": 3, "TEST": 3},
+  "minimum_city_block_rows": {"TRAIN": 240, "VALIDATION": 60, "CALIBRATION": 60, "TEST": 60},
+  "minimum_district_type_block_rows": 20,
+  "target_a_contract": "residential-unit-ntd-ping-log-v1",
+  "target_b_contract": "observed-residential-transfer-ntd-ping-v1",
+  "historical_publication_coverage": "100_PERCENT_OF_ADMITTED_VERSIONS_AND_DEPENDENCIES",
+  "lineage_coverage": "100_PERCENT_COMPLETE_VISIBLE_HISTORY_AT_EACH_FREEZE",
+  "separation": "DISJOINT_ORDERED_CALENDAR_BLOCKS_AND_FAMILIES; STRICT_PRE_FREEZE_AVAILABILITY",
+  "privacy_required": true,
+  "independent_byte_determinism_required": true,
+  "assumptions": [
+    "Retains existing 21-month contiguous four-block maturity gate and district/type minimum of 20 per block.",
+    "Two city-month cells with at least 20 rows yield at least 40 per month and 840 over 21 months.",
+    "Twenty observations is a feasibility floor for exposing subgroup sparsity, not an accuracy or statistical-power claim.",
+    "Twelve train months cover one annual cycle; validation/calibration/test each cover three successive months.",
+    "No temporal embargo can substitute for known publication lag, complete lineage and cutoff-specific certificates.",
+    "A larger sample and a prospective power analysis may be needed for ML-B; minimum thresholds never loosen to obtain PASS.",
+    "Additional train months may precede the fixed last nine months; every included calendar month must satisfy both-city coverage.",
+    "Requested historical transaction scope is 2022-07 through 2026-06, with release/version history from inception through the attested observation cutoff."
+  ]
+}
