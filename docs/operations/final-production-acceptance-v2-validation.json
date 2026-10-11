@@ -1,0 +1,4406 @@
+{
+  "schema_version": "final-production-acceptance-validation-v1",
+  "acceptance_iteration": "v2",
+  "acceptance_timestamp": "2026-10-11T13:16:41.130232+08:00",
+  "candidate": {
+    "head": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+    "branch": "release/final-production-acceptance-v2",
+    "origin_main": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+    "remote_main": "c9ab5f61a45f7f704326af66cb0bea02740b9927\trefs/heads/main",
+    "message": "Merge pull request #175 from ryanwu566/feat/comparable-explanation-v1",
+    "node": "v24.14.1",
+    "npm": "11.11.0",
+    "verified_at": "2026-10-11T13:05:19.107557+08:00",
+    "python": "3.13.14",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "initial_worktree_clean": true
+  },
+  "hosted": {
+    "observations": [
+      {
+        "label": "frontend",
+        "url": "https://proptech-ai-copilot.vercel.app/release-version",
+        "observed_at": "2026-10-11T04:48:20.257946+00:00",
+        "request_limit": 1,
+        "http_status": 200,
+        "bytes": 160,
+        "content_type": "application/json",
+        "body": {
+          "product": "proptech-ai-copilot-frontend",
+          "commit_sha": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+          "release_version": "unconfigured",
+          "environment": "unconfigured"
+        }
+      },
+      {
+        "label": "health",
+        "url": "https://proptech-ai-copilot-api.onrender.com/health",
+        "observed_at": "2026-10-11T04:48:21.721883+00:00",
+        "request_limit": 1,
+        "http_status": 200,
+        "bytes": 158,
+        "content_type": "application/json",
+        "body": {
+          "status": "ok",
+          "liveness": "ok",
+          "persistence": {
+            "database": "available",
+            "durable": "yes"
+          },
+          "readiness": "ready",
+          "mode": "production",
+          "nlsc_gateway": "not_configured"
+        }
+      },
+      {
+        "label": "backend",
+        "url": "https://proptech-ai-copilot-api.onrender.com/release-version",
+        "observed_at": "2026-10-11T04:48:22.805807+00:00",
+        "request_limit": 1,
+        "http_status": 200,
+        "bytes": 2012,
+        "content_type": "application/json",
+        "body": {
+          "product_version": "0.1.0",
+          "release_version": "release-2026-10-10-c2ddf18",
+          "service": "proptech-api",
+          "commit_sha": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+          "build_timestamp": "2026-10-11T04:29:10.830194+00:00",
+          "build_id": "sha256:76ff6169f494327ec12de7aecc2fed1c10398655c415fc2c7fb9e7b34f27c8f1",
+          "identity_source": "render-checkout",
+          "identity_status": "PASS",
+          "runtime_sha_matches_build": false,
+          "environment": "production",
+          "configuration_evidence": {
+            "schema_version": "production-provider-closure-v1",
+            "scope": "runtime_configuration_contract",
+            "status": "PASS",
+            "items": {
+              "database": {
+                "status": "PASS",
+                "required": true,
+                "reason_code": "configuration_contract_present"
+              },
+              "session_secret": {
+                "status": "PASS",
+                "required": true,
+                "reason_code": "configuration_contract_present"
+              },
+              "cors_origins": {
+                "status": "PASS",
+                "required": true,
+                "reason_code": "configuration_contract_present"
+              },
+              "public_base_url": {
+                "status": "PASS",
+                "required": true,
+                "reason_code": "configuration_contract_present"
+              },
+              "release_version": {
+                "status": "PASS",
+                "required": true,
+                "reason_code": "configuration_contract_present"
+              },
+              "api_contract_version": {
+                "status": "PASS",
+                "required": true,
+                "reason_code": "configuration_contract_present"
+              },
+              "schema_version": {
+                "status": "PASS",
+                "required": true,
+                "reason_code": "configuration_contract_present"
+              },
+              "production_environment": {
+                "status": "PASS",
+                "required": true
+              },
+              "runtime_readiness": {
+                "status": "PASS",
+                "required": true
+              },
+              "backend_public_origin": {
+                "status": "PASS",
+                "required": true
+              }
+            },
+            "projection_sha256": "54acd753b615a8bbce01dae3d51c941932494620500bd4e4e88eedf92250eda3",
+            "authorization_proven": false,
+            "component": "backend",
+            "frontend_configuration": "UNKNOWN",
+            "limitation": "Backend runtime contract only; frontend build configuration, secret rotation, IAM and schema migration remain unverified."
+          },
+          "api_contract_version": "api-contract-v1",
+          "schema_version": "schema-007",
+          "schema_compatibility": "declared",
+          "frontend_backend_compatibility": "api-contract-v1",
+          "pilot_evidence_version": "pilot-evidence-v1",
+          "rule_version": "existing-rule-contracts",
+          "frontend_build_version": "runtime-reported"
+        }
+      }
+    ],
+    "contracts": [
+      {
+        "path": "/compatibility",
+        "observed_at": "2026-10-11T04:51:19.216499+00:00",
+        "request_limit": 1,
+        "http_status": 200,
+        "body": {
+          "status": "compatible",
+          "api_contract_version": "api-contract-v1",
+          "minimum_frontend_contract_version": "api-contract-v1",
+          "schema_version": "schema-007"
+        }
+      },
+      {
+        "path": "/source-status",
+        "observed_at": "2026-10-11T04:51:19.665446+00:00",
+        "request_limit": 1,
+        "http_status": 200,
+        "body": {
+          "status": "available",
+          "source": "canonical pilot evidence records",
+          "data_status": "empty_until_real_records",
+          "test_fixtures_excluded": true
+        }
+      }
+    ],
+    "frontend_status": "BLOCKED",
+    "backend_status": "BLOCKED",
+    "sha_parity": "PASS",
+    "release_coherence": "BLOCKED",
+    "liveness_readiness": "PASS",
+    "provider_acceptance": "BLOCKED",
+    "runtime_configuration": "PASS for ten categorical backend items only; overall BLOCKED",
+    "additional_unverified_categories": [
+      "frontend_config",
+      "API_ALLOWED_HOSTS actual values",
+      "forwarded_header_trust",
+      "maintenance_mode",
+      "anti_abuse_runtime_mode",
+      "provider_kill_switch_states",
+      "applied_schema_ledger",
+      "provider_authorization",
+      "deployed_dependency_inventory"
+    ]
+  },
+  "hosted_smoke": {
+    "capability": "release_smoke",
+    "checked_at": "2026-10-11T04:50:30.257964+00:00",
+    "checks": {
+      "backend_build_identity": "fail",
+      "backend_commit_sha": "pass",
+      "backend_security_headers": "pass",
+      "cache_safety": "pass",
+      "compatibility": "pass",
+      "competition_demo": "pass",
+      "cors": "pass",
+      "deployed_identity": "pass",
+      "frontend": "pass",
+      "frontend_commit_sha": "pass",
+      "frontend_no_localhost": "pass",
+      "frontend_release_environment": "fail",
+      "frontend_release_version": "fail",
+      "frontend_security_headers": "pass",
+      "health": "pass",
+      "liveness": "pass",
+      "offline_competition_disclosure": "fail",
+      "privacy": "pass",
+      "readiness": "pass",
+      "release": "pass",
+      "release_environment": "pass",
+      "release_identity": "pass",
+      "source_status": "pass",
+      "taxoracle_sources": "pass",
+      "terms": "pass"
+    },
+    "classification": "BLOCKED",
+    "external_provider_called": false,
+    "mode": "hosted",
+    "network_requests": 13,
+    "reason_code": "release_checks_failed",
+    "release_identity": {
+      "backend_sha": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+      "frontend_sha": "c9ab5f61a45f7f704326af66cb0bea02740b9927"
+    },
+    "status": "fail",
+    "target": {
+      "backend": "configured",
+      "frontend": "configured"
+    }
+  },
+  "provider_acceptance": {
+    "registry": "services/provider_config_contract.py:REQUIREMENTS",
+    "records": [
+      {
+        "capability": "active-fault",
+        "classification": "NOT_APPLICABLE",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_APPLICABLE",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": true,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "manual_professional_verification_only",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "ardswc",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "ardswc-debris-flow",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "ardswc-landslide",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "finder",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "geocoding",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "gsmma",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "liquefaction",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "maps",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "market",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "nlsc",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "UNAVAILABLE",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "UNAVAILABLE",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "health_reports_gateway_not_configured",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "places",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "plvr",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "ris",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "routes",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "satellite",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "street-view",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "tax-legal",
+        "classification": "NOT_APPLICABLE",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_APPLICABLE",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": true,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "manual_professional_verification_only",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "tdx",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "tgos",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "trend",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "valuation",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      },
+      {
+        "capability": "wra",
+        "classification": "NOT_TESTED",
+        "production_acceptance": "BLOCKED",
+        "configured": "NOT_TESTED",
+        "authorized": "NOT_TESTED",
+        "reachable": "NOT_TESTED",
+        "contract_compatible": "NOT_TESTED",
+        "fresh": "NOT_TESTED",
+        "degraded": "NOT_TESTED",
+        "unavailable": "NOT_TESTED",
+        "not_applicable": false,
+        "repository_contract": "implemented_and_offline_tested",
+        "reason": "no_accepted_deployed_provider_receipt",
+        "direct_live_requests": 0
+      }
+    ],
+    "collector_configuration": {
+      "scope": "collector_process_only_not_hosted",
+      "records": {
+        "tgos": {
+          "TGOS_APP_ID": "missing",
+          "TGOS_API_KEY": "missing"
+        },
+        "geocoding": {
+          "GOOGLE_MAPS_API_KEY": "missing"
+        },
+        "routes": {
+          "GOOGLE_MAPS_API_KEY": "missing"
+        },
+        "places": {
+          "GOOGLE_MAPS_API_KEY": "missing"
+        },
+        "maps": {
+          "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY": "missing"
+        },
+        "street-view": {
+          "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY": "missing"
+        },
+        "valuation": {
+          "VALUATION_DATABASE_URL": "missing",
+          "VALUATION_DEMO_MODE": "missing",
+          "PLVR_DATA_BACKEND": "missing"
+        },
+        "finder": {
+          "VALUATION_DATABASE_URL": "missing",
+          "VALUATION_DEMO_MODE": "missing"
+        },
+        "trend": {
+          "VALUATION_DATABASE_URL": "missing",
+          "VALUATION_DEMO_MODE": "missing"
+        },
+        "market": {
+          "VALUATION_DATABASE_URL": "missing"
+        },
+        "plvr": {
+          "PLVR_UPDATE_DATABASE_URL": "missing",
+          "PLVR_UPDATE_ENVIRONMENT": "missing"
+        },
+        "wra": {
+          "R2_ACCESS_KEY_ID": "missing",
+          "R2_SECRET_ACCESS_KEY": "missing",
+          "R2_ENDPOINT": "missing",
+          "R2_BUCKET": "missing",
+          "R2_REGION": "missing"
+        },
+        "gsmma": {
+          "R2_ACCESS_KEY_ID": "missing",
+          "R2_SECRET_ACCESS_KEY": "missing",
+          "R2_ENDPOINT": "missing",
+          "R2_BUCKET": "missing",
+          "R2_REGION": "missing",
+          "GSMMA_GEOLOGICAL_SENSITIVITY_DATASET_VERSION": "missing"
+        },
+        "ardswc": {},
+        "ardswc-landslide": {},
+        "ardswc-debris-flow": {},
+        "liquefaction": {},
+        "tdx": {
+          "TDX_CLIENT_ID": "missing",
+          "TDX_CLIENT_SECRET": "missing",
+          "COMMUTE_REFRESH_TOKEN": "missing"
+        },
+        "ris": {
+          "DATABASE_URL": "present",
+          "NLSC_VILLAGE_BOUNDARY_ARTIFACT_SHA256": "missing",
+          "NLSC_VILLAGE_BOUNDARY_SOURCE_VINTAGE": "missing",
+          "NLSC_VILLAGE_BOUNDARY_R2_KEY": "missing",
+          "R2_ACCESS_KEY_ID": "missing",
+          "R2_SECRET_ACCESS_KEY": "missing",
+          "R2_ENDPOINT": "missing",
+          "R2_BUCKET": "missing",
+          "R2_REGION": "missing"
+        },
+        "nlsc": {
+          "NLSC_GATEWAY_BASE_URL": "missing",
+          "NLSC_GATEWAY_CLIENT_TOKEN": "missing"
+        },
+        "satellite": {
+          "EARTH_ENGINE_SATELLITE_REFERENCE_V1": "missing",
+          "EARTH_ENGINE_PROJECT": "missing"
+        },
+        "hosted": {
+          "FRONTEND_PRODUCTION_URL": "missing",
+          "BACKEND_PRODUCTION_URL": "missing",
+          "EXPECTED_FRONTEND_COMMIT_SHA": "missing",
+          "EXPECTED_BACKEND_COMMIT_SHA": "missing"
+        },
+        "active-fault": {},
+        "tax-legal": {}
+      }
+    },
+    "upstream_requests": 0
+  },
+  "official_artifacts": {
+    "registry": "services/production_artifact_registry.py:REGISTRY",
+    "scope": "repository_inventory_not_hosted_activation",
+    "records": [
+      {
+        "logical_name": "wra-flood",
+        "provider": "WRA",
+        "storage_kind": "r2",
+        "expected_storage": "processed/wra/flood/v1/{scenario}/features.json.gz",
+        "expected_schema": "wra_flood_processed_v1",
+        "dataset_version": "v1",
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "gsmma-sensitivity",
+        "provider": "GSMMA",
+        "storage_kind": "r2",
+        "expected_storage": "processed/gsmma/geological-sensitivity/v1/{dataset_version}/features.json.gz",
+        "expected_schema": "gsmma_geological_sensitivity_features:1",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "ardswc-landslide",
+        "provider": "ARDSWC",
+        "storage_kind": "remote_mvt",
+        "expected_storage": "ardswc/potential_landslide+potential_landslide_affect",
+        "expected_schema": "official-mvt",
+        "dataset_version": "113-public-mvt",
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "ardswc-debris-flow",
+        "provider": "ARDSWC",
+        "storage_kind": "remote_mvt",
+        "expected_storage": "ardswc/debris_flow+debris_affect",
+        "expected_schema": "official-mvt",
+        "dataset_version": "113-public-mvt",
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "gsmma-liquefaction",
+        "provider": "GSMMA",
+        "storage_kind": "remote_api",
+        "expected_storage": "GeologyCloud/liquefaction",
+        "expected_schema": "official-liquefaction-v1",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "nlsc-village-boundary",
+        "provider": "NLSC",
+        "storage_kind": "local_or_r2",
+        "expected_storage": "NLSC_VILLAGE_BOUNDARY_ARTIFACT_PATH|NLSC_VILLAGE_BOUNDARY_R2_KEY",
+        "expected_schema": "GeoJSON-FeatureCollection",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "nlsc-terrain",
+        "provider": "NLSC",
+        "storage_kind": "remote_gateway",
+        "expected_storage": "NLSC_GATEWAY_BASE_URL",
+        "expected_schema": "nlsc-numeric-terrain",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "ris-population",
+        "provider": "RIS",
+        "storage_kind": "database",
+        "expected_storage": "RIS monthly observations; raw/ris/population/{month}/manifest.json",
+        "expected_schema": "ris-raw-archive-manifest-v1",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "plvr-blue",
+        "provider": "PLVR",
+        "storage_kind": "database",
+        "expected_storage": "VALUATION_DATABASE_URL",
+        "expected_schema": "official_market_releases+official_market_artifacts+market_transactions",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "plvr-green",
+        "provider": "PLVR",
+        "storage_kind": "database",
+        "expected_storage": "COMPACT_GREEN_DATABASE_URL",
+        "expected_schema": "compact-green-v1",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": false,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "tdx-mrt",
+        "provider": "TDX",
+        "storage_kind": "process_memory",
+        "expected_storage": "services.commute_service._snapshot",
+        "expected_schema": "tdx-mrt-v1",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "UNKNOWN",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Active deployed artifact, source date, checksum and coverage require operator evidence."
+      },
+      {
+        "logical_name": "road-display",
+        "provider": "repository-road-catalog",
+        "storage_kind": "local",
+        "expected_storage": "data/road-display-catalog-v2/manifest.json",
+        "expected_schema": "road-display-v2",
+        "dataset_version": "v2",
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": "400f6280d28d4fce3e467c77177127700e055c947d92c8e9e5fc203da59711cb",
+        "presence": "PRESENT",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Local manifest presence/schema only; member integrity, publication and deployed activation unverified.",
+        "local_contract": "PASS"
+      },
+      {
+        "logical_name": "road-source",
+        "provider": "repository-road-catalog",
+        "storage_kind": "local",
+        "expected_storage": "data/taiwan_roads.csv",
+        "expected_schema": "city,site_id,road",
+        "dataset_version": null,
+        "published_at": null,
+        "retrieved_at": null,
+        "built_at": null,
+        "sha256": null,
+        "presence": "PRESENT",
+        "freshness": "UNKNOWN",
+        "freshness_as_of": "2026-10-11",
+        "production_required": true,
+        "production_active": "UNKNOWN",
+        "status": "UNKNOWN",
+        "limitation": "Local manifest presence/schema only; member integrity, publication and deployed activation unverified."
+      }
+    ],
+    "production_acceptance": "BLOCKED"
+  },
+  "api_cost": {
+    "zero_journeys": [
+      {
+        "journey": "Guided Demo",
+        "status": "PASS",
+        "scope": "hosted_client_requests_for_demo_or_synthetic_browser_local_snapshot",
+        "automatic_provider_attempts": 0,
+        "real_provider_acquisition": "NOT_TESTED",
+        "backend_internal_telemetry": "NOT_AVAILABLE"
+      },
+      {
+        "journey": "Save",
+        "status": "PASS",
+        "scope": "hosted_client_requests_for_demo_or_synthetic_browser_local_snapshot",
+        "automatic_provider_attempts": 0,
+        "real_provider_acquisition": "NOT_TESTED",
+        "backend_internal_telemetry": "NOT_AVAILABLE"
+      },
+      {
+        "journey": "Reopen",
+        "status": "PASS",
+        "scope": "hosted_client_requests_for_demo_or_synthetic_browser_local_snapshot",
+        "automatic_provider_attempts": 0,
+        "real_provider_acquisition": "NOT_TESTED",
+        "backend_internal_telemetry": "NOT_AVAILABLE"
+      },
+      {
+        "journey": "Compare",
+        "status": "PASS",
+        "scope": "hosted_client_requests_for_demo_or_synthetic_browser_local_snapshot",
+        "automatic_provider_attempts": 0,
+        "real_provider_acquisition": "NOT_TESTED",
+        "backend_internal_telemetry": "NOT_AVAILABLE"
+      },
+      {
+        "journey": "Report",
+        "status": "PASS",
+        "scope": "hosted_client_requests_for_demo_or_synthetic_browser_local_snapshot",
+        "automatic_provider_attempts": 0,
+        "real_provider_acquisition": "NOT_TESTED",
+        "backend_internal_telemetry": "NOT_AVAILABLE"
+      },
+      {
+        "journey": "Evidence Checklist",
+        "status": "PASS",
+        "scope": "hosted_client_requests_for_demo_or_synthetic_browser_local_snapshot",
+        "automatic_provider_attempts": 0,
+        "real_provider_acquisition": "NOT_TESTED",
+        "backend_internal_telemetry": "NOT_AVAILABLE"
+      },
+      {
+        "journey": "Comparable Explanation",
+        "status": "PASS",
+        "scope": "hosted_client_requests_for_demo_or_synthetic_browser_local_snapshot",
+        "automatic_provider_attempts": 0,
+        "real_provider_acquisition": "NOT_TESTED",
+        "backend_internal_telemetry": "NOT_AVAILABLE"
+      }
+    ],
+    "location_risk_tile_attempts": 270,
+    "tile_requests": "intercepted before transmission; OpenStreetMap automatic display tile attempts are not zero-provider journeys",
+    "satellite_generation_requests": 0,
+    "production_database_mutations_by_audit": 0
+  },
+  "test_runs": [
+    {
+      "name": "full Python",
+      "command": "python -m pytest -q --basetemp .local/acceptance-v2/pytest-temp --junitxml .local/acceptance-v2/python.xml",
+      "exit_code": 0,
+      "collected": 3647,
+      "passed": 3615,
+      "skipped": 32,
+      "failed": 0,
+      "errors": 0,
+      "duration_seconds": 389.64,
+      "warnings": 1
+    },
+    {
+      "name": "disposable PostgreSQL supplemental suite",
+      "command": "python .local/acceptance-v2/native-postgres.py; selected six existing files listed in retained runner",
+      "exit_code": 0,
+      "collected": 59,
+      "passed": 59,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "duration_seconds": 125.04,
+      "warnings": 1,
+      "postgres_major": 17,
+      "deduplicated_initial_skips_closed": 30,
+      "initial_skips_still_not_executed": 2
+    },
+    {
+      "name": "frontend deterministic",
+      "command": [
+        "node",
+        "--disable-warning=MODULE_TYPELESS_PACKAGE_JSON",
+        "--test",
+        "scripts\\runtime-copy-deduplication.test.mjs",
+        "scripts\\run-e2e.test.cjs",
+        "scripts\\provider-closure-contract.test.mjs",
+        "scripts\\onboarding-tour.test.cjs",
+        "scripts\\guided-case-simulation.test.cjs",
+        "scripts\\commercial-trust-flow.test.cjs",
+        "scripts\\commercial-design-foundations.test.mjs",
+        "lib\\holding-cost-visualization.test.ts",
+        "lib\\location-evidence-context.test.ts",
+        "lib\\google-maps-embed.test.mjs",
+        "lib\\google-maps-csp.test.mjs",
+        "lib\\journey-property-identity.test.ts",
+        "lib\\experience-architecture.test.ts",
+        "lib\\demographics-format.test.mjs",
+        "lib\\market-result-state.test.ts",
+        "lib\\monetary-units.test.ts",
+        "lib\\commercial\\state.test.ts",
+        "lib\\commercial\\readiness.test.ts",
+        "lib\\commercial\\provenance.test.ts",
+        "lib\\commercial\\presentation.test.ts",
+        "lib\\commercial\\formatters.test.ts",
+        "lib\\commercial\\async-state-role.test.ts",
+        "lib\\valuation-accepted-road.test.ts",
+        "lib\\terrain-admin-context.test.ts",
+        "lib\\valuation-prerequisites.test.ts",
+        "lib\\valuation-result-state.test.ts",
+        "lib\\workspace\\workspace-model.test.ts",
+        "lib\\workspace\\saved-case-diagnostics.test.ts",
+        "lib\\workspace\\risk-presentation.test.ts",
+        "lib\\workspace\\risk-evidence-model.test.ts",
+        "lib\\workspace\\overview-model.test.ts",
+        "lib\\workspace\\market-price-refresh.test.ts",
+        "lib\\workspace\\market-price-model.test.ts",
+        "lib\\workspace\\location-context.test.ts",
+        "lib\\workspace\\invalidation.test.ts",
+        "lib\\workspace\\finance-persistence.test.ts",
+        "lib\\workspace\\finance-model.test.ts",
+        "lib\\workspace\\finance-calculation.test.ts",
+        "lib\\workspace\\evidence-checklist.test.ts",
+        "lib\\workspace\\e9-risk-metadata.test.ts",
+        "lib\\workspace\\compare-report-model.test.ts",
+        "lib\\workspace\\comparable-explanation.test.ts",
+        "lib\\workspace\\commercial-trust.test.ts",
+        "lib\\workspace\\case-repository.test.ts",
+        "lib\\workspace\\case-evidence.test.ts"
+      ],
+      "exit_code": 0,
+      "test_files": 45,
+      "passed": 270,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "name": "local Chrome selected acceptance browser suite",
+      "command": [
+        "node",
+        "e2e/run-e2e.cjs",
+        "e2e/guided-case-simulation.spec.ts",
+        "e2e/comparable-explanation.spec.ts",
+        "e2e/evidence-checklist.spec.ts",
+        "e2e/final-production-acceptance.spec.ts",
+        "e2e/commercial-compare-report.spec.ts",
+        "e2e/api-cost-journey.spec.ts",
+        "e2e/onboarding-tour.spec.ts",
+        "--project=chrome",
+        "--workers=2",
+        "--retries=0",
+        "--reporter=json"
+      ],
+      "exit_code": 0,
+      "stats": {
+        "startTime": "2026-10-11T05:06:09.164Z",
+        "duration": 154277.435,
+        "expected": 71,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "scope": "local_e2e_build_with_existing_fixtures_not_production"
+    },
+    {
+      "name": "acceptance evidence and guardrail regression",
+      "command": [
+        "python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_final_production_acceptance.py",
+        "tests/test_production_guardrails.py",
+        "tests/test_guardrail_recovery.py",
+        "--basetemp",
+        ".local/acceptance-v2/evidence-tests-rerun-temp",
+        "--junitxml",
+        ".local/acceptance-v2/evidence-tests.xml"
+      ],
+      "exit_code": 0,
+      "collected": 77,
+      "passed": 77,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0
+    }
+  ],
+  "local_gates": [
+    {
+      "name": "production_build",
+      "command": "npm --prefix frontend_next run build",
+      "exit_code": 0,
+      "log_sha256": "dd55fc0358d43af78d777cbaf9f026e4b41472d4c40de45a0a0ffbd4331bd698",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "typecheck",
+      "command": "npm --prefix frontend_next run typecheck",
+      "exit_code": 0,
+      "log_sha256": "c622cf98e88860c6889d21a1d23746ffc4d7d7aa3a362486b93a88004bd09361",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "lint",
+      "command": "npm --prefix frontend_next run lint",
+      "exit_code": 0,
+      "log_sha256": "7ddc5b1949f8d8500492f6a92a0855de2a808086b47def6e5f77946098fd0210",
+      "scope": "local_only",
+      "warnings": 23
+    },
+    {
+      "name": "repository_hygiene",
+      "command": "python scripts/check_repository_hygiene.py",
+      "exit_code": 0,
+      "log_sha256": "1ad10f0fb5d93088ee6f47b2a0ef804a07b4660534a3efc3afbb5c7f91cf608a",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "release_quality",
+      "command": "python scripts/release_quality_gate.py --json-output .local/acceptance-v2/release-gate.json --skip-tests --skip-frontend-build",
+      "exit_code": 0,
+      "log_sha256": "c35144c490a8edb650e48cfe56c6f747959b62bdcba84c84f87782a79a38e728",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "security_performance",
+      "command": "python scripts/security_performance_release_gate.py --json",
+      "exit_code": 0,
+      "log_sha256": "97c6d83b8b15382678eacf483d7705f68db854a7c33ed6b7125d60992fdd4b30",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "production_operations",
+      "command": "python scripts/production_ops_gate.py",
+      "exit_code": 0,
+      "log_sha256": "e12672127993246438b97302d87516aabb6f95fd66bee467136643bfcba7e9cf",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "migration_static",
+      "command": "python scripts/validate_postgres_migration.py",
+      "exit_code": 0,
+      "log_sha256": "69beb3609cf0cc7e0928e973b1d0282c80e843814ce32acc48a7ff0f20eaa66d",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "pilot_schema_migration",
+      "command": "python scripts/validate_pilot_evidence_migration.py",
+      "exit_code": 0,
+      "log_sha256": "9bbb08ed6af47c384d8ce075aecacd9d165f947358b4e03a489fbca2cf9493d4",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "static_bundle",
+      "command": "python scripts/check_frontend_bundle_budget.py",
+      "exit_code": 0,
+      "log_sha256": "e1f44580d4a078b60f6a32002345cd162b469416ebdef659b2655269d65eb7d4",
+      "scope": "local_only",
+      "warnings": 0
+    },
+    {
+      "name": "route_budgets",
+      "command": "python scripts/check_route_budgets.py",
+      "exit_code": 0,
+      "log_sha256": "9d19f890810fee3ac2125a8b1fe448821141a77bbee3c218a444bbe5ff10cee6",
+      "scope": "local_only",
+      "warnings": 0
+    }
+  ],
+  "pdf_inspection": [
+    {
+      "file": "hosted-report-a4.pdf",
+      "scope": "deployed_renderer_synthetic_snapshot",
+      "sha256": "10dd98b5a80d7ba1a7d68f4fcc7fc28b30b46449e752984e86c5426ec4380198",
+      "bytes": 1053389,
+      "page_count": 18,
+      "pages": [
+        {
+          "page": 1,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 756,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 2,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 938,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 3,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 966,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 4,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1589,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 5,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 988,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 6,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 981,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 7,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 870,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 8,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 855,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 9,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1062,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 10,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1090,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 11,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1083,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 12,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1042,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 13,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1061,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 14,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1150,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 15,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 788,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 16,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 781,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 17,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1131,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 18,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 390,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        }
+      ],
+      "finance_55111": true,
+      "manual_review_summary": true,
+      "official_verification_disclaimer": true,
+      "source_disclosures": true,
+      "unknown_disclosures": true,
+      "comparables": true,
+      "controls_printed": false,
+      "empty_pages": 0,
+      "visual_inspection": "all pages contact sheets; first-page and risk/finance/source samples inspected at full size",
+      "locale_status": "FAIL: Chinese legacy copy with localized Comparable section",
+      "next_step_links_printed_as_text": true,
+      "finance_page": 10
+    },
+    {
+      "file": "hosted-report-manual-a4.pdf",
+      "scope": "deployed_renderer_synthetic_snapshot",
+      "sha256": "bceb06bb1be9adea3c076f34b547609271397d274e07b9beb4c9855762f7920c",
+      "bytes": 1087553,
+      "page_count": 18,
+      "pages": [
+        {
+          "page": 1,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 756,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 2,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 938,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 3,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 966,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 4,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1075,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 5,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 996,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 6,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 967,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 7,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 858,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 8,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 881,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 9,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1060,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 10,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1104,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 11,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1073,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 12,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1050,
+          "outside_text_spans": 0,
+          "min_font_pt": 9.0
+        },
+        {
+          "page": 13,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1092,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 14,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1129,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 15,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 798,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 16,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 675,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 17,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 1251,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        },
+        {
+          "page": 18,
+          "width_pt": 594.96,
+          "height_pt": 841.92,
+          "text_chars": 192,
+          "outside_text_spans": 0,
+          "min_font_pt": 10.5
+        }
+      ],
+      "finance_55111": true,
+      "manual_review_summary": true,
+      "official_verification_disclaimer": true,
+      "source_disclosures": true,
+      "unknown_disclosures": true,
+      "comparables": true,
+      "controls_printed": false,
+      "empty_pages": 0,
+      "visual_inspection": "all pages contact sheets; first-page and risk/finance/source samples inspected at full size",
+      "locale_status": "zh-TW legacy report; localized comparables zh-TW; all-locale requirement FAIL separately",
+      "next_step_links_printed_as_text": true,
+      "finance_page": 10
+    }
+  ],
+  "actual_external_requests": {
+    "bounded_identity_gets": 3,
+    "bounded_contract_gets": 2,
+    "existing_passive_smoke_requests": 13,
+    "web_tool_endpoint_attempts": 3,
+    "web_tool_observations": "inaccessible; no deployment proof obtained",
+    "browser_requests": "read-only frontend assets/pages/RSC; counts/hashes in retained browser records",
+    "direct_upstream_provider_calls": 0,
+    "audit_sent_production_mutations": 0
+  },
+  "dependency_audits": {
+    "python": {
+      "command": [
+        "C:\\Users\\\u5433\u5955\u967d\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+        "-m",
+        "pip_audit",
+        "-r",
+        "backend/requirements.txt",
+        "--strict",
+        "--format",
+        "json",
+        "--output",
+        ".local\\acceptance-v2\\python-runtime-audit-confirmed.json"
+      ],
+      "exit_code": 0,
+      "dependencies": 68,
+      "vulnerabilities": 0,
+      "scope": "backend manifest resolution on Python 3.13 Windows; deployed Python 3.12/Linux unlocked inventory unverified"
+    },
+    "npm_production": {
+      "command": "npm audit --omit=dev --audit-level=high --json",
+      "exit_code": 0,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
+    },
+    "npm_full": {
+      "command": "npm audit --json",
+      "exit_code": 1,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 2,
+        "high": 6,
+        "critical": 0,
+        "total": 8
+      },
+      "policy": {
+        "status": "pass",
+        "accepted": [
+          {
+            "id": "GHSA-vfj7-8cjw-p6xm",
+            "expiresOn": "2026-11-04"
+          }
+        ],
+        "errors": []
+      },
+      "explanation": "npm explain braces --json; policy evaluated as of 2026-10-11; dev-only exception expires 2026-11-04"
+    }
+  },
+  "responsive_accessibility": {
+    "initial_hosted": {
+      "checks": 102,
+      "pass": 100,
+      "fail": 2,
+      "results": [
+        {
+          "name": "Homepage and realistic address entry",
+          "scope": "hosted_no_fixture",
+          "status": "PASS",
+          "details": {
+            "fresh_browser": true,
+            "address_entered": true,
+            "real_case_creation": "BLOCKED: acquisition fanout and production writes excluded"
+          }
+        },
+        {
+          "name": "Demo all 7 stages x 4 locales at 390",
+          "scope": "hosted_demo_with_browser_local_storage_canary",
+          "status": "PASS",
+          "details": {
+            "stages": 7,
+            "locales": 4,
+            "cells": 28,
+            "storage_unchanged": true,
+            "focus_restored": true,
+            "reduced_motion": true
+          }
+        },
+        {
+          "name": "390 zh-TW /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 zh-TW /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 zh-TW /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 zh-TW /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 zh-TW /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 zh-TW /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 zh-TW /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 zh-TW /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "390 en /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 en /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 en /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 en /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 en /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 en /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 en /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 en /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "390 ja /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ja /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ja /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ja /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ja /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ja /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ja /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ja /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "390 ko /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "390 ko /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "390 ko /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "390 ko /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "390 ko /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "390 ko /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "390 ko /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "390 ko /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "Demo all 7 stages x 4 locales at 1024",
+          "scope": "hosted_demo_with_browser_local_storage_canary",
+          "status": "PASS",
+          "details": {
+            "stages": 7,
+            "locales": 4,
+            "cells": 28,
+            "storage_unchanged": true,
+            "focus_restored": true,
+            "reduced_motion": true
+          }
+        },
+        {
+          "name": "1024 zh-TW /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 zh-TW /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 zh-TW /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 zh-TW /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 zh-TW /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 zh-TW /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 zh-TW /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 zh-TW /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1024 en /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1024 en /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1024 en /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1024 en /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "FAIL",
+          "error": "The expression evaluated to a falsy value:\n\n  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))\n"
+        },
+        {
+          "name": "1024 en /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1024 en /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1024 en /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1024 en /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1024 ja /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ja /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ja /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ja /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ja /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ja /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ja /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ja /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1024 ko /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1024 ko /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1024 ko /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1024 ko /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1024 ko /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1024 ko /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1024 ko /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1024 ko /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "Demo all 7 stages x 4 locales at 1440",
+          "scope": "hosted_demo_with_browser_local_storage_canary",
+          "status": "PASS",
+          "details": {
+            "stages": 7,
+            "locales": 4,
+            "cells": 28,
+            "storage_unchanged": true,
+            "focus_restored": true,
+            "reduced_motion": true
+          }
+        },
+        {
+          "name": "1440 zh-TW /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 zh-TW /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 zh-TW /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 zh-TW /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 zh-TW /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 zh-TW /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 zh-TW /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 zh-TW /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "zh-TW"
+          }
+        },
+        {
+          "name": "1440 en /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 en /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 en /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 en /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 en /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 en /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 en /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 en /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "en"
+          }
+        },
+        {
+          "name": "1440 ja /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ja /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ja /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ja /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ja /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ja /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ja /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ja /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ja"
+          }
+        },
+        {
+          "name": "1440 ko /",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1440 ko /cases/case-a/market",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1440 ko /cases/case-a/overview",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1440 ko /cases/case-a/location",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1440 ko /cases/case-a/risk",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1440 ko /cases/case-a/finance",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1440 ko /compare?cases=case-a,case-b",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "1440 ko /cases/case-a/report",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "overflow": false,
+            "unlabeled_controls": 0,
+            "raw_key_scan": "sampled",
+            "locale": "ko"
+          }
+        },
+        {
+          "name": "Checklist states, Save, reopen and case isolation",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "FAIL",
+          "error": "locator.click: Timeout 12000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('summary').filter({ hasText: /checklist/i }).first()\u001b[22m\n"
+        },
+        {
+          "name": "Actual deployed A4 PDF",
+          "scope": "hosted_synthetic_browser_local",
+          "status": "PASS",
+          "details": {
+            "artifact": "hosted-report-a4.pdf",
+            "synthetic_snapshot": true
+          }
+        }
+      ],
+      "page_errors": []
+    },
+    "settled_followup": [
+      {
+        "name": "settled English UI 390 /",
+        "capture_status": "PASS",
+        "locale_requirement": "PASS",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "Review property evidence. Know what to verify."
+        ],
+        "dimensions": {
+          "width": 390,
+          "scroll": 390
+        }
+      },
+      {
+        "name": "settled English UI 390 /cases/case-a/market",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u50f9\u683c\u8207\u5e02\u5834"
+        ],
+        "dimensions": {
+          "width": 390,
+          "scroll": 390
+        }
+      },
+      {
+        "name": "settled English UI 390 /cases/case-a/overview",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u7269\u4ef6\u7e3d\u89bd"
+        ],
+        "dimensions": {
+          "width": 390,
+          "scroll": 390
+        }
+      },
+      {
+        "name": "settled English UI 390 /compare?cases=case-a,case-b",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u6bd4\u8f03"
+        ],
+        "dimensions": {
+          "width": 390,
+          "scroll": 390
+        }
+      },
+      {
+        "name": "settled English UI 390 /cases/case-a/report",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u5831\u544a \u00b7 Acceptance synthetic A"
+        ],
+        "dimensions": {
+          "width": 390,
+          "scroll": 390
+        }
+      },
+      {
+        "name": "settled English UI 390 /cases/case-a/location",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u5340\u4f4d\u8207\u901a\u52e4"
+        ],
+        "dimensions": {
+          "width": 390,
+          "scroll": 390
+        }
+      },
+      {
+        "name": "settled English UI 1024 /",
+        "capture_status": "PASS",
+        "locale_requirement": "PASS",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "Review property evidence. Know what to verify."
+        ],
+        "dimensions": {
+          "width": 1024,
+          "scroll": 1024
+        }
+      },
+      {
+        "name": "settled English UI 1024 /cases/case-a/market",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u50f9\u683c\u8207\u5e02\u5834"
+        ],
+        "dimensions": {
+          "width": 1024,
+          "scroll": 1024
+        }
+      },
+      {
+        "name": "settled English UI 1024 /cases/case-a/overview",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u7269\u4ef6\u7e3d\u89bd"
+        ],
+        "dimensions": {
+          "width": 1024,
+          "scroll": 1024
+        }
+      },
+      {
+        "name": "settled English UI 1024 /compare?cases=case-a,case-b",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u6bd4\u8f03"
+        ],
+        "dimensions": {
+          "width": 1024,
+          "scroll": 1024
+        }
+      },
+      {
+        "name": "settled English UI 1024 /cases/case-a/report",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u5831\u544a \u00b7 Acceptance synthetic A"
+        ],
+        "dimensions": {
+          "width": 1024,
+          "scroll": 1024
+        }
+      },
+      {
+        "name": "settled English UI 1024 /cases/case-a/location",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "FAIL",
+        "headings": [
+          "\u5340\u4f4d\u8207\u901a\u52e4"
+        ],
+        "dimensions": {
+          "width": 1024,
+          "scroll": 1035
+        }
+      },
+      {
+        "name": "settled English UI 1440 /",
+        "capture_status": "PASS",
+        "locale_requirement": "PASS",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "Review property evidence. Know what to verify."
+        ],
+        "dimensions": {
+          "width": 1440,
+          "scroll": 1440
+        }
+      },
+      {
+        "name": "settled English UI 1440 /cases/case-a/market",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u50f9\u683c\u8207\u5e02\u5834"
+        ],
+        "dimensions": {
+          "width": 1440,
+          "scroll": 1440
+        }
+      },
+      {
+        "name": "settled English UI 1440 /cases/case-a/overview",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u7269\u4ef6\u7e3d\u89bd"
+        ],
+        "dimensions": {
+          "width": 1440,
+          "scroll": 1440
+        }
+      },
+      {
+        "name": "settled English UI 1440 /compare?cases=case-a,case-b",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u6bd4\u8f03"
+        ],
+        "dimensions": {
+          "width": 1440,
+          "scroll": 1440
+        }
+      },
+      {
+        "name": "settled English UI 1440 /cases/case-a/report",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u5831\u544a \u00b7 Acceptance synthetic A"
+        ],
+        "dimensions": {
+          "width": 1440,
+          "scroll": 1440
+        }
+      },
+      {
+        "name": "settled English UI 1440 /cases/case-a/location",
+        "capture_status": "PASS",
+        "locale_requirement": "FAIL",
+        "responsive_requirement": "PASS",
+        "headings": [
+          "\u5340\u4f4d\u8207\u901a\u52e4"
+        ],
+        "dimensions": {
+          "width": 1440,
+          "scroll": 1440
+        }
+      }
+    ],
+    "locale_heading_cells": [
+      {
+        "lang": "zh-TW",
+        "view": "/",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u770b\u6e05\u7269\u4ef6\u8b49\u64da\uff0c\u78ba\u8a8d\u4e0b\u4e00\u6b65"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "zh-TW",
+        "view": "/cases/case-a/market",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u50f9\u683c\u8207\u5e02\u5834"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "zh-TW",
+        "view": "/cases/case-a/overview",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u7269\u4ef6\u7e3d\u89bd"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "zh-TW",
+        "view": "/cases/case-a/location",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u5340\u4f4d\u8207\u901a\u52e4"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "zh-TW",
+        "view": "/cases/case-a/risk",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u98a8\u96aa\u8207\u74b0\u5883"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "zh-TW",
+        "view": "/cases/case-a/finance",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u8cc7\u91d1\u8207\u6301\u6709\u6210\u672c"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "zh-TW",
+        "view": "/compare?cases=case-a,case-b",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u6bd4\u8f03"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "zh-TW",
+        "view": "/cases/case-a/report",
+        "document_lang": "zh-TW",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u5831\u544a \u00b7 Acceptance synthetic A"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "en",
+        "view": "/",
+        "document_lang": "en",
+        "headings": [
+          "Review property evidence. Know what to verify."
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "en",
+        "view": "/cases/case-a/market",
+        "document_lang": "en",
+        "headings": [
+          "\u50f9\u683c\u8207\u5e02\u5834"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "en",
+        "view": "/cases/case-a/overview",
+        "document_lang": "en",
+        "headings": [
+          "\u7269\u4ef6\u7e3d\u89bd"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "en",
+        "view": "/cases/case-a/location",
+        "document_lang": "en",
+        "headings": [
+          "\u5340\u4f4d\u8207\u901a\u52e4"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "en",
+        "view": "/cases/case-a/risk",
+        "document_lang": "en",
+        "headings": [
+          "\u98a8\u96aa\u8207\u74b0\u5883"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "en",
+        "view": "/cases/case-a/finance",
+        "document_lang": "en",
+        "headings": [
+          "\u8cc7\u91d1\u8207\u6301\u6709\u6210\u672c"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "en",
+        "view": "/compare?cases=case-a,case-b",
+        "document_lang": "en",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u6bd4\u8f03"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "en",
+        "view": "/cases/case-a/report",
+        "document_lang": "en",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u5831\u544a \u00b7 Acceptance synthetic A"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ja",
+        "view": "/",
+        "document_lang": "ja",
+        "headings": [
+          "\u7269\u4ef6\u306e\u6839\u62e0\u3092\u6574\u7406\u3057\u3001\u6b21\u306e\u78ba\u8a8d\u3078"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "ja",
+        "view": "/cases/case-a/market",
+        "document_lang": "ja",
+        "headings": [
+          "\u50f9\u683c\u8207\u5e02\u5834"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ja",
+        "view": "/cases/case-a/overview",
+        "document_lang": "ja",
+        "headings": [
+          "\u7269\u4ef6\u7e3d\u89bd"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ja",
+        "view": "/cases/case-a/location",
+        "document_lang": "ja",
+        "headings": [
+          "\u5340\u4f4d\u8207\u901a\u52e4"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ja",
+        "view": "/cases/case-a/risk",
+        "document_lang": "ja",
+        "headings": [
+          "\u98a8\u96aa\u8207\u74b0\u5883"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ja",
+        "view": "/cases/case-a/finance",
+        "document_lang": "ja",
+        "headings": [
+          "\u8cc7\u91d1\u8207\u6301\u6709\u6210\u672c"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ja",
+        "view": "/compare?cases=case-a,case-b",
+        "document_lang": "ja",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u6bd4\u8f03"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ja",
+        "view": "/cases/case-a/report",
+        "document_lang": "ja",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u5831\u544a \u00b7 Acceptance synthetic A"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ko",
+        "view": "/",
+        "document_lang": "ko",
+        "headings": [
+          "\ubd80\ub3d9\uc0b0 \uadfc\uac70\ub97c \uac80\ud1a0\ud558\uace0 \ub2e4\uc74c\uc744 \ud655\uc778\ud558\uc138\uc694"
+        ],
+        "locale_requirement": "PASS",
+        "reason": "bounded_heading_sample"
+      },
+      {
+        "lang": "ko",
+        "view": "/cases/case-a/market",
+        "document_lang": "ko",
+        "headings": [
+          "\u50f9\u683c\u8207\u5e02\u5834"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ko",
+        "view": "/cases/case-a/overview",
+        "document_lang": "ko",
+        "headings": [
+          "\u7269\u4ef6\u7e3d\u89bd"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ko",
+        "view": "/cases/case-a/location",
+        "document_lang": "ko",
+        "headings": [
+          "\u5340\u4f4d\u8207\u901a\u52e4"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ko",
+        "view": "/cases/case-a/risk",
+        "document_lang": "ko",
+        "headings": [
+          "\u98a8\u96aa\u8207\u74b0\u5883"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ko",
+        "view": "/cases/case-a/finance",
+        "document_lang": "ko",
+        "headings": [
+          "\u8cc7\u91d1\u8207\u6301\u6709\u6210\u672c"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ko",
+        "view": "/compare?cases=case-a,case-b",
+        "document_lang": "ko",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u6bd4\u8f03"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      },
+      {
+        "lang": "ko",
+        "view": "/cases/case-a/report",
+        "document_lang": "ko",
+        "headings": [
+          "\u6848\u4ef6\u8b49\u64da\u5831\u544a \u00b7 Acceptance synthetic A"
+        ],
+        "locale_requirement": "FAIL",
+        "reason": "legacy_surface_retains_zh_TW_heading"
+      }
+    ],
+    "invariants": {
+      "results": [
+        {
+          "name": "Checklist semantic states, save/reopen, isolation, stale recheck",
+          "status": "PASS",
+          "details": {
+            "states": [
+              "not_checked",
+              "pending",
+              "reviewed",
+              "recheck"
+            ],
+            "case_isolation": true,
+            "stale_recheck": true,
+            "persistence": "browser_local_only"
+          },
+          "blocked_attempts": []
+        },
+        {
+          "name": "Comparable expansion preserves full valuation values",
+          "status": "PASS",
+          "details": {
+            "selected": 10,
+            "excluded": 3,
+            "storage_unchanged": true
+          },
+          "blocked_attempts": []
+        },
+        {
+          "name": "Frozen report includes manual history and stays unchanged on evidence update",
+          "status": "PASS",
+          "details": {
+            "manual_summary": "\u4f7f\u7528\u8005\u4eba\u5de5\u6838\u5c0d\u7d00\u9304\n\n\u9019\u662f\u5831\u544a\u5feb\u7167\u4e2d\u7684\u4f7f\u7528\u8005\u7d00\u9304\uff0c\u4e0d\u4ee3\u8868\u5b98\u65b9\u67e5\u8b49\uff0c\u4e0d\u6703\u5c07\u672a\u77e5\u6216\u672a\u547d\u4e2d\u6539\u70ba\u5b89\u5168\u3002\n\n\u98a8\u96aa\u8207\u74b0\u5883 \u00b7 \u6d3b\u52d5\u65b7\u5c64\uff0f\u4eba\u5de5\u67e5\u8b49\uff1a\u9700\u518d\u6b21\u6838\u5c0d\uff1b\u5148\u524d\u4eba\u5de5\u6838\u5c0d 2026/10/11 \u4e0b\u53481:01:43\u3002",
+            "frozen": true
+          },
+          "blocked_attempts": []
+        },
+        {
+          "name": "Compare two cases and returns isolated finance/unknown states",
+          "status": "PASS",
+          "details": {
+            "cases": 2,
+            "storage_unchanged": true
+          },
+          "blocked_attempts": []
+        },
+        {
+          "name": "Keyboard focus visibility and reduced motion on hosted homepage",
+          "status": "PASS",
+          "details": {
+            "focus": {
+              "tag": "INPUT",
+              "outline": "solid",
+              "width": 2
+            },
+            "screen_reader": "NOT_TESTED",
+            "wcag_certification": false
+          },
+          "blocked_attempts": []
+        }
+      ],
+      "traffic": [],
+      "errors": []
+    },
+    "demo": {
+      "widths": [
+        390,
+        1024,
+        1440
+      ],
+      "locales": [
+        "zh-TW",
+        "en",
+        "ja",
+        "ko"
+      ],
+      "stages": 7,
+      "cells": 84,
+      "status": "PASS",
+      "storage_unchanged": true,
+      "provider_attempts": 0
+    },
+    "overall_locale_status": "FAIL",
+    "overall_responsive_status": "FAIL",
+    "screen_reader": "NOT_TESTED",
+    "wcag_certification": false,
+    "keyboard_labels_reduced_motion": "sampled hosted checks plus 71 local fixture tests"
+  },
+  "database_migrations": {
+    "registry": {
+      "registry_count": 20,
+      "managed_migration_count": 15,
+      "next_migration_sequence": "020"
+    },
+    "latest_registered_filename": "019_add_ris_village_demographics.sql",
+    "latest_registered_sequence": 19,
+    "hosted_schema_declaration": "schema-007",
+    "production_ledger": "NOT_TESTED",
+    "native_disposable": {
+      "scope": "local_owned_disposable_postgresql_17",
+      "production_connections": 0,
+      "production_restore": "BLOCKED",
+      "cleanup": "PASS",
+      "server_version": 17,
+      "migration_e2e": {
+        "status": "pass",
+        "migration": "postgres_transaction_rolled_back",
+        "registry_count": 20,
+        "managed_migration_count": 15,
+        "next_migration_sequence": "020",
+        "database": "validated",
+        "foreign_keys": "pass",
+        "indexes": "pass",
+        "ledger": "pass"
+      },
+      "migration_apply": {
+        "status": "pass",
+        "migration_count": 15,
+        "registry_count": 20,
+        "next_migration_sequence": "020",
+        "ledger": "applied",
+        "verification": "tables_indexes_foreign_keys"
+      },
+      "backup_integrity": "PASS",
+      "restore_validation": "PASS",
+      "backup_sha256": "b7078bfcc805e66b34316fdbcd4ccdc45f06b9b4ad9a8a7253074035c7087e89",
+      "backup_bytes": 359664,
+      "postgres_tests_exit": 0
+    },
+    "postgres_16_container": {
+      "schema_version": "postgres-recovery-drill-v1",
+      "scope": "synthetic_disposable",
+      "state": "FAIL",
+      "reason": "disposable_rehearsal_failed",
+      "production_connections": 0,
+      "failed_stage": "image_inspect"
+    },
+    "zero_production_connections_in_drills": true,
+    "remaining_skips": [
+      "Phase 2E successful large rehearsal-state integration",
+      "Phase 2F generation schema rollback target integration"
+    ]
+  },
+  "recovery": {
+    "backup": "local synthetic PASS; production BLOCKED",
+    "restore": "local synthetic PostgreSQL 17 PASS; production BLOCKED",
+    "retention_offsite": "BLOCKED",
+    "artifact_restore": "BLOCKED",
+    "rollback": {
+      "state": "BLOCKED",
+      "checks": {
+        "frontend_immutable": true,
+        "backend_immutable": true,
+        "frontend_consumer_tree": false,
+        "api_contract": true,
+        "schema": true,
+        "artifacts": false
+      },
+      "scope": "offline_compatibility_only",
+      "production_rollback": "BLOCKED",
+      "schema_version": "rollback-drill-v1",
+      "current_frontend": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+      "current_backend": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+      "candidate_frontend": "0b2e74a87adfc0f0bac57d30afedff7955233d61",
+      "candidate_backend": "0b2e74a87adfc0f0bac57d30afedff7955233d61"
+    },
+    "permissions_acl_role_restore": "NOT_TESTED",
+    "immutable_prior_release": "0b2e74a87adfc0f0bac57d30afedff7955233d61"
+  },
+  "guardrails": {
+    "schema_version": "production-guardrails-v1",
+    "release_commit": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+    "controls": {
+      "trusted_ingress": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "ingress_owner"
+      },
+      "cross_instance": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "reliability_owner"
+      },
+      "edge_waf": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "ingress_owner"
+      },
+      "google_quota": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "google_browser_quota": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "earth_engine_quota": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "other_metered_providers": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "provider_owner"
+      },
+      "billing_alerts": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "billing_owner"
+      },
+      "global_cost_ceiling": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "billing_owner"
+      },
+      "kill_switch_rollout": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "incident_owner"
+      },
+      "monitoring": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "reliability_owner"
+      },
+      "production_backup": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "database_owner"
+      },
+      "production_restore": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "database_owner"
+      },
+      "hosted_rollback": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "release_owner"
+      },
+      "incident_escalation": {
+        "state": "BLOCKED",
+        "reason": "owner_evidence_required",
+        "owner_role": "incident_owner"
+      }
+    },
+    "external_acceptance": "BLOCKED",
+    "production_decision": "NO_GO",
+    "unrelated_acceptance": "UNKNOWN",
+    "verification_scope": "offline_owner_proof"
+  },
+  "performance": {
+    "local_production_build": {
+      "initial_javascript_bytes": 2822783,
+      "largest_chunk_budget_bytes": 900000,
+      "largest_client_chunk_bytes": 597609,
+      "status": "pass",
+      "total_budget_bytes": 8000000,
+      "total_static_bytes": 2974397
+    },
+    "route_budgets": {
+      "largest_client_chunk_bytes": 597609,
+      "routes": {
+        "admin": {
+          "largest_js_bytes": 900000,
+          "status": "pass",
+          "total_static_bytes": 4500000
+        },
+        "competition_demo": {
+          "largest_js_bytes": 900000,
+          "status": "pass",
+          "total_static_bytes": 4000000
+        },
+        "homepage": {
+          "largest_js_bytes": 900000,
+          "status": "pass",
+          "total_static_bytes": 3000000
+        },
+        "map_insight": {
+          "largest_js_bytes": 900000,
+          "status": "pass",
+          "total_static_bytes": 4500000
+        },
+        "pilot": {
+          "largest_js_bytes": 900000,
+          "status": "pass",
+          "total_static_bytes": 4500000
+        },
+        "taxoracle": {
+          "largest_js_bytes": 900000,
+          "status": "pass",
+          "total_static_bytes": 4000000
+        }
+      },
+      "status": "pass",
+      "total_static_bytes": 2974397
+    },
+    "ceiling_bytes": 3000000,
+    "remaining_headroom_bytes": 25603,
+    "hosted_observed_unique_assets": 31,
+    "hosted_observed_static_bytes_lower_bound": 2322925,
+    "hosted_largest_observed_js_bytes": 597602,
+    "complete_hosted_asset_inventory": "NOT_VERIFIED",
+    "local_e2e_build_is_separate": true
+  },
+  "ml_boundary": {
+    "target_a": "BLOCKED",
+    "target_b": "BLOCKED",
+    "historical_publication_proofs": 0,
+    "pit_valid": 0,
+    "approved_training_cohort": 0,
+    "ml_b_may_begin": false,
+    "production_ml_capability": false,
+    "deployed_claim_scan": "sampled visible pages and Comparable limitations; not full content corpus"
+  },
+  "failed_run_history": [
+    {
+      "check": "frontend deterministic first run",
+      "classification": "ENVIRONMENTAL",
+      "evidence": "269 pass / 1 fail: runner requires .next/BUILD_ID; suite started before build completed",
+      "resolution": "270 passed after build; no assertion changed"
+    },
+    {
+      "check": "Python audit first run",
+      "classification": "ENVIRONMENTAL",
+      "evidence": "pip_api pip --version decode failed on Windows cp950 user path",
+      "resolution": "PYTHONUTF8=1; confirmed subprocess exit 0, 68 dependencies, 0 vulnerabilities"
+    },
+    {
+      "check": "PostgreSQL 16 Docker recovery",
+      "classification": "ENVIRONMENTAL",
+      "evidence": "image_inspect failed; daemon socket does not exist",
+      "resolution": "not passed; separate PostgreSQL 17 native disposable proof recorded"
+    },
+    {
+      "check": "frontend hosted environment and release version",
+      "classification": "PRE_EXISTING",
+      "evidence": "frozen deployed endpoint reports unconfigured for both fields",
+      "resolution": "release owner action; no cloud edits"
+    },
+    {
+      "check": "backend runtime SHA projection",
+      "classification": "PRE_EXISTING",
+      "evidence": "build-bound frozen candidate SHA with runtime_sha_matches_build=false",
+      "resolution": "release owner action; runtime env value not disclosed"
+    },
+    {
+      "check": "hosted 1024 English Location overflow",
+      "classification": "PRE_EXISTING",
+      "evidence": "initial failure reproduced after document language settled: scrollWidth=1035, width=1024",
+      "resolution": "product blocker recorded; no CSS edits"
+    },
+    {
+      "check": "hosted locale headings",
+      "classification": "PRE_EXISTING",
+      "evidence": "settled English 15/18 sampled headings fail; 21/32 four-locale heading cells fail; source contains hardcoded zh-TW",
+      "resolution": "product blocker recorded; no translation edits"
+    },
+    {
+      "check": "hosted checklist first probe",
+      "classification": "ENVIRONMENTAL",
+      "evidence": "English summary selector did not exist on Chinese legacy surface",
+      "resolution": "actual zh-TW control selected in independent invariant rerun; save/reopen/isolation passed"
+    },
+    {
+      "check": "hosted stale-review probe",
+      "classification": "ENVIRONMENTAL",
+      "evidence": "probe expected nonexistent wording; semantic select has recheck state",
+      "resolution": "waited for select.value=recheck; invariant passed; no product assertion weakened"
+    },
+    {
+      "check": "offline_competition_disclosure smoke",
+      "classification": "BLOCKING_UNKNOWN",
+      "evidence": "raw homepage lacks offline keyword; smoke does not activate lazy demo or competition flow",
+      "resolution": "retain raw smoke failure; hosted Guided Demo synthetic disclosure independently passed; competition-specific scope remains NOT_TESTED"
+    },
+    {
+      "check": "rollback to first parent",
+      "classification": "PRE_EXISTING",
+      "evidence": "immutable/API/schema checks pass; frontend consumer tree differs and no accepted artifact map supplied",
+      "resolution": "BLOCKED; release owner must approve explicit pair/artifacts and provide staging rollback proof"
+    },
+    {
+      "check": "local browser first shell exit",
+      "classification": "ENVIRONMENTAL",
+      "evidence": "PowerShell reported exit 1 while Playwright printed 71 passed; stderr warnings caused ambiguous shell status",
+      "resolution": "subprocess rerun recorded exact exit 0 and JSON stats; no flaky claim"
+    },
+    {
+      "check": "acceptance evidence regression first command",
+      "classification": "ENVIRONMENTAL",
+      "evidence": "incorrect test filename tests/test_production_guardrails_evidence.py; collection did not run",
+      "resolution": "corrected existing test filenames; rerun exit/counts recorded; no assertions changed"
+    }
+  ],
+  "independent_review": {
+    "state": "final_review_completed",
+    "reviewer": "independent_acceptance_review",
+    "scope": "independent read-only frozen-source and final-artifact acceptance review",
+    "verdict_supported": "NO-GO",
+    "critical_findings": 0,
+    "important_findings": 1,
+    "findings": [
+      {
+        "severity": "Important",
+        "issue": "acceptance-input.json inventory size/hash was captured before the generator input was rewritten",
+        "resolution": "refresh input binding after writing the final input; verify every retained inventory entry; independently rechecked all 104 bindings and all 35 input gates",
+        "status": "RESOLVED"
+      }
+    ],
+    "other_findings": "No additional Critical or Important evidence defect. No false production acceptance or exposed credentials identified.",
+    "verified_boundaries": [
+      "40 requested report items present",
+      "35 categorical gates match retained input",
+      "23 providers, 13 artifacts and 15 blocked external controls",
+      "32 initial skips, 30 closed by overlapping supplemental tests, 2 remaining",
+      "locale and responsive failures retained",
+      "PDF binary bindings and page counts match",
+      "PostgreSQL 17 restore is synthetic and not production proof",
+      "raw disclosure failure remains BLOCKING_UNKNOWN",
+      "strict 3000000-byte ceiling unchanged"
+    ],
+    "completed_at": "2026-10-11T13:16:39.451508+08:00",
+    "unresolved_critical_findings": 0,
+    "unresolved_important_findings": 0,
+    "independent_binding_recheck": {
+      "inventory_entries": 104,
+      "mismatches": 0,
+      "input_gate_matches": 35,
+      "regression_passed": 77,
+      "regression_skipped": 0
+    }
+  },
+  "proof_inventory": [
+    {
+      "path": ".local/acceptance-v2/build.log",
+      "bytes": 2436,
+      "sha256": "dd55fc0358d43af78d777cbaf9f026e4b41472d4c40de45a0a0ffbd4331bd698",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/bundle.log",
+      "bytes": 392,
+      "sha256": "e1f44580d4a078b60f6a32002345cd162b469416ebdef659b2655269d65eb7d4",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/closure.json",
+      "bytes": 31149,
+      "sha256": "b9d16e7b2d58a313aa8f0b4936d63d59d9298a39d514c8aef67f9db2048ef5b1",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/closure.log",
+      "bytes": 58,
+      "sha256": "166b50ec4109336f4c27e3fb88b1709f7dbbd00cdd9ff185b50198900d2cd522",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/e2e-build.log",
+      "bytes": 2528,
+      "sha256": "40f80c6db90c4f1bf51361e349bd7db154142c20e125be0846226c6e713eeb3a",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/evidence-tests-exit.json",
+      "bytes": 302,
+      "sha256": "165d48aa2a14874f064a9d31a62d2e47c915292dd739424a1faaae8c457a208e",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/evidence-tests-rerun.log",
+      "bytes": 853,
+      "sha256": "fe5c4cb2069541c530dbbbcfb93baaba008b4d38d73e64a0376c64a03a4f4e8f",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/evidence-tests.log",
+      "bytes": 888,
+      "sha256": "3c4560b6309ce48013ca10dc020701c668b22d55e0b010e4fe4352aee3cb1ac4",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/evidence-tests.xml",
+      "bytes": 11707,
+      "sha256": "26e05fc6b2c440fb909447991ec9f2a4ef0476b0a5519a4581955340d01b0dfb",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1024-compare.png",
+      "bytes": 3260849,
+      "sha256": "865cb0e8ab33ac165927bc784c2422b6f168abbd620f583dec1128cd93779081",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1024-home.png",
+      "bytes": 101293,
+      "sha256": "bd5ee1d27c9a359454e56f8e8ea8316e63ec7f6e95ae0034760d51e042cc6ad3",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1024-location.png",
+      "bytes": 233999,
+      "sha256": "db74bc79ffdbda966984eaf28506e4be84ad0da1ed0e559bf188321322ad6cd8",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1024-market.png",
+      "bytes": 285488,
+      "sha256": "3842472824421ffe341d7cc2f65e26745e1d4b8fb0fe4ef3b3549da36b8720bf",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1024-overview.png",
+      "bytes": 470848,
+      "sha256": "b150c455fc737c1e56cc8d795fe86e5e5642388ecf206dd9496956ad8b60defc",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1024-report.png",
+      "bytes": 2325468,
+      "sha256": "394168d51eef4278f96ba22080cd147f13b0a0a07a0f6cfb2687408e13a0d8db",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1440-compare.png",
+      "bytes": 3343172,
+      "sha256": "095c1536f0dccbfa633b8ac884756fc5e6dae9639de2f174ccacbda996070946",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1440-home.png",
+      "bytes": 103652,
+      "sha256": "6d0e69db69f04e4da97728801a2d1f5cfd6da4787e1c3c4a7373fb055419b282",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1440-location.png",
+      "bytes": 249178,
+      "sha256": "b0137e4f799cc50303537ff0e103ccd2b07d64cb2f4a1657a5362c4f181dcafa",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1440-market.png",
+      "bytes": 291021,
+      "sha256": "1833ae5b007c2ecdcd322aa4d1c0cd29d3ded47eabd1b6fc05c163c903d22d5c",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1440-overview.png",
+      "bytes": 480037,
+      "sha256": "60abb8dc45cf61abf1a88f9c9d514fae80b4555b17f4c7aac6336c9e7538bcd8",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-1440-report.png",
+      "bytes": 2389058,
+      "sha256": "b1ce85e85015d35af29d5f11e103e1025cacd1b6c1c41cb83282fe6e7d071b4b",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-390-compare.png",
+      "bytes": 1977618,
+      "sha256": "cbdb050fac1c9a966cdd94b85439983110c91f0cdf3c810428c78b9a3ce0ef2c",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-390-home.png",
+      "bytes": 97100,
+      "sha256": "d3afb8d8dddc3d73235e93d177ff321c6e05762f23ba564d22f1a83a71db8007",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-390-location.png",
+      "bytes": 213845,
+      "sha256": "4d1874a44b30caf186447e20b45db713978acd1a5770e6dc4a7f7259e8a40bc9",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-390-market.png",
+      "bytes": 273873,
+      "sha256": "2f4e3c95749f1e1575613d9c976e6a3407c2b83e1f868e23c183ce077c79589a",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-390-overview.png",
+      "bytes": 441118,
+      "sha256": "4e5c0395e3f5b42edd6349a3f4f18012a698bd262d8235ffb5846a74b65f2bc5",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/followup-390-report.png",
+      "bytes": 2177634,
+      "sha256": "918cec3bd1389fb720a0c624a87a0c7a94813fec03ad2f62e11f7eb4be65b6a4",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/freeze.json",
+      "bytes": 544,
+      "sha256": "98abeb50fd20e3ba32744f704981835d077d8a2979bdcc8f2ca883fd1c72b96b",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/frontend-unit-rerun.json",
+      "bytes": 2261,
+      "sha256": "a2141fd4ba4d53c7db8d066b7f6c487191235158f7090ac68e3776d706289f83",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/frontend-unit-rerun.log",
+      "bytes": 24116,
+      "sha256": "32421ded6ff4e17a7dcb5445c069fe1fd00e98368ac1082220a73c276eb37a6d",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/frontend-unit-run.json",
+      "bytes": 2261,
+      "sha256": "cfc28dcf587c6b8dca7d74a30a1c2c346600081bbcc31dfef989c693bd6d1a76",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/frontend-unit.log",
+      "bytes": 25250,
+      "sha256": "2345daadd8314c65f8dfaa19aace3992a7eca189f71aec5a9316bbd7f4979ed1",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-browser.cjs",
+      "bytes": 11367,
+      "sha256": "a92e0274f412c4129906dc699e2f479ccd1cf388c7d0d9aae5ba7642e45352f4",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-browser.json",
+      "bytes": 108529,
+      "sha256": "a8dd8003f8a1df34d87dc690b2bed67bac78847e2d4e8897965eda380cff9268",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-browser.log",
+      "bytes": 214,
+      "sha256": "ad4edb046c42aeeadb5185f45629a23d904e5c91be57e4de5fe73bfd8d5ba8ad",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-contracts.json",
+      "bytes": 698,
+      "sha256": "4cd3de54b86c8fc1d43bee40e19140753f1deb54c47d741ca44f1d82a7b1aa06",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-followup.cjs",
+      "bytes": 4287,
+      "sha256": "6f3739b18da43a80a29e19867bee5cbdb4860668f1edc397de07c8c237930c59",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-followup.json",
+      "bytes": 43855,
+      "sha256": "ad7d496cef2cd45b3358298a53d1d3223beb2c5c02dae0465f9a8a4ef592e328",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-followup.log",
+      "bytes": 96,
+      "sha256": "f384bd6d2246de950ceca2224835d593f92e7ca98c5abc0682fe739eacda6313",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-homepage.png",
+      "bytes": 96048,
+      "sha256": "dec5a6b0733fdbdd800e60b34499ad3de441f6a0f91466befee680195952fc34",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-invariants.cjs",
+      "bytes": 5151,
+      "sha256": "0d7d175582d2336fbc6b605f25068e9e3bc88b8c19e8cb5a0effc2cbe27e1210",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-invariants.json",
+      "bytes": 1782,
+      "sha256": "a62014caa591af98729217c96ac69a659d6ca1c24dc89bda53626a913f7130c0",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-invariants.log",
+      "bytes": 110,
+      "sha256": "36a19564b7639ce4147e3fe768c1dd3e468a6221110599c6dab63cc46f9dc5ff",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-locales.cjs",
+      "bytes": 1445,
+      "sha256": "2811c37c5a52dd51d17fc369e75e55203a8d003a795045e8dd4fbff138f9fd83",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-locales.json",
+      "bytes": 33980,
+      "sha256": "42e4d8ecd88a3780b654622b4ae988b9235054cf87d1c56f975f985f60f5fb9f",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-locales.log",
+      "bytes": 64,
+      "sha256": "7cedf557f12a286eb4d350054e859c2cbc7b830be0f098643f0a263157eb7372",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-overview.png",
+      "bytes": 480037,
+      "sha256": "60abb8dc45cf61abf1a88f9c9d514fae80b4555b17f4c7aac6336c9e7538bcd8",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-report-a4.pdf",
+      "bytes": 1053389,
+      "sha256": "10dd98b5a80d7ba1a7d68f4fcc7fc28b30b46449e752984e86c5426ec4380198",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-report-manual-a4.pdf",
+      "bytes": 1087553,
+      "sha256": "bceb06bb1be9adea3c076f34b547609271397d274e07b9beb4c9855762f7920c",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted-smoke.log",
+      "bytes": 2304,
+      "sha256": "9adc6929ba65257e4f2307a6c99005a521fdaa72afa9c1f7748bf2c813a2cba2",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hosted.json",
+      "bytes": 4269,
+      "sha256": "150d8fbb375acd5a40b19cf56570aacec39be8872de561cfdc02f7cd849cd2d5",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/hygiene.log",
+      "bytes": 52,
+      "sha256": "1ad10f0fb5d93088ee6f47b2a0ef804a07b4660534a3efc3afbb5c7f91cf608a",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/independent-review.json",
+      "bytes": 1663,
+      "sha256": "a8e03cf2f6d9746d691d1f0ae1cdb7dd1db2079eb535b9e390fb7c8015acfba6",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/inspect-hosted.cjs",
+      "bytes": 692,
+      "sha256": "93185ddddbf10256721038bfc5d552adc2873a987baa79553fea9e8bda9a0707",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/inspect-hosted.log",
+      "bytes": 3488,
+      "sha256": "d02e8ad9ec1906fd682665bb6dd2baeed92cf790495089917ce14de596d0d64d",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/lint.log",
+      "bytes": 8026,
+      "sha256": "7ddc5b1949f8d8500492f6a92a0855de2a808086b47def6e5f77946098fd0210",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/local-browser-confirmed.log",
+      "bytes": 10821,
+      "sha256": "335f392962eff3345da82016e5ee303eb3e77d1cbb2b2a7e7e7bdfcd96bfa64c",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/local-browser-exit.json",
+      "bytes": 463,
+      "sha256": "4a3ae9208c47137694be64561608dacaa70e851deee3b9082fdf11ca9503792a",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/local-browser-report.json",
+      "bytes": 82446,
+      "sha256": "62486da17c0a48ebc834d69f572148fc9bd978a872490254cc92926773f582c7",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/local-browser.log",
+      "bytes": 22912,
+      "sha256": "0d2cfd925d9f75314adb757499e054d49666770dc6bc143580040c1b20a5bd04",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/migration-static.log",
+      "bytes": 528,
+      "sha256": "69beb3609cf0cc7e0928e973b1d0282c80e843814ce32acc48a7ff0f20eaa66d",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/native-postgres-run.log",
+      "bytes": 1586,
+      "sha256": "da35efaf31cfdf40cf2e59bf9202b3f0fc970c934b4784f39f18069abcbe9530",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/native-postgres.json",
+      "bytes": 916,
+      "sha256": "7c5eb59819aa1db251cfc06319aa1bad7d205bcdf9d642aae3d8b5cb3919d246",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/native-postgres.log",
+      "bytes": 52599,
+      "sha256": "62ebb0d69caaab2b55967f49d52c6dc081b02eeb23ac80ff9ec896f9e4716fa9",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/native-postgres.py",
+      "bytes": 4950,
+      "sha256": "388c5fe91fa87b8f228ab5d37bbe639f0e0410d90e6b715a36176ab8918e467f",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/npm-ci.log",
+      "bytes": 714,
+      "sha256": "38ab05ea160163173defeddff7bf930beec798b5efa4b9643692267238199777",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/npm-explanation.json",
+      "bytes": 9842,
+      "sha256": "579a74bd066ed0bb7b28c1d5a07bc47846bef822efe450311e26bd9b5b832c4d",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/npm-full-audit.json",
+      "bytes": 10324,
+      "sha256": "448896123443df8b13ce917c637f93068e4e12780067e313970c507d8ddae7fc",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/npm-policy.json",
+      "bytes": 149,
+      "sha256": "1ff3c56926be04a6328dce96fe0308a97fe1190a0c61e20056d7dfecaa2e3f45",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/npm-production-audit.json",
+      "bytes": 774,
+      "sha256": "7181dad474c27984f005ecc5c30f6505f9f95091dc5dea418683dadb57674a59",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/operations.log",
+      "bytes": 554,
+      "sha256": "e12672127993246438b97302d87516aabb6f95fd66bee467136643bfcba7e9cf",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-contact.png",
+      "bytes": 610757,
+      "sha256": "c4efd95bd9b7f1b6c22b0eb067993295c2c5e9a08a3df79490c37a63a9948195",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-finance-values.png",
+      "bytes": 124702,
+      "sha256": "fc70698b941382afd1b100c1cb8143065b46c9590eeb67c983c6513e447d5bd6",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-finance.png",
+      "bytes": 102018,
+      "sha256": "b5483775242878057fb6f7e7e81eb7a6ad567a22bf16b8d7416abd5ebcc677d5",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-inspection.json",
+      "bytes": 2996,
+      "sha256": "e56a2f20775014402f9fc2b56ce4d681a2412f8fcd84f37d3fc34fcb87715238",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-inspections.json",
+      "bytes": 8433,
+      "sha256": "ea9947281400232ded5a98c18abbf2bfe884e540c3bf6ec4fc497e1da31cad68",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-manual-contact.png",
+      "bytes": 619500,
+      "sha256": "7d56a741aec41029a61f2fa4b3fcef5248387026728958ddaf6e1f0ad6d23a87",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-page-1.png",
+      "bytes": 100757,
+      "sha256": "df006a4f078b215277771a9252d12f07a5386c6709a08716a05bd165b10fb92f",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-page-10.png",
+      "bytes": 122322,
+      "sha256": "404074912f690cc76a68546a3a2016882873fdf8db2b512d74e92553d7aa5f4c",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pdf-page-18.png",
+      "bytes": 48483,
+      "sha256": "2598bd88fc06ceaf86700a031388e9e896073f9b61a8abedbf1372f5b3604e51",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/pilot-migration.log",
+      "bytes": 278,
+      "sha256": "9bbb08ed6af47c384d8ce075aecacd9d165f947358b4e03a489fbca2cf9493d4",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/postgres-server.log",
+      "bytes": 17987,
+      "sha256": "b114476070a10c9892585458e2ac68e1b9f69b0e75c8d55f48e2da2423c6b751",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/postgres-tests.log",
+      "bytes": 791,
+      "sha256": "98dc8521eb61f43141bd058279ea7f1734fd192281c8bdbf333dc6c7d6140b60",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/postgres-tests.xml",
+      "bytes": 9097,
+      "sha256": "aa60f479bd6da4f1f74928c33abc9bcbd513dfd92031c174d7a83eaa86b86878",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/provider-process-config.json",
+      "bytes": 2672,
+      "sha256": "217117977774917faf63e904716af5fbd42c60fb56204e3e0c1dbbc8343348dd",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python-audit-confirmed.log",
+      "bytes": 32,
+      "sha256": "4e4757ff226a44b5c448b1c4624619419c22d5272463dc19510b4754871a72f9",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python-audit-exit.json",
+      "bytes": 280,
+      "sha256": "bb3a947d922b68b6a64211e7551d1a2fc4b88d626ddd064a1b970dd420e4ca6f",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python-audit-rerun.log",
+      "bytes": 746,
+      "sha256": "7796d9d091a7f7277238346c0732ee5783f5cd8a63ae6cd19dd098807579b8b3",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python-audit.log",
+      "bytes": 5648,
+      "sha256": "0a1dd67c270a214807787e89b38c27f78b7abe441785274b370937fc17f143ed",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python-runtime-audit-confirmed.json",
+      "bytes": 3979,
+      "sha256": "cc0140df115179691b9545565119dd33a3936d5bd1d0a5c0d1ccca25e93fef1a",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python-runtime-audit.json",
+      "bytes": 3979,
+      "sha256": "cc0140df115179691b9545565119dd33a3936d5bd1d0a5c0d1ccca25e93fef1a",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python.log",
+      "bytes": 9682,
+      "sha256": "0c9698ea3326c9c0370acd55bd881e819e981782567f5c4cb6e539f23e0ce1e9",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/python.xml",
+      "bytes": 534018,
+      "sha256": "fe41d5702f80736f3058b699fea26570fafb08002d6b3ea94bc0c0bbb4ac5368",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/recovery.json",
+      "bytes": 224,
+      "sha256": "ee18425a3b0006e3a529fc49494531c3d3805f9b99bce6e391388864cc6d2aab",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/recovery.log",
+      "bytes": 408,
+      "sha256": "f1ff6e0340c87f7ed7dcc0efe2497dd6c00c3410970a1cd58336a3066200f804",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/release-gate.json",
+      "bytes": 482,
+      "sha256": "3ae055abbe4be0af467cad1ace889bdefa3602cdccde4c3140d2bbe88e243bd1",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/release-gate.log",
+      "bytes": 686,
+      "sha256": "c35144c490a8edb650e48cfe56c6f747959b62bdcba84c84f87782a79a38e728",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/rollback-command.json",
+      "bytes": 635,
+      "sha256": "7dea3936614ae1102e042fe404e8ab6c786d45b0f8a074fde753d826747dc238",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/rollback.json",
+      "bytes": 615,
+      "sha256": "5d7e3bc2b60f217b59569186175ac0ea2ba5b613c5a2fa81b21028f2754b141f",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/route-budget.log",
+      "bytes": 1308,
+      "sha256": "9d19f890810fee3ac2125a8b1fe448821141a77bbee3c218a444bbe5ff10cee6",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/security-performance.log",
+      "bytes": 380,
+      "sha256": "97c6d83b8b15382678eacf483d7705f68db854a7c33ed6b7125d60992fdd4b30",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/typecheck.log",
+      "bytes": 138,
+      "sha256": "c622cf98e88860c6889d21a1d23746ffc4d7d7aa3a362486b93a88004bd09361",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/unaccepted-artifacts.json",
+      "bytes": 4,
+      "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f",
+      "retained": "local_ignored_operator_artifact"
+    },
+    {
+      "path": ".local/acceptance-v2/acceptance-input.json",
+      "bytes": 19732,
+      "sha256": "05bad6c0e138cbfa2142b50f72ff7ad2352d8d5c0079fd586ab23a5c20c977a7",
+      "retained": "local_ignored_operator_artifact"
+    }
+  ],
+  "production_verdict": "NO-GO",
+  "safe_to_open_software_review_PR": true,
+  "safe_to_merge_acceptance_evidence": true,
+  "paid_saas_certified": false,
+  "privacy": {
+    "secrets_included": false,
+    "raw_provider_payloads_included": false,
+    "customer_data_included": false,
+    "only_safe_metadata_and_synthetic_ui_evidence": true
+  },
+  "limitations": [
+    "Production case creation/provider acquisition deliberately not attempted because logical analysis fanout lacks accepted budget/credentials.",
+    "Browser-local synthetic snapshots do not prove hosted persistence or official data provenance.",
+    "No cloud owner exports, provider receipts, accepted remote artifact bytes or production backup were supplied.",
+    "Local Python/Node/npm versions differ from deployment/declared toolchain: Python 3.13.14, Node 24.14.1, npm 11.11.0 versus deployed Python 3.12/Linux, .node-version 24.21.0 and packageManager npm 11.19.0.",
+    "No timeouts, assertions, skip policy, budgets, security rules, application code or dependency locks were changed."
+  ]
+}
