@@ -1,4 +1,5 @@
 "use client";
+import { ComparableExplanation } from "./comparable-explanation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ValuationRenderErrorBoundary } from "@/components/valuation-result-boundary";
@@ -374,6 +375,7 @@ export function MarketPriceView() {
           <div><dt className="font-semibold">年化趨勢</dt><dd>{typeof model.valuation.trend.trend_annualized_rate === "number" ? `${model.valuation.trend.trend_annualized_rate.toFixed(1)}%` : formatMissing("unavailable")}</dd></div>
         </dl>}
       </ValuationRenderErrorBoundary>
+      <ComparableExplanation value={valuation?.comparable_decision_trace} stale={model.valuation.status === "stale"} />
     </Section>
 
     <Section title="可比成交證據" description="逐筆成交是判斷物件條件差異的主要證據；只顯示目前案件實際保留的資料。">

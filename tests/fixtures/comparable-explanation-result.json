@@ -1,0 +1,1424 @@
+{
+  "source": "postgres",
+  "data_status": {
+    "active_source": "postgres",
+    "capability_sources": {
+      "valuation": "postgres",
+      "finder": "postgres",
+      "trend": "postgres",
+      "market": "postgres",
+      "coverage": "postgres"
+    }
+  },
+  "valuation_status": "available",
+  "valuation_reason_code": "official_result_available",
+  "result_origin": "official",
+  "is_actionable": true,
+  "estimate_level": "road",
+  "matched_community": null,
+  "confidence_reason": "本次以同路段可比成交估算，共採用 10 筆 官方 PLVR 資料，信心為 high；目前資料尚非全台完整；保守上限原因：尚未命中特定社區。",
+  "estimate_data_composition": "official",
+  "data_composition": "official",
+  "estimate_source_label": "官方 PLVR",
+  "candidate_pool_size": 13,
+  "official_same_road_count": 12,
+  "official_same_district_count": 1,
+  "sample_same_road_count": 0,
+  "sample_same_district_count": 0,
+  "source_details": {
+    "file": "postgres",
+    "nature": "索引化可比成交資料",
+    "complete_real_price_registry": null,
+    "formal_appraisal": false,
+    "bank_appraisal": false,
+    "future_adapter": "未來可切換 Supabase/Postgres 全台資料庫",
+    "provider_active": "postgres",
+    "backend": "blue",
+    "capability": "valuation",
+    "query_scope": "local_provider",
+    "candidate_pool_size": 13,
+    "db_rows_returned": 0,
+    "query_status": "ok",
+    "requested_city": "台北市",
+    "requested_district": "大安區",
+    "requested_road": "和平東路二段"
+  },
+  "estimate_total_price": 1926.0,
+  "estimate_unit_price_per_ping": 64.2,
+  "price_range": {
+    "low": 1867.5,
+    "mid": 1926.0,
+    "high": 2002.5
+  },
+  "unit_price_distribution": {
+    "weighted_mean": 64.5,
+    "weighted_median": 64.0,
+    "p25": 62.2,
+    "p75": 66.8
+  },
+  "confidence": "high",
+  "confidence_score": 85,
+  "comparables": [
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 30,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 60,
+      "total_price": 1800,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 0.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 0.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 31,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 61,
+      "total_price": 1891,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 1.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 1.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 32,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 62,
+      "total_price": 1984,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 2.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 2.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 33,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 63,
+      "total_price": 2079,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 3.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 3.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 34,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 64,
+      "total_price": 2176,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 4.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 4.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 35,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 65,
+      "total_price": 2275,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 5.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 5.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 36,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 66,
+      "total_price": 2376,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 6.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 6.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 37,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 67,
+      "total_price": 2479,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 7.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 7.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 38,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 68,
+      "total_price": 2584,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 8.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 8.0
+    },
+    {
+      "transaction_period": "2026-08",
+      "city": "台北市",
+      "district": "大安區",
+      "road": "和平東路二段",
+      "building_type": "住宅大樓",
+      "area_ping": 39,
+      "building_age_years": 15,
+      "floor": 8,
+      "lat": 25.0254,
+      "lng": 121.5434,
+      "unit_price_per_ping": 69,
+      "total_price": 2691,
+      "source": "official_plvr_opendata",
+      "distance_m": 0,
+      "similarity_score": 100,
+      "weight": 1.0,
+      "note": "同路段、同建物類型、面積差 9.0 坪",
+      "source_label": "官方 PLVR",
+      "normalized_building_type": "住宅大樓",
+      "_same_road": true,
+      "_same_building_type": true,
+      "_area_difference_ping": 9.0
+    }
+  ],
+  "comparable_decision_trace": {
+    "version": "comparable-explanation-v1",
+    "selection_version": "deterministic-valuation-v1",
+    "coverage": "returned_candidates_only",
+    "reference_period": "2026-10",
+    "recency_reference_period": "2026-10",
+    "window_start": "2023-11",
+    "scope": "road",
+    "considered_count": 13,
+    "selected_count": 10,
+    "excluded_count": 3,
+    "provider_excluded_count": null,
+    "reason_counts": {
+      "scope": 1,
+      "rank_limit": 2
+    },
+    "excluded_example_bound": 5,
+    "outlier_bounds": [
+      54.5,
+      76.5
+    ],
+    "outlier_fallback": false,
+    "selected": [
+      {
+        "candidate_id": "candidate-1",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 30.0,
+            "difference": 0.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 60.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-2",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 31.0,
+            "difference": 1.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 61.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-3",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 32.0,
+            "difference": 2.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 62.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-4",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 33.0,
+            "difference": 3.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 63.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-5",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 34.0,
+            "difference": 4.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 64.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-6",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 35.0,
+            "difference": 5.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 65.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-7",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 36.0,
+            "difference": 6.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 66.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-8",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 37.0,
+            "difference": 7.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 67.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-9",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 38.0,
+            "difference": 8.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 68.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-10",
+        "status": "included",
+        "reasons": [
+          "selected"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 39.0,
+            "difference": 9.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 69.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      }
+    ],
+    "excluded_examples": [
+      {
+        "candidate_id": "candidate-13",
+        "status": "excluded",
+        "reasons": [
+          "scope"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / Other road",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 50.0,
+            "difference": 20.0,
+            "role": "context",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "context",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "context",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 80.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-11",
+        "status": "excluded",
+        "reasons": [
+          "rank_limit"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 40.0,
+            "difference": 10.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 70.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      },
+      {
+        "candidate_id": "candidate-12",
+        "status": "excluded",
+        "reasons": [
+          "rank_limit"
+        ],
+        "transaction_period": "2026-08",
+        "dimensions": {
+          "location": {
+            "target": "台北市 / 大安區 / 和平東路二段",
+            "comparable": "台北市 / 大安區 / 和平東路二段",
+            "difference": null,
+            "role": "scope",
+            "threshold": null
+          },
+          "building_type": {
+            "target": "住宅大樓",
+            "comparable": "住宅大樓",
+            "difference": null,
+            "role": "ranking",
+            "threshold": null
+          },
+          "area": {
+            "target": 30.0,
+            "comparable": 41.0,
+            "difference": 11.0,
+            "role": "ranking",
+            "threshold": null
+          },
+          "age": {
+            "target": 15.0,
+            "comparable": 15.0,
+            "difference": 0.0,
+            "role": "weight",
+            "threshold": null
+          },
+          "distance": {
+            "target": null,
+            "comparable": 0,
+            "difference": null,
+            "role": "weight",
+            "threshold": null
+          },
+          "recency": {
+            "target": "2026-10",
+            "comparable": "2026-08",
+            "difference": 2,
+            "role": "ranking",
+            "threshold": null
+          },
+          "unit_price": {
+            "target": null,
+            "comparable": 71.0,
+            "difference": null,
+            "role": "outlier",
+            "threshold": [
+              54.5,
+              76.5
+            ]
+          },
+          "floor": {
+            "target": 8.0,
+            "comparable": 8.0,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "parking": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          },
+          "community_distance": {
+            "target": null,
+            "comparable": null,
+            "difference": null,
+            "role": "context",
+            "threshold": null
+          }
+        }
+      }
+    ]
+  },
+  "valuation_explanation": {
+    "sample_count": 10,
+    "same_road_count": 10,
+    "same_district_count": 10,
+    "same_city_count": 10,
+    "same_building_type_count": 10,
+    "nearest_distance_m": 0,
+    "average_area_difference_ping": 4.5,
+    "average_age_difference_years": 0.0,
+    "average_similarity_score": 100,
+    "method": "依估價層級選擇可比成交，IQR 排除極端值後綜合相似度加權平均、加權中位數與 P25/P75。"
+  },
+  "methodology": [
+    "依同社區、同路段、同行政區、同縣市的順序尋找可比成交。",
+    "使用相似度與距離加權，並以 IQR 排除極端單價。",
+    "以加權平均與加權中位數估算中位值，P25 與 P75 顯示估值區間。"
+  ],
+  "disclaimer": "本結果為可比成交估算，不是正式鑑價、銀行估價、成交保證或投資建議。"
+}

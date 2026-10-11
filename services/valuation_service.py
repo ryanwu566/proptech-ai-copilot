@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from services.community_index_service import match_community
+from services.comparable_decision_trace import ComparableDecisionTrace
 from services.market_road_analysis import normalize_market_road
 from services.plvr_data_freshness import evaluate_plvr_freshness
 from services.valuation_providers.unavailable_provider import UnavailableValuationProvider
@@ -215,7 +216,10 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
             all_rows = list(provider.load_transactions())
     except Exception:
         return empty_estimate_result(data_status, status="unavailable", reason_code="provider_query_failed", result_origin="none", provider_source=provider.source, query_metadata={**query_metadata, "query_status": "failed"})
-    all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider) or _use_green_comparables)
+    reference_period = datetime.now(UTC).strftime("%Y-%m")
+    trace = ComparableDecisionTrace(payload, reference_period, date.today().strftime("%Y-%m"), _shift_month(reference_period, -35), isinstance(provider, PostgresValuationProvider) or _use_green_comparables)
+    all_rows = trace.candidates(all_rows)
+    all_rows, selection = _prepare_candidate_pool(all_rows, payload, enforce_scope=isinstance(provider, PostgresValuationProvider) or _use_green_comparables, trace=trace)
     query_metadata = {**query_metadata, **provider.last_query_metadata} if isinstance(provider, PostgresValuationProvider) and not _use_green_comparables else {
         **query_metadata,
         "candidate_pool_size": len(all_rows),
@@ -240,10 +244,10 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     estimate_level, candidates = (
         (selection["estimate_level"], all_rows)
         if selection["estimate_level"]
-        else _select_estimate_level(all_rows, payload, community, allow_fallback=not isinstance(provider, PostgresValuationProvider))
+        else _select_estimate_level(all_rows, payload, community, allow_fallback=not isinstance(provider, PostgresValuationProvider), trace=trace)
     )
     if not candidates:
-        return empty_estimate_result(
+        return {**empty_estimate_result(
             data_status,
             status="no_data" if isinstance(provider, PostgresValuationProvider) else "no_data",
             reason_code="official_comparables_insufficient" if isinstance(provider, PostgresValuationProvider) else "official_data_missing",
@@ -252,15 +256,26 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
             matched_community=_public_community(community),
             sample_count=len(all_rows),
             query_metadata=query_metadata,
-        )
+        ), "comparable_decision_trace": trace.finish([])}
 
     scored = [{**row, **_score_comparable(row, payload, community)} for row in candidates]
-    filtered = _filter_outliers(scored, preserve_official=any(row.get("_official_limited") for row in scored))
+    filtered = _filter_outliers(scored, preserve_official=any(row.get("_official_limited") for row in scored), trace=trace)
     comparables = sorted(filtered, key=_comparable_sort_key)[:10]
     if len(comparables) < 3:
         comparables = sorted(scored, key=_comparable_sort_key)[:10]
+        filtered = scored
+        trace.outlier_fallback = True
+    selected_ids = {row["_decision_index"] for row in comparables}
+    filtered_ids = {row["_decision_index"] for row in filtered}
+    for row in sorted(scored, key=_comparable_sort_key):
+        if row["_decision_index"] not in selected_ids:
+            trace.reject(row, ["price_outlier" if row["_decision_index"] not in filtered_ids else "rank_limit"])
     if len(comparables) < 3:
-        return empty_estimate_result(data_status, status="no_data", reason_code="official_comparables_insufficient", result_origin="official", provider_source=provider.source, matched_community=_public_community(community), sample_count=len(comparables), query_metadata=query_metadata)
+        for row in comparables:
+            trace.reject(row, ["insufficient_samples"])
+        return {**empty_estimate_result(data_status, status="no_data", reason_code="official_comparables_insufficient", result_origin="official", provider_source=provider.source, matched_community=_public_community(community), sample_count=len(comparables), query_metadata=query_metadata), "comparable_decision_trace": trace.finish([])}
+    decision_trace = trace.finish(comparables)
+    comparables = [{key: value for key, value in row.items() if key != "_decision_index"} for row in comparables]
     unit_prices = [row["unit_price_per_ping"] for row in comparables]
     ordered = sorted(unit_prices)
     weighted_mean = _weighted_mean(comparables)
@@ -297,6 +312,7 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
         "confidence": confidence,
         "confidence_score": confidence_score,
         "comparables": comparables,
+        "comparable_decision_trace": decision_trace,
         "valuation_explanation": explanation,
         "methodology": METHODOLOGY,
         "disclaimer": DISCLAIMER,
@@ -307,11 +323,23 @@ def estimate_property(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], community: dict[str, Any] | None, allow_fallback: bool = True) -> tuple[str, list[dict[str, Any]]]:
+def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], community: dict[str, Any] | None, allow_fallback: bool = True, trace: ComparableDecisionTrace | None = None) -> tuple[str, list[dict[str, Any]]]:
     if community:
-        community_rows = [row for row in rows if row["city"] == community["city"] and row["district"] == community["district"] and row["road"] == community["road"] and _distance(community, row) is not None and _distance(community, row) <= 600]
+        community_rows = []
+        for row in rows:
+            if row["city"] == community["city"] and row["district"] == community["district"] and row["road"] == community["road"]:
+                community_distance = _distance(community, row)
+                if trace:
+                    trace.community_distances[row["_decision_index"]] = community_distance
+                if community_distance is not None and community_distance <= 600:
+                    community_rows.append(row)
         if len(community_rows) >= 3:
+            if trace:
+                trace.community_name = community.get("community_name")
+                trace.scope_decision(rows, community_rows, "community")
             return "community", community_rows
+        if trace:
+            trace.community_distances.clear()
     hierarchy = [
         ("road", [row for row in rows if row["city"] == target["city"] and row["district"] == target["district"] and row["road"] == target["road"]]),
         ("district", [row for row in rows if row["city"] == target["city"] and row["district"] == target["district"]]),
@@ -319,16 +347,33 @@ def _select_estimate_level(rows: list[dict[str, Any]], target: dict[str, Any], c
     ]
     for level, candidates in hierarchy:
         if len(candidates) >= 3:
+            if trace:
+                trace.scope_decision(rows, candidates, level)
             return level, candidates
+    if trace:
+        trace.scope_decision(rows, rows if allow_fallback else [], "fallback" if allow_fallback else "none")
     return ("fallback", rows) if allow_fallback else ("none", [])
 
 
-def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], enforce_scope: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], enforce_scope: bool = True, trace: ComparableDecisionTrace | None = None) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Choose an explicit road-first valuation scope before scoring."""
 
-    prepared = [{**row, "source": str(row.get("source") or "real_price_sample")} for row in rows if _within_official_window(row)]
-    if enforce_scope:
-        prepared = [row for row in prepared if row.get("source") == "official_plvr_opendata" and _row_has_positive_metrics(row)]
+    prepared = []
+    for row in rows:
+        reasons = []
+        if not _within_official_window(row):
+            reasons.append("time_window")
+        normalized = {**row, "source": str(row.get("source") or "real_price_sample")}
+        if enforce_scope:
+            if normalized["source"] != "official_plvr_opendata":
+                reasons.append("official_source")
+            elif not _row_has_positive_metrics(normalized):
+                reasons.append("required_metrics")
+        if reasons:
+            if trace:
+                trace.reject(normalized, reasons)
+        else:
+            prepared.append(normalized)
     target_road = normalize_road(str(target.get("road", "")))
     same_district = [
         row for row in prepared
@@ -350,15 +395,23 @@ def _prepare_candidate_pool(rows: list[dict[str, Any]], target: dict[str, Any], 
     if not enforce_scope:
         return prepared, selection
     if len(official_same_road) >= 3:
+        if trace:
+            trace.scope_decision(prepared, official_same_road, "road")
         selection.update({"estimate_level": "road", "estimate_data_composition": "official"})
         return official_same_road, selection
     if len(official_same_district) >= 3:
+        if trace:
+            trace.scope_decision(prepared, official_same_district, "district")
         selection.update({"estimate_level": "district", "estimate_data_composition": "official_district"})
         return [{**row, "_official_district": True} for row in official_same_district], selection
     official_city = [row for row in prepared if normalize_city(str(row.get("city", ""))) == normalize_city(str(target.get("city", "")))]
     if len(official_city) >= 3:
+        if trace:
+            trace.scope_decision(prepared, official_city, "city")
         selection.update({"estimate_level": "city", "estimate_data_composition": "official"})
         return official_city, selection
+    if trace:
+        trace.scope_decision(prepared, [], "none")
     return [], selection
 
 
@@ -531,12 +584,14 @@ def _score_comparable(row: dict[str, Any], target: dict[str, Any], community: di
     }
 
 
-def _filter_outliers(rows: list[dict[str, Any]], preserve_official: bool = False) -> list[dict[str, Any]]:
+def _filter_outliers(rows: list[dict[str, Any]], preserve_official: bool = False, trace: ComparableDecisionTrace | None = None) -> list[dict[str, Any]]:
     if len(rows) < 4:
         return rows
     prices = sorted(row["unit_price_per_ping"] for row in rows)
     q1, q3 = _percentile(prices, 0.25), _percentile(prices, 0.75)
     iqr = q3 - q1
+    if trace:
+        trace.iqr_bounds = [q1 - 1.5 * iqr, q3 + 1.5 * iqr]
     filtered = [
         row for row in rows
         if q1 - 1.5 * iqr <= row["unit_price_per_ping"] <= q3 + 1.5 * iqr

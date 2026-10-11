@@ -446,6 +446,7 @@ def _coverage_summary(summary: dict[str, Any]) -> str:
 
 def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:
     result = dict(row)
+    result["_explanation_missing_fields"] = [key for key in ("area_ping", "unit_price_per_ping", "total_price", "building_age_years", "floor") if row.get(key) is None]
     for key in ("area_ping", "unit_price_per_ping", "total_price", "building_age_years", "floor"):
         result[key] = float(result.get(key) or 0)
     result["lat"] = float(result["lat"]) if result.get("lat") is not None else None

@@ -1,6 +1,8 @@
 import type { MarketResult, ValuationResult, ValuationTrendResult } from "../api";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { getActionableValuation, getStoredActionableValuation, getValuationTrendDisplayState } from "../valuation-result-state.ts";
+// @ts-expect-error Native TS runner extension.
+import { compactComparableExplanation } from "./comparable-explanation.ts";
 
 function boundedHistory(history: MarketResult["history"] | undefined): MarketResult["history"] {
   if (!Array.isArray(history)) return [];
@@ -86,7 +88,7 @@ export function compactMarketInsight(result: MarketResult | null | undefined): M
 /**
  * Converts a validated official valuation into the only shape allowed to cross
  * the case-storage boundary. Comparable rows and provider/runtime diagnostics
- * are intentionally absent.
+ * are intentionally absent. A whitelisted bounded decision trace is frozen.
  */
 export function compactActionableValuationSummary(
   value: ValuationResult | null | undefined,
@@ -95,6 +97,7 @@ export function compactActionableValuationSummary(
   if (!actionable) return undefined;
   const result = actionable.result;
   const explanation = result.valuation_explanation;
+  const trace = compactComparableExplanation(result.comparable_decision_trace);
   return {
     valuation_status: "available",
     valuation_reason_code: "stored_actionable_summary",
@@ -108,6 +111,7 @@ export function compactActionableValuationSummary(
     confidence: result.confidence,
     confidence_reason: result.confidence_reason,
     comparables: [],
+    comparable_decision_trace: trace?.selected_count === actionable.sampleCount ? trace : undefined,
     valuation_explanation: {
       sample_count: actionable.sampleCount,
       same_road_count: explanation.same_road_count,

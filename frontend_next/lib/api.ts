@@ -674,6 +674,7 @@ export type ValuationResult = ValuationContractMetadata & ValuationNullableMetri
   source_details: ValuationPublicSourceDetails & { file?: string; nature?: string; complete_real_price_registry?: boolean; formal_appraisal?: boolean; bank_appraisal?: boolean; future_adapter?: string };
   unit_price_distribution: { weighted_mean: number | null; weighted_median: number | null; p25: number | null; p75: number | null };
   confidence: "high" | "medium" | "low" | null;
+  comparable_decision_trace?: import("./workspace/comparable-explanation").ComparableExplanation;
   comparables: { transaction_period: string; city: string; district: string; road: string; building_type: string; normalized_building_type?: string; area_ping: number; unit_price_per_ping: number; total_price: number; building_age_years: number; distance_m: number | null; similarity_score: number; weight: number; note: string; source: "official_plvr_opendata" | "real_price_sample" | "mock_fallback"; source_label: string }[];
   valuation_explanation: { sample_count: number; same_road_count: number; same_district_count: number; same_city_count: number; same_building_type_count: number; nearest_distance_m: number | null; average_area_difference_ping: number | null; average_age_difference_years: number | null; average_similarity_score: number | null; method: string };
   methodology: string[];
