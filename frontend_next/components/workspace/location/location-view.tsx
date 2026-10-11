@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useEffect, useRef } from "react";
 import { CommuteEvidencePanel } from "@/components/commute-evidence-panel";
 import { DemographicsInsightCard } from "@/components/demographics-insight-card";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
@@ -35,6 +36,13 @@ const MODE_LABELS = { transit: "大眾運輸", driving: "開車", walking: "步�
 
 export function LocationView() {
   const workspace = useWorkspace();
+  const latestWorkspace = useRef(workspace);
+  latestWorkspace.current = workspace;
+  const persistence = useRef({ route: 0, transit: 0, mounted: true });
+  useEffect(() => {
+    persistence.current.mounted = true;
+    return () => { persistence.current.mounted = false; persistence.current.route++; persistence.current.transit++; };
+  }, []);
   const snapshot = workspace.location;
   const handoff = buildLocationOverviewHandoff(workspace);
   const coordinates = snapshot.property.coordinates;
@@ -48,14 +56,19 @@ export function LocationView() {
     journeyAnchorId: anchor.journey_anchor_id,
     normalizedAddress: anchor.normalized_address,
     coordinates: anchor.coordinates,
+    snapshotVersion: workspace.storageVersion,
   } : undefined;
 
-  function persistRoute(evidence: CommuteRouteEvidence | null) {
-    if (identityExpectation) updateSavedCaseLocationEvidence(workspace.caseId, { commuteRoute: evidence }, identityExpectation);
+  async function persistRoute(evidence: CommuteRouteEvidence | null) {
+    const revision = ++persistence.current.route;
+    if (identityExpectation) await updateSavedCaseLocationEvidence(workspace.caseId, { commuteRoute: evidence }, identityExpectation,
+      () => persistence.current.mounted && persistence.current.route === revision && latestWorkspace.current.caseId === workspace.caseId && latestWorkspace.current.identity.state === "confirmed");
   }
 
-  function persistTransit(result: CommuteAddressLookupResult | null) {
-    if (identityExpectation) updateSavedCaseLocationEvidence(workspace.caseId, { commuteTransit: result }, identityExpectation);
+  async function persistTransit(result: CommuteAddressLookupResult | null) {
+    const revision = ++persistence.current.transit;
+    if (identityExpectation) await updateSavedCaseLocationEvidence(workspace.caseId, { commuteTransit: result }, identityExpectation,
+      () => persistence.current.mounted && persistence.current.transit === revision && latestWorkspace.current.caseId === workspace.caseId && latestWorkspace.current.identity.state === "confirmed");
   }
 
   return <div className="workspace-view" data-testid="commercial-location-workspace">

@@ -22,13 +22,13 @@ export function PropertyContextHeader() {
   const isFinance = usePathname().endsWith("/finance");
   const repository = useMemo(createBrowserCaseRepository, []);
   const [saveStatus, setSaveStatus] = useState("");
-  function saveSnapshot() {
+  async function saveSnapshot() {
     setSaveStatus("");
     try {
-      const result = repository.saveSnapshot(workspace);
+      const result = await repository.saveSnapshot(workspace);
       setSaveStatus(result.status === "saved"
         ? "已保存目前已知狀態；未知、無法取得與尚未完成的項目仍保持原狀。"
-        : result.message);
+        : result.reason === "storage_unavailable" ? `儲存失敗：${result.message}` : result.message);
     } catch {
       setSaveStatus("儲存失敗：瀏覽器儲存空間無法寫入。請保留目前頁面，確認儲存設定後重試。");
     }

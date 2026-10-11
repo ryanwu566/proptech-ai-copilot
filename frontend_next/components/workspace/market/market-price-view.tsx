@@ -98,6 +98,7 @@ export function MarketPriceView() {
 
   useEffect(() => () => {
     marketRequestRef.current.controller?.abort();
+    marketRequestRef.current.id += 1;
     valuationRequestRef.current += 1;
   }, []);
 
@@ -178,7 +179,16 @@ export function MarketPriceView() {
         });
         return;
       }
-      if (!updateSavedCaseMarketEvidence(responseContext.caseId, result, responseContext.identity)) return;
+      const persisted = await updateSavedCaseMarketEvidence(responseContext.caseId, result, responseContext.identity, () => {
+        const latest = marketContextRef.current;
+        return requestId === marketRequestRef.current.id && Boolean(latest && canCommitMarketPriceResponse(latest, responseContext));
+      });
+      const latest = marketContextRef.current;
+      if (requestId !== marketRequestRef.current.id || !latest || !canCommitMarketPriceResponse(latest, responseContext)) return;
+      if (!persisted) {
+        setMarketFeedback({ kind: "error", title: "市場資料未保存", detail: "瀏覽器儲存無法寫入或案件已變更；既有市場摘要仍保留，請重新開啟後再試。", fingerprint: responseContext.fingerprint });
+        return;
+      }
       setLiveMarket({ result, fingerprint: responseContext.fingerprint });
       setSavedMarketFingerprint(responseContext.fingerprint);
       setMarketFeedback(marketRefreshFeedback(result, responseContext.fingerprint));
@@ -243,12 +253,21 @@ export function MarketPriceView() {
       });
       return;
     }
-    if (!updateSavedCaseValuationEvidence(responseContext.caseId, result, responseContext.identity)) return;
+    const persisted = await updateSavedCaseValuationEvidence(responseContext.caseId, result, responseContext.identity, () => {
+      const latest = valuationContextRef.current;
+      return requestId === valuationRequestRef.current && Boolean(latest && canCommitMarketPriceResponse(latest, responseContext));
+    });
+    const latest = valuationContextRef.current;
+    if (requestId !== valuationRequestRef.current || !latest || !canCommitMarketPriceResponse(latest, responseContext)) return;
+    if (!persisted) {
+      setValuationFeedback({ kind: "error", title: "價格推估未保存", detail: "瀏覽器儲存無法寫入或案件已變更；既有推估摘要仍保留，請重新開啟後再試。", fingerprint: responseContext.fingerprint });
+      return;
+    }
 
     let acceptedTrend: ValuationTrendResult | undefined;
     if (
       trendResponse.status === "fulfilled"
-      && canCommitMarketPriceResponse(current, responseContext)
+      && canCommitMarketPriceResponse(latest, responseContext)
       && getValuationTrendDisplayState(trendResponse.value).actionable
     ) acceptedTrend = trendResponse.value;
     setLiveValuation({ result, fingerprint: responseContext.fingerprint });

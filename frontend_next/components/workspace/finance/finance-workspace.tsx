@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { HoldingCostResult, LoanCalculationResult } from "@/lib/api";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { CommercialButton } from "@/components/design-system/button";
@@ -40,12 +40,17 @@ function identityExpectation(model: ReturnType<typeof useWorkspace>): SavedCaseI
     journeyAnchorId: anchor.journey_anchor_id,
     normalizedAddress: anchor.normalized_address,
     coordinates: { latitude: anchor.coordinates.latitude, longitude: anchor.coordinates.longitude },
+    snapshotVersion: model.storageVersion,
   };
 }
 
 
 export function FinanceWorkspace() {
   const workspace = useWorkspace();
+  const latestWorkspace = useRef(workspace);
+  latestWorkspace.current = workspace;
+  const saveRevision = useRef(0);
+  useEffect(() => () => { saveRevision.current++; }, []);
   const [scenarioInput, setScenarioInput] = useState("");
   const [scenario, setScenario] = useState<{ caseId: string; revision: number; amountWan: number } | null>(null);
   const scenarioPrice = scenario?.caseId === workspace.caseId && scenario.revision === workspace.revision ? scenario.amountWan : null;
@@ -109,7 +114,7 @@ export function FinanceWorkspace() {
     </> : <Message variant="information">尚無保存的財務試算。</Message>}
     <Section title="建立新的手動試算情境" description="只用於本次財務試算；不會改寫案件開價。">
       <label className="block text-body">新試算情境價格（萬元）<input type="number" min="0.01" step="0.01" value={scenarioInput} onChange={(event) => setScenarioInput(event.target.value)} className="mt-2 block w-full rounded border border-stone-300 px-3 py-2" /></label>
-      <CommercialButton className="mt-3" disabled={!Number.isFinite(Number(scenarioInput)) || Number(scenarioInput) <= 0} onClick={() => setScenario({ caseId: workspace.caseId, revision: workspace.revision, amountWan: Number(scenarioInput) })}>使用此手動試算情境</CommercialButton>
+      <CommercialButton className="mt-3" disabled={!Number.isFinite(Number(scenarioInput)) || Number(scenarioInput) <= 0} onClick={() => { saveRevision.current++; setScenario({ caseId: workspace.caseId, revision: workspace.revision, amountWan: Number(scenarioInput) }); }}>使用此手動試算情境</CommercialButton>
     </Section>
   </div>;
 
@@ -117,6 +122,7 @@ export function FinanceWorkspace() {
   const saveDisabled = loanDirty || holdingDirty || finance.freshness.status !== "current" || finance.freshness.calculatedAt === null || finance.calculation.query !== "succeeded" || !expectation;
 
   function onLoanCalculated(result: LoanCalculationResult) {
+    saveRevision.current++;
     setLoanResult(result);
     setHoldingResult(null);
     setCalculatedAt(new Date().toISOString());
@@ -126,6 +132,7 @@ export function FinanceWorkspace() {
   }
 
   function onHoldingCalculated(result: HoldingCostResult, areaPing: number | null) {
+    saveRevision.current++;
     setHoldingResult(result);
     setHoldingAreaPing(areaPing);
     setCalculatedAt(new Date().toISOString());
@@ -133,13 +140,16 @@ export function FinanceWorkspace() {
     setSaveStatus("idle");
   }
 
-  function saveFinance() {
+  async function saveFinance() {
     if (saveDisabled || !expectation) return;
+    const responseRevision = saveRevision.current;
     try {
       const caseInputFingerprint = createFinanceInputFingerprint({ caseId: workspace.caseId, revision: workspace.revision, identityAnchorId: workspace.identity.anchor?.journey_anchor_id,
         activePriceBasis: workspace.assumptions.activePriceBasis, activePriceWan: workspace.assumptions.activePriceWan, areaPing: workspace.assumptions.areaPing });
       const evidence = createStoredFinanceEvidence(finance, { caseId: workspace.caseId, revision: workspace.revision, areaPing: holdingAreaPing, caseInputFingerprint });
-      setSaveStatus(updateSavedCaseFinanceEvidence(workspace.caseId, evidence, expectation) ? "saved" : "failed");
+      const persisted = await updateSavedCaseFinanceEvidence(workspace.caseId, evidence, expectation,
+        () => saveRevision.current === responseRevision && latestWorkspace.current.caseId === workspace.caseId && latestWorkspace.current.updatedAt === workspace.updatedAt);
+      if (saveRevision.current === responseRevision) setSaveStatus(persisted ? "saved" : "failed");
     } catch {
       setSaveStatus("failed");
     }
@@ -173,14 +183,14 @@ export function FinanceWorkspace() {
 
     <Section title="房貸假設與結果" description="這是還款情境試算，不是銀行核貸或額度承諾。">
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
-        <div className="min-w-0"><LoanAssumptionForm key={`loan-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initial={baseFinance.loan} onDirty={() => { setLoanDirty(true); setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onLoanCalculated} /></div>
+        <div className="min-w-0"><LoanAssumptionForm key={`loan-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initial={baseFinance.loan} onDirty={() => { saveRevision.current++; setLoanDirty(true); setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onLoanCalculated} /></div>
         <LoanSummary model={finance} dirty={loanDirty} />
       </div>
     </Section>
 
     <Section title="持有成本明細" description="每月與每年費用分開呈現；缺少坪數時，依坪數計算的項目保持未估算。">
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)]">
-        <div className="min-w-0"><HoldingAssumptionForm key={`holding-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initialLoanPaymentTwd={loanResult?.monthly_payment ?? finance.loan.monthlyPaymentTwd} initialAreaPing={savedAreaPing} initial={baseFinance.holding.assumptions} onDirty={() => { setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onHoldingCalculated} /></div>
+        <div className="min-w-0"><HoldingAssumptionForm key={`holding-${workspace.caseId}-${baseFinance.inputFingerprint}`} propertyPriceWan={activePriceWan} initialLoanPaymentTwd={loanResult?.monthly_payment ?? finance.loan.monthlyPaymentTwd} initialAreaPing={savedAreaPing} initial={baseFinance.holding.assumptions} onDirty={() => { saveRevision.current++; setHoldingDirty(true); setSaveStatus("idle"); }} onCalculated={onHoldingCalculated} /></div>
         <HoldingSummary model={finance} dirty={holdingDirty} />
       </div>
     </Section>

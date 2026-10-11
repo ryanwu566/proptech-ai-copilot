@@ -87,6 +87,39 @@ def test_official_estimate_response_has_no_provider_internals(monkeypatch) -> No
     assert result["source_details"]["capability"] == "valuation"
 
 
+def test_estimate_api_preserves_real_selection_and_exclusion_explanation(monkeypatch) -> None:
+    """Dropping the service trace at the API boundary breaks browser explanations."""
+    from datetime import UTC, datetime
+
+    period = datetime.now(UTC).strftime("%Y-%m")
+    rows = [
+        {**payload(), "transaction_period": period, "unit_price_per_ping": 60 + index,
+         "total_price": 30 * (60 + index), "source": "official_plvr_opendata"}
+        for index in range(12)
+    ]
+    rows.append({**rows[0], "road": "Other Road", "address_text": "PRIVATE ADDRESS MUST NOT LEAK", "raw_note": "PRIVATE RAW NOTE"})
+    provider = PostgresValuationProvider("postgresql://offline")
+    monkeypatch.setenv("PLVR_DATA_BACKEND", "blue")
+    monkeypatch.setattr(provider, "query_comparables", lambda request: rows)
+    monkeypatch.setattr(provider, "match_community", lambda request: None)
+    monkeypatch.setattr(provider, "data_status", lambda: {"active_source": "postgres", "data_composition": "official"})
+    monkeypatch.setattr("services.valuation_service.get_valuation_provider", lambda: provider)
+
+    response = client.post("/valuation/estimate", json=payload())
+    assert response.status_code == 200
+    result = response.json()
+    assert result["valuation_status"] == "available"
+    trace = result.get("comparable_decision_trace")
+    assert trace is not None, "HTTP consumers need the service's bounded decision trace"
+    assert (trace["considered_count"], trace["selected_count"], trace["excluded_count"]) == (13, 10, 3)
+    assert trace["reason_counts"] == {"scope": 1, "rank_limit": 2}
+    assert len(trace["excluded_examples"]) <= 5
+    assert trace["selected"][0]["dimensions"]["parking"]["comparable"] is None
+    assert trace["selected"][0]["dimensions"]["distance"]["comparable"] is None
+    assert "PRIVATE ADDRESS" not in response.text
+    assert "PRIVATE RAW NOTE" not in response.text
+
+
 # ---------------------------------------------------------------------------
 # DEFECT-007: area_ping upper bound validation (residential scope: <= 500 坪)
 # ---------------------------------------------------------------------------

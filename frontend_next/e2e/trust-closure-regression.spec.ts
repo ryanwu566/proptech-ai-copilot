@@ -535,6 +535,7 @@ test.describe("TEST 7: Async context race", () => {
     await page.waitForTimeout(400);
 
     // Select 大安區 — this triggers the DELAYED road request
+    await calcSection.locator("select").nth(1).selectOption("");
     await calcSection.locator("select").nth(1).selectOption("大安區");
     await page.waitForTimeout(200);
 

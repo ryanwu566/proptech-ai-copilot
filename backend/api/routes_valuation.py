@@ -139,7 +139,8 @@ def _safe_estimate_response(value: Any) -> dict[str, Any]:
         "data_composition", "estimate_source_label", "candidate_pool_size", "official_same_road_count",
         "official_same_district_count", "sample_same_road_count", "sample_same_district_count",
         "estimate_total_price", "estimate_unit_price_per_ping", "price_range", "unit_price_distribution",
-        "confidence", "confidence_score", "comparables", "valuation_explanation", "methodology", "disclaimer",
+        "confidence", "confidence_score", "comparables", "comparable_decision_trace",
+        "valuation_explanation", "methodology", "disclaimer",
     } if key in value}
     safe["data_status"] = _safe_data_status(value.get("data_status"))
     safe["source_details"] = public_source_details(value.get("source_details"))

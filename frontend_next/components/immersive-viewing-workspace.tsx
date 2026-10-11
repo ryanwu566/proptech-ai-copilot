@@ -29,6 +29,7 @@ import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEviden
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getActionableValuation, getValuationTrendDisplayState } from "@/lib/valuation-result-state";
 import { evidenceStatusLabel } from "@/lib/commercial/presentation";
+import { getCaseSaveFailureFeedback } from "@/lib/case-save-feedback";
 
 
 export type WorkspaceContext = {
@@ -118,9 +119,9 @@ export function ImmersiveViewingWorkspace({ propertySearch }: { propertySearch?:
     data: { inputs, propertySearch: search, valuation, trend, loan, holdingCost: holdingResult, locationInsight: location, terrainReference: attachedTerrainReference, riskSummary, taxOracle: workflowSession.taxOracleResult, reportCompleted: workflowSession.reportCompleted },
   };
   const propertyCaseDraft = buildPropertyCaseDraft({ inputs, propertySearch: search, valuation, trend, loan, holding: holdingResult, location, terrainRisk: undefined, riskSummary, taxOracle: workflowSession.taxOracleResult });
-  function saveCurrentCase() {
-    const saved = saveCase(currentCase);
-    setCaseMessage(saved ? copy("case.save") : copy("case.missing", { items: `${copy("case.title")} / ${copy("case.address")}` }));
+  async function saveCurrentCase() {
+    const saved = await saveCase(currentCase);
+    setCaseMessage(saved ? copy("case.save") : getCaseSaveFailureFeedback(currentCase, locale));
   }
   function handleViewingDecisionNext(targetId: string) {
     document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });

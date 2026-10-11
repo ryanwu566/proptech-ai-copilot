@@ -38,6 +38,8 @@ export type PropertyCaseWorkspace = {
   title: string;
   displayAddress: string;
   updatedAt: string;
+  /** In-memory repository read version; excluded from persistence and reports. */
+  storageVersion?: string;
   identity: WorkspaceIdentity;
   assumptions: {
     activePriceBasis: "asking" | "estimate" | "manual";

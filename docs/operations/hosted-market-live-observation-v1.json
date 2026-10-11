@@ -1,0 +1,32 @@
+{
+  "checked_at": "2026-10-11T07:02:19.682813+00:00",
+  "expected_commit": "c9ab5f61a45f7f704326af66cb0bea02740b9927",
+  "frontend": {
+    "url": "https://proptech-ai-copilot.vercel.app/release-version",
+    "http_status": 200,
+    "commit_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+    "matches_expected": false
+  },
+  "backend_release": {
+    "url": "https://proptech-ai-copilot-api.onrender.com/release-version",
+    "result": "ReadTimeout"
+  },
+  "backend_health": {
+    "url": "https://proptech-ai-copilot-api.onrender.com/health",
+    "result": "ReadTimeout"
+  },
+  "live_valuation_calls": 0,
+  "live_location_calls": 0,
+  "audited_release_attested": false,
+  "original_market_failure_classification": "UNKNOWN",
+  "current_frontend_discrepancy": "DATA_VERSION",
+  "user_audit_scope": "2026-10-11 Asia/Taipei; HTTP200 health/release only, explicit valuation UI unavailable, no network trace",
+  "original_user_input_included": false,
+  "raw_normalized_address_included": false,
+  "backend_release_retry": {
+    "http_status": 200,
+    "commit_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+    "identity_status": "PASS",
+    "runtime_sha_matches_build": false
+  }
+}

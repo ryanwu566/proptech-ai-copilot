@@ -129,15 +129,22 @@ function memoryStorage(): Storage {
   };
 }
 
-function withBrowserStorage<T>(run: (localStorage: Storage) => T): T {
+function memoryLocks() {
+  let tail: Promise<unknown> = Promise.resolve();
+  return { request: <T>(_name: string, _options: unknown, callback: () => T | Promise<T>): Promise<T> => {
+    const result = tail.then(callback); tail = result.catch(() => undefined); return result;
+  } };
+}
+
+async function withBrowserStorage<T>(run: (localStorage: Storage) => T | Promise<T>): Promise<T> {
   const previous = Object.getOwnPropertyDescriptor(globalThis, "window");
   const localStorage = memoryStorage();
   Object.defineProperty(globalThis, "window", {
     configurable: true,
-    value: { localStorage, sessionStorage: memoryStorage(), dispatchEvent: () => true },
+    value: { navigator: { locks: memoryLocks() }, localStorage, sessionStorage: memoryStorage(), dispatchEvent: () => true },
   });
   try {
-    return run(localStorage);
+    return await run(localStorage);
   } finally {
     if (previous) Object.defineProperty(globalThis, "window", previous);
     else Reflect.deleteProperty(globalThis, "window");
@@ -677,14 +684,14 @@ test("fresh conflicting location marks a reopened anchor stale without overwriti
   expect(state.identityAnchor?.evidence.sources).toEqual(stored.evidence.sources);
 });
 
-test("saved case round-trip preserves only the bounded identity anchor and provenance", () => {
+test("saved case round-trip preserves only the bounded identity anchor and provenance", async () => {
   const anchor = buildJourneyPropertyIdentityAnchor(
     { context, location: locationResult() },
     { now: () => CHECKED_AT, idFactory: () => OPAQUE_UUID },
   );
 
-  withBrowserStorage((localStorage) => {
-    const saved = saveCase(saveInput(anchor));
+  await withBrowserStorage(async (localStorage) => {
+    const saved = await saveCase(saveInput(anchor));
     expect(saved?.data.propertyIdentityAnchor).toEqual(anchor);
 
     const reopened = readSavedCases();
@@ -698,14 +705,14 @@ test("saved case round-trip preserves only the bounded identity anchor and prove
   });
 });
 
-test("malformed stored anchor quarantines the case with sanitized diagnostic and no silent rewrite", () => {
+test("malformed stored anchor quarantines the case with sanitized diagnostic and no silent rewrite", async () => {
   const anchor = buildJourneyPropertyIdentityAnchor(
     { context, location: locationResult() },
     { now: () => CHECKED_AT, idFactory: () => OPAQUE_UUID },
   );
 
-  withBrowserStorage((localStorage) => {
-    const saved = saveCase(saveInput(anchor));
+  await withBrowserStorage(async (localStorage) => {
+    const saved = await saveCase(saveInput(anchor));
     expect(saved).not.toBeNull();
     const rows = JSON.parse(localStorage.getItem(SAVED_CASES_STORAGE_KEY) ?? "[]") as Array<Record<string, unknown>>;
     const data = rows[0].data as Record<string, unknown>;
@@ -726,14 +733,14 @@ test("malformed stored anchor quarantines the case with sanitized diagnostic and
   });
 });
 
-test("reopened stored anchor keeps provenance and later conflict requires revalidation", () => {
+test("reopened stored anchor keeps provenance and later conflict requires revalidation", async () => {
   const anchor = buildJourneyPropertyIdentityAnchor(
     { context, location: locationResult() },
     { now: () => CHECKED_AT, idFactory: () => OPAQUE_UUID },
   );
 
-  withBrowserStorage(() => {
-    saveCase(saveInput(anchor));
+  await withBrowserStorage(async () => {
+    await saveCase(saveInput(anchor));
     const stored = readSavedCases()[0].data.propertyIdentityAnchor;
     expect(stored?.journey_anchor_id).toBe(anchor.journey_anchor_id);
     expect(stored?.evidence.sources).toEqual(anchor.evidence.sources);

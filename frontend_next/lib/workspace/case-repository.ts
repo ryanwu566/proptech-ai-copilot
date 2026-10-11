@@ -11,8 +11,8 @@ export type PropertyCaseRepository = {
   readDiagnostic(): WorkspaceReadDiagnostic;
   getCase(caseId: string): PropertyCaseWorkspace | null;
   listCases(): PropertyCaseWorkspace[];
-  saveSnapshot(workspace: PropertyCaseWorkspace): SaveSnapshotResult;
-  saveChecklist(workspace: PropertyCaseWorkspace, review: StoredChecklistReviewV1): SaveSnapshotResult;
+  saveSnapshot(workspace: PropertyCaseWorkspace): Promise<SaveSnapshotResult>;
+  saveChecklist(workspace: PropertyCaseWorkspace, review: StoredChecklistReviewV1): Promise<SaveSnapshotResult>;
   subscribe(listener: () => void): () => void;
 };
 
@@ -44,12 +44,14 @@ export function createBrowserCaseRepository(): PropertyCaseRepository {
         journeyAnchorId: anchor.journey_anchor_id,
         normalizedAddress: anchor.normalized_address,
         coordinates: anchor.coordinates,
+        snapshotVersion: workspace.storageVersion,
       } : undefined, workspace.identity.state, workspace.updatedAt);
     },
     saveChecklist(workspace, review) {
       const anchor = workspace.identity.anchor;
       return resaveSavedCaseSnapshot(workspace.caseId, anchor?.coordinates ? {
         journeyAnchorId: anchor.journey_anchor_id, normalizedAddress: anchor.normalized_address, coordinates: anchor.coordinates,
+        snapshotVersion: workspace.storageVersion,
       } : undefined, workspace.identity.state, workspace.updatedAt, () => new Date().toISOString(), review);
     },
     subscribe(listener) {
