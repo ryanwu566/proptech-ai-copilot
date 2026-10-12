@@ -140,6 +140,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     title: saved.title || addressFor(saved),
     displayAddress,
     updatedAt: saved.updatedAt,
+    storageVersion: JSON.stringify(saved),
     identity,
     assumptions: {
       activePriceBasis: basis,

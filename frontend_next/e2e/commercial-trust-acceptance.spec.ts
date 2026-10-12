@@ -131,6 +131,7 @@ for (const width of [1440, 1024, 390]) {
     await goTo(/看房決策摘要/);
     await page.getByRole("button", { name: /^新增案件/ }).click();
     await page.getByRole("button", { name: "儲存案件", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1") || "[]").length)).toBe(2);
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1")!)[0]);
     expect(stored.data.financeEvidence.assumptions.price_source).toBe("MANUAL_SCENARIO");
     expect(stored.data.financeEvidence.assumptions.price_twd).toBe(30000000);

@@ -52,6 +52,9 @@
   .page :global(.text-section) { font-size: 14pt; }
   .page :global(.text-subsection) { font-size: 11pt; }
   .page :global(.ds-section), .reportEvidence { display: block; margin: 0 0 5mm; }
+  /* Trailing spacing must not create an empty sheet after the last source. */
+  .reportEvidence { margin-bottom: 0; }
+  .reportEvidence > :global(.ds-section):last-child { margin-bottom: 0; padding-bottom: 0; }
   .page :global(.ds-status), .page :global(.ds-message), .page :global(.text-meta) { font-size: 9pt; color: #111; background: #fff; box-shadow: none; }
   .screenOnly, .mobile, .page :is(nav, button) { display: none !important; }
   .printOnly { display: block; }

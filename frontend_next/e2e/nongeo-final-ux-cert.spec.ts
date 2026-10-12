@@ -261,6 +261,8 @@ test.describe("Valuation A→B", () => {
     const city = calcSection.locator("select").first();
     const district = calcSection.locator("select").nth(1);
     const road = calcSection.locator("select").nth(2);
+    // Changing only 台/臺 spelling preserves context; start a real city selection.
+    await city.selectOption("新北市");
     await city.selectOption("臺北市");
     await expect(district.locator("option")).toContainText(["選擇鄉鎮市區", "大安區", "信義區"]);
     await district.selectOption("大安區");

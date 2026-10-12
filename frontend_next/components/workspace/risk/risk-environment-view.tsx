@@ -87,11 +87,18 @@ export function RiskEnvironmentView() {
         const model = buildRiskEvidenceModel(next);
         const anchor = workspace.identity.anchor;
         if (anchor?.coordinates) {
-          updateSavedCaseRiskEvidence(workspace.caseId, { ...buildStoredRiskEvidenceSnapshot(model), checked_at: model.freshness.checkedAt }, {
+          const persisted = await updateSavedCaseRiskEvidence(workspace.caseId, { ...buildStoredRiskEvidenceSnapshot(model), checked_at: model.freshness.checkedAt }, {
             journeyAnchorId: anchor.journey_anchor_id,
             normalizedAddress: anchor.normalized_address,
             coordinates: anchor.coordinates,
+            snapshotVersion: workspace.storageVersion,
+          }, () => {
+            const latest = latestContext.current;
+            return requestId.current === responseId && Boolean(latest && canCommitRiskResponse(latest, responseContext));
           });
+          const latest = latestContext.current;
+          if (requestId.current !== responseId || !latest || !canCommitRiskResponse(latest, responseContext)) return;
+          if (!persisted) { setError("風險證據未保存；請確認瀏覽器儲存後重試。"); return; }
         }
         setResult({ fingerprint: responseContext.fingerprint, value: next });
       }

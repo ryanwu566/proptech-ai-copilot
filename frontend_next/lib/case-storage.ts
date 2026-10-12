@@ -86,7 +86,12 @@ export type SavedCaseIdentityExpectation = {
   journeyAnchorId: string;
   normalizedAddress: string;
   coordinates: { latitude: number; longitude: number };
+  /** Transient read version, never persisted or sent to a provider. */
+  snapshotVersion?: string;
 };
+
+/** Evaluated after the storage lock is acquired, before any evidence mutation. */
+export type SavedCaseCommitGuard = () => boolean;
 
 function identityMatches(current: SavedCase, expected?: SavedCaseIdentityExpectation): boolean {
   if (!expected) return true;
@@ -107,32 +112,71 @@ export function readSavedCases(): SavedCase[] {
 }
 
 export function readSavedCasesDiagnostic(): SavedCaseReadDiagnostic {
-  if (typeof window === "undefined") return { status: "storage_unavailable", cases: [], issues: [] };
+  return readStorageSnapshot().diagnostic;
+}
+
+function readStorageSnapshot(): { raw: string | null; diagnostic: SavedCaseReadDiagnostic } {
+  const unavailable = { raw: null, diagnostic: { status: "storage_unavailable" as const, cases: [], issues: [] } };
+  if (typeof window === "undefined") return unavailable;
   try {
-    const value = window.localStorage.getItem(SAVED_CASES_STORAGE_KEY);
-    return parseSavedCasesDiagnostic(value, normalizeSavedCase);
+    const raw = window.localStorage.getItem(SAVED_CASES_STORAGE_KEY);
+    return { raw, diagnostic: parseSavedCasesDiagnostic(raw, normalizeSavedCase) };
   } catch {
-    return { status: "storage_unavailable", cases: [], issues: [] };
+    return unavailable;
   }
 }
 
-export function saveCase(input: SaveCaseInput): SavedCase | null {
+/** All writers share this origin-wide lock. No unsafe synchronous fallback. */
+async function mutateSavedCases<T>(failure: T, mutation: () => T): Promise<T> {
+  if (typeof window === "undefined" || !window.navigator?.locks?.request) return failure;
+  try {
+    return await window.navigator.locks.request(SAVED_CASES_STORAGE_KEY, { mode: "exclusive" }, () => mutation());
+  } catch {
+    return failure;
+  }
+}
+
+function mutateSavedCaseEvidence(
+  caseId: string,
+  expected: SavedCaseIdentityExpectation | undefined,
+  canCommit: SavedCaseCommitGuard | undefined,
+  mutation: (snapshotVersion: string) => boolean,
+): Promise<boolean> {
+  const version = expected?.snapshotVersion ?? JSON.stringify(readSavedCases().find((row) => row.id === caseId));
+  return mutateSavedCases(false, () => {
+    if (canCommit && !canCommit()) return false;
+    return mutation(version);
+  });
+}
+
+export function saveCase(input: SaveCaseInput): Promise<SavedCase | null> {
+  return mutateSavedCases<SavedCase | null>(null, () => saveCaseUnlocked(input));
+}
+
+function saveCaseUnlocked(input: SaveCaseInput): SavedCase | null {
   if (getDraftSaveMissingFields(input).length > 0) return null;
-  const now = new Date().toISOString();
-  const saved: SavedCase = {
-    ...input,
-    id: createId(),
-    title: input.title?.trim() || buildCaseTitle(input.inputSummary),
-    createdAt: now,
-    updatedAt: now,
-    version: 1,
-    workflowMode: "buying_wizard",
-    data: compactCaseData({ ...input.data, checklistReview: undefined }),
-  };
-  const financeEvidence = captureJourneyFinanceEvidence({ ...saved, data: input.data });
-  if (financeEvidence) saved.data = compactCaseData({ ...input.data, checklistReview: undefined, financeEvidence });
-  writeCases([saved, ...readSavedCases()].slice(0, MAX_SAVED_CASES));
-  return saved;
+  try {
+    const snapshot = readStorageSnapshot();
+    const read = snapshot.diagnostic;
+    if (["parse_error", "invalid_storage", "storage_unavailable"].includes(read.status) || read.cases.length >= MAX_SAVED_CASES) return null;
+    const now = new Date().toISOString();
+    const saved: SavedCase = {
+      ...input,
+      id: createId(),
+      title: input.title?.trim() || buildCaseTitle(input.inputSummary),
+      createdAt: now,
+      updatedAt: now,
+      version: 1,
+      workflowMode: "buying_wizard",
+      data: compactCaseData({ ...input.data, checklistReview: undefined }),
+    };
+    const financeEvidence = captureJourneyFinanceEvidence({ ...saved, data: input.data });
+    if (financeEvidence) saved.data = compactCaseData({ ...input.data, checklistReview: undefined, financeEvidence });
+    if (!writeCases([saved, ...read.cases].slice(0, MAX_SAVED_CASES), snapshot.raw)) return null;
+    return saved;
+  } catch {
+    return null;
+  }
 }
 
 export function resaveSavedCaseSnapshot(
@@ -142,30 +186,57 @@ export function resaveSavedCaseSnapshot(
   expectedUpdatedAt: string,
   now: () => string = () => new Date().toISOString(),
   checklistReview?: StoredChecklistReviewV1,
+): Promise<SaveSnapshotResult> {
+  const expectation = expected ? { ...expected, snapshotVersion: expected.snapshotVersion ?? JSON.stringify(readSavedCases().find((row) => row.id === caseId)) } : undefined;
+  return mutateSavedCases<SaveSnapshotResult>({ status: "blocked", reason: "storage_unavailable", message: "案件未保存；此瀏覽器無法安全協調案件儲存，請使用支援安全儲存的瀏覽器後再試。" },
+    () => resaveSavedCaseSnapshotUnlocked(caseId, expectation, identityState, expectedUpdatedAt, now, checklistReview));
+}
+
+function resaveSavedCaseSnapshotUnlocked(
+  caseId: string,
+  expected: SavedCaseIdentityExpectation | undefined,
+  identityState: SaveSnapshotIdentityState,
+  expectedUpdatedAt: string,
+  now: () => string = () => new Date().toISOString(),
+  checklistReview?: StoredChecklistReviewV1,
 ): SaveSnapshotResult {
-  const read = readSavedCasesDiagnostic();
-  if (["parse_error", "invalid_storage", "storage_unavailable", "partial"].includes(read.status)) return { status: "blocked", reason: "storage_unavailable", message: "本機案件儲存無法安全讀取；請檢查儲存資料後再保存。" };
+  const snapshot = readStorageSnapshot();
+  const read = snapshot.diagnostic;
+  if (["parse_error", "invalid_storage", "storage_unavailable"].includes(read.status)) return { status: "blocked", reason: "storage_unavailable", message: "本機案件儲存無法安全讀取；請檢查儲存資料後再保存。" };
   const update = buildSavedCaseSnapshotUpdate(read.cases, caseId, expected, identityState, expectedUpdatedAt, now, compactCaseData, checklistReview);
   if (update.result.status === "saved") {
-    writeCases(update.rows);
+    if (!writeCases(update.rows, snapshot.raw)) return { status: "blocked", reason: "storage_unavailable", message: "案件未保存；儲存空間不足、無法使用或案件已在另一個畫面更新。原有案件仍保留，請重新開啟後再試。" };
     window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: update.result.saved }));
   }
   return update.result;
 }
 
 export function deleteSavedCase(id: string) {
-  writeCases(readSavedCases().filter((row) => row.id !== id));
+  return mutateSavedCases(false, () => deleteSavedCaseUnlocked(id));
+}
+
+function deleteSavedCaseUnlocked(id: string) {
+  const snapshot = readStorageSnapshot();
+  return writeCases(snapshot.diagnostic.cases.filter((row) => row.id !== id), snapshot.raw);
 }
 
 export function updateSavedCaseLocationEvidence(caseId: string, patch: {
   commuteRoute?: CommuteRouteEvidence | null;
   commuteTransit?: CommuteAddressLookupResult | null;
-}, expectedIdentity?: SavedCaseIdentityExpectation): boolean {
-  const rows = readSavedCases();
+}, expectedIdentity?: SavedCaseIdentityExpectation, canCommit?: SavedCaseCommitGuard): Promise<boolean> {
+  return mutateSavedCaseEvidence(caseId, expectedIdentity, canCommit, (version) => updateSavedCaseLocationEvidenceUnlocked(caseId, patch, expectedIdentity, version));
+}
+
+function updateSavedCaseLocationEvidenceUnlocked(caseId: string, patch: {
+  commuteRoute?: CommuteRouteEvidence | null;
+  commuteTransit?: CommuteAddressLookupResult | null;
+}, expectedIdentity: SavedCaseIdentityExpectation | undefined, snapshotVersion: string): boolean {
+  const snapshot = readStorageSnapshot();
+  const rows = snapshot.diagnostic.cases;
   const index = rows.findIndex((row) => row.id === caseId);
   if (index < 0) return false;
   const current = rows[index];
-  if (!identityMatches(current, expectedIdentity)) return false;
+  if (JSON.stringify(current) !== snapshotVersion || !identityMatches(current, expectedIdentity)) return false;
   const data: SavedCaseData = { ...current.data };
   if (Object.prototype.hasOwnProperty.call(patch, "commuteRoute")) {
     data.commuteRoute = compactCommuteRouteEvidence(patch.commuteRoute ?? undefined);
@@ -175,7 +246,7 @@ export function updateSavedCaseLocationEvidence(caseId: string, patch: {
   }
   const updated: SavedCase = { ...current, updatedAt: new Date().toISOString(), data };
   rows[index] = updated;
-  writeCases(rows);
+  if (!writeCases(rows, snapshot.raw)) return false;
   window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
   return true;
 }
@@ -184,10 +255,21 @@ export function updateSavedCaseRiskEvidence(
   caseId: string,
   terrainReference: StoredTerrainReferenceEvidenceV1 & { checked_at?: string | null },
   expectedIdentity: SavedCaseIdentityExpectation,
+  canCommit?: SavedCaseCommitGuard,
+): Promise<boolean> {
+  return mutateSavedCaseEvidence(caseId, expectedIdentity, canCommit, (version) => updateSavedCaseRiskEvidenceUnlocked(caseId, terrainReference, expectedIdentity, version));
+}
+
+function updateSavedCaseRiskEvidenceUnlocked(
+  caseId: string,
+  terrainReference: StoredTerrainReferenceEvidenceV1 & { checked_at?: string | null },
+  expectedIdentity: SavedCaseIdentityExpectation,
+  snapshotVersion: string,
 ): boolean {
-  const rows = readSavedCases();
+  const snapshot = readStorageSnapshot();
+  const rows = snapshot.diagnostic.cases;
   const index = rows.findIndex((row) => row.id === caseId);
-  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  if (index < 0 || JSON.stringify(rows[index]) !== snapshotVersion || !identityMatches(rows[index], expectedIdentity)) return false;
   const { checked_at: checkedAt, ...boundedReference } = terrainReference;
   const normalized = normalizeStoredTerrainReferenceEvidence(boundedReference);
   if (!normalized) return false;
@@ -202,7 +284,7 @@ export function updateSavedCaseRiskEvidence(
     },
   };
   rows[index] = updated;
-  writeCases(rows);
+  if (!writeCases(rows, snapshot.raw)) return false;
   window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
   return true;
 }
@@ -211,19 +293,30 @@ export function updateSavedCaseMarketEvidence(
   caseId: string,
   marketInsight: MarketResult,
   expectedIdentity: SavedCaseIdentityExpectation,
+  canCommit?: SavedCaseCommitGuard,
+): Promise<boolean> {
+  return mutateSavedCaseEvidence(caseId, expectedIdentity, canCommit, (version) => updateSavedCaseMarketEvidenceUnlocked(caseId, marketInsight, expectedIdentity, version));
+}
+
+function updateSavedCaseMarketEvidenceUnlocked(
+  caseId: string,
+  marketInsight: MarketResult,
+  expectedIdentity: SavedCaseIdentityExpectation,
+  snapshotVersion: string,
 ): boolean {
   const boundedMarket = compactMarketInsight(marketInsight);
   if (!boundedMarket) return false;
-  const rows = readSavedCases();
+  const snapshot = readStorageSnapshot();
+  const rows = snapshot.diagnostic.cases;
   const index = rows.findIndex((row) => row.id === caseId);
-  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  if (index < 0 || JSON.stringify(rows[index]) !== snapshotVersion || !identityMatches(rows[index], expectedIdentity)) return false;
   const updated: SavedCase = {
     ...rows[index],
     updatedAt: new Date().toISOString(),
     data: { ...rows[index].data, marketInsight: boundedMarket },
   };
   rows[index] = updated;
-  writeCases(rows);
+  if (!writeCases(rows, snapshot.raw)) return false;
   window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
   return true;
 }
@@ -232,11 +325,22 @@ export function updateSavedCaseValuationEvidence(
   caseId: string,
   valuation: ValuationResult,
   expectedIdentity: SavedCaseIdentityExpectation,
+  canCommit?: SavedCaseCommitGuard,
+): Promise<boolean> {
+  return mutateSavedCaseEvidence(caseId, expectedIdentity, canCommit, (version) => updateSavedCaseValuationEvidenceUnlocked(caseId, valuation, expectedIdentity, version));
+}
+
+function updateSavedCaseValuationEvidenceUnlocked(
+  caseId: string,
+  valuation: ValuationResult,
+  expectedIdentity: SavedCaseIdentityExpectation,
+  snapshotVersion: string,
 ): boolean {
   if (!getActionableValuation(valuation)) return false;
-  const rows = readSavedCases();
+  const snapshot = readStorageSnapshot();
+  const rows = snapshot.diagnostic.cases;
   const index = rows.findIndex((row) => row.id === caseId);
-  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  if (index < 0 || JSON.stringify(rows[index]) !== snapshotVersion || !identityMatches(rows[index], expectedIdentity)) return false;
   const updated: SavedCase = {
     ...rows[index],
     updatedAt: new Date().toISOString(),
@@ -249,7 +353,7 @@ export function updateSavedCaseValuationEvidence(
     }),
   };
   rows[index] = updated;
-  writeCases(rows);
+  if (!writeCases(rows, snapshot.raw)) return false;
   window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
   return true;
 }
@@ -258,12 +362,23 @@ export function updateSavedCaseFinanceEvidence(
   caseId: string,
   evidence: StoredFinanceEvidenceV1,
   expectedIdentity: SavedCaseIdentityExpectation,
+  canCommit?: SavedCaseCommitGuard,
+): Promise<boolean> {
+  return mutateSavedCaseEvidence(caseId, expectedIdentity, canCommit, (version) => updateSavedCaseFinanceEvidenceUnlocked(caseId, evidence, expectedIdentity, version));
+}
+
+function updateSavedCaseFinanceEvidenceUnlocked(
+  caseId: string,
+  evidence: StoredFinanceEvidenceV1,
+  expectedIdentity: SavedCaseIdentityExpectation,
+  snapshotVersion: string,
 ): boolean {
   const normalized = normalizeStoredFinanceEvidence(evidence);
   if (!normalized || normalized.case_id !== caseId) return false;
-  const rows = readSavedCases();
+  const snapshot = readStorageSnapshot();
+  const rows = snapshot.diagnostic.cases;
   const index = rows.findIndex((row) => row.id === caseId);
-  if (index < 0 || !identityMatches(rows[index], expectedIdentity)) return false;
+  if (index < 0 || JSON.stringify(rows[index]) !== snapshotVersion || !identityMatches(rows[index], expectedIdentity)) return false;
   const updated: SavedCase = {
     ...rows[index],
     updatedAt: new Date().toISOString(),
@@ -276,14 +391,18 @@ export function updateSavedCaseFinanceEvidence(
     },
   };
   rows[index] = updated;
-  writeCases(rows);
+  if (!writeCases(rows, snapshot.raw)) return false;
   window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
   return true;
 }
 
 export function clearSavedCases() {
-  window.localStorage.removeItem(SAVED_CASES_STORAGE_KEY);
-  window.dispatchEvent(new Event(CASE_UPDATED_EVENT));
+  return mutateSavedCases(false, () => {
+    window.localStorage.removeItem(SAVED_CASES_STORAGE_KEY);
+    if (window.localStorage.getItem(SAVED_CASES_STORAGE_KEY) !== null) return false;
+    window.dispatchEvent(new Event(CASE_UPDATED_EVENT));
+    return true;
+  });
 }
 
 export function loadSavedCase(saved: SavedCase) {
@@ -388,11 +507,33 @@ function setSession(key: string, value: unknown) {
   else window.sessionStorage.setItem(key, JSON.stringify(value));
 }
 
-function writeCases(rows: SavedCase[]) {
-  const previous = readSavedCases();
-  const bounded = rows.map((row) => row.data.checklistReview ? { ...row, data: { ...row.data, checklistReview: invalidateChangedChecklist(previous.find((item) => item.id === row.id), row) } } : row);
-  window.localStorage.setItem(SAVED_CASES_STORAGE_KEY, JSON.stringify(bounded));
-  window.dispatchEvent(new Event(CASE_UPDATED_EVENT));
+/** Write only validated snapshots; retain quarantined originals for explicit recovery. */
+function writeCases(rows: SavedCase[], expectedRaw: string | null): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.localStorage.getItem(SAVED_CASES_STORAGE_KEY);
+    if (raw !== expectedRaw) return false;
+    const read = parseSavedCasesDiagnostic(raw, normalizeSavedCase);
+    if (["parse_error", "invalid_storage", "storage_unavailable"].includes(read.status)) return false;
+    const previous = read.cases;
+    const validIds = new Set(previous.map((row) => row.id));
+    const original: unknown[] = raw === null ? [] : JSON.parse(raw);
+    const retained = original.filter((value) => !value || typeof value !== "object" || !validIds.has((value as SavedCase).id));
+    const retainedIds = new Set(retained.map((value) => value && typeof value === "object" ? (value as SavedCase).id : undefined));
+    if (rows.some((row) => retainedIds.has(row.id))) return false;
+    const bounded = rows.map((row) => row.data.checklistReview ? { ...row, data: { ...row.data, checklistReview: invalidateChangedChecklist(previous.find((item) => item.id === row.id), row) } } : row);
+    // Check the exact serialized read contract before reporting success.
+    const serialized = JSON.stringify(bounded);
+    const candidate = parseSavedCasesDiagnostic(serialized, normalizeSavedCase);
+    if (candidate.status !== (rows.length ? "ready" : "empty") || candidate.cases.length !== rows.length) return false;
+    const next = JSON.stringify([...bounded, ...retained]);
+    window.localStorage.setItem(SAVED_CASES_STORAGE_KEY, next);
+    if (window.localStorage.getItem(SAVED_CASES_STORAGE_KEY) !== next) return false;
+    window.dispatchEvent(new Event(CASE_UPDATED_EVENT));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function createId() {

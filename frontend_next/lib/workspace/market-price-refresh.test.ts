@@ -74,6 +74,7 @@ test("refresh contexts use the confirmed active identity and existing production
     journeyAnchorId: anchor().journey_anchor_id,
     normalizedAddress: anchor().normalized_address,
     coordinates: anchor().coordinates,
+    snapshotVersion: JSON.stringify(savedCase()),
   });
   assert.notEqual(market?.fingerprint, valuation?.fingerprint);
 });

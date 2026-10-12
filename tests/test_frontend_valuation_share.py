@@ -43,7 +43,7 @@ def test_share_query_loads_inputs_without_auto_estimate() -> None:
     _assert_share_initialization_does_not_auto_estimate(PAGE)
 
     estimate_start = PAGE.index("async function estimate()")
-    estimate_end = PAGE.index("const shareInputs:", estimate_start)
+    estimate_end = PAGE.index("const shareInputs=", estimate_start)
     assert "api.valuation(" in PAGE[estimate_start:estimate_end]
 
 

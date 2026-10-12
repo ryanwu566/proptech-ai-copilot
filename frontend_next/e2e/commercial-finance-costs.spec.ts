@@ -164,6 +164,7 @@ test("saved Property A finance evidence becomes stale after the case price chang
   await page.goto("/cases/finance-case/finance");
   await page.getByTestId("calculate-loan").click();
   await page.getByTestId("finance-save").click();
+  await expect(page.getByTestId("finance-save-status")).toContainText("已儲存財務假設與摘要");
   await page.evaluate(() => {
     const key = "proptech.savedCases.v1";
     const rows = JSON.parse(window.localStorage.getItem(key) ?? "[]");

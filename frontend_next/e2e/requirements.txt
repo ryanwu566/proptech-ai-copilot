@@ -1,0 +1,2 @@
+# Test-only dependency for inspecting and rasterizing actual browser A4 PDFs.
+PyMuPDF==1.28.2

@@ -1,0 +1,341 @@
+const assert = require('node:assert/strict');
+const test = require('node:test');
+const fs = require('node:fs');
+const path = require('node:path');
+const ts = require('typescript');
+const root = path.resolve(__dirname, '..');
+const cache = new Map();
+function load(relative) {
+  const file = path.resolve(root, relative);
+  if (cache.has(file)) return cache.get(file).exports;
+  const module = { exports: {} }; cache.set(file, module);
+  const output = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const requireLocal = name => {
+    if (!name.startsWith('.') && !name.startsWith('@/')) return require(name);
+    const target = name.startsWith('@/') ? path.join(root, name.slice(2)) : path.resolve(path.dirname(file), name);
+    const resolved = fs.existsSync(target) ? target : `${target}.ts`;
+    if (resolved.endsWith('.json')) return JSON.parse(fs.readFileSync(resolved, 'utf8'));
+    return load(path.relative(root, resolved));
+  };
+  new Function('require', 'module', 'exports', output)(requireLocal, module, module.exports);
+  return module.exports;
+}
+const storage = load('lib/case-storage.ts');
+const { e9Case } = load('lib/workspace/e9-test-fixtures.ts');
+const { createBrowserCaseRepository } = load('lib/workspace/case-repository.ts');
+const { projectCaseEvidence } = load('lib/workspace/case-evidence.ts');
+const { buildReportModel, buildComparisonModel } = load('lib/workspace/compare-report-model.ts');
+const { buildMarketRefreshContext, canCommitMarketPriceResponse } = load('lib/workspace/market-price-refresh.ts');
+const { SAVED_CASES_STORAGE_KEY: key } = storage;
+function input() {
+  const row = e9Case();
+  delete row.data.financeEvidence;
+  return row;
+}
+async function browser(raw, run, failWrite = false) {
+  const values = new Map(raw === undefined ? [] : [[key, raw]]);
+  const previous = global.window;
+  global.window = { navigator: { locks: memoryLocks() }, localStorage: { getItem: k => values.get(k) ?? null, setItem: (k, v) => { if (failWrite) throw new Error('quota'); values.set(k, v); }, removeItem: k => values.delete(k) }, dispatchEvent: () => true };
+  try { return await run(values); } finally { if (previous) global.window = previous; else delete global.window; }
+}
+
+// Only the browser test double supplies this shim; production requires Web Locks.
+function memoryLocks() {
+  let tail = Promise.resolve();
+  return { request: (name, options, callback) => {
+    assert.equal(name, key);
+    assert.equal(options.mode, 'exclusive');
+    const result = tail.then(() => callback({}));
+    tail = result.catch(() => {});
+    return result;
+  } };
+}
+
+function expectation(row) {
+  const anchor = row.data.propertyIdentityAnchor;
+  return { journeyAnchorId: anchor.journey_anchor_id, normalizedAddress: anchor.normalized_address, coordinates: anchor.coordinates };
+}
+
+function writeEvidence(channel, row, expected) {
+  if (channel === 'market') return storage.updateSavedCaseMarketEvidence(row.id, { ...row.data.marketInsight, summary: 'older response' }, expected, () => true);
+  if (channel === 'risk') return storage.updateSavedCaseRiskEvidence(row.id, row.data.terrainReference, expected, () => true);
+  if (channel === 'location') return storage.updateSavedCaseLocationEvidence(row.id, { commuteRoute: row.data.commuteRoute }, expected, () => true);
+  if (channel === 'finance') return storage.updateSavedCaseFinanceEvidence(row.id, row.data.financeEvidence, expected, () => true);
+  return storage.updateSavedCaseValuationEvidence(row.id, JSON.parse(fs.readFileSync(path.join(root, '../tests/fixtures/comparable-explanation-result.json'), 'utf8')), expected, () => true);
+}
+
+for (const channel of ['market', 'valuation', 'risk', 'location', 'finance']) {
+  test(`${channel} rejects a competing same-case write queued ahead of its response`, async () => browser(JSON.stringify([e9Case()]), async values => {
+    const row = storage.readSavedCases()[0];
+    let release; let events = 0;
+    global.window.dispatchEvent = () => { events++; return true; };
+    const held = new Promise(resolve => { release = resolve; });
+    const blocker = global.window.navigator.locks.request(key, { mode: 'exclusive' }, () => held);
+    await Promise.resolve();
+    const newer = storage.updateSavedCaseMarketEvidence(row.id, { ...row.data.marketInsight, summary: 'newer evidence' }, expectation(row));
+    const older = writeEvidence(channel, row, expectation(row));
+    release(); await blocker;
+    assert.equal(await newer, true);
+    const newerRaw = values.get(key);
+    assert.equal(await older, false);
+    assert.equal(values.get(key), newerRaw);
+    assert.equal(storage.readSavedCases()[0].data.marketInsight.summary, 'newer evidence');
+    assert.equal(events, 2, 'only the successful write publishes its existing generic and detail events');
+  }));
+
+  test(`${channel} rejects an acquisition captured before a same-millisecond snapshot change`, async () => browser(JSON.stringify([e9Case()]), async values => {
+    const row = storage.readSavedCases()[0];
+    const expected = { ...expectation(row), snapshotVersion: JSON.stringify(row) };
+    const newer = JSON.parse(values.get(key));
+    newer[0].data.marketInsight.summary = 'newer same-millisecond evidence';
+    values.set(key, JSON.stringify(newer));
+    const newerRaw = values.get(key); let events = 0;
+    global.window.dispatchEvent = () => { events++; return true; };
+    assert.equal(await writeEvidence(channel, row, expected), false);
+    assert.equal(values.get(key), newerRaw);
+    assert.equal(events, 0);
+  }));
+
+  test(`${channel} still accepts an unchanged case snapshot`, async () => browser(JSON.stringify([e9Case()]), async () => {
+    const row = storage.readSavedCases()[0];
+    assert.equal(await writeEvidence(channel, row, { ...expectation(row), snapshotVersion: JSON.stringify(row) }), true);
+  }));
+}
+
+test('Market request captures the stored snapshot separately from its input fingerprint', async () => browser(JSON.stringify([e9Case()]), async () => {
+  const row = storage.readSavedCases()[0];
+  const repository = createBrowserCaseRepository();
+  const before = buildMarketRefreshContext(repository.getCase(row.id), row);
+  assert.equal(before.identity.snapshotVersion, JSON.stringify(row));
+  assert.equal(repository.getCase(row.id).storageVersion, JSON.stringify(row));
+  assert.equal(await storage.updateSavedCaseMarketEvidence(row.id, { ...row.data.marketInsight, summary: 'newer evidence' }, before.identity), true);
+  const afterRow = storage.readSavedCases()[0];
+  const after = buildMarketRefreshContext(repository.getCase(row.id), afterRow);
+  assert.equal(canCommitMarketPriceResponse(after, before), true, 'successful persistence must not self-invalidate request inputs');
+  assert.notEqual(after.identity.snapshotVersion, before.identity.snapshotVersion);
+  assert.equal(await storage.updateSavedCaseMarketEvidence(row.id, { ...row.data.marketInsight, summary: 'older response' }, before.identity), false);
+}));
+
+for (const action of ['snapshot', 'checklist']) test(`${action} refuses same-timestamp changed storage from its original workspace`, async () => browser(JSON.stringify([e9Case()]), async values => {
+  const repository = createBrowserCaseRepository(); const workspace = repository.getCase('case-a');
+  const newer = JSON.parse(values.get(key)); newer[0].title = 'Newer case title';
+  values.set(key, JSON.stringify(newer)); const newerRaw = values.get(key);
+  const result = action === 'snapshot' ? await repository.saveSnapshot(workspace) : await repository.saveChecklist(workspace, workspace.checklistReview);
+  assert.equal(result.status, 'blocked'); assert.equal(result.reason, 'revision_mismatch');
+  assert.equal(values.get(key), newerRaw);
+}));
+
+test('an unrelated case write does not invalidate the target case snapshot', async () => browser(JSON.stringify([e9Case(), e9Case('case-b')]), async () => {
+  const [a, b] = storage.readSavedCases();
+  const expected = { ...expectation(a), snapshotVersion: JSON.stringify(a) };
+  assert.equal(await storage.updateSavedCaseMarketEvidence(b.id, { ...b.data.marketInsight, summary: 'case B newer' }, expectation(b)), true);
+  assert.equal(await writeEvidence('market', a, expected), true);
+  assert.equal(storage.readSavedCases().find(row => row.id === b.id).data.marketInsight.summary, 'case B newer');
+}));
+
+test('serialized saves preserve a second tab mutation started after the final storage read', async () => {
+  const previous = global.window;
+  const values = new Map([[key, JSON.stringify([e9Case()])]]);
+  let reads = 0;
+  let second;
+  const firstInput = input(); firstInput.title = 'First tab';
+  const secondInput = input(); secondInput.title = 'Second tab';
+  global.window = {
+    navigator: { locks: memoryLocks() },
+    localStorage: {
+      getItem: k => {
+        const captured = values.get(k) ?? null;
+        if (k === key && ++reads === 2) second = storage.saveCase(secondInput);
+        return captured;
+      },
+      setItem: (k, value) => values.set(k, value),
+    },
+    dispatchEvent: () => true,
+  };
+  try {
+    const firstSaved = await storage.saveCase(firstInput);
+    const secondSaved = await second;
+    assert.ok(firstSaved && secondSaved);
+    assert.deepEqual(new Set(storage.readSavedCases().map(row => row.title)), new Set(['案件 A', 'First tab', 'Second tab']));
+  } finally { if (previous) global.window = previous; else delete global.window; }
+});
+
+test('mutation fails closed without Web Locks and publishes no success event', async () => browser(undefined, async values => {
+  delete global.window.navigator;
+  let events = 0;
+  global.window.dispatchEvent = () => { events++; return true; };
+  assert.equal(await storage.saveCase(input()), null);
+  assert.equal(values.get(key), undefined);
+  assert.equal(events, 0);
+}));
+
+test('missing or denied locks preserve existing cases for every mutation without publishing success', async () => {
+  for (const availability of ['missing', 'denied']) await browser(JSON.stringify([e9Case()]), async values => {
+    const row = e9Case(); const anchor = row.data.propertyIdentityAnchor;
+    const expected = { journeyAnchorId: anchor.journey_anchor_id, normalizedAddress: anchor.normalized_address, coordinates: anchor.coordinates };
+    const repository = createBrowserCaseRepository(); const workspace = repository.getCase(row.id);
+    const original = values.get(key); let events = 0;
+    global.window.dispatchEvent = () => { events++; return true; };
+    global.window.navigator = availability === 'missing' ? {} : { locks: { request: async () => { throw new Error('lock unavailable'); } } };
+    assert.equal(await storage.saveCase(input()), null);
+    assert.equal((await repository.saveSnapshot(workspace)).status, 'blocked');
+    assert.equal(await storage.deleteSavedCase(row.id), false);
+    assert.equal(await storage.clearSavedCases(), false);
+    assert.equal(await storage.updateSavedCaseMarketEvidence(row.id, row.data.marketInsight, expected), false);
+    assert.equal(await storage.updateSavedCaseFinanceEvidence(row.id, row.data.financeEvidence, expected), false);
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { commuteRoute: row.data.commuteRoute }, expected), false);
+    assert.equal(await storage.updateSavedCaseRiskEvidence(row.id, row.data.terrainReference, expected), false);
+    assert.equal(await storage.updateSavedCaseValuationEvidence(row.id, {}, expected), false);
+    assert.equal(values.get(key), original);
+    assert.equal(events, 0);
+  });
+});
+
+for (const channel of ['market', 'valuation', 'risk', 'location', 'finance']) {
+  test(`cancelled ${channel} response waiting for the storage lock cannot replace frozen evidence`, async () => browser(JSON.stringify([e9Case()]), async values => {
+    const row = e9Case(); const anchor = row.data.propertyIdentityAnchor;
+    const expected = { journeyAnchorId: anchor.journey_anchor_id, normalizedAddress: anchor.normalized_address, coordinates: anchor.coordinates };
+    const original = values.get(key); let events = 0; let accept = true; let release;
+    global.window.dispatchEvent = () => { events++; return true; };
+    const held = new Promise(resolve => { release = resolve; });
+    const blocker = global.window.navigator.locks.request(key, { mode: 'exclusive' }, () => held);
+    await Promise.resolve();
+    const guard = () => accept;
+    const result = channel === 'market'
+      ? storage.updateSavedCaseMarketEvidence(row.id, { ...row.data.marketInsight, summary: 'cancelled response' }, expected, guard)
+      : channel === 'risk'
+        ? storage.updateSavedCaseRiskEvidence(row.id, row.data.terrainReference, expected, guard)
+        : channel === 'location'
+          ? storage.updateSavedCaseLocationEvidence(row.id, { commuteRoute: row.data.commuteRoute }, expected, guard)
+          : channel === 'finance'
+            ? storage.updateSavedCaseFinanceEvidence(row.id, row.data.financeEvidence, expected, guard)
+            : storage.updateSavedCaseValuationEvidence(row.id, JSON.parse(fs.readFileSync(path.join(root, '../tests/fixtures/comparable-explanation-result.json'), 'utf8')), expected, guard);
+    accept = false; release(); await blocker;
+    assert.equal(await result, false);
+    assert.equal(values.get(key), original);
+    assert.equal(events, 0);
+  }));
+}
+test('two created snapshots have stable isolated identities across serialized read, compare and report', async () => await browser(undefined, async () => {
+  const a = await storage.saveCase(input());
+  const second = input(); second.title = 'Case B'; second.inputSummary.road = '臺灣大道三段200號';
+  second.data.propertyIdentityAnchor = e9Case('case-b').data.propertyIdentityAnchor;
+  second.data.journeyContext = e9Case('case-b').data.journeyContext;
+  second.data.journeyContext.priceBasis = 'manual'; second.data.journeyContext.activePriceWan = 3200; second.data.journeyContext.manualPriceWan = 3200;
+  const b = await storage.saveCase(second);
+  assert.ok(a && b); assert.notEqual(a.id, b.id);
+  const repository = createBrowserCaseRepository();
+  assert.equal(repository.readDiagnostic().status, 'ready');
+  assert.deepEqual(new Set(repository.listCases().map(c => c.caseId)), new Set([a.id, b.id]));
+  const ea = projectCaseEvidence(repository.getCase(a.id)); const eb = projectCaseEvidence(repository.getCase(b.id));
+  assert.equal(repository.getCase(a.id).assumptions.activePriceWan, 2480);
+  assert.equal(repository.getCase(b.id).assumptions.manualPriceWan, 3200);
+  assert.ok(buildComparisonModel([ea, eb], [a.id, b.id]).sections.length);
+  assert.ok(buildReportModel(ea).sections.length); assert.ok(buildReportModel(eb).sections.length);
+}));
+test('saving alongside quarantined records preserves every original invalid and unsupported row', async () => {
+  const invalid = { id: 'broken-case', version: 99, privateValue: 'preserve-original' };
+  await browser(JSON.stringify([e9Case(), invalid]), async values => {
+    assert.ok(await storage.saveCase(input()));
+    assert.equal(storage.readSavedCasesDiagnostic().cases.length, 2);
+    assert.equal(storage.readSavedCasesDiagnostic().status, 'partial');
+    assert.deepEqual(JSON.parse(values.get(key)).find(row => row.id === invalid.id), invalid);
+  });
+});
+test('saving alongside duplicate IDs preserves both conflicting records without assigning replacement IDs', async () => {
+  const a = e9Case(); const conflict = { ...a, title: 'Conflicting snapshot' };
+  await browser(JSON.stringify([a, conflict]), async values => {
+    assert.ok(await storage.saveCase(input()));
+    assert.equal(storage.readSavedCasesDiagnostic().cases.length, 1);
+    assert.deepEqual(JSON.parse(values.get(key)).filter(row => row.id === a.id), [a, conflict]);
+    assert.equal(storage.readSavedCasesDiagnostic().issues[0].reason, 'duplicate_id');
+  });
+});
+test('valid snapshot updates work alongside corrupt unrelated records and preserve those records', async () => {
+  const invalid = { id: 'unsupported', version: 42 };
+  await browser(JSON.stringify([e9Case(), invalid]), async values => {
+    const repository = createBrowserCaseRepository();
+    assert.equal((await repository.saveSnapshot(repository.getCase('case-a'))).status, 'saved');
+    assert.deepEqual(JSON.parse(values.get(key)).find(row => row.id === invalid.id), invalid);
+  });
+});
+test('deleting a valid case preserves quarantined unrelated records', async () => {
+  const invalid = { id: 'unsupported', version: 42 };
+  await browser(JSON.stringify([e9Case(), invalid]), async values => {
+    await storage.deleteSavedCase('case-a'); assert.deepEqual(JSON.parse(values.get(key)), [invalid]);
+  });
+});
+test('parse corruption blocks Save without overwriting the partial storage write', async () => await browser('[{"id":', async values => {
+  assert.equal(await storage.saveCase(input()), null); assert.equal(values.get(key), '[{"id":');
+}));
+test('storage quota failure cannot report a successful Save', async () => await browser(JSON.stringify([e9Case()]), async values => {
+  assert.equal(await storage.saveCase(input()), null); assert.equal(JSON.parse(values.get(key)).length, 1);
+}, true));
+test('storage quota failure returns a blocked snapshot update and preserves the original', async () => await browser(JSON.stringify([e9Case()]), async values => {
+  const repository = createBrowserCaseRepository(); const original = values.get(key);
+  assert.equal((await repository.saveSnapshot(repository.getCase('case-a'))).status, 'blocked');
+  assert.equal(values.get(key), original);
+}, true));
+test('full storage refuses a new case without silently removing the oldest case', async () => {
+  const rows = Array.from({ length: 10 }, (_, i) => e9Case(`case-${i}`));
+  await browser(JSON.stringify(rows), async values => {
+    assert.equal(await storage.saveCase(input()), null); assert.deepEqual(JSON.parse(values.get(key)), rows);
+  });
+});
+test('serializer output must be readable before Save can report success', async () => await browser(undefined, async values => {
+  const draft = input(); draft.progress = 101;
+  assert.equal(await storage.saveCase(draft), null); assert.equal(values.get(key), undefined);
+}));
+test('same property and title with distinct scenario IDs are independent cases, not duplicate identity', async () => await browser(undefined, async () => {
+  const a = await storage.saveCase(input()); const b = await storage.saveCase(input());
+  assert.ok(a && b); assert.notEqual(a.id, b.id);
+  assert.equal(storage.readSavedCasesDiagnostic().status, 'ready');
+  assert.equal(storage.readSavedCasesDiagnostic().cases.length, 2);
+}));
+test('creating from finance bound to another saved case is rejected without rebinding or silently dropping its provenance', async () => await browser(undefined, async values => {
+  assert.equal(await storage.saveCase(e9Case()), null);
+  assert.equal(values.get(key), undefined);
+}));
+test('old identity-free saved cases remain usable without synthesizing official verification', async () => {
+  const old = input(); delete old.data.propertyIdentityAnchor; delete old.data.journeyContext; delete old.data.terrainReference;
+  await browser(JSON.stringify([old]), async () => {
+    const repository = createBrowserCaseRepository();
+    assert.equal(repository.readDiagnostic().status, 'ready');
+    assert.equal(repository.getCase(old.id).identity.state, 'unconfirmed');
+    assert.equal(repository.getCase(old.id).risk, null);
+  });
+});
+test('unavailable browser storage cannot claim Save success', async () => {
+  const previous = global.window;
+  global.window = { navigator: { locks: memoryLocks() }, get localStorage() { throw new Error('storage-disabled'); } };
+  try { assert.equal(await storage.saveCase(input()), null); assert.equal(storage.readSavedCasesDiagnostic().status, 'storage_unavailable'); }
+  finally { if (previous) global.window = previous; else delete global.window; }
+});
+test('evidence updates return failure on quota exhaustion without publishing an updated case', async () => await browser(JSON.stringify([e9Case()]), async values => {
+  const row = e9Case(); const anchor = row.data.propertyIdentityAnchor;
+  const expected = { journeyAnchorId: anchor.journey_anchor_id, normalizedAddress: anchor.normalized_address, coordinates: anchor.coordinates };
+  const original = values.get(key);
+  assert.equal(await storage.updateSavedCaseMarketEvidence(row.id, row.data.marketInsight, expected), false);
+  assert.equal(await storage.updateSavedCaseFinanceEvidence(row.id, row.data.financeEvidence, expected), false);
+  assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { commuteRoute: row.data.commuteRoute }, expected), false);
+  assert.equal(await storage.updateSavedCaseRiskEvidence(row.id, row.data.terrainReference, expected), false);
+  assert.equal(values.get(key), original);
+}, true));
+for (const operation of ['create', 'snapshot', 'market', 'delete']) {
+  test(`a newer cross-tab storage write blocks stale ${operation} without losing the other case`, async () => await browser(JSON.stringify([e9Case()]), async values => {
+    const row = e9Case(); const anchor = row.data.propertyIdentityAnchor;
+    const expected = { journeyAnchorId: anchor.journey_anchor_id, normalizedAddress: anchor.normalized_address, coordinates: anchor.coordinates };
+    const workspace = createBrowserCaseRepository().getCase(row.id);
+    const newer = JSON.stringify([row, e9Case('case-b')]);
+    let reads = 0;
+    global.window.localStorage.getItem = k => {
+      if (k === key && ++reads === 2) values.set(key, newer);
+      return values.get(k) ?? null;
+    };
+    if (operation === 'create') assert.equal(await storage.saveCase(input()), null);
+    if (operation === 'snapshot') assert.equal((await createBrowserCaseRepository().saveSnapshot(workspace)).status, 'blocked');
+    if (operation === 'market') assert.equal(await storage.updateSavedCaseMarketEvidence(row.id, row.data.marketInsight, { ...expected, snapshotVersion: workspace.storageVersion }), false);
+    if (operation === 'delete') assert.equal(await storage.deleteSavedCase(row.id), false);
+    assert.equal(values.get(key), newer);
+  }));
+}

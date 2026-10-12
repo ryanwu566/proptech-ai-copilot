@@ -52,7 +52,7 @@ export function buildSavedCaseSnapshotUpdate(
   ) {
     return blocked(rows, "identity_mismatch", "目前物件與要保存的案件脈絡不一致；請重新開啟正確案件或確認地址。");
   }
-  if (current.updatedAt !== expectedUpdatedAt) {
+  if (current.updatedAt !== expectedUpdatedAt || (expected.snapshotVersion !== undefined && expected.snapshotVersion !== JSON.stringify(current))) {
     return blocked(rows, "revision_mismatch", "案件已在另一個畫面更新；請重新開啟案件後再保存，以免覆蓋較新的內容。");
   }
 

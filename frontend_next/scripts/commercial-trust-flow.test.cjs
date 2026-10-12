@@ -20,12 +20,14 @@ function load(relative) {
   new Function('require', 'module', 'exports', output)(requireLocal, module, module.exports);
   return module.exports;
 }
+
+function memoryLocks() { let tail = Promise.resolve(); return { request: (_name, _options, callback) => { const result = tail.then(() => callback({})); tail = result.catch(() => {}); return result; } }; }
 const journey = load('lib/closed-loop-journey.ts');
 const { e9Case } = load('lib/workspace/e9-test-fixtures.ts');
 const { adaptSavedCaseToWorkspace } = load('lib/workspace/legacy-case-adapter.ts');
 const { projectCaseEvidence } = load('lib/workspace/case-evidence.ts');
 
-test('manual calculator input records canonical source without changing asking price through Save/Reopen/Compare/Report', () => {
+test('manual calculator input records canonical source without changing asking price through Save/Reopen/Compare/Report', async () => {
   const seed = e9Case();
   const loan = { ...seed.data.financeEvidence.loan, property_price_wan: 3000, loan_amount_wan: 2400, down_payment_wan: 600, monthly_payment: 91117, total_payment: 32802120, total_interest: 8802120, sensitivity: [], affordability_level: 'unknown', income_burden_ratio: null, disclaimer: '' };
   let state = journey.createClosedLoopJourneyState({ ...seed.data.journeyContext.propertyContext, askingPriceWan: undefined });
@@ -37,8 +39,8 @@ test('manual calculator input records canonical source without changing asking p
   const { buildJourneySaveCase } = load('lib/journey-case-snapshot.ts');
   const { saveCase, readSavedCases } = load('lib/case-storage.ts');
   const values = new Map();
-  global.window = { localStorage: { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }, dispatchEvent: () => {} };
-  const saved = saveCase(buildJourneySaveCase(state));
+  global.window = { navigator: { locks: memoryLocks() }, localStorage: { getItem: (key) => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }, dispatchEvent: () => {} };
+  const saved = await saveCase(buildJourneySaveCase(state));
   assert.ok(saved);
   const workspace = adaptSavedCaseToWorkspace(readSavedCases()[0]);
   const evidence = projectCaseEvidence(workspace);
@@ -54,7 +56,7 @@ test('manual calculator input records canonical source without changing asking p
   delete global.window;
 });
 
-test('matching explicitly selected asking and comparable estimates retain distinct provenance', () => {
+test('matching explicitly selected asking and comparable estimates retain distinct provenance', async () => {
   const seed = e9Case();
   const loan = { property_price_wan: 2480 };
   const state = journey.createClosedLoopJourneyState(seed.data.journeyContext.propertyContext);
@@ -63,7 +65,7 @@ test('matching explicitly selected asking and comparable estimates retain distin
   assert.equal(journey.setJourneyLoanResult(state, { property_price_wan: 3000 }).financePriceEvidence.source, 'MANUAL_SCENARIO');
 });
 
-test('accepted Taiwan addresses strip country, equivalent city spelling and village before road selection', () => {
+test('accepted Taiwan addresses strip country, equivalent city spelling and village before road selection', async () => {
   const { deriveJourneyRoadFromAcceptedAddress } = load('lib/location-market-journey.ts');
   for (const address of ['台灣臺中市西屯區潮洋里臺灣大道三段100號', 'Taiwan 台中市西屯區潮洋里臺灣大道三段100號', '407 台灣台中市西屯區臺灣大道三段100號']) {
     assert.equal(deriveJourneyRoadFromAcceptedAddress(address, '臺中市', '西屯區', '潮洋里'), '臺灣大道三段');
@@ -72,7 +74,36 @@ test('accepted Taiwan addresses strip country, equivalent city spelling and vill
   assert.equal(deriveJourneyRoadFromAcceptedAddress('臺中市西屯區新村路100號', '臺中市', '西屯區'), '新村路');
 });
 
-test('manual mortgage differs from an existing asking price without becoming stale or overwriting it', () => {
+test('accepted address with unavailable village retains its matching explicit manual road scope', () => {
+  const address = '台北市大安區敦化南路二段100號';
+  const normalized = '106台灣臺北市大安區群賢里敦化南路二段100號';
+  for (const road of ['敦化南路', '敦化南路二段']) {
+    const state = journey.createClosedLoopJourneyState({ city: '台北市', district: '大安區', road, addressSummary: address });
+    const result = {
+      input: { address }, resolved_location: { address_label: normalized, latitude: 25.0279284, longitude: 121.5483265 },
+      geocoding_acceptance: { accepted_for_analysis: true, normalized_address: normalized, geocoding_source: 'provided_coordinates' },
+      village_resolution: { status: 'unavailable', county: null, town: null, village: null, village_code: null },
+      data_quality: { status: 'good', checked_at: '2026-10-11T02:00:00.000Z' },
+    };
+    const next = journey.setJourneyLocationResult(state, result, 'available');
+    assert.equal(next.propertyContext.road, road);
+    assert.equal(next.propertyContext.addressSummary, normalized);
+    assert.deepEqual(next.identityAnchor.coordinates, result.resolved_location && { latitude: result.resolved_location.latitude, longitude: result.resolved_location.longitude });
+    assert.equal(next.identityAnchor.administrative_location.village, null);
+    assert.equal(next.identityAnchor.administrative_location.village_code, null);
+    assert.equal(next.identityAnchor.revalidation.status, 'current');
+  }
+});
+
+test('manual road hint cannot shorten a different road or invent an administrative identity', () => {
+  const { deriveJourneyRoadFromAcceptedAddress } = load('lib/location-market-journey.ts');
+  assert.equal(deriveJourneyRoadFromAcceptedAddress('臺北市大安區新中山路100號', '臺北市', '大安區', null, '中山路'), '新中山路');
+  assert.equal(deriveJourneyRoadFromAcceptedAddress('臺北市大安區群賢里敦化南路二段100號', '臺北市', '大安區', null, '和平東路'), '群賢里敦化南路二段');
+  assert.equal(deriveJourneyRoadFromAcceptedAddress('臺北市大安區里仁路100號', '臺北市', '大安區', null, '仁路'), '里仁路');
+  assert.equal(deriveJourneyRoadFromAcceptedAddress('臺北市大安區新村路100號', '臺北市', '大安區', null, '路'), '新村路');
+});
+
+test('manual mortgage differs from an existing asking price without becoming stale or overwriting it', async () => {
   const { buildJourneySaveCase } = load('lib/journey-case-snapshot.ts');
   const { saveCase, readSavedCases } = load('lib/case-storage.ts');
   const seed = e9Case();
@@ -81,8 +112,8 @@ test('manual mortgage differs from an existing asking price without becoming sta
   const loan = { property_price_wan: 3000, down_payment_ratio: .2, down_payment_wan: 600, loan_amount_wan: 2400, annual_interest_rate: 2.2, loan_years: 30, grace_period_years: 0, monthly_income_wan: null, monthly_payment: 91117, total_payment: 32802120, total_interest: 8802120, sensitivity: [], income_burden_ratio: null };
   state = journey.setJourneyLoanResult(state, loan, () => '2026-10-09T01:00:00Z');
   const values = new Map();
-  global.window = { localStorage: { getItem: k => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) }, dispatchEvent: () => {} };
-  saveCase(buildJourneySaveCase(state));
+  global.window = { navigator: { locks: memoryLocks() }, localStorage: { getItem: k => values.get(k) ?? null, setItem: (k, v) => values.set(k, v) }, dispatchEvent: () => {} };
+  await saveCase(buildJourneySaveCase(state));
   const saved = readSavedCases()[0];
   const workspace = adaptSavedCaseToWorkspace(saved);
   const evidence = projectCaseEvidence(workspace);
@@ -95,7 +126,7 @@ test('manual mortgage differs from an existing asking price without becoming sta
   delete global.window;
 });
 
-test('holding calculation preserves its actual area independently of unchanged case area', () => {
+test('holding calculation preserves its actual area independently of unchanged case area', async () => {
   const { captureJourneyFinanceEvidence } = load('lib/workspace/finance-persistence.ts');
   const saved = e9Case(); delete saved.data.financeEvidence;
   saved.data.financePriceEvidence = { price_twd: 30000000, source: 'MANUAL_SCENARIO', calculated_at: saved.updatedAt };
@@ -110,7 +141,7 @@ test('holding calculation preserves its actual area independently of unchanged c
   assert.equal(adaptSavedCaseToWorkspace(saved).finance.freshness.status, 'current');
 });
 
-test('malformed source price cannot write a self-inconsistent finance snapshot', () => {
+test('malformed source price cannot write a self-inconsistent finance snapshot', async () => {
   const { captureJourneyFinanceEvidence } = load('lib/workspace/finance-persistence.ts');
   const seed = e9Case();
   const original = seed.data.financeEvidence; delete seed.data.financeEvidence;
@@ -119,7 +150,7 @@ test('malformed source price cannot write a self-inconsistent finance snapshot',
   assert.equal(captureJourneyFinanceEvidence(seed), null);
 });
 
-test('malformed holding input does not throw during Save projection', () => {
+test('malformed holding input does not throw during Save projection', async () => {
   const { captureJourneyFinanceEvidence } = load('lib/workspace/finance-persistence.ts');
   const seed = e9Case(); delete seed.data.financeEvidence;
   seed.data.financePriceEvidence = { price_twd: 30000000, source: 'MANUAL_SCENARIO', calculated_at: seed.updatedAt };
@@ -127,7 +158,7 @@ test('malformed holding input does not throw during Save projection', () => {
   assert.equal(captureJourneyFinanceEvidence(seed), null);
 });
 
-test('guided holding overrides discard a mortgage calculated from another payment assumption', () => {
+test('guided holding overrides discard a mortgage calculated from another payment assumption', async () => {
   const state = journey.createClosedLoopJourneyState({ askingPriceWan: 3000 });
   const calculated = journey.setJourneyLoanResult(state, { property_price_wan: 3000, monthly_payment: 91117 });
   const updated = journey.setJourneyHoldingResult(calculated, { property_price_wan: 3000, input: { loan_monthly_payment: 99999 } });
@@ -135,7 +166,7 @@ test('guided holding overrides discard a mortgage calculated from another paymen
   assert.equal(updated.holdingResult.input.loan_monthly_payment, 99999);
 });
 
-test('Save/Reopen retains local Location advisory and finance provenance without inventing risk evidence', () => {
+test('Save/Reopen retains local Location advisory and finance provenance without inventing risk evidence', async () => {
   const { normalizeLocationInsightEvidence } = load('lib/location-insight-evidence.ts');
   const { withLocationAdvisoryContext } = load('lib/location-evidence-context.ts');
   const { buildJourneySaveCase } = load('lib/journey-case-snapshot.ts');
@@ -148,9 +179,9 @@ test('Save/Reopen retains local Location advisory and finance provenance without
   state.locationResult = withLocationAdvisoryContext(normalizeLocationInsightEvidence(raw), 2000, 35);
   state.locationStatus = 'available';
   const values = new Map();
-  global.window = { localStorage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }, dispatchEvent: () => {} };
+  global.window = { navigator: { locks: memoryLocks() }, localStorage: { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) }, dispatchEvent: () => {} };
   try {
-    saveCase(buildJourneySaveCase(state));
+    await saveCase(buildJourneySaveCase(state));
     const saved = readSavedCases()[0];
     const compacted = { ...saved, data: compactCaseData(saved.data) };
     const workspace = adaptSavedCaseToWorkspace(compacted);

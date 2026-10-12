@@ -779,6 +779,7 @@ test("valuation unavailable remains explicit through Decision, Save Case, cases,
   await page.getByRole("button", { name: /New case/ }).click();
   await page.getByRole("button", { name: "Save case", exact: true }).click();
 
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1") || "[]").length)).toBe(1);
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1") || "[]") as Array<{ id: string; data: { journeyContext?: { valuationStatus?: string }; valuation?: unknown } }>);
   expect(saved).toHaveLength(1);
   expect(saved[0].data.journeyContext?.valuationStatus).toBe("unavailable");

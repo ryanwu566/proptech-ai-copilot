@@ -35,15 +35,15 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
   useEffect(() => setCases(readSavedCases()), []);
 
   function refresh(message: string) { setCases(readSavedCases()); setFeedback(message); }
-  function save() {
+  async function save() {
     if (!current) return;
     const missing = getDraftSaveMissingFields(current);
     if (missing.length) {
       setFeedback(copy("case.missing", { items: missing.map((field) => saveMissingFieldLabel(field, locale, copy)).join(" / ") }));
       return;
     }
-    const saved = saveCase(current);
-    if (!saved) return setFeedback(copy("common.unavailable"));
+    const saved = await saveCase(current);
+    if (!saved) return setFeedback(({ "zh-TW": "案件未保存；儲存資料需要修復、空間不足或案件已更新。請檢查已儲存案件後再試。", en: "Case was not saved. Storage needs repair, is full, or cases changed. Check saved cases and try again.", ja: "案件を保存できませんでした。保存データの修復、容量の確認、または更新済み案件の再読み込みが必要です。", ko: "사례가 저장되지 않았습니다. 저장 데이터 복구, 공간 확인 또는 변경된 사례 다시 불러오기가 필요합니다." })[locale]);
     refresh(copy("case.save"));
     onSaved?.(saved);
   }
@@ -51,13 +51,18 @@ export function CaseManager({ current, listOnly = false, onSaved, onLoaded, onCl
     if (saved.data.financeEvidence) { router.push(`/cases/${encodeURIComponent(saved.id)}/finance`); return; }
     loadSavedCase(saved); setFeedback(copy("case.load")); onLoaded?.(saved);
   }
-  function remove(id: string) {
+  async function remove(id: string) {
     if (confirmDelete !== id) return setConfirmDelete(id);
-    deleteSavedCase(id); setSelectedIds((rows) => rows.filter((row) => row !== id)); setConfirmDelete(""); refresh(copy("case.delete"));
+    if (!await deleteSavedCase(id)) {
+      setFeedback(({ "zh-TW": "案件未刪除；儲存空間無法使用或案件已更新，請重新開啟後再試。", en: "Case was not deleted. Storage is unavailable or cases changed; reopen and try again.", ja: "案件は削除されていません。保存領域を利用できないか、案件が更新されています。開き直して再試行してください。", ko: "사례가 삭제되지 않았습니다. 저장소를 사용할 수 없거나 사례가 변경되었습니다. 다시 열고 재시도하세요." })[locale]);
+      return;
+    }
+    setSelectedIds((rows) => rows.filter((row) => row !== id)); setConfirmDelete(""); refresh(copy("case.delete"));
   }
-  function clearAll() {
+  async function clearAll() {
     if (!confirmClearAll) return setConfirmClearAll(true);
-    clearSavedCases(); setSelectedIds([]); setCompareOpen(false); setConfirmClearAll(false); refresh(copy("case.clearAll"));
+    if (!await clearSavedCases()) { setFeedback(copy("common.unavailable")); return; }
+    setSelectedIds([]); setCompareOpen(false); setConfirmClearAll(false); refresh(copy("case.clearAll"));
   }
   function clearCurrent() { clearCurrentCase(); setFeedback(copy("case.clearCurrent")); onCleared?.(); }
   function toggleCompare(id: string) {

@@ -134,12 +134,12 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
     const currentRequest = requestId.current + 1;
     requestId.current = currentRequest;
     activeRequest.current = currentRequest;
+    const onRequestedEvidence = onEvidenceRef.current;
     setLoading(true);
     setResult(null);
     setReasonCode("destination_required");
     setRouteDisplayStatus("loading");
     setMessage("正在查詢路線…");
-    onEvidenceRef.current?.(null);
     onStatusRef.current?.("loading");
     try {
       const next = await api.commuteRoute({ origin_latitude: originLatitude, origin_longitude: originLongitude, destination_address: trimmed, mode });
@@ -151,12 +151,12 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
       if (next.status === "resolved") {
         setResult(next);
         setMessage("");
-        onEvidenceRef.current?.(evidenceFrom(next, originLatitude, originLongitude, trimmed));
+        onRequestedEvidence?.(evidenceFrom(next, originLatitude, originLongitude, trimmed));
       } else {
         setResult(null);
         const safeReason: Exclude<CommuteRouteReasonCode, "success"> = next.reason_code === "success" ? "provider_error" : next.reason_code;
         setMessage(SAFE_MESSAGES[safeReason]);
-        onEvidenceRef.current?.(evidenceFrom(next, originLatitude, originLongitude, trimmed));
+        onRequestedEvidence?.(evidenceFrom(next, originLatitude, originLongitude, trimmed));
       }
     } catch {
       if (requestId.current !== currentRequest) return;
@@ -164,7 +164,7 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
       setReasonCode("provider_error");
       setRouteDisplayStatus("unavailable");
       setMessage(SAFE_MESSAGES.provider_error);
-      onEvidenceRef.current?.(failedEvidence("provider_error", originLatitude, originLongitude, trimmed, mode));
+      onRequestedEvidence?.(failedEvidence("provider_error", originLatitude, originLongitude, trimmed, mode));
       onStatusRef.current?.("unavailable");
     } finally {
       if (requestId.current === currentRequest) { activeRequest.current = null; setLoading(false); }

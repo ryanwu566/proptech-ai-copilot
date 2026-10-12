@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Section, ActionSection } from "@/components/design-system/section";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { CommercialButton } from "@/components/design-system/button";
@@ -18,21 +18,28 @@ export function ChecklistView({ workspace }: { workspace: PropertyCaseWorkspace 
   const repository = useMemo(createBrowserCaseRepository, []);
   const [draft, setDraft] = useState<{ base: string; review: StoredChecklistReviewV1 } | null>(null);
   const [notice, setNotice] = useState<{ error: boolean; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const evidence = projectCaseEvidence({ ...workspace, checklistReview: draft?.review ?? workspace.checklistReview });
   const items = buildEvidenceChecklist(evidence);
   const staleDraft = Boolean(draft && draft.base !== workspace.updatedAt);
-  const canReview = workspace.identity.state === "confirmed" && !staleDraft;
+  const canReview = workspace.identity.state === "confirmed" && !staleDraft && !saving;
   function change(id: ChecklistId, state: ManualReviewState) {
+    if (savingRef.current || !canReview) return;
     const review = setChecklistReview({ ...workspace, checklistReview: draft?.review ?? workspace.checklistReview }, id, state, new Date().toISOString());
     if (review) { setDraft({ base: draft?.base ?? workspace.updatedAt, review }); setNotice(null); }
   }
-  function save() {
-    if (!draft || !canReview) return;
+  async function save() {
+    if (savingRef.current || !draft || !canReview) return;
+    const submittedDraft = draft;
+    savingRef.current = true;
+    setSaving(true);
     try {
-      const result = repository.saveChecklist(workspace, draft.review);
+      const result = await repository.saveChecklist(workspace, submittedDraft.review);
       if (result.status === "blocked") { setNotice({ error: true, text: `人工核對狀態未保存。${result.message}` }); return; }
-      setDraft(null); setNotice({ error: false, text: "人工核對狀態已保存於此瀏覽器案件。" });
+      setDraft((current) => current === submittedDraft ? null : current); setNotice({ error: false, text: "人工核對狀態已保存於此瀏覽器案件。" });
     } catch { setNotice({ error: true, text: "人工核對狀態未保存。瀏覽器儲存失敗；請恢復儲存空間或存取後重試。" }); }
+    finally { savingRef.current = false; setSaving(false); }
   }
   return <Section title="證據查證清單" description="人工核對是使用者提供的紀錄，不代表官方查證；未知、未命中與無法取得仍保留原狀。">
     <div id="evidence-checklist" className={styles.checklist}>
@@ -63,7 +70,7 @@ export function ChecklistView({ workspace }: { workspace: PropertyCaseWorkspace 
       </DetailsDisclosure>
       <ActionSection>
         <CommercialButton onClick={save} disabled={!draft || !canReview}>保存人工核對</CommercialButton>
-        {draft && <CommercialButton variant="secondary" onClick={() => { setDraft(null); setNotice(null); }}>載入已保存核對狀態</CommercialButton>}
+        {draft && <CommercialButton variant="secondary" disabled={saving} onClick={() => { if (!savingRef.current) { setDraft(null); setNotice(null); } }}>載入已保存核對狀態</CommercialButton>}
       </ActionSection>
     </div>
   </Section>;

@@ -75,14 +75,21 @@ function memoryStorage(): Storage {
   };
 }
 
-function withBrowserStorage<T>(run: () => T): T {
+function memoryLocks() {
+  let tail: Promise<unknown> = Promise.resolve();
+  return { request: <T>(_name: string, _options: unknown, callback: () => T | Promise<T>): Promise<T> => {
+    const result = tail.then(callback); tail = result.catch(() => undefined); return result;
+  } };
+}
+
+async function withBrowserStorage<T>(run: () => T | Promise<T>): Promise<T> {
   const previous = Object.getOwnPropertyDescriptor(globalThis, "window");
   Object.defineProperty(globalThis, "window", {
     configurable: true,
-    value: { localStorage: memoryStorage(), sessionStorage: memoryStorage(), dispatchEvent: () => true },
+    value: { navigator: { locks: memoryLocks() }, localStorage: memoryStorage(), sessionStorage: memoryStorage(), dispatchEvent: () => true },
   });
   try {
-    return run();
+    return await run();
   } finally {
     if (previous) Object.defineProperty(globalThis, "window", previous);
     else Reflect.deleteProperty(globalThis, "window");
@@ -152,14 +159,14 @@ test("an address without a safely derivable road remains unconfirmed instead of 
   expect(next.propertyContext.road).toBeUndefined();
 });
 
-test("current accepted anchor with normalized address and coordinates satisfies Save Case and reopens bounded state", () => {
+test("current accepted anchor with normalized address and coordinates satisfies Save Case and reopens bounded state", async () => {
   const initial = createClosedLoopJourneyState({ addressSummary: ADDRESS, sourceLabel: "Property selection", selectionStatus: "selected" });
   const accepted = setJourneyLocationResult(initial, acceptedLocation(), "available");
   const input = saveInput({ ...accepted, valuationStatus: "unavailable" });
 
-  withBrowserStorage(() => {
+  await withBrowserStorage(async () => {
     expect(getDraftSaveMissingFields(input)).toEqual([]);
-    const saved = saveCase(input);
+    const saved = await saveCase(input);
     expect(saved).not.toBeNull();
     const reopened = readSavedCases()[0];
     expect(reopened.data.propertyIdentityAnchor?.normalized_address).toBe(ADDRESS);

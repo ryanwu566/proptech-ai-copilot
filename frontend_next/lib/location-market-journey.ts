@@ -84,6 +84,7 @@ export function deriveJourneyRoadFromAcceptedAddress(
   city?: string | null,
   district?: string | null,
   village?: string | null,
+  selectedRoad?: string | null,
 ): string | undefined {
   let remainder = withoutTaiwanPostalCode(normalizedAddress).trim().replace(/^(?:(?:台灣|臺灣|中華民國|Taiwan)\s*)/iu, "");
   for (const prefix of [city, district]) {
@@ -93,6 +94,15 @@ export function deriveJourneyRoadFromAcceptedAddress(
   const villagePrefix = safeText(village);
   if (villagePrefix && remainder.startsWith(villagePrefix)) remainder = remainder.slice(villagePrefix.length);
   const match = remainder.match(/^(.+?(?:大道|路|街)(?:[一二三四五六七八九十百0-9]+段)?)/u);
+  const manualRoad = safeText(selectedRoad);
+  if (!villagePrefix && match && manualRoad && /^.+?(?:大道|路|街)(?:[一二三四五六七八九十百0-9]+段)?$/u.test(manualRoad)) {
+    const index = match[1].indexOf(manualRoad);
+    const prefix = match[1].slice(0, index);
+    const suffix = match[1].slice(index + manualRoad.length);
+    // Preserve the user's matching query scope across bounded address enrichment.
+    // This text hint does not resolve a village or change identity provenance.
+    if (index > 0 && /^[\p{Script=Han}]{1,6}[里村]$/u.test(prefix) && /^(?:[一二三四五六七八九十百0-9]+段)?$/u.test(suffix)) return manualRoad;
+  }
   return safeText(match?.[1]);
 }
 

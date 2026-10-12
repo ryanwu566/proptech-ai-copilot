@@ -63,6 +63,7 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
     if (activeRequest.current !== null) return;
     const currentRequest = ++requestId.current;
     activeRequest.current = currentRequest;
+    const onRequestedResult = onResultRef.current;
 
     setStatus("loading");
     setResult(null);
@@ -72,24 +73,24 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
       if (!mountedRef.current || requestId.current !== currentRequest || latestAddressRef.current.trim() !== requestedAddress) return;
       if (next.status === "resolved") {
         setResult(next);
-        onResultRef.current?.(next);
+        onRequestedResult?.(next);
         setStatus("resolved");
         setMessage("");
       } else if (next.status === "unresolved") {
         setResult(null);
-        onResultRef.current?.(next);
+        onRequestedResult?.(next);
         setStatus("unresolved");
         setMessage(copy("commute.unresolved"));
       } else {
         setResult(null);
-        onResultRef.current?.(next);
+        onRequestedResult?.(next);
         setStatus("unavailable");
         setMessage(copy("commute.unavailable"));
       }
     } catch {
       if (!mountedRef.current || requestId.current !== currentRequest || latestAddressRef.current.trim() !== requestedAddress) return;
       setResult(null);
-      onResultRef.current?.(null);
+      onRequestedResult?.(null);
       setStatus("error");
       setMessage(copy("commute.error"));
     } finally {

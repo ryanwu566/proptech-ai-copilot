@@ -1,0 +1,2660 @@
+{
+  "schema_version": "bounded-official-green-original-v1",
+  "checked_at": "2026-10-11T07:27:51.483051+00:00",
+  "source_dataset": "official-plvr-green-18203c6347cd",
+  "proof_scope": "local actual migration/pooled SQL/service/API, bounded genuine immutable source district only; no deployed credentials or full-generation completeness attestation",
+  "imported_fact_count": 5341,
+  "verified_artifacts": [
+    {
+      "artifact_id": "moi-plvr-sale-season-112S4",
+      "sha256": "39fe69d8dc89ec905a4427ed3b5abad03e2b0b048fe37257018be67b1bfd6491"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-113S1",
+      "sha256": "7c010c79421225c5b96bb0607f4d3b40ec99cf51558616589784195519ae7863"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-113S2",
+      "sha256": "e247d0f20365b790685b5e63a2197d40200e0f436ceb14f3ee88e16ecd095972"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-113S3",
+      "sha256": "87ffdebbeb59c51b1bb9cbaddeeedac27fbecd57e9024e53615b5ae33b80e5e0"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-113S4",
+      "sha256": "4bb63c1858d5bc6f821280a7d7dfa81b6daefa610e5dc47cb7f4fb53e330b913"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-114S1",
+      "sha256": "c541074f34f4c5ecde81e4926823d664a9eb9d09c2b020ba7179604c88bdeb2a"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-114S2",
+      "sha256": "9562aa1e268bb13698a3118bfaae366edf4499745a637456a953584e5ed2a23c"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-114S3",
+      "sha256": "a3b3b51c7cdc9b9790a51a78f232fb3875ca5e1ff2f12a32644109dd4ba962bc"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-114S4",
+      "sha256": "68315c006fa367834eaacf032ceccb22a114fc8798d87b8dac23cf5eb64030ab"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-115S1",
+      "sha256": "8d0bfbaea4fe56d7aa9876b8d587d51d6f69f3419ba1d4e5bab59ec198fe9fe2"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-season-115S2",
+      "sha256": "6b4c148bad106a235dddf214001d605ff9ffa45ac50561f7125c6d7fa795d4da"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-history-20260701",
+      "sha256": "e4b86047e6a98701ea28c3e639f377fc51930b8c4375c1f90227934ba7011ec2"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-history-20260711",
+      "sha256": "e12f0dda5cab5c9563aedc48b5fad5ef394c6d4f695c0ad5eee971bc2bf4d5f7"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-history-20260721",
+      "sha256": "dda48a0c507983e1247108f4b98e9c5e9f2c86034f858f51d8b5ca8797dbd88d"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-history-20260801",
+      "sha256": "972056a2265faa30b34750ff3a68223a60c79c41ec1930519270203e95eb3228"
+    },
+    {
+      "artifact_id": "moi-plvr-sale-current-20260811",
+      "sha256": "78709904860e860f1cede4eacd52b5d97f1dac2c1f49fe68a465ad727de317b2"
+    }
+  ],
+  "requests": [
+    {
+      "request_variant": "exact-sectionless",
+      "http_status": 200,
+      "valuation_status": "available",
+      "valuation_reason_code": "official_result_available",
+      "estimate_level": "district",
+      "query_candidate_count": 200,
+      "estimate_total_price": 3255.0,
+      "estimate_unit_price_per_ping": 108.5,
+      "price_range": {
+        "low": 2526.8,
+        "mid": 3255.0,
+        "high": 4192.3
+      },
+      "confidence_score": 60,
+      "query_source": {
+        "provider_active": "compact_green",
+        "backend": "green",
+        "query_status": "ok",
+        "db_rows_returned": 200
+      },
+      "selected_count": 10,
+      "trace": {
+        "version": "comparable-explanation-v1",
+        "selection_version": "deterministic-valuation-v1",
+        "coverage": "returned_candidates_only",
+        "reference_period": "2026-10",
+        "recency_reference_period": "2026-10",
+        "window_start": "2023-11",
+        "scope": "district",
+        "considered_count": 200,
+        "selected_count": 10,
+        "excluded_count": 190,
+        "provider_excluded_count": null,
+        "reason_counts": {
+          "price_outlier": 7,
+          "rank_limit": 183
+        },
+        "excluded_example_bound": 5,
+        "outlier_bounds": [
+          13.677500000000023,
+          171.97749999999996
+        ],
+        "outlier_fallback": false,
+        "selected": [
+          {
+            "candidate_id": "candidate-1",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2026-03",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 安和路一段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.0,
+                "difference": 0.0,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 48.0,
+                "difference": 33.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2026-03",
+                "difference": 7,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 136.66,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 8.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-6",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-09",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 建國南路一段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.02,
+                "difference": 0.019999999999999574,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 40.0,
+                "difference": 25.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-09",
+                "difference": 13,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 100.54,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 8.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-7",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-08",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 信義路三段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.02,
+                "difference": 0.019999999999999574,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 40.0,
+                "difference": 25.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-08",
+                "difference": 14,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 29.42,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 7.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-8",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-07",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 建國南路一段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.02,
+                "difference": 0.019999999999999574,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 40.0,
+                "difference": 25.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-07",
+                "difference": 27,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 104.21,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 6.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-10",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-02",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 臥龍街",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.95,
+                "difference": 0.05000000000000071,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 3.0,
+                "difference": 12.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-02",
+                "difference": 32,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 141.5,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 1.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-30",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-03",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 復興南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.9,
+                "difference": 0.10000000000000142,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 31.0,
+                "difference": 16.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-03",
+                "difference": 19,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 109.98,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 6.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-32",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-06",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 基隆路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.89,
+                "difference": 0.10999999999999943,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 39.0,
+                "difference": 24.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-06",
+                "difference": 28,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 78.79,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 5.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-52",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-09",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 羅斯福路三段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.84,
+                "difference": 0.16000000000000014,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 1.0,
+                "difference": 14.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-09",
+                "difference": 13,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 140.77,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 2.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-55",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-10",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 信義路四段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.17,
+                "difference": 0.1700000000000017,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 49.0,
+                "difference": 34.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-10",
+                "difference": 12,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 76.25,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 2.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-62",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-11",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 復興南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.2,
+                "difference": 0.1999999999999993,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 40.0,
+                "difference": 25.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-11",
+                "difference": 11,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 149.0,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 1.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          }
+        ],
+        "excluded_examples": [
+          {
+            "candidate_id": "candidate-38",
+            "status": "excluded",
+            "reasons": [
+              "price_outlier"
+            ],
+            "transaction_period": "2024-03",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 復興南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.13,
+                "difference": 0.129999999999999,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 47.0,
+                "difference": 32.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-03",
+                "difference": 31,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 229.04,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 1.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-63",
+            "status": "excluded",
+            "reasons": [
+              "rank_limit"
+            ],
+            "transaction_period": "2025-07",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 東豐街",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.2,
+                "difference": 0.1999999999999993,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 47.0,
+                "difference": 32.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-07",
+                "difference": 15,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 107.6,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 14.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-67",
+            "status": "excluded",
+            "reasons": [
+              "rank_limit"
+            ],
+            "transaction_period": "2024-10",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 信義路四段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.78,
+                "difference": 0.21999999999999886,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 49.0,
+                "difference": 34.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-10",
+                "difference": 24,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 118.79,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 3.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-72",
+            "status": "excluded",
+            "reasons": [
+              "rank_limit"
+            ],
+            "transaction_period": "2025-02",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 復興南路一段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.76,
+                "difference": 0.23999999999999844,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 45.0,
+                "difference": 30.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-02",
+                "difference": 20,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 69.89,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 6.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-82",
+            "status": "excluded",
+            "reasons": [
+              "rank_limit"
+            ],
+            "transaction_period": "2025-03",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路",
+                "comparable": "臺北市 / 大安區 / 羅斯福路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.72,
+                "difference": 0.28000000000000114,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 48.0,
+                "difference": 33.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-03",
+                "difference": 19,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 85.79,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  13.677500000000023,
+                  171.97749999999996
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 6.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          }
+        ]
+      },
+      "service_api_equal": true
+    },
+    {
+      "request_variant": "normalized-section-reference",
+      "http_status": 200,
+      "valuation_status": "available",
+      "valuation_reason_code": "official_result_available",
+      "estimate_level": "road",
+      "query_candidate_count": 200,
+      "estimate_total_price": 3396.0,
+      "estimate_unit_price_per_ping": 113.2,
+      "price_range": {
+        "low": 3112.9,
+        "mid": 3396.0,
+        "high": 3550.4
+      },
+      "confidence_score": 85,
+      "query_source": {
+        "provider_active": "compact_green",
+        "backend": "green",
+        "query_status": "ok",
+        "db_rows_returned": 147
+      },
+      "selected_count": 10,
+      "trace": {
+        "version": "comparable-explanation-v1",
+        "selection_version": "deterministic-valuation-v1",
+        "coverage": "returned_candidates_only",
+        "reference_period": "2026-10",
+        "recency_reference_period": "2026-10",
+        "window_start": "2023-11",
+        "scope": "road",
+        "considered_count": 200,
+        "selected_count": 10,
+        "excluded_count": 190,
+        "provider_excluded_count": null,
+        "reason_counts": {
+          "scope": 53,
+          "price_outlier": 3,
+          "rank_limit": 134
+        },
+        "excluded_example_bound": 5,
+        "outlier_bounds": [
+          63.787500000000016,
+          148.64749999999998
+        ],
+        "outlier_fallback": false,
+        "selected": [
+          {
+            "candidate_id": "candidate-4",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-06",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.43,
+                "difference": 0.5700000000000003,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 51.0,
+                "difference": 36.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-06",
+                "difference": 16,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 126.74,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 15.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-8",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-07",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 28.6,
+                "difference": 1.3999999999999986,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 51.0,
+                "difference": 36.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-07",
+                "difference": 27,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 104.91,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 14.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-12",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-12",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 27.45,
+                "difference": 2.5500000000000007,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 47.0,
+                "difference": 32.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-12",
+                "difference": 22,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 115.35,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 11.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-13",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-09",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 32.82,
+                "difference": 2.8200000000000003,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 48.0,
+                "difference": 33.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-09",
+                "difference": 13,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 118.47,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 9.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-18",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2023-11",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 26.24,
+                "difference": 3.7600000000000016,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 48.0,
+                "difference": 33.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2023-11",
+                "difference": 35,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 95.26,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 2.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-20",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-10",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 33.86,
+                "difference": 3.8599999999999994,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 47.0,
+                "difference": 32.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-10",
+                "difference": 24,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 103.38,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 15.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-22",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-05",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 25.7,
+                "difference": 4.300000000000001,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 47.0,
+                "difference": 32.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-05",
+                "difference": 29,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 122.08,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 9.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-24",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-04",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 25.39,
+                "difference": 4.609999999999999,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 48.0,
+                "difference": 33.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-04",
+                "difference": 30,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 115.22,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 4.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-26",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2025-12",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 34.66,
+                "difference": 4.659999999999997,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 41.0,
+                "difference": 26.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-12",
+                "difference": 10,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 91.74,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 6.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-27",
+            "status": "included",
+            "reasons": [
+              "selected"
+            ],
+            "transaction_period": "2024-11",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 敦化南路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓",
+                "difference": null,
+                "role": "ranking",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 34.92,
+                "difference": 4.920000000000002,
+                "role": "ranking",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 36.0,
+                "difference": 21.0,
+                "role": "weight",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "weight",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-11",
+                "difference": 23,
+                "role": "ranking",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 117.98,
+                "difference": null,
+                "role": "outlier",
+                "threshold": [
+                  63.787500000000016,
+                  148.64749999999998
+                ]
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 11.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          }
+        ],
+        "excluded_examples": [
+          {
+            "candidate_id": "candidate-148",
+            "status": "excluded",
+            "reasons": [
+              "scope"
+            ],
+            "transaction_period": "2026-03",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 安和路一段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "住宅大樓(11層含以上有電梯)",
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.0,
+                "difference": 0.0,
+                "role": "context",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 48.0,
+                "difference": 33.0,
+                "role": "context",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2026-03",
+                "difference": 7,
+                "role": "context",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 136.66,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 8.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-149",
+            "status": "excluded",
+            "reasons": [
+              "scope"
+            ],
+            "transaction_period": "2024-05",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 光復南路",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "公寓(5樓含以下無電梯)",
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 30.0,
+                "difference": 0.0,
+                "role": "context",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 53.0,
+                "difference": 38.0,
+                "role": "context",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-05",
+                "difference": 29,
+                "role": "context",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 80.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 2.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-150",
+            "status": "excluded",
+            "reasons": [
+              "scope"
+            ],
+            "transaction_period": "2026-04",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 安和路二段",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "華廈(10層含以下有電梯)",
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.99,
+                "difference": 0.010000000000001563,
+                "role": "context",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 43.0,
+                "difference": 28.0,
+                "role": "context",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2026-04",
+                "difference": 6,
+                "role": "context",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 121.63,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 7.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-151",
+            "status": "excluded",
+            "reasons": [
+              "scope"
+            ],
+            "transaction_period": "2025-02",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 瑞安街",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "公寓(5樓含以下無電梯)",
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.99,
+                "difference": 0.010000000000001563,
+                "role": "context",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 51.0,
+                "difference": 36.0,
+                "role": "context",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2025-02",
+                "difference": 20,
+                "role": "context",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 91.69,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 4.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          },
+          {
+            "candidate_id": "candidate-152",
+            "status": "excluded",
+            "reasons": [
+              "scope"
+            ],
+            "transaction_period": "2024-08",
+            "dimensions": {
+              "location": {
+                "target": "台北市 / 大安區 / 敦化南路二段",
+                "comparable": "臺北市 / 大安區 / 麗水街",
+                "difference": null,
+                "role": "scope",
+                "threshold": null
+              },
+              "building_type": {
+                "target": "住宅大樓",
+                "comparable": "公寓(5樓含以下無電梯)",
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "area": {
+                "target": 30.0,
+                "comparable": 29.99,
+                "difference": 0.010000000000001563,
+                "role": "context",
+                "threshold": null
+              },
+              "age": {
+                "target": 15.0,
+                "comparable": 60.0,
+                "difference": 45.0,
+                "role": "context",
+                "threshold": null
+              },
+              "distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "recency": {
+                "target": "2026-10",
+                "comparable": "2024-08",
+                "difference": 26,
+                "role": "context",
+                "threshold": null
+              },
+              "unit_price": {
+                "target": null,
+                "comparable": 210.05,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "floor": {
+                "target": 8.0,
+                "comparable": 1.0,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "parking": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              },
+              "community_distance": {
+                "target": null,
+                "comparable": null,
+                "difference": null,
+                "role": "context",
+                "threshold": null
+              }
+            }
+          }
+        ]
+      },
+      "service_api_equal": true
+    }
+  ],
+  "release_equivalent_engine_commit": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+  "valuation_regression": {
+    "case_count": 8,
+    "before_sha256": "447f93d2d4ddb3c04cf8ccea18e0387295bb7a335baf2e1a03678c967455acf4",
+    "resumed_after_sha256": "447f93d2d4ddb3c04cf8ccea18e0387295bb7a335baf2e1a03678c967455acf4",
+    "byte_identical": true
+  }
+}

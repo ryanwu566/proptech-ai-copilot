@@ -1,0 +1,138 @@
+{
+  "expected_commit": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+  "backend_build_matches": true,
+  "runtime_sha_matches_build": false,
+  "scope": "current resumed release only; prior Oct11 audited request response unavailable",
+  "requests": [
+    {
+      "capability": "location",
+      "checked_at": "2026-10-11T07:18:06.771908+00:00",
+      "endpoint": "/location/insight",
+      "calls": 1,
+      "http_status": 200,
+      "status": {
+        "status": "good",
+        "partial": false
+      },
+      "optional_fields": {
+        "village_resolution": {
+          "present": true,
+          "type": "dict"
+        },
+        "demographics": {
+          "present": true,
+          "type": "dict"
+        },
+        "geocoding_acceptance": {
+          "present": true,
+          "type": "dict"
+        },
+        "risk_facility_evidence": {
+          "present": true,
+          "type": "dict"
+        },
+        "advisory_context": {
+          "present": false,
+          "type": "NoneType"
+        }
+      },
+      "response_bytes": 4484
+    },
+    {
+      "capability": "terrain",
+      "checked_at": "2026-10-11T07:18:06.936537+00:00",
+      "endpoint": "/terrain-risk/analyze",
+      "calls": 1,
+      "http_status": 200,
+      "status": {
+        "data_quality": "limited",
+        "hazards": {
+          "landslide": "limited",
+          "debris_flow": "limited",
+          "flood": "unavailable",
+          "geological_sensitivity": "unavailable",
+          "liquefaction": "unavailable",
+          "active_fault": "unavailable"
+        }
+      },
+      "response_bytes": 20806
+    },
+    {
+      "capability": "valuation",
+      "checked_at": "2026-10-11T07:18:07.168458+00:00",
+      "endpoint": "/valuation/estimate",
+      "calls": 1,
+      "http_status": 200,
+      "status": {
+        "valuation_status": "unavailable",
+        "valuation_reason_code": "provider_query_failed",
+        "result_origin": "none",
+        "is_actionable": false
+      },
+      "selected_comparable_count": 0,
+      "provider_status": {
+        "active_source": "postgres",
+        "data_composition": "mixed",
+        "freshness_status": "aging",
+        "freshness_reason_code": "import_aging",
+        "official_records_count": 451672
+      },
+      "query_status": {
+        "provider_active": "compact_green",
+        "backend": "green",
+        "query_status": "failed",
+        "query_scope": "district_pool",
+        "candidate_pool_size": 0,
+        "db_rows_returned": 0
+      },
+      "response_bytes": 8490
+    }
+  ],
+  "deployment_observations": {
+    "expected_commit": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+    "checked_at": "2026-10-11T07:16:16.968949+00:00",
+    "scope": "current resumed release; cannot retroactively attest Oct11 audit",
+    "observations": {
+      "frontend_release": {
+        "http_status": 200,
+        "fields": {
+          "commit_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b"
+        },
+        "matches_expected": true
+      },
+      "backend_release": {
+        "http_status": 200,
+        "fields": {
+          "commit_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+          "identity_status": "PASS",
+          "runtime_sha_matches_build": false,
+          "api_contract_version": "api-contract-v1",
+          "schema_version": "schema-007"
+        },
+        "matches_expected": true
+      },
+      "backend_health": {
+        "http_status": 200,
+        "fields": {
+          "status": "ok",
+          "liveness": "ok",
+          "readiness": "ready",
+          "mode": "production",
+          "persistence": {
+            "database": "available",
+            "durable": "yes"
+          }
+        },
+        "matches_expected": false
+      }
+    }
+  },
+  "classification": {
+    "historical_oct11_work_market_failure": "UNKNOWN: audited network response not captured",
+    "current_live_original_equivalent": "ROOT_CAUSE_NOT_PROVEN; observed GREEN query failed while BLUE status readable; public response is not an underlying exception",
+    "local_release_equivalent_original_green": "available on bounded genuine verified frozen district facts",
+    "runtime_sha_claim": "mismatch: runtime_sha_matches_build false despite frontend and backend built commit matching resumed baseline",
+    "cloud_changes": false,
+    "claim_market_p0_closed": false
+  }
+}

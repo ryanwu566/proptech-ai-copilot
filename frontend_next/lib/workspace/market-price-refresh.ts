@@ -76,11 +76,12 @@ function activeAnchor(workspace: PropertyCaseWorkspace, saved: SavedCase): Journ
   return anchor;
 }
 
-function identityExpectation(anchor: JourneyPropertyIdentityAnchorV1): SavedCaseIdentityExpectation {
+function identityExpectation(anchor: JourneyPropertyIdentityAnchorV1, saved: SavedCase): SavedCaseIdentityExpectation {
   return {
     journeyAnchorId: anchor.journey_anchor_id,
     normalizedAddress: anchor.normalized_address,
     coordinates: anchor.coordinates!,
+    snapshotVersion: JSON.stringify(saved),
   };
 }
 
@@ -106,7 +107,7 @@ export function buildMarketRefreshContext(
       coordinates: anchor.coordinates,
       payload,
     }),
-    identity: identityExpectation(anchor),
+    identity: identityExpectation(anchor, saved),
     payload,
   };
 }
@@ -123,8 +124,15 @@ export function buildValuationRefreshContext(
   const road = text(inputs.road);
   const buildingType = text(inputs.building_type);
   const area = inputs.area_ping;
-  const age = inputs.building_age_years;
-  const floor = inputs.floor;
+  // Older saved cases can contain positive input facts without journey metadata.
+  // Missing journey facts must still never promote legacy zero defaults to known zero.
+  const journey = saved.data.journeyContext;
+  const age = journey
+    ? journey.propertyContext.buildingAgeYears !== undefined ? journey.propertyContext.buildingAgeYears : inputs.building_age_years > 0 ? inputs.building_age_years : undefined
+    : inputs.building_age_years;
+  const floor = journey
+    ? journey.propertyContext.floor !== undefined ? journey.propertyContext.floor : inputs.floor > 0 ? inputs.floor : undefined
+    : inputs.floor;
   if (
     !anchor
     || !coordinates
@@ -176,7 +184,7 @@ export function buildValuationRefreshContext(
       coordinates,
       payload,
     }),
-    identity: identityExpectation(anchor),
+    identity: identityExpectation(anchor, saved),
     payload,
     trendPayload,
   };

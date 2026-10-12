@@ -214,7 +214,7 @@ export function setJourneyLocationResult(
   }
   const city = identityAnchor.administrative_location.city ?? state.propertyContext.city;
   const district = identityAnchor.administrative_location.district ?? state.propertyContext.district;
-  const road = deriveJourneyRoadFromAcceptedAddress(identityAnchor.normalized_address, city, district, identityAnchor.administrative_location.village)
+  const road = deriveJourneyRoadFromAcceptedAddress(identityAnchor.normalized_address, city, district, identityAnchor.administrative_location.village, state.propertyContext.road)
     ?? state.propertyContext.road;
   const propertyContext = getSafeJourneyPropertyContext({
     ...state.propertyContext,
