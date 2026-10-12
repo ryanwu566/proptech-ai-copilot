@@ -9,6 +9,20 @@ from scripts.analyze_next_bundle import EVIDENCE_NAME, SUPPORTED_ROUTES, analyze
 from scripts.check_route_budgets import ROUTE_BUDGETS, measure, route_limit
 
 
+def test_decision_room_requires_attribution_and_a_fixed_supplemental_budget(tmp_path):
+    route = "/cases/[caseId]/decision-room"
+    assert route in SUPPORTED_ROUTES
+    budget = ROUTE_BUDGETS[route]
+    assert budget["required"] is True
+    assert budget["baseline_source"].startswith("supplemental-feature-")
+    assert budget["headroom_percent"] == 20
+    assert budget["headroom_cap_bytes"] == 300_000
+    result = measure(build_fixture(tmp_path))
+    assert result["status"] == "fail"
+    assert result["routes"][route]["status"] == "route_not_present"
+    assert result["routes"][route]["client_bytes"] is None
+
+
 @pytest.mark.parametrize("kind", ["child", "timeout", "os", "value"])
 def test_measurement_failure_diagnostics_are_fail_closed_and_private(monkeypatch, capsys, kind) -> None:
     import subprocess

@@ -1,0 +1,163 @@
+{
+  "backup_ref": "backup/decision-room-v1-before-integration-20261013",
+  "base_main_sha": "0185c81416a56b14c1dada38d959d90aeac2ecf4",
+  "browser": {
+    "clean_main_comparison": {
+      "failed": 3,
+      "passed": 3,
+      "retries": 0
+    },
+    "final_focused": {
+      "chrome_passed": 120,
+      "chromium_passed": 120,
+      "passed": 240,
+      "retries": 0,
+      "room_per_browser": 30
+    },
+    "full_chromium": {
+      "failed": 6,
+      "passed": 642,
+      "retries": 0,
+      "skipped": 3,
+      "timing": "before final navigation label localization"
+    },
+    "isolated_hosted_ja_recheck": {
+      "failed": 0,
+      "passed": 3,
+      "retries": 0
+    }
+  },
+  "core_case_bytes_unchanged": true,
+  "date": "2026-10-13",
+  "deployed": false,
+  "failures": [
+    {
+      "cause": "plain anchor performed full-page navigation; original client link restored",
+      "classification": "A",
+      "status": "fixed",
+      "test": "Decision Room entry retains selected locale"
+    },
+    {
+      "cause": "test assumed one date-input Tab segment; bounded keyboard reachability retained",
+      "classification": "C",
+      "status": "fixed",
+      "test": "keyboard native date Tab navigation"
+    },
+    {
+      "cause": "test now awaits second-tab completed persisted UI then foregrounds first tab; original assertions retained",
+      "classification": "C",
+      "status": "final critical pack passes",
+      "test": "Decision Room cross-tab conflict assertion"
+    },
+    {
+      "classification": "B",
+      "status": "unchanged current-main test timeouts; all reproduced on clean main",
+      "tests": [
+        "guided-case-simulation: 390px every stage and locale",
+        "guided-case-simulation: 1024px every stage and locale",
+        "guided-case-simulation: 1440px every stage and locale"
+      ],
+      "timeout_seconds_unchanged": 30
+    },
+    {
+      "classification": "D",
+      "isolated_seconds": [
+        37.6,
+        37.6,
+        38.6
+      ],
+      "status": "timing inference, exact infrastructure trigger unproven; main and isolated feature rechecks pass 3/3 each",
+      "tests": [
+        "hosted-case-market-closure: ja 390px real Create Save Reload Reopen",
+        "hosted-case-market-closure: ja 1024px real Create Save Reload Reopen",
+        "hosted-case-market-closure: ja 1440px real Create Save Reload Reopen"
+      ],
+      "timeout_seconds_unchanged": 90
+    },
+    {
+      "classification": "D",
+      "status": "initial page.goto ERR_ABORTED at 60s, before edits/saves; two repeats passed and final critical packs passed",
+      "test": "one cross-tab repeat diagnostic",
+      "timeout_seconds_unchanged": 60
+    }
+  ],
+  "frontend": {
+    "all_library_models_passed": 269,
+    "focused_room_models_passed": 13,
+    "frontend_script_tests_passed": 122,
+    "lint_errors": 0,
+    "lint_existing_warnings": 23,
+    "optimized_production_e2e_build": "pass",
+    "root_measurement_script_tests_passed": 11,
+    "typecheck": "pass",
+    "vnext_checks_passed": 35
+  },
+  "hosted_acceptance_proven": false,
+  "independent_review": {
+    "critical": 0,
+    "final_localization_and_test_readiness_checked": true,
+    "important": 0,
+    "minor": 0,
+    "read_only": true
+  },
+  "locales": [
+    "zh-TW",
+    "en",
+    "ja",
+    "ko"
+  ],
+  "merged": false,
+  "operations": {
+    "diff_check": "pass",
+    "global_budget": "pass",
+    "npm_audit_gate": "pass with unchanged dev-only exception expiring 2026-11-04",
+    "pilot_default_orchestrator": "not_run, not claimed as executed",
+    "release_gate_test_build_flags": "skipped in orchestrator; independently executed",
+    "release_source_contracts": "pass",
+    "repository_hygiene": "pass",
+    "route_budget": "pass",
+    "security_performance_release_gate": "pass"
+  },
+  "original_feature_sha": "ee0c881a3dc5ab4c03b8231956aafbd9e46f6b6d",
+  "performance": {
+    "existing_ceilings_changed": false,
+    "fixed_supplemental_baseline": 1174856,
+    "global_static_bytes": 3097889,
+    "global_static_limit": 8000000,
+    "home_room_code_markers": [],
+    "homepage_client_bytes": 1906096,
+    "largest_client_js_bytes": 602295,
+    "largest_js_limit": 900000,
+    "route_ceiling": 1409828,
+    "route_client_bytes": 1175717
+  },
+  "persistence": {
+    "core_case_writer_changed": false,
+    "document_character_limit": 1500000,
+    "history_limit": 200,
+    "key": "proptech.decisionRoom.v1.<encoded-caseId>",
+    "version": 1
+  },
+  "provider_requests": 0,
+  "pushed": false,
+  "python": {
+    "focused_workspace_security_budget_passed": 69,
+    "full_command": "python -m pytest -q",
+    "full_passed": 3704,
+    "full_skipped": 32,
+    "warnings": 1
+  },
+  "reproduce": {
+    "cold_assets": "python scripts/analyze_next_bundle.py --measure-browser",
+    "focused_browser": "node e2e/run-e2e.cjs e2e/decision-room.spec.ts e2e/commercial-overview-save.spec.ts e2e/commercial-compare-report.spec.ts e2e/preference-tradeoff.spec.ts e2e/property-scenario-lab.spec.ts e2e/property-scenario-loading.spec.ts e2e/provider-closure.spec.ts e2e/pilot-evidence.spec.ts --workers=2 --retries=0",
+    "full_browser": "node e2e/run-e2e.cjs --project=chromium --workers=4 --retries=0"
+  },
+  "route": "/cases/[caseId]/decision-room",
+  "schema_version": "decision-room-integration-v1",
+  "widths": [
+    390,
+    430,
+    1024,
+    1440
+  ]
+}

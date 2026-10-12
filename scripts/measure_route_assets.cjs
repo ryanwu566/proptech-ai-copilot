@@ -38,11 +38,13 @@ async function assertRouteView(page, routeName, width, rows) {
     "/cases/[caseId]/finance": '[data-testid="finance-price-basis"]',
     "/cases/[caseId]/report": '[data-testid="report-evidence"]',
     "/cases/[caseId]/scenarios": '[data-testid="scenario-comparison"]',
+    "/cases/[caseId]/decision-room": '[data-testid="new-note-form"]',
   };
   const view = page.locator(selectors[routeName]);
   await view.waitFor({ state: "attached", timeout: 10_000 });
   if (routeName.startsWith("/cases/") && !routeName.endsWith("/report")) {
-    if (!(await page.locator(".workspace-property-header").textContent()).includes(rows[0].title)) {
+    const header = routeName.endsWith("/decision-room") ? '[data-testid="room-case-context"]' : ".workspace-property-header";
+    if (!(await page.locator(header).textContent()).includes(rows[0].title)) {
       throw new Error(`Saved fixture not hydrated: ${routeName}`);
     }
   }
@@ -66,7 +68,7 @@ async function stop(server) {
 
 function failureDiagnostic(error, state) {
   const stages = ["input", "module_resolution", "fixture_loading", "build_id", "server_start", "server_readiness", "chromium_launch", "chromium_connect", "browser_context", "route_navigation", "route_view_validation", "route_networkidle", "route_assets", "process_cleanup"];
-  const routes = ["/", "/preferences", "/compare", "/cases/[caseId]", ...["overview", "market", "location", "risk", "finance", "report", "scenarios"].map((section) => `/cases/[caseId]/${section}`)];
+  const routes = ["/", "/preferences", "/compare", "/cases/[caseId]", ...["overview", "market", "location", "risk", "finance", "report", "scenarios", "decision-room"].map((section) => `/cases/[caseId]/${section}`)];
   const exceptionType = ["Error", "TypeError", "SyntaxError", "RangeError", "TimeoutError"].includes(error.name) ? error.name : "Error";
   const safeCodes = ["MODULE_NOT_FOUND", "ERR_REQUIRE_ESM", "ERR_UNKNOWN_FILE_EXTENSION", "ENOENT", "EACCES", "EADDRINUSE"];
   const reasons = new Map([
