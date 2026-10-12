@@ -1,0 +1,428 @@
+{
+  "build_command": "npm ci --prefix frontend_next && npm --prefix frontend_next run build",
+  "main_commit": "8b1367a9117e2c8c762f0bad599bba94e9eca771",
+  "main_measurement": {
+    "all_javascript_bytes": 2822783,
+    "build_id": "TsvwpSlHIZ5dpylHivPpn",
+    "content_checks": {
+      "admin_markers_in_public_assets": [],
+      "road_catalog_markers_in_public_assets": [],
+      "test_fixture_markers_in_public_assets": []
+    },
+    "fingerprint": "610ecb6102338d4f07f66374f4abb2ae4cfbed32764d8dad94386947b79b9b9a",
+    "largest_client_chunk": {
+      "bytes": 597609,
+      "file": "chunks/3e0xtr_l25-n7.js"
+    },
+    "routes": {
+      "/": {
+        "client_bytes": 1879060,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/0sk1_wkp_jqin.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/16k6t1bymnxq4.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20a62o5w7-ywh.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26dlrnhmiq1jq.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3e0xtr_l25-n7.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/"
+        ],
+        "route": "/",
+        "status": "measured"
+      },
+      "/cases/[caseId]": {
+        "client_bytes": 1084343,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/overview"
+        ],
+        "route": "/cases/[caseId]",
+        "status": "measured"
+      },
+      "/cases/[caseId]/finance": {
+        "client_bytes": 1115916,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2mn9w224c_vq7.js",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/finance"
+        ],
+        "route": "/cases/[caseId]/finance",
+        "status": "measured"
+      },
+      "/cases/[caseId]/location": {
+        "client_bytes": 1293212,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/0qu0g6rh_meg1.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20a62o5w7-ywh.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/24ll2pu9z_d0p.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/36kq4bn3w9gxq.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js",
+          "static/media/layers.3muxcl8sz6330.png"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/location"
+        ],
+        "route": "/cases/[caseId]/location",
+        "status": "measured"
+      },
+      "/cases/[caseId]/market": {
+        "client_bytes": 1084343,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/market"
+        ],
+        "route": "/cases/[caseId]/market",
+        "status": "measured"
+      },
+      "/cases/[caseId]/overview": {
+        "client_bytes": 1084343,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/overview"
+        ],
+        "route": "/cases/[caseId]/overview",
+        "status": "measured"
+      },
+      "/cases/[caseId]/report": {
+        "client_bytes": 1084343,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/report"
+        ],
+        "route": "/cases/[caseId]/report",
+        "status": "measured"
+      },
+      "/cases/[caseId]/risk": {
+        "client_bytes": 1281707,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/0qu0g6rh_meg1.js",
+          "static/chunks/0x28geo3lui35.js",
+          "static/chunks/1254zbx9g_dk9.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2953d5zcr74-5.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/451dqcr_9xvpz.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/risk"
+        ],
+        "route": "/cases/[caseId]/risk",
+        "status": "measured"
+      },
+      "/cases/[caseId]/scenarios": {
+        "client_bytes": null,
+        "client_files": [],
+        "route": "/cases/[caseId]/scenarios",
+        "status": "route_not_present"
+      },
+      "/compare": {
+        "client_bytes": 1084343,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/03_uj5nl0mcve.js",
+          "static/chunks/0csbv_migs9wl.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/292pevaf415v1.css",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3g3ih6nktpn3w.js",
+          "static/chunks/3pd1enxhw71wp.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/compare"
+        ],
+        "route": "/compare",
+        "status": "measured"
+      },
+      "/preferences": {
+        "client_bytes": null,
+        "client_files": [],
+        "route": "/preferences",
+        "status": "route_not_present"
+      }
+    },
+    "schema_version": "next-bundle-v2",
+    "static_asset_count": 52,
+    "static_javascript_files": 41,
+    "status": "pass",
+    "total_static_bytes": 2974397
+  },
+  "measured_date": "2026-10-12",
+  "measurement_command": "python scripts/analyze_next_bundle.py --measure-browser",
+  "metric": "unique uncompressed .next/static files loaded per route",
+  "route_budgets": {
+    "/": {
+      "baseline_client_bytes": 1879060,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 200000,
+      "headroom_percent": 10,
+      "required": true
+    },
+    "/cases/[caseId]": {
+      "baseline_client_bytes": 1084343,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/cases/[caseId]/finance": {
+      "baseline_client_bytes": 1115916,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/cases/[caseId]/location": {
+      "baseline_client_bytes": 1293212,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/cases/[caseId]/market": {
+      "baseline_client_bytes": 1084343,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/cases/[caseId]/overview": {
+      "baseline_client_bytes": 1084343,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/cases/[caseId]/report": {
+      "baseline_client_bytes": 1084343,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/cases/[caseId]/risk": {
+      "baseline_client_bytes": 1281707,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/cases/[caseId]/scenarios": {
+      "baseline_client_bytes": 1114869,
+      "baseline_source": "supplemental-scenario-a227a18",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": false
+    },
+    "/compare": {
+      "baseline_client_bytes": 1084343,
+      "baseline_source": "origin/main",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/preferences": {
+      "baseline_client_bytes": 874779,
+      "baseline_source": "supplemental-feature-ec641ea",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": false
+    }
+  },
+  "schema_version": "performance-budget-v2-baseline",
+  "supplemental_commit": "ec641ea9179458ae3e992c6b698c760bff2f887c",
+  "supplemental_preference_measurement": {
+    "client_bytes": 874779,
+    "client_files": [
+      "static/chunks/02jnefm8rh30j.js",
+      "static/chunks/143w2a4e7l0s5.js",
+      "static/chunks/1nq0sqdultszo.js",
+      "static/chunks/20oi1d5gaaxqf.js",
+      "static/chunks/26qkt5vjxslqc.js",
+      "static/chunks/2b_x1_2-zc0_z.css",
+      "static/chunks/2hbfyev2t-d7m.css",
+      "static/chunks/2nwcmibmlk7fa.js",
+      "static/chunks/3_pz_xyhj63hd.js",
+      "static/chunks/3pfth1qq4fxpi.js",
+      "static/chunks/417ra4h3gu6xz.js",
+      "static/chunks/41jz8svqysm-y.js",
+      "static/chunks/turbopack-2tkuz11zb02ah.js"
+    ],
+    "measurement_method": "local_production_browser",
+    "navigation_paths": [
+      "/preferences"
+    ],
+    "route": "/preferences",
+    "status": "measured"
+  },
+  "supplemental_scenario_commit": "a227a18b033c2f6078c2703988761bc1c6707d9f",
+  "supplemental_scenario_measurement": {
+    "build_id": "7iyenzAzolwD0jLSzYeXT",
+    "fingerprint": "567f69bf546c7c1be22fac28812d02e4790d77bba0afa59ef736b39db9468d0b",
+    "largest_client_chunk": {
+      "bytes": 597609,
+      "file": "chunks/3e0xtr_l25-n7.js"
+    },
+    "measurement_method": "local_production_browser",
+    "route": {
+      "client_bytes": 1114869,
+      "client_files": [
+        "static/chunks/02jnefm8rh30j.js",
+        "static/chunks/1-9-vn6g00g7u.js",
+        "static/chunks/143w2a4e7l0s5.js",
+        "static/chunks/1nq0sqdultszo.js",
+        "static/chunks/20oi1d5gaaxqf.js",
+        "static/chunks/26m2hd_euq6nz.css",
+        "static/chunks/26qkt5vjxslqc.js",
+        "static/chunks/292pevaf415v1.css",
+        "static/chunks/2b_x1_2-zc0_z.css",
+        "static/chunks/2bwga0bo8w6h1.js",
+        "static/chunks/2e8c_u78zathm.js",
+        "static/chunks/2nwcmibmlk7fa.js",
+        "static/chunks/3_pz_xyhj63hd.js",
+        "static/chunks/3a74povmkut93.js",
+        "static/chunks/3pd1enxhw71wp.js",
+        "static/chunks/turbopack-2tkuz11zb02ah.js"
+      ],
+      "measurement_method": "local_production_browser",
+      "navigation_paths": [
+        "/cases/case-a/scenarios"
+      ],
+      "route": "/cases/[caseId]/scenarios",
+      "status": "measured"
+    },
+    "total_static_bytes": 3007749
+  },
+  "toolchain": {
+    "next": "16.3.8",
+    "node": "v24.14.1",
+    "platform": "Windows AMD64",
+    "python": "3.13.14"
+  }
+}

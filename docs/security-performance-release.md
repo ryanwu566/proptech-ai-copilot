@@ -136,15 +136,36 @@ CI artifact and is not committed.
 
 ## Performance baseline
 
-The baseline is recorded from an existing production build by
-`scripts/check_frontend_bundle_budget.py` and
-`scripts/check_route_budgets.py`: uncompressed static bytes and largest client
-chunk are measured before any claim of improvement. The route report keeps
-separate budgets for homepage, competition demo, TaxOracle, Map Insight,
-pilot, and administrative surfaces. No route is allowed to claim a lower
-budget by omitting required runtime assets.
+Performance Budget v2 records unique, uncompressed client assets required by
+each URL. `scripts/analyze_next_bundle.py` discovers routes from Next manifests
+and uses complete eager app manifests where available. When manifests omit the
+loaded graph, an explicit local production browser run records actual requests.
+`scripts/check_route_budgets.py` reads that build-bound evidence and enforces
+baseline-derived ceilings, including required shared chunks. It never charges
+the global static directory to every route or treats unknown attribution as zero.
+
+The pinned current `origin/main` baseline, supplemental feature measurements,
+asset lists and exact headroom policy are in
+[`performance-budget-v2-baseline.json`](performance-budget-v2-baseline.json).
+See [`performance-budget-v2.md`](performance-budget-v2.md) for reproduction and
+the route table. This measures asset bytes, not browser Web Vitals or provider
+latency.
 
 ## Route bundle budgets
+
+The global hard limits remain **8,000,000 bytes for all `.next/static` files**
+and **900,000 bytes for the largest client JavaScript chunk**. The route checker
+also invokes this global protection; a small homepage cannot conceal an oversized
+independent chunk or excess total static output. Homepage has the strictest
+growth allowance: 10%, capped at 200,000 bytes. Other supported routes get 20%,
+capped at 300,000 bytes, against their own recorded measurements.
+
+CI builds production, runs the bounded local browser fallback, and checks both
+global and route budgets before the release gate. Missing/stale evidence,
+failed requests, runtime errors, unexpected destinations, unhydrated fixture
+views, unstable sample sets, and missing required routes fail closed. Absent
+feature routes are explicitly `route_not_present`, with null measured bytes;
+they are never reported as a zero-byte passing measurement.
 
 Road catalogs and map/report/admin code must remain out of public initial
 chunks; existing route boundaries and lazy loading are regression-tested.
@@ -178,11 +199,12 @@ existing Playwright Chromium/Chrome, four-locale, mobile 360/390/430,
 console/page/network checks. A missing preview credential or durable database
 is an environment requirement, not a passed production claim.
 
-The repository currently has two Next routes: `/` and `/cases/[caseId]`.
-Competition, TaxOracle, map, pilot, and evidence are homepage surfaces rather
-than separate URLs, so the local browser report measures those surfaces on `/`
-and labels them `homepage_surface`; it does not turn a 404 into a performance
-claim. `scripts/measure_browser_performance.cjs` is a reproducible
+The route asset gate supports `/`, `/preferences`, `/compare`, `/cases/[caseId]`
+and its overview, market, location, risk, finance, report and scenarios sections.
+Competition, TaxOracle, map, pilot, and evidence remain homepage surfaces rather
+than independent URLs. Their former nominal budgets did not measure distinct
+routes; v2 measures their actual required homepage assets once.
+`scripts/measure_browser_performance.cjs` is a separate reproducible
 Playwright-equivalent rubric: it records transferred bytes, request count,
 TTFB, DOMContentLoaded, load, LCP, CLS, a TBT/INP proxy, accessibility and
 security-header checks for three desktop and mobile samples. It is explicitly
@@ -193,7 +215,9 @@ queue deltas.
 The remaining local commands are intentionally bounded and provider-free:
 
 ```text
-python scripts/analyze_next_bundle.py
+python scripts/analyze_next_bundle.py --measure-browser
+python scripts/check_frontend_bundle_budget.py
+python scripts/check_route_budgets.py
 python scripts/benchmark_local_api.py --samples 30
 python scripts/benchmark_pilot_sqlite.py --samples 30
 python scripts/run_bounded_load.py --loops 5
