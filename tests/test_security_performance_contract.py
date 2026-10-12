@@ -59,9 +59,9 @@ def test_e2e_script_builds_before_exercising_the_owned_server_runner() -> None:
 
 
 def test_route_budgets_and_baseline_are_machine_readable() -> None:
-    assert {"homepage", "competition_demo", "taxoracle", "map_insight", "pilot", "admin"} <= set(ROUTE_BUDGETS)
+    assert {"/", "/preferences", "/compare", "/cases/[caseId]", "/cases/[caseId]/scenarios"} <= set(ROUTE_BUDGETS)
     result = report(ROOT)
-    assert result["schema_version"] == "performance-baseline-v1"
+    assert result["schema_version"] == "performance-baseline-v2"
     assert "route_static_measurement" in result
 
 

@@ -17,7 +17,7 @@ from scripts.check_route_budgets import measure as measure_routes
 def report(root: Path = Path(".")) -> dict[str, object]:
     static = root / "frontend_next/.next/static"
     result = measure_routes(static)
-    return {"schema_version": "performance-baseline-v1", "status": result["status"], "python": platform.python_version(), "platform": platform.platform(), "build_mode": "next-production-if-present", "route_static_measurement": result, "network": "not measured", "browser_web_vitals": "not measured"}
+    return {"schema_version": "performance-baseline-v2", "status": result["status"], "python": platform.python_version(), "platform": platform.platform(), "build_mode": "next-production-if-present", "route_static_measurement": result, "network": "local asset attribution when recorded; uncompressed file sizes", "browser_web_vitals": "not measured"}
 
 
 if __name__ == "__main__":
