@@ -12,14 +12,16 @@ import { formatExactDate, formatWan } from "@/lib/commercial/formatters";
 import { useWorkspace } from "./workspace-provider";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { journeyIdentityCopy, journeyIdentityEvidenceLabel } from "@/lib/journey-identity-copy";
+import { scenarioEntryCopy } from "@/lib/workspace/scenario-entry-copy";
 
 const priceLabels = { asking: "開價", estimate: "成交資料推估中點", manual: "比較基準價格" } as const;
 
 export function PropertyContextHeader() {
-  const { locale } = useExperienceLocale();
+  const { locale, copyFrom } = useExperienceLocale();
   const identityCopy = journeyIdentityCopy(locale);
   const workspace = useWorkspace();
   const isFinance = usePathname().endsWith("/finance");
+  const isScenario = usePathname().endsWith("/scenarios");
   const repository = useMemo(createBrowserCaseRepository, []);
   const [saveStatus, setSaveStatus] = useState("");
   function saveSnapshot() {
@@ -44,7 +46,7 @@ export function PropertyContextHeader() {
           <strong>{workspace.displayAddress}</strong>
         </div>
         <StatusLabel semanticRole={identity.role}>{identity.label[locale]}</StatusLabel>
-        <div className="workspace-property-header__save">{isFinance ? <a className="ds-button ds-button--secondary ds-button--compact" href="#finance-save-section">儲存財務摘要</a> : <CommercialButton size="compact" onClick={saveSnapshot}>保存目前案件快照</CommercialButton>}</div>
+        <div className="workspace-property-header__save">{isScenario ? <span className="text-meta">{copyFrom(scenarioEntryCopy, "readonly")}</span> : isFinance ? <a className="ds-button ds-button--secondary ds-button--compact" href="#finance-save-section">儲存財務摘要</a> : <CommercialButton size="compact" onClick={saveSnapshot}>保存目前案件快照</CommercialButton>}</div>
       </div>
       <div className="workspace-property-header__secondary">
         <span><span className="text-meta">{priceLabels[workspace.assumptions.activePriceBasis]}</span> <strong data-numeric>{activePrice ? formatWan(activePrice) : "未提供"}</strong></span>

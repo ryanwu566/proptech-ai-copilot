@@ -15,6 +15,7 @@ import { updateSavedCaseFinanceEvidence, type SavedCaseIdentityExpectation } fro
 import { buildFinanceModel, createFinanceInputFingerprint, mergeFinanceEvidence, type FinanceModel } from "@/lib/workspace/finance-model";
 import { createStoredFinanceEvidence } from "@/lib/workspace/finance-persistence";
 import { HoldingAssumptionForm, LoanAssumptionForm } from "./finance-assumption-forms";
+import { ScenarioLabLink } from "../scenarios/scenario-lab-link";
 
 function monthly(value: number | null): string {
   return value === null ? formatMissing("not_estimated") : `${formatTwd(value)}／月`;
@@ -99,7 +100,7 @@ export function FinanceWorkspace() {
   }, [activePriceBasis, activePriceWan, baseFinance, calculatedAt, holdingAreaPing, holdingResult, loanResult, workspace]);
 
   if (activePriceWan === null) return <div data-testid="finance-workspace" className="min-w-0 space-y-6">
-    <header className="space-y-2"><p className="text-meta">案件財務情境</p><h1 className="text-page">資金與持有成本</h1><p className="text-body">在不改動案件價格的前提下，計算房貸、持有成本與仍待補充的費用。</p></header>
+    <header className="space-y-2"><p className="text-meta">案件財務情境</p><h1 className="text-page">資金與持有成本</h1><p className="text-body">在不改動案件價格的前提下，計算房貸、持有成本與仍待補充的費用。</p><ScenarioLabLink caseId={workspace.caseId} /></header>
     <Message variant="warning" title="新計算需要明確價格基準">目前案件沒有選定價格。保存結果依原始假設供唯讀查閱；新計算需明確設定價格基準。</Message>
     {baseFinance.loan.monthlyPaymentTwd !== null || baseFinance.holding.knownMonthlySubtotalTwd !== null ? <>
       <SavedFinanceAssumptions model={baseFinance} />
@@ -150,6 +151,7 @@ export function FinanceWorkspace() {
       <p className="text-meta">案件財務情境</p>
       <h1 className="text-page">資金與持有成本</h1>
       <p className="text-body">這個物件在目前假設下，需要多少自備款、每月房貸與已知持有成本？哪些費用仍未估算？</p>
+      <ScenarioLabLink caseId={workspace.caseId} />
     </header>
 
     <Section title="價格與融資基準" description="價格沿用案件目前選定的基準；本頁只讀取，不會改寫開價、手動價格或價格推估。">
