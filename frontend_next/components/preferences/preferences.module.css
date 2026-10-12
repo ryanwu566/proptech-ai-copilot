@@ -1,0 +1,19 @@
+.page { max-width: 1100px; margin: 0 auto; padding: var(--space-8); display: grid; gap: var(--space-6); min-width: 0; overflow-wrap: anywhere; }
+.page p { margin-block: var(--space-2); }
+.form { display: grid; gap: var(--space-5); min-width: 0; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); }
+.field { display: grid; gap: var(--space-2); min-width: 0; font-size: var(--text-dense-size); }
+.field :is(input, select, textarea) { min-width: 0; width: 100%; min-height: 44px; background: var(--surface-primary); color: var(--text-primary); padding: var(--space-2) var(--space-3); border: 1px solid var(--border-strong, #64748b); border-radius: var(--radius-control); font: inherit; }
+.field textarea { resize: vertical; min-height: 90px; }
+.field :is(input, select, textarea):focus-visible, .actions :is(button, a):focus-visible { outline: 3px solid var(--action-primary, #0369a1); outline-offset: 3px; }
+.rule { min-width: 0; padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); background: var(--surface-primary); display: grid; gap: var(--space-4); }
+.rule legend { padding-inline: var(--space-2); font-weight: 700; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.explanations { display: grid; gap: var(--space-5); min-width: 0; overflow-wrap: anywhere; }
+.outcomes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: var(--space-3); }
+.outcome { padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); background: var(--surface-primary); min-width: 0; }
+.outcome strong { display: block; }
+.preference { border-top: 1px solid var(--border-subtle); padding-top: var(--space-4); display: grid; gap: var(--space-3); min-width: 0; }
+.pair { border: 1px solid var(--border-subtle); background: var(--surface-secondary); border-radius: var(--radius-panel); padding: var(--space-4); }
+.explanations ul { list-style: disc; padding-left: var(--space-5); }
+@media (max-width: 767px) { .page { padding: var(--space-4); } .fields { grid-template-columns: 1fr; } .rule { padding: var(--space-3); } }

@@ -214,6 +214,7 @@ test("Satellite action synchronously blocks duplicate clicks and ignores stale p
   await page.locator("#terrain-risk-analysis input").first().fill("Taipei accepted fixture");
   await page.getByRole("button", { name: "Start terrain and hazard check", exact: true }).click();
   const button = page.getByTestId("satellite-request-action");
+  await expect(button).toBeEnabled();
   await button.evaluate((node) => { (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click(); });
   await expect.poll(() => requests.length).toBe(1);
   await expect(button).toBeDisabled();

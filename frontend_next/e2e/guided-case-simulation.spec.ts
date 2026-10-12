@@ -1,9 +1,23 @@
 import { expect, test, type Page } from '@playwright/test';
+import { isProviderRequest } from './helpers/provider-request';
 import { e9Case } from '../lib/workspace/e9-test-fixtures';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const stages = ['propertyCase', 'marketEvidence', 'locationCommute', 'terrainRisk', 'finance', 'verificationChecklist', 'saveCompareReport'];
+test('request classifier distinguishes Preference RSC navigation from provider/API traffic', () => {
+  const origin = 'http://127.0.0.1:3100';
+  const rsc = { url: () => `${origin}/preferences?_rsc=prefetch`, method: () => 'GET', headers: () => ({ rsc: '1' }), resourceType: () => 'fetch' };
+  expect(isProviderRequest(rsc, origin)).toBe(false);
+  expect(isProviderRequest({ ...rsc, url: () => `${origin}/api/valuation?_rsc=prefetch` }, origin)).toBe(true);
+  expect(isProviderRequest({ ...rsc, url: () => `${origin}/market-insights/query?_rsc=prefetch`, resourceType: () => 'xhr' }, origin)).toBe(true);
+  expect(isProviderRequest({ ...rsc, url: () => 'https://maps.googleapis.com/preferences?_rsc=prefetch' }, origin)).toBe(true);
+  expect(isProviderRequest({ ...rsc, headers: () => ({}) }, origin)).toBe(true);
+  expect(isProviderRequest({ ...rsc, method: () => 'POST' }, origin)).toBe(true);
+  expect(isProviderRequest({ ...rsc, url: () => `${origin}/preferences` }, origin)).toBe(true);
+  expect(isProviderRequest({ ...rsc, url: () => `${origin}/preferences/unknown?_rsc=prefetch` }, origin)).toBe(true);
+});
+
 async function start(page: Page) {
   await page.getByTestId('demo-start').click();
   const dialog = page.getByRole('dialog');
@@ -32,11 +46,7 @@ test('synthetic full journey, Back, locale, Restart, Exit and Finish make zero p
   page.on('pageerror', error => diagnostics.push(error.message));
   // Observe before navigation; never fulfill analysis/provider requests with fake results.
   page.on('request', request => {
-    const url = new URL(request.url());
-    const sameOrigin = url.origin === new URL(baseURL!).origin;
-    const routePayload = sameOrigin && request.method() === 'GET' && request.headers().rsc === '1' && url.searchParams.has('_rsc') &&
-      (['/', '/cases', '/vnext/property-identity'].includes(url.pathname) || /^\/cases\/[^/]+\/overview$/.test(url.pathname));
-    if (!sameOrigin || (!routePayload && ['fetch', 'xhr'].includes(request.resourceType()))) providers.push(request.url());
+    if (isProviderRequest(request, baseURL!)) providers.push(request.url());
   });
   await page.goto('/');
   await page.locator('#commercial-address').fill('Preserve my real property draft');
