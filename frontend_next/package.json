@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "test:design-system": "node --test scripts/commercial-design-foundations.test.mjs",
     "test:reliability": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/monetary-units.test.ts lib/valuation-result-state.test.ts",
+    "test:preferences": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/preferences/profile.test.ts lib/preferences/tradeoff.test.ts",
+    "test:e2e:preferences": "npm run build:e2e && node e2e/run-e2e.cjs e2e/preference-tradeoff.spec.ts --workers=2",
     "build:e2e": "node scripts/build-e2e.mjs",
     "test:e2e:runner": "node --test scripts/run-e2e.test.cjs",
     "test:e2e": "npm run build:e2e && npm run test:e2e:runner && node e2e/run-e2e.cjs",

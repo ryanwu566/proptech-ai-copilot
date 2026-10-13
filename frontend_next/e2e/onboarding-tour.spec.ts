@@ -1,5 +1,6 @@
 import { expect, test } from './fixtures';
 import type { Page } from '@playwright/test';
+import { isProviderRequest } from './helpers/provider-request';
 
 async function openTour(page: Page) {
   await page.locator('.commercial-methods > summary').click();
@@ -57,12 +58,7 @@ test('skip, Escape, finish, restart and browser reopen preserve locale-independe
   await page.getByTestId('locale-switcher').selectOption('en');
   const requests: string[] = [];
   page.on('request', (request) => {
-    const url = new URL(request.url());
-    const sameOrigin = url.origin === new URL(page.url()).origin;
-    // Known shell Link prefetches are frontend route payloads, not provider requests.
-    const frontendRoutePayload = sameOrigin && request.method() === 'GET' && request.headers().rsc === '1' &&
-      url.searchParams.has('_rsc') && ['/', '/cases', '/vnext/property-identity'].includes(url.pathname);
-    if (!frontendRoutePayload && (['fetch', 'xhr'].includes(request.resourceType()) || !sameOrigin)) requests.push(request.url());
+    if (isProviderRequest(request, page.url())) requests.push(request.url());
   });
   let dialog = await openTour(page);
   await dialog.getByTestId('tour-next').click();

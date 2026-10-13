@@ -148,6 +148,8 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
       ...(askingPriceWan ? { askingPriceWan } : {}),
       ...(positive(journey?.manualPriceWan) ? { manualPriceWan: journey.manualPriceWan } : {}),
       ...(areaPing !== null && areaPing > 0 ? { areaPing } : {}),
+      ...(typeof saved.data.inputs.building_age_years === "number" && Number.isFinite(saved.data.inputs.building_age_years) && saved.data.inputs.building_age_years >= 0 ? { ageYears: saved.data.inputs.building_age_years } : {}),
+      ...(typeof saved.data.inputs.floor === "number" && Number.isFinite(saved.data.inputs.floor) && saved.data.inputs.floor >= 0 ? { floor: saved.data.inputs.floor } : {}),
     },
     evidence,
     marketPrice,

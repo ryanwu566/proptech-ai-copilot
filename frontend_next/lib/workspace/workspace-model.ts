@@ -47,6 +47,9 @@ export type PropertyCaseWorkspace = {
     askingPriceWan?: number;
     manualPriceWan?: number;
     areaPing?: number;
+    /** Saved user inputs, not verified building facts. */
+    ageYears?: number;
+    floor?: number;
   };
   evidence: Record<EvidenceKey, WorkspaceEvidenceState>;
   marketPrice: MarketPriceModel;

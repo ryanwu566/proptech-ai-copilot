@@ -6,12 +6,13 @@ import { useRef, type ReactNode } from "react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getPageLabelKey, type AppPage } from "@/components/sidebar";
+import { preferenceCopy } from "@/lib/preferences/copy";
 
 const methods: AppPage[] = ["Map Insight Lite", "房價估算", "Market Insight Lite", "Terrain Risk", "TaxOracle", "Aegis-Credit Lite"];
 
 export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: AppPage; onNavigate?: (page: AppPage) => void; children?: ReactNode }) {
   const pathname = usePathname();
-  const { t } = useExperienceLocale();
+  const { t, copyFrom } = useExperienceLocale();
   const disclosure = useRef<HTMLDetailsElement>(null);
   if (pathname === "/" && !onNavigate) return null;
   function navigate(next: AppPage) {
@@ -25,6 +26,7 @@ export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: 
       <nav aria-label={t("commercial.globalNav")} className="commercial-global-nav">
         {onNavigate ? <button type="button" aria-current={page === "儀表板" ? "page" : undefined} onClick={() => navigate("儀表板")}>{t("commercial.home")}</button> : <Link href="/">{t("commercial.home")}</Link>}
         <Link href="/cases" aria-current={pathname === "/cases" ? "page" : undefined}>{t("commercial.cases")}</Link>
+        <Link href="/preferences" aria-current={pathname === "/preferences" ? "page" : undefined}>{copyFrom(preferenceCopy, "title")}</Link>
       </nav>
       <div className="commercial-global-tools">
         <LocaleSwitcher />
