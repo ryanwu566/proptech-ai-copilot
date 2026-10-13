@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { isProviderRequest } from "./helpers/provider-request";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 const KEY = "proptech.savedCases.v1";
 async function seed(page: Page) {
@@ -19,12 +20,11 @@ async function markAndSave(page: Page) {
   await expect(page.getByRole("status").filter({ hasText: "人工核對狀態已保存" })).toBeVisible();
 }
 
-async function watchProviders(page: Page) {
+async function watchProviders(page: Page, baseURL: string) {
   const requests: string[] = [];
   await page.route("**/*", async (route) => {
     const req = route.request(); const url = new URL(req.url());
-    if (/googleapis|maps\.google|gstatic|earthengine|tdx\.transportdata/.test(url.hostname)
-      || (["fetch", "xhr"].includes(req.resourceType()) && /\/(market|valuation|commute|location|terrain|satellite|geocod|places|routes|loan|holding-cost|tax)/.test(url.pathname) && !url.pathname.startsWith("/cases/"))) {
+    if (isProviderRequest(req, baseURL)) {
       requests.push(url.hostname + url.pathname); return route.abort();
     }
     await route.continue();
@@ -101,8 +101,8 @@ test("external updates block stale drafts and switching cases discards unsaved m
   await openChecklist(page); await expect(item(page).getByRole("checkbox")).not.toBeChecked();
 });
 
-test("frozen manual report and provider-free workflow", async ({ page }) => {
-  await seed(page); const providerRequests = await watchProviders(page);
+test("frozen manual report and provider-free workflow", async ({ page, baseURL }) => {
+  await seed(page); const providerRequests = await watchProviders(page, baseURL!);
   await openChecklist(page); await markAndSave(page); await page.reload();
   await page.goto("/cases/case-a/report");
   const summary = page.getByTestId("report-manual-review");
@@ -126,8 +126,8 @@ test("frozen manual report and provider-free workflow", async ({ page }) => {
   expect(providerRequests).toEqual([]);
 });
 
-test("A4 PDF retains frozen manual actions without writing or provider requests", async ({ page }, testInfo) => {
-  await seed(page); const requests = await watchProviders(page);
+test("A4 PDF retains frozen manual actions without writing or provider requests", async ({ page, baseURL }, testInfo) => {
+  await seed(page); const requests = await watchProviders(page, baseURL!);
   await openChecklist(page); await markAndSave(page); await page.goto("/cases/case-a/report");
   const summary = page.getByTestId("report-manual-review"); await expect(summary).toContainText("已由使用者核對");
   const frozen = await summary.textContent();

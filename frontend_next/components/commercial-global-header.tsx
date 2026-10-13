@@ -7,6 +7,7 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getPageLabelKey, type AppPage } from "@/components/sidebar";
 import { preferenceCopy } from "@/lib/preferences/copy";
+import { placesEntryCopy } from "@/lib/my-places-entry-copy";
 
 const methods: AppPage[] = ["Map Insight Lite", "房價估算", "Market Insight Lite", "Terrain Risk", "TaxOracle", "Aegis-Credit Lite"];
 
@@ -27,6 +28,7 @@ export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: 
         {onNavigate ? <button type="button" aria-current={page === "儀表板" ? "page" : undefined} onClick={() => navigate("儀表板")}>{t("commercial.home")}</button> : <Link href="/">{t("commercial.home")}</Link>}
         <Link href="/cases" aria-current={pathname === "/cases" ? "page" : undefined}>{t("commercial.cases")}</Link>
         <Link href="/preferences" aria-current={pathname === "/preferences" ? "page" : undefined}>{copyFrom(preferenceCopy, "title")}</Link>
+        <Link href="/places" aria-current={pathname === "/places" ? "page" : undefined}>{copyFrom(placesEntryCopy, "places")}</Link>
       </nav>
       <div className="commercial-global-tools">
         <LocaleSwitcher />

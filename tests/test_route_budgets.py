@@ -9,6 +9,21 @@ from scripts.analyze_next_bundle import EVIDENCE_NAME, SUPPORTED_ROUTES, analyze
 from scripts.check_route_budgets import ROUTE_BUDGETS, measure, route_limit
 
 
+@pytest.mark.parametrize("route", ["/places", "/cases/[caseId]/commute-planner"])
+def test_my_places_requires_own_fixed_budget_and_missing_is_not_zero(tmp_path, route):
+    assert route in SUPPORTED_ROUTES
+    budget = ROUTE_BUDGETS[route]
+    assert budget["required"] is True
+    assert budget["baseline_source"].startswith("supplemental-feature-my-places")
+    assert budget["baseline_client_bytes"] > 0
+    assert budget["headroom_percent"] == 20
+    assert budget["headroom_cap_bytes"] == 300_000
+    result = measure(build_fixture(tmp_path))
+    assert result["status"] == "fail"
+    assert result["routes"][route]["status"] == "route_not_present"
+    assert result["routes"][route]["client_bytes"] is None
+
+
 def test_decision_room_requires_attribution_and_a_fixed_supplemental_budget(tmp_path):
     route = "/cases/[caseId]/decision-room"
     assert route in SUPPORTED_ROUTES

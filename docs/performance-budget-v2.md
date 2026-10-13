@@ -179,3 +179,9 @@ main `e1d7f131c576`, with these fixes applied, Node 24.21.0 and Python 3.12:
 - Preference: `route_not_present`, bytes unknown, never a zero-byte measurement.
 - Total static: 2,999,166 / 8,000,000 bytes; largest JS: 602,354 / 900,000 bytes.
 - Production npm audit and the existing audit gate passed without policy changes.
+
+## My Places supplemental routes (2026-10-13)
+
+Both `/places` and `/cases/[caseId]/commute-planner` are required in the route inventory. Their fixed supplemental baselines are 859,080 and 1,148,320 bytes; ceilings are 1,030,896 and 1,377,984 bytes respectively, using baseline + min(20%, 300,000 bytes). Existing route entries and the 8,000,000-byte static / 900,000-byte largest JS ceilings are unchanged.
+
+The baselines come from the first optimized Next production integration build on `79ed9a6`, with synthetic saved cases and a populated saved destination. Two fresh browser contexts at each of 390 and 1440 verify the populated views and exact case identity. The build uses the established `build:e2e` production compiler with a test API origin; network policy blocks providers, APIs and unrelated prefetches. This is local cold production asset evidence, not hosted or live-provider acceptance. The registry records the build ID, fingerprint, files and source; subsequent builds enforce it without auto-ratcheting. Missing required routes or incomplete attribution fail with unknown bytes.

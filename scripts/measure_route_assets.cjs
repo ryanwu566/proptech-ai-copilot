@@ -29,6 +29,7 @@ async function assertRouteView(page, routeName, width, rows) {
   const selectors = {
     "/": "#main-content",
     "/preferences": "#main-content form",
+    "/places": '[data-testid="place-card"]',
     "/compare": `[data-testid="compare-${width === 390 ? "mobile" : "desktop"}"]`,
     "/cases/[caseId]": '[data-testid="commercial-overview-workspace"]',
     "/cases/[caseId]/overview": '[data-testid="commercial-overview-workspace"]',
@@ -39,11 +40,12 @@ async function assertRouteView(page, routeName, width, rows) {
     "/cases/[caseId]/report": '[data-testid="report-evidence"]',
     "/cases/[caseId]/scenarios": '[data-testid="scenario-comparison"]',
     "/cases/[caseId]/decision-room": '[data-testid="new-note-form"]',
+    "/cases/[caseId]/commute-planner": '[data-testid="commute-destination"]',
   };
   const view = page.locator(selectors[routeName]);
   await view.waitFor({ state: "attached", timeout: 10_000 });
   if (routeName.startsWith("/cases/") && !routeName.endsWith("/report")) {
-    const header = routeName.endsWith("/decision-room") ? '[data-testid="room-case-context"]' : ".workspace-property-header";
+    const header = routeName.endsWith("/decision-room") ? '[data-testid="room-case-context"]' : routeName.endsWith("/commute-planner") ? '#main-content > header' : ".workspace-property-header";
     if (!(await page.locator(header).textContent()).includes(rows[0].title)) {
       throw new Error(`Saved fixture not hydrated: ${routeName}`);
     }
@@ -68,7 +70,7 @@ async function stop(server) {
 
 function failureDiagnostic(error, state) {
   const stages = ["input", "module_resolution", "fixture_loading", "build_id", "server_start", "server_readiness", "chromium_launch", "chromium_connect", "browser_context", "route_navigation", "route_view_validation", "route_networkidle", "route_assets", "process_cleanup"];
-  const routes = ["/", "/preferences", "/compare", "/cases/[caseId]", ...["overview", "market", "location", "risk", "finance", "report", "scenarios", "decision-room"].map((section) => `/cases/[caseId]/${section}`)];
+  const routes = ["/", "/preferences", "/places", "/compare", "/cases/[caseId]", ...["overview", "market", "location", "risk", "finance", "report", "scenarios", "decision-room", "commute-planner"].map((section) => `/cases/[caseId]/${section}`)];
   const exceptionType = ["Error", "TypeError", "SyntaxError", "RangeError", "TimeoutError"].includes(error.name) ? error.name : "Error";
   const safeCodes = ["MODULE_NOT_FOUND", "ERR_REQUIRE_ESM", "ERR_UNKNOWN_FILE_EXTENSION", "ENOENT", "EACCES", "EADDRINUSE"];
   const reasons = new Map([
@@ -189,6 +191,11 @@ async function measureRoutes({ frontend_root: frontendRoot, routes }, state) {
           await withCleanup(async () => {
             await context.addInitScript((saved) => {
               localStorage.setItem("proptech.savedCases.v1", JSON.stringify(saved));
+              localStorage.setItem("proptech.my-places.v1", JSON.stringify({ version: 1, places: [{
+                id: "budget-place", label: "Synthetic workplace", category: "work", address: "Synthetic destination",
+                transportMode: "transit", weeklyTrips: 5, priority: "important",
+                createdAt: "2026-10-13T00:00:00.000Z", updatedAt: "2026-10-13T00:00:00.000Z",
+              }] }));
               localStorage.setItem("proptech_onboarding_seen", "true");
               localStorage.setItem("proptech_onboarding_version", "2");
               localStorage.setItem("proptech_onboarding_state", JSON.stringify({ version: "3", status: "completed" }));

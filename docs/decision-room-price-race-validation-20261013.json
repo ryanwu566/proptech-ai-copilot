@@ -1,0 +1,293 @@
+{
+  "schema_version": "decision-room-save-readiness-validation-v1",
+  "date": "2026-10-13",
+  "base_main": "79ed9a6d6abcd7f904dc1be6ec4d97d754e065ad",
+  "old_remote_head": "c838076069edbacd05d72095fa71b5071ff68a87",
+  "ci_job": "https://github.com/ryanwu566/proptech-ai-copilot/actions/runs/38391187108/job/115275931420",
+  "root_cause": "Raw stored price read before asynchronous Web Lock save completed; UI2350 had passed. Test readiness race.",
+  "fix": "Wait for existing Saved in this browser status; preserve exact stored price/provenance assertions.",
+  "product_code_changed": false,
+  "browser_runs": {
+    "my_places_and_initial_room": {
+      "raw_local_report": ".local\\decision-price-race\\browser-final.json",
+      "stats": {
+        "startTime": "2026-10-13T13:59:12.005Z",
+        "duration": 286908.797,
+        "expected": 108,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "retries": 0,
+      "projects": [
+        {
+          "name": "chromium",
+          "repeat_each": 1
+        },
+        {
+          "name": "chrome",
+          "repeat_each": 1
+        }
+      ],
+      "counts": [
+        {
+          "file": "decision-room.spec.ts",
+          "browser": "chromium",
+          "passed": 31
+        },
+        {
+          "file": "decision-room.spec.ts",
+          "browser": "chrome",
+          "passed": 31
+        },
+        {
+          "file": "my-places-commute.spec.ts",
+          "browser": "chromium",
+          "passed": 23
+        },
+        {
+          "file": "my-places-commute.spec.ts",
+          "browser": "chrome",
+          "passed": 23
+        }
+      ]
+    },
+    "final_room_with_client_navigation": {
+      "raw_local_report": ".local\\decision-price-race\\decision-room-final.json",
+      "stats": {
+        "startTime": "2026-10-13T14:04:51.401Z",
+        "duration": 121883.781,
+        "expected": 62,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "retries": 0,
+      "projects": [
+        {
+          "name": "chromium",
+          "repeat_each": 1
+        },
+        {
+          "name": "chrome",
+          "repeat_each": 1
+        }
+      ],
+      "counts": [
+        {
+          "file": "decision-room.spec.ts",
+          "browser": "chromium",
+          "passed": 31
+        },
+        {
+          "file": "decision-room.spec.ts",
+          "browser": "chrome",
+          "passed": 31
+        }
+      ]
+    },
+    "exact_test_repeated": {
+      "raw_local_report": ".local\\decision-price-race\\exact-repeat-final.json",
+      "stats": {
+        "startTime": "2026-10-13T14:05:35.050Z",
+        "duration": 248969.955,
+        "expected": 40,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "retries": 0,
+      "projects": [
+        {
+          "name": "chromium",
+          "repeat_each": 20
+        },
+        {
+          "name": "chrome",
+          "repeat_each": 20
+        }
+      ],
+      "counts": [
+        {
+          "file": "decision-room.spec.ts",
+          "browser": "chromium",
+          "passed": 20
+        },
+        {
+          "file": "decision-room.spec.ts",
+          "browser": "chrome",
+          "passed": 20
+        }
+      ]
+    }
+  },
+  "deterministic_red_probe": {
+    "expected_failures": 2,
+    "browsers": [
+      "chromium",
+      "chrome"
+    ],
+    "expected": 2350,
+    "received": 2390,
+    "ui_price": 2350,
+    "held_lock": "proptech.decisionRoom.v1.case-a",
+    "production_instrumentation": false,
+    "raw_local_report": ".local\\decision-price-race\\web-lock-red.json"
+  },
+  "native_frontend": {
+    "passed": 406,
+    "failed": 0
+  },
+  "decision_room_model_store": {
+    "passed": 13,
+    "failed": 0
+  },
+  "python_full": {
+    "passed": 3706,
+    "skipped": 32,
+    "warnings": 1,
+    "warning": "Upstream Starlette TestClient deprecation",
+    "duration_seconds": 342.94
+  },
+  "python_final_contracts": {
+    "passed": 94,
+    "failed": 0
+  },
+  "measurement_harness": {
+    "passed": 13,
+    "failed": 0
+  },
+  "builds": {
+    "standard_production": "pass",
+    "optimized_production_e2e": "pass"
+  },
+  "typecheck": "pass",
+  "lint": {
+    "errors": 0,
+    "existing_warnings": 23,
+    "changed_spec_explicit_no_ignore": "pass, no warnings"
+  },
+  "production_audit": {
+    "vulnerabilities": 0
+  },
+  "existing_full_audit_policy": {
+    "status": "pass",
+    "existing_dev_only_exception": "GHSA-vfj7-8cjw-p6xm",
+    "expires": "2026-11-04"
+  },
+  "gates": {
+    "route_coverage": "pass",
+    "route_attribution": "pass",
+    "global_budget": {
+      "initial_javascript_bytes": 2967556,
+      "largest_chunk_budget_bytes": 900000,
+      "largest_client_chunk_bytes": 602295,
+      "status": "pass",
+      "total_budget_bytes": 8000000,
+      "total_static_bytes": 3134654
+    },
+    "security_performance": "pass",
+    "release_source_contracts": "pass (full Python and builds completed separately)",
+    "production_ops_contract": "pass; external guardrails remain BLOCKED / NO_GO",
+    "provider_free_local_smoke": "pass",
+    "repository_hygiene": "pass",
+    "diff_check": "pass"
+  },
+  "route_budgets": {
+    "/": {
+      "client_bytes": 1906909,
+      "ceiling_bytes": 2066966,
+      "status": "pass"
+    },
+    "/cases/[caseId]": {
+      "client_bytes": 1126813,
+      "ceiling_bytes": 1301212,
+      "status": "pass"
+    },
+    "/cases/[caseId]/commute-planner": {
+      "client_bytes": 1148774,
+      "ceiling_bytes": 1377984,
+      "status": "pass"
+    },
+    "/cases/[caseId]/decision-room": {
+      "client_bytes": 1176751,
+      "ceiling_bytes": 1409828,
+      "status": "pass"
+    },
+    "/cases/[caseId]/finance": {
+      "client_bytes": 1159060,
+      "ceiling_bytes": 1339100,
+      "status": "pass"
+    },
+    "/cases/[caseId]/location": {
+      "client_bytes": 1332153,
+      "ceiling_bytes": 1551855,
+      "status": "pass"
+    },
+    "/cases/[caseId]/market": {
+      "client_bytes": 1126813,
+      "ceiling_bytes": 1301212,
+      "status": "pass"
+    },
+    "/cases/[caseId]/overview": {
+      "client_bytes": 1126813,
+      "ceiling_bytes": 1301212,
+      "status": "pass"
+    },
+    "/cases/[caseId]/report": {
+      "client_bytes": 1126813,
+      "ceiling_bytes": 1301212,
+      "status": "pass"
+    },
+    "/cases/[caseId]/risk": {
+      "client_bytes": 1320432,
+      "ceiling_bytes": 1538049,
+      "status": "pass"
+    },
+    "/cases/[caseId]/scenarios": {
+      "client_bytes": 1141869,
+      "ceiling_bytes": 1337843,
+      "status": "pass"
+    },
+    "/compare": {
+      "client_bytes": 1126813,
+      "ceiling_bytes": 1301212,
+      "status": "pass"
+    },
+    "/places": {
+      "client_bytes": 859534,
+      "ceiling_bytes": 1030896,
+      "status": "pass"
+    },
+    "/preferences": {
+      "client_bytes": 875554,
+      "ceiling_bytes": 1049735,
+      "status": "pass"
+    }
+  },
+  "assets": {
+    "evidence": "docs/decision-room-price-race-assets-20261013.json",
+    "build_id": "aCh7hp931X0dSjTp-Q6WP",
+    "fingerprint": "5ce9a1fc25337debe6a4d031c790e98ae4e385af8e7728551ad0d5acc793a813",
+    "unchanged_baselines_and_ceilings": true
+  },
+  "independent_review": "No Critical, Important or remaining Minor findings",
+  "invariants": [
+    "pristine reload",
+    "dirty price survives newer provenance",
+    "untouched fields merge on successful save",
+    "dirty source note preserved",
+    "save resets dirty state",
+    "subsequent external update",
+    "client case navigation A-B-A with same-document sentinel",
+    "unchanged core-case bytes and zero provider requests",
+    "conflict blocks stale save"
+  ],
+  "not_performed": [
+    "push",
+    "merge",
+    "deployment",
+    "fresh hosted CI"
+  ],
+  "final_commit_identity": "Single amended commit containing this report; exact SHA/topology returned in final task response."
+}

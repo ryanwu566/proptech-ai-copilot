@@ -1,0 +1,745 @@
+{
+  "schema_version": "my-places-integration-validation-v1",
+  "base_main_sha": "79ed9a6d6abcd7f904dc1be6ec4d97d754e065ad",
+  "original_feature_sha": "63e49712e4b3618bd3e0406d58ce169c791b3b26",
+  "pushed": false,
+  "merged": false,
+  "deployed": false,
+  "browser": {
+    "focused_places": {
+      "chromium_passed": 22,
+      "chrome_passed": 22,
+      "retries": 0
+    },
+    "keyboard_locale_width_matrix": {
+      "chromium_passed": 1,
+      "chrome_passed": 1,
+      "locales": 4,
+      "widths": 4
+    },
+    "broad_chromium": {
+      "passed": 588,
+      "failed": 69,
+      "intentional_skips": 3,
+      "blocked_serial_tests": 13,
+      "retries": 0,
+      "timing": "before legacy classifier/locale expectation corrections"
+    },
+    "isolated_same_branch": {
+      "passed": 5,
+      "retries": 0
+    },
+    "clean_current_main_comparison": {
+      "passed": 3,
+      "retries": 0
+    },
+    "demographics_serial_recheck": {
+      "passed": 17,
+      "recovered_blocked": 13,
+      "retries": 0
+    },
+    "hosted_contract_recheck": {
+      "passed": 17,
+      "timing_failed": 3,
+      "retries": 0
+    },
+    "hosted_timing_recheck": {
+      "passed": 3,
+      "retries": 0
+    },
+    "critical_final": {
+      "passed": 314,
+      "chromium_passed": 157,
+      "chrome_passed": 157,
+      "failed": 0,
+      "skipped": 0,
+      "retries": 0
+    },
+    "final_acceptance_per_browser": 180
+  },
+  "broad_failures": [
+    {
+      "file": "api-cost-journey.spec.ts",
+      "title": "saved representative journey, Save, Reopen, Compare and Report add zero analysis calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "commercial-compare-report.spec.ts",
+      "title": "opening, navigation, selection, disclosure, storage changes and print cause zero provider requests",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "commercial-trust-acceptance.spec.ts",
+      "title": "1440px saved manual scenario stays visible across Overview Finance Compare Report with zero automatic analysis",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "commercial-trust-acceptance.spec.ts",
+      "title": "1024px saved manual scenario stays visible across Overview Finance Compare Report with zero automatic analysis",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "commercial-trust-acceptance.spec.ts",
+      "title": "390px saved manual scenario stays visible across Overview Finance Compare Report with zero automatic analysis",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "demographics-insight.spec.ts",
+      "title": "CASE 5: no_data state",
+      "classification": "D",
+      "reason": "Parallel-run timing/readiness failure; unchanged assertions pass in focused no-retry runs.",
+      "evidence": "isolated-failure-recheck.json; shared cases also pass clean current main main-comparison.json"
+    },
+    {
+      "file": "evidence-checklist.spec.ts",
+      "title": "frozen manual report and provider-free workflow",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "evidence-checklist.spec.ts",
+      "title": "A4 PDF retains frozen manual actions without writing or provider requests",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px / overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px /cases/case-a/overview overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px /cases/case-a/market overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px /cases/case-a/location overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px /cases/case-a/risk overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px /cases/case-a/finance overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px /compare?cases=case-a,case-b overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px /cases/case-a/report overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1440px saved Taipei transit fixture, A4 PDF, Save and Reopen preserve provenance",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px / overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px /cases/case-a/overview overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px /cases/case-a/market overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px /cases/case-a/location overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px /cases/case-a/risk overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px /cases/case-a/finance overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px /compare?cases=case-a,case-b overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px /cases/case-a/report overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "1024px saved Taipei transit fixture, A4 PDF, Save and Reopen preserve provenance",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px / overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px /cases/case-a/overview overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px /cases/case-a/market overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px /cases/case-a/location overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px /cases/case-a/risk overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px /cases/case-a/finance overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px /compare?cases=case-a,case-b overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px /cases/case-a/report overflow, labels, focus and reduced motion",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "final-production-acceptance.spec.ts",
+      "title": "390px saved Taipei transit fixture, A4 PDF, Save and Reopen preserve provenance",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "guided-case-simulation.spec.ts",
+      "title": "synthetic full journey, Back, locale, Restart, Exit and Finish make zero provider requests and preserve real storage",
+      "classification": "C",
+      "reason": "Obsolete all-storage-unchanged expectation after explicit locale switch; case/session snapshots remain exact and only one isolated locale-setting write is permitted.",
+      "evidence": "contract-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "en 390px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "en 430px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "en 1024px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "en 1440px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ja 390px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ja 430px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ja 1024px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ja 1440px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ko 390px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ko 430px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ko 1024px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "hosted-case-market-closure.spec.ts",
+      "title": "ko 1440px real Create Save Reload Reopen two isolated cases Compare Report A4 zero automatic providers",
+      "classification": "C",
+      "reason": "Hardcoded Chinese unavailable expectation conflicts with the intentionally persisted locale; now asserts existing catalogue for selected locale.",
+      "evidence": "contract-recheck.json plus hosted-timing-recheck.json, retries=0"
+    },
+    {
+      "file": "my-places-commute.spec.ts",
+      "title": "zh-TW 390: explicit routes, persistence, stale evidence and property isolation",
+      "classification": "D",
+      "reason": "Parallel-run timing/readiness failure; unchanged assertions pass in focused no-retry runs.",
+      "evidence": "isolated-failure-recheck.json; shared cases also pass clean current main main-comparison.json"
+    },
+    {
+      "file": "my-places-commute.spec.ts",
+      "title": "en 390: explicit routes, persistence, stale evidence and property isolation",
+      "classification": "D",
+      "reason": "Parallel-run timing/readiness failure; unchanged assertions pass in focused no-retry runs.",
+      "evidence": "isolated-failure-recheck.json; shared cases also pass clean current main main-comparison.json"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "zh-TW 390: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "zh-TW 430: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "zh-TW 1024: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "zh-TW 1440: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "en 390: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "en 430: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "en 1024: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "en 1440: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ja 390: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ja 430: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ja 1024: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ja 1440: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ko 390: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ko 430: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ko 1024: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "ko 1440: localized profile and trade-offs wrap without provider calls",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "preference-tradeoff.spec.ts",
+      "title": "keyboard create/edit persists profile independently; compare evaluates only saved changes",
+      "classification": "C",
+      "reason": "Duplicated legacy classifier counted complete same-origin Places RSC/navigation as provider traffic; replaced with main shared classifier without exempting real APIs/external requests.",
+      "evidence": "critical-final.json plus provider-classification-recheck.json, retries=0"
+    },
+    {
+      "file": "trust-closure-regression.spec.ts",
+      "title": "No Japanese kana in aria-labels after returning to zh-TW",
+      "classification": "D",
+      "reason": "Parallel-run timing/readiness failure; unchanged assertions pass in focused no-retry runs.",
+      "evidence": "isolated-failure-recheck.json; shared cases also pass clean current main main-comparison.json"
+    },
+    {
+      "file": "trust-closure-regression.spec.ts",
+      "title": "Late road response for district A does not overwrite district B",
+      "classification": "D",
+      "reason": "Parallel-run timing/readiness failure; unchanged assertions pass in focused no-retry runs.",
+      "evidence": "isolated-failure-recheck.json; shared cases also pass clean current main main-comparison.json"
+    }
+  ],
+  "broad_classifications": {
+    "C": 64,
+    "D": 5
+  },
+  "provider_requests": {
+    "explicit_intercepted_per_browser": 67,
+    "explicit_intercepted_combined": 134,
+    "automatic": 0,
+    "live_commercial": 0
+  },
+  "frontend": {
+    "focused": 17,
+    "full_deterministic": 406,
+    "typecheck": "pass",
+    "lint_errors": 0,
+    "lint_existing_warnings": 23,
+    "production_build": "pass",
+    "optimized_e2e_production_build": "pass",
+    "measurement_node_tests": 13,
+    "final_source_python_tests": 65
+  },
+  "python": {
+    "focused": 75,
+    "full_passed": 3706,
+    "full_skipped": 32,
+    "warnings": 1
+  },
+  "performance": {
+    "places": {
+      "bytes": 859534,
+      "fixed_baseline": 859080,
+      "ceiling": 1030896
+    },
+    "commute_planner": {
+      "bytes": 1148774,
+      "fixed_baseline": 1148320,
+      "ceiling": 1377984
+    },
+    "homepage_bytes": 1906909,
+    "global_static_bytes": 3134654,
+    "largest_client_js_bytes": 602295,
+    "existing_ceilings_changed": false,
+    "homepage_feature_marker_hits": []
+  },
+  "independent_review": {
+    "feature_important_fixed": 4,
+    "validation_important_fixed": 1,
+    "critical_unresolved": 0,
+    "important_unresolved": 0,
+    "minor_unresolved": 0
+  },
+  "gates": {
+    "routes": "pass",
+    "global": "pass",
+    "security_performance": "pass",
+    "source_release": "pass",
+    "npm_production_audit": "pass",
+    "existing_npm_audit_exception_policy": "pass",
+    "hygiene": "pass",
+    "diff_check": "pass"
+  },
+  "hosted_and_live_provider_acceptance": "unproven",
+  "initial_broad_failures": [
+    {
+      "test": "tests/test_experience_architecture_v3_phase5_8.py::test_locale_switcher_is_runtime_only_and_changes_document_language",
+      "classification": "C",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Obsolete runtime-only locale source contract"
+    },
+    {
+      "test": "tests/test_full_runtime_i18n_and_journey_cleanup.py::test_locale_provider_exposes_copy_without_locale_storage",
+      "classification": "C",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Obsolete runtime-only locale source contract"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_my_places_requires_own_fixed_budget_and_missing_is_not_zero[/places]",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_my_places_requires_own_fixed_budget_and_missing_is_not_zero[/cases/[caseId]/commute-planner]",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_decision_room_requires_attribution_and_a_fixed_supplemental_budget",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_global_largest_chunk_protects_even_unrelated_routes",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_global_total_protects_even_unrequested_static_assets",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_incomplete_app_manifest_requires_measurement_not_zero",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_missing_referenced_asset_fails_closed",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_absent_scenario_is_not_a_zero_byte_pass",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_static_root_compatibility_for_release_gate",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_partial_browser_evidence_cannot_pass",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_route_over_budget_fails_when_global_limits_pass",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_all_requested_routes_have_bounded_baseline_budgets",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_route_budgets.py::test_cli_exits_nonzero_for_failed_budget",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "tests/test_security_performance_contract.py::test_route_budgets_and_baseline_are_machine_readable",
+      "classification": "A",
+      "status": "fixed; final full Python suite passes 3706/3706 executed tests",
+      "reason": "Supplemental route registry was not yet populated; fixed baselines added and all related contracts now pass"
+    },
+    {
+      "test": "frontend scripts/run-e2e.test.cjs: E2E runner refuses an occupied port",
+      "classification": "C",
+      "status": "fixed by verification order; final deterministic suite406/406 passes",
+      "reason": "Runner verification started during production build without BUILD_ID; rerun after completed build"
+    }
+  ],
+  "pr_ready": true,
+  "reproduction": {
+    "build": "npm --prefix frontend_next run build:e2e",
+    "cold_assets": "python scripts/analyze_next_bundle.py --measure-browser",
+    "route_gate": "python scripts/check_route_budgets.py",
+    "focused_places": "node e2e/run-e2e.cjs e2e/my-places-commute.spec.ts --workers=2 --retries=0",
+    "critical_pack": "node e2e/run-e2e.cjs e2e/decision-room.spec.ts e2e/commercial-overview-save.spec.ts e2e/commercial-compare-report.spec.ts e2e/preference-tradeoff.spec.ts e2e/property-scenario-lab.spec.ts e2e/property-scenario-loading.spec.ts e2e/provider-closure.spec.ts e2e/pilot-evidence.spec.ts e2e/final-production-acceptance.spec.ts e2e/evidence-checklist.spec.ts e2e/api-cost-journey.spec.ts --workers=2 --retries=0",
+    "broad_chromium": "node e2e/run-e2e.cjs --project=chromium --workers=4 --retries=0",
+    "python_full": "python -m pytest -q"
+  },
+  "additional_recheck_failures": [
+    {
+      "test": "hosted-case-market-closure: zh-TW 1024",
+      "classification": "D",
+      "reason": "Concurrent pack timing/navigation timeout; identical no-retry isolated run passes with all original assertions and timeout limits unchanged",
+      "status": "resolved",
+      "evidence": "hosted-timing-recheck.json"
+    },
+    {
+      "test": "hosted-case-market-closure: zh-TW 1440",
+      "classification": "D",
+      "reason": "Concurrent pack timing/navigation timeout; identical no-retry isolated run passes with all original assertions and timeout limits unchanged",
+      "status": "resolved",
+      "evidence": "hosted-timing-recheck.json"
+    },
+    {
+      "test": "hosted-case-market-closure: ja 1024",
+      "classification": "D",
+      "reason": "Concurrent pack timing/navigation timeout; identical no-retry isolated run passes with all original assertions and timeout limits unchanged",
+      "status": "resolved",
+      "evidence": "hosted-timing-recheck.json"
+    }
+  ],
+  "post_commit_checks": "Final SHA, clean tree and exactly 0 behind/1 ahead are verified and returned in the final chat; commit embeds this report."
+}

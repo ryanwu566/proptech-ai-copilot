@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
+import { isProviderRequest } from "./helpers/provider-request";
 const KEY = "proptech.savedCases.v1";
 function cases() {
   const a = e9Case(); const b = e9Case("case-b"); const c = e9Case("case-c"); const d = e9Case("case-d"); const e = e9Case("case-e");
@@ -18,17 +19,15 @@ async function seed(page: Page, rows = cases()) {
     sessionStorage.setItem("proptech:location-insight-result", JSON.stringify({ secret: "CASE_B_PRIVATE_SESSION" }));
   }, { rows, key: KEY });
 }
-async function watchProviders(page: Page) {
+async function watchProviders(page: Page, baseURL: string) {
   const requests: string[] = [];
   const telemetry: string[] = [];
   const staticAssets: string[] = [];
   await page.route("**/*", async (route) => {
     const request = route.request(); const url = new URL(request.url());
-    if (/\/_next\/static\//.test(url.pathname) || ["stylesheet", "script", "font"].includes(request.resourceType())) { staticAssets.push(url.pathname); return route.continue(); }
+    if (url.origin === new URL(baseURL).origin && (/\/_next\/static\//.test(url.pathname) || ["stylesheet", "script", "font"].includes(request.resourceType()))) { staticAssets.push(url.pathname); return route.continue(); }
     if (/telemetry|client-error|web-vitals/.test(url.pathname)) { telemetry.push(url.pathname); return route.continue(); }
-    const providerHost = /googleapis|maps\.google|gstatic|openstreetmap|mapbox|earthengine|tdx\.transportdata/.test(url.hostname);
-    const analysisPath = /\/(?:market(?:-insights)?|valuation(?:-trend)?|commute(?:-route)?|location(?:\/insight)?|terrain(?:-risk)?|satellite|geocod\w*|places|routes|loan|finance|holding-cost|taxoracle|tax)(?:\/|\?|$)/i.test(url.pathname);
-    if (providerHost || (["xhr", "fetch"].includes(request.resourceType()) && analysisPath && !url.pathname.startsWith("/cases/"))) { requests.push(`${request.method()} ${url.hostname}${url.pathname}`); return route.abort(); }
+    if (isProviderRequest(request, baseURL)) { requests.push(`${request.method()} ${url.hostname}${url.pathname}`); return route.abort(); }
     await route.continue();
   });
   return { requests, telemetry, staticAssets };
@@ -99,8 +98,8 @@ test("invalid storage, duplicate records and identity conflicts are disclosed", 
   await page.evaluate(({ key, rows }) => localStorage.setItem(key, JSON.stringify(rows)), { key: KEY, rows });
   await page.goto("/cases/case-a/report"); await expect(page.locator("main").getByRole("alert")).toContainText("重新確認");
 });
-test("opening, navigation, selection, disclosure, storage changes and print cause zero provider requests", async ({ page }) => {
-  await seed(page); const observed = await watchProviders(page);
+test("opening, navigation, selection, disclosure, storage changes and print cause zero provider requests", async ({ page, baseURL }) => {
+  await seed(page); const observed = await watchProviders(page, baseURL!);
   await page.goto("/compare?cases=case-a,case-b");
   await expect(page.getByTestId("compare-desktop")).toBeVisible();
   await page.getByTestId("compare-desktop").getByRole("button", { name: "移除 案件 B" }).click();

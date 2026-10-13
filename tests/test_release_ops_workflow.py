@@ -31,3 +31,8 @@ def test_browser_job_declares_cross_platform_e2e_environment() -> None:
     assert "NEXT_PUBLIC_API_BASE_URL: http://e2e.test" in WORKFLOW
     assert "NEXT_PUBLIC_APP_ENV: test" in WORKFLOW
     assert 'run: npm --prefix frontend_next run test:e2e -- --workers=1' in WORKFLOW
+
+
+def test_browser_job_has_bounded_45_minute_hard_timeout() -> None:
+    browser_job = WORKFLOW.split("\n  browser:\n", 1)[1]
+    assert "\n    timeout-minutes: 45\n" in browser_job

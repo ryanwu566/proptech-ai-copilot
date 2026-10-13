@@ -21,12 +21,13 @@ def test_supported_locales_and_resource_fallback_are_internal():
     assert "sessionStorage" not in source
 
 
-def test_locale_switcher_is_runtime_only_and_changes_document_language():
+def test_locale_switcher_changes_document_language_without_provider_calls():
     provider = read("frontend_next/components/experience-locale-provider.tsx")
     switcher = read("frontend_next/components/locale-switcher.tsx")
     assert "document.documentElement.lang" in provider
     assert "setLocale" in switcher
-    assert "localStorage" not in provider + switcher
+    assert "readLocaleSetting" in provider and "saveLocaleSetting" in provider
+    assert "localStorage" not in switcher
     assert "sessionStorage" not in provider + switcher
     assert "fetch(" not in provider + switcher
 

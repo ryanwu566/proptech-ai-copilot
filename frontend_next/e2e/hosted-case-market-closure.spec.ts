@@ -244,7 +244,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
       expect(refreshed.data.marketInsight?.data_status).toBe(s.supported ? "available" : "no_data");
       await page.getByTestId("comparable-explanation").locator(":scope > summary").click();
       if (s.supported) { await expect(page.getByTestId("selected-comparable-explanations").locator("article")).toHaveCount(10); expect(persisted.data.valuation?.comparable_decision_trace).toEqual(comparableFixture.comparable_decision_trace); }
-      else { await expect(page.getByTestId("comparable-explanation")).toContainText(/未保存|不足|無法/); expect(persisted.data.journeyContext?.valuationStatus).not.toBe("available"); }
+      else { await expect(page.getByTestId("comparable-explanation")).toContainText(comparableCopy(locale).unavailable); expect(persisted.data.journeyContext?.valuationStatus).not.toBe("available"); }
       assertZeroRequests(calls, afterExplicitRefresh, `Reload explanation ${s.name}`); await noOverflow(page);
     }
     expect(created[0].id).not.toBe(created[1].id);
