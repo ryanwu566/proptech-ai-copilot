@@ -4,6 +4,6 @@ export function isProviderRequest(request: Pick<Request, 'url' | 'method' | 'hea
   const url = new URL(request.url());
   const sameOrigin = url.origin === new URL(baseURL).origin;
   const routePayload = sameOrigin && request.method() === 'GET' && request.headers().rsc === '1' && url.searchParams.has('_rsc') &&
-    (['/', '/cases', '/preferences', '/vnext/property-identity'].includes(url.pathname) || /^\/cases\/[^/]+\/overview$/.test(url.pathname));
+    (['/', '/cases', '/preferences', '/compare', '/vnext/property-identity'].includes(url.pathname) || /^\/cases\/[^/]+\/(overview|market|location|risk|finance|report|planning|scenarios|decision-room)$/.test(url.pathname));
   return !sameOrigin || (!routePayload && ['fetch', 'xhr'].includes(request.resourceType()));
 }

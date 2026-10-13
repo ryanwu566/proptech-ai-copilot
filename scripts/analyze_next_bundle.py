@@ -19,7 +19,7 @@ from urllib.parse import unquote, urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 SUPPORTED_ROUTES = ("/", "/preferences", "/compare", "/cases/[caseId]", *(
     f"/cases/[caseId]/{section}" for section in
-    ("overview", "market", "location", "risk", "finance", "report", "scenarios")
+    ("overview", "market", "location", "risk", "finance", "report", "scenarios", "decision-room")
 ))
 EVIDENCE_NAME = "route-assets-v2.json"
 FAILURE_STAGES = {

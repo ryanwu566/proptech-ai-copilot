@@ -353,6 +353,13 @@
       "headroom_cap_bytes": 300000,
       "headroom_percent": 20,
       "required": false
+    },
+    "/cases/[caseId]/decision-room": {
+      "baseline_client_bytes": 1174856,
+      "baseline_source": "supplemental-feature-decision-room-20261013",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
     }
   },
   "schema_version": "performance-budget-v2-baseline",
@@ -424,5 +431,54 @@
     "node": "v24.14.1",
     "platform": "Windows AMD64",
     "python": "3.13.14"
+  },
+  "supplemental_decision_room_measurement": {
+    "measured_date": "2026-10-13",
+    "base_main_commit": "0185c81416a56b14c1dada38d959d90aeac2ecf4",
+    "historical_feature_commit": "ee0c881a3dc5ab4c03b8231956aafbd9e46f6b6d",
+    "source_description": "First production integration candidate; fixed before client navigation correction. Subsequent measurements enforce this baseline without ratcheting.",
+    "build_command": "npm --prefix frontend_next run build:e2e",
+    "measurement_command": "python scripts/analyze_next_bundle.py --measure-browser",
+    "build_id": "1QgTjnxVaaX-8Ebbiijbq",
+    "fingerprint": "f434591895f70763bbe178b8bcc8a769611144fc44d45265e5695c391b53f5a5",
+    "route": {
+      "client_bytes": 1174856,
+      "client_files": [
+        "static/chunks/02jnefm8rh30j.js",
+        "static/chunks/0n99_cqbmemng.css",
+        "static/chunks/0s_hj4ckdmg5v.js",
+        "static/chunks/12-vtal094igd.js",
+        "static/chunks/143w2a4e7l0s5.js",
+        "static/chunks/17ff7embh2wq5.css",
+        "static/chunks/1d_10wjogvwyy.js",
+        "static/chunks/1nq0sqdultszo.js",
+        "static/chunks/1nuxtulkjxrj4.js",
+        "static/chunks/1vgxfpo-xi65j.js",
+        "static/chunks/1zv3xccs4c503.js",
+        "static/chunks/20oi1d5gaaxqf.js",
+        "static/chunks/26qkt5vjxslqc.js",
+        "static/chunks/2b_x1_2-zc0_z.css",
+        "static/chunks/2nwcmibmlk7fa.js",
+        "static/chunks/3_pz_xyhj63hd.js",
+        "static/chunks/3xjfi1klm4f4d.js",
+        "static/chunks/turbopack-2tkuz11zb02ah.js"
+      ],
+      "measurement_method": "local_production_browser",
+      "navigation_paths": [
+        "/cases/case-a/decision-room"
+      ],
+      "route": "/cases/[caseId]/decision-room",
+      "status": "measured"
+    },
+    "viewports": [
+      390,
+      1440
+    ],
+    "samples_per_viewport": 2,
+    "total_static_bytes": 3097028,
+    "largest_client_chunk": {
+      "bytes": 602295,
+      "file": "chunks/2-lp-qb_leimt.js"
+    }
   }
 }
