@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import atexit
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from datetime import UTC, datetime
 import json
 import logging
@@ -263,7 +264,7 @@ def _get_nearby_places(
 
     if google.available:
         with ThreadPoolExecutor(max_workers=min(MAX_CATEGORY_WORKERS, len(requested)), thread_name_prefix="map-category") as executor:
-            futures = [(category, executor.submit(_timed_nearby_call, google, lat, lng, radius_m, category, language_code)) for category in requested]
+            futures = [(category, executor.submit(copy_context().run, _timed_nearby_call, google, lat, lng, radius_m, category, language_code)) for category in requested]
             # Read futures in request order so response order stays deterministic.
             for category, future in futures:
                 try:

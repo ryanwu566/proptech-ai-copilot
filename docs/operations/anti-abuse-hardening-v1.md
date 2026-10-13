@@ -1,5 +1,7 @@
 # Anti-abuse hardening v1: local controls and operational acceptance
 
+Wave 1B extends these controls with principal quotas and optional durable usage aggregation; see [API usage, quota and abuse control v1](api-usage-quota-abuse-v1.md) for the current identity, accounting and policy contracts. The fleet enforcement blockers below still apply.
+
 Status: executable application controls; **global production budget acceptance remains blocked** until owners verify ingress, provider quotas and spending enforcement. This change does not deploy, push, merge, change credentials, or provision infrastructure.
 
 ## Threat model and trust boundary

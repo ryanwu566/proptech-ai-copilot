@@ -12,7 +12,7 @@ def test_additive_account_migration_is_registered_and_default_only():
     assert len(rows) == 1
     assert rows[0].sha256 == checksum(PATH)
     assert PATH in MIGRATIONS
-    assert next_safe_sequence(registrations) == 21
+    assert next_safe_sequence(registrations) == 22
     sql = PATH.read_text().lower()
     assert "force row level security" in sql
     assert "grant insert (user_id)" in sql

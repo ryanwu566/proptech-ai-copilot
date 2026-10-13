@@ -7,6 +7,18 @@ from dataclasses import dataclass
 from typing import Any
 
 import httpx
+from services import provider_cost_metrics
+from services.anti_abuse import ensure_enabled
+
+
+def _observe_transport(event):
+    provider_cost_metrics.PROVIDER_COST_METRICS.record("market_ops", event, provider="tdx_mrt")
+
+
+def _observe_failure(error):
+    _observe_transport("provider_failure")
+    if isinstance(error, httpx.TimeoutException):
+        _observe_transport("provider_timeout")
 
 
 TDX_TOKEN_URL = "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token"
@@ -50,6 +62,8 @@ class TdxMrtClient:
         return TdxMrtPayload(station_records=station_records, line_records=line_records)
 
     def _fetch_access_token(self) -> str:
+        ensure_enabled("market_ops")
+        _observe_transport("physical_calls")
         try:
             response = httpx.post(
                 TDX_TOKEN_URL,
@@ -64,13 +78,18 @@ class TdxMrtClient:
             response.raise_for_status()
             payload = response.json()
         except (httpx.TimeoutException, httpx.HTTPError, ValueError) as exc:
+            _observe_failure(exc)
             raise TdxMrtClientError("TDX authentication failed") from exc
         token = payload.get("access_token") if isinstance(payload, dict) else None
         if not isinstance(token, str) or not token.strip():
+            _observe_transport("provider_failure")
             raise TdxMrtClientError("TDX authentication response was unavailable")
+        _observe_transport("provider_success")
         return token.strip()
 
     def _fetch_json_array(self, url: str, token: str) -> list[dict[str, Any]]:
+        ensure_enabled("market_ops")
+        _observe_transport("physical_calls")
         try:
             response = httpx.get(
                 url,
@@ -81,12 +100,16 @@ class TdxMrtClient:
             response.raise_for_status()
             payload = response.json()
         except (httpx.TimeoutException, httpx.HTTPError, ValueError) as exc:
+            _observe_failure(exc)
             raise TdxMrtClientError("TDX MRT payload fetch failed") from exc
         if not isinstance(payload, list):
+            _observe_transport("provider_failure")
             raise TdxMrtClientError("TDX MRT payload shape was unavailable")
         records: list[dict[str, Any]] = []
         for item in payload:
             if not isinstance(item, dict):
+                _observe_transport("provider_failure")
                 raise TdxMrtClientError("TDX MRT payload item shape was unavailable")
             records.append(item)
+        _observe_transport("provider_success")
         return records

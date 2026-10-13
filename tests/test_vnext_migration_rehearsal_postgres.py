@@ -32,6 +32,7 @@ def _assert_disposable(connection) -> None:
 
 def _reset_database(connection) -> None:
     _assert_disposable(connection)
+    connection.execute("DROP SCHEMA IF EXISTS api_usage CASCADE")
     connection.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
     connection.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
     connection.execute("DROP SCHEMA IF EXISTS auth CASCADE")

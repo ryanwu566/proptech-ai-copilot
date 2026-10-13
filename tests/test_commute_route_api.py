@@ -55,6 +55,9 @@ def test_coordinate_destination_returns_mock_fallback_without_key() -> None:
 
 
 def test_production_without_key_is_unavailable_no_mock_numbers(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Isolate provider configuration from the separately tested quota boundary.
+    monkeypatch.setenv("API_USAGE_PEER_HMAC_KEY", "ab" * 32)
+    monkeypatch.setattr("services.anti_abuse.CONTROLS.consume_durable", lambda *args: None)
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("API_ALLOWED_HOSTS", "testserver")
     monkeypatch.delenv("DEMO_ROUTES_FALLBACK", raising=False)
@@ -76,6 +79,8 @@ def test_production_without_key_is_unavailable_no_mock_numbers(monkeypatch: pyte
 
 
 def test_production_demo_optin_still_fails_closed(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("API_USAGE_PEER_HMAC_KEY", "ab" * 32)
+    monkeypatch.setattr("services.anti_abuse.CONTROLS.consume_durable", lambda *args: None)
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("API_ALLOWED_HOSTS", "testserver")
     monkeypatch.setenv("DEMO_ROUTES_FALLBACK", "true")

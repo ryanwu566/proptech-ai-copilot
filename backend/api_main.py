@@ -97,6 +97,16 @@ async def app_lifespan(_app: FastAPI):
 
     assert_startup_configuration()
     assert_guardrail_configuration()
+    from services.api_usage import USAGE
+    from services.usage_ledger import start_usage_ledger
+    from services.usage_quota import configured_quota_policies
+    from services.anti_abuse import configured_policies
+
+    configured_policies()
+    configured_quota_policies()
+    from services.usage_guard import validate_usage_startup
+    validate_usage_startup()
+    usage_writer = start_usage_ledger(USAGE)
     from services.satellite_reference import clear_satellite_reference_cache
 
     clear_satellite_reference_cache()
@@ -113,6 +123,9 @@ async def app_lifespan(_app: FastAPI):
             pass
         yield
     finally:
+        if usage_writer is not None:
+            import asyncio
+            await asyncio.to_thread(usage_writer.stop)
         clear_satellite_reference_cache()
         try:
             if earth_engine_manager is not None:

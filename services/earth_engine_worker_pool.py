@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from concurrent.futures import Future, ThreadPoolExecutor
+from contextvars import copy_context
 from dataclasses import dataclass, field
 from datetime import date
 import math
@@ -328,6 +329,7 @@ class EarthEngineWorkerManager:
             if control.is_stale():
                 raise EarthEngineProviderTimeout("Earth Engine operation timed out")
             future = executor.submit(
+                copy_context().run,
                 self._execute_request,
                 latitude=latitude,
                 longitude=longitude,

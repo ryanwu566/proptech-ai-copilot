@@ -3,12 +3,15 @@ from __future__ import annotations
 
 import asyncio
 import threading
+import time
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from services import anti_abuse
 from services.observability import normalize_correlation_id
 from services.security import security_headers
+from services import api_usage
+from services.usage_principal import principal_from_scope
 
 
 BODY_SLOTS = threading.BoundedSemaphore(16)
@@ -18,6 +21,7 @@ POST_CAPABILITIES = {
     "/map/search": "geocoding", "/map/insight": "metadata", "/map/nearby": "places",
     "/location/resolve": "geocoding", "/location/insight": "location",
     "/commute/address-lookup": "geocoding", "/commute/nearest": "metadata", "/commute/route": "routes",
+    "/commute/refresh": "market_ops",
     "/terrain/satellite-reference": "satellite", "/terrain-risk/analyze": "terrain",
     "/valuation/estimate": "valuation", "/valuation/trend": "trend", "/valuation/property-search": "finder",
     "/parcel-geometry/upload": "parcel", "/parcel-geometry/consistency": "parcel", "/parcel-geometry/spatial-analyze": "parcel",
@@ -49,6 +53,41 @@ class AbuseMiddleware:
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             return await self.app(scope, receive, send)
+        name = capability(scope)
+        if not name:
+            return await self.guarded(scope, receive, send)
+        controls = self.controls or anti_abuse.CONTROLS
+        method = scope["method"] if scope["method"] in {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"} else "OTHER"
+        try:
+            principal = principal_from_scope(scope)
+        except RuntimeError:
+            try:
+                controls.reject(name, "guard_unavailable", status=503)
+            except anti_abuse.AbuseRejected as error:
+                return await self.respond(scope, receive, send, 503, "guard_unavailable", error.detail["message"], error.headers)
+        context = api_usage.UsageContext(principal, name, f"{method}:{name}", controls)
+        started = time.monotonic()
+        status = 500
+        async def observed_send(message):
+            nonlocal status
+            if message["type"] == "http.response.start":
+                status = message["status"]
+            await send(message)
+        with api_usage.usage_context(context):
+            try:
+                await self.guarded(scope, receive, observed_send)
+            finally:
+                fields = {"capability": name, "principal_class": context.principal.principal_class,
+                          "principal_id": context.principal.principal_id, "route_class": context.route_class,
+                          "provider": "none", "status_class": f"{status // 100}xx"}
+                if not context.request_admitted:
+                    fields.update(principal_class="system", principal_id="")
+                api_usage.USAGE.observe(**fields, event="request", status=status, duration_ms=(time.monotonic() - started) * 1000,
+                                        cache_state=context.cache_state,
+                                        provider_accounting_known=(name in api_usage.COMPLETE_PROVIDER_CAPABILITIES and (context.provider_observed or context.cache_state in {"hit", "coalesced"})) or (context.rejected and not context.request_admitted))
+                context.close()
+
+    async def guarded(self, scope, receive, send):
         controls = self.controls or anti_abuse.CONTROLS
         response_started = False
         original_send = send
@@ -62,9 +101,47 @@ class AbuseMiddleware:
             name = capability(scope)
             if name:
                 client = scope.get("client")
-                # Never read XFF, Forwarded, X-Real-IP, tokens or query strings.
+                # Local resource admission precedes JWT/JWKS/account DB work.
+                # Forwarding headers never alter this transport peer.
                 peer = str(client[0])[:256] if client else "unknown"
                 controls.admit(name, peer)
+                # Optional authentication on legacy product routes uses exactly
+                # the existing verifier and account authority. Invalid/suspended
+                # credentials never downgrade to anonymous admission.
+                if not scope["path"].startswith("/v1/"):
+                    request = Request(scope)
+                    if request.headers.getlist("authorization"):
+                        from services.vnext.auth import require_authenticated_principal, get_supabase_jwt_verifier
+                        from services.vnext.accounts import get_account_authorizer
+                        from services.vnext.errors import VNextError
+                        from backend.api.v1.errors import structured_error_response
+                        def authenticate():
+                            identity = require_authenticated_principal(request, verifier=get_supabase_jwt_verifier())
+                            get_account_authorizer().require_active(identity)
+                            return identity
+                        try:
+                            identity = await asyncio.to_thread(authenticate)
+                        except VNextError as error:
+                            return await structured_error_response(request, error)(scope, receive, send)
+                        context = api_usage.current_usage_context()
+                        context.principal = principal_from_scope(scope)
+                context = api_usage.current_usage_context()
+                if context is not None:
+                    # Existing VNext verification runs as a route dependency.
+                    # Defer identity quota until it binds the verified principal.
+                    if context.principal.principal_class == "authenticated" or not scope["path"].startswith("/v1/"):
+                        admitting = asyncio.create_task(asyncio.to_thread(context.acquire_request))
+                        try:
+                            await asyncio.shield(admitting)
+                        except asyncio.CancelledError:
+                            # Admission can finish in its thread after a waiter
+                            # disconnects. Drain it before the outer close so no
+                            # local concurrency permit can appear after cleanup.
+                            try:
+                                await admitting
+                            except Exception:
+                                pass
+                            raise
             limit = 11_000_000 if scope["path"].rstrip("/") == "/parcel-geometry/upload" else 1_000_000
             lengths = [value for key, value in scope["headers"] if key.lower() == b"content-length"]
             if lengths and (len(lengths) != 1 or len(lengths[0]) > 20 or not lengths[0].isdigit()):

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from datetime import datetime, timezone
 import inspect
 import logging
@@ -102,7 +103,7 @@ def analyze_terrain_risk(
     provider_timing_ms: dict[str, int | None] = {key: None for key in ("terrain", "slope_hazard", "flood", "geology")}
     if provider_jobs:
         with ThreadPoolExecutor(max_workers=min(MAX_PROVIDER_WORKERS, len(provider_jobs)), thread_name_prefix="terrain-provider") as executor:
-            futures = [(name, executor.submit(_timed_provider_call, call)) for name, call in provider_jobs]
+            futures = [(name, executor.submit(copy_context().run, _timed_provider_call, call)) for name, call in provider_jobs]
             # Consume in stable provider order even though the calls run concurrently.
             for name, future in futures:
                 provider_results[name], provider_timing_ms[name] = future.result()
