@@ -6,6 +6,10 @@ const AUTH = "https://slice8-auth.supabase.co";
 const API = "http://e2e.test";
 const USER = "11111111-1111-4111-8111-111111111111";
 const KEY = "proptech.savedCases.v1";
+function browserOwnedState() {
+  return Object.fromEntries([KEY, "proptech.preferenceProfile.v1", "proptech.scenarios.v1", "proptech.decisionRoom.v1.case-a", "proptech.my-places.v1", "proptech.case-commute.v1"]
+    .map(key => [key, key === KEY ? JSON.stringify([e9Case()]) : `opaque-browser-owned-${key}`]));
+}
 function token(payload: Record<string, unknown> = {}) {
   const p = (v: object) => Buffer.from(JSON.stringify(v)).toString("base64url");
   return `${p({alg:"ES256",kid:"fixture"})}.${p({sub:USER,aud:"authenticated",role:"authenticated",iss:`${AUTH}/auth/v1`,exp:4102444800,...payload})}.synthetic`;
@@ -68,8 +72,7 @@ for (const locale of ["zh-TW","en","ja","ko"] as const) for (const width of [390
 }
 test("login, restore and logout preserve browser Saved Cases and expose no credentials",async({page})=>{
   const saved=JSON.stringify([e9Case()]);
-  const stores = Object.fromEntries([KEY, "proptech.preferenceProfile.v1", "proptech.scenarios.v1", "proptech.decisionRoom.v1.case-a", "proptech.my-places.v1", "proptech.case-commute.v1"]
-    .map(key => [key, key === KEY ? saved : `opaque-browser-owned-${key}`]));
+  const stores = browserOwnedState();
   await page.addInitScript(stores => { for (const [key, value] of Object.entries(stores)) if (localStorage.getItem(key) === null) localStorage.setItem(key, value); }, stores);
   const logs:string[]=[]; page.on("console",message=>logs.push(message.text()));
   const calls=await provider(page); await page.goto("/login?next=https://attacker.invalid");
@@ -91,6 +94,62 @@ test("login, restore and logout preserve browser Saved Cases and expose no crede
   expect(logs.join(" ")).not.toMatch(/valid-password|synthetic-refresh|RAW|synthetic/);
   expect(await page.locator("body").textContent()).not.toContain(token());
 });
+
+for (const outcome of ["success", "provider failure", "cleanup failure"] as const) {
+  test(`delayed device logout ${outcome} never claims completion before persisted cleanup`, async ({page}) => {
+    const stores = browserOwnedState();
+    await page.addInitScript(stores => { for (const [key, value] of Object.entries(stores)) if (localStorage.getItem(key) === null) localStorage.setItem(key, value); }, stores);
+    await seed(page);
+    await provider(page);
+    let started!: () => void;
+    let release!: () => void;
+    const requestStarted = new Promise<void>(resolve => { started = resolve; });
+    const responseReleased = new Promise<void>(resolve => { release = resolve; });
+    let logoutRequests = 0;
+    await page.route(`${AUTH}/auth/v1/logout**`, async route => {
+      logoutRequests++;
+      started();
+      await responseReleased;
+      await route.fulfill({status: outcome === "provider failure" ? 500 : 200,
+        json: outcome === "provider failure" ? {message:"PRIVATE logout failure"} : {}});
+    });
+    await page.goto("/account");
+    await page.getByTestId("locale-switcher").selectOption("en");
+    await expect(page.getByTestId("account-status")).toHaveText("Active");
+    if (outcome === "cleanup failure") await page.evaluate(() => {
+      const removeItem = Storage.prototype.removeItem;
+      Storage.prototype.removeItem = function(key) {
+        if (key === "sb-slice8-auth-auth-token") throw new Error("PRIVATE logout cleanup failure");
+        return removeItem.call(this, key);
+      };
+    });
+    await page.getByRole("button", {name:"Sign out of this device",exact:true}).click();
+    await requestStarted;
+    try {
+      expect(await page.evaluate(() => localStorage.getItem("sb-slice8-auth-auth-token"))).not.toBeNull();
+      await expect(page.getByRole("link", {name:"Sign in",exact:true})).toBeHidden();
+      await expect(page.locator('main [role="status"]')).toHaveText(accountCopy.en.working);
+      await expect(page.getByText(accountCopy.en.signedOut, {exact:true})).toBeHidden();
+    } finally { release(); }
+    if (outcome === "success") {
+      await expect(page.getByRole("link", {name:"Sign in",exact:true})).toBeVisible();
+      expect(await page.evaluate(() => localStorage.getItem("sb-slice8-auth-auth-token"))).toBeNull();
+      await expect(page.getByText(accountCopy.en.signedOut, {exact:true})).toBeVisible();
+    } else {
+      await expect(page.locator('main [role="alert"]')).toHaveText(accountCopy.en.provider);
+      await expect(page.getByRole("link", {name:"Sign in",exact:true})).toBeHidden();
+      await expect(page.getByText(accountCopy.en.signedOut, {exact:true})).toBeHidden();
+      await expect(page.getByRole("button", {name:"Sign out of this device",exact:true})).toBeEnabled();
+      const persisted = await page.evaluate(() => localStorage.getItem("sb-slice8-auth-auth-token"));
+      if (outcome === "cleanup failure") expect(persisted).not.toBeNull();
+      else expect(persisted).toBeNull();
+      expect(await page.locator("body").textContent()).not.toContain("PRIVATE logout failure");
+      expect(await page.locator("body").textContent()).not.toContain("PRIVATE logout cleanup failure");
+    }
+    expect(logoutRequests).toBe(1);
+    expect(await page.evaluate(keys => Object.fromEntries(keys.map(key => [key,localStorage.getItem(key)])), Object.keys(stores))).toEqual(stores);
+  });
+}
 for (const state of ["confirmation","duplicate","authenticated"] as const) {
   test(`signup ${state} has honest public outcomes`,async({page})=>{
     await provider(page,{signup:state}); await page.goto("/signup"); await page.getByTestId("locale-switcher").selectOption("en");

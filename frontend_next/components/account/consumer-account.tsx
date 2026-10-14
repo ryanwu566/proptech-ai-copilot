@@ -20,6 +20,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ key: MessageKey; error: boolean } | null>(null);
   const version = useRef(0);
+  const logoutPending = useRef(false);
   const statusRef = useRef<HTMLParagraphElement>(null);
   const configured = account?.status !== "configuration_unavailable";
 
@@ -29,7 +30,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
     async function load() {
       const ownVersion = ++version.current;
       const result = await restoreConsumerAccount();
-      if (disposed || ownVersion !== version.current) return;
+      if (disposed || ownVersion !== version.current || logoutPending.current) return;
       setAccount(result);
       if (result.status === "ready" && mode !== "account") router.replace("/account");
     }
@@ -37,9 +38,10 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
     const subscription = getVNextAuthClient()?.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT") {
         version.current += 1;
-        setAccount({ status: "missing_session" });
+        if (!logoutPending.current) setAccount({ status: "missing_session" });
       } else if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event)) {
         version.current += 1;
+        if (logoutPending.current) return;
         setAccount(null);
         // Defer SDK reads until the auth callback releases its session lock.
         clearTimeout(timer);
@@ -48,7 +50,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
     }).data.subscription;
     const expired = () => {
       version.current += 1;
-      setAccount({ status: "expired_session" });
+      if (!logoutPending.current) setAccount({ status: "expired_session" });
     };
     window.addEventListener(V_NEXT_SESSION_EXPIRED_EVENT, expired);
     return () => {
@@ -87,11 +89,17 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
   }
 
   async function logout() {
-    if (busy) return;
+    if (busy || logoutPending.current) return;
+    logoutPending.current = true;
     setBusy(true); version.current += 1;
-    setAccount({ status: "missing_session" });
-    try { const cleared = await signOutVNext(); setMessage({ key: cleared ? "signedOut" : "provider", error: !cleared }); }
-    finally { setBusy(false); }
+    setMessage(null); setAccount(null);
+    try {
+      // Publish completion only after SDK cleanup and pending session writes settle.
+      const cleared = await signOutVNext();
+      version.current += 1;
+      setAccount(cleared ? { status: "missing_session" } : account);
+      setMessage({ key: cleared ? "signedOut" : "provider", error: !cleared });
+    } finally { logoutPending.current = false; setBusy(false); }
   }
 
   async function retry() {
