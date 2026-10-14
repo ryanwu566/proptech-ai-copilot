@@ -73,7 +73,7 @@ def _assert_catalog(connection) -> None:
         "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
         "AND relation.relkind = 'r' ORDER BY 1, 2"
     ).fetchall()
-    assert len(tables) == 21
+    assert len(tables) == 22
     assert all(row[2] is True and row[3] is True for row in tables)
     assert all(row[4] != "vnext_api" for row in tables)
 

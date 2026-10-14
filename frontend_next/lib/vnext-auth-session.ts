@@ -13,7 +13,16 @@ let browserClient: SupabaseClient | null = null;
 let unusableSession = false;
 let sessionGeneration = 0;
 let hadValidSession = false;
-let clearingPromise: Promise<void> | null = null;
+let clearingPromise: Promise<boolean> | null = null;
+let sessionEndGeneration = 0;
+const pendingSessionWrites = new Set<Promise<unknown>>();
+
+async function sessionWrite<T>(operation: () => Promise<T>): Promise<T> {
+  const pending = operation();
+  pendingSessionWrites.add(pending);
+  try { return await pending; }
+  finally { pendingSessionWrites.delete(pending); }
+}
 
 function record(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null && !Array.isArray(value) ? value as Record<string, unknown> : null;
@@ -49,11 +58,20 @@ export function getVNextAuthClient(): SupabaseClient | null {
   if (!config) return null;
   if (!browserClient) {
     browserClient = createClient(config.url, config.key, {
+      global: { fetch: (input, init) => fetch(input, {
+        ...init,
+        signal: init?.signal ? AbortSignal.any([init.signal, AbortSignal.timeout(10_000)]) : AbortSignal.timeout(10_000),
+      }) },
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
     });
     browserClient.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") { sessionGeneration += 1; unusableSession = false; }
-      if (event === "SIGNED_OUT") { sessionGeneration += 1; unusableSession = true; hadValidSession = false; }
+      if (event === "SIGNED_IN" && !clearingPromise) { sessionGeneration += 1; unusableSession = false; }
+      if (event === "SIGNED_OUT") {
+        sessionEndGeneration += 1; sessionGeneration += 1; unusableSession = true; hadValidSession = false;
+        // A signout notification from another tab must also drain local writes.
+        // Do not await SDK calls inside its auth-state callback.
+        if (pendingSessionWrites.size && !clearingPromise) void clearSession(false);
+      }
     });
   }
   return browserClient;
@@ -83,21 +101,28 @@ function validToken(token: string): boolean {
   return expiry !== null && expiry > Math.floor(Date.now() / 1000) + 30;
 }
 
-async function clearSession(expired: boolean): Promise<void> {
+async function clearSession(expired: boolean): Promise<boolean> {
   if (!clearingPromise) {
     unusableSession = true;
+    sessionEndGeneration += 1;
     sessionGeneration += 1;
     hadValidSession = false;
     const client = getVNextAuthClient();
     clearingPromise = (async () => {
+      // SDK password/signup requests can persist sessions outside its read lock.
+      // Invalidate immediately, then drain bounded writes before SDK local logout.
+      // Late SIGNED_IN events cannot reopen access while logout is pending.
+      await Promise.allSettled([...pendingSessionWrites]);
       if (client) {
-        try { await client.auth.signOut({ scope: "local" }); } catch { /* Rejected session remains unusable in this tab. */ }
+        try { return !(await client.auth.signOut({ scope: "local" })).error; } catch { return false; }
       }
+      return false;
     })();
   }
-  await clearingPromise;
+  const cleared = await clearingPromise;
   clearingPromise = null;
   if (expired) window.dispatchEvent(new Event(V_NEXT_SESSION_EXPIRED_EVENT));
+  return cleared;
 }
 
 export async function getVNextAccessToken(): Promise<AccessTokenResult> {
@@ -139,7 +164,9 @@ export async function signInVNext(email: string, password: string): Promise<bool
   if (!client) return false;
   try {
     if (clearingPromise) await clearingPromise;
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    const generation = sessionEndGeneration;
+    const { data, error } = await sessionWrite(() => client.auth.signInWithPassword({ email, password }));
+    if (generation !== sessionEndGeneration) return false;
     if (error || !data.session || !validToken(data.session.access_token)) {
       if (data.session) await clearSession(false);
       return false;
@@ -151,8 +178,47 @@ export async function signInVNext(email: string, password: string): Promise<bool
   } catch { return false; }
 }
 
-export async function signOutVNext(): Promise<void> {
-  await clearSession(false);
+export async function signOutVNext(): Promise<boolean> {
+  return clearSession(false);
+}
+
+export type ConsumerAuthResult = { status: "authenticated" | "confirmation_required" | "request_accepted" | "configuration_unavailable" | "validation_error" | "provider_error" };
+
+export function validConsumerEmail(email: string): boolean {
+  return email.trim().length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+export async function signUpVNext(email: string, password: string): Promise<ConsumerAuthResult> {
+  if (!validConsumerEmail(email) || password.length < 8 || password.length > 1024) return { status: "validation_error" };
+  const client = getVNextAuthClient();
+  if (!client) return { status: "configuration_unavailable" };
+  try {
+    if (clearingPromise) await clearingPromise;
+    const generation = sessionEndGeneration;
+    const { data, error } = await sessionWrite(() => client.auth.signUp({ email: email.trim(), password }));
+    if (generation !== sessionEndGeneration) return { status: "provider_error" };
+    if (error) return { status: ["user_already_exists", "email_exists"].includes(error.code ?? "") ? "request_accepted" : "provider_error" };
+    if (data.session) {
+      if (!validToken(data.session.access_token)) { await clearSession(false); return { status: "provider_error" }; }
+      unusableSession = false;
+      sessionGeneration += 1;
+      hadValidSession = true;
+      return { status: "authenticated" };
+    }
+    // No delivery assertion, even when the provider returns an obfuscated user.
+    return { status: data.user ? "confirmation_required" : "request_accepted" };
+  } catch { return { status: "provider_error" }; }
+}
+
+export async function requestPasswordResetVNext(email: string): Promise<ConsumerAuthResult> {
+  if (!validConsumerEmail(email)) return { status: "validation_error" };
+  const client = getVNextAuthClient();
+  if (!client) return { status: "configuration_unavailable" };
+  try {
+    // Provider Site URL/email template owns the recovery destination. Never accept a user redirect.
+    const { error } = await client.auth.resetPasswordForEmail(email.trim());
+    return { status: error ? "provider_error" : "request_accepted" };
+  } catch { return { status: "provider_error" }; }
 }
 
 export async function expireVNextSession(expectedGeneration: number, expectedAccessToken: string): Promise<boolean> {

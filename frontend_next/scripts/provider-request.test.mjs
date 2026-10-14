@@ -25,3 +25,13 @@ test("APIs, unknown routes and external RSC remain counted", () => {
   }
   assert.equal(isProviderRequest(request("/cases/a/overview", { rsc: "1" }), base), true);
 });
+
+test("Auth route RSC navigation is internal only with the complete same-origin GET signature", () => {
+  for (const route of ["/login", "/signup", "/account"]) {
+    assert.equal(isProviderRequest(request(`${route}?_rsc=abc`, {rsc:"1"}), base), false);
+    assert.equal(isProviderRequest(request(`${route}?_rsc=abc`), base), true);
+    assert.equal(isProviderRequest(request(route, {rsc:"1"}), base), true);
+    assert.equal(isProviderRequest(request(`${route}?_rsc=abc`, {rsc:"1"}, "POST"), base), true);
+    assert.equal(isProviderRequest(request(`https://provider.example${route}?_rsc=abc`, {rsc:"1"}), base), true);
+  }
+});

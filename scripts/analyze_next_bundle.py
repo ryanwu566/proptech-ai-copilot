@@ -17,7 +17,7 @@ from typing import Any
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-SUPPORTED_ROUTES = ("/", "/preferences", "/places", "/compare", "/cases/[caseId]", *(
+SUPPORTED_ROUTES = ("/", "/login", "/signup", "/account", "/preferences", "/places", "/compare", "/cases/[caseId]", *(
     f"/cases/[caseId]/{section}" for section in
     ("overview", "market", "location", "risk", "finance", "report", "scenarios", "decision-room", "commute-planner")
 ))

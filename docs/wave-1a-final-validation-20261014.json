@@ -1,0 +1,2597 @@
+{
+  "schema_version": "wave-1a-final-validation-v1",
+  "date": "2026-10-14",
+  "timezone": "Asia/Taipei",
+  "main_commit": "99fe79a82af37a4783b89275b747036ce7e1e06b",
+  "historical_feature_commit": "a0c037fc915096dc8b02665035dee21ff4b8c5ba",
+  "historical_backup": "backup/wave-1a-frozen-a0c037f",
+  "final_commit": "containing commit; exact SHA returned in final integration response",
+  "python": {
+    "version": "3.12.13",
+    "command": "python -m pytest -q",
+    "final": {
+      "tests": 3781,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 33,
+      "passed": 3748,
+      "warnings": 155,
+      "duration_seconds": 313.21
+    },
+    "previous_full": {
+      "tests": 3767,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 33
+    },
+    "focused_domain_auth": {
+      "tests": 189,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "focused_final_auth_security_budgets": {
+      "tests": 117,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "postgres": {
+    "version": "17",
+    "junit": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "tests": "25",
+      "time": "81.380",
+      "timestamp": "2026-10-14T10:26:16.041475+08:00"
+    },
+    "external_target": "owned loopback disposable vnext_rls_test database",
+    "cluster_stopped": true
+  },
+  "frontend": {
+    "deterministic": {
+      "passed": 432,
+      "failed": 0,
+      "files": 61
+    },
+    "auth_model": {
+      "passed": 25,
+      "failed": 0
+    },
+    "vnext_hardening": {
+      "passed": 35
+    },
+    "gis_contract": "pass",
+    "lint": {
+      "errors": 0,
+      "existing_warnings": 23,
+      "note": "23 existing warnings in the repository lint scope; existing E2E exclusions unchanged"
+    },
+    "typecheck": "pass (final added credential E2E file included)",
+    "measurement_node_tests": {
+      "passed": 17,
+      "failed": 0
+    },
+    "final_source_contract_tests": {
+      "passed": 68,
+      "failed": 0
+    },
+    "visual_spot_checks": [
+      "Chrome Japanese account 390px: no clipping; authored email unchanged; Account remains secondary",
+      "Chromium English login 1440px: visible keyboard focus; readable form; property start/navigation intact"
+    ],
+    "builds": {
+      "configured": "pass",
+      "ordinary_production_unconfigured": "pass",
+      "historical_frozen_pinned": "pass"
+    }
+  },
+  "browser": {
+    "initial_auth": {
+      "tests": 68,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "initial_real_backend": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "focused_retries": 0,
+    "workers_per_runner": 1,
+    "locales": [
+      "zh-TW",
+      "en",
+      "ja",
+      "ko"
+    ],
+    "widths": [
+      390,
+      430,
+      1024,
+      1440
+    ],
+    "final_auth_and_backend": {
+      "tests": 72,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "by_browser": {
+        "chromium": {
+          "tests": 36,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "chrome": {
+          "tests": 36,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      }
+    },
+    "credential_enumeration": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "by_browser": {
+        "chromium": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "chrome": {
+          "tests": 1,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      }
+    },
+    "cross_feature_chromium": {
+      "tests": 153,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "duration_minutes": 15.3
+    },
+    "total_completed_final_configured_cases": 227,
+    "unavailable_configuration": {
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "by_browser": {
+        "chromium": {
+          "tests": 17,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "chrome": {
+          "tests": 17,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      }
+    },
+    "final_acceptance_cases": 261
+  },
+  "review": {
+    "independent_read_only": true,
+    "critical": 0,
+    "important": 2,
+    "minor": 2,
+    "all_findings_addressed": true,
+    "fixes": [
+      "drain pending SDK session writes on local or SDK-notified logout; generation rejection; real SDK RED/GREEN",
+      "stable account measurement selector; RED/GREEN and configured cold measurement",
+      "allow-listed Auth measurement diagnostics; RED/GREEN",
+      "entry-only account copy for shared header"
+    ],
+    "deferred_findings": [],
+    "scope_rulings": [
+      {
+        "boundary": "password recovery completion",
+        "decision": "provider-owned external configuration; request-only slice",
+        "cost_if_wrong": "hosted recovery could fail until operator validates completion destination"
+      },
+      {
+        "boundary": "usage/quota/Admin command workflows",
+        "decision": "leave to Wave 1B/1C; expose existing narrow authority seams",
+        "cost_if_wrong": "future waves must implement their own admission/admin workflows"
+      },
+      {
+        "boundary": "anonymous public property workflows",
+        "decision": "preserve main behavior; suspend only protected consumer operations",
+        "cost_if_wrong": "anonymous public operations remain accessible by design"
+      }
+    ]
+  },
+  "failure_classification": [
+    {
+      "suite": "initial cross-feature Chromium browser",
+      "failed_tests": [
+        "commercial-compare-report: opening/navigation/storage/print zero providers",
+        "decision-room: shared Case navigation and locale text",
+        "decision-room: records/edits/resolves/reopens without providers",
+        "decision-room: asking-price edits case isolation"
+      ],
+      "classification": "C: deterministic test-contract defect",
+      "root_cause": "new same-origin /account?_rsc prefetch missing from strict internal route allowlist",
+      "disposition": "Fixed exact-signature observer with RED/GREEN unit test; fresh full 153-test Chromium pack passed with retries disabled, zero skips/failures.",
+      "timeout_retry_worker_changes": false
+    },
+    {
+      "suite": "initial frontend deterministic evidence driver",
+      "classification": "D: Windows console encoding",
+      "root_cause": "driver printed Unicode checkmarks to CP950 stdout after the Node test process had already passed all 427 tests",
+      "disposition": "used UTF-8-safe driver output; final 432-test deterministic run passed with exit zero",
+      "product_test_failures": 0
+    }
+  ],
+  "ceilings_changed": false,
+  "production_browser_job_timeout_minutes": 45,
+  "migration": {
+    "number": "020",
+    "renumbered": false,
+    "next": "021",
+    "registry_count": 21,
+    "managed_count": 16,
+    "historical_migrations_changed": false,
+    "hosted_applied": false,
+    "static_validation": {
+      "database": "not_run",
+      "managed_migration_count": 16,
+      "migration": "static_contract_pass",
+      "next_migration_sequence": "021",
+      "operator_note": "Provide a disposable Postgres URL for transactional application validation.",
+      "registry_count": 21,
+      "status": "pass"
+    }
+  },
+  "release_source_gate": {
+    "schema_version": "release-quality-v1",
+    "release_candidate": "pass",
+    "checks": {
+      "python_tests": "not_run",
+      "frontend_build": "not_run",
+      "canonical_registry": "pass",
+      "market_coverage_contract": "pass",
+      "market_insight_contract": "pass",
+      "valuation_trust_boundary": "pass",
+      "property_case_trust_boundary": "pass",
+      "privacy_boundary": "pass",
+      "deployment_contract": "pass",
+      "error_recovery": "pass",
+      "accessibility_contract": "pass"
+    },
+    "failed_reason_codes": [],
+    "generated_at": "2026-10-14T03:04:35.551090+00:00"
+  },
+  "npm_audit": {
+    "status": "pass",
+    "policy_changed": false,
+    "full_report": {
+      "high": 6,
+      "moderate": 2
+    },
+    "reviewed_dev_only_advisory": "GHSA-vfj7-8cjw-p6xm",
+    "exception_expires": "2026-11-04",
+    "production_blocking_vulnerabilities": 0,
+    "final_after_pinned_install": "pass"
+  },
+  "hosted": {
+    "accepted": false,
+    "supabase_configuration_required": true,
+    "migration_deployment_required": true,
+    "confirmation_email_configuration_required": true,
+    "recovery_destination_configuration_required": true,
+    "email_delivery_proven": false,
+    "hosted_signup_proven": false,
+    "hosted_reset_proven": false,
+    "production_rls_accepted": false
+  },
+  "push_executed": false,
+  "merge_executed": false,
+  "deploy_executed": false,
+  "toolchain": {
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "next": "16.3.8",
+    "python": "3.12.13",
+    "postgres": "17",
+    "pins_verified": true
+  },
+  "homepage_contamination_check": {
+    "full_account_copy_in_homepage_assets": false,
+    "reset_or_supabase_sdk_marker_in_homepage_assets": false,
+    "observed_configured_homepage_delta_vs_recorded_main_bytes": 204,
+    "comparison_main_artifact": "docs/my-places-integration-assets-20261013.json"
+  },
+  "commands": {
+    "frozen_build": "npm ci --prefix frontend_next && npm --prefix frontend_next run build (historical pinned Node/npm; clean detached source)",
+    "configured_build": "npm --prefix frontend_next run build:e2e (production compiler with explicit synthetic public configuration)",
+    "production_build": "node frontend_next/node_modules/next/dist/bin/next build frontend_next (Node24.21.0; repository npm run build equivalent; public Auth/API config absent)",
+    "full_python": "python -m pytest -q --junitxml=.tmp/wave1a-integration/full-python-final.xml",
+    "focused_auth_browser": "node e2e/run-e2e.cjs e2e/consumer-account.spec.ts e2e/consumer-account-backend.spec.ts e2e/property-identity-auth.spec.ts --workers=1 --retries=0",
+    "credential_browser": "node e2e/run-e2e.cjs e2e/consumer-account-credentials.spec.ts --workers=1 --retries=0",
+    "cross_feature_browser": "node e2e/run-e2e.cjs e2e/preference-tradeoff.spec.ts e2e/property-scenario-lab.spec.ts e2e/decision-room.spec.ts e2e/my-places-commute.spec.ts e2e/commercial-compare-report.spec.ts e2e/hosted-case-market-closure.spec.ts e2e/navigation.spec.ts e2e/vnext-property-identity.spec.ts --project=chromium --workers=1 --retries=0",
+    "unavailable_browser": "WAVE1A_UNCONFIGURED=1 node e2e/run-e2e.cjs e2e/consumer-account-unconfigured.spec.ts --workers=1 --retries=0",
+    "route_measurement": "python scripts/analyze_next_bundle.py --measure-browser",
+    "budgets": [
+      "python scripts/check_route_budgets.py",
+      "python scripts/check_frontend_bundle_budget.py"
+    ],
+    "security": "python scripts/security_performance_release_gate.py --json",
+    "release_source": "python scripts/release_quality_gate.py --skip-tests --skip-frontend-build",
+    "dependency_audit": "python scripts/npm_audit_gate.py --as-of 2026-10-14",
+    "hygiene": "python scripts/check_repository_hygiene.py",
+    "whitespace": "git diff --check"
+  },
+  "performance": {
+    "configured": {
+      "all_javascript_bytes": 3078535,
+      "build_id": "4zaopvE-elj4hhcGEylb9",
+      "content_checks": {
+        "admin_markers_in_public_assets": [],
+        "road_catalog_markers_in_public_assets": [],
+        "test_fixture_markers_in_public_assets": []
+      },
+      "fingerprint": "6b9873cfb604c49b6496786a4286911f933d90623a25ecd52fd932ffd1ab2b7c",
+      "largest_client_chunk": {
+        "bytes": 602295,
+        "file": "chunks/2-lp-qb_leimt.js"
+      },
+      "routes": {
+        "/": {
+          "client_bytes": 1907113,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/16k6t1bymnxq4.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1pijo1s-wewxn.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/2-lp-qb_leimt.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26dlrnhmiq1jq.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/"
+          ],
+          "route": "/",
+          "status": "measured"
+        },
+        "/account": {
+          "client_bytes": 1112474,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1i528zhz9s6xe.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/account"
+          ],
+          "route": "/account",
+          "status": "measured"
+        },
+        "/cases/[caseId]": {
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]",
+          "status": "measured"
+        },
+        "/cases/[caseId]/commute-planner": {
+          "client_bytes": 1148978,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/2-cdvrnnvi0qo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/commute-planner"
+          ],
+          "route": "/cases/[caseId]/commute-planner",
+          "status": "measured"
+        },
+        "/cases/[caseId]/decision-room": {
+          "client_bytes": 1176955,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0n99_cqbmemng.css",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1j47ycjhb3sbd.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/decision-room"
+          ],
+          "route": "/cases/[caseId]/decision-room",
+          "status": "measured"
+        },
+        "/cases/[caseId]/finance": {
+          "client_bytes": 1159264,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1a0s3lbh7kkik.js",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/finance"
+          ],
+          "route": "/cases/[caseId]/finance",
+          "status": "measured"
+        },
+        "/cases/[caseId]/location": {
+          "client_bytes": 1332357,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/22u4nz7sv6fse.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/36kq4bn3w9gxq.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js",
+            "static/media/layers.3muxcl8sz6330.png"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/location"
+          ],
+          "route": "/cases/[caseId]/location",
+          "status": "measured"
+        },
+        "/cases/[caseId]/market": {
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/market"
+          ],
+          "route": "/cases/[caseId]/market",
+          "status": "measured"
+        },
+        "/cases/[caseId]/overview": {
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]/overview",
+          "status": "measured"
+        },
+        "/cases/[caseId]/report": {
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/report"
+          ],
+          "route": "/cases/[caseId]/report",
+          "status": "measured"
+        },
+        "/cases/[caseId]/risk": {
+          "client_bytes": 1320636,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x28geo3lui35.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/1254zbx9g_dk9.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1wxqw6h4baee8.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2953d5zcr74-5.css",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/risk"
+          ],
+          "route": "/cases/[caseId]/risk",
+          "status": "measured"
+        },
+        "/cases/[caseId]/scenarios": {
+          "client_bytes": 1142073,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26m2hd_euq6nz.css",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3bjwredcbksyt.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/scenarios"
+          ],
+          "route": "/cases/[caseId]/scenarios",
+          "status": "measured"
+        },
+        "/compare": {
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/compare"
+          ],
+          "route": "/compare",
+          "status": "measured"
+        },
+        "/login": {
+          "client_bytes": 1112474,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1i528zhz9s6xe.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/login"
+          ],
+          "route": "/login",
+          "status": "measured"
+        },
+        "/places": {
+          "client_bytes": 859738,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2cik7mubn42-9.js",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/places"
+          ],
+          "route": "/places",
+          "status": "measured"
+        },
+        "/preferences": {
+          "client_bytes": 875758,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/41jz8svqysm-y.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/preferences"
+          ],
+          "route": "/preferences",
+          "status": "measured"
+        },
+        "/signup": {
+          "client_bytes": 1112474,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1i528zhz9s6xe.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/signup"
+          ],
+          "route": "/signup",
+          "status": "measured"
+        }
+      },
+      "schema_version": "next-bundle-v2",
+      "static_asset_count": 65,
+      "static_javascript_files": 50,
+      "status": "pass",
+      "total_static_bytes": 3250182
+    },
+    "configured_route_budgets": {
+      "attribution_status": "pass",
+      "coverage_status": "pass",
+      "global_budget": {
+        "initial_javascript_bytes": 3078535,
+        "largest_chunk_budget_bytes": 900000,
+        "largest_client_chunk_bytes": 602295,
+        "status": "pass",
+        "total_budget_bytes": 8000000,
+        "total_static_bytes": 3250182
+      },
+      "largest_client_chunk_bytes": 602295,
+      "routes": {
+        "/": {
+          "baseline_client_bytes": 1879060,
+          "client_budget_bytes": 2066966,
+          "client_bytes": 1907113,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/16k6t1bymnxq4.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1pijo1s-wewxn.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/2-lp-qb_leimt.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26dlrnhmiq1jq.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 200000,
+          "headroom_percent": 10,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/"
+          ],
+          "route": "/",
+          "status": "pass"
+        },
+        "/account": {
+          "baseline_client_bytes": 1112023,
+          "client_budget_bytes": 1334428,
+          "client_bytes": 1112474,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1i528zhz9s6xe.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/account"
+          ],
+          "route": "/account",
+          "status": "pass"
+        },
+        "/cases/[caseId]": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]",
+          "status": "pass"
+        },
+        "/cases/[caseId]/commute-planner": {
+          "baseline_client_bytes": 1148320,
+          "client_budget_bytes": 1377984,
+          "client_bytes": 1148978,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/2-cdvrnnvi0qo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/commute-planner"
+          ],
+          "route": "/cases/[caseId]/commute-planner",
+          "status": "pass"
+        },
+        "/cases/[caseId]/decision-room": {
+          "baseline_client_bytes": 1174856,
+          "client_budget_bytes": 1409828,
+          "client_bytes": 1176955,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0n99_cqbmemng.css",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1j47ycjhb3sbd.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/decision-room"
+          ],
+          "route": "/cases/[caseId]/decision-room",
+          "status": "pass"
+        },
+        "/cases/[caseId]/finance": {
+          "baseline_client_bytes": 1115916,
+          "client_budget_bytes": 1339100,
+          "client_bytes": 1159264,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1a0s3lbh7kkik.js",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/finance"
+          ],
+          "route": "/cases/[caseId]/finance",
+          "status": "pass"
+        },
+        "/cases/[caseId]/location": {
+          "baseline_client_bytes": 1293212,
+          "client_budget_bytes": 1551855,
+          "client_bytes": 1332357,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/22u4nz7sv6fse.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/36kq4bn3w9gxq.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js",
+            "static/media/layers.3muxcl8sz6330.png"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/location"
+          ],
+          "route": "/cases/[caseId]/location",
+          "status": "pass"
+        },
+        "/cases/[caseId]/market": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/market"
+          ],
+          "route": "/cases/[caseId]/market",
+          "status": "pass"
+        },
+        "/cases/[caseId]/overview": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]/overview",
+          "status": "pass"
+        },
+        "/cases/[caseId]/report": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/report"
+          ],
+          "route": "/cases/[caseId]/report",
+          "status": "pass"
+        },
+        "/cases/[caseId]/risk": {
+          "baseline_client_bytes": 1281707,
+          "client_budget_bytes": 1538049,
+          "client_bytes": 1320636,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x28geo3lui35.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/1254zbx9g_dk9.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1wxqw6h4baee8.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2953d5zcr74-5.css",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/risk"
+          ],
+          "route": "/cases/[caseId]/risk",
+          "status": "pass"
+        },
+        "/cases/[caseId]/scenarios": {
+          "baseline_client_bytes": 1114869,
+          "client_budget_bytes": 1337843,
+          "client_bytes": 1142073,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26m2hd_euq6nz.css",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3bjwredcbksyt.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/scenarios"
+          ],
+          "route": "/cases/[caseId]/scenarios",
+          "status": "pass"
+        },
+        "/compare": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127017,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/compare"
+          ],
+          "route": "/compare",
+          "status": "pass"
+        },
+        "/login": {
+          "baseline_client_bytes": 1112023,
+          "client_budget_bytes": 1334428,
+          "client_bytes": 1112474,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1i528zhz9s6xe.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/login"
+          ],
+          "route": "/login",
+          "status": "pass"
+        },
+        "/places": {
+          "baseline_client_bytes": 859080,
+          "client_budget_bytes": 1030896,
+          "client_bytes": 859738,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2cik7mubn42-9.js",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/places"
+          ],
+          "route": "/places",
+          "status": "pass"
+        },
+        "/preferences": {
+          "baseline_client_bytes": 874779,
+          "client_budget_bytes": 1049735,
+          "client_bytes": 875758,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/41jz8svqysm-y.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/preferences"
+          ],
+          "route": "/preferences",
+          "status": "pass"
+        },
+        "/signup": {
+          "baseline_client_bytes": 1112023,
+          "client_budget_bytes": 1334428,
+          "client_bytes": 1112474,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0j5e6t1xglsyh.js",
+            "static/chunks/1i528zhz9s6xe.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/1zv3xccs4c503.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/signup"
+          ],
+          "route": "/signup",
+          "status": "pass"
+        }
+      },
+      "schema_version": "route-budgets-v2",
+      "status": "pass",
+      "total_static_bytes": 3250182
+    },
+    "configured_global": {
+      "initial_javascript_bytes": 3078535,
+      "largest_chunk_budget_bytes": 900000,
+      "largest_client_chunk_bytes": 602295,
+      "status": "pass",
+      "total_budget_bytes": 8000000,
+      "total_static_bytes": 3250182
+    },
+    "frozen": {
+      "all_javascript_bytes": 2999706,
+      "build_id": "Y-2zA3ptZfD49F8rZdHXr",
+      "content_checks": {
+        "admin_markers_in_public_assets": [],
+        "road_catalog_markers_in_public_assets": [],
+        "test_fixture_markers_in_public_assets": []
+      },
+      "fingerprint": "12b11d7060741666f284882001a581c3403fffb1423dd889e233eb0c4334a9e6",
+      "largest_client_chunk": {
+        "bytes": 602354,
+        "file": "chunks/00ydus14jt-87.js"
+      },
+      "routes": {
+        "/": {
+          "client_bytes": 1914397,
+          "client_files": [
+            "static/chunks/00ydus14jt-87.js",
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/05rrruk-z3jag.js",
+            "static/chunks/143w2a4e7l0s5.js",
+            "static/chunks/16k6t1bymnxq4.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1k99ddrz9gk-9.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/26dlrnhmiq1jq.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/41uisdzsofd3-.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/"
+          ],
+          "route": "/",
+          "status": "measured"
+        },
+        "/account": {
+          "client_bytes": 1112023,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0lbn2sv93-me6.js",
+            "static/chunks/143w2a4e7l0s5.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/39j833qskg-5p.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/41uisdzsofd3-.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/account"
+          ],
+          "route": "/account",
+          "status": "measured"
+        },
+        "/login": {
+          "client_bytes": 1112023,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0lbn2sv93-me6.js",
+            "static/chunks/143w2a4e7l0s5.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/39j833qskg-5p.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/41uisdzsofd3-.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/login"
+          ],
+          "route": "/login",
+          "status": "measured"
+        },
+        "/signup": {
+          "client_bytes": 1112023,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0lbn2sv93-me6.js",
+            "static/chunks/143w2a4e7l0s5.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/39j833qskg-5p.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/41uisdzsofd3-.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/signup"
+          ],
+          "route": "/signup",
+          "status": "measured"
+        }
+      },
+      "schema_version": "next-bundle-v2",
+      "static_asset_count": 60,
+      "static_javascript_files": 47,
+      "status": "pass",
+      "total_static_bytes": 3161562
+    },
+    "production": {
+      "all_javascript_bytes": 3078831,
+      "build_id": "sVxbVff7_mMswQPPY5KyS",
+      "content_checks": {
+        "admin_markers_in_public_assets": [],
+        "road_catalog_markers_in_public_assets": [],
+        "test_fixture_markers_in_public_assets": []
+      },
+      "fingerprint": "cafb0892f294682e1045af996a30f6ca5c489e8ec14c951419caacb803788f50",
+      "largest_client_chunk": {
+        "bytes": 602354,
+        "file": "chunks/00ydus14jt-87.js"
+      },
+      "routes": {
+        "/": {
+          "client_bytes": 1907364,
+          "client_files": [
+            "static/chunks/00ydus14jt-87.js",
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/16k6t1bymnxq4.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1pijo1s-wewxn.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26dlrnhmiq1jq.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/"
+          ],
+          "route": "/",
+          "status": "measured"
+        },
+        "/account": {
+          "client_bytes": 1112711,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/298bzkuu1hu1c.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/account"
+          ],
+          "route": "/account",
+          "status": "measured"
+        },
+        "/cases/[caseId]": {
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]",
+          "status": "measured"
+        },
+        "/cases/[caseId]/commute-planner": {
+          "client_bytes": 1149170,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/2-cdvrnnvi0qo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/commute-planner"
+          ],
+          "route": "/cases/[caseId]/commute-planner",
+          "status": "measured"
+        },
+        "/cases/[caseId]/decision-room": {
+          "client_bytes": 1177147,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0n99_cqbmemng.css",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1j47ycjhb3sbd.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/decision-room"
+          ],
+          "route": "/cases/[caseId]/decision-room",
+          "status": "measured"
+        },
+        "/cases/[caseId]/finance": {
+          "client_bytes": 1159456,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1a0s3lbh7kkik.js",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/finance"
+          ],
+          "route": "/cases/[caseId]/finance",
+          "status": "measured"
+        },
+        "/cases/[caseId]/location": {
+          "client_bytes": 1332549,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/22u4nz7sv6fse.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/36kq4bn3w9gxq.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js",
+            "static/media/layers.3muxcl8sz6330.png"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/location"
+          ],
+          "route": "/cases/[caseId]/location",
+          "status": "measured"
+        },
+        "/cases/[caseId]/market": {
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/market"
+          ],
+          "route": "/cases/[caseId]/market",
+          "status": "measured"
+        },
+        "/cases/[caseId]/overview": {
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]/overview",
+          "status": "measured"
+        },
+        "/cases/[caseId]/report": {
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/report"
+          ],
+          "route": "/cases/[caseId]/report",
+          "status": "measured"
+        },
+        "/cases/[caseId]/risk": {
+          "client_bytes": 1320828,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x28geo3lui35.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/1254zbx9g_dk9.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1wxqw6h4baee8.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2953d5zcr74-5.css",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/risk"
+          ],
+          "route": "/cases/[caseId]/risk",
+          "status": "measured"
+        },
+        "/cases/[caseId]/scenarios": {
+          "client_bytes": 1142265,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26m2hd_euq6nz.css",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3bjwredcbksyt.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/scenarios"
+          ],
+          "route": "/cases/[caseId]/scenarios",
+          "status": "measured"
+        },
+        "/compare": {
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/compare"
+          ],
+          "route": "/compare",
+          "status": "measured"
+        },
+        "/login": {
+          "client_bytes": 1112711,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/298bzkuu1hu1c.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/login"
+          ],
+          "route": "/login",
+          "status": "measured"
+        },
+        "/places": {
+          "client_bytes": 859930,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2cik7mubn42-9.js",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/places"
+          ],
+          "route": "/places",
+          "status": "measured"
+        },
+        "/preferences": {
+          "client_bytes": 875950,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/41jz8svqysm-y.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/preferences"
+          ],
+          "route": "/preferences",
+          "status": "measured"
+        },
+        "/signup": {
+          "client_bytes": 1112711,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/298bzkuu1hu1c.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/signup"
+          ],
+          "route": "/signup",
+          "status": "measured"
+        }
+      },
+      "schema_version": "next-bundle-v2",
+      "static_asset_count": 65,
+      "static_javascript_files": 50,
+      "status": "pass",
+      "total_static_bytes": 3250478
+    },
+    "production_route_budgets": {
+      "attribution_status": "pass",
+      "coverage_status": "pass",
+      "global_budget": {
+        "initial_javascript_bytes": 3078831,
+        "largest_chunk_budget_bytes": 900000,
+        "largest_client_chunk_bytes": 602354,
+        "status": "pass",
+        "total_budget_bytes": 8000000,
+        "total_static_bytes": 3250478
+      },
+      "largest_client_chunk_bytes": 602354,
+      "routes": {
+        "/": {
+          "baseline_client_bytes": 1879060,
+          "client_budget_bytes": 2066966,
+          "client_bytes": 1907364,
+          "client_files": [
+            "static/chunks/00ydus14jt-87.js",
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/16k6t1bymnxq4.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1pijo1s-wewxn.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26dlrnhmiq1jq.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 200000,
+          "headroom_percent": 10,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/"
+          ],
+          "route": "/",
+          "status": "pass"
+        },
+        "/account": {
+          "baseline_client_bytes": 1112023,
+          "client_budget_bytes": 1334428,
+          "client_bytes": 1112711,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/298bzkuu1hu1c.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/account"
+          ],
+          "route": "/account",
+          "status": "pass"
+        },
+        "/cases/[caseId]": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]",
+          "status": "pass"
+        },
+        "/cases/[caseId]/commute-planner": {
+          "baseline_client_bytes": 1148320,
+          "client_budget_bytes": 1377984,
+          "client_bytes": 1149170,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/2-cdvrnnvi0qo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/commute-planner"
+          ],
+          "route": "/cases/[caseId]/commute-planner",
+          "status": "pass"
+        },
+        "/cases/[caseId]/decision-room": {
+          "baseline_client_bytes": 1174856,
+          "client_budget_bytes": 1409828,
+          "client_bytes": 1177147,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0n99_cqbmemng.css",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1j47ycjhb3sbd.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/decision-room"
+          ],
+          "route": "/cases/[caseId]/decision-room",
+          "status": "pass"
+        },
+        "/cases/[caseId]/finance": {
+          "baseline_client_bytes": 1115916,
+          "client_budget_bytes": 1339100,
+          "client_bytes": 1159456,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1a0s3lbh7kkik.js",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/finance"
+          ],
+          "route": "/cases/[caseId]/finance",
+          "status": "pass"
+        },
+        "/cases/[caseId]/location": {
+          "baseline_client_bytes": 1293212,
+          "client_budget_bytes": 1551855,
+          "client_bytes": 1332549,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/02u3rb33gmg8e.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/22u4nz7sv6fse.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/36kq4bn3w9gxq.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js",
+            "static/media/layers.3muxcl8sz6330.png"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/location"
+          ],
+          "route": "/cases/[caseId]/location",
+          "status": "pass"
+        },
+        "/cases/[caseId]/market": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/market"
+          ],
+          "route": "/cases/[caseId]/market",
+          "status": "pass"
+        },
+        "/cases/[caseId]/overview": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/overview"
+          ],
+          "route": "/cases/[caseId]/overview",
+          "status": "pass"
+        },
+        "/cases/[caseId]/report": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/report"
+          ],
+          "route": "/cases/[caseId]/report",
+          "status": "pass"
+        },
+        "/cases/[caseId]/risk": {
+          "baseline_client_bytes": 1281707,
+          "client_budget_bytes": 1538049,
+          "client_bytes": 1320828,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0qu0g6rh_meg1.js",
+            "static/chunks/0x28geo3lui35.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/1254zbx9g_dk9.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1wxqw6h4baee8.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2953d5zcr74-5.css",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/risk"
+          ],
+          "route": "/cases/[caseId]/risk",
+          "status": "pass"
+        },
+        "/cases/[caseId]/scenarios": {
+          "baseline_client_bytes": 1114869,
+          "client_budget_bytes": 1337843,
+          "client_bytes": 1142265,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26m2hd_euq6nz.css",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3bjwredcbksyt.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/cases/case-a/scenarios"
+          ],
+          "route": "/cases/[caseId]/scenarios",
+          "status": "pass"
+        },
+        "/compare": {
+          "baseline_client_bytes": 1084343,
+          "client_budget_bytes": 1301212,
+          "client_bytes": 1127209,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/0qoqp-svskpmp.js",
+            "static/chunks/0x5pewtmapsaf.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1d_10wjogvwyy.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/3rnxgctejgvfe.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/compare"
+          ],
+          "route": "/compare",
+          "status": "pass"
+        },
+        "/login": {
+          "baseline_client_bytes": 1112023,
+          "client_budget_bytes": 1334428,
+          "client_bytes": 1112711,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/298bzkuu1hu1c.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/login"
+          ],
+          "route": "/login",
+          "status": "pass"
+        },
+        "/places": {
+          "baseline_client_bytes": 859080,
+          "client_budget_bytes": 1030896,
+          "client_bytes": 859930,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2cik7mubn42-9.js",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3izosrl79qis-.css",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/places"
+          ],
+          "route": "/places",
+          "status": "pass"
+        },
+        "/preferences": {
+          "baseline_client_bytes": 874779,
+          "client_budget_bytes": 1049735,
+          "client_bytes": 875950,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/17ff7embh2wq5.css",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/41jz8svqysm-y.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/preferences"
+          ],
+          "route": "/preferences",
+          "status": "pass"
+        },
+        "/signup": {
+          "baseline_client_bytes": 1112023,
+          "client_budget_bytes": 1334428,
+          "client_bytes": 1112711,
+          "client_files": [
+            "static/chunks/02jnefm8rh30j.js",
+            "static/chunks/1nq0sqdultszo.js",
+            "static/chunks/1x2w7z4unagcf.js",
+            "static/chunks/20oi1d5gaaxqf.js",
+            "static/chunks/237u30n-okrv0.js",
+            "static/chunks/26qkt5vjxslqc.js",
+            "static/chunks/298bzkuu1hu1c.js",
+            "static/chunks/2b_x1_2-zc0_z.css",
+            "static/chunks/2gheihenzwf-a.css",
+            "static/chunks/2nwcmibmlk7fa.js",
+            "static/chunks/3_pz_xyhj63hd.js",
+            "static/chunks/3d3eos1_5zs1c.js",
+            "static/chunks/3pfth1qq4fxpi.js",
+            "static/chunks/turbopack-2tkuz11zb02ah.js"
+          ],
+          "headroom_cap_bytes": 300000,
+          "headroom_percent": 20,
+          "measurement_method": "local_production_browser",
+          "navigation_paths": [
+            "/signup"
+          ],
+          "route": "/signup",
+          "status": "pass"
+        }
+      },
+      "schema_version": "route-budgets-v2",
+      "status": "pass",
+      "total_static_bytes": 3250478
+    },
+    "production_global": {
+      "initial_javascript_bytes": 3078831,
+      "largest_chunk_budget_bytes": 900000,
+      "largest_client_chunk_bytes": 602354,
+      "status": "pass",
+      "total_budget_bytes": 8000000,
+      "total_static_bytes": 3250478
+    }
+  },
+  "security_configured_gate": {
+    "checks": {
+      "environment": "pass",
+      "migration": "pass",
+      "persistence": "pass",
+      "required_files": "pass",
+      "route_budgets": "pass",
+      "threat_model": "pass"
+    },
+    "missing": [],
+    "status": "pass"
+  },
+  "release_source_gate_note": "Invoked with --skip-tests --skip-frontend-build; raw not_run values are preserved. Full Python and production builds have independent fresh evidence above.",
+  "security_production_gate": {
+    "checks": {
+      "environment": "pass",
+      "migration": "pass",
+      "persistence": "pass",
+      "required_files": "pass",
+      "route_budgets": "pass",
+      "threat_model": "pass"
+    },
+    "missing": [],
+    "status": "pass"
+  },
+  "target_topology": {
+    "behind_origin_main": 0,
+    "ahead_origin_main": 1,
+    "clean_working_tree": true,
+    "post_commit_verified_in_completion_response": true
+  },
+  "safe_to_create_pr": "YES for local integration review; hosted release acceptance remains unproven",
+  "safe_push_command_not_executed": "git -C C:/Projects/proptech-auth-account-v1 push --set-upstream origin feat/auth-account-foundation-v1",
+  "existing_route_budget_entries_unchanged": 14,
+  "changed_file_count": 65
+}

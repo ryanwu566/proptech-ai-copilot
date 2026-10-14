@@ -8,6 +8,7 @@ import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { getPageLabelKey, type AppPage } from "@/components/sidebar";
 import { preferenceCopy } from "@/lib/preferences/copy";
 import { placesEntryCopy } from "@/lib/my-places-entry-copy";
+import { accountEntryCopy } from "@/lib/account-entry-copy";
 
 const methods: AppPage[] = ["Map Insight Lite", "房價估算", "Market Insight Lite", "Terrain Risk", "TaxOracle", "Aegis-Credit Lite"];
 
@@ -31,6 +32,7 @@ export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: 
         <Link href="/places" aria-current={pathname === "/places" ? "page" : undefined}>{copyFrom(placesEntryCopy, "places")}</Link>
       </nav>
       <div className="commercial-global-tools">
+        <Link href="/account" aria-current={pathname === "/account" ? "page" : undefined}>{copyFrom(accountEntryCopy, "entry")}</Link>
         <LocaleSwitcher />
         <details ref={disclosure} className="commercial-methods" onKeyDown={(event) => { if (event.key === "Escape" && disclosure.current) { disclosure.current.open = false; disclosure.current.querySelector("summary")?.focus(); } }}>
           <summary>{t("commercial.methods")}</summary>

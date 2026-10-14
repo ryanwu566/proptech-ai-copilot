@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from services.vnext.accounts import get_account_authorizer
+from tests.account_fixtures import active_account_authorizer
+
+
 from contextlib import contextmanager
 from dataclasses import replace
 from datetime import datetime, timedelta, timezone
@@ -565,6 +569,7 @@ def _client(
     command_service = _CommandService(authorizer, service)
     reads = _PropertyReads(authorizer)
     app.dependency_overrides[get_supabase_jwt_verifier] = lambda: verifier
+    app.dependency_overrides[get_account_authorizer] = active_account_authorizer
     app.dependency_overrides[get_workspace_authorizer] = lambda: authorizer
     app.dependency_overrides[get_vnext_feature_flags] = lambda: VNextFeatureFlags(
         identity_v1=feature_enabled

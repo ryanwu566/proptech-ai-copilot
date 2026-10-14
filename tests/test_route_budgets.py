@@ -9,6 +9,46 @@ from scripts.analyze_next_bundle import EVIDENCE_NAME, SUPPORTED_ROUTES, analyze
 from scripts.check_route_budgets import ROUTE_BUDGETS, measure, route_limit
 
 
+@pytest.mark.parametrize("route", ["/login", "/signup", "/account"])
+def test_auth_routes_are_required_with_frozen_feature_provenance(route) -> None:
+    assert route in SUPPORTED_ROUTES
+    budget = ROUTE_BUDGETS[route]
+    assert budget["required"] is True
+    assert budget["baseline_source"] == "supplemental-auth-a0c037f"
+    baseline = json.loads(Path("docs/performance-budget-v2-baseline.json").read_text())
+    frozen = baseline["supplemental_auth_measurement"]
+    assert baseline["supplemental_auth_commit"] == "a0c037fc915096dc8b02665035dee21ff4b8c5ba"
+    assert frozen["routes"][route]["client_bytes"] == budget["baseline_client_bytes"]
+    assert frozen["routes"][route]["measurement_method"] == "local_production_browser"
+    assert route_limit(budget) == budget["baseline_client_bytes"] + (budget["baseline_client_bytes"] + 4) // 5
+
+
+@pytest.mark.parametrize("route", ["/login", "/signup", "/account"])
+def test_missing_auth_route_fails_required_coverage(tmp_path, route) -> None:
+    result = measure(build_fixture(tmp_path))
+    assert result["routes"][route]["status"] == "route_not_present"
+    assert result["routes"][route]["client_bytes"] is None
+    assert result["coverage_status"] == "fail"
+
+
+@pytest.mark.parametrize("route", ["/login", "/signup", "/account"])
+def test_auth_route_over_ceiling_fails_despite_passing_global_budget(tmp_path, route) -> None:
+    root = build_fixture(tmp_path)
+    paths = json.loads((root / "server/app-paths-manifest.json").read_text())
+    paths[route + "/page"] = "app" + route + "/page.js"
+    (root / "server/app-paths-manifest.json").write_text(json.dumps(paths))
+    manifest = json.loads((root / "app-build-manifest.json").read_text())
+    manifest["pages"][route + "/page"] = ["static/chunks/auth.css"]
+    (root / "app-build-manifest.json").write_text(json.dumps(manifest))
+    reference = root / ("server/app" + route + "/page_client-reference-manifest.js")
+    reference.parent.mkdir(parents=True)
+    reference.write_text('globalThis.__RSC_MANIFEST["' + route + '/page"] = {"entryCSSFiles":{}};')
+    (root / "static/chunks/auth.css").write_bytes(b"c" * route_limit(ROUTE_BUDGETS[route]))
+    result = measure(root)
+    assert result["global_budget"]["status"] == "pass"
+    assert result["routes"][route]["status"] == "fail"
+
+
 @pytest.mark.parametrize("route", ["/places", "/cases/[caseId]/commute-planner"])
 def test_my_places_requires_own_fixed_budget_and_missing_is_not_zero(tmp_path, route):
     assert route in SUPPORTED_ROUTES

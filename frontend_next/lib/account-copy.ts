@@ -1,0 +1,53 @@
+import type { CopyCatalogue } from "./copy-catalogue";
+
+const en = {
+  entry: "Account", login: "Sign in", signup: "Create account", account: "Your account",
+  intro: "A place for your property decisions", loginNote: "Sign in to your account. You can continue exploring properties without signing in.",
+  signupNote: "Create your personal account for the next step in your property journey.",
+  email: "Email address", password: "Password", passwordHint: "Use at least 8 characters.",
+  submitLogin: "Sign in", submitSignup: "Create account", signout: "Sign out of this device", working: "Please wait…",
+  accepted: "Request accepted. Confirmation may be required before signing in. If you receive instructions, follow them to continue.",
+  reset: "Request password reset", resetAccepted: "Request accepted. If your account is eligible, follow the recovery instructions from your account provider.",
+  validation: "Enter a valid email and a password of 8–1024 characters.", resetValidation: "Enter a valid email address first.",
+  provider: "We couldn’t complete this request. Check your details and try again later.",
+  unavailable: "Account services are currently unavailable. Please try again later.",
+  expired: "Your session has ended. Sign in again to continue.", missing: "Sign in to view your account.",
+  status: "Account status", active: "Active", suspended: "Suspended",
+  suspensionNote: "Protected account operations are unavailable while your account is suspended.",
+  memberSince: "Member since", localTitle: "Your saved property cases", localNote: "Existing saved cases stay in this browser. Signing in does not upload, transfer or sync them to another device.",
+  cases: "View saved cases", explore: "Continue exploring", retry: "Try again", privacy: "Your password is handled by our account provider. We do not store it in your profile.",
+  noAccount: "New here?", hasAccount: "Already have an account?", signedOut: "You have signed out of this device.",
+};
+export const accountCopy: CopyCatalogue<keyof typeof en> = {
+  en,
+  "zh-TW": {
+    entry: "帳戶", login: "登入", signup: "建立帳戶", account: "你的帳戶",
+    intro: "讓每一步房產決策更踏實", loginNote: "登入你的帳戶，也可以直接繼續探索房產。", signupNote: "建立個人帳戶，開啟房產探索的下一步。",
+    email: "電子郵件", password: "密碼", passwordHint: "請使用至少 8 個字元。", submitLogin: "登入", submitSignup: "建立帳戶", signout: "登出此裝置", working: "處理中…",
+    accepted: "已受理申請，登入前可能需要確認帳戶。若收到操作指示，請依指示繼續。", reset: "申請重設密碼", resetAccepted: "已受理申請。若帳戶符合條件，請依帳戶服務提供者的復原指示操作。",
+    validation: "請輸入有效的電子郵件及 8–1024 個字元的密碼。", resetValidation: "請先輸入有效的電子郵件。", provider: "目前無法完成申請。請確認資料並稍後再試。", unavailable: "帳戶服務暫時無法使用，請稍後再試。",
+    expired: "登入已失效，請重新登入以繼續。", missing: "登入後即可查看你的帳戶。", status: "帳戶狀態", active: "正常", suspended: "已停用", suspensionNote: "帳戶停用期間無法使用需登入的帳戶功能。",
+    memberSince: "加入日期", localTitle: "你的已儲存房產案例", localNote: "現有案例仍保留在此瀏覽器。登入不會上傳、轉移或同步案例至其他裝置。", cases: "查看已儲存案例", explore: "繼續探索", retry: "重試", privacy: "密碼由帳戶服務提供者處理，不會儲存於你的個人資料中。",
+    noAccount: "第一次使用？", hasAccount: "已有帳戶？", signedOut: "已登出此裝置。",
+  },
+  ja: {
+    entry: "アカウント", login: "ログイン", signup: "アカウント作成", account: "あなたのアカウント",
+    intro: "不動産の判断を、一歩ずつ確かに", loginNote: "アカウントにログインしてください。ログインせずに不動産の探索を続けることもできます。", signupNote: "個人アカウントを作成して、不動産探索の次の一歩へ。",
+    email: "メールアドレス", password: "パスワード", passwordHint: "8文字以上を使用してください。", submitLogin: "ログイン", submitSignup: "アカウント作成", signout: "この端末からログアウト", working: "処理中…",
+    accepted: "リクエストを受け付けました。ログイン前に確認が必要な場合があります。案内が届いた場合は、指示に従ってください。", reset: "パスワード再設定を申請", resetAccepted: "リクエストを受け付けました。対象の場合は、アカウント提供元の復旧手順に従ってください。",
+    validation: "有効なメールアドレスと8〜1024文字のパスワードを入力してください。", resetValidation: "先に有効なメールアドレスを入力してください。", provider: "リクエストを完了できませんでした。入力内容を確認し、後ほどお試しください。", unavailable: "アカウントサービスを利用できません。後ほどお試しください。",
+    expired: "セッションが終了しました。再度ログインしてください。", missing: "ログインしてアカウントを確認してください。", status: "アカウントの状態", active: "有効", suspended: "停止中", suspensionNote: "停止中は、ログインが必要なアカウント機能を利用できません。",
+    memberSince: "登録日", localTitle: "保存した不動産ケース", localNote: "既存のケースはこのブラウザに保存されています。ログインしてもアップロード、移行、他の端末への同期は行われません。", cases: "保存済みケースを見る", explore: "探索を続ける", retry: "再試行", privacy: "パスワードはアカウント提供元が処理し、プロフィールには保存しません。",
+    noAccount: "初めての方", hasAccount: "アカウントをお持ちの方", signedOut: "この端末からログアウトしました。",
+  },
+  ko: {
+    entry: "계정", login: "로그인", signup: "계정 만들기", account: "내 계정",
+    intro: "부동산 결정을 위한 든든한 첫걸음", loginNote: "계정에 로그인하세요. 로그인 없이도 부동산 탐색을 계속할 수 있습니다.", signupNote: "개인 계정을 만들고 부동산 탐색의 다음 단계를 시작하세요.",
+    email: "이메일 주소", password: "비밀번호", passwordHint: "8자 이상을 사용하세요.", submitLogin: "로그인", submitSignup: "계정 만들기", signout: "이 기기에서 로그아웃", working: "처리 중…",
+    accepted: "요청이 접수되었습니다. 로그인 전에 확인이 필요할 수 있습니다. 안내를 받으면 지침에 따라 계속하세요.", reset: "비밀번호 재설정 요청", resetAccepted: "요청이 접수되었습니다. 대상 계정인 경우 계정 서비스의 복구 안내를 따라 주세요.",
+    validation: "유효한 이메일과 8–1024자 비밀번호를 입력하세요.", resetValidation: "먼저 유효한 이메일 주소를 입력하세요.", provider: "요청을 완료할 수 없습니다. 입력 내용을 확인하고 나중에 다시 시도하세요.", unavailable: "현재 계정 서비스를 이용할 수 없습니다. 나중에 다시 시도하세요.",
+    expired: "세션이 종료되었습니다. 다시 로그인하세요.", missing: "계정을 보려면 로그인하세요.", status: "계정 상태", active: "활성", suspended: "정지됨", suspensionNote: "계정 정지 중에는 로그인이 필요한 계정 기능을 사용할 수 없습니다.",
+    memberSince: "가입일", localTitle: "저장한 부동산 사례", localNote: "기존 사례는 이 브라우저에 유지됩니다. 로그인해도 다른 기기로 업로드, 이전 또는 동기화되지 않습니다.", cases: "저장된 사례 보기", explore: "계속 탐색", retry: "다시 시도", privacy: "비밀번호는 계정 서비스에서 처리하며 프로필에 저장하지 않습니다.",
+    noAccount: "처음이신가요?", hasAccount: "이미 계정이 있으신가요?", signedOut: "이 기기에서 로그아웃했습니다.",
+  },
+};

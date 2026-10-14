@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from services.vnext.accounts import get_account_authorizer
+from tests.account_fixtures import active_account_authorizer
+
+
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
@@ -96,6 +100,7 @@ def _client(*, enabled: bool = True, service: _Service | None = None):
     )
     selected = service or _Service()
     app.dependency_overrides[get_supabase_jwt_verifier] = lambda: verifier
+    app.dependency_overrides[get_account_authorizer] = active_account_authorizer
     app.dependency_overrides[get_vnext_feature_flags] = lambda: VNextFeatureFlags(
         legacy_case_import_v1=enabled
     )

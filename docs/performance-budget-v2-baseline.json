@@ -374,6 +374,27 @@
       "headroom_cap_bytes": 300000,
       "required": true,
       "baseline_source": "supplemental-feature-my-places-20261013"
+    },
+    "/login": {
+      "baseline_client_bytes": 1112023,
+      "baseline_source": "supplemental-auth-a0c037f",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/signup": {
+      "baseline_client_bytes": 1112023,
+      "baseline_source": "supplemental-auth-a0c037f",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
+    },
+    "/account": {
+      "baseline_client_bytes": 1112023,
+      "baseline_source": "supplemental-auth-a0c037f",
+      "headroom_cap_bytes": 300000,
+      "headroom_percent": 20,
+      "required": true
     }
   },
   "schema_version": "performance-budget-v2-baseline",
@@ -568,6 +589,162 @@
     "largest_client_chunk": {
       "bytes": 602295,
       "file": "chunks/2-lp-qb_leimt.js"
+    }
+  },
+  "supplemental_auth_commit": "a0c037fc915096dc8b02665035dee21ff4b8c5ba",
+  "supplemental_auth_measurement": {
+    "all_javascript_bytes": 2999706,
+    "build_id": "Y-2zA3ptZfD49F8rZdHXr",
+    "content_checks": {
+      "admin_markers_in_public_assets": [],
+      "road_catalog_markers_in_public_assets": [],
+      "test_fixture_markers_in_public_assets": []
+    },
+    "fingerprint": "12b11d7060741666f284882001a581c3403fffb1423dd889e233eb0c4334a9e6",
+    "largest_client_chunk": {
+      "bytes": 602354,
+      "file": "chunks/00ydus14jt-87.js"
+    },
+    "routes": {
+      "/": {
+        "client_bytes": 1914397,
+        "client_files": [
+          "static/chunks/00ydus14jt-87.js",
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/02u3rb33gmg8e.js",
+          "static/chunks/05rrruk-z3jag.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/16k6t1bymnxq4.js",
+          "static/chunks/17ff7embh2wq5.css",
+          "static/chunks/1k99ddrz9gk-9.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26dlrnhmiq1jq.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3pfth1qq4fxpi.js",
+          "static/chunks/41uisdzsofd3-.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/"
+        ],
+        "route": "/",
+        "status": "measured"
+      },
+      "/account": {
+        "client_bytes": 1112023,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/0lbn2sv93-me6.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2gheihenzwf-a.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/39j833qskg-5p.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3pfth1qq4fxpi.js",
+          "static/chunks/41uisdzsofd3-.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/account"
+        ],
+        "route": "/account",
+        "status": "measured"
+      },
+      "/login": {
+        "client_bytes": 1112023,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/0lbn2sv93-me6.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2gheihenzwf-a.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/39j833qskg-5p.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3pfth1qq4fxpi.js",
+          "static/chunks/41uisdzsofd3-.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/login"
+        ],
+        "route": "/login",
+        "status": "measured"
+      },
+      "/signup": {
+        "client_bytes": 1112023,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/0lbn2sv93-me6.js",
+          "static/chunks/143w2a4e7l0s5.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2gheihenzwf-a.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/39j833qskg-5p.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3pfth1qq4fxpi.js",
+          "static/chunks/41uisdzsofd3-.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/signup"
+        ],
+        "route": "/signup",
+        "status": "measured"
+      }
+    },
+    "schema_version": "next-bundle-v2",
+    "static_asset_count": 60,
+    "static_javascript_files": 47,
+    "status": "pass",
+    "total_static_bytes": 3161562
+  },
+  "supplemental_auth_provenance": {
+    "measured_date": "2026-10-14",
+    "build_command": "npm ci --prefix frontend_next && npm --prefix frontend_next run build",
+    "source_tree": "clean detached historical worktree",
+    "public_auth_configuration": "absent",
+    "node": "v24.21.0",
+    "npm": "11.19.0",
+    "python": "3.12.13",
+    "next": "16.3.8",
+    "package_lock_sha256": "663d46dc8957b9ca4ae71df21652795a0954d5e522bb0d32adf6c2ac86837dd6",
+    "measurement_harness_source_commit": "99fe79a82af37a4783b89275b747036ce7e1e06b",
+    "measurement_harness_changes": "Auth selectors and route inventory only, outside the historical worktree",
+    "measurement_harness_sha256": {
+      "analyze_next_bundle.py": "7c7e6fd7a1b14f3b4dde92ce81240b76391f223c23aa9ba3e8b9d07821849c90",
+      "measure_route_assets.cjs": "d0dce8214882fe672bd972835fb2876dc00677a26ec6346e154bb3be665941a4"
+    },
+    "samples_per_viewport": 2,
+    "viewports": [
+      390,
+      1440
+    ],
+    "network_policy": "owned-loopback-documents-and-static-only",
+    "toolchain_source": "historical .node-version and frontend_next/package.json packageManager pins",
+    "corroborating_reproduction": {
+      "node": "v24.14.1",
+      "npm": "11.11.0",
+      "auth_route_bytes": 1112023,
+      "source_tree": "same clean detached historical source, separate lockfile install"
     }
   }
 }
