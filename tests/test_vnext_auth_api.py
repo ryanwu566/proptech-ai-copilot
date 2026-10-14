@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from services.vnext.accounts import get_account_authorizer
+from tests.account_fixtures import active_account_authorizer
+
+
 import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -69,6 +73,7 @@ def verifier() -> SupabaseJWTVerifier:
 @pytest.fixture
 def client(verifier: SupabaseJWTVerifier):
     app.dependency_overrides[get_supabase_jwt_verifier] = lambda: verifier
+    app.dependency_overrides[get_account_authorizer] = active_account_authorizer
     app.dependency_overrides[get_vnext_feature_flags] = lambda: VNextFeatureFlags()
     test_client = TestClient(app)
     try:
@@ -106,6 +111,13 @@ def test_invalid_signature_is_rejected(client: TestClient) -> None:
     token = _token(private_key=OTHER_PRIVATE_KEY)
 
     _assert_authentication_required(client.get("/v1", headers=_auth(token)))
+
+
+@pytest.mark.parametrize("token", ["not-a-token", "e30.e30.signature", "!.payload.signature", "x" * 16_385])
+def test_malformed_header_or_oversized_token_is_rejected_without_disclosure(client: TestClient, token: str) -> None:
+    response = client.get("/v1", headers=_auth(token))
+    _assert_authentication_required(response)
+    assert token not in response.text
 
 
 def test_expired_token_is_rejected(client: TestClient) -> None:

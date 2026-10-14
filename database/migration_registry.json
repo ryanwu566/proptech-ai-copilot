@@ -160,6 +160,14 @@
       "filename": "019_add_ris_village_demographics.sql",
       "execution_policy": "production_runner",
       "sha256": "1a6b9cd87ac4d5a02e8b1d2d866bc390f4f6587630e9e3e24f17f95a1c5e8044"
+    },
+    {
+      "registry_order": 21,
+      "logical_id": "production-020-consumer-account-foundation",
+      "sequence": 20,
+      "filename": "020_consumer_account_foundation.sql",
+      "execution_policy": "production_runner",
+      "sha256": "01aa6d71588cefa8b1e4d35e9bdf08cc7944ac4280791de2f5f974a9f466dd31"
     }
   ]
 }

@@ -26,6 +26,7 @@
     "test:e2e:google-maps": "node scripts/test-google-browser-maps-e2e.mjs",
     "test:workspace-contract": "node scripts/test-professional-gis-contract.mjs",
     "test:vnext-hardening": "node scripts/test-vnext-hardening.mjs",
+    "test:consumer-auth": "node --test scripts/consumer-auth.test.mjs scripts/consumer-auth-race.test.mjs scripts/account-client.test.mjs",
     "test:e2e:hosted": "playwright test --config=playwright.hosted.config.ts",
     "test:e2e:real-provider": "npm run build:e2e && node e2e/run-e2e.cjs --config=playwright.real-provider.config.ts --workers=1"
   },

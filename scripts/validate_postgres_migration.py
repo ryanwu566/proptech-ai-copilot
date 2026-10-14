@@ -60,6 +60,7 @@ REQUIRED_INDEXES = {
     "idx_ris_village_demographics_month",
 }
 REQUIRED_VNEXT_TABLES = {
+    "vnext_private.consumer_accounts",
     "vnext_core.workspaces",
     "vnext_core.workspace_members",
     "vnext_core.cases",

@@ -16,7 +16,7 @@ def _sql() -> str:
 
 
 def test_migration_registry_freezes_phase3a_migration() -> None:
-    registration = load_registry()[-1]
+    registration = next(item for item in load_registry() if item.filename == MIGRATION.name)
 
     assert registration.registry_order == 20
     assert registration.logical_id == "production-019-ris-village-demographics"
@@ -27,8 +27,8 @@ def test_migration_registry_freezes_phase3a_migration() -> None:
 
 
 def test_production_runner_includes_phase3a_migration_from_registry() -> None:
-    assert migration_runner.MIGRATIONS[-1] == MIGRATION
-    assert migration_validator.MIGRATIONS[-1] == MIGRATION
+    assert MIGRATION in migration_runner.MIGRATIONS
+    assert MIGRATION in migration_validator.MIGRATIONS
 
 
 def test_migration_defines_monthly_observation_schema_and_business_key() -> None:

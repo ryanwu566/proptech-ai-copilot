@@ -154,7 +154,7 @@ const casePurposes = ["buy_due_diligence", "development", "brokerage", "valuatio
 const caseStatuses = ["open", "in_progress", "on_hold", "closed", "archived"] as const;
 const caseIdentityStatuses = ["unverified", "legacy_unverified", "resolving", "confirmed"] as const;
 const errorCodes = [
-  "authentication_required", "permission_denied", "not_found", "validation_failed", "unsupported_input",
+  "authentication_required", "account_suspended", "account_unavailable", "permission_denied", "not_found", "validation_failed", "unsupported_input",
   "version_conflict", "idempotency_conflict", "ambiguous_identity", "stale_evidence", "conflicting_evidence",
   "coverage_unavailable", "provider_unavailable", "duplicate_legacy_import", "rate_limited", "maintenance", "internal_error",
 ] as const;

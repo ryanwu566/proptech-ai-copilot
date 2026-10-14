@@ -80,8 +80,12 @@ def test_production_auth_deployment_contract_and_browser_boundary() -> None:
         "NEXT_PUBLIC_RELEASE_ENVIRONMENT",
     }
     browser_source = AUTH + CLIENT + AUTH_GATE + LIVE_ROUTE + PROFESSIONAL_WORKSPACE
-    for forbidden in ("sb_secret_", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "signInWithOAuth", "signUp("):
+    for forbidden in ("sb_secret_", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "signInWithOAuth"):
         assert forbidden not in browser_source
+    # Wave 1A extends the shared client; the existing protected identity gate
+    # still cannot perform registration or invent a parallel auth flow.
+    assert AUTH.count("client.auth.signUp(") == 1
+    assert "signUp(" not in AUTH_GATE + LIVE_ROUTE + PROFESSIONAL_WORKSPACE
     assert "console." not in browser_source
     assert "captureException" not in browser_source
     assert "Authorization" not in AUTH_GATE + LIVE_ROUTE + PROFESSIONAL_WORKSPACE

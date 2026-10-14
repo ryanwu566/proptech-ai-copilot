@@ -341,4 +341,4 @@ def test_existing_graph_and_geometry_boundaries_are_untouched():
     assert [
         path.name for path in (root / "database/migrations").glob("019_*.sql")
     ] == ["019_add_ris_village_demographics.sql"]
-    assert not list((root / "database/migrations").glob("020_*.sql"))
+    assert not list((root / "database/migrations").glob("021_*.sql"))

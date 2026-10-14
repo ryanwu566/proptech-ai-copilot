@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from services.vnext.accounts import get_account_authorizer
+from tests.account_fixtures import active_account_authorizer
+
+
 import ast
 import json
 import socket
@@ -71,6 +75,7 @@ def _client(
         signing_key_resolver=lambda _token: PUBLIC_KEY,
     )
     app.dependency_overrides[get_supabase_jwt_verifier] = lambda: verifier
+    app.dependency_overrides[get_account_authorizer] = active_account_authorizer
     app.dependency_overrides[get_vnext_feature_flags] = lambda: VNextFeatureFlags(
         taipei_planning_read_v1=enabled
     )

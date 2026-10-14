@@ -12,6 +12,7 @@ from backend.api.v1.case_parcel_set import router as case_parcel_set_router
 from backend.api.v1.errors import vnext_error_responses
 from backend.api.v1.taipei_planning import router as taipei_planning_router
 from services.vnext.auth import AuthenticatedPrincipal, require_authenticated_principal
+from services.vnext.accounts import require_active_account
 from services.vnext.authorization import (
     WorkspaceAuthorizer,
     get_workspace_authorizer,
@@ -26,7 +27,7 @@ from services.vnext.feature_flags import (
 router = APIRouter(
     prefix="/v1",
     tags=["vnext-infrastructure"],
-    dependencies=[Depends(require_authenticated_principal)],
+    dependencies=[Depends(require_authenticated_principal), Depends(require_active_account)],
 )
 
 _FORGED_IDENTITY_HEADERS = frozenset({"x-user-id", "x-role", "x-workspace-role"})

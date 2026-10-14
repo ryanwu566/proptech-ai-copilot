@@ -8,6 +8,8 @@ from typing import Mapping
 
 class ErrorCode(str, Enum):
     AUTHENTICATION_REQUIRED = "authentication_required"
+    ACCOUNT_SUSPENDED = "account_suspended"
+    ACCOUNT_UNAVAILABLE = "account_unavailable"
     PERMISSION_DENIED = "permission_denied"
     VALIDATION_FAILED = "validation_failed"
     UNSUPPORTED_INPUT = "unsupported_input"
@@ -27,6 +29,8 @@ class ErrorCode(str, Enum):
 
 _DEFAULTS: dict[ErrorCode, tuple[int, str, bool]] = {
     ErrorCode.AUTHENTICATION_REQUIRED: (401, "Authentication is required.", False),
+    ErrorCode.ACCOUNT_SUSPENDED: (403, "This account is suspended.", False),
+    ErrorCode.ACCOUNT_UNAVAILABLE: (503, "Account access is temporarily unavailable.", True),
     ErrorCode.PERMISSION_DENIED: (403, "Permission is denied.", False),
     ErrorCode.VALIDATION_FAILED: (422, "The request is invalid.", False),
     ErrorCode.UNSUPPORTED_INPUT: (422, "The input is not supported.", False),

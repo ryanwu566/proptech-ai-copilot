@@ -2,6 +2,27 @@ const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { spawnSync } = require("node:child_process");
 const { allowRequest, assertRouteView, failureDiagnostic, withCleanup } = require("./measure_route_assets.cjs");
+
+for (const route of ["/login", "/signup", "/account"]) {
+  test(`Auth route ${route} validates a rendered route-specific view`, async () => {
+    const selectors = [];
+    await assertRouteView({
+      url: () => `http://127.0.0.1:3100${route}`,
+      locator: (selector) => {
+        assert.equal(typeof selector, "string");
+        selectors.push(selector);
+        return { waitFor: async () => {} };
+      },
+    }, route, 390, []);
+    assert.deepEqual(selectors, [route === "/account" ? '#main-content section[aria-label]' : "#consumer-email"]);
+  });
+}
+
+test("Auth measurement diagnostics retain a bounded route identity", () => {
+  for (const route of ["/login", "/signup", "/account"]) {
+    assert.equal(failureDiagnostic(new Error("private error"), {stage:"route_view_validation",route}).current_route, route);
+  }
+});
 const origin = "http://127.0.0.1:43210";
 const request = (url, { headers = {}, navigation = false, method = "GET" } = {}) => ({
   url: () => url, headers: () => headers, isNavigationRequest: () => navigation, method: () => method,
