@@ -27,7 +27,9 @@ async function start(page: Page) {
 async function snapshot(page: Page) {
   return page.evaluate(() => {
     const read = (storage: Storage) => Object.fromEntries(Object.keys(storage).filter(k => k !== 'proptech_onboarding_state').sort().map(k => [k, storage.getItem(k)]));
-    return { local: read(localStorage), session: read(sessionStorage) };
+    const local = read(localStorage);
+    delete local['proptech.locale.v1']; // The explicit locale switch saves only its isolated UI setting.
+    return { local, session: read(sessionStorage) };
   });
 }
 async function seed(page: Page) {
@@ -94,7 +96,8 @@ test('synthetic full journey, Back, locale, Restart, Exit and Finish make zero p
   expect(await snapshot(page)).toEqual(before);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem('proptech_onboarding_state')!))).toEqual({ version: '3', status: 'completed' });
   expect(providers).toEqual([]);
-  expect(await page.evaluate(() => (window as unknown as { demoStorageWrites: string[] }).demoStorageWrites)).toEqual([]);
+  expect(await page.evaluate(() => (window as unknown as { demoStorageWrites: string[] }).demoStorageWrites)).toEqual(['proptech.locale.v1']);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('proptech.locale.v1')!))).toEqual({ version: 1, locale: 'en' });
   expect(await page.evaluate(() => (window as unknown as { demoCaseEvents: string[] }).demoCaseEvents)).toEqual([]);
   expect(diagnostics).toEqual([]);
 });

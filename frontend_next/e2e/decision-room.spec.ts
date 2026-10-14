@@ -284,9 +284,102 @@ test("reload refreshes pristine asking price and preserves untouched newer prove
   await page.getByRole("button", { name: "Load latest data", exact: true }).click();
   await expect(firstPrice.getByLabel("Manual asking price (TWD 10,000)", { exact: true })).toHaveValue("2350");
   await firstPrice.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByTestId("decision-room").getByRole("status")).toContainText("Saved in this browser");
   const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), ROOM_KEY);
   expect(stored.askingPrice.priceWan).toBe(2350);
   expect(stored.askingPrice.sourceNote).toBe("Latest written quotation");
+});
+
+test("asking-price edits rebase untouched fields, reset after save and stay case isolated", async ({ page, context, baseURL }) => {
+  await installCases(page);
+  const providers: string[] = [];
+  const watch = (tab: Page) => tab.on("request", (request) => { if (isProviderRequest(request, baseURL!)) providers.push(request.url()); });
+  watch(page);
+  await openRoom(page);
+  const originalCases = await page.evaluate((key) => localStorage.getItem(key), CORE_KEY);
+  const second = await context.newPage(); watch(second);
+  await openRoom(second);
+  const form = page.getByTestId("asking-price-form"), remote = second.getByTestId("asking-price-form");
+  const price = form.getByLabel("Manual asking price (TWD 10,000)", { exact: true });
+  const remotePrice = remote.getByLabel("Manual asking price (TWD 10,000)", { exact: true });
+  async function saveRemote() {
+    await remote.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByTestId("decision-room").getByRole("alert")).toContainText("Another page");
+  }
+  async function reload() { await page.getByRole("button", { name: "Load latest data", exact: true }).click(); }
+  async function saveLocal() {
+    await form.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(page.getByTestId("decision-room").getByRole("status")).toContainText("Saved in this browser");
+  }
+  await remotePrice.fill("2390");
+  await remote.getByLabel("Source and check note").fill("Original quotation");
+  await remote.getByLabel("Source URL").fill("https://example.org/quotation");
+  await saveRemote(); await reload();
+  await expect(price).toHaveValue("2390");
+  await price.fill("2350");
+  await remote.getByLabel("Source and check note").fill("Latest external provenance");
+  await saveRemote();
+  const newerRoom = await page.evaluate((key) => localStorage.getItem(key), ROOM_KEY);
+  await form.getByRole("button", { name: "Save", exact: true }).click();
+  expect(await page.evaluate((key) => localStorage.getItem(key), ROOM_KEY)).toBe(newerRoom);
+  await expect(price).toHaveValue("2350");
+  await reload();
+  await expect(price).toHaveValue("2350");
+  type PriceLockWindow = Window & { priceLockHeld?: boolean; releasePriceLock?: () => void };
+  const heldLock = second.evaluate(async (key) => {
+    await navigator.locks.request(key, async () => {
+      const win = window as PriceLockWindow;
+      win.priceLockHeld = true;
+      await new Promise<void>((resolve) => { win.releasePriceLock = resolve; });
+    });
+  }, ROOM_KEY);
+  await expect.poll(() => second.evaluate(() => (window as PriceLockWindow).priceLockHeld)).toBe(true);
+  try {
+    await form.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(price).toBeDisabled();
+    await expect(price).toHaveValue("2350");
+    const pending = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).askingPrice, ROOM_KEY);
+    expect(pending.priceWan).toBe(2390);
+    expect(pending.sourceNote).toBe("Latest external provenance");
+  } finally {
+    await second.evaluate(() => (window as PriceLockWindow).releasePriceLock?.());
+    await heldLock;
+  }
+  await expect(page.getByTestId("decision-room").getByRole("status")).toContainText("Saved in this browser");
+  await expect(form.getByLabel("Source and check note")).toHaveValue("Latest external provenance");
+  const merged = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).askingPrice, ROOM_KEY);
+  expect(merged).toEqual({ priceWan: 2350, sourceUrl: "https://example.org/quotation", sourceNote: "Latest external provenance", checkedDate: "" });
+  await second.getByRole("button", { name: "Load latest data", exact: true }).click();
+  await remotePrice.fill("2450"); await remote.getByLabel("Source and check note").fill("Second external update");
+  await saveRemote(); await reload();
+  await expect(price).toHaveValue("2450");
+  await expect(form.getByLabel("Source and check note")).toHaveValue("Second external update");
+  await form.getByLabel("Source and check note").fill("Buyer-authored provenance");
+  await remotePrice.fill("2550"); await remote.getByLabel("Actual checked date").fill("2026-10-14");
+  await saveRemote(); await reload();
+  await expect(form.getByLabel("Source and check note")).toHaveValue("Buyer-authored provenance");
+  await saveLocal();
+  await expect(price).toHaveValue("2550");
+  await expect(form.getByLabel("Actual checked date")).toHaveValue("2026-10-14");
+  expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).askingPrice, ROOM_KEY)).toEqual({ priceWan: 2550, sourceUrl: "https://example.org/quotation", sourceNote: "Buyer-authored provenance", checkedDate: "2026-10-14" });
+  await form.getByLabel("Source and check note").fill("Unsaved case A draft");
+  type NavigationWindow = Window & { priceNavigationToken?: string };
+  await page.evaluate(() => { (window as NavigationWindow).priceNavigationToken = "same document"; });
+  async function switchCase(caseId: string) {
+    await page.getByTestId("decision-room").locator('a[href="/cases"]').click();
+    await page.locator(`a[href="/cases/${caseId}/overview"]`).click();
+    await page.locator(`.workspace-navigation a[href="/cases/${caseId}/decision-room"]`).click();
+    await expect(page.getByTestId("room-heading")).toBeVisible();
+    expect(await page.evaluate(() => (window as NavigationWindow).priceNavigationToken)).toBe("same document");
+  }
+  await switchCase("case-b");
+  await expect(price).toHaveValue("");
+  await expect(form.getByLabel("Source and check note")).toHaveValue("");
+  await switchCase("case-a");
+  await expect(price).toHaveValue("2550");
+  await expect(form.getByLabel("Source and check note")).toHaveValue("Buyer-authored provenance");
+  expect(await page.evaluate((key) => localStorage.getItem(key), CORE_KEY)).toBe(originalCases);
+  expect(providers).toEqual([]);
 });
 
 test("case and latest-room read failures retain pending form input", async ({ page }) => {

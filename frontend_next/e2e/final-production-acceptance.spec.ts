@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
+import { isProviderRequest } from "./helpers/provider-request";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 
 // Test-only records in Playwright's fresh context, never an existing user profile.
@@ -27,7 +28,7 @@ function representativeCases() {
   return [a, b];
 }
 
-async function setup(page: Page, width: number) {
+async function setup(page: Page, width: number, baseURL: string) {
   await page.setViewportSize({ width, height: 900 });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(rows => {
@@ -36,9 +37,8 @@ async function setup(page: Page, width: number) {
   const calls: string[] = [];
   await page.route("**/*", async route => {
     const request = route.request(); const url = new URL(request.url());
-    if (/googleapis|maps\.google|earthengine|tdx\.transportdata/.test(url.hostname)) { calls.push(url.hostname); return route.abort(); }
-    if (url.hostname !== "127.0.0.1" && url.hostname !== "e2e.test") return route.fulfill({ status: 204, body: "" });
-    if (["fetch", "xhr"].includes(request.resourceType()) && /\/(market(?:-insights)?|valuation(?:-trend)?|location|commute(?:-route)?|terrain(?:-risk)?|satellite|loan|holding-cost|places|routes)(\/|$)/.test(url.pathname) && !url.pathname.startsWith("/cases/")) {
+    if (url.hostname.endsWith(".tile.openstreetmap.org") && request.resourceType() === "image") return route.fulfill({ status: 204, body: "" });
+    if (isProviderRequest(request, baseURL)) {
       calls.push(url.pathname); return route.abort();
     }
     await route.continue();
@@ -48,8 +48,8 @@ async function setup(page: Page, width: number) {
 const views = ["/", "/cases/case-a/overview", "/cases/case-a/market", "/cases/case-a/location", "/cases/case-a/risk", "/cases/case-a/finance", "/compare?cases=case-a,case-b", "/cases/case-a/report"];
 for (const width of [1440, 1024, 390]) {
   for (const view of views) {
-    test(`${width}px ${view} overflow, labels, focus and reduced motion`, async ({ page }, testInfo) => {
-      const calls = await setup(page, width);
+    test(`${width}px ${view} overflow, labels, focus and reduced motion`, async ({ page, baseURL }, testInfo) => {
+      const calls = await setup(page, width, baseURL!);
       await page.goto(view);
       await expect(page.locator("main")).toBeVisible();
       if (view !== "/") await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -83,8 +83,8 @@ for (const width of [1440, 1024, 390]) {
       expect(calls).toEqual([]);
     });
   }
-  test(`${width}px saved Taipei transit fixture, A4 PDF, Save and Reopen preserve provenance`, async ({ page }, testInfo) => {
-    const calls = await setup(page, width);
+  test(`${width}px saved Taipei transit fixture, A4 PDF, Save and Reopen preserve provenance`, async ({ page, baseURL }, testInfo) => {
+    const calls = await setup(page, width, baseURL!);
     await page.goto("/cases/case-a/report");
     const report = page.getByTestId("report-evidence");
     await expect(report).toContainText("手動試算情境");

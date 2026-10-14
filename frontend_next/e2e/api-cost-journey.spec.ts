@@ -1,7 +1,8 @@
 import { expect, test } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
+import { isProviderRequest } from "./helpers/provider-request";
 
-test("saved representative journey, Save, Reopen, Compare and Report add zero analysis calls", async ({ page }) => {
+test("saved representative journey, Save, Reopen, Compare and Report add zero analysis calls", async ({ page, baseURL }) => {
   const rows = [e9Case(), e9Case("case-b")];
   await page.addInitScript((saved) => {
     if (!localStorage.getItem("proptech.savedCases.v1")) localStorage.setItem("proptech.savedCases.v1", JSON.stringify(saved));
@@ -12,14 +13,12 @@ test("saved representative journey, Save, Reopen, Compare and Report add zero an
   await page.route("**/*", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
-    const provider = /googleapis|maps\.google|earthengine|tdx\.transportdata/.test(url.hostname);
-    const analysis = /\/(?:market(?:-insights)?|valuation(?:-trend)?|commute|location|terrain(?:-risk)?|satellite|geocod\w*|places|routes|loan|holding-cost|taxoracle)(?:\/|$)/i.test(url.pathname);
-    if (provider || (["xhr", "fetch"].includes(request.resourceType()) && analysis && !url.pathname.startsWith("/cases/"))) {
+    if (url.hostname.endsWith(".tile.openstreetmap.org") && request.resourceType() === "image") { await route.fulfill({ status: 204, body: "" }); return; }
+    if (isProviderRequest(request, baseURL!)) {
       calls.push(`${request.method()} ${url.pathname}`);
       await route.abort();
       return;
     }
-    if (/tile\.openstreetmap/.test(url.hostname)) { await route.fulfill({ status: 204, body: "" }); return; }
     await route.continue();
   });
   // Property identity and saved Market/Valuation, Location/Commute, Risk and

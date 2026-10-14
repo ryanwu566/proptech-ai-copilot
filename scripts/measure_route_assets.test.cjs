@@ -106,3 +106,19 @@ test("a successful missing-case shell cannot pass fixture view validation", asyn
   };
   await assert.rejects(assertRouteView(missingShell, "/cases/[caseId]/risk", 1440, [{ title: "Synthetic case" }]), /populated view missing/);
 });
+
+test("My Places measurement requires a populated destination card", async () => {
+  const page = { url: () => `${origin}/places`, locator: (selector) => {
+    assert.equal(selector, '[data-testid="place-card"]');
+    return { waitFor: async () => {} };
+  } };
+  await assertRouteView(page, "/places", 390, []);
+});
+
+test("Commute Planner measurement verifies the selected saved case", async () => {
+  const page = { url: () => `${origin}/cases/case-a/commute-planner`, locator: (selector) => {
+    assert.ok(['[data-testid="commute-destination"]', '#main-content > header'].includes(selector));
+    return { waitFor: async () => {}, textContent: async () => "Wrong case" };
+  } };
+  await assert.rejects(assertRouteView(page, "/cases/[caseId]/commute-planner", 390, [{ title: "Synthetic case A" }]), /fixture not hydrated/);
+});

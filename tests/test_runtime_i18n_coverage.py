@@ -97,8 +97,13 @@ def test_render_contract_has_language_specific_journey_evidence():
     )
     for text in expected:
         assert text in resources
-    for forbidden in ("fetch(", "localStorage", "sessionStorage", "document.cookie"):
+    # The versioned locale preference is now intentionally persistent. It must
+    # remain separate from provider requests and session/identity storage.
+    for forbidden in ("fetch(", "sessionStorage", "document.cookie"):
         assert forbidden not in read("components/experience-locale-provider.tsx")
+    assert "readLocaleSetting" in read("components/experience-locale-provider.tsx")
+    assert "saveLocaleSetting" in read("components/experience-locale-provider.tsx")
+    assert "fetch(" not in read("lib/locale-setting.ts")
     assert "setLocale" in read("components/locale-switcher.tsx")
 
 

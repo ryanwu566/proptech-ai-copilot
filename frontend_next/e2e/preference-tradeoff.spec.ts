@@ -1,3 +1,4 @@
+import { isProviderRequest } from "./helpers/provider-request";
 import { expect, test, type Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 const KEY = "proptech.preferenceProfile.v1";
@@ -25,18 +26,18 @@ async function seed(page: Page, stored = true) {
     if (stored && !localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(p));
   }, { cases: [a, b], p: profile(), stored, key: KEY, caseKey: CASE_KEY });
 }
-async function watchProviders(page: Page) {
+async function watchProviders(page: Page, baseURL: string) {
   const calls: string[] = [];
   await page.route("**/*", route => {
-    const r = route.request(), u = new URL(r.url());
-    if (/googleapis|maps\.google|gstatic|openstreetmap|mapbox|earthengine|tdx\.transportdata/.test(u.hostname) || ["fetch", "xhr"].includes(r.resourceType()) && /\/(market(?:-insights)?|valuation|commute|location|terrain|satellite|geocod|places|routes|loan|finance|holding-cost|tax)/i.test(u.pathname)) { calls.push(r.url()); return route.abort(); }
+    const r = route.request();
+    if (isProviderRequest(r, baseURL)) { calls.push(r.url()); return route.abort(); }
     return route.continue();
   });
   return calls;
 }
 for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [390, 430, 1024, 1440]) {
-  test(`${locale} ${width}: localized profile and trade-offs wrap without provider calls`, async ({ page }, info) => {
-    await seed(page); const calls = await watchProviders(page);
+  test(`${locale} ${width}: localized profile and trade-offs wrap without provider calls`, async ({ page, baseURL }, info) => {
+    await seed(page); const calls = await watchProviders(page, baseURL!);
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/preferences"); await page.getByTestId("locale-switcher").selectOption(locale);
     await expect(page.getByRole("heading", { level: 1, name: titles[locale] })).toBeVisible();
@@ -55,8 +56,8 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     expect(calls).toEqual([]);
   });
 }
-test("keyboard create/edit persists profile independently; compare evaluates only saved changes", async ({ page }) => {
-  await seed(page, false); const calls = await watchProviders(page); await page.goto("/preferences");
+test("keyboard create/edit persists profile independently; compare evaluates only saved changes", async ({ page, baseURL }) => {
+  await seed(page, false); const calls = await watchProviders(page, baseURL!); await page.goto("/preferences");
   await page.getByTestId("locale-switcher").selectOption("en");
   await page.getByLabel("Buyer / household name (optional)").fill("Two buyers");
   await page.getByLabel("Overall rationale (free-form)").fill("Room for work and visiting family");

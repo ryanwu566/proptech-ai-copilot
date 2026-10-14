@@ -95,9 +95,12 @@ def test_no_new_client_persistence_or_automatic_commute_lookup_was_added():
     assert "commuteAddressLookup" not in journey
 
 
-def test_locale_provider_exposes_copy_without_locale_storage():
+def test_locale_provider_exposes_copy_with_isolated_versioned_locale_setting():
     provider = read("components/experience-locale-provider.tsx")
     assert "translateRuntimeCopy" in provider
     assert "copy:" in provider
-    assert "localStorage" not in provider
+    assert "readLocaleSetting" in provider and "saveLocaleSetting" in provider
+    setting = read("lib/locale-setting.ts")
+    assert 'proptech.locale.v1' in setting and 'version: 1' in setting
+    assert "savedCases" not in setting and "api." not in setting
     assert "sessionStorage" not in provider

@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
+import { isProviderRequest } from "./helpers/provider-request";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import type { LocationInsightResult } from "../lib/api";
 
@@ -206,12 +207,14 @@ for (const [locale, label, unavailable] of [
   });
 }
 for (const width of [1440, 1024, 390]) {
-  test(`${width}px saved manual scenario stays visible across Overview Finance Compare Report with zero automatic analysis`, async ({ page }) => {
+  test(`${width}px saved manual scenario stays visible across Overview Finance Compare Report with zero automatic analysis`, async ({ page, baseURL }) => {
     await seed(page); await page.setViewportSize({ width, height: 900 });
     const analysis: string[] = [];
     await page.route("**/*", async (route) => {
       const request = route.request(); const url = new URL(request.url());
-      if (["xhr", "fetch"].includes(request.resourceType()) && /\/(loan|holding-cost|valuation|location|market|terrain|commute|places|routes)(\/|$)/.test(url.pathname) && !url.pathname.startsWith("/cases/")) { analysis.push(url.pathname); return route.abort(); }
+      // Existing workspace maps use raster tiles; provide the map fixture locally.
+      if (url.hostname.endsWith(".tile.openstreetmap.org") && request.resourceType() === "image") return route.fulfill({ status: 204, body: "" });
+      if (isProviderRequest(request, baseURL!)) { analysis.push(url.pathname); return route.abort(); }
       await route.continue();
     });
     await page.goto("/cases");

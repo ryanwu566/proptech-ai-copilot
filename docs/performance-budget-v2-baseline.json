@@ -360,6 +360,20 @@
       "headroom_cap_bytes": 300000,
       "headroom_percent": 20,
       "required": true
+    },
+    "/places": {
+      "baseline_client_bytes": 859080,
+      "headroom_percent": 20,
+      "headroom_cap_bytes": 300000,
+      "required": true,
+      "baseline_source": "supplemental-feature-my-places-20261013"
+    },
+    "/cases/[caseId]/commute-planner": {
+      "baseline_client_bytes": 1148320,
+      "headroom_percent": 20,
+      "headroom_cap_bytes": 300000,
+      "required": true,
+      "baseline_source": "supplemental-feature-my-places-20261013"
     }
   },
   "schema_version": "performance-budget-v2-baseline",
@@ -476,6 +490,81 @@
     ],
     "samples_per_viewport": 2,
     "total_static_bytes": 3097028,
+    "largest_client_chunk": {
+      "bytes": 602295,
+      "file": "chunks/2-lp-qb_leimt.js"
+    }
+  },
+  "supplemental_my_places_measurement": {
+    "measured_date": "2026-10-13",
+    "base_main_commit": "79ed9a6d6abcd7f904dc1be6ec4d97d754e065ad",
+    "historical_feature_commit": "63e49712e4b3618bd3e0406d58ce169c791b3b26",
+    "source_description": "First optimized production integration candidate, pinned before route persistence compaction; subsequent measurements enforce without ratcheting. Synthetic local storage fixtures and test API origin; no live provider requests.",
+    "build_command": "npm --prefix frontend_next run build:e2e",
+    "measurement_command": "python scripts/analyze_next_bundle.py --measure-browser",
+    "build_id": "3gGPgiXCabrr0sbZ6RjLs",
+    "fingerprint": "db824696595f9a3d794d9c5d89de910309a3b324fe9362570fcdd98a9d816ae5",
+    "routes": {
+      "/places": {
+        "client_bytes": 859080,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/1wn2hfhl-pok4.js",
+          "static/chunks/1zv3xccs4c503.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/215c9083-2xyx.js",
+          "static/chunks/237u30n-okrv0.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3izosrl79qis-.css",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/places"
+        ],
+        "route": "/places",
+        "status": "measured"
+      },
+      "/cases/[caseId]/commute-planner": {
+        "client_bytes": 1148320,
+        "client_files": [
+          "static/chunks/02jnefm8rh30j.js",
+          "static/chunks/0qoqp-svskpmp.js",
+          "static/chunks/0x5pewtmapsaf.js",
+          "static/chunks/17ff7embh2wq5.css",
+          "static/chunks/1d_10wjogvwyy.js",
+          "static/chunks/1nq0sqdultszo.js",
+          "static/chunks/1wn2hfhl-pok4.js",
+          "static/chunks/1zv3xccs4c503.js",
+          "static/chunks/20oi1d5gaaxqf.js",
+          "static/chunks/237u30n-okrv0.js",
+          "static/chunks/26qkt5vjxslqc.js",
+          "static/chunks/2b_x1_2-zc0_z.css",
+          "static/chunks/2nwcmibmlk7fa.js",
+          "static/chunks/2t3rljc7z75so.js",
+          "static/chunks/3_pz_xyhj63hd.js",
+          "static/chunks/3izosrl79qis-.css",
+          "static/chunks/3rnxgctejgvfe.js",
+          "static/chunks/turbopack-2tkuz11zb02ah.js"
+        ],
+        "measurement_method": "local_production_browser",
+        "navigation_paths": [
+          "/cases/case-a/commute-planner"
+        ],
+        "route": "/cases/[caseId]/commute-planner",
+        "status": "measured"
+      }
+    },
+    "viewports": [
+      390,
+      1440
+    ],
+    "samples_per_viewport": 2,
+    "total_static_bytes": 3133746,
     "largest_client_chunk": {
       "bytes": 602295,
       "file": "chunks/2-lp-qb_leimt.js"

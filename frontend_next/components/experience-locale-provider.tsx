@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { DEFAULT_LOCALE, formatExperienceDate, formatExperienceNumber, formatExperiencePercent, normalizeExperienceLocale, translateExperience, type ExperienceLocale, type TranslationKey } from "@/lib/experience-i18n";
 import { translateRuntimeCopy, type RuntimeCopyKey } from "@/lib/runtime-copy";
 import { translateCopyCatalogue, type CopyCatalogue } from "@/lib/copy-catalogue";
+import { readLocaleSetting, saveLocaleSetting } from "@/lib/locale-setting";
 
 type ExperienceLocaleContextValue = {
   locale: ExperienceLocale;
@@ -22,12 +23,21 @@ export function ExperienceLocaleProvider({ children }: { children: ReactNode }) 
   const [locale, setLocale] = useState<ExperienceLocale>(DEFAULT_LOCALE);
 
   useEffect(() => {
+    const saved = readLocaleSetting({ getItem: (key) => window.localStorage.getItem(key) });
+    if (saved) setLocale(saved);
+  }, []);
+
+  useEffect(() => {
     document.documentElement.lang = locale;
   }, [locale]);
 
   const value = useMemo<ExperienceLocaleContextValue>(() => ({
     locale,
-    setLocale: (next) => setLocale(normalizeExperienceLocale(next)),
+    setLocale: (next) => {
+      const normalized = normalizeExperienceLocale(next);
+      setLocale(normalized);
+      saveLocaleSetting({ setItem: (key, value) => window.localStorage.setItem(key, value) }, normalized);
+    },
     t: (key) => translateExperience(locale, key),
     copy: (key, values) => translateRuntimeCopy(locale, key, values),
     copyFrom: (catalogue, key, values) => translateCopyCatalogue(locale, catalogue, key, values),
