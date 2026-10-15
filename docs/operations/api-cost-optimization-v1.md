@@ -1,5 +1,7 @@
 # API cost optimization v1
 
+Wave 1B adds principal quotas and durable usage aggregation; see [API usage, quota and abuse control v1](api-usage-quota-abuse-v1.md) for current accounting and explicit unknown/configured cost semantics. Existing physical dispatch and cache reuse contracts below remain authoritative.
+
 Implementation date: 2026-10-08 (Asia/Taipei). No deployment, push or merge.
 All provider measurements use deterministic injected transports/adapters.
 No monetary or Places SKU savings are claimed.

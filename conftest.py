@@ -22,7 +22,9 @@ import pytest
 def isolated_anti_abuse_state(monkeypatch):
     """Keep each mocked test's process budgets independent, not disabled."""
     from services import anti_abuse
+    from services import api_usage
     monkeypatch.setattr(anti_abuse, "CONTROLS", anti_abuse.AbuseControls(anti_abuse.POLICIES))
+    monkeypatch.setattr(api_usage, "USAGE", api_usage.UsageAggregator())
 
 
 APPLICATION_DATABASE_URL_SUFFIX = "_DATABASE_URL"

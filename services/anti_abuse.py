@@ -9,11 +9,13 @@ import inspect
 import os
 import threading
 import time
+from uuid import uuid4
 
 from starlette.exceptions import HTTPException
 
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.rate_limit import FixedWindowRateLimiter
+from services.usage_quota import PrincipalQuotas, QuotaExceeded
 
 
 @dataclass(frozen=True)
@@ -85,17 +87,33 @@ class AbuseRejected(HTTPException):
             "capacity_exhausted": "This capability is busy. Please try again later.",
             "capability_disabled": "This capability is temporarily disabled.",
             "guard_unavailable": "This capability is temporarily unavailable.",
+            "capability_request_quota": "This capability has reached its temporary request limit.",
+            "principal_request_quota": "Your temporary request allowance has been reached.",
+            "principal_operation_quota": "Your temporary operation allowance has been reached.",
+            "principal_daily_quota": "Your daily operation allowance has been reached.",
+            "principal_concurrency": "Too many concurrent requests. Please retry later.",
+            "anonymous_quota": "Your temporary allowance has been reached.",
+            "authenticated_quota": "Your temporary allowance has been reached.",
         }
         super().__init__(status_code=status, detail={"reason_code": reason, "message": messages[reason]},
-                         headers={"Retry-After": str(max(1, retry_after))})
+                         headers={"Retry-After": str(max(1, min(3600, retry_after)))})
 
 
 class AbuseControls:
-    def __init__(self, policies=None, *, clock=time.monotonic):
+    def __init__(self, policies=None, *, clock=time.monotonic, principal_quotas=None):
         self.policies = policies if policies is not None else configured_policies()
         self.request_limiters = {name: FixedWindowRateLimiter(limit=p.requests, window_seconds=p.window, clock=clock) for name, p in self.policies.items()}
         self.operation_limiters = {name: FixedWindowRateLimiter(limit=p.operations, window_seconds=p.operation_window, clock=clock) for name, p in self.policies.items()}
         self.semaphores = {name: threading.BoundedSemaphore(p.concurrency) for name, p in self.policies.items()}
+        self.capability_request_limiters = {name: FixedWindowRateLimiter(limit=min(100_000, p.requests * 16), window_seconds=p.window, clock=clock) for name, p in self.policies.items()}
+        self.principal_quotas = principal_quotas if principal_quotas is not None else PrincipalQuotas(clock=clock)
+        self.durable_guard = None
+
+    def consume_durable(self, principal, capability, kind, marker):
+        from services.usage_guard import configured_guard
+        guard = self.durable_guard or configured_guard()
+        if guard is not None:
+            guard.consume(principal, capability, kind, marker)
 
     def reject(self, name: str, reason: str, *, status=429, retry_after=1):
         PROVIDER_COST_METRICS.record(name, "rejected_requests")
@@ -110,8 +128,13 @@ class AbuseControls:
     def admit(self, name: str, peer: str):
         self.enabled(name)
         try:
+            capability_decision = self.capability_request_limiters[name].check("process")
+            if not capability_decision.allowed:
+                self.reject(name, "capability_request_quota", retry_after=capability_decision.retry_after_seconds)
             decision = self.request_limiters[name].check(peer)
             allowed, retry_after = decision.allowed, decision.retry_after_seconds
+        except AbuseRejected:
+            raise
         except Exception:
             self.reject(name, "guard_unavailable", status=503)
         if not allowed:
@@ -133,10 +156,30 @@ class AbuseControls:
                 self.reject(name, "guard_unavailable", status=503)
             if not allowed:
                 self.reject(name, "provider_budget_exhausted", retry_after=retry_after)
+            from services.api_usage import current_usage_context
+            context = current_usage_context()
+            if context is not None:
+                context.acquire_request()
+                try:
+                    self.principal_quotas.reserve_operation(context.principal)
+                    self.consume_durable(context.principal, name, "operation", uuid4())
+                except QuotaExceeded as error:
+                    self.reject(name, error.reason, retry_after=error.retry_after)
+                except Exception:
+                    self.reject(name, "guard_unavailable", status=503)
             PROVIDER_COST_METRICS.record(name, "operation_reservations")
             yield
         finally:
             semaphore.release()
+
+    def control_state(self):
+        """Read-only authoritative local state; no infrastructure mutation API."""
+        from services.usage_guard import guard_configuration
+        durable = guard_configuration().mode == "postgres"
+        return {"enforcement_scope": "postgres_and_process_local" if durable else "process_local", "fleet_quota_enforced": durable,
+                "mutable_controls_available": False,
+                "capabilities": {name: {"enabled": capability_enabled(name), "policy": dict(vars(policy)), "process_requests_per_window": self.capability_request_limiters[name].limit} for name, policy in self.policies.items()},
+                "principal_policies": {tier: dict(vars(policy)) for tier, policy in self.principal_quotas.policies.items()}}
 
 
 def capability_enabled(name: str) -> bool:
@@ -162,8 +205,24 @@ def provider_operation(name: str):
             @wraps(function)
             async def async_wrapper(*args, **kwargs):
                 async def produce():
-                    with CONTROLS.operation(name):
+                    permit = CONTROLS.operation(name)
+                    entering = asyncio.create_task(asyncio.to_thread(permit.__enter__))
+                    try:
+                        await asyncio.shield(entering)
+                    except asyncio.CancelledError:
+                        # Shutdown can cancel this producer while a DB thread is
+                        # still admitting it. Drain admission and return permits.
+                        try:
+                            await entering
+                        except BaseException:
+                            pass
+                        else:
+                            permit.__exit__(None, None, None)
+                        raise
+                    try:
                         return await function(*args, **kwargs)
+                    finally:
+                        permit.__exit__(None, None, None)
                 task = asyncio.create_task(produce())
                 task.add_done_callback(lambda done: done.exception() if not done.cancelled() else None)
                 return await asyncio.shield(task)

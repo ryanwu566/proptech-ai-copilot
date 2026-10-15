@@ -8,6 +8,7 @@ from typing import Literal
 
 from services.input_limits import BoundedInputModel
 from services.anti_abuse import provider_operation
+from services import anti_abuse
 
 from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import JSONResponse
@@ -123,7 +124,8 @@ def post_commute_refresh(x_commute_refresh_token: str | None = Header(default=No
     if x_commute_refresh_token != expected_token:
         raise HTTPException(status_code=403, detail="Commute refresh is not authorized")
     try:
-        return commute_service.refresh_commute_snapshot()
+        with anti_abuse.CONTROLS.operation("market_ops"):
+            return commute_service.refresh_commute_snapshot()
     except commute_service.CommuteServiceError:
         return {
             "status": "unavailable",

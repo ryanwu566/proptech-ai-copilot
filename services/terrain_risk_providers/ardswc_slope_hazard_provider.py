@@ -8,6 +8,7 @@ adapters; production can use the optional mapbox-vector-tile dependency.
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, wait
+from contextvars import copy_context
 from contextlib import nullcontext
 import hashlib
 import math
@@ -209,7 +210,7 @@ class ArdswcSlopeHazardProvider:
         with client_context as client:
             executor = ThreadPoolExecutor(max_workers=min(self.tile_workers, len(jobs)), thread_name_prefix="ardswc-tile")
             futures = {
-                executor.submit(self._fetch_and_decode_tile, mvt_key, tile, client): (mvt_key, tile)
+                executor.submit(copy_context().run, self._fetch_and_decode_tile, mvt_key, tile, client): (mvt_key, tile)
                 for mvt_key, tile in jobs
             }
             done, pending = wait(futures, timeout=self.query_budget_seconds)

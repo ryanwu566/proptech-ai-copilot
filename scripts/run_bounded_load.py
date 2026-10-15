@@ -23,10 +23,10 @@ from backend.api_main import app
 from backend.api.abuse_middleware import AbuseMiddleware
 
 
-SAFE_REASONS = {"rate_limited", "capacity_exhausted", "provider_budget_exhausted", "capability_disabled", "guard_unavailable"}
+SAFE_REASONS = {"rate_limited", "capacity_exhausted", "provider_budget_exhausted", "capability_disabled", "guard_unavailable", "principal_request_quota", "principal_concurrency", "capability_request_quota"}
 EXPECTED_GUARDS = {
-    ("road_lookup", 429): "rate_limited",
-    ("taxoracle_calculation", 503): "capacity_exhausted",
+    ("road_lookup", 429): frozenset({"rate_limited", "principal_request_quota", "principal_concurrency", "capability_request_quota"}),
+    ("taxoracle_calculation", 503): frozenset({"capacity_exhausted"}),
 }
 
 
@@ -47,7 +47,7 @@ def classify_response(response: httpx.Response, scenario: str) -> dict[str, Any]
                 pass
     retry = response.headers.get("Retry-After", "")
     valid_retry = bool(retry and len(retry) <= 4 and retry.isascii() and retry.isdecimal() and 0 < int(retry) <= 3600)
-    expected = EXPECTED_GUARDS.get((scenario, status)) == reason and valid_retry
+    expected = reason in EXPECTED_GUARDS.get((scenario, status), ()) and valid_retry
     outcome = "success" if 200 <= status < 300 else "rate_limited" if expected and status == 429 else "capacity_rejected" if expected else "unexpected_http"
     return {"status": status, "http_status_category": f"{status // 100}xx", "outcome": outcome,
             "reason_code": reason, "exception_category": "none", "valid_retry_after": valid_retry,

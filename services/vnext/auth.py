@@ -188,4 +188,6 @@ def require_authenticated_principal(
 ) -> AuthenticatedPrincipal:
     principal = verifier.verify(bearer_token(request))
     request.state.authenticated_principal = principal
+    from services.api_usage import bind_authenticated_usage
+    bind_authenticated_usage(principal)
     return principal

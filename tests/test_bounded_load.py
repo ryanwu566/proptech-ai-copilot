@@ -19,6 +19,10 @@ def rejection(status=503, reason="capacity_exhausted", retry="1"):
 @pytest.mark.parametrize("scenario,response,outcome", [
     ("taxoracle_calculation", httpx.Response(200), "success"),
     ("road_lookup", rejection(429, "rate_limited"), "rate_limited"),
+    ("road_lookup", rejection(429, "principal_concurrency"), "rate_limited"),
+    ("road_lookup", rejection(429, "principal_request_quota"), "rate_limited"),
+    ("road_lookup", rejection(429, "capability_request_quota"), "rate_limited"),
+    ("taxoracle_calculation", rejection(429, "principal_request_quota"), "unexpected_http"),
     ("taxoracle_calculation", rejection(), "capacity_rejected"),
     ("taxoracle_calculation", rejection(503, "guard_unavailable"), "unexpected_http"),
     ("taxoracle_calculation", rejection(503, "capability_disabled"), "unexpected_http"),

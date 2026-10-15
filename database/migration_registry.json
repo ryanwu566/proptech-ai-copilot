@@ -168,6 +168,14 @@
       "filename": "020_consumer_account_foundation.sql",
       "execution_policy": "production_runner",
       "sha256": "01aa6d71588cefa8b1e4d35e9bdf08cc7944ac4280791de2f5f974a9f466dd31"
+    },
+    {
+      "registry_order": 22,
+      "logical_id": "production-021-api-usage-quota-ledger",
+      "sequence": 21,
+      "filename": "021_api_usage_quota_ledger.sql",
+      "execution_policy": "production_runner",
+      "sha256": "00ed7d4b78de6d92c285ab8cd87241d1477bee2ce6e97caef6bbf6e2f43b98af"
     }
   ]
 }

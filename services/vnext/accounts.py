@@ -85,4 +85,7 @@ def require_active_account(
     principal: AuthenticatedPrincipal = Depends(require_authenticated_principal),
     authorizer: AccountAuthorizer = Depends(get_account_authorizer),
 ) -> Account:
-    return authorizer.require_active(principal)
+    account = authorizer.require_active(principal)
+    from services.api_usage import admit_authenticated_usage
+    admit_authenticated_usage(principal)
+    return account

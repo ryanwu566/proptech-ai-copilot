@@ -30,7 +30,7 @@ def build_metrics_router(registry: BoundedMetricsRegistry) -> APIRouter:
         ):
             raise HTTPException(status_code=404, detail="Not Found")
         return PlainTextResponse(
-            registry.render_prometheus() + PROVIDER_COST_METRICS.render_prometheus(),
+            registry.render_prometheus() + PROVIDER_COST_METRICS.render_prometheus() + _usage_metrics(),
             media_type="text/plain; version=0.0.4",
         )
 
@@ -41,6 +41,12 @@ def build_metrics_router(registry: BoundedMetricsRegistry) -> APIRouter:
         if not valid_scrape_token(expected) or not valid_scrape_token(provided) or not secrets.compare_digest(provided, expected):
             raise HTTPException(status_code=404, detail="Not Found")
         from services.provider_observability import provider_status
-        return provider_status(os.environ)
+        from services import anti_abuse, api_usage
+        return {**provider_status(os.environ), "usage": api_usage.USAGE.summary(), "controls": anti_abuse.CONTROLS.control_state()}
 
     return router
+
+
+def _usage_metrics():
+    from services.api_usage import USAGE
+    return USAGE.render_prometheus()

@@ -40,6 +40,8 @@ def test_readiness_does_not_expose_config_details_in_production(monkeypatch) -> 
     monkeypatch.setenv("PUBLIC_APP_BASE_URL", "https://frontend.example")
     monkeypatch.setenv("API_ALLOWED_HOSTS", "testserver")
     monkeypatch.setenv("PILOT_ADMIN_TOKEN", "admin-test-token")
+    # Connectivity is mocked for this privacy contract, including the new guard.
+    monkeypatch.setattr("services.usage_guard.validate_usage_startup", lambda: None)
     # Mock database connectivity so endpoint reaches HTTP 200 path
     monkeypatch.setattr(
         "backend.api.routes_pilot.check_connection", lambda url: "available"
