@@ -1,6 +1,7 @@
 """Auth/account protected personal cloud-case API; persistence is not enabled."""
 from uuid import UUID
-from fastapi import APIRouter, Depends, Query, Response
+from typing import Annotated
+from fastapi import APIRouter, Depends, Header, Query, Response
 
 from backend.api.v1.router import reject_client_identity_overrides
 from backend.api.v1.errors import vnext_error_responses
@@ -8,8 +9,10 @@ from services.vnext.accounts import require_active_account
 from services.vnext.auth import AuthenticatedPrincipal, require_authenticated_principal
 from services.vnext.durable_cases import (
     Activity, CaseService, CaseSummary, CaseView, CreateCase, MembershipUpdate,
-    MetadataUpdate, MonitoringUpdate, Scope, get_case_service,
+    IDEMPOTENCY_PATTERN, MetadataUpdate, MonitoringUpdate, Scope, get_case_service,
 )
+
+IdempotencyKey = Annotated[str, Header(alias="Idempotency-Key", min_length=16, max_length=128, pattern=IDEMPOTENCY_PATTERN)]
 
 
 def no_store(response: Response):
@@ -23,8 +26,8 @@ router = APIRouter(prefix="/v1/saved-cases", tags=["personal-saved-cases"], resp
 
 
 @router.post("", response_model=CaseView, status_code=201)
-def create_case(body: CreateCase, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
-    return service.create(principal, body)
+def create_case(body: CreateCase, idempotency_key: IdempotencyKey, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
+    return service.create(principal, body, idempotency_key=idempotency_key)
 
 
 @router.get("", response_model=list[CaseSummary])
@@ -39,18 +42,18 @@ def open_case(case_id: UUID, principal: AuthenticatedPrincipal = Depends(require
 
 
 @router.patch("/{case_id}/metadata", response_model=CaseView)
-def update_metadata(case_id: UUID, body: MetadataUpdate, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
-    return service.metadata(principal, case_id, body)
+def update_metadata(case_id: UUID, body: MetadataUpdate, idempotency_key: IdempotencyKey, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
+    return service.metadata(principal, case_id, body, idempotency_key=idempotency_key)
 
 
 @router.put("/{case_id}/membership", response_model=CaseView)
-def update_membership(case_id: UUID, body: MembershipUpdate, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
-    return service.membership(principal, case_id, body)
+def update_membership(case_id: UUID, body: MembershipUpdate, idempotency_key: IdempotencyKey, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
+    return service.membership(principal, case_id, body, idempotency_key=idempotency_key)
 
 
 @router.put("/{case_id}/monitoring", response_model=CaseView)
-def update_monitoring(case_id: UUID, body: MonitoringUpdate, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
-    return service.monitoring(principal, case_id, body)
+def update_monitoring(case_id: UUID, body: MonitoringUpdate, idempotency_key: IdempotencyKey, principal: AuthenticatedPrincipal = Depends(require_authenticated_principal), service: CaseService = Depends(get_case_service)):
+    return service.monitoring(principal, case_id, body, idempotency_key=idempotency_key)
 
 
 @router.get("/{case_id}/activity", response_model=list[Activity])

@@ -162,3 +162,70 @@ post-commit acknowledgment, expected-revision conflicts, private role semantics,
 provider-free reopening/status, and inactive scheduling/delivery. No remaining
 review blockers were identified. Real SQL/RLS/concurrency and delivery execution
 remain outside this foundation's verified scope.
+
+## PR #190 CI contract closure
+
+The exact Stage 1 route gate omitted the seven intentionally approved Wave 4
+routes. Auditing the command contract also found a product gap: create's import
+key and update revision CAS prevent duplicate effects, but cannot substitute for
+the platform's bounded `Idempotency-Key` header and committed-command replay.
+
+The route allowlist now names exactly those seven additions; the existing test
+names and route/header bounds remain intact. The command set includes methods
+as well as paths, so POST create, PATCH metadata and PUT membership/monitoring are
+all covered. It is checked against every approved mutation, retaining only the
+existing read-only planning POST distinction. No Wave 4 exemption is introduced.
+
+All routes retain bearer, active-account, forged-identity and no-store boundaries.
+All commands require the header, with 24-hour actor/method/concrete-route scoped
+receipts committed atomically with state/activity. Same-body retry returns the
+current authorized projection of the original case reference; changed body
+conflicts, new keys still require CAS, and replay cannot revive revoked access.
+Receipt storage is a bounded, hashed-reference repository seam only. Production
+still returns `persistence_pending`; the future schema proposal includes the
+receipt table/RLS/indexes and concurrent-connection conformance requirements.
+
+The client retains at most 64 hash/random-key pairs in session-scoped memory for
+explicit retries. No local storage, automatic upload/retry, provider request,
+scheduler, delivery integration or migration is added. See the
+[approved command policy](../vnext/api-contract-v1.md#personal-saved-case-command-scope-wave-4).
+
+Changed files for this follow-up:
+
+```text
+backend/api/durable_cases.py
+services/vnext/durable_cases.py
+frontend_next/lib/cloud-case-client.ts
+frontend_next/scripts/cloud-case-client.test.mjs
+frontend_next/e2e/monitoring-collaboration.spec.ts
+tests/durable_case_fixtures.py
+tests/test_durable_cases.py
+tests/test_durable_cases_api.py
+tests/test_vnext_stage1_exit_gate.py
+docs/vnext/api-contract-v1.md
+docs/wave4/wave4-persistence-schema-proposal.md
+docs/wave4/monitoring-collaboration-v1.md
+```
+
+Closure verification:
+
+- `python -m pytest -q tests/test_vnext_stage1_exit_gate.py`: 7 passed.
+- `python -m pytest -q tests/test_durable_cases.py tests/test_durable_cases_api.py tests/test_case_monitoring.py`: 67 passed.
+- `npm run test:wave4`: 19 passed. Existing frontend Auth/account/race and Decision
+  Room checks: 36 passed.
+- Chromium Wave 4, existing case routing, and login/restore/logout: 18 passed with
+  default test timeout, one worker and zero retries. Mutation requests assert the
+  bounded header in the browser. No runner/test timeout or retry configuration changed.
+- Typecheck, lint (0 errors, 23 existing warnings), E2E build and default production
+  build passed. Standalone typecheck reused `.next/cache/.tsbuildinfo` with the same
+  full source checks, as documented above.
+- The first full Python run under concurrent build/memory pressure produced
+  3887 passed, 101 skipped and three failures in unchanged Earth Engine worker
+  lifecycle tests (replacement/startup deadlines). Those exact three tests passed
+  unchanged in isolation. Their code, deadlines, retries and CI workflows were not
+  modified; the full command was rerun after other validation jobs completed.
+- Final exact `python -m pytest -q` rerun: **3890 passed, 101 skipped, 1 existing
+  Starlette deprecation warning**, exit 0, in 378.48 seconds. No tests were excluded
+  or retried by pytest; optional integration skip conditions were unchanged.
+- Final read-only review found no remaining important issues. Migration files,
+  registry and CI workflows are unchanged; persistence and delivery remain inactive.

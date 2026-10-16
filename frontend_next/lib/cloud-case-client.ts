@@ -3,17 +3,35 @@ import { API_BASE } from "@/lib/api";
 import { expireVNextSession, getVNextAccessToken, getVNextSessionGeneration, isVNextSessionGenerationCurrent } from "@/lib/vnext-auth-session";
 import { validActivity, validCloudCase, validCloudSummary, type CloudActivity, type CloudCase, type CloudResult, type CloudSummary, type ImportPreview } from "@/lib/cloud-case-contract";
 
+// In-memory retry identities only: no bodies, tokens, browser storage or queue.
+const commandKeys = new Map<string, string>();
+let commandGeneration: number | null = null;
+async function commandKey(method: string, path: string, body: unknown, generation: number): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify([method, path, body])));
+  if (!isVNextSessionGenerationCurrent(generation)) throw new Error("Session changed");
+  if (commandGeneration !== generation) { commandKeys.clear(); commandGeneration = generation; }
+  const fingerprint = Array.from(new Uint8Array(digest), n => n.toString(16).padStart(2, "0")).join("");
+  let key = commandKeys.get(fingerprint);
+  if (!key) {
+    if (commandKeys.size >= 64) commandKeys.delete(commandKeys.keys().next().value!);
+    key = crypto.randomUUID(); commandKeys.set(fingerprint, key);
+  }
+  return key;
+}
+
 async function request<T>(path: string, method: string, validate: (v: unknown) => v is T, body?: unknown, canSend: () => boolean = () => true): Promise<CloudResult<T>> {
   if (typeof navigator !== "undefined" && !navigator.onLine) return { status: "offline" };
   if (!canSend()) return { status: "sign_in_required" };
+  const generation = getVNextSessionGeneration();
   const session = await getVNextAccessToken();
   if (session.status !== "authenticated") return { status: "sign_in_required" };
-  if (!canSend()) return { status: "sign_in_required" };
+  if (!canSend() || !isVNextSessionGenerationCurrent(generation)) return { status: "sign_in_required" };
   if (!API_BASE) return { status: "unavailable" };
-  const generation = getVNextSessionGeneration();
   try {
+    const key = method === "GET" ? null : await commandKey(method, path, body, generation);
+    if (!canSend() || !isVNextSessionGenerationCurrent(generation)) return { status: "sign_in_required" };
     const response = await fetch(`${API_BASE}/v1/saved-cases${path}`, {
-      method, headers: { Authorization: `Bearer ${session.accessToken}`, Accept: "application/json", ...(body ? { "Content-Type": "application/json" } : {}) },
+      method, headers: { Authorization: `Bearer ${session.accessToken}`, Accept: "application/json", ...(key ? { "Idempotency-Key": key } : {}), ...(body ? { "Content-Type": "application/json" } : {}) },
       ...(body ? { body: JSON.stringify(body) } : {}), credentials: "omit", cache: "no-store", redirect: "error", signal: AbortSignal.timeout(10_000),
     });
     if (!isVNextSessionGenerationCurrent(generation)) return { status: "sign_in_required" };

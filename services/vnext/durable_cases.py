@@ -9,7 +9,7 @@ from __future__ import annotations
 from contextlib import contextmanager
 from copy import deepcopy
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import math
@@ -23,6 +23,9 @@ from services.vnext.auth import AuthenticatedPrincipal
 from services.vnext.errors import ErrorCode, VNextError
 
 MAX_IMPORT_BYTES = 262_144
+MAX_COMMAND_RECEIPTS = 2048
+COMMAND_REPLAY_WINDOW = timedelta(hours=24)
+IDEMPOTENCY_PATTERN = r"^[A-Za-z0-9._:-]{16,128}$"
 MemberRole = Literal["editor", "viewer"]
 CaseRole = Literal["owner", "editor", "viewer"]
 Scope = Literal["owned", "shared"]
@@ -175,7 +178,25 @@ class CaseSummary(BaseModel):
     sharing: Literal["private", "members_only"]
 
 
+@dataclass(frozen=True)
+class CommandReceipt:
+    actor_id: UUID
+    method: str
+    route: str
+    key_hash: str
+    request_fingerprint: str
+    case_id: UUID
+    revision: int
+    created_at: datetime
+    expires_at: datetime
+
+
 class CaseTransaction(Protocol):
+    # Serialize actor/key admission before case writes. Store only committed
+    # references, never raw keys/bodies; retain >=24h, cap live rows per actor,
+    # prune expired rows in bounded batches, fail closed at capacity.
+    def find_command(self, actor_id: UUID, method: str, route: str, key_hash: str, now: datetime) -> CommandReceipt | None: ...
+    def append_command(self, receipt: CommandReceipt) -> None: ...
     def get(self, case_id: UUID) -> CaseRecord | None: ...
     def find_import(self, owner_id: UUID, import_key: str) -> CaseRecord | None: ...
     def list_accessible(self, user_id: UUID, *, scope: Scope, offset: int, limit: int) -> list[CaseRecord]: ...
@@ -233,11 +254,39 @@ class CaseService:
                         members=deepcopy(row.members) if role == "owner" else {},
                         monitoring=row.monitoring.model_copy(deep=True), sharing="members_only" if row.members else "private")
 
-    def create(self, principal, request: CreateCase) -> CaseView:
+    @staticmethod
+    def _command_identity(request, key):
+        if not isinstance(key, str) or re.fullmatch(IDEMPOTENCY_PATTERN, key) is None:
+            raise VNextError.validation_failed()
+        canonical = json.dumps(request.model_dump(mode="json"), sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+        return hashlib.sha256(key.encode()).hexdigest(), hashlib.sha256(canonical.encode()).hexdigest()
+
+    def _replay(self, principal, transaction, receipt, fingerprint):
+        row = transaction.get(receipt.case_id)
+        self._role(principal, row)  # Never let a receipt bypass current access.
+        if receipt.request_fingerprint != fingerprint:
+            raise VNextError.idempotency_conflict()
+        if row.id != receipt.case_id or row.revision < receipt.revision:
+            raise VNextError(ErrorCode.MAINTENANCE)
+        # As with existing parcel-set commands, replay the resource reference
+        # using its current authorized projection, never old ACLs/private bodies.
+        return self._view(principal, row)
+
+    @staticmethod
+    def _receipt(principal, method, route, key_hash, fingerprint, result, now):
+        return CommandReceipt(principal.user_id, method, route, key_hash, fingerprint,
+                              result.id, result.revision, now, now + COMMAND_REPLAY_WINDOW)
+
+    def create(self, principal, request: CreateCase, *, idempotency_key: str) -> CaseView:
+        key_hash, fingerprint = self._command_identity(request, idempotency_key)
         digest = hashlib.sha256(json.dumps([request.snapshot, request.user_authored], sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
         with self._transaction(principal) as transaction:
-            previous = transaction.find_import(principal.user_id, request.import_key)
-            if previous:
+            now = datetime.now(timezone.utc)
+            receipt = transaction.find_command(principal.user_id, "POST", "/v1/saved-cases", key_hash, now)
+            previous = None if receipt else transaction.find_import(principal.user_id, request.import_key)
+            if receipt:
+                result = self._replay(principal, transaction, receipt, fingerprint)
+            elif previous:
                 if previous.owner_id != principal.user_id:
                     raise VNextError.permission_denied()
                 self._role(principal, previous)
@@ -245,12 +294,13 @@ class CaseService:
                     raise VNextError.idempotency_conflict()
                 result = self._view(principal, previous)
             else:
-                now = datetime.now(timezone.utc)
                 row = CaseRecord(uuid4(), principal.user_id, request.import_key, digest,
                                  deepcopy(request.snapshot), deepcopy(request.user_authored), request.snapshot["title"], "", now, now)
                 transaction.insert(row)
                 transaction.append_activity(row.id, Activity(revision=1, actor_id=principal.user_id, kind="case_imported", occurred_at=now))
                 result = self._view(principal, row)
+            if not receipt:
+                transaction.append_command(self._receipt(principal, "POST", "/v1/saved-cases", key_hash, fingerprint, result, now))
         return result  # only acknowledge after commit
 
     def list(self, principal, *, scope: Scope, offset: int, limit: int) -> list[CaseSummary]:
@@ -281,30 +331,45 @@ class CaseService:
             result = deepcopy(transaction.list_activity(case_id, offset=offset, limit=limit))
         return result
 
-    def _update(self, principal, case_id, request, *, kind, owner_only, mutate):
+    def _update(self, principal, case_id, request, *, idempotency_key, kind, owner_only, mutate):
+        key_hash, fingerprint = self._command_identity(request, idempotency_key)
+        method, suffix = {"metadata_updated": ("PATCH", "metadata"), "membership_updated": ("PUT", "membership"), "monitoring_updated": ("PUT", "monitoring")}[kind]
+        route = f"/v1/saved-cases/{case_id}/{suffix}"
         with self._transaction(principal) as transaction:
+            now = datetime.now(timezone.utc)
+            receipt = transaction.find_command(principal.user_id, method, route, key_hash, now)
             row = transaction.get(case_id)
             role = self._role(principal, row)
             if role == "viewer" or owner_only and role != "owner":
                 raise VNextError.permission_denied()
-            if row.revision != request.expected_revision:
-                raise VNextError.version_conflict()
-            mutate(row)
-            row.revision += 1
-            row.updated_at = datetime.now(timezone.utc)
-            if not transaction.replace(row, expected_revision=request.expected_revision):
-                raise VNextError.version_conflict()
-            transaction.append_activity(row.id, Activity(revision=row.revision, actor_id=principal.user_id, kind=kind, occurred_at=row.updated_at))
-            result = self._view(principal, row)
+            if receipt:
+                if receipt.case_id != case_id:
+                    raise VNextError(ErrorCode.MAINTENANCE)
+                result = self._replay(principal, transaction, receipt, fingerprint)
+            else:
+                result = self._apply_update(transaction, principal, row, request, mutate, kind)
+                transaction.append_command(self._receipt(principal, method, route, key_hash, fingerprint, result, now))
         return result
 
-    def metadata(self, principal, case_id, request: MetadataUpdate):
+    def _apply_update(self, transaction, principal, row, request, mutate, kind):
+        if row.revision != request.expected_revision:
+            raise VNextError.version_conflict()
+        mutate(row)
+        row.revision += 1
+        row.updated_at = datetime.now(timezone.utc)
+        if not transaction.replace(row, expected_revision=request.expected_revision):
+            raise VNextError.version_conflict()
+        transaction.append_activity(row.id, Activity(revision=row.revision, actor_id=principal.user_id, kind=kind, occurred_at=row.updated_at))
+        result = self._view(principal, row)
+        return result
+
+    def metadata(self, principal, case_id, request: MetadataUpdate, *, idempotency_key: str):
         def mutate(row):
             for key in request.model_fields_set & {"title", "notes"}:
                 setattr(row, key, getattr(request, key))
-        return self._update(principal, case_id, request, kind="metadata_updated", owner_only=False, mutate=mutate)
+        return self._update(principal, case_id, request, idempotency_key=idempotency_key, kind="metadata_updated", owner_only=False, mutate=mutate)
 
-    def membership(self, principal, case_id, request: MembershipUpdate):
+    def membership(self, principal, case_id, request: MembershipUpdate, *, idempotency_key: str):
         def mutate(row):
             if request.member_id == row.owner_id:
                 raise VNextError.permission_denied()
@@ -314,12 +379,12 @@ class CaseService:
                 if request.member_id not in row.members and len(row.members) >= 50:
                     raise VNextError.validation_failed()
                 row.members[request.member_id] = request.role
-        return self._update(principal, case_id, request, kind="membership_updated", owner_only=True, mutate=mutate)
+        return self._update(principal, case_id, request, idempotency_key=idempotency_key, kind="membership_updated", owner_only=True, mutate=mutate)
 
-    def monitoring(self, principal, case_id, request: MonitoringUpdate):
+    def monitoring(self, principal, case_id, request: MonitoringUpdate, *, idempotency_key: str):
         def mutate(row):
             row.monitoring = MonitoringPreferences(cadence=request.cadence)
-        return self._update(principal, case_id, request, kind="monitoring_updated", owner_only=True, mutate=mutate)
+        return self._update(principal, case_id, request, idempotency_key=idempotency_key, kind="monitoring_updated", owner_only=True, mutate=mutate)
 
 
 _SERVICE = CaseService(UnavailableCaseRepository())

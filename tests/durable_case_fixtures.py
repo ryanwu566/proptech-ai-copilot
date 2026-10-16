@@ -3,11 +3,14 @@ from contextlib import contextmanager
 from copy import deepcopy
 from threading import RLock
 
+from services.vnext import durable_cases
+
 
 class MemoryCaseRepository:
     def __init__(self):
         self.rows = {}
         self.events = {}
+        self.commands = {}
         self.lock = RLock()
 
     @contextmanager
@@ -15,12 +18,28 @@ class MemoryCaseRepository:
         with self.lock:
             original = deepcopy(self.rows)
             original_events = deepcopy(self.events)
+            original_commands = deepcopy(self.commands)
             try:
                 yield self
             except BaseException:
                 self.rows = original
                 self.events = original_events
+                self.commands = original_commands
                 raise
+
+    def find_command(self, actor_id, method, route, key_hash, now):
+        receipt = self.commands.get((actor_id, method, route, key_hash))
+        return receipt if receipt and receipt.expires_at > now else None
+
+    def append_command(self, receipt):
+        # Actor admission is serialized by transaction; never evict live receipts.
+        expired = [key for key, row in self.commands.items() if row.actor_id == receipt.actor_id and row.expires_at <= receipt.created_at][:100]
+        for key in expired:
+            del self.commands[key]
+        scope = (receipt.actor_id, receipt.method, receipt.route, receipt.key_hash)
+        if scope in self.commands or sum(row.actor_id == receipt.actor_id for row in self.commands.values()) >= durable_cases.MAX_COMMAND_RECEIPTS:
+            raise durable_cases.VNextError(durable_cases.ErrorCode.MAINTENANCE)
+        self.commands[scope] = receipt
 
     def get(self, case_id):
         return deepcopy(self.rows.get(case_id))

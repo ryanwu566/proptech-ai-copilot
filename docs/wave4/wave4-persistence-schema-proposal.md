@@ -61,6 +61,7 @@ All UUID references must use the canonical existing Auth/account key after rebas
 | `personal_case_members` | `case_id uuid FK cases(id)`, `member_id uuid FK auth.users(id)`, `role text CHECK IN ('editor','viewer')`, `created_at`, `updated_at`; PK `(case_id, member_id)`; prohibit owner membership; at most 50 per case atomically |
 | `personal_case_monitoring` | `case_id uuid PK FK cases(id)`, `cadence text CHECK IN ('off','daily','weekly') DEFAULT 'off'`, `refresh_policy text CHECK = 'manual_only'`, `updated_at`; row shares case revision; execution/delivery availability derived from server configuration, never asserted by caller |
 | `personal_case_activity` | `case_id uuid FK cases(id)`, `revision bigint CHECK >= 1`, `actor_id uuid`, `kind text CHECK IN ('case_imported','metadata_updated','membership_updated','monitoring_updated')`, `occurred_at timestamptz`; PK `(case_id, revision)`; append-only; no note/evidence/token/email payload |
+| `personal_case_commands` | `actor_id uuid FK auth.users(id)`, `http_method text CHECK IN ('POST','PATCH','PUT')`, `canonical_route text CHECK length <= 300`, `key_hash char(64)`, `request_fingerprint char(64)`, `case_id uuid FK cases(id)`, `revision bigint CHECK >= 1`, `created_at`, `expires_at >= created_at + interval '24 hours'`; PK `(actor_id,http_method,canonical_route,key_hash)`; committed reference only, no raw key/request/response body |
 
 Use FK cascades for internal case children when a separately authorized account
 deletion workflow is implemented; no case deletion API is added here. Choose
@@ -103,6 +104,7 @@ Account suspension takes precedence over case roles, including platform admins.
 | imports | same readable-case predicate | INSERT only with own ACL and matching import owner; no UPDATE/DELETE; immutable digest/snapshot/user_authored |
 | monitoring | same readable-case predicate | owner-only INSERT/UPDATE, both USING/WITH CHECK; cadence/updated_at only; no caller execution state |
 | activity | same readable-case predicate | INSERT CHECK actor_id = uid AND owner/editor access, with transaction trigger checking matching revision/kind; no UPDATE/DELETE |
+| commands | `actor_id = uid` (hashed receipt metadata only) | INSERT CHECK actor_id = uid AND current command-specific write permission; immutable committed references; expiry-only bounded DELETE under actor scope, never evict live receipts |
 
 Policies alone cannot enforce a compare-and-swap or tie an activity INSERT to an
 authorized mutation. The SQL adapter must use a transaction with guarded writes;
@@ -111,6 +113,11 @@ expose unrestricted SQL writes through the Data API. Any necessary definer trigg
 must live in the private schema, fix `search_path`, qualify objects, revoke public
 EXECUTE, and validate the canonical principal; require a separate security review.
 No broad `SECURITY DEFINER` ACL helper is needed for the acyclic owner/member design.
+Receipt SELECT/count and expired-only DELETE are actor-scoped even after a case
+membership is revoked, so actor admission still counts all live receipts and
+performs bounded expiry cleanup. This exposes only the actor's own prior hashed
+command metadata/references. It never authorizes case reads or replay: recheck
+current case write permission before projecting the referenced resource.
 
 RLS decisions follow [Supabase's current RLS guidance](https://supabase.com/docs/guides/database/postgres/row-level-security): grants control operations; row policies
 must restrict ownership and both USING/WITH CHECK must protect updates.
@@ -123,6 +130,8 @@ must restrict ownership and both USING/WITH CHECK must protect updates.
   specifies stable UUID ordering; SQL adapter must match, using bounded offset.
 - Imports: unique `(owner_id, import_key)`, PK case_id; no JSON GIN index needed.
 - Activity: PK `(case_id, revision)` supports reverse revision pages.
+- Commands: scoped PK plus `(actor_id, expires_at)` for live count/expiry cleanup
+  and `(case_id)` for the FK. No index on canonical body JSON: none is retained.
 - Monitoring: PK case_id; future partial `(next_due_at, case_id)` WHERE enabled
   only when job scheduling is actually introduced.
 
@@ -166,6 +175,19 @@ Implement `CaseRepository.transaction(principal)` / `CaseTransaction` from
    Run direct SQL tests as anon, request A/B, member and bypass-free app role to
    establish RLS enforcement. Current in-memory tests prove service contracts,
    **not database isolation, SQL grants, or RLS execution**.
+7. All four personal mutations require the platform's bounded `Idempotency-Key`
+   header, in addition to import deduplication/CAS. Implement `find_command` and
+   `append_command` in the same transaction. Acquire the actor admission lock
+   before case locks to serialize scoped duplicate lookup and the 2048-live-receipt
+   cap. After authorization, replay matching committed references without another
+   write/activity; changed canonical body is 409 idempotency conflict. New keys
+   never bypass revision CAS. Store hashes/references only, retain at least 24h,
+   prune at most 100 expired rows per admission and fail closed at capacity.
+   No receipt may survive a failed mutation or commit. Recheck current write role
+   on replay; return the current authorized case projection like existing VNext
+   parcel-set commands, never an old private roster. Include duplicate races,
+   revocation, changed-body reuse, expiry, capacity and receipt-failure rollback
+   in future two-connection conformance tests. No SQL adapter/table is created here.
 
 ## Browser-to-account workflow and sync semantics
 
@@ -241,6 +263,9 @@ or SMS as sent until a real provider acknowledges it.
 
 All `/v1/saved-cases` routes require existing bearer verification and active account,
 reject forged identity headers/query fields, and return no-store responses.
+All four mutation routes require `Idempotency-Key` with the existing platform
+16–128 character allowlist. Create's import key and update CAS remain additional
+protections; they do not exempt these commands from the header/replay contract.
 
 | Method/path | Body / semantics |
 | --- | --- |

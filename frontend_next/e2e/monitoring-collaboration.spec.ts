@@ -33,6 +33,7 @@ async function setup(page: Page, options: { failure?: number; role?: string; noL
     requests.push({ path, method: request.method(), body: request.postDataJSON() });
     if (!path.startsWith("/v1/saved-cases")) return route.fulfill({ status: 500, json: { error: "unexpected provider call" } });
     expect(request.headers().authorization).toBe(`Bearer ${token}`);
+    if (request.method() !== "GET") expect(request.headers()["idempotency-key"]).toMatch(/^[A-Za-z0-9._:-]{16,128}$/);
     if (options.failure) return route.fulfill({ status: options.failure, json: { error: { details: { reason_code: "persistence_pending" }, message: "RAW SECRET" } } });
     if (request.method() === "PATCH") {
       if (conflict) return route.fulfill({ status: 409, json: { error: { code: "version_conflict" } } });
