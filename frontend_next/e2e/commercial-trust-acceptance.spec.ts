@@ -67,7 +67,13 @@ test("legacy Load opens bounded saved finance without losing assumptions or requ
   await page.goto("/");
   await page.locator("#commercial-address").fill("臺北市信義區市府路1號");
   await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
-  await page.getByRole("navigation", { name: "選擇流程步驟" }).getByRole("button", { name: /看房決策摘要/ }).click();
+  const steps = page.getByRole("navigation", { name: "選擇流程步驟" });
+  const mobileMenu = steps.locator("summary");
+  if (await mobileMenu.isVisible()) {
+    await mobileMenu.click();
+    await expect(steps.locator("details")).toHaveAttribute("open", "");
+  }
+  await steps.getByRole("button", { name: /看房決策摘要/ }).click();
   await page.getByRole("button", { name: /^已儲存案件/ }).click();
   await page.getByRole("button", { name: "載入", exact: true }).first().click();
   await expect(page).toHaveURL(/\/cases\/case-a\/finance$/);
