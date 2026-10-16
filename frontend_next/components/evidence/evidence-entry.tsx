@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 // One shared client boundary keeps local repository/projection code shared across E9 entry routes.
 export { CompareView } from "./compare-view";
 export { ReportView } from "./report-view";
-export { SavedCasesEntry } from "../workspace/saved-cases-entry";
+// /cases imports SavedCasesEntry directly; keep its Cloud/Auth modules off evidence routes.
 export { OverviewView } from "../workspace/overview/overview-view";
 export { MarketPriceView } from "../workspace/market/market-price-view";
 export { CaseRouteLayout } from "../workspace/case-route-layout";

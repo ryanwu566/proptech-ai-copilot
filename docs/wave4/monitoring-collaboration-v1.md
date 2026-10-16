@@ -229,3 +229,106 @@ Closure verification:
   or retried by pytest; optional integration skip conditions were unchanged.
 - Final read-only review found no remaining important issues. Migration files,
   registry and CI workflows are unchanged; persistence and delivery remain inactive.
+
+## Published-branch final CI closure
+
+Starting published HEAD: `04875dff6240e52bd169992824f89a8a39120a51`.
+Fetched main: `26f1b40b3be1b8984a2b587b799ac1451fb3845d`.
+Backup ref: `backup/wave4-04875df-before-final-ci`.
+Main was merged normally in `a31884e746c1acd75691d50ef6fb1f0104176896`;
+no published commit was rebased or amended. The only overlapping/conflicted file
+was `saved-cases-entry.tsx`: resolution retains both `CloudCasesPanel` and the new
+Grounded Property Copilot link. Incoming professor-server preparation and Wave 1B
+contracts remain intact. Incoming main did not change Auth/account/quota code.
+
+The merged build reproduced 11 route budget failures. The shared evidence client
+entry unnecessarily re-exported `SavedCasesEntry`, although `/cases` already
+imports it directly. Wave 4's Cloud panel made this export pull the Auth SDK and
+Cloud UI into unrelated Compare, Report and workspace routes. Removing this
+unused re-export isolates the dependency without changing any feature behavior.
+The baseline, measurement scripts, ceilings, timeouts and retries are unchanged.
+
+The unchanged storage-unavailable browser test failed in both Chromium and Chrome
+before the fix. Traces point to Supabase Auth's module-level debug flag:
+`supportsLocalStorage()` probes writes, then an unguarded
+`localStorage.getItem("supabase.gotrue-js.locks.debug")` throws under the test's
+read denial. Compare hit its generic error boundary before repository diagnostics
+could render. After import isolation, the same test passes in both browsers with
+zero retries, including Clear All invalidating the frozen report. The existing
+storage classification and expected message are unchanged. This fix isolates
+evidence routes; it does not change SDK storage handling on Auth-enabled pages.
+
+The seven routes, four bounded-header command contracts, current-permission replay
+checks, revision CAS, import deduplication and atomic activity/receipt seam remain
+unchanged. Production continues returning `persistence_pending`. No migration,
+PostgreSQL adapter, provider refresh, scheduler or delivery activation is added.
+Migration sequencing remains deferred until Wave 1C settles its sequence.
+
+Verification on the merged source:
+
+- Stage 1, Wave 4 backend and Auth/account focused suite: 175 passed
+  (7 Stage 1, 67 Wave 4, 101 Auth/account).
+- Wave 4 frontend: 19 passed. Saved Case/workspace, Compare/Report, Decision Room,
+  Grounded Copilot and Auth/account unit regressions: 299 passed.
+- Exact unchanged storage-unavailable browser test: 2 passed, Chromium and Chrome,
+  zero retries. Full five-file browser matrix: Chrome 71 passed; final Chromium
+  rerun 71 passed, both with one worker and zero retries.
+- The first combined browser run had 141 passes and one incoming Copilot 390px
+  post-reload visibility miss. The exact traced check and then the entire
+  Chromium matrix passed unchanged. The original run had no failure trace, so
+  its cause remains unconfirmed; no assertion, timeout, retry or Copilot code
+  was changed to make it pass.
+- Asset-measurement unit contracts: 17 passed.
+- Exact Stage 1 command: 7 passed. Exact three-file Wave 4 backend command:
+  67 passed, with the existing Starlette deprecation warning.
+- Standard `npm --prefix frontend_next run typecheck`: passed. Lint: zero errors,
+  23 existing warnings. Both E2E and default production builds passed.
+- Fresh E2E measurement and unchanged budget gates: all 17 routes pass. Every
+  previously failing route sheds 270,159 bytes; case entry falls from 1,400,900
+  to 1,130,741 bytes against 1,301,212. Total static assets: 3,317,718 bytes against
+  8,000,000; largest JavaScript: 602,295 against 900,000. The SDK marker remains
+  only on login, signup and account routes, not evidence routes.
+
+Resume inspection preserved the completed main merge and both uncommitted closure
+files. No implementation change was needed after inspection. Fresh verification:
+
+- Stage 1: 7 passed; Wave 4 backend: 67 passed; Wave 4 frontend: 19 passed.
+- Compare/Report and monitoring/collaboration browsers: 50 passed, 25 Chromium
+  and 25 Chrome, one worker and zero retries. This includes the exact unchanged
+  storage-unavailable/Clear All test in both browsers.
+- Full `python -m pytest -q`: 3,923 passed, 104 skipped, one existing Starlette
+  deprecation warning, exit 0, in 366.64 seconds. No exclusions or retry overrides.
+- Fresh standard typecheck, lint and E2E build passed; lint retains 23 warnings
+  and zero errors. Fresh measurement-tool tests: 17 passed.
+- Default production build was independently measured: all 17 routes pass;
+  3,318,014 total static bytes and 602,354 largest JavaScript bytes also pass the
+  unchanged global ceilings.
+- Final review preserves authenticated UUID ownership, active-account and
+  forged-identity checks, no-store, current ACL checks on replay, bounded
+  idempotency, CAS, evidence history and local-copy preservation. There is no
+  new migration, provider refresh, scheduler or notification delivery activation.
+
+The following before/after measurements use the same E2E build configuration on
+the merged source. Before: 11 failing routes. After: all 17 pass. The six other
+routes are unchanged. All values are unique uncompressed static-file bytes from
+two cold samples at each of 390px and 1440px, bound to the measured build.
+
+| Route | Before | After | Unchanged ceiling |
+| --- | ---: | ---: | ---: |
+| `/` | 1,911,627 | 1,911,627 | 2,066,966 |
+| `/account` | 1,112,625 | 1,112,625 | 1,334,428 |
+| `/cases/[caseId]` | 1,400,900 | 1,130,741 | 1,301,212 |
+| `/cases/[caseId]/commute-planner` | 1,422,861 | 1,152,702 | 1,377,984 |
+| `/cases/[caseId]/decision-room` | 1,451,297 | 1,181,138 | 1,409,828 |
+| `/cases/[caseId]/finance` | 1,433,147 | 1,162,988 | 1,339,100 |
+| `/cases/[caseId]/location` | 1,606,240 | 1,336,081 | 1,551,855 |
+| `/cases/[caseId]/market` | 1,400,900 | 1,130,741 | 1,301,212 |
+| `/cases/[caseId]/overview` | 1,400,900 | 1,130,741 | 1,301,212 |
+| `/cases/[caseId]/report` | 1,400,900 | 1,130,741 | 1,301,212 |
+| `/cases/[caseId]/risk` | 1,594,519 | 1,324,360 | 1,538,049 |
+| `/cases/[caseId]/scenarios` | 1,416,430 | 1,146,271 | 1,337,843 |
+| `/compare` | 1,400,900 | 1,130,741 | 1,301,212 |
+| `/login` | 1,112,625 | 1,112,625 | 1,334,428 |
+| `/places` | 859,738 | 859,738 | 1,030,896 |
+| `/preferences` | 880,224 | 880,224 | 1,049,735 |
+| `/signup` | 1,112,625 | 1,112,625 | 1,334,428 |
