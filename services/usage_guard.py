@@ -44,11 +44,24 @@ class PostgresQuotaGuard:
     def check(self):
         with self._connect() as connection:
             row = connection.execute(
-                "SELECT r.rolsuper OR s.rolsuper, r.rolbypassrls OR s.rolbypassrls, r.rolcreaterole OR s.rolcreaterole, "
+                "WITH RECURSIVE reachable(oid) AS ("
+                "SELECT oid FROM pg_roles WHERE rolname IN (current_user,session_user) "
+                "UNION SELECT a.roleid FROM pg_auth_members a JOIN reachable x ON x.oid=a.member) "
+                "SELECT r.rolsuper OR s.rolsuper, r.rolbypassrls OR s.rolbypassrls, "
+                "EXISTS (SELECT 1 FROM pg_roles p JOIN reachable x ON x.oid=p.oid "
+                "WHERE p.rolsuper OR p.rolbypassrls OR p.rolcreaterole OR p.rolcreatedb OR p.rolreplication "
+                "OR p.rolname LIKE 'pg\\_%' ESCAPE '\\'), "
                 "pg_has_role(current_user, 'proptech_usage_executor', 'MEMBER') OR pg_has_role(session_user, 'proptech_usage_executor', 'MEMBER'), "
                 "pg_has_role(current_user, 'proptech_usage_guard', 'USAGE'), "
                 "EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace "
-                "WHERE n.nspname='api_usage' AND c.relowner IN (r.oid,s.oid)) "
+                "WHERE n.nspname='api_usage' AND c.relowner IN (SELECT oid FROM reachable)) "
+                "OR EXISTS (SELECT 1 FROM pg_namespace WHERE nspname='api_usage' AND nspowner IN (SELECT oid FROM reachable)) "
+                "OR EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace "
+                "WHERE n.nspname='api_usage' AND p.proowner IN (SELECT oid FROM reachable)) "
+                "OR EXISTS (SELECT 1 FROM pg_database WHERE datname=current_database() AND datdba IN (SELECT oid FROM reachable)) "
+                "OR EXISTS (SELECT 1 FROM pg_auth_members WHERE member IN (SELECT oid FROM reachable) AND admin_option) "
+                "OR EXISTS (SELECT 1 FROM reachable x WHERE has_schema_privilege(x.oid,'api_usage','CREATE') "
+                "OR has_database_privilege(x.oid,current_database(),'CREATE')) "
                 "FROM pg_roles r JOIN pg_roles s ON s.rolname=session_user WHERE r.rolname=current_user"
             ).fetchone()
             if row is None or any(row[i] for i in (0, 1, 2, 3, 5)) or not row[4]:
