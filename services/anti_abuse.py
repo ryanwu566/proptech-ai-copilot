@@ -176,7 +176,9 @@ class AbuseControls:
         """Read-only authoritative local state; no infrastructure mutation API."""
         from services.usage_guard import guard_configuration
         durable = guard_configuration().mode == "postgres"
-        return {"enforcement_scope": "postgres_and_process_local" if durable else "process_local", "fleet_quota_enforced": durable,
+        return {"enforcement_scope": "postgres_and_process_local" if durable else "process_local", "fleet_quota_enforced": False,
+                "principal_quota_enforcement_scope": "postgres" if durable else "process_local",
+                "capability_enforcement_scope": "process_local",
                 "mutable_controls_available": False,
                 "capabilities": {name: {"enabled": capability_enabled(name), "policy": dict(vars(policy)), "process_requests_per_window": self.capability_request_limiters[name].limit} for name, policy in self.policies.items()},
                 "principal_policies": {tier: dict(vars(policy)) for tier, policy in self.principal_quotas.policies.items()}}

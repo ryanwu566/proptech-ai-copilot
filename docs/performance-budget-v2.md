@@ -32,8 +32,13 @@ Route destinations, fixture hydration and populated view markers must match.
 
 Provider hosts, API requests, other origins, non-GET requests and route prefetch
 are blocked before network access. No production records or credentials are
-used. A 210-second internal deadline and 240-second hard deadline bound the
-measurement; cleanup owns only the spawned server/browser process tree.
+used. The original eleven-route run retains its 210-second internal and
+240-second hard deadline. Wave 1C adds four cold samples for each of seven
+operator routes: each extra route receives 15 seconds, capped at seven extra
+routes (315 seconds internal / 345 seconds hard for eighteen routes).
+This changes only the bounded execution allowance, not sample counts, network
+policy, asset attribution or byte ceilings. Cleanup owns only the spawned
+server/browser process tree.
 
 Evidence lives in ignored `.next/route-assets-v2.json` and is bound by SHA-256 to
 the build ID, static file contents, server rendering artifacts, routing/build
@@ -86,6 +91,14 @@ measured directly; its ceiling is not borrowed from finance or the global total.
 Absent feature routes report null measured bytes and `route_not_present`;
 once present, they must be attributed and fit their own bounded ceiling.
 Routes present on pinned main are required by the gate.
+
+Wave 1C adds seven required operator routes: `/admin`, `/admin/users`,
+`/admin/usage`, `/admin/providers`, `/admin/limits`, `/admin/operations`,
+`/admin/audit`. Each has an explicit fixed **1,300,000-byte** ceiling, below
+Compare's existing ceiling; this is a new-route policy cap with no invented
+baseline. All seven measured **1,117,446 bytes** on the ordinary Wave 1C build.
+The three admin-exclusive assets are absent from the measured homepage graph.
+All existing baseline records and consumer ceilings remain unchanged.
 
 The global protections remain mandatory: all static files <= **8,000,000 bytes**,
 largest client JS <= **900,000 bytes**. This includes unrequested assets,

@@ -27,6 +27,7 @@ async function assertRouteView(page, routeName, width, rows) {
     throw error;
   }
   const selectors = {
+    ...Object.fromEntries(["/admin", ...["users", "usage", "providers", "limits", "operations", "audit"].map((section) => `/admin/${section}`)].map((route) => [route, '[data-testid="admin-shell"]'])),
     "/": "#main-content",
     "/login": "#consumer-email",
     "/signup": "#consumer-email",
@@ -73,7 +74,7 @@ async function stop(server) {
 
 function failureDiagnostic(error, state) {
   const stages = ["input", "module_resolution", "fixture_loading", "build_id", "server_start", "server_readiness", "chromium_launch", "chromium_connect", "browser_context", "route_navigation", "route_view_validation", "route_networkidle", "route_assets", "process_cleanup"];
-  const routes = ["/", "/login", "/signup", "/account", "/preferences", "/places", "/compare", "/cases/[caseId]", ...["overview", "market", "location", "risk", "finance", "report", "scenarios", "decision-room", "commute-planner"].map((section) => `/cases/[caseId]/${section}`)];
+  const routes = ["/admin", ...["users", "usage", "providers", "limits", "operations", "audit"].map((section) => `/admin/${section}`), "/", "/login", "/signup", "/account", "/preferences", "/places", "/compare", "/cases/[caseId]", ...["overview", "market", "location", "risk", "finance", "report", "scenarios", "decision-room", "commute-planner"].map((section) => `/cases/[caseId]/${section}`)];
   const exceptionType = ["Error", "TypeError", "SyntaxError", "RangeError", "TimeoutError"].includes(error.name) ? error.name : "Error";
   const safeCodes = ["MODULE_NOT_FOUND", "ERR_REQUIRE_ESM", "ERR_UNKNOWN_FILE_EXTENSION", "ENOENT", "EACCES", "EADDRINUSE"];
   const reasons = new Map([

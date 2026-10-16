@@ -125,10 +125,10 @@ def test_registry_freezes_every_historical_migration_exactly_once() -> None:
     registrations = load_registry()
     actual_files = {path.name for path in MIGRATION_DIRECTORY.glob("*.sql")}
 
-    assert len(registrations) == len(actual_files) == 22
+    assert len(registrations) == len(actual_files) == 23
     assert {item.filename for item in registrations} == actual_files
     assert len({item.logical_id for item in registrations}) == len(registrations)
-    assert [item.registry_order for item in registrations] == list(range(1, 23))
+    assert [item.registry_order for item in registrations] == list(range(1, 24))
     assert [item.filename for item in registrations][1:3] == [
         "002_add_market_direct_query_indexes.sql",
         "002_expand_valuation_import_runs.sql",
@@ -185,10 +185,10 @@ def test_registry_checksum_is_stable_across_checkout_line_endings(tmp_path: Path
     assert checksum(lf) == checksum(crlf)
 
 
-def test_registry_allocates_next_sequence_after_usage_ledger() -> None:
+def test_registry_allocates_next_sequence_after_admin_control_plane() -> None:
     registrations = load_registry()
 
-    assert next_safe_sequence(registrations) == 22
+    assert next_safe_sequence(registrations) == 23
     assert sum(item.filename.startswith("013_") for item in registrations) == 1
     assert sum(item.filename.startswith("014_") for item in registrations) == 1
     assert sum(item.filename.startswith("015_") for item in registrations) == 1
@@ -202,9 +202,9 @@ def test_dry_run_reports_frozen_registry_and_next_allocation() -> None:
 
     assert result == {
         "status": "ready",
-        "migration_count": 17,
-        "registry_count": 22,
-        "next_migration_sequence": "022",
+        "migration_count": 18,
+        "registry_count": 23,
+        "next_migration_sequence": "023",
         "mode": "dry_run",
     }
 
@@ -273,9 +273,10 @@ def test_legacy_and_official_market_coverage_schemas_are_distinct() -> None:
     assert "release_id text not null references official_market_releases" in forward
     assert "create table if not exists market_region_coverage (" not in forward
     assert "idx_official_market_region_coverage_region_period" in forward
-    assert migration_runner.MIGRATIONS[-3].name == "019_add_ris_village_demographics.sql"
-    assert migration_runner.MIGRATIONS[-2].name == "020_consumer_account_foundation.sql"
-    assert migration_runner.MIGRATIONS[-1].name == "021_api_usage_quota_ledger.sql"
+    assert [path.name for path in migration_runner.MIGRATIONS[-4:]] == [
+        "019_add_ris_village_demographics.sql", "020_consumer_account_foundation.sql",
+        "021_api_usage_quota_ledger.sql", "022_admin_control_plane.sql",
+    ]
     assert any(path.name == "010_add_plvr_generation_schema.sql" for path in migration_runner.MIGRATIONS)
     assert "official_market_region_coverage" in migration_runner.REQUIRED_TABLES
     assert "plvr_dataset_generations" in migration_runner.REQUIRED_TABLES

@@ -116,7 +116,7 @@ class PostgresUsageStore:
                 result = connection.execute(query, tuple(parameters)).fetchall()
         return {"scope": "durable_aggregates", "window_hours": hours,
                 "rows": [dict(zip(("principal_class", "capability", "provider", *COUNTERS), row)) for row in result],
-                "fleet_quota_enforced": False, "unflushed_usage_included": False}
+                "quota_enforcement_scope": "not_reported", "unflushed_usage_included": False}
 
 
 class UsageFlusher:
