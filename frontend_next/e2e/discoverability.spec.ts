@@ -169,6 +169,40 @@ test("keyboard property start moves focus into the active workflow stage", async
   await expect(page.locator(":focus")).toBeInViewport();
 });
 
+test("property workflow preserves history and keeps journey state out of storage", async ({ page }) => {
+  const requests: string[] = [];
+  await page.route("http://e2e.test/**", async (route) => { requests.push(new URL(route.request().url()).pathname); await route.abort(); });
+  await page.goto("/?source=closure#original");
+  await expect(page.locator(".commercial-home [data-page-heading]")).toBeFocused();
+  const storage = () => page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
+  const beforeStorage = await storage();
+  const beforeHistory = await page.evaluate(() => history.length);
+  const address = page.getByRole("textbox", { name: "物件地址", exact: true });
+  await address.fill("臺中市西屯區臺灣大道三段100號");
+  await address.press("Enter");
+  await expect(page).toHaveURL(/\/\?source=closure&workflow=property$/);
+  await expect(page.locator("#journey-stage-heading-location")).toBeFocused();
+  expect(await page.evaluate(() => history.length)).toBe(beforeHistory + 1);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/\?source=closure#original$/);
+  await expect(page.locator("#guided-property-journey")).not.toBeVisible();
+  await page.goForward();
+  await expect(page).toHaveURL(/\/\?source=closure&workflow=property$/);
+  await expect(page.locator("#guided-property-journey")).toBeVisible();
+  await page.reload();
+  await expect(page.locator("#guided-property-journey h2").first()).toBeFocused();
+  await page.locator(".commercial-skip-link").focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/workflow=property#main-content$/);
+  const activeHistory = await page.evaluate(() => history.length);
+  await page.locator(".commercial-home").getByRole("button", { name: /搜尋官方成交資料/ }).click();
+  await expect(page.locator("#journey-stage-heading-property")).toBeFocused();
+  await expect(page).toHaveURL(/\/\?source=closure&workflow=property#main-content$/);
+  expect(await page.evaluate(() => history.length)).toBe(activeHistory);
+  expect(await storage()).toEqual(beforeStorage);
+  expect(requests).toEqual([]);
+});
+
 test.describe("touch navigation", () => {
   test.use({ hasTouch: true });
   for (const width of [390, 430]) test(`tap handoffs remain usable at ${width}`, async ({ page }) => {

@@ -70,6 +70,7 @@ import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEviden
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 import { initialValuationSelection, loadValuationPrerequisites } from "@/lib/valuation-prerequisites";
 import { PRODUCT_ENTRIES } from "@/lib/navigation/model";
+import { isPropertyWorkflow, setProductWorkflow } from "@/lib/navigation/product-workflow";
 import { HomeLocationObserver } from "@/components/navigation/home-location-observer";
 import { getJourneyValuationFormInputs, getJourneyValuationInputPatch, getSubmittedJourneyValuationInputs, journeyValuationCitiesMatch, journeyValuationInputsMatchContext, type JourneyValuationFormInputs } from "@/lib/journey-valuation-inputs";
 
@@ -161,8 +162,7 @@ export default function Home() {
   }, []);
   function navigateProduct(next: AppPage) {
     if (next !== "儀表板" && !PRODUCT_ENTRIES.some((entry) => "tool" in entry && entry.tool === next)) { setPage(next); return; }
-    const url = new URL(window.location.href);
-    url.searchParams.delete("workflow");
+    const url = setProductWorkflow(window.location.href, null);
     // Shared valuation inputs belong to valuation deep links, not a new Home entry.
     if (next === "儀表板") for (const key of ["city", "district", "road", "building_type", "area_ping", "building_age_years", "floor"]) url.searchParams.delete(key);
     if (next === "儀表板") url.searchParams.delete("tool");
@@ -170,6 +170,13 @@ export default function Home() {
     url.hash = "";
     window.history.pushState(null, "", `${url.pathname}${url.search}`);
     setPage(next);
+  }
+  function navigateToPropertyWorkflow() {
+    if (!isPropertyWorkflow(window.location.search) || page !== "儀表板") {
+      navigateProduct("儀表板");
+      const url = setProductWorkflow(window.location.href, "property");
+      window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+    }
   }
   const openTax = (caseId = "") => { setRequestedCase(caseId); navigateProduct("TaxOracle"); };
   function applyJourneyPropertySelection(selection: PropertyFinderSelection) {
@@ -215,12 +222,7 @@ export default function Home() {
   };
   function openJourneyStep(step: JourneyStepId) {
     workflowFocusStep.current = step;
-    if (new URLSearchParams(window.location.search).get("workflow") !== "property" || page !== "儀表板") {
-      navigateProduct("儀表板");
-      const url = new URL(window.location.href);
-      url.searchParams.set("workflow", "property");
-      window.history.replaceState(null, "", `${url.pathname}${url.search}`);
-    }
+    navigateToPropertyWorkflow();
     setJourneyOpen(true);
     window.requestAnimationFrame(() => {
       window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: step }));
