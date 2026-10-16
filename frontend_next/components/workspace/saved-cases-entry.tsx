@@ -12,6 +12,7 @@ import { RepositoryNotice, storageBlocked } from "@/components/evidence/evidence
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import { buildWorkspaceOverview } from "@/lib/workspace/overview-model";
 import styles from "./saved-cases-entry.module.css";
+import { CopilotLink } from "./copilot/copilot-link";
 import { useSearchParams } from "next/navigation";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { navigationCopy } from "@/lib/navigation/copy";
@@ -66,6 +67,6 @@ function SavedCaseRow({ workspace, destination }: { workspace: PropertyCaseWorks
     <p className="text-meta">{workspace.assumptions.activePriceWan ? formatWan(workspace.assumptions.activePriceWan) : copyFrom(navigationCopy, "unknownPrice")} · {copyFrom(navigationCopy, "snapshot")} {formatExactDate(workspace.updatedAt)}</p>
     <p className="text-dense">{overview.unresolvedCount > 0 ? copyFrom(navigationCopy, "gaps", { count: overview.unresolvedCount }) : copyFrom(navigationCopy, "noGaps")}</p>
     <div className={styles.actions}><Link prefetch={false} className="ds-button ds-button--secondary" href={caseDestination(workspace.caseId, destination)}>{copyFrom(navigationCopy, "open")}{workspace.title}</Link>
-    {destination !== "report" && <Link prefetch={false} className="ds-button ds-button--tertiary" href={caseDestination(workspace.caseId, "report")}>{copyFrom(navigationCopy, "report")}</Link>}</div>
+    {destination !== "report" && <Link prefetch={false} className="ds-button ds-button--tertiary" href={caseDestination(workspace.caseId, "report")}>{copyFrom(navigationCopy, "report")}</Link>}<CopilotLink caseId={workspace.caseId} /></div>
   </Panel></article>;
 }

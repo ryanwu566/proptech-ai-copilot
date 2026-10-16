@@ -11,6 +11,7 @@ import { calculateScenario, emptyScenario, parseScenarioSave, SCENARIO_FIELDS, S
 import type { ScenarioCopyKey } from "@/lib/workspace/scenario-copy";
 import type { CopyCatalogue } from "@/lib/copy-catalogue";
 import styles from "./scenario-lab.module.css";
+import { scenarioContext } from "@/lib/workspace/scenario-context";
 
 const letters = ["A", "B", "C"];
 const metrics = ["purchaseCashTwd", "principalTwd", "paymentTwd", "monthlyOwnershipTwd", "firstYearTwd", "acquisitionTotalTwd", "holdingCashTwd"] as const;
@@ -21,7 +22,7 @@ type ScenarioLabProps = { catalogue: CopyCatalogue<ScenarioCopyKey> };
 export function ScenarioLab({ catalogue }: ScenarioLabProps) {
   const workspace = useWorkspace();
   // Drafts are bound to a property and frozen evidence context, never just price.
-  const context = JSON.stringify([workspace.caseId, workspace.revision, workspace.updatedAt, workspace.identity, workspace.assumptions, workspace.finance, workspace.location.routeEvidence]);
+  const context = scenarioContext(workspace);
   return <ScenarioEditor key={context} context={context} catalogue={catalogue} />;
 }
 
@@ -75,6 +76,7 @@ function ScenarioEditor({ context, catalogue }: ScenarioLabProps & { context: st
   function save() {
     try {
       localStorage.setItem(storageKey, JSON.stringify({ version: 1, context, drafts, baseline }));
+      window.dispatchEvent(new Event("proptech:scenarios-changed"));
       setStatus("savedStatus");
     } catch { setStatus("failed"); }
   }

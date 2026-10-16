@@ -1,0 +1,2 @@
+infra/selfhost/*.sh text eol=lf
+scripts/ops/selfhost-*.sh text eol=lf

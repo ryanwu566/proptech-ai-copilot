@@ -12,6 +12,7 @@ import { EvidenceValue, EvidenceGaps, EvidenceSources, RepositoryNotice, storage
 import styles from "./evidence.module.css";
 import { ManualReviewSummary } from "./manual-review-summary";
 import { ComparableExplanation } from "../workspace/market/comparable-explanation";
+import { CopilotLink } from "../workspace/copilot/copilot-link";
 function currentEvidence(read: WorkspaceReadDiagnostic, caseId: string): CaseEvidenceModel | null { const workspace = read.cases.find((item) => item.caseId === caseId); return workspace ? projectCaseEvidence(workspace) : null; }
 function invalid(read: WorkspaceReadDiagnostic, caseId: string): boolean { return storageBlocked(read) || read.issues.some((issue) => issue.caseId === caseId); }
 export function ReportView({ caseId }: { caseId: string }) {
@@ -64,6 +65,7 @@ export function ReportView({ caseId }: { caseId: string }) {
         <ActionSection><Link href="/cases" className="ds-button ds-button--secondary">回到已儲存案件</Link>{current && <Link href={`/cases/${encodeURIComponent(caseId)}/overview`} className="ds-button ds-button--secondary">重新確認物件</Link>}</ActionSection>
       </Message></div> : <>
         <div className={styles.screenOnly} data-testid="report-controls">
+          <CopilotLink caseId={caseId} />
           <ActionSection><CommercialButton onClick={print}>列印／另存 PDF</CommercialButton><Link href={`/cases/${encodeURIComponent(caseId)}/overview`} className="ds-button ds-button--secondary">返回案件工作區</Link><Link href="/cases" className="ds-button ds-button--secondary">已儲存案件</Link></ActionSection>
           <p className="text-meta">開啟瀏覽器列印對話框，可選擇另存為 PDF。</p>
           {assessment === "snapshot_changed" && <div data-testid="snapshot-change"><Message variant="warning" action={<CommercialButton variant="secondary" onClick={loadNewer}>載入較新快照</CommercialButton>}>案件已有較新快照；目前畫面與列印仍使用你正在檢視的保存快照。</Message></div>}

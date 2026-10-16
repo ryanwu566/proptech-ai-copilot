@@ -10,6 +10,7 @@ import { decisionRoomCopy, type DecisionRoomCopy } from "@/lib/decision-room-cop
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { WorkspaceNavigation } from "@/components/workspace/workspace-navigation";
 import styles from "./decision-room.module.css";
+import { CopilotLink } from "@/components/workspace/copilot/copilot-link";
 
 type Save = (change: (room: DecisionRoom) => DecisionRoom | null) => Promise<boolean>;
 type EditorError = RoomError | "case_unreadable" | "record_removed";
@@ -107,7 +108,7 @@ export function DecisionRoomPage({ caseId }: { caseId: string }) {
       <p className={styles.boundary}>{c.boundary}</p>
       <p className={styles.muted}>{c.localOnly}</p>
     </header>
-    {context && <WorkspaceNavigation caseId={caseId} />}
+    {context && <><WorkspaceNavigation caseId={caseId} /><CopilotLink caseId={caseId} /></>}
     {loading && <p aria-busy="true">{c.loading}</p>}
     {caseRead && caseRead.status !== "ready" && <div className={styles.error} role="alert"><p>{c[caseRead.status]}</p><Link href="/cases">{c.cases}</Link><button className={button} onClick={load}>{c.retry}</button></div>}
     {context && roomRead && !room && <div className={styles.error} role="alert"><p>{c[roomRead.status as RoomError]}</p><button className={button} onClick={load}>{c.retry}</button></div>}

@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
 
-test.setTimeout(60_000);
+test.beforeEach(({}, testInfo) => { test.setTimeout(Math.max(60_000, testInfo.project.timeout)); });
 
 const CORE_KEY = "proptech.savedCases.v1";
 const ROOM_KEY = "proptech.decisionRoom.v1.case-a";
@@ -296,6 +296,7 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
   const watch = (tab: Page) => tab.on("request", (request) => { if (isProviderRequest(request, baseURL!)) providers.push(request.url()); });
   watch(page);
   await openRoom(page);
+  await expect(page.getByTestId("asking-price-form")).toBeVisible();
   const originalCases = await page.evaluate((key) => localStorage.getItem(key), CORE_KEY);
   const second = await context.newPage(); watch(second);
   await openRoom(second);
@@ -303,11 +304,15 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
   const price = form.getByLabel("Manual asking price (TWD 10,000)", { exact: true });
   const remotePrice = remote.getByLabel("Manual asking price (TWD 10,000)", { exact: true });
   async function saveRemote() {
+    await second.bringToFront();
     await remote.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(second.getByTestId("decision-room").getByRole("status")).toContainText("Saved in this browser");
+    await page.bringToFront();
     await expect(page.getByTestId("decision-room").getByRole("alert")).toContainText("Another page");
   }
-  async function reload() { await page.getByRole("button", { name: "Load latest data", exact: true }).click(); }
+  async function reload() { await page.bringToFront(); await page.getByRole("button", { name: "Load latest data", exact: true }).click(); }
   async function saveLocal() {
+    await page.bringToFront();
     await form.getByRole("button", { name: "Save", exact: true }).click();
     await expect(page.getByTestId("decision-room").getByRole("status")).toContainText("Saved in this browser");
   }
@@ -317,6 +322,7 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
   await saveRemote(); await reload();
   await expect(price).toHaveValue("2390");
   await price.fill("2350");
+  await second.bringToFront();
   await remote.getByLabel("Source and check note").fill("Latest external provenance");
   await saveRemote();
   const newerRoom = await page.evaluate((key) => localStorage.getItem(key), ROOM_KEY);
@@ -326,6 +332,7 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
   await reload();
   await expect(price).toHaveValue("2350");
   type PriceLockWindow = Window & { priceLockHeld?: boolean; releasePriceLock?: () => void };
+  await second.bringToFront();
   const heldLock = second.evaluate(async (key) => {
     await navigator.locks.request(key, async () => {
       const win = window as PriceLockWindow;
@@ -334,6 +341,7 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
     });
   }, ROOM_KEY);
   await expect.poll(() => second.evaluate(() => (window as PriceLockWindow).priceLockHeld)).toBe(true);
+  await page.bringToFront();
   try {
     await form.getByRole("button", { name: "Save", exact: true }).click();
     await expect(price).toBeDisabled();
@@ -349,12 +357,14 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
   await expect(form.getByLabel("Source and check note")).toHaveValue("Latest external provenance");
   const merged = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!).askingPrice, ROOM_KEY);
   expect(merged).toEqual({ priceWan: 2350, sourceUrl: "https://example.org/quotation", sourceNote: "Latest external provenance", checkedDate: "" });
+  await second.bringToFront();
   await second.getByRole("button", { name: "Load latest data", exact: true }).click();
   await remotePrice.fill("2450"); await remote.getByLabel("Source and check note").fill("Second external update");
   await saveRemote(); await reload();
   await expect(price).toHaveValue("2450");
   await expect(form.getByLabel("Source and check note")).toHaveValue("Second external update");
   await form.getByLabel("Source and check note").fill("Buyer-authored provenance");
+  await second.bringToFront();
   await remotePrice.fill("2550"); await remote.getByLabel("Actual checked date").fill("2026-10-14");
   await saveRemote(); await reload();
   await expect(form.getByLabel("Source and check note")).toHaveValue("Buyer-authored provenance");
@@ -414,10 +424,13 @@ test("overlapping saves wait for a case lock and cannot overwrite each other", a
   await openRoom(second);
   const firstForm = page.getByTestId("new-note-form");
   const secondForm = second.getByTestId("new-note-form");
+  await page.bringToFront();
   await firstForm.getByLabel("Viewing observation").fill("First queued observation");
+  await second.bringToFront();
   await secondForm.getByLabel("Viewing observation").fill("Second queued observation");
   await page.bringToFront();
   type LockWindow = Window & { lockHeld?: boolean; releaseRoomLock?: () => void };
+  await page.bringToFront();
   const heldLock = page.evaluate(async (key) => {
     await navigator.locks.request(key, async () => {
       const win = window as LockWindow;
@@ -427,13 +440,16 @@ test("overlapping saves wait for a case lock and cannot overwrite each other", a
   }, ROOM_KEY);
   await expect.poll(() => page.evaluate(() => (window as LockWindow).lockHeld)).toBe(true);
   await firstForm.getByRole("button", { name: "Save", exact: true }).click();
+  await second.bringToFront();
   await secondForm.getByRole("button", { name: "Save", exact: true }).click();
   await expect(firstForm.getByLabel("Viewing observation")).toBeDisabled();
   await expect(secondForm.getByLabel("Viewing observation")).toBeDisabled();
   expect(await page.evaluate((key) => localStorage.getItem(key), ROOM_KEY)).toBeNull();
+  await page.bringToFront();
   await page.evaluate(() => (window as LockWindow).releaseRoomLock?.());
   await heldLock;
   await expect.poll(() => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "{}").notes?.length, ROOM_KEY)).toBe(1);
+  await second.bringToFront();
   await expect(second.getByTestId("decision-room").getByRole("alert")).toContainText("Another page");
   await expect(secondForm.getByLabel("Viewing observation")).toHaveValue("Second queued observation");
   await second.getByRole("button", { name: "Load latest data", exact: true }).click();
@@ -453,15 +469,19 @@ test("existing task edits merge with newer fields and survive remote removal", a
   await add.getByRole("button", { name: "Save", exact: true }).click();
   const second = await context.newPage();
   await openRoom(second);
+  await page.bringToFront();
   await tasks.getByRole("button", { name: "Edit", exact: true }).click();
   const firstEdit = tasks.getByTestId("item-edit-form");
   await firstEdit.getByLabel("Owner", { exact: true }).fill("Partner");
   const secondTasks = second.getByTestId("task-items");
+  await second.bringToFront();
   await secondTasks.getByRole("button", { name: "Edit", exact: true }).click();
   const secondEdit = secondTasks.getByTestId("item-edit-form");
   await secondEdit.getByLabel("Status", { exact: true }).selectOption("done");
   await secondEdit.getByLabel("Resolution", { exact: true }).fill("Received copy for further checking");
   await secondEdit.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(second.getByTestId("decision-room").getByRole("status")).toContainText("Saved in this browser");
+  await page.bringToFront();
   await expect(page.getByTestId("decision-room").getByRole("alert")).toContainText("Another page");
   await page.getByRole("button", { name: "Load latest data", exact: true }).click();
   await expect(firstEdit.getByLabel("Owner", { exact: true })).toHaveValue("Partner");
@@ -471,8 +491,11 @@ test("existing task edits merge with newer fields and survive remote removal", a
   expect(stored.items[0]).toMatchObject({ owner: "Partner", status: "done", resolution: "Received copy for further checking" });
   await tasks.getByRole("button", { name: "Edit", exact: true }).click();
   await firstEdit.getByLabel("Owner", { exact: true }).fill("Retain after deletion");
+  await second.bringToFront();
   await second.getByRole("button", { name: "Load latest data", exact: true }).click();
   await secondTasks.getByRole("button", { name: "Remove", exact: true }).click();
+  await expect(second.getByTestId("decision-room").getByRole("status")).toContainText("Saved in this browser");
+  await page.bringToFront();
   await expect(page.getByTestId("decision-room").getByRole("alert")).toContainText("Another page");
   await page.getByRole("button", { name: "Load latest data", exact: true }).click();
   await expect(firstEdit.getByLabel("Owner", { exact: true })).toHaveValue("Retain after deletion");

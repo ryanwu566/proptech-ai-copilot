@@ -8,5 +8,5 @@ import { CaseWorkflowHandoff } from "@/components/navigation/case-workflow-hando
 export function CaseRouteLayout({ caseId, children }: { caseId: string; children: ReactNode }) {
   const pathname = usePathname();
   if (pathname === `/cases/${encodeURIComponent(caseId)}/report` || pathname === `/cases/${encodeURIComponent(caseId)}/decision-room` || pathname === `/cases/${encodeURIComponent(caseId)}/commute-planner`) return <>{children}<div className="case-standalone-handoff"><CaseWorkflowHandoff caseId={caseId} /></div></>;
-  return <WorkspaceProvider caseId={caseId}><WorkspaceShell>{children}</WorkspaceShell></WorkspaceProvider>;
+  return <WorkspaceProvider key={caseId} caseId={caseId}><WorkspaceShell>{children}</WorkspaceShell></WorkspaceProvider>;
 }

@@ -1,0 +1,253 @@
+{
+  "date": "2026-10-16",
+  "timezone": "Asia/Taipei",
+  "scope": "local_only",
+  "production_status": "STOP / NO_GO",
+  "branch": "ops/wave1b-hosted-usage-db-closure",
+  "starting_sha": "59631992e03c05ff01e67fb691710c738fcc6d1b",
+  "files_changed": [
+    "scripts/bootstrap_usage_database.py",
+    "scripts/usage_database_security.py",
+    "scripts/rehearse_usage_database.py",
+    "services/usage_guard.py",
+    "tests/test_usage_database_bootstrap.py",
+    "docs/operations/wave1b-hosted-production-closure-procedure.md",
+    "docs/operations/wave1b-usage-bootstrap-validation.json",
+    "docs/superpowers/specs/2026-10-16-usage-database-bootstrap-design.md",
+    "docs/superpowers/plans/2026-10-16-usage-database-bootstrap.md"
+  ],
+  "migration_021": {
+    "changed": false,
+    "checksum_before": "00ed7d4b78de6d92c285ab8cd87241d1477bee2ce6e97caef6bbf6e2f43b98af",
+    "checksum_after": "00ed7d4b78de6d92c285ab8cd87241d1477bee2ce6e97caef6bbf6e2f43b98af",
+    "canonical_bytes_equal_to_starting_git_blob": true,
+    "registry_changed": false
+  },
+  "bootstrap": {
+    "migration_actor": "usage_migration",
+    "actor_attributes": [
+      "LOGIN",
+      "CREATEROLE",
+      "NOSUPERUSER",
+      "NOBYPASSRLS",
+      "NOCREATEDB",
+      "NOREPLICATION",
+      "NOINHERIT"
+    ],
+    "raw_021_red": [
+      "must be able to SET ROLE",
+      "permission denied for schema api_usage when SET membership supplied"
+    ],
+    "source_consumption": "Exact registered bytes, canonical LF rehash, contiguous source slices; no duplicated migration body",
+    "transaction": "One bootstrap transaction includes schema/roles, two ownership-plus-ACL seams, cleanup, audit and metadata history",
+    "temporary_authority": "SET TRUE and INHERIT TRUE actor-to-executor membership plus executor schema CREATE, only around each original ALTER OWNER/REVOKE PUBLIC/GRANT EXECUTE block",
+    "cleanup_proof": [
+      "Executor schema CREATE false after each seam",
+      "Actor executor SET and USAGE false after each seam and before commit",
+      "Actual actor SET ROLE to executor raises InsufficientPrivilege",
+      "Injected cleanup/audit failures roll back all schema/roles/history",
+      "Runtime final-audit failure rolls back role and memberships"
+    ],
+    "creator_admin_limit": "PG17 auto-grants ADMIN-only membership via bootstrap-superuser grantor. SET/INHERIT remain false; actor own usable seam grant is revoked. Administrative regrant remains a trusted-admin capability.",
+    "fresh_target_contract": "Dedicated bootstrap environment only, exact expected database and explicit acknowledgement; direct bounded actor; PG17; empty public/system-only baseline; no preexisting usage roles or unrelated schemas/objects/default ACLs/extensions/event triggers/large objects/publications/subscriptions/foreign servers; partial/repeat states refused",
+    "subsystem_history": "Private api_usage_bootstrap.history records only exact 021, checksum, bootstrap version 1, release, actor, timestamp. No global ledger or invented 001-020 records"
+  },
+  "runtime": {
+    "role": "proptech_usage_runtime_v1",
+    "attributes": [
+      "LOGIN",
+      "INHERIT",
+      "NOSUPERUSER",
+      "NOBYPASSRLS",
+      "NOCREATEDB",
+      "NOCREATEROLE",
+      "NOREPLICATION"
+    ],
+    "memberships": [
+      "proptech_usage_guard",
+      "proptech_usage_writer"
+    ],
+    "membership_options": {
+      "admin": false,
+      "inherit": true,
+      "set": false
+    },
+    "password": "NULL; real credential intentionally not provisioned",
+    "ownership": "None",
+    "executor_or_reader_membership": false
+  },
+  "security_proofs": [
+    "Both functions owned by NOLOGIN NOSUPERUSER NOBYPASSRLS executor",
+    "All six tables ENABLE and FORCE RLS; ordinary actor owner cannot see runtime quota rows",
+    "Exact schema/table/function ACL and policy matrix; no unexpected column ACLs",
+    "No browser/request or PUBLIC table/function access",
+    "Guard cannot perform telemetry writer DML",
+    "Writer cannot mutate quota policy/successful counters directly",
+    "Real guard consume and duplicate behavior; real PostgresUsageStore check/upsert/replay/summary/prune",
+    "Unsafe direct/inherited/session principals, predefined roles and SET-reachable CREATE rejected",
+    "Unexpected trigger/rule/public-object/function-body/RLS/grant drift refused"
+  ],
+  "disposable_postgres": {
+    "version": "17.10",
+    "image": "postgres@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+    "isolation": "Fresh local Docker containers, validated explicit local IPC endpoint, loopback random port, tmpfs, trust authentication without passwords; setup superuser never used as bootstrap actor",
+    "connection_boundary": "Production URL/secret/PG/Docker variables excluded from child environment; libpq sync/async targets allow-listed; external Python TCP connects blocked. No image pulls."
+  },
+  "tests": {
+    "bootstrap": {
+      "command": "python -B scripts/rehearse_usage_database.py --suite bootstrap",
+      "passed": 63,
+      "failed": 0,
+      "seconds": 87.68
+    },
+    "relevant_regression": {
+      "command": "python -B scripts/rehearse_usage_database.py --suite regression",
+      "passed": 99,
+      "failed": 0,
+      "skipped": 0,
+      "warnings": [
+        "Existing Starlette httpx deprecation"
+      ],
+      "seconds": 21.57
+    },
+    "full_suite_initial": {
+      "passed": 3772,
+      "skipped": 87,
+      "failed": 46,
+      "diagnosis": "45 tests lacked locked frontend TypeScript dependencies; bank-rate API fallback failed because harness raised RuntimeError rather than OS connection error. Offline npm restore and ConnectionRefusedError correct the harness/environment, with no unrelated application source change.",
+      "failed_nodes": [
+        "tests/test_bank_rate_api.py::test_bank_rate_api_contract",
+        "tests/test_commute_workflow_state.py::test_commute_channels_and_journey_state_with_node",
+        "tests/test_commute_workflow_state.py::test_property_case_commute_status_is_derived_with_node",
+        "tests/test_commute_workflow_state.py::test_saved_route_evidence_is_allowlisted_with_node",
+        "tests/test_factor_localization_correctness.py::test_confidence_copy_keys_exist_in_all_4_locales",
+        "tests/test_factor_localization_correctness.py::test_location_price_title_keys_exist_in_all_4_locales",
+        "tests/test_factor_localization_correctness.py::test_confidence_en_copy_contains_confidence_semantics",
+        "tests/test_frontend_decision_report.py::test_known_low_allows_positive_headline",
+        "tests/test_frontend_decision_report.py::test_known_high_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_unknown_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_unavailable_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_error_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_not_assessed_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_limited_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_no_match_blocks_positive_headline",
+        "tests/test_frontend_decision_report.py::test_stored_reference_only_export_is_conservative",
+        "tests/test_frontend_property_case_decision_system.py::test_property_case_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_due_diligence.py::test_due_diligence_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_due_diligence.py::test_property_case_runtime_round_trip_with_due_diligence",
+        "tests/test_frontend_property_case_financial_lab.py::test_financial_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_timeline.py::test_timeline_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_timeline.py::test_property_case_runtime_round_trip_with_timeline_and_executive_summary",
+        "tests/test_frontend_property_case_viewing_offer.py::test_viewing_offer_helper_runtime_rules_with_node",
+        "tests/test_frontend_property_case_viewing_offer.py::test_property_case_runtime_round_trip_with_viewing_offer",
+        "tests/test_frontend_risk_summary.py::test_terrain_known_low_allows_green_signal",
+        "tests/test_frontend_risk_summary.py::test_terrain_known_high_forces_red_signal",
+        "tests/test_frontend_risk_summary.py::test_green_numeric_plus_unavailable_terrain_is_not_unrestricted_green",
+        "tests/test_frontend_risk_summary.py::test_absent_terrain_is_not_unrestricted_green",
+        "tests/test_frontend_viewing_decision.py::test_case1_known_low_terrain_allows_ready",
+        "tests/test_frontend_viewing_decision.py::test_case2_known_high_terrain_clarifies_risk",
+        "tests/test_frontend_viewing_decision.py::test_case3_unknown_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case4_unavailable_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case5_error_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case6_not_assessed_terrain_needs_more_data",
+        "tests/test_frontend_viewing_decision.py::test_case7_limited_terrain_not_all_clear",
+        "tests/test_frontend_viewing_decision.py::test_case8_no_match_terrain_not_all_clear",
+        "tests/test_frontend_viewing_decision.py::test_case9_known_risk_dominates_terrain_uncertainty",
+        "tests/test_frontend_viewing_decision.py::test_case10_missing_critical_still_needs_more_data",
+        "tests/test_map_localization_mobile_search.py::test_map_is_localized_without_changing_provider_tile_urls",
+        "tests/test_map_localization_mobile_search.py::test_shared_surfaces_have_localized_runtime_entry_points",
+        "tests/test_terrain_reference_boundary.py::test_available_reference_layers_are_allowlisted_and_attachable",
+        "tests/test_terrain_reference_boundary.py::test_unavailable_reference_is_not_attachable_or_low_risk",
+        "tests/test_terrain_reference_boundary.py::test_reference_states_are_preserved_without_false_safety_mapping",
+        "tests/test_terrain_reference_boundary.py::test_stored_sanitizer_preserves_allowed_states_and_rejects_blocked_states",
+        "tests/test_terrain_reference_boundary.py::test_stored_normalizer_fails_closed_and_legacy_migration_drops_raw_fields",
+        "tests/test_vnext_stage1_exit_gate.py::test_frontend_session_and_dto_mutation_harness_passes"
+      ],
+      "resolved": true
+    },
+    "full_suite_final": {
+      "command": "python -B scripts/rehearse_usage_database.py --suite all",
+      "status": "passed",
+      "passed": 3823,
+      "skipped": 101,
+      "failed": 0,
+      "seconds": 392.76,
+      "warnings": [
+        "Existing Starlette httpx deprecation"
+      ],
+      "skip_boundary": "Full run uses no external-database opt-ins. Bootstrap/security (63) and relevant usage regression with integration (99) passed separately in disposable PG17 containers."
+    },
+    "bank_rate_harness_correction": {
+      "passed": 1,
+      "failed": 0
+    },
+    "syntax": "Five changed/new Python files parsed successfully",
+    "offline_dependency_restore": {
+      "command": "npm ci --offline --ignore-scripts --no-audit --no-fund",
+      "result": "225 packages restored from local cache; lockfile unchanged"
+    }
+  },
+  "independent_review": {
+    "reviewer": "Fresh-context security reviewer; read-only; no database connections",
+    "initial_assessment": "Changes requested; no Critical findings",
+    "findings": [
+      {
+        "finding": "Dangerous predefined runtime memberships accepted",
+        "severity": "Important",
+        "resolution": "Reject all reachable pg_* role memberships; real-connection regression tests"
+      },
+      {
+        "finding": "SET-reachable CREATE escaped current/session checks",
+        "severity": "Important",
+        "resolution": "Check CREATE across reachable roles; INHERIT FALSE SET TRUE parent tests"
+      },
+      {
+        "finding": "Unexpected triggers/rules could disable quota accumulation",
+        "severity": "Important",
+        "resolution": "Reject user triggers/rules/event triggers and unrelated public objects; preserve internal FK triggers"
+      },
+      {
+        "finding": "Ambient Docker context could target remote daemon",
+        "severity": "Important",
+        "resolution": "Validate local IPC and pin every daemon command; remote endpoint refusals tested before subprocess call"
+      },
+      {
+        "finding": "Migration actor BYPASSRLS accepted",
+        "severity": "Important",
+        "resolution": "Require NOBYPASSRLS, NOREPLICATION and LOGIN alongside NOSUPERUSER; real refusal test"
+      },
+      {
+        "finding": "Unexpected column ACLs missed",
+        "severity": "Minor in review; treated as required exact-audit completeness",
+        "resolution": "Reject column ACL drift; real provisioner refusal regression"
+      }
+    ],
+    "fix_verification": "Findings reproduced in RED before fixes; final 63 bootstrap/security and 99 relevant regression tests pass. No claim of a second independent post-fix review.",
+    "declined_to_judge_rulings": [
+      "Retained creator ADMIN-only memberships are explicitly accepted administrative trust boundary",
+      "Provider behavior and production readiness remain unverified and unauthorized",
+      "Adversarial later administrator changes cannot be prevented by current-state audits",
+      "Python connection guards are not an OS sandbox against malicious test/subprocess code",
+      "Pass counts are execution evidence from the primary agent, not reviewer assertions"
+    ]
+  },
+  "known_limitations": [
+    "Provider-specific restrictions and exact provider patch version are not certified by local PostgreSQL 17.10",
+    "Strict freshness can refuse provider-installed extensions/objects; investigate/review rather than bypassing",
+    "Roles are cluster-wide, requiring a dedicated instance with no usage-name collisions",
+    "Runtime password provisioning, production connection tests and hosted validation are outstanding",
+    "Trusted CREATEROLE/ADMIN actors can deliberately regrant usable authority after cleanup",
+    "Legacy checksum drift remains unresolved in a separate task",
+    "Current runtime guard is deliberately conservative about all reachable memberships and predefined roles"
+  ],
+  "production_actions": {
+    "connections": 0,
+    "mutations": 0,
+    "render_resources_created": 0,
+    "render_environment_changes": 0,
+    "pushes": 0,
+    "merges": 0,
+    "deployments": 0
+  },
+  "next_proposed_action": "Review the local commit/evidence, then separately authorize provisioning and an isolated provider rehearsal of a new dedicated Render PostgreSQL 17 instance. Nothing executed."
+}
