@@ -1,0 +1,27 @@
+.entry { margin: 1rem 0; min-width: 0; }
+.panel { max-width: 76rem; margin-top: 1rem; padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--border, #cbd5e1); border-radius: 1rem; background: var(--surface, #fff); color: var(--foreground, #172c37); overflow-wrap: anywhere; }
+.panel h2 { font-size: 1.45rem; font-weight: 700; }
+.panel h3 { font-size: 1rem; font-weight: 700; margin-top: 1rem; }
+.panel p { margin: .6rem 0; line-height: 1.65; }
+.muted { font-size: .875rem; color: #52616b; }
+.context { background: #f1f6f7; border-left: 3px solid #326a70; padding: .75rem 1rem; margin: 1rem 0; border-radius: .25rem; }
+.chips, .actions { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+.chips span, .chip { border: 1px solid #c4d8da; border-radius: 2rem; padding: .2rem .55rem; font-size: .75rem; background: #f5f9fa; display: inline-block; margin: .2rem; }
+.actions { margin: 1rem 0; }
+.actions button { white-space: normal; text-align: start; max-width: 100%; }
+.turns { display: grid; gap: 1rem; }
+.turn { padding: 1rem 0; border-top: 1px solid #cbd5e1; }
+.question { padding: .75rem; border-radius: .5rem; background: #eaf1f5; font-weight: 600; white-space: pre-wrap; }
+.status { display: inline-block; padding: .2rem .6rem; border-radius: .25rem; background: #fff2d4; }
+.used, .evidence { padding-left: 1.25rem; }
+.used li, .evidence li { margin: .65rem 0; }
+.panel a { color: #175d69; text-decoration: underline; text-underline-offset: .2em; }
+.value { font-variant-numeric: tabular-nums; font-weight: 600; }
+.panel details { margin: 1rem 0; padding: .75rem; border: 1px solid #cbd5e1; border-radius: .5rem; }
+.panel summary { cursor: pointer; font-weight: 600; }
+.form { display: grid; gap: .6rem; margin-top: 1rem; }
+.form label { font-weight: 600; }
+.form textarea { width: 100%; min-width: 0; border: 1px solid #94a3b8; border-radius: .5rem; padding: .75rem; font: inherit; background: #fff; color: #172c37; }
+.panel :focus-visible { outline: 3px solid #26838e; outline-offset: 3px; }
+@media (max-width: 500px) { .panel { padding: .85rem; } .actions { align-items: stretch; } .actions button { flex: 1 1 40%; } }
+@media print { .entry { display: none !important; } }
