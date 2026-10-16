@@ -1,0 +1,169 @@
+# Private staging only. Compose v2; no public ports, implicit image pulls or Redis.
+# Every SELFHOST_* / RESTORE_MODE setting is NEW infrastructure configuration.
+x-logging: &logging
+  driver: json-file
+  options: {max-size: "10m", max-file: "3"}
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  logging: *logging
+x-postgres: &postgres
+  <<: *hardening
+  image: postgres@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+  pull_policy: never
+  user: "70:70"
+  shm_size: 128m
+  mem_limit: 1g
+  cpus: 1.0
+  pids_limit: 128
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m,uid=70,gid=70
+    - /var/run/postgresql:rw,noexec,nosuid,size=8m,uid=70,gid=70
+  command: [postgres, -c, ssl=on, -c, ssl_cert_file=/run/postgres-tls/server.crt, -c, ssl_key_file=/run/postgres-tls/server.key, -c, hba_file=/etc/postgresql/pg_hba.conf, -c, password_encryption=scram-sha-256, -c, max_connections=60, -c, shared_buffers=128MB, -c, log_statement=none, -c, log_min_error_statement=panic]
+  healthcheck:
+    test: [CMD-SHELL, "pg_isready --host=/var/run/postgresql --username=postgres --dbname=postgres --timeout=3"]
+    interval: 10s
+    timeout: 5s
+    retries: 6
+    start_period: 30s
+services:
+  postgres_app:
+    <<: *postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/app_admin_password
+      POSTGRES_INITDB_ARGS: --auth-local=peer --auth-host=scram-sha-256
+      SELFHOST_DATABASE_KIND: app
+      RESTORE_MODE: ${SELFHOST_RESTORE_MODE:-0}
+    secrets: [app_admin_password, app_runtime_password]
+    volumes:
+      - app_data:/var/lib/postgresql/data
+      - ./infra/selfhost/init-database.sh:/docker-entrypoint-initdb.d/10-selfhost.sh:ro
+      - ./infra/selfhost/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ${SELFHOST_TLS_DIR:?absolute TLS directory required}/app:/run/postgres-tls:ro
+    networks: [app_db]
+  postgres_usage:
+    <<: *postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/usage_admin_password
+      POSTGRES_INITDB_ARGS: --auth-local=peer --auth-host=scram-sha-256
+      SELFHOST_DATABASE_KIND: usage
+      RESTORE_MODE: ${SELFHOST_RESTORE_MODE:-0}
+    secrets: [usage_admin_password, usage_migration_password]
+    volumes:
+      - usage_data:/var/lib/postgresql/data
+      - ./infra/selfhost/init-database.sh:/docker-entrypoint-initdb.d/10-selfhost.sh:ro
+      - ./infra/selfhost/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ${SELFHOST_TLS_DIR:?absolute TLS directory required}/usage:/run/postgres-tls:ro
+    networks: [usage_db]
+  api:
+    <<: *hardening
+    image: proptech-selfhost-api:local
+    pull_policy: never
+    build:
+      context: .
+      dockerfile: infra/selfhost/Dockerfile
+      network: none
+      args:
+        SELFHOST_BACKEND_IMAGE: ${SELFHOST_BACKEND_IMAGE:?immutable locally built Dockerfile.cloudrun image required}
+    user: "10001:10001"
+    mem_limit: 2g
+    cpus: 2.0
+    pids_limit: 128
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=128m,uid=10001,gid=10001"]
+    env_file: ["${SELFHOST_RUNTIME_ENV_FILE:?absolute nonsecret runtime env file required}"]
+    environment:
+      APP_ENV: preview
+      API_USAGE_GUARD_MODE: postgres
+      API_USAGE_LEDGER_REQUIRED: "true"
+      POSTGRES_SSLMODE: verify-full
+      PGSSLROOTCERT: /run/selfhost-ca/ca.crt
+      EARTH_ENGINE_SATELLITE_REFERENCE_V1: "false"
+      ANTI_ABUSE_GEOCODING_DISABLED: "true"
+      ANTI_ABUSE_PLACES_DISABLED: "true"
+      ANTI_ABUSE_ROUTES_DISABLED: "true"
+      ANTI_ABUSE_SATELLITE_DISABLED: "true"
+      ANTI_ABUSE_LOCATION_DISABLED: "true"
+      ANTI_ABUSE_TERRAIN_DISABLED: "true"
+      ANTI_ABUSE_VALUATION_DISABLED: "true"
+      ANTI_ABUSE_TREND_DISABLED: "true"
+      ANTI_ABUSE_FINDER_DISABLED: "true"
+      ANTI_ABUSE_MARKET_DISABLED: "true"
+      ANTI_ABUSE_MARKET_OPS_DISABLED: "true"
+      ANTI_ABUSE_PARCEL_DISABLED: "true"
+      ANTI_ABUSE_ARDSWC_DISABLED: "true"
+      ANTI_ABUSE_LIQUEFACTION_DISABLED: "true"
+      ANTI_ABUSE_NLSC_DISABLED: "true"
+      ANTI_ABUSE_TGOS_DISABLED: "true"
+    secrets: [app_database_url, usage_database_url, usage_peer_hmac_key, pilot_session_signing_key]
+    volumes:
+      - ${SELFHOST_TLS_DIR:?absolute TLS directory required}/ca.crt:/run/selfhost-ca/ca.crt:ro
+    depends_on:
+      postgres_app: {condition: service_healthy}
+      postgres_usage: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, scripts/ops/selfhost_runtime.py, health]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 45s
+    networks: [app_db, usage_db, api_egress]
+  usage_ops:
+    <<: *hardening
+    restart: "no"
+    image: proptech-selfhost-api:local
+    pull_policy: never
+    profiles: [usage_ops]
+    user: "10001:10001"
+    command: [preflight]
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 64
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m,uid=10001,gid=10001"]
+    environment: {PGSSLROOTCERT: /run/selfhost-ca/ca.crt}
+    secrets: [usage_bootstrap_database_url, usage_runtime_password]
+    volumes:
+      - ${SELFHOST_TLS_DIR:?absolute TLS directory required}/ca.crt:/run/selfhost-ca/ca.crt:ro
+    networks: [usage_db]
+  reverse_proxy:
+    <<: *hardening
+    image: ${SELFHOST_PROXY_IMAGE:?immutable preloaded nginx digest required}
+    pull_policy: never
+    user: "101:101"
+    entrypoint: [nginx]
+    command: [-g, "daemon off;"]
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 64
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m,uid=101,gid=101"]
+    volumes: [./infra/selfhost/nginx.conf:/etc/nginx/nginx.conf:ro]
+    ports: ["127.0.0.1:8080:8080"]
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, --timeout=3, --header=Host:localhost, http://127.0.0.1:8080/liveness]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks: [api_egress]
+volumes:
+  app_data:
+  usage_data:
+networks:
+  app_db: {internal: true}
+  usage_db: {internal: true}
+  api_egress: {}
+secrets:
+  app_database_url: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/app_database_url"}
+  usage_database_url: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/usage_database_url"}
+  usage_peer_hmac_key: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/usage_peer_hmac_key"}
+  pilot_session_signing_key: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/pilot_session_signing_key"}
+  app_admin_password: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/app_admin_password"}
+  app_runtime_password: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/app_runtime_password"}
+  usage_admin_password: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/usage_admin_password"}
+  usage_migration_password: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/usage_migration_password"}
+  usage_bootstrap_database_url: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/usage_bootstrap_database_url"}
+  usage_runtime_password: {file: "${SELFHOST_SECRETS_DIR:?absolute secret directory required}/usage_runtime_password"}
