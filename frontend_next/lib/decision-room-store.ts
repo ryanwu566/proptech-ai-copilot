@@ -101,7 +101,7 @@ function changes(before: DecisionRoom, after: DecisionRoom, at: string, makeId: 
   if (JSON.stringify(before.askingPrice) !== JSON.stringify(after.askingPrice)) add("asking_price_updated", "");
   return events;
 }
-export function createDecisionRoomRepository(storage: RoomStorage, now = () => new Date().toISOString(), makeId = () => crypto.randomUUID()): DecisionRoomRepository {
+export function createDecisionRoomRepository(storage: RoomStorage, now = () => new Date().toISOString(), makeId: () => string = () => crypto.randomUUID()): DecisionRoomRepository {
   const read = (caseId: string): RoomRead => {
     if (!text(caseId, 128, true)) return { status: "invalid" };
     try {
