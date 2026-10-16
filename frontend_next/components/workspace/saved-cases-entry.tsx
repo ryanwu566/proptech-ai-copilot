@@ -13,6 +13,7 @@ import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import { buildWorkspaceOverview } from "@/lib/workspace/overview-model";
 import styles from "./saved-cases-entry.module.css";
 import { CloudCasesPanel } from "./cloud-cases-panel";
+import { CopilotLink } from "./copilot/copilot-link";
 
 export function SavedCasesEntry() {
   const repository = useMemo(() => createBrowserCaseRepository(), []);
@@ -54,6 +55,6 @@ function SavedCaseRow({ workspace }: { workspace: PropertyCaseWorkspace }) {
     <p className="text-meta">{workspace.assumptions.activePriceWan ? formatWan(workspace.assumptions.activePriceWan) : "價格未提供"} · 已儲存快照 {formatExactDate(workspace.updatedAt)}</p>
     <p className="text-dense">{overview.unresolvedCount > 0 ? `${overview.unresolvedCount} 項待確認或限制` : "目前沒有額外待確認摘要"}</p>
     <div className={styles.actions}><Link className="ds-button ds-button--secondary" href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}>開啟{workspace.title}</Link>
-    <Link className="ds-button ds-button--tertiary" href={`/cases/${encodeURIComponent(workspace.caseId)}/report`}>產生報告</Link></div>
+    <Link className="ds-button ds-button--tertiary" href={`/cases/${encodeURIComponent(workspace.caseId)}/report`}>產生報告</Link><CopilotLink caseId={workspace.caseId} /></div>
   </Panel></article>;
 }
