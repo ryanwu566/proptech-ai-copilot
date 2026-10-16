@@ -7,5 +7,5 @@ import { WorkspaceShell } from "./workspace-shell";
 export function CaseRouteLayout({ caseId, children }: { caseId: string; children: ReactNode }) {
   const pathname = usePathname();
   if (pathname === `/cases/${encodeURIComponent(caseId)}/report` || pathname === `/cases/${encodeURIComponent(caseId)}/decision-room` || pathname === `/cases/${encodeURIComponent(caseId)}/commute-planner`) return children;
-  return <WorkspaceProvider caseId={caseId}><WorkspaceShell>{children}</WorkspaceShell></WorkspaceProvider>;
+  return <WorkspaceProvider key={caseId} caseId={caseId}><WorkspaceShell>{children}</WorkspaceShell></WorkspaceProvider>;
 }
