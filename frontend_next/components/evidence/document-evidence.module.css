@@ -18,4 +18,16 @@
 .page nav a { display: inline-flex; align-items: center; min-height: 2.75rem; }
 .page :focus-visible, .references :focus-visible { outline: 3px solid var(--accent-primary, #2563eb); outline-offset: 4px; }
 @media (max-width: 600px) { .flow { grid-template-columns: minmax(0, 1fr); } .arrow { display: none; } .provenance { grid-template-columns: minmax(0, 1fr); } .provenance dd { margin-block-end: .6rem; } }
-@media print { .printReference { display: inline; font-size: .75rem; } .references a { color: inherit; } }
+@media print {
+  .printReference { display: inline; font-size: .75rem; }
+  .references { margin: 3mm 0 0; }
+  .references a { color: inherit; }
+  /* Keep complete records together without the screen grid's row/gap overhead.
+     Explicit print flow also overrides the mobile single-column definition list. */
+  .references > ol > li { margin: 0 0 2mm; }
+  .references .provenance { display: block; margin: 1mm 0; font-size: 9pt; line-height: 1.35; }
+  .references .provenance dt, .references .provenance dd { display: inline; white-space: normal; }
+  .references .provenance dt::after { content: ": "; }
+  .references .provenance dd::after { content: " · "; }
+  .references .provenance dd:last-child::after { content: ""; }
+}
