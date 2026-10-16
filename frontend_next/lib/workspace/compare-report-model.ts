@@ -5,6 +5,8 @@ import { isOpaqueCaseId } from "./compare-selection.ts";
 // @ts-expect-error Native TS runner extension.
 export { parseCompareSelection, compareHref } from "./compare-selection.ts";
 import type { WorkspaceSection } from "./workspace-model";
+// @ts-expect-error Native TS runner extension.
+import { reportEvidenceReferences, type Citation } from "./document-evidence.ts";
 
 export type EvidenceRow = { id: string; label: string; cells: Array<EvidenceField<string | number>> };
 export type EvidenceSectionModel = { id: WorkspaceSection; title: string; description: string; rows: EvidenceRow[] };
@@ -51,10 +53,11 @@ export function buildComparisonModel(allCases: CaseEvidenceModel[], ids: string[
 export type ReportStatus = "ready" | "ready_with_limits" | "case_not_found" | "identity_requires_revalidation";
 export type ReportModel = {
   status: ReportStatus; evidence: CaseEvidenceModel | null; generatedAt: string; summary: string[];
+  citations: Citation[];
   sections: Array<{ id: string; title: string; evidenceSection?: EvidenceSectionModel }>;
 };
 export function buildReportModel(evidence: CaseEvidenceModel | null, generatedAt = new Date().toISOString()): ReportModel {
-  if (!evidence || evidence.identity.state !== "confirmed") return { status: evidence ? "identity_requires_revalidation" : "case_not_found", evidence, generatedAt, summary: [], sections: [] };
+  if (!evidence || evidence.identity.state !== "confirmed") return { status: evidence ? "identity_requires_revalidation" : "case_not_found", evidence, generatedAt, summary: [], sections: [], citations: [] };
   const sections = buildEvidenceSections([evidence]);
   const summary = [
     "本報告依已儲存證據快照製作，不是即時重新查詢。",
@@ -63,7 +66,7 @@ export function buildReportModel(evidence: CaseEvidenceModel | null, generatedAt
     "風險依個別來源呈現；未命中不等於安全，未知項目仍待查證。",
     evidence.finance.monthlyPayment.value === null ? "尚無可採用的保存房貸月付結果。" : "已保存財務試算；結果僅適用於保存假設，未另行重算。",
   ];
-  return { status: evidence.gaps.length ? "ready_with_limits" : "ready", evidence, generatedAt, summary, sections: [
+  return { status: evidence.gaps.length ? "ready_with_limits" : "ready", evidence, generatedAt, summary, citations: reportEvidenceReferences(evidence), sections: [
     { id: "context", title: "物件脈絡", evidenceSection: sections[0] }, { id: "summary", title: "證據摘要" },
     { id: "market", title: "價格與市場", evidenceSection: sections[1] }, { id: "location", title: "區位與通勤", evidenceSection: sections[2] },
     { id: "risk", title: "風險與環境", evidenceSection: sections[3] }, { id: "finance", title: "資金與持有成本", evidenceSection: sections[4] },
