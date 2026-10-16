@@ -40,6 +40,7 @@ from backend.api.routes_parcel_geometry import router as parcel_geometry_router
 from backend.api.routes_demographics import router as demographics_router
 from backend.api.v1 import router as vnext_router
 from backend.api.account import router as account_router
+from backend.api.durable_cases import router as durable_cases_router
 from backend.api.v1.errors import structured_error_response, vnext_error_handler
 from services.metrics import (
     UNMATCHED_ROUTE,
@@ -288,6 +289,7 @@ app.include_router(parcel_geometry_router)
 app.include_router(demographics_router)
 app.include_router(vnext_router)
 app.include_router(account_router)
+app.include_router(durable_cases_router)
 
 http_metrics = BoundedMetricsRegistry(
     {

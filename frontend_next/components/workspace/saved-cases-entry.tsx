@@ -12,6 +12,7 @@ import { RepositoryNotice, storageBlocked } from "@/components/evidence/evidence
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import { buildWorkspaceOverview } from "@/lib/workspace/overview-model";
 import styles from "./saved-cases-entry.module.css";
+import { CloudCasesPanel } from "./cloud-cases-panel";
 
 export function SavedCasesEntry() {
   const repository = useMemo(() => createBrowserCaseRepository(), []);
@@ -38,6 +39,7 @@ export function SavedCasesEntry() {
           ? <AsyncState kind="not_started" title="尚無已儲存案件" detail="先從首頁完成物件選擇並儲存案件。" action={<Link className="ds-button ds-button--primary" href="/">回到首頁</Link>} />
           : <div className={styles.grid}>{cases.map((workspace) => <SavedCaseRow key={workspace.caseId} workspace={workspace} />)}</div>}
     </Section>
+    <CloudCasesPanel localCases={cases ?? []} />
   </main>;
 }
 
