@@ -22,13 +22,15 @@ for (const locale of locales) for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
     const original = await seed(page);
     const attempts: Array<Record<string, unknown>> = []; const automatic: string[] = [];
+    let releaseInitialRoutes!: () => void;
+    const initialRoutes = new Promise<void>((resolve) => { releaseInitialRoutes = resolve; });
     const observed: string[] = [];
     page.on("request", (request) => { if (isProviderRequest(request, testInfo.project.use.baseURL!)) observed.push(request.url()); });
     await page.route("http://e2e.test/**", async (route) => {
       const path = new URL(route.request().url()).pathname;
       if (path.endsWith("/commute/route")) {
         const payload = route.request().postDataJSON(); attempts.push(payload);
-        await new Promise((done) => setTimeout(done, 100));
+        await initialRoutes;
         const unknown = payload.destination_address === "Unknown address";
         return route.fulfill({ json: { status: unknown ? "unresolved" : "resolved", source: "google_routes", mode: payload.mode, duration_min: unknown ? null : 24, duration_seconds: unknown ? null : 1440, distance_m: unknown ? null : 9800, checked_at: "2026-10-12T04:00:00.000Z", partial: false, fallback: false, reason_code: unknown ? "route_not_found" : "success", message: "provider message must not leak", disclaimer: "provider disclaimer must not leak" } });
       }
@@ -60,11 +62,13 @@ for (const locale of locales) for (const width of widths) {
     await expect(page.getByTestId("commute-destination").first()).toHaveAttribute("data-status", "NOT_CHECKED");
     expect(attempts).toHaveLength(0);
     await overflow(page);
-    // Keyboard submit and synchronous lock: a second click cannot issue another batch.
+    // Keep responses pending while checking keyboard submission and its lock.
     const calculate = page.getByRole("button", { name: c.calculate, exact: true });
-    await calculate.focus(); await page.keyboard.press("Enter");
-    await expect(page.locator('[data-status="LOADING"]')).toHaveCount(3);
-    await expect(calculate).toBeDisabled();
+    try {
+      await calculate.focus(); await page.keyboard.press("Enter");
+      await expect(page.locator('[data-status="LOADING"]')).toHaveCount(3);
+      await expect(calculate).toBeDisabled();
+    } finally { releaseInitialRoutes(); }
     await expect(page.locator('[data-status="AVAILABLE"]')).toHaveCount(2);
     await expect(page.locator('[data-status="UNAVAILABLE"]')).toHaveCount(1);
     await expect(page.getByTestId("commute-destination").first().locator("time")).toHaveAttribute("dateTime", "2026-10-12T04:00:00.000Z");

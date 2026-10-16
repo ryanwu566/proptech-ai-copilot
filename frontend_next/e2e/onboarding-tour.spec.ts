@@ -3,8 +3,10 @@ import type { Page } from '@playwright/test';
 import { isProviderRequest } from './helpers/provider-request';
 
 async function openTour(page: Page) {
-  await page.locator('.commercial-methods > summary').click();
-  await page.locator('.ds-disclosure > summary').click();
+  for (const selector of ['.commercial-methods', '.ds-disclosure']) {
+    const disclosure = page.locator(selector);
+    if (await disclosure.getAttribute('open') === null) await disclosure.locator(':scope > summary').click();
+  }
   await page.locator('.commercial-accessibility-controls button').last().click();
   return page.getByRole('dialog');
 }
@@ -70,12 +72,13 @@ test('skip, Escape, finish, restart and browser reopen preserve locale-independe
   expect(await record()).toEqual({ version: '3', status: 'skipped' });
   await page.getByTestId('locale-switcher').selectOption('ko');
   expect(await record()).toEqual({ version: '3', status: 'skipped' });
-  await page.getByTestId('tour-restart').click();
-  dialog = page.getByRole('dialog');
+  dialog = await openTour(page);
   await expect(dialog).toHaveAttribute('data-step-id', 'propertyCase');
   await dialog.press('Escape');
   await expect(dialog).not.toBeVisible();
   await expect(page.getByTestId('tour-restart')).toBeFocused();
+  await expect(page.getByTestId('tour-restart')).toBeVisible();
+  await expect(page.getByTestId('tour-restart')).toBeInViewport();
   await page.getByTestId('tour-restart').click();
   for (let i = 0; i < 6; i++) await dialog.getByTestId('tour-next').click();
   await dialog.getByTestId('tour-next').click();
@@ -168,10 +171,14 @@ test('keyboard-only completion transfers focus and Escape releases the modal', a
   }
   await expect(dialog).not.toBeVisible();
   await expect(page.getByTestId('tour-restart')).toBeFocused();
+  await expect(page.getByTestId('tour-restart')).toBeVisible();
+  await expect(page.getByTestId('tour-restart')).toBeInViewport();
   await page.keyboard.press('Enter');
   await page.keyboard.press('Escape');
   await expect(dialog).not.toBeVisible();
   await expect(page.getByTestId('tour-restart')).toBeFocused();
+  await expect(page.getByTestId('tour-restart')).toBeVisible();
+  await expect(page.getByTestId('tour-restart')).toBeInViewport();
 });
 
 test('reduced motion removes tour animation while preserving navigation and live language switching', async ({ page }) => {

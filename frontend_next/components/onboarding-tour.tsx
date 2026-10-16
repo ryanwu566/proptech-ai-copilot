@@ -35,7 +35,16 @@ export function OnboardingTour({ onClose, presentation, opener }: { onClose: () 
     return () => {
       element?.close();
       document.body.style.overflow = previousOverflow;
-      if (restore?.isConnected) restore.focus({ preventScroll: true });
+      if (restore?.isConnected) {
+        // The product menu closes while focus is inside this modal. Reveal the
+        // original control before returning focus, including nested disclosures.
+        let revealed = false;
+        for (let parent = restore.parentElement; parent; parent = parent.parentElement) {
+          if (parent instanceof HTMLDetailsElement && !parent.open) { parent.open = true; revealed = true; }
+        }
+        restore.focus({ preventScroll: true });
+        if (revealed) restore.scrollIntoView({ block: "nearest" });
+      }
     };
   }, []);
 

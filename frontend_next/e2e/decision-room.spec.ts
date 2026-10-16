@@ -416,6 +416,7 @@ test("overlapping saves wait for a case lock and cannot overwrite each other", a
   const secondForm = second.getByTestId("new-note-form");
   await firstForm.getByLabel("Viewing observation").fill("First queued observation");
   await secondForm.getByLabel("Viewing observation").fill("Second queued observation");
+  await page.bringToFront();
   type LockWindow = Window & { lockHeld?: boolean; releaseRoomLock?: () => void };
   const heldLock = page.evaluate(async (key) => {
     await navigator.locks.request(key, async () => {

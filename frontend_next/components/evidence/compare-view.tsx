@@ -12,8 +12,11 @@ import { buildComparisonModel, parseCompareSelection, compareHref, type Comparis
 import { EvidenceValue, EvidenceGaps, EvidenceSources, RepositoryNotice, storageBlocked, date } from "./evidence-view";
 import styles from "./evidence.module.css";
 import { TradeoffPanel } from "@/components/preferences/tradeoff-panel";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { navigationCopy } from "@/lib/navigation/copy";
 const blockedMessages: { [K in Exclude<ComparisonStatus, "ready">]: string } = { too_few: "請選擇 2–4 個已儲存案件以開始比較。", too_many: "最多選擇 4 個案件；請移除第五個案件。", duplicate: "選取案件識別重複；請移除重複選取。", invalid_selection: "案件識別格式無效；請重新選取本機案件。", case_not_found: "找不到選取案件，或儲存紀錄無效；不會替換成其他案件。", identity_requires_revalidation: "選取案件的身分需要重新確認；正式比較已停止，請回到物件工作區。" };
 export function CompareView() {
+  const { copyFrom } = useExperienceLocale();
   const repository = useMemo(createBrowserCaseRepository, []);
   const [read, setRead] = useState<WorkspaceReadDiagnostic | null>(null);
   const [feedback, setFeedback] = useState("");
@@ -45,7 +48,7 @@ export function CompareView() {
         <Section title="選取案件" description="選取 2–4 案，保留你的選取順序。A／B／C／D 只表示位置。">
           <div className={styles.selection}>{allCases.map((item) => <label key={item.caseId}><input type="checkbox" aria-label={`選擇 ${item.title}`} checked={ids.includes(item.caseId)} onChange={() => toggle(item.caseId)} /><span><strong>{item.title}</strong><span>{item.displayAddress}</span><span>保存：{date(item.savedAt)}</span>{item.identity.state !== "confirmed" && <span>需先確認物件身分</span>}</span></label>)}</div>
           <p role="status" aria-live="polite">{feedback || `已選取 ${ids.length} 個案件`}</p>
-          {read.status === "empty" && <p>尚無已儲存案件，請先回到工作區保存案件。</p>}
+          {read.status === "empty" && <div><p>{copyFrom(navigationCopy, "emptyHint")}</p><Link prefetch={false} className="commercial-text-action" href="/?workflow=property">{copyFrom(navigationCopy, "property")}</Link></div>}
         </Section>
         {model.status !== "ready" ? <Message variant={model.status === "too_few" ? "information" : "error"}>{blockedMessages[model.status]}{model.status === "identity_requires_revalidation" && <div>{ids.map((id) => <Link key={id} href={`/cases/${encodeURIComponent(id)}/overview`}>開啟選取案件工作區 </Link>)}</div>}</Message> : <>
           <TradeoffPanel cases={ids.map(id => read.cases.find(item => item.caseId === id)!)} />
@@ -65,6 +68,10 @@ export function CompareView() {
           </div>
           <Section title="未知與待查證缺口"><EvidenceGaps cases={model.cases} /></Section>
           <Section title="來源、日期與方法"><EvidenceSources cases={model.cases} /></Section>
+          <nav className="case-workflow-handoff" data-testid="compare-report-handoff" aria-label={copyFrom(navigationCopy, "report")}>
+            <div><strong>{copyFrom(navigationCopy, "next")}</strong><p>{copyFrom(navigationCopy, "reportHint")}</p></div>
+            {model.cases.map((item) => <Link prefetch={false} className="ds-button ds-button--secondary" key={item.caseId} href={`/cases/${encodeURIComponent(item.caseId)}/report`}>{copyFrom(navigationCopy, "report")} · {item.title}</Link>)}
+          </nav>
         </>}
       </>}
     </>}

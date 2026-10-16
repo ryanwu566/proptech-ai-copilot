@@ -5,6 +5,7 @@ import { PropertyContextHeader } from "./property-context-header";
 import { useWorkspace } from "./workspace-provider";
 import { WorkspaceNavigation } from "./workspace-navigation";
 import styles from "./workspace-shell.module.css";
+import { CaseWorkflowHandoff } from "@/components/navigation/case-workflow-handoff";
 
 export function WorkspaceShell({ children }: { children: ReactNode }) {
   const workspace = useWorkspace();
@@ -12,7 +13,7 @@ export function WorkspaceShell({ children }: { children: ReactNode }) {
     <PropertyContextHeader />
     <div className={styles.body}>
       <aside className={styles.rail}><WorkspaceNavigation caseId={workspace.caseId} /></aside>
-      <main className={styles.content} id="main-content">{children}</main>
+      <main className={styles.content} id="main-content" tabIndex={-1}>{children}<CaseWorkflowHandoff caseId={workspace.caseId} /></main>
     </div>
   </div>;
 }

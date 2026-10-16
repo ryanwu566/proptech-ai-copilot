@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { AppShell } from "@/components/app-shell";
 import { HelpCallout } from "@/components/help-callout";
@@ -69,6 +69,8 @@ import { createClosedLoopJourneyState, setJourneyLoanResult, setJourneyHoldingRe
 import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 import { initialValuationSelection, loadValuationPrerequisites } from "@/lib/valuation-prerequisites";
+import { PRODUCT_ENTRIES } from "@/lib/navigation/model";
+import { HomeLocationObserver } from "@/components/navigation/home-location-observer";
 import { getJourneyValuationFormInputs, getJourneyValuationInputPatch, getSubmittedJourneyValuationInputs, journeyValuationCitiesMatch, journeyValuationInputsMatchContext, type JourneyValuationFormInputs } from "@/lib/journey-valuation-inputs";
 
 
@@ -95,6 +97,17 @@ export default function Home() {
   }, [locale]);
   const [page, setPage] = useState<AppPage>("儀表板");
   const [journeyOpen, setJourneyOpen] = useState(false);
+  const workflowFocusStep = useRef<JourneyStepId | null>(null);
+  useEffect(() => {
+    if (!journeyOpen) { workflowFocusStep.current = null; return; }
+    if (page !== "儀表板") return;
+    const frame = window.requestAnimationFrame(() => {
+      const stageHeading = workflowFocusStep.current ? document.getElementById(`journey-stage-heading-${workflowFocusStep.current}`) : null;
+      const heading = stageHeading ?? document.querySelector<HTMLElement>("#guided-property-journey h2");
+      if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); heading.scrollIntoView({ block: "start" }); }
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [journeyOpen, page]);
   useEffect(() => {
     const reveal = () => setJourneyOpen(true);
     window.addEventListener("proptech:select-journey-step", reveal);
@@ -106,8 +119,7 @@ export default function Home() {
   const [journeyHoldingPrefill, setJourneyHoldingPrefill] = useState<HoldingCostPrefill>();
   const [journeyLocationInitialTool, setJourneyLocationInitialTool] = useState<"market">();
   const journeyAffordabilityContext = buildJourneyAffordabilityContext({ propertyPriceWan: journeyState.loanResult?.property_price_wan ?? journeyState.holdingResult?.property_price_wan ?? journeyState.activePriceWan, loanResult: journeyState.loanResult, holdingResult: journeyState.holdingResult, taxResult: journeyState.taxResult });
-  useEffect(() => { if (parseValuationShareParams(window.location.search)) setPage("房價估算"); }, []);
-  useEffect(() => { const open=()=>setPage("TaxOracle");window.addEventListener(OPEN_TAXORACLE_EVENT,open);return()=>window.removeEventListener(OPEN_TAXORACLE_EVENT,open);}, []);
+  useEffect(() => { const open=()=>navigateProduct("TaxOracle");window.addEventListener(OPEN_TAXORACLE_EVENT,open);return()=>window.removeEventListener(OPEN_TAXORACLE_EVENT,open);}, []);
   useEffect(() => {
     function applyDemo(event: Event) {
       const demo = (event as CustomEvent<DemoResults>).detail;
@@ -144,11 +156,22 @@ export default function Home() {
     window.addEventListener(CASE_CLEARED_EVENT, clear);
     return () => { window.removeEventListener(GUIDED_DEMO_RESULT_EVENT, applyDemo); window.removeEventListener(CASE_LOADED_EVENT, applySaved); window.removeEventListener(CASE_CLEARED_EVENT, clear); };
   }, []);
-  useEffect(() => {
-    const tool = new URLSearchParams(window.location.search).get("tool");
-    if (["Map Insight Lite", "房價估算", "Market Insight Lite", "Terrain Risk", "TaxOracle", "Aegis-Credit Lite"].includes(tool ?? "")) setPage(tool as AppPage);
+  const applyProductLocation = useCallback((tool: AppPage | null) => {
+    setPage(tool ?? (parseValuationShareParams(window.location.search) ? "房價估算" : "儀表板"));
   }, []);
-  const openTax = (caseId = "") => { setRequestedCase(caseId); setPage("TaxOracle"); };
+  function navigateProduct(next: AppPage) {
+    if (next !== "儀表板" && !PRODUCT_ENTRIES.some((entry) => "tool" in entry && entry.tool === next)) { setPage(next); return; }
+    const url = new URL(window.location.href);
+    url.searchParams.delete("workflow");
+    // Shared valuation inputs belong to valuation deep links, not a new Home entry.
+    if (next === "儀表板") for (const key of ["city", "district", "road", "building_type", "area_ping", "building_age_years", "floor"]) url.searchParams.delete(key);
+    if (next === "儀表板") url.searchParams.delete("tool");
+    else url.searchParams.set("tool", next);
+    url.hash = "";
+    window.history.pushState(null, "", `${url.pathname}${url.search}`);
+    setPage(next);
+  }
+  const openTax = (caseId = "") => { setRequestedCase(caseId); navigateProduct("TaxOracle"); };
   function applyJourneyPropertySelection(selection: PropertyFinderSelection) {
     setJourneyState((current) => updateJourneyProperty(current, {
       city: selection.city,
@@ -175,7 +198,7 @@ export default function Home() {
     // The property flow does not auto-run analysis or save a case.
     // 不會自動執行估價或保存案件。
     if (step === "property") return <div className="space-y-4"><p className="rounded-xl bg-stone-50 p-3 text-xs leading-5 text-slate-600">{t("journey.property.contextNote")}</p><PropertyFinder embedded onResult={(result) => setJourneyState((current) => ({ ...current, propertySearchResult: result }))} onUseForValuation={(selection) => { applyJourneyPropertySelection(selection); actions.goToTool("valuation"); }} onUseForLoan={(_price, selection) => { applyJourneyPropertySelection(selection); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); actions.goToTool("loan"); }} onUseForHoldingCost={(price, area, selection) => { applyJourneyPropertySelection(selection); setJourneySecondaryTool("holding"); setJourneyHoldingPrefill({ property_price: price, area_ping: area }); actions.goToTool("loan"); }} onUseForLocationInsight={(selection) => { applyJourneyPropertySelection(selection); setJourneyLocationInitialTool(undefined); actions.goToTool("location-insight"); }} onUseForMarketInsight={(selection) => { applyJourneyMarketSelection(selection); setJourneyLocationInitialTool("market"); actions.goToTool("location-insight"); }} /></div>;
-    if (step === "location") return <LocationMarketStage propertyContext={journeyState.propertyContext} identityAnchor={journeyState.identityAnchor} initialLocationResult={journeyState.locationResult} initialCommuteRouteEvidence={journeyState.commuteRouteEvidence} initialCommuteRouteStatus={journeyState.commuteRouteStatus} initialCommuteTransitResult={journeyState.commuteTransitResult} initialCommuteTransitStatus={journeyState.commuteTransitStatus} initialTerrainResult={journeyState.terrainResult} initialMarketResult={journeyState.marketResult} initialTerrainStatus={journeyState.terrainStatus} initialMarketStatus={journeyState.marketStatus} initialActiveTool={journeyLocationInitialTool} onBackToProperty={() => actions.goToTool("property-finder")} onContinueToPrice={(_context) => actions.goToNextStep()} onPropertyContextChange={(context) => setJourneyState((current) => updateJourneyProperty(current, context))} onLocationEvidenceChange={(result, status) => setJourneyState((current) => setJourneyLocationResult(current, result, status))} onCommuteRouteEvidenceChange={(evidence, status) => setJourneyState((current) => setJourneyCommuteRoute(current, evidence, status))} onCommuteTransitEvidenceChange={(result, status) => setJourneyState((current) => setJourneyCommuteTransit(current, result, status))} onTerrainEvidenceChange={(result, status) => setJourneyState((current) => setJourneyTerrainResult(current, result, status))} onMarketEvidenceChange={(result, status) => setJourneyState((current) => setJourneyMarketResult(current, result, status))} onTerrainReferenceReady={(terrainReference) => setJourneyState((current) => ({ ...current, terrainReference, storedTerrainReference: toStoredTerrainReferenceEvidence(terrainReference) ?? undefined }))} onMap={() => setPage("Map Insight Lite")} renderMarket={(context: JourneyPropertyContext, handlers: { onStatusChange: (status: LocationMarketDisplayStatus) => void; onResult: (result: MarketResult | null) => void }) => <MarketInsight embedded initialCounty={context.city} initialDistrict={context.district} initialRoad={context.road} initialResult={journeyState.marketResult} onMap={() => setPage("Map Insight Lite")} onStatusChange={handlers.onStatusChange} onResult={handlers.onResult} />} />;
+    if (step === "location") return <LocationMarketStage propertyContext={journeyState.propertyContext} identityAnchor={journeyState.identityAnchor} initialLocationResult={journeyState.locationResult} initialCommuteRouteEvidence={journeyState.commuteRouteEvidence} initialCommuteRouteStatus={journeyState.commuteRouteStatus} initialCommuteTransitResult={journeyState.commuteTransitResult} initialCommuteTransitStatus={journeyState.commuteTransitStatus} initialTerrainResult={journeyState.terrainResult} initialMarketResult={journeyState.marketResult} initialTerrainStatus={journeyState.terrainStatus} initialMarketStatus={journeyState.marketStatus} initialActiveTool={journeyLocationInitialTool} onBackToProperty={() => actions.goToTool("property-finder")} onContinueToPrice={(_context) => actions.goToNextStep()} onPropertyContextChange={(context) => setJourneyState((current) => updateJourneyProperty(current, context))} onLocationEvidenceChange={(result, status) => setJourneyState((current) => setJourneyLocationResult(current, result, status))} onCommuteRouteEvidenceChange={(evidence, status) => setJourneyState((current) => setJourneyCommuteRoute(current, evidence, status))} onCommuteTransitEvidenceChange={(result, status) => setJourneyState((current) => setJourneyCommuteTransit(current, result, status))} onTerrainEvidenceChange={(result, status) => setJourneyState((current) => setJourneyTerrainResult(current, result, status))} onMarketEvidenceChange={(result, status) => setJourneyState((current) => setJourneyMarketResult(current, result, status))} onTerrainReferenceReady={(terrainReference) => setJourneyState((current) => ({ ...current, terrainReference, storedTerrainReference: toStoredTerrainReferenceEvidence(terrainReference) ?? undefined }))} onMap={() => navigateProduct("Map Insight Lite")} renderMarket={(context: JourneyPropertyContext, handlers: { onStatusChange: (status: LocationMarketDisplayStatus) => void; onResult: (result: MarketResult | null) => void }) => <MarketInsight embedded initialCounty={context.city} initialDistrict={context.district} initialRoad={context.road} initialResult={journeyState.marketResult} onMap={() => navigateProduct("Map Insight Lite")} onStatusChange={handlers.onStatusChange} onResult={handlers.onResult} />} />;
     if (step === "price") return <PriceDecisionStage propertyContext={journeyState.propertyContext} valuationResult={journeyState.valuationResult} valuationStatus={journeyState.valuationStatus} priceBasis={journeyState.priceBasis} activePriceWan={journeyState.activePriceWan} manualPriceWan={journeyState.manualPriceWan} onValuationResult={(result, status) => setJourneyState((current) => setJourneyValuation(current, result, status))} onPriceBasisChange={(basis, manual) => setJourneyState((current) => selectJourneyPrice(current, basis, manual))} onBackToLocation={() => actions.goToTool("location-insight")} onContinueToAffordability={actions.goToNextStep} onTransferToLoan={(priceWan) => { setJourneyState((current) => selectJourneyPrice(current, "valuation", priceWan)); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); actions.goToNextStep(); }} onTransferToHolding={(priceWan, areaPing) => { setJourneyState((current) => selectJourneyPrice(current, "valuation", priceWan)); setJourneySecondaryTool("holding"); setJourneyHoldingPrefill({ property_price: priceWan, area_ping: areaPing }); actions.goToNextStep(); }} renderValuation={(context, handlers) => <ValuationRenderErrorBoundary><ValuationPage embedded initialContext={context} onInputsChange={(patch) => setJourneyState((current) => updateJourneyProperty(current, patch))} onResult={handlers.onResult} onStatusChange={handlers.onStatusChange} /></ValuationRenderErrorBoundary>} />;
     if (step === "affordability") return <div><p className="rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">{t("trust.fundingBoundary")}</p><AffordabilityDecisionStage propertyContext={journeyState.propertyContext} priceContext={getSafePriceContext({ propertyContext: journeyState.propertyContext, result: journeyState.valuationResult, valuationStatus: journeyState.valuationStatus })} priceBasis={journeyState.priceBasis} explicitPriceWan={journeyState.activePriceWan} initialLoanResult={journeyState.loanResult} initialHoldingResult={journeyState.holdingResult} initialTaxResult={journeyState.taxResult} initialSecondaryTool={journeySecondaryTool} initialHoldingPrefill={journeyHoldingPrefill} renderLoan={(priceWan, handlers) => <LoanCalculator embedded propertyPriceWan={priceWan} initialResult={journeyState.loanResult} onResult={handlers.onResult} onHoldingCost={handlers.onHoldingCost} />} renderHolding={(prefill, handlers) => <HoldingCostCalculator embedded prefill={prefill} initialResult={journeyState.holdingResult} onResult={handlers.onResult} />} renderTax={(handlers) => <TaxOracle embedded requestedCase="" onResult={handlers.onResult} />} onLoanResult={(loanResult) => setJourneyState((current) => setJourneyLoanResult(current, loanResult))} onHoldingResult={(holdingResult) => setJourneyState((current) => setJourneyHoldingResult(current, holdingResult))} onTaxResult={(taxResult) => setJourneyState((current) => ({ ...current, taxResult }))} onBackToPrice={() => actions.goToTool("valuation")} onContinueToDecision={actions.goToNextStep} /></div>;
     const priceContext = getSafePriceContext({ propertyContext: journeyState.propertyContext, result: journeyState.valuationResult, valuationStatus: journeyState.valuationStatus });
@@ -184,20 +207,31 @@ export default function Home() {
   }
   const handleVoiceAction = (action: VoiceAction) => {
     if (action.type === "navigate_step") {
-      setJourneyOpen(true);
-      setPage("儀表板");
-      window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: action.step }));
+      openJourneyStep(action.step);
     }
     if (action.type === "focus_field") document.getElementById(action.field)?.focus();
     if (action.type === "stop_read_aloud") window.dispatchEvent(new Event("proptech:stop-read-aloud"));
     if (action.type === "repeat_summary") window.dispatchEvent(new Event("proptech:repeat-read-aloud"));
   };
   function openJourneyStep(step: JourneyStepId) {
+    workflowFocusStep.current = step;
+    if (new URLSearchParams(window.location.search).get("workflow") !== "property" || page !== "儀表板") {
+      navigateProduct("儀表板");
+      const url = new URL(window.location.href);
+      url.searchParams.set("workflow", "property");
+      window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+    }
     setJourneyOpen(true);
-    window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: step }));
-    window.requestAnimationFrame(() => document.getElementById(`journey-stage-${step}`)?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new CustomEvent("proptech:select-journey-step", { detail: step }));
+      window.requestAnimationFrame(() => {
+        const heading = document.getElementById(`journey-stage-heading-${step}`);
+        if (heading) { heading.tabIndex = -1; heading.focus({ preventScroll: true }); }
+        document.getElementById(`journey-stage-${step}`)?.scrollIntoView({ block: "start" });
+      });
+    });
   }
-  return <AppShell page={page} onNavigate={setPage} onVoiceAction={handleVoiceAction}>{page === "儀表板" ? <div className="space-y-6"><CommercialHome onStart={(address) => { setJourneyState(createClosedLoopJourneyState({ addressSummary: address, selectionStatus: "partial", sourceLabel: copy("common.source") })); setJourneyLocationInitialTool(undefined); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); openJourneyStep("location"); }} onFinder={() => openJourneyStep("property")} /><div hidden={!journeyOpen}><GuidedPropertyJourney renderStep={renderJourneyStep} /></div></div> : renderPage(page, setPage, openTax, requestedCase)}</AppShell>;
+  return <AppShell page={page} onNavigate={navigateProduct} onVoiceAction={handleVoiceAction}><Suspense fallback={null}><HomeLocationObserver onTool={applyProductLocation} onWorkflow={setJourneyOpen} /></Suspense>{page === "儀表板" ? <div className="space-y-6"><CommercialHome onStart={(address) => { setJourneyState(createClosedLoopJourneyState({ addressSummary: address, selectionStatus: "partial", sourceLabel: copy("common.source") })); setJourneyLocationInitialTool(undefined); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); openJourneyStep("location"); }} onFinder={() => openJourneyStep("property")} /><div hidden={!journeyOpen}><GuidedPropertyJourney renderStep={renderJourneyStep} /></div></div> : renderPage(page, navigateProduct, openTax, requestedCase)}</AppShell>;
 }
 
 
