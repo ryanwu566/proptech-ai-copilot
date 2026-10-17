@@ -1,7 +1,8 @@
 import type { CopyCatalogue } from "../copy-catalogue";
+import { preferenceEntryCopy } from "./entry-copy";
 // Each row is zh-TW, en, ja, ko. User-authored text is never translated or interpreted.
 const rows = {
-  title: ["偏好檔案", "Preference profile", "希望条件プロフィール", "선호 프로필"],
+  title: [preferenceEntryCopy["zh-TW"].title, preferenceEntryCopy.en.title, preferenceEntryCopy.ja.title, preferenceEntryCopy.ko.title],
   intro: ["記錄買方或家庭真正重視的條件，依已儲存證據逐項比較。", "Define what matters to you or your household, then compare saved evidence for each preference.", "購入者や世帯が重視する条件を記録し、保存済みの根拠を項目ごとに比較します。", "구매자나 가구가 중요하게 여기는 조건을 정하고 저장된 근거를 항목별로 비교하세요."],
   boundary: ["僅儲存在此瀏覽器；不會自動查詢。備註不會轉成條件，請勿填入住戶族群等歧視性偏好。", "Stored only in this browser; no automatic queries. Notes do not become rules. Do not enter discriminatory preferences about residents or groups.", "このブラウザーにのみ保存され、自動照会は行いません。メモは条件として解析されません。住民の属性など差別的な希望は入力しないでください。", "이 브라우저에만 저장하며 자동 조회하지 않습니다. 메모는 조건으로 해석하지 않습니다. 주민 집단 등에 관한 차별적 선호를 입력하지 마세요."],
   name: ["買方／家庭名稱（選填）", "Buyer / household name (optional)", "購入者・世帯名（任意）", "구매자 / 가구 이름 (선택)"],
