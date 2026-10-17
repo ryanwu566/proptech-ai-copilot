@@ -34,6 +34,16 @@ def stage_sources(preflight: dict, downloads: list[dict], observation_at: str,
     recovered = [x for x in manifest['sources'] if x['checksum_status'] == 'EXACT_MATCH' and x['package_valid']]
     if {x['release_version'] for x in recovered} != set(required_releases) or len(recovered) != len(required_releases):
         raise ValueError('exact_bounded_two_release_scope_required')
+    return stage_manifest(manifest, observation_at, s.ROOT)
+
+
+def stage_manifest(manifest: dict, observation_at: str, archive_root: Path) -> tuple[list, dict, dict]:
+    """Parse an already byte-verified manifest; private intake verifies it first.
+
+    Legacy recovery keeps its registry/path rules. Private intake supplies a
+    separate root, without relocating originals into the repository.
+    """
+    recovered = [x for x in manifest['sources'] if x['checksum_status'] == 'EXACT_MATCH' and x['package_valid']]
     acquisition_hash = l.digest(manifest)
     items, bindings, joins, bounds = [], [], [], []
     detail_count = 0
@@ -42,7 +52,7 @@ def stage_sources(preflight: dict, downloads: list[dict], observation_at: str,
         resolved = t.resolve_availability(evidence, source['source_archive_id'], source['sha256'])
         bounds.append({'release_id': source['source_archive_id'], 'archive_sha256': source['sha256'],
                        **resolved, 'historical_publication_proven': False})
-        with zipfile.ZipFile(s.ROOT/source['local_recovered_path']) as archive:
+        with zipfile.ZipFile(archive_root/source['local_recovered_path']) as archive:
             tables = a._load_members(archive, source, MEMBERS)
         for member, family in sorted(tables.items()):
             mains = family['main']['records']
@@ -92,6 +102,8 @@ def stage_sources(preflight: dict, downloads: list[dict], observation_at: str,
                               'area_contract': {'field': '建物移轉總面積平方公尺', 'unit': 'm²'},
                               'detail_payload_sha256': {k: l.digest(v) for k, v in details.items()},
                               'detail_member_sha256': {k: family[k]['sha256'] for k in indices}})
+                if len(items) > 100000:
+                    raise ValueError('bounded_main_rows_exceeded')
     # Member/schema onboarding enriches the manifest in place. Bind every
     # retrieval reference to the final persisted object, never a discarded
     # intermediate hash that a future auditor cannot reconstruct.

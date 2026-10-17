@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "ReleaseContinuityReceipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "contract_version": {
+          "enum": [
+            "ml-external-evidence-v1"
+          ]
+        },
+        "effective_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "evidence_bytes": {
+          "maximum": 2097152,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "evidence_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "license": {
+          "additionalProperties": false,
+          "properties": {
+            "reuse_scope": {
+              "enum": [
+                "RESEARCH_ONLY",
+                "OPEN_DATA_V1"
+              ]
+            },
+            "status": {
+              "enum": [
+                "RESEARCH_ALLOWED"
+              ]
+            },
+            "terms_url": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "status",
+            "terms_url",
+            "reuse_scope"
+          ],
+          "type": "object"
+        },
+        "limitations": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 0,
+          "type": "array"
+        },
+        "official_url": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "privacy": {
+          "enum": [
+            "NON_PERSONAL"
+          ]
+        },
+        "published_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "receipt_id": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "receipt_type": {
+          "const": "ReleaseContinuityReceipt"
+        },
+        "retained_path": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "scope": {
+          "additionalProperties": false,
+          "properties": {
+            "county_codes": {
+              "items": {
+                "enum": [
+                  "a",
+                  "f"
+                ]
+              },
+              "maxItems": 2,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "dataset_id": {
+              "enum": [
+                "moi-plvr-existing-sale-main-25119"
+              ]
+            },
+            "release_ids": {
+              "items": {
+                "maxLength": 2048,
+                "minLength": 1,
+                "type": "string"
+              },
+              "maxItems": 128,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "dataset_id",
+            "county_codes",
+            "release_ids"
+          ],
+          "type": "object"
+        },
+        "source_authority": {
+          "enum": [
+            "MOI_LAND",
+            "MODA",
+            "NLSC",
+            "TAIPEI_LAND",
+            "NEW_TAIPEI_LAND",
+            "TAIPEI_BUILDING",
+            "NEW_TAIPEI_BUILDING"
+          ]
+        },
+        "synthetic": {
+          "type": "boolean"
+        },
+        "verification": {
+          "additionalProperties": false,
+          "properties": {
+            "basis": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "reviewer_role": {
+              "maxLength": 2048,
+              "minLength": 1,
+              "type": "string"
+            },
+            "status": {
+              "enum": [
+                "REVIEWED_AUTHORITY"
+              ]
+            }
+          },
+          "required": [
+            "status",
+            "reviewer_role",
+            "basis"
+          ],
+          "type": "object"
+        },
+        "version": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "type": "string"
+        },
+        "complete": {
+          "const": true
+        },
+        "gaps": {
+          "type": "array",
+          "maxItems": 0
+        },
+        "complete_through": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "coverage_begin": {
+          "type": "string",
+          "format": "date"
+        },
+        "coverage_end": {
+          "type": "string",
+          "format": "date"
+        },
+        "releases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 128,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "release_id",
+              "archive_sha256",
+              "predecessor_release_id"
+            ],
+            "properties": {
+              "release_id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$"
+              },
+              "archive_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "predecessor_release_id": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,95}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "complete",
+        "complete_through",
+        "contract_version",
+        "coverage_begin",
+        "coverage_end",
+        "effective_at",
+        "evidence_bytes",
+        "evidence_sha256",
+        "gaps",
+        "license",
+        "limitations",
+        "official_url",
+        "privacy",
+        "published_at",
+        "receipt_id",
+        "receipt_type",
+        "releases",
+        "retained_path",
+        "retrieved_at",
+        "scope",
+        "source_authority",
+        "synthetic",
+        "verification",
+        "version"
+      ]
+    }
+  }
+}

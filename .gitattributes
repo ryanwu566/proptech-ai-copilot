@@ -1,2 +1,7 @@
 infra/selfhost/*.sh text eol=lf
 scripts/ops/selfhost-*.sh text eol=lf
+
+# Preserve the canonical bytes covered by the ML reopen output hashes.
+docs/ml/data-gate-reopen-dry-run-v1.json text eol=lf
+docs/ml/data-gate-reopen-dry-run-v1.md text eol=lf
+docs/ml/data-gate-reopen-output-hashes-v1.json text eol=lf

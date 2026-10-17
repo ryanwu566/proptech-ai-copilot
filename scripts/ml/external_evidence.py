@@ -23,6 +23,7 @@ VERSION = 'ml-external-evidence-v1'
 SCHEMA_PATH = s.ROOT / 'docs/ml/contracts/external-evidence-v1.schema.json'
 POLICY_PATH = s.ROOT / 'docs/ml/contracts/ml-b-admission-v2.json'
 SCHEMA = read_json(SCHEMA_PATH)
+SCHEMA['$defs'].update(read_json(s.ROOT / 'docs/ml/contracts/release-continuity-v1.schema.json')['$defs'])
 VALIDATORS = {name:Draft202012Validator(schema, format_checker=FormatChecker())
               for name, schema in SCHEMA['$defs'].items()}
 AUTHORITY_HOSTS = {
@@ -58,7 +59,8 @@ def retained_file(root: Path, relative: str) -> Path:
 def validate_receipt(receipt, root: Path, *, synthetic_test=False) -> dict:
     """Validate exact retained bytes and consistency; trust originates in review."""
     reasons = set()
-    if not isinstance(receipt, dict) or receipt.get('receipt_type') not in VALIDATORS:
+    if (not isinstance(receipt, dict) or not isinstance(receipt.get('receipt_type'), str)
+            or receipt['receipt_type'] not in VALIDATORS):
         return {'valid':False, 'reasons':['RECEIPT_TYPE_INVALID']}
     r = receipt; kind = r['receipt_type']; validator = VALIDATORS[kind]
     errors = list(validator.iter_errors(r))
