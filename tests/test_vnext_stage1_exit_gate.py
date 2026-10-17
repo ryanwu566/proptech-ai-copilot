@@ -15,6 +15,13 @@ FRONTEND = ROOT / "frontend_next"
 
 APPROVED_ROUTES = {
     ("GET", "/v1/account"),
+    ("GET", "/v1/saved-cases"),
+    ("POST", "/v1/saved-cases"),
+    ("GET", "/v1/saved-cases/{case_id}"),
+    ("GET", "/v1/saved-cases/{case_id}/activity"),
+    ("PATCH", "/v1/saved-cases/{case_id}/metadata"),
+    ("PUT", "/v1/saved-cases/{case_id}/membership"),
+    ("PUT", "/v1/saved-cases/{case_id}/monitoring"),
     ("GET", "/v1"),
     ("GET", "/v1/workspaces/{workspace_id}/context"),
     ("POST", "/v1/property-resolutions"),
@@ -39,7 +46,7 @@ APPROVED_ROUTES = {
     ("POST", "/v1/cases/{case_id}/parcel-set/review"),
     ("POST", "/v1/planning/taipei/observe"),
 }
-COMMAND_ROUTES = {
+COMMAND_ROUTES = {("POST", path) for path in {
     "/v1/property-resolutions",
     "/v1/property-resolutions/{identity_resolution_id}/confirm",
     "/v1/property-resolutions/{identity_resolution_id}/reject",
@@ -55,6 +62,11 @@ COMMAND_ROUTES = {
     "/v1/cases/{case_id}/parcel-set/active-member",
     "/v1/cases/{case_id}/parcel-set/reorder",
     "/v1/cases/{case_id}/parcel-set/review",
+}} | {
+    ("POST", "/v1/saved-cases"),
+    ("PATCH", "/v1/saved-cases/{case_id}/metadata"),
+    ("PUT", "/v1/saved-cases/{case_id}/membership"),
+    ("PUT", "/v1/saved-cases/{case_id}/monitoring"),
 }
 
 
@@ -94,8 +106,13 @@ def test_openapi_requires_bearer_and_bounded_idempotency_on_every_command() -> N
     for method, path in APPROVED_ROUTES:
         operation = schema["paths"][path][method.lower()]
         assert {"SupabaseBearer": []} in operation["security"]
-    for path in COMMAND_ROUTES:
-        operation = schema["paths"][path]["post"]
+    # Planning's POST is a provider read, not a persisted state transition.
+    assert COMMAND_ROUTES == {
+        (method, path) for method, path in APPROVED_ROUTES
+        if method != "GET" and path != "/v1/planning/taipei/observe"
+    }
+    for method, path in COMMAND_ROUTES:
+        operation = schema["paths"][path][method.lower()]
         parameters = {
             item["name"]: item
             for item in operation.get("parameters", [])

@@ -2,6 +2,11 @@ import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
 import { isProviderRequest } from "./helpers/provider-request";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
+import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { adaptSavedCaseToWorkspace } from "../lib/workspace/legacy-case-adapter";
+import { projectCaseEvidence } from "../lib/workspace/case-evidence";
+import { buildCaseEvidenceGraph, resolveCopilotCitation } from "../lib/workspace/document-evidence";
 
 // Test-only records in Playwright's fresh context, never an existing user profile.
 function representativeCases() {
@@ -94,11 +99,47 @@ for (const width of [1440, 1024, 390]) {
     await page.emulateMedia({ media: "print" });
     await expect(page.getByTestId("report-controls")).toBeHidden();
     await expect(page.getByRole("navigation").first()).toBeHidden();
-    const pdf = await page.pdf({ path: testInfo.outputPath(`acceptance-${width}-a4.pdf`), preferCSSPageSize: true, format: "A4", printBackground: true });
+    const references = report.getByTestId("report-citation-references");
+    const graph = buildCaseEvidenceGraph(projectCaseEvidence(adaptSavedCaseToWorkspace(representativeCases()[0])));
+    const ids = await references.locator("ol > li").evaluateAll(nodes => nodes.map(node => node.id.slice("report-".length)));
+    expect(ids).toEqual(graph.citations.map(citation => citation.id));
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const id of ids) {
+      expect(resolveCopilotCitation(graph, "case-a", id)?.id).toBe(id);
+      expect(resolveCopilotCitation(graph, "case-b", id)).toBeNull();
+    }
+    const hiddenProvenance = await references.locator("ol, li, dl, dt, dd").evaluateAll(elements => elements.filter(element => {
+      if (![...element.getClientRects()].some(rect => rect.width > 0 && rect.height > 0)) return true;
+      for (let parent: Element | null = element; parent; parent = parent.parentElement) {
+        const css = getComputedStyle(parent);
+        if (css.display === "none" || ["hidden", "collapse"].includes(css.visibility) || Number(css.opacity) === 0) return true;
+      }
+      return false;
+    }).map(element => `${element.tagName}: ${element.textContent?.slice(0, 80)}`));
+    expect(hiddenProvenance).toEqual([]);
+    const provenanceValues = await references.locator("dd").allTextContents();
+    const output = testInfo.outputPath(`acceptance-${width}-a4.pdf`);
+    const pdf = await page.pdf({ path: output, preferCSSPageSize: true, format: "A4", printBackground: true });
     expect(pdf.byteLength).toBeGreaterThan(10000);
     // A standard saved fixture must remain readable without expanding to one
     // nearly empty page per provenance record. Chrome emits page objects here.
     expect((pdf.toString("latin1").match(/\/Type\s*\/Page\b/g) ?? []).length).toBeLessThanOrEqual(20);
+    // Check the actual PDF, so hiding provenance cannot satisfy pagination.
+    // Keep MuPDF diagnostics separate from the machine-readable audit artifact.
+    const auditPath = `${output}.audit.json`;
+    const audit = spawnSync("python", ["-X", "utf8", "-c", "import pymupdf,json,sys; d=pymupdf.open(sys.argv[1]); json.dump([{'width':p.rect.width,'height':p.rect.height,'text':p.get_text(),'clipped':any(b[0]<-1 or b[2]>p.rect.width+1 or b[1]<-1 or b[3]>p.rect.height+1 for b in p.get_text('blocks'))} for p in d],open(sys.argv[2],'w',encoding='utf-8'),ensure_ascii=False)", output, auditPath], { encoding: "utf8", windowsHide: true });
+    expect(audit.status, audit.stderr).toBe(0);
+    const sheets = JSON.parse(readFileSync(auditPath, "utf8")) as { width: number; height: number; text: string; clipped: boolean }[];
+    expect(sheets.length).toBe((pdf.toString("latin1").match(/\/Type\s*\/Page\b/g) ?? []).length);
+    for (const sheet of sheets) {
+      expect(Math.abs(sheet.width - 595.28)).toBeLessThanOrEqual(1);
+      expect(Math.abs(sheet.height - 841.89)).toBeLessThanOrEqual(1);
+      expect(sheet.clipped).toBe(false);
+    }
+    const normalize = (value: string) => value.replace(/\s+/g, "");
+    const printed = normalize(sheets.map(sheet => sheet.text).join("\n"));
+    for (const value of new Set([...ids, ...provenanceValues])) expect(printed).toContain(normalize(value));
+    await testInfo.attach("report-print-audit", { body: JSON.stringify({ pageCount: sheets.length, referenceCount: ids.length, ids, sheets: sheets.map(({ text, ...sheet }) => ({ ...sheet, characters: text.length })) }, null, 2), contentType: "application/json" });
     expect(calls).toEqual([]);
     await page.emulateMedia({ media: "screen" });
     await page.goto("/cases/case-a/overview");

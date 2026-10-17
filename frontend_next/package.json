@@ -4,6 +4,8 @@
   "private": true,
   "packageManager": "npm@11.19.0",
   "scripts": {
+    "test:documents": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/workspace/document-evidence.test.ts lib/workspace/case-evidence.test.ts lib/workspace/compare-report-model.test.ts",
+    "test:e2e:documents": "npm run build:e2e && node e2e/run-e2e.cjs e2e/document-evidence.spec.ts --project=chromium --workers=1 --timeout=120000",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -28,6 +30,8 @@
     "test:workspace-contract": "node scripts/test-professional-gis-contract.mjs",
     "test:vnext-hardening": "node scripts/test-vnext-hardening.mjs",
     "test:consumer-auth": "node --test scripts/consumer-auth.test.mjs scripts/consumer-auth-race.test.mjs scripts/account-client.test.mjs",
+    "test:wave4": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/cloud-case-contract.test.ts scripts/cloud-case-client.test.mjs",
+    "test:e2e:wave4": "npm run build:e2e && node e2e/run-e2e.cjs e2e/monitoring-collaboration.spec.ts --project=chromium --workers=1",
     "test:e2e:hosted": "playwright test --config=playwright.hosted.config.ts",
     "test:e2e:real-provider": "npm run build:e2e && node e2e/run-e2e.cjs --config=playwright.real-provider.config.ts --workers=1"
   },

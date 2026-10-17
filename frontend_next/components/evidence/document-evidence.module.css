@@ -1,0 +1,33 @@
+.page { max-width: 76rem; margin: auto; padding: clamp(1rem, 4vw, 3rem); overflow-wrap: anywhere; }
+.page h1, .page h2, .page h3 { margin-block: 1rem; }
+.page nav { display: flex; flex-wrap: wrap; gap: 1rem; margin-block: 1rem; }
+.flow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 2fr); gap: 1rem; align-items: start; border-block-end: 1px solid var(--border-default, #cbd5e1); padding-block: 1rem; }
+.flow ul { margin: 0; padding-inline-start: 1.3rem; }
+.flow li { margin-block: .5rem; }
+.detail { border: 1px solid var(--border-default, #cbd5e1); border-radius: .5rem; margin-block: 1rem; padding: 1rem; scroll-margin-top: 6rem; }
+.detail:target { outline: 3px solid var(--accent-primary, #2563eb); }
+.detail summary { cursor: pointer; font-weight: 600; min-height: 2.75rem; }
+.provenance { display: grid; grid-template-columns: minmax(8rem, 1fr) minmax(0, 3fr); gap: .5rem 1rem; margin-block: 1rem; overflow-wrap: anywhere; }
+.provenance dt { font-weight: 600; }
+.provenance dd { margin: 0; white-space: pre-wrap; }
+.citation { display: inline-flex; gap: .3rem; margin-inline: .4rem; overflow-wrap: anywhere; }
+.printReference { display: none; }
+.references { margin-block: 2rem; overflow-wrap: anywhere; }
+.references li { break-inside: avoid; }
+.page a, .references a { text-decoration: underline; text-underline-offset: .15em; }
+.page nav a { display: inline-flex; align-items: center; min-height: 2.75rem; }
+.page :focus-visible, .references :focus-visible { outline: 3px solid var(--accent-primary, #2563eb); outline-offset: 4px; }
+@media (max-width: 600px) { .flow { grid-template-columns: minmax(0, 1fr); } .arrow { display: none; } .provenance { grid-template-columns: minmax(0, 1fr); } .provenance dd { margin-block-end: .6rem; } }
+@media print {
+  .printReference { display: inline; font-size: .75rem; }
+  .references { margin: 3mm 0 0; }
+  .references a { color: inherit; }
+  /* Keep complete records together without the screen grid's row/gap overhead.
+     Explicit print flow also overrides the mobile single-column definition list. */
+  .references > ol > li { margin: 0 0 2mm; }
+  .references .provenance { display: block; margin: 1mm 0; font-size: 9pt; line-height: 1.35; }
+  .references .provenance dt, .references .provenance dd { display: inline; white-space: normal; }
+  .references .provenance dt::after { content: ": "; }
+  .references .provenance dd::after { content: " · "; }
+  .references .provenance dd:last-child::after { content: ""; }
+}

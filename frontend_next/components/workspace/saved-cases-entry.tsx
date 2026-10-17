@@ -12,6 +12,7 @@ import { RepositoryNotice, storageBlocked } from "@/components/evidence/evidence
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import { buildWorkspaceOverview } from "@/lib/workspace/overview-model";
 import styles from "./saved-cases-entry.module.css";
+import { CloudCasesPanel } from "./cloud-cases-panel";
 import { CopilotLink } from "./copilot/copilot-link";
 import { useSearchParams } from "next/navigation";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
@@ -52,6 +53,7 @@ export function SavedCasesEntry() {
           ? <AsyncState kind="not_started" title={copyFrom(navigationCopy, "empty")} detail={copyFrom(navigationCopy, "emptyHint")} action={<Link prefetch={false} className="ds-button ds-button--primary" href="/?workflow=property">{copyFrom(navigationCopy, "property")}</Link>} />
           : <div className={styles.grid}>{cases.map((workspace) => <SavedCaseRow key={workspace.caseId} workspace={workspace} destination={destination} />)}</div>}
     </Section>
+    <CloudCasesPanel localCases={cases ?? []} />
   </main>;
 }
 

@@ -9,6 +9,7 @@ import { scenarioEntryCopy } from "@/lib/workspace/scenario-entry-copy";
 import { workspaceNavigationCopy } from "@/lib/workspace/workspace-navigation-copy";
 import { placesEntryCopy } from "@/lib/my-places-entry-copy";
 import { navigationCopy } from "@/lib/navigation/copy";
+import { documentEvidenceCopy } from "@/lib/workspace/document-evidence-copy";
 
 export function WorkspaceNavigation({ caseId }: { caseId: string }) {
   const pathname = usePathname();
@@ -24,6 +25,7 @@ export function WorkspaceNavigation({ caseId }: { caseId: string }) {
     <NavigationItem href={`/cases/${encodeURIComponent(caseId)}/commute-planner`} current={pathname.endsWith("/commute-planner")}>{copyFrom(placesEntryCopy, "planner")}</NavigationItem>
     <Link className="ds-navigation-item" href={`/cases/${encodeURIComponent(caseId)}/decision-room`} aria-current={pathname.endsWith("/decision-room") ? "page" : undefined}>{copyFrom(workspaceNavigationCopy, "decisionRoom")}</Link>
     <span className="workspace-navigation__label text-meta">{copyFrom(workspaceNavigationCopy, "outputs")}</span>
+    <NavigationItem href={`/cases/${encodeURIComponent(caseId)}/evidence`} current={pathname.endsWith("/evidence")}>{copyFrom(documentEvidenceCopy, "nav")}</NavigationItem>
     <NavigationItem href={`/compare?cases=${encodeURIComponent(caseId)}`}>{copyFrom(workspaceNavigationCopy, "compare")}</NavigationItem>
     <NavigationItem href={`/cases/${encodeURIComponent(caseId)}/report`} current={pathname.endsWith("/report")}>{copyFrom(workspaceNavigationCopy, "report")}</NavigationItem>
     <NavigationItem href={`/cases/${encodeURIComponent(caseId)}/planning`} current={pathname.endsWith("/planning")}>{copyFrom(workspaceNavigationCopy, "planning")}</NavigationItem>

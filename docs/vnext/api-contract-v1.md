@@ -1,6 +1,7 @@
 # VNext API Contract v1
 
-Status: Stage 1 executable contract through Slice 7; later-slice surfaces remain deferred
+Status: Stage 1 executable contract through Slice 7 plus the authenticated Wave 4
+personal Saved Case foundation; Wave 4 persistence remains unavailable.
 
 ## 1. Conventions
 
@@ -222,6 +223,7 @@ Required for:
 - resolution create/confirm/reject;
 - Case create and resolution attachment;
 - explicit SavedCase v1 copy import;
+- personal Saved Case create, metadata, membership and monitoring commands;
 - document upload initialization/completion;
 - title procurement;
 - CRM activity creation;
@@ -247,6 +249,49 @@ Rules:
 
 Database uniqueness enforces the scope. Confirm/attach also lock or compare the current
 resource version so two different keys cannot approve competing transitions.
+
+### Personal Saved Case command scope (Wave 4)
+
+The approved `/v1/saved-cases` surface is GET/POST root, GET `/{case_id}`,
+GET `/{case_id}/activity`, PATCH `/{case_id}/metadata`, PUT
+`/{case_id}/membership`, and PUT `/{case_id}/monitoring`. The POST, PATCH and both
+PUT operations are commands and all require the same 16–128 character
+`^[A-Za-z0-9._:-]{16,128}$` `Idempotency-Key` header. GETs are reads. Route exactness,
+bearer authentication, active-account authorization, forged-identity rejection
+and no-store responses apply to all seven. Approval of this surface does not
+activate persistence: production still returns 503 `persistence_pending`.
+
+Personal scope is `(actor Auth UUID, method, concrete canonical route, key hash)`
+in a separate personal namespace, without a fabricated workspace or workspace-role
+mapping. The canonical body hash includes the import key, consent and complete
+original import for create, or the expected revision and edited fields for updates.
+An identical committed command returns the same case reference and HTTP status,
+without a second mutation/revision/activity. As with existing parcel-set replay,
+the response is the **current authorized projection** of that resource, not an
+old ACL/roster snapshot. Recheck current account and case write permission before
+replay. Changed canonical body with the same scoped key returns 409
+`idempotency_conflict`; a new key still requires matching `expected_revision` and
+returns 409 `version_conflict` if stale. `import_key` remains permanent owner-scoped
+import deduplication, not a substitute for the header.
+
+The repository transaction serializes actor/key admission and case writes, commits
+the hashed receipt/reference together with domain state and activity, and
+acknowledges only after commit. A failed transaction leaves no success receipt or
+side effects; the same request can be retried. Uncommitted duplicates serialize
+behind that transaction and resolve to its committed reference or a fresh attempt
+after rollback; no pending command or background job is exposed by this foundation.
+Retain committed receipts for at least 24 hours, cap live receipts at 2048 per
+actor, prune expired rows in batches of at most 100, and fail closed at capacity
+without evicting live retry protection. After expiry, ordinary import deduplication
+and revision CAS still apply. Receipts contain hashes, timestamps and a case/revision
+reference only; no raw keys, tokens, notes, evidence, or response bodies.
+
+The browser reuses opaque random keys for identical explicit command attempts in
+a session-scoped memory cache of at most 64 hashes/keys. Case, body, revision and
+account changes create distinct identities. Cache loss/eviction never weakens
+server import deduplication or CAS. No retry queue, browser persistence, automatic
+retry, upload or provider refresh is introduced. The SQL adapter, receipt table,
+RLS and real concurrent-connection proof remain deferred with the Wave 4 migration.
 
 ## 6. Audit and activity coupling
 
