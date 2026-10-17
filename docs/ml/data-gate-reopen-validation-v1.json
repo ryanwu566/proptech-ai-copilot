@@ -1,0 +1,139 @@
+{
+  "branch": "research/ml-datagate-reopen-v1",
+  "commands": {
+    "encoding": {
+      "PYTHONIOENCODING": "utf-8",
+      "PYTHONUTF8": "1"
+    },
+    "full": "python -m pytest -q -ra",
+    "ml": "$mlCases = @(Get-ChildItem tests/test_ml_*.py | ForEach-Object { $_.FullName }); python -m pytest -q @mlCases",
+    "privacy": "python -m pytest -q -k privacy"
+  },
+  "contract_versions": {
+    "admission": "ml-b-admission-v2-frozen-2026-10-11",
+    "bundle": "ml-data-gate-bundle-v1",
+    "chronology": "plvr-contiguous-four-block-maturity-v1",
+    "operator": "ml-data-gate-reopen-v1",
+    "pit": "plvr-authoritative-pit-v3",
+    "receipts": "ml-external-evidence-v1",
+    "release_continuity": "release-continuity-v1",
+    "target_b": "observed-residential-transfer-ntd-ping-v1"
+  },
+  "delivery": "Final commit SHA and post-commit clean tree are supplied in the delivery response.",
+  "deployed": false,
+  "determinism": {
+    "byte_identical": true,
+    "gate_output_sha256": {
+      "decision.json": "91df69974aad2044cb51c15e4d0eab416a29b48a7227d76824f664994cbc1906",
+      "output-hashes.json": "72ade9bded718795b77142806c167027e1fb01c3c2356e614f57cca62a6cde99",
+      "summary.md": "635c6b981461ee4ea06a6edc9bbdaf446b3d7f12891ecbfcc570db9223ae10b7"
+    },
+    "independent_raw_rebuilds": 4,
+    "matched_gate_output_files": 3,
+    "operator_invocations": 2,
+    "windows_autocrlf_filtered_index_bytes_match": true
+  },
+  "final_origin_main_sha": "9832e8b3f88104441475c82a49d192b838090d07",
+  "independent_review": {
+    "corrected_findings": [
+      "Dangling predecessor or unresolved changed-ID history blocks the entire admission, including each freeze.",
+      "Explicit intake observation follows source and receipt retrieval and cannot supply publication.",
+      "Bounded hash diagnostics now distinguish corrupt retained bytes from malformed receipts."
+    ],
+    "final_critical": 0,
+    "final_important": 0,
+    "focused_checks_passed": 10,
+    "limitation": "Existing cross-namespace replacement resolver remains unavailable; these histories stay BLOCKED, even with explicit edges.",
+    "read_only": true
+  },
+  "ml_ui_created": false,
+  "no_model_trained": true,
+  "privacy": "PASS: closed output vocabulary, private outside-Git roots, actual aggregate artifacts validated; no raw transaction or applicant material tracked.",
+  "production_valuation_changed": false,
+  "pushed": false,
+  "real_gate": {
+    "counts": {
+      "PIT_valid": 0,
+      "approved_training": 0,
+      "chronological_viable": 0,
+      "raw_observations": 37669,
+      "target_valid": 2267
+    },
+    "evidence": {
+      "E1": "MISSING_REAL_EVIDENCE",
+      "E2": "MISSING_REAL_EVIDENCE",
+      "E3": "MISSING_REAL_EVIDENCE",
+      "E4": "MISSING_REAL_EVIDENCE",
+      "E5": "NOT_REQUIRED_FOR_TARGET_B"
+    },
+    "ml_b_authorized": false,
+    "real_receipts": 0,
+    "status": "BLOCKED"
+  },
+  "reproducibility": {
+    "admission_contract_sha256": "c961007be5925492bf84ea3712492ef697b37dcb35f6f6aaf63d6b4aba0a9176",
+    "bundle_manifest_sha256": "e33aebfc24633792433ee67c7bc8038d44c712d55eb16361cbe4b97e74c237b2",
+    "chronology_sha256": "3f70dc5859c78a833aee9f1ecab614ecc1626dff00327c03aaaf5e19cbe212ea",
+    "code_sha256": "4bf0f7a13c18185d65188e035bce2af8ed76a18b07ba0ecb580f9eb5b3fd94d4",
+    "contracts_sha256": "f3393bb9899a3b588335ecc01bacc2e7707571882454518c4b24ee9a61750d3d",
+    "output_hashes": {
+      "approved-cohort.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "calibration.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "chronology.json": "1dc400352fe8d043d080ffc81627d7c5118bb0afaaeaef582cfd2aff635cf8fa",
+      "feature-contract.json": "95d5ac59d72242acac2daba430d0f1e8972d2301de02e17ff20ae47e9359d630",
+      "features.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "label-contract.json": "a4f7ec46cd8da692ad730a004c9c8e400144471f9d753cd8328234f98431c16a",
+      "labels.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "source-manifest.json": "ae8faaba6a0569fbda243737a8c9c996015e2c27067433c29bb10026e306a77f",
+      "test.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "train.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+      "validation.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "python_version": "3.13.14",
+    "receipt_contract_version": "ml-external-evidence-v1",
+    "receipt_manifest_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "source_manifest_sha256": "fb859a460c221f59af1fdeba614ecd335ef4f4dfad5657150a3efd5fd2905093",
+    "target_contract_version": "observed-residential-transfer-ntd-ping-v1"
+  },
+  "safe_for_research_pr": true,
+  "starting_sha": "9832e8b3f88104441475c82a49d192b838090d07",
+  "tests": {
+    "all_ml": {
+      "errors": 0,
+      "failures": 0,
+      "log_sha256": "7c198335e00a03aadd3c51aaf58411d58328890d4813ee6acfcca0ec5a9d6e77",
+      "passed": 403,
+      "skipped": 0,
+      "tests": 403,
+      "xml_sha256": "07139f4e6befdf8bf864b128ae54ab0c942a67dc60ffb3c341fe21993fad6e08"
+    },
+    "full_python": {
+      "errors": 0,
+      "failures": 0,
+      "log_sha256": "81b62ccee3c289f67b22be0fcfcd8acf152369773397c6faf25ed8e3dbe2e00c",
+      "passed": 3993,
+      "skipped": 104,
+      "tests": 4097,
+      "xml_sha256": "3bf0bb360a69a6131430fd7e611f6bb715458398f95385c05ec34646557021b5"
+    },
+    "full_skip_categories": {
+      "disposable_postgres": 102,
+      "platform_only": 2
+    },
+    "new_synthetic_contract_tests": {
+      "failed": 0,
+      "passed": 27,
+      "real_evidence": false
+    },
+    "privacy": {
+      "errors": 0,
+      "failures": 0,
+      "log_sha256": "52d575e9c146d3bb8c8829c31ef40b9f197f310a29f5c2c3b60719482e6eef01",
+      "passed": 27,
+      "skipped": 0,
+      "tests": 27,
+      "xml_sha256": "0c97b9206deacf7dd548c9db70611b49b5ceb61194d3fc2f149aeac42f6928f1"
+    }
+  },
+  "version": "ml-data-gate-reopen-v1-validation"
+}
