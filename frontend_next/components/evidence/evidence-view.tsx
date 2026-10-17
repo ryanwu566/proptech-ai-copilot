@@ -19,12 +19,21 @@ function Provenance({ field }: { field: EvidenceField<string | number> }) {
     <p>限制：{field.limitation}</p><p>下一步：{field.nextAction}</p>
   </div>;
 }
-export function EvidenceValue({ field }: { field: EvidenceField<string | number> }) {
-  return <div className={styles.value} data-evidence-status={field.status}>
-    <strong className={typeof field.value === "number" ? styles.numeric : undefined} data-numeric={typeof field.value === "number" || undefined}>{field.value === null ? field.id === "poi-risk" ? "未知／未取得" : field.missingReason ? GAP_LABELS[field.missingReason] : "未保存" : valueText(field.value, field.unit)}</strong>
+export function evidenceValueText(field: EvidenceField<string | number>): string {
+  return field.value === null ? field.id === "poi-risk" ? "未知／未取得" : field.missingReason ? GAP_LABELS[field.missingReason] : "未保存" : valueText(field.value, field.unit);
+}
+/**
+ * `compact` is an opt-in screen density for multi-case tables: value and state share a line
+ * and the per-cell disclosure shows a short visible summary while keeping the same accessible
+ * name and the same provenance content. The default rendering is unchanged.
+ */
+export function EvidenceValue({ field, density = "standard", sourceSummary = "來源與限制" }: { field: EvidenceField<string | number>; density?: "standard" | "compact"; sourceSummary?: string }) {
+  const compact = density === "compact";
+  return <div className={compact ? styles.valueCompact : styles.value} data-evidence-status={field.status}>
+    <strong className={typeof field.value === "number" ? styles.numeric : undefined} data-numeric={typeof field.value === "number" || undefined}>{evidenceValueText(field)}</strong>
     <StatusLabel semanticRole="neutral">{EVIDENCE_STATUS_LABELS[field.status]}</StatusLabel>
     {field.historicalValue !== null && <p className="text-meta">先前保存值（不能視為目前）：{valueText(field.historicalValue, field.unit)}</p>}
-    <div className={styles.screenOnly}><DetailsDisclosure summary={`${field.label}：來源與限制`} variant="compact"><Provenance field={field} /></DetailsDisclosure></div>
+    <div className={styles.screenOnly}><DetailsDisclosure summary={compact ? <><span className="sr-only">{field.label}：</span>{sourceSummary}</> : `${field.label}：來源與限制`} variant="compact"><Provenance field={field} /></DetailsDisclosure></div>
     <div className={styles.printOnly}><Provenance field={field} /></div>
   </div>;
 }
