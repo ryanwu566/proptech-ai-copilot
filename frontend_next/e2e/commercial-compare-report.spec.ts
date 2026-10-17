@@ -285,3 +285,120 @@ for (const width of [390, 430]) {
     expect(observed.requests).toEqual([]);
   });
 }
+async function executiveCitationsResolve(page: Page) {
+  const executive = page.getByTestId("report-executive");
+  const links = executive.locator("[data-citation-id] a");
+  expect(await links.count()).toBeGreaterThan(0);
+  const references = page.getByTestId("report-citation-references");
+  for (const href of await links.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")!))) {
+    expect(href).toMatch(/^#report-ec1\.case-/);
+    await expect(references.locator(`[id="${href.slice(1)}"]`)).toHaveCount(1);
+  }
+}
+test("report leads with a cited executive summary before domain detail, provider-free", async ({ page, baseURL }) => {
+  await seed(page); const observed = await watchProviders(page, baseURL!);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/cases/case-a/report");
+  const executive = page.getByTestId("report-executive");
+  await expect(executive.getByRole("heading", { level: 2, name: "重點摘要" })).toBeVisible();
+  const firstDomain = page.getByTestId("report-evidence").getByRole("heading", { level: 2, name: "1. 物件脈絡" });
+  expect((await executive.boundingBox())!.y).toBeLessThan((await firstDomain.boundingBox())!.y);
+  await expect(executive.getByTestId("executive-snapshot")).toContainText("2026");
+  await expect(executive.getByTestId("executive-snapshot")).toContainText("不會自動更新");
+  await expect(executive.getByTestId("executive-property")).toContainText("不代表地號");
+  await expect(executive.getByTestId("executive-key-asking")).toContainText("2,480 萬元");
+  await expect(executive.getByTestId("executive-key-asking")).toContainText("使用者輸入");
+  await expect(executive.getByTestId("executive-key-asking_unit")).toContainText("82.67");
+  await expect(executive.getByTestId("executive-key-asking_unit")).toContainText("本報告推導");
+  await expect(executive.getByTestId("executive-key-asking_unit")).toContainText("不是估價");
+  await expect(executive.getByTestId("executive-key-asking_unit").locator("[data-citation-id]")).toHaveCount(4);
+  await expect(executive.getByTestId("executive-key-housing")).toContainText("55,111");
+  await expect(executive.getByTestId("executive-key-commute")).toContainText("臺中車站");
+  await expect(executive.getByTestId("executive-key-state")).toContainText("未知");
+  await expect(executive.getByTestId("executive-attention-risk_unresolved")).toContainText("不代表安全");
+  await expect(executive.getByTestId("executive-attention-affordability_not_assessed")).toBeVisible();
+  await expect(executive.getByTestId("executive-open")).toContainText("項缺口");
+  await expect(executive.getByTestId("executive-open-risk")).toBeVisible();
+  await expect(executive.getByTestId("executive-limitation")).toContainText("不是估價");
+  await expect(executive).not.toContainText(RANKING);
+  await executiveCitationsResolve(page);
+  // Executive references reuse the report list: no second numbering system.
+  const ids = await page.getByTestId("report-citation-references").locator("ol > li").evaluateAll((nodes) => nodes.map((node) => node.id));
+  expect(new Set(ids).size).toBe(ids.length);
+  const link = executive.getByTestId("executive-key-asking").locator("[data-citation-id] a").first();
+  await link.focus(); await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/#report-ec1\.case-a\..+price-asking$/);
+  await expect(page.locator(`[id="${(await link.getAttribute("href"))!.slice(1)}"]`)).toBeInViewport();
+  await executive.getByTestId("executive-open").getByRole("link", { name: "見未知與限制" }).click();
+  await expect(page.locator("#report-limits")).toBeInViewport();
+  expect(observed.requests).toEqual([]);
+});
+test("executive summary keeps stale, unknown and missing evidence unresolved", async ({ page }) => {
+  await seed(page);
+  await page.goto("/cases/case-c/report");
+  const executive = page.getByTestId("report-executive");
+  await expect(executive.getByTestId("executive-key-market")).toHaveCount(0);
+  await expect(executive.getByTestId("executive-attention-stale")).toContainText("市場成交總價中位數");
+  await expect(executive.getByTestId("executive-attention-stale")).toContainText("不代表目前");
+  await expect(executive.getByTestId("executive-attention-stale")).toContainText("已過期");
+  await executiveCitationsResolve(page);
+  await page.goto("/cases/case-b/report");
+  await expect(executive.getByTestId("executive-key-housing")).toHaveCount(0);
+  await expect(executive.getByTestId("executive-key-commute")).toHaveCount(0);
+  await expect(executive.getByTestId("executive-key-market")).toHaveCount(0);
+  await expect(executive.getByTestId("executive-open-finance")).toBeVisible();
+  await expect(executive).not.toContainText(/55,111|1,850|52\.4/);
+});
+test("executive summary follows the selected locale", async ({ page }) => {
+  await seed(page);
+  await page.addInitScript(() => localStorage.setItem("proptech.locale.v1", JSON.stringify({ version: 1, locale: "en" })));
+  await page.goto("/cases/case-a/report");
+  const executive = page.getByTestId("report-executive");
+  await expect(executive.getByRole("heading", { level: 2, name: "Executive summary" })).toBeVisible();
+  await expect(executive.getByTestId("executive-key-asking_unit")).toContainText("Derived in this report");
+  await expect(executive.getByTestId("executive-attention-risk_unresolved")).toContainText("None of these means safe");
+});
+for (const width of [390, 430]) {
+  test(`${width}px report shows the executive summary first with reachable citations and no overflow`, async ({ page, baseURL }) => {
+    await seed(page); const observed = await watchProviders(page, baseURL!);
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/cases/case-a/report");
+    const executive = page.getByTestId("report-executive");
+    await expect(executive).toBeVisible();
+    const firstTable = page.getByTestId("report-evidence").locator("table").first();
+    expect((await executive.boundingBox())!.y).toBeLessThan((await firstTable.boundingBox())!.y);
+    // Key numbers stack in one column instead of a dense grid.
+    const columns = await executive.getByTestId("executive-key-numbers").locator("li").evaluateAll((nodes) => nodes.map((node) => Math.round(node.getBoundingClientRect().x)));
+    expect(new Set(columns).size).toBe(1);
+    for (const target of [executive.locator("[data-citation-id] a").first(), executive.getByRole("link", { name: /工作區/ }).first()]) {
+      const box = (await target.boundingBox())!;
+      expect(box.height).toBeGreaterThanOrEqual(44); expect(box.width).toBeGreaterThanOrEqual(44);
+    }
+    await expect(executive.getByTestId("executive-open")).toBeVisible();
+    await expect(executive.getByTestId("executive-limitation")).toBeVisible();
+    await executiveCitationsResolve(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(observed.requests).toEqual([]);
+  });
+}
+test("executive summary prints first with its citations and the full evidence, provider-free", async ({ page, baseURL }) => {
+  await seed(page); const observed = await watchProviders(page, baseURL!);
+  await page.goto("/cases/case-a/report");
+  await expect(page.getByTestId("report-executive")).toBeVisible();
+  await page.evaluate(() => { window.print = () => { dispatchEvent(new Event("beforeprint")); document.body.dataset.printed = "yes"; dispatchEvent(new Event("afterprint")); }; });
+  await page.getByRole("button", { name: "列印／另存 PDF" }).click();
+  expect(await page.locator("body").getAttribute("data-printed")).toBe("yes");
+  await page.emulateMedia({ media: "print" });
+  const executive = page.getByTestId("report-executive");
+  await expect(executive).toBeVisible();
+  await expect(page.getByTestId("report-controls")).toBeHidden();
+  for (const id of ["executive-snapshot", "executive-key-numbers", "executive-attention", "executive-open", "executive-limitation"]) await expect(executive.getByTestId(id)).toBeVisible();
+  await expect(executive.locator("[data-citation-id] a").first()).toBeVisible();
+  // Screen-only navigation is not evidence; the evidence rows and reference ledger still print.
+  await expect(executive.getByRole("link", { name: /工作區/ }).first()).toBeHidden();
+  await expect(page.getByTestId("report-citation-references")).toBeVisible();
+  await expect(page.getByTestId("report-evidence").getByRole("row", { name: /成交資料推估中點/ })).toBeVisible();
+  expect((await executive.boundingBox())!.y).toBeLessThan((await page.getByTestId("report-evidence").locator("table").first().boundingBox())!.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(observed.requests).toEqual([]);
+});
