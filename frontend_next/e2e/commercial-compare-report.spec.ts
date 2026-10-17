@@ -41,6 +41,9 @@ test("desktop compare preserves four-case order, descriptive rows and missing/ze
   await expect(table.getByRole("row", { name: /市場成交總價中位數/ })).toContainText("1,850 萬元");
   await expect(table.getByRole("row", { name: /年利率/ })).toContainText("0 %");
   await expect(table.getByRole("row", { name: /市場成交總價中位數/ })).toContainText("已過期");
+  // Same-state unresolved rows are collapsed by default but named, and remain one toggle away.
+  await expect(page.getByTestId("hidden-unresolved").first()).toContainText("成交資料推估中點");
+  await page.getByRole("button", { name: "顯示所有欄位" }).click();
   await expect(table.getByRole("row", { name: /成交資料推估中點/ })).toContainText("已嘗試，目前無法取得");
   await expect(page.getByTestId("comparability-warnings")).toContainText("假設不同");
   await expect(page.locator("main")).not.toContainText(/最佳物件|勝出物件|綜合分數|bestCaseId|topCandidate/);
@@ -181,3 +184,104 @@ test("storage unavailable differs from empty and clear-all invalidates frozen re
   await page.addInitScript(() => { Storage.prototype.getItem = () => { throw new Error("denied"); }; });
   await page.goto("/compare"); await expect(page.locator("main").getByRole("alert")).toContainText("儲存目前無法讀取");
 });
+const RANKING = /最佳物件|勝出|綜合分數|推薦購買|較安全|整體較便宜|bestCaseId|topCandidate|winner|recommended/i;
+test("standard pair leads with key differences, differences-only rows and one limitations area under 6000px", async ({ page, baseURL }) => {
+  await seed(page); const observed = await watchProviders(page, baseURL!);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/compare?cases=case-a,case-b");
+  const key = page.getByTestId("compare-key-differences"); const table = page.getByTestId("compare-desktop");
+  await expect(key).toBeVisible(); await expect(table).toBeVisible();
+  expect((await key.boundingBox())!.y).toBeLessThan((await table.boundingBox())!.y);
+  await expect(key.getByTestId("key-row-market-total")).toContainText("1,850 萬元");
+  await expect(key.getByTestId("key-row-market-total")).toContainText("尚未查詢");
+  await expect(key.getByTestId("key-row-market-total")).toContainText("未知");
+  await expect(key.getByTestId("key-difference-commute")).toContainText("通勤目的地");
+  await expect(key.getByTestId("key-difference-gaps")).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(RANKING);
+  await expect(table).toHaveAttribute("data-fields-view", "differences");
+  await expect(table.getByTestId("compare-row-price-asking")).toBeHidden();
+  await expect(table.getByTestId("compare-row-market-total")).toBeVisible();
+  await expect(table.getByTestId("compare-row-market-total")).toContainText("尚未查詢");
+  await expect(page.getByTestId("compare-fields-toolbar")).toContainText("各案件的保存數值、狀態與來源皆相同");
+  await expect(page.getByTestId("hidden-unresolved").first()).toContainText("不代表數值相同");
+  const limits = page.getByTestId("compare-limitations");
+  await expect(limits.getByTestId("comparability-warnings")).toContainText("缺值不等於零");
+  await expect(limits.getByTestId("compare-gap-counts")).toContainText("A · 案件 A");
+  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  expect(height).toBeLessThanOrEqual(6000);
+  // Provenance remains reachable by keyboard in compact cells and in the limitations area.
+  const row = table.getByTestId("compare-row-market-total");
+  await row.locator("summary").first().focus();
+  await page.keyboard.press("Enter");
+  await expect(row.getByText(/^來源：/).first()).toBeVisible();
+  await limits.getByTestId("compare-gaps").locator("summary").click();
+  await expect(limits.getByRole("link", { name: "前往查證工作區" }).first()).toBeVisible();
+  await limits.getByTestId("compare-sources").locator("summary").click();
+  await expect(limits.getByTestId("compare-sources")).toContainText("沒有執行新查詢");
+  expect(observed.requests).toEqual([]);
+});
+test("show all fields toggle is accessible, URL-backed and restores with Back/Forward", async ({ page, baseURL }) => {
+  await seed(page); const observed = await watchProviders(page, baseURL!);
+  await page.goto("/compare?cases=case-a,case-b");
+  const table = page.getByTestId("compare-desktop"); const toggle = page.getByRole("button", { name: "顯示所有欄位" });
+  await expect(toggle).toHaveAttribute("aria-pressed", "false");
+  await expect(table.getByTestId("compare-row-price-asking")).toBeHidden();
+  await toggle.focus(); await page.keyboard.press("Enter");
+  await expect(toggle).toHaveAttribute("aria-pressed", "true");
+  await expect(page).toHaveURL(/cases=case-a,case-b&fields=all$/);
+  await expect(table.getByTestId("compare-row-price-asking")).toBeVisible();
+  await expect(table.getByTestId("compare-row-valuation-estimate")).toContainText("已嘗試，目前無法取得");
+  await page.goBack();
+  await expect(page).toHaveURL(/cases=case-a,case-b$/);
+  await expect(table.getByTestId("compare-row-price-asking")).toBeHidden();
+  await page.goForward();
+  await expect(table.getByTestId("compare-row-price-asking")).toBeVisible();
+  // A new case selection starts again from differences only.
+  await page.getByRole("checkbox", { name: "選擇 案件 C", exact: true }).check();
+  await expect(page).toHaveURL(/cases=case-a,case-b,case-c$/);
+  await expect(table).toHaveAttribute("data-fields-view", "differences");
+  expect(observed.requests).toEqual([]);
+});
+test("stale, unknown and mismatched states stay visible in differences-only mode", async ({ page }) => {
+  await seed(page); await page.goto("/compare?cases=case-a,case-c");
+  const table = page.getByTestId("compare-desktop");
+  await expect(table.getByTestId("compare-row-market-total")).toBeVisible();
+  await expect(table.getByTestId("compare-row-market-total")).toContainText("已過期");
+  await expect(page.getByTestId("key-row-market-total")).toContainText("已過期");
+  await expect(table.getByTestId("compare-row-commute-destination")).toBeVisible();
+  await expect(table.getByTestId("compare-row-finance-rate")).toContainText("2.2 %");
+  await page.goto("/compare?cases=case-a,case-d");
+  await expect(table.getByTestId("compare-row-commute-duration")).toBeVisible();
+  await expect(table.getByTestId("compare-row-commute-duration")).toContainText("已嘗試，目前無法取得");
+  await expect(table.getByTestId("compare-row-commute-duration")).toHaveAttribute("data-row-relation", "differs");
+  await page.goto("/compare?cases=case-a,case-b");
+  await expect(table.getByTestId("compare-row-finance-payment")).toBeVisible();
+  await expect(table.getByTestId("compare-row-finance-payment")).toContainText("尚未查詢");
+});
+for (const width of [390, 430]) {
+  test(`${width}px keeps key differences before the pair matrix, collapses identical rows and keeps provenance reachable`, async ({ page, baseURL }) => {
+    await seed(page); const observed = await watchProviders(page, baseURL!);
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/compare?cases=case-a,case-b");
+    const key = page.getByTestId("compare-key-differences"); const mobile = page.getByTestId("compare-mobile");
+    await expect(key).toBeVisible(); await expect(mobile).toBeVisible();
+    expect((await key.boundingBox())!.y).toBeLessThan((await mobile.boundingBox())!.y);
+    await expect(page.getByLabel("比較領域")).toHaveValue("market");
+    await expect(page.getByTestId("mobile-row-price-asking")).toBeHidden();
+    await expect(page.getByTestId("mobile-row-market-total")).toBeVisible();
+    const summary = page.getByTestId("mobile-row-market-total").locator("summary").first();
+    expect((await summary.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await summary.click();
+    await expect(page.getByTestId("mobile-row-market-total").getByText(/^來源：/).first()).toBeVisible();
+    await page.getByLabel("比較領域").selectOption("risk");
+    await expect(mobile).toContainText("這兩個案件在此領域沒有差異欄位");
+    await expect(mobile.getByTestId("hidden-unresolved")).toContainText("活動斷層");
+    const toggle = page.getByRole("button", { name: "顯示所有欄位" });
+    expect((await toggle.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await toggle.click();
+    await expect(page.getByTestId("mobile-row-risk-active_fault")).toBeVisible();
+    await expect(page.locator("main")).not.toContainText(RANKING);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(observed.requests).toEqual([]);
+  });
+}
