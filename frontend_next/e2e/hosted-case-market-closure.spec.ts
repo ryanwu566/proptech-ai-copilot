@@ -10,6 +10,7 @@ import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { getSurfaceCopy } from "../lib/surface-copy";
 import { join } from "node:path";
 import { comparableCopy } from "../lib/comparable-explanation-copy";
+import { navigationCopy } from "../lib/navigation/copy";
 
 // These are synthetic UI contract responses, not proof of official production coverage.
 // The supported real-data acquisition gate is exercised separately against the backend.
@@ -154,7 +155,9 @@ async function createThroughUI(page: Page, locale: ExperienceLocale, s: Scenario
 async function reopen(page: Page, s: Scenario, id: string, locale: ExperienceLocale) {
   await page.goto("/cases"); await page.reload();
   await page.getByTestId("locale-switcher").selectOption(locale);
-  await page.getByRole("link", { name: `開啟${s.displayAddress}`, exact: true }).click();
+  const savedCase = page.getByRole("link", { name: `${navigationCopy[locale].open}${s.displayAddress}`, exact: true });
+  await expect(savedCase).toHaveAttribute("href", `/cases/${encodeURIComponent(id)}/overview`);
+  await savedCase.click();
   await expect(page).toHaveURL(new RegExp(`/cases/${id}/overview$`));
   await expect(page.getByRole("banner", { name: "目前物件" })).toContainText(s.displayAddress);
   await expect(page.getByTestId("overview-finance-summary")).toContainText(s.payment.toLocaleString("en"));

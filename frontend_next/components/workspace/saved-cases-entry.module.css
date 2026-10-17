@@ -5,7 +5,7 @@
 .rowHeading { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--space-3); }
 .rowHeading h2, .rowHeading p { margin: 0; }
 .grid :global(.ds-panel) { display: grid; gap: var(--space-3); justify-items: start; }
-.caseArticle { min-width: 0; }
+.caseArticle { min-width: 0; overflow-wrap: anywhere; }
 .caseArticle :global(.ds-panel) { height: 100%; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .caseArticle p { overflow-wrap: anywhere; }

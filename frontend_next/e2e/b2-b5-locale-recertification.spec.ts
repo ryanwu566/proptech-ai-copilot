@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { navigationCopy } from "../lib/navigation/copy";
 
 /**
  * B2-B5 Recovery: Four-locale browser recertification.
@@ -47,7 +48,9 @@ test.describe("B2-B5 Four-Locale Desktop @1440x900", () => {
       // E10 global navigation and the optional Methods disclosure are labelled.
       const navigation = page.locator(".commercial-global-nav[aria-label]");
       await expect(navigation).toBeVisible();
-      await expect(navigation.getByRole("link", { name: /已儲存案件|Saved cases|保存済み案件|저장된 사례/ })).toBeVisible();
+      const savedCases = navigation.getByRole("link", { name: navigationCopy[locale].cases, exact: true });
+      await expect(savedCases).toBeVisible();
+      await expect(savedCases).toHaveAttribute("href", "/cases");
       await expect(page.locator(".commercial-methods > summary")).toBeVisible();
 
       // Body text should not contain raw runtime copy keys

@@ -2,6 +2,7 @@ import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { openPropertyEntry } from "./helpers/commercial-navigation";
+import { navigationCopy } from "../lib/navigation/copy";
 
 /** E10 primary acceptance: task Home → saved case domains → Compare / Report.
  * Optional finder decision components retain their independent semantic coverage.
@@ -15,10 +16,10 @@ const DOMAINS = [
   ["finance", "資金與持有成本"],
 ] as const;
 const HOME = {
-  "zh-TW": ["看清物件證據，確認下一步", "首頁", "已儲存案件", "進階／方法", "開始物件評估"],
-  en: ["Review property evidence. Know what to verify.", "Start", "Saved cases", "Methods", "Start property review"],
-  ja: ["物件の根拠を整理し、次の確認へ", "ホーム", "保存済み案件", "手法", "物件の検討を開始"],
-  ko: ["부동산 근거를 검토하고 다음을 확인하세요", "시작", "저장된 사례", "방법", "부동산 검토 시작"],
+  "zh-TW": ["看清物件證據，確認下一步", "首頁", "開始物件評估"],
+  en: ["Review property evidence. Know what to verify.", "Start", "Start property review"],
+  ja: ["物件の根拠を整理し、次の確認へ", "ホーム", "物件の検討を開始"],
+  ko: ["부동산 근거를 검토하고 다음을 확인하세요", "시작", "부동산 검토 시작"],
 };
 const DECISION = {
   "zh-TW": "看房決策摘要", en: "Viewing decision summary",
@@ -158,12 +159,14 @@ test.describe("E10 commercial case capability acceptance", () => {
       await page.goto("/");
       await page.getByTestId("locale-switcher").selectOption(locale);
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
-      const [heading, home, cases, methods, start] = HOME[locale];
+      const [heading, home, start] = HOME[locale];
       await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible();
       const nav = page.locator(".commercial-global-nav");
       await expect(nav.getByRole("button", { name: home, exact: true })).toBeVisible();
-      await expect(nav.getByRole("link", { name: cases, exact: true })).toBeVisible();
-      await expect(page.locator(".commercial-methods > summary")).toHaveText(methods);
+      const savedCases = nav.getByRole("link", { name: navigationCopy[locale].cases, exact: true });
+      await expect(savedCases).toBeVisible();
+      await expect(savedCases).toHaveAttribute("href", "/cases");
+      await expect(page.locator(".commercial-methods > summary")).toHaveText(navigationCopy[locale].menu);
       await expect(page.getByRole("button", { name: start, exact: true })).toBeVisible();
       expect(await page.locator(".commercial-global-header").innerText()).not.toMatch(/commercial\.\w+|journey\.\w+\./);
       expect(await page.locator(".commercial-home").innerText()).not.toMatch(/commercial\.\w+/);

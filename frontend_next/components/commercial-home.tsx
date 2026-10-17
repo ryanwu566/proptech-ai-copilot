@@ -13,9 +13,11 @@ import { createBrowserCaseRepository, type WorkspaceReadDiagnostic } from "@/lib
 import { formatExactDate } from "@/lib/commercial/formatters";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { useStartGuidedExample } from "@/components/app-shell";
+import { navigationCopy } from "@/lib/navigation/copy";
+import { PRODUCT_ENTRIES, productHref } from "@/lib/navigation/model";
 
 export function CommercialHome({ onStart, onFinder }: { onStart: (address: string) => void; onFinder: () => void }) {
-  const { t, copy, locale } = useExperienceLocale();
+  const { t, copy, copyFrom, locale } = useExperienceLocale();
   const startDemo = useStartGuidedExample();
   const [address, setAddress] = useState("");
   const repository = useMemo(createBrowserCaseRepository, []);
@@ -41,8 +43,14 @@ export function CommercialHome({ onStart, onFinder }: { onStart: (address: strin
           <StatusLabel semanticRole={identity.role}>{identity.label[locale]}</StatusLabel>
           <Link className="ds-button ds-button--secondary" href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`} aria-label={`${t("commercial.continue")}${workspace.title}`}>{t("commercial.continue")}</Link>
         </li>; })}
-      </ul> : <p className="text-body">{read.issues.length ? t("commercial.invalidCases") : t("commercial.emptyCases")}</p>}
+      </ul> : <p className="text-body">{read.issues.length ? t("commercial.invalidCases") : copyFrom(navigationCopy, "emptyHint")}</p>}
       <Link className="commercial-text-action" href="/cases">{t("commercial.allCases")}</Link>
+    </Section>
+    <Section title={copyFrom(navigationCopy, "explore")} description={copyFrom(navigationCopy, "exploreHint")}>
+      <div className="product-capabilities">{(["analysis", "decisions", "personal"] as const).map((group) => <section key={group} aria-label={copyFrom(navigationCopy, group)}>
+        <h3 className="text-subsection">{copyFrom(navigationCopy, group)}</h3><p className="text-dense">{copyFrom(navigationCopy, `${group}Hint`)}</p>
+        {PRODUCT_ENTRIES.filter((entry) => entry.group === group).map((entry) => <Link prefetch={false} key={entry.id} href={productHref(entry)}>{copyFrom(navigationCopy, entry.id)}</Link>)}
+      </section>)}</div>
     </Section>
     <p role="note" className="commercial-home__trust text-meta">{t("commercial.trust")}</p>
   </div>;
