@@ -4,6 +4,8 @@
   "private": true,
   "packageManager": "npm@11.19.0",
   "scripts": {
+    "test:documents": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/workspace/document-evidence.test.ts lib/workspace/case-evidence.test.ts lib/workspace/compare-report-model.test.ts",
+    "test:e2e:documents": "npm run build:e2e && node e2e/run-e2e.cjs e2e/document-evidence.spec.ts --project=chromium --workers=1 --timeout=120000",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

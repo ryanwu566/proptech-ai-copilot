@@ -9,6 +9,7 @@ import { createBrowserDecisionRoomRepository, decisionRoomGaps, mergeRoomRecord,
 import { decisionRoomCopy, type DecisionRoomCopy } from "@/lib/decision-room-copy";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { WorkspaceNavigation } from "@/components/workspace/workspace-navigation";
+import { documentEvidenceCopy } from "@/lib/workspace/document-evidence-copy";
 import styles from "./decision-room.module.css";
 import { CopilotLink } from "@/components/workspace/copilot/copilot-link";
 
@@ -284,11 +285,12 @@ function Gaps({ room, context, c }: { room: DecisionRoom; context: DecisionRoomC
   </section>;
 }
 function Evidence({ context, c }: { context: DecisionRoomCaseContext; c: DecisionRoomCopy }) {
-  const { locale, formatDate } = useExperienceLocale();
+  const { locale, formatDate, copyFrom } = useExperienceLocale();
   const identity = resolveCommercialState("identity", context.identityState);
   const manualStatus = (status: string) => status === "manual_confirmed" ? c.user_checked : status === "candidate" ? c.open : c.unknown;
   return <section id="saved-evidence" data-testid="saved-evidence" className={styles.panel} aria-labelledby="evidence-heading">
     <h2 id="evidence-heading">{c.evidence}</h2><p className={styles.muted}>{c.evidenceHint}</p><p className={styles.muted}>{c.snapshot}: {formatDate(context.snapshotDate)}</p>
+    <p><Link href={`/cases/${encodeURIComponent(context.caseId)}/evidence`}>{copyFrom(documentEvidenceCopy, "nav")}</Link></p>
     <dl className={styles.evidence}>
       <div><dt>{c.identity}</dt><dd>{identity.label[locale]}</dd></div>
       <div><dt>{c.parcel}</dt><dd>{manualStatus(context.parcelStatus)}</dd></div>

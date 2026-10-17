@@ -13,6 +13,7 @@ import styles from "./evidence.module.css";
 import { ManualReviewSummary } from "./manual-review-summary";
 import { ComparableExplanation } from "../workspace/market/comparable-explanation";
 import { CopilotLink } from "../workspace/copilot/copilot-link";
+import { EvidenceCitation, ReportCitationReferences } from "./citation";
 function currentEvidence(read: WorkspaceReadDiagnostic, caseId: string): CaseEvidenceModel | null { const workspace = read.cases.find((item) => item.caseId === caseId); return workspace ? projectCaseEvidence(workspace) : null; }
 function invalid(read: WorkspaceReadDiagnostic, caseId: string): boolean { return storageBlocked(read) || read.issues.some((issue) => issue.caseId === caseId); }
 export function ReportView({ caseId }: { caseId: string }) {
@@ -74,13 +75,14 @@ export function ReportView({ caseId }: { caseId: string }) {
           <header><h1 className="text-page">案件證據報告 · {report.evidence!.title}</h1><p>{report.evidence!.displayAddress}</p><p>案件保存：{date(report.evidence!.savedAt)} · 報告產生：{date(report.generatedAt)}</p><p>{report.status === "ready_with_limits" ? "可閱讀的證據摘要，含待查證限制" : "可閱讀的保存證據摘要"}</p><Message>本報告依已儲存證據快照製作；不是即時重新查詢。{report.evidence!.identity.limitation}</Message></header>
           {report.sections.map((section, index) => <Section key={section.id} title={`${index + 1}. ${section.title}`} description={section.evidenceSection?.description}>
             {section.id === "context" && <p>{report.evidence!.title} · {report.evidence!.displayAddress}。{report.evidence!.identity.limitation}</p>}
-            {section.evidenceSection && <table className={styles.reportTable}><caption className="sr-only">{section.title}</caption><tbody>{section.evidenceSection.rows.map((row) => <tr key={row.id}><th scope="row">{row.label}</th><td><EvidenceValue field={row.cells[0]} /></td></tr>)}</tbody></table>}
+            {section.evidenceSection && <table className={styles.reportTable}><caption className="sr-only">{section.title}</caption><tbody>{section.evidenceSection.rows.map((row) => <tr key={row.id}><th scope="row">{row.label}</th><td><EvidenceValue field={row.cells[0]} />{report.citations.filter(citation => citation.observationId === row.id).map(citation => <EvidenceCitation key={citation.id} citation={citation} number={report.citations.indexOf(citation) + 1} report />)}</td></tr>)}</tbody></table>}
             {section.id === "summary" && <ul>{report.summary.map((sentence) => <li key={sentence}>{sentence}</li>)}</ul>}
             {section.id === "market" && <ComparableExplanation report value={report.evidence!.comparableExplanation} stale={report.evidence!.price.valuationEstimate.status === "stale"} />}
             {section.id === "limits" && <EvidenceGaps cases={[report.evidence!]} />}
             {section.id === "actions" && <><EvidenceGaps cases={[report.evidence!]} actionsOnly /><ManualReviewSummary evidence={report.evidence!} /></>}
             {section.id === "sources" && <EvidenceSources cases={[report.evidence!]} />}
           </Section>)}
+          <ReportCitationReferences citations={report.citations} />
         </article>
       </>}
     </>}
