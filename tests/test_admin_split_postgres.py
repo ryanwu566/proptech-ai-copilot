@@ -219,3 +219,34 @@ def test_split_audit_tie_order_and_unavailable_store_are_explicit(split):
     missing=AdminStore(split[1][0],make_conninfo(split[1][1],dbname='admin_control_test_missing'))
     with pytest.raises(VNextError) as failure: missing.audit_page(principal(),None)
     assert failure.value.status_code == 503
+
+
+@pytest.mark.parametrize('failed_store', ['account','usage'])
+def test_split_store_outage_cannot_report_quota_success(split, failed_store):
+    import psycopg
+    from psycopg.conninfo import make_conninfo
+    targets = list(split[1])
+    index = 0 if failed_store == 'account' else 1
+    # An absent database in the same disposable cluster produces a real libpq
+    # connection failure. Never substitute a hosted target or a second policy.
+    targets[index] = make_conninfo(targets[index],dbname='admin_control_test_missing')
+    with psycopg.connect(split[0][index]) as connection:
+        assert connection.execute("SELECT 1 FROM pg_database WHERE datname='admin_control_test_missing'").fetchone() is None
+    # Require an actual PostgreSQL driver error, so an allowlist/configuration
+    # refusal in an acceptance harness cannot masquerade as this SQL proof.
+    with pytest.raises(psycopg.Error) as unavailable:
+        with psycopg.connect(targets[index]):
+            pytest.fail('The deliberately absent disposable database exists')
+    assert 'does not exist' in str(unavailable.value)
+    cmd = quota(reason='Disposable store outage proof')
+    with psycopg.connect(split[0][1]) as connection:
+        before = connection.execute('SELECT principal_class,request_hour,operation_hour,operation_day FROM api_usage.quota_policy ORDER BY principal_class').fetchall()
+    with pytest.raises(VNextError) as failure:
+        AdminStore(*targets).command(principal(),cmd)
+    assert failure.value.status_code == 503
+    for url in split[0]:
+        with psycopg.connect(url) as connection:
+            for table in ('claims','commands','audit'):
+                assert connection.execute(f'SELECT count(*) FROM admin_plane.{table} WHERE command_id=%s',(cmd.command_id,)).fetchone()[0] == 0
+    with psycopg.connect(split[0][1]) as connection:
+        assert connection.execute('SELECT principal_class,request_hour,operation_hour,operation_day FROM api_usage.quota_policy ORDER BY principal_class').fetchall() == before

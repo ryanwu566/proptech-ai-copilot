@@ -45,11 +45,13 @@ class _Connection:
         superuser: bool = False,
         bypass_rls: bool = False,
         owns_vnext: bool = False,
+        unsafe_authority: bool = False,
     ) -> None:
         self.role = role
         self.superuser = superuser
         self.bypass_rls = bypass_rls
         self.owns_vnext = owns_vnext
+        self.unsafe_authority = unsafe_authority
         self.local_settings: dict[str, str] = {}
         self.transaction_count = 0
         self.rollback_count = 0
@@ -70,6 +72,8 @@ class _Connection:
     def execute(self, statement: str, params: tuple[object, ...] | None = None):
         normalized = " ".join(statement.lower().split())
         self.sql.append((normalized, params))
+        if normalized.startswith('select exists') and 'pg_auth_members' in normalized:
+            return _Result((self.unsafe_authority or self.owns_vnext,))
         if normalized.startswith("select rolname, rolsuper, rolbypassrls"):
             return _Result((self.role, self.superuser, self.bypass_rls))
         if normalized.startswith("select exists") and "pg_namespace" in normalized:
@@ -100,6 +104,15 @@ class _Pool:
 
     def close(self) -> None:
         self.closed = True
+
+
+def test_request_role_rejects_inherited_or_session_authority_before_binding() -> None:
+    connection = _Connection(unsafe_authority=True)
+    context = DatabasePrincipalContext(_Pool(connection))
+    with pytest.raises(DatabasePrincipalContextError, match='database_request_role_unsafe'):
+        with context.transaction(PRINCIPAL_A):
+            pytest.fail('Unsafe inherited/session authority was accepted')
+    assert not any('set_config' in statement for statement, _params in connection.sql)
 
 
 def test_principals_are_transaction_local_on_a_reused_pool_connection() -> None:

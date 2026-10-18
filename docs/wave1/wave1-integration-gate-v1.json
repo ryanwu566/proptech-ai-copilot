@@ -1,0 +1,945 @@
+{
+  "schema_version": "wave1-integration-gate-v1",
+  "acceptance_date": "2026-10-18",
+  "timezone": "Asia/Taipei",
+  "branch": "release/wave1-integration-gate-v1",
+  "starting_sha": "4a17ddb91f4b7d3e5a106759ba71175619347419",
+  "final_origin_main_sha": "4a17ddb91f4b7d3e5a106759ba71175619347419",
+  "current_main_recheck": {
+    "fetch_completed_after_full_suite": true,
+    "moved": false,
+    "changed_file_overlap": [],
+    "backup_or_rebase_needed": false,
+    "behind": 0,
+    "ahead": 0
+  },
+  "preflight": {
+    "clean": true,
+    "behind": 0,
+    "ahead": 0,
+    "exact_expected_main": true
+  },
+  "authority_matrix": [
+    {
+      "transition": "Bearer JWT → `AuthenticatedPrincipal`",
+      "authority": "Existing asymmetric JWKS verifier; issuer, audience, lifetime, UUID subject",
+      "fail_closed": "Missing/duplicate/malformed bearer, invalid signature/claims, unavailable verifier",
+      "store": "Auth provider JWKS; no browser role authority",
+      "browser_influence": "Supplies token, never signing authority; metadata ignored",
+      "replay": "JWT lifetime; no mutation"
+    },
+    {
+      "transition": "Verified principal → own account",
+      "authority": "Fresh `PostgresAccountRepository` via validated `vnext_api` principal context",
+      "fail_closed": "Missing/mismatched/malformed/unavailable authority → 503",
+      "store": "Application `vnext_private.consumer_accounts`",
+      "browser_influence": "Cannot choose account identity/status/role",
+      "replay": "Own-ID insert with defaults; conflict never resets role or suspension"
+    },
+    {
+      "transition": "Account → consumer access",
+      "authority": "`AccountAuthorizer.require_active`",
+      "fail_closed": "Suspended → 403; unavailable → 503",
+      "store": "Application/account DB",
+      "browser_influence": "No role/status override",
+      "replay": "Fresh authorization per request; own-status GET remains available to suspended user"
+    },
+    {
+      "transition": "Principal → workspace access",
+      "authority": "Active membership scoped to user and workspace; tenant RLS",
+      "fail_closed": "Absent, foreign, revoked or insufficient membership denies",
+      "store": "Application `vnext_core`; account-aware restrictive membership RLS",
+      "browser_influence": "Requested workspace is a target, never authority",
+      "replay": "Existing command header keys and DB idempotency records"
+    },
+    {
+      "transition": "Transport peer → anonymous usage",
+      "authority": "Bounded ASGI transport peer, HMAC-SHA256 with server key",
+      "fail_closed": "Missing/invalid required key denies; production never ephemeral",
+      "store": "Local admission; dedicated usage quota/telemetry",
+      "browser_influence": "Forwarded/user/role headers ignored",
+      "replay": "Stable opaque HMAC subject for same key/peer; quota reservation UUIDs"
+    },
+    {
+      "transition": "Verified principal → authenticated usage",
+      "authority": "Only typed server `AuthenticatedPrincipal` with UUID",
+      "fail_closed": "Strings/mappings/headers cannot create authenticated subject",
+      "store": "Dedicated usage DB plus bounded local counters",
+      "browser_influence": "Metadata cannot select tier; authenticated tier fixed `free`",
+      "replay": "Stable `user:<UUID>`; consume marker deduplicates"
+    },
+    {
+      "transition": "Usage subject → quota admission",
+      "authority": "Server-selected capability, fixed class policies, PostgreSQL guard",
+      "fail_closed": "Required guard unavailable/unsafe → 503; exhausted → 429",
+      "store": "Dedicated `api_usage`",
+      "browser_influence": "No browser policy/DB access",
+      "replay": "Atomic consume and markers; request/operation/day windows independent"
+    },
+    {
+      "transition": "Usage context → telemetry",
+      "authority": "Bounded server events/dimensions",
+      "fail_closed": "Failures reported as unavailable/partial; never enforcement proof",
+      "store": "`api_usage.hourly`, `flush_batches`",
+      "browser_influence": "No raw peer IP/token/payload as principal",
+      "replay": "Batch UUID transaction; bounded retention; telemetry is partial"
+    },
+    {
+      "transition": "Verified principal + active account → Admin",
+      "authority": "`require_platform_admin`; authoritative `platform_role=platform_admin`",
+      "fail_closed": "Consumer/suspended/missing/malformed authority denies before reads/commands",
+      "store": "Account authority plus dedicated Admin account login",
+      "browser_influence": "JWT metadata, workspace roles and localStorage cannot grant Admin",
+      "replay": "Fresh dependency authorization and DB reauthorization"
+    },
+    {
+      "transition": "Admin → account command",
+      "authority": "Dedicated operator; bounded SQL function; account advisory lock",
+      "fail_closed": "Unsafe role, revoked actor, self-change, last-admin violation, audit failure deny",
+      "store": "Account DB: account change + immutable command + audit",
+      "browser_influence": "UUID target, reason and enum are validated inputs",
+      "replay": "Body UUID scoped by actor; exact replay; changed payload → 409; one-store atomic commit"
+    },
+    {
+      "transition": "Admin → quota acceptance",
+      "authority": "Active Admin reauthorized under account lock",
+      "fail_closed": "Account outage, revoked actor, changed key/body/store deny",
+      "store": "Account DB immutable `admin_plane.claims`",
+      "browser_influence": "Browser cannot choose actor/owning store",
+      "replay": "Durable exact claim binds actor, command, body, effective target + instance UUID"
+    },
+    {
+      "transition": "Accepted quota → owning-store command",
+      "authority": "Backend coordinator credential and verified actor GUC; bounded SQL",
+      "fail_closed": "Usage outage/audit failure/uncertain commit never returns success",
+      "store": "Usage DB: policy + command + audit in one transaction",
+      "browser_influence": "Only bounded class/hour/day fields, no direct DB access",
+      "replay": "Reauthorize retry; original owning result replay; no duplicate audit; no distributed transaction"
+    }
+  ],
+  "idempotency_matrix": [
+    {
+      "method": "PATCH",
+      "path": "/v1/saved-cases/{case_id}/metadata",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/import-legacy",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/{case_id}/attach-resolution",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/{case_id}/parcel-set",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/{case_id}/parcel-set/active-member",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/{case_id}/parcel-set/members",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/{case_id}/parcel-set/members/{member_id}/review",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/{case_id}/parcel-set/reorder",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/cases/{case_id}/parcel-set/review",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/parcel-building-relations",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/properties/{property_entity_id}/building-hypotheses",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/properties/{property_entity_id}/parcel-hypotheses",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/property-resolutions",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/property-resolutions/{identity_resolution_id}/confirm",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/property-resolutions/{identity_resolution_id}/reject",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/saved-cases",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/saved-cases/{case_id}/membership",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "PUT",
+      "path": "/v1/saved-cases/{case_id}/monitoring",
+      "classification": "HEADER_IDEMPOTENCY"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/accounts/{target}/commands",
+      "classification": "BODY_COMMAND_ID"
+    },
+    {
+      "method": "POST",
+      "path": "/v1/admin/quota-policy/commands",
+      "classification": "BODY_COMMAND_ID"
+    }
+  ],
+  "idempotency_scope": "Persisted /v1 commands; planning observation POST is a provider read, not a persisted mutation",
+  "migrations": [
+    {
+      "registry_order": 21,
+      "logical_id": "production-020-consumer-account-foundation",
+      "sequence": 20,
+      "filename": "020_consumer_account_foundation.sql",
+      "execution_policy": "production_runner",
+      "sha256": "01aa6d71588cefa8b1e4d35e9bdf08cc7944ac4280791de2f5f974a9f466dd31",
+      "checksum_matches_registry": true,
+      "unchanged_from_start": true
+    },
+    {
+      "registry_order": 22,
+      "logical_id": "production-021-api-usage-quota-ledger",
+      "sequence": 21,
+      "filename": "021_api_usage_quota_ledger.sql",
+      "execution_policy": "production_runner",
+      "sha256": "00ed7d4b78de6d92c285ab8cd87241d1477bee2ce6e97caef6bbf6e2f43b98af",
+      "checksum_matches_registry": true,
+      "unchanged_from_start": true
+    },
+    {
+      "registry_order": 23,
+      "logical_id": "production-022-admin-control-plane",
+      "sequence": 22,
+      "filename": "022_admin_control_plane.sql",
+      "execution_policy": "production_runner",
+      "sha256": "f9c3c389d15cd3702a31be12f4e0f68e56f482ecc03eecf4d5c6e7b92c4fc709",
+      "checksum_matches_registry": true,
+      "unchanged_from_start": true
+    }
+  ],
+  "registry_count": 23,
+  "managed_migration_count": 18,
+  "next_migration": "023",
+  "historical_migrations_rewritten": false,
+  "stores": {
+    "account": "VNEXT_DATABASE_URL",
+    "usage": "API_USAGE_DATABASE_URL",
+    "admin_account": "ADMIN_DATABASE_URL",
+    "admin_usage": "ADMIN_USAGE_DATABASE_URL",
+    "distributed_transaction_claimed": false,
+    "quota_acceptance": "Durable account claim before owning-store execution"
+  },
+  "startup": {
+    "usage_configuration": "Startup validation before requests; required unsafe/unavailable dependencies abort",
+    "auth_account_configuration": "Request-time fail-closed authority; not claimed as startup Auth readiness"
+  },
+  "tests": {
+    "focus": {
+      "status": "pass",
+      "passed": 388,
+      "failed": 0,
+      "skipped": 1,
+      "artifact": "artifacts/wave1-integration-gate-v1/focus.xml",
+      "skipped_nodes": [
+        "tests.test_api_usage_ledger::test_disposable_postgres_ledger_idempotency_retention_and_denied_clients"
+      ],
+      "skipped_by_module": {
+        "tests.test_api_usage_ledger": 1
+      },
+      "duration_seconds": 142.64,
+      "warnings": 1
+    },
+    "sql": {
+      "status": "pass",
+      "passed": 82,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/sql.xml",
+      "duration_seconds": 178.35,
+      "warnings": 1
+    },
+    "bootstrap": {
+      "status": "pass",
+      "passed": 64,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/bootstrap.xml",
+      "duration_seconds": 131.58,
+      "warnings": 0
+    },
+    "ledger": {
+      "status": "pass",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/ledger.xml",
+      "duration_seconds": 3.47,
+      "warnings": 0
+    },
+    "outage": {
+      "status": "pass",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/outage.xml",
+      "duration_seconds": 11.63,
+      "warnings": 0
+    },
+    "startup-final": {
+      "status": "pass",
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/startup-final.xml",
+      "duration_seconds": 16.78,
+      "warnings": 0
+    },
+    "all": {
+      "status": "fail",
+      "passed": 4123,
+      "failed": 3,
+      "skipped": 151,
+      "artifact": "artifacts/wave1-integration-gate-v1/all.xml",
+      "failed_nodes": [
+        "tests.test_gsmma_geological_sensitivity_artifact::test_operator_cli_builds_local_outputs_without_uploading",
+        "tests.test_market_coverage_registry::test_coverage_audit_script_outputs_safe_lines",
+        "tests.test_market_coverage_rollout_workflow::test_market_coverage_county_helper_outputs_tracked_counties_safely"
+      ],
+      "skipped_nodes": [
+        "tests.test_admin_postgres::test_consumer_context_rejects_admin_authority_drift[inherited_admin_executor]",
+        "tests.test_admin_postgres::test_consumer_context_rejects_admin_authority_drift[set_only_admin_executor]",
+        "tests.test_admin_postgres::test_consumer_context_rejects_admin_authority_drift[hidden_owner_session]",
+        "tests.test_admin_postgres::test_consumer_context_rejects_admin_authority_drift[request_createrole]",
+        "tests.test_admin_postgres::test_consumer_context_rejects_admin_authority_drift[request_database_owner]",
+        "tests.test_admin_postgres::test_consumer_context_rejects_admin_authority_drift[request_schema_create]",
+        "tests.test_admin_postgres::test_consumer_context_rejects_admin_authority_drift[request_schema_owner]",
+        "tests.test_admin_postgres::test_platform_admin_account_does_not_bypass_workspace_tenancy",
+        "tests.test_admin_postgres::test_dedicated_runtime_and_direct_dml_denials",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[admin_test_login-pg_execute_server_program]",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[admin_test_login-pg_read_server_files]",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[admin_test_login-pg_write_server_files]",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[admin_test_login-pg_signal_backend]",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[proptech_admin_executor-pg_execute_server_program]",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[proptech_admin_executor-pg_read_server_files]",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[proptech_admin_executor-pg_write_server_files]",
+        "tests.test_admin_postgres::test_predefined_powerful_memberships_are_rejected[proptech_admin_executor-pg_signal_backend]",
+        "tests.test_admin_postgres::test_self_and_final_admin_are_protected[status-suspended]",
+        "tests.test_admin_postgres::test_self_and_final_admin_are_protected[platform_role-consumer]",
+        "tests.test_admin_postgres::test_cross_admin_concurrency_cannot_reach_zero[status-suspended]",
+        "tests.test_admin_postgres::test_cross_admin_concurrency_cannot_reach_zero[platform_role-consumer]",
+        "tests.test_admin_postgres::test_concurrent_retry_is_exactly_one_audit_and_changed_payload_conflicts",
+        "tests.test_admin_postgres::test_audit_insert_failure_rolls_back_mutation_and_command",
+        "tests.test_admin_postgres::test_history_immutable_even_with_accidental_dml_grants",
+        "tests.test_admin_postgres::test_revoked_actor_cannot_replay_or_read_and_quota_update_is_audited",
+        "tests.test_admin_postgres::test_directory_exact_lookup_and_audit_cursor",
+        "tests.test_admin_postgres::test_populated_usage_and_quota_are_renderable_strict_counts",
+        "tests.test_admin_postgres::test_revocation_is_rechecked_after_a_proven_advisory_lock_wait",
+        "tests.test_admin_postgres::test_idempotency_namespace_is_shared_across_account_and_quota_commands",
+        "tests.test_admin_postgres::test_configured_dedicated_usage_never_silently_reads_a_shadow_policy",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[runtime_function]",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[executor_function]",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[runtime_create]",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[executor_create]",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[runtime_pgx_create]",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[executor_pgx_create]",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[runtime_pgx_owner]",
+        "tests.test_admin_postgres::test_function_ownership_and_schema_create_drift_are_rejected[executor_pgx_owner]",
+        "tests.test_admin_split_postgres::test_split_authority_policy_and_atomic_usage_audit",
+        "tests.test_admin_split_postgres::test_usage_failure_retains_claim_without_policy_or_audit_change",
+        "tests.test_admin_split_postgres::test_lost_acceptance_commit_ack_never_dispatches_until_retry_confirms_claim",
+        "tests.test_admin_split_postgres::test_durable_acceptance_survives_connection_termination_and_revocation",
+        "tests.test_admin_split_postgres::test_owning_instance_change_cannot_replay_a_reserved_command",
+        "tests.test_admin_split_postgres::test_split_audit_tie_order_and_unavailable_store_are_explicit",
+        "tests.test_admin_split_postgres::test_split_store_outage_cannot_report_quota_success[account]",
+        "tests.test_admin_split_postgres::test_split_store_outage_cannot_report_quota_success[usage]",
+        "tests.test_api_usage_ledger::test_disposable_postgres_ledger_idempotency_retention_and_denied_clients",
+        "tests.test_consumer_account_postgres::test_real_account_grants_isolation_and_suspension_rls",
+        "tests.test_market_direct_query_postgres::test_production_direct_query_sql_against_disposable_postgres",
+        "tests.test_market_postgres_e2e::test_market_coverage_schema_contract_is_non_destructive_and_idempotent",
+        "tests.test_market_postgres_e2e::test_disposable_postgres_market_release_lifecycle",
+        "tests.test_market_postgres_e2e::test_vnext_migration_rejects_missing_auth_prerequisites",
+        "tests.test_ops_backup_tools::test_backup_refuses_symlink_parent_without_contact",
+        "tests.test_ops_backup_tools::test_restore_refuses_readable_private_identity_on_unix",
+        "tests.test_ops_backup_tools::test_catalog_fingerprint_survives_real_quota_insert",
+        "tests.test_plvr_cutover_rehearsal::test_isolated_postgres_contains_successful_rehearsal_state",
+        "tests.test_plvr_generation_schema_migration::test_generation_schema_applies_to_clean_local_postgres_and_rolls_back",
+        "tests.test_plvr_provider_update::test_postgres_import_rolls_back_all_chunks_when_final_acceptance_fails",
+        "tests.test_ris_population_postgres_integration::test_disposable_postgres_migration_rls_constraints_and_upsert",
+        "tests.test_usage_database_bootstrap::test_raw_021_fails_at_owner_transfer_and_rolls_back",
+        "tests.test_usage_database_bootstrap::test_raw_021_with_set_membership_still_fails_missing_schema_create",
+        "tests.test_usage_database_bootstrap::test_bootstrap_keeps_exact_021_and_cleans_both_transfer_seams",
+        "tests.test_usage_database_bootstrap::test_runtime_login_uses_only_guard_writer_without_set_role",
+        "tests.test_usage_database_bootstrap::test_real_guard_and_writer_work_and_batch_replay_is_idempotent",
+        "tests.test_usage_database_bootstrap::test_roles_cannot_cross_telemetry_quota_or_browser_boundaries[proptech_usage_guard]",
+        "tests.test_usage_database_bootstrap::test_roles_cannot_cross_telemetry_quota_or_browser_boundaries[proptech_usage_writer]",
+        "tests.test_usage_database_bootstrap::test_roles_cannot_cross_telemetry_quota_or_browser_boundaries[anon]",
+        "tests.test_usage_database_bootstrap::test_roles_cannot_cross_telemetry_quota_or_browser_boundaries[authenticated]",
+        "tests.test_usage_database_bootstrap::test_roles_cannot_cross_telemetry_quota_or_browser_boundaries[service_role]",
+        "tests.test_usage_database_bootstrap::test_roles_cannot_cross_telemetry_quota_or_browser_boundaries[vnext_api]",
+        "tests.test_usage_database_bootstrap::test_roles_cannot_cross_telemetry_quota_or_browser_boundaries[usage_public_probe]",
+        "tests.test_usage_database_bootstrap::test_public_has_no_table_or_function_acl_and_force_rls_binds_owner",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[schema]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[table]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[function]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[type]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[default_acl]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[extension]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[partial_schema]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[partial_role]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[wrong_database]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[actor_superuser]",
+        "tests.test_usage_database_bootstrap::test_fresh_target_refuses_unrelated_or_partial_state[actor_bypassrls]",
+        "tests.test_usage_database_bootstrap::test_repeated_bootstrap_and_runtime_provisioning_are_bounded_refusals",
+        "tests.test_usage_database_bootstrap::test_failure_rolls_back_schema_roles_privileges_and_history[cleanup]",
+        "tests.test_usage_database_bootstrap::test_failure_rolls_back_schema_roles_privileges_and_history[verification]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[CREATEDB]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[CREATEROLE]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[BYPASSRLS]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[SUPERUSER]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[REPLICATION]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[database_owner]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[schema_owner]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[function_owner]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[inherited_owner]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[inherited_createdb]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[inherited_schema_create]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[inherited_database_create]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[executor]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[schema_create]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[database_create]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[admin_option]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[disguised_session]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[pg_execute_server_program]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[pg_read_server_files]",
+        "tests.test_usage_database_bootstrap::test_runtime_guard_rejects_unsafe_direct_inherited_and_session_authority[pg_write_server_files]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[executor_create]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[column_acl]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[function_body]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[rls]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[public_execute]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[request_execute]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[trigger]",
+        "tests.test_usage_database_bootstrap::test_provisioner_refuses_installed_security_drift[rule]",
+        "tests.test_usage_database_bootstrap::test_runtime_provisioner_rolls_back_role_and_membership_after_failed_final_audit",
+        "tests.test_usage_database_bootstrap::test_bootstrapped_usage_runtime_still_enforces_after_admin_extension",
+        "tests.test_usage_guard_postgres::test_atomic_shared_budget_instances_restart_duplicate_and_independent_user",
+        "tests.test_usage_guard_postgres::test_operation_atomicity_failure_consumes_reservation_and_marker_mismatch_denies",
+        "tests.test_usage_guard_postgres::test_private_roles_cannot_mutate_policy_counters_or_forge_account_authority",
+        "tests.test_usage_guard_postgres::test_retention_expired_markers_and_anonymous_private_subject",
+        "tests.test_usage_guard_postgres::test_pruning_skips_subject_locked_by_inflight_admission",
+        "tests.test_usage_guard_postgres::test_runtime_principal_probe_rejects_owner_superuser_and_accepts_guard_login",
+        "tests.test_usage_guard_postgres::test_per_subject_retry_namespace_is_bounded_and_not_client_selected",
+        "tests.test_usage_guard_postgres::test_budget_timestamp_is_selected_after_waiting_for_subject_lock",
+        "tests.test_usage_guard_postgres::test_real_http_instances_cache_failure_accounting_and_no_work_after_rejection",
+        "tests.test_usage_guard_postgres::test_verified_public_users_share_durable_budget_and_spoofing_cannot_select_victim",
+        "tests.test_usage_guard_postgres::test_pruning_uses_age_index_conditions_in_actual_nested_plans",
+        "tests.test_vnext_migration_rehearsal_postgres::test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal",
+        "tests.test_vnext_rls_postgres::test_real_postgres_stage1_acceptance_bundle_is_reversible_and_drift_safe",
+        "tests.test_vnext_rls_postgres::test_real_postgres_stage1_preflight_rejects_policy_and_owner_drift",
+        "tests.test_vnext_rls_postgres::test_real_postgres_vnext_role_rls_and_pool_isolation",
+        "tests.test_vnext_rls_postgres::test_real_postgres_property_graph_evidence_rls_history_and_cardinality",
+        "tests.test_vnext_rls_postgres::test_real_postgres_identity_resolution_candidate_rls_and_history",
+        "tests.test_vnext_rls_postgres::test_real_postgres_identity_resolution_repository_round_trip",
+        "tests.test_vnext_rls_postgres::test_real_postgres_slice5_reads_and_idempotent_resolution_command",
+        "tests.test_vnext_rls_postgres::test_real_postgres_slice6_human_confirmation_case_commands_and_invariants",
+        "tests.test_vnext_rls_postgres::test_real_postgres_slice7_explicit_legacy_copy_rls_atomicity_and_invariants",
+        "tests.test_vnext_rls_postgres::test_real_postgres_slice9_concurrency_has_no_last_write_wins_or_duplicates",
+        "tests.test_vnext_rls_postgres::test_real_postgres_manual_parcel_hypothesis_is_atomic_unverified_and_replay_safe",
+        "tests.test_vnext_rls_postgres::test_real_postgres_parcel_evidence_coexists_without_identity_promotion",
+        "tests.test_vnext_rls_postgres::test_real_postgres_manual_building_claim_is_atomic_proposed_and_replay_safe",
+        "tests.test_vnext_rls_postgres::test_real_postgres_building_claim_reuses_orphan_without_cross_property_merge",
+        "tests.test_vnext_rls_postgres::test_real_postgres_building_claim_failure_rolls_back_every_domain_write",
+        "tests.test_vnext_rls_postgres::test_real_postgres_building_claim_preserves_existing_confirmed_relation",
+        "tests.test_vnext_rls_postgres::test_real_postgres_case_parcel_set_rls_atomic_review_and_identity_boundary",
+        "tests.test_vnext_rls_postgres::test_real_postgres_case_parcel_set_same_version_race_has_one_atomic_winner",
+        "tests.test_vnext_rls_postgres::test_real_postgres_manual_parcel_building_relation_is_proposed_and_atomic",
+        "tests.test_vnext_rls_postgres::test_real_postgres_parcel_building_relation_rejects_bad_input_and_duplicates",
+        "tests.test_vnext_rls_postgres::test_real_postgres_parcel_building_relation_audit_failure_rolls_back_mutation",
+        "tests.test_vnext_rls_postgres::test_real_postgres_building_claim_distinct_key_concurrency_has_single_winner",
+        "tests.test_vnext_rls_postgres::test_real_postgres_building_claim_collides_with_confirmed_same_key_and_leaves_it_unchanged"
+      ],
+      "skipped_by_module": {
+        "tests.test_admin_postgres": 38,
+        "tests.test_admin_split_postgres": 8,
+        "tests.test_api_usage_ledger": 1,
+        "tests.test_consumer_account_postgres": 1,
+        "tests.test_market_direct_query_postgres": 1,
+        "tests.test_market_postgres_e2e": 3,
+        "tests.test_ops_backup_tools": 3,
+        "tests.test_plvr_cutover_rehearsal": 1,
+        "tests.test_plvr_generation_schema_migration": 1,
+        "tests.test_plvr_provider_update": 1,
+        "tests.test_ris_population_postgres_integration": 1,
+        "tests.test_usage_database_bootstrap": 57,
+        "tests.test_usage_guard_postgres": 11,
+        "tests.test_vnext_migration_rehearsal_postgres": 1,
+        "tests.test_vnext_rls_postgres": 23
+      },
+      "duration_seconds": 516.58,
+      "warnings": 4
+    },
+    "encoding-diagnostic": {
+      "status": "pass",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/encoding-diagnostic.xml",
+      "duration_seconds": 3.54,
+      "warnings": 0
+    },
+    "browser": {
+      "status": "fail",
+      "passed": 71,
+      "failed": 2,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/browser.xml",
+      "failed_nodes": [
+        "consumer-account-backend.spec.ts::real backend active authority survives direct calls and forged browser state",
+        "consumer-account-backend.spec.ts::real backend suspended authority survives direct calls and forged browser state"
+      ]
+    },
+    "browser-unconfigured": {
+      "status": "pass",
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "artifact": "artifacts/wave1-integration-gate-v1/browser-unconfigured.xml"
+    }
+  },
+  "focused_selection": [
+    "tests/test_consumer_account.py",
+    "tests/test_consumer_account_migration.py",
+    "tests/test_vnext_auth_api.py",
+    "tests/test_vnext_authorization.py",
+    "tests/test_vnext_db_principal.py",
+    "tests/test_api_usage_quota.py",
+    "tests/test_api_usage_ledger.py",
+    "tests/test_usage_durable_guard.py",
+    "tests/test_admin_control_plane.py",
+    "tests/test_admin_commands.py",
+    "tests/test_admin_migration.py",
+    "tests/test_vnext_stage1_exit_gate.py",
+    "tests/test_apply_production_migrations.py",
+    "tests/test_pytest_database_safety.py",
+    "tests/test_production_config.py",
+    "tests/test_production_guardrails.py",
+    "tests/test_security_hardening.py",
+    "tests/test_security_performance_contract.py",
+    "tests/test_release_quality_gate.py",
+    "tests/test_production_ops_gate.py",
+    "tests/test_authenticated_identity_smoke.py",
+    "tests/test_wave1_integration_startup.py"
+  ],
+  "frontend_models": {
+    "tests": 305,
+    "pass": 305,
+    "fail": 0,
+    "skipped": 0,
+    "status": "pass"
+  },
+  "decision_room_models": {
+    "tests": 13,
+    "pass": 13,
+    "fail": 0,
+    "skipped": 0,
+    "status": "pass"
+  },
+  "worker_pool": {
+    "status": "pass",
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "failed_nodes": [],
+    "executions": 1,
+    "execution": "Included once in the single complete Python invocation; no standalone branch retry"
+  },
+  "sql_proof": {
+    "postgresql": "17.11",
+    "passed_executions": 150,
+    "distinct_pack_cases": 149,
+    "distinct_real_postgres_cases": 140,
+    "local_configuration_contract_cases": 9,
+    "duplicate_audit_rechecks": 1,
+    "skipped": 0,
+    "network": "Fresh native loopback clusters, allowlisted libpq targets, blocked external Python sockets",
+    "bootstrap_order": "Strict 021 bootstrap and runtime provisioning, then 022 in same dedicated store",
+    "fsync_enabled": false,
+    "crash_durability_certified": false
+  },
+  "browser_policy": {
+    "browser": "Playwright bundled Chromium",
+    "headless": true,
+    "workers": 1,
+    "retries": 0,
+    "profile": "Isolated temporary profile and contexts",
+    "installed_chrome_inspected_or_controlled": false,
+    "provider_sessions": "Synthetic HTTP fixtures; two browser cases use local real JWT verifier with in-memory account fixture"
+  },
+  "static": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "lint_errors": 0,
+    "lint_warnings": 23,
+    "build_e2e": "pass",
+    "production_build": "pass",
+    "route_budgets": "pass",
+    "route_count": 24,
+    "global_budget": {
+      "initial_javascript_bytes": 3311857,
+      "largest_chunk_budget_bytes": 900000,
+      "largest_client_chunk_bytes": 604482,
+      "status": "pass",
+      "total_budget_bytes": 8000000,
+      "total_static_bytes": 3507067
+    },
+    "routes": {
+      "/": {
+        "status": "pass",
+        "client_bytes": 1926394,
+        "client_budget_bytes": 2066966
+      },
+      "/account": {
+        "status": "pass",
+        "client_bytes": 1113196,
+        "client_budget_bytes": 1334428
+      },
+      "/admin": {
+        "status": "pass",
+        "client_bytes": 1135301,
+        "client_budget_bytes": 1300000
+      },
+      "/admin/audit": {
+        "status": "pass",
+        "client_bytes": 1135301,
+        "client_budget_bytes": 1300000
+      },
+      "/admin/limits": {
+        "status": "pass",
+        "client_bytes": 1135301,
+        "client_budget_bytes": 1300000
+      },
+      "/admin/operations": {
+        "status": "pass",
+        "client_bytes": 1135301,
+        "client_budget_bytes": 1300000
+      },
+      "/admin/providers": {
+        "status": "pass",
+        "client_bytes": 1135301,
+        "client_budget_bytes": 1300000
+      },
+      "/admin/usage": {
+        "status": "pass",
+        "client_bytes": 1135301,
+        "client_budget_bytes": 1300000
+      },
+      "/admin/users": {
+        "status": "pass",
+        "client_bytes": 1135301,
+        "client_budget_bytes": 1300000
+      },
+      "/cases/[caseId]": {
+        "status": "pass",
+        "client_bytes": 1218669,
+        "client_budget_bytes": 1301212
+      },
+      "/cases/[caseId]/commute-planner": {
+        "status": "pass",
+        "client_bytes": 1240630,
+        "client_budget_bytes": 1377984
+      },
+      "/cases/[caseId]/decision-room": {
+        "status": "pass",
+        "client_bytes": 1269235,
+        "client_budget_bytes": 1409828
+      },
+      "/cases/[caseId]/finance": {
+        "status": "pass",
+        "client_bytes": 1250916,
+        "client_budget_bytes": 1339100
+      },
+      "/cases/[caseId]/location": {
+        "status": "pass",
+        "client_bytes": 1424009,
+        "client_budget_bytes": 1551855
+      },
+      "/cases/[caseId]/market": {
+        "status": "pass",
+        "client_bytes": 1218669,
+        "client_budget_bytes": 1301212
+      },
+      "/cases/[caseId]/overview": {
+        "status": "pass",
+        "client_bytes": 1218669,
+        "client_budget_bytes": 1301212
+      },
+      "/cases/[caseId]/report": {
+        "status": "pass",
+        "client_bytes": 1218669,
+        "client_budget_bytes": 1301212
+      },
+      "/cases/[caseId]/risk": {
+        "status": "pass",
+        "client_bytes": 1412288,
+        "client_budget_bytes": 1538049
+      },
+      "/cases/[caseId]/scenarios": {
+        "status": "pass",
+        "client_bytes": 1234199,
+        "client_budget_bytes": 1337843
+      },
+      "/compare": {
+        "status": "pass",
+        "client_bytes": 1218669,
+        "client_budget_bytes": 1301212
+      },
+      "/login": {
+        "status": "pass",
+        "client_bytes": 1113196,
+        "client_budget_bytes": 1334428
+      },
+      "/places": {
+        "status": "pass",
+        "client_bytes": 860264,
+        "client_budget_bytes": 1030896
+      },
+      "/preferences": {
+        "status": "pass",
+        "client_bytes": 908540,
+        "client_budget_bytes": 1049735
+      },
+      "/signup": {
+        "status": "pass",
+        "client_bytes": 1113196,
+        "client_budget_bytes": 1334428
+      }
+    },
+    "home_admin_isolation": {
+      "admin_marker_files": [],
+      "loaded_asset_count": 18,
+      "status": "pass"
+    },
+    "budgets_increased": false
+  },
+  "gates": {
+    "security_performance": {
+      "checks": {
+        "environment": "pass",
+        "migration": "pass",
+        "persistence": "pass",
+        "required_files": "pass",
+        "route_budgets": "pass",
+        "threat_model": "pass"
+      },
+      "missing": [],
+      "status": "pass"
+    },
+    "release_quality": {
+      "schema_version": "release-quality-v1",
+      "release_candidate": "pass",
+      "checks": {
+        "python_tests": "not_run",
+        "frontend_build": "not_run",
+        "canonical_registry": "pass",
+        "market_coverage_contract": "pass",
+        "market_insight_contract": "pass",
+        "valuation_trust_boundary": "pass",
+        "property_case_trust_boundary": "pass",
+        "privacy_boundary": "pass",
+        "deployment_contract": "pass",
+        "error_recovery": "pass",
+        "accessibility_contract": "pass"
+      },
+      "failed_reason_codes": [],
+      "generated_at": "2026-10-18T13:17:01.532476+00:00"
+    },
+    "production_operations": {
+      "checks": {
+        "fail_closed": true,
+        "guardrail_evidence_contract": true,
+        "migration": true,
+        "postgres_required": true,
+        "privacy": true,
+        "required_files": true,
+        "workflow": true
+      },
+      "external_guardrails": "BLOCKED",
+      "missing": [],
+      "production_decision": "NO_GO",
+      "status": "pass"
+    }
+  },
+  "independent_review": {
+    "context": "Fresh read-only reviewer; no test/DB/browser operations",
+    "critical": 0,
+    "important_found": 2,
+    "important_remaining": 0,
+    "findings": [
+      "Consumer request-role inherited/session/elevated authority rejection",
+      "Exact pg_ schema prefix checks in consumer and Admin runtime validation"
+    ],
+    "red_proof": {
+      "expected_failed": 11,
+      "passed": 4,
+      "scope": "Original HEAD consumer verifier and original Admin schema check on disposable PostgreSQL"
+    },
+    "source_recheck": "No residual Critical/Important findings; execution results are primary-agent evidence"
+  },
+  "cleanup": {
+    "proof_clusters_stopped_and_removed": true,
+    "initial_launcher_cluster_stopped": true,
+    "initial_stopped_scratch_directory_removal": "Automatic command review rejected deletion, including bounded cleanup attempt",
+    "initial_stopped_scratch_directory_remaining": true
+  },
+  "proof_commands": {
+    "focused": "& '.tmp/wave1-gate/venv/Scripts/python.exe' -B .tmp/wave1-gate/run.py focus",
+    "sql": "python -B .tmp/wave1-gate/run.py sql",
+    "bootstrap": "& '.tmp/wave1-gate/venv/Scripts/python.exe' -B .tmp/wave1-gate/run.py bootstrap",
+    "ledger": "& '.tmp/wave1-gate/venv/Scripts/python.exe' -B .tmp/wave1-gate/run.py ledger",
+    "outage": "& '.tmp/wave1-gate/venv/Scripts/python.exe' -B .tmp/wave1-gate/run.py outage",
+    "full_scheduler": "& '.tmp/wave1-gate/venv/Scripts/python.exe' -B .tmp/wave1-gate/full_when_quiet.py",
+    "full": "& '.tmp/wave1-gate/venv/Scripts/python.exe' -B .tmp/wave1-gate/run.py all",
+    "typecheck": "npm --prefix frontend_next run typecheck",
+    "lint": "npm --prefix frontend_next run lint",
+    "build_e2e": "npm --prefix frontend_next run build:e2e",
+    "build": "npm --prefix frontend_next run build",
+    "route_measurement": "& '.tmp/wave1-gate/venv/Scripts/python.exe' -B .tmp/wave1-gate/budgets.py",
+    "route_budgets": "python scripts/check_route_budgets.py",
+    "global_budget": "python scripts/check_frontend_bundle_budget.py",
+    "security_performance": "python scripts/security_performance_release_gate.py --json",
+    "release_quality": "python scripts/release_quality_gate.py --skip-tests --skip-frontend-build",
+    "production_operations": "python scripts/production_ops_gate.py"
+  },
+  "route_measurement_protocol": {
+    "batches": 8,
+    "serial": true,
+    "routes_per_batch": 3,
+    "cold_samples_per_viewport": 2,
+    "viewports": [
+      390,
+      1440
+    ],
+    "child_deadline_seconds": 210,
+    "parent_deadline_seconds": 240,
+    "network_policy": "Owned loopback documents and static assets only"
+  },
+  "runtime": {
+    "python": "3.13.14",
+    "focused_bootstrap_full_pytest": "9.1.1",
+    "sql_pytest": "8.4.2",
+    "isolation": "Temporary virtual environment; repository dependencies reused; global pytest unchanged"
+  },
+  "hosted_blockers": [
+    "Dedicated usage provisioning/runtime credentials and HMAC/configuration evidence absent",
+    "Both-domain migrations, least-privilege grants and Admin credentials not verified on host",
+    "Auth/JWKS/provider configuration and first-admin bootstrap not verified on host",
+    "Professor-server/runtime, backup/restore and recovery evidence absent",
+    "Repository render.yaml omits Wave 1 conditional configuration; follow-up only, unchanged"
+  ],
+  "production_actions": {
+    "database_connections": 0,
+    "supabase_modifications": 0,
+    "render_connections_or_changes": 0,
+    "deployments": 0,
+    "pushes": 0
+  },
+  "resource_evidence": {
+    "before_full": {
+      "quiet_observations": 3,
+      "observed_competing_heavy_processes": 0,
+      "observed_at_utc": "2026-10-18T13:34:27.410584+00:00",
+      "scope": "Python suites/ML, Node jobs, bundled headless shells, Docker/VM processes",
+      "installed_chrome_queried": false,
+      "worker_execution": "Once within complete Python suite"
+    },
+    "before_worker": {
+      "observed_competing_heavy_processes": 0,
+      "quiet_observations": 3,
+      "observed_at_utc": "2026-10-18T13:35:49.089177+00:00",
+      "scope": "Immediately before the worker module; no worker deadline or test changed",
+      "installed_chrome_queried": false
+    },
+    "backend_readiness_diagnostic": {
+      "diagnostic_only": true,
+      "elapsed_seconds": 10.874,
+      "ready": true,
+      "test_deadline_changed": false
+    }
+  },
+  "full_suite_skip_classification": {
+    "total": 151,
+    "wave1_postgres_separately_proved": 140,
+    "other_subsystem_database_targets_missing": 9,
+    "operating_system_constraints": 2
+  },
+  "encoding_diagnostic": {
+    "status": "pass",
+    "source_changed": false,
+    "cases": 3,
+    "duration_seconds": 3.54,
+    "original_failure": "Harness forced UTF-8 child output; subprocess text readers decoded as Windows CP950",
+    "diagnostic_change": "Child-only PYTHONUTF8=1 aligns parent and child encodings",
+    "original_complete_suite_result_preserved": true,
+    "complete_suite_executions": 1,
+    "acceptance_replacement": false
+  },
+  "verdicts": {
+    "wave1_local_integration": "FAIL",
+    "hosted_production": "NO_GO"
+  },
+  "local_certification_blockers": [
+    "Three failures in the single complete Python run; encoding diagnostic does not replace acceptance",
+    "Two configured browser backend-readiness setup failures; later diagnostic does not replace acceptance",
+    "Initial stopped scratch directory remains after automatic deletion rejection"
+  ],
+  "final_git": {
+    "head": "4a17ddb91f4b7d3e5a106759ba71175619347419",
+    "behind": 0,
+    "ahead": 0,
+    "clean": false,
+    "safe_to_push": false,
+    "certification_commits_created": 0,
+    "scoped_files_staged_for_review": 9,
+    "push_command_withheld": true
+  }
+}

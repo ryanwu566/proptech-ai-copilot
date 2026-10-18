@@ -1,0 +1,956 @@
+{
+  "schema_version": "wave1-certification-closure-v1",
+  "closure_attempt_id": "20261018T135930Z-2206b957",
+  "acceptance_date": "2026-10-18",
+  "timezone": "Asia/Taipei",
+  "recorded_at_utc": "2026-10-18T14:28:02.915040+00:00",
+  "original_attempt": {
+    "verdict": "FAIL",
+    "hosted_verdict": "NO_GO",
+    "unchanged": true,
+    "markdown": "docs/wave1/wave1-integration-gate-v1.md",
+    "json": "docs/wave1/wave1-integration-gate-v1.json",
+    "evidence_manifest": {
+      "schema": "wave1-closure-original-preservation-v1",
+      "closure_attempt_id": "20261018T135930Z-2206b957",
+      "original_verdict": "FAIL",
+      "original_hosted_verdict": "NO_GO",
+      "files": [
+        {
+          "original_path": "docs/wave1/wave1-integration-gate-v1.md",
+          "sha256": "da395d9aa165cefc14720d656c96d305476c8be110b5264662c1dc4b860d3b0b",
+          "bytes": 20541,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/docs/wave1/wave1-integration-gate-v1.md"
+        },
+        {
+          "original_path": "docs/wave1/wave1-integration-gate-v1.json",
+          "sha256": "230821d316571ad33e1ff63c94b7f767082b4403b9a52ed2b7dd9ac2e2f1fadb",
+          "bytes": 46889,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/docs/wave1/wave1-integration-gate-v1.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/all.log",
+          "sha256": "13048559cc53c61d439df1457b3a2941598043ae96826060f1e9dc22775e8855",
+          "bytes": 20851,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/all.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/all.xml",
+          "sha256": "d5fe1ca491f0246734d387bb89f52ca37c4bbadd095468afbdd03c4a3c7408d6",
+          "bytes": 673238,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/all.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/backend-readiness.json",
+          "sha256": "e896f93e5748a72b0c7092c79b3e8ee0953297a409742f01d100d6256aca9ca6",
+          "bytes": 101,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/backend-readiness.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/backend-readiness.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/backend-readiness.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/bootstrap.log",
+          "sha256": "82f15f5126b89ab2532f9536fbee75e06bc8c712da77aaf8cf53ed5553e94d07",
+          "bytes": 113,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/bootstrap.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/bootstrap.xml",
+          "sha256": "6649d5e6e9983a5f61373ea1cd4a815a6434879380adffa1c9b58a175cb3a559",
+          "bytes": 10220,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/bootstrap.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/browser-selection.log",
+          "sha256": "b783c66dd3fd89f5c86a849f988115e590569c1ddf7f289f92bae697cbf72ed8",
+          "bytes": 16622,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/browser-selection.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/browser-unconfigured.log",
+          "sha256": "4f66f73fe0d2c97621a0256ecde119170cd5e8d5995b5e3e7de94f9fcf3325c9",
+          "bytes": 4558,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/browser-unconfigured.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/browser-unconfigured.xml",
+          "sha256": "c690e6799c71749648b0320ef69510f4197eb0bdb705c5009ca506ebab0b29a5",
+          "bytes": 4700,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/browser-unconfigured.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/browser.log",
+          "sha256": "3fc3e94e334daccb7d6bb674ec7f5f9c8580aaf122abea02fee11ee36399176d",
+          "bytes": 16002,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/browser.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/browser.xml",
+          "sha256": "0e3899492eaa84c47aee65ee12c8127e7a3e9e8cccfdc085f718f891610be701",
+          "bytes": 17819,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/browser.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/budgets.log",
+          "sha256": "9785d0495b88e69d8047870c7be2b74f890da92c41fd10c508e40d3a99c1feff",
+          "bytes": 990,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/budgets.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/build-e2e.log",
+          "sha256": "4e5e380a325a71c0a2a500b4651ee533f38c6a9f2ca23303263eedc784d346ca",
+          "bytes": 1669,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/build-e2e.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/build.log",
+          "sha256": "110a3200fae1a967256438c408cce616c955feedd9eaa8421c1dc392cbaf5ab3",
+          "bytes": 1629,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/build.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/decision-room-models.log",
+          "sha256": "0dbde3b542ac6628cdd2df17f3ad74ad7b1bdb6cc2dd08816ac18ed322e83806",
+          "bytes": 2692,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/decision-room-models.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/encoding-diagnostic.log",
+          "sha256": "deeeb9777831d175215f55664b0aabd7f8d9db012d5652bc46287f22e9c65c87",
+          "bytes": 100,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/encoding-diagnostic.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/encoding-diagnostic.xml",
+          "sha256": "559cdf48584a72a16e1bb672187234eeaa22e5d43477cbbbb79361f120b069fe",
+          "bytes": 673,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/encoding-diagnostic.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/evidence-generation.log",
+          "sha256": "c6c13354eb02e4454111a58d30ae450e782bf8924ea8f3404862b92fbcea5b4d",
+          "bytes": 3584,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/evidence-generation.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/focus.log",
+          "sha256": "c7f567bf0c9139a568dd01ed5a859a4be3a425b1a1e7e0647af3edb2de527037",
+          "bytes": 1276,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/focus.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/focus.xml",
+          "sha256": "e0980ee26616ee41cc196441e211fe6f0e65e92e66f9925394f936a1acd0aa87",
+          "bytes": 72248,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/focus.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/frontend-models.log",
+          "sha256": "670e884082cdb705ed338186b6e435a208acc39be06c175b87725507cad9d26d",
+          "bytes": 53394,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/frontend-models.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/full-scheduler.log",
+          "sha256": "5941be8af1bfaeb39227fad9db17b89b840dce0072161d61ba1ead851ee84318",
+          "bytes": 15502,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/full-scheduler.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/global-budget.json",
+          "sha256": "2100b8fecee7d21be620df3c723374600c56b0c5f310e60f401c5e248e2f4346",
+          "bytes": 195,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/global-budget.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/global-budget.log",
+          "sha256": "2100b8fecee7d21be620df3c723374600c56b0c5f310e60f401c5e248e2f4346",
+          "bytes": 195,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/global-budget.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/home-admin-isolation.json",
+          "sha256": "2dfd0d4fc8d9d82ce2e2169502b7e245e1292360b7c411f87b88e8eb54ea9ae2",
+          "bytes": 72,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/home-admin-isolation.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/initial-launcher-stop.log",
+          "sha256": "6f74a3e247b91774abe24cd936203fc1647df55633b786b7b72ce4501f6b025d",
+          "bytes": 118,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/initial-launcher-stop.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/ledger.log",
+          "sha256": "1f548e9f966f1fcb3a687cca75e85a3c07c474f92934df70da42f3e44e4c8f3d",
+          "bytes": 100,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/ledger.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/ledger.xml",
+          "sha256": "b912bd859d51a2b2b76fdec71f25b650e238617651d82fcc78d1ffa0c9f99215",
+          "bytes": 387,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/ledger.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/lint.log",
+          "sha256": "0c13ff1bf6e3cae361e81f63428c96dbe4312005a76b39b2b64d6b151d11b3fa",
+          "bytes": 7906,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/lint.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/outage.log",
+          "sha256": "6a9e9b300c8a84249118a018ceb05276ad0545f4c01386f76b432ef912e7ac63",
+          "bytes": 115,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/outage.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/outage.xml",
+          "sha256": "5ce0c09db19545142504a6ba02c98d63b46c7df6b1a79c3cb6048abd391e53b2",
+          "bytes": 653,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/outage.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/pg-launcher.log",
+          "sha256": "8b1a2578d52e419219761d6b22f89570f9d496fc4c0ad171627c9974800e3c10",
+          "bytes": 724,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/pg-launcher.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/production-ops.json",
+          "sha256": "6c46d677b22810277f47a531f11a8e282af8995512ee2253a5a45593a27aed77",
+          "bytes": 276,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/production-ops.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/production-ops.log",
+          "sha256": "6c46d677b22810277f47a531f11a8e282af8995512ee2253a5a45593a27aed77",
+          "bytes": 276,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/production-ops.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/pytest-runtime-setup.log",
+          "sha256": "525a8390bdb031b57209b1daadba968853a1ba9b4a87b4095e13221dda6fff03",
+          "bytes": 4558,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/pytest-runtime-setup.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/quiet-host.json",
+          "sha256": "9a1533b0f3d49ee8ee704e5384e9283045de82b178f856ab57a7147588949e0a",
+          "bytes": 301,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/quiet-host.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/red.log",
+          "sha256": "e1df774e1f2dfc5454a0ef005e5421976dbc5f6bdd441e6553aaeb7b9c438702",
+          "bytes": 6054,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/red.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/red.xml",
+          "sha256": "33c2ab6e370d59ca0c7011fbe8d1782b53966afcb36c2ed14bc518718af05d68",
+          "bytes": 6504,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/red.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/release-quality.json",
+          "sha256": "17a44c2025dfac852a58ec2596ccb7e2b9d2a294848a512f548bcfbc70ab2281",
+          "bytes": 482,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/release-quality.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/release-quality.log",
+          "sha256": "5742d736a81b1fbb67ad48b88dcbb467f5de76855404667000e1df8f19246138",
+          "bytes": 342,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/release-quality.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/repository-gates.json",
+          "sha256": "590d1f5557e2013aa60c41f6046b44e1bd62a0780677b0241e0446115b83668a",
+          "bytes": 187,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/repository-gates.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/request-role-green-unit.log",
+          "sha256": "2d08496b0df2c82e361ff8eca7511409b54ee8173fbf9c0b96a076c5d9a36ac7",
+          "bytes": 204,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/request-role-green-unit.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/request-role-red-unit.log",
+          "sha256": "fa6349dc15d3213e39c62629714a400d58ac11822c3dcbd650c4b8440bad0123",
+          "bytes": 1402,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/request-role-red-unit.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-assets.json",
+          "sha256": "b8eefb4defc6d7dc9b5828a02a54e4a9e64a9be7ce6a13dafcccb3bf09fc0eb3",
+          "bytes": 18629,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-assets.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-0.json",
+          "sha256": "c9b4bfddc31214a0cf534c3a84f5041c616deda6c96f6a94c25af1445863ad34",
+          "bytes": 2065,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-0.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-0.log",
+          "sha256": "76d8df9bac49c3208027d8b600fe0b29126e67c68f6abc06ad2c941d706b0bfc",
+          "bytes": 7163,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-0.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-1.json",
+          "sha256": "cb1b1f72fc9630d30fcb1223227a6bda3ae9dce6c0637f960f768621b9dd364c",
+          "bytes": 2097,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-1.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-1.log",
+          "sha256": "284472f892cd472261ac902e7406b91cdc6f65f1ab803ff570e7916e2b54248e",
+          "bytes": 7552,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-1.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-2.json",
+          "sha256": "bb3efc11d20f42b59cb165d75c8a8819412bf6df6b395841cf6d523edd0ddba3",
+          "bytes": 2179,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-2.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-2.log",
+          "sha256": "b0a190eaeafaa9f5c635ea89a97c12ea4fcb94e6c020642e51d5c38d423a9849",
+          "bytes": 6893,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-2.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-3.json",
+          "sha256": "d2d90780a0f1c2824fae3f6741a2be2a44ddd2fcbe3a8056c6ace1c47cfba187",
+          "bytes": 2025,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-3.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-3.log",
+          "sha256": "6bb2deba2b3b9db54c9d59b0438490c1c4a46423110439af8cdb054f6b40dbff",
+          "bytes": 7091,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-3.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-4.json",
+          "sha256": "cfebf906e34552752871a987c3d05885a4f7fcd8201bcbcaef686956cb39ac29",
+          "bytes": 2174,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-4.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-4.log",
+          "sha256": "b2366ade390c725c2e931b700f75b5dce999933e919c21076e88adbf2db8acda",
+          "bytes": 7166,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-4.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-5.json",
+          "sha256": "2617fb25e8ab20aaee99217d9a938a7b7619f754e28e62d65747bf140017c7ab",
+          "bytes": 2520,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-5.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-5.log",
+          "sha256": "1a872465ca1e421e847459e833a13b149ace60f9de8ab91e532a4df3b744f6a6",
+          "bytes": 8135,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-5.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-6.json",
+          "sha256": "739302b7df8a6c1ba6956a6d01ad4d623fa40792f729956bfc742db807180a36",
+          "bytes": 2538,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-6.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-6.log",
+          "sha256": "a4203bacc421fdeb92f5d129c2ae680589db18ceb71f54ae8878f6effc227489",
+          "bytes": 8013,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-6.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-7.json",
+          "sha256": "9ce5d909133e6aa240716204dd30eaf4870e1cb00d2ac8201076ff478daec45c",
+          "bytes": 2614,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-7.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-batch-7.log",
+          "sha256": "874d3fcf9729c0a0a46c869dccd9a979d324fdd95101d6104a7e1739211cefb8",
+          "bytes": 8502,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-batch-7.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-budgets.json",
+          "sha256": "6a3d6a2d1fb7e1fa4158a53b4892ca2b81c54d90b0aed16d310a8dc2547ed359",
+          "bytes": 21263,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-budgets.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/route-budgets.log",
+          "sha256": "6a3d6a2d1fb7e1fa4158a53b4892ca2b81c54d90b0aed16d310a8dc2547ed359",
+          "bytes": 21263,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/route-budgets.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/security-performance.json",
+          "sha256": "f6130959c4797e423ddc506f889f52ace58ccea3b1dc5b61da7cf1abbadd9106",
+          "bytes": 189,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/security-performance.json"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/security-performance.log",
+          "sha256": "f6130959c4797e423ddc506f889f52ace58ccea3b1dc5b61da7cf1abbadd9106",
+          "bytes": 189,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/security-performance.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/sql-initial.log",
+          "sha256": "2c0d6010d9139a3069702375e32882ccc516a9d930080f4171d76e5289f65dbb",
+          "bytes": 796,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/sql-initial.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/sql-initial.xml",
+          "sha256": "c0b03765cdd05c400d3b1ff254dfc052725eba1edecb7152b268cdc70e2e616f",
+          "bytes": 10383,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/sql-initial.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/sql.log",
+          "sha256": "af374f81c303707831cedba8d1469a9db4e3b58d0b70c76fb8d79fa032c480f4",
+          "bytes": 880,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/sql.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/sql.xml",
+          "sha256": "3e410ce4b5d113af8bbc4e9eb14142c9a2b4e25da8412df497647a1c602fa520",
+          "bytes": 12134,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/sql.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/startup-final.log",
+          "sha256": "cfccbd21b473b8a94f17cf53737706b847cc4ccd5a1badf124be8c3e24645f73",
+          "bytes": 206,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/startup-final.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/startup-final.xml",
+          "sha256": "c51422ffab4ff15ff5eb16c87da42e10957f16a9734e78f912d929bc04c54988",
+          "bytes": 2054,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/startup-final.xml"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/typecheck.log",
+          "sha256": "c622cf98e88860c6889d21a1d23746ffc4d7d7aa3a362486b93a88004bd09361",
+          "bytes": 138,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/typecheck.log"
+        },
+        {
+          "original_path": "artifacts/wave1-integration-gate-v1/worker-quiet-host.json",
+          "sha256": "03d18ba83458855e59bfdc2c30eae77b6541f9963cc47ea8652d6e160b931ebe",
+          "bytes": 243,
+          "preserved_path": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/preserved-original/artifacts/wave1-integration-gate-v1/worker-quiet-host.json"
+        }
+      ]
+    },
+    "manifest_sha256": "e6caf78fb083d0cb25579294cf9d225e8fd927c20a30a6113170c30d79324c16"
+  },
+  "new_artifacts": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957",
+  "encoding": {
+    "status": "PASS",
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "test_operator_cli_builds_local_outputs_without_uploading",
+        "module": "tests.test_gsmma_geological_sensitivity_artifact",
+        "status": "PASS",
+        "duration_seconds": 1.599
+      },
+      {
+        "name": "test_coverage_audit_script_outputs_safe_lines",
+        "module": "tests.test_market_coverage_registry",
+        "status": "PASS",
+        "duration_seconds": 0.424
+      },
+      {
+        "name": "test_market_coverage_county_helper_outputs_tracked_counties_safely",
+        "module": "tests.test_market_coverage_rollout_workflow",
+        "status": "PASS",
+        "duration_seconds": 0.311
+      }
+    ],
+    "junit": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/encoding.xml"
+  },
+  "encoding_contract": {
+    "launcher_blanket_encoding_override": false,
+    "native_parent_encoding": "cp950",
+    "functional_assertions_unchanged": true,
+    "test_boundaries": 3,
+    "child_encoding": "utf-8",
+    "reader_encoding": "utf-8",
+    "errors": "strict",
+    "stdout_consumed_by": "Original json.loads, string membership and splitlines assertions",
+    "full_suite_rerun": false,
+    "exit_code": 0
+  },
+  "browser": {
+    "status": "PASS",
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "name": "real backend active authority survives direct calls and forged browser state",
+        "module": "consumer-account-backend.spec.ts",
+        "status": "PASS",
+        "duration_seconds": 18.452
+      },
+      {
+        "name": "real backend suspended authority survives direct calls and forged browser state",
+        "module": "consumer-account-backend.spec.ts",
+        "status": "PASS",
+        "duration_seconds": 10.911
+      }
+    ],
+    "junit": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/browser.xml"
+  },
+  "browser_execution": {
+    "mode": "browser",
+    "exit_code": 0,
+    "elapsed_seconds": 36.683,
+    "blanket_python_encoding_override": false,
+    "test_only": true
+  },
+  "browser_diagnostics": [
+    {
+      "accountStatus": "active",
+      "readinessDeadlineMs": 15000,
+      "spawnSucceeded": true,
+      "pid": 31312,
+      "spawnErrorCategory": null,
+      "exitCode": 1,
+      "exitSignal": null,
+      "prematureExit": false,
+      "exitElapsedMs": 15767,
+      "readinessElapsedMs": 14218,
+      "pollAttempts": 17,
+      "connectionErrors": {
+        "refused": 16,
+        "reset": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "httpStatuses": {
+        "200": 1
+      },
+      "lastSuccessfulMilestone": "fixture_session_reached",
+      "milestones": [
+        {
+          "name": "helper_started",
+          "elapsedMs": 239,
+          "helperElapsedMs": 0
+        },
+        {
+          "name": "environment_sanitized",
+          "elapsedMs": 239,
+          "helperElapsedMs": 1
+        },
+        {
+          "name": "jwt_imported",
+          "elapsedMs": 639,
+          "helperElapsedMs": 401
+        },
+        {
+          "name": "crypto_imported",
+          "elapsedMs": 639,
+          "helperElapsedMs": 401
+        },
+        {
+          "name": "uvicorn_imported",
+          "elapsedMs": 1320,
+          "helperElapsedMs": 1081
+        },
+        {
+          "name": "app_imported",
+          "elapsedMs": 13428,
+          "helperElapsedMs": 13189
+        },
+        {
+          "name": "dependencies_imported",
+          "elapsedMs": 13428,
+          "helperElapsedMs": 13189
+        },
+        {
+          "name": "signing_key_created",
+          "elapsedMs": 13626,
+          "helperElapsedMs": 13388
+        },
+        {
+          "name": "server_starting",
+          "elapsedMs": 13627,
+          "helperElapsedMs": 13389
+        },
+        {
+          "name": "fixture_session_reached",
+          "elapsedMs": 14186,
+          "helperElapsedMs": 13947
+        }
+      ],
+      "stderrCategories": [],
+      "fixtureSessionEndpointReached": true,
+      "readinessSucceeded": true,
+      "browserNavigationBegan": true,
+      "browserNavigationCompleted": true,
+      "accountStatusAssertionPassed": true,
+      "directAuthorizationAssertionPassed": true,
+      "suspensionForgeryAssertionsPassed": false,
+      "allAssertionsCompleted": true,
+      "cleanupStarted": true,
+      "cleanupCompleted": true,
+      "observationElapsedMs": 15774
+    },
+    {
+      "accountStatus": "suspended",
+      "readinessDeadlineMs": 15000,
+      "spawnSucceeded": true,
+      "pid": 37732,
+      "spawnErrorCategory": null,
+      "exitCode": 1,
+      "exitSignal": null,
+      "prematureExit": false,
+      "exitElapsedMs": 9733,
+      "readinessElapsedMs": 8082,
+      "pollAttempts": 11,
+      "connectionErrors": {
+        "refused": 10,
+        "reset": 0,
+        "timeout": 0,
+        "other": 0
+      },
+      "httpStatuses": {
+        "200": 1
+      },
+      "lastSuccessfulMilestone": "fixture_session_reached",
+      "milestones": [
+        {
+          "name": "helper_started",
+          "elapsedMs": 237,
+          "helperElapsedMs": 0
+        },
+        {
+          "name": "environment_sanitized",
+          "elapsedMs": 237,
+          "helperElapsedMs": 1
+        },
+        {
+          "name": "jwt_imported",
+          "elapsedMs": 578,
+          "helperElapsedMs": 342
+        },
+        {
+          "name": "crypto_imported",
+          "elapsedMs": 578,
+          "helperElapsedMs": 342
+        },
+        {
+          "name": "uvicorn_imported",
+          "elapsedMs": 1013,
+          "helperElapsedMs": 776
+        },
+        {
+          "name": "app_imported",
+          "elapsedMs": 6574,
+          "helperElapsedMs": 6337
+        },
+        {
+          "name": "dependencies_imported",
+          "elapsedMs": 6574,
+          "helperElapsedMs": 6338
+        },
+        {
+          "name": "signing_key_created",
+          "elapsedMs": 6894,
+          "helperElapsedMs": 6657
+        },
+        {
+          "name": "server_starting",
+          "elapsedMs": 6895,
+          "helperElapsedMs": 6658
+        },
+        {
+          "name": "fixture_session_reached",
+          "elapsedMs": 8071,
+          "helperElapsedMs": 7834
+        }
+      ],
+      "stderrCategories": [],
+      "fixtureSessionEndpointReached": true,
+      "readinessSucceeded": true,
+      "browserNavigationBegan": true,
+      "browserNavigationCompleted": true,
+      "accountStatusAssertionPassed": true,
+      "directAuthorizationAssertionPassed": true,
+      "suspensionForgeryAssertionsPassed": true,
+      "allAssertionsCompleted": true,
+      "cleanupStarted": true,
+      "cleanupCompleted": true,
+      "observationElapsedMs": 9742
+    }
+  ],
+  "complete_browser_assertions_executed": true,
+  "browser_policy": {
+    "browser": "Playwright bundled Chromium",
+    "headless": true,
+    "workers": 1,
+    "retries": 0,
+    "max_failures": 1,
+    "only_spec": "e2e/consumer-account-backend.spec.ts",
+    "backend_readiness_deadline_ms": 15000,
+    "trace": "Manual browser-context startup trace, stopped before credential-bearing browser operations",
+    "independent_readiness_request_context_traced": false,
+    "automatic_full_trace": "off",
+    "screenshots": "only-on-failure",
+    "video": "retain-on-failure",
+    "attempt_specific_output": true,
+    "installed_chrome_inspected_or_controlled": false
+  },
+  "configured_e2e_build": {
+    "mode": "build-e2e",
+    "exit_code": 0,
+    "elapsed_seconds": 57.848,
+    "blanket_python_encoding_override": false,
+    "test_only": true
+  },
+  "quiet_host": {
+    "build-e2e": {
+      "required_consecutive_quiet": 3,
+      "installed_chrome_queried": false,
+      "observed_competing_heavy_processes_at_start": 0,
+      "final_observations": [
+        {
+          "at_utc": "2026-10-18T14:22:18.201668+00:00",
+          "competing_heavy": 0
+        },
+        {
+          "at_utc": "2026-10-18T14:22:24.457926+00:00",
+          "competing_heavy": 0
+        },
+        {
+          "at_utc": "2026-10-18T14:22:30.554677+00:00",
+          "competing_heavy": 0
+        }
+      ],
+      "retained_observation_count": 100,
+      "artifact": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/build-e2e-quiet-host.json",
+      "sha256": "584e016259572c5d042a552f392eac44006b9bd0ca89fb823ccf5ead80fbd978"
+    },
+    "browser": {
+      "required_consecutive_quiet": 3,
+      "installed_chrome_queried": false,
+      "observed_competing_heavy_processes_at_start": 0,
+      "final_observations": [
+        {
+          "at_utc": "2026-10-18T14:25:44.657606+00:00",
+          "competing_heavy": 0
+        },
+        {
+          "at_utc": "2026-10-18T14:25:50.675122+00:00",
+          "competing_heavy": 0
+        },
+        {
+          "at_utc": "2026-10-18T14:25:56.763585+00:00",
+          "competing_heavy": 0
+        }
+      ],
+      "retained_observation_count": 23,
+      "artifact": "artifacts/wave1-certification-closure-v1/20261018T135930Z-2206b957/browser-quiet-host.json",
+      "sha256": "ad8db5105849110cff77299bfa7f04d769bc3f3e76e7e2913e5ef5a5b4b0a232"
+    }
+  },
+  "cleanup": {
+    "status": "MANUAL CLEANUP REQUIRED",
+    "target": ".tmp/wave1-gate/pg-eb77cffd58b3",
+    "exact_target_under_disposable_directory": true,
+    "directory_exists": true,
+    "pg_ctl_stopped": true,
+    "postmaster_pid_exists": false,
+    "listeners_on_original_port": 0,
+    "root_reparse_point": false,
+    "descendant_reparse_points": 0,
+    "deletion_attempted": false,
+    "reason": "Prior automatic approval rejected deletion as blocked by policy; no bypass or retry",
+    "database_functional_failure_implied": false
+  },
+  "manual_cleanup_required": true,
+  "reuse": {
+    "postgresql": {
+      "real_postgres_cases": 140,
+      "failed": 0,
+      "skipped": 0,
+      "source_field": "sql_proof",
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    },
+    "focused_wave1": {
+      "passed": 388,
+      "failed": 0,
+      "skipped": 1,
+      "skipped_ledger_case_separately_proved": true,
+      "source_field": "tests.focus",
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    },
+    "cross_wave_models": {
+      "passed": 318,
+      "failed": 0,
+      "skipped": 0,
+      "source_fields": [
+        "frontend_models",
+        "decision_room_models"
+      ],
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    },
+    "worker_pool": {
+      "passed": 26,
+      "failed": 0,
+      "skipped": 0,
+      "source_field": "worker_pool",
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    },
+    "production_build": {
+      "recorded_result": "PASS",
+      "source_field": "static.production_build",
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    },
+    "route_budgets": {
+      "recorded_result": "PASS",
+      "routes": 24,
+      "ceilings_unchanged": true,
+      "source_field": "static.routes",
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    },
+    "global_budget": {
+      "recorded_result": "PASS",
+      "ceilings_unchanged": true,
+      "source_field": "static.global_budget",
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    },
+    "security_performance": {
+      "recorded_result": "PASS",
+      "source_field": "gates.security_performance",
+      "execution": "REUSED FROM ORIGINAL ATTEMPT"
+    }
+  },
+  "historical_browser_root_cause": "UNKNOWN; later diagnostics do not establish historical causation",
+  "original_full_python_result_preserved": {
+    "passed": 4123,
+    "failed": 3,
+    "skipped": 151,
+    "warnings": 4,
+    "duration_seconds": 516.58
+  },
+  "full_python_rerun": false,
+  "full_python_policy": "Test-local changes only; no shared subprocess or production runtime change",
+  "production_build_rerun": false,
+  "budgets_rerun": false,
+  "source_scope": {
+    "new_runtime_changes": false,
+    "original_runtime_security_fixes_retained": true,
+    "encoding_tests": [
+      "tests/test_gsmma_geological_sensitivity_artifact.py",
+      "tests/test_market_coverage_registry.py",
+      "tests/test_market_coverage_rollout_workflow.py"
+    ],
+    "browser_test_files": [
+      "frontend_next/e2e/consumer-account-backend.spec.ts",
+      "frontend_next/e2e/helpers/consumer-backend.py",
+      "frontend_next/e2e/helpers/backend-diagnostics.ts"
+    ],
+    "temporary_launcher_committed": false,
+    "fixture_api_and_authorization_assertions_preserved": true,
+    "fixture_process_cleanup": "Owned Windows backend process tree only; no browser process control"
+  },
+  "artifact_safety": {
+    "credential_pattern_scan_passed": true,
+    "text_or_trace_entries_scanned": 30,
+    "diagnostics": "Allowlisted names, categories, counters, flags and timings; no raw stderr or response bodies"
+  },
+  "final_review": {
+    "context": "Fresh read-only whole-branch source and evidence-design review; no tests run by reviewer",
+    "critical": 0,
+    "important_found": 2,
+    "important_remaining": 0,
+    "fixes": [
+      "Credential-bearing transport failures replaced with safe categorized test errors",
+      "Closure verdict requires zero encoding, build and browser runner exit statuses"
+    ],
+    "privacy_negative_control": {
+      "red": true,
+      "network_failure_observed": true,
+      "credential_marker_exposed": true,
+      "original_error_cause_retained": false,
+      "browser_launched": false
+    },
+    "privacy_fixed_control": {
+      "red": false,
+      "network_failure_observed": true,
+      "credential_marker_exposed": false,
+      "original_error_cause_retained": false,
+      "browser_launched": false
+    },
+    "execution_status_gate_checks": {
+      "all_zero_and_complete_acceptance_allows_pass": true,
+      "checks": [
+        {
+          "nonzero_execution": "encoding_contract",
+          "closure_pass_rejected": true
+        },
+        {
+          "nonzero_execution": "build_result",
+          "closure_pass_rejected": true
+        },
+        {
+          "nonzero_execution": "browser_result",
+          "closure_pass_rejected": true
+        }
+      ],
+      "project_tests_run": false
+    },
+    "cleanup_protection": "Diagnostic writes are inside unconditional backend cleanup structure"
+  },
+  "git_before_certification_commit": {
+    "head": "4a17ddb91f4b7d3e5a106759ba71175619347419",
+    "origin_main": "4a17ddb91f4b7d3e5a106759ba71175619347419",
+    "behind": 0,
+    "ahead": 0,
+    "conditional_policy": "One local commit only after closure PASS and final review; no push/merge/deploy"
+  },
+  "verdicts": {
+    "original_wave1_local_integration": "FAIL",
+    "wave1_certification_closure": "PASS",
+    "hosted_production": "NO_GO"
+  },
+  "hosted_blockers": [
+    "Dedicated usage provisioning/runtime credentials and HMAC/configuration evidence absent",
+    "Both-domain migrations, least-privilege grants and Admin credentials not verified on host",
+    "Auth/JWKS/provider configuration and first-admin bootstrap not verified on host",
+    "Professor-server/runtime, backup/restore and recovery evidence absent",
+    "Repository render.yaml omits Wave 1 conditional configuration; follow-up only, unchanged"
+  ],
+  "prohibited_actions": {
+    "production_connections": 0,
+    "hosted_changes": 0,
+    "pushes": 0,
+    "merges": 0,
+    "deployments": 0
+  }
+}

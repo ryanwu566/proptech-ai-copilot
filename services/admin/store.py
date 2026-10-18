@@ -54,7 +54,7 @@ class AdminStore:
                  OR r.oid=(SELECT datdba FROM pg_database WHERE datname=current_database())
                  OR EXISTS(SELECT 1 FROM pg_class c WHERE c.relowner=r.oid AND c.relnamespace NOT IN
                      (SELECT oid FROM pg_namespace WHERE nspname IN ('pg_catalog','information_schema')))
-                 OR EXISTS(SELECT 1 FROM pg_namespace n WHERE n.nspowner=r.oid AND n.nspname NOT LIKE 'pg_%'))),
+                 OR EXISTS(SELECT 1 FROM pg_namespace n WHERE n.nspowner=r.oid AND left(n.nspname,3)<>'pg_'))),
               EXISTS(SELECT 1 FROM pg_roles r WHERE pg_has_role('proptech_admin_executor',r.oid,'MEMBER') AND
                 (r.rolname<>'proptech_admin_executor' OR r.rolcanlogin
                  OR r.rolsuper OR r.rolbypassrls OR r.rolcreatedb OR r.rolcreaterole OR r.rolreplication
@@ -62,7 +62,7 @@ class AdminStore:
                  OR r.oid=(SELECT datdba FROM pg_database WHERE datname=current_database())
                  OR EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
                    WHERE c.relowner=r.oid AND n.nspname NOT IN ('pg_catalog','information_schema'))
-                 OR EXISTS(SELECT 1 FROM pg_namespace n WHERE n.nspowner=r.oid AND n.nspname NOT LIKE 'pg_%')))
+                 OR EXISTS(SELECT 1 FROM pg_namespace n WHERE n.nspowner=r.oid AND left(n.nspname,3)<>'pg_')))
               OR EXISTS(SELECT 1 FROM pg_auth_members m WHERE m.member IN
                 (SELECT oid FROM pg_roles WHERE pg_has_role(current_user,oid,'MEMBER')) AND m.admin_option)
               OR has_schema_privilege('proptech_admin_executor','admin_plane','CREATE')
@@ -78,7 +78,7 @@ class AdminStore:
                     to_regprocedure('admin_plane.mutate_account(uuid,text,text,text,uuid)'),
                     to_regprocedure('admin_plane.accept_quota(text,text,integer,integer,integer,text,uuid)'),
                     to_regprocedure('admin_plane.mutate_quota(text,integer,integer,integer,text,uuid)')],NULL))))
-              OR EXISTS(SELECT 1 FROM pg_namespace n WHERE n.nspname NOT LIKE 'pg_%'
+              OR EXISTS(SELECT 1 FROM pg_namespace n WHERE left(n.nspname,3)<>'pg_'
                 AND n.nspname<>'information_schema' AND
                 (has_schema_privilege(current_user,n.oid,'CREATE')
                  OR has_schema_privilege('proptech_admin_executor',n.oid,'CREATE')))
