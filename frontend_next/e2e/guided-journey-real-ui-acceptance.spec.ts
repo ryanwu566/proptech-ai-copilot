@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
-import { openPropertyEntry } from "./helpers/commercial-navigation";
+import { openLegacyJourneyWithAddress, openPropertyEntry } from "./helpers/commercial-navigation";
 import { navigationCopy } from "../lib/navigation/copy";
 
 /** E10 primary acceptance: task Home → saved case domains → Compare / Report.
@@ -91,9 +91,12 @@ test.describe("E10 commercial case capability acceptance", () => {
     await expect(page.locator("#journey-stage-property")).toBeHidden();
     await page.locator("#commercial-address").fill(ADDRESS);
     await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
-    await expect(page.locator("#journey-stage-location")).toBeVisible();
+    await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
+    await expect(page.getByRole("banner", { name: "目前物件" })).toContainText(ADDRESS);
+    // The legacy guided journey keeps its own address entry behind the explicit deep link.
+    await openLegacyJourneyWithAddress(page, ADDRESS);
     await expect(page.getByTestId("journey-property-context")).toContainText(ADDRESS);
-    await page.reload();
+    await page.goto("/");
     await openPropertyEntry(page);
     const finder = page.locator("#property-finder");
     await expect(finder).toBeVisible();

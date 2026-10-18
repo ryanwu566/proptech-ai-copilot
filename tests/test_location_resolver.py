@@ -156,3 +156,57 @@ def test_all_unconfigured_or_unavailable_is_unavailable() -> None:
     assert tgos.calls == 0
     assert google.calls == 0
     assert_safe_response(result)
+
+
+def test_tgos_administrative_area_comes_from_the_same_single_response(monkeypatch) -> None:
+    calls: list[str] = []
+
+    def fake_get(url, *args, **kwargs):
+        calls.append(url)
+        return FakeHttpResponse({"AddressList": [{"FULL_ADDR": "臺北市信義區市府路1號", "COUNTY": "臺北市", "TOWN": "信義區", "X": "121.5637", "Y": "25.0375"}]})
+
+    monkeypatch.setattr("services.location_resolver.httpx.get", fake_get)
+
+    result = TgosAddressProvider(app_id="configured", api_key="configured").resolve("臺北市信義區市府路1號").to_safe_dict()
+
+    assert (result["county"], result["district"]) == ("臺北市", "信義區")
+    assert len(calls) == 1
+    assert_safe_response(result)
+
+
+def test_google_administrative_area_ignores_villages_and_normalizes_tai(monkeypatch) -> None:
+    calls: list[str] = []
+    payload = {"status": "OK", "results": [{
+        "formatted_address": "110台北市信義區市府路1號",
+        "geometry": {"location": {"lat": 25.0375, "lng": 121.5637}},
+        "address_components": [
+            {"long_name": "台北市", "types": ["administrative_area_level_1", "political"]},
+            {"long_name": "西村里", "types": ["administrative_area_level_2", "political"]},
+            {"long_name": "信義區", "types": ["administrative_area_level_3", "political"]},
+        ],
+    }]}
+
+    def fake_get(url, *args, **kwargs):
+        calls.append(url)
+        return FakeHttpResponse(payload)
+
+    monkeypatch.setattr("services.location_resolver.httpx.get", fake_get)
+
+    result = GoogleAddressProvider(api_key="configured").resolve("臺北市信義區市府路1號").to_safe_dict()
+
+    assert (result["county"], result["district"]) == ("臺北市", "信義區")
+    assert len(calls) == 1
+    assert_safe_response(result)
+
+
+def test_missing_or_malformed_administrative_area_stays_unknown(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "services.location_resolver.httpx.get",
+        lambda *args, **kwargs: FakeHttpResponse({"AddressList": [{"FULL_ADDR": "x", "COUNTY": ["bad"], "TOWN": "Somewhere", "X": "121.56", "Y": "25.03"}]}),
+    )
+
+    result = TgosAddressProvider(app_id="configured", api_key="configured").resolve("臺北市信義區市府路1號").to_safe_dict()
+
+    assert result["status"] == "resolved"
+    assert result["county"] is None
+    assert result["district"] is None

@@ -16,6 +16,8 @@ SAFE_KEYS = {
     "longitude",
     "confidence",
     "message",
+    "county",
+    "district",
 }
 
 
@@ -55,3 +57,25 @@ def test_location_resolve_returns_only_safe_fields(monkeypatch) -> None:
     assert "api_key" not in serialized
     assert "provider_raw_error" not in serialized
     assert "must not leak" not in serialized
+
+
+def test_location_resolve_returns_administrative_area_from_the_same_response(monkeypatch) -> None:
+    calls: list[str] = []
+
+    def fake_resolve_address(address: str) -> dict[str, object]:
+        calls.append(address)
+        return {
+            "status": "resolved", "source": "tgos", "formatted_address": "臺北市信義區市府路1號",
+            "latitude": 25.0375, "longitude": 121.5637, "confidence": "high",
+            "message": "已取得可信位置（TGOS）。", "county": "臺北市", "district": "信義區",
+        }
+
+    monkeypatch.setattr("services.location_resolver.resolve_address", fake_resolve_address)
+    monkeypatch.setattr("backend.api.routes_location_insight.analyze_location", lambda **_: (_ for _ in ()).throw(AssertionError("resolve must not run insight")))
+
+    response = client.post("/location/resolve", json={"address": "臺北市信義區市府路1號"})
+
+    assert response.status_code == 200
+    assert response.json()["county"] == "臺北市"
+    assert response.json()["district"] == "信義區"
+    assert calls == ["臺北市信義區市府路1號"]

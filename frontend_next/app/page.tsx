@@ -233,7 +233,7 @@ export default function Home() {
       });
     });
   }
-  return <AppShell page={page} onNavigate={navigateProduct} onVoiceAction={handleVoiceAction}><Suspense fallback={null}><HomeLocationObserver onTool={applyProductLocation} onWorkflow={setJourneyOpen} /></Suspense>{page === "儀表板" ? <div className="space-y-6"><CommercialHome onStart={(address) => { setJourneyState(createClosedLoopJourneyState({ addressSummary: address, selectionStatus: "partial", sourceLabel: copy("common.source") })); setJourneyLocationInitialTool(undefined); setJourneySecondaryTool(undefined); setJourneyHoldingPrefill(undefined); openJourneyStep("location"); }} onFinder={() => openJourneyStep("property")} /><div hidden={!journeyOpen}><GuidedPropertyJourney renderStep={renderJourneyStep} /></div></div> : renderPage(page, navigateProduct, openTax, requestedCase)}</AppShell>;
+  return <AppShell page={page} onNavigate={navigateProduct} onVoiceAction={handleVoiceAction}><Suspense fallback={null}><HomeLocationObserver onTool={applyProductLocation} onWorkflow={setJourneyOpen} /></Suspense>{page === "儀表板" ? <div className="space-y-6"><CommercialHome onFinder={() => openJourneyStep("property")} /><div hidden={!journeyOpen}><GuidedPropertyJourney renderStep={renderJourneyStep} /></div></div> : renderPage(page, navigateProduct, openTax, requestedCase)}</AppShell>;
 }
 
 

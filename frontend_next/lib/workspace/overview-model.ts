@@ -119,6 +119,11 @@ export function buildWorkspaceOverview(workspace: PropertyCaseWorkspace): Worksp
   if (workspace.identity.state === "revalidation_required" || workspace.identity.state === "conflict") {
     blockers.push({ ...item(workspace, { id: "identity-revalidation", label: "重新確認目前物件", reason: "物件資料已變更，先前受影響的證據不可視為目前有效。", section: "overview", evidenceKeys: [], state: "action_required" }), href: "/" });
   }
+  // A case started from an address alone was never located; confirming it is the single next step.
+  const neverLocated = workspace.identity.state === "unconfirmed" && workspace.identity.anchor === null;
+  if (neverLocated) {
+    blockers.push(item(workspace, { id: "identity-confirm-location", label: "確認物件位置", reason: "尚未確認物件位置；在「區位與通勤」查詢並確認地址後，才能查詢市場、區位與風險證據。", section: "location", evidenceKeys: [], state: "action_required" }));
+  }
 
   for (const row of sections) {
     const state = workspace.evidence[row.key];
@@ -168,7 +173,7 @@ export function buildWorkspaceOverview(workspace: PropertyCaseWorkspace): Worksp
   const actionCandidates = [...blockers, ...unknown, ...attention, ...verificationActions];
   const actions = actionCandidates.filter((candidate, index, rows) => rows.findIndex((row) => row.section === candidate.section) === index).slice(0, 5);
   const readiness = blockers.length
-    ? resolveTaskReadiness("viewing_preparation", "blocked", { blocker: "物件身分需重新確認" })
+    ? resolveTaskReadiness("viewing_preparation", "blocked", { blocker: neverLocated ? "物件位置尚未確認" : "物件身分需重新確認" })
     : orderedKnown.length === 0
       ? resolveTaskReadiness("viewing_preparation", "not_ready")
       : unknown.length || attention.length

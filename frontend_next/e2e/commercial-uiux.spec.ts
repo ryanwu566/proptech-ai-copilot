@@ -30,8 +30,9 @@ test("homepage starts a property review and exposes recent saved cases without a
   await expect(page.locator(".hero-orb, .hero-sequence")).toHaveCount(0);
   await page.getByRole("textbox", { name: "物件地址", exact: true }).fill("臺中市西屯區臺灣大道三段100號");
   await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
-  await expect(page.locator("#journey-stage-location")).toBeVisible();
-  await expect(page.locator("#location-insight-calculator").getByRole("textbox").first()).toHaveValue("臺中市西屯區臺灣大道三段100號");
+  await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
+  await expect(page.locator("#guided-property-journey")).toHaveCount(0);
+  await expect(page.getByRole("banner", { name: "目前物件" })).toContainText("臺中市西屯區臺灣大道三段100號");
 });
 
 test("mobile methods are keyboard accessible and saved outputs stay reachable", async ({ page }) => {
@@ -72,8 +73,16 @@ test("starting another address clears the previous property assumptions", async 
   await expect(inputs.nth(2)).toHaveValue("30");
   await page.locator(".commercial-home").getByRole("textbox", { name: "物件地址", exact: true }).fill("臺北市信義區松仁路100號");
   await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
-  await expect(inputs.nth(1)).toHaveValue("");
-  await expect(inputs.nth(2)).toHaveValue("");
+  // The new address becomes its own case; the loaded property's price and area never carry over.
+  await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
+  const banner = page.getByRole("banner", { name: "目前物件" });
+  await expect(banner).toContainText("臺北市信義區松仁路100號");
+  await expect(banner).toContainText("未提供");
+  await expect(banner).not.toContainText("2,480");
+  const created = await page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1") ?? "[]")[0]);
+  expect(created.inputSummary).toEqual({});
+  expect(created.data.journeyContext.propertyContext).not.toHaveProperty("askingPriceWan");
+  expect(created.data.journeyContext.propertyContext).not.toHaveProperty("areaPing");
 });
 
 test("failed snapshot writes replace earlier success with an accessible error", async ({ page }) => {

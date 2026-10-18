@@ -138,9 +138,13 @@ test("tool deep links and browser history restore the selected tool", async ({ p
   await expect(page.locator("#valuation-calculator")).toBeVisible();
 });
 
-test("Home capability links and property entry react to query-only navigation", async ({ page }) => {
+test("Explore capability entries and property entry react to query-only navigation", async ({ page }) => {
   await page.goto("/");
-  await page.locator(".product-capabilities").getByRole("link", { name: "市場", exact: true }).click();
+  // Capabilities live in global navigation; Home no longer duplicates them as a launcher grid.
+  await expect(page.locator(".commercial-home .product-capabilities")).toHaveCount(0);
+  await page.locator(".commercial-methods > summary").click();
+  await page.locator(".commercial-methods").getByRole("button", { name: "Market Insight", exact: true }).click();
+  await expect(page).toHaveURL(/\?tool=Market/);
   await expect(page.getByTestId("market-insight-search-form")).toBeVisible();
   await page.locator(".commercial-global-nav").getByRole("button", { name: "首頁", exact: true }).click();
   await expect(page.locator(".commercial-home")).toBeVisible();
@@ -159,13 +163,23 @@ test("skip link reaches a missing-case recovery page", async ({ page }) => {
   await expect(page.getByRole("main")).toBeFocused();
 });
 
-test("keyboard property start moves focus into the active workflow stage", async ({ page }) => {
+test("keyboard property start moves focus to the new case's Location heading", async ({ page }) => {
   await page.goto("/");
   const address = page.getByRole("textbox", { name: "物件地址", exact: true });
   await address.fill("臺中市西屯區臺灣大道三段100號");
   await address.press("Enter");
-  await expect(page.locator("#journey-stage-location")).toBeVisible();
-  await expect.poll(() => page.evaluate(() => Boolean(document.querySelector("#journey-stage-location")?.contains(document.activeElement)))).toBe(true);
+  await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
+  await expect(page.getByRole("heading", { level: 1, name: "區位與通勤" })).toBeFocused();
+  await expect(page.locator(":focus")).toBeInViewport();
+});
+
+test("keyboard legacy entry moves focus into the active workflow stage", async ({ page }) => {
+  await page.goto("/");
+  const finder = page.locator(".commercial-home").getByRole("button", { name: /搜尋官方成交資料/ });
+  await finder.focus();
+  await finder.press("Enter");
+  await expect(page.locator("#journey-stage-property")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Boolean(document.querySelector("#journey-stage-property")?.contains(document.activeElement)))).toBe(true);
   await expect(page.locator(":focus")).toBeInViewport();
 });
 
@@ -177,11 +191,11 @@ test("property workflow preserves history and keeps journey state out of storage
   const storage = () => page.evaluate(() => ({ local: { ...localStorage }, session: { ...sessionStorage } }));
   const beforeStorage = await storage();
   const beforeHistory = await page.evaluate(() => history.length);
-  const address = page.getByRole("textbox", { name: "物件地址", exact: true });
-  await address.fill("臺中市西屯區臺灣大道三段100號");
-  await address.press("Enter");
+  const finder = page.locator(".commercial-home").getByRole("button", { name: /搜尋官方成交資料/ });
+  await finder.focus();
+  await finder.press("Enter");
   await expect(page).toHaveURL(/\/\?source=closure&workflow=property$/);
-  await expect(page.locator("#journey-stage-heading-location")).toBeFocused();
+  await expect(page.locator("#journey-stage-heading-property")).toBeFocused();
   expect(await page.evaluate(() => history.length)).toBe(beforeHistory + 1);
   await page.goBack();
   await expect(page).toHaveURL(/\/\?source=closure#original$/);

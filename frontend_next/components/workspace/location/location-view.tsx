@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CommuteEvidencePanel } from "@/components/commute-evidence-panel";
 import { DemographicsInsightCard } from "@/components/demographics-insight-card";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
@@ -17,6 +17,10 @@ import { formatDistance, formatDuration, formatExactDate } from "@/lib/commercia
 import { riskFacilityReasonLabel } from "@/lib/location-insight-evidence";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { buildLocationOverviewHandoff } from "@/lib/workspace/location-context";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { homeStartCopy } from "@/lib/home-start-copy";
+import { locationConfirmationCopy } from "@/lib/workspace/location-confirmation-copy";
+import { LocationConfirmationPanel } from "./location-confirmation-panel";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), {
   ssr: false,
@@ -36,12 +40,20 @@ const MODE_LABELS = { transit: "大眾運輸", driving: "開車", walking: "步�
 
 export function LocationView() {
   const workspace = useWorkspace();
+  const { copyFrom } = useExperienceLocale();
   const latestWorkspace = useRef(workspace);
   latestWorkspace.current = workspace;
   const persistence = useRef({ route: 0, transit: 0, mounted: true });
+  const heading = useRef<HTMLHeadingElement>(null);
+  const [locationConfirmed, setLocationConfirmed] = useState(false);
   useEffect(() => {
     persistence.current.mounted = true;
     return () => { persistence.current.mounted = false; persistence.current.route++; persistence.current.transit++; };
+  }, []);
+  // Arriving from a removed control (e.g. Home start) leaves focus on <body>; land it on the task heading.
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => { if (document.activeElement === document.body) heading.current?.focus({ preventScroll: true }); });
+    return () => window.cancelAnimationFrame(frame);
   }, []);
   const snapshot = workspace.location;
   const handoff = buildLocationOverviewHandoff(workspace);
@@ -52,6 +64,8 @@ export function LocationView() {
     : resolveCommercialState("query", workspace.evidence.location.query);
   const readiness = resolveCommercialState("readiness", handoff.commuteReadiness);
   const anchor = workspace.identity.state === "confirmed" ? workspace.identity.anchor : undefined;
+  // An address-only case was never located; "changed / re-confirm" copy would be untrue for it.
+  const neverLocated = workspace.identity.state === "unconfirmed" && !workspace.identity.anchor;
   const identityExpectation = anchor?.coordinates ? {
     journeyAnchorId: anchor.journey_anchor_id,
     normalizedAddress: anchor.normalized_address,
@@ -74,9 +88,11 @@ export function LocationView() {
   return <div className="workspace-view" data-testid="commercial-location-workspace">
     <header className="workspace-view__heading">
       <p className="text-meta">案件分析區段</p>
-      <h1 className="text-page">區位與通勤</h1>
+      <h1 ref={heading} tabIndex={-1} className="text-page">區位與通勤</h1>
       <p className="text-body">這個物件位在什麼位置，周邊有哪些可核對的設施，前往重要目的地是否實際可行？</p>
     </header>
+
+    <div role="status" data-testid="location-confirmation-status">{locationConfirmed && !neverLocated && <Message variant="success">{copyFrom(locationConfirmationCopy, "confirmed")}</Message>}</div>
 
     <SummaryStrip label="區位與通勤狀態">
       <MetricItem label="物件位置" value={<StatusLabel semanticRole={identity.role}>{identity.label["zh-TW"]}</StatusLabel>} />
@@ -92,7 +108,9 @@ export function LocationView() {
       detail={<span>位置核對：{snapshot.property.checkedAt ?? "未提供"}</span>}
     >
       <GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} />
-    </MapFrame> : <Message variant="warning" title="物件位置已變更，需重新確認">
+    </MapFrame> : neverLocated ? <div data-testid="location-not-yet-confirmed" className="space-y-3"><Message variant="information" title={copyFrom(homeStartCopy, "locationPendingTitle")}>
+      {copyFrom(homeStartCopy, "locationPending")}
+    </Message><LocationConfirmationPanel onConfirmed={() => setLocationConfirmed(true)} /></div> : <Message variant="warning" title="物件位置已變更，需重新確認">
       目前不把先前位置或通勤結果當作本案現況；完成物件位置重新確認後再查看地圖與路線。
     </Message>}
 
@@ -110,7 +128,7 @@ export function LocationView() {
         onRouteEvidence={persistRoute}
         onTransitStatusChange={() => undefined}
         onTransitResult={persistTransit}
-      /> : <Message variant="warning">請先重新確認物件位置，再查詢目的地路線。</Message>}
+      /> : <Message variant="warning">{neverLocated ? copyFrom(homeStartCopy, "routePending") : "請先重新確認物件位置，再查詢目的地路線。"}</Message>}
       </div>
     </Section>
 

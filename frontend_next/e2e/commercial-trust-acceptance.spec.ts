@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
 import { isProviderRequest } from "./helpers/provider-request";
+import { openLegacyJourneyWithAddress } from "./helpers/commercial-navigation";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import type { LocationInsightResult } from "../lib/api";
 
@@ -64,9 +65,7 @@ test("legacy Load opens bounded saved finance without losing assumptions or requ
   page.on("request", request => {
     if (request.method() === "POST" && /\/(loan|holding-cost|valuation|location|terrain|commute)(\/|$)/.test(new URL(request.url()).pathname)) analysis.push(new URL(request.url()).pathname);
   });
-  await page.goto("/");
-  await page.locator("#commercial-address").fill("臺北市信義區市府路1號");
-  await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
+  await openLegacyJourneyWithAddress(page, "臺北市信義區市府路1號");
   const steps = page.getByRole("navigation", { name: "選擇流程步驟" });
   const mobileMenu = steps.locator("summary");
   if (await mobileMenu.isVisible()) {
@@ -114,9 +113,7 @@ for (const width of [1440, 1024, 390]) {
       expect(route.request().postDataJSON().property_price).toBe(3000);
       await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ property_price_wan: 3000, down_payment_ratio: .2, down_payment_wan: 600, loan_amount_wan: 2400, annual_interest_rate: 2.2, loan_years: 30, grace_period_years: 0, monthly_income_wan: null, monthly_payment: 91117, total_payment: 32802120, total_interest: 8802120, sensitivity: [], income_burden_ratio: null, affordability_level: "unknown", disclaimer: "Scenario" }) });
     });
-    await page.goto("/");
-    await page.locator("#commercial-address").fill(address);
-    await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
+    await openLegacyJourneyWithAddress(page, address);
     await page.getByRole("button", { name: "開始位置分析", exact: true }).click();
     await expect(page.getByTestId("journey-property-identity-card")).toContainText(address);
     const nav = page.getByRole("navigation", { name: "選擇流程步驟" });
