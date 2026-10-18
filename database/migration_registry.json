@@ -176,6 +176,14 @@
       "filename": "021_api_usage_quota_ledger.sql",
       "execution_policy": "production_runner",
       "sha256": "00ed7d4b78de6d92c285ab8cd87241d1477bee2ce6e97caef6bbf6e2f43b98af"
+    },
+    {
+      "registry_order": 23,
+      "logical_id": "production-022-admin-control-plane",
+      "sequence": 22,
+      "filename": "022_admin_control_plane.sql",
+      "execution_policy": "production_runner",
+      "sha256": "f9c3c389d15cd3702a31be12f4e0f68e56f482ecc03eecf4d5c6e7b92c4fc709"
     }
   ]
 }

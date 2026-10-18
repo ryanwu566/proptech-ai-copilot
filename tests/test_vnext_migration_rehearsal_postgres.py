@@ -32,6 +32,7 @@ def _assert_disposable(connection) -> None:
 
 def _reset_database(connection) -> None:
     _assert_disposable(connection)
+    connection.execute("DROP SCHEMA IF EXISTS admin_plane CASCADE")
     connection.execute("DROP SCHEMA IF EXISTS api_usage CASCADE")
     connection.execute("DROP SCHEMA IF EXISTS vnext_private CASCADE")
     connection.execute("DROP SCHEMA IF EXISTS vnext_core CASCADE")
@@ -204,7 +205,7 @@ def test_clean_apply_existing_prefix_upgrade_repeat_and_catalog_rehearsal() -> N
         DATABASE_URL,
         release_version="slice9-prefix-upgrade",
     )
-    assert upgraded["status"] == "pass"
+    assert upgraded["status"] == "pass", upgraded
     repeat_upgrade = runner.apply(
         DATABASE_URL,
         release_version="slice9-upgrade-repeat",

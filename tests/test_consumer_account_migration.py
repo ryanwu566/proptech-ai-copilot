@@ -12,7 +12,8 @@ def test_additive_account_migration_is_registered_and_default_only():
     assert len(rows) == 1
     assert rows[0].sha256 == checksum(PATH)
     assert PATH in MIGRATIONS
-    assert next_safe_sequence(registrations) == 22
+    # Later waves own later slots; Wave 1A must not pin the registry's tail.
+    assert next_safe_sequence(registrations) > 20
     sql = PATH.read_text().lower()
     assert "force row level security" in sql
     assert "grant insert (user_id)" in sql

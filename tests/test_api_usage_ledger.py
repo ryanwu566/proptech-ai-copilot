@@ -26,6 +26,20 @@ class Store:
             raise RuntimeError("commit-response-lost")
 
 
+def test_telemetry_summary_does_not_claim_quota_enforcement():
+    from services.usage_ledger import PostgresUsageStore
+    class Connection:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        @contextmanager
+        def transaction(self): yield
+        def execute(self, *args): return self
+        def fetchall(self): return []
+    result = PostgresUsageStore('postgresql://local.test/disposable', connection_factory=lambda _: Connection()).summary()
+    assert 'fleet_quota_enforced' not in result
+    assert result['quota_enforcement_scope'] == 'not_reported'
+
+
 def test_bounded_batch_retries_same_id_after_ambiguous_commit():
     from services.usage_ledger import UsageFlusher
     usage, store = UsageAggregator(max_rows=4), Store()

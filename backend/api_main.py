@@ -19,6 +19,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.api.routes_health import router as health_router
+from backend.api.routes_admin import router as admin_router
 from backend.api.routes_metrics import build_metrics_router
 from backend.api.routes_holding_cost import router as holding_cost_router
 from backend.api.routes_location_insight import router as location_insight_router
@@ -269,6 +270,7 @@ async def api_http_exception_handler(request: Request, error: StarletteHTTPExcep
 
 
 app.include_router(health_router)
+app.include_router(admin_router)
 app.include_router(holding_cost_router)
 app.include_router(location_insight_router)
 app.include_router(bank_rates_router)

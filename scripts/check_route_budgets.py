@@ -18,9 +18,16 @@ from scripts.check_frontend_bundle_budget import measure as measure_global
 BASELINE_PATH = ROOT / "docs/performance-budget-v2-baseline.json"
 BASELINE = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
 ROUTE_BUDGETS = BASELINE["route_budgets"]
+# New operator routes have an explicit fixed ceiling, not an invented baseline.
+# The existing measured baselines and all consumer/global ceilings are unchanged.
+ROUTE_BUDGETS = {**ROUTE_BUDGETS, **{route: {"fixed_ceiling_bytes": 1_300_000,
+    "baseline_client_bytes": None, "headroom_percent": None, "headroom_cap_bytes": None,
+    "required": True} for route in SUPPORTED_ROUTES if route.startswith("/admin")}}
 
 
 def route_limit(budget: dict[str, object]) -> int:
+    if "fixed_ceiling_bytes" in budget:
+        return int(budget["fixed_ceiling_bytes"])
     baseline = int(budget["baseline_client_bytes"])
     return baseline + min((baseline * int(budget["headroom_percent"]) + 99) // 100,
                           int(budget["headroom_cap_bytes"]))

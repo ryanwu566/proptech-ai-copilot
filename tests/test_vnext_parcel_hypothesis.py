@@ -226,4 +226,9 @@ def test_existing_schema_guards_geometry_and_graph_without_new_migration():
     assert [
         path.name for path in (root / "database/migrations").glob("019_*.sql")
     ] == ["019_add_ris_village_demographics.sql"]
-    assert not list((root / "database/migrations").glob("022_*.sql"))
+    additions = list((root / "database/migrations").glob("022_*.sql"))
+    assert [path.name for path in additions] == ["022_admin_control_plane.sql"]
+    admin_sql = additions[0].read_text(encoding="utf-8").lower()
+    assert "parcel_geometry" not in admin_sql
+    assert "property_identity_references" not in admin_sql
+    assert "property_relations" not in admin_sql

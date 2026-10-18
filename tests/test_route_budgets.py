@@ -190,6 +190,19 @@ def build_fixture(tmp_path: Path) -> Path:
         "/preferences/page": ["static/chunks/preferences.js"],
     }}))
     (root / "server/app-paths-manifest.json").write_text(json.dumps({"/page": "app/page.js", "/preferences/page": "app/preferences/page.js"}))
+    paths_file = root / "server/app-paths-manifest.json"
+    manifest_file = root / "app-build-manifest.json"
+    paths = json.loads(paths_file.read_text())
+    manifest = json.loads(manifest_file.read_text())
+    for admin_route in (route for route in SUPPORTED_ROUTES if route.startswith("/admin")):
+        manifest_route = f"{admin_route}/page"
+        paths[manifest_route] = f"app{manifest_route}.js"
+        manifest["pages"][manifest_route] = ["static/chunks/shared.js"]
+        reference = root / "server/app" / (manifest_route.strip("/") + "_client-reference-manifest.js")
+        reference.parent.mkdir(parents=True, exist_ok=True)
+        reference.write_text(f'globalThis.__RSC_MANIFEST["{manifest_route}"] = {{"entryCSSFiles":{{}}}};')
+    paths_file.write_text(json.dumps(paths))
+    manifest_file.write_text(json.dumps(manifest))
     for route in ("page", "preferences/page"):
         (root / "server/app" / (route + "_client-reference-manifest.js")).write_text(
             'globalThis.__RSC_MANIFEST["/' + route + '"] = {"entryCSSFiles":{"app/layout":[]}};')
@@ -283,6 +296,7 @@ def browser_evidence(root: Path) -> None:
         for route, files in {
             "/": ["static/chunks/shared.js", "static/chunks/home.js"],
             "/preferences": ["static/chunks/shared.js", "static/chunks/preferences.js"],
+            **{route: ["static/chunks/shared.js"] for route in SUPPORTED_ROUTES if route.startswith("/admin")},
         }.items()
     }}
     (root / EVIDENCE_NAME).write_text(json.dumps(evidence))
@@ -410,10 +424,39 @@ def test_all_requested_routes_have_bounded_baseline_budgets() -> None:
     assert ROUTE_BUDGETS["/"]["headroom_percent"] == 10
     assert ROUTE_BUDGETS["/"]["headroom_cap_bytes"] == 200_000
     for route, budget in ROUTE_BUDGETS.items():
+        if route.startswith("/admin"):
+            continue
         assert 0 < route_limit(budget) - budget["baseline_client_bytes"] <= budget["headroom_cap_bytes"]
         if route != "/":
             assert budget["headroom_percent"] == 20
             assert budget["headroom_cap_bytes"] == 300_000
+
+
+def test_admin_has_its_own_route_measurement_and_budget(tmp_path: Path) -> None:
+    root = build_fixture(tmp_path)
+    paths_file = root / "server/app-paths-manifest.json"
+    paths = json.loads(paths_file.read_text())
+    paths["/admin/page"] = "app/admin/page.js"
+    paths_file.write_text(json.dumps(paths))
+    (root / "server/app/admin").mkdir(exist_ok=True)
+    (root / "server/app/admin/page_client-reference-manifest.js").write_text('globalThis.__RSC_MANIFEST["/admin/page"] = {"entryCSSFiles":{}};')
+    manifest_file = root / "app-build-manifest.json"
+    manifest = json.loads(manifest_file.read_text())
+    manifest["pages"]["/admin/page"] = ["static/chunks/shared.js", "static/chunks/admin.js"]
+    manifest_file.write_text(json.dumps(manifest))
+    (root / "static/chunks/admin.js").write_bytes(b"a" * 50)
+    result = measure(root)
+    assert result["routes"]["/admin"]["client_bytes"] == 150
+    assert result["routes"]["/admin"]["status"] == "pass"
+    homepage = result["routes"]["/"]["client_bytes"]
+    (root / "static/chunks/admin.js").write_bytes(b"a" * 700_000)
+    (root / "static/chunks/admin.css").write_bytes(b"c" * 700_000)
+    manifest["pages"]["/admin/page"].append("static/chunks/admin.css")
+    manifest_file.write_text(json.dumps(manifest))
+    result = measure(root)
+    assert result["routes"]["/admin"]["status"] == "fail"
+    assert result["global_budget"]["status"] == "pass"
+    assert result["routes"]["/"]["client_bytes"] == homepage
 
 
 def test_cli_exits_nonzero_for_failed_budget(tmp_path: Path) -> None:

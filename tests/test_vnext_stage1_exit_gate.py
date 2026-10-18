@@ -14,6 +14,11 @@ ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend_next"
 
 APPROVED_ROUTES = {
+    ("GET", "/v1/admin/{section}"),
+    ("GET", "/v1/admin/accounts/{target}"),
+    ("POST", "/v1/admin/accounts/{target}/commands"),
+    ("GET", "/v1/admin/quota-policy"),
+    ("POST", "/v1/admin/quota-policy/commands"),
     ("GET", "/v1/account"),
     ("GET", "/v1/saved-cases"),
     ("POST", "/v1/saved-cases"),
@@ -46,7 +51,7 @@ APPROVED_ROUTES = {
     ("POST", "/v1/cases/{case_id}/parcel-set/review"),
     ("POST", "/v1/planning/taipei/observe"),
 }
-COMMAND_ROUTES = {("POST", path) for path in {
+HEADER_IDEMPOTENCY = {("POST", path) for path in {
     "/v1/property-resolutions",
     "/v1/property-resolutions/{identity_resolution_id}/confirm",
     "/v1/property-resolutions/{identity_resolution_id}/reject",
@@ -68,6 +73,10 @@ COMMAND_ROUTES = {("POST", path) for path in {
     ("PUT", "/v1/saved-cases/{case_id}/membership"),
     ("PUT", "/v1/saved-cases/{case_id}/monitoring"),
 }
+BODY_COMMAND_ID = {
+    ("POST", "/v1/admin/accounts/{target}/commands"): "AccountCommand",
+    ("POST", "/v1/admin/quota-policy/commands"): "QuotaCommand",
+}
 
 
 def _schema() -> dict[str, object]:
@@ -86,6 +95,14 @@ def test_executable_vnext_route_surface_is_exact_and_has_no_shortcuts() -> None:
     }
 
     assert routes == APPROVED_ROUTES
+    registered = [
+        (method, route.path)
+        for route in app.routes
+        if getattr(route, "path", "").startswith("/v1")
+        for method in getattr(route, "methods", ())
+        if method in {"GET", "POST", "PUT", "PATCH", "DELETE"}
+    ]
+    assert len(registered) == len(set(registered)), "Duplicate VNext route registration"
     joined = "\n".join(path for _method, path in routes).lower()
     assert all(
         forbidden not in joined
@@ -107,11 +124,17 @@ def test_openapi_requires_bearer_and_bounded_idempotency_on_every_command() -> N
         operation = schema["paths"][path][method.lower()]
         assert {"SupabaseBearer": []} in operation["security"]
     # Planning's POST is a provider read, not a persisted state transition.
-    assert COMMAND_ROUTES == {
-        (method, path) for method, path in APPROVED_ROUTES
-        if method != "GET" and path != "/v1/planning/taipei/observe"
+    writes = {
+        (method.upper(), path)
+        for path, operations in schema["paths"].items()
+        if path.startswith("/v1")
+        for method in operations
+        if method in {"post", "put", "patch", "delete"}
+        and path != "/v1/planning/taipei/observe"
     }
-    for method, path in COMMAND_ROUTES:
+    assert HEADER_IDEMPOTENCY.isdisjoint(BODY_COMMAND_ID)
+    assert HEADER_IDEMPOTENCY | set(BODY_COMMAND_ID) == writes
+    for method, path in HEADER_IDEMPOTENCY:
         operation = schema["paths"][path][method.lower()]
         parameters = {
             item["name"]: item
@@ -122,6 +145,23 @@ def test_openapi_requires_bearer_and_bounded_idempotency_on_every_command() -> N
         assert idempotency["schema"]["minLength"] == 16
         assert idempotency["schema"]["maxLength"] == 128
         assert idempotency["schema"]["pattern"] == "^[A-Za-z0-9._:-]{16,128}$"
+    for (method, path), command_type in BODY_COMMAND_ID.items():
+        operation = schema["paths"][path][method.lower()]
+        assert not any(
+            parameter["in"] == "header"
+            and parameter["name"].lower() == "idempotency-key"
+            for parameter in operation.get("parameters", [])
+        )
+        body = operation["requestBody"]
+        assert body["required"] is True
+        assert body["content"]["application/json"]["schema"] == {
+            "$ref": f"#/components/schemas/{command_type}"
+        }
+        command = schema["components"]["schemas"][command_type]
+        assert "command_id" in command["required"]
+        assert command["properties"]["command_id"]["type"] == "string"
+        assert command["properties"]["command_id"]["format"] == "uuid"
+        assert command["additionalProperties"] is False
 
 
 def test_openapi_errors_are_allowlisted_and_internal_fields_are_absent() -> None:
@@ -177,17 +217,19 @@ def test_stage1_feature_flags_and_example_configuration_are_default_off() -> Non
         assert "feature_case_parcel_set_v1=true" not in text
 
 
-def test_migrations_are_frozen_through_021_and_next_sequence_is_022() -> None:
+def test_migrations_are_registered_through_022_and_next_sequence_is_023() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 22
-    assert max(item.sequence for item in registrations) == 21
+    assert next_safe_sequence(registrations) == 23
+    assert max(item.sequence for item in registrations) == 22
     assert [
         path.name for path in (ROOT / "database" / "migrations").glob("018_*.sql")
     ] == ["018_vnext_case_parcel_set_v1.sql"]
     assert [
         path.name for path in (ROOT / "database" / "migrations").glob("019_*.sql")
     ] == ["019_add_ris_village_demographics.sql"]
-    assert not list((ROOT / "database" / "migrations").glob("022_*.sql"))
+    assert [path.name for path in (ROOT / "database" / "migrations").glob("022_*.sql")] == [
+        "022_admin_control_plane.sql"
+    ]
     assert all(len(item.sha256) == 64 for item in registrations)
 
 

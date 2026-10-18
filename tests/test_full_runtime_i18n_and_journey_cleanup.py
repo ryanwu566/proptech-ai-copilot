@@ -68,10 +68,14 @@ def test_production_frontend_has_no_compatibility_marker_comments():
         "Legacy navigation contracts",
         "Static contract markers",
     )
-    for path in FRONTEND.rglob("*.tsx"):
-        source = path.read_text(encoding="utf-8")
-        assert not any(marker in source for marker in forbidden), path
-    for path in FRONTEND.rglob("*.ts"):
+    # Check authored production code, not node_modules or generated .next types.
+    # Installed browser tooling must not turn a source contract into a scan of
+    # tens of thousands of third-party declarations.
+    paths = [*FRONTEND.glob("*.ts"), *FRONTEND.glob("*.tsx")]
+    for directory in ("app", "components", "lib"):
+        paths.extend((FRONTEND / directory).rglob("*.ts"))
+        paths.extend((FRONTEND / directory).rglob("*.tsx"))
+    for path in paths:
         source = path.read_text(encoding="utf-8")
         assert not any(marker in source for marker in forbidden), path
 
