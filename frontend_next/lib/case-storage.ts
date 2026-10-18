@@ -17,6 +17,8 @@ import { parseSavedCasesDiagnostic, type SavedCaseReadDiagnostic } from "@/lib/w
 import { normalizeFinancePriceEvidence, type FinancePriceEvidence } from "@/lib/finance-price-provenance";
 import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidence";
 import { invalidateChangedChecklist, normalizeChecklistReview, type StoredChecklistReviewV1 } from "@/lib/workspace/checklist-persistence";
+import { planAddressDraft, type AddressDraftResult } from "@/lib/workspace/case-draft";
+import { planIdentityConfirmation } from "@/lib/workspace/location-confirmation";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -177,6 +179,54 @@ function saveCaseUnlocked(input: SaveCaseInput): SavedCase | null {
   } catch {
     return null;
   }
+}
+
+/** Home address start: reopen an untouched draft or create one. Local only; never runs providers. */
+export async function createAddressDraftCase(address: string): Promise<AddressDraftResult> {
+  if (typeof window === "undefined" || !window.navigator?.locks?.request) return { status: "blocked", reason: "lock_unavailable" };
+  return mutateSavedCases<AddressDraftResult>({ status: "blocked", reason: "lock_unavailable" }, () => {
+    try {
+      const snapshot = readStorageSnapshot();
+      const plan = planAddressDraft(snapshot.diagnostic, address, { id: createId(), now: new Date().toISOString(), maxCases: MAX_SAVED_CASES });
+      if (plan.kind === "blocked") return { status: "blocked", reason: plan.reason };
+      if (plan.kind === "reopen") return { status: "reopened", caseId: plan.saved.id };
+      const saved = { ...plan.saved, data: compactCaseData(plan.saved.data) };
+      if (!writeCases([saved, ...snapshot.diagnostic.cases], snapshot.raw)) return { status: "blocked", reason: "write_failed" };
+      return { status: "created", caseId: saved.id };
+    } catch {
+      return { status: "blocked", reason: "write_failed" };
+    }
+  });
+}
+
+export type ConfirmIdentityResult =
+  | { status: "confirmed"; saved: SavedCase }
+  | { status: "blocked"; reason: "lock_unavailable" | "storage_unavailable" | "case_changed" | "already_identified" | "invalid_anchor" | "write_failed" };
+
+/**
+ * Persist an explicitly user-confirmed location anchor on a never-located case.
+ * Compare-and-swap on the exact read version; never overwrites an existing anchor
+ * and never touches evidence, so confirmation itself runs no provider.
+ */
+export async function confirmSavedCaseIdentity(caseId: string, anchor: JourneyPropertyIdentityAnchorV1, expectedVersion: string): Promise<ConfirmIdentityResult> {
+  if (typeof window === "undefined" || !window.navigator?.locks?.request) return { status: "blocked", reason: "lock_unavailable" };
+  return mutateSavedCases<ConfirmIdentityResult>({ status: "blocked", reason: "lock_unavailable" }, () => {
+    try {
+      const snapshot = readStorageSnapshot();
+      if (["parse_error", "invalid_storage", "storage_unavailable"].includes(snapshot.diagnostic.status)) return { status: "blocked", reason: "storage_unavailable" };
+      const rows = snapshot.diagnostic.cases;
+      const index = rows.findIndex((row) => row.id === caseId);
+      const plan = planIdentityConfirmation(rows[index], anchor, expectedVersion);
+      if (plan.kind === "blocked") return { status: "blocked", reason: plan.reason };
+      const updated: SavedCase = { ...rows[index], updatedAt: new Date().toISOString(), data: compactCaseData({ ...rows[index].data, propertyIdentityAnchor: plan.anchor }) };
+      rows[index] = updated;
+      if (!writeCases(rows, snapshot.raw)) return { status: "blocked", reason: "write_failed" };
+      window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+      return { status: "confirmed", saved: updated };
+    } catch {
+      return { status: "blocked", reason: "write_failed" };
+    }
+  });
 }
 
 export function resaveSavedCaseSnapshot(

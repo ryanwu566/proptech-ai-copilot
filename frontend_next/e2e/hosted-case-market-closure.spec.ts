@@ -100,12 +100,12 @@ async function stage(page: Page, locale: ExperienceLocale, name: "location" | "p
 }
 
 async function createThroughUI(page: Page, locale: ExperienceLocale, s: Scenario, calls: RecordedRequests, info: TestInfo, capturedUnavailable = false, afterLocation?: () => Promise<void>, onBoundary?: (phase: string) => Promise<void>, valuationOverride?: { applyScenarioInputs?: boolean; skipEstimate?: boolean; prepare?: (form: Locator) => Promise<void> }, beforeLocation?: () => Promise<void>) {
-  await page.goto("/"); await page.getByTestId("locale-switcher").selectOption(locale);
-  await page.locator("#commercial-address").fill(s.address);
-  await page.locator(".commercial-home__form").getByRole("button").click();
-  await expect(page.locator("#journey-stage-location")).toBeVisible();
-  await beforeLocation?.();
+  // Home Start now creates a local case; this legacy journey closure enters through its explicit deep link.
+  await page.goto("/?workflow=property"); await page.getByTestId("locale-switcher").selectOption(locale);
+  await stage(page, locale, "location");
   const locationForm = page.locator("#location-insight-calculator");
+  await locationForm.getByRole("textbox").first().fill(s.address);
+  await beforeLocation?.();
   await locationForm.getByLabel(copy(locale, "location.area")).fill(String(s.area));
   await locationForm.getByRole("button", { name: copy(locale, "location.start"), exact: true }).click();
   await expect(page.getByTestId("journey-property-identity-card")).toContainText(s.displayAddress);
@@ -492,9 +492,9 @@ test("failed Delete retains a valid case and unrelated quarantined storage and s
   // Recovery tests intentionally inject corruption; the primary journey above never seeds cases.
   const original = JSON.stringify([e9Case(), { id: "quarantined-record", version: 99, private_note: "synthetic preserved record" }]);
   await page.addInitScript(({ key, original }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, original); }, { key: KEY, original });
-  await page.goto("/");
-  await page.locator("#commercial-address").fill(scenarios[0].address);
-  await page.locator(".commercial-home__form").getByRole("button").click();
+  await page.goto("/?workflow=property");
+  await stage(page, "zh-TW", "location");
+  await page.locator("#location-insight-calculator").getByRole("textbox").first().fill(scenarios[0].address);
   await stage(page, "zh-TW", "decision");
   await page.getByRole("button", { name: /^已儲存案件/ }).filter({ visible: true }).click();
   const savedList = page.locator("#journey-stage-decision").getByRole("region", { name: copy("zh-TW", "case.title"), exact: true });

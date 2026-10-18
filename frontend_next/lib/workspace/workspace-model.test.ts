@@ -163,9 +163,11 @@ test("overview keeps missing counterparts visible when a section has mixed evide
     "risk-not-started",
     "finance-not-started",
   ]);
+  // A saved case that was never located leads with confirming its location.
+  assert.deepEqual(overview.blockers.map((item: { id: string }) => item.id), ["identity-confirm-location"]);
   assert.deepEqual(overview.actions.map((item: { href: string }) => item.href), [
-    "/cases/saved-case-1/market",
     "/cases/saved-case-1/location",
+    "/cases/saved-case-1/market",
     "/cases/saved-case-1/risk",
     "/cases/saved-case-1/finance",
   ]);

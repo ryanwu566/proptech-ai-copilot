@@ -45,8 +45,10 @@ test.describe("Production Smoke", { tag: "@hosted" }, () => {
     const primaryCta = home.getByRole("button", { name: "Start property review", exact: true });
     await expect(primaryCta).toBeVisible();
     await primaryCta.click();
-    await expect(page.locator("#journey-stage-location")).toBeVisible();
-    await expect(page.locator("#location-insight-calculator").getByRole("textbox").first()).toHaveValue(address);
+    // Home Start creates a browser-local case and opens its Location section; it does not open the legacy journey.
+    await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
+    await expect(page.getByRole("banner").filter({ hasText: address })).toBeVisible();
+    await page.goto("/", { timeout: 30000 });
     await openPropertyEntry(page);
     await expect(page.locator("#journey-stage-property")).toBeVisible();
   });

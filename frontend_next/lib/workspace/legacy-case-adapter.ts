@@ -15,6 +15,8 @@ import { buildFinanceModel } from "./finance-model.ts";
 import { restoreFinanceModelFromSnapshot } from "./finance-persistence.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { buildStoredRiskEvidenceModel } from "./risk-evidence-model.ts";
+// @ts-expect-error Node's native TypeScript test runner requires the source extension.
+import { hasPlaceholderInputs } from "./case-draft.ts";
 
 function positive(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value > 0;
@@ -134,6 +136,12 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
         calculatedAt: saved.data.financePriceEvidence?.calculated_at ?? null,
       });
 
+  // Placeholder inputs (address-only records) store zeros that are not building facts;
+  // only explicit journey context values are used for those records.
+  const placeholderInputs = hasPlaceholderInputs(saved);
+  const ageYears = placeholderInputs ? journey?.propertyContext.buildingAgeYears : saved.data.inputs.building_age_years;
+  const floor = placeholderInputs ? journey?.propertyContext.floor : saved.data.inputs.floor;
+
   return {
     caseId: saved.id,
     revision: 1,
@@ -148,8 +156,8 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
       ...(askingPriceWan ? { askingPriceWan } : {}),
       ...(positive(journey?.manualPriceWan) ? { manualPriceWan: journey.manualPriceWan } : {}),
       ...(areaPing !== null && areaPing > 0 ? { areaPing } : {}),
-      ...(typeof saved.data.inputs.building_age_years === "number" && Number.isFinite(saved.data.inputs.building_age_years) && saved.data.inputs.building_age_years >= 0 ? { ageYears: saved.data.inputs.building_age_years } : {}),
-      ...(typeof saved.data.inputs.floor === "number" && Number.isFinite(saved.data.inputs.floor) && saved.data.inputs.floor >= 0 ? { floor: saved.data.inputs.floor } : {}),
+      ...(typeof ageYears === "number" && Number.isFinite(ageYears) && ageYears >= 0 ? { ageYears } : {}),
+      ...(typeof floor === "number" && Number.isFinite(floor) && floor >= 0 ? { floor } : {}),
     },
     evidence,
     marketPrice,

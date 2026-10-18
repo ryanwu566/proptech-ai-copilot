@@ -27,6 +27,8 @@ SAFE_RESPONSE_KEYS = {
     "longitude",
     "confidence",
     "message",
+    "county",
+    "district",
 }
 
 TGOS_URL = "https://addr.tgos.tw/addrws/v30/QueryAddr.asmx/QueryAddr"
@@ -42,6 +44,8 @@ class LocationResolveResult:
     longitude: float | None = None
     confidence: LocationResolveConfidence = "unknown"
     message: str = "定位服務暫時無法完成查詢，請稍後再試。"
+    county: str | None = None
+    district: str | None = None
 
     def to_safe_dict(self) -> dict[str, Any]:
         return {
@@ -52,6 +56,8 @@ class LocationResolveResult:
             "longitude": self.longitude,
             "confidence": self.confidence,
             "message": self.message,
+            "county": self.county,
+            "district": self.district,
         }
 
 
@@ -73,7 +79,38 @@ def _is_valid_coordinate(latitude: Any, longitude: Any) -> bool:
     return math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180
 
 
-def _resolved(source: LocationResolveSource, formatted_address: str | None, latitude: Any, longitude: Any) -> LocationResolveResult:
+COUNTY_SUFFIXES = ("市", "縣")
+DISTRICT_SUFFIXES = ("區", "鄉", "鎮", "市")
+
+
+def _administrative_name(value: Any, suffixes: tuple[str, ...]) -> str | None:
+    """Keep only a bounded county/district name already present in the geocoder response."""
+    if not isinstance(value, str):
+        return None
+    name = value.strip().replace("台", "臺")
+    if not name or len(name) > 20 or not name.endswith(suffixes):
+        return None
+    return name
+
+
+def _google_administrative_area(result: dict[str, Any]) -> tuple[str | None, str | None]:
+    """Taiwan: level 1 is the county/city; level 2 (else level 3) is the district. Villages (里) are not districts."""
+    county = level_2 = level_3 = None
+    components = result.get("address_components")
+    for component in components if isinstance(components, list) else []:
+        if not isinstance(component, dict) or not isinstance(component.get("types"), list):
+            continue
+        types = component["types"]
+        if "administrative_area_level_1" in types:
+            county = component.get("long_name")
+        elif "administrative_area_level_2" in types:
+            level_2 = component.get("long_name")
+        elif "administrative_area_level_3" in types:
+            level_3 = component.get("long_name")
+    return _administrative_name(county, COUNTY_SUFFIXES), _administrative_name(level_2, DISTRICT_SUFFIXES) or _administrative_name(level_3, DISTRICT_SUFFIXES)
+
+
+def _resolved(source: LocationResolveSource, formatted_address: str | None, latitude: Any, longitude: Any, county: Any = None, district: Any = None) -> LocationResolveResult:
     lat = float(latitude)
     lon = float(longitude)
     provider_label = "TGOS" if source == "tgos" else "Google"
@@ -85,6 +122,8 @@ def _resolved(source: LocationResolveSource, formatted_address: str | None, lati
         longitude=lon,
         confidence="high",
         message=f"已取得可信位置（{provider_label}）。",
+        county=_administrative_name(county, COUNTY_SUFFIXES),
+        district=_administrative_name(district, DISTRICT_SUFFIXES),
     )
 
 
@@ -160,7 +199,7 @@ class TgosAddressProvider:
         if not _is_valid_coordinate(latitude, longitude):
             return _unavailable()
         formatted_address = item.get("FULL_ADDR") or item.get("fullAddress") or item.get("Address")
-        return _resolved("tgos", str(formatted_address) if formatted_address else None, latitude, longitude)
+        return _resolved("tgos", str(formatted_address) if formatted_address else None, latitude, longitude, item.get("COUNTY"), item.get("TOWN"))
 
 
 class GoogleAddressProvider:
@@ -227,7 +266,8 @@ class GoogleAddressProvider:
         if not _is_valid_coordinate(latitude, longitude):
             return _unavailable()
         formatted_address = first.get("formatted_address")
-        return _resolved("google", str(formatted_address) if formatted_address else None, latitude, longitude)
+        county, district = _google_administrative_area(first)
+        return _resolved("google", str(formatted_address) if formatted_address else None, latitude, longitude, county, district)
 
 
 _DEFAULT_GOOGLE_PROVIDER: GoogleAddressProvider | None = None

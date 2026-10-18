@@ -58,6 +58,9 @@ class LocationResolveResponse(BaseModel):
     longitude: float | None = None
     confidence: Literal["high", "unknown"]
     message: str
+    # Administrative area already present in the same geocoder response; never a second provider call.
+    county: str | None = None
+    district: str | None = None
 
 
 @router.post("/insight")

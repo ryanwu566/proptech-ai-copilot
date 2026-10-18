@@ -31,11 +31,20 @@ def test_hero_ctas_keep_real_navigation_handlers() -> None:
     assert 'data-action-kind="primary"' in HERO
     assert 'data-action-kind="secondary"' in HERO
     active_home = PAGE.split("export default function Home()", 1)[1].split("function buildJourneySaveCase", 1)[0]
-    assert '<CommercialHome onStart=' in active_home
-    assert 'createClosedLoopJourneyState({ addressSummary: address' in active_home
-    assert 'openJourneyStep("location")' in active_home
-    assert 'onFinder={() => openJourneyStep("property")}' in active_home
-    assert 'onStart(address.trim())' in HOME
+    # Home address Start opens the modern case workspace; only the finder opens the legacy journey.
+    assert '<CommercialHome onFinder={() => openJourneyStep("property")} />' in active_home
+    assert "onStart" not in active_home.split("<CommercialHome", 1)[1].split("/>", 1)[0]
+    assert "createClosedLoopJourneyState({ addressSummary: address" not in active_home
+    assert "export function CommercialHome({ onFinder }: { onFinder: () => void })" in HOME
+    assert "onStart" not in HOME
+    assert "openJourneyStep" not in HOME
+    start = HOME.split("async function start(", 1)[1].split("const recent", 1)[0]
+    assert "createAddressDraftCase(address)" in start
+    assert 'router.push(caseDestination(result.caseId, "location"))' in start
+    assert "useRouter()" in HOME
+    assert 'from "next/navigation"' in HOME
+    # Home Start is local case creation only: no provider or analysis request.
+    assert all(term not in start for term in ("api.", "fetch(", "locationResolve", "locationInsight", "workflow=property"))
     assert 'href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}' in HOME
 
 

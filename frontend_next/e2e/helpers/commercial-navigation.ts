@@ -24,3 +24,23 @@ export async function openPropertyEntry(page: Page) {
   }).click();
   await expect(page.locator("#journey-stage-property")).toBeVisible();
 }
+
+const LEGACY_LOCATION_STEP = /^(位置與資料證據|Location and evidence|位置と根拠|위치와 근거) · /;
+
+/**
+ * Home Start now creates a local case. The legacy guided journey stays reachable
+ * through its explicit deep link; this enters it and types the address in its
+ * own Location step, exactly as a legacy user would.
+ */
+export async function openLegacyJourneyWithAddress(page: Page, address: string, url = "/?workflow=property") {
+  await page.goto(url);
+  await expect(page.locator("#journey-stage-property")).toBeVisible();
+  const steps = page.locator("#guided-property-journey nav").first();
+  const disclosure = steps.locator("details");
+  if (await disclosure.isVisible() && !(await disclosure.evaluate((node) => (node as HTMLDetailsElement).open))) await disclosure.locator("summary").click();
+  await steps.getByRole("button", { name: LEGACY_LOCATION_STEP }).filter({ visible: true }).click();
+  await expect(page.locator("#journey-stage-location")).toBeVisible();
+  const input = page.locator("#location-insight-calculator").getByRole("textbox").first();
+  await input.fill(address);
+  await expect(input).toHaveValue(address);
+}
