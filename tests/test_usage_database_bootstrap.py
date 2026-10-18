@@ -44,7 +44,8 @@ def target():
     finally:
         with psycopg.connect(control, autocommit=True) as setup:
             setup.execute(sql.SQL('DROP DATABASE {} WITH (FORCE)').format(sql.Identifier(name)))
-            for role in (RUNTIME, *GRANT_ROLES, *BROWSER_ROLES, ACTOR, 'usage_unsafe_parent'):
+            for role in (RUNTIME, 'proptech_admin_executor', 'proptech_admin_operator',
+                         *GRANT_ROLES, *BROWSER_ROLES, ACTOR, 'usage_unsafe_parent'):
                 setup.execute(sql.SQL('DROP ROLE IF EXISTS {}').format(sql.Identifier(role)))
 
 
@@ -367,3 +368,28 @@ def test_rehearsal_excludes_inherited_usage_and_docker_secrets(monkeypatch):
         monkeypatch.setenv(name,'synthetic-private-value')
     environment = clean_environment()
     assert not any(name in environment for name in ('API_USAGE_PEER_HMAC_KEY','DOCKER_HOST','DOCKER_CONTEXT','DOCKER_CONFIG','PRODUCTION_MIGRATION_DATABASE_URL','API_USAGE_BOOTSTRAP_DATABASE_URL','PGSERVICE','PGPASSFILE'))
+
+
+def test_bootstrapped_usage_runtime_still_enforces_after_admin_extension(target):
+    """Exercise the supported 021 bootstrap → runtime → 022 sequence in one store."""
+    from uuid import uuid4
+    from scripts.validate_postgres_migration import _statements
+    from services.usage_guard import PostgresQuotaGuard
+    from services.usage_ledger import PostgresUsageStore
+    from services.usage_principal import UsagePrincipal
+
+    install(target, runtime=True)
+    with target.connect() as conn:
+        for statement in _statements(ROOT / 'database/migrations/022_admin_control_plane.sql'):
+            conn.execute(statement)
+        assert conn.execute("SELECT to_regnamespace('auth'),to_regnamespace('vnext_private')").fetchone() == (None,None)
+        assert conn.execute('SELECT checksum FROM api_usage_bootstrap.history').fetchone() == (CHECKSUM,)
+    guard = PostgresQuotaGuard(target.runtime_url)
+    guard.check()
+    assert guard.consume(UsagePrincipal('anon:'+'a'*64,'anonymous','a'*64),'places','request',uuid4()) == 'admitted'
+    PostgresUsageStore(target.runtime_url).check()
+    with target.connect(RUNTIME) as conn:
+        assert not conn.execute("SELECT pg_has_role(current_user,'proptech_admin_operator','MEMBER') OR pg_has_role(current_user,'proptech_admin_executor','MEMBER')").fetchone()[0]
+        with pytest.raises(__import__('psycopg').errors.InsufficientPrivilege):
+            with conn.transaction():
+                conn.execute("UPDATE api_usage.quota_policy SET request_hour=100 WHERE principal_class='anonymous'")

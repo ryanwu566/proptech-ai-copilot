@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -403,6 +404,9 @@ def test_market_coverage_county_helper_outputs_tracked_counties_safely() -> None
         check=False,
         text=True,
         capture_output=True,
+        encoding="utf-8",
+        errors="strict",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
 
     counties = [line for line in result.stdout.splitlines() if line.strip()]

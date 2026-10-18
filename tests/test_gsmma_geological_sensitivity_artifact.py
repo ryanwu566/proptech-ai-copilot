@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -306,6 +307,9 @@ def test_operator_cli_builds_local_outputs_without_uploading(tmp_path: Path) -> 
         cwd=Path(__file__).resolve().parents[1],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="strict",
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
         check=False,
     )
 

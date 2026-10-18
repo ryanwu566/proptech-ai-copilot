@@ -65,6 +65,93 @@ def command(field='status', value='suspended', key=None, reason='Security invest
     return AccountCommand(command_id=key or uuid4(),reason=reason,field=field,value=value)
 
 
+@pytest.mark.parametrize('drift', [
+    'inherited_admin_executor', 'set_only_admin_executor', 'hidden_owner_session',
+    'request_createrole', 'request_database_owner', 'request_schema_create', 'request_schema_owner',
+])
+def test_consumer_context_rejects_admin_authority_drift(database, drift):
+    """022's stronger SQL grants must never leak through the consumer credential."""
+    import psycopg
+    from psycopg import sql
+    from psycopg.conninfo import make_conninfo
+    from services.vnext.db_principal import DatabasePrincipalContext, DatabasePrincipalContextError
+
+    with psycopg.connect(database[0]) as setup:
+        if drift.endswith('admin_executor'):
+            inherit = 'TRUE' if drift.startswith('inherited') else 'FALSE'
+            setup.execute('GRANT proptech_admin_executor TO vnext_api WITH INHERIT ' + inherit + ', SET TRUE')
+        elif drift == 'request_createrole':
+            setup.execute('ALTER ROLE vnext_api CREATEROLE')
+        elif drift == 'request_database_owner':
+            setup.execute(sql.SQL('ALTER DATABASE {} OWNER TO vnext_api').format(sql.Identifier(setup.info.dbname)))
+        elif drift.startswith('request_schema_'):
+            setup.execute('CREATE SCHEMA pgx')
+            if drift.endswith('owner'):
+                setup.execute('ALTER SCHEMA pgx OWNER TO vnext_api')
+            else:
+                setup.execute('GRANT CREATE ON SCHEMA pgx TO vnext_api')
+    try:
+        target = database[0] if drift == 'hidden_owner_session' else make_conninfo(database[0], user='vnext_api')
+        with psycopg.connect(target) as connection:
+            if drift == 'hidden_owner_session':
+                connection.execute('SET ROLE vnext_api')
+                connection.commit()
+            # Demonstrate that inherited 022 authority really permits the forbidden
+            # account write, then roll it back; this is not a mocked catalog check.
+            if drift == 'inherited_admin_executor':
+                connection.execute("UPDATE vnext_private.consumer_accounts SET platform_role='platform_admin' WHERE user_id=%s", (C,))
+                assert connection.execute('SELECT platform_role FROM vnext_private.consumer_accounts WHERE user_id=%s', (C,)).fetchone() == ('platform_admin',)
+                connection.rollback()
+            class Pool:
+                @contextmanager
+                def connection(self):
+                    yield connection
+            with pytest.raises(DatabasePrincipalContextError, match='database_request_role_unsafe'):
+                with DatabasePrincipalContext(Pool()).transaction(principal(C)):
+                    pytest.fail('Privileged consumer credential entered a request transaction')
+            assert connection.execute("SELECT nullif(current_setting('request.jwt.claim.sub',true),'')").fetchone() == (None,)
+    finally:
+        with psycopg.connect(database[0]) as setup:
+            if drift.endswith('admin_executor'):
+                setup.execute('REVOKE proptech_admin_executor FROM vnext_api')
+            elif drift == 'request_createrole':
+                setup.execute('ALTER ROLE vnext_api NOCREATEROLE')
+            elif drift == 'request_database_owner':
+                setup.execute(sql.SQL('ALTER DATABASE {} OWNER TO postgres').format(sql.Identifier(setup.info.dbname)))
+            elif drift.startswith('request_schema_'):
+                setup.execute('DROP SCHEMA pgx')
+
+
+def test_platform_admin_account_does_not_bypass_workspace_tenancy(database):
+    import psycopg
+    from psycopg.conninfo import make_conninfo
+    from services.vnext.accounts import AccountAuthorizer, PostgresAccountRepository
+    from services.vnext.authorization import PostgresWorkspaceMembershipRepository, WorkspaceAuthorizer
+    from services.vnext.db_principal import DatabasePrincipalContext
+
+    workspace = uuid4()
+    with psycopg.connect(database[0]) as setup:
+        setup.execute("INSERT INTO vnext_core.workspaces(workspace_id,workspace_type,display_name,created_by_user_id,personal_owner_user_id) VALUES(%s,'personal','Foreign workspace',%s,%s)", (workspace,B,B))
+        setup.execute("INSERT INTO vnext_core.workspace_members(workspace_id,user_id,role,status,joined_at) VALUES(%s,%s,'owner','active',clock_timestamp())", (workspace,B))
+    class Pool:
+        @contextmanager
+        def connection(self):
+            with psycopg.connect(make_conninfo(database[0],user='vnext_api')) as connection:
+                yield connection
+    context = DatabasePrincipalContext(Pool())
+    actor = principal()
+    assert AccountAuthorizer(PostgresAccountRepository(lambda: context)).require_platform_admin(actor).platform_role == 'platform_admin'
+    tenancy = WorkspaceAuthorizer(PostgresWorkspaceMembershipRepository(lambda: context))
+    with pytest.raises(VNextError) as failure:
+        tenancy.require_workspace_access(actor,workspace)
+    assert failure.value.status_code == 403
+    with context.transaction(actor) as connection:
+        assert connection.execute('SELECT workspace_id FROM vnext_core.workspaces WHERE workspace_id=%s',(workspace,)).fetchall() == []
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with connection.transaction():
+                connection.execute("INSERT INTO vnext_core.cases(workspace_id,purpose,title,created_by_user_id) VALUES(%s,'buy_due_diligence','Forbidden',%s)",(workspace,A))
+
+
 def test_dedicated_runtime_and_direct_dml_denials(database):
     import psycopg
     with psycopg.connect(database[1]) as conn:
@@ -307,7 +394,9 @@ def test_configured_dedicated_usage_never_silently_reads_a_shadow_policy(databas
     assert failure.value.status_code==503
 
 
-@pytest.mark.parametrize('drift',['runtime_function','executor_function','runtime_create','executor_create'])
+@pytest.mark.parametrize('drift',['runtime_function','executor_function','runtime_create','executor_create',
+                                 'runtime_pgx_create','executor_pgx_create',
+                                 'runtime_pgx_owner','executor_pgx_owner'])
 def test_function_ownership_and_schema_create_drift_are_rejected(database, drift):
     import psycopg
     with psycopg.connect(database[0]) as conn:
@@ -317,7 +406,13 @@ def test_function_ownership_and_schema_create_drift_are_rejected(database, drift
             conn.execute(f'ALTER FUNCTION admin_plane.test_drift() OWNER TO {owner}')
         else:
             owner='admin_test_login' if drift.startswith('runtime') else 'proptech_admin_executor'
-            conn.execute(f'GRANT CREATE ON SCHEMA public TO {owner}')
+            schema='pgx' if '_pgx_' in drift else 'public'
+            if schema == 'pgx':
+                conn.execute('CREATE SCHEMA pgx')
+            if drift.endswith('_owner'):
+                conn.execute(f'ALTER SCHEMA {schema} OWNER TO {owner}')
+            else:
+                conn.execute(f'GRANT CREATE ON SCHEMA {schema} TO {owner}')
     try:
         with psycopg.connect(database[1]) as conn:
             with pytest.raises(RuntimeError,match='Unsafe Admin database principal'):
@@ -327,4 +422,6 @@ def test_function_ownership_and_schema_create_drift_are_rejected(database, drift
             if drift.endswith('function'):
                 conn.execute('DROP FUNCTION admin_plane.test_drift()')
             else:
-                conn.execute(f'REVOKE CREATE ON SCHEMA public FROM {owner}')
+                conn.execute(f'REVOKE CREATE ON SCHEMA {schema} FROM {owner}')
+                if schema == 'pgx':
+                    conn.execute('DROP SCHEMA pgx')

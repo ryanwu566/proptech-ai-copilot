@@ -59,19 +59,30 @@ class DatabasePrincipalContext:
             or bypasses_rls
         ):
             raise DatabasePrincipalContextError("database_request_role_unsafe")
-        ownership = connection.execute(
-            "SELECT EXISTS ("
-            "SELECT 1 FROM pg_namespace namespace "
-            "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
-            "AND namespace.nspowner = (SELECT oid FROM pg_roles WHERE rolname = current_user) "
-            "UNION ALL "
-            "SELECT 1 FROM pg_class relation "
-            "JOIN pg_namespace namespace ON namespace.oid = relation.relnamespace "
-            "WHERE namespace.nspname IN ('vnext_core', 'vnext_private') "
-            "AND relation.relowner = (SELECT oid FROM pg_roles WHERE rolname = current_user)"
-            ")"
-        ).fetchone()
-        if ownership is None or bool(ownership[0]):
+        # The request credential is a direct login with no parent roles. In
+        # particular, 022's Admin executor privileges must not be inherited or
+        # reachable through SET ROLE. Reject all membership edges (including
+        # NOINHERIT / SET-only edges), so transitive privilege drift cannot hide
+        # behind an otherwise unprivileged current_user.
+        authority = connection.execute("""
+            SELECT EXISTS (
+              SELECT 1 FROM pg_roles r WHERE r.rolname=current_user AND (
+                current_user<>session_user OR NOT r.rolcanlogin
+                OR r.rolcreatedb OR r.rolcreaterole OR r.rolreplication
+                OR EXISTS(SELECT 1 FROM pg_auth_members m WHERE m.member=r.oid)
+                OR r.oid=(SELECT datdba FROM pg_database WHERE datname=current_database())
+                OR has_database_privilege(r.oid,current_database(),'CREATE')
+                OR EXISTS(SELECT 1 FROM pg_namespace n
+                    WHERE left(n.nspname,3)<>'pg_' AND n.nspname<>'information_schema'
+                    AND (n.nspowner=r.oid OR has_schema_privilege(r.oid,n.oid,'CREATE')))
+                OR EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+                    WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND c.relowner=r.oid)
+                OR EXISTS(SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+                    WHERE n.nspname NOT IN ('pg_catalog','information_schema') AND p.proowner=r.oid)
+              )
+            )
+        """).fetchone()
+        if authority is None or bool(authority[0]):
             raise DatabasePrincipalContextError("database_request_role_unsafe")
 
     @contextmanager
