@@ -1,12 +1,24 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
 import { adaptSavedCaseToWorkspace } from "../lib/workspace/legacy-case-adapter";
 import { scenarioContext } from "../lib/workspace/scenario-context";
 import { emptyDecisionRoom, decisionRoomKey } from "../lib/decision-room-store";
 const key = "proptech.savedCases.v1";
-async function seed(page: Page) {
-  await page.addInitScript(({ key, cases }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(cases)); }, { key, cases: [e9Case(), e9Case("case-b")] });
+async function seed(page: Page, cases = [e9Case(), e9Case("case-b")]) {
+  await page.addInitScript(({ key, cases }) => { if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify(cases)); }, { key, cases });
+}
+/** Answer-first order: headline, key facts, gaps and next action precede collapsed evidence and provenance. */
+async function expectAnswerFirst(answer: Locator) {
+  const order = await answer.evaluate(element => [...element.children].map(child => child.getAttribute("data-testid") ?? ""));
+  expect(order[0]).toBe("copilot-headline");
+  const at = (id: string) => order.indexOf(id);
+  for (const id of ["copilot-missing-preview", "copilot-evidence-ledger", "copilot-provenance"]) expect(at(id)).toBeGreaterThan(0);
+  if (at("copilot-key-facts") >= 0) expect(at("copilot-key-facts")).toBeLessThan(at("copilot-evidence-ledger"));
+  if (at("copilot-next-action") >= 0) expect(at("copilot-next-action")).toBeLessThan(at("copilot-evidence-ledger"));
+  expect(at("copilot-evidence-ledger")).toBeLessThan(at("copilot-provenance"));
+  await expect(answer.getByTestId("copilot-evidence-ledger")).not.toHaveAttribute("open", "");
+  await expect(answer.getByTestId("copilot-provenance")).not.toHaveAttribute("open", "");
 }
 async function watch(page: Page, baseURL: string) {
   const requests: string[] = [];
@@ -44,20 +56,35 @@ for (const width of [390, 430, 1024, 1440]) {
     await expect(panel.getByTestId("copilot-answer")).toHaveAttribute("data-answer-status", "partially_supported");
     await expect(panel).toHaveAttribute("data-response-duration-ms", /^\d/);
     expect(Number(await panel.getAttribute("data-response-duration-ms"))).toBeLessThan(2000);
-    await expect(panel.getByTestId("copilot-answer")).toContainText("24");
-    await expect(panel.getByTestId("copilot-answer")).toContainText("臺中車站");
+    const answer = panel.getByTestId("copilot-answer");
+    await expectAnswerFirst(answer);
+    await expect(answer.getByTestId("copilot-headline")).toContainText("開車至「臺中車站」需 24 分鐘");
+    await expect(answer).toContainText("這是已儲存路線，不代表目前路況。");
+    await expect(answer.getByTestId("copilot-key-facts").locator("li")).toHaveCount(2);
+    const next = answer.getByTestId("copilot-next-action").getByRole("link");
+    await expect(next).toHaveAttribute("href", "/cases/case-a/location");
+    await expect(next).toBeVisible();
+    expect(await next.evaluate(element => element.getBoundingClientRect().height)).toBeGreaterThanOrEqual(32);
     const citation = panel.locator('[data-citation-ref="case-a:commute-duration"]').first();
     const href = await citation.getAttribute("href"); expect(href).toBe("#copilot-0-commute-duration");
     await citation.click();
     const source = page.locator('[data-evidence-ref="case-a:commute-duration"]');
     await expect(source).toBeVisible(); await expect(source).toContainText("Google Routes");
+    await expect(source).toBeFocused();
+    // Re-reading unchanged evidence (e.g. a Scenario Lab save event) keeps earlier answers intact.
+    await page.evaluate(() => dispatchEvent(new Event("proptech:scenarios-changed")));
+    await expect(panel.getByTestId("copilot-answer")).toHaveAttribute("data-answer-status", "partially_supported");
+    await expect(answer.getByTestId("copilot-headline")).toContainText("24");
     await panel.getByRole("navigation", { name: "安全的後續問題" }).getByRole("button", { name: "還缺少哪些證據？" }).click();
     await expect(panel.getByTestId("copilot-answer")).toHaveCount(2);
     await expect(panel.getByTestId("copilot-answer").last().locator('[data-citation-ref="case-a:market-total"]')).toHaveCount(0);
-    await expect(panel.getByTestId("copilot-answer").last().locator('[data-citation-ref="case-a:commute-duration"]')).toHaveCount(1);
-    for (const [locale, title, saved] of [["en", "Property decision Copilot", "Saved evidence"], ["ja", "物件判断 Copilot", "保存済み根拠"], ["ko", "부동산 의사결정 Copilot", "저장된 근거"], ["zh-TW", "物件決策 Copilot", "已儲存證據"]]) {
+    // The follow-up keeps the commute context: exactly one ledger entry for the commute duration.
+    await expect(panel.getByTestId("copilot-answer").last().getByTestId("copilot-evidence-ledger").locator('[data-citation-ref="case-a:commute-duration"]')).toHaveCount(1);
+    for (const [locale, title, saved, headline, keyFacts] of [["en", "Property decision Copilot", "Saved evidence", "The saved route to “臺中車站” is 24 min by car.", "Key facts"], ["ja", "物件判断 Copilot", "保存済み根拠", "保存済みの経路：「臺中車站」まで車で 24分。", "主要な事実"], ["ko", "부동산 의사결정 Copilot", "저장된 근거", "저장된 경로: “臺中車站”까지 자동차로 24분.", "핵심 사실"], ["zh-TW", "物件決策 Copilot", "已儲存證據", "已儲存路線：開車至「臺中車站」需 24 分鐘。", "關鍵事實"]]) {
       await page.getByTestId("locale-switcher").selectOption(locale);
       await expect(panel.getByRole("heading", { name: title, exact: true })).toBeVisible();
+      await expect(panel.getByTestId("copilot-headline").first()).toContainText(headline);
+      await expect(panel.getByTestId("copilot-key-facts").first().getByRole("heading", { name: keyFacts })).toBeVisible();
       await expect(panel.getByTestId("copilot-context")).toContainText(saved);
       await expect(panel.getByTestId("copilot-answer")).toHaveCount(2);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -77,6 +104,10 @@ test("missing evidence, injection, case switches and snapshot changes discard ol
   await panel.getByRole("button", { name: "詢問", exact: true }).click();
   await expect(panel.getByTestId("copilot-answer")).toHaveAttribute("data-answer-status", "insufficient_evidence");
   await expect(panel.getByTestId("copilot-answer")).not.toContainText("residential");
+  // Unsupported legal questions are answered explicitly, with no facts and gaps open by default.
+  await expect(panel.getByTestId("copilot-headline")).toContainText("已儲存證據無法回答地籍、分區或權利問題");
+  await expect(panel.getByTestId("copilot-key-facts")).toHaveCount(0);
+  await expect(panel.getByTestId("copilot-missing-all")).toHaveAttribute("open", "");
   await page.evaluate(key => {
     const cases = JSON.parse(localStorage.getItem(key)!); cases[0].updatedAt = "2026-10-16T03:00:00Z";
     cases[0].data.journeyContext.propertyContext.addressSummary = "different property";
@@ -125,6 +156,13 @@ test("saved Scenario Lab and conflicting Decision Room evidence stay bounded and
   const last = panel.getByTestId("copilot-answer").last();
   await expect(last).toHaveAttribute("data-answer-status", "conflicting_evidence");
   await expect(last).toContainText("2,480"); await expect(last).toContainText("2,600");
+  // Conflict produces no winner: both observations are cited facts and no band position is claimed.
+  await expect(last).toHaveAttribute("data-headline-kind", "conflict_price");
+  await expect(last.getByTestId("copilot-key-facts").locator("li")).toHaveCount(2);
+  await expect(last.getByTestId("copilot-key-facts").locator('[data-citation-ref="case-a:price-asking"]')).toHaveCount(1);
+  await expect(last.getByTestId("copilot-key-facts").locator('[data-citation-ref="case-a:room-asking"]')).toHaveCount(1);
+  await expect(last.locator('[data-fact-kind="asking_unit"], [data-fact-kind="market_band"]')).toHaveCount(0);
+  await expect(last.getByTestId("copilot-next-action").getByRole("link")).toHaveAttribute("href", "/cases/case-a/decision-room");
   await expect(panel).not.toContainText("use an admin token");
   expect(requests).toEqual([]);
 });
@@ -142,5 +180,46 @@ test("conversation code and context load only on explicit entry", async ({ page,
   await button.focus(); await page.keyboard.press("Space");
   await expect(page.getByTestId("copilot-conversation")).toBeVisible();
   expect((await Promise.all(scripts)).join("\n").includes("explicit_selection_required")).toBe(true);
+  expect(requests).toEqual([]);
+});
+
+test("market answers compare the derived asking unit price with the saved P25–P75 band only when supported", async ({ page, baseURL }) => {
+  await seed(page); const requests = await watch(page, baseURL!); await open(page);
+  const panel = page.getByTestId("copilot-conversation");
+  await panel.getByRole("navigation", { name: "建議問題" }).getByRole("button", { name: "市場證據", exact: true }).click();
+  const answer = panel.getByTestId("copilot-answer");
+  await expectAnswerFirst(answer);
+  await expect(answer).toHaveAttribute("data-headline-kind", "market_band");
+  await expect(answer.getByTestId("copilot-headline")).toContainText("82.7 萬／坪");
+  await expect(answer.getByTestId("copilot-headline")).toContainText("高於已儲存市場單價 P25–P75 區間（49.8–55.6 萬／坪）");
+  await expect(answer).toContainText("不是估價");
+  for (const ref of ["price-asking", "property-area", "market-p25", "market-p75"]) await expect(answer.getByTestId("copilot-headline").locator(`[data-citation-ref="case-a:${ref}"]`)).toHaveCount(1);
+  const derived = answer.locator('[data-fact-kind="asking_unit"]');
+  await expect(derived).toHaveAttribute("data-fact-origin", "derived");
+  await expect(derived).toContainText("推導值");
+  await expect(answer).not.toContainText("TWD × 10,000");
+  await answer.getByTestId("copilot-headline").locator('[data-citation-ref="case-a:market-p75"]').click();
+  await expect(answer.getByTestId("copilot-provenance")).toHaveAttribute("open", "");
+  await expect(page.locator('[data-evidence-ref="case-a:market-p75"]')).toBeVisible();
+  await page.getByTestId("locale-switcher").selectOption("en");
+  await expect(answer.getByTestId("copilot-headline")).toContainText("The derived asking unit price (NT$826.7K / ping) is above the saved market P25–P75 band");
+  await expect(answer).not.toContainText(/fair value|overpriced|good deal|\bbuy\b/i);
+  expect(requests).toEqual([]);
+});
+
+test("missing P75 blocks the band claim and keeps the gap visible", async ({ page, baseURL }) => {
+  const incomplete = e9Case(); (incomplete.data as unknown as { marketInsight: { p75_unit_price_per_ping: number | null } }).marketInsight.p75_unit_price_per_ping = null;
+  await seed(page, [incomplete, e9Case("case-b")]); const requests = await watch(page, baseURL!); await open(page);
+  const panel = page.getByTestId("copilot-conversation");
+  await panel.getByRole("navigation", { name: "建議問題" }).getByRole("button", { name: "市場證據", exact: true }).click();
+  const answer = panel.getByTestId("copilot-answer");
+  await expect(answer).toHaveAttribute("data-answer-status", "partially_supported");
+  await expect(answer).not.toHaveAttribute("data-headline-kind", "market_band");
+  await expect(answer.locator('[data-fact-kind="market_band"]')).toHaveCount(0);
+  await expect(answer.getByTestId("copilot-headline")).not.toContainText("P25–P75");
+  await expect(answer).toHaveAttribute("data-headline-kind", "partial");
+  await expect(answer.getByTestId("copilot-headline")).not.toContainText("中位數");
+  await expect(answer.getByTestId("copilot-missing-preview")).toContainText("市場單價分布 P75");
+  await expect(answer.getByTestId("copilot-next-action").getByRole("link")).toHaveAttribute("href", "/cases/case-a/market");
   expect(requests).toEqual([]);
 });
