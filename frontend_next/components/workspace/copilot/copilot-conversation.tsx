@@ -1,11 +1,13 @@
 "use client";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { useWorkspace } from "../workspace-provider";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { createBrowserDecisionRoomRepository } from "@/lib/decision-room-store";
 import { SCENARIO_STORAGE_KEY } from "@/lib/workspace/scenario-model";
 import { assembleCopilotContext, answerQuestion, createResponseGate, type CopilotAnswer, type CopilotContext, type CopilotEvidence, type CopilotTopic } from "@/lib/workspace/grounded-copilot";
 import { copilotCopy, copilotTopicLabel, copilotStatusLabel, copilotEvidenceLabel } from "@/lib/workspace/copilot-copy";
+import { composeAnswer, type KeyFact } from "@/lib/workspace/copilot-compose";
+import { answerCopy, answerText, formatQuantity, formatRange, headlineText, nextActionLabel, originLabel, travelMode } from "@/lib/workspace/copilot-answer-copy";
 import styles from "./copilot.module.css";
 
 export function CopilotConversation() {
@@ -16,7 +18,9 @@ export function CopilotConversation() {
     function read() {
       let scenarioRaw: string | null = null;
       try { scenarioRaw = localStorage.getItem(`${SCENARIO_STORAGE_KEY}:${workspace.caseId}`); } catch { /* Missing evidence stays missing. */ }
-      setSnapshot({ workspace, context: assembleCopilotContext(workspace, { scenarioRaw, roomRead: repository.read(workspace.caseId) }) });
+      const context = assembleCopilotContext(workspace, { scenarioRaw, roomRead: repository.read(workspace.caseId) });
+      // An unchanged evidence key keeps the same context object, so earlier answers still cite its own rows.
+      setSnapshot(previous => previous && previous.workspace === workspace && previous.context.key === context.key ? previous : { workspace, context });
     }
     read();
     const stop = repository.subscribe(workspace.caseId, read);
@@ -59,7 +63,7 @@ function Conversation({ context }: { context: CopilotContext }) {
       {(["market", "finance", "commute", "risk", "scenario", "decision"] as const).map(topic => <button className="ds-button ds-button--secondary ds-button--compact" disabled={pending} key={topic} onClick={() => askTopic(topic)}>{copilotTopicLabel(topic, locale)}</button>)}
     </nav>
     <div role="log" aria-live="polite" aria-relevant="additions" className={styles.turns}>
-      {turns.map((turn, i) => <article key={i} className={styles.turn} data-testid="copilot-turn"><p className={styles.question}>{turn.question}</p><Answer answer={turn.answer} index={i} pending={pending} onFollowup={(value) => void ask(value)} /></article>)}
+      {turns.map((turn, i) => <article key={i} className={styles.turn} data-testid="copilot-turn"><p className={styles.question}>{turn.question}</p><Answer answer={turn.answer} context={context} index={i} pending={pending} onFollowup={(value) => void ask(value)} /></article>)}
     </div>
     <form onSubmit={submit} className={styles.form} aria-busy={pending}>
       <label htmlFor="copilot-question">{c.question}</label>
@@ -70,34 +74,81 @@ function Conversation({ context }: { context: CopilotContext }) {
   </section>;
 }
 
-function Answer({ answer, index, pending, onFollowup }: { answer: CopilotAnswer; index: number; pending: boolean; onFollowup: (question: string) => void }) {
-  const { locale } = useExperienceLocale(); const c = copilotCopy(locale);
+/** Answer first: headline, cited key facts, gaps, one next action, follow-ups, then collapsed evidence and provenance. */
+function Answer({ answer, context, index, pending, onFollowup }: { answer: CopilotAnswer; context: CopilotContext; index: number; pending: boolean; onFollowup: (question: string) => void }) {
+  const { locale } = useExperienceLocale(); const c = copilotCopy(locale); const a = answerCopy(locale);
+  const view = useMemo(() => composeAnswer(answer, context), [answer, context]);
   const limitation = (value: string) => value === "user_record" ? c.decisionNote : ["known_subtotal", "scenario_assumptions"].includes(value) ? c.scenarioNote : value || c.boundary;
   const source = (row: CopilotEvidence) => row.source === "scenarios" || row.source === "decision-room" ? copilotTopicLabel(row.topic, locale) : row.source;
-  return <div data-testid="copilot-answer" data-answer-status={answer.status}>
-    <strong className={styles.status}>{copilotStatusLabel(answer.status, locale)}</strong>
-    <p>{answer.conflicts.length ? c.conflict : answer.used.length ? c.partial : c.empty}</p>
-    {answer.insights.map(insight => <p key={insight.kind}>{insight.kind === "asking_vs_market" ? c.difference : c.housing}: <strong>{new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(insight.kind === "asking_vs_market" ? insight.values.differenceWan : insight.values.monthlyTwd)}</strong> {insight.refs.map(ref => { const position = answer.used.findIndex(item => item.ref === ref); const row = answer.used[position]; return <a key={ref} href={`#copilot-${index}-${encodeURIComponent(row.id)}`}>[{position + 1}] </a>; })}</p>)}
-    {answer.topics.includes("market") && <p>{c.marketNote}</p>}
-    {answer.topics.includes("finance") && <p>{c.financeNote}</p>}
-    {answer.topics.includes("commute") && <p>{c.commuteNote}</p>}
-    {answer.topics.includes("scenario") && <p>{c.scenarioNote}</p>}
-    {answer.topics.includes("decision") && <p>{c.decisionNote}</p>}
-    <p className={styles.muted}>{c.numeric}</p>
-    <h3>{c.used}</h3>
-    {!answer.used.length && <p>{c.empty}</p>}
-    <ul className={styles.used}>{answer.used.map((row, position) => <li key={row.ref}><a href={`#copilot-${index}-${encodeURIComponent(row.id)}`} data-citation-ref={row.ref}>[{position + 1}] {copilotEvidenceLabel(row.id, row.label, locale)}</a>: <EvidenceValue row={row} /><span className={styles.chip}>{c.saved}</span><span className={styles.chip}>{source(row)}</span></li>)}</ul>
-    <details open={!answer.used.length}><summary>{c.missing} ({answer.missing.length})</summary><ul className={styles.evidence}>{answer.missing.map(row => <li key={row.ref}><a href={row.href}>{copilotEvidenceLabel(row.id, row.label, locale)}</a> · {copilotStatusLabel(row.status, locale)}<p>{c.unknown}</p><p>{row.limitation}</p></li>)}</ul></details>
-    <details><summary>{c.provenance}</summary><ul className={styles.evidence}>{answer.used.map(row => <li id={`copilot-${index}-${encodeURIComponent(row.id)}`} key={row.ref} data-evidence-ref={row.ref} tabIndex={-1}>
+  const anchor = (row: CopilotEvidence) => `copilot-${index}-${encodeURIComponent(row.id)}`;
+  // Only references the composed presentation authorized are rendered as citations or evidence.
+  const used = answer.used.filter(row => view.fullEvidenceRefs.includes(row.ref));
+  const missing = view.fullEvidenceRefs.length || view.missingTotal ? answer.missing : [];
+  const rowFor = (ref: string) => used.find(row => row.ref === ref);
+  const cite = (refs: string[]) => refs.map(ref => {
+    const row = rowFor(ref); if (!row) return null;
+    const n = used.indexOf(row) + 1;
+    return <a key={ref} className={styles.cite} href={`#${anchor(row)}`} data-citation-ref={row.ref} aria-label={answerText(a.citation, { n })}>[{n}]</a>;
+  });
+  const headline = headlineText(view.headline, locale);
+  const action = nextActionLabel(view.nextAction.kind, locale);
+  const notes = ([["market", c.marketNote], ["finance", c.financeNote], ["commute", c.commuteNote], ["scenario", c.scenarioNote], ["decision", c.decisionNote]] as const).filter(([topic]) => answer.topics.includes(topic)).map(([, note]) => note);
+  /** A citation opens the collapsed provenance it points to; fragment navigation then scrolls and focus follows. */
+  function reveal(event: MouseEvent<HTMLDivElement>) {
+    const link = (event.target as HTMLElement).closest<HTMLAnchorElement>("a[data-citation-ref]");
+    // Anchor ids are built from encoded evidence ids, so the raw hash is the id.
+    const target = link ? document.getElementById(link.getAttribute("href")!.slice(1)) : null;
+    if (!target) return;
+    for (let node = target.parentElement; node; node = node.parentElement) if (node instanceof HTMLDetailsElement) node.open = true;
+    requestAnimationFrame(() => target.focus());
+  }
+  function factLabel(fact: KeyFact) {
+    if (fact.kind === "asking_unit") return a.askingUnit;
+    if (fact.kind === "market_band") return a.savedBand;
+    if (fact.kind === "commute") return a.savedRoute;
+    const row = rowFor(fact.refs[0]);
+    return row ? copilotEvidenceLabel(row.id, row.label, locale) : c.unknown;
+  }
+  function factValue(fact: KeyFact) {
+    if (fact.band) return formatRange(fact.band.low, fact.band.high, fact.band.unit, locale);
+    if (fact.kind === "commute" && typeof fact.value === "number") return [formatQuantity(fact.value, fact.unit, locale), fact.context[0], travelMode(fact.context[1], locale)].join(" · ");
+    if (fact.kind === "risk") return copilotStatusLabel(fact.states[0], locale);
+    if (typeof fact.value === "number") return formatQuantity(fact.value, fact.unit, locale);
+    return fact.value ?? c.unknown;
+  }
+  return <div data-testid="copilot-answer" data-answer-status={view.status} data-headline-kind={view.headline.kind} className={styles.answer} onClick={reveal}>
+    <p className={styles.headline} data-testid="copilot-headline"><strong className={styles.status}>{copilotStatusLabel(view.status, locale)}</strong> <span>{headline.text}</span> {cite(view.headline.refs)}</p>
+    {headline.note && <p className={styles.note}>{headline.note}</p>}
+    {view.headline.qualified && <p className={styles.muted}>{a.qualified}</p>}
+    {view.keyFacts.length > 0 && <section aria-label={a.keyFacts} data-testid="copilot-key-facts"><h3>{a.keyFacts}</h3><ul className={styles.facts}>{view.keyFacts.map(fact => <li key={fact.refs.join("|")} data-fact-kind={fact.kind} data-fact-origin={fact.origin}>
+      <span className={styles.factLabel}>{factLabel(fact)}</span>
+      <span className={styles.value}>{factValue(fact)}</span>
+      <span className={styles.factMeta}><span className={styles.chip}>{originLabel(fact.origin, locale)}</span>{fact.origin === "derived" && <span className={styles.muted}>{a.derivedFrom}</span>}{cite(fact.refs)}</span>
+    </li>)}</ul></section>}
+    {notes.length <= 2 ? notes.map(note => <p key={note} className={styles.muted}>{note}</p>)
+      : view.keyFacts.some(fact => fact.kind === "monthly_housing") && <p className={styles.muted}>{c.financeNote}</p>}
+    <section aria-label={a.missing} data-testid="copilot-missing-preview"><h3>{a.missing}</h3>
+      {view.missingItems.length ? <ul className={styles.missing}>{view.missingItems.map(item => { const row = missing.find(entry => entry.ref === item.ref); return row && <li key={item.ref}><a href={item.href}>{copilotEvidenceLabel(row.id, row.label, locale)}</a> · <span>{copilotStatusLabel(item.status, locale)}</span></li>; })}</ul> : !view.missingTotal && <p className={styles.muted}>{a.noMissing}</p>}
+      {view.missingTotal > view.missingItems.length && <p className={styles.muted}>{answerText(a.moreMissing, { count: view.missingTotal - view.missingItems.length })}</p>}
+    </section>
+    {action && view.nextAction.href && <section aria-label={a.nextAction} data-testid="copilot-next-action" className={styles.next}><h3>{a.nextAction}</h3><a className="ds-button ds-button--secondary ds-button--compact" href={view.nextAction.href} data-next-action={view.nextAction.kind}>{action}</a><p className={styles.muted}>{a.nextActionNote}</p></section>}
+    <nav className={styles.actions} aria-label={c.followup}><button className="ds-button ds-button--secondary ds-button--compact" disabled={pending} onClick={() => onFollowup(c.nextMissing)}>{c.nextMissing}</button>{view.followups.map(topic => <button className="ds-button ds-button--secondary ds-button--compact" disabled={pending} key={topic} onClick={() => onFollowup(copilotTopicLabel(topic, locale))}>{copilotTopicLabel(topic, locale)}</button>)}</nav>
+    <details open={view.openMissing} data-testid="copilot-missing-all"><summary>{answerText(a.viewAllMissing, { count: missing.length })}</summary>{!used.length && <p>{c.empty}</p>}<ul className={styles.evidence}>{missing.map(row => <li key={row.ref}><a href={row.href}>{copilotEvidenceLabel(row.id, row.label, locale)}</a> · {copilotStatusLabel(row.status, locale)}<p>{c.unknown}</p><p>{row.limitation}</p></li>)}</ul></details>
+    <details data-testid="copilot-evidence-ledger"><summary>{answerText(a.fullEvidence, { count: used.length })}</summary>
+      {answer.conflicts.length > 0 && <p>{c.conflict}</p>}
+      {notes.length > 2 && notes.map(note => <p key={note} className={styles.muted}>{note}</p>)}
+      <p className={styles.muted}>{c.numeric}</p>
+      {!used.length && <p>{c.empty}</p>}
+      <ul className={styles.used}>{used.map((row, position) => <li key={row.ref}><a href={`#${anchor(row)}`} data-citation-ref={row.ref}>[{position + 1}] {copilotEvidenceLabel(row.id, row.label, locale)}</a>: <EvidenceValue row={row} /><span className={styles.chip}>{c.saved}</span><span className={styles.chip}>{source(row)}</span></li>)}</ul>
+    </details>
+    <details data-testid="copilot-provenance"><summary>{answerText(a.provenance, { count: used.length })}</summary><p className={styles.muted}>{c.provenance}</p><ul className={styles.evidence}>{used.map(row => <li id={anchor(row)} key={row.ref} data-evidence-ref={row.ref} tabIndex={-1}>
       <strong>{copilotEvidenceLabel(row.id, row.label, locale)}</strong> · <EvidenceValue row={row} />
       <p className={styles.chips}><span>{source(row)}</span><span>{c.saved}</span><span>{copilotStatusLabel(row.status, locale)}</span></p>
       <p>{row.checkedAt || c.unknown} / {row.updatedAt || c.unknown}</p><p>{c.limitation}: {limitation(row.limitation)}</p><a href={row.href}>{c.inspect}</a>
     </li>)}</ul></details>
-    <nav className={styles.actions} aria-label={c.followup}><button className="ds-button ds-button--secondary ds-button--compact" disabled={pending} onClick={() => onFollowup(c.nextMissing)}>{c.nextMissing}</button>{answer.followups.map(topic => <button className="ds-button ds-button--secondary ds-button--compact" disabled={pending} key={topic} onClick={() => onFollowup(copilotTopicLabel(topic, locale))}>{copilotTopicLabel(topic, locale)}</button>)}</nav>
   </div>;
 }
 function EvidenceValue({ row }: { row: CopilotEvidence }) {
   const { locale } = useExperienceLocale();
-  const unit = ({ "萬元": "TWD × 10,000", "萬元／坪": "TWD × 10,000 / ping", "元／月": "TWD / month", "分鐘": "min", "公尺": "m", "年": "year", "坪": "ping" } as Record<string, string>)[row.unit] ?? row.unit;
-  return <span className={styles.value}>{typeof row.value === "number" ? new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(row.value) : row.value} {unit}</span>;
+  return <span className={styles.value}>{typeof row.value === "number" ? formatQuantity(row.value, row.unit, locale) : row.value}</span>;
 }

@@ -13,12 +13,27 @@
 .turn { padding: 1rem 0; border-top: 1px solid #cbd5e1; }
 .question { padding: .75rem; border-radius: .5rem; background: #eaf1f5; font-weight: 600; white-space: pre-wrap; }
 .status { display: inline-block; padding: .2rem .6rem; border-radius: .25rem; background: #fff2d4; }
+.answer { display: grid; gap: .25rem; min-width: 0; }
+.answer h3 { font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: #52616b; margin-top: .9rem; }
+.panel .headline { font-size: 1.125rem; font-weight: 600; line-height: 1.55; margin: .4rem 0 .2rem; }
+.panel .note { margin: 0 0 .25rem; color: #33454f; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: .6rem; padding: 0; margin: .4rem 0; list-style: none; }
+.facts li { display: grid; gap: .2rem; align-content: start; padding: .7rem .8rem; border: 1px solid #d5e2e4; border-radius: .5rem; background: #f8fbfb; min-width: 0; }
+.factLabel { font-size: .8rem; color: #52616b; }
+.facts .value { font-size: 1.05rem; }
+.factMeta { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem; font-size: .8rem; }
+.factMeta .chip { margin: 0; }
+.panel .cite { display: inline-flex; align-items: center; justify-content: center; min-width: 2rem; min-height: 2rem; padding: 0 .2rem; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.missing { padding-left: 1.25rem; margin: .3rem 0; }
+.missing li { margin: .35rem 0; }
+.next { display: grid; gap: .35rem; justify-items: start; }
+.next .ds-button, .next a { max-width: 100%; white-space: normal; text-align: start; }
 .used, .evidence { padding-left: 1.25rem; }
 .used li, .evidence li { margin: .65rem 0; }
 .panel a { color: #175d69; text-decoration: underline; text-underline-offset: .2em; }
 .value { font-variant-numeric: tabular-nums; font-weight: 600; }
 .panel details { margin: 1rem 0; padding: .75rem; border: 1px solid #cbd5e1; border-radius: .5rem; }
-.panel summary { cursor: pointer; font-weight: 600; }
+.panel summary { cursor: pointer; font-weight: 600; padding: .55rem 0; }
 .form { display: grid; gap: .6rem; margin-top: 1rem; }
 .form label { font-weight: 600; }
 .form textarea { width: 100%; min-width: 0; border: 1px solid #94a3b8; border-radius: .5rem; padding: .75rem; font: inherit; background: #fff; color: #172c37; }

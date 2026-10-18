@@ -27,7 +27,7 @@ export type CopilotAnswer = {
   contextKey: string; topics: CopilotTopic[]; status: AnswerStatus;
   used: CopilotEvidence[]; missing: CopilotEvidence[];
   conflicts: CopilotContext["conflicts"]; followups: CopilotTopic[];
-  insights: Array<{ kind: "asking_vs_market" | "known_housing"; refs: string[]; values: Record<string, number> }>;
+  insights: Array<{ kind: "asking_vs_market" | "asking_unit_vs_band" | "known_housing"; refs: string[]; values: Record<string, number> }>;
   failure?: "invalid_responder_output";
 };
 const summaryTopics: CopilotTopic[] = ["identity", "market", "valuation", "finance", "location", "commute", "risk", "scenario", "decision"];
@@ -117,7 +117,9 @@ export function answerQuestion(context: CopilotContext, question: string, previo
   if (topics.includes("legal")) topics = ["legal"];
   else if (topics.includes("current")) topics = ["current"];
   const conflicts = context.conflicts.filter((kind) => kind === "identity" || topics.includes("market") || topics.includes("decision"));
-  const selected = context.evidence.filter((row) => topics.includes(row.topic) || conflicts.includes("asking_price") && ["price-asking", "room-asking"].includes(row.id));
+  // The saved area is an overview field, but it is a cited input to market unit-price arithmetic.
+  const supporting = topics.includes("market") ? ["property-area"] : [];
+  const selected = context.evidence.filter((row) => topics.includes(row.topic) || supporting.includes(row.id) || conflicts.includes("asking_price") && ["price-asking", "room-asking"].includes(row.id));
   const used = selected.filter(usable);
   const missing = selected.filter((row) => !usable(row));
   const status: AnswerStatus = conflicts.length ? "conflicting_evidence" : !used.length ? "insufficient_evidence" : missing.length || used.some((row) => row.status !== "available" || row.limitation) ? "partially_supported" : "supported";
@@ -125,6 +127,16 @@ export function answerQuestion(context: CopilotContext, question: string, previo
   const asking = used.find(row => row.id === "price-asking");
   const median = used.find(row => row.id === "market-total");
   if (!conflicts.length && typeof asking?.value === "number" && typeof median?.value === "number" && median.value > 0) insights.push({ kind: "asking_vs_market", refs: [asking.ref, median.ref], values: { differenceWan: asking.value - median.value } });
+  // Like-for-like: derived asking unit price against the saved observed P25–P75 unit-price band.
+  // Every input must be usable and unit-compatible; position uses the unrounded quotient.
+  const area = used.find(row => row.id === "property-area");
+  const p25 = used.find(row => row.id === "market-p25");
+  const p75 = used.find(row => row.id === "market-p75");
+  if (!conflicts.length && typeof asking?.value === "number" && typeof area?.value === "number" && area.value > 0 && typeof p25?.value === "number" && typeof p75?.value === "number"
+    && p25.value <= p75.value && p25.unit === p75.unit && p25.unit === `${asking.unit}／${area.unit}`) {
+    const unitWan = asking.value / area.value;
+    insights.push({ kind: "asking_unit_vs_band", refs: [asking.ref, area.ref, p25.ref, p75.ref], values: { askingUnitWan: unitWan, p25Wan: p25.value, p75Wan: p75.value, position: unitWan < p25.value ? -1 : unitWan > p75.value ? 1 : 0 } });
+  }
   const housing = used.find(row => row.id === "finance-housing");
   if (!conflicts.length && typeof housing?.value === "number") insights.push({ kind: "known_housing", refs: [housing.ref], values: { monthlyTwd: housing.value } });
   return { contextKey: context.key, topics, status, used, missing, conflicts, insights, followups: [...new Set<CopilotTopic>([...topics.filter((topic) => summaryTopics.includes(topic)), "risk", "finance", "decision"])].slice(0, 4) };
