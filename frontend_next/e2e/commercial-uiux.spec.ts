@@ -152,9 +152,11 @@ for (const width of [1440, 1024, 390]) {
     await page.emulateMedia({ media: "print" });
     await expect(page.locator(".commercial-global-header")).toBeHidden();
     await expect(page.getByTestId("report-evidence")).toBeVisible();
-    // Nine numbered report sections plus Wave 5's peer-level citation register.
+    // Peer-level executive summary, nine numbered detailed report sections, and
+    // Wave 5's peer-level citation register.
     // Named sections catch omissions/duplicates without freezing an old count.
     await expect(page.getByTestId("report-evidence").getByRole("heading", { level: 2 })).toHaveText([
+      "重點摘要",
       "1. 物件脈絡", "2. 證據摘要", "3. 價格與市場", "4. 區位與通勤",
       "5. 風險與環境", "6. 資金與持有成本", "7. 未知與限制",
       "8. 下一步查證", "9. 來源、日期與方法", "來源引用",
