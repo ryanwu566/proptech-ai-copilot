@@ -42,6 +42,20 @@
 .report { max-width: 1000px; background: var(--surface-primary); margin-block: var(--space-6); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); }
 .reportEvidence { display: grid; gap: var(--space-6); }
 .reportTable th { width: 32%; }
+/* Page-one executive summary: one bordered block, stacked lists, no dense grid. */
+.executive { display: grid; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); background: var(--surface-secondary); min-width: 0; }
+.executive section { min-width: 0; }
+.executive h3 { margin: 0 0 var(--space-2); }
+.executiveContext { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--space-4); }
+.page .executiveNumbers, .page .executiveList { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.page .executiveNumbers { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.executiveNumbers > li, .executiveList > li { margin: 0; padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); background: var(--surface-primary); min-width: 0; }
+.executiveNumbers strong[data-numeric] { display: block; font-size: var(--text-subsection-size); text-align: left; }
+.executiveLabel { display: block; font-weight: 600; }
+.executiveNumbers .tag { margin-left: 0; }
+.executiveRefs { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); font-size: var(--text-meta-size); }
+.executiveRefs a, .executive li a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; text-decoration: underline; }
+.executive a:focus-visible, .reportEvidence :global(#report-limits):focus-visible { outline: 3px solid var(--accent-primary, #2563eb); outline-offset: 2px; }
 .pairControls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 .pairControls label { min-width: 0; }
 .pairControls label:last-child { grid-column: 1/-1; }
@@ -62,6 +76,7 @@
   .keyCells { display: grid; }
   .reportTable :is(th, td) { padding: var(--space-2); }
   .report { margin-block: 0; border: 0; border-radius: 0; }
+  .executive { padding: var(--space-3); }
 }
 @media (min-width: 768px) and (max-width: 1199px) { .page { padding: var(--space-6); } }
 @page { size: A4 portrait; margin: 15mm; }
@@ -99,6 +114,27 @@
   .page :is(h1, h2, h3, h4) { break-after: avoid; }
   .page a { color: #111; }
   .gaps a { min-height: 0; }
+  /* Executive summary leads page one; detail flows on without a forced break so an
+     overflowing summary never leaves a mostly blank sheet. */
+  .executive { display: block; padding: 0 0 3mm; border: 0; border-bottom: 1.5pt solid #111; background: #fff; margin: 0 0 4mm; }
+  .executive section { margin: 0 0 2mm; }
+  .executive h3 { margin: 0 0 1mm; }
+  .executive p { margin: .5mm 0; }
+  .executiveContext { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
+  .page .executiveNumbers { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 6mm; }
+  .page .executiveList { display: block; }
+  .executiveNumbers > li, .executiveList > li { padding: 0 0 .8mm; margin: 0 0 .8mm; border: 0; border-bottom: 1px solid #aaa; border-radius: 0; background: #fff; break-inside: avoid; }
+  .executiveNumbers strong[data-numeric] { display: inline; font-size: 11pt; margin-right: 2mm; }
+  .executiveRefs { display: block; font-size: 9pt; }
+  .executiveList > li > p:first-child { display: inline; }
+  .executiveList > li > .executiveRefs { display: inline; margin-left: 2mm; }
+  .executiveRefs a, .executive li a { display: inline; min-height: 0; min-width: 0; }
+  /* The numbered reference list prints each full ID; page one keeps only the [n] marker. */
+  .executive [data-citation-id] > span { display: none; }
+  /* Value and its state share one line; the full provenance ledger still prints below. */
+  .reportTable .value { display: block; }
+  .reportTable .value > strong, .reportTable .value > :global(.ds-status) { display: inline; margin-right: 2mm; }
+  .reportTable :is(th, td) { padding: 1.5mm 2mm; }
   .page[data-print-blocked="true"] .reportEvidence { display: none !important; }
   .page[data-print-blocked="true"] .printBlocked { display: block; }
 }
