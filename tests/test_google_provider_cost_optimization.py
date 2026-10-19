@@ -309,11 +309,11 @@ def test_places_cache_preserves_observation_time_and_evicts_expires(monkeypatch)
     assert calls.calls == 5
 
 
-def test_places_field_mask_matches_existing_ui_evidence_consumers():
+def test_places_field_mask_is_minimal_for_property_analysis():
     calls = PhysicalCalls({"places": []})
     GooglePlacesAdapter(api_key="test", client=calls).nearby(*ORIGIN, 800, "food")
     fields = set(calls.headers["X-Goog-FieldMask"].split(","))
-    assert fields == {"places.id", "places.displayName", "places.location", "places.formattedAddress", "places.rating", "places.userRatingCount", "places.businessStatus", "places.currentOpeningHours.openNow", "places.regularOpeningHours.periods", "places.types"}
+    assert fields == {"places.id", "places.displayName", "places.location", "places.types"}
 
 
 def test_routes_cache_expiry_eviction_and_observation_time(monkeypatch):

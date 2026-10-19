@@ -16,17 +16,13 @@ from services.anti_abuse import ensure_enabled, provider_operation
 
 
 PLACES_URL = "https://places.googleapis.com/v1/places:searchNearby"
+# Property evidence needs identity/deduplication, name/type validation, and
+# distance only. Keep legacy ratings/hours enrichment out of this shared path.
 FIELD_MASK = ",".join(
     [
         "places.id",
         "places.displayName",
         "places.location",
-        "places.formattedAddress",
-        "places.rating",
-        "places.userRatingCount",
-        "places.businessStatus",
-        "places.currentOpeningHours.openNow",
-        "places.regularOpeningHours.periods",
         "places.types",
     ]
 )
