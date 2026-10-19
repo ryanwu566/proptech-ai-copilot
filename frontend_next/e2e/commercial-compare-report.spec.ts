@@ -301,7 +301,7 @@ test("report leads with a cited executive summary before domain detail, provider
   await page.goto("/cases/case-a/report");
   const executive = page.getByTestId("report-executive");
   await expect(executive.getByRole("heading", { level: 2, name: "重點摘要" })).toBeVisible();
-  const firstDomain = page.getByTestId("report-evidence").getByRole("heading", { level: 2, name: "1. 物件脈絡" });
+  const firstDomain = page.getByTestId("report-evidence").getByRole("heading", { level: 2, name: "市場、區位與風險" });
   expect((await executive.boundingBox())!.y).toBeLessThan((await firstDomain.boundingBox())!.y);
   await expect(executive.getByTestId("executive-snapshot")).toContainText("2026");
   await expect(executive.getByTestId("executive-snapshot")).toContainText("不會自動更新");

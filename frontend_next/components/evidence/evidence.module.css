@@ -41,7 +41,7 @@
 .mobile, .printOnly, .printBlocked { display: none; }
 .report { max-width: 1000px; background: var(--surface-primary); margin-block: var(--space-6); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); }
 .reportEvidence { display: grid; gap: var(--space-6); }
-.reportTable th { width: 32%; }
+.reportTable th, .reportLabelColumn { width: 32%; }
 /* Page-one executive summary: one bordered block, stacked lists, no dense grid. */
 .executive { display: grid; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); background: var(--surface-secondary); min-width: 0; }
 .executive section { min-width: 0; }
@@ -55,6 +55,33 @@
 .executiveNumbers .tag { margin-left: 0; }
 .executiveRefs { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--space-1); font-size: var(--text-meta-size); }
 .executiveRefs a, .executive li a { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; text-decoration: underline; }
+/* Core pages 2–3: cited fact lists (values + state + [n]); full provenance lives in the appendix. */
+.reportCover { display: grid; gap: var(--space-1); }
+.preparedBy { display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-6); margin: 0; font-size: var(--text-meta-size); }
+.preparedBy > div { display: flex; gap: var(--space-2); }
+.preparedBy dt { font-weight: 600; }
+.preparedBy dd { margin: 0; }
+.fillLine { display: inline-block; width: 55mm; max-width: 100%; height: 1em; border-bottom: 1px solid currentColor; vertical-align: bottom; }
+.corePage, .appendix { display: grid; gap: var(--space-5); min-width: 0; }
+.coreGroup { display: grid; gap: var(--space-2); min-width: 0; }
+.coreGroup h3, .coreGroup > p { margin: 0; }
+.coreFacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 0 var(--space-5); margin: 0; }
+.coreFacts > div { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0 var(--space-2); padding: var(--space-2) 0; border-bottom: 1px solid var(--border-subtle); min-width: 0; }
+.coreFacts dt { font-weight: 600; min-width: 0; }
+.coreFacts dd { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--space-2); margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.coreFacts strong[data-numeric] { text-align: left; }
+/* Long localized state labels wrap inside narrow two-column cells instead of widening the page. */
+.coreFacts :global(.ds-status), .coreFacts :global(.ds-status) * { white-space: normal; overflow-wrap: anywhere; max-width: 100%; min-width: 0; }
+.coreFacts > div[data-evidence-status]:not([data-evidence-status="available"]) strong { font-weight: 500; }
+.page .coreSteps { display: grid; gap: var(--space-3); margin: 0; padding-left: var(--space-5); }
+.coreSteps p, .coreSteps ul { margin: 0; }
+.marketMarker { margin: 0; display: grid; gap: var(--space-1); max-width: 36rem; }
+.markerTrack { position: relative; height: 12px; border-radius: 6px; background: var(--surface-secondary); border: 1px solid var(--border-subtle); }
+.markerBand { position: absolute; top: 0; bottom: 0; background: var(--border-subtle); border-radius: 5px; }
+.markerPoint { position: absolute; top: -5px; width: 4px; height: 20px; margin-left: -2px; background: var(--text-primary, #111); border-radius: 2px; }
+.markerScale { position: relative; height: 1.4em; font-size: var(--text-meta-size); }
+.markerScale span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.marketMarker figcaption { font-size: var(--text-meta-size); }
 .executive a:focus-visible, .reportEvidence :global(#report-limits):focus-visible { outline: 3px solid var(--accent-primary, #2563eb); outline-offset: 2px; }
 .pairControls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 .pairControls label { min-width: 0; }
@@ -79,7 +106,11 @@
   .executive { padding: var(--space-3); }
 }
 @media (min-width: 768px) and (max-width: 1199px) { .page { padding: var(--space-6); } }
-@page { size: A4 portrait; margin: 15mm; }
+@page {
+  size: A4 portrait; margin: 15mm 15mm 17mm;
+  /* Page numbers; browsers that ignore margin boxes simply omit them. */
+  @bottom-right { content: counter(page) " / " counter(pages); font-size: 8pt; color: #555; }
+}
 @media print {
   :global(html), :global(body), .page { background: #fff; color: #111; }
   .page { max-width: none; padding: 0; margin: 0; display: block; font-size: 10.5pt; line-height: 1.45; }
@@ -97,7 +128,7 @@
   .printOnly { display: block; }
   .reportTable { font-size: 10.5pt; }
   .reportTable :is(th, td) { padding: 2mm; border-color: #aaa; }
-  .reportTable th { width: 24%; }
+  .reportTable th, .reportLabelColumn { width: 24%; }
   .reportTable tr, .sources article, .gaps li { break-inside: avoid; }
   .provenance { font-size: 9pt; line-height: 1.3; }
   /* Keep every source/limit visible, with compact spacing for the full ledger. */
@@ -114,19 +145,47 @@
   .page :is(h1, h2, h3, h4) { break-after: avoid; }
   .page a { color: #111; }
   .gaps a { min-height: 0; }
-  /* Executive summary leads page one; detail flows on without a forced break so an
-     overflowing summary never leaves a mostly blank sheet. */
+  /* Core report: page one is the cover + executive brief; pages two and three and the
+     appendix each start on a new sheet. */
+  .corePage, .appendix { display: block; break-before: page; }
+  .coreGroup { display: block; margin: 0 0 4mm; }
+  .coreGroup > p { margin: 0 0 1.5mm; }
+  .coreFacts { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
+  .coreFacts > div { padding: .8mm 0; border-bottom-color: #aaa; break-inside: avoid; }
+  /* Printed value cells are plain inline text, so even long localized state labels wrap within the column. */
+  .coreFacts dd { display: block; }
+  .coreFacts dd > * + * { margin-left: 2mm; }
+  .coreFacts :global(.ds-status), .coreFacts :global(.ds-status) > span { display: inline; padding: 0; border: 0; }
+  .coreFacts :global(.ds-status__icon) { margin-right: 1mm; }
+  .coreSteps > li { break-inside: avoid; margin-bottom: 1.5mm; }
+  .corePage [data-citation-id] > span, .marketMarker [data-citation-id] > span { display: none; }
+  .markerTrack, .markerBand, .markerPoint { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .markerTrack { background: #eee; border-color: #999; }
+  .markerBand { background: #bbb; }
+  .markerPoint { background: #111; }
+  .appendix > h2 { margin-bottom: 3mm; }
   .executive { display: block; padding: 0 0 3mm; border: 0; border-bottom: 1.5pt solid #111; background: #fff; margin: 0 0 4mm; }
   .executive section { margin: 0 0 2mm; }
+  /* Page one must hold the whole brief: tighter leading at the same type size. */
+  .executive { line-height: 1.32; }
+  /* Run-in sub-headings: each heading shares a line with its first statement. */
+  .executive section > h3 { display: inline; margin: 0 2mm 0 0; }
+  .executive section > h3 + p { display: inline; }
+  .executive section > h3 + p + :is(p, ul) { margin-top: .5mm; }
+  .preparedBy { margin-bottom: 3mm; }
   .executive h3 { margin: 0 0 1mm; }
   .executive p { margin: .5mm 0; }
   .executiveContext { display: grid; grid-template-columns: 1fr 1fr; gap: 0 6mm; }
-  .page .executiveNumbers { display: grid; grid-template-columns: 1fr 1fr; gap: 1mm 6mm; }
+  /* Key numbers flow in balanced columns so a tall card never leaves a gap beside a short one. */
+  .page .executiveNumbers { display: block; columns: 2; column-gap: 6mm; }
   .page .executiveList { display: block; }
-  .executiveNumbers > li, .executiveList > li { padding: 0 0 .8mm; margin: 0 0 .8mm; border: 0; border-bottom: 1px solid #aaa; border-radius: 0; background: #fff; break-inside: avoid; }
+  .executiveNumbers > li, .executiveList > li { padding: 0 0 .5mm; margin: 0 0 .5mm; border: 0; border-bottom: 1px solid #aaa; border-radius: 0; background: #fff; break-inside: avoid; }
   .executiveNumbers strong[data-numeric] { display: inline; font-size: 11pt; margin-right: 2mm; }
   .executiveRefs { display: block; font-size: 9pt; }
   .executiveList > li > p:first-child { display: inline; }
+  .openItems { display: none; }
+  .executiveOpenAreas > li { display: inline; padding: 0; margin: 0; border: 0; }
+  .executiveOpenAreas > li + li::before { content: " · "; }
   .executiveList > li > .executiveRefs { display: inline; margin-left: 2mm; }
   .executiveRefs a, .executive li a { display: inline; min-height: 0; min-width: 0; }
   /* The numbered reference list prints each full ID; page one keeps only the [n] marker. */
