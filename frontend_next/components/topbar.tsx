@@ -12,8 +12,6 @@ export function Topbar({ page, onNavigate, onTour, onVoiceAction }: { page: AppP
   const { t, copy, locale } = useExperienceLocale();
   const summary = createSafeSpeechSummary([t("app.currentView"), t(getPageLabelKey(page)), t("hero.limitation")], locale);
   return <CommercialGlobalHeader page={page} onNavigate={onNavigate}>
-    <details className="ds-disclosure"><summary className="ds-disclosure__summary">{t("commercial.accessibility")}</summary>
-      <div className="commercial-accessibility-controls"><AssistiveNarrationControls /><ReadAloudControls summary={summary} /><VoiceInputControls onAction={onVoiceAction} /><ViewModeToggle compact /><button type="button" data-testid="tour-restart" className="ds-button ds-button--tertiary" onClick={onTour}>{copy("guide.restart")}</button></div>
-    </details>
+    <div className="commercial-accessibility-controls"><AssistiveNarrationControls /><ReadAloudControls summary={summary} /><VoiceInputControls onAction={onVoiceAction} /><ViewModeToggle compact /><button type="button" data-testid="tour-restart" className="ds-button ds-button--tertiary" onClick={onTour}>{copy("guide.restart")}</button></div>
   </CommercialGlobalHeader>;
 }

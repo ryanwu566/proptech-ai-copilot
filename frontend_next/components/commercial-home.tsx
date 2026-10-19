@@ -17,6 +17,7 @@ import { createAddressDraftCase } from "@/lib/case-storage";
 import { formatExactDate } from "@/lib/commercial/formatters";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { useStartGuidedExample } from "@/components/app-shell";
+import { GuidedTourEntry } from "@/components/guided-tour-entry";
 import { navigationCopy } from "@/lib/navigation/copy";
 import { caseDestination } from "@/lib/navigation/model";
 import { homeStartCopy } from "@/lib/home-start-copy";
@@ -62,6 +63,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
       <div className="commercial-home__secondary">
         {recent.length > 0 && <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href="/cases">{copyFrom(homeStartCopy, "resume")}</Link>}
         <button type="button" className="commercial-text-action" onClick={onFinder}>{t("commercial.finder")}</button>
+        <GuidedTourEntry cta="create" />
         <button type="button" data-testid="demo-start" className="commercial-text-action" onClick={(event) => startDemo?.(event.currentTarget)}>{copyFrom(homeStartCopy, "example")}</button>
       </div>
     </section>

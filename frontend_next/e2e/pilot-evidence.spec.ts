@@ -1,6 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { openDemoReference } from "./helpers/commercial-navigation";
+import { RETIRED_DEMO_REFERENCE, openDemoReference } from "./helpers/commercial-navigation";
+
+test.skip(true, RETIRED_DEMO_REFERENCE);
 
 const LOCALES = ["zh-TW", "en", "ja", "ko"] as const;
 const MOBILE_WIDTHS = [360, 390, 430];

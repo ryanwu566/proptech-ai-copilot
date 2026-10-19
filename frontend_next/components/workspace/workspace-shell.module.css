@@ -103,6 +103,8 @@
 }
 
 :global(.workspace-property-header__title p) { margin: 0; }
+:global(.workspace-property-header__save) { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); }
+:global(.workspace-navigation .workspace-navigation__secondary) { color: var(--text-muted); }
 :global(.workspace-property-header__save-status) { margin: var(--space-2) 0 0; }
 :global(.workspace-property-header__save-status:empty) { display: none; }
 :global(.workspace-property-header__panel .ds-disclosure) { border: 0; margin-top: var(--space-1); }

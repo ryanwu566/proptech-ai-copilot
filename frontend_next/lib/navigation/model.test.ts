@@ -1,13 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Node's native test runner uses source extensions.
-import { PRODUCT_ENTRIES, caseDestination, caseIdFromPath, filterEntries, nextCaseStep, parseCaseDestination, productHref } from "./model.ts";
+import { LEGACY_TOOL_PAGES, caseDestination, caseIdFromPath, isLegacyToolPage, nextCaseStep, parseCaseDestination } from "./model.ts";
 
-test("all implemented product areas have one discoverable destination", () => {
-  const ids: string[] = PRODUCT_ENTRIES.map((entry) => entry.id);
-  for (const id of ["home", "property", "market", "valuation", "location", "risk", "finance", "scenarios", "decision-room", "compare", "report", "preferences", "places", "commute-planner", "cases", "account", "tax", "credit", "identity", "planning"]) assert.ok(ids.includes(id), id);
-  assert.equal(new Set(ids).size, ids.length);
-  assert.ok(!ids.some((id) => /admin|billing|copilot/i.test(id)));
+test("legacy single-tool pages keep their direct ?tool= URLs without becoming navigation", () => {
+  assert.deepEqual([...LEGACY_TOOL_PAGES], ["Market Insight Lite", "房價估算", "Map Insight Lite", "Terrain Risk", "TaxOracle", "Aegis-Credit Lite"]);
+  for (const page of LEGACY_TOOL_PAGES) assert.ok(isLegacyToolPage(page), page);
+  for (const value of [null, "", "儀表板", "Competition Demo", "Closed Pilot", "Professional Review", "taxoracle"]) assert.equal(isLegacyToolPage(value), false, String(value));
 });
 
 test("case destinations are allowlisted and never accept arbitrary redirects", () => {
@@ -16,21 +15,10 @@ test("case destinations are allowlisted and never accept arbitrary redirects", (
   assert.equal(caseDestination("a/b #?", "decision-room"), "/cases/a%2Fb%20%23%3F/decision-room");
 });
 
-test("case actions keep the exact current case or ask the user to choose", () => {
-  const entry = PRODUCT_ENTRIES.find((entry) => entry.id === "scenarios")!;
-  assert.equal(productHref(entry), "/cases?next=scenarios");
-  assert.equal(productHref(entry, "case-a"), "/cases/case-a/scenarios");
+test("case paths resolve the exact current case", () => {
   assert.equal(caseIdFromPath("/cases/a%2Fb/scenarios"), "a/b");
   assert.equal(caseIdFromPath("/cases"), undefined);
   assert.equal(caseIdFromPath("/cases/%E0%A4%A/overview"), undefined);
-});
-
-test("search uses localized visible labels, ignores case and matches all words", () => {
-  const entries = PRODUCT_ENTRIES.filter((entry) => ["market", "report"].includes(entry.id));
-  const label = (id: string) => id === "market" ? "Price and market" : "Case report";
-  assert.deepEqual(filterEntries(entries, " MARKET price ", label).map((entry) => entry.id), ["market"]);
-  assert.equal(filterEntries(entries, "no-such-feature", label).length, 0);
-  assert.equal(filterEntries(entries, " ", label).length, 2);
 });
 
 test("handoffs connect analysis, scenario, decision, comparison and report without inferring completion", () => {

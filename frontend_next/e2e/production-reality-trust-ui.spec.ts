@@ -15,8 +15,7 @@ test.beforeEach(async ({ page }) => {
 test("shell uses neutral per-query data language instead of static service health", async ({ page }) => {
   await page.goto("/");
   await page.locator(".commercial-methods > summary").click();
-  const footer = page.locator(".commercial-methods__panel");
-  await expect(footer).toContainText("各來源限制");
+  const footer = page.locator(".commercial-global-header");
   await expect(page.locator(".commercial-home__trust")).toContainText("未知不代表安全");
   await expect(footer).not.toContainText("服務狀態");
   await expect(footer).not.toContainText(/^可用$/);
@@ -28,6 +27,6 @@ test("neutral shell remains readable at 390px", async ({ page }) => {
   await page.locator(".commercial-methods > summary").click();
   const sidebar = page.locator(".commercial-methods__panel");
   await expect(sidebar).toBeVisible();
-  await expect(sidebar).toContainText("各來源限制");
+  await expect(sidebar.getByTestId("tour-restart")).toBeVisible();
   expect(await sidebar.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
 });

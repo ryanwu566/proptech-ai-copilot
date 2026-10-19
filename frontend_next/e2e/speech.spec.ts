@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -34,12 +35,11 @@ test.beforeEach(async ({ page }) => {
 test("assistive narration is explicit opt-in and responds to focus", async ({ page }) => {
   await page.goto("/");
   await page.locator(".commercial-methods > summary").click();
-  await page.locator(".commercial-methods .ds-disclosure > summary").click();
   const toggle = page.getByRole("button", { name: /assistive|輔助|補助|보조/i });
   await expect(toggle).toHaveAttribute("aria-pressed", "false");
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: /Map|地圖|地図|지도/i }).first().click();
+  await openMethod(page, "Map Insight");
   await page.locator("[data-page-heading]").focus();
   await expect.poll(() => page.evaluate(() => (window as Window & { __assistiveSpeechCalls?: string[] }).__assistiveSpeechCalls?.length ?? 0)).toBeGreaterThan(0);
 });

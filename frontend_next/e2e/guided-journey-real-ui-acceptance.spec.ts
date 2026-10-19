@@ -169,7 +169,7 @@ test.describe("E10 commercial case capability acceptance", () => {
       const savedCases = nav.getByRole("link", { name: navigationCopy[locale].cases, exact: true });
       await expect(savedCases).toBeVisible();
       await expect(savedCases).toHaveAttribute("href", "/cases");
-      await expect(page.locator(".commercial-methods > summary")).toHaveText(navigationCopy[locale].menu);
+      await expect(page.locator(".commercial-global-header")).not.toContainText(/探索功能|Explore features|機能を探す|기능 탐색/);
       await expect(page.getByRole("button", { name: start, exact: true })).toBeVisible();
       expect(await page.locator(".commercial-global-header").innerText()).not.toMatch(/commercial\.\w+|journey\.\w+\./);
       expect(await page.locator(".commercial-home").innerText()).not.toMatch(/commercial\.\w+/);

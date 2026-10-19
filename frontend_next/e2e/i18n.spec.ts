@@ -1,9 +1,9 @@
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 async function openMap(page: import("@playwright/test").Page) {
   await page.goto("/");
-  await page.locator(".commercial-methods > summary").click();
-  await page.locator(".commercial-methods").getByRole("button", { name: "Map Insight", exact: true }).click();
+  await openMethod(page, "Map Insight");
   await expect(page.getByTestId("map-search-form")).toBeVisible();
   const advanced = page.getByTestId("map-advanced-settings");
   await advanced.locator("summary").click();

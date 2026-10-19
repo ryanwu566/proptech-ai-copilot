@@ -235,11 +235,9 @@ async function expectUniqueCommercialControls(page: import("@playwright/test").P
   await summary.click();
   await expect(methods).toHaveAttribute("open", "");
   for (const name of ["Map Insight", "房價估算", "Terrain Risk", "Aegis-Credit", "Market Insight"]) {
-    const control = methods.getByRole("button", { name, exact: true });
-    await expect(control).toHaveCount(1);
-    await expect(control).toBeVisible();
+    await expect(methods.getByRole("button", { name, exact: true })).toHaveCount(0);
   }
-  await methods.getByRole("button", { name: "Map Insight", exact: true }).focus();
+  await page.getByTestId("tour-restart").focus();
   await page.keyboard.press("Escape");
   await expect(methods).not.toHaveAttribute("open", "");
   await expect(summary).toBeFocused();
