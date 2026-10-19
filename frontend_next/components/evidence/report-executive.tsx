@@ -50,7 +50,8 @@ export function ReportExecutive({ summary, citations }: { summary: ReportExecuti
   };
   return <section aria-labelledby="report-executive-title" className={styles.executive} data-testid="report-executive">
     <h2 id="report-executive-title" className="text-section">{t("title")}</h2>
-    <p className="text-meta">{t("intro")}</p>
+    {/* The snapshot section below states the same frozen-snapshot facts; print keeps that one. */}
+    <p className={`text-meta ${styles.screenOnly}`}>{t("intro")}</p>
     <div className={styles.executiveContext}>
       <section aria-labelledby="executive-property" data-testid="executive-property">
         <h3 id="executive-property" className="text-subsection">{t("property")}</h3>
@@ -81,19 +82,22 @@ export function ReportExecutive({ summary, citations }: { summary: ReportExecuti
     <section aria-labelledby="executive-open" data-testid="executive-open">
       <h3 id="executive-open" className="text-subsection">{t("open")}</h3>
       <p>{t("openTotal", { count: summary.open.total })}</p>
-      <ul className={styles.executiveList}>{summary.open.areas.map((area) => {
+      <ul className={`${styles.executiveList} ${styles.executiveOpenAreas}`}>{summary.open.areas.map((area) => {
         const name = copyFrom(documentEvidenceCopy, area.domain);
         return <li key={area.domain} data-testid={`executive-open-${area.domain}`}>
-          <p><strong>{t("openArea", { area: name, count: area.count })}</strong>: {area.items.map((item) => t("openItem", { label: item.label, reason: t(item.reason === "stale" ? "stale_reason" : item.reason) })).join(t("sep"))}{area.more > 0 && ` · ${t("more", { count: area.more })}`}</p>
+          <p><strong>{t("openArea", { area: name, count: area.count })}</strong><span className={styles.openItems}>: {area.items.map((item) => t("openItem", { label: item.label, reason: t(item.reason === "stale" ? "stale_reason" : item.reason) })).join(t("sep"))}{area.more > 0 && ` · ${t("more", { count: area.more })}`}</span></p>
           <p className={styles.screenOnly}><Link href={area.href}>{t("workspace", { area: name })}</Link></p>
         </li>;
       })}</ul>
+      {/* Print keeps area counts here; the items print once, on page three's verification checklist. */}
+      <p className={styles.printOnly}>{t("openPrint")}</p>
       <p className={`${styles.executiveRefs} ${styles.screenOnly}`}><a href="#report-limits">{t("gapRefs")}</a></p>
     </section>
     <section aria-labelledby="executive-limitation" data-testid="executive-limitation">
       <h3 id="executive-limitation" className="text-subsection">{t("limitation")}</h3>
       <p>{t("limitationText")}</p>
     </section>
-    <p className="text-meta">{t("detail")}</p>
+    {/* Printed sheets carry their own headings and page numbers. */}
+    <p className={`text-meta ${styles.screenOnly}`}>{t("detail")}</p>
   </section>;
 }
