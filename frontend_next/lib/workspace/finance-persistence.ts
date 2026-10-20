@@ -357,6 +357,7 @@ export function restoreFinanceModelFromSnapshot(snapshotValue: unknown, context:
     tax: { query: snapshot.tax.query, summary: snapshot.tax.summary ? { ...snapshot.tax.summary } : null },
     missingCosts,
     unresolvedActions,
+    savedUnresolvedActions: [...snapshot.unresolved_actions],
     freshness: { status: stale ? "stale" : "current", calculatedAt: snapshot.calculated_at, source: "saved_snapshot" },
     overview: {
       activePriceBasis: snapshot.assumptions.price_basis,
