@@ -20,6 +20,7 @@ import { buildLocationOverviewHandoff } from "@/lib/workspace/location-context";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { homeStartCopy } from "@/lib/home-start-copy";
 import { locationConfirmationCopy } from "@/lib/workspace/location-confirmation-copy";
+import { nearbyFacilitiesCopy } from "@/lib/workspace/nearby-facilities-copy";
 import { LocationConfirmationPanel } from "./location-confirmation-panel";
 import { NearbyFacilitiesPanel } from "./nearby-facilities-panel";
 
@@ -143,7 +144,9 @@ export function LocationView() {
       {!snapshot.nearbyFacilities && <>{snapshot.poiSummary ? <SummaryStrip label="周邊設施摘要" className="location-poi-summary">
         {(Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => <MetricItem key={key} label={POI_LABELS[key]} value={snapshot.poiSummary?.[key] ?? "未知／未取得"} />)}
       </SummaryStrip> : <Message variant="inline" title="尚未取得周邊設施摘要">此案件尚未保存可供判讀的周邊設施結果。</Message>}
-      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? Object.entries(POI_LABELS).map(([key, label]) => `${label} ${snapshot.poiSummary?.[key as keyof typeof snapshot.poiSummary] ?? "未知／未取得"}`).join("；") : "尚未取得周邊設施摘要"}</div></>}
+      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? Object.entries(POI_LABELS).map(([key, label]) => `${label} ${snapshot.poiSummary?.[key as keyof typeof snapshot.poiSummary] ?? "未知／未取得"}`).join("；") : "尚未取得周邊設施摘要"}</div>
+      {snapshot.insight && (!Array.isArray(snapshot.insight.nearest_pois) || snapshot.insight.nearest_pois.length === 0) && <Message variant="information" title={copyFrom(nearbyFacilitiesCopy, "legacyTitle")}>{copyFrom(nearbyFacilitiesCopy, "legacySummary")}</Message>}
+      </>}
       {snapshot.insight?.risk_facility_evidence && <Panel variant="plain" data-testid="risk-facility-source">
         <h3 className="text-subsection">需留意設施的來源與限制</h3>
         <p className="text-body">{({ available: "已取得來源涵蓋", no_match: "來源查詢無符合設施，不代表安全", no_coverage: "不在來源涵蓋範圍", unavailable: "來源目前無法取得", unknown: "涵蓋未知／未取得" } as Record<string, string>)[snapshot.insight.risk_facility_evidence.status] ?? "涵蓋未知／未取得"}</p>

@@ -1,7 +1,9 @@
 import type { CopyCatalogue } from "../copy-catalogue";
-export type NearbyCopyKey = "title" | "intro" | "explore" | "refresh" | "loading" | "confirmFirst" | "limits" | "partial" | "empty" | "failed" | "unsaved" | "save" | "saving" | "saved" | "checked" | "scope" | "distance" | "transit" | "convenience" | "education" | "healthcare" | "parks";
+export type NearbyCopyKey = "title" | "intro" | "explore" | "refresh" | "loading" | "confirmFirst" | "limits" | "partial" | "empty" | "failed" | "unsaved" | "save" | "saving" | "saved" | "checked" | "scope" | "distance" | "transit" | "convenience" | "education" | "healthcare" | "parks" | "legacyTitle" | "legacySummary";
 export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
   "zh-TW": {
+    legacyTitle: "完整設施明細未隨案件保存",
+    legacySummary: "已保存的分類筆數仍可作為範圍參考；請勿由摘要重建或推測個別設施。重開案件不會自動查詢附近設施。",
     title: "生活機能", intro: "需要時再查詢附近設施；不會在開啟案件時自動呼叫外部服務。",
     explore: "查附近生活機能", refresh: "重新查詢附近設施", loading: "正在查詢附近設施…", confirmFirst: "請先確認物件位置，再查詢附近設施。",
     limits: "附近設施僅供生活便利情境參考，不證明設施品質、學校品質、醫療量能、步行便利性或目前營業狀態。距離為座標推算的直線距離，並非實際路線。",
@@ -14,6 +16,8 @@ export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
     transit: "交通", convenience: "採買與餐飲", education: "學校與教育", healthcare: "醫療", parks: "公園綠地",
   },
   en: {
+    legacyTitle: "Full facility details were not saved with this case",
+    legacySummary: "Saved category counts provide limited context; do not reconstruct or infer individual facilities from summaries. Reopening never automatically queries nearby facilities.",
     title: "Nearby facilities", intro: "Explore nearby facilities when you need them. Opening a case never automatically queries external services.",
     explore: "Explore nearby facilities", refresh: "Refresh nearby facilities", loading: "Finding nearby facilities…", confirmFirst: "Confirm the property location before exploring nearby facilities.",
     limits: "Nearby facilities provide daily-life context only. They do not establish facility or school quality, medical capacity, walkability or current opening status. Distances are straight-line estimates from coordinates, not travel routes.",
@@ -26,6 +30,8 @@ export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
     transit: "Transit", convenience: "Shops & food", education: "Schools & education", healthcare: "Healthcare", parks: "Parks & green space",
   },
   ja: {
+    legacyTitle: "施設の詳細は案件に保存されていません",
+    legacySummary: "保存された分類別件数は参考情報です。概要から個々の施設を再構成したり推測したりしないでください。案件を開き直しても周辺施設を自動検索しません。",
     title: "周辺の生活施設", intro: "必要なときに周辺施設を検索できます。案件を開いても外部サービスへの検索は自動実行されません。",
     explore: "周辺の生活施設を調べる", refresh: "周辺施設を再検索", loading: "周辺施設を検索中…", confirmFirst: "周辺施設を検索する前に物件の位置を確定してください。",
     limits: "周辺施設は日常生活の参考情報です。施設や学校の質、医療の受入能力、歩きやすさ、現在の営業状況を保証しません。距離は座標から算出した直線距離で、実際の経路ではありません。",
@@ -38,6 +44,8 @@ export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
     transit: "交通", convenience: "買い物・飲食", education: "学校・教育", healthcare: "医療", parks: "公園・緑地",
   },
   ko: {
+    legacyTitle: "시설 상세 정보가 케이스에 저장되지 않았습니다",
+    legacySummary: "저장된 분류별 수는 참고 정보입니다. 요약으로 개별 시설을 재구성하거나 추정하지 마세요. 케이스를 다시 열어도 주변 시설을 자동 조회하지 않습니다.",
     title: "주변 생활 편의시설", intro: "필요할 때 주변 시설을 조회하세요. 케이스를 열어도 외부 서비스를 자동으로 호출하지 않습니다.",
     explore: "주변 생활 편의시설 찾기", refresh: "주변 시설 다시 조회", loading: "주변 시설 조회 중…", confirmFirst: "주변 시설을 조회하기 전에 부동산 위치를 확인하세요.",
     limits: "주변 시설은 일상생활의 참고 정보입니다. 시설 및 학교의 질, 의료 수용 능력, 보행 편의성 또는 현재 영업 상태를 입증하지 않습니다. 거리는 좌표로 계산한 직선거리이며 실제 이동 경로가 아닙니다.",

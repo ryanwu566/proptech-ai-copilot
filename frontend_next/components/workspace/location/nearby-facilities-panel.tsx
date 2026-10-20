@@ -56,7 +56,7 @@ export function NearbyFacilitiesPanel() {
   }
 
   return <Section title={copy("title")} description={copy("intro")}>
-    <div data-testid="nearby-facilities" data-evidence-key="location" className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
+    <div data-testid="nearby-facilities" className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
       <p className="text-helper">{copy("limits")}</p>
       {!expected && <Message variant="information">{copy("confirmFirst")}</Message>}
       <CommercialButton size="touch" className="max-w-full whitespace-normal" disabled={!expected || status === "unsaved" || status === "saving"} loading={status === "loading"} loadingLabel={copy("loading")} onClick={explore}>

@@ -83,11 +83,38 @@ test("existing saved results render without fetch; refresh requires another expl
   const calls = await prepare(page, { persisted: true });
   await page.goto(PATH);
   await expect(panel(page)).toContainText("Facility transport");
+  expect(await panel(page).getAttribute("data-evidence-key")).toBeNull();
+  await expect(page.getByText("完整設施明細未隨案件保存", { exact: true })).toHaveCount(0);
   await page.waitForLoadState("networkidle");
   expect(calls.nearby).toEqual([]);
   await panel(page).getByRole("button", { name: "重新查詢附近設施", exact: true }).click();
   await expect(panel(page)).toContainText("已保存設施證據");
   expect(calls.nearby).toHaveLength(1);
+});
+
+for (const nearest of [undefined, []]) test(`legacy snapshot with ${nearest ? "empty" : "missing"} nearest POIs keeps its caveat without acquiring facilities`, async ({ page }) => {
+  const calls = await prepare(page, { mutate: (saved) => {
+    saved.data.locationInsight = {
+      input: { address: saved.data.propertyIdentityAnchor!.normalized_address },
+      poi_summary: { transit_count: 2, convenience_count: 3, school_count: null, park_count: 1, medical_count: null, risk_facility_count: null },
+      nearest_pois: nearest,
+      data_quality: { status: "limited", missing_sources: [], warnings: [] },
+    } as never;
+  } });
+  await page.goto(PATH);
+  const evidence = page.locator('[data-evidence-key="location"]');
+  await expect(evidence).toHaveCount(1);
+  await expect(evidence).toContainText("完整設施明細未隨案件保存");
+  await expect(evidence).toContainText("請勿由摘要重建或推測個別設施");
+  await expect(panel(page).getByRole("listitem")).toHaveCount(0);
+  await expect(panel(page).getByRole("button", { name: "查附近生活機能", exact: true })).toBeEnabled();
+  const before = await stored(page);
+  await page.reload();
+  await expect(evidence).toHaveCount(1);
+  await expect(evidence).toContainText("完整設施明細未隨案件保存");
+  await page.waitForLoadState("networkidle");
+  expect(calls.nearby).toEqual([]);
+  expect(await stored(page)).toEqual(before);
 });
 
 test("leaving during an unfinished request never auto-retries on reopening", async ({ page }) => {
@@ -128,9 +155,13 @@ test("nearby acquisition preserves independently saved risk facility source and 
   } });
   await page.goto(PATH);
   await expect(page.getByTestId("risk-facility-source")).toContainText("Saved facility source");
+  await expect(page.locator('[data-evidence-key="location"]')).toHaveCount(1);
+  await expect(page.getByText("完整設施明細未隨案件保存", { exact: true })).toBeVisible();
   await panel(page).getByRole("button", { name: "查附近生活機能", exact: true }).click();
   await expect(panel(page)).toContainText("Facility school");
   await expect(page.getByTestId("risk-facility-source")).toContainText("Saved source limitation");
+  await expect(page.locator('[data-evidence-key="location"]')).toHaveCount(1);
+  await expect(page.getByText("完整設施明細未隨案件保存", { exact: true })).toHaveCount(0);
   await page.reload();
   await expect(page.getByTestId("risk-facility-source")).toContainText("Saved facility source");
   expect(calls.nearby).toHaveLength(1);
