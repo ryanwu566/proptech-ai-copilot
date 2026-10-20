@@ -16,8 +16,10 @@ export async function openMethod(page: Page, name: string | RegExp) {
   const label = typeof name === "string" ? name : name.source;
   const tool = LEGACY_TOOLS.find(([pattern]) => pattern.test(label))?.[1];
   if (!tool) throw new Error(`No retained legacy tool URL for ${label}`);
-  // After hydration the shell focuses the page heading, so focus leaving <body> means the router listens.
-  await expect.poll(() => page.evaluate(() => document.activeElement !== document.body)).toBe(true);
+  // The App Router syncs useSearchParams by replacing history.pushState once it mounts; wait for
+  // that hook (not focus, which may rest on <body> after a control unmounts) and a rendered page.
+  await expect(page.locator("[data-page-heading]").first()).toBeAttached();
+  await expect.poll(() => page.evaluate(() => !/\[native code\]/.test(Function.prototype.toString.call(window.history.pushState)))).toBe(true);
   if (new URL(page.url()).searchParams.get("tool") === tool) return;
   await page.evaluate((value) => {
     (window as unknown as { previousHeading?: Element | null }).previousHeading = document.querySelector("[data-page-heading]");

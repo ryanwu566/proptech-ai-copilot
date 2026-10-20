@@ -106,7 +106,8 @@ test("double click, repeated Enter and a repeat start reuse one case", async ({ 
   await expect(page).toHaveURL(/\/$/);
   await address.fill(`  ${ADDRESS} `);
   await address.press("Enter");
-  await address.press("Enter").catch(() => undefined);
+  // The repeat goes to the focused field; a locator press would wait out the test once Home unmounts.
+  await page.keyboard.press("Enter");
   await expect(page).toHaveURL(new RegExp(`${first}$`));
   expect((await stored(page)).length).toBe(1);
   await page.goBack();
