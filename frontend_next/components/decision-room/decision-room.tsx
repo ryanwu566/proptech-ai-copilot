@@ -5,8 +5,10 @@ import { cloneElement, useEffect, useId, useMemo, useRef, useState, type ReactEl
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { createBrowserCaseRepository } from "@/lib/workspace/case-repository";
 import { createDecisionRoomCaseAdapter, type DecisionRoomCaseRead, type DecisionRoomCaseContext } from "@/lib/decision-room-case-adapter";
-import { createBrowserDecisionRoomRepository, decisionRoomGaps, mergeRoomRecord, type DecisionRoom, type RoomError, type RoomRead, type ViewingNote, type WorkItem, type WorkKind, type ManualCheck, type AskingPrice } from "@/lib/decision-room-store";
+import { addEvidenceAction, createBrowserDecisionRoomRepository, decisionRoomGaps, findEvidenceAction, mergeRoomRecord, WORK_STATUSES, type DecisionRoom, type RoomError, type RoomRead, type ViewingNote, type WorkItem, type WorkKind, type ManualCheck, type AskingPrice } from "@/lib/decision-room-store";
 import { decisionRoomCopy, type DecisionRoomCopy } from "@/lib/decision-room-copy";
+import { projectDecisionRoomReport } from "@/lib/decision-room-report";
+import { decisionRoomReportCopy, type DecisionRoomReportCopyKey } from "@/lib/decision-room-report-copy";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { WorkspaceNavigation } from "@/components/workspace/workspace-navigation";
 import { documentEvidenceCopy } from "@/lib/workspace/document-evidence-copy";
@@ -118,11 +120,13 @@ export function DecisionRoomPage({ caseId }: { caseId: string }) {
         {error && <div role="alert" className={styles.error}><p>{c[error]}</p>{error === "conflict" && <button className={button} onClick={load}>{c.reload}</button>}</div>}
         <p role="status" aria-live="polite">{pending ? c.saving : savedAt ? `${c.saved} · ${formatDate(savedAt)}` : ""}</p>
       </div>
+      <ActionSummary room={room} c={c} />
       <nav className={styles.sections} aria-label={c.title}>
-        {[["viewing-notes", c.notes], ["checklist-items", c.checklist], ["question-items", c.questions], ["task-items", c.tasks], ["manual-checks", c.manual], ["evidence-gaps", c.gaps]].map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}
+        {[["verification-items", c.verifications], ["evidence-actions", c.evidenceActions], ["viewing-notes", c.notes], ["checklist-items", c.checklist], ["question-items", c.questions], ["task-items", c.tasks], ["manual-checks", c.manual], ["evidence-gaps", c.gaps]].map(([id, label]) => <a key={id} href={`#${id}`}>{label}</a>)}
       </nav>
       <fieldset disabled={pending} aria-busy={pending} className={styles.columns}>
         <div className={styles.primary}>
+          <WorkList room={room} kind="verification" save={save} c={c} />
           <Notes room={room} save={save} c={c} />
           <WorkList room={room} kind="checklist" save={save} c={c} />
           <WorkList room={room} kind="question" save={save} c={c} />
@@ -130,6 +134,7 @@ export function DecisionRoomPage({ caseId }: { caseId: string }) {
           <Checks room={room} save={save} c={c} />
         </div>
         <aside className={styles.secondary} aria-label={c.gaps}>
+          <EvidenceActions room={room} context={context} save={save} c={c} />
           <section className={styles.panel} id="asking-price" aria-labelledby="asking-heading">
             <h2 id="asking-heading">{c.asking}</h2><p className={styles.muted}>{c.priceHint}</p>
             <p className={styles.snapshot}>{c.savedPrice}: <strong>{context.savedAskingPriceWan === null ? c.unknown : formatNumber(context.savedAskingPriceWan)}</strong></p>
@@ -182,13 +187,18 @@ function WorkList({ room, kind, save, c }: { room: DecisionRoom; kind: WorkKind;
   const [editing, setEditing] = useState<WorkItem | null>(null);
   const [adding, setAdding] = useState(false);
   const items = room.items.filter((r) => r.kind === kind);
-  const title = kind === "checklist" ? c.checklist : kind === "question" ? c.questions : c.tasks;
+  const { copyFrom } = useExperienceLocale();
+  const r = (key: DecisionRoomReportCopyKey) => copyFrom(decisionRoomReportCopy, key);
+  const title = kind === "checklist" ? c.checklist : kind === "question" ? c.questions : kind === "verification" ? c.verifications : c.tasks;
   return <section id={`${kind}-items`} data-testid={`${kind}-items`} className={styles.panel} aria-labelledby={`${kind}-heading`}>
     <div className={styles.sectionHeading}><h2 id={`${kind}-heading`}>{title}</h2><button className={button} onClick={() => setAdding(true)}>{c.add}</button></div>
+    {kind === "verification" && <p className={styles.muted}>{c.verificationsHint}</p>}
     {!items.length && <Empty c={c} />}
-    <ul className={styles.records}>{items.map((item) => <li key={item.id} className={styles.record}>
-        <div className={styles.sectionHeading}><strong className={styles.userText}>{item.title}</strong><span className={styles.tag}>{c[item.status]}</span></div>
+    <ul className={styles.records}>{items.map((item) => <li key={item.id} className={styles.record} data-testid="room-action" data-status={item.status} data-origin={item.origin ?? "manual"} data-source-key={item.sourceKey || undefined}>
+        <div className={styles.sectionHeading}><strong className={styles.userText}>{item.title}</strong><span className={styles.tag} data-status={item.status}>{c[item.status]}</span></div>
+        <p className={styles.muted}><span className={styles.origin} data-testid="room-action-origin">{r("origin")}: {r(`origin_${item.origin ?? "manual"}`)}{item.sourceKey ? ` · ${r("linked")}` : ""}</span></p>
         <p className={styles.muted}>{c.owner}: {item.owner || c.unassigned} · {c.dueDate}: {item.dueDate ? formatDate(`${item.dueDate}T12:00:00`) : c.noDate}</p>
+        {item.note && <p className={`${styles.userText} ${styles.muted}`}>{item.note}</p>}
         {item.resolution && <p className={styles.userText}>{c.resolution}: {item.resolution}</p>}
         <div className={styles.actions}><button className={button} disabled={Boolean(editing)} onClick={() => setEditing(item)}>{c.edit}</button><button className={button} onClick={() => save((r) => ({ ...r, items: r.items.filter((row) => row.id !== item.id) }))}>{c.remove}</button></div>
     </li>)}</ul>
@@ -204,12 +214,15 @@ function WorkList({ room, kind, save, c }: { room: DecisionRoom; kind: WorkKind;
   </section>;
 }
 function WorkForm({ initial, kind, c, onSave, cancel }: { initial?: WorkItem; kind: WorkKind; c: DecisionRoomCopy; onSave: (item: WorkItem) => Promise<boolean>; cancel: () => void }) {
-  const [draft, setDraft] = useState<Omit<WorkItem, "id">>(initial ?? { kind, title: "", owner: "", dueDate: "", status: "open", resolution: "" });
+  const [draft, setDraft] = useState<Omit<WorkItem, "id">>(initial ?? { kind, title: "", owner: "", dueDate: "", status: "open", resolution: "", origin: "manual", sourceKey: "", note: "" });
+  const owners = useId();
   const field = (key: keyof typeof draft, value: string) => setDraft((r) => ({ ...r, [key]: value }));
   return <form data-testid={initial ? "item-edit-form" : `new-${kind}-form`} className={styles.form} onSubmit={(e) => submit(e, () => onSave({ ...draft, id: initial?.id ?? uuid() }))}>
     <Field label={c.itemTitle}><input required maxLength={300} value={draft.title} onChange={(e) => field("title", e.target.value)} /></Field>
-    <div className={styles.fieldRow}><Field label={c.owner}><input maxLength={100} value={draft.owner} onChange={(e) => field("owner", e.target.value)} /></Field><Field label={c.dueDate}><input type="date" value={draft.dueDate} onChange={(e) => field("dueDate", e.target.value)} /></Field></div>
-    <Field label={c.status}><select value={draft.status} onChange={(e) => field("status", e.target.value)}><option value="open">{c.open}</option><option value="done">{c.done}</option></select></Field>
+    <div className={styles.fieldRow}><Field label={c.owner}><input maxLength={100} list={owners} value={draft.owner} onChange={(e) => field("owner", e.target.value)} /></Field><Field label={c.dueDate}><input type="date" value={draft.dueDate} onChange={(e) => field("dueDate", e.target.value)} /></Field></div>
+    <datalist id={owners}>{[c.owner_buyer, c.owner_agent, c.owner_scrivener, c.owner_management, c.owner_seller].map((name) => <option key={name} value={name} />)}</datalist>
+    <Field label={c.status}><select value={draft.status} onChange={(e) => field("status", e.target.value)}>{WORK_STATUSES.map((status) => <option key={status} value={status}>{c[status]}</option>)}</select></Field>
+    <Field label={c.note}><textarea maxLength={2000} rows={2} value={draft.note ?? ""} onChange={(e) => field("note", e.target.value)} /></Field>
     <Field label={c.resolution}><textarea required={draft.status === "done" && kind !== "checklist"} maxLength={2000} rows={2} value={draft.resolution} onChange={(e) => field("resolution", e.target.value)} /></Field>
     <p className={styles.muted}>{c.resolutionHint}</p>
     <div className={styles.actions}><button className={primary} type="submit">{c.save}</button><button className={button} type="button" onClick={cancel}>{c.cancel}</button></div>
@@ -297,5 +310,40 @@ function Evidence({ context, c }: { context: DecisionRoomCaseContext; c: Decisio
       <div><dt>{c.building}</dt><dd>{manualStatus(context.buildingStatus)}</dd></div>
       {context.evidence.map((row) => <div key={row.key}><dt>{c[row.key as keyof DecisionRoomCopy] ?? row.key}</dt><dd>{resolveCommercialState("query", row.query).label[locale]}<br />{row.usability && <>{resolveCommercialState("evidence", row.usability).label[locale]}<br /></>}{resolveCommercialState("completeness", row.completeness).label[locale]}</dd></div>)}
     </dl>
+  </section>;
+}
+
+/** Counts of the buyer's own actions. The same projection feeds Report page one; it is not a score. */
+function ActionSummary({ room, c }: { room: DecisionRoom; c: DecisionRoomCopy }) {
+  const { copyFrom } = useExperienceLocale();
+  const r = (key: DecisionRoomReportCopyKey, values?: Record<string, string | number>) => copyFrom(decisionRoomReportCopy, key, values);
+  const report = projectDecisionRoomReport({ status: "ready", room });
+  const { counts } = report;
+  const sentence = report.readiness === "none" ? r("readinessNone") : report.readiness === "clear" ? r("readinessClear", { done: counts.done }) : r("readinessOutstanding", { count: counts.outstanding, verification: counts.verification });
+  return <section className={`${styles.panel} ${styles.summary}`} data-testid="room-action-summary" data-readiness={report.readiness} aria-labelledby="summary-heading">
+    <h2 id="summary-heading">{c.actionSummary}</h2>
+    <p data-testid="room-readiness">{sentence}</p>
+    <dl className={styles.counts}>
+      <div data-testid="room-count-open"><dt>{c.open}</dt><dd>{counts.open + counts.blocked}{counts.blocked > 0 && <small> · {c.blockedCount} {counts.blocked}</small>}</dd></div>
+      <div data-testid="room-count-in_progress"><dt>{c.in_progress}</dt><dd>{counts.inProgress}</dd></div>
+      <div data-testid="room-count-done"><dt>{c.done}</dt><dd>{counts.done}</dd></div>
+    </dl>
+    <p className={styles.muted}>{r("readinessCaveat")}</p>
+  </section>;
+}
+/** Saved-evidence checks the buyer can turn into verification actions; one action per evidence key. */
+function EvidenceActions({ room, context, save, c }: { room: DecisionRoom; context: DecisionRoomCaseContext; save: Save; c: DecisionRoomCopy }) {
+  const { copyFrom } = useExperienceLocale();
+  const r = (key: DecisionRoomReportCopyKey, values?: Record<string, string | number>) => copyFrom(decisionRoomReportCopy, key, values);
+  return <section id="evidence-actions" data-testid="evidence-actions" className={styles.panel} aria-labelledby="evidence-actions-heading">
+    <h2 id="evidence-actions-heading">{c.evidenceActions}</h2><p className={styles.muted}>{c.evidenceActionsHint}</p>
+    {!context.evidenceActions.length ? <p>{c.noEvidenceActions}</p> : <ul className={styles.candidates}>{context.evidenceActions.map((candidate) => {
+      const existing = findEvidenceAction(room, candidate.sourceKey);
+      return <li key={candidate.sourceKey} data-testid={`evidence-action-${candidate.sourceKey}`}>
+        <span><strong className={styles.userText}>{candidate.title}</strong><small>{r(`origin_${candidate.origin}`)}</small></span>
+        {existing ? <span className={styles.tag} data-testid="evidence-action-in-room">{r("inRoom", { status: c[existing.status] })}</span>
+          : <button className={button} onClick={() => save((latest) => addEvidenceAction(latest, candidate, uuid).room)}>{r("addToRoom")}</button>}
+      </li>;
+    })}</ul>}
   </section>;
 }

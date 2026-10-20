@@ -197,3 +197,26 @@
   .page[data-print-blocked="true"] .reportEvidence { display: none !important; }
   .page[data-print-blocked="true"] .printBlocked { display: block; }
 }
+
+/* Decision Room actions inside the report: stacked rows, never a narrow table. */
+.userText { white-space: pre-wrap; overflow-wrap: anywhere; }
+.roomRef { flex-basis: 100%; margin: var(--space-1) 0 0; font-size: var(--text-meta-size); overflow-wrap: anywhere; }
+.page .roomActions { display: grid; gap: var(--space-2); margin: 0; padding-left: var(--space-5); }
+.roomActions p, .roomLedger p { margin: 0; overflow-wrap: anywhere; }
+.roomKind { display: inline-block; margin-left: var(--space-1); padding: 0 var(--space-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); font-size: var(--text-meta-size); }
+.roomLedger { display: grid; gap: var(--space-2); margin: 0; padding-left: var(--space-5); }
+.roomLedger li { overflow-wrap: anywhere; }
+@media print {
+  .roomRef { display: block; font-size: 8.5pt; margin: .3mm 0 0; }
+  .coreFacts dd > .roomRef { margin-left: 0; }
+  /* Run-in heading keeps the operational close inside page three's sheet. */
+  .roomClose > h3 { display: inline; margin: 0 2mm 0 0; }
+  .roomClose > h3 + p { display: inline; }
+  .page .roomActions { display: block; padding-left: 5mm; margin: 0; font-size: 9.5pt; line-height: 1.32; }
+  .roomActions > li { break-inside: avoid; margin-bottom: 1mm; }
+  .roomActions > li > p { display: inline; }
+  .roomActions > li > p + p::before { content: " — "; }
+  .roomKind { border: 0; padding: 0; margin-left: 1mm; }
+  .roomKind::before { content: "("; } .roomKind::after { content: ")"; }
+  .roomLedger > li { break-inside: avoid; }
+}

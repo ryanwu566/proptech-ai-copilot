@@ -12,6 +12,8 @@ export type ChecklistItem = {
   gaps: EvidenceGap[]; sources: EvidenceSource[]; impact: string; nextAction: string; href: string;
   evidenceToken: string; reviewState: ManualReviewState; reviewedAt: string | null; outstanding: boolean;
 };
+/** Stable checklist ID for one evidence field or gap ID; also the Decision Room evidence key. */
+export function checklistIdForEvidence(id: string): ChecklistId | null { return group(id); }
 function group(id: string): ChecklistId | null {
   if (id === "price-active" || id === "price-basis") return "price-asking";
   if (id.startsWith("demographics-")) return "location-summary";

@@ -18,6 +18,7 @@ import { buildReportExecutiveSummary } from "@/lib/workspace/report-executive";
 import { ReportExecutive } from "./report-executive";
 import { buildReportCore } from "@/lib/workspace/report-core";
 import { EMPTY_REPORT_BRANDING, ReportAppendixHeading, ReportCorePages, ReportPreparedBy } from "./report-core";
+import { OpenRoomLink, RoomAppendix, RoomReadiness, useDecisionRoomReport } from "./report-decision-room";
 function currentEvidence(read: WorkspaceReadDiagnostic, caseId: string): CaseEvidenceModel | null { const workspace = read.cases.find((item) => item.caseId === caseId); return workspace ? projectCaseEvidence(workspace) : null; }
 function invalid(read: WorkspaceReadDiagnostic, caseId: string): boolean { return storageBlocked(read) || read.issues.some((issue) => issue.caseId === caseId); }
 export function ReportView({ caseId }: { caseId: string }) {
@@ -26,6 +27,7 @@ export function ReportView({ caseId }: { caseId: string }) {
   const [frozen, setFrozen] = useState<{ evidence: CaseEvidenceModel; generatedAt: string } | null>(null);
   const frozenRef = useRef<typeof frozen>(null);
   const root = useRef<HTMLElement>(null);
+  const room = useDecisionRoomReport(caseId);
   useEffect(() => {
     const load = () => {
       const next = repository.readDiagnostic(); setRead(next);
@@ -73,14 +75,14 @@ export function ReportView({ caseId }: { caseId: string }) {
       </Message></div> : <>
         <div className={styles.screenOnly} data-testid="report-controls">
           <CopilotLink caseId={caseId} />
-          <ActionSection><CommercialButton onClick={print}>列印／另存 PDF</CommercialButton><Link href={`/cases/${encodeURIComponent(caseId)}/overview`} className="ds-button ds-button--secondary">返回案件工作區</Link><Link href="/cases" className="ds-button ds-button--secondary">已儲存案件</Link></ActionSection>
+          <ActionSection><CommercialButton onClick={print}>列印／另存 PDF</CommercialButton><Link href={`/cases/${encodeURIComponent(caseId)}/overview`} className="ds-button ds-button--secondary">返回案件工作區</Link><OpenRoomLink caseId={caseId} /><Link href="/cases" className="ds-button ds-button--secondary">已儲存案件</Link></ActionSection>
           <p className="text-meta">開啟瀏覽器列印對話框，可選擇另存為 PDF。</p>
           {assessment === "snapshot_changed" && <div data-testid="snapshot-change"><Message variant="warning" action={<CommercialButton variant="secondary" onClick={loadNewer}>載入較新快照</CommercialButton>}>案件已有較新快照；目前畫面與列印仍使用你正在檢視的保存快照。</Message></div>}
         </div>
         <article data-testid="report-evidence" className={styles.reportEvidence}>
           <header className={styles.reportCover}><h1 className="text-page">案件證據報告 · {report.evidence!.title}</h1><p>{report.evidence!.displayAddress}</p><ReportPreparedBy branding={EMPTY_REPORT_BRANDING} /><div className={styles.screenOnly}><p>案件保存：{date(report.evidence!.savedAt)} · 報告產生：{date(report.generatedAt)}</p><p>{report.status === "ready_with_limits" ? "可閱讀的證據摘要，含待查證限制" : "可閱讀的保存證據摘要"}</p><Message>本報告依已儲存證據快照製作；不是即時重新查詢。{report.evidence!.identity.limitation}</Message></div></header>
-          {executive && <ReportExecutive summary={executive} citations={report.citations} />}
-          {core && <ReportCorePages core={core} citations={report.citations} askingUnit={executive?.keyNumbers.find((item) => item.id === "asking_unit")} />}
+          {executive && <ReportExecutive summary={executive} citations={report.citations} room={room && <RoomReadiness report={room} />} />}
+          {core && <ReportCorePages core={core} citations={report.citations} askingUnit={executive?.keyNumbers.find((item) => item.id === "asking_unit")} room={room} />}
           {/* Detailed evidence is kept whole: every section, full provenance and the reference ledger. */}
           <section aria-labelledby="report-appendix" className={styles.appendix} data-testid="report-appendix" data-report-page="appendix">
           <ReportAppendixHeading />
@@ -93,6 +95,7 @@ export function ReportView({ caseId }: { caseId: string }) {
             {section.id === "actions" && <><EvidenceGaps cases={[report.evidence!]} actionsOnly /><ManualReviewSummary evidence={report.evidence!} /></>}
             {section.id === "sources" && <EvidenceSources cases={[report.evidence!]} />}
           </Section>)}
+          {room && <RoomAppendix report={room} index={report.sections.length + 1} />}
           </section>
           <ReportCitationReferences citations={report.citations} />
         </article>
