@@ -1,0 +1,107 @@
+/*
+ * Ambient scene framework. One placement, one mask language and one motion grammar
+ * (REVEAL → FOCUS → LOCK → RESOLVE, then an occasional single "wake") shared by every variant.
+ * Only opacity, transform and stroke-dashoffset animate; nothing reads or changes layout.
+ */
+.scene {
+  --ambient-ink: #526174;
+  --ambient-accent: #0f5c78;
+  --ambient-amber: #b7791f;
+  --ambient-fill: rgb(15 92 120 / 8%);
+  --ambient-hold: 3400ms;
+  --ambient-ease: cubic-bezier(0.2, 0, 0, 1);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Hosted scenes sit behind the page, directly under the global header, and scroll away with it. */
+.hosted {
+  --presence: 0.34;
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  height: clamp(540px, 90vh, 880px);
+  overflow: hidden;
+  contain: strict;
+  opacity: 0;
+  transition: opacity 700ms var(--ambient-ease);
+  -webkit-mask-image: linear-gradient(to right, transparent 0% 14%, rgb(0 0 0 / 0.35) 38%, #000 66%), linear-gradient(to bottom, #000 38%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0% 14%, rgb(0 0 0 / 0.35) 38%, #000 66%), linear-gradient(to bottom, #000 38%, transparent 100%);
+  mask-composite: intersect;
+}
+.hosted[data-phase] { opacity: var(--presence); }
+.report { --presence: 0.24; }
+.compare {
+  -webkit-mask-image: linear-gradient(to right, transparent 0% 10%, rgb(0 0 0 / 0.5) 30%, #000 50%, #000 90%, rgb(0 0 0 / 0.6) 100%), linear-gradient(to bottom, #000 38%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0% 10%, rgb(0 0 0 / 0.5) 30%, #000 50%, #000 90%, rgb(0 0 0 / 0.6) 100%), linear-gradient(to bottom, #000 38%, transparent 100%);
+}
+
+.desktop, .mobile { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; overflow: hidden; }
+.mobile { display: none; }
+
+/* Paint vocabulary. */
+.ink { fill: none; stroke: var(--ambient-ink); stroke-width: 1; }
+.accent { fill: none; stroke: var(--ambient-accent); stroke-width: 1.25; }
+.amber { fill: rgb(183 121 31 / 7%); stroke: var(--ambient-amber); stroke-width: 1.25; stroke-dasharray: 5 5; }
+.band { fill: var(--ambient-fill); stroke: none; }
+.dot { fill: var(--ambient-ink); stroke: none; }
+.node { fill: var(--canvas, #f6f7f9); stroke: var(--ambient-accent); stroke-width: 1.25; }
+.solid { fill: var(--ambient-accent); stroke: none; }
+.faint { opacity: 0.45; }
+.amberLine { fill: none; stroke: var(--ambient-amber); stroke-width: 1.5; }
+
+/* FOCUS: primary geometry draws in or fades in. LOCK: the anchor settles into place. RESOLVE: emphasis recedes to rest. */
+.draw, .drawLock, .drawResolve { stroke-dasharray: 1 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1600ms var(--ambient-ease), opacity 1200ms var(--ambient-ease); }
+.scene[data-focus] .draw, .scene[data-lock] .drawLock, .scene[data-resolve] .drawResolve { stroke-dashoffset: 0; }
+.fadeFocus, .fadeLock, .fadeResolve { opacity: 0; transition: opacity 1200ms var(--ambient-ease); }
+.scene[data-focus] .fadeFocus, .scene[data-lock] .fadeLock, .scene[data-resolve] .fadeResolve { opacity: var(--o, 1); }
+.settle { transform: translate(var(--dx, 0), var(--dy, 0)); transition: transform 2200ms var(--ambient-ease), opacity 1200ms var(--ambient-ease); }
+.scene[data-lock] .settle { transform: none; }
+.lockMark { opacity: 0; transform: scale(0.94); transform-box: fill-box; transform-origin: center; transition: opacity 900ms var(--ambient-ease), transform 900ms var(--ambient-ease); }
+.scene[data-lock] .lockMark { opacity: 1; transform: none; }
+.scene[data-resolve] .recede { opacity: var(--rest, 0.55); }
+
+/* WAKE: one relationship at a time, a single slow pass, never looping on its own. */
+.trace { opacity: 0; stroke-dasharray: 0.16 2; stroke-dashoffset: 0.16; }
+.halo { opacity: 0; }
+.scene[data-wake="0"] :is(.w0), .scene[data-wake="1"] :is(.w1), .scene[data-wake="2"] :is(.w2), .scene[data-wake="3"] :is(.w3) {
+  animation-duration: var(--ambient-hold);
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+.scene[data-wake="0"] .w0.trace, .scene[data-wake="1"] .w1.trace, .scene[data-wake="2"] .w2.trace, .scene[data-wake="3"] .w3.trace { animation-name: ambient-trace; }
+.scene[data-wake="0"] .w0.halo, .scene[data-wake="1"] .w1.halo, .scene[data-wake="2"] .w2.halo, .scene[data-wake="3"] .w3.halo { animation-name: ambient-halo; }
+@keyframes ambient-trace {
+  0% { opacity: 0; stroke-dashoffset: 0.16; }
+  18%, 82% { opacity: 1; }
+  100% { opacity: 0; stroke-dashoffset: -1; }
+}
+@keyframes ambient-halo {
+  0%, 100% { opacity: 0; }
+  45%, 60% { opacity: 1; }
+}
+
+.scene[data-paused], .scene[data-paused] * { animation-play-state: paused !important; }
+
+/* Mobile artboards start below the tall stacked property header and carry one idea each. */
+@media (max-width: 767px) {
+  .desktop { display: none; }
+  .mobile { display: block; top: var(--mobile-top, 200px); height: calc(100% - var(--mobile-top, 200px)); }
+  /* Standalone routes have no property header above their content. */
+  .compare, .report { --mobile-top: 0px; }
+  .hosted {
+    height: clamp(640px, 96vh, 820px);
+    -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0.3) 0%, #000 70%), linear-gradient(to bottom, #000 62%, transparent 100%);
+    mask-image: linear-gradient(to right, rgb(0 0 0 / 0.3) 0%, #000 70%), linear-gradient(to bottom, #000 62%, transparent 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene, .scene * { transition: none !important; animation: none !important; }
+}
+
+@media print {
+  .scene { display: none !important; }
+}
