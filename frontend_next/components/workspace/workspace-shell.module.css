@@ -1,6 +1,7 @@
 .shell {
   min-height: 100vh;
-  background: var(--canvas);
+  /* Transparent so the route's ambient scene (z-index -1) shows through; the canvas colour comes from <html>. */
+  background: transparent;
 }
 
 .body {
