@@ -7,6 +7,8 @@ import type { PropertyCaseWorkspace } from "./workspace-model";
 import { normalizeLocationInsightEvidence } from "../location-insight-evidence.ts";
 // @ts-expect-error Native TS runner extension.
 import { areJourneyPropertyAddressesEquivalent } from "../journey-property-identity.ts";
+// @ts-expect-error Native TS runner extension.
+import { normalizeNearbyFacilities, type NearbyFacilitiesEvidence } from "./nearby-facilities.ts";
 
 export type LocationPropertyContext = {
   address: string;
@@ -18,6 +20,7 @@ export type LocationPropertyContext = {
 };
 
 export type LocationWorkspaceSnapshot = {
+  nearbyFacilities?: NearbyFacilitiesEvidence;
   property: LocationPropertyContext;
   insight?: LocationInsightResult;
   poiSummary?: LocationInsightResult["poi_summary"];
@@ -52,9 +55,12 @@ function routeMatchesOrigin(route: CommuteRouteEvidence, coordinates: NonNullabl
     && Math.abs(route.origin.longitude - coordinates.longitude) <= 0.000001;
 }
 
-export function buildLocationWorkspaceSnapshot(saved: SavedCase): LocationWorkspaceSnapshot {
+export function buildLocationWorkspaceSnapshot(saved: SavedCase, identityConfirmed = false): LocationWorkspaceSnapshot {
   const anchor = saved.data.propertyIdentityAnchor;
   const coordinates = anchor?.coordinates ?? null;
+  const nearby = normalizeNearbyFacilities(saved.data.nearbyFacilities);
+  const nearbyCurrent = identityConfirmed && nearby && coordinates && anchor?.revalidation.status === "current"
+    && Math.abs(nearby.origin.lat - coordinates.latitude) <= 0.000001 && Math.abs(nearby.origin.lng - coordinates.longitude) <= 0.000001;
   const storedRoute = saved.data.commuteRoute;
   const routeCurrent = Boolean(storedRoute && coordinates && routeMatchesOrigin(storedRoute, coordinates));
   let insight = saved.data.locationInsight ? normalizeLocationInsightEvidence(saved.data.locationInsight) : undefined;
@@ -67,6 +73,7 @@ export function buildLocationWorkspaceSnapshot(saved: SavedCase): LocationWorksp
   }
 
   return {
+    ...(nearbyCurrent ? { nearbyFacilities: nearby } : {}),
     property: {
       address: addressFrom(saved, anchor),
       normalizedAddress: anchor?.normalized_address || addressFrom(saved, anchor),

@@ -27,6 +27,43 @@ const { projectCaseEvidence } = load('lib/workspace/case-evidence.ts');
 const { buildReportModel, buildComparisonModel } = load('lib/workspace/compare-report-model.ts');
 const { buildMarketRefreshContext, canCommitMarketPriceResponse } = load('lib/workspace/market-price-refresh.ts');
 const { SAVED_CASES_STORAGE_KEY: key } = storage;
+const { captureNearbyFacilities } = load('lib/workspace/nearby-facilities.ts');
+function nearby() {
+  const origin = { lat: 24.16525, lng: 120.64555 };
+  return captureNearbyFacilities({ center: origin, radius_m: 800, source: 'google_places', categories: [{ category: 'park', places: [{ place_id: 'park', name: 'Local park', ...origin }] }] }, origin);
+}
+
+test('nearby acquisition persists bounded details across snapshot save, reopen, report and compare reads', async () => browser(JSON.stringify([e9Case()]), async values => {
+  const repo = createBrowserCaseRepository();
+  const workspace = repo.getCase('case-a');
+  const row = storage.readSavedCases()[0];
+  const evidence = nearby();
+  assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { nearbyFacilities: evidence }, { ...expectation(row), snapshotVersion: workspace.storageVersion }), true);
+  assert.deepEqual(repo.getCase(row.id).location.nearbyFacilities, evidence);
+  assert.equal((await repo.saveSnapshot(repo.getCase(row.id))).status, 'saved');
+  const reopened = repo.getCase(row.id);
+  assert.deepEqual(reopened.location.nearbyFacilities, evidence);
+  const before = values.get(key);
+  const projected = projectCaseEvidence(reopened);
+  buildReportModel(projected);
+  buildComparisonModel([projected], [reopened.caseId]);
+  assert.equal(values.get(key), before);
+}));
+
+test('nearby evidence rejects mismatched origin and failed storage without erasing prior evidence', async () => {
+  const row = e9Case();
+  row.data.nearbyFacilities = nearby();
+  const original = JSON.stringify([row]);
+  await browser(original, async values => {
+    const foreign = nearby(); foreign.origin.lat += 0.1;
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { nearbyFacilities: foreign }, expectation(row)), false);
+    assert.equal(values.get(key), original);
+  });
+  await browser(original, async values => {
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { nearbyFacilities: nearby() }, expectation(row)), false);
+    assert.equal(values.get(key), original);
+  }, true);
+});
 function input() {
   const row = e9Case();
   delete row.data.financeEvidence;

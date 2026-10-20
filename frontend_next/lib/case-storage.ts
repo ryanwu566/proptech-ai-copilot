@@ -19,6 +19,7 @@ import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidenc
 import { invalidateChangedChecklist, normalizeChecklistReview, type StoredChecklistReviewV1 } from "@/lib/workspace/checklist-persistence";
 import { planAddressDraft, type AddressDraftResult } from "@/lib/workspace/case-draft";
 import { planIdentityConfirmation } from "@/lib/workspace/location-confirmation";
+import { normalizeNearbyFacilities, type NearbyFacilitiesEvidence } from "@/lib/workspace/nearby-facilities";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -26,7 +27,7 @@ export const CASE_UPDATED_EVENT = "proptech:saved-case-updated";
 export const CASE_CLEARED_EVENT = "proptech:current-case-cleared";
 export const MAX_SAVED_CASES = 10;
 
-// Historical list bounds are intentionally replaced by empty safe arrays.
+// Legacy provider detail arrays stay empty; nearby v1 keeps only its bounded contextual evidence.
 
 export type SavedCaseData = {
   inputs: ValuationInputs;
@@ -39,6 +40,7 @@ export type SavedCaseData = {
   financePriceEvidence?: FinancePriceEvidence;
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
+  nearbyFacilities?: NearbyFacilitiesEvidence;
   commuteRoute?: CommuteRouteEvidence;
   commuteTransit?: CommuteAddressLookupResult;
   marketInsight?: MarketResult;
@@ -271,6 +273,7 @@ function deleteSavedCaseUnlocked(id: string) {
 }
 
 export function updateSavedCaseLocationEvidence(caseId: string, patch: {
+  nearbyFacilities?: NearbyFacilitiesEvidence;
   commuteRoute?: CommuteRouteEvidence | null;
   commuteTransit?: CommuteAddressLookupResult | null;
 }, expectedIdentity?: SavedCaseIdentityExpectation, canCommit?: SavedCaseCommitGuard): Promise<boolean> {
@@ -278,6 +281,7 @@ export function updateSavedCaseLocationEvidence(caseId: string, patch: {
 }
 
 function updateSavedCaseLocationEvidenceUnlocked(caseId: string, patch: {
+  nearbyFacilities?: NearbyFacilitiesEvidence;
   commuteRoute?: CommuteRouteEvidence | null;
   commuteTransit?: CommuteAddressLookupResult | null;
 }, expectedIdentity: SavedCaseIdentityExpectation | undefined, snapshotVersion: string): boolean {
@@ -288,6 +292,12 @@ function updateSavedCaseLocationEvidenceUnlocked(caseId: string, patch: {
   const current = rows[index];
   if (JSON.stringify(current) !== snapshotVersion || !identityMatches(current, expectedIdentity)) return false;
   const data: SavedCaseData = { ...current.data };
+  if (Object.prototype.hasOwnProperty.call(patch, "nearbyFacilities")) {
+    const nearby = normalizeNearbyFacilities(patch.nearbyFacilities);
+    if (!nearby || !expectedIdentity || Math.abs(nearby.origin.lat - expectedIdentity.coordinates.latitude) > 0.000001
+      || Math.abs(nearby.origin.lng - expectedIdentity.coordinates.longitude) > 0.000001) return false;
+    data.nearbyFacilities = nearby;
+  }
   if (Object.prototype.hasOwnProperty.call(patch, "commuteRoute")) {
     data.commuteRoute = compactCommuteRouteEvidence(patch.commuteRoute ?? undefined);
   }
@@ -504,6 +514,7 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
     valuation: compactedValuation ? { ...compactedValuation, comparables: [] } : undefined,
     trend: compactActionableValuationTrendSummary(data.trend),
     locationInsight: data.locationInsight ? { ...normalizeLocationInsightEvidence(data.locationInsight), resolved_location: null, nearest_pois: [] } : undefined,
+    nearbyFacilities: normalizeNearbyFacilities(data.nearbyFacilities),
     financePriceEvidence: normalizeFinancePriceEvidence(data.financePriceEvidence) ?? undefined,
     marketInsight: compactMarketInsight(data.marketInsight),
     commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),
