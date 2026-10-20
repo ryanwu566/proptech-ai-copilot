@@ -12,6 +12,9 @@ import { Section } from "@/components/design-system/section";
 import { StatusLabel } from "@/components/design-system/status-label";
 import { MetricItem, SummaryStrip } from "@/components/design-system/summary-strip";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { hasCompleteAdministrativeArea } from "@/lib/journey-property-identity";
+import { locationConfirmationCopy } from "@/lib/workspace/location-confirmation-copy";
 import {
   formatAreaPing,
   formatDistance,
@@ -64,6 +67,7 @@ function analysisLevelCopy(level: string | null, fallbackApplied: boolean): stri
 }
 
 export function MarketPriceView() {
+  const { copyFrom } = useExperienceLocale();
   const workspace = useWorkspace();
   const saved = useMemo(
     () => readSavedCases().find((row) => row.id === workspace.caseId) ?? null,
@@ -307,7 +311,10 @@ export function MarketPriceView() {
       </div>
     </header>
 
-    {(!marketContext || !valuationContext) && <div data-testid="market-refresh-input-required">
+    {workspace.identity.state === "confirmed" && !hasCompleteAdministrativeArea(workspace.identity.anchor) && <div data-testid="market-administrative-unavailable"><Message variant="information" title={copyFrom(locationConfirmationCopy, "adminPendingTitle")}>
+      {copyFrom(locationConfirmationCopy, "adminIncomplete")}
+    </Message></div>}
+    {(!marketContext || !valuationContext) && !(workspace.identity.state === "confirmed" && !hasCompleteAdministrativeArea(workspace.identity.anchor)) && <div data-testid="market-refresh-input-required">
       <AsyncState
         kind="input_required"
         title="請先確認目前物件與價格推估輸入"
