@@ -13,21 +13,20 @@ export type AmbientPhase = (typeof AMBIENT_PHASES)[number];
 export const PHASE_START: Record<AmbientPhase, number> = { reveal: 0, focus: 700, lock: 2100, resolve: 3300 };
 
 /**
- * After RESOLVE a scene may "wake" one of its relationships at a time. `count` is how many distinct
- * relationships take turns, `every` the random interval range between wakes, and `hold` how long a wake lasts.
- * `null` means the scene stays still once resolved.
+ * The controller retains its wake capability, but photographic scenes all use null:
+ * a single finite settle, with no periodic accents, scanning or loops.
  */
 export type WakeRhythm = { count: number; every: readonly [number, number]; hold: number } | null;
 
 export const WAKE: Record<AmbientVariant, WakeRhythm> = {
   home: null,
-  overview: { count: 4, every: [11000, 15000], hold: 3200 },
-  market: { count: 2, every: [12000, 16000], hold: 3600 },
-  location: { count: 3, every: [8000, 12000], hold: 3600 },
-  risk: { count: 2, every: [12000, 16000], hold: 4000 },
-  finance: { count: 2, every: [12000, 16000], hold: 3600 },
-  decision: { count: 1, every: [12000, 16000], hold: 4200 },
-  compare: { count: 4, every: [12000, 16000], hold: 3200 },
+  overview: null,
+  market: null,
+  location: null,
+  risk: null,
+  finance: null,
+  decision: null,
+  compare: null,
   report: null,
 };
 
