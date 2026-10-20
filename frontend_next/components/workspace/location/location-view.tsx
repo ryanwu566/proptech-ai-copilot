@@ -20,6 +20,7 @@ import { buildLocationOverviewHandoff } from "@/lib/workspace/location-context";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { homeStartCopy } from "@/lib/home-start-copy";
 import { locationConfirmationCopy } from "@/lib/workspace/location-confirmation-copy";
+import { hasCompleteAdministrativeArea } from "@/lib/journey-property-identity";
 import { nearbyFacilitiesCopy } from "@/lib/workspace/nearby-facilities-copy";
 import { LocationConfirmationPanel } from "./location-confirmation-panel";
 import { NearbyFacilitiesPanel } from "./nearby-facilities-panel";
@@ -95,6 +96,7 @@ export function LocationView() {
     </header>
 
     <div role="status" data-testid="location-confirmation-status">{locationConfirmed && !neverLocated && <Message variant="success">{copyFrom(locationConfirmationCopy, "confirmed")}</Message>}</div>
+    {anchor && !hasCompleteAdministrativeArea(anchor) && <div data-testid="location-administrative-incomplete"><Message variant="information">{copyFrom(locationConfirmationCopy, "adminIncomplete")}</Message></div>}
 
     <SummaryStrip label="區位與通勤狀態">
       <MetricItem label="物件位置" value={<StatusLabel semanticRole={identity.role}>{identity.label["zh-TW"]}</StatusLabel>} />
