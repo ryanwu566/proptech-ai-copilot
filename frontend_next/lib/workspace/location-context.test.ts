@@ -7,6 +7,29 @@ import { buildLocationOverviewHandoff, buildLocationWorkspaceSnapshot } from "./
 import { adaptSavedCaseToWorkspace } from "./legacy-case-adapter.ts";
 // @ts-expect-error Native TS runner extension.
 import { projectCaseEvidence } from "./case-evidence.ts";
+// @ts-expect-error Native TS runner extension.
+import { captureNearbyFacilities } from "./nearby-facilities.ts";
+
+test("saved nearby evidence is read locally and is hidden for a foreign property", () => {
+  const saved: import("../case-storage").SavedCase = savedCase();
+  const c = saved.data.propertyIdentityAnchor!.coordinates!;
+  const origin = { lat: c.latitude, lng: c.longitude };
+  saved.data.nearbyFacilities = captureNearbyFacilities({ center: origin, radius_m: 800, source: "google_places", categories: [{ category: "park", places: [{ place_id: "park", name: "Park", ...origin }] }] }, origin);
+  assert.equal(buildLocationWorkspaceSnapshot(saved, true).nearbyFacilities?.places[0].name, "Park");
+  saved.data.nearbyFacilities.origin.lat += 0.1;
+  assert.equal(buildLocationWorkspaceSnapshot(saved, true).nearbyFacilities, undefined);
+});
+
+test("nearby evidence is hidden when the case identity needs confirmation", () => {
+  const saved: import("../case-storage").SavedCase = savedCase();
+  const c = saved.data.propertyIdentityAnchor!.coordinates!;
+  const origin = { lat: c.latitude, lng: c.longitude };
+  saved.data.nearbyFacilities = captureNearbyFacilities({ center: origin, radius_m: 800, source: "google_places", categories: [{ category: "park", places: [{ place_id: "park", name: "Old park", ...origin }] }] }, origin);
+  saved.data.journeyContext!.propertyContext.addressSummary = "臺中市西屯區臺灣大道三段999號";
+  const workspace = adaptSavedCaseToWorkspace(saved);
+  assert.equal(workspace.identity.state, "revalidation_required");
+  assert.equal(workspace.location.nearbyFacilities, undefined);
+});
 
 test("foreign location evidence cannot leak demographics, village, scores or source details", () => {
   const saved = savedCase();

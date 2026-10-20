@@ -59,7 +59,7 @@ function evidencePresence(saved: SavedCase): Record<EvidenceKey, boolean> {
   return {
     market: Boolean(saved.data.marketInsight),
     valuation: Boolean(saved.data.valuation),
-    location: Boolean(saved.data.locationInsight),
+    location: Boolean(saved.data.locationInsight || saved.data.nearbyFacilities),
     commute: Boolean(saved.data.commuteRoute || saved.data.commuteTransit),
     risk: Boolean(saved.data.terrainReference || saved.data.terrainRisk),
     finance: Boolean(saved.data.financeEvidence || saved.data.loan || saved.data.holdingCost || saved.data.taxOracle),
@@ -161,7 +161,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     },
     evidence,
     marketPrice,
-    location: buildLocationWorkspaceSnapshot(saved),
+    location: buildLocationWorkspaceSnapshot(saved, identity.state === "confirmed"),
     risk: saved.data.terrainReference
       ? buildStoredRiskEvidenceModel(saved.data.terrainReference, {
           stale,
