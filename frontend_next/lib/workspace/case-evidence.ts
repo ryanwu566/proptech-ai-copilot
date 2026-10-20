@@ -55,6 +55,12 @@ export type CaseEvidenceModel = {
   checklistReview?: StoredChecklistReviewV1;
   checklistIdentityToken?: string;
   comparableExplanation?: ComparableExplanation;
+  /** Saved context for comparison only; never filled from browser session state. */
+  comparisonContext?: {
+    administration: string | null;
+    nearby: { radiusM: number; partial: boolean; checkedAt: string } | null;
+  };
+  savedFinanceActions?: string[];
 };
 
 // @ts-expect-error Native TS runner extension.
@@ -180,6 +186,13 @@ export function projectCaseEvidence(workspace: PropertyCaseWorkspace): CaseEvide
   model.checklistIdentityToken = checklistToken([workspace.caseId, workspace.displayAddress, workspace.identity.state, anchor?.journey_anchor_id, anchor?.normalized_address, anchor?.coordinates, anchor?.evidence.checked_at, anchor?.revalidation]);
   model.checklistReview = workspace.checklistReview;
   model.comparableExplanation = compactComparableExplanation(valuation.result?.comparable_decision_trace);
+  const admin = workspace.identity.anchor?.administrative_location;
+  const nearby = workspace.location.nearbyFacilities;
+  model.comparisonContext = {
+    administration: admin?.city && admin.district && admin.village ? `${admin.city}${admin.district}${admin.village}` : null,
+    nearby: nearby ? { radiusM: nearby.radiusM, partial: nearby.partial, checkedAt: nearby.checkedAt } : null,
+  };
+  model.savedFinanceActions = [...new Set(finance?.savedUnresolvedActions ?? [])];
   model.snapshotToken = JSON.stringify(model); // Canonical projection order, in memory only; no durable revision claim.
   return model;
 }

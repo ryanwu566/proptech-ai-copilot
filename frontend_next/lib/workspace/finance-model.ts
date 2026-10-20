@@ -89,6 +89,8 @@ export type FinanceModel = {
   };
   missingCosts: string[];
   unresolvedActions: string[];
+  /** Original saved tasks only; excludes actions derived while restoring or validating the snapshot. */
+  savedUnresolvedActions?: string[];
   freshness: { status: "current" | "stale" | "not_calculated"; calculatedAt: string | null; source: "live_calculation" | "saved_snapshot" | null };
   overview: {
     activePriceBasis: FinancePriceBasis;

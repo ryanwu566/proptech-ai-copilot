@@ -10,10 +10,10 @@ import { AsyncState } from "@/components/design-system/async-state";
 import { createBrowserCaseRepository, type WorkspaceReadDiagnostic } from "@/lib/workspace/case-repository";
 import { projectCaseEvidence } from "@/lib/workspace/case-evidence";
 import { buildComparisonModel, parseCompareSelection, compareHref, type ComparisonStatus } from "@/lib/workspace/compare-report-model";
-import { buildCompareDiff, buildKeyDifferences, compareFieldsHref, isVisibleInDifferences, parseFieldsView, type CompareDiffModel, type CompareFieldsView } from "@/lib/workspace/compare-diff";
+import { buildCompareDiff, compareFieldsHref, isVisibleInDifferences, parseFieldsView, type CompareDiffModel, type CompareFieldsView } from "@/lib/workspace/compare-diff";
 import { compareCopy, type CompareCopyKey } from "@/lib/workspace/compare-copy";
 import { EvidenceValue, EvidenceGaps, EvidenceSources, RepositoryNotice, storageBlocked, date } from "./evidence-view";
-import { CompareKeyDifferences } from "./compare-key-differences";
+import { CompareDifferenceBrief } from "./compare-difference-brief";
 import styles from "./evidence.module.css";
 import { TradeoffPanel } from "@/components/preferences/tradeoff-panel";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
@@ -45,7 +45,6 @@ export function CompareView() {
   const pairDiff = buildCompareDiff(model.sections, orderedPair.map((item) => model.cases.indexOf(item)));
   // Until the user picks an area, open the first one with differences for this pair (overview otherwise).
   const domain = chosenDomain ?? (view === "all" ? undefined : pairDiff.sections.find((section) => section.rows.some(isVisibleInDifferences))?.id) ?? "overview";
-  const keyDifferences = buildKeyDifferences(diff, model.cases.map((item) => item.gaps.length));
   const totalGaps = model.cases.reduce((sum, item) => sum + item.gaps.length, 0);
   function setView(next: CompareFieldsView) { window.history.pushState(null, "", compareFieldsHref(compareHref(ids), next)); }
   function toggle(id: string) {
@@ -67,7 +66,7 @@ export function CompareView() {
         </Section>
         {model.status !== "ready" ? <Message variant={model.status === "too_few" ? "information" : "error"}>{blockedMessages[model.status]}{model.status === "identity_requires_revalidation" && <div>{ids.map((id) => <Link key={id} href={`/cases/${encodeURIComponent(id)}/overview`}>開啟選取案件工作區 </Link>)}</div>}</Message> : <>
           <div className={styles.selection}>{model.cases.map(item => <div key={item.caseId}><p>{item.title}</p><CopilotLink caseId={item.caseId} /></div>)}</div>
-          <CompareKeyDifferences model={keyDifferences} cases={model.cases} />
+          <CompareDifferenceBrief cases={model.cases} />
           <p><a href="#compare-limitations">{c("limitsLink", { count: model.warnings.length })}</a></p>
           <FieldsToolbar view={view} diff={diff} onChange={setView} c={c} />
           <div className={styles.desktop} data-testid="compare-desktop" data-fields-view={view}><table className={styles.table}><caption className="sr-only">已儲存案件的分領域證據比較</caption>
