@@ -21,6 +21,7 @@ import { GuidedTourEntry } from "@/components/guided-tour-entry";
 import { navigationCopy } from "@/lib/navigation/copy";
 import { caseDestination } from "@/lib/navigation/model";
 import { homeStartCopy } from "@/lib/home-start-copy";
+import { HomeCityBackdrop } from "@/components/home-city-backdrop";
 
 /** Primary start is local case creation only: no geocoding, provider call or analysis. */
 export function CommercialHome({ onFinder }: { onFinder: () => void }) {
@@ -54,6 +55,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
   const recent = read?.cases.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3) ?? [];
   return <div className="commercial-home">
     <section className="commercial-home__start" aria-labelledby="commercial-home-heading">
+      <HomeCityBackdrop />
       <header data-page-heading tabIndex={-1}><p className="text-meta">{t("commercial.workspace")}</p><h1 id="commercial-home-heading" className="text-page">{t("commercial.homeTitle")}</h1><p className="text-body">{t("commercial.homeDescription")}</p></header>
       <form onSubmit={start} className="commercial-home__form" aria-busy={pending || undefined}>
         <Field required label={t("commercial.address")} helperText={t("commercial.addressHint")}><input id="commercial-address" className="ds-control" required maxLength={MAX_DRAFT_ADDRESS_LENGTH} value={address} onChange={(event) => { setAddress(event.target.value); setFailure(null); }} autoComplete="street-address" placeholder={t("commercial.addressPlaceholder")} /></Field>
