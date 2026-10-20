@@ -14,13 +14,13 @@ import { buildJourneyPropertyIdentityAnchor, normalizeJourneyPropertyIdentityAnc
 export type LocationCandidate = {
   addressInput: string;
   interpretedAddress: string;
-  county: string;
-  district: string;
+  county: string | null;
+  district: string | null;
   latitude: number;
   longitude: number;
   source: "tgos" | "google";
 };
-export type LocationCandidateBlock = "unresolved" | "unavailable" | "invalid" | "low_confidence" | "missing_coordinates" | "missing_area";
+export type LocationCandidateBlock = "unresolved" | "unavailable" | "capacity_unavailable" | "provider_unavailable" | "invalid" | "low_confidence" | "missing_coordinates";
 export type LocationCandidateResult = { kind: "candidate"; candidate: LocationCandidate } | { kind: "blocked"; reason: LocationCandidateBlock };
 
 const GEOCODER_SOURCE_IDS = { tgos: "tgos_geocoding", google: "google_geocoding" } as const;
@@ -36,7 +36,11 @@ function boundedText(value: unknown, maximum: number): string | null {
   return typeof value === "string" && value.trim() && value.trim().length <= maximum ? value.trim() : null;
 }
 
-/** Fail closed: anything but a high-confidence, in-Taiwan, area-complete result cannot be confirmed. */
+export function locationRequestFailure(status?: number): LocationCandidateBlock {
+  return status === 429 ? "capacity_unavailable" : status === 503 ? "provider_unavailable" : "unavailable";
+}
+
+/** Confirm only trusted, high-confidence Taiwan coordinates; administrative completeness is independent. */
 export function interpretLocationResolution(value: unknown, addressInput: string): LocationCandidateResult {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { kind: "blocked", reason: "invalid" };
   const result = value as Partial<LocationResolveResult>;
@@ -50,7 +54,6 @@ export function interpretLocationResolution(value: unknown, addressInput: string
   if (latitude < TAIWAN_BOUNDS.minLatitude || latitude > TAIWAN_BOUNDS.maxLatitude || longitude < TAIWAN_BOUNDS.minLongitude || longitude > TAIWAN_BOUNDS.maxLongitude) return { kind: "blocked", reason: "invalid" };
   const county = boundedText(result.county, 20);
   const district = boundedText(result.district, 20);
-  if (!county || !district) return { kind: "blocked", reason: "missing_area" };
   const input = boundedText(addressInput, 500);
   if (!input) return { kind: "blocked", reason: "invalid" };
   return { kind: "candidate", candidate: { addressInput: input, interpretedAddress: boundedText(result.formatted_address, 500) ?? input, county, district, latitude, longitude, source: result.source } };
@@ -59,7 +62,7 @@ export function interpretLocationResolution(value: unknown, addressInput: string
 /** Explicit user confirmation → the same browser-anchor contract the guided journey produces. */
 export function buildConfirmedLocationAnchor(candidate: LocationCandidate, options: { now: () => string; idFactory: () => string }): JourneyPropertyIdentityAnchorV1 | null {
   const anchor = buildJourneyPropertyIdentityAnchor({
-    context: { addressSummary: candidate.addressInput, city: candidate.county, district: candidate.district, sourceLabel: "使用者確認", selectionStatus: "selected" },
+    context: { addressSummary: candidate.addressInput, city: candidate.county ?? undefined, district: candidate.district ?? undefined, sourceLabel: "使用者確認", selectionStatus: "selected" },
     // Only the geocode fields the anchor builder reads; no nearby, village or demographic evidence exists here.
     location: {
       resolved_location: { address_label: candidate.interpretedAddress, latitude: candidate.latitude, longitude: candidate.longitude, geocoding_confidence: "high" },
@@ -67,7 +70,7 @@ export function buildConfirmedLocationAnchor(candidate: LocationCandidate, optio
     } as unknown as LocationInsightResult,
   }, options);
   const normalized = normalizeJourneyPropertyIdentityAnchor(anchor);
-  return normalized?.coordinates && normalized.administrative_location.city && normalized.administrative_location.district ? normalized : null;
+  return normalized?.coordinates ? normalized : null;
 }
 
 export type IdentityConfirmationBlock = "case_changed" | "already_identified" | "invalid_anchor";
@@ -80,7 +83,6 @@ export function planIdentityConfirmation(current: SavedCase | undefined, anchor:
   // Same identity address the workspace adapter compares against (journey summary, else saved address parts).
   const addressInput = current.data.journeyContext?.propertyContext.addressSummary?.trim()
     || [current.inputSummary.city, current.inputSummary.district, current.inputSummary.road].filter((part) => typeof part === "string" && part.trim()).join("");
-  if (!normalized?.coordinates || normalized.revalidation.status !== "current" || !addressInput || normalized.address_input !== addressInput
-    || !normalized.administrative_location.city || !normalized.administrative_location.district) return { kind: "blocked", reason: "invalid_anchor" };
+  if (!normalized?.coordinates || normalized.revalidation.status !== "current" || !addressInput || normalized.address_input !== addressInput) return { kind: "blocked", reason: "invalid_anchor" };
   return { kind: "write", anchor: normalized };
 }

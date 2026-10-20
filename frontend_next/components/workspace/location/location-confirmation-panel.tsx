@@ -6,9 +6,9 @@ import { Message } from "@/components/design-system/message";
 import { Panel } from "@/components/design-system/section";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
 import { confirmSavedCaseIdentity, type ConfirmIdentityResult } from "@/lib/case-storage";
-import { buildConfirmedLocationAnchor, interpretLocationResolution, type LocationCandidate, type LocationCandidateBlock } from "@/lib/workspace/location-confirmation";
+import { buildConfirmedLocationAnchor, interpretLocationResolution, locationRequestFailure, type LocationCandidate, type LocationCandidateBlock } from "@/lib/workspace/location-confirmation";
 import { locationConfirmationCopy, type LocationConfirmationCopyKey } from "@/lib/workspace/location-confirmation-copy";
 
 type Failure = LocationCandidateBlock | Extract<ConfirmIdentityResult, { status: "blocked" }>["reason"];
@@ -43,8 +43,8 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
     try {
       const resolution = interpretLocationResolution(await api.locationResolve(workspace.displayAddress, controller.signal), workspace.displayAddress);
       if (!controller.signal.aborted) setStep(resolution.kind === "candidate" ? { kind: "candidate", candidate: resolution.candidate, confirming: false } : { kind: "failed", reason: resolution.reason });
-    } catch {
-      if (!controller.signal.aborted) setStep({ kind: "failed", reason: "unavailable" });
+    } catch (error) {
+      if (!controller.signal.aborted) setStep({ kind: "failed", reason: locationRequestFailure(error instanceof ApiRequestError ? error.status : undefined) });
     } finally {
       busy.current = false;
     }
@@ -74,7 +74,7 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
       <h2 id="location-candidate-title" className="text-subsection">{copy("candidateTitle")}</h2>
       <dl className="grid gap-2 text-dense sm:grid-cols-2">
         <div><dt className="font-bold">{copy("interpreted")}</dt><dd className="break-words">{step.candidate.interpretedAddress}</dd></div>
-        <div><dt className="font-bold">{copy("county")} · {copy("district")}</dt><dd>{step.candidate.county} · {step.candidate.district}</dd></div>
+        <div><dt className="font-bold">{copy("county")} · {copy("district")}</dt><dd>{step.candidate.county ?? copy("adminUnknown")} · {step.candidate.district ?? copy("adminUnknown")}</dd></div>
         <div><dt className="font-bold">{copy("coordinates")}</dt><dd className="font-mono">{step.candidate.latitude.toFixed(6)}, {step.candidate.longitude.toFixed(6)}</dd></div>
         <div><dt className="font-bold">{copy("source")}</dt><dd>{sourceLabel(step.candidate.source)}</dd></div>
       </dl>

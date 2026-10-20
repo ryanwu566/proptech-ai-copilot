@@ -31,6 +31,18 @@
 .keyCell strong { font-variant-numeric: tabular-nums; }
 .tag { display: inline-block; margin-left: var(--space-2); padding: 0 var(--space-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); font-size: var(--text-meta-size); }
 .fieldsToolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); }
+.briefList { display: grid; gap: var(--space-3); }
+.briefCategory { min-width: 0; border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); padding: var(--space-3) var(--space-4); background: var(--surface-primary); }
+.briefCategory h3 { margin: 0 0 var(--space-2); }
+.briefStatements { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--space-2) var(--space-5); margin: 0; }
+.briefStatements > div { min-width: 0; }
+.briefStatements dt { font-size: var(--text-meta-size); font-weight: 600; }
+.briefStatements dd { margin: var(--space-1) 0 0; font-variant-numeric: tabular-nums; }
+.briefContrast { padding-top: var(--space-2); border-top: 1px solid var(--border-subtle); }
+.briefSources { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: var(--space-4); }
+.briefSources > section { min-width: 0; }
+.briefSourceField { padding-block: var(--space-2); border-top: 1px solid var(--border-subtle); }
+.briefSources a { display: inline-flex; align-items: center; min-height: 44px; text-decoration: underline; }
 .fieldsToolbar button { min-height: 44px; }
 .hiddenNote { font-size: var(--text-meta-size); }
 .limits { display: grid; gap: var(--space-3); }

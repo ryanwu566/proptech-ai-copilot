@@ -80,6 +80,11 @@ type AnchorOptions = {
   idFactory?: () => string;
 };
 
+/** Administrative completeness does not establish spatial, parcel, building or legal identity. */
+export function hasCompleteAdministrativeArea(anchor: JourneyPropertyIdentityAnchorV1 | null | undefined): boolean {
+  return Boolean(anchor?.administrative_location.city?.trim() && anchor.administrative_location.district?.trim());
+}
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TRUSTED_GEOCODERS = new Set(["google_geocoding", "tgos_geocoding"]);
 const CONFIDENCE_LIMITATION = "not_parcel_building_ownership_or_legal_boundary_confirmation";

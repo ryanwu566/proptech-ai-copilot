@@ -52,6 +52,9 @@ def test_location_resolve_returns_only_safe_fields(monkeypatch) -> None:
     assert set(result) == SAFE_KEYS
     assert result["status"] == "resolved"
     assert result["source"] == "google"
+    assert result["county"] is None
+    assert result["district"] is None
+    assert result["latitude"] == 25.03
     serialized = str(result)
     assert "raw_payload" not in serialized
     assert "api_key" not in serialized

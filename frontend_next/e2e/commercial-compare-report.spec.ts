@@ -185,18 +185,18 @@ test("storage unavailable differs from empty and clear-all invalidates frozen re
   await page.goto("/compare"); await expect(page.locator("main").getByRole("alert")).toContainText("儲存目前無法讀取");
 });
 const RANKING = /最佳物件|勝出|綜合分數|推薦購買|較安全|整體較便宜|bestCaseId|topCandidate|winner|recommended/i;
-test("standard pair leads with key differences, differences-only rows and one limitations area under 6000px", async ({ page, baseURL }) => {
+test("standard pair leads with a difference brief, differences-only rows and one limitations area under 6000px", async ({ page, baseURL }) => {
   await seed(page); const observed = await watchProviders(page, baseURL!);
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/compare?cases=case-a,case-b");
-  const key = page.getByTestId("compare-key-differences"); const table = page.getByTestId("compare-desktop");
+  const key = page.getByTestId("compare-difference-brief"); const table = page.getByTestId("compare-desktop");
   await expect(key).toBeVisible(); await expect(table).toBeVisible();
   expect((await key.boundingBox())!.y).toBeLessThan((await table.boundingBox())!.y);
-  await expect(key.getByTestId("key-row-market-total")).toContainText("1,850 萬元");
-  await expect(key.getByTestId("key-row-market-total")).toContainText("尚未查詢");
-  await expect(key.getByTestId("key-row-market-total")).toContainText("未知");
-  await expect(key.getByTestId("key-difference-commute")).toContainText("通勤目的地");
-  await expect(key.getByTestId("key-difference-gaps")).toBeVisible();
+  await expect(key.getByTestId("brief-price")).toContainText("52.4 萬元／坪");
+  await expect(key.getByTestId("brief-price")).toContainText("尚未查詢");
+  await expect(key.getByTestId("brief-risk")).toContainText("未知不等於安全");
+  await expect(key.getByTestId("brief-location")).toContainText("臺中車站");
+  await expect(key.getByTestId("brief-verification")).toBeVisible();
   await expect(page.locator("main")).not.toContainText(RANKING);
   await expect(table).toHaveAttribute("data-fields-view", "differences");
   await expect(table.getByTestId("compare-row-price-asking")).toBeHidden();
@@ -247,7 +247,7 @@ test("stale, unknown and mismatched states stay visible in differences-only mode
   const table = page.getByTestId("compare-desktop");
   await expect(table.getByTestId("compare-row-market-total")).toBeVisible();
   await expect(table.getByTestId("compare-row-market-total")).toContainText("已過期");
-  await expect(page.getByTestId("key-row-market-total")).toContainText("已過期");
+  await expect(page.getByTestId("brief-price")).toContainText("已過期");
   await expect(table.getByTestId("compare-row-commute-destination")).toBeVisible();
   await expect(table.getByTestId("compare-row-finance-rate")).toContainText("2.2 %");
   await page.goto("/compare?cases=case-a,case-d");
@@ -263,7 +263,7 @@ for (const width of [390, 430]) {
     await seed(page); const observed = await watchProviders(page, baseURL!);
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/compare?cases=case-a,case-b");
-    const key = page.getByTestId("compare-key-differences"); const mobile = page.getByTestId("compare-mobile");
+    const key = page.getByTestId("compare-difference-brief"); const mobile = page.getByTestId("compare-mobile");
     await expect(key).toBeVisible(); await expect(mobile).toBeVisible();
     expect((await key.boundingBox())!.y).toBeLessThan((await mobile.boundingBox())!.y);
     await expect(page.getByLabel("比較領域")).toHaveValue("market");

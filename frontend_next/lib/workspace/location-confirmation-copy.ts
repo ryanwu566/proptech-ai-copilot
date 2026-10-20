@@ -3,7 +3,7 @@ import type { IdentityConfirmationBlock, LocationCandidateBlock } from "./locati
 import type { ConfirmIdentityResult } from "../case-storage";
 
 type WriteBlock = Extract<ConfirmIdentityResult, { status: "blocked" }>["reason"];
-export type LocationConfirmationCopyKey = "find" | "finding" | "findNote" | "candidateTitle" | "interpreted" | "county" | "district" | "coordinates" | "source" | "sourceTgos" | "sourceGoogle" | "confirm" | "confirming" | "reject" | "confirmNote" | "confirmed" | "retry" | "failedTitle" | LocationCandidateBlock | IdentityConfirmationBlock | WriteBlock;
+export type LocationConfirmationCopyKey = "find" | "finding" | "findNote" | "candidateTitle" | "interpreted" | "county" | "district" | "coordinates" | "source" | "sourceTgos" | "sourceGoogle" | "confirm" | "confirming" | "reject" | "confirmNote" | "confirmed" | "adminUnknown" | "adminPendingTitle" | "adminIncomplete" | "retry" | "failedTitle" | LocationCandidateBlock | IdentityConfirmationBlock | WriteBlock;
 
 /** In-case location confirmation copy. Must never imply that analysis ran or parcel/building identity was verified. */
 export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey> = {
@@ -24,6 +24,11 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     reject: "不是這個位置",
     confirmNote: "確認只保存物件位置；市場、區位與風險查詢仍需你在各區段主動執行。",
     confirmed: "已確認物件位置。市場、區位與風險證據仍需你主動查詢。",
+    adminUnknown: "尚未取得",
+    adminPendingTitle: "行政區資訊尚未完整取得",
+    adminIncomplete: "物件位置已確認；行政區資訊尚未完整取得。需要行政區的市場資料暫時無法查詢。",
+    capacity_unavailable: "定位服務目前沒有可用容量，未保存任何結果。請稍後再試。",
+    provider_unavailable: "定位服務暫時無法使用，未保存任何結果。請稍後再試。",
     retry: "再試一次",
     failedTitle: "未確認物件位置",
     unresolved: "找不到可信位置。請確認縣市、區域與門牌是否完整；若地址有誤，請從首頁以正確地址重新開始。",
@@ -31,7 +36,6 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     invalid: "定位結果無法安全判讀，未保存任何結果。",
     low_confidence: "定位結果可信度不足，不能作為物件位置確認。",
     missing_coordinates: "定位結果缺少座標，無法確認。",
-    missing_area: "定位結果缺少縣市或行政區，無法確認。",
     case_changed: "案件已在其他畫面更新，未保存確認。請重新整理後再試。",
     already_identified: "此案件已有物件位置，未覆寫。",
     invalid_anchor: "確認內容不完整，未保存。",
@@ -56,6 +60,11 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     reject: "Not this location",
     confirmNote: "Confirming saves only the property location. Market, location and risk queries still run only when you request them in each section.",
     confirmed: "Property location confirmed. Market, location and risk evidence still has to be requested by you.",
+    adminUnknown: "Not yet resolved",
+    adminPendingTitle: "Administrative area is incomplete",
+    adminIncomplete: "Property location confirmed; administrative area details are incomplete. Market data requiring a county/city and district is temporarily unavailable.",
+    capacity_unavailable: "The location service has no available capacity; nothing was saved. Please try again later.",
+    provider_unavailable: "The location service is temporarily unavailable; nothing was saved. Please try again later.",
     retry: "Try again",
     failedTitle: "Location not confirmed",
     unresolved: "No trustworthy location was found. Check that the city, district and house number are complete; if the address is wrong, start again from Home with the correct address.",
@@ -63,7 +72,6 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     invalid: "The location result could not be read safely; nothing was saved.",
     low_confidence: "The location result is not confident enough to confirm as the property location.",
     missing_coordinates: "The location result has no coordinates and cannot be confirmed.",
-    missing_area: "The location result is missing the county/city or district and cannot be confirmed.",
     case_changed: "This case was updated in another view; the confirmation was not saved. Reload and try again.",
     already_identified: "This case already has a property location; it was not overwritten.",
     invalid_anchor: "The confirmation was incomplete and was not saved.",
@@ -88,6 +96,11 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     reject: "この位置ではない",
     confirmNote: "確定で保存されるのは物件の位置のみです。市場・立地・リスクの照会は各セクションであなたが実行したときだけ行われます。",
     confirmed: "物件の位置を確定しました。市場・立地・リスクの根拠は引き続きあなたが照会する必要があります。",
+    adminUnknown: "未取得",
+    adminPendingTitle: "行政区情報が揃っていません",
+    adminIncomplete: "物件の位置を確定しましたが、行政区情報が揃っていません。県市・行政区を必要とする市場データは現在照会できません。",
+    capacity_unavailable: "位置情報サービスに利用可能な処理容量がありません。何も保存されていません。後でもう一度お試しください。",
+    provider_unavailable: "位置情報サービスが一時的に利用できません。何も保存されていません。後でもう一度お試しください。",
     retry: "再試行",
     failedTitle: "物件の位置は未確認です",
     unresolved: "信頼できる位置が見つかりません。県市・区域・番地が揃っているか確認してください。住所が誤っている場合は、ホームから正しい住所で開始し直してください。",
@@ -95,7 +108,6 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     invalid: "位置の結果を安全に解釈できないため、何も保存されていません。",
     low_confidence: "位置の結果の信頼度が不足しているため、物件の位置として確定できません。",
     missing_coordinates: "位置の結果に座標がないため、確定できません。",
-    missing_area: "位置の結果に県市または行政区がないため、確定できません。",
     case_changed: "この案件は別の画面で更新されたため、確認は保存されていません。再読み込みしてからお試しください。",
     already_identified: "この案件には既に物件の位置があります。上書きしていません。",
     invalid_anchor: "確認内容が不完全なため、保存されていません。",
@@ -120,6 +132,11 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     reject: "이 위치가 아닙니다",
     confirmNote: "확인하면 부동산 위치만 저장됩니다. 시장, 입지, 위험 조회는 각 섹션에서 직접 요청할 때만 실행됩니다.",
     confirmed: "부동산 위치를 확인했습니다. 시장, 입지, 위험 근거는 계속 직접 조회해야 합니다.",
+    adminUnknown: "아직 확인되지 않음",
+    adminPendingTitle: "행정구 정보가 불완전합니다",
+    adminIncomplete: "부동산 위치를 확인했지만 행정구 정보가 불완전합니다. 시·현과 행정구가 필요한 시장 데이터는 현재 조회할 수 없습니다.",
+    capacity_unavailable: "위치 서비스에 사용 가능한 처리 용량이 없어 아무것도 저장하지 않았습니다. 잠시 후 다시 시도하세요.",
+    provider_unavailable: "위치 서비스를 일시적으로 사용할 수 없어 아무것도 저장하지 않았습니다. 잠시 후 다시 시도하세요.",
     retry: "다시 시도",
     failedTitle: "부동산 위치 미확인",
     unresolved: "신뢰할 수 있는 위치를 찾지 못했습니다. 시·현, 구역, 번지가 모두 있는지 확인하세요. 주소가 틀렸다면 홈에서 올바른 주소로 다시 시작하세요.",
@@ -127,7 +144,6 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     invalid: "위치 결과를 안전하게 해석할 수 없어 아무것도 저장하지 않았습니다.",
     low_confidence: "위치 결과의 신뢰도가 부족하여 부동산 위치로 확인할 수 없습니다.",
     missing_coordinates: "위치 결과에 좌표가 없어 확인할 수 없습니다.",
-    missing_area: "위치 결과에 시·현 또는 행정구가 없어 확인할 수 없습니다.",
     case_changed: "다른 화면에서 사례가 업데이트되어 확인을 저장하지 않았습니다. 새로고침 후 다시 시도하세요.",
     already_identified: "이 사례에는 이미 부동산 위치가 있어 덮어쓰지 않았습니다.",
     invalid_anchor: "확인 내용이 불완전하여 저장하지 않았습니다.",
