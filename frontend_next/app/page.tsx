@@ -69,7 +69,7 @@ import { createClosedLoopJourneyState, setJourneyLoanResult, setJourneyHoldingRe
 import { normalizeStoredTerrainReferenceEvidence, toStoredTerrainReferenceEvidence } from "@/lib/terrain-reference-evidence";
 import { GeocodingAcceptanceNotice } from "@/components/geocoding-acceptance-notice";
 import { initialValuationSelection, loadValuationPrerequisites } from "@/lib/valuation-prerequisites";
-import { PRODUCT_ENTRIES } from "@/lib/navigation/model";
+import { isLegacyToolPage } from "@/lib/navigation/model";
 import { isPropertyWorkflow, setProductWorkflow } from "@/lib/navigation/product-workflow";
 import { HomeLocationObserver } from "@/components/navigation/home-location-observer";
 import { getJourneyValuationFormInputs, getJourneyValuationInputPatch, getSubmittedJourneyValuationInputs, journeyValuationCitiesMatch, journeyValuationInputsMatchContext, type JourneyValuationFormInputs } from "@/lib/journey-valuation-inputs";
@@ -161,7 +161,7 @@ export default function Home() {
     setPage(tool ?? (parseValuationShareParams(window.location.search) ? "房價估算" : "儀表板"));
   }, []);
   function navigateProduct(next: AppPage) {
-    if (next !== "儀表板" && !PRODUCT_ENTRIES.some((entry) => "tool" in entry && entry.tool === next)) { setPage(next); return; }
+    if (next !== "儀表板" && !isLegacyToolPage(next)) { setPage(next); return; }
     const url = setProductWorkflow(window.location.href, null);
     // Shared valuation inputs belong to valuation deep links, not a new Home entry.
     if (next === "儀表板") for (const key of ["city", "district", "road", "building_type", "area_ping", "building_age_years", "floor"]) url.searchParams.delete(key);

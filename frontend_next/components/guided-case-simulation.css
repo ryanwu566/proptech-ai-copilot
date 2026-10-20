@@ -33,6 +33,14 @@
 .simulation-review { display: flex; gap: 12px; align-items: center; min-height: 56px; padding: 12px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); transition: background 150ms; }
 .simulation-review input { width: 20px; height: 20px; flex: none; accent-color: var(--action); }
 .simulation-review.is-reviewed { background: var(--action-subtle); }
+.simulation-stage dd { overflow-wrap: anywhere; }
+.simulation-split { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.simulation-split section { min-width: 0; padding: 14px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control); }
+.simulation-split h3 { margin-bottom: 8px; font-size: 13px; }
+.simulation-split ul, .simulation-questions ol { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.simulation-questions ol { padding-left: 20px; list-style: decimal; }
+.simulation-questions h3 { margin-bottom: 8px; }
+.simulation-safe { grid-column: 1 / -1; margin: 0; padding: 10px 12px; border: 1px solid #a16207; border-radius: var(--radius-control); background: #fffbeb; color: var(--text-primary); font-weight: 600; }
 .simulation-conclusion { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-subtle); font-weight: 600; }
 .simulation-stage :focus-visible, .simulation-dialog button:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
 @keyframes simulation-form { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
@@ -45,7 +53,7 @@
   .simulation-dialog .onboarding-path li { display: none; min-width: 0; }
   .simulation-dialog .onboarding-path [aria-current=step] { display: flex; }
   .simulation-disclosure { padding: 8px 16px; }
-  .simulation-evidence { grid-template-columns: minmax(0,1fr); }
+  .simulation-evidence, .simulation-split { grid-template-columns: minmax(0,1fr); }
   .simulation-evidence article { padding: 12px; }
   .simulation-case, .simulation-report { padding: 14px; }
 }

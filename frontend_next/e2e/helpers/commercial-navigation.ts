@@ -1,20 +1,38 @@
 import { expect, type Page } from "@playwright/test";
 
-/** Secondary tools stay reachable through the public Methods disclosure. */
-export async function openMethod(page: Page, name: string | RegExp) {
-  const methods = page.locator(".commercial-methods");
-  if (!(await methods.evaluate((node) => (node as HTMLDetailsElement).open))) {
-    await methods.locator(":scope > summary").click();
-  }
-  const action = methods.getByRole("button", { name, exact: typeof name === "string" });
-  await expect(action).toBeVisible();
-  await action.click();
-}
+// Legacy single-tool pages are no longer listed in public navigation; they keep their
+// direct /?tool= URLs. Labels are the former menu names in every locale.
+const LEGACY_TOOLS: [RegExp, string][] = [
+  [/房價估算|Valuation|価格評価|가격 평가|価格/, "房價估算"],
+  [/Market Insight/, "Market Insight Lite"],
+  [/Map Insight/, "Map Insight Lite"],
+  [/Terrain Risk/, "Terrain Risk"],
+  [/TaxOracle/, "TaxOracle"],
+  [/Aegis-Credit/, "Aegis-Credit Lite"],
+];
 
-/** The retained competition demo is a secondary Methods reference in each locale. */
-export async function openDemoReference(page: Page) {
-  await openMethod(page, /^(競賽展示參考|Demo reference|デモ参照|데모 참고)$/);
-  await expect(page.getByTestId("competition-demo")).toBeVisible();
+/** Open a retained legacy tool in place, exactly as its former menu button did (no reload). */
+export async function openMethod(page: Page, name: string | RegExp) {
+  const label = typeof name === "string" ? name : name.source;
+  const tool = LEGACY_TOOLS.find(([pattern]) => pattern.test(label))?.[1];
+  if (!tool) throw new Error(`No retained legacy tool URL for ${label}`);
+  // The App Router syncs useSearchParams by replacing history.pushState once it mounts; wait for
+  // that hook (not focus, which may rest on <body> after a control unmounts) and a rendered page.
+  await expect(page.locator("[data-page-heading]").first()).toBeAttached();
+  await expect.poll(() => page.evaluate(() => !/\[native code\]/.test(Function.prototype.toString.call(window.history.pushState)))).toBe(true);
+  if (new URL(page.url()).searchParams.get("tool") === tool) return;
+  await page.evaluate((value) => {
+    (window as unknown as { previousHeading?: Element | null }).previousHeading = document.querySelector("[data-page-heading]");
+    const url = new URL(window.location.href);
+    url.searchParams.set("tool", value);
+    window.history.pushState(null, "", `${url.pathname}${url.search}`);
+  }, tool);
+  await expect.poll(() => new URL(page.url()).searchParams.get("tool")).toBe(tool);
+  // The shell moves focus to the newly rendered page heading once the tool page mounts.
+  await expect.poll(() => page.evaluate(() => {
+    const active = document.activeElement;
+    return Boolean(active?.hasAttribute("data-page-heading")) && active !== (window as unknown as { previousHeading?: Element | null }).previousHeading;
+  })).toBe(true);
 }
 
 /** Official transaction search is an explicit optional entry from E10 Home. */
@@ -43,4 +61,11 @@ export async function openLegacyJourneyWithAddress(page: Page, address: string, 
   const input = page.locator("#location-insight-calculator").getByRole("textbox").first();
   await input.fill(address);
   await expect(input).toHaveValue(address);
+}
+
+export const RETIRED_DEMO_REFERENCE = "Retired in competition cleanup v1: the TaxOracle demo reference and its closed-pilot entry are no longer linked from the public product; the implementation is retained.";
+
+/** The former Methods "Demo reference" entry no longer exists; specs using it are skipped. */
+export async function openDemoReference(_page: Page): Promise<never> {
+  throw new Error(RETIRED_DEMO_REFERENCE);
 }

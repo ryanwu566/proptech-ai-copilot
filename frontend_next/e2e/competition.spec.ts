@@ -1,5 +1,7 @@
 import { test, expect } from "./fixtures";
-import { openDemoReference } from "./helpers/commercial-navigation";
+import { RETIRED_DEMO_REFERENCE, openDemoReference } from "./helpers/commercial-navigation";
+
+test.skip(true, RETIRED_DEMO_REFERENCE);
 
 test("three-minute TaxOracle demo is editable and causal", async ({ page }) => {
   await page.goto("/");

@@ -15,6 +15,7 @@
     "test:reliability": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/monetary-units.test.ts lib/valuation-result-state.test.ts",
     "test:preferences": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/preferences/profile.test.ts lib/preferences/tradeoff.test.ts",
     "test:navigation": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/navigation/*.test.ts",
+    "test:tour": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/guided-tour.test.ts",
     "test:home-start": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/workspace/case-draft.test.ts lib/workspace/location-confirmation.test.ts lib/workspace/workspace-model.test.ts lib/workspace/overview-model.test.ts",
     "test:e2e:home-start": "npm run build:e2e && node e2e/run-e2e.cjs e2e/home-start.spec.ts e2e/location-confirmation.spec.ts --project=chromium --workers=1 --retries=0",
     "test:e2e:preferences": "npm run build:e2e && node e2e/run-e2e.cjs e2e/preference-tradeoff.spec.ts --workers=2",

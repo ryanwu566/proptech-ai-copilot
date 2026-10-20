@@ -1,18 +1,17 @@
 import type { GuidedTourCopyKey } from "@/lib/guided-tour-copy";
 
 type TourStep = { id: string; label: GuidedTourCopyKey; heading: GuidedTourCopyKey; description: GuidedTourCopyKey };
+// The tour follows the modern case workspace; it never targets DOM nodes or starts analysis.
 export const TOUR_STEPS = [
-  { id: "propertyCase", label: "guide.property.label", heading: "guide.property.heading", description: "guide.property.description" },
-  { id: "marketEvidence", label: "guide.market.label", heading: "guide.market.heading", description: "guide.market.description" },
-  { id: "locationCommute", label: "guide.location.label", heading: "guide.location.heading", description: "guide.location.description" },
-  { id: "terrainRisk", label: "guide.risk.label", heading: "guide.risk.heading", description: "guide.risk.description" },
-  { id: "finance", label: "guide.finance.label", heading: "guide.finance.heading", description: "guide.finance.description" },
-  { id: "verificationChecklist", label: "guide.verify.label", heading: "guide.verify.heading", description: "guide.verify.description" },
-  { id: "saveCompareReport", label: "guide.save.label", heading: "guide.save.heading", description: "guide.save.description" },
+  { id: "createCase", label: "guide.create.label", heading: "guide.create.heading", description: "guide.create.description" },
+  { id: "confirmLocation", label: "guide.confirm.label", heading: "guide.confirm.heading", description: "guide.confirm.description" },
+  { id: "knownUnknown", label: "guide.unknown.label", heading: "guide.unknown.heading", description: "guide.unknown.description" },
+  { id: "marketRisk", label: "guide.evidence.label", heading: "guide.evidence.heading", description: "guide.evidence.description" },
+  { id: "questionsReport", label: "guide.decide.label", heading: "guide.decide.heading", description: "guide.decide.description" },
 ] as const satisfies readonly TourStep[];
 export type TourStepId = typeof TOUR_STEPS[number]["id"];
 export type TourStatus = "skipped" | "completed";
-export const TOUR_VERSION = "3";
+export const TOUR_VERSION = "4";
 export const TOUR_STORAGE_KEY = "proptech_onboarding_state";
 type TourStorage = Pick<Storage, "getItem" | "setItem">;
 

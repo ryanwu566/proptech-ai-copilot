@@ -2,25 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
-import { getPageLabelKey, type AppPage } from "@/components/sidebar";
+import type { AppPage } from "@/components/sidebar";
 import { accountEntryCopy } from "@/lib/account-entry-copy";
-import { PRODUCT_ENTRIES, PRODUCT_GROUPS, caseIdFromPath, filterEntries, productHref, type ProductId } from "@/lib/navigation/model";
 import { navigationCopy } from "@/lib/navigation/copy";
 
+/** First-time navigation is the case workflow only: Home, Cases, Compare, Account and Locale. */
 export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: AppPage; onNavigate?: (page: AppPage) => void; children?: ReactNode }) {
   const pathname = usePathname();
   const { t, copyFrom } = useExperienceLocale();
   const disclosure = useRef<HTMLDetailsElement>(null);
-  const [query, setQuery] = useState("");
-  const caseId = caseIdFromPath(pathname);
-  const label = (id: ProductId) => {
-    const entry = PRODUCT_ENTRIES.find((entry) => entry.id === id);
-    return entry && "tool" in entry && entry.tool ? t(getPageLabelKey(entry.tool)) : copyFrom(navigationCopy, id);
-  };
-  const entries = filterEntries(PRODUCT_ENTRIES, query, (id) => `${label(id)} ${copyFrom(navigationCopy, id)}`);
   useEffect(() => {
     const close = (event: PointerEvent) => {
       if (disclosure.current && !disclosure.current.contains(event.target as Node)) disclosure.current.open = false;
@@ -46,32 +39,10 @@ export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: 
         <Link prefetch={false} href="/account" aria-current={pathname === "/account" ? "page" : undefined}>{copyFrom(accountEntryCopy, "entry")}</Link>
         <LocaleSwitcher />
       </div>
-        <details ref={disclosure} className="commercial-methods" onToggle={() => setQuery("")} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) event.currentTarget.open = false; }} onKeyDown={(event) => { if (event.key === "Escape" && disclosure.current?.open) { event.preventDefault(); event.stopPropagation(); disclosure.current.open = false; disclosure.current.querySelector("summary")?.focus(); } }}>
-          <summary>{copyFrom(navigationCopy, "menu")}</summary>
-          <div className="commercial-methods__panel">
-            <label className="product-search">{copyFrom(navigationCopy, "search")}<input type="search" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-            <p className="text-meta">{copyFrom(navigationCopy, "menuHint")}</p>
-            {!caseId && <p className="text-meta">{copyFrom(navigationCopy, "caseHint")}</p>}
-            {PRODUCT_GROUPS.map((group) => {
-              const items = entries.filter((entry) => entry.group === group);
-              return items.length ? <nav key={group} aria-label={copyFrom(navigationCopy, group)}>
-                <h2 className="text-meta">{copyFrom(navigationCopy, group)}</h2>
-                {items.map((entry) => {
-                  const name = label(entry.id);
-                  const description = "tool" in entry && name !== copyFrom(navigationCopy, entry.id) ? copyFrom(navigationCopy, entry.id) : undefined;
-                  const descriptionId = description ? `product-description-${entry.id}` : undefined;
-                  const content = <><span>{name}</span>{description && <span id={descriptionId} className="product-tool-caption">{description}</span>}</>;
-                  return "tool" in entry && onNavigate
-                    ? <button key={entry.id} type="button" aria-label={name} aria-describedby={descriptionId} aria-current={page === entry.tool ? "page" : undefined} onClick={() => navigate(entry.tool)}>{content}</button>
-                    : <Link prefetch={false} key={entry.id} href={productHref(entry, caseId)} aria-label={name} aria-describedby={descriptionId} onClick={() => { if (disclosure.current) disclosure.current.open = false; }} aria-current={pathname === productHref(entry, caseId) && pathname !== "/" ? "page" : undefined}>{content}</Link>;
-                })}
-              </nav> : null;
-            })}
-            {!entries.length && <p role="status">{copyFrom(navigationCopy, "noResults")}</p>}
-            {onNavigate && !query && <button className="ds-button ds-button--tertiary" type="button" onClick={() => navigate("Competition Demo" as AppPage)}>{t("commercial.referenceDemo")}</button>}
-            {children}
-          </div>
-        </details>
+      {children && <details ref={disclosure} className="commercial-methods" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) event.currentTarget.open = false; }} onKeyDown={(event) => { if (event.key === "Escape" && disclosure.current?.open) { event.preventDefault(); event.stopPropagation(); disclosure.current.open = false; disclosure.current.querySelector("summary")?.focus(); } }}>
+        <summary>{t("commercial.accessibility")}</summary>
+        <div className="commercial-methods__panel">{children}</div>
+      </details>}
     </div>
   </header>;
 }

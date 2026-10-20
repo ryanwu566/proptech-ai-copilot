@@ -1,42 +1,33 @@
 import { test, expect } from "./fixtures";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
+import { navigationCopy } from "../lib/navigation/copy";
+import { workspaceNavigationCopy } from "../lib/workspace/workspace-navigation-copy";
+import { openMethod } from "./helpers/commercial-navigation";
 
 for (const width of [390, 430, 1024, 1440]) {
-  test(`product navigation is searchable and keyboard complete at ${width}`, async ({ page }, testInfo) => {
+  test(`first-time navigation is minimal, unclipped and keyboard complete at ${width}`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: 900 });
     const expensive: string[] = [];
     page.on("request", (request) => { if (/\/(map\/search|map\/nearby|valuation\/estimate|terrain\/analyze|market\/insight|commute\/route)/.test(request.url())) expensive.push(request.url()); });
     await page.goto("/");
     await expect(page.locator(".commercial-home [data-page-heading]")).toBeFocused();
     await expect(page.locator(".commercial-global-nav").getByRole("link", { name: "已儲存案件", exact: true })).toBeVisible();
+    await expect(page.getByRole("searchbox")).toHaveCount(0);
     const summary = page.locator(".commercial-methods > summary");
     await summary.focus();
     await page.keyboard.press("Enter");
-    const search = page.getByRole("searchbox", { name: "搜尋產品功能" });
-    await expect(search).toBeVisible();
-    await expect(page.locator(".commercial-methods").getByRole("button", { name: "Market Insight", exact: true })).toHaveAccessibleDescription("市場");
-    await page.screenshot({ path: testInfo.outputPath("product-menu.png") });
-    await search.fill("情境");
-    await expect(page.locator(".commercial-methods").getByRole("link", { name: "情境實驗室", exact: true })).toHaveAttribute("href", "/cases?next=scenarios");
-    await search.fill("區位");
-    await expect(page.locator(".commercial-methods").getByRole("button", { name: /Map Insight/ })).toBeVisible();
-    await search.fill("zzzz");
-    await expect(page.getByRole("status").filter({ hasText: "找不到相符功能" })).toBeVisible();
+    await expect(page.getByTestId("tour-restart")).toBeVisible();
+    const panel = await page.locator(".commercial-methods__panel").boundingBox();
+    expect(panel!.x).toBeGreaterThanOrEqual(0);
+    expect(panel!.x + panel!.width).toBeLessThanOrEqual(width);
+    await page.screenshot({ path: testInfo.outputPath("header-menu.png") });
     await page.keyboard.press("Escape");
     await expect(summary).toBeFocused();
     expect(await summary.evaluate((node) => getComputedStyle(node).outlineStyle)).not.toBe("none");
     await expect(page.locator(".commercial-methods")).not.toHaveAttribute("open", "");
-    await summary.press("Enter");
-    await expect(search).toHaveValue("");
-    await summary.press("Tab");
-    await expect(search).toBeFocused();
-    await search.press("Shift+Tab");
-    await expect(summary).toBeFocused();
     await summary.press("Shift+Tab");
     await expect(page.getByTestId("locale-switcher")).toBeFocused();
-    await expect(page.locator(".commercial-methods")).not.toHaveAttribute("open", "");
     await page.locator(".commercial-skip-link").focus();
-    await expect(page.locator(".commercial-methods")).not.toHaveAttribute("open", "");
     await page.keyboard.press("Enter");
     await expect(page.locator("#main-content")).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -48,24 +39,17 @@ for (const width of [390, 430, 1024, 1440]) test(`all locales retain destination
   await page.setViewportSize({ width, height: 900 });
   await page.addInitScript((row) => localStorage.setItem("proptech.savedCases.v1", JSON.stringify([row])), e9Case());
   await page.goto("/cases/case-a/scenarios?source=deep-link#main-content");
-  for (const [locale, label, preferences, places] of [
-    ["en", "Search product features", "Preference profile", "My Places"],
-    ["ja", "製品の機能を検索", "希望条件プロフィール", "マイプレイス"],
-    ["ko", "제품 기능 검색", "선호 프로필", "내 장소"],
-    ["zh-TW", "搜尋產品功能", "偏好檔案", "我的地點"],
-  ]) {
+  for (const locale of ["en", "ja", "ko", "zh-TW"] as const) {
     await page.getByTestId("locale-switcher").selectOption(locale);
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
-    await page.locator(".commercial-methods > summary").click();
-    await expect(page.getByRole("searchbox", { name: label })).toBeVisible();
-    await page.getByRole("searchbox", { name: label }).fill(preferences);
-    await expect(page.locator(".commercial-methods a[href='/preferences']")).toBeVisible();
-    await page.getByRole("searchbox", { name: label }).fill(places);
-    await expect(page.locator(".commercial-methods a[href='/places']")).toBeVisible();
-    await page.getByRole("searchbox", { name: label }).fill("");
-    await expect(page.locator(".commercial-methods a[href='/cases/case-a/decision-room']")).toBeVisible();
+    const nav = page.locator(".commercial-global-nav");
+    await expect(nav.getByRole("link", { name: navigationCopy[locale].cases, exact: true })).toHaveAttribute("href", "/cases");
+    await expect(nav.getByRole("link", { name: navigationCopy[locale].compare, exact: true })).toHaveAttribute("href", "/compare");
+    await expect(page.locator(".commercial-methods")).toHaveCount(0);
+    const caseNav = page.locator(".workspace-navigation");
+    await expect(caseNav.getByRole("link", { name: workspaceNavigationCopy[locale].decisionRoom, exact: true })).toHaveAttribute("href", "/cases/case-a/decision-room");
+    await expect(caseNav.locator('[aria-current="page"]')).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.keyboard.press("Escape");
     await expect(page).toHaveURL(/\/cases\/case-a\/scenarios\?source=deep-link#main-content$/);
   }
 });
@@ -78,9 +62,9 @@ test("major case routes remain discoverable without provider requests", async ({
     await page.goto(`/cases/case-a/${section}`);
     await expect(page.locator("#main-content")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
-    await page.locator(".commercial-methods > summary").click();
-    await expect(page.locator(".commercial-methods a[href='/cases/case-a/scenarios']")).toBeVisible();
-    await page.keyboard.press("Escape");
+    await expect(page.locator(".workspace-navigation")).toHaveCount(1);
+    await expect(page.locator(".workspace-navigation a[href='/cases/case-a/scenarios']")).toBeAttached();
+    await expect(page.locator(".workspace-navigation a[href$='/planning']")).toHaveCount(0);
   }
   expect(requests).toEqual([]);
 });
@@ -105,7 +89,7 @@ test("case chooser preserves intent and local case identity", async ({ page }) =
 test("empty chooser explains prerequisites and unsafe intent stays local", async ({ page }) => {
   await page.goto("/cases?next=scenarios");
   await expect(page.getByTestId("case-destination-hint")).toContainText("情境實驗室");
-  await expect(page.getByRole("link", { name: "物件評估流程", exact: true }).last()).toHaveAttribute("href", "/?workflow=property");
+  await expect(page.getByRole("link", { name: "從地址建立案件", exact: true }).last()).toHaveAttribute("href", "/");
   await expect(page.getByText("先開始物件評估，保存案件後即可進行情境、決策與報告。匿名探索不需登入。")).toBeVisible();
   await page.goto("/cases?next=https://evil.test");
   await expect(page.getByTestId("case-destination-hint")).toContainText("物件總覽");
@@ -120,15 +104,14 @@ for (const store of ["invalid", "blocked"]) test(`${store} local cases retain di
     }
   }, store);
   await page.goto("/cases?next=scenarios");
-  await expect(page.locator("main").getByRole("link", { name: "物件評估流程", exact: true })).toHaveAttribute("href", "/?workflow=property");
+  await expect(page.locator("main").getByRole("link", { name: "從地址建立案件", exact: true })).toHaveAttribute("href", "/");
   await expect(page.locator("main").getByRole("link", { name: /^開啟/ })).toHaveCount(0);
 });
 
 test("tool deep links and browser history restore the selected tool", async ({ page }) => {
   await page.goto("/?tool=Market%20Insight%20Lite");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await page.locator(".commercial-methods > summary").click();
-  await page.locator(".commercial-methods").getByRole("button", { name: "房價估算", exact: true }).click();
+  await openMethod(page, "房價估算");
   await expect(page).toHaveURL(/tool=.*%E6%88%BF/);
   await page.goBack();
   await expect(page).toHaveURL(/tool=Market/);
@@ -138,18 +121,15 @@ test("tool deep links and browser history restore the selected tool", async ({ p
   await expect(page.locator("#valuation-calculator")).toBeVisible();
 });
 
-test("Explore capability entries and property entry react to query-only navigation", async ({ page }) => {
+test("retained legacy tool and journey URLs react to query-only navigation without a public entry", async ({ page }) => {
   await page.goto("/");
-  // Capabilities live in global navigation; Home no longer duplicates them as a launcher grid.
   await expect(page.locator(".commercial-home .product-capabilities")).toHaveCount(0);
-  await page.locator(".commercial-methods > summary").click();
-  await page.locator(".commercial-methods").getByRole("button", { name: "Market Insight", exact: true }).click();
+  await openMethod(page, "Market Insight");
   await expect(page).toHaveURL(/\?tool=Market/);
   await expect(page.getByTestId("market-insight-search-form")).toBeVisible();
   await page.locator(".commercial-global-nav").getByRole("button", { name: "首頁", exact: true }).click();
   await expect(page.locator(".commercial-home")).toBeVisible();
-  await page.locator(".commercial-methods > summary").click();
-  await page.locator(".commercial-methods").getByRole("link", { name: "物件評估流程", exact: true }).click();
+  await page.evaluate(() => { history.pushState(null, "", "/?workflow=property"); });
   await expect(page.locator("#guided-property-journey")).toBeVisible();
   await expect(page.locator("#guided-property-journey h2").first()).toBeFocused();
   await expect(page.locator("#guided-property-journey h2").first()).toBeInViewport();
@@ -226,16 +206,13 @@ test.describe("touch navigation", () => {
     await page.goto("/");
     const summary = page.locator(".commercial-methods > summary");
     await summary.tap();
-    await page.getByRole("searchbox", { name: "搜尋產品功能" }).fill("情境");
-    await page.locator(".commercial-methods").getByRole("link", { name: "情境實驗室", exact: true }).tap();
-    await expect(page).toHaveURL(/\/cases\?next=scenarios$/);
-    await summary.tap();
     await expect(page.locator(".commercial-methods")).toHaveAttribute("open", "");
     await page.locator(".commercial-global-nav").getByRole("link", { name: "已儲存案件", exact: true }).tap();
     await expect(page).toHaveURL(/\/cases$/);
-    await expect(page.locator(".commercial-methods")).not.toHaveAttribute("open", "");
-    await page.locator("main").getByRole("link", { name: "物件評估流程", exact: true }).tap();
-    await expect(page.locator("#guided-property-journey h2").first()).toBeInViewport();
+    await expect(page.locator(".commercial-methods")).toHaveCount(0);
+    await page.locator("main").getByRole("link", { name: "從地址建立案件", exact: true }).tap();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator("#commercial-address")).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(requests).toEqual([]);
   });

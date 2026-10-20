@@ -1,23 +1,23 @@
 import type { CopyCatalogue } from "../copy-catalogue";
 import type { WorkspaceSection } from "./workspace-model";
 
-type NavigationLabel = WorkspaceSection | "label" | "outputs" | "compare" | "report" | "planning" | "decisionRoom";
+type NavigationLabel = WorkspaceSection | "label" | "outputs" | "compare" | "report" | "planning" | "decisionRoom" | "primary" | "secondary";
 // Shared entry labels only: keep the full operational room catalogue in its route.
 export const workspaceNavigationCopy: CopyCatalogue<NavigationLabel> = {
   "zh-TW": {
     label: "案件工作區", overview: "物件總覽", market: "價格與市場", location: "區位與通勤", risk: "風險與環境", finance: "資金與持有成本",
-    outputs: "輸出與方法", compare: "比較案件", report: "案件報告", planning: "進階案件規劃", decisionRoom: "購屋決策室",
+    outputs: "輸出與方法", compare: "比較案件", report: "案件報告", planning: "進階案件規劃", decisionRoom: "購屋決策室", primary: "案件流程", secondary: "輔助頁面",
   },
   en: {
     label: "Case workspace", overview: "Case overview", market: "Price and market", location: "Location and commute", risk: "Risk and environment", finance: "Funds and ownership costs",
-    outputs: "Outputs and methods", compare: "Compare cases", report: "Case report", planning: "Advanced case planning", decisionRoom: "Property Decision Room",
+    outputs: "Outputs and methods", compare: "Compare cases", report: "Case report", planning: "Advanced case planning", decisionRoom: "Property Decision Room", primary: "Case workflow", secondary: "Supporting pages",
   },
   ja: {
     label: "物件ワークスペース", overview: "物件概要", market: "価格と市場", location: "立地と通勤", risk: "リスクと環境", finance: "資金と保有費用",
-    outputs: "出力と方法", compare: "物件を比較", report: "物件レポート", planning: "詳細な物件計画", decisionRoom: "購入意思決定ルーム",
+    outputs: "出力と方法", compare: "物件を比較", report: "物件レポート", planning: "詳細な物件計画", decisionRoom: "購入意思決定ルーム", primary: "案件の流れ", secondary: "補助ページ",
   },
   ko: {
     label: "사례 작업 공간", overview: "물건 개요", market: "가격과 시장", location: "입지와 통근", risk: "위험과 환경", finance: "자금과 보유 비용",
-    outputs: "출력과 방법", compare: "사례 비교", report: "사례 보고서", planning: "상세 사례 계획", decisionRoom: "부동산 의사결정 룸",
+    outputs: "출력과 방법", compare: "사례 비교", report: "사례 보고서", planning: "상세 사례 계획", decisionRoom: "부동산 의사결정 룸", primary: "사례 흐름", secondary: "보조 페이지",
   },
 };

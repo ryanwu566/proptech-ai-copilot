@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { openMethod } from "./helpers/commercial-navigation";
 
 const imageReference = "data:image/jpeg;base64,/9j/2Q==";
 
@@ -109,8 +110,7 @@ function satelliteResponse(status: "available" | "limited" | "unavailable") {
 async function openTerrain(page: import("@playwright/test").Page) {
   await page.goto("/", { waitUntil: "networkidle" });
   await page.getByTestId("locale-switcher").selectOption("en");
-  await page.locator(".commercial-methods > summary").click();
-  await page.locator(".commercial-methods").getByRole("button", { name: "Terrain Risk", exact: true }).click();
+  await openMethod(page, "Terrain Risk");
   await expect(page.locator("#terrain-risk-analysis")).toBeVisible();
 }
 

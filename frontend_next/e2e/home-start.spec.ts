@@ -106,7 +106,8 @@ test("double click, repeated Enter and a repeat start reuse one case", async ({ 
   await expect(page).toHaveURL(/\/$/);
   await address.fill(`  ${ADDRESS} `);
   await address.press("Enter");
-  await address.press("Enter").catch(() => undefined);
+  // The repeat goes to the focused field; a locator press would wait out the test once Home unmounts.
+  await page.keyboard.press("Enter");
   await expect(page).toHaveURL(new RegExp(`${first}$`));
   expect((await stored(page)).length).toBe(1);
   await page.goBack();
@@ -203,9 +204,11 @@ test("Home is a start page, not an app launcher", async ({ page }) => {
   // Value → start → recent cases → what you get, in document order.
   const order = await page.evaluate(() => ["#commercial-home-heading", "#commercial-address", ".commercial-recent-cases", "#commercial-home-what"].map((selector) => document.querySelector(selector)!.getBoundingClientRect().top));
   expect(order).toEqual([...order].sort((a, b) => a - b));
-  // Global navigation still exposes every capability destination.
+  // Global navigation lists no capability catalogue; Home's header keeps only accessibility controls.
   await page.locator(".commercial-methods > summary").click();
   await expect(page.locator(".commercial-methods")).toHaveAttribute("open", "");
+  await expect(page.locator(".commercial-methods__panel a")).toHaveCount(0);
+  await expect(home.getByTestId("tour-start")).toBeVisible();
 });
 
 for (const locale of ["zh-TW", "en", "ja", "ko"] as const) {

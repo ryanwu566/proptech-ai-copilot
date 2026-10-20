@@ -49,8 +49,8 @@ export function SavedCasesEntry() {
     <Section title={copyFrom(navigationCopy, "choose")}>
       {cases === null
         ? <AsyncState kind="loading" title={copyFrom(navigationCopy, "loading")} />
-        : read && storageBlocked(read) ? <Link prefetch={false} className="ds-button ds-button--secondary" href="/?workflow=property">{copyFrom(navigationCopy, "property")}</Link> : cases.length === 0 && read?.issues.length ? <><p>{copyFrom(navigationCopy, "invalid")}</p><Link prefetch={false} className="ds-button ds-button--secondary" href="/?workflow=property">{copyFrom(navigationCopy, "property")}</Link></> : cases.length === 0
-          ? <AsyncState kind="not_started" title={copyFrom(navigationCopy, "empty")} detail={copyFrom(navigationCopy, "emptyHint")} action={<Link prefetch={false} className="ds-button ds-button--primary" href="/?workflow=property">{copyFrom(navigationCopy, "property")}</Link>} />
+        : read && storageBlocked(read) ? <Link prefetch={false} className="ds-button ds-button--secondary" href="/">{copyFrom(navigationCopy, "property")}</Link> : cases.length === 0 && read?.issues.length ? <><p>{copyFrom(navigationCopy, "invalid")}</p><Link prefetch={false} className="ds-button ds-button--secondary" href="/">{copyFrom(navigationCopy, "property")}</Link></> : cases.length === 0
+          ? <AsyncState kind="not_started" title={copyFrom(navigationCopy, "empty")} detail={copyFrom(navigationCopy, "emptyHint")} action={<Link prefetch={false} className="ds-button ds-button--primary" href="/">{copyFrom(navigationCopy, "property")}</Link>} />
           : <div className={styles.grid}>{cases.map((workspace) => <SavedCaseRow key={workspace.caseId} workspace={workspace} destination={destination} />)}</div>}
     </Section>
     <CloudCasesPanel localCases={cases ?? []} />

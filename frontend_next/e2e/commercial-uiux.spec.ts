@@ -35,7 +35,7 @@ test("homepage starts a property review and exposes recent saved cases without a
   await expect(page.getByRole("banner", { name: "目前物件" })).toContainText("臺中市西屯區臺灣大道三段100號");
 });
 
-test("mobile methods are keyboard accessible and saved outputs stay reachable", async ({ page }) => {
+test("mobile accessibility disclosure is keyboard accessible, lists no legacy tools and saved outputs stay reachable", async ({ page }) => {
   await prepare(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -47,9 +47,8 @@ test("mobile methods are keyboard accessible and saved outputs stay reachable", 
   await expect(methods).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator(".commercial-methods")).toHaveAttribute("open", "");
-  await expect(page.getByRole("button", { name: "TaxOracle 稅務", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "TaxOracle 稅務", exact: true }).click();
-  await expect(page.locator("[data-page-heading]")).toBeVisible();
+  await expect(page.getByTestId("tour-restart")).toBeVisible();
+  await expect(page.locator(".commercial-global-header")).not.toContainText(/TaxOracle|Aegis/);
   await page.goto("/cases/case-a/market");
   await expect(page.getByRole("button", { name: "保存目前案件快照", exact: true })).toBeVisible();
   await expect(page.locator(".workspace-navigation").getByRole("link", { name: "案件報告", exact: true })).toBeVisible();
@@ -130,13 +129,13 @@ for (const width of [1440, 1024, 390]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`long-context-${width}.png`), fullPage: true });
   });
-  test(`workspace methods menu stays above property context at ${width}px`, async ({ page }) => {
+  test(`workspace tour entry is not covered by property context at ${width}px`, async ({ page }) => {
     await prepare(page);
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/cases/case-a/market");
     await expect(page.getByRole("banner", { name: "目前物件" })).toBeVisible();
-    await page.locator(".commercial-methods > summary").click();
-    const method = page.locator(".commercial-methods").getByRole("link", { name: "Map Insight", exact: true });
+    await expect(page.locator(".commercial-methods")).toHaveCount(0);
+    const method = page.locator(".workspace-property-header").getByTestId("tour-start");
     await expect(method).toBeVisible();
     expect(await method.evaluate((node) => {
       const box = node.getBoundingClientRect();

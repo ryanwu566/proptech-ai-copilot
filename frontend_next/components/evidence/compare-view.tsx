@@ -63,7 +63,7 @@ export function CompareView() {
         <Section title="選取案件" description="選取 2–4 案，保留你的選取順序。A／B／C／D 只表示位置。">
           <div className={styles.selection}>{allCases.map((item) => <label key={item.caseId}><input type="checkbox" aria-label={`選擇 ${item.title}`} checked={ids.includes(item.caseId)} onChange={() => toggle(item.caseId)} /><span><strong>{item.title}</strong><span>{item.displayAddress}</span><span>保存：{date(item.savedAt)}</span>{item.identity.state !== "confirmed" && <span>需先確認物件身分</span>}</span></label>)}</div>
           <p role="status" aria-live="polite">{feedback || `已選取 ${ids.length} 個案件`}</p>
-          {read.status === "empty" && <div><p>{copyFrom(navigationCopy, "emptyHint")}</p><Link prefetch={false} className="commercial-text-action" href="/?workflow=property">{copyFrom(navigationCopy, "property")}</Link></div>}
+          {read.status === "empty" && <div><p>{copyFrom(navigationCopy, "emptyHint")}</p><Link prefetch={false} className="commercial-text-action" href="/">{copyFrom(navigationCopy, "property")}</Link></div>}
         </Section>
         {model.status !== "ready" ? <Message variant={model.status === "too_few" ? "information" : "error"}>{blockedMessages[model.status]}{model.status === "identity_requires_revalidation" && <div>{ids.map((id) => <Link key={id} href={`/cases/${encodeURIComponent(id)}/overview`}>開啟選取案件工作區 </Link>)}</div>}</Message> : <>
           <div className={styles.selection}>{model.cases.map(item => <div key={item.caseId}><p>{item.title}</p><CopilotLink caseId={item.caseId} /></div>)}</div>

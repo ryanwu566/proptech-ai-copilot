@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { Message } from "@/components/design-system/message";
 import { Section } from "@/components/design-system/section";
@@ -71,9 +70,6 @@ export function OverviewView() {
     </Section>
 
     <Section title="下一步查證"><DecisionGroup title="下一步" items={overview.actions} empty="目前沒有系統指定的下一步。" links /></Section>
-    <DetailsDisclosure summary="進階／方法：案件規劃工具">
-      <Link className="ds-button ds-button--secondary ds-button--compact" href={`/cases/${encodeURIComponent(workspace.caseId)}/planning`}>開啟既有案件規劃工具</Link>
-    </DetailsDisclosure>
   </div>;
 }
 

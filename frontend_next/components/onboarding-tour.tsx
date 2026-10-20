@@ -13,9 +13,11 @@ export type TourPresentation = {
   renderStage: (id: TourStepId) => ReactNode;
   onRestart: () => void;
 };
-export function OnboardingTour({ onClose, presentation, opener }: { onClose: () => void; presentation?: TourPresentation; opener?: HTMLElement | null }) {
+/** Replaces Finish on the last step. It completes the tour in the same event; callers defer focus work until the modal unmounts. */
+export type TourCallToAction = { label: string; onSelect: () => void };
+export function OnboardingTour({ onClose, presentation, opener, cta }: { onClose: () => void; presentation?: TourPresentation; opener?: HTMLElement | null; cta?: TourCallToAction }) {
   const { copy } = useExperienceLocale();
-  const [stepId, setStepId] = useState<TourStepId>("propertyCase");
+  const [stepId, setStepId] = useState<TourStepId>(TOUR_STEPS[0].id);
   const [run, setRun] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -103,13 +105,14 @@ export function OnboardingTour({ onClose, presentation, opener }: { onClose: () 
       <footer className="onboarding-footer">
         <button type="button" data-testid="tour-skip" className="ds-button ds-button--tertiary" onClick={() => close("skipped")}>{copy("guide.skip")}</button>
         {presentation && <><button type="button" data-testid="demo-exit" className="ds-button ds-button--tertiary" onClick={onClose}>{presentation.exit}</button>
-          <button type="button" data-testid="demo-restart" className="ds-button ds-button--tertiary" onClick={() => { presentation.onRestart(); setStepId("propertyCase"); setRun((value) => value + 1); }}>{presentation.restart}</button></>}
+          <button type="button" data-testid="demo-restart" className="ds-button ds-button--tertiary" onClick={() => { presentation.onRestart(); setStepId(TOUR_STEPS[0].id); setRun((value) => value + 1); }}>{presentation.restart}</button></>}
         <div className="onboarding-actions">
           <button type="button" data-testid="tour-back" className="ds-button ds-button--secondary" disabled={step === 0} onClick={() => setStepId(TOUR_STEPS[step - 1].id)}>{copy("guide.back")}</button>
           <button type="button" data-testid="tour-next" className="ds-button ds-button--primary" onClick={() => {
-            if (step === TOUR_STEPS.length - 1) close("completed");
-            else setStepId(TOUR_STEPS[step + 1].id);
-          }}>{copy(step === TOUR_STEPS.length - 1 ? "guide.finish" : "guide.next")}</button>
+            if (step < TOUR_STEPS.length - 1) { setStepId(TOUR_STEPS[step + 1].id); return; }
+            close("completed");
+            cta?.onSelect();
+          }}>{step < TOUR_STEPS.length - 1 ? copy("guide.next") : cta?.label ?? copy("guide.finish")}</button>
         </div>
       </footer>
     </div>

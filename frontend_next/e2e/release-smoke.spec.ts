@@ -38,12 +38,12 @@ test.describe("Release Smoke — Navigation", () => {
     await expect(page.locator("#property-finder")).toBeVisible();
   });
 
-  test("Methods navigation keeps secondary capabilities accessible", async ({ page }) => {
+  test("Header lists no legacy single-tool capabilities", async ({ page }) => {
     await page.goto("/");
     const methods = page.locator(".commercial-methods");
     await methods.locator(":scope > summary").click();
     for (const name of [/Aegis-Credit/, /Market Insight/, /房價估算/, /TaxOracle/]) {
-      await expect(methods.getByRole("button", { name })).toBeVisible({ timeout: 5000 });
+      await expect(methods.getByRole("button", { name })).toHaveCount(0);
     }
   });
 });
