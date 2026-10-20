@@ -1,5 +1,7 @@
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
+import { mkdir } from "node:fs/promises";
+import path from "node:path";
 
 /** The Home city photograph (AmbientScene variant="home") is decorative only: the start UI stays usable and uncovered, and the photo settles. */
 const START = { "zh-TW": "開始物件評估", en: "Start property review", ja: "物件の検討を開始", ko: "부동산 검토 시작" } as const;
@@ -18,7 +20,7 @@ async function openHome(page: Page) {
   await expect(page.locator(".commercial-home [data-page-heading]")).toBeFocused();
 }
 
-for (const [width, height, source] of [[1440, 900, "home-hero-taipei-desktop"], [1024, 768, "home-hero-taipei-desktop"], [390, 844, "home-hero-taipei-mobile"]] as const) {
+for (const [width, height, source] of [[1440, 900, "home-hero-taipei-desktop"], [390, 844, "home-hero-taipei-mobile"], [1920, 1080, "home-hero-taipei-desktop"], [1024, 768, "home-hero-taipei-desktop"], [430, 932, "home-hero-taipei-mobile"]] as const) {
   test(`${width}x${height} hero is decorative, local, settled and leaves the start usable`, async ({ page }) => {
     await page.setViewportSize({ width, height });
     await openHome(page);
@@ -34,6 +36,13 @@ for (const [width, height, source] of [[1440, 900, "home-hero-taipei-desktop"], 
     expect(current.pathname).toContain(source);
     expect(await noOverflow(page)).toBe(true);
     expect(await onTop(page, START["zh-TW"])).toBe(true);
+    // Explicit mobile regression: absolute photograph overlaps the Hero heading;
+    // it cannot become a band in normal flow below the address/CTA controls.
+    await expect(hero).toHaveCSS("position", "absolute");
+    const photoBox = await hero.boundingBox();
+    const headingBox = await page.locator(".commercial-home [data-page-heading]").boundingBox();
+    expect(photoBox!.y).toBeLessThan(headingBox!.y + headingBox!.height);
+    expect(photoBox!.y + photoBox!.height).toBeGreaterThan(headingBox!.y);
     // Motion is one-shot: a single ~2% settle of the photograph that ends still. Nothing loops and nothing else moves.
     const running = await page.evaluate(() => document.getAnimations().filter((animation) => animation.playState === "running").map((animation) => {
       const timing = animation.effect!.getComputedTiming();
@@ -42,6 +51,9 @@ for (const [width, height, source] of [[1440, 900, "home-hero-taipei-desktop"], 
     for (const animation of running) expect(animation).toEqual({ photo: true, iterations: 1, duration: 26000 });
     await hero.locator("img").evaluate((image) => image.getAnimations().forEach((animation) => animation.finish()));
     await expect(hero.locator("img")).toHaveCSS("transform", /^(none|matrix\(1, 0, 0, 1, 0, 0\))$/);
+    const folder = path.resolve(process.cwd(), "../.local/photo-ambient/screenshots");
+    await mkdir(folder, { recursive: true });
+    await page.screenshot({ path: path.join(folder, `home-${width}x${height}.png`) });
   });
 }
 

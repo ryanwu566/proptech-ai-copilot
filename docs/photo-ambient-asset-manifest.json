@@ -1,0 +1,530 @@
+[
+  {
+    "file": "ambient-decision-desktop.avif",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      600,
+      1100,
+      4400,
+      3200
+    ],
+    "dimensions": [
+      1800,
+      995
+    ],
+    "quality": 62,
+    "bytes": 163404,
+    "sha256": "59247f5a1d910c067424a7039266506f42a306c678f7bedb721a48e77773a79c",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf"
+  },
+  {
+    "file": "ambient-decision-desktop.webp",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      600,
+      1100,
+      4400,
+      3200
+    ],
+    "dimensions": [
+      1800,
+      995
+    ],
+    "quality": 80,
+    "bytes": 210090,
+    "sha256": "924694393a299f2fff2f3a4c078a069bc4633aae2c3a2e4135633352415eca26",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf"
+  },
+  {
+    "file": "ambient-decision-mobile.avif",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      1800,
+      1000,
+      3600,
+      3077
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "quality": 62,
+    "bytes": 57047,
+    "sha256": "00870eba81a330b6a7487cdfe25c764e9eb7a85396aada70c16915c8cc0632e2",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf"
+  },
+  {
+    "file": "ambient-decision-mobile.webp",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      1800,
+      1000,
+      3600,
+      3077
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "quality": 80,
+    "bytes": 69514,
+    "sha256": "043d0aa3dddfd25692821851130f4993243c3e377a872a3052cb96213bf9682b",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf"
+  },
+  {
+    "file": "ambient-finance-desktop.avif",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      0,
+      180,
+      2900,
+      1600
+    ],
+    "dimensions": [
+      1800,
+      881
+    ],
+    "quality": 62,
+    "bytes": 143744,
+    "sha256": "9d8a04e0af6387e389b6ba5f4afda39fe859ebecc48cb3accaedc49a0e3c680e",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515"
+  },
+  {
+    "file": "ambient-finance-desktop.webp",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      0,
+      180,
+      2900,
+      1600
+    ],
+    "dimensions": [
+      1800,
+      881
+    ],
+    "quality": 80,
+    "bytes": 177692,
+    "sha256": "459144aee02bc52eaf0fb2dd5841edef96da491886941b7d7dc99c919e12150a",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515"
+  },
+  {
+    "file": "ambient-finance-mobile.avif",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      250,
+      200,
+      1750,
+      1930
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "quality": 62,
+    "bytes": 71670,
+    "sha256": "ffc481e08e222a3c3311fa2a4d1a2b56adfc4b4b45b8deff84da4d7a8dc8271a",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515"
+  },
+  {
+    "file": "ambient-finance-mobile.webp",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      250,
+      200,
+      1750,
+      1930
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "quality": 80,
+    "bytes": 89218,
+    "sha256": "4b13454efe8ecfe00f514027771910d1ab3e76225c30ba5d142196c916765810",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515"
+  },
+  {
+    "file": "ambient-location-desktop.avif",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      500,
+      420,
+      3500,
+      2020
+    ],
+    "dimensions": [
+      1800,
+      960
+    ],
+    "bytes": 190455,
+    "sha256": "fe783a82f8a2e8699b88c6a63319320d82af81e9cd79f186209728fdb5d152e6",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515",
+    "quality": 62
+  },
+  {
+    "file": "ambient-location-desktop.webp",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      500,
+      420,
+      3500,
+      2020
+    ],
+    "dimensions": [
+      1800,
+      960
+    ],
+    "bytes": 235430,
+    "sha256": "2f01b03a2c9a63e9823265c8a4b2e8f581dfca113485d79acf274814e1a97df3",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515",
+    "quality": 80
+  },
+  {
+    "file": "ambient-location-mobile.avif",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      1100,
+      500,
+      2600,
+      2230
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "bytes": 100661,
+    "sha256": "3a5f47a8df94de8e6fae6fef03e878496c9b2319ae424cf55623150a76b826f9",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515",
+    "quality": 62
+  },
+  {
+    "file": "ambient-location-mobile.webp",
+    "source": "DJI_20251106131210_0071_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      1100,
+      500,
+      2600,
+      2230
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "bytes": 126504,
+    "sha256": "5dcb1ecf740aa079e25d469c2fcc7d48406eba447bf4fe599977e09408f92a40",
+    "source_sha256": "5560f33e15413d277332519ea29b7acde6358aac2b9c59f11114b8320438b515",
+    "quality": 80
+  },
+  {
+    "file": "ambient-market-desktop.avif",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      2800,
+      1700,
+      7000,
+      3500
+    ],
+    "dimensions": [
+      1800,
+      771
+    ],
+    "bytes": 168445,
+    "sha256": "091fba539c6ba8db1e072760c6723e5b49ad3ab033d950db6245315d42ee18e8",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf",
+    "quality": 62
+  },
+  {
+    "file": "ambient-market-desktop.webp",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      2800,
+      1700,
+      7000,
+      3500
+    ],
+    "dimensions": [
+      1800,
+      771
+    ],
+    "bytes": 223790,
+    "sha256": "b0f62e99cf78889d85d34b031900e769b1788ffa3324f169b1d398bf2945b143",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf",
+    "quality": 80
+  },
+  {
+    "file": "ambient-market-mobile.avif",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      4700,
+      1400,
+      6500,
+      3477
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "bytes": 66014,
+    "sha256": "6dc8a6dec78ce44a1b2e59e153d9dea5a4909a2de7a64b79f4cf0030e3d8af65",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf",
+    "quality": 62
+  },
+  {
+    "file": "ambient-market-mobile.webp",
+    "source": "DJI_20251106131453_0076_D.JPG",
+    "source_dimensions": [
+      7200,
+      5184
+    ],
+    "crop": [
+      4700,
+      1400,
+      6500,
+      3477
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "bytes": 82266,
+    "sha256": "1727aa980ab0e5a1debda0c41f63e01cf35948a46a2283be954000e295016a20",
+    "source_sha256": "888c104e2f0f7e4e961f466d5105104dfbea1e16dc321678c7f647899d468bdf",
+    "quality": 80
+  },
+  {
+    "file": "ambient-overview-desktop.avif",
+    "source": "DJI_20251008112930_0058_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      650,
+      700,
+      4032,
+      2200
+    ],
+    "dimensions": [
+      1800,
+      798
+    ],
+    "quality": 62,
+    "bytes": 265839,
+    "sha256": "6c1075f802390fba423bb0210aad6667ed252bb57ff6b8e76e284d9feab053ac",
+    "source_sha256": "f68fc0799ef1ce379aa08b2b2c4ced6c1f0da990a890f24336c012e78ff1d0a3"
+  },
+  {
+    "file": "ambient-overview-desktop.webp",
+    "source": "DJI_20251008112930_0058_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      650,
+      700,
+      4032,
+      2200
+    ],
+    "dimensions": [
+      1800,
+      798
+    ],
+    "quality": 70,
+    "bytes": 300882,
+    "sha256": "e98def663ba8daf86a336bc3db8b2b8beed1a9514f6d5e5c48c8fcad79afa0a6",
+    "source_sha256": "f68fc0799ef1ce379aa08b2b2c4ced6c1f0da990a890f24336c012e78ff1d0a3"
+  },
+  {
+    "file": "ambient-overview-mobile.avif",
+    "source": "DJI_20251008112930_0058_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      2000,
+      500,
+      3500,
+      2230
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "quality": 62,
+    "bytes": 117146,
+    "sha256": "30ff0e4e2e7fca30cf619d002cfcd734203a4e864dc9336134352d73da949e11",
+    "source_sha256": "f68fc0799ef1ce379aa08b2b2c4ced6c1f0da990a890f24336c012e78ff1d0a3"
+  },
+  {
+    "file": "ambient-overview-mobile.webp",
+    "source": "DJI_20251008112930_0058_D.JPG",
+    "source_dimensions": [
+      4032,
+      2268
+    ],
+    "crop": [
+      2000,
+      500,
+      3500,
+      2230
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "quality": 78,
+    "bytes": 153530,
+    "sha256": "0fefd89189cb62c89a31d0a98270af1946fda1eff205b6434fc378a351646fff",
+    "source_sha256": "f68fc0799ef1ce379aa08b2b2c4ced6c1f0da990a890f24336c012e78ff1d0a3"
+  },
+  {
+    "file": "ambient-risk-desktop.avif",
+    "source": "DJI_20251008112952_0062_D.JPG",
+    "source_dimensions": [
+      8192,
+      4096
+    ],
+    "crop": [
+      500,
+      1750,
+      5600,
+      3700
+    ],
+    "dimensions": [
+      1800,
+      688
+    ],
+    "bytes": 208854,
+    "sha256": "923667a76bf5be8c3e9c81299df2f8fa8d0f56acec5bd4332f3d49a91d9a00ba",
+    "source_sha256": "5e96e987e8e09c31da15d25fd90b9d9c7ea2aa8340c61ceffc00e4ad92392cb8",
+    "quality": 62
+  },
+  {
+    "file": "ambient-risk-desktop.webp",
+    "source": "DJI_20251008112952_0062_D.JPG",
+    "source_dimensions": [
+      8192,
+      4096
+    ],
+    "crop": [
+      500,
+      1750,
+      5600,
+      3700
+    ],
+    "dimensions": [
+      1800,
+      688
+    ],
+    "bytes": 288370,
+    "sha256": "311f9bf5462719118fc290dfc6bb8d9e575f2ffb5525ee4fb09496e116589818",
+    "source_sha256": "5e96e987e8e09c31da15d25fd90b9d9c7ea2aa8340c61ceffc00e4ad92392cb8",
+    "quality": 80
+  },
+  {
+    "file": "ambient-risk-mobile.avif",
+    "source": "DJI_20251008112952_0062_D.JPG",
+    "source_dimensions": [
+      8192,
+      4096
+    ],
+    "crop": [
+      2000,
+      1500,
+      3900,
+      3692
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "bytes": 106082,
+    "sha256": "0c3236dc36194d04faea73030211f929bfd09b04597692cd0dfeda19a5366385",
+    "source_sha256": "5e96e987e8e09c31da15d25fd90b9d9c7ea2aa8340c61ceffc00e4ad92392cb8",
+    "quality": 62
+  },
+  {
+    "file": "ambient-risk-mobile.webp",
+    "source": "DJI_20251008112952_0062_D.JPG",
+    "source_dimensions": [
+      8192,
+      4096
+    ],
+    "crop": [
+      2000,
+      1500,
+      3900,
+      3692
+    ],
+    "dimensions": [
+      780,
+      900
+    ],
+    "bytes": 142920,
+    "sha256": "2fa994346e48396b06dc14e291f68fe3b5715cbecd3890e4d7521a92b06562d3",
+    "source_sha256": "5e96e987e8e09c31da15d25fd90b9d9c7ea2aa8340c61ceffc00e4ad92392cb8",
+    "quality": 80
+  }
+]

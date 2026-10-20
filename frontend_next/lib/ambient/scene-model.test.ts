@@ -25,11 +25,11 @@ test("every scene shares one ordered REVEAL → FOCUS → LOCK → RESOLVE timel
   assert.ok(PHASE_START.resolve <= 4000);
 });
 
-test("wakes are rare, single and bounded", () => {
+test("photographs never schedule decorative wakes", () => {
   assert.deepEqual(Object.keys(WAKE).sort(), [...AMBIENT_VARIANTS].sort());
   assert.equal(WAKE.home, null);
   assert.equal(WAKE.report, null);
-  assert.deepEqual(WAKE.location?.every, [8000, 12000]);
+  assert.ok(Object.values(WAKE).every((rhythm) => rhythm === null), "photography settles once; no decorative wake or loop");
   for (const rhythm of Object.values(WAKE)) {
     if (!rhythm) continue;
     assert.ok(rhythm.every[0] >= 8000 && rhythm.every[1] <= 16000);
@@ -47,7 +47,7 @@ test("the next wake never repeats the previous relationship and delays stay in r
       assert.notEqual(next, previous);
     }
     assert.equal(nextWake(0, 1, random), 0);
-    const delay = wakeDelay(WAKE.location!, random);
+    const delay = wakeDelay({ count: 1, every: [8000, 12000], hold: 3600 }, random);
     assert.ok(delay >= 8000 && delay <= 12000);
   }
 });

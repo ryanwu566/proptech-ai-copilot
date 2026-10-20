@@ -1,20 +1,26 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { PHASE_START, WAKE, nextWake, wakeDelay, type AmbientVariant } from "@/lib/ambient/scene-model";
 import { SCENES } from "./scenes";
 import styles from "./ambient-scene.module.css";
 
 /**
  * The one ambient background framework. It owns timing, opacity, reduced motion, pausing (hidden tab or scrolled away),
- * stacking and pointer behaviour; each variant only supplies geometry (./scenes.tsx).
+ * stacking and pointer behaviour; each variant only supplies local photographs (./scenes.tsx).
  * State is written to data-* attributes on the root, so the motion never re-renders React or reads layout.
  */
 export function AmbientScene({ variant, ready = true, className, children }: { variant: AmbientVariant; ready?: boolean; className?: string; children?: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
+  const scene = SCENES[variant];
+  const [photoLoaded, setPhotoLoaded] = useState(false);
+  const watch = useCallback((image: HTMLImageElement | null) => {
+    if (image?.complete && image.naturalWidth) setPhotoLoaded(true);
+  }, []);
+  const canReveal = ready && (!scene || photoLoaded);
   useEffect(() => {
     const element = root.current;
-    if (!element || !ready) return;
+    if (!element || !canReveal) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const rhythm = WAKE[variant];
     const timers = new Set<number>();
@@ -64,14 +70,15 @@ export function AmbientScene({ variant, ready = true, className, children }: { v
     observer?.observe(element);
     run();
     return () => { clear(); document.removeEventListener("visibilitychange", onVisibility); reduced.removeEventListener("change", run); observer?.disconnect(); };
-  }, [variant, ready]);
-  const scene = SCENES[variant];
+  }, [variant, canReveal]);
   const hold = WAKE[variant]?.hold;
   return <div ref={root} className={[styles.scene, styles[variant], className].filter(Boolean).join(" ")} style={hold ? { "--ambient-hold": `${hold}ms` } as CSSProperties : undefined} data-ambient-scene={variant} aria-hidden="true">
     {children}
-    {scene && <>
-      <svg className={styles.desktop} viewBox={scene.desktop.viewBox} preserveAspectRatio={scene.desktop.align ?? "xMaxYMin slice"} focusable="false">{scene.desktop.layers}</svg>
-      <svg className={styles.mobile} viewBox={scene.mobile.viewBox} preserveAspectRatio={scene.mobile.align ?? "xMidYMin meet"} focusable="false">{scene.mobile.layers}</svg>
-    </>}
+    {scene && <picture className={styles.photograph}>
+      <source media="(max-width: 767px)" type="image/avif" srcSet={`${scene.mobile}.avif`} />
+      <source media="(max-width: 767px)" type="image/webp" srcSet={`${scene.mobile}.webp`} />
+      <source type="image/avif" srcSet={`${scene.desktop}.avif`} />
+      <img ref={watch} src={`${scene.desktop}.webp`} width={1800} height={960} alt="" decoding="async" fetchPriority="low" draggable={false} onLoad={() => setPhotoLoaded(true)} />
+    </picture>}
   </div>;
 }
