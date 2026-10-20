@@ -67,7 +67,9 @@ test("location workspace leads with the active property map and explainable evid
   await expect(page.getByRole("heading", { level: 1, name: "區位與通勤" })).toBeVisible();
   const map = page.getByRole("region", { name: "目前物件位置與周邊證據" });
   await expect(map).toContainText("臺北市信義區市府路1號");
-  await expect(map).toContainText("25.037500, 121.563700");
+  await expect(map).not.toContainText("25.037500, 121.563700");
+  await page.getByText("來源與查詢細節", { exact: true }).click();
+  await expect(page.getByText("25.037500, 121.563700", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "重要周邊證據" })).toBeVisible();
   await expect(page.getByTestId("poi-summary")).toContainText("交通");
   await expect(page.getByTestId("poi-summary")).toContainText("4");

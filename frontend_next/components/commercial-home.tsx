@@ -12,7 +12,10 @@ import { StatusLabel } from "@/components/design-system/status-label";
 import { RepositoryNotice, storageBlocked } from "@/components/evidence/evidence-view";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { createBrowserCaseRepository, type WorkspaceReadDiagnostic } from "@/lib/workspace/case-repository";
-import { MAX_DRAFT_ADDRESS_LENGTH, type AddressDraftFailure } from "@/lib/workspace/case-draft";
+import { MAX_DRAFT_ADDRESS_LENGTH, normalizeDraftAddress, type AddressDraftFailure } from "@/lib/workspace/case-draft";
+import { api } from "@/lib/api";
+import { acquireLocationResolution } from "@/lib/workspace/location-confirmation";
+import { locationStartHandoff } from "@/lib/workspace/location-start-handoff";
 import { createAddressDraftCase } from "@/lib/case-storage";
 import { formatExactDate } from "@/lib/commercial/formatters";
 import { resolveCommercialState } from "@/lib/commercial/state";
@@ -23,12 +26,11 @@ import { caseDestination } from "@/lib/navigation/model";
 import { homeStartCopy } from "@/lib/home-start-copy";
 import { HomeCityBackdrop } from "@/components/home-city-backdrop";
 
-/** Primary start is local case creation only: no geocoding, provider call or analysis. */
+/** Explicit Start saves a local draft, then acquires one unconfirmed location candidate. No analysis. */
 export function CommercialHome({ onFinder }: { onFinder: () => void }) {
   const { t, copyFrom, locale } = useExperienceLocale();
   const router = useRouter();
   const startDemo = useStartGuidedExample();
-  const [address, setAddress] = useState("");
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<AddressDraftFailure | null>(null);
   const submitting = useRef(false);
@@ -37,9 +39,11 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
   useEffect(() => { const load = () => setRead(repository.readDiagnostic()); load(); return repository.subscribe(load); }, [repository]);
   // If the case navigation is interrupted (e.g. Back mid-push), Home stays mounted; re-enable the start.
   useEffect(() => { const reset = () => { submitting.current = false; setPending(false); }; window.addEventListener("popstate", reset); return () => window.removeEventListener("popstate", reset); }, []);
-  async function start(event: FormEvent) {
+  async function start(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current) return;
+    // Read the browser's value at submit, including edits made before hydration finished.
+    const address = String(new FormData(event.currentTarget).get("address") ?? "");
     submitting.current = true;
     setPending(true);
     setFailure(null);
@@ -50,6 +54,9 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
       setFailure(result.reason);
       return;
     }
+    const query = normalizeDraftAddress(address);
+    // Reopening an existing draft is read-only; only creation from this explicit Start acquires a candidate.
+    if (result.status === "created" && query) locationStartHandoff.begin(result.caseId, query, () => acquireLocationResolution(query, () => api.locationResolve(query)));
     router.push(caseDestination(result.caseId, "location"));
   }
   const recent = read?.cases.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3) ?? [];
@@ -58,7 +65,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
       <HomeCityBackdrop />
       <header data-page-heading tabIndex={-1}><p className="text-meta">{t("commercial.workspace")}</p><h1 id="commercial-home-heading" className="text-page">{t("commercial.homeTitle")}</h1><p className="text-body">{t("commercial.homeDescription")}</p></header>
       <form onSubmit={start} className="commercial-home__form" aria-busy={pending || undefined}>
-        <Field required label={t("commercial.address")} helperText={t("commercial.addressHint")}><input id="commercial-address" className="ds-control" required maxLength={MAX_DRAFT_ADDRESS_LENGTH} value={address} onChange={(event) => { setAddress(event.target.value); setFailure(null); }} autoComplete="street-address" placeholder={t("commercial.addressPlaceholder")} /></Field>
+        <Field required label={t("commercial.address")} helperText={t("commercial.addressHint")}><input id="commercial-address" name="address" className="ds-control" required maxLength={MAX_DRAFT_ADDRESS_LENGTH} onChange={() => setFailure(null)} autoComplete="street-address" placeholder={t("commercial.addressPlaceholder")} /></Field>
         <CommercialButton type="submit" size="touch" loading={pending} loadingLabel={copyFrom(homeStartCopy, "creating")}>{t("commercial.start")}</CommercialButton>
       </form>
       <div data-testid="home-start-status">{failure && <Message variant="error" title={copyFrom(homeStartCopy, "failedTitle")} action={failure === "limit_reached" || failure === "storage_invalid" ? <Link prefetch={false} className="commercial-text-action" href="/cases">{copyFrom(homeStartCopy, "manageCases")}</Link> : undefined}>{copyFrom(homeStartCopy, failure)}</Message>}</div>

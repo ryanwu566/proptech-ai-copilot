@@ -107,14 +107,14 @@ export function LocationView() {
     <div className="commercial-location-grid">
       <div className="min-w-0">    {handoff.mapReady && coordinates ? <MapFrame
       title="目前物件位置與周邊證據"
-      description={<><span className="block">{snapshot.property.normalizedAddress}</span><span className="block font-mono text-[11px]">{coordinates.latitude.toFixed(6)}, {coordinates.longitude.toFixed(6)}</span></>}
+      description={snapshot.property.normalizedAddress}
       attribution="地圖底圖依畫面標示；點位不是地籍界線"
       detail={<span>位置核對：{snapshot.property.checkedAt ?? "未提供"}</span>}
     >
       <GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} />
     </MapFrame> : neverLocated ? <div data-testid="location-not-yet-confirmed" className="space-y-3"><Message variant="information" title={copyFrom(homeStartCopy, "locationPendingTitle")}>
       {copyFrom(homeStartCopy, "locationPending")}
-    </Message><LocationConfirmationPanel onConfirmed={() => setLocationConfirmed(true)} /></div> : <Message variant="warning" title="物件位置已變更，需重新確認">
+    </Message><LocationConfirmationPanel key={workspace.caseId} onConfirmed={() => setLocationConfirmed(true)} /></div> : <Message variant="warning" title="物件位置已變更，需重新確認">
       目前不把先前位置或通勤結果當作本案現況；完成物件位置重新確認後再查看地圖與路線。
     </Message>}
 
@@ -188,6 +188,7 @@ export function LocationView() {
       <DetailsDisclosure summary="來源與查詢細節">
         <dl className="grid gap-3 text-dense sm:grid-cols-2">
           <SourceDetail label="物件位置" value={`${friendlySources(snapshot.property.sourceIds)}；核對時間 ${snapshot.property.checkedAt ?? "未提供"}`} />
+          {coordinates && <SourceDetail label={copyFrom(locationConfirmationCopy, "coordinates")} value={`${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}`} />}
           <SourceDetail label="行政位置" value={`${snapshot.property.village.name ?? "村里未確認"}${snapshot.insight?.village_resolution?.source_vintage ? `；圖資版本 ${snapshot.insight.village_resolution.source_vintage}` : ""}`} />
           <SourceDetail label="目的地路線" value={handoff.identityState !== "confirmed" ? "物件位置需重新確認" : snapshot.routeEvidence ? `${snapshot.routeEvidence.source === "google_routes" ? "Google Routes" : "模擬／備援路線"}；${snapshot.routeEvidence.checked_at}` : "尚未取得"} />
           <SourceDetail label="大眾運輸周邊" value={snapshot.transitContext ? `TDX；${snapshot.transitContext.source_updated_at ?? snapshot.transitContext.snapshot_generated_at ?? "日期未提供"}` : "尚未取得"} />
