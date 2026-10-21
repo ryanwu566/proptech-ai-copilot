@@ -50,9 +50,10 @@ test("anonymous cold routes do not download the provider SDK; login still loads 
       scripts.push(response.text().then(source => source.includes("AuthRetryableFetchError")));
     }
   });
-  for (const path of ["/", "/compare", "/places", "/preferences"]) {
+  for (const path of ["/", "/cases/case-a/finance", "/compare", "/places", "/preferences"]) {
     await page.goto(path);
     await expect(page.getByTestId("auth-entry-actions").getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
+    await expect(page.getByTestId("auth-entry-actions").getByRole("link",{name:"Create account",exact:true})).toBeVisible();
     await page.waitForLoadState("networkidle");
     expect((await Promise.all(scripts)).some(Boolean), path).toBe(false);
   }
@@ -144,6 +145,8 @@ for (const section of ["risk", "evidence"]) test(`login from ${section} returns 
   const calls = await setup(page);
   const destination = `/cases/case-a/${section}`;
   await page.goto(destination); await english(page);
+  // Start the return journey from a restored case, after Risk's lazy map mounts.
+  if (section === "risk") await expect(page.getByTestId("risk-property-marker")).toBeVisible();
   const saved = await page.evaluate(key => localStorage.getItem(key), KEY);
   await page.getByTestId("auth-entry-actions").getByRole("link",{name:"Sign in",exact:true}).click();
   await expect(page).toHaveURL(new RegExp(`/login\\?next=${encodeURIComponent(destination)}$`));
