@@ -357,11 +357,15 @@ test("Overview remains operable and readable at 390px with keyboard disclosure",
 
 test("Risk pre-query summary stays unknown instead of displaying zero findings", async ({ page }) => {
   await installCases(page, [partialCase()]);
+  const analysis = observeAnalysisRequests(page);
   await page.goto("/cases/partial-case/risk");
-  const summary = page.getByLabel("風險證據摘要");
-  await expect(summary).toContainText("符合來源定義");
-  await expect(summary).toContainText("未知／無法取得");
+  const summary = page.getByTestId("risk-buyer-summary");
   await expect(summary).toContainText("尚未查詢");
+  await expect(summary).toContainText("UNKNOWN ≠ SAFE");
   await expect(summary).not.toContainText("0 項");
+  const cards = page.locator("[data-buyer-card]");
+  await expect(cards).toHaveCount(6);
+  for (const card of await cards.all()) await expect(card).toContainText("NOT QUERIED");
+  expect(analysis).toEqual([]);
   await expect(page.locator("body")).not.toContainText(/\b(?:not_started|partial|available|unavailable|no_match|POINT_REFERENCE)\b/);
 });
