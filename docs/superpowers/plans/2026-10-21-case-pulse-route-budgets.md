@@ -13,7 +13,7 @@
 - [x] Extract the existing read path without relaxing validation. Preserve empty/corrupt/unsupported/blocked distinctions, case filtering, same-tab events, cross-tab storage events, and unsubscribe behavior.
 - [x] Change Pulse to the read-only adapter. Compare measured assets, including Finance and Compare; do not assume a dynamic import improves the measured graph.
 - [x] Pass Pulse/reader/store units, the 16 targeted bundled headless Chromium tests (one worker, zero retries), route measurement and all existing budgets, standalone typecheck, and focused lint.
-- [ ] Review the focused diff, create one follow-up commit, push normally to PR #216, and inspect every new CI workflow before reporting readiness. Do not merge.
+- [x] Review the focused diff, create one follow-up commit, push normally to PR #216, and inspect every new CI workflow before reporting readiness. Do not merge.
 
 ## Review focus
 
@@ -54,4 +54,28 @@ Unique uncompressed requested static bytes, same local build configuration befor
 - Production build, standalone typecheck, and focused lint pass (0 errors / 0 warnings).
 - Independent read-only review of the extraction and final client boundaries found no blocking issues. No Pulse model, copy, CSS, navigation composition, Command Palette, or Decision Room product behavior changed.
 
-The remaining integration step above is performed after this validation record is committed; PR #216's checks provide the resulting commit's CI state.
+The initial budget fix was pushed as `97a586a6b8d94e43e5953474732dcf516dd520c6`; the PR stayed unmerged pending CI.
+
+## Semantic merge of Decision Room → Report (#214)
+
+Merged main at `3b90719b0bfa44dd13e454bd0439cab66967fb1f` into the feature. The two conflicts were `evidence-entry.tsx` and `decision-room-store.ts`.
+
+- The shared barrel remains Scenario-only. Separate `report-entry.tsx` and `compare-entry.tsx` retain main's dynamic route-local loading; route pages import these wrappers directly. Other views and the layout retain their own boundaries.
+- The read-only adapter now uses main's exact current validation and normalization, including verification work, all four statuses, origins/source keys, notes, action timestamps, duplicate-key checks, verification history, and required resolution for done non-checklist work.
+- Old v1 items normalize to manual origin and empty sourceKey/note/createdAt/updatedAt. The store re-exports the shared contract and retains main's timestamp stamping, history, evidence-action helpers, outstanding predicate, gaps, and writes. The reader's store import is type-only.
+- Pulse counts every `status !== "done"` plus manual follow-ups. Its 27-unit suite covers all four statuses across all four work kinds; existing browser cases now exercise real in-progress/blocked saves and cross-tab verification actions.
+- Four new reader compatibility tests reproduced the old reader failures before the upgrade. All 71 targeted units pass: 27 Pulse, 7 reader/compatibility, 11 store, 8 #214 actions/report, 2 case adapter, 16 evidence checklist.
+- All 16 targeted bundled headless Chromium tests pass, workers=1, retries=0. Same-tab/cross-tab updates, DONE, zero-provider guards, four locales, 390/430, no overflow, and no score language pass.
+- Production build, standalone typecheck, and focused lint pass (0 errors / 0 warnings). Independent semantic review found no blockers.
+- All 24 route budgets, complete attribution/coverage, and global budgets pass using the same serial-batch measurement procedure. Static total: 3,920,288 / 8,000,000; largest JS chunk: 606,864 / 900,000. Budget files, measurement code, and CI are unchanged.
+
+| Post-merge route | Requested bytes | Existing limit |
+| --- | ---: | ---: |
+| `/cases/[caseId]` | 1,128,942 | 1,301,212 |
+| `/cases/[caseId]/market` | 1,115,924 | 1,301,212 |
+| `/cases/[caseId]/overview` | 1,128,942 | 1,301,212 |
+| `/cases/[caseId]/report` | 1,216,886 | 1,301,212 |
+| `/compare` | 1,107,895 | 1,301,212 |
+| `/cases/[caseId]/finance` | 1,114,276 | 1,339,100 |
+
+Requested-asset checks confirm Compare has neither Pulse nor the room writer; Market and Finance retain Pulse without the writer or Report/Compare builders. Overview now legitimately loads main's writer through its unchanged Add-to-Decision-Room actions. Report retains its existing room/report behavior. Pulse itself still imports only the reader, with no writer, polling, or provider calls.

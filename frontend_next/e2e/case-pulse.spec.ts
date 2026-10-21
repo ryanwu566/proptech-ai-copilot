@@ -97,6 +97,12 @@ test("real Decision Room DONE save reduces Pulse outstanding count without reloa
   await expect(pulse).toContainText("1 outstanding");
   await page.getByTestId("checklist-items").getByRole("button", { name: "Edit", exact: true }).click();
   const edit = page.getByTestId("item-edit-form");
+  for (const status of ["in_progress", "blocked"]) {
+    await edit.getByLabel("Status", { exact: true }).selectOption(status);
+    await edit.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(pulse).toContainText("1 outstanding");
+    await page.getByTestId("checklist-items").getByRole("button", { name: "Edit", exact: true }).click();
+  }
   await edit.getByLabel("Status", { exact: true }).selectOption("done");
   await edit.getByRole("button", { name: "Save", exact: true }).click();
   await expect(pulse).toContainText("No open actions");
@@ -110,6 +116,18 @@ test("cross-tab saved-state and room events refresh Pulse; corrupt room stays un
   await expect(pulse).toContainText("1 outstanding");
   const other = await context.newPage();
   await other.goto("/cases/case-a/overview");
+  await other.evaluate(() => {
+    const room = JSON.parse(localStorage.getItem("proptech.decisionRoom.v1.case-a")!);
+    for (const status of ["open", "in_progress", "blocked", "done"]) room.items.push({ id: `verify-${status}`, kind: "verification", title: "Verify saved evidence", owner: "Buyer", dueDate: "", status, resolution: status === "done" ? "Checked" : "", origin: "risk", sourceKey: `risk:${status}`, note: "Ask seller", createdAt: "2026-10-21T03:00:00.000Z", updatedAt: "2026-10-21T03:00:00.000Z" });
+    localStorage.setItem("proptech.decisionRoom.v1.case-a", JSON.stringify(room));
+  });
+  await expect(pulse).toContainText("4 outstanding");
+  await other.evaluate(() => {
+    const room = JSON.parse(localStorage.getItem("proptech.decisionRoom.v1.case-a")!);
+    for (const item of room.items) { item.status = "done"; item.resolution = "Checked"; }
+    localStorage.setItem("proptech.decisionRoom.v1.case-a", JSON.stringify(room));
+  });
+  await expect(pulse).toContainText("No open actions");
   await other.evaluate(() => {
     const saved = JSON.parse(localStorage.getItem("proptech.savedCases.v1")!)[0];
     saved.data.propertyIdentityAnchor.revalidation = { status: "needs_revalidation", conflicts: ["normalized_address"] };

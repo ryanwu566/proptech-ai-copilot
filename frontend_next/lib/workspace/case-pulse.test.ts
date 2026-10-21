@@ -97,13 +97,20 @@ test("stale Money and revalidated identity remain attention states", () => {
   assert.equal(pulse.items[3].message, "stale");
 });
 
-test("Decision outstanding counts open work and manual follow-ups once each", () => {
+test("Decision outstanding counts every unfinished work kind and manual follow-ups once each", () => {
   const room = emptyDecisionRoom("case-a");
   room.items = ["checklist", "task", "question"].map((kind, i) => ({ id: `${i}`, kind: kind as "task", title: "Work", owner: "", dueDate: "", status: "open", resolution: "" }));
   room.verifications = [{ id: "check", topic: "Visit", outcome: "needs_follow_up", sourceUrl: "", sourceNote: "Observed", checkedDate: "2026-10-21", checkedBy: "Buyer" }];
   assert.equal(buildCasePulse(workspace(), { status: "ready", room }).items[4].counts?.outstanding, 4);
   room.items[1].status = "done";
   assert.equal(buildCasePulse(workspace(), { status: "ready", room }).items[4].counts?.outstanding, 3);
+  room.verifications = [];
+  for (const kind of ["checklist", "question", "task", "verification"] as const) {
+    for (const status of ["open", "in_progress", "blocked", "done"] as const) {
+      room.items = [{ id: "work", kind, status, title: "Work", owner: "", dueDate: "", resolution: status === "done" ? "Checked" : "" }];
+      assert.equal(buildCasePulse(workspace(), { status: "ready", room }).items[4].counts?.outstanding ?? 0, status === "done" ? 0 : 1, `${kind}/${status}`);
+    }
+  }
 });
 
 test("unreadable room never claims zero outstanding actions", () => {

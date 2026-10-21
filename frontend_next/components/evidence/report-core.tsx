@@ -7,6 +7,9 @@ import type { EvidenceField } from "@/lib/workspace/case-evidence";
 import type { Citation } from "@/lib/workspace/document-evidence";
 import type { ExecutiveKeyNumber } from "@/lib/workspace/report-executive";
 import type { ReportCore, ReportCoreGroup } from "@/lib/workspace/report-core";
+import { checklistIdForEvidence } from "@/lib/workspace/evidence-checklist";
+import type { DecisionRoomReport } from "@/lib/decision-room-report";
+import type { ReportRoomUi } from "./report-decision-room-entry";
 import { reportCoreCopy, type ReportCoreCopyKey } from "@/lib/workspace/report-core-copy";
 import { EvidenceCitation } from "./citation";
 import styles from "./evidence.module.css";
@@ -43,8 +46,19 @@ function fieldCitations(field: EvidenceField<string | number>, citations: Citati
 }
 
 /** Values with state and [n] references only; each field's full provenance prints once, in the appendix. */
-function CoreFacts({ group, citations }: { group: ReportCoreGroup; citations: Citation[] }) {
+function CoreFacts({ group, citations, room, roomUi }: { group: ReportCoreGroup; citations: Citation[]; room?: DecisionRoomReport | null; roomUi?: ReportRoomUi | null }) {
   const { t, n } = useCoreCopy();
+  // Each linked Decision Room action is referenced once, on the first evidence row it belongs to.
+  const shown = new Set<string>();
+  const linked = (field: EvidenceField<string | number>) => {
+    const key = room ? checklistIdForEvidence(field.id) : null;
+    if (!room || !roomUi || !key || shown.has(key)) return null;
+    // Completed actions print once, on page three; page two points only at open work.
+    const action = room.outstanding.find((item) => item.sourceKey === key);
+    if (!action) return null;
+    shown.add(key);
+    return <roomUi.RoomActionRef action={action} />;
+  };
   // Saved values and units stay as saved; only missing-state wording is interface copy.
   const value = (field: EvidenceField<string | number>) => field.value === null
     ? field.id === "poi-risk" ? t("unknownFacility") : t(`gap_${field.missingReason ?? "not_preserved"}`)
@@ -60,7 +74,7 @@ function CoreFacts({ group, citations }: { group: ReportCoreGroup; citations: Ci
     <dt>{field.label}</dt>
     <dd><strong className={typeof field.value === "number" ? styles.numeric : undefined} data-numeric={typeof field.value === "number" || undefined}>{value(field)}</strong>
       {label(field) && <StatusLabel semanticRole="neutral">{label(field)}</StatusLabel>}
-      {fieldCitations(field, citations)}</dd>
+      {fieldCitations(field, citations)}{linked(field)}</dd>
   </div>)}</dl>;
 }
 
@@ -84,39 +98,42 @@ export function MarketPositionMarker({ item, citations }: { item: ExecutiveKeyNu
   </figure>;
 }
 
-function CoreGroup({ group, citations, children }: { group: ReportCoreGroup; citations: Citation[]; children?: ReactNode }) {
+function CoreGroup({ group, citations, room, roomUi, children }: { group: ReportCoreGroup; citations: Citation[]; room?: DecisionRoomReport | null; roomUi?: ReportRoomUi | null; children?: ReactNode }) {
   const { t } = useCoreCopy();
   return <section aria-labelledby={`core-${group.id}`} className={styles.coreGroup} data-testid={`core-group-${group.id}`}>
     <h3 id={`core-${group.id}`} className="text-subsection">{t(group.id)}</h3>
     {/* One limitation per area, stated once instead of after every value. */}
     <p className="text-meta">{t(`${group.id}Note`)}</p>
     {children}
-    <CoreFacts group={group} citations={citations} />
+    <CoreFacts group={group} citations={citations} room={room} roomUi={roomUi} />
   </section>;
 }
 
-export function ReportCorePages({ core, citations, askingUnit }: { core: ReportCore; citations: Citation[]; askingUnit: ExecutiveKeyNumber | undefined }) {
+export function ReportCorePages({ core, citations, askingUnit, room = null, roomUi = null }: { core: ReportCore; citations: Citation[]; askingUnit: ExecutiveKeyNumber | undefined; room?: DecisionRoomReport | null; roomUi?: ReportRoomUi | null }) {
   const { t } = useCoreCopy();
   const [, page2, page3] = core.pages;
+  const roomLeads = Boolean(room && room.counts.outstanding > 0);
   return <>
     <section aria-labelledby="core-page-2" className={styles.corePage} data-testid="report-core-page-2" data-report-page="2">
       <h2 id="core-page-2" className="text-section">{t("page2")}</h2>
       <p className="text-meta">{t("savedState")}</p>
-      {page2.groups.map((group) => <CoreGroup key={group.id} group={group} citations={citations}>
+      {page2.groups.map((group) => <CoreGroup key={group.id} group={group} citations={citations} room={room} roomUi={roomUi}>
         {group.id === "market" && <MarketPositionMarker item={askingUnit} citations={citations} />}
       </CoreGroup>)}
     </section>
     <section aria-labelledby="core-page-3" className={styles.corePage} data-testid="report-core-page-3" data-report-page="3">
       <h2 id="core-page-3" className="text-section">{t("page3")}</h2>
       <p className="text-meta">{t("savedState")}</p>
-      {page3.groups.map((group) => <CoreGroup key={group.id} group={group} citations={citations} />)}
+      {page3.groups.map((group) => <CoreGroup key={group.id} group={group} citations={citations} room={room} roomUi={roomUi} />)}
+      {room && roomUi && <roomUi.RoomNextActions report={room} caseId={core.caseId} />}
       <section aria-labelledby="core-next-steps" className={styles.coreGroup} data-testid="core-next-steps">
         <h3 id="core-next-steps" className="text-subsection">{t("checklist")}</h3>
         <p className="text-meta">{t("checklistIntro", { count: page3.gapTotal })}</p>
         {page3.nextSteps.length ? <ol className={styles.coreSteps}>{page3.nextSteps.map((step) => <li key={step.domain} data-testid={`core-step-${step.domain}`}>
           {/* Gap labels and next actions are saved evidence text and stay as saved. */}
           <p><strong>{t("checklistArea", { area: t(step.domain), count: step.count })}</strong>: {step.items.map((item) => `${item.label} (${t(`gap_${item.reason}`)})`).join(t("sep"))}{step.more > 0 && ` · ${t("more", { count: step.more })}`}</p>
-          <ul>{step.actions.map((action) => <li key={action}>{action}</li>)}</ul>
+          {/* With open Decision Room actions, print gives page three to them; per-item next steps still print in the appendix. */}
+          <ul className={roomLeads ? styles.screenOnly : undefined}>{step.actions.map((action) => <li key={action}>{action}</li>)}</ul>
           <p className={styles.screenOnly}><Link href={step.href}>{t("workspace", { area: t(step.domain) })}</Link></p>
         </li>)}</ol> : <p>{t("checklistEmpty")}</p>}
         <p className="text-meta">{t("checklistFooter")}</p>

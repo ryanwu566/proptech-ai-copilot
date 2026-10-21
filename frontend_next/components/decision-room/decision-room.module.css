@@ -48,3 +48,18 @@
 .history time { color: var(--text-muted); font-size: .8rem; }
 @media (max-width: 900px) { .columns { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .room { width: calc(100% - 2rem); margin-top: 1rem; gap: 1rem; } .hero, .panel { padding: 1rem; } .fieldRow { grid-template-columns: 1fr; } .sections a { flex: 1 1 40%; } .breadcrumb { font-size: .8rem; } }
+
+.summary { display: grid; gap: .5rem; }
+.summary p { margin: 0; }
+.counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: .25rem 0; }
+.counts > div { min-width: 0; border: 1px solid var(--border-subtle); border-radius: .6rem; padding: .65rem .85rem; background: var(--canvas); }
+.counts dt { font-size: .8rem; color: var(--text-muted); }
+.counts dd { margin: .15rem 0 0; font-size: 1.35rem; font-weight: 650; overflow-wrap: anywhere; }
+.counts small { font-size: .8rem; font-weight: 500; color: var(--text-muted); }
+.origin { overflow-wrap: anywhere; }
+.tag[data-status="blocked"] { border-color: var(--status-error, #a52b2b); }
+.candidates { list-style: none; padding: 0; margin: .75rem 0 0; display: grid; gap: .6rem; }
+.candidates li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; padding: .6rem 0; border-top: 1px solid var(--border-subtle); font-size: .875rem; min-width: 0; }
+.candidates li > span:first-child { display: grid; gap: .15rem; min-width: 0; flex: 1 1 12rem; }
+.candidates small { color: var(--text-muted); }
+@media (max-width: 600px) { .counts { gap: .5rem; } .counts > div { padding: .5rem .6rem; } .counts dd { font-size: 1.15rem; } }

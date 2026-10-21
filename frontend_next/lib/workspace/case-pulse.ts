@@ -41,7 +41,7 @@ export function buildCasePulse(workspace: PropertyCaseWorkspace, roomRead: RoomR
       : finance && ["insufficient", "blocked"].includes(finance.calculation.completeness) ? item("money", "needs_attention", "insufficient")
         : finance?.calculation.query === "succeeded" ? item("money", "available", "moneySaved") : item("money", "not_queried", "notQueried");
   const room = roomRead.status === "ready" || roomRead.status === "empty" ? roomRead.room : null;
-  const outstanding = room ? room.items.filter((row) => row.status === "open").length + room.verifications.filter((row) => row.outcome === "needs_follow_up").length : null;
+  const outstanding = room ? room.items.filter((row) => row.status !== "done").length + room.verifications.filter((row) => row.outcome === "needs_follow_up").length : null;
   const decision = outstanding === null ? item("decision", "unavailable", "unavailable")
     : outstanding > 0 ? item("decision", "needs_attention", "outstanding", { outstanding })
       : item("decision", "known", room!.items.length || room!.verifications.length ? "noOpenActions" : "noActions");
