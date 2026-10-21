@@ -1,4 +1,5 @@
 .page { display: grid; gap: var(--space-6); min-width: 0; }
+.page > * { min-width: 0; }
 .heading { display: grid; gap: var(--space-2); }
 .heading p { max-width: 52rem; color: var(--text-secondary); }
 .headingActions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
@@ -19,6 +20,26 @@
 .unknownItem p, .actionItem p, .sourceItem p { margin-top: var(--space-1); color: var(--text-secondary); font-size: var(--text-dense-size); line-height: var(--text-dense-line); }
 .categoryList { margin-top: var(--space-2); color: var(--text-secondary); font-size: var(--text-meta-size); }
 .supportingEvidence { max-width: 36rem; }
+.buyerSummary { display: grid; gap: var(--space-3); }
+.buyerGrid { display: grid; gap: var(--space-4); min-width: 0; }
+.buyerCard { min-width: 0; overflow-wrap: anywhere; }
+.buyerDisclosure { height: 100%; border-top: 0; }
+.cardSummary { display: grid; gap: var(--space-2); min-width: 0; }
+.buyerMeaning { color: var(--text-secondary); font-size: var(--text-body-size); font-weight: 500; line-height: var(--text-body-line); }
+.cardMeta { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); color: var(--text-muted); font-size: var(--text-meta-size); font-weight: 400; }
+.cardMeta code { color: var(--text-secondary); font-size: var(--text-meta-size); }
+.cardAction { color: var(--action); font-size: var(--text-meta-size); font-weight: 500; }
+.buyerSections, .sourceEvidence { display: grid; gap: var(--space-4); }
+.buyerSections p { margin-top: var(--space-2); color: var(--text-secondary); line-height: var(--text-body-line); }
+.buyerActions { display: grid; gap: var(--space-2); margin-top: var(--space-3); padding-left: var(--space-5); list-style: disc; color: var(--text-secondary); }
+.provenance { display: grid; gap: var(--space-3); font-size: var(--text-meta-size); overflow-wrap: anywhere; }
+.provenance dt { color: var(--text-muted); }
+.provenance dd { margin-top: var(--space-1); color: var(--text-secondary); white-space: pre-wrap; }
+.sourceRecords { max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-secondary); font-size: var(--text-meta-size); }
+
+@media (min-width: 768px) {
+  .buyerGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 @media (min-width: 1024px) {
   .mapGrid { grid-template-columns: minmax(0, 3fr) minmax(18rem, 2fr); }
