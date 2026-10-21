@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import L from "leaflet";
 import { Circle, GeoJSON, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { ParcelGeoJsonGeometry } from "@/lib/api";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { riskBuyerCopy } from "@/lib/workspace/risk-buyer-copy";
 import styles from "./risk-environment.module.css";
 
 function propertyIcon(center: { latitude: number; longitude: number }) {
@@ -31,6 +33,7 @@ export default function RiskEvidenceLeafletMap({
   hazardGeometries?: Record<string, ParcelGeoJsonGeometry | null>;
   selectedKey?: string;
 }) {
+  const { locale } = useExperienceLocale();
   const geometries = Object.entries(hazardGeometries).filter((entry): entry is [string, ParcelGeoJsonGeometry] => entry[1] !== null);
   return <MapContainer center={[center.latitude, center.longitude]} zoom={15} scrollWheelZoom={false} className={styles.mapCanvas}>
     <Recenter center={center} />
@@ -46,6 +49,6 @@ export default function RiskEvidenceLeafletMap({
       }}
     />)}
     <Circle center={[center.latitude, center.longitude]} radius={radiusM} pathOptions={{ color: "#0f5c78", fillColor: "#7cc3df", fillOpacity: 0.06, weight: 2, dashArray: "7 6" }} />
-    <Marker position={[center.latitude, center.longitude]} icon={propertyIcon(center)}><Popup>目前物件位置</Popup></Marker>
+    <Marker position={[center.latitude, center.longitude]} icon={propertyIcon(center)}><Popup>{riskBuyerCopy(locale).location}</Popup></Marker>
   </MapContainer>;
 }
