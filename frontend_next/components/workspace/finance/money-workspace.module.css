@@ -1,0 +1,10 @@
+.root { min-width: 0; overflow-wrap: anywhere; }
+.root :global(.ds-metric-row) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.75rem; align-items: start; }
+.root :global(.ds-metric-row) > :last-child { justify-content: flex-end; text-align: right; }
+.root :global(.ds-value) { min-width: 0; flex-wrap: wrap; white-space: normal; }
+.root :global(.ds-unit-input) { min-width: 0; }
+.root :global(.ds-unit-input__adornment) { max-width: 50%; white-space: normal; overflow-wrap: anywhere; }
+.root :global(.ds-button) { max-width: 100%; white-space: normal; }
+@media (max-width: 639px) {
+  .root :global(.ds-summary-strip) { grid-template-columns: minmax(0, 1fr); }
+}
