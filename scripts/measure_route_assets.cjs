@@ -38,8 +38,8 @@ async function assertRouteView(page, routeName, width, rows) {
     "/cases/[caseId]": '[data-testid="commercial-overview-workspace"]',
     "/cases/[caseId]/overview": '[data-testid="commercial-overview-workspace"]',
     "/cases/[caseId]/market": '[data-testid="market-price-workspace"]',
-    "/cases/[caseId]/location": '[data-testid="commercial-location-workspace"] .leaflet-container',
-    "/cases/[caseId]/risk": '[data-testid="risk-property-marker"]',
+    "/cases/[caseId]/location": '[data-testid="show-location-map"]',
+    "/cases/[caseId]/risk": '[data-testid="show-risk-map"]',
     "/cases/[caseId]/finance": '[data-testid="finance-price-basis"]',
     "/cases/[caseId]/report": '[data-testid="report-evidence"]',
     "/cases/[caseId]/scenarios": '[data-testid="scenario-comparison"]',
@@ -133,7 +133,7 @@ async function measureRoutes({ frontend_root: frontendRoot, routes }, state) {
   setStage(state, "module_resolution");
   const localRequire = createRequire(path.join(frontendRoot, "package.json"));
   const { chromium } = localRequire("playwright");
-  // Existing synthetic fixture enables populated views and rendered lazy maps.
+  // Populate saved route views without revealing maps: only cold initial assets count.
   setStage(state, "fixture_loading");
   const { e9Case } = localRequire("./lib/workspace/e9-test-fixtures.ts");
   const rows = [e9Case("case-a"), e9Case("case-b")];
