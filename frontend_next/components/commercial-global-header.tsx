@@ -21,7 +21,8 @@ export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: 
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, []);
-  if (pathname === "/" && (!onNavigate || page === "儀表板")) return null;
+  // Home owns its app header; suppress only the duplicate layout header.
+  if (pathname === "/" && !onNavigate) return null;
   function navigate(next: AppPage) {
     if (disclosure.current) disclosure.current.open = false;
     onNavigate?.(next);

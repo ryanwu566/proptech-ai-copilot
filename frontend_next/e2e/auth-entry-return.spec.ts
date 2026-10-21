@@ -95,7 +95,10 @@ for (const locale of ["zh-TW","en","ja","ko"] as const) for (const width of [390
       await page.keyboard.press("Tab"); await expect(signup).toBeFocused();
       expect(await signup.evaluate(el => getComputedStyle(el).outlineStyle)).not.toBe("none");
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-      if (path === "/") await expect(page.locator(".commercial-global-header")).toHaveCount(0);
+      const header = page.locator(".commercial-global-header");
+      await expect(header).toHaveCount(1);
+      await expect(header.getByTestId("auth-entry-actions")).toHaveCount(1);
+      await expect(page.getByTestId("locale-switcher")).toHaveCount(1);
       await page.screenshot({path:info.outputPath(`${path === "/" ? "home" : "header"}-${locale}-${width}.png`)});
       await login.click();
       await expect(page.locator("main").getByRole("link",{name:accountCopy[locale].backToJourney})).toHaveAttribute("href",path);

@@ -58,9 +58,6 @@
 @media print {
   .commercial-home-hero { display: none !important; }
 }
-.commercial-home__auth { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); margin-bottom: var(--space-4); }
-.commercial-home__auth select { min-height: 44px; max-width: 110px; font-size: var(--text-meta-size); }
-@media print { .commercial-home__auth { display: none !important; } }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-flow-node, .hero-reveal, .hero-sequence, .hero-flow-line, .hero-orb {
