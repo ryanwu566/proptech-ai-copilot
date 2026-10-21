@@ -7,7 +7,7 @@ import { buildJourneyPropertyIdentityAnchor, normalizeJourneyPropertyIdentityAnc
 
 /**
  * In-case location confirmation for an address-only case.
- * Step 1 interprets ONE geocode-only /location/resolve result (no persistence).
+ * Step 1 interprets ONE geocode-only /location/resolve result as unconfirmed UI data.
  * Step 2 builds the identity anchor only after the user explicitly confirms it.
  * Geocoder confidence never confirms anything on its own.
  */
@@ -21,7 +21,7 @@ export type LocationCandidate = {
   source: "tgos" | "google";
 };
 export type LocationCandidateBlock = "unresolved" | "unavailable" | "capacity_unavailable" | "provider_unavailable" | "invalid" | "low_confidence" | "missing_coordinates";
-export type LocationCandidateResult = { kind: "candidate"; candidate: LocationCandidate } | { kind: "blocked"; reason: LocationCandidateBlock };
+export type LocationCandidateResult = { kind: "candidate"; candidate: LocationCandidate } | { kind: "blocked"; reason: LocationCandidateBlock | "case_changed" | "already_identified" | "invalid_anchor" | "write_failed" | "lock_unavailable" | "storage_unavailable" };
 
 const GEOCODER_SOURCE_IDS = { tgos: "tgos_geocoding", google: "google_geocoding" } as const;
 // Taiwan, Penghu, Kinmen and Matsu; anything outside is not this product's property.
@@ -41,12 +41,24 @@ export function locationRequestFailure(status?: number): LocationCandidateBlock 
 }
 
 /** One explicitly requested lookup, with the same truth and error semantics at Home and in-case retry. */
-export async function acquireLocationResolution(address: string, acquire: () => Promise<unknown>): Promise<LocationCandidateResult> {
+export const LOCATION_RESOLVE_TIMEOUT_MS = 10_000;
+export async function acquireLocationResolution(address: string, acquire: (signal: AbortSignal) => Promise<unknown>, options: { timeoutMs?: number; signal?: AbortSignal } = {}): Promise<LocationCandidateResult> {
+  const controller = new AbortController();
+  const abort = () => controller.abort();
+  const cancelled = new Promise<never>((_, reject) => {
+    controller.signal.addEventListener("abort", () => reject(new Error("Location lookup stopped")), { once: true });
+  });
+  options.signal?.addEventListener("abort", abort, { once: true });
+  if (options.signal?.aborted) abort();
+  const timer = setTimeout(abort, options.timeoutMs ?? LOCATION_RESOLVE_TIMEOUT_MS);
   try {
-    return interpretLocationResolution(await acquire(), address);
+    return interpretLocationResolution(await Promise.race([cancelled, controller.signal.aborted ? cancelled : acquire(controller.signal)]), address);
   } catch (error) {
     const status = error instanceof Error && "status" in error && typeof error.status === "number" ? error.status : undefined;
     return { kind: "blocked", reason: locationRequestFailure(status) };
+  } finally {
+    clearTimeout(timer);
+    options.signal?.removeEventListener("abort", abort);
   }
 }
 

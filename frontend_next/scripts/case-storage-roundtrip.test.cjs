@@ -28,6 +28,65 @@ const { buildReportModel, buildComparisonModel } = load('lib/workspace/compare-r
 const { buildMarketRefreshContext, canCommitMarketPriceResponse } = load('lib/workspace/market-price-refresh.ts');
 const { SAVED_CASES_STORAGE_KEY: key } = storage;
 const { captureNearbyFacilities } = load('lib/workspace/nearby-facilities.ts');
+const { buildAddressDraftCase } = load('lib/workspace/case-draft.ts');
+const { interpretLocationResolution, buildConfirmedLocationAnchor } = load('lib/workspace/location-confirmation.ts');
+const pendingAddress = '臺北市信義區市府路1號';
+const pendingDraft = (id = 'pending-a') => buildAddressDraftCase(pendingAddress, { id, now: '2026-10-21T00:00:00Z' });
+const pendingCandidate = () => interpretLocationResolution({ status: 'resolved', source: 'google', confidence: 'high', latitude: 25.0375, longitude: 121.5637, formatted_address: pendingAddress }, pendingAddress).candidate;
+
+test('pending candidate roundtrip stays separate from identity, isolates cases and promotes only on confirmation', async () => browser(JSON.stringify([pendingDraft(), pendingDraft('pending-b')]), async values => {
+  const repo = createBrowserCaseRepository();
+  const version = repo.getCase('pending-a').storageVersion;
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', { ...pendingCandidate(), rawProviderPayload: 'must not persist' }, version)).status, 'saved');
+  const reopened = repo.getCase('pending-a');
+  assert.deepEqual(reopened.pendingLocationCandidate, pendingCandidate());
+  assert.equal(reopened.identity.state, 'unconfirmed');
+  assert.equal(reopened.identity.anchor, null);
+  assert.equal(reopened.location.property.coordinates, null);
+  assert.equal(repo.getCase('pending-b').pendingLocationCandidate, undefined);
+  assert.equal(values.get(key).includes('rawProviderPayload'), false);
+  assert.equal(buildMarketRefreshContext(reopened, storage.readSavedCases()[0]), null);
+  const before = values.get(key);
+  const evidence = projectCaseEvidence(reopened);
+  assert.equal(buildReportModel(evidence).sections.length, 0);
+  buildComparisonModel([evidence, projectCaseEvidence(repo.getCase('pending-b'))], ['pending-a', 'pending-b']);
+  assert.equal(values.get(key), before);
+  const anchor = buildConfirmedLocationAnchor(pendingCandidate(), { now: () => '2026-10-21T01:00:00Z', idFactory: () => '11111111-2222-4333-8444-555555555555' });
+  assert.equal((await storage.confirmSavedCaseIdentity('pending-a', anchor, reopened.storageVersion)).status, 'confirmed');
+  assert.equal(repo.getCase('pending-a').identity.state, 'confirmed');
+  assert.equal(repo.getCase('pending-a').pendingLocationCandidate, undefined);
+  assert.equal(storage.readSavedCases()[0].data.pendingLocationCandidate, undefined);
+}));
+
+test('pending restore rejects changed address, foreign case, malformed candidate and existing identity', async () => browser(JSON.stringify([pendingDraft(), e9Case()]), async values => {
+  const repo = createBrowserCaseRepository();
+  const version = repo.getCase('pending-a').storageVersion;
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', pendingCandidate(), version)).status, 'saved');
+  const rows = JSON.parse(values.get(key));
+  const original = structuredClone(rows[0]);
+  for (const alter of [
+    row => { row.data.journeyContext.propertyContext.addressSummary = '另一個地址'; },
+    row => { row.inputSummary.road = '新地址'; },
+    row => { row.id = 'foreign-case'; },
+    row => { row.data.pendingLocationCandidate.candidate.latitude = 35; },
+    row => { row.data.pendingLocationCandidate.state = 'confirmed'; },
+    row => { row.data.propertyIdentityAnchor = e9Case().data.propertyIdentityAnchor; },
+  ]) {
+    const changed = structuredClone(original); alter(changed);
+    values.set(key, JSON.stringify([changed]));
+    assert.ok(repo.getCase(changed.id), 'invalid pending data must not destroy the case');
+    assert.equal(repo.getCase(changed.id).pendingLocationCandidate, undefined);
+  }
+  values.set(key, JSON.stringify(rows));
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', pendingCandidate(), version)).status, 'blocked');
+  assert.equal((await storage.savePendingLocationCandidate('case-a', pendingCandidate(), repo.getCase('case-a').storageVersion)).status, 'blocked');
+}));
+
+test('pending write failure preserves the case and typed address', async () => browser(JSON.stringify([pendingDraft()]), async values => {
+  const before = values.get(key);
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', pendingCandidate(), createBrowserCaseRepository().getCase('pending-a').storageVersion)).status, 'blocked');
+  assert.equal(values.get(key), before);
+}, true));
 function nearby() {
   const origin = { lat: 24.16525, lng: 120.64555 };
   return captureNearbyFacilities({ center: origin, radius_m: 800, source: 'google_places', categories: [{ category: 'park', places: [{ place_id: 'park', name: 'Local park', ...origin }] }] }, origin);

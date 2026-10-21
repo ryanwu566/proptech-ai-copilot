@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { identityConfirmationCopy, identityConfirmationKind } from "@/lib/workspace/identity-confirmation-copy";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Section, ActionSection } from "@/components/design-system/section";
 import { CommercialButton } from "@/components/design-system/button";
@@ -21,6 +23,7 @@ import { EMPTY_REPORT_BRANDING, ReportAppendixHeading, ReportCorePages, ReportPr
 function currentEvidence(read: WorkspaceReadDiagnostic, caseId: string): CaseEvidenceModel | null { const workspace = read.cases.find((item) => item.caseId === caseId); return workspace ? projectCaseEvidence(workspace) : null; }
 function invalid(read: WorkspaceReadDiagnostic, caseId: string): boolean { return storageBlocked(read) || read.issues.some((issue) => issue.caseId === caseId); }
 export function ReportView({ caseId }: { caseId: string }) {
+  const { copyFrom } = useExperienceLocale();
   const repository = useMemo(createBrowserCaseRepository, []);
   const [read, setRead] = useState<WorkspaceReadDiagnostic | null>(null);
   const [frozen, setFrozen] = useState<{ evidence: CaseEvidenceModel; generatedAt: string } | null>(null);
@@ -48,6 +51,8 @@ export function ReportView({ caseId }: { caseId: string }) {
     return () => { unsubscribe(); window.removeEventListener("beforeprint", beforePrint); };
   }, [caseId, repository]);
   const current = read ? currentEvidence(read, caseId) : null;
+  const currentIdentity = read?.cases.find((item) => item.caseId === caseId)?.identity;
+  const reconfirmation = currentIdentity && identityConfirmationKind(currentIdentity) === "reconfirmation";
   const assessment = read && frozen ? assessReportSnapshot(frozen.evidence, current, invalid(read, caseId)) : null;
   const blocked = read && (invalid(read, caseId) || current?.identity.state !== "confirmed");
   const report = frozen ? buildReportModel(frozen.evidence, frozen.generatedAt) : null;
@@ -67,9 +72,9 @@ export function ReportView({ caseId }: { caseId: string }) {
     {(!report || blocked) && <header className={styles.screenOnly}><h1 className="text-page">案件證據報告</h1></header>}
     {!read ? <AsyncState kind="loading" title="正在讀取案件快照" /> : <>
       <div className={styles.screenOnly}><RepositoryNotice read={read} /></div>
-      {blocked || !report ? <div className={styles.screenOnly}><Message variant="error">
-        {invalid(read, caseId) ? "案件儲存紀錄無效或識別衝突；正式報告與列印已停止。" : !current ? "找不到已儲存案件，或案件已被移除；正式列印已停止。" : "案件身分需重新確認；正式報告與列印已停止。"}
-        <ActionSection><Link href="/cases" className="ds-button ds-button--secondary">回到已儲存案件</Link>{current && <Link href={`/cases/${encodeURIComponent(caseId)}/overview`} className="ds-button ds-button--secondary">重新確認物件</Link>}</ActionSection>
+      {blocked || !report ? <div className={styles.screenOnly} data-testid="report-identity-gate"><Message variant="error">
+        {invalid(read, caseId) ? "案件儲存紀錄無效或識別衝突；正式報告與列印已停止。" : !current ? "找不到已儲存案件，或案件已被移除；正式列印已停止。" : copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationReport" : "pendingReport")}
+        <ActionSection><Link href="/cases" className="ds-button ds-button--secondary">回到已儲存案件</Link>{current && <Link href={`/cases/${encodeURIComponent(caseId)}/${reconfirmation ? "overview" : "location"}`} className="ds-button ds-button--secondary">{copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationAction" : "pendingAction")}</Link>}</ActionSection>
       </Message></div> : <>
         <div className={styles.screenOnly} data-testid="report-controls">
           <CopilotLink caseId={caseId} />
@@ -98,6 +103,6 @@ export function ReportView({ caseId }: { caseId: string }) {
         </article>
       </>}
     </>}
-    <p className={styles.printBlocked}>本機案件已移除、無效或需重新確認；正式報告列印已停止。請返回已儲存案件。</p>
+    <p className={styles.printBlocked}>{current ? copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationReport" : "pendingReport") : "本機案件已移除或無效；正式報告列印已停止。請返回已儲存案件。"}</p>
   </main>;
 }

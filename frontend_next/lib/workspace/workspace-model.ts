@@ -10,6 +10,7 @@ import type { LocationWorkspaceSnapshot } from "./location-context";
 import type { FinanceModel } from "./finance-model";
 import type { RiskEvidenceModel } from "./risk-evidence-model";
 import type { StoredChecklistReviewV1 } from "./checklist-persistence";
+import type { LocationCandidate } from "./location-confirmation";
 
 export const WORKSPACE_SECTIONS = ["overview", "market", "location", "risk", "finance"] as const;
 export type WorkspaceSection = (typeof WORKSPACE_SECTIONS)[number];
@@ -41,6 +42,7 @@ export type PropertyCaseWorkspace = {
   /** In-memory repository read version; excluded from persistence and reports. */
   storageVersion?: string;
   identity: WorkspaceIdentity;
+  pendingLocationCandidate?: LocationCandidate;
   assumptions: {
     activePriceBasis: "asking" | "estimate" | "manual";
     activePriceWan?: number;

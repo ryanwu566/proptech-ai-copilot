@@ -26,12 +26,40 @@ import { e9Case } from "./e9-test-fixtures.ts";
 import { hasCompleteAdministrativeArea, normalizeJourneyPropertyIdentityAnchor } from "../journey-property-identity.ts";
 // @ts-expect-error Native TS runner extension.
 import { locationConfirmationCopy } from "./location-confirmation-copy.ts";
+// @ts-expect-error Native TS runner extension.
+import { identityConfirmationCopy, identityConfirmationKind } from "./identity-confirmation-copy.ts";
 
 const NOW = "2026-10-18T08:00:00.000Z";
 const ADDRESS = "臺北市信義區市府路1號";
 const RESOLVED = { status: "resolved", source: "tgos", formatted_address: "臺北市信義區市府路1號", latitude: 25.0375, longitude: 121.5637, confidence: "high", message: "ok", county: "臺北市", district: "信義區" };
 const options = { now: () => NOW, idFactory: () => "11111111-2222-4333-8444-555555555555" };
 const draft = (): SavedCase => buildAddressDraftCase(ADDRESS, { id: "draft-1", now: NOW })!;
+
+test("neutral copy is derived separately from changed confirmed identity in all four locales", () => {
+  const pending = adaptSavedCaseToWorkspace(draft());
+  const changedRow = confirmed();
+  changedRow.data.journeyContext!.propertyContext.addressSummary = "臺中市西屯區臺灣大道三段100號";
+  const changed = adaptSavedCaseToWorkspace(changedRow);
+  assert.equal(identityConfirmationKind(pending.identity), "pending");
+  assert.equal(identityConfirmationKind(changed.identity), "reconfirmation");
+  assert.equal(identityConfirmationKind(adaptSavedCaseToWorkspace(confirmed()).identity), "confirmed");
+  assert.equal(identityConfirmationKind({ ...changed.identity, anchor: { ...changed.identity.anchor!, confidence: { ...changed.identity.anchor!.confidence, level: "low" } } }), "pending");
+  assert.equal(identityConfirmationKind({ ...pending.identity, state: "conflict" }), "pending");
+  assert.doesNotMatch(buildLocationOverviewHandoff(pending).unresolved.join(" "), /變更|重新/);
+  assert.match(buildLocationOverviewHandoff(changed).unresolved.join(" "), /重新確認/);
+  for (const copy of Object.values(identityConfirmationCopy)) {
+    for (const domain of ["Title", "Location", "Risk", "Report", "Route", "Action"] as const) {
+      assert.ok(copy[`pending${domain}`].trim());
+      assert.notEqual(copy[`pending${domain}`], copy[`reconfirmation${domain}`]);
+      assert.doesNotMatch(copy[`pending${domain}`], /變更|重新|changed|again|reconfirm|再確認|変更|다시|변경/i);
+    }
+  }
+  // Both remain blocked; changing copy never grants report/risk permissions.
+  for (const workspace of [pending, changed]) {
+    assert.equal(buildRiskQueryContext(workspace), null);
+    assert.deepEqual(buildReportModel(projectCaseEvidence(workspace), NOW).sections, []);
+  }
+});
 
 test("location request failures distinguish capacity, provider and network unavailability", () => {
   assert.equal(locationRequestFailure(429), "capacity_unavailable");

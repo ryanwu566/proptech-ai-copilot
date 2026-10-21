@@ -4,6 +4,8 @@ import type { TaskReadinessState } from "../commercial/state";
 import type { JourneyPropertyIdentityAnchorV1 } from "../journey-property-identity";
 import type { PropertyCaseWorkspace } from "./workspace-model";
 // @ts-expect-error Native TS runner extension.
+import { identityConfirmationCopy, identityConfirmationKind } from "./identity-confirmation-copy.ts";
+// @ts-expect-error Native TS runner extension.
 import { normalizeLocationInsightEvidence } from "../location-insight-evidence.ts";
 // @ts-expect-error Native TS runner extension.
 import { areJourneyPropertyAddressesEquivalent } from "../journey-property-identity.ts";
@@ -105,7 +107,7 @@ export function buildLocationOverviewHandoff(workspace: PropertyCaseWorkspace): 
   const transitAvailable = snapshot.transitContext?.status === "resolved";
   const unresolved: string[] = [];
 
-  if (!identityConfirmed) unresolved.push("物件位置已變更，需重新確認");
+  if (!identityConfirmed) unresolved.push(identityConfirmationCopy["zh-TW"][identityConfirmationKind(workspace.identity) === "reconfirmation" ? "reconfirmationTitle" : "pendingTitle"]);
   if (identityConfirmed && !route) {
     unresolved.push(snapshot.routeInvalidated ? "先前目的地路線不屬於目前物件" : snapshot.routeEvidence ? "目的地路線目前無法取得" : "尚未設定通勤目的地");
   }

@@ -61,20 +61,24 @@ test("existing address-only case → lookup → confirm unlocks actions with one
   // A + B + C: Home start, opening the case and rendering Location run nothing.
   expect(calls).toEqual({ provider: [], resolve: 0, basemap: 0 });
 
-  // D + E: Find runs exactly one geocode-only resolve and persists nothing.
+  // D + E: Find runs exactly one geocode-only resolve and saves only unconfirmed UI data.
   const before = JSON.stringify(await stored(page));
   const find = panel.getByRole("button", { name: "確認物件位置", exact: true });
   await find.dblclick();
   const candidate = page.getByTestId("location-candidate");
   await expect(candidate).toBeFocused();
   await expect(candidate).toContainText("臺北市信義區市府路1號");
+  await page.getByTestId("location-candidate-details").getByText(locationConfirmationCopy["zh-TW"].details, { exact: true }).click();
   await expect(candidate).toContainText("臺北市 · 信義區");
   await expect(candidate).toContainText("25.037500, 121.563700");
   await expect(candidate).toContainText("TGOS 地址解析");
   await page.waitForLoadState("networkidle");
   expect(calls.resolve).toBe(1);
   expect(calls.provider).toEqual([]);
-  expect(JSON.stringify(await stored(page))).toBe(before);
+  expect(JSON.stringify(await stored(page))).not.toBe(before);
+  const pending = (await stored(page)).find((row) => row.id === caseId)!;
+  expect(pending.data.propertyIdentityAnchor).toBeUndefined();
+  expect(pending.data.pendingLocationCandidate).toMatchObject({ state: "unconfirmed", caseId });
 
   // F: Confirm persists identity only and runs no provider.
   await candidate.getByRole("button", { name: "確認位置", exact: true }).click();
@@ -235,15 +239,17 @@ test("spatial-only anchor supplies Nearby and Commute coordinates on explicit ac
   expect((await stored(page)).find((item) => item.id === caseId)!.data.propertyIdentityAnchor).toMatchObject({ administrative_location: { city: null, district: null } });
 });
 
-test("search again explicitly reacquires an unconfirmed candidate without saving", async ({ page }) => {
+test("search again explicitly reacquires and saves only an unconfirmed candidate", async ({ page }) => {
   const calls = await prepare(page);
   await page.goto("/");
   await startCase(page);
-  const before = JSON.stringify(await stored(page));
   await page.getByRole("button", { name: "確認物件位置", exact: true }).click();
   await page.getByRole("button", { name: "重新尋找", exact: true }).click();
   await expect(page.getByTestId("location-candidate")).toBeVisible();
-  expect(JSON.stringify(await stored(page))).toBe(before);
+  const rows = await stored(page);
+  expect(rows).toHaveLength(1);
+  expect(rows[0].data.propertyIdentityAnchor).toBeUndefined();
+  expect(rows[0].data.pendingLocationCandidate).toMatchObject({ state: "unconfirmed" });
   expect(calls.resolve).toBe(2);
 });
 
