@@ -154,6 +154,13 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* Shared entry UI stays small; analytical content belongs to its route. */
 .commercial-global-header__inner { gap: var(--space-3); }
 .commercial-global-tools > a { display: inline-flex; align-items: center; min-height: 44px; color: var(--text-secondary); text-decoration: none; }
+.auth-entry-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); }
+.auth-entry-actions a { display: inline-flex; justify-content: center; align-items: center; min-height: 44px; padding: var(--space-2); border-radius: var(--radius-control); color: var(--text-secondary); font-size: var(--text-meta-size); text-decoration: none; }
+.auth-entry-actions .auth-entry-signup { background: var(--action); color: var(--text-inverse); font-weight: 600; padding-inline: var(--space-3); }
+.auth-entry-actions a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.auth-entry-pending { display: inline-flex; align-items: center; min-height: 44px; color: var(--text-secondary); font-size: var(--text-meta-size); }
+.commercial-home__auth { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); margin-bottom: var(--space-4); }
+.commercial-home__auth select { min-height: 44px; max-width: 110px; font-size: var(--text-meta-size); }
 .commercial-methods__panel { width: 380px; }
 .case-workflow-handoff { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); border-top: 1px solid var(--border-subtle); padding: var(--space-4) 0; margin-top: var(--space-6); }
 .case-workflow-handoff > div { flex: 1 1 18rem; }
@@ -178,6 +185,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .commercial-methods__panel { max-height: min(65dvh, calc(100dvh - 190px)); }
 }
 @media print { .case-workflow-handoff, .case-standalone-nav { display: none !important; } }
+@media (max-width: 767px) {
+  .commercial-global-header__inner .commercial-global-tools { grid-column: 1 / -1; grid-row: 2; justify-self: end; flex-wrap: wrap; max-width: 100%; }
+  .commercial-global-header__inner .commercial-global-nav { grid-column: 1; grid-row: 3; }
+  .commercial-global-header__inner .commercial-methods { grid-row: 3; }
+}
+@media print { .commercial-home__auth { display: none !important; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }

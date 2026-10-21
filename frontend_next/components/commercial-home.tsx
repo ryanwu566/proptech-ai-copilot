@@ -25,6 +25,8 @@ import { navigationCopy } from "@/lib/navigation/copy";
 import { caseDestination } from "@/lib/navigation/model";
 import { homeStartCopy } from "@/lib/home-start-copy";
 import { HomeCityBackdrop } from "@/components/home-city-backdrop";
+import { AuthEntryActions } from "@/components/account/auth-entry-actions";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 /** Explicit Start saves a local draft, then acquires one unconfirmed location candidate. No analysis. */
 export function CommercialHome({ onFinder }: { onFinder: () => void }) {
@@ -63,6 +65,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
   return <div className="commercial-home">
     <section className="commercial-home__start" aria-labelledby="commercial-home-heading">
       <HomeCityBackdrop />
+      <div className="commercial-home__auth"><AuthEntryActions /><LocaleSwitcher /></div>
       <header data-page-heading tabIndex={-1}><p className="text-meta">{t("commercial.workspace")}</p><h1 id="commercial-home-heading" className="text-page">{t("commercial.homeTitle")}</h1><p className="text-body">{t("commercial.homeDescription")}</p></header>
       <form onSubmit={start} className="commercial-home__form" aria-busy={pending || undefined}>
         <Field required label={t("commercial.address")} helperText={t("commercial.addressHint")}><input id="commercial-address" name="address" className="ds-control" required maxLength={MAX_DRAFT_ADDRESS_LENGTH} onChange={() => setFailure(null)} autoComplete="street-address" placeholder={t("commercial.addressPlaceholder")} /></Field>
