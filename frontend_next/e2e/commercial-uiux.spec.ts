@@ -101,6 +101,9 @@ test("mobile navigation is one row and risk source names retain readable width",
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/cases/case-a/risk");
   expect(await page.locator(".workspace-navigation").evaluate((node) => node.getBoundingClientRect().height)).toBeLessThan(70);
+  await expect(page.getByRole("table", { name: "風險證據表" })).not.toBeVisible();
+  await page.getByTestId("risk-details").locator("summary").first().click();
+  await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
   expect(await page.getByRole("table").first().locator("tbody td").first().evaluate((node) => node.getBoundingClientRect().width)).toBeGreaterThanOrEqual(150);
 });
 
@@ -152,7 +155,12 @@ for (const width of [1440, 1024, 390]) {
       await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       if (path.includes("risk")) {
-        expect(await page.getByRole("heading", { name: "證據表", exact: true }).evaluate((node) => node.getBoundingClientRect().top)).toBeLessThan(await page.getByRole("heading", { name: "風險／環境地圖", exact: true }).evaluate((node) => node.getBoundingClientRect().top));
+        await expect(page.locator("[data-buyer-card]")).toHaveCount(6);
+        expect(await page.getByRole("heading", { name: "出價前查證事項", exact: true }).evaluate((node) => node.getBoundingClientRect().top)).toBeLessThan(await page.getByRole("heading", { name: "風險／環境地圖", exact: true }).evaluate((node) => node.getBoundingClientRect().top));
+        await expect(page.getByRole("table", { name: "風險證據表" })).not.toBeVisible();
+        await page.getByTestId("risk-details").locator("summary").first().click();
+        await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       }
       if (path.includes("compare") || path.includes("report")) expect(providers).toEqual([]);
       await page.screenshot({ path: testInfo.outputPath(`${path.split("?")[0].replaceAll("/", "-") || "home"}-${width}.png`), fullPage: true });

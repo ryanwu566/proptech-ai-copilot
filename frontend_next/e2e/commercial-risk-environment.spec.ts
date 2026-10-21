@@ -115,7 +115,7 @@ test("risk route keeps saved evidence limited until an explicit refresh", async 
   await page.goto("/cases/risk-case-1/risk");
 
   await expect(page.getByRole("heading", { level: 1, name: "風險與環境" })).toBeVisible();
-  await expect(page.getByText("在繼續評估此物件前，哪些環境或災害證據需要查證？")).toBeVisible();
+  await expect(page.getByTestId("risk-buyer-summary")).toContainText("出價前仍有 6 項需要查證");
   await expect(page.getByText("已儲存的摘要證據", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("需重新查詢才能檢視完整結果；摘要不會被重建成即時證據。", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "查詢目前物件風險證據" })).toBeEnabled();
@@ -137,11 +137,14 @@ test("risk refresh blocks duplicate same-turn submit and disclosure remains free
   });
   await page.route("**/terrain/satellite-reference", (route) => { satelliteCalls += 1; return route.abort(); });
   await page.goto("/cases/risk-case-1/risk");
+  await expect(page.getByTestId("risk-buyer-summary")).toContainText("尚未查詢風險證據；出價前仍需逐項查證。");
+  await expect(page.getByTestId("risk-buyer-summary")).not.toContainText("0 項");
   await page.getByRole("button", { name: "查詢目前物件風險證據" }).evaluate((node) => {
     (node as HTMLButtonElement).click(); (node as HTMLButtonElement).click();
   });
   await expect.poll(() => calls).toBe(1);
   finish();
+  await page.getByTestId("risk-details").locator("summary").first().click();
   await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
   await page.getByText("衛星影像參考（輔助證據）").click();
   await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
@@ -152,25 +155,41 @@ test("risk refresh blocks duplicate same-turn submit and disclosure remains free
   expect(satelliteCalls).toBe(0);
 });
 
-test("fresh query renders a primary map, ordered evidence, unknowns, actions, and source details", async ({ page }) => {
+test("fresh query leads with buyer cards and keeps full evidence and source details accessible", async ({ page }) => {
   await seed(page, false, false);
   await page.route("**/terrain-risk/analyze", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(riskResult()) }));
   await page.goto("/cases/risk-case-1/risk");
   await page.getByRole("button", { name: "查詢目前物件風險證據" }).click();
+
+  await expect(page.getByTestId("risk-buyer-summary")).toContainText("出價前仍有 6 項需要查證");
+  await expect(page.locator("[data-buyer-card]")).toHaveCount(6);
+  await page.screenshot({ path: test.info().outputPath("buyer-first-view.png"), fullPage: true });
+  const flood = page.getByTestId("risk-buyer-card-flood");
+  await flood.locator("summary").first().click();
+  await expect(flood.getByRole("heading", { name: "已知", exact: true })).toBeVisible();
+  await expect(flood.getByRole("heading", { name: "不能證明", exact: true })).toBeVisible();
+  await expect(flood.getByRole("heading", { name: "下一步查證", exact: true })).toBeVisible();
+  await flood.getByText("來源／證據詳情", { exact: true }).click();
+  await expect(flood.getByRole("link", { name: "查看來源" })).toHaveAttribute("href", "https://example.gov.tw/evidence");
+  const landslide = page.getByTestId("risk-buyer-card-landslide");
+  await landslide.locator("summary").first().click();
+  await expect(landslide).toContainText("NO MATCH");
+  await expect(landslide).toContainText("不能證明安全");
+  await expect(landslide).toContainText("檢視擋土牆狀況");
+  await expect(page.getByTestId("risk-buyer-summary")).toContainText("6 項");
+  await expect(page.getByRole("table", { name: "風險證據表" })).not.toBeVisible();
+  await page.getByTestId("risk-details").locator("summary").first().click();
 
   await expect(page.getByRole("region", { name: "風險與環境圖" })).toBeVisible();
   await expect(page.getByTestId("risk-property-marker")).toBeVisible();
   await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
   await expect(page.getByRole("button", { name: "淹水潛勢", exact: true })).toBeVisible();
   await expect(page.getByRole("cell", { name: "本次位置符合來源分類「中潛勢」。", exact: true })).toBeVisible();
-  await expect(page.getByText("2024-06-27", { exact: true })).toBeVisible();
-  await expect(page.getByText("活動斷層地質敏感區", { exact: false })).toBeVisible();
-  await expect(page.getByText("山崩與地滑地質敏感區", { exact: false })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "未知或目前無法取得" })).toBeVisible();
-  await expect(page.getByText("活動斷層", { exact: true }).last()).toBeVisible();
-  await expect(page.getByText("目前自動查詢路徑尚未提供完成的活動斷層判讀結果。", { exact: true }).last()).toBeVisible();
-  await expect(page.getByRole("heading", { name: "下一步查證" })).toBeVisible();
-  await expect(page.getByLabel("風險證據摘要").getByText("2026-10-01T02:00:00.000Z", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("2024-06-27", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("table").getByText("活動斷層地質敏感區", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("山崩與地滑地質敏感區", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("risk-buyer-card-active_fault")).toContainText("UNSUPPORTED");
+  await expect(page.getByTestId("risk-buyer-summary")).toContainText(NOW);
   await expect(page.getByText("legacy aggregate")).toHaveCount(0);
 
   const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("proptech.savedCases.v1") ?? "[]")[0]);
@@ -180,13 +199,16 @@ test("fresh query renders a primary map, ordered evidence, unknowns, actions, an
   expect(stored.data.hazard_geometries).toBeUndefined();
 
   await page.getByText("來源與方法詳情").click();
-  await expect(page.getByText("地質敏感區範圍數值檔", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("risk-source-records")).toContainText("地質敏感區範圍數值檔");
   await page.getByText("衛星影像參考（輔助證據）").click();
   await expect(page.getByTestId("satellite-evidence-card")).toBeVisible();
 
   await page.reload();
   await expect(page.getByText("已儲存的摘要證據", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("需重新查詢才能檢視完整結果；摘要不會被重建成即時證據。", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("risk-buyer-card-flood")).toContainText("SAVED SUMMARY");
+  await expect(page.getByTestId("risk-buyer-card-flood")).not.toContainText("CURRENT QUERY");
+  await expect(page.getByTestId("risk-source-records")).toHaveCount(0);
 });
 
 test("partial provider failure remains local and mobile has no document overflow", async ({ page }) => {
@@ -196,11 +218,82 @@ test("partial provider failure remains local and mobile has no document overflow
   await page.goto("/cases/risk-case-1/risk");
   await page.getByRole("button", { name: "查詢目前物件風險證據" }).click();
 
-  await expect(page.getByRole("button", { name: "土石流潛勢溪流", exact: true })).toBeVisible();
+  await page.getByTestId("risk-buyer-card-debris_flow").locator("summary").first().click();
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toContainText("UNAVAILABLE");
+  await page.getByTestId("risk-details").locator("summary").first().click();
+
+  await expect(page.getByRole("button", { name: "土石流", exact: true })).toBeVisible();
   await expect(page.getByRole("cell", { name: "目前無法取得此項證據，風險仍無法判定。", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "淹水潛勢", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
 });
+
+test("NO COVERAGE stays distinct from UNAVAILABLE and card disclosures make zero provider calls", async ({ page }) => {
+  await seed(page, false, false);
+  let calls = 0;
+  const result = riskResult();
+  result.hazards.flood.matched = false;
+  result.source_transparency.layers.find((layer) => layer.layer_id === "flood")!.coverage_status = "not_covered";
+  await page.route("**/terrain-risk/analyze", (route) => { calls++; return route.fulfill({ json: result }); });
+  const providers: string[] = [];
+  page.on("request", (request) => { if (/terrain-risk|satellite-reference|googleapis|earthengine|gsmma|wra\.gov/.test(request.url())) providers.push(request.url()); });
+  await page.goto("/cases/risk-case-1/risk");
+  const beforeQuery = providers.length;
+  await page.getByTestId("risk-buyer-card-flood").locator("summary").first().click();
+  await page.getByTestId("risk-buyer-card-flood").getByText("來源／證據詳情", { exact: true }).click();
+  expect(providers.length).toBe(beforeQuery);
+  await page.getByRole("button", { name: "查詢目前物件風險證據" }).click();
+  const flood = page.getByTestId("risk-buyer-card-flood");
+  await expect(flood).toContainText("NO COVERAGE");
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toContainText("UNAVAILABLE");
+  await expect(flood).toContainText("未涵蓋不是未命中");
+  await expect(flood.getByRole("button", { name: /重試/ })).toHaveCount(0);
+  const afterQuery = providers.length;
+  for (const card of await page.locator("[data-buyer-card]").all()) {
+    if (!(await card.locator("details").first().getAttribute("open"))) {
+      // Toggle only when closed; the empty open attribute is also a valid open state.
+      await card.locator("summary").first().evaluate((node) => { if (!(node.parentElement as HTMLDetailsElement).open) (node as HTMLElement).click(); });
+    }
+    await card.getByText("來源／證據詳情", { exact: true }).click();
+  }
+  await page.getByTestId("risk-details").locator("summary").first().click();
+  await page.getByText("來源與方法詳情", { exact: true }).click();
+  await page.getByText("衛星影像參考（輔助證據）", { exact: true }).click();
+  await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
+  expect(calls).toBe(1);
+  expect(providers.length).toBe(afterQuery);
+});
+
+for (const [locale, title, known, limits, next] of [
+  ["zh-TW", "風險與環境", "已知", "不能證明", "下一步查證"],
+  ["en", "Risk & environment", "What we know", "What this does not prove", "Verify next"],
+  ["ja", "リスクと環境", "分かっていること", "この結果だけでは分からないこと", "次に確認すること"],
+  ["ko", "위험 및 환경", "확인된 내용", "이 결과로 입증되지 않는 내용", "다음 확인 사항"],
+] as const) {
+  test(`buyer cards support ${locale} and mobile disclosures do not overflow`, async ({ page }) => {
+    await seed(page);
+    await page.addInitScript((locale) => localStorage.setItem("proptech.locale.v1", JSON.stringify({ version: 1, locale })), locale);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/cases/risk-case-1/risk");
+    await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();
+    await expect(page.getByTestId("risk-buyer-summary")).toContainText("6");
+    await expect(page.getByText("UNKNOWN ≠ SAFE", { exact: true })).toBeVisible();
+    await page.screenshot({ path: test.info().outputPath(`buyer-${locale}-mobile.png`), fullPage: true });
+    const card = page.getByTestId("risk-buyer-card-flood");
+    await card.locator("summary").first().click();
+    for (const label of [known, limits, next]) await expect(card.getByRole("heading", { name: label, exact: true })).toBeVisible();
+    await card.locator("summary").nth(1).click();
+    if (locale === "zh-TW") {
+      await expect(card.locator("dt").filter({ hasText: "引用／參考識別" }).locator("..").locator("dd")).toHaveText("未知／未提供");
+      await expect(page.getByTestId("risk-buyer-card-liquefaction")).toContainText("NOT QUERIED");
+      await expect(page.getByTestId("risk-buyer-card-liquefaction")).not.toContainText("SAVED SUMMARY");
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+    await page.getByTestId("risk-details").locator("summary").first().click();
+    await expect(page.getByRole("table")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  });
+}
 
 test("stale property identity blocks a new query and keeps prior summary stale", async ({ page }) => {
   await seed(page, true);
