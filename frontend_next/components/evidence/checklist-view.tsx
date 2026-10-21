@@ -1,4 +1,5 @@
 "use client";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { Section, ActionSection } from "@/components/design-system/section";
@@ -13,7 +14,8 @@ import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import { EVIDENCE_STATUS_LABELS, GAP_LABELS } from "@/lib/workspace/evidence-labels";
 import styles from "./checklist.module.css";
 import { reviewDate } from "./manual-review-summary";
-import { AddToDecisionRoom } from "@/components/decision-room/add-to-decision-room";
+// The Decision Room store and copy load only when an outstanding item offers the action.
+const AddToDecisionRoom = dynamic(() => import("@/components/decision-room/add-to-decision-room").then((module) => module.AddToDecisionRoom), { ssr: false });
 
 export function ChecklistView({ workspace }: { workspace: PropertyCaseWorkspace }) {
   const repository = useMemo(createBrowserCaseRepository, []);

@@ -177,9 +177,10 @@
   .markerPoint { background: #111; }
   .appendix > h2 { margin-bottom: 3mm; }
   .executive { display: block; padding: 0 0 3mm; border: 0; border-bottom: 1.5pt solid #111; background: #fff; margin: 0 0 4mm; }
-  .executive section { margin: 0 0 2mm; }
-  /* Page one must hold the whole brief: tighter leading at the same type size. */
-  .executive { line-height: 1.32; }
+  .executive section { margin: 0 0 1mm; }
+  /* Page one must hold the whole brief, now including the Decision Room line: tighter leading
+     at the same type size keeps about main's pre-room headroom for wider print fonts (en is tightest). */
+  .executive { line-height: 1.25; }
   /* Run-in sub-headings: each heading shares a line with its first statement. */
   .executive section > h3 { display: inline; margin: 0 2mm 0 0; }
   .executive section > h3 + p { display: inline; }
@@ -218,7 +219,9 @@
 .roomKind { display: inline-block; margin-left: var(--space-1); padding: 0 var(--space-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-control); font-size: var(--text-meta-size); }
 .roomLedger { display: grid; gap: var(--space-2); margin: 0; padding-left: var(--space-5); }
 .roomLedger li { overflow-wrap: anywhere; }
+.printInline { display: none; }
 @media print {
+  .printInline { display: inline; }
   .roomRef { display: block; font-size: 8.5pt; margin: .3mm 0 0; }
   .coreFacts dd > .roomRef { margin-left: 0; }
   /* Run-in heading keeps the operational close inside page three's sheet. */

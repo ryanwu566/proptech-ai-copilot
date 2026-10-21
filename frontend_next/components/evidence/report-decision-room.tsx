@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import { Section } from "@/components/design-system/section";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { createBrowserDecisionRoomRepository } from "@/lib/decision-room-store";
@@ -10,15 +9,11 @@ import { decisionRoomReportCopy, type DecisionRoomReportCopyKey } from "@/lib/de
 import styles from "./evidence.module.css";
 
 /** Reads the saved Decision Room sidecar only; opening or printing the report never writes or calls a provider. */
-export function useDecisionRoomReport(caseId: string): DecisionRoomReport | null {
-  const repository = useMemo(createBrowserDecisionRoomRepository, []);
-  const [report, setReport] = useState<DecisionRoomReport | null>(null);
-  useEffect(() => {
-    const load = () => setReport(projectDecisionRoomReport(repository.read(caseId)));
-    load();
-    return repository.subscribe(caseId, load);
-  }, [repository, caseId]);
-  return report;
+export function watchDecisionRoomReport(caseId: string, onReport: (report: DecisionRoomReport) => void): () => void {
+  const repository = createBrowserDecisionRoomRepository();
+  const load = () => onReport(projectDecisionRoomReport(repository.read(caseId)));
+  load();
+  return repository.subscribe(caseId, load);
 }
 
 /** Core pages keep a bounded line budget; the appendix always prints the full user text. */
@@ -51,7 +46,9 @@ export function RoomReadiness({ report }: { report: DecisionRoomReport }) {
   const sentence = { unreadable: t("readinessUnreadable"), none: t("readinessNone"), clear: t("readinessClear", { done: counts.done }), outstanding: t("readinessOutstanding", { count: counts.outstanding, verification: counts.verification }) }[report.readiness];
   return <section aria-labelledby="executive-room" data-testid="executive-room-readiness" data-readiness={report.readiness} data-outstanding={counts.outstanding}>
     <h3 id="executive-room" className="text-subsection">{t("readinessTitle")}</h3>
-    <p><strong>{sentence}</strong>{report.readiness === "outstanding" && <> {t("readinessBreakdown", { open: counts.open, inProgress: counts.inProgress, blocked: counts.blocked, done: counts.done })}</>} <span className="text-meta">{t("readinessCaveat")}</span></p>
+    <p><strong>{sentence}</strong>{report.readiness === "outstanding" && <> {t("readinessBreakdown", { open: counts.open, inProgress: counts.inProgress, blocked: counts.blocked, done: counts.done })}</>} <span className={`text-meta ${styles.screenOnly}`}>{t("readinessCaveat")}</span>
+      {/* Page one's limitation already rules out a purchase recommendation; print keeps the short caveat, and only when there are counts to qualify. */}
+      {report.counts.total > 0 && <span className={`text-meta ${styles.printInline}`}>{t("readinessCaveatPrint")}</span>}</p>
   </section>;
 }
 

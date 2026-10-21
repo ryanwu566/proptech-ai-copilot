@@ -270,16 +270,18 @@ function PriceForm({ initial, c, save }: { initial: AskingPrice; c: DecisionRoom
   const [note, setNote] = useState(initial.sourceNote);
   const [date, setDate] = useState(initial.checkedDate);
   const [dirty, setDirty] = useState(false);
-  const base = useRef(initial);
-  useEffect(() => {
-    if (dirty) return;
-    base.current = initial;
+  // The saved record the untouched draft mirrors; null after a save forces a resync.
+  const [base, setBase] = useState<AskingPrice | null>(initial);
+  // Adopt a reloaded room during render, in the same commit as the reload. A post-render effect
+  // left the stale value on screen for a frame, so input typed in that gap was appended to it.
+  if (!dirty && base !== initial) {
+    setBase(initial);
     setPrice(initial.priceWan === null ? "" : String(initial.priceWan));
     setUrl(initial.sourceUrl); setNote(initial.sourceNote); setDate(initial.checkedDate);
-  }, [initial, dirty]);
+  }
   return <form data-testid="asking-price-form" className={styles.form} onChange={() => setDirty(true)} onSubmit={(e) => submit(e, async () => {
-    const merged = mergeRoomRecord(base.current, { priceWan: price.trim() ? Number(price) : null, sourceUrl: url, sourceNote: note, checkedDate: date }, initial)!;
-    if (await save(merged)) setDirty(false);
+    const merged = mergeRoomRecord(base ?? initial, { priceWan: price.trim() ? Number(price) : null, sourceUrl: url, sourceNote: note, checkedDate: date }, initial)!;
+    if (await save(merged)) { setDirty(false); setBase(null); }
   })}>
     <Field label={c.price}><input type="number" min="0.0001" max="1000000000" step="any" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} /></Field>
     <Field label={c.sourceUrl}><input type="url" maxLength={2048} value={url} onChange={(e) => setUrl(e.target.value)} /></Field>
