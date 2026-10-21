@@ -1,7 +1,7 @@
 import type { CopyCatalogue } from "./copy-catalogue";
 
 const en = {
-  trigger: "Quick actions", title: "Case commands", search: "Search actions…", close: "Close commands",
+  title: "Case commands", search: "Search actions…", close: "Close commands",
   empty: "No matching actions", results: "{{count}} matching actions", current: "Current page",
   global: "Navigation", savedContext: "Saved case", navigate: "Navigate", select: "Open", dismiss: "Close",
   new: "Create a new case", saved: "Open saved cases", compare: "Compare cases", account: "Open account", tour: "Start tour",
@@ -15,7 +15,7 @@ export type CommandCopyKey = keyof typeof en;
 export const commandPaletteCopy: CopyCatalogue<CommandCopyKey> = {
   en,
   "zh-TW": {
-    trigger: "快速操作", title: "案件快速操作", search: "搜尋操作…", close: "關閉快速操作",
+    title: "案件快速操作", search: "搜尋操作…", close: "關閉快速操作",
     empty: "找不到符合的操作", results: "{{count}} 項符合的操作", current: "目前頁面",
     global: "導覽", savedContext: "已儲存案件", navigate: "移動", select: "開啟", dismiss: "關閉",
     new: "建立新案件", saved: "開啟已儲存案件", compare: "比較案件", account: "開啟帳戶", tour: "開始導覽",
@@ -26,7 +26,7 @@ export const commandPaletteCopy: CopyCatalogue<CommandCopyKey> = {
     riskCount: "{{count}} 項待查證", evidence: "已儲存證據",
   },
   ja: {
-    trigger: "クイック操作", title: "案件コマンド", search: "操作を検索…", close: "コマンドを閉じる",
+    title: "案件コマンド", search: "操作を検索…", close: "コマンドを閉じる",
     empty: "一致する操作がありません", results: "{{count}} 件の操作が一致", current: "現在のページ",
     global: "ナビゲーション", savedContext: "保存済み案件", navigate: "移動", select: "開く", dismiss: "閉じる",
     new: "新しい案件を作成", saved: "保存済み案件を開く", compare: "案件を比較", account: "アカウントを開く", tour: "ガイドを開始",
@@ -37,7 +37,7 @@ export const commandPaletteCopy: CopyCatalogue<CommandCopyKey> = {
     riskCount: "{{count}} 件の確認事項", evidence: "保存済み根拠",
   },
   ko: {
-    trigger: "빠른 작업", title: "사례 명령", search: "작업 검색…", close: "명령 닫기",
+    title: "사례 명령", search: "작업 검색…", close: "명령 닫기",
     empty: "일치하는 작업이 없습니다", results: "일치하는 작업 {{count}}개", current: "현재 페이지",
     global: "탐색", savedContext: "저장된 사례", navigate: "이동", select: "열기", dismiss: "닫기",
     new: "새 사례 만들기", saved: "저장된 사례 열기", compare: "사례 비교", account: "계정 열기", tour: "가이드 시작",

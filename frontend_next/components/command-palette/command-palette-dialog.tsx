@@ -6,8 +6,8 @@ import { commandPaletteCopy } from "@/lib/command-palette-copy";
 import { filterCaseCommands, type CaseCommand } from "@/lib/command-palette";
 import styles from "./command-palette.module.css";
 
-export function CommandPaletteDialog({ commands, onClose, onSelect }: {
-  commands: CaseCommand[]; onClose: () => void; onSelect: (command: CaseCommand) => void;
+export function CommandPaletteDialog({ commands, onClose, onSelect, opener }: {
+  commands: CaseCommand[]; onClose: () => void; onSelect: (command: CaseCommand) => void; opener: HTMLElement | null;
 }) {
   const { copyFrom } = useExperienceLocale();
   const copy = (key: keyof typeof commandPaletteCopy.en, values?: Record<string, string | number>) => copyFrom(commandPaletteCopy, key, values);
@@ -21,7 +21,7 @@ export function CommandPaletteDialog({ commands, onClose, onSelect }: {
 
   useEffect(() => {
     const element = dialog.current;
-    const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previous = opener;
     const overflow = document.body.style.overflow;
     element?.showModal();
     document.body.style.overflow = "hidden";
@@ -31,7 +31,7 @@ export function CommandPaletteDialog({ commands, onClose, onSelect }: {
       document.body.style.overflow = overflow;
       if (previous?.isConnected) previous.focus({ preventScroll: true });
     };
-  }, []);
+  }, [opener]);
   useEffect(() => {
     if (active) document.getElementById(`case-command-${active.id}`)?.scrollIntoView({ block: "nearest" });
   }, [active?.id]);

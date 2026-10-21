@@ -1,7 +1,5 @@
-.trigger { position: fixed; z-index: var(--z-sticky, 20); right: 20px; bottom: 20px; display: flex; align-items: center; gap: 12px; min-height: 44px; max-width: calc(100vw - 32px); padding: 8px 14px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--surface-primary); color: var(--text-secondary); box-shadow: 0 3px 14px rgb(23 32 51 / 8%); font: inherit; font-size: 13px; cursor: pointer; }
-.trigger:hover { border-color: var(--action); color: var(--action); }
-.trigger:focus-visible, .close:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
-.trigger kbd, .dialog kbd { display: inline-block; flex-shrink: 0; padding: 1px 5px; border: 1px solid var(--border-subtle); border-radius: 5px; background: var(--surface-secondary); color: var(--text-secondary); font: 11px/1.6 var(--font-sans); }
+.close:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.dialog kbd { display: inline-block; flex-shrink: 0; padding: 1px 5px; border: 1px solid var(--border-subtle); border-radius: 5px; background: var(--surface-secondary); color: var(--text-secondary); font: 11px/1.6 var(--font-sans); }
 .dialog { position: fixed; inset: 0; width: min(560px, calc(100vw - 40px)); max-width: none; max-height: min(580px, 76dvh); margin: 14dvh auto auto; padding: 0; overflow: hidden; border: 1px solid var(--border-subtle); border-radius: 16px; color: var(--text-primary); background: var(--surface-primary); box-shadow: 0 24px 80px rgb(23 32 51 / 20%); }
 .dialog::backdrop { background: rgb(23 32 51 / 32%); }
 .dialog[open] { display: flex; flex-direction: column; }
@@ -25,7 +23,6 @@
 .empty { padding: 30px 16px; text-align: center; color: var(--text-secondary); font-size: 14px; }
 .srOnly { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @media (max-width: 600px) {
-  .trigger { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
   .dialog { inset: auto 0 0; width: 100%; margin: 0 auto; max-height: 78dvh; border-radius: 18px 18px 0 0; border-bottom: 0; padding-bottom: env(safe-area-inset-bottom); }
   .heading { padding-top: 16px; }
   .option { min-height: 60px; }

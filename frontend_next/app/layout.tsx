@@ -6,7 +6,7 @@ import { ClientErrorMonitor } from "@/components/client-error-monitor";
 import { PerformanceTelemetry } from "@/components/performance-telemetry";
 import { CommercialGlobalHeader } from "@/components/commercial-global-header";
 import { AmbientSceneHost } from "@/components/ambient/ambient-scene-host";
-import { CommandPaletteHost } from "@/components/command-palette/command-palette-host";
+import { CommandPaletteLauncher } from "@/components/command-palette/command-palette-launcher";
 
 export const metadata: Metadata = {
   title: "PropTech AI Copilot",
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-Hant">
-      <body><ExperienceLocaleProvider><ClientErrorMonitor /><PerformanceTelemetry /><CommercialGlobalHeader /><AmbientSceneHost />{children}<CommandPaletteHost /></ExperienceLocaleProvider></body>
+      <body><ExperienceLocaleProvider><ClientErrorMonitor /><PerformanceTelemetry /><CommercialGlobalHeader /><AmbientSceneHost />{children}<CommandPaletteLauncher /></ExperienceLocaleProvider></body>
     </html>
   );
 }

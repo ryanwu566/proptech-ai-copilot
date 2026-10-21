@@ -22,6 +22,23 @@ export type HoldingAssumptions = {
   annualInsuranceTwd: number;
 };
 
+const requiredNumber = (value: string) => value === "" ? Number.NaN : Number(value);
+const optionalNumber = (value: string) => value === "" ? null : Number(value);
+
+/** Parse only when Calculate is requested; UI fields keep their saved string values. */
+export function loanAssumptionsFromFields(propertyPriceWan: number, values: Record<Exclude<keyof LoanAssumptions, "propertyPriceWan">, string>): LoanAssumptions {
+  return { propertyPriceWan, downPaymentRatioPercent: requiredNumber(values.downPaymentRatioPercent),
+    annualInterestRatePercent: requiredNumber(values.annualInterestRatePercent), loanYears: requiredNumber(values.loanYears),
+    gracePeriodYears: requiredNumber(values.gracePeriodYears), monthlyIncomeWan: optionalNumber(values.monthlyIncomeWan) };
+}
+
+export function holdingAssumptionsFromFields(propertyPriceWan: number, values: Record<Exclude<keyof HoldingAssumptions, "propertyPriceWan">, string>): HoldingAssumptions {
+  return { propertyPriceWan, loanMonthlyPaymentWan: requiredNumber(values.loanMonthlyPaymentWan),
+    monthlyIncomeWan: optionalNumber(values.monthlyIncomeWan), areaPing: optionalNumber(values.areaPing),
+    managementFeePerPingTwd: requiredNumber(values.managementFeePerPingTwd), repairReservePerPingTwd: requiredNumber(values.repairReservePerPingTwd),
+    annualHomeTaxRatePercent: requiredNumber(values.annualHomeTaxRatePercent), annualLandTaxRatePercent: requiredNumber(values.annualLandTaxRatePercent), annualInsuranceTwd: requiredNumber(values.annualInsuranceTwd) };
+}
+
 function finite(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }

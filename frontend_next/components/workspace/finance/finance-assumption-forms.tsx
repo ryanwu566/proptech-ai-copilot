@@ -6,13 +6,10 @@ import { api } from "@/lib/api";
 import { CommercialButton } from "@/components/design-system/button";
 import { Field, UnitInput } from "@/components/design-system/field";
 import { Message } from "@/components/design-system/message";
-import { buildHoldingCostRequest, buildLoanRequest, validateHoldingAssumptions, validateLoanAssumptions, type HoldingAssumptions, type LoanAssumptions } from "@/lib/workspace/finance-calculation";
+import type { HoldingAssumptions, LoanAssumptions } from "@/lib/workspace/finance-calculation";
 import type { FinanceModel } from "@/lib/workspace/finance-model";
 import { holdingFormSeed, syncHoldingPayment } from "@/lib/workspace/money-workflow";
 import { useMoneyCopy } from "./use-money-copy";
-
-const requiredNumber = (value: string) => value === "" ? Number.NaN : Number(value);
-const optionalNumber = (value: string) => value === "" ? null : Number(value);
 
 export function LoanAssumptionForm({ propertyPriceWan, initial, onCalculated, onDirty }: {
   propertyPriceWan: number;
@@ -40,13 +37,15 @@ export function LoanAssumptionForm({ propertyPriceWan, initial, onCalculated, on
     setValues(previous => ({ ...previous, [key]: value })); onDirty();
   }
   async function calculate() {
-    const assumptions: LoanAssumptions = { propertyPriceWan, downPaymentRatioPercent: requiredNumber(values.downPaymentRatioPercent),
-      annualInterestRatePercent: requiredNumber(values.annualInterestRatePercent), loanYears: requiredNumber(values.loanYears),
-      gracePeriodYears: requiredNumber(values.gracePeriodYears), monthlyIncomeWan: optionalNumber(values.monthlyIncomeWan) };
-    const nextErrors = validateLoanAssumptions(assumptions); setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
     const requestId = ++requestRef.current; setLoading(true); setRequestError(false);
-    try { const result = await api.loanCalculate(buildLoanRequest(assumptions)); if (requestId === requestRef.current) calculatedRef.current(result); }
+    try {
+      const { loanAssumptionsFromFields, validateLoanAssumptions, buildLoanRequest } = await import("@/lib/workspace/finance-calculation");
+      if (requestId !== requestRef.current) return;
+      const assumptions = loanAssumptionsFromFields(propertyPriceWan, values);
+      const nextErrors = validateLoanAssumptions(assumptions); setErrors(nextErrors);
+      if (Object.keys(nextErrors).length > 0) return;
+      const result = await api.loanCalculate(buildLoanRequest(assumptions)); if (requestId === requestRef.current) calculatedRef.current(result);
+    }
     catch { if (requestId === requestRef.current) setRequestError(true); }
     finally { if (requestId === requestRef.current) setLoading(false); }
   }
@@ -102,14 +101,15 @@ export function HoldingAssumptionForm({ propertyPriceWan, initialLoanPaymentTwd,
     setValues(previous => ({ ...previous, [key]: value, ...(key === "loanMonthlyPaymentWan" ? { paymentIsAutomatic: false } : {}) })); onDirty();
   }
   async function calculate() {
-    const assumptions: HoldingAssumptions = { propertyPriceWan, loanMonthlyPaymentWan: requiredNumber(values.loanMonthlyPaymentWan),
-      monthlyIncomeWan: optionalNumber(values.monthlyIncomeWan), areaPing: optionalNumber(values.areaPing),
-      managementFeePerPingTwd: requiredNumber(values.managementFeePerPingTwd), repairReservePerPingTwd: requiredNumber(values.repairReservePerPingTwd),
-      annualHomeTaxRatePercent: requiredNumber(values.annualHomeTaxRatePercent), annualLandTaxRatePercent: requiredNumber(values.annualLandTaxRatePercent), annualInsuranceTwd: requiredNumber(values.annualInsuranceTwd) };
-    const nextErrors = validateHoldingAssumptions(assumptions); setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
     const requestId = ++requestRef.current; setLoading(true); setRequestError(false);
-    try { const result = await api.holdingCostCalculate(buildHoldingCostRequest(assumptions)); if (requestId === requestRef.current) calculatedRef.current(result, assumptions.areaPing); }
+    try {
+      const { holdingAssumptionsFromFields, validateHoldingAssumptions, buildHoldingCostRequest } = await import("@/lib/workspace/finance-calculation");
+      if (requestId !== requestRef.current) return;
+      const assumptions = holdingAssumptionsFromFields(propertyPriceWan, values);
+      const nextErrors = validateHoldingAssumptions(assumptions); setErrors(nextErrors);
+      if (Object.keys(nextErrors).length > 0) return;
+      const result = await api.holdingCostCalculate(buildHoldingCostRequest(assumptions)); if (requestId === requestRef.current) calculatedRef.current(result, assumptions.areaPing);
+    }
     catch { if (requestId === requestRef.current) setRequestError(true); }
     finally { if (requestId === requestRef.current) setLoading(false); }
   }
