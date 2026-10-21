@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
-import { createBrowserDecisionRoomRepository, type RoomRead } from "@/lib/decision-room-store";
+import type { RoomRead } from "@/lib/decision-room-store";
+import { createBrowserDecisionRoomReader } from "@/lib/decision-room-reader";
 import { createBrowserCaseRepository } from "@/lib/workspace/case-repository";
 import { buildCasePulse, presentCasePulse } from "@/lib/workspace/case-pulse";
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
@@ -11,7 +12,7 @@ import styles from "./case-pulse.module.css";
 
 export function CasePulse({ workspace }: { workspace: PropertyCaseWorkspace }) {
   const { locale } = useExperienceLocale();
-  const repository = useMemo(createBrowserDecisionRoomRepository, []);
+  const repository = useMemo(createBrowserDecisionRoomReader, []);
   const [roomState, setRoomState] = useState<{ caseId: string; read: RoomRead } | null>(null);
   useEffect(() => {
     const load = () => setRoomState({ caseId: workspace.caseId, read: repository.read(workspace.caseId) });

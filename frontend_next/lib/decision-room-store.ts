@@ -1,3 +1,7 @@
+// @ts-expect-error Native TypeScript runner extension.
+import { CHANGE_EVENT, MAX_DOCUMENT, ROOM_LIMITS, decisionRoomKey, createDecisionRoomReader, createBrowserDecisionRoomReader, validateRoom, roomData } from "./decision-room-reader.ts";
+// @ts-expect-error Native TypeScript runner extension.
+export { ROOM_LIMITS, decisionRoomKey, emptyDecisionRoom, validRoomDate, safeRoomUrl } from "./decision-room-reader.ts";
 /** Independent browser-local aggregate. No saved-case writer or provider dependency. */
 export type WorkKind = "checklist" | "question" | "task";
 export type ViewingNote = { id: string; date: string; text: string };
@@ -12,14 +16,6 @@ export type RoomRead = { status: "ready"; room: DecisionRoom } | { status: "empt
 export type RoomSave = { status: "saved"; room: DecisionRoom } | { status: RoomError };
 export type DecisionRoomRepository = { read(caseId: string): RoomRead; save(room: DecisionRoom, expectedRevision: number): RoomSave; subscribe(caseId: string, listener: () => void): () => void };
 type RoomStorage = { getItem(key: string): string | null; setItem(key: string, value: string): void };
-const PREFIX = "proptech.decisionRoom.v1.";
-const CHANGE_EVENT = "proptech:decision-room-changed";
-const MAX_DOCUMENT = 1_500_000;
-export const ROOM_LIMITS = { notes: 50, items: 100, verifications: 100, history: 200 } as const;
-export const decisionRoomKey = (caseId: string) => `${PREFIX}${encodeURIComponent(caseId)}`;
-export function emptyDecisionRoom(caseId: string): DecisionRoom {
-  return { version: 1, caseId, revision: 0, updatedAt: "", notes: [], items: [], verifications: [], askingPrice: { priceWan: null, sourceUrl: "", sourceNote: "", checkedDate: "" }, history: [] };
-}
 /** Apply only intentionally edited fields to the latest record after an explicit reload. */
 export function mergeRoomRecord<T extends object>(base: T, draft: T, latest: T | undefined): T | null {
   if (!latest) return null;
@@ -28,59 +24,6 @@ export function mergeRoomRecord<T extends object>(base: T, draft: T, latest: T |
     if (key !== "id" && draft[key] !== base[key]) merged[key] = draft[key];
   }
   return merged;
-}
-export function validRoomDate(value: unknown, optional = true): value is string {
-  if (typeof value !== "string") return false;
-  if (optional && value === "") return true;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number(value.slice(0, 4)) < 1900 || Number(value.slice(0, 4)) > 9999) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
-export function safeRoomUrl(value: unknown): value is string {
-  if (value === "") return true;
-  if (typeof value !== "string" || value.length > 2048) return false;
-  try { const url = new URL(value); return (url.protocol === "https:" || url.protocol === "http:") && !url.username && !url.password; } catch { return false; }
-}
-const record = (v: unknown): v is Record<string, unknown> => Boolean(v && typeof v === "object" && !Array.isArray(v));
-const text = (v: unknown, max: number, required = false): v is string => typeof v === "string" && v.length <= max && (!required || v.trim().length > 0);
-const id = (v: unknown) => text(v, 100, true);
-const timestamp = (v: unknown) => typeof v === "string" && /^\d{4}-\d{2}-\d{2}T/.test(v) && Number.isFinite(Date.parse(v));
-const unique = (rows: unknown[]) => new Set(rows.map((row) => record(row) ? row.id : undefined)).size === rows.length;
-
-function validate(value: unknown, caseId: string): RoomError | null {
-  if (!record(value)) return "invalid";
-  if (value.version !== 1) return "unsupported";
-  if (!text(caseId, 128, true) || value.caseId !== caseId || !Number.isSafeInteger(value.revision) || Number(value.revision) < 0 || (value.updatedAt !== "" && !timestamp(value.updatedAt))) return "invalid";
-  const lists = ["notes", "items", "verifications", "history"] as const;
-  for (const name of lists) {
-    if (!Array.isArray(value[name])) return "invalid";
-    if (value[name].length > ROOM_LIMITS[name]) return "limit";
-    if (!unique(value[name])) return "invalid";
-  }
-  for (const row of value.notes as unknown[]) {
-    if (!record(row) || !id(row.id) || !validRoomDate(row.date) || !text(row.text, 4000, true)) return "invalid";
-  }
-  for (const row of value.items as unknown[]) {
-    if (!record(row) || !id(row.id) || !["checklist", "question", "task"].includes(String(row.kind)) || !text(row.title, 300, true) || !text(row.owner, 100) || !validRoomDate(row.dueDate) || !["open", "done"].includes(String(row.status)) || !text(row.resolution, 2000) || (row.status === "done" && row.kind !== "checklist" && !text(row.resolution, 2000, true))) return "invalid";
-  }
-  for (const row of value.verifications as unknown[]) {
-    if (!record(row) || !id(row.id) || !text(row.topic, 300, true) || !["user_checked", "needs_follow_up"].includes(String(row.outcome)) || !safeRoomUrl(row.sourceUrl) || !text(row.sourceNote, 2000, true) || !text(row.checkedBy, 100, true) || !validRoomDate(row.checkedDate, false)) return "invalid";
-  }
-  const asking = value.askingPrice;
-  if (!record(asking) || !(asking.priceWan === null || (typeof asking.priceWan === "number" && Number.isFinite(asking.priceWan) && asking.priceWan > 0 && asking.priceWan <= 1_000_000_000)) || !safeRoomUrl(asking.sourceUrl) || !text(asking.sourceNote, 2000) || !validRoomDate(asking.checkedDate)) return "invalid";
-  for (const event of value.history as unknown[]) {
-    if (!record(event) || !id(event.id) || !timestamp(event.at) || !text(event.subject, 300) || !/^(asking_price_updated|(note|checklist|question|task|manual_check)_(added|updated|removed))$/.test(String(event.kind))) return "invalid";
-  }
-  return null;
-}
-/** Whitelist persisted fields; callers cannot inject provider payloads or arbitrary properties. */
-function data(room: DecisionRoom) {
-  return {
-    notes: room.notes.map(({ id, date, text }) => ({ id, date, text })),
-    items: room.items.map(({ id, kind, title, owner, dueDate, status, resolution }) => ({ id, kind, title, owner, dueDate, status, resolution })),
-    verifications: room.verifications.map(({ id, topic, outcome, sourceUrl, sourceNote, checkedDate, checkedBy }) => ({ id, topic, outcome, sourceUrl, sourceNote, checkedDate, checkedBy })),
-    askingPrice: { priceWan: room.askingPrice.priceWan, sourceUrl: room.askingPrice.sourceUrl, sourceNote: room.askingPrice.sourceNote, checkedDate: room.askingPrice.checkedDate },
-  };
 }
 function changes(before: DecisionRoom, after: DecisionRoom, at: string, makeId: () => string): RoomActivity[] {
   const events: RoomActivity[] = [];
@@ -102,36 +45,23 @@ function changes(before: DecisionRoom, after: DecisionRoom, at: string, makeId: 
   return events;
 }
 export function createDecisionRoomRepository(storage: RoomStorage, now = () => new Date().toISOString(), makeId: () => string = () => crypto.randomUUID()): DecisionRoomRepository {
-  const read = (caseId: string): RoomRead => {
-    if (!text(caseId, 128, true)) return { status: "invalid" };
-    try {
-      const raw = storage.getItem(decisionRoomKey(caseId));
-      if (raw === null) return { status: "empty", room: emptyDecisionRoom(caseId) };
-      if (raw.length > MAX_DOCUMENT) return { status: "limit" };
-      let parsed: unknown;
-      try { parsed = JSON.parse(raw); } catch { return { status: "corrupt" }; }
-      const error = validate(parsed, caseId);
-      if (error) return { status: error === "invalid" ? "corrupt" : error };
-      const room = parsed as DecisionRoom;
-      return { status: "ready", room: { version: 1, caseId, revision: room.revision, updatedAt: room.updatedAt, ...data(room), history: room.history.map(({ id, at, kind, subject }) => ({ id, at, kind, subject })) } };
-    } catch { return { status: "unavailable" }; }
-  };
+  const { read } = createDecisionRoomReader(storage);
   return {
     read,
     save(room, expectedRevision) {
       try {
-        const error = validate(room, room.caseId);
+        const error = validateRoom(room, room.caseId);
         if (error) return { status: error };
         const stored = read(room.caseId);
         if (stored.status !== "ready" && stored.status !== "empty") return stored;
         if (!Number.isSafeInteger(expectedRevision) || expectedRevision !== room.revision || stored.room.revision !== expectedRevision) return { status: "conflict" };
         const previous = stored.room;
-        const next = { ...room, ...data(room) };
+        const next = { ...room, ...roomData(room) };
         const at = now();
         const events = changes(previous, next, at, makeId);
         if (!events.length) return { status: "saved", room: previous };
-        const updated: DecisionRoom = { version: 1, caseId: room.caseId, revision: previous.revision + 1, updatedAt: at, ...data(next), history: [...previous.history, ...events].slice(-ROOM_LIMITS.history) };
-        const updatedError = validate(updated, room.caseId);
+        const updated: DecisionRoom = { version: 1, caseId: room.caseId, revision: previous.revision + 1, updatedAt: at, ...roomData(next), history: [...previous.history, ...events].slice(-ROOM_LIMITS.history) };
+        const updatedError = validateRoom(updated, room.caseId);
         if (updatedError) return { status: updatedError };
         const serialized = JSON.stringify(updated);
         if (serialized.length > MAX_DOCUMENT) return { status: "limit" };
@@ -160,13 +90,7 @@ export function createBrowserDecisionRoomRepository(): BrowserDecisionRoomReposi
         });
       } catch { return { status: "unavailable" }; }
     },
-    subscribe(caseId, listener) {
-      const onStorage = (event: StorageEvent) => { if (event.key === decisionRoomKey(caseId) || event.key === null) listener(); };
-      const onChange = (event: Event) => { if ((event as CustomEvent).detail === caseId) listener(); };
-      window.addEventListener("storage", onStorage);
-      window.addEventListener(CHANGE_EVENT, onChange);
-      return () => { window.removeEventListener("storage", onStorage); window.removeEventListener(CHANGE_EVENT, onChange); };
-    },
+    subscribe: createBrowserDecisionRoomReader().subscribe,
   };
 }
 export type RoomEvidence = { key: string; query: string; usability?: string; completeness: string };
