@@ -1,6 +1,6 @@
 import type { FinanceModel, FinancePriceBasis } from "./finance-model";
 // @ts-expect-error Native TS runner extension.
-import { calculateScenario, emptyScenario } from "./scenario-model.ts";
+import { calculateScenario, emptyScenario } from "./scenario-calculator.ts";
 
 /** A current saved scenario is distinct from the property's asking price. */
 export function moneyPriceContext(amountWan: number | null | undefined, basis: FinancePriceBasis, finance?: FinanceModel) {

@@ -130,7 +130,7 @@ test.describe("Release Smoke — Case Workspaces", () => {
       { name: "價格與市場", section: "market" },
       { name: "區位與通勤", section: "location" },
       { name: "風險與環境", section: "risk" },
-      { name: "資金與持有成本", section: "finance" },
+      { name: "購屋資金", section: "finance" },
     ];
     for (const task of tasks) {
       await page.locator(".workspace-navigation").getByRole("link", { name: task.name, exact: true }).click();
