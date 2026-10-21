@@ -36,15 +36,18 @@ def test_hero_ctas_keep_real_navigation_handlers() -> None:
     assert "onStart" not in active_home.split("<CommercialHome", 1)[1].split("/>", 1)[0]
     assert "createClosedLoopJourneyState({ addressSummary: address" not in active_home
     assert "export function CommercialHome({ onFinder }: { onFinder: () => void })" in HOME
-    assert "onStart" not in HOME
+    assert "onStart=" not in HOME
     assert "openJourneyStep" not in HOME
     start = HOME.split("async function start(", 1)[1].split("const recent", 1)[0]
     assert "createAddressDraftCase(address)" in start
     assert 'router.push(caseDestination(result.caseId, "location"))' in start
     assert "useRouter()" in HOME
     assert 'from "next/navigation"' in HOME
-    # Home Start is local case creation only: no provider or analysis request.
-    assert all(term not in start for term in ("api.", "fetch(", "locationResolve", "locationInsight", "workflow=property"))
+    # The explicit Start owns one location lookup for a newly created case, never automatic analysis.
+    assert 'result.status === "created" && query' in start
+    assert "locationStartHandoff.begin" in start
+    assert start.count("api.locationResolve(") == 1
+    assert all(term not in start for term in ("fetch(", "locationInsight", "mapNearby", "commuteRoute", "terrainRisk", "workflow=property"))
     assert 'href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}' in HOME
 
 

@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
 
-/** Home address start creates a bounded local case and routes into it; it never runs providers. */
+/** Home Start saves a local case and explicitly acquires one location candidate, without analysis. */
 const KEY = "proptech.savedCases.v1";
 const ADDRESS = "臺北市信義區市府路1號";
 const START = { "zh-TW": "開始物件評估", en: "Start property review", ja: "物件の検討を開始", ko: "부동산 검토 시작" } as const;
@@ -11,6 +11,7 @@ const ADDRESS_LABEL = { "zh-TW": "物件地址", en: "Property address", ja: "�
 const FAILED = { "zh-TW": "未建立案件", en: "Case not created", ja: "案件は作成されていません", ko: "사례가 생성되지 않았습니다" } as const;
 
 async function seed(page: Page, rows: unknown[] | string | null) {
+  await page.route("**/location/resolve", (route) => route.fulfill({ status: 503, json: { detail: "unavailable" } }));
   await page.addInitScript(({ key, rows }) => {
     if (sessionStorage.getItem("home-start-seeded")) return;
     sessionStorage.setItem("home-start-seeded", "1");
@@ -36,7 +37,7 @@ async function openHome(page: Page) {
   await expect(page.locator(".commercial-home [data-page-heading]")).toBeFocused();
 }
 
-test("address start creates exactly one unconfirmed local case, routes to Location and calls no provider", async ({ page }) => {
+test("address start creates one unconfirmed case, acquires one location and runs no analysis", async ({ page }) => {
   await seed(page, [e9Case(), e9Case("case-b")]);
   await openHome(page);
   const calls = recordProviders(page);
@@ -48,7 +49,7 @@ test("address start creates exactly one unconfirmed local case, routes to Locati
   const banner = page.getByRole("banner", { name: "目前物件" });
   await expect(banner).toContainText(ADDRESS);
   await expect(banner).toContainText("物件尚待確認");
-  await expect(page.getByTestId("location-not-yet-confirmed")).toContainText("物件位置尚未確認");
+  await expect(page.getByTestId("location-not-yet-confirmed")).toContainText("確認物件位置");
   await expect(page.getByTestId("location-not-yet-confirmed")).not.toContainText("已變更");
   await expect(page.locator("#guided-property-journey")).toHaveCount(0);
   await page.waitForLoadState("networkidle");
@@ -67,7 +68,7 @@ test("address start creates exactly one unconfirmed local case, routes to Locati
   await page.locator(".workspace-navigation").getByRole("link", { name: "價格與市場", exact: true }).click();
   await expect(page.getByTestId("market-price-workspace")).toBeVisible();
   await page.waitForLoadState("networkidle");
-  expect(calls).toEqual([]);
+  expect(calls).toEqual(["POST http://e2e.test/location/resolve"]);
 });
 
 test("Back returns Home with the new case first in Recent Cases and Forward reopens it", async ({ page }) => {

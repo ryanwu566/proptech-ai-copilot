@@ -120,6 +120,8 @@ export const test = base.extend({
     }));
     await page.route("**/map/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable", source: "mock", matched: false }) }));
     await page.route("**/location/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable" }) }));
+    // Explicit Home Start may resolve once; feature specs override this safe, non-provider fallback.
+    await page.route("**/location/resolve", (route) => route.fulfill({ status: 503, json: { detail: "unavailable" } }));
     await page.route("**/market-insights/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable", coverage_status: "unknown", regions: [] }) }));
     await page.route("**/valuation/**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "unavailable", data_status: "unavailable" }) }));
     await page.route("**/valuation/data-status", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({

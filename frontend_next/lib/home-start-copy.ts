@@ -7,8 +7,8 @@ type Key = "boundary" | "locationPendingTitle" | "locationPending" | "routePendi
 export const homeStartCopy: CopyCatalogue<Key> = {
   "zh-TW": {
     boundary: "價格推估不是正式鑑價；案件只儲存在此瀏覽器。",
-    locationPendingTitle: "物件位置尚未確認",
-    locationPending: "已記錄你輸入的地址；尚未查詢或確認位置，因此不顯示地圖、周邊設施或通勤結果。",
+    locationPendingTitle: "確認物件位置",
+    locationPending: "案件已保存在此瀏覽器。確認位置後，即可選擇查詢周邊設施與通勤。",
     routePending: "物件位置確認後才能查詢目的地路線。",
     creating: "正在建立案件…",
     resume: "繼續已儲存案件",
@@ -27,8 +27,8 @@ export const homeStartCopy: CopyCatalogue<Key> = {
   },
   en: {
     boundary: "Estimates are not appraisals; cases stay in this browser.",
-    locationPendingTitle: "Property location not yet confirmed",
-    locationPending: "Your address is recorded. The location has not been queried or confirmed, so no map, nearby facilities or commute results are shown.",
+    locationPendingTitle: "Confirm property location",
+    locationPending: "Your case is saved in this browser. Confirm its location, then choose whether to check nearby facilities or commute.",
     routePending: "Destination routes can be checked once the property location is confirmed.",
     creating: "Creating case…",
     resume: "Resume a saved case",
@@ -47,8 +47,8 @@ export const homeStartCopy: CopyCatalogue<Key> = {
   },
   ja: {
     boundary: "価格推定は正式な鑑定ではありません。案件はこのブラウザーにのみ保存されます。",
-    locationPendingTitle: "物件の位置は未確認です",
-    locationPending: "入力した住所を記録しました。位置はまだ照会・確認されていないため、地図、周辺施設、通勤結果は表示されません。",
+    locationPendingTitle: "物件の位置を確認",
+    locationPending: "案件はこのブラウザーに保存されています。位置を確認すると、周辺施設や通勤の照会を選べます。",
     routePending: "物件の位置を確認した後に目的地までの経路を照会できます。",
     creating: "案件を作成中…",
     resume: "保存済み案件を再開",
@@ -67,8 +67,8 @@ export const homeStartCopy: CopyCatalogue<Key> = {
   },
   ko: {
     boundary: "가격 추정은 감정평가가 아닙니다. 사례는 이 브라우저에만 저장됩니다.",
-    locationPendingTitle: "부동산 위치 미확인",
-    locationPending: "입력한 주소를 기록했습니다. 위치를 아직 조회하거나 확인하지 않아 지도, 주변 시설, 통근 결과를 표시하지 않습니다.",
+    locationPendingTitle: "부동산 위치 확인",
+    locationPending: "사례는 이 브라우저에 저장되어 있습니다. 위치를 확인한 뒤 주변 시설과 통근 조회를 선택할 수 있습니다.",
     routePending: "부동산 위치를 확인한 뒤 목적지 경로를 조회할 수 있습니다.",
     creating: "사례 생성 중…",
     resume: "저장된 사례 이어가기",
