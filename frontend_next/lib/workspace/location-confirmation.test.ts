@@ -3,7 +3,7 @@ import test from "node:test";
 import type { SavedCase } from "../case-storage";
 
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
-import { buildConfirmedLocationAnchor, interpretLocationResolution, needsLocationConfirmation, planIdentityConfirmation } from "./location-confirmation.ts";
+import { buildConfirmedLocationAnchor, interpretLocationResolution, locationRequestFailure, needsLocationConfirmation, planIdentityConfirmation } from "./location-confirmation.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { buildAddressDraftCase } from "./case-draft.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
@@ -22,12 +22,32 @@ import { buildComparisonModel, buildReportModel } from "./compare-report-model.t
 import { buildWorkspaceOverview } from "./overview-model.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { e9Case } from "./e9-test-fixtures.ts";
+// @ts-expect-error Native TS runner extension.
+import { hasCompleteAdministrativeArea, normalizeJourneyPropertyIdentityAnchor } from "../journey-property-identity.ts";
+// @ts-expect-error Native TS runner extension.
+import { locationConfirmationCopy } from "./location-confirmation-copy.ts";
 
 const NOW = "2026-10-18T08:00:00.000Z";
 const ADDRESS = "臺北市信義區市府路1號";
 const RESOLVED = { status: "resolved", source: "tgos", formatted_address: "臺北市信義區市府路1號", latitude: 25.0375, longitude: 121.5637, confidence: "high", message: "ok", county: "臺北市", district: "信義區" };
 const options = { now: () => NOW, idFactory: () => "11111111-2222-4333-8444-555555555555" };
 const draft = (): SavedCase => buildAddressDraftCase(ADDRESS, { id: "draft-1", now: NOW })!;
+
+test("location request failures distinguish capacity, provider and network unavailability", () => {
+  assert.equal(locationRequestFailure(429), "capacity_unavailable");
+  assert.equal(locationRequestFailure(503), "provider_unavailable");
+  assert.equal(locationRequestFailure(), "unavailable");
+});
+
+test("four locales distinguish administrative incompleteness from resolution failure", () => {
+  const keys = Object.keys(locationConfirmationCopy["zh-TW"]).sort();
+  for (const copy of Object.values(locationConfirmationCopy)) {
+    assert.deepEqual(Object.keys(copy).sort(), keys);
+    for (const key of ["adminUnknown", "adminPendingTitle", "adminIncomplete", "capacity_unavailable", "provider_unavailable"] as const) assert.ok(copy[key].trim());
+    assert.notEqual(copy.adminIncomplete, copy.unavailable);
+    assert.notEqual(copy.capacity_unavailable, copy.provider_unavailable);
+  }
+});
 
 function candidate() {
   const result = interpretLocationResolution(RESOLVED, ADDRESS);
@@ -55,11 +75,37 @@ test("interpretation fails closed for every non-confirmable result", () => {
     [{ ...RESOLVED, latitude: null }, "missing_coordinates"],
     [{ ...RESOLVED, longitude: Number.NaN }, "missing_coordinates"],
     [{ ...RESOLVED, latitude: 35.68, longitude: 139.76 }, "invalid"],
-    [{ ...RESOLVED, county: null }, "missing_area"],
-    [{ ...RESOLVED, district: "  " }, "missing_area"],
   ];
   for (const [value, reason] of cases) assert.deepEqual(interpretLocationResolution(value, ADDRESS), { kind: "blocked", reason }, String(reason));
   assert.deepEqual(interpretLocationResolution(RESOLVED, "  "), { kind: "blocked", reason: "invalid" });
+});
+
+test("trusted coordinates without administrative area confirm spatially and survive reopen without invented geography", () => {
+  for (const area of [{ county: undefined, district: undefined }, { county: null, district: null }, { county: "臺北市", district: "  " }, { county: null, district: "信義區" }]) {
+    const result = interpretLocationResolution({ ...RESOLVED, ...area }, ADDRESS);
+    assert.equal(result.kind, "candidate");
+    const anchor = buildConfirmedLocationAnchor(result.candidate, options)!;
+    assert.ok(anchor);
+    assert.equal(hasCompleteAdministrativeArea(anchor), false);
+    assert.deepEqual(normalizeJourneyPropertyIdentityAnchor(anchor), anchor);
+    assert.equal(anchor.administrative_location.city, area.county ?? null);
+    assert.equal(anchor.administrative_location.district, area.district?.trim() || null);
+    assert.equal(anchor.confidence.level, "medium");
+    assert.equal(anchor.parcel.status, "unavailable");
+    assert.equal(anchor.building.status, "unavailable");
+    assert.ok(anchor.confidence.limitations.includes("not_parcel_building_ownership_or_legal_boundary_confirmation"));
+    const row = draft();
+    assert.equal(planIdentityConfirmation(row, anchor, JSON.stringify(row)).kind, "write");
+    const reopened = JSON.parse(JSON.stringify({ ...row, data: { ...row.data, propertyIdentityAnchor: anchor } }));
+    const workspace = adaptSavedCaseToWorkspace(reopened);
+    assert.equal(workspace.identity.state, "confirmed");
+    assert.equal(needsLocationConfirmation(workspace), false);
+    assert.equal(buildLocationOverviewHandoff(workspace).mapReady, true);
+    assert.notEqual(buildLocationOverviewHandoff(workspace).commuteReadiness, "blocked");
+    assert.equal(buildMarketRefreshContext(workspace, reopened), null);
+    assert.deepEqual(workspace.identity.anchor?.administrative_location, anchor.administrative_location);
+    assert.deepEqual(workspace.location.property.coordinates, anchor.coordinates);
+  }
 });
 
 test("confirmed anchor carries the typed address, geocode and area but never parcel or building identity", () => {
@@ -67,6 +113,7 @@ test("confirmed anchor carries the typed address, geocode and area but never par
   assert.equal(anchor.address_input, ADDRESS);
   assert.deepEqual(anchor.coordinates, { latitude: 25.0375, longitude: 121.5637 });
   assert.deepEqual(anchor.administrative_location, { city: "臺北市", district: "信義區", village: null, village_code: null });
+  assert.equal(hasCompleteAdministrativeArea(anchor), true);
   assert.equal(anchor.parcel.status, "unavailable");
   assert.equal(anchor.building.status, "unavailable");
   assert.equal(anchor.confidence.level, "medium");
