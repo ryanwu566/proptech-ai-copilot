@@ -1,8 +1,10 @@
 import type { ExperienceLocale } from "../experience-i18n";
+// @ts-expect-error Native TS runner extension.
+import { moneyEntryCopy } from "./money-entry-copy.ts";
 
 // Each entry is reviewed together in zh-TW / en / ja / ko order.
 export const moneyCopy = {
-  title: ["購屋資金", "Money", "購入資金", "매입 자금"],
+  title: [moneyEntryCopy["zh-TW"].title, moneyEntryCopy.en.title, moneyEntryCopy.ja.title, moneyEntryCopy.ko.title],
   intro: ["從所需現金、每月負擔到出價情境，確認這個物件的資金安排。", "Understand the cash, monthly burden and offer scenarios for this property.", "必要な現金、毎月の負担、購入希望価格のシナリオを確認します。", "이 물건의 필요 현금, 월 부담과 제안 가격 시나리오를 확인하세요."],
   summary: ["資金摘要", "Money summary", "資金の概要", "자금 요약"],
   cash: ["所需現金", "Cash needed", "必要な現金", "필요 현금"],
