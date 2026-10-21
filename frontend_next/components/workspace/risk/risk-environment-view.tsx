@@ -25,6 +25,7 @@ import {
   type RiskQueryContext,
 } from "@/lib/workspace/risk-evidence-model";
 import { RiskEvidenceMap } from "./risk-evidence-map";
+import { ExplicitMap } from "@/components/map/explicit-map";
 import { riskSummaryCounts } from "@/lib/workspace/risk-presentation";
 import styles from "./risk-environment.module.css";
 
@@ -144,7 +145,7 @@ export function RiskEnvironmentView() {
     {coordinates && <Section title="風險／環境地圖" description="位置、查詢半徑與來源提供的幾何是分析脈絡，不以裝飾漸層推測風險。">
       <div className={styles.mapGrid}>
         <MapFrame title="風險與環境圖" description="物件位置、500 公尺查詢範圍與可用證據圖層" attribution="OpenStreetMap；其他圖層依各證據來源" detail={<span>點位／半徑不等於地籍或工程界線</span>}>
-          <RiskEvidenceMap center={coordinates} radiusM={500} hazardGeometries={result?.hazard_geometries} selectedKey={selectedRow?.key} />
+            <ExplicitMap key={`${workspace.caseId}:${coordinates.latitude}:${coordinates.longitude}`} kind="risk"><RiskEvidenceMap center={coordinates} radiusM={500} hazardGeometries={result?.hazard_geometries} selectedKey={selectedRow?.key} /></ExplicitMap>
         </MapFrame>
         <Panel className={styles.mapDetail} aria-live="polite">
           <h3 className="text-subsection">選取證據詳情</h3>
