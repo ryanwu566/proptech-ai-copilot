@@ -2,6 +2,8 @@ import { expect, test } from "./fixtures";
 import type { Page, Request } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
+import { locationConfirmationCopy } from "../lib/workspace/location-confirmation-copy";
+import { buildAddressDraftCase } from "../lib/workspace/case-draft";
 
 /**
  * In-case location confirmation: Find = one geocode-only /location/resolve; Confirm = identity only.
@@ -41,14 +43,14 @@ const stored = (page: Page) => page.evaluate((key) => JSON.parse(localStorage.ge
 
 async function startCase(page: Page) {
   await page.goto("/");
-  await expect(page.locator(".commercial-home [data-page-heading]")).toBeFocused();
-  await page.getByRole("textbox", { name: "物件地址", exact: true }).fill(ADDRESS);
-  await page.getByRole("button", { name: "開始物件評估", exact: true }).click();
-  await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
-  return decodeURIComponent(new URL(page.url()).pathname.split("/")[2]);
+  // Existing address-only cases have no automatic acquisition. Home Start is covered in home-location-flow.spec.ts.
+  const draft = buildAddressDraftCase(ADDRESS, { id: "fallback-location-case", now: "2026-10-20T08:00:00Z" })!;
+  await page.evaluate(({ key, draft }) => localStorage.setItem(key, JSON.stringify([draft, ...JSON.parse(localStorage.getItem(key) ?? "[]")])), { key: KEY, draft });
+  await page.goto(`/cases/${draft.id}/location`);
+  return draft.id;
 }
 
-test("Home → Find → Confirm unlocks identity-gated actions with exactly one geocode and no enrichment", async ({ page }) => {
+test("existing address-only case → lookup → confirm unlocks actions with one explicit lookup and no enrichment", async ({ page }) => {
   const calls = await prepare(page, [e9Case()]);
   await page.goto("/");
   record(page, calls);
@@ -61,7 +63,7 @@ test("Home → Find → Confirm unlocks identity-gated actions with exactly one 
 
   // D + E: Find runs exactly one geocode-only resolve and persists nothing.
   const before = JSON.stringify(await stored(page));
-  const find = panel.getByRole("button", { name: "尋找這個地址", exact: true });
+  const find = panel.getByRole("button", { name: "確認物件位置", exact: true });
   await find.dblclick();
   const candidate = page.getByTestId("location-candidate");
   await expect(candidate).toBeFocused();
@@ -75,7 +77,7 @@ test("Home → Find → Confirm unlocks identity-gated actions with exactly one 
   expect(JSON.stringify(await stored(page))).toBe(before);
 
   // F: Confirm persists identity only and runs no provider.
-  await candidate.getByRole("button", { name: "確認這是此物件", exact: true }).click();
+  await candidate.getByRole("button", { name: "確認位置", exact: true }).click();
   await expect(page.getByTestId("location-confirmation-status")).toContainText("已確認物件位置");
   await expect(panel).toHaveCount(0);
   await expect(page.getByRole("banner", { name: "目前物件" })).not.toContainText("物件尚待確認");
@@ -99,7 +101,7 @@ test("Home → Find → Confirm unlocks identity-gated actions with exactly one 
   await nav.getByRole("link", { name: "風險與環境", exact: true }).click();
   await expect(page.getByRole("button", { name: "查詢目前物件風險證據", exact: true })).toBeEnabled();
   await nav.getByRole("link", { name: "區位與通勤", exact: true }).click();
-  await expect(page.getByRole("region", { name: "目前物件位置與周邊證據" })).toContainText("25.037500, 121.563700");
+  await expect(page.getByRole("region", { name: "目前物件位置與周邊證據" })).toContainText(ADDRESS);
   // Finance / snapshot: identity-dependent save now succeeds.
   await page.getByRole("button", { name: "保存目前案件快照", exact: true }).click();
   await expect(page.getByTestId("context-save-status")).toContainText("已保存");
@@ -123,8 +125,8 @@ test("Home → Find → Confirm unlocks identity-gated actions with exactly one 
 
 const FAILURES: Array<[string, (route: import("@playwright/test").Route) => Promise<void>, string, string]> = [
   ["unresolved", (route) => route.fulfill({ json: { ...RESOLVED, status: "unresolved", source: "none", latitude: null, longitude: null, confidence: "unknown", county: null, district: null } }), "unresolved", "找不到可信位置"],
-  ["provider unavailable", (route) => route.fulfill({ status: 503, json: { detail: "unavailable" } }), "unavailable", "暫時無法使用"],
-  ["missing district", (route) => route.fulfill({ json: { ...RESOLVED, district: null } }), "missing_area", "缺少縣市或行政區"],
+  ["provider 503", (route) => route.fulfill({ status: 503, json: { detail: "unavailable" } }), "provider_unavailable", "暫時無法使用"],
+  ["capacity 429", (route) => route.fulfill({ status: 429, headers: { "Retry-After": "1" }, json: { detail: "capacity unavailable" } }), "capacity_unavailable", "查詢較忙碌"],
   ["low confidence", (route) => route.fulfill({ json: { ...RESOLVED, confidence: "unknown" } }), "low_confidence", "可信度不足"],
   ["missing coordinates", (route) => route.fulfill({ json: { ...RESOLVED, latitude: null } }), "missing_coordinates", "缺少座標"],
   ["structurally invalid", (route) => route.fulfill({ json: ["resolved"] }), "invalid", "無法安全判讀"],
@@ -136,11 +138,12 @@ for (const [name, respond, reason, text] of FAILURES) {
     record(page, calls);
     const caseId = await startCase(page);
     const before = JSON.stringify(await stored(page));
-    await page.getByRole("button", { name: "尋找這個地址", exact: true }).click();
+    await page.getByRole("button", { name: "確認物件位置", exact: true }).click();
     const failure = page.getByTestId("location-confirmation-failure");
     await expect(failure).toHaveAttribute("data-reason", reason);
     await expect(failure).toContainText(text);
-    await expect(page.getByRole("button", { name: "確認這是此物件", exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "重新確認位置", exact: true })).toBeEnabled();
+    await expect(page.getByRole("button", { name: "確認位置", exact: true })).toHaveCount(0);
     expect(JSON.stringify(await stored(page))).toBe(before);
     expect((await stored(page)).find((row) => row.id === caseId)!.data.propertyIdentityAnchor).toBeUndefined();
     expect(calls.resolve).toBe(1);
@@ -148,23 +151,107 @@ for (const [name, respond, reason, text] of FAILURES) {
   });
 }
 
-test("rejecting the interpreted location returns to Find without saving", async ({ page }) => {
+for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [390, 430]) {
+  test(`spatial confirmation without administrative area persists at ${width}px in ${locale}`, async ({ page }) => {
+    // The deployed older response omits the fields entirely, rather than returning nulls.
+    const spatial = Object.fromEntries(Object.entries(RESOLVED).filter(([key]) => key !== "county" && key !== "district"));
+    const calls = await prepare(page, [], (route) => route.fulfill({ json: spatial }));
+    await page.setViewportSize({ width, height: 850 });
+    await page.goto("/");
+    record(page, calls);
+    const caseId = await startCase(page);
+    await page.getByTestId("locale-switcher").selectOption(locale);
+    const copy = locationConfirmationCopy[locale];
+    await page.getByRole("button", { name: copy.find, exact: true }).click();
+    await expect(page.getByTestId("location-candidate")).toContainText(copy.adminUnknown);
+    const confirm = page.getByRole("button", { name: copy.confirm, exact: true });
+    await confirm.scrollIntoViewIfNeeded();
+    expect((await confirm.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    await confirm.click();
+    await expect(page.getByTestId("location-administrative-incomplete")).toContainText(copy.adminIncomplete);
+    await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
+    await expect(page.getByTestId("nearby-facilities").getByRole("button").first()).toBeEnabled();
+    await expect(page.getByTestId("commute-route-card").getByRole("button").first()).toBeEnabled();
+    const row = (await stored(page)).find((item) => item.id === caseId)!;
+    expect(row.data.propertyIdentityAnchor).toMatchObject({
+      coordinates: { latitude: RESOLVED.latitude, longitude: RESOLVED.longitude },
+      administrative_location: { city: null, district: null, village: null, village_code: null },
+      confidence: { level: "medium", domain: "address_spatial_correlation" },
+      parcel: { status: "unavailable", confirmation: null }, building: { status: "unavailable", confirmation: null },
+    });
+    await page.goto(`/cases/${caseId}/market`);
+    await expect(page.getByTestId("market-refresh-button")).toBeDisabled();
+    await expect(page.getByTestId("valuation-refresh-button")).toBeDisabled();
+    await expect(page.getByTestId("market-administrative-unavailable")).toContainText(copy.adminIncomplete);
+    await page.goto(`/cases/${caseId}/location`);
+    await page.reload();
+    await expect(page.getByRole("region", { name: "目前物件位置與周邊證據" })).toBeVisible();
+    await expect(page.getByTestId("location-administrative-incomplete")).toContainText(copy.adminIncomplete);
+    await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
+    await page.waitForLoadState("networkidle");
+    expect(calls.resolve).toBe(1);
+    expect(calls.provider).toEqual([]);
+    expect((await stored(page)).find((item) => item.id === caseId)!.data.propertyIdentityAnchor).toEqual(row.data.propertyIdentityAnchor);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}
+
+test("spatial-only anchor supplies Nearby and Commute coordinates on explicit actions, never on reopen", async ({ page }) => {
+  const calls = await prepare(page, [], (route) => route.fulfill({ json: { ...RESOLVED, county: null, district: null } }));
+  const nearby: unknown[] = [];
+  const commute: unknown[] = [];
+  await page.route("**/map/nearby", async (route) => {
+    const payload = route.request().postDataJSON();
+    nearby.push(payload);
+    await route.fulfill({ json: { center: { lat: RESOLVED.latitude, lng: RESOLVED.longitude }, radius_m: 800, source: "google_places", categories: [{ category: "shopping", source: "google_places", places: [{ place_id: "shop", name: "Spatial fixture shop", lat: RESOLVED.latitude + 0.001, lng: RESOLVED.longitude, source: "google_places" }] }] } });
+  });
+  await page.route("**/commute/route", async (route) => {
+    const payload = route.request().postDataJSON();
+    commute.push(payload);
+    await route.fulfill({ json: { status: "resolved", source: "google_routes", mode: "transit", duration_min: 23, duration_seconds: 1380, distance_m: 8100, partial: false, fallback: false, reason_code: "success", checked_at: "2026-10-20T08:00:00Z", origin: { latitude: RESOLVED.latitude, longitude: RESOLVED.longitude }, destination: { address: "台北車站" } } });
+  });
+  const caseId = await startCase(page);
+  await page.getByRole("button", { name: "確認物件位置", exact: true }).click();
+  await page.getByRole("button", { name: "確認位置", exact: true }).click();
+  await expect(page.getByTestId("location-administrative-incomplete")).toBeVisible();
+  expect(nearby).toHaveLength(0);
+  expect(commute).toHaveLength(0);
+  await page.getByTestId("nearby-facilities").getByRole("button", { name: "查附近生活機能", exact: true }).click();
+  await expect(page.getByTestId("nearby-facilities")).toContainText("Spatial fixture shop");
+  expect(nearby).toHaveLength(1);
+  expect(nearby[0]).toMatchObject({ lat: RESOLVED.latitude, lng: RESOLVED.longitude });
+  await page.getByRole("textbox", { name: "目的地地址", exact: true }).fill("台北車站");
+  await page.getByTestId("commute-route-card").getByRole("button").click();
+  await expect(page.getByTestId("commute-route-state")).toHaveAttribute("data-status", "available");
+  expect(commute).toEqual([{ origin_latitude: RESOLVED.latitude, origin_longitude: RESOLVED.longitude, destination_address: "台北車站", mode: "transit" }]);
+  await page.reload();
+  await expect(page.getByTestId("nearby-facilities")).toContainText("Spatial fixture shop");
+  await expect(page.getByRole("textbox", { name: "目的地地址", exact: true })).toHaveValue("台北車站");
+  await expect(page.getByTestId("commute-route-state")).toHaveAttribute("data-status", "available");
+  await page.waitForLoadState("networkidle");
+  expect(calls.resolve).toBe(1);
+  expect(nearby).toHaveLength(1);
+  expect(commute).toHaveLength(1);
+  expect((await stored(page)).find((item) => item.id === caseId)!.data.propertyIdentityAnchor).toMatchObject({ administrative_location: { city: null, district: null } });
+});
+
+test("search again explicitly reacquires an unconfirmed candidate without saving", async ({ page }) => {
   const calls = await prepare(page);
   await page.goto("/");
   await startCase(page);
   const before = JSON.stringify(await stored(page));
-  await page.getByRole("button", { name: "尋找這個地址", exact: true }).click();
-  await page.getByRole("button", { name: "不是這個位置", exact: true }).click();
-  await expect(page.getByRole("button", { name: "尋找這個地址", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "確認物件位置", exact: true }).click();
+  await page.getByRole("button", { name: "重新尋找", exact: true }).click();
+  await expect(page.getByTestId("location-candidate")).toBeVisible();
   expect(JSON.stringify(await stored(page))).toBe(before);
-  expect(calls.resolve).toBe(1);
+  expect(calls.resolve).toBe(2);
 });
 
 test("a case changed elsewhere after Find is not overwritten by Confirm", async ({ page }) => {
   await prepare(page);
   await page.goto("/");
   const caseId = await startCase(page);
-  await page.getByRole("button", { name: "尋找這個地址", exact: true }).click();
+  await page.getByRole("button", { name: "確認物件位置", exact: true }).click();
   await expect(page.getByTestId("location-candidate")).toBeVisible();
   // Another tab edits the case without firing an event in this tab.
   const changed = await page.evaluate(({ key, caseId }) => {
@@ -173,12 +260,12 @@ test("a case changed elsewhere after Find is not overwritten by Confirm", async 
     localStorage.setItem(key, JSON.stringify(rows));
     return localStorage.getItem(key);
   }, { key: KEY, caseId });
-  await page.getByRole("button", { name: "確認這是此物件", exact: true }).click();
+  await page.getByRole("button", { name: "確認位置", exact: true }).click();
   await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "case_changed");
   expect(await page.evaluate((key) => localStorage.getItem(key), KEY)).toBe(changed);
 });
 
-for (const [locale, find, confirm] of [["en", "Find this address", "Confirm this is the property"], ["ja", "この住所を検索", "この物件で確定する"], ["ko", "이 주소 찾기", "이 부동산이 맞습니다"]] as const) {
+for (const [locale, find, confirm] of [["en", "Check property location", "Confirm location"], ["ja", "物件の位置を確認", "位置を確定"], ["ko", "부동산 위치 확인", "위치 확정"]] as const) {
   test(`${locale} confirmation controls are localized`, async ({ page }) => {
     await prepare(page);
     await page.goto("/");
@@ -197,8 +284,8 @@ for (const width of [360, 390, 430]) {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/");
     await startCase(page);
-    await page.getByRole("button", { name: "尋找這個地址", exact: true }).click();
-    const confirm = page.getByRole("button", { name: "確認這是此物件", exact: true });
+    await page.getByRole("button", { name: "確認物件位置", exact: true }).click();
+    const confirm = page.getByRole("button", { name: "確認位置", exact: true });
     await confirm.scrollIntoViewIfNeeded();
     expect((await confirm.boundingBox())!.height).toBeGreaterThanOrEqual(44);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

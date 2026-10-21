@@ -210,3 +210,23 @@ def test_missing_or_malformed_administrative_area_stays_unknown(monkeypatch) -> 
     assert result["status"] == "resolved"
     assert result["county"] is None
     assert result["district"] is None
+
+
+def test_google_resolved_coordinates_do_not_infer_administrative_area_from_address(monkeypatch) -> None:
+    calls = []
+
+    def fake_get(url, *args, **kwargs):
+        calls.append(url)
+        return FakeHttpResponse({"status": "OK", "results": [{
+            "formatted_address": "臺北市信義區市府路1號",
+            "geometry": {"location": {"lat": 25.0375, "lng": 121.5637}},
+            "address_components": [{"long_name": "西村里", "types": ["administrative_area_level_2"]}],
+        }]})
+
+    monkeypatch.setattr("services.location_resolver.httpx.get", fake_get)
+    result = GoogleAddressProvider(api_key="configured").resolve("臺北市信義區市府路1號").to_safe_dict()
+    assert result["status"] == "resolved"
+    assert result["confidence"] == "high"
+    assert (result["county"], result["district"]) == (None, None)
+    assert len(calls) == 1
+    assert_safe_response(result)

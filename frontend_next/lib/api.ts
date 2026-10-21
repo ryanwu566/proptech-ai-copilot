@@ -724,7 +724,7 @@ export class ApiRequestError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, preserveHttpStatus = false): Promise<T> {
   try {
     const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
     const response = await fetch(apiUrl(path), {
@@ -734,6 +734,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (!response.ok) {
       const payload = await response.json().catch(() => null) as { detail?: string | { code?: string; message?: string } } | null;
       const detail = payload?.detail;
+      if (preserveHttpStatus) throw new ApiRequestError("Location request could not be completed.", undefined, response.status);
       if (detail && typeof detail === "object") throw new ApiRequestError(detail.message ?? "The file could not be processed.", detail.code, response.status);
       if (response.status === 404) throw new Error("後端尚未部署最新資料服務，請稍後再試。");
       if (response.status >= 500) throw new Error("資料暫時無法載入，請稍後再試。");
@@ -782,7 +783,7 @@ export const api = {
   bankMortgageRates: (bankCode: string) => request<BankRateResult>(`/bank-rates/mortgage?bank_code=${encodeURIComponent(bankCode)}`),
   loanCalculate: (payload: Record<string, number | boolean | undefined>) => request<LoanCalculationResult>("/loan/calculate", { method: "POST", body: JSON.stringify(payload) }),
   holdingCostCalculate: (payload: Record<string, number | boolean | undefined>) => request<HoldingCostResult>("/holding-cost/calculate", { method: "POST", body: JSON.stringify(payload) }),
-  locationResolve: (address: string, signal?: AbortSignal) => request<LocationResolveResult>("/location/resolve", { method: "POST", body: JSON.stringify({ address }), signal }),
+  locationResolve: (address: string, signal?: AbortSignal) => request<LocationResolveResult>("/location/resolve", { method: "POST", body: JSON.stringify({ address }), signal }, true),
   locationInsight: (payload: Record<string, string | number | boolean | undefined>) => request<LocationInsightResult>("/location/insight", { method: "POST", body: JSON.stringify(payload) }),
   commuteAddressLookup: (payload: { address: string }) => request<CommuteAddressLookupResult>("/commute/address-lookup", { method: "POST", body: JSON.stringify(payload) }),
   commuteRoute: (payload: { origin_latitude: number; origin_longitude: number; destination_address?: string; destination_latitude?: number; destination_longitude?: number; mode?: CommuteRouteMode }, signal?: AbortSignal) => request<CommuteRouteResult>("/commute/route", { method: "POST", body: JSON.stringify(payload), signal }),
