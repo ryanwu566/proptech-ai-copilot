@@ -22,24 +22,27 @@ export function SavedMoneyAssumptions({ model }: { model: FinanceModel }) {
   const { c, wan, money, percent, number, date } = useMoneyCopy();
   const assumed = (value: number | null, suffix = "") => value === null ? c("unknown") : `${number(value)}${suffix}`;
   const basis = model.priceSource === "ASKING_PRICE" ? "asking" : model.priceSource === "MANUAL_SCENARIO" ? "manual" : model.priceSource === "COMPARABLE_ESTIMATE" ? "estimate" : "unknown";
+  const rows: [MoneyCopyKey, string][] = [
+    ["source", c(basis)],
+    ["originalPrice", wan(model.savedAssumptions?.amountWan ?? model.loan.propertyPriceWan)],
+    ["downRatio", percent(model.loan.downPaymentRatio)],
+    ["rate", assumed(model.loan.annualInterestRate, "%")],
+    ["years", assumed(model.loan.loanYears, ` ${c("yearUnit")}`)],
+    ["grace", assumed(model.loan.gracePeriodYears, ` ${c("yearUnit")}`)],
+    ["income", wan(model.loan.monthlyIncomeWan)],
+    ["area", assumed(model.savedAssumptions?.areaPing ?? null, ` ${c("ping")}`)],
+    ["payment", money(model.holding.assumptions.loanMonthlyPaymentTwd)],
+    ["managementRate", money(model.holding.assumptions.managementFeePerPingTwd)],
+    ["repairRate", money(model.holding.assumptions.repairReservePerPingTwd)],
+    ["homeTax", assumed(model.holding.assumptions.annualHomeTaxRatePercent, "%")],
+    ["landTax", assumed(model.holding.assumptions.annualLandTaxRatePercent, "%")],
+    ["insuranceYear", money(model.holding.assumptions.annualInsuranceTwd)],
+    ["calculatedAt", date(model.freshness.calculatedAt)],
+  ];
   return <div data-testid="saved-finance-assumptions" className="mt-4 min-w-0">
     <DetailsDisclosure summary={c("savedAssumptions")}>
       <dl className="space-y-2 text-body">
-        <MetricRow label={c("source")} value={c(basis)} />
-        <MetricRow label={c("originalPrice")} value={wan(model.savedAssumptions?.amountWan ?? model.loan.propertyPriceWan)} />
-        <MetricRow label={c("downRatio")} value={percent(model.loan.downPaymentRatio)} />
-        <MetricRow label={c("rate")} value={assumed(model.loan.annualInterestRate, "%")} />
-        <MetricRow label={c("years")} value={assumed(model.loan.loanYears, ` ${c("yearUnit")}`)} />
-        <MetricRow label={c("grace")} value={assumed(model.loan.gracePeriodYears, ` ${c("yearUnit")}`)} />
-        <MetricRow label={c("income")} value={wan(model.loan.monthlyIncomeWan)} />
-        <MetricRow label={c("area")} value={assumed(model.savedAssumptions?.areaPing ?? null, ` ${c("ping")}`)} />
-        <MetricRow label={c("payment")} value={money(model.holding.assumptions.loanMonthlyPaymentTwd)} />
-        <MetricRow label={c("managementRate")} value={money(model.holding.assumptions.managementFeePerPingTwd)} />
-        <MetricRow label={c("repairRate")} value={money(model.holding.assumptions.repairReservePerPingTwd)} />
-        <MetricRow label={c("homeTax")} value={assumed(model.holding.assumptions.annualHomeTaxRatePercent, "%")} />
-        <MetricRow label={c("landTax")} value={assumed(model.holding.assumptions.annualLandTaxRatePercent, "%")} />
-        <MetricRow label={c("insuranceYear")} value={money(model.holding.assumptions.annualInsuranceTwd)} />
-        <MetricRow label={c("calculatedAt")} value={date(model.freshness.calculatedAt)} />
+        {rows.map(([key, value]) => <MetricRow key={key} label={c(key)} value={value} />)}
       </dl>
     </DetailsDisclosure>
   </div>;
