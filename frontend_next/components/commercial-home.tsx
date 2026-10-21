@@ -56,7 +56,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
     }
     const query = normalizeDraftAddress(address);
     // Reopening an existing draft is read-only; only creation from this explicit Start acquires a candidate.
-    if (result.status === "created" && query) locationStartHandoff.begin(result.caseId, query, () => acquireLocationResolution(query, () => api.locationResolve(query)));
+    if (result.status === "created" && query) locationStartHandoff.begin(result.caseId, query, () => acquireLocationResolution(query, (signal) => api.locationResolve(query, signal)));
     router.push(caseDestination(result.caseId, "location"));
   }
   const recent = read?.cases.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3) ?? [];

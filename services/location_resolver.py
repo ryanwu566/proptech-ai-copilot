@@ -13,6 +13,7 @@ import httpx
 from services.provider_cost_metrics import PROVIDER_COST_METRICS
 from services.provider_request_cache import BoundedRequestCache
 from services.anti_abuse import provider_operation
+from services.trusted_address_structure import addresses_agree, address_parts, normalize_address
 
 
 LocationResolveStatus = Literal["resolved", "unresolved", "unavailable"]
@@ -46,6 +47,8 @@ class LocationResolveResult:
     message: str = "定位服務暫時無法完成查詢，請稍後再試。"
     county: str | None = None
     district: str | None = None
+    # Internal proof only; never included in the API or accepted-resolution cache.
+    acceptance_validated: bool = False
 
     def to_safe_dict(self) -> dict[str, Any]:
         return {
@@ -71,12 +74,14 @@ class AddressProvider(Protocol):
 
 
 def _is_valid_coordinate(latitude: Any, longitude: Any) -> bool:
+    if isinstance(latitude, bool) or isinstance(longitude, bool):
+        return False
     try:
         lat = float(latitude)
         lon = float(longitude)
     except (TypeError, ValueError):
         return False
-    return math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180
+    return math.isfinite(lat) and math.isfinite(lon) and 21.7 <= lat <= 26.5 and 118 <= lon <= 122.2
 
 
 COUNTY_SUFFIXES = ("市", "縣")
@@ -110,7 +115,9 @@ def _google_administrative_area(result: dict[str, Any]) -> tuple[str | None, str
     return _administrative_name(county, COUNTY_SUFFIXES), _administrative_name(level_2, DISTRICT_SUFFIXES) or _administrative_name(level_3, DISTRICT_SUFFIXES)
 
 
-def _resolved(source: LocationResolveSource, formatted_address: str | None, latitude: Any, longitude: Any, county: Any = None, district: Any = None) -> LocationResolveResult:
+def _resolved(source: LocationResolveSource, formatted_address: str | None, latitude: Any, longitude: Any, county: Any = None, district: Any = None, *, address: str, precision_accepted: bool) -> LocationResolveResult:
+    if source not in {"google", "tgos"} or not precision_accepted or not _is_valid_coordinate(latitude, longitude) or not addresses_agree(address, formatted_address, county=county, district=district):
+        return _unresolved()
     lat = float(latitude)
     lon = float(longitude)
     provider_label = "TGOS" if source == "tgos" else "Google"
@@ -124,6 +131,7 @@ def _resolved(source: LocationResolveSource, formatted_address: str | None, lati
         message=f"已取得可信位置（{provider_label}）。",
         county=_administrative_name(county, COUNTY_SUFFIXES),
         district=_administrative_name(district, DISTRICT_SUFFIXES),
+        acceptance_validated=True,
     )
 
 
@@ -174,7 +182,7 @@ class TgosAddressProvider:
                     "oFuzzyType": "0",
                     "oResultDataType": "JSON",
                     "oFuzzyBuffer": "0",
-                    "oIsOnlyFullMatch": "false",
+                    "oIsOnlyFullMatch": "true",
                     "oReturnMaxCount": "1",
                 },
                 timeout=self.timeout_seconds,
@@ -188,6 +196,8 @@ class TgosAddressProvider:
             items = payload.get("AddressList") or payload.get("addressList") or []
         except AttributeError:
             return _unavailable()
+        if not isinstance(items, list):
+            return _unavailable()
         if not items:
             return _unresolved()
         item = items[0]
@@ -199,11 +209,25 @@ class TgosAddressProvider:
         if not _is_valid_coordinate(latitude, longitude):
             return _unavailable()
         formatted_address = item.get("FULL_ADDR") or item.get("fullAddress") or item.get("Address")
-        return _resolved("tgos", str(formatted_address) if formatted_address else None, latitude, longitude, item.get("COUNTY"), item.get("TOWN"))
+        # The strict request is mandatory. If the response supplies match metadata,
+        # it must agree; never accept a fuzzy response even with plausible text.
+        info = payload.get("Info", [])
+        if not isinstance(info, list) or any(not isinstance(row, dict) or row.get("OutMatchType", "完全比對") != "完全比對" for row in info):
+            return _unresolved()
+        actual = address_parts(formatted_address)
+        for field, key, suffix in (("ROAD", "road", ""), ("SECTION", "section", "段"), ("LANE", "lane", "巷"), ("ALLEY", "alley", "弄"), ("NUMBER", "number", "號")):
+            value = item.get(field)
+            if value:
+                parsed = address_parts(value)
+                if not parsed and suffix and isinstance(value, str):
+                    parsed = address_parts(value + suffix)
+                if not actual or not parsed or key not in parsed or any(actual.get(part) != component for part, component in parsed.items()):
+                    return _unresolved()
+        return _resolved("tgos", formatted_address, latitude, longitude, item.get("COUNTY"), item.get("TOWN"), address=address, precision_accepted=True)
 
 
 class GoogleAddressProvider:
-    """Backend-only Google Geocoding resolver used as TGOS fallback."""
+    """Primary geocoder; retain raw precision metadata until the acceptance gate."""
 
     def __init__(self, api_key: str | None = None, timeout_seconds: float = 5.0) -> None:
         self.api_key = (api_key if api_key is not None else os.getenv("GOOGLE_MAPS_API_KEY", "")).strip()
@@ -219,7 +243,7 @@ class GoogleAddressProvider:
         if not self.configured:
             return _unavailable()
         normalized = " ".join(address.split())
-        key = ("trusted-google-address-v1", GOOGLE_GEOCODING_URL, normalized, "zh-TW", "tw", self.timeout_seconds)
+        key = (ADDRESS_RESOLVER_VERSION, GOOGLE_GEOCODING_URL, normalized, "zh-TW", "tw", self.timeout_seconds)
 
         def resolve():
             result = self._resolve_provider(normalized)
@@ -267,14 +291,38 @@ class GoogleAddressProvider:
             return _unavailable()
         formatted_address = first.get("formatted_address")
         county, district = _google_administrative_area(first)
-        return _resolved("google", str(formatted_address) if formatted_address else None, latitude, longitude, county, district)
+        precision_accepted = first["geometry"].get("location_type") == "ROOFTOP" and first.get("partial_match", False) is False
+        # Also validate structured route/number/admin fields from this same response.
+        actual = address_parts(formatted_address)
+        components = first.get("address_components", [])
+        if not isinstance(components, list):
+            return _unresolved()
+        for component in components:
+            if not isinstance(component, dict) or not isinstance(component.get("types"), list):
+                return _unresolved()
+            types = component["types"]
+            name = component.get("long_name")
+            if "route" in types:
+                route = address_parts(name)
+                if not route or not actual or any(actual.get(key) != value for key, value in route.items()):
+                    return _unresolved()
+            if "street_number" in types:
+                number = address_parts(normalize_address(name) + "號")
+                if not number or not actual or number.get("number") != actual.get("number"):
+                    return _unresolved()
+            if any(t in types for t in ("administrative_area_level_1", "administrative_area_level_2", "administrative_area_level_3")):
+                admin = _administrative_name(name, COUNTY_SUFFIXES if "administrative_area_level_1" in types else DISTRICT_SUFFIXES)
+                key = "county" if "administrative_area_level_1" in types else "district"
+                if admin and (not actual or actual.get(key) != admin):
+                    return _unresolved()
+        return _resolved("google", formatted_address, latitude, longitude, county, district, address=address, precision_accepted=precision_accepted)
 
 
 _DEFAULT_GOOGLE_PROVIDER: GoogleAddressProvider | None = None
 _DEFAULT_GOOGLE_PROVIDER_LOCK = threading.Lock()
 _DEFAULT_TGOS_PROVIDER: TgosAddressProvider | None = None
 _DEFAULT_TGOS_PROVIDER_LOCK = threading.Lock()
-ADDRESS_RESOLVER_VERSION = "trusted-address-resolution-v1"
+ADDRESS_RESOLVER_VERSION = "trusted-address-google-primary-strict-v2"
 # Retain only safe derived accepted coordinates for a short query context.
 _RESOLVED_ADDRESS_CACHE = BoundedRequestCache("address_resolution", ttl_seconds=60, max_entries=64)
 
@@ -314,7 +362,7 @@ def resolve_address(
     tgos_provider: AddressProvider | None = None,
     google_provider: AddressProvider | None = None,
 ) -> dict[str, Any]:
-    """Resolve an address using TGOS first, then Google, returning only safe fields."""
+    """One Google attempt, then at most one strict TGOS fallback. Candidate only."""
 
     normalized_address = " ".join(address.split())
     if not normalized_address:
@@ -322,17 +370,17 @@ def resolve_address(
 
     tgos = tgos_provider if tgos_provider is not None else _get_tgos_provider()
     google = google_provider if google_provider is not None else _get_google_provider()
-    providers = [tgos, google]
+    providers = [google, tgos]
     if tgos_provider is None and google_provider is None:
         key = (
             ADDRESS_RESOLVER_VERSION, normalized_address,
             tgos.cache_namespace, google.cache_namespace,
             TGOS_URL, GOOGLE_GEOCODING_URL, "EPSG:4326", "zh-TW", "tw",
-            "tgos-exact-query-v30", tgos.timeout_seconds, google.timeout_seconds,
+            "tgos-full-match-true-v30", tgos.timeout_seconds, google.timeout_seconds,
         )
         return _RESOLVED_ADDRESS_CACHE.run(
             key, lambda: _resolve_with_providers(normalized_address, providers),
-            cacheable=_accepted_resolution,
+            cacheable=lambda result: _accepted_resolution(result) and addresses_agree(normalized_address, result.get("formatted_address"), county=result.get("county"), district=result.get("district")),
         )
     return _resolve_with_providers(normalized_address, providers)
 
@@ -346,7 +394,9 @@ def _resolve_with_providers(normalized_address: str, providers: list[AddressProv
         saw_configured = True
         result = provider.resolve(normalized_address)
         if result.status == "resolved":
-            return result.to_safe_dict()
+            if result.acceptance_validated and _accepted_resolution(result.to_safe_dict()) and addresses_agree(normalized_address, result.formatted_address, county=result.county, district=result.district):
+                return result.to_safe_dict()
+            saw_unresolved = True
         if result.status == "unresolved":
             saw_unresolved = True
 

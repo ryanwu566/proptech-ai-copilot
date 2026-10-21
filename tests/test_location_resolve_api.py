@@ -1,8 +1,11 @@
 """Trusted address resolve API tests."""
 
 from fastapi.testclient import TestClient
+import httpx
+import pytest
 
 from backend.api_main import app
+from services import location_resolver
 
 
 client = TestClient(app)
@@ -82,3 +85,38 @@ def test_location_resolve_returns_administrative_area_from_the_same_response(mon
     assert response.json()["county"] == "臺北市"
     assert response.json()["district"] == "信義區"
     assert calls == ["臺北市信義區市府路1號"]
+
+
+@pytest.mark.parametrize("compatible", [True, False])
+def test_location_resolve_api_enforces_acceptance_before_exposing_a_candidate(monkeypatch, compatible) -> None:
+    address = "新北市新莊區中正路191號"
+    returned = address if compatible else "238台灣新北市樹林區金寮里中正路191號"
+    monkeypatch.setenv("GOOGLE_MAPS_API_KEY", "test-api-accuracy")
+    monkeypatch.setenv("TGOS_APP_ID", "test-api-accuracy")
+    monkeypatch.setenv("TGOS_API_KEY", "test-api-accuracy")
+    calls = []
+
+    def get(url, **kwargs):
+        calls.append(url)
+        payload = {"status": "OK", "results": [{"formatted_address": returned, "partial_match": False,
+            "geometry": {"location_type": "ROOFTOP", "location": {"lat": 25.0375, "lng": 121.5637}}}]} if url == location_resolver.GOOGLE_GEOCODING_URL else {
+                "AddressList": [{"FULL_ADDR": returned, "X": 121.5637, "Y": 25.0375}]}
+        return httpx.Response(200, json=payload, request=httpx.Request("GET", url))
+
+    monkeypatch.setattr(location_resolver.httpx, "get", get)
+    location_resolver._RESOLVED_ADDRESS_CACHE.clear()
+    try:
+        response = client.post("/location/resolve", json={"address": address})
+        assert response.status_code == 200
+        body = response.json()
+        assert set(body) == SAFE_KEYS
+        assert "acceptance_validated" not in body
+        if compatible:
+            assert (body["status"], body["source"], body["confidence"]) == ("resolved", "google", "high")
+            assert calls == [location_resolver.GOOGLE_GEOCODING_URL]
+        else:
+            assert (body["status"], body["confidence"]) == ("unresolved", "unknown")
+            assert body["latitude"] is body["longitude"] is None
+            assert calls == [location_resolver.GOOGLE_GEOCODING_URL, location_resolver.TGOS_URL]
+    finally:
+        location_resolver._RESOLVED_ADDRESS_CACHE.clear()
