@@ -17,6 +17,22 @@ from services.terrain_risk_providers import geologycloud_provider, nlsc_terrain_
 from services.map_service import get_nearby_places
 
 
+REPRESENTATIVE_GOOGLE_RESULT = {
+    "formatted_address": "臺北市中正區北平西路3號",
+    "partial_match": False,
+    "geometry": {
+        "location_type": "ROOFTOP",
+        "location": {"lat": 25.0478, "lng": 121.517},
+    },
+    "address_components": [
+        {"long_name": "臺北市", "types": ["administrative_area_level_1", "political"]},
+        {"long_name": "中正區", "types": ["administrative_area_level_3", "political"]},
+        {"long_name": "北平西路", "types": ["route"]},
+        {"long_name": "3", "types": ["street_number"]},
+    ],
+}
+
+
 def measure_journey(monkeypatch, modules=None):
     """Also used once locally against original modules to record the baseline."""
     modules = modules or SimpleNamespace(
@@ -33,8 +49,7 @@ def measure_journey(monkeypatch, modules=None):
     def geocode(*args, **kwargs):
         counts["geocoding"] += 1
         return httpx.Response(200, request=httpx.Request("GET", "https://fixture.invalid"),
-                              json={"status": "OK", "results": [{"formatted_address": "臺北市中正區北平西路3號",
-                                    "geometry": {"location": {"lat": 25.0478, "lng": 121.517}}}]})
+                              json={"status": "OK", "results": [REPRESENTATIVE_GOOGLE_RESULT]})
     monkeypatch.setattr(modules.resolver.httpx, "get", geocode)
     if hasattr(modules.resolver, "_RESOLVED_ADDRESS_CACHE"):
         modules.resolver._RESOLVED_ADDRESS_CACHE.clear()
@@ -69,6 +84,7 @@ def measure_journey(monkeypatch, modules=None):
         for _ in range(2):
             destination = modules.resolver.resolve_address("臺北市中正區北平西路3號")
             assert destination["status"] == "resolved"
+            assert (destination["source"], destination["confidence"]) == ("google", "high")
             location = get_nearby_places(25.033, 121.5654, 800, list(CATEGORY_TYPES), adapter=places)
             assert len(location["categories"]) == 6
             route = modules.routes.estimate_commute_route((25.033, 121.5654), (destination["latitude"], destination["longitude"]), "transit", google_adapter=routes, allow_mock=False)
@@ -87,6 +103,18 @@ def measure_journey(monkeypatch, modules=None):
 
 
 def test_representative_external_provider_journey_reuses_same_valid_context(monkeypatch):
+    # The cost journey must exercise a legitimate direct Google acceptance.
+    assert REPRESENTATIVE_GOOGLE_RESULT["geometry"]["location_type"] == "ROOFTOP"
+    assert REPRESENTATIVE_GOOGLE_RESULT["partial_match"] is False
+    assert {component["types"][0]: component["long_name"] for component in REPRESENTATIVE_GOOGLE_RESULT["address_components"]} == {
+        "administrative_area_level_1": "臺北市", "administrative_area_level_3": "中正區",
+        "route": "北平西路", "street_number": "3",
+    }
+
+    def reject_tgos(*args, **kwargs):
+        raise AssertionError("A valid Google fixture must not call TGOS")
+
+    monkeypatch.setattr(location_resolver.TgosAddressProvider, "resolve", reject_tgos)
     first, repeated = measure_journey(monkeypatch)
     expected = {"geocoding": 1, "places": 6, "routes": 1, "ardswc": 4,
                 "tile_decodes": 4, "liquefaction": 3, "nlsc": 1, "satellite": 1}
