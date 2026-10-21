@@ -40,6 +40,16 @@ export function locationRequestFailure(status?: number): LocationCandidateBlock 
   return status === 429 ? "capacity_unavailable" : status === 503 ? "provider_unavailable" : "unavailable";
 }
 
+/** One explicitly requested lookup, with the same truth and error semantics at Home and in-case retry. */
+export async function acquireLocationResolution(address: string, acquire: () => Promise<unknown>): Promise<LocationCandidateResult> {
+  try {
+    return interpretLocationResolution(await acquire(), address);
+  } catch (error) {
+    const status = error instanceof Error && "status" in error && typeof error.status === "number" ? error.status : undefined;
+    return { kind: "blocked", reason: locationRequestFailure(status) };
+  }
+}
+
 /** Confirm only trusted, high-confidence Taiwan coordinates; administrative completeness is independent. */
 export function interpretLocationResolution(value: unknown, addressInput: string): LocationCandidateResult {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { kind: "blocked", reason: "invalid" };
