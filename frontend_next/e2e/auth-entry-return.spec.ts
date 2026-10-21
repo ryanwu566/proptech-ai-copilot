@@ -35,6 +35,47 @@ async function submit(page: Page, mode: "login" | "signup") {
   await page.getByRole("button",{name:mode === "login" ? "Sign in" : "Create account",exact:true}).click();
 }
 
+test("anonymous cold routes do not download the provider SDK; login still loads it", async ({page}) => {
+  await setup(page);
+  // Match the route-budget definition: measure the current route, excluding
+  // Next's speculative RSC prefetch of other routes (such as /cases Cloud UI).
+  await page.route("**/*", route => {
+    const headers = route.request().headers();
+    return headers["next-router-prefetch"] || headers.purpose === "prefetch" || headers["sec-purpose"]?.includes("prefetch")
+      ? route.abort() : route.fallback();
+  });
+  const scripts: Promise<boolean>[] = [];
+  page.on("response", response => {
+    if (response.url().includes("/_next/static/") && new URL(response.url()).pathname.endsWith(".js")) {
+      scripts.push(response.text().then(source => source.includes("AuthRetryableFetchError")));
+    }
+  });
+  for (const path of ["/", "/compare", "/places", "/preferences"]) {
+    await page.goto(path);
+    await expect(page.getByTestId("auth-entry-actions").getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    expect((await Promise.all(scripts)).some(Boolean), path).toBe(false);
+  }
+  // A positive control prevents a renamed/minified SDK marker from hiding a regression.
+  await page.goto("/login");
+  await expect(page.getByLabel("Email address",{exact:true})).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  expect((await Promise.all(scripts)).some(Boolean)).toBe(true);
+});
+
+test("sign in and sign out in another tab update an SDK-free anonymous header", async ({page,context}) => {
+  await setup(page); await page.goto("/cases");
+  const group = page.getByTestId("auth-entry-actions");
+  await expect(group.getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
+  const account = await context.newPage(); await setup(account);
+  await account.goto("/login"); await submit(account,"login");
+  await expect(account).toHaveURL(/\/account$/);
+  await expect(group.getByRole("link",{name:"Account",exact:true})).toBeVisible();
+  await account.getByRole("button",{name:"Sign out of this device",exact:true}).click();
+  await expect(group.getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
+  await expect(account.getByTestId("auth-entry-actions").getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
+});
+
 for (const locale of ["zh-TW","en","ja","ko"] as const) for (const width of [390,430]) {
   test(`${locale} ${width}: Home and header expose keyboard accessible localized auth`, async ({page}, info) => {
     const calls = await setup(page);

@@ -1,12 +1,13 @@
 "use client";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { publishAuthSessionStatus, V_NEXT_SESSION_EXPIRED_EVENT } from "./auth-session-status";
 
 export type AccessTokenResult =
   | { status: "authenticated"; accessToken: string }
   | { status: "missing_session" | "expired_session" | "configuration_error" };
 
-export const V_NEXT_SESSION_EXPIRED_EVENT = "vnext-session-expired";
+export { V_NEXT_SESSION_EXPIRED_EVENT } from "./auth-session-status";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 let browserClient: SupabaseClient | null = null;
@@ -72,7 +73,13 @@ export function getVNextAuthClient(): SupabaseClient | null {
         // Do not await SDK calls inside its auth-state callback.
         if (pendingSessionWrites.size && !clearingPromise) void clearSession(false);
       }
+      if (["INITIAL_SESSION", "SIGNED_IN", "SIGNED_OUT", "TOKEN_REFRESHED"].includes(event)) {
+        publishAuthSessionStatus(async () => (await getVNextAccessToken()).status === "authenticated");
+      }
     });
+    // Preserve in-memory sessions when storage is unavailable or entry controls
+    // remount after navigating away from an account route.
+    publishAuthSessionStatus(async () => (await getVNextAccessToken()).status === "authenticated");
   }
   return browserClient;
 }
