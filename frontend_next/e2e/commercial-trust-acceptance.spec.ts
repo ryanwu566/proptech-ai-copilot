@@ -77,7 +77,7 @@ test("legacy Load opens bounded saved finance without losing assumptions or requ
   await page.getByRole("button", { name: "載入", exact: true }).first().click();
   await expect(page).toHaveURL(/\/cases\/case-a\/finance$/);
   await expect(page.getByTestId("loan-summary")).toContainText("55,111");
-  await expect(page.getByTestId("saved-finance-assumptions")).toContainText("手動試算情境");
+  await expect(page.getByTestId("saved-finance-assumptions")).toContainText("手動情境價格");
   await expect(page.getByTestId("holding-summary")).toContainText("55,111");
   expect(analysis).toEqual([]);
 });
@@ -149,7 +149,8 @@ for (const width of [1440, 1024, 390]) {
     await page.goto(`/cases/${stored.id}/finance`);
     await expect(page.getByTestId("loan-summary")).toContainText("91,117");
     await expect(page.getByTestId("saved-finance-assumptions")).toContainText("3,000 萬元");
-    await expect(page.getByTestId("calculate-loan")).toHaveCount(0);
+    await expect(page.getByTestId("calculate-loan")).toBeVisible();
+    await expect(page.getByTestId("saved-finance-assumptions").locator("input, button")).toHaveCount(0);
     await page.goto(`/cases/${stored.id}/market`);
     await expect(page.locator("main")).toContainText(/無法取得|尚未取得/);
     await page.goto(`/compare?cases=${stored.id},case-b`);
@@ -226,11 +227,13 @@ for (const width of [1440, 1024, 390]) {
     await expect(page.locator("main")).toContainText("手動試算情境");
     await page.goto("/cases/case-a/finance");
     await expect(page.getByTestId("loan-summary")).toContainText("NT$55,111／月");
-    await expect(page.getByTestId("saved-finance-assumptions")).toContainText("手動試算情境");
+    await expect(page.getByTestId("saved-finance-assumptions")).toContainText("手動情境價格");
     await expect(page.getByTestId("saved-finance-assumptions")).toContainText("2,480 萬元");
     await expect(page.getByTestId("holding-summary")).toContainText("NT$55,111／月");
-    await expect(page.getByTestId("calculate-loan")).toHaveCount(0);
-    await expect(page.getByLabel("新試算情境價格（萬元）")).toBeVisible();
+    await expect(page.getByTestId("calculate-loan")).toBeVisible();
+    await expect(page.getByTestId("saved-finance-assumptions").locator("input, button")).toHaveCount(0);
+    await expect(page.getByRole("spinbutton", { name: "手動出價（萬元）", exact: true })).toBeVisible();
+    await expect(page.getByRole("spinbutton", { name: "手動出價（萬元）", exact: true })).toHaveValue("2480");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.goto("/cases/case-a/location");
     await expect(page.getByTestId("poi-summary")).toContainText("未知／未取得");

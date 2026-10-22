@@ -24,6 +24,7 @@ import { hasCompleteAdministrativeArea } from "@/lib/journey-property-identity";
 import { nearbyFacilitiesCopy } from "@/lib/workspace/nearby-facilities-copy";
 import { LocationConfirmationPanel } from "./location-confirmation-panel";
 import { NearbyFacilitiesPanel } from "./nearby-facilities-panel";
+import { ExplicitMap } from "@/components/map/explicit-map";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), {
   ssr: false,
@@ -111,7 +112,7 @@ export function LocationView() {
       attribution="地圖底圖依畫面標示；點位不是地籍界線"
       detail={<span>位置核對：{snapshot.property.checkedAt ?? "未提供"}</span>}
     >
-      <GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} />
+      <ExplicitMap key={`${workspace.caseId}:${coordinates.latitude}:${coordinates.longitude}`} kind="location"><GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} /></ExplicitMap>
     </MapFrame> : neverLocated ? <div data-testid="location-not-yet-confirmed" className="space-y-3"><Message variant="information" title={copyFrom(homeStartCopy, "locationPendingTitle")}>
       {copyFrom(homeStartCopy, "locationPending")}
     </Message><LocationConfirmationPanel key={workspace.caseId} onConfirmed={() => setLocationConfirmed(true)} /></div> : <Message variant="warning" title="物件位置已變更，需重新確認">

@@ -327,7 +327,7 @@ test("all four Overview module links open their existing detailed workspaces", a
     ["查看價格與市場", "價格與市場"],
     ["查看區位與通勤", "區位與通勤"],
     ["查看風險與環境", "風險與環境"],
-    ["查看資金與持有成本", "資金與持有成本"],
+    ["查看資金與持有成本", "購屋資金"],
   ] as const;
 
   for (const [linkName, heading] of destinations) {
