@@ -148,8 +148,8 @@ for (const section of ["risk", "evidence"]) test(`login from ${section} returns 
   const calls = await setup(page);
   const destination = `/cases/case-a/${section}`;
   await page.goto(destination); await english(page);
-  // Start the return journey from a restored case, after Risk's lazy map mounts.
-  if (section === "risk") await expect(page.getByTestId("risk-property-marker")).toBeVisible();
+  // Risk's opt-in map entry proves case restoration without requesting map assets.
+  if (section === "risk") await expect(page.getByTestId("show-risk-map")).toBeVisible();
   const saved = await page.evaluate(key => localStorage.getItem(key), KEY);
   await page.getByTestId("auth-entry-actions").getByRole("link",{name:"Sign in",exact:true}).click();
   await expect(page).toHaveURL(new RegExp(`/login\\?next=${encodeURIComponent(destination)}$`));
