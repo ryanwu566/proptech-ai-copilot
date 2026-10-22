@@ -41,6 +41,46 @@ function record(page: Page, calls: Calls) {
 
 const stored = (page: Page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "[]") as Array<{ id: string; updatedAt: string; data: Record<string, unknown> }>, KEY);
 
+test("in-case lookup deadline ends loading and an explicit retry remains usable", async ({ page }) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  let attempt = 0;
+  const calls = await prepare(page, [], async (route) => {
+    if (++attempt === 1) await gate;
+    await route.fulfill({ json: RESOLVED }).catch(() => {});
+  });
+  const caseId = await startCase(page);
+  record(page, calls);
+  await page.clock.install();
+  const before = await stored(page);
+  await page.getByTestId("location-find").click();
+  await expect.poll(() => calls.resolve).toBe(1);
+  await page.clock.fastForward(10_001);
+  await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "unavailable");
+  await expect(page.getByTestId("location-find")).toHaveCount(0);
+  expect(await stored(page)).toEqual(before);
+  expect(before[0].id).toBe(caseId);
+  release();
+  await page.clock.fastForward(30_000);
+  await expect(page.getByTestId("location-candidate")).toHaveCount(0);
+  expect(calls.resolve).toBe(1);
+  await page.getByRole("button", { name: locationConfirmationCopy["zh-TW"].retry, exact: true }).click();
+  await expect(page.getByTestId("location-candidate")).toBeVisible();
+  expect(calls.resolve).toBe(2);
+  expect(await stored(page)).toEqual(before);
+  expect(calls.provider).toEqual([]);
+});
+
+test("a contradictory district response is never presented as a trusted candidate", async ({ page }) => {
+  const calls = await prepare(page, [], (route) => route.fulfill({ json: { ...RESOLVED, district: "大安區", formatted_address: "臺北市大安區市府路1號" } }));
+  await startCase(page);
+  await page.getByTestId("location-find").click();
+  await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "invalid");
+  await expect(page.getByTestId("location-candidate")).toHaveCount(0);
+  expect((await stored(page))[0].data.propertyIdentityAnchor).toBeUndefined();
+  expect(calls.resolve).toBe(1);
+});
+
 async function startCase(page: Page) {
   await page.goto("/");
   // Existing address-only cases have no automatic acquisition. Home Start is covered in home-location-flow.spec.ts.

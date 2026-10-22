@@ -3,7 +3,7 @@ import test from "node:test";
 import type { SavedCase } from "../case-storage";
 
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
-import { buildConfirmedLocationAnchor, interpretLocationResolution, locationRequestFailure, needsLocationConfirmation, planIdentityConfirmation } from "./location-confirmation.ts";
+import { acquireLocationResolution, buildConfirmedLocationAnchor, interpretLocationResolution, locationRequestFailure, needsLocationConfirmation, planIdentityConfirmation } from "./location-confirmation.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { buildAddressDraftCase } from "./case-draft.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
@@ -32,6 +32,52 @@ const ADDRESS = "臺北市信義區市府路1號";
 const RESOLVED = { status: "resolved", source: "tgos", formatted_address: "臺北市信義區市府路1號", latitude: 25.0375, longitude: 121.5637, confidence: "high", message: "ok", county: "臺北市", district: "信義區" };
 const options = { now: () => NOW, idFactory: () => "11111111-2222-4333-8444-555555555555" };
 const draft = (): SavedCase => buildAddressDraftCase(ADDRESS, { id: "draft-1", now: NOW })!;
+
+test("a stalled lookup ends at ten seconds, aborts transport and ignores late success", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let calls = 0;
+  let signal: AbortSignal | undefined;
+  let release!: (value: unknown) => void;
+  const pending = acquireLocationResolution(ADDRESS, (requestSignal: AbortSignal) => {
+    calls++;
+    signal = requestSignal;
+    return new Promise((resolve) => { release = resolve; });
+  });
+  t.mock.timers.tick(9_999);
+  assert.equal(signal?.aborted, false);
+  t.mock.timers.tick(1);
+  assert.deepEqual(await pending, { kind: "blocked", reason: "unavailable" });
+  assert.equal(signal?.aborted, true);
+  release(RESOLVED);
+  t.mock.timers.tick(30_000);
+  assert.deepEqual(await pending, { kind: "blocked", reason: "unavailable" });
+  assert.equal(calls, 1);
+});
+
+test("successful acquisition clears its deadline and does not abort the transport", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let signal: AbortSignal | undefined;
+  const result = await acquireLocationResolution(ADDRESS, async (requestSignal: AbortSignal) => { signal = requestSignal; return RESOLVED; });
+  assert.equal(result.kind, "candidate");
+  t.mock.timers.tick(10_000);
+  assert.equal(signal?.aborted, false);
+});
+
+test("leaving an in-case lookup aborts its transport without acquiring again", async () => {
+  const parent = new AbortController();
+  let requestSignal: AbortSignal | undefined;
+  let calls = 0;
+  const pending = acquireLocationResolution(ADDRESS, (signal: AbortSignal) => { calls++; requestSignal = signal; return new Promise(() => {}); }, parent.signal);
+  parent.abort();
+  assert.deepEqual(await pending, { kind: "blocked", reason: "unavailable" });
+  assert.equal(requestSignal?.aborted, true);
+  assert.equal(calls, 1);
+});
+
+test("an explicit administrative contradiction cannot be shown as a trusted candidate", () => {
+  assert.deepEqual(interpretLocationResolution({ ...RESOLVED, district: "樹林區", county: "新北市", formatted_address: "238台灣新北市樹林區金寮里中正路191號" }, "新北市新莊區中正路191號"), { kind: "blocked", reason: "invalid" });
+  assert.deepEqual(interpretLocationResolution({ ...RESOLVED, district: "大安區" }, ADDRESS), { kind: "blocked", reason: "invalid" });
+});
 
 test("location request failures distinguish capacity, provider and network unavailability", () => {
   assert.equal(locationRequestFailure(429), "capacity_unavailable");
@@ -180,7 +226,7 @@ test("a legacy case with saved address parts but no journey summary can be confi
   const legacy = e9Case();
   const row: SavedCase = { ...legacy, data: { ...legacy.data, propertyIdentityAnchor: undefined, journeyContext: undefined } };
   const address = `${legacy.inputSummary.city}${legacy.inputSummary.district}${legacy.inputSummary.road}`;
-  const result = interpretLocationResolution({ ...RESOLVED, county: "臺中市", district: "西屯區", latitude: 24.16, longitude: 120.64 }, address);
+  const result = interpretLocationResolution({ ...RESOLVED, formatted_address: address, county: "臺中市", district: "西屯區", latitude: 24.16, longitude: 120.64 }, address);
   assert.equal(result.kind, "candidate");
   const anchor = buildConfirmedLocationAnchor(result.candidate, options)!;
   assert.equal(planIdentityConfirmation(row, anchor, JSON.stringify(row)).kind, "write");

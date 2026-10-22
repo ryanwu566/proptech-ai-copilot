@@ -1,6 +1,7 @@
 """Deterministic physical Google-call budgets; no live provider traffic."""
 
 from concurrent.futures import Future, ThreadPoolExecutor
+from copy import deepcopy
 from threading import Barrier, Event, Lock, current_thread
 
 import httpx
@@ -228,10 +229,12 @@ def test_route_failure_is_not_stored_and_recovery_is_cached():
 
 
 def test_commute_google_destination_resolution_concurrent_budget(monkeypatch):
-    calls = PhysicalCalls(GEOCODE)
+    payload = deepcopy(GEOCODE)
+    payload["results"][0]["formatted_address"] = "臺北市信義區市府路1號"
+    calls = PhysicalCalls(payload)
     monkeypatch.setattr("services.location_resolver.httpx.get", calls.post)
     google = location_resolver.GoogleAddressProvider(api_key="test")
-    first, second = concurrent_pair(monkeypatch, calls, lambda: google.resolve("Taipei Road 1"))
+    first, second = concurrent_pair(monkeypatch, calls, lambda: google.resolve("臺北市信義區市府路1號"))
     assert first == second
     assert first.status == "resolved"
     assert calls.calls == 1
@@ -491,24 +494,24 @@ def test_destination_address_reuse_avoids_all_resolution_and_changed_address_iso
 
     def geocode(url, *, params, **kwargs):
         google_calls.append(params["address"])
-        latitude = DESTINATION[0] + (0.01 if params["address"].endswith("2") else 0)
-        return Response({"status": "OK", "results": [{"formatted_address": params["address"], "geometry": {"location": {"lat": latitude, "lng": DESTINATION[1]}}}]})
+        latitude = DESTINATION[0] + (0.01 if params["address"].endswith("2號") else 0)
+        return Response({"status": "OK", "results": [{"formatted_address": params["address"], "geometry": {"location_type": "ROOFTOP", "location": {"lat": latitude, "lng": DESTINATION[1]}}}]})
 
     calls = PhysicalCalls(ROUTE)
     monkeypatch.setattr(location_resolver.TgosAddressProvider, "resolve", tgos)
     monkeypatch.setattr(location_resolver.httpx, "get", geocode)
     monkeypatch.setattr(routes, "_DEFAULT_GOOGLE_ADAPTER", GoogleRoutesAdapter(api_key="test", client=calls))
     routes.clear_route_cache()
-    body = {"origin_latitude": ORIGIN[0], "origin_longitude": ORIGIN[1], "destination_address": "Taipei Road 1", "mode": "transit"}
+    body = {"origin_latitude": ORIGIN[0], "origin_longitude": ORIGIN[1], "destination_address": "臺北市信義區市府路1號", "mode": "transit"}
     with TestClient(app) as client:
         first = client.post("/commute/route", json=body)
         second = client.post("/commute/route", json=body)
-        changed = client.post("/commute/route", json={**body, "destination_address": "Taipei Road 2"})
+        changed = client.post("/commute/route", json={**body, "destination_address": "臺北市信義區市府路2號"})
     assert first.status_code == second.status_code == changed.status_code == 200
     assert first.json() == second.json()
     assert changed.json()["status"] == "resolved"
-    assert tgos_calls == ["Taipei Road 1", "Taipei Road 2"]
-    assert google_calls == ["Taipei Road 1", "Taipei Road 2"]
+    assert tgos_calls == []
+    assert google_calls == ["臺北市信義區市府路1號", "臺北市信義區市府路2號"]
     assert calls.calls == 2
     routes.clear_route_cache()
 
@@ -561,28 +564,34 @@ def test_accepted_destination_cache_bounds_expiry_failures_and_configuration(mon
     now = [0.0]
     monkeypatch.setattr(cache, "clock", lambda: now[0])
     monkeypatch.setattr(cache, "max_entries", 2)
-    calls = PhysicalCalls(GEOCODE)
-    monkeypatch.setattr(location_resolver.httpx, "get", calls.post)
+    calls = PhysicalCalls(deepcopy(GEOCODE))
+
+    def geocode(url, *, params, **kwargs):
+        calls.payload["results"][0]["formatted_address"] = params["address"]
+        return calls.post(url, params=params, **kwargs)
+
+    monkeypatch.setattr(location_resolver.httpx, "get", geocode)
+    addresses = [f"臺北市信義區市府路{number}號" for number in (1, 2, 3)]
     calls.error = httpx.TimeoutException("private")
-    assert location_resolver.resolve_address("address A")["status"] == "unavailable"
+    assert location_resolver.resolve_address(addresses[0])["status"] == "unavailable"
     calls.error = None
-    first = location_resolver.resolve_address("address A")
+    first = location_resolver.resolve_address(addresses[0])
     assert first["status"] == "resolved"
     assert set(first) == location_resolver.SAFE_RESPONSE_KEYS
-    assert location_resolver.resolve_address("address A") == first
+    assert location_resolver.resolve_address(addresses[0]) == first
     assert calls.calls == 2
-    location_resolver.resolve_address("address B")
-    location_resolver.resolve_address("address C")
-    location_resolver.resolve_address("address A")
+    location_resolver.resolve_address(addresses[1])
+    location_resolver.resolve_address(addresses[2])
+    location_resolver.resolve_address(addresses[0])
     assert calls.calls == 5
     now[0] = 61
-    location_resolver.resolve_address("address A")
+    location_resolver.resolve_address(addresses[0])
     assert calls.calls == 6
     monkeypatch.setenv("GOOGLE_MAPS_API_KEY", "changed-derived-context")
-    location_resolver.resolve_address("address A")
+    location_resolver.resolve_address(addresses[0])
     assert calls.calls == 7
-    monkeypatch.setattr(location_resolver, "ADDRESS_RESOLVER_VERSION", "trusted-address-resolution-v2")
-    location_resolver.resolve_address("address A")
+    monkeypatch.setattr(location_resolver, "ADDRESS_RESOLVER_VERSION", "test-other-resolver-semantics")
+    location_resolver.resolve_address(addresses[0])
     assert calls.calls == 8
     cache.clear()
 

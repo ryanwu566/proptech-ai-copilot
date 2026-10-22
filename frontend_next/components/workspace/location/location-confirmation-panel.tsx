@@ -56,7 +56,7 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
     const controller = new AbortController();
     request.current = controller;
     try {
-      const resolution = await acquireLocationResolution(workspace.displayAddress, () => api.locationResolve(workspace.displayAddress, controller.signal));
+      const resolution = await acquireLocationResolution(workspace.displayAddress, (signal) => api.locationResolve(workspace.displayAddress, signal), controller.signal);
       if (!controller.signal.aborted) setStep(candidateStep(resolution));
     } finally {
       busy.current = false;
