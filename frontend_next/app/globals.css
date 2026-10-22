@@ -139,6 +139,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .commercial-global-header__inner .commercial-methods { grid-row: 3; }
 }
 
+.case-command-trigger { position: fixed; z-index: var(--z-sticky, 20); right: 20px; bottom: 20px; display: flex; align-items: center; gap: 12px; min-height: 44px; max-width: calc(100vw - 32px); padding: 8px 14px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--surface-primary); color: var(--text-secondary); box-shadow: 0 3px 14px rgb(23 32 51 / 8%); font: inherit; font-size: 13px; cursor: pointer; }
+.case-command-trigger:hover { border-color: var(--action); color: var(--action); }
+.case-command-trigger:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
+.case-command-trigger kbd { display: inline-block; flex-shrink: 0; padding: 1px 5px; border: 1px solid var(--border-subtle); border-radius: 5px; background: var(--surface-secondary); color: var(--text-secondary); font: 11px/1.6 var(--font-sans); }
+@media (max-width: 600px) { .case-command-trigger { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }
   .onboarding-dialog[open], .onboarding-step {
