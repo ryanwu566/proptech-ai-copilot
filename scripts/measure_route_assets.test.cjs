@@ -28,6 +28,43 @@ const request = (url, { headers = {}, navigation = false, method = "GET" } = {})
   url: () => url, headers: () => headers, isNavigationRequest: () => navigation, method: () => method,
 });
 
+for (const section of ["location", "risk"]) {
+  const route = `/cases/[caseId]/${section}`;
+  const initialSelector = `[data-testid="show-${section}-map"]`;
+  function initialPage({ title = "Synthetic case A", populated = true, destination = section } = {}) {
+    return {
+      url: () => `${origin}/cases/case-a/${destination}`,
+      click: () => assert.fail("Initial route validation must not click map reveal"),
+      locator: (selector) => ({
+        click: () => assert.fail("Initial route validation must not click map reveal"),
+        waitFor: async () => {
+          if (!populated || selector !== initialSelector) throw new Error("Expected initial route view missing; Leaflet is not mounted");
+        },
+        textContent: async () => {
+          assert.equal(selector, ".workspace-property-header");
+          return title;
+        },
+      }),
+    };
+  }
+
+  test(`${section} validates its populated initial view without Leaflet or map clicks`, async () => {
+    await assertRouteView(initialPage(), route, 390, [{ title: "Synthetic case A" }]);
+  });
+
+  test(`${section} reveal button cannot hide a saved-fixture hydration failure`, async () => {
+    await assert.rejects(assertRouteView(initialPage({ title: "Wrong case" }), route, 1440, [{ title: "Synthetic case A" }]), /Saved fixture not hydrated/);
+  });
+
+  test(`${section} populated header cannot replace its missing initial view`, async () => {
+    await assert.rejects(assertRouteView(initialPage({ populated: false }), route, 390, [{ title: "Synthetic case A" }]), /initial route view missing/);
+  });
+
+  test(`${section} initial view cannot masquerade as another route`, async () => {
+    await assert.rejects(assertRouteView(initialPage({ destination: "overview" }), route, 390, [{ title: "Synthetic case A" }]), /Unexpected route destination/);
+  });
+}
+
 test("failure diagnostics retain structural evidence without private error content", () => {
   const error = new Error("token=secret provider response saved address");
   error.name = "TimeoutError";
