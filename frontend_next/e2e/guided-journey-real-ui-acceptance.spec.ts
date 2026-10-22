@@ -13,7 +13,7 @@ const ADDRESS = "臺中市西屯區臺灣大道三段100號";
 const DOMAINS = [
   ["overview", "物件總覽"], ["market", "價格與市場"],
   ["location", "區位與通勤"], ["risk", "風險與環境"],
-  ["finance", "資金與持有成本"],
+  ["finance", "購屋資金"],
 ] as const;
 const HOME = {
   "zh-TW": ["看清物件證據，確認下一步", "首頁", "開始物件評估"],
@@ -123,7 +123,7 @@ test.describe("E10 commercial case capability acceptance", () => {
 
   test("Finance exposes loan, holding costs and tax with unassessed affordability preserved", async ({ page }) => {
     await openCase(page);
-    await domain(page, "finance", "資金與持有成本");
+    await domain(page, "finance", "購屋資金");
     await expect(page.getByTestId("loan-summary")).toContainText("55,111");
     await expect(page.getByTestId("holding-summary")).toContainText("小計");
     await expect(page.getByTestId("affordability-status")).toContainText("未評估");
