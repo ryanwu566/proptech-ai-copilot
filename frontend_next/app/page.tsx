@@ -1,5 +1,6 @@
 "use client";
 
+import "./home.css";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";

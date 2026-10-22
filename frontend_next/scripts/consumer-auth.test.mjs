@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
+import * as sessionStatus from '../lib/auth-session-status.ts';
 
 const url = 'https://fixture.supabase.co';
 const user = '11111111-1111-4111-8111-111111111111';
@@ -22,7 +23,7 @@ function harness(result, env = {}, transport = fetch, abortSignal = AbortSignal)
   const module = {exports:{}};
   const source = ts.transpileModule(readFileSync(new URL('../lib/vnext-auth-session.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
   let clientOptions;
-  vm.runInNewContext(source,{module,exports:module.exports,require:()=>({createClient:(_url,_key,options)=>{clientOptions=options;return sdk;}}),
+  vm.runInNewContext(source,{module,exports:module.exports,require:name=>name==='./auth-session-status'?sessionStatus:({createClient:(_url,_key,options)=>{clientOptions=options;return sdk;}}),
     process:{env:{NODE_ENV:'production',NEXT_PUBLIC_SUPABASE_URL:url,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture_public',...env}},window:{dispatchEvent(){}},atob,URL,Event,fetch:transport,AbortSignal:abortSignal});
   return {auth:module.exports,calls:()=>calls,options:()=>clientOptions};
 }

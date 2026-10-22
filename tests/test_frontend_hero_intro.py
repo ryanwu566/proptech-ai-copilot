@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HERO = (ROOT / "frontend_next" / "components" / "hero-intro.tsx").read_text(encoding="utf-8")
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 HOME = (ROOT / "frontend_next" / "components" / "commercial-home.tsx").read_text(encoding="utf-8")
-CSS = (ROOT / "frontend_next" / "app" / "globals.css").read_text(encoding="utf-8")
+CSS = (ROOT / "frontend_next" / "app" / "home.css").read_text(encoding="utf-8")
 WALKTHROUGH = (ROOT / "frontend_next" / "components" / "friendly-intro-walkthrough.tsx").read_text(encoding="utf-8")
 
 
@@ -67,6 +67,7 @@ def test_active_homepage_renders_one_address_entry_before_the_optional_guided_jo
 
 
 def test_hero_animation_is_local_and_reduced_motion_safe() -> None:
+    assert 'import "./home.css";' in PAGE
     for animation in ("hero-reveal", "hero-orb"):
         assert animation in HERO
         assert animation in CSS

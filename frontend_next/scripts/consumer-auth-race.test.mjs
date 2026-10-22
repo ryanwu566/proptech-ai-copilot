@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
 import { createClient } from "@supabase/supabase-js";
+import * as sessionStatus from "../lib/auth-session-status.ts";
 
 const user = "11111111-1111-4111-8111-111111111111";
 const url = "https://fixture.supabase.co";
@@ -27,7 +28,7 @@ for (const action of ["signup", "login"]) for (const external of [false, true]) 
     };
     const module = {exports:{}};
     const source = ts.transpileModule(readFileSync(new URL("../lib/vnext-auth-session.ts",import.meta.url),"utf8"), {compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
-    vm.runInNewContext(source, {module,exports:module.exports,require:()=>({createClient:(endpoint,key,options)=>createClient(endpoint,key,{...options,auth:{...options.auth,autoRefreshToken:false,storage:{getItem:key=>persisted.get(key)??null,setItem:(key,value)=>persisted.set(key,value),removeItem:key=>persisted.delete(key)}}})}),
+    vm.runInNewContext(source, {module,exports:module.exports,require:name=>name==='./auth-session-status'?sessionStatus:({createClient:(endpoint,key,options)=>createClient(endpoint,key,{...options,auth:{...options.auth,autoRefreshToken:false,storage:{getItem:key=>persisted.get(key)??null,setItem:(key,value)=>persisted.set(key,value),removeItem:key=>persisted.delete(key)}}})}),
       process:{env:{NODE_ENV:"production",NEXT_PUBLIC_SUPABASE_URL:url,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:"sb_publishable_fixture_public"}},window:{dispatchEvent(){}},atob,URL,Event,AbortSignal,fetch:transport});
     const auth = module.exports;
     await auth.getVNextAuthClient().auth.getSession();

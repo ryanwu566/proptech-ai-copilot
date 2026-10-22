@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
+import * as sessionStatus from "../lib/auth-session-status.ts";
 
 const ROOT = new URL("../", import.meta.url);
 const USER = "11111111-1111-4111-8111-111111111111";
@@ -77,6 +78,7 @@ function authHarness({ env = {}, initial = null, refreshed = null, signIn = null
     window: { dispatchEvent: (event) => events.push(event.type) },
     Event, URL, atob,
     require: (name) => {
+      if (name === "./auth-session-status") return sessionStatus;
       assert.equal(name, "@supabase/supabase-js");
       return { createClient: () => sdk };
     },

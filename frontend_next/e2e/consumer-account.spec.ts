@@ -87,7 +87,7 @@ test("login, restore and logout preserve browser Saved Cases and expose no crede
   expect(await page.evaluate(keys => Object.fromEntries(keys.map(key => [key,localStorage.getItem(key)])), Object.keys(stores))).toEqual(stores);
   expect(calls.every(p=>["/auth/v1/token","/auth/v1/user","/v1/account"].includes(p))).toBe(true);
   await page.getByRole("button",{name:"Sign out of this device"}).click();
-  await expect(page.getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
+  await expect(page.locator("main").getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
   expect(await page.evaluate(()=>localStorage.getItem("sb-slice8-auth-auth-token"))).toBeNull();
   expect(await page.evaluate(key=>localStorage.getItem(key),KEY)).toBe(saved);
   expect(await page.evaluate(keys => Object.fromEntries(keys.map(key => [key,localStorage.getItem(key)])), Object.keys(stores))).toEqual(stores);
@@ -127,17 +127,17 @@ for (const outcome of ["success", "provider failure", "cleanup failure"] as cons
     await requestStarted;
     try {
       expect(await page.evaluate(() => localStorage.getItem("sb-slice8-auth-auth-token"))).not.toBeNull();
-      await expect(page.getByRole("link", {name:"Sign in",exact:true})).toBeHidden();
+      await expect(page.locator("main").getByRole("link", {name:"Sign in",exact:true})).toBeHidden();
       await expect(page.locator('main [role="status"]')).toHaveText(accountCopy.en.working);
       await expect(page.getByText(accountCopy.en.signedOut, {exact:true})).toBeHidden();
     } finally { release(); }
     if (outcome === "success") {
-      await expect(page.getByRole("link", {name:"Sign in",exact:true})).toBeVisible();
+      await expect(page.locator("main").getByRole("link", {name:"Sign in",exact:true})).toBeVisible();
       expect(await page.evaluate(() => localStorage.getItem("sb-slice8-auth-auth-token"))).toBeNull();
       await expect(page.getByText(accountCopy.en.signedOut, {exact:true})).toBeVisible();
     } else {
       await expect(page.locator('main [role="alert"]')).toHaveText(accountCopy.en.provider);
-      await expect(page.getByRole("link", {name:"Sign in",exact:true})).toBeHidden();
+      await expect(page.locator("main").getByRole("link", {name:"Sign in",exact:true})).toBeHidden();
       await expect(page.getByText(accountCopy.en.signedOut, {exact:true})).toBeHidden();
       await expect(page.getByRole("button", {name:"Sign out of this device",exact:true})).toBeEnabled();
       const persisted = await page.evaluate(() => localStorage.getItem("sb-slice8-auth-auth-token"));
@@ -186,7 +186,7 @@ test("backend 401 expires session once without exposing raw errors",async({page}
 });
 test("malformed stored token never reaches protected API",async({page})=>{
   await seed(page,"malformed.token.value"); const calls=await provider(page); await page.goto("/account");
-  await page.getByTestId("locale-switcher").selectOption("en"); await expect(page.getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
+  await page.getByTestId("locale-switcher").selectOption("en"); await expect(page.locator("main").getByRole("link",{name:"Sign in",exact:true})).toBeVisible();
   expect(calls).not.toContain("/v1/account");
 });
 for (const action of ["signup", "login", "reset"] as const) {

@@ -2,7 +2,7 @@
  * Compact Header Navigation — Normal Click Test
  *
  * Proves that at mobile and desktop widths the first-time header (Home, Cases,
- * Compare, Account, Locale, accessibility disclosure) and Home's tour entry
+ * Compare, Sign in, Create account, Locale, accessibility disclosure) and Home's tour entry
  * respond to NORMAL Playwright clicks (no force, no dispatchEvent, no JS click).
  *
  * FORCE_CLICK_COUNT = 0
@@ -25,8 +25,12 @@ for (const [width, height] of [[390, 844], [430, 932], [1440, 900]]) test.descri
     await expect(page).toHaveURL(/\/cases$/);
     await page.locator(".commercial-global-nav").getByRole("link", { name: "比較案件", exact: true }).click();
     await expect(page).toHaveURL(/\/compare$/);
-    await page.locator(".commercial-global-tools").getByRole("link", { name: "帳戶", exact: true }).click();
-    await expect(page).toHaveURL(/\/account$/);
+    const auth = page.getByTestId("auth-entry-actions");
+    await expect(auth.getByRole("link")).toHaveText(["登入", "建立帳戶"]);
+    await auth.getByRole("link", { name: "登入", exact: true }).click();
+    await expect(page).toHaveURL(/\/login\?next=%2Fcompare$/);
+    await auth.getByRole("link", { name: "建立帳戶", exact: true }).click();
+    await expect(page).toHaveURL(/\/signup\?next=%2Fcompare$/);
     await page.locator(".commercial-global-nav").getByRole("link", { name: "首頁", exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     await page.locator(".commercial-home").getByTestId("tour-start").click();

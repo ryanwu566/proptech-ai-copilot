@@ -1,7 +1,7 @@
 import type { CopyCatalogue } from "./copy-catalogue";
 
 const en = {
-  entry: "Account", login: "Sign in", signup: "Create account", account: "Your account",
+  entry: "Account", login: "Sign in", signup: "Create account", account: "Your account", backToJourney: "Back to where you left off",
   intro: "A place for your property decisions", loginNote: "Sign in to your account. You can continue exploring properties without signing in.",
   signupNote: "Create your personal account for the next step in your property journey.",
   email: "Email address", password: "Password", passwordHint: "Use at least 8 characters.",
@@ -21,7 +21,7 @@ const en = {
 export const accountCopy: CopyCatalogue<keyof typeof en> = {
   en,
   "zh-TW": {
-    entry: "帳戶", login: "登入", signup: "建立帳戶", account: "你的帳戶",
+    entry: "帳戶", login: "登入", signup: "建立帳戶", account: "你的帳戶", backToJourney: "返回原本工作",
     intro: "讓每一步房產決策更踏實", loginNote: "登入你的帳戶，也可以直接繼續探索房產。", signupNote: "建立個人帳戶，開啟房產探索的下一步。",
     email: "電子郵件", password: "密碼", passwordHint: "請使用至少 8 個字元。", submitLogin: "登入", submitSignup: "建立帳戶", signout: "登出此裝置", working: "處理中…",
     accepted: "已受理申請，登入前可能需要確認帳戶。若收到操作指示，請依指示繼續。", reset: "申請重設密碼", resetAccepted: "已受理申請。若帳戶符合條件，請依帳戶服務提供者的復原指示操作。",
@@ -31,7 +31,7 @@ export const accountCopy: CopyCatalogue<keyof typeof en> = {
     noAccount: "第一次使用？", hasAccount: "已有帳戶？", signedOut: "已登出此裝置。",
   },
   ja: {
-    entry: "アカウント", login: "ログイン", signup: "アカウント作成", account: "あなたのアカウント",
+    entry: "アカウント", login: "ログイン", signup: "アカウント作成", account: "あなたのアカウント", backToJourney: "元の作業に戻る",
     intro: "不動産の判断を、一歩ずつ確かに", loginNote: "アカウントにログインしてください。ログインせずに不動産の探索を続けることもできます。", signupNote: "個人アカウントを作成して、不動産探索の次の一歩へ。",
     email: "メールアドレス", password: "パスワード", passwordHint: "8文字以上を使用してください。", submitLogin: "ログイン", submitSignup: "アカウント作成", signout: "この端末からログアウト", working: "処理中…",
     accepted: "リクエストを受け付けました。ログイン前に確認が必要な場合があります。案内が届いた場合は、指示に従ってください。", reset: "パスワード再設定を申請", resetAccepted: "リクエストを受け付けました。対象の場合は、アカウント提供元の復旧手順に従ってください。",
@@ -41,7 +41,7 @@ export const accountCopy: CopyCatalogue<keyof typeof en> = {
     noAccount: "初めての方", hasAccount: "アカウントをお持ちの方", signedOut: "この端末からログアウトしました。",
   },
   ko: {
-    entry: "계정", login: "로그인", signup: "계정 만들기", account: "내 계정",
+    entry: "계정", login: "로그인", signup: "계정 만들기", account: "내 계정", backToJourney: "이전 작업으로 돌아가기",
     intro: "부동산 결정을 위한 든든한 첫걸음", loginNote: "계정에 로그인하세요. 로그인 없이도 부동산 탐색을 계속할 수 있습니다.", signupNote: "개인 계정을 만들고 부동산 탐색의 다음 단계를 시작하세요.",
     email: "이메일 주소", password: "비밀번호", passwordHint: "8자 이상을 사용하세요.", submitLogin: "로그인", submitSignup: "계정 만들기", signout: "이 기기에서 로그아웃", working: "처리 중…",
     accepted: "요청이 접수되었습니다. 로그인 전에 확인이 필요할 수 있습니다. 안내를 받으면 지침에 따라 계속하세요.", reset: "비밀번호 재설정 요청", resetAccepted: "요청이 접수되었습니다. 대상 계정인 경우 계정 서비스의 복구 안내를 따라 주세요.",
