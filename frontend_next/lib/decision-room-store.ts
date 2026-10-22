@@ -1,7 +1,13 @@
 /** Independent browser-local aggregate. No saved-case writer or provider dependency. */
-export type WorkKind = "checklist" | "question" | "task";
+export type WorkKind = "checklist" | "question" | "task" | "verification";
+export const WORK_STATUSES = ["open", "in_progress", "blocked", "done"] as const;
+export type WorkStatus = typeof WORK_STATUSES[number];
+/** Where an action came from. Only evidence origins carry a saved-evidence key; manual stays manual. */
+export const WORK_ORIGINS = ["manual", "identity", "market", "location", "risk", "finance"] as const;
+export type WorkOrigin = typeof WORK_ORIGINS[number];
 export type ViewingNote = { id: string; date: string; text: string };
-export type WorkItem = { id: string; kind: WorkKind; title: string; owner: string; dueDate: string; status: "open" | "done"; resolution: string };
+/** origin/sourceKey/note/timestamps are optional on input for older rooms; reads always normalize them. */
+export type WorkItem = { id: string; kind: WorkKind; title: string; owner: string; dueDate: string; status: WorkStatus; resolution: string; origin?: WorkOrigin; sourceKey?: string; note?: string; createdAt?: string; updatedAt?: string };
 export type ManualCheck = { id: string; topic: string; outcome: "user_checked" | "needs_follow_up"; sourceUrl: string; sourceNote: string; checkedDate: string; checkedBy: string };
 export type AskingPrice = { priceWan: number | null; sourceUrl: string; sourceNote: string; checkedDate: string };
 export type ActivityKind = `${"note" | WorkKind | "manual_check"}_${"added" | "updated" | "removed"}` | "asking_price_updated";
@@ -60,8 +66,14 @@ function validate(value: unknown, caseId: string): RoomError | null {
   for (const row of value.notes as unknown[]) {
     if (!record(row) || !id(row.id) || !validRoomDate(row.date) || !text(row.text, 4000, true)) return "invalid";
   }
+  const sourceKeys = new Set<string>();
   for (const row of value.items as unknown[]) {
-    if (!record(row) || !id(row.id) || !["checklist", "question", "task"].includes(String(row.kind)) || !text(row.title, 300, true) || !text(row.owner, 100) || !validRoomDate(row.dueDate) || !["open", "done"].includes(String(row.status)) || !text(row.resolution, 2000) || (row.status === "done" && row.kind !== "checklist" && !text(row.resolution, 2000, true))) return "invalid";
+    if (!record(row) || !id(row.id) || !["checklist", "question", "task", "verification"].includes(String(row.kind)) || !text(row.title, 300, true) || !text(row.owner, 100) || !validRoomDate(row.dueDate) || !(WORK_STATUSES as readonly string[]).includes(String(row.status)) || !text(row.resolution, 2000) || (row.status === "done" && row.kind !== "checklist" && !text(row.resolution, 2000, true))) return "invalid";
+    const origin = row.origin ?? "manual"; const sourceKey = row.sourceKey ?? "";
+    if (!(WORK_ORIGINS as readonly string[]).includes(String(origin)) || !text(sourceKey, 100) || !text(row.note ?? "", 2000) || ![row.createdAt ?? "", row.updatedAt ?? ""].every((at) => at === "" || timestamp(at))) return "invalid";
+    // Evidence-linked actions need a key; manual actions never claim one. One action per evidence key.
+    if ((origin === "manual") !== (sourceKey === "") || (sourceKey && sourceKeys.has(sourceKey as string))) return "invalid";
+    if (sourceKey) sourceKeys.add(sourceKey as string);
   }
   for (const row of value.verifications as unknown[]) {
     if (!record(row) || !id(row.id) || !text(row.topic, 300, true) || !["user_checked", "needs_follow_up"].includes(String(row.outcome)) || !safeRoomUrl(row.sourceUrl) || !text(row.sourceNote, 2000, true) || !text(row.checkedBy, 100, true) || !validRoomDate(row.checkedDate, false)) return "invalid";
@@ -69,7 +81,7 @@ function validate(value: unknown, caseId: string): RoomError | null {
   const asking = value.askingPrice;
   if (!record(asking) || !(asking.priceWan === null || (typeof asking.priceWan === "number" && Number.isFinite(asking.priceWan) && asking.priceWan > 0 && asking.priceWan <= 1_000_000_000)) || !safeRoomUrl(asking.sourceUrl) || !text(asking.sourceNote, 2000) || !validRoomDate(asking.checkedDate)) return "invalid";
   for (const event of value.history as unknown[]) {
-    if (!record(event) || !id(event.id) || !timestamp(event.at) || !text(event.subject, 300) || !/^(asking_price_updated|(note|checklist|question|task|manual_check)_(added|updated|removed))$/.test(String(event.kind))) return "invalid";
+    if (!record(event) || !id(event.id) || !timestamp(event.at) || !text(event.subject, 300) || !/^(asking_price_updated|(note|checklist|question|task|verification|manual_check)_(added|updated|removed))$/.test(String(event.kind))) return "invalid";
   }
   return null;
 }
@@ -77,10 +89,24 @@ function validate(value: unknown, caseId: string): RoomError | null {
 function data(room: DecisionRoom) {
   return {
     notes: room.notes.map(({ id, date, text }) => ({ id, date, text })),
-    items: room.items.map(({ id, kind, title, owner, dueDate, status, resolution }) => ({ id, kind, title, owner, dueDate, status, resolution })),
+    items: room.items.map(normalizeWorkItem),
     verifications: room.verifications.map(({ id, topic, outcome, sourceUrl, sourceNote, checkedDate, checkedBy }) => ({ id, topic, outcome, sourceUrl, sourceNote, checkedDate, checkedBy })),
     askingPrice: { priceWan: room.askingPrice.priceWan, sourceUrl: room.askingPrice.sourceUrl, sourceNote: room.askingPrice.sourceNote, checkedDate: room.askingPrice.checkedDate },
   };
+}
+export function normalizeWorkItem({ id, kind, title, owner, dueDate, status, resolution, origin, sourceKey, note, createdAt, updatedAt }: WorkItem): Required<WorkItem> {
+  return { id, kind, title, owner, dueDate, status, resolution, origin: origin ?? "manual", sourceKey: sourceKey ?? "", note: note ?? "", createdAt: createdAt ?? "", updatedAt: updatedAt ?? "" };
+}
+/** Stamp created/updated times on items whose user-visible content changed in this save. */
+function stampItems(previous: WorkItem[], next: WorkItem[], at: string): Required<WorkItem>[] {
+  const content = ({ createdAt: _c, updatedAt: _u, ...rest }: Required<WorkItem>) => JSON.stringify(rest);
+  return next.map((raw) => {
+    const item = normalizeWorkItem(raw);
+    const old = previous.find((row) => row.id === item.id);
+    if (!old) return { ...item, createdAt: at, updatedAt: at };
+    const before = normalizeWorkItem(old);
+    return content(before) === content(item) ? { ...item, createdAt: before.createdAt, updatedAt: before.updatedAt } : { ...item, createdAt: before.createdAt || at, updatedAt: at };
+  });
 }
 function changes(before: DecisionRoom, after: DecisionRoom, at: string, makeId: () => string): RoomActivity[] {
   const events: RoomActivity[] = [];
@@ -126,8 +152,9 @@ export function createDecisionRoomRepository(storage: RoomStorage, now = () => n
         if (stored.status !== "ready" && stored.status !== "empty") return stored;
         if (!Number.isSafeInteger(expectedRevision) || expectedRevision !== room.revision || stored.room.revision !== expectedRevision) return { status: "conflict" };
         const previous = stored.room;
-        const next = { ...room, ...data(room) };
         const at = now();
+        const next = { ...room, ...data(room) };
+        next.items = stampItems(previous.items, next.items, at);
         const events = changes(previous, next, at, makeId);
         if (!events.length) return { status: "saved", room: previous };
         const updated: DecisionRoom = { version: 1, caseId: room.caseId, revision: previous.revision + 1, updatedAt: at, ...data(next), history: [...previous.history, ...events].slice(-ROOM_LIMITS.history) };
@@ -170,7 +197,7 @@ export function createBrowserDecisionRoomRepository(): BrowserDecisionRoomReposi
   };
 }
 export type RoomEvidence = { key: string; query: string; usability?: string; completeness: string };
-export type RoomGapReason = "asking_price" | "asking_source" | "asking_date" | "viewing_notes" | "open_question" | "open_task" | "unchecked_item" | "task_owner" | "task_due" | "manual_followup" | "saved_evidence";
+export type RoomGapReason = "asking_price" | "asking_source" | "asking_date" | "viewing_notes" | "open_question" | "open_task" | "open_verification" | "unchecked_item" | "task_owner" | "task_due" | "manual_followup" | "saved_evidence";
 export type RoomGap = { id: string; reason: RoomGapReason; subject?: string; state?: string; target: string };
 /** Task progress never promotes saved evidence or a manual record into an official fact. */
 export function decisionRoomGaps(room: DecisionRoom, evidence: RoomEvidence[]): RoomGap[] {
@@ -180,8 +207,8 @@ export function decisionRoomGaps(room: DecisionRoom, evidence: RoomEvidence[]): 
   if (!room.askingPrice.sourceUrl.trim() && !room.askingPrice.sourceNote.trim()) add("asking-source", "asking_source", "asking-price");
   if (!room.askingPrice.checkedDate) add("asking-date", "asking_date", "asking-price");
   if (!room.notes.length) add("viewing-notes", "viewing_notes", "viewing-notes");
-  for (const item of room.items.filter((r) => r.status === "open")) {
-    add(`open-${item.id}`, item.kind === "question" ? "open_question" : item.kind === "task" ? "open_task" : "unchecked_item", `${item.kind}-items`, item.title);
+  for (const item of room.items.filter(isOutstanding)) {
+    add(`open-${item.id}`, item.kind === "question" ? "open_question" : item.kind === "task" ? "open_task" : item.kind === "verification" ? "open_verification" : "unchecked_item", `${item.kind}-items`, item.title);
     if (item.kind === "task" && !item.owner.trim()) add(`owner-${item.id}`, "task_owner", "task-items", item.title);
     if (item.kind === "task" && !item.dueDate) add(`due-${item.id}`, "task_due", "task-items", item.title);
   }
@@ -190,4 +217,17 @@ export function decisionRoomGaps(room: DecisionRoom, evidence: RoomEvidence[]): 
     if (row.query !== "succeeded" || row.usability !== "usable" || row.completeness !== "sufficient_for_task") add(`evidence-${row.key}`, "saved_evidence", "saved-evidence", row.key, row.usability ?? row.query);
   }
   return gaps;
+}
+
+/** Anything not marked done is still outstanding; blocked work stays outstanding. */
+export const isOutstanding = (item: Pick<WorkItem, "status">) => item.status !== "done";
+export type EvidenceActionInput = { origin: Exclude<WorkOrigin, "manual">; sourceKey: string; title: string; note: string };
+export function findEvidenceAction(room: DecisionRoom, sourceKey: string): WorkItem | undefined {
+  return sourceKey ? room.items.find((item) => item.sourceKey === sourceKey) : undefined;
+}
+/** Idempotent: an evidence key already in the room returns the room unchanged (added: false). */
+export function addEvidenceAction(room: DecisionRoom, input: EvidenceActionInput, makeId: () => string = () => crypto.randomUUID()): { room: DecisionRoom; added: boolean } {
+  if (findEvidenceAction(room, input.sourceKey)) return { room, added: false };
+  const item: WorkItem = { id: makeId(), kind: "verification", title: input.title.slice(0, 300), owner: "", dueDate: "", status: "open", resolution: "", origin: input.origin, sourceKey: input.sourceKey.slice(0, 100), note: input.note.slice(0, 2000), createdAt: "", updatedAt: "" };
+  return { room: { ...room, items: [...room.items, item] }, added: true };
 }

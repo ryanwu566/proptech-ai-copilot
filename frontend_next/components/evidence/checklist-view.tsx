@@ -1,4 +1,5 @@
 "use client";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { Section, ActionSection } from "@/components/design-system/section";
@@ -13,6 +14,8 @@ import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import { EVIDENCE_STATUS_LABELS, GAP_LABELS } from "@/lib/workspace/evidence-labels";
 import styles from "./checklist.module.css";
 import { reviewDate } from "./manual-review-summary";
+// The Decision Room store and copy load only when an outstanding item offers the action.
+const AddToDecisionRoom = dynamic(() => import("@/components/decision-room/add-to-decision-room").then((module) => module.AddToDecisionRoom), { ssr: false });
 
 export function ChecklistView({ workspace }: { workspace: PropertyCaseWorkspace }) {
   const repository = useMemo(createBrowserCaseRepository, []);
@@ -43,7 +46,8 @@ export function ChecklistView({ workspace }: { workspace: PropertyCaseWorkspace 
   }
   return <Section title="證據查證清單" description="人工核對是使用者提供的紀錄，不代表官方查證；未知、未命中與無法取得仍保留原狀。">
     <div id="evidence-checklist" className={styles.checklist}>
-      <ul className={styles.preview}>{items.filter((item) => item.reviewState !== "reviewed").slice(0, 3).map((item) => <li key={item.id}><strong>{item.name}</strong> · {MANUAL_REVIEW_LABELS[item.reviewState]}<p>{item.nextAction}</p></li>)}</ul>
+      <ul className={styles.preview}>{items.filter((item) => item.reviewState !== "reviewed").slice(0, 3).map((item) => <li key={item.id}><strong>{item.name}</strong> · {MANUAL_REVIEW_LABELS[item.reviewState]}<p>{item.nextAction}</p>
+        {item.outstanding && <AddToDecisionRoom caseId={workspace.caseId} candidate={{ origin: (item.domain as string) === "overview" ? "identity" : item.domain, sourceKey: item.id, title: item.name, note: item.nextAction }} />}</li>)}</ul>
       {workspace.identity.state !== "confirmed" && <Message variant="warning">物件身分需重新確認；先前人工核對僅保留為歷史紀錄，目前不能新增核對。</Message>}
       {staleDraft && <Message variant="warning">案件已有較新快照；草稿不能覆蓋新證據。請載入已保存核對狀態後再核對。</Message>}
       {notice && <div role={notice.error ? undefined : "status"}><Message variant={notice.error ? "error" : "information"}>{notice.text}</Message></div>}

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { Citation } from "@/lib/workspace/document-evidence";
 import { documentEvidenceCopy } from "@/lib/workspace/document-evidence-copy";
@@ -9,7 +10,7 @@ import { EvidenceCitation } from "./citation";
 import styles from "./evidence.module.css";
 
 /** Page-one summary. Numbers resolve to the report's existing citation list; it adds no references of its own. */
-export function ReportExecutive({ summary, citations }: { summary: ReportExecutiveSummary; citations: Citation[] }) {
+export function ReportExecutive({ summary, citations, room }: { summary: ReportExecutiveSummary; citations: Citation[]; room?: ReactNode }) {
   const { copyFrom, formatDate, formatNumber } = useExperienceLocale();
   const t = (key: ReportExecutiveCopyKey, values?: Record<string, string | number>) => copyFrom(reportExecutiveCopy, key, values);
   const n = (value: number) => formatNumber(value);
@@ -93,6 +94,7 @@ export function ReportExecutive({ summary, citations }: { summary: ReportExecuti
       <p className={styles.printOnly}>{t("openPrint")}</p>
       <p className={`${styles.executiveRefs} ${styles.screenOnly}`}><a href="#report-limits">{t("gapRefs")}</a></p>
     </section>
+    {room}
     <section aria-labelledby="executive-limitation" data-testid="executive-limitation">
       <h3 id="executive-limitation" className="text-subsection">{t("limitation")}</h3>
       <p>{t("limitationText")}</p>

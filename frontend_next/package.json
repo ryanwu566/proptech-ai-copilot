@@ -32,6 +32,8 @@
     "test:e2e:speech": "npm run build:e2e && node e2e/run-e2e.cjs e2e/speech.spec.ts",
     "test:e2e:vnext-identity": "npm run build:e2e && node e2e/run-e2e.cjs e2e/vnext-property-identity.spec.ts",
     "test:e2e:workspace": "npm run build:e2e && node scripts/test-professional-workspace-flag-off.mjs && node e2e/run-e2e.cjs e2e/professional-workspace.spec.ts",
+    "test:decision-room": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/decision-room-store.test.ts lib/decision-room-case-adapter.test.ts lib/decision-room-report.test.ts",
+    "test:e2e:decision-room": "npm run build:e2e && node e2e/run-e2e.cjs e2e/decision-room.spec.ts e2e/decision-report-closure.spec.ts --project=chromium --workers=1 --retries=0",
     "test:google-maps": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/google-maps-embed.test.mjs lib/google-maps-csp.test.mjs",
     "test:e2e:google-maps": "node scripts/test-google-browser-maps-e2e.mjs",
     "test:workspace-contract": "node scripts/test-professional-gis-contract.mjs",
