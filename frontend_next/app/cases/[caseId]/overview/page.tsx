@@ -1,4 +1,4 @@
-import { OverviewView } from "@/components/evidence/evidence-entry";
+import { OverviewView } from "@/components/workspace/overview/overview-view";
 
 export default function PropertyOverviewPage() {
   return <OverviewView />;

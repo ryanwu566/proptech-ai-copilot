@@ -88,27 +88,65 @@ test("Finance calculation helpers load only on Calculate and invalid assumptions
 
 test("open runtime is event-driven; closed runtime unsubscribes and reopening reads latest room state", async ({ page, baseURL }) => {
   const traffic = await prepare(page, baseURL);
-  // Overview has its own live Decision Room checklist readers; isolate palette IO here.
+  await page.addInitScript(() => {
+    // Observe native callback identity without replacing application callbacks.
+    // Subscriptions present before opening belong to the workspace (including Pulse).
+    const types = new Set(["storage", "proptech:saved-case-loaded", "proptech:saved-case-updated", "proptech:current-case-cleared", "proptech:decision-room-changed"]);
+    const active = new Map();
+    const ids = new WeakMap();
+    let nextId = 0;
+    const key = (type, listener, options) => {
+      if (!ids.has(listener)) ids.set(listener, ++nextId);
+      const capture = typeof options === "boolean" ? options : Boolean(options?.capture);
+      return `${type}:${ids.get(listener)}:${capture}`;
+    };
+    const add = window.addEventListener;
+    const remove = window.removeEventListener;
+    window.addEventListener = function (type, listener, options) {
+      const result = add.call(this, type, listener, options);
+      if (this === window && types.has(type) && listener) active.set(key(type, listener, options), type);
+      return result;
+    };
+    window.removeEventListener = function (type, listener, options) {
+      const result = remove.call(this, type, listener, options);
+      if (this === window && types.has(type) && listener) active.delete(key(type, listener, options));
+      return result;
+    };
+    window.paletteSubscriptions = () => [...active].map(([id, type]) => ({ id, type }));
+  });
   await page.goto("/cases/case-a/finance", { waitUntil: "networkidle" });
-  expect(await page.evaluate(() => window.paletteRoomReads)).toBe(0);
+  await expect(page.getByTestId("case-pulse")).toBeVisible();
+  const baseline = await page.evaluate(() => ({ reads: window.paletteRoomReads, subscriptions: window.paletteSubscriptions() }));
+  expect(traffic.runtimeRequests()).toEqual([]);
   await page.clock.install();
   await page.getByTestId("command-palette-trigger").click();
   await expect(page.getByTestId("command-palette")).toBeVisible();
+  expect(traffic.runtimeRequests().length).toBeGreaterThan(0);
+  const sessionSubscriptions = (await page.evaluate(() => window.paletteSubscriptions()))
+    .filter(({ id }) => !baseline.subscriptions.some((subscription) => subscription.id === id));
+  expect(sessionSubscriptions.map(({ type }) => type)).toEqual(expect.arrayContaining([
+    "storage", "proptech:saved-case-loaded", "proptech:saved-case-updated", "proptech:current-case-cleared", "proptech:decision-room-changed",
+  ]));
   const reads = await page.evaluate(() => window.paletteRoomReads);
-  expect(reads).toBeGreaterThan(0);
+  expect(reads).toBeGreaterThan(baseline.reads);
   await page.clock.runFor(60_000);
   expect(await page.evaluate(() => window.paletteRoomReads)).toBe(reads);
   await page.keyboard.press("Escape");
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
-  const closedReads = await page.evaluate(() => window.paletteRoomReads);
+  // Every listener added by the palette session is gone; Pulse remains subscribed.
+  await expect.poll(() => page.evaluate(() => window.paletteSubscriptions())).toEqual(baseline.subscriptions);
   await page.evaluate(() => {
-    localStorage.setItem("proptech.decisionRoom.v1.case-a", JSON.stringify({ version: 1, caseId: "case-a", revision: 0, updatedAt: "", notes: [], items: ["open", "in_progress", "blocked"].map((status, id) => ({ id: String(id), kind: "task", title: "Saved task", owner: "", dueDate: "", status, resolution: "" })), verifications: [], askingPrice: { priceWan: null, sourceUrl: "", sourceNote: "", checkedDate: "" }, history: [] }));
+    localStorage.setItem("proptech.decisionRoom.v1.case-a", JSON.stringify({ version: 1, caseId: "case-a", revision: 0, updatedAt: "", notes: [], items: ["open", "in_progress", "blocked", "done"].map((status, id) => ({ id: String(id), kind: "task", title: "Saved task", owner: "", dueDate: "", status, resolution: status === "done" ? "Checked saved action" : "" })), verifications: [], askingPrice: { priceWan: null, sourceUrl: "", sourceNote: "", checkedDate: "" }, history: [] }));
     window.dispatchEvent(new CustomEvent("proptech:decision-room-changed", { detail: "case-a" }));
   });
+  await expect(page.getByTestId("case-pulse")).toContainText("3 outstanding");
+  const closedReads = await page.evaluate(() => window.paletteRoomReads);
   await page.clock.runFor(60_000);
   expect(await page.evaluate(() => window.paletteRoomReads)).toBe(closedReads);
+  expect(await page.evaluate(() => window.paletteSubscriptions())).toEqual(baseline.subscriptions);
   await page.getByTestId("command-palette-trigger").click();
   await expect(page.locator('[data-command-id="decision-room"]')).toContainText("Handle 3 outstanding items");
+  expect(await page.evaluate(() => window.paletteRoomReads)).toBeGreaterThan(closedReads);
   expect(traffic.providers).toEqual([]);
 });
 
