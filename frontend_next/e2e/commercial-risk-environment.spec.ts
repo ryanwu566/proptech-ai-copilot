@@ -181,6 +181,8 @@ test("fresh query leads with buyer cards and keeps full evidence and source deta
   await page.getByTestId("risk-details").locator("summary").first().click();
 
   await expect(page.getByRole("region", { name: "風險與環境圖" })).toBeVisible();
+  await expect(page.locator(".leaflet-container")).toHaveCount(0);
+  await page.getByTestId("show-risk-map").click();
   await expect(page.getByTestId("risk-property-marker")).toBeVisible();
   await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
   await expect(page.getByRole("button", { name: "淹水潛勢", exact: true })).toBeVisible();

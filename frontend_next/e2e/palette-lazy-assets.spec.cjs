@@ -88,7 +88,9 @@ test("Finance calculation helpers load only on Calculate and invalid assumptions
 
 test("open runtime is event-driven; closed runtime unsubscribes and reopening reads latest room state", async ({ page, baseURL }) => {
   const traffic = await prepare(page, baseURL);
-  await page.goto("/cases/case-a/overview", { waitUntil: "networkidle" });
+  // Overview has its own live Decision Room checklist readers; isolate palette IO here.
+  await page.goto("/cases/case-a/finance", { waitUntil: "networkidle" });
+  expect(await page.evaluate(() => window.paletteRoomReads)).toBe(0);
   await page.clock.install();
   await page.getByTestId("command-palette-trigger").click();
   await expect(page.getByTestId("command-palette")).toBeVisible();
@@ -100,7 +102,7 @@ test("open runtime is event-driven; closed runtime unsubscribes and reopening re
   await expect(page.getByTestId("command-palette")).toHaveCount(0);
   const closedReads = await page.evaluate(() => window.paletteRoomReads);
   await page.evaluate(() => {
-    localStorage.setItem("proptech.decisionRoom.v1.case-a", JSON.stringify({ version: 1, caseId: "case-a", revision: 0, updatedAt: "", notes: [], items: [1, 2, 3].map((id) => ({ id: String(id), kind: "task", title: "Saved task", owner: "", dueDate: "", status: "open", resolution: "" })), verifications: [], askingPrice: { priceWan: null, sourceUrl: "", sourceNote: "", checkedDate: "" }, history: [] }));
+    localStorage.setItem("proptech.decisionRoom.v1.case-a", JSON.stringify({ version: 1, caseId: "case-a", revision: 0, updatedAt: "", notes: [], items: ["open", "in_progress", "blocked"].map((status, id) => ({ id: String(id), kind: "task", title: "Saved task", owner: "", dueDate: "", status, resolution: "" })), verifications: [], askingPrice: { priceWan: null, sourceUrl: "", sourceNote: "", checkedDate: "" }, history: [] }));
     window.dispatchEvent(new CustomEvent("proptech:decision-room-changed", { detail: "case-a" }));
   });
   await page.clock.runFor(60_000);

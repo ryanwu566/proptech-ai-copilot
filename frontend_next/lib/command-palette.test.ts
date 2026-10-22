@@ -61,6 +61,12 @@ test("corrupt and wrong-case room records do not expose counts", () => {
     assert.equal(buildCaseCommands({ pathname: "/cases/case-a/overview", workspace: w, room, locale: "en" }).find((c) => c.id === "decision-room")?.title, "Open Decision Room");
   }
 });
+test("outstanding count follows saved Decision Room statuses from main", () => {
+  const room = emptyDecisionRoom("case-a");
+  room.items = (["open", "in_progress", "blocked", "done"] as const).map((status, id) => ({ id: String(id), kind: "task", title: "Check", owner: "", dueDate: "", status, resolution: status === "done" ? "Checked" : "" }));
+  const list = buildCaseCommands({ pathname: "/cases/case-a/finance", workspace: adaptSavedCaseToWorkspace(e9Case()), room: { status: "ready", room }, locale: "en" });
+  assert.equal(list.find((command) => command.id === "decision-room")?.title, "Handle 3 outstanding items");
+});
 for (const [locale, report] of [["zh-TW", "查看案件報告"], ["en", "View case report"], ["ja", "案件レポートを表示"], ["ko", "사례 보고서 보기"]] as const) {
   test(`${locale}: localized label and stable multilingual aliases filter`, () => {
     const list = buildCaseCommands({ pathname: "/cases/case-a/overview", workspace: adaptSavedCaseToWorkspace(e9Case()), room: null, locale });

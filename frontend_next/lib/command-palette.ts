@@ -1,5 +1,7 @@
 import type { PropertyCaseWorkspace } from "./workspace/workspace-model";
 import type { RoomRead } from "./decision-room-store";
+// @ts-expect-error Native Node tests use source extensions.
+import { isOutstanding } from "./decision-room-store.ts";
 import type { ExperienceLocale } from "./experience-i18n";
 // @ts-expect-error Native Node tests use source extensions.
 import { commandPaletteCopy, type CommandCopyKey } from "./command-palette-copy.ts";
@@ -40,7 +42,7 @@ export function buildCaseCommands({ pathname, workspace, room, locale }: Command
   list.push(...globals);
 
   const openItems = room?.status === "ready" && room.room.caseId === workspace.caseId
-    ? room.room.items.filter((item) => item.status === "open").length : 0;
+    ? room.room.items.filter(isOutstanding).length : 0;
   if (openItems) list.find((c) => c.id === "decision-room")!.title = label("outstanding", openItems);
 
   const unconfirmed = workspace.identity.state === "unconfirmed";
