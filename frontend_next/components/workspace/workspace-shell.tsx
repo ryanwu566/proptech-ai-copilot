@@ -7,6 +7,7 @@ import { WorkspaceNavigation } from "./workspace-navigation";
 import styles from "./workspace-shell.module.css";
 import { CaseWorkflowHandoff } from "@/components/navigation/case-workflow-handoff";
 import { CopilotEntry } from "./copilot/copilot-entry";
+import { DemoCaseNotice } from "./demo-case-notice";
 
 // Last case path that finished rendering; null until the first case page has mounted in this document.
 let settledPath: string | null = null;
@@ -15,7 +16,7 @@ let settledPath: string | null = null;
 function RouteEnter({ path, children }: { path: string; children: ReactNode }) {
   const [animate] = useState(() => settledPath !== null && settledPath !== path);
   useEffect(() => { settledPath = path; }, [path]);
-  return <div className={animate ? `${styles.page} ${styles.enter}` : styles.page}>{children}</div>;
+  return <div className={animate ? `${styles.page} ${styles.enter}` : styles.page} data-case-route-content>{children}</div>;
 }
 
 /**
@@ -68,7 +69,10 @@ export function CaseFrame({ caseId, header, pulse, children }: { caseId: string;
         <div ref={rail} className={styles.rail} data-case-rail><WorkspaceNavigation caseId={caseId} /></div>
         <div ref={pulseSlot} className={styles.pulse}>{pulse}</div>
       </div>
-      <div className={styles.content} data-case-content><RouteEnter key={pathname} path={pathname}>{children}</RouteEnter></div>
+      <div className={styles.content} data-case-content>
+        <div className={styles.demoNotice}><DemoCaseNotice key={caseId} caseIds={[caseId]} /></div>
+        <RouteEnter key={pathname} path={pathname}>{children}</RouteEnter>
+      </div>
     </div>
   </div>;
 }

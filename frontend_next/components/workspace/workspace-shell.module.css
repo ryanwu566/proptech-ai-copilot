@@ -375,7 +375,7 @@
 
 /* Printing is the route's own document: frame chrome and gutters drop out entirely. */
 @media print {
-  :global(.workspace-property-header), .side { display: none !important; }
+  :global(.workspace-property-header), .side, .demoNotice { display: none !important; }
   .body { display: block; width: auto; padding: 0; margin: 0; }
   .enter { animation: none; }
 }

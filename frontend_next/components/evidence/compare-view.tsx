@@ -14,6 +14,7 @@ import { buildCompareDiff, compareFieldsHref, isVisibleInDifferences, parseField
 import { compareCopy, type CompareCopyKey } from "@/lib/workspace/compare-copy";
 import { EvidenceValue, EvidenceGaps, EvidenceSources, RepositoryNotice, storageBlocked, date } from "./evidence-view";
 import { CompareDifferenceBrief } from "./compare-difference-brief";
+import { DemoCaseNotice } from "@/components/workspace/demo-case-notice";
 import styles from "./evidence.module.css";
 import { TradeoffPanel } from "@/components/preferences/tradeoff-panel";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
@@ -58,6 +59,7 @@ export function CompareView() {
     <header><p className="text-meta">已儲存快照 · 本機案件</p><h1 className="text-page">案件證據比較</h1><p>比較各案件的保存證據、假設與未知項目；不提供物件排名、評分或購買建議。</p><Link className="ds-button ds-button--secondary" href="/cases">已儲存案件</Link></header>
     {!read ? <AsyncState kind="loading" title="正在讀取本機案件" /> : <>
       <RepositoryNotice read={read} />
+      <DemoCaseNotice caseIds={ids} showCompare={false} />
       {!storageBlocked(read) && <>
         <Section title="選取案件" description="選取 2–4 案，保留你的選取順序。A／B／C／D 只表示位置。">
           <div className={styles.selection}>{allCases.map((item) => <label key={item.caseId}><input type="checkbox" aria-label={`選擇 ${item.title}`} checked={ids.includes(item.caseId)} onChange={() => toggle(item.caseId)} /><span><strong>{item.title}</strong><span>{item.displayAddress}</span><span>保存：{date(item.savedAt)}</span>{item.identity.state !== "confirmed" && <span>需先確認物件身分</span>}</span></label>)}</div>

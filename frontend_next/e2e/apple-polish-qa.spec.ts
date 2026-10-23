@@ -94,3 +94,50 @@ test("reduced motion and transparency keep case chrome and content still and opa
   await expect(chrome).toHaveCSS("background-color", "rgb(246, 247, 249)");
   expect(await page.locator("[data-case-content]").evaluate((node) => node.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length)).toBe(0);
 });
+
+for (const locale of locales) {
+  test(`${locale}: complete Demo Cases retain one frame and three physical Report core pages`, async ({ page, baseURL }, testInfo) => {
+    test.setTimeout(120_000);
+    await page.addInitScript((locale) => {
+      localStorage.setItem("proptech.locale.v1", JSON.stringify({ version: 1, locale }));
+      localStorage.setItem("proptech_onboarding_seen", "true");
+      localStorage.setItem("proptech_onboarding_version", "2");
+    }, locale);
+    const providers: string[] = [];
+    await page.route("**/*", (route) => {
+      if (isProviderRequest(route.request(), baseURL!)) { providers.push(route.request().url()); return route.abort(); }
+      return route.continue();
+    });
+    await page.goto("/");
+    await page.getByTestId("complete-example-start").click();
+    await expect(page).toHaveURL(/\/cases\/proptech-demo-a\/overview$/);
+    const frame = await page.locator("[data-case-frame]").elementHandle();
+    const notice = await page.getByTestId("demo-case-notice").elementHandle();
+    await page.locator("[data-case-rail] a[href$='/report']").click();
+    await expect(page.getByTestId("report-core-page-3")).toBeVisible();
+    expect(await frame!.evaluate(node => node.isConnected)).toBe(true);
+    expect(await notice!.evaluate(node => node.isConnected)).toBe(true);
+    await expect(page.getByTestId("demo-case-notice")).toHaveCount(1);
+    await expect(page.getByTestId("demo-case-notice")).toBeVisible();
+    const stored = await page.evaluate(() => localStorage.getItem("proptech.savedCases.v1"));
+    await page.emulateMedia({ media: "print" });
+    await expect(page.getByTestId("demo-case-notice")).toBeHidden();
+    const pdfPages = (pdf: Buffer) => (pdf.toString("latin1").match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length;
+    const total = pdfPages(await page.pdf({ path: testInfo.outputPath(`demo-${locale}-a4.pdf`), preferCSSPageSize: true, printBackground: true }));
+    const cumulative: number[] = [];
+    for (const hidden of [["report-core-page-2", "report-core-page-3"], ["report-core-page-3"], []]) {
+      await page.evaluate((hidden) => {
+        document.getElementById("demo-print-measure")?.remove();
+        const style = document.createElement("style"); style.id = "demo-print-measure";
+        style.textContent = [...hidden, "report-appendix", "report-citation-references"].map(id => `[data-testid="${id}"] { display: none !important; }`).join("\n");
+        document.head.append(style);
+      }, hidden);
+      cumulative.push(pdfPages(await page.pdf({ preferCSSPageSize: true, printBackground: true })));
+    }
+    expect(cumulative).toEqual([1, 2, 3]);
+    expect(total).toBeGreaterThan(3);
+    expect(await page.evaluate(() => localStorage.getItem("proptech.savedCases.v1"))).toBe(stored);
+    expect(providers).toEqual([]);
+    await testInfo.attach("demo-a4-pages", { body: JSON.stringify({ locale, cumulative, total, appendixStartsOn: cumulative[2] + 1 }), contentType: "application/json" });
+  });
+}

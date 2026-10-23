@@ -56,7 +56,7 @@ test("rail navigation stays in one document and one case frame, across snapshot 
 test("route content reveals only on in-app navigation and not at all under reduced motion", async ({ page }) => {
   await seed(page);
   await page.goto("/cases/case-a/overview");
-  const content = page.locator("[data-case-content] > div");
+  const content = page.locator("[data-case-route-content]");
   // First load renders still.
   expect(await content.evaluate((node) => getComputedStyle(node).animationName)).toBe("none");
   await rail(page).getByRole("link", { name: "價格與市場", exact: true }).click();
