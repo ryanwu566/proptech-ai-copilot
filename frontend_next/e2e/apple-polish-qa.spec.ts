@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { overviewViewCopy } from "../lib/workspace/overview-presentation";
@@ -8,6 +9,39 @@ import { isProviderRequest } from "./helpers/provider-request";
 const locales = ["zh-TW", "en", "ja", "ko"] as const;
 const output = path.resolve(process.cwd(), "../.local/apple-polish/screenshots");
 const routes = ["/", "/cases/case-a/overview", "/cases/case-a/location", "/cases/case-a/risk", "/cases/case-a/finance", "/cases/case-a/decision-room", "/cases/case-a/report", "/compare?cases=case-a,case-b"];
+
+for (const locale of locales) {
+  test(`${locale}: Location controls fit the system-font fallback at every width`, async ({ page, baseURL }) => {
+    await page.addInitScript(({ saved, locale }) => {
+      localStorage.setItem("proptech.savedCases.v1", JSON.stringify([saved]));
+      localStorage.setItem("proptech.locale.v1", JSON.stringify({ version: 1, locale }));
+      localStorage.setItem("proptech_onboarding_seen", "true");
+      localStorage.setItem("proptech_onboarding_version", "2");
+    }, { saved: e9Case(), locale });
+    const providers: string[] = [];
+    await page.route("**/*", route => {
+      if (isProviderRequest(route.request(), baseURL!)) { providers.push(route.request().url()); return route.abort(); }
+      return route.continue();
+    });
+    await page.goto("/cases/case-a/location");
+    // Exercise the supported fallback used when the preferred OS fonts are absent.
+    await page.evaluate(() => document.documentElement.style.setProperty("--font-sans", "system-ui"));
+    for (const width of [390, 430, 720, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => innerWidth)).toBe(width);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale}, ${width}px`).toBe(true);
+      const destination = page.getByTestId("commute-route-card").getByRole("textbox");
+      expect((await destination.boundingBox())!.width, "the address input must remain usable").toBeGreaterThanOrEqual(120);
+      const transit = page.getByTestId("commute-transit-context-state").locator("..").getByRole("button");
+      await expect(transit).toBeEnabled();
+      expect(await transit.evaluate(button => {
+        const box = button.getBoundingClientRect(), card = button.parentElement!.parentElement!.getBoundingClientRect();
+        return box.left >= card.left && box.right <= card.right;
+      })).toBe(true);
+    }
+    expect(providers).toEqual([]);
+  });
+}
 
 for (const locale of locales) {
   test(`${locale}: overview presentation and responsive route QA`, async ({ page, baseURL }) => {
@@ -122,8 +156,17 @@ for (const locale of locales) {
     const stored = await page.evaluate(() => localStorage.getItem("proptech.savedCases.v1"));
     await page.emulateMedia({ media: "print" });
     await expect(page.getByTestId("demo-case-notice")).toBeHidden();
+    const footer = (await page.getByTestId("core-next-steps").locator("p").last().innerText()).replace(/\s+/g, "");
     const pdfPages = (pdf: Buffer) => (pdf.toString("latin1").match(/\/Type\s*\/Page(?![s\w])/g) ?? []).length;
-    const total = pdfPages(await page.pdf({ path: testInfo.outputPath(`demo-${locale}-a4.pdf`), preferCSSPageSize: true, printBackground: true }));
+    const pdfPath = testInfo.outputPath(`demo-${locale}-a4.pdf`);
+    const total = pdfPages(await page.pdf({ path: pdfPath, preferCSSPageSize: true, printBackground: true }));
+    const auditPath = `${pdfPath}.audit.json`;
+    const audit = spawnSync("python", ["-X", "utf8", "-c", "import pymupdf as fitz,json,sys; d=fitz.open(sys.argv[1]); json.dump([{'text':p.get_text(),'clipped':any(b[0]<-1 or b[2]>p.rect.width+1 or b[1]<-1 or b[3]>p.rect.height+1 for b in p.get_text('blocks'))} for p in d],open(sys.argv[2],'w',encoding='utf-8'),ensure_ascii=False)", pdfPath, auditPath], { encoding: "utf8", windowsHide: true });
+    expect(audit.status, audit.stderr).toBe(0);
+    const sheets = JSON.parse(await readFile(auditPath, "utf8")) as { text: string; clipped: boolean }[];
+    expect(sheets.every(sheet => !sheet.clipped), "no PDF text extends beyond a physical sheet").toBe(true);
+    expect(sheets[2].text.replace(/\s+/g, ""), "the complete checklist footer stays on page three").toContain(footer);
+    await testInfo.attach("demo-pdf-text-audit", { path: auditPath, contentType: "application/json" });
     const cumulative: number[] = [];
     for (const hidden of [["report-core-page-2", "report-core-page-3"], ["report-core-page-3"], []]) {
       await page.evaluate((hidden) => {

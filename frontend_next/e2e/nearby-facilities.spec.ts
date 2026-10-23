@@ -125,14 +125,51 @@ test("leaving during an unfinished request never auto-retries on reopening", asy
   await panel(page).getByRole("button", { name: "查附近生活機能", exact: true }).click();
   await expect.poll(() => calls.nearby.length).toBe(1);
   await page.locator(".workspace-navigation").getByRole("link", { name: "物件總覽", exact: true }).click();
+  await expect(page).toHaveURL(/\/overview$/);
+  await expect(panel(page)).toHaveCount(0);
   release();
+  // The explicit acquisition owns persistence even after its panel unmounts.
+  // Its successful saved result changes the manual action from Explore to Refresh.
+  await expect.poll(async () => (await stored(page)).data.nearbyFacilities?.places.length).toBe(6);
   await page.locator(".workspace-navigation").getByRole("link", { name: "區位與通勤", exact: true }).click();
-  await expect(panel(page).getByRole("button", { name: "查附近生活機能", exact: true })).toBeVisible();
+  const refresh = panel(page).getByRole("button", { name: "重新查詢附近設施", exact: true });
+  await expect(panel(page)).toContainText("Facility school");
+  await expect(refresh).toBeVisible();
+  await expect(refresh).toBeEnabled();
   await page.waitForLoadState("networkidle");
   expect(calls.nearby).toHaveLength(1);
+  expect(calls.other).toEqual([]);
+  await refresh.click();
+  await expect(panel(page)).toContainText("Facility school");
+  await expect.poll(() => calls.nearby.length).toBe(2);
+  expect(calls.other).toEqual([]);
+});
+
+test("leaving before a failed request keeps an explicit Explore action on reopening", async ({ page }) => {
+  let release!: () => void;
+  const deferred = new Promise<void>(resolve => { release = resolve; });
+  let attempt = 0;
+  const calls = await prepare(page, { respond: async route => {
+    if (++attempt === 1) { await deferred; await route.fulfill({ status: 503, json: {} }); }
+    else await route.fulfill({ json: response });
+  } });
+  await page.goto(PATH);
   await panel(page).getByRole("button", { name: "查附近生活機能", exact: true }).click();
+  await expect.poll(() => calls.nearby.length).toBe(1);
+  await page.locator(".workspace-navigation").getByRole("link", { name: "物件總覽", exact: true }).click();
+  await expect(page).toHaveURL(/\/overview$/);
+  await expect(panel(page)).toHaveCount(0);
+  release();
+  await page.locator(".workspace-navigation").getByRole("link", { name: "區位與通勤", exact: true }).click();
+  const explore = panel(page).getByRole("button", { name: "查附近生活機能", exact: true });
+  await expect(explore).toBeEnabled();
+  await page.waitForLoadState("networkidle");
+  expect(calls.nearby).toHaveLength(1);
+  expect((await stored(page)).data.nearbyFacilities).toBeUndefined();
+  await explore.click();
   await expect(panel(page)).toContainText("Facility school");
   expect(calls.nearby).toHaveLength(2);
+  expect(calls.other).toEqual([]);
 });
 
 test("a changed property hides saved facilities and blocks acquisition until confirmed", async ({ page }) => {

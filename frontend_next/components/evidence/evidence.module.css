@@ -191,6 +191,9 @@
   .coreFacts :global(.ds-status), .coreFacts :global(.ds-status) > span { display: inline; padding: 0; border: 0; }
   .coreFacts :global(.ds-status__icon) { margin-right: 1mm; }
   .coreSteps > li { break-inside: avoid; margin-bottom: 1.5mm; }
+  /* Complete Demo actions leave less room for the gap checklist on page three.
+     Match the action-list density while keeping every gap and the footer in print. */
+  .coreSteps { font-size: 9.5pt; line-height: 1.32; }
   .corePage [data-citation-id] > span, .marketMarker [data-citation-id] > span { display: none; }
   .markerTrack, .markerBand, .markerPoint { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .markerTrack { background: #eee; border-color: #999; }

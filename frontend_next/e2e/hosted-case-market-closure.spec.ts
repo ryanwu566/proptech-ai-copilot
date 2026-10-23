@@ -11,6 +11,8 @@ import { getSurfaceCopy } from "../lib/surface-copy";
 import { join } from "node:path";
 import { comparableCopy } from "../lib/comparable-explanation-copy";
 import { navigationCopy } from "../lib/navigation/copy";
+import { caseFrameCopy } from "../lib/workspace/case-frame-copy";
+import { checklistCopy } from "../lib/workspace/overview-presentation";
 
 // These are synthetic UI contract responses, not proof of official production coverage.
 // The supported real-data acquisition gate is exercised separately against the backend.
@@ -159,7 +161,7 @@ async function reopen(page: Page, s: Scenario, id: string, locale: ExperienceLoc
   await expect(savedCase).toHaveAttribute("href", `/cases/${encodeURIComponent(id)}/overview`);
   await savedCase.click();
   await expect(page).toHaveURL(new RegExp(`/cases/${id}/overview$`));
-  await expect(page.getByRole("banner", { name: "目前物件" })).toContainText(s.displayAddress);
+  await expect(page.getByRole("banner", { name: caseFrameCopy[locale].current, exact: true })).toContainText(s.displayAddress);
   await expect(page.getByTestId("overview-finance-summary")).toContainText(s.payment.toLocaleString("en"));
   await noOverflow(page);
 }
@@ -218,9 +220,9 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
       await reopen(page, s, saved.id, locale);
       await page.locator("#evidence-checklist summary").click();
       await page.getByTestId("checklist-identity-legal").getByRole("combobox").selectOption(s.review);
-      await page.getByRole("button", { name: "保存人工核對", exact: true }).click();
-      await expect(page.getByTestId("commercial-overview-workspace").getByRole("status")).toContainText("人工核對狀態已保存");
-      await page.reload(); await expect(page.getByRole("banner", { name: "目前物件" })).toContainText(s.displayAddress);
+      await page.getByRole("button", { name: checklistCopy[locale].save, exact: true }).click();
+      await expect(page.getByTestId("commercial-overview-workspace").getByRole("status")).toContainText(checklistCopy[locale].saved);
+      await page.reload(); await expect(page.getByRole("banner", { name: caseFrameCopy[locale].current, exact: true })).toContainText(s.displayAddress);
       const persisted = (await rows(page)).find(item => item.id === saved.id)!;
       expect(persisted.data.journeyContext?.priceBasis).toBe("manual"); expect(persisted.data.journeyContext?.manualPriceWan).toBe(s.price);
       expect(persisted.data.inputs.building_age_years).toBe(s.age); expect(persisted.data.inputs.floor).toBe(s.floor);
