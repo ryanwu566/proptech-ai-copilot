@@ -16,18 +16,19 @@ export function RiskBuyerCard({ card }: { card: RiskBuyerCardModel }) {
   const meaning = card.freshness === "saved_summary" && card.evidence
     ? savedFinding(card.state, locale)
     : state.meaning;
-  return <article data-buyer-card data-testid={`risk-buyer-card-${card.key}`} className={`ds-panel ${styles.buyerCard}`}>
+  return <article data-buyer-card data-buyer-state={card.state} data-testid={`risk-buyer-card-${card.key}`} className={`ds-panel ${styles.buyerCard}`}>
     <DetailsDisclosure className={styles.buyerDisclosure} summary={<span className={styles.cardSummary}>
       <span className="text-subsection">{hazard.name}</span>
       <span className={styles.buyerMeaning}>{meaning}</span>
-      <span className={styles.cardMeta}><code>{card.state}</code><span>{c[card.freshness]}</span></span>
+      <span className={styles.cardMeta}><span>{c[card.freshness]}</span></span>
       <span className={styles.cardAction}>{c.openCard} <span aria-hidden="true">↕</span></span>
     </span>}>
       <div className={styles.buyerSections}>
         <section><h3 className="text-subsection">{c.known}</h3><p>{meaning}</p></section>
         <section><h3 className="text-subsection">{c.limits}</h3><p>{state.limits}</p></section>
         <section><h3 className="text-subsection">{c.next}</h3><p>{state.next}</p><ul className={styles.buyerActions}>{hazard.actions.map((action) => <li key={action}>{action}</li>)}</ul></section>
-        <DetailsDisclosure summary={c.sourceDetails} variant="compact"><RiskSourceEvidence row={card.evidence} checkedAt={card.checkedAt} /></DetailsDisclosure>
+        {/* The technical state code is evidence detail, not the headline; the summary already says it in words. */}
+        <DetailsDisclosure summary={c.sourceDetails} variant="compact">{(!card.evidence || buyerState(card.evidence) !== card.state) && <p className="text-meta">{c.status}: <code>{card.state}</code></p>}<RiskSourceEvidence row={card.evidence} checkedAt={card.checkedAt} /></DetailsDisclosure>
       </div>
     </DetailsDisclosure>
   </article>;

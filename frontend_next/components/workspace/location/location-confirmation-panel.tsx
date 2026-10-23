@@ -84,14 +84,20 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
   }
 
   const sourceLabel = (source: LocationCandidate["source"]) => copy(source === "tgos" ? "sourceTgos" : "sourceGoogle");
-  return <Panel className="space-y-3" data-testid="location-confirmation">
+  return <Panel className="location-confirmation space-y-3" data-testid="location-confirmation" data-step={step.kind}>
     {(step.kind === "idle" || step.kind === "finding") && <div className="space-y-2">
       <h2 className="text-subsection">{copy(step.kind === "finding" ? "finding" : "find")}</h2>
-      <p className="break-words text-body">{workspace.displayAddress}</p>
+      <p className="location-address break-words">{workspace.displayAddress}</p>
+      {/* Stages mirror real states only: the saved draft, this lookup, then the buyer's explicit Confirm. */}
+      {step.kind === "finding" && <ol className="location-stages" aria-label={copy("stages")}>
+        <li data-stage="done">{copy("stageCase")}</li>
+        <li data-stage="current" aria-current="step">{copy("stageLocate")}</li>
+        <li data-stage="pending">{copy("stageConfirm")}</li>
+      </ol>}
       <CommercialButton size="touch" loading={step.kind === "finding"} loadingLabel={copy("finding")} onClick={() => void find()} data-testid="location-find">{copy("find")}</CommercialButton>
       <p className="text-helper">{copy("findNote")}</p>
     </div>}
-    {step.kind === "candidate" && <div ref={result} tabIndex={-1} className="space-y-3" data-testid="location-candidate" aria-labelledby="location-candidate-title">
+    {step.kind === "candidate" && <div ref={result} tabIndex={-1} className="ds-reveal space-y-3" data-testid="location-candidate" aria-labelledby="location-candidate-title">
       <h2 id="location-candidate-title" className="text-subsection">{copy("candidateTitle")}</h2>
       <p className="break-words text-body font-semibold">{step.candidate.interpretedAddress}</p>
       <div role="region" aria-label={copy("mapContext")} data-testid="location-candidate-map" className="h-56 overflow-hidden rounded-xl [&_.leaflet-container]:!min-h-0">

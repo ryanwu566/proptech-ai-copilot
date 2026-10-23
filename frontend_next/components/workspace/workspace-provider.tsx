@@ -6,16 +6,17 @@ import { createBrowserCaseRepository } from "@/lib/workspace/case-repository";
 import type { PropertyCaseWorkspace, WorkspaceLoadState } from "@/lib/workspace/workspace-model";
 
 const WorkspaceContext = createContext<PropertyCaseWorkspace | null>(null);
+// After the first hydrated mount, later mounts (in-app navigation) read storage during render instead of
+// flashing the loading state; the server render and hydration still start from "loading".
+let hydrated = false;
 
 export function WorkspaceProvider({ caseId, children }: { caseId: string; children: ReactNode }) {
   const repository = useMemo(() => createBrowserCaseRepository(), []);
-  const [state, setState] = useState<WorkspaceLoadState>({ status: "loading" });
+  const [state, setState] = useState<WorkspaceLoadState>(() => hydrated ? readCase(repository, caseId) : { status: "loading" });
 
   useEffect(() => {
-    const load = () => {
-      const workspace = repository.getCase(caseId);
-      setState(workspace ? { status: "ready", workspace } : { status: "not_found", caseId });
-    };
+    hydrated = true;
+    const load = () => setState(readCase(repository, caseId));
     load();
     return repository.subscribe(load);
   }, [caseId, repository]);
@@ -23,6 +24,11 @@ export function WorkspaceProvider({ caseId, children }: { caseId: string; childr
   if (state.status === "loading") return <WorkspaceLoading />;
   if (state.status === "not_found") return <WorkspaceNotFound />;
   return <WorkspaceContext.Provider value={state.workspace}>{children}</WorkspaceContext.Provider>;
+}
+
+function readCase(repository: ReturnType<typeof createBrowserCaseRepository>, caseId: string): WorkspaceLoadState {
+  const workspace = repository.getCase(caseId);
+  return workspace ? { status: "ready", workspace } : { status: "not_found", caseId };
 }
 
 export function useWorkspace(): PropertyCaseWorkspace {

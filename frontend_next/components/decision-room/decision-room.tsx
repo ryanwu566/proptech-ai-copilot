@@ -10,7 +10,6 @@ import { decisionRoomCopy, type DecisionRoomCopy } from "@/lib/decision-room-cop
 import { projectDecisionRoomReport } from "@/lib/decision-room-report";
 import { decisionRoomReportCopy, type DecisionRoomReportCopyKey } from "@/lib/decision-room-report-copy";
 import { resolveCommercialState } from "@/lib/commercial/state";
-import { WorkspaceNavigation } from "@/components/workspace/workspace-navigation";
 import { documentEvidenceCopy } from "@/lib/workspace/document-evidence-copy";
 import styles from "./decision-room.module.css";
 import { CopilotLink } from "@/components/workspace/copilot/copilot-link";
@@ -103,7 +102,6 @@ export function DecisionRoomPage({ caseId }: { caseId: string }) {
   const context = caseRead?.status === "ready" ? caseRead.context : null;
   const room = roomRead?.status === "ready" || roomRead?.status === "empty" ? roomRead.room : null;
   return <main id="main-content" className={styles.room} data-testid="decision-room">
-    <div className={styles.breadcrumb}><Link href="/cases">{c.cases}</Link><span aria-hidden="true">/</span><Link href={`/cases/${encodeURIComponent(caseId)}/overview`}>{c.overview}</Link></div>
     <header className={styles.hero}>
       {context && <p data-testid="room-case-context" className={styles.eyebrow}>{context.title} · {context.address}</p>}
       <h1 id="room-title" data-testid="room-heading">{c.title}</h1>
@@ -111,7 +109,8 @@ export function DecisionRoomPage({ caseId }: { caseId: string }) {
       <p className={styles.boundary}>{c.boundary}</p>
       <p className={styles.muted}>{c.localOnly}</p>
     </header>
-    {context && <><WorkspaceNavigation caseId={caseId} /><CopilotLink caseId={caseId} /></>}
+    {/* The case frame supplies identity and section navigation; the room keeps only its own entry points. */}
+    {context && <CopilotLink caseId={caseId} />}
     {loading && <p aria-busy="true">{c.loading}</p>}
     {caseRead && caseRead.status !== "ready" && <div className={styles.error} role="alert"><p>{c[caseRead.status]}</p><Link href="/cases">{c.cases}</Link><button className={button} onClick={load}>{c.retry}</button></div>}
     {context && roomRead && !room && <div className={styles.error} role="alert"><p>{c[roomRead.status as RoomError]}</p><button className={button} onClick={load}>{c.retry}</button></div>}

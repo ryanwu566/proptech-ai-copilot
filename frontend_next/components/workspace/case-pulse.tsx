@@ -37,8 +37,8 @@ export function CasePulse({ workspace }: { workspace: PropertyCaseWorkspace }) {
   </section>;
 }
 
-/** Standalone routes keep their own diagnostic reads; this subscription is read-only. */
-export function SavedCasePulse({ caseId }: { caseId: string }) {
+/** Standalone routes keep their own diagnostic reads; this is a read-only subscription to the saved case. */
+export function useSavedCase(caseId: string): PropertyCaseWorkspace | null {
   const repository = useMemo(createBrowserCaseRepository, []);
   const [workspace, setWorkspace] = useState<PropertyCaseWorkspace | null>(null);
   useEffect(() => {
@@ -46,5 +46,5 @@ export function SavedCasePulse({ caseId }: { caseId: string }) {
     load();
     return repository.subscribe(load);
   }, [caseId, repository]);
-  return workspace?.caseId === caseId ? <CasePulse key={caseId} workspace={workspace} /> : null;
+  return workspace?.caseId === caseId ? workspace : null;
 }

@@ -1,3 +1,5 @@
+/* One case frame for every /cases/[caseId]/* route: case bar, rail (sections + pulse), content.
+   Case bar and rail keep the same position on every route so only the content column changes. */
 .shell {
   min-height: 100vh;
   /* Transparent so the route's ambient scene (z-index -1) shows through; the canvas colour comes from <html>. */
@@ -8,109 +10,201 @@
   width: min(100%, var(--width-content));
   margin-inline: auto;
   display: grid;
-  grid-template-columns: 11rem minmax(0, 1fr);
-  gap: var(--space-6);
-  padding: var(--space-6) var(--space-8) var(--space-8);
+  grid-template-columns: var(--rail-w) minmax(0, 1fr);
+  gap: var(--space-10);
+  padding: var(--space-8) var(--gutter-page) var(--space-16);
 }
 
-.rail {
+/* The rail sticks just under the case bar and holds sections, then the case pulse. */
+.side {
+  position: sticky;
+  top: calc(var(--casebar-h) + var(--space-6));
+  align-self: start;
+  display: grid;
+  gap: var(--space-8);
   min-width: 0;
+  max-height: calc(100vh - var(--casebar-h) - var(--space-8));
+  overflow-y: auto;
+  scrollbar-width: none;
 }
+
+.side::-webkit-scrollbar { display: none; }
+.rail, .pulse { min-width: 0; }
+.pulse:empty { display: none; }
 
 .rail :global(.workspace-navigation) {
-  position: sticky;
-  top: var(--space-4);
   flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 1px;
 }
 
-.content {
+.rail :global(.ds-navigation-item) {
+  position: relative;
+  min-height: 2.25rem;
+  border-left: 0;
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  font-size: var(--text-dense-size);
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+
+.rail :global(.ds-navigation-item:hover) { background: var(--surface-sunken); color: var(--text-primary); }
+
+/* Active: sunken surface, ink text, a 2px action indicator. */
+.rail :global(.ds-navigation-item[aria-current]) {
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: inset 2px 0 var(--action);
+}
+
+.rail :global(.workspace-navigation__label) {
+  margin: var(--space-5) var(--space-3) var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-meta-size);
+  font-weight: 600;
+}
+
+.rail :global(.workspace-navigation__label:first-child) { margin-top: 0; }
+
+.content,
+.page,
+.main {
   min-width: 0;
 }
 
+/* Standalone routes render their own <main>; inside the frame the column owns width and gutters.
+   The Report keeps its own document layout (it carries data-print-blocked). */
+.page > :global(main:not([data-print-blocked])) {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding-inline: 0;
+  padding-top: 0;
+}
+
+/* Every route opens the same way: title, then one lead sentence. */
+.page :global(h1.text-page + p.text-body) {
+  max-width: var(--measure-reading);
+  color: var(--text-secondary);
+  font-size: var(--text-lead-size);
+  line-height: var(--text-lead-line);
+}
+
+/* Only the content column moves, and only on in-app navigation. */
+.enter {
+  animation: case-enter var(--duration-page) var(--ease-out) both;
+}
+
+@keyframes case-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Case bar: one quiet row that stays under the global header while the route scrolls. */
 :global(.workspace-property-header) {
-  position: relative;
-  z-index: var(--z-sticky);
+  position: sticky;
   top: 0;
-  background: var(--surface-primary);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 0 var(--space-8);
+  z-index: var(--z-header);
+  padding: 0 var(--gutter-page);
+  border-bottom: 1px solid rgb(15 23 42 / 0.07);
+  background: rgb(246 247 249 / 0.92);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
 }
 
 :global(.workspace-property-header__panel) {
   width: min(100%, var(--width-content));
+  min-height: var(--casebar-h);
   margin-inline: auto;
-  padding: var(--space-3) 0;
-  border: 0;
-  border-radius: 0;
-}
-
-:global(.workspace-property-header__primary),
-:global(.workspace-property-header__secondary) {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) 0;
+  display: grid;
+  align-content: center;
 }
 
 :global(.workspace-property-header__primary) {
-  justify-content: space-between;
-}
-
-:global(.workspace-property-header__secondary) {
-  margin-top: var(--space-2);
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
 }
 
 :global(.workspace-property-header__title) {
   min-width: 0;
-  flex: 1 1 16rem;
+  flex: 1 1 auto;
 }
+
+:global(.workspace-property-header__title p) { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 :global(.workspace-property-header__title strong) {
   display: block;
+  overflow: hidden;
   color: var(--text-primary);
-  overflow-wrap: anywhere;
   font-size: var(--text-subsection-size);
+  line-height: var(--text-subsection-line);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:global(.workspace-property-header__primary > .ds-status) { flex: none; }
+
+:global(.workspace-property-header__save) {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Secondary facts open as a popover under the case bar instead of pushing the page down. */
+:global(.workspace-property-header__more) { position: relative; border: 0; }
+:global(.workspace-property-header__more > .ds-disclosure__summary) {
+  min-height: var(--control-compact);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-control);
+  color: var(--text-secondary);
+  font-size: var(--text-dense-size);
+  font-weight: 500;
+  white-space: nowrap;
+}
+:global(.workspace-property-header__more > .ds-disclosure__summary:hover) { background: var(--surface-sunken); }
+:global(.workspace-property-header__more > .ds-disclosure__content) {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: var(--z-popover);
+  display: grid;
+  gap: var(--space-4);
+  width: min(26rem, calc(100vw - 2 * var(--gutter-page)));
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-dialog);
+  background: var(--surface-primary);
+  box-shadow: var(--shadow-overlay);
+}
+
+:global(.workspace-property-header__secondary) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  color: var(--text-muted);
+  font-size: var(--text-meta-size);
 }
 
 :global(.workspace-property-header__warning) {
-  margin: var(--space-2) 0 0;
+  margin: 0 0 var(--space-1);
   color: var(--status-warning);
   font-size: var(--text-dense-size);
 }
 
-:global(.workspace-property-header__details) {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-}
-
-:global(.workspace-property-header__details div) {
-  display: grid;
-  grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr);
-  gap: var(--space-3);
-}
-
-:global(.workspace-property-header__details dt) {
-  color: var(--text-muted);
-}
-
-:global(.workspace-property-header__details dd) {
-  margin: 0;
-}
-
-:global(.workspace-property-header__actions) {
-  padding-top: var(--space-2);
-}
-
-:global(.workspace-property-header__title p) { margin: 0; }
-:global(.workspace-property-header__save) { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--space-2); }
-:global(.workspace-navigation .workspace-navigation__secondary) { color: var(--text-muted); }
-:global(.workspace-property-header__save-status) { margin: var(--space-2) 0 0; }
+:global(.workspace-property-header__details) { display: grid; gap: var(--space-2); margin: 0; }
+:global(.workspace-property-header__details div) { display: grid; grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr); gap: var(--space-3); }
+:global(.workspace-property-header__details dt) { color: var(--text-muted); }
+:global(.workspace-property-header__details dd) { margin: 0; overflow-wrap: anywhere; }
+:global(.workspace-property-header__save-status) { margin: 0 0 var(--space-2); }
 :global(.workspace-property-header__save-status:empty) { display: none; }
-:global(.workspace-property-header__panel .ds-disclosure) { border: 0; margin-top: var(--space-1); }
-:global(.workspace-property-header__panel .ds-disclosure__summary) { min-height: 28px; }
-:global(.workspace-navigation__label) { margin: var(--space-4) var(--space-3) var(--space-1); }
+:global(.workspace-navigation .workspace-navigation__secondary) { color: var(--text-muted); }
 
 :global(.workspace-state) {
   width: min(100% - 2rem, var(--width-reading));
@@ -122,12 +216,12 @@
 
 :global(.workspace-view) {
   display: grid;
-  gap: var(--space-6);
+  gap: var(--gap-section);
 }
 
 :global(.workspace-view__heading) {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 :global(.workspace-view__heading > *) { margin: 0; }
@@ -168,7 +262,7 @@
   color: var(--text-muted);
 }
 
-:global(.workspace-overview-list a) { color: var(--action); font-weight: 650; }
+:global(.workspace-overview-list a) { color: var(--action); font-weight: 600; }
 
 :global(.workspace-evidence-summary) {
   display: grid;
@@ -184,73 +278,104 @@
   padding: var(--space-3);
 }
 
-:global(.workspace-evidence-summary dd) { margin: 0; font-variant-numeric: tabular-nums; font-weight: 700; }
+:global(.workspace-evidence-summary dd) { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+@media (min-width: 768px) and (max-width: 1199px) {
+  .body { grid-template-columns: 11rem minmax(0, 1fr); gap: var(--space-6); }
+}
 
 @media (max-width: 767px) {
+  /* Phone: case bar, one sticky section strip, the content, then the pulse. */
   .body {
-    display: block;
-    padding: var(--space-4);
-  }
-
-  :global(.workspace-property-header) {
-    padding: 0 var(--space-4);
-  }
-
-  :global(.workspace-property-header__panel) {
-    padding: var(--space-3) 0;
-  }
-
-  :global(.workspace-property-header__primary) {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  :global(.workspace-property-header__secondary) {
     display: flex;
+    flex-direction: column;
+    padding: 0 var(--gutter-page) var(--space-12);
   }
 
-  :global(.workspace-property-header__title) { flex-basis: 100%; }
-  :global(.workspace-property-header__save) { margin-left: auto; }
-  :global(.workspace-property-header__panel .ds-disclosure__summary) { min-height: 44px; }
-  :global(.workspace-navigation__label) { display: none; }
+  .side { display: contents; }
+  .content { order: 1; }
+  .pulse { order: 2; margin-top: var(--space-10); }
 
-  :global(.workspace-property-header__details div) {
-    grid-template-columns: 1fr;
-    gap: 0;
+  .rail {
+    order: 0;
+    position: sticky;
+    top: var(--casebar-mobile, 0px);
+    z-index: var(--z-sticky);
+    margin: 0 calc(-1 * var(--gutter-page)) var(--space-5);
+    padding: var(--space-2) var(--gutter-page);
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    background: rgb(246 247 249 / 0.94);
+    border-bottom: 1px solid rgb(15 23 42 / 0.06);
   }
+
+  .rail::-webkit-scrollbar { display: none; }
+
+  .rail :global(.workspace-navigation) {
+    width: max-content;
+    min-width: 100%;
+    flex-direction: row;
+    gap: var(--space-1);
+  }
+
+  .rail :global(.workspace-navigation__label) { display: none; }
+
+  .rail :global(.ds-navigation-item) {
+    flex: none;
+    min-height: var(--control-touch);
+    border-radius: var(--radius-pill);
+    padding-inline: var(--space-4);
+  }
+
+  .rail :global(.ds-navigation-item[aria-current]) { box-shadow: inset 0 -2px var(--action); }
+
+  /* Pulse state as a dot on its section; the full pulse follows the content. */
+  .rail :global(.ds-navigation-item[data-pulse-state])::after {
+    content: "";
+    width: 0.375rem;
+    height: 0.375rem;
+    flex: none;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 1.5px currentColor;
+    opacity: 0.7;
+  }
+  .rail :global(.ds-navigation-item:is([data-pulse-state="known"], [data-pulse-state="available"]))::after { background: currentColor; }
+  .rail :global(.ds-navigation-item[data-pulse-state="needs_attention"])::after { background: var(--status-warning-border); box-shadow: none; opacity: 1; }
+
+  /* The case bar is not sticky on phones: the section strip is the one sticky row. */
+  :global(.workspace-property-header) { position: relative; padding: 0 var(--gutter-page); }
+  :global(.workspace-property-header__panel) { min-height: 0; padding: var(--space-2) 0; }
+  :global(.workspace-property-header__primary) { flex-wrap: wrap; gap: var(--space-1) var(--space-2); }
+  :global(.workspace-property-header__title) { flex: 1 1 calc(100% - 7rem); }
+  :global(.workspace-property-header__title p) { display: none; }
+  :global(.workspace-property-header__save) { flex: 1 1 100%; justify-content: flex-start; flex-wrap: wrap; gap: var(--space-1); margin-inline: calc(-1 * var(--space-3)) 0; }
+  :global(.workspace-property-header__save .ds-button), :global(.workspace-property-header__more > .ds-disclosure__summary) { min-height: var(--control-touch); }
+  :global(.workspace-property-header__more) { position: static; margin-left: auto; }
+  :global(.workspace-property-header__more > .ds-disclosure__content) { left: var(--gutter-page); right: var(--gutter-page); width: auto; top: auto; margin-top: var(--space-1); }
+  :global(.workspace-property-header__details div) { grid-template-columns: 1fr; gap: 0; }
 
   :global(.workspace-action-grid),
   :global(.workspace-evidence-summary) { grid-template-columns: 1fr; }
 
   :global(.workspace-overview-list li) { align-items: start; grid-template-columns: 1fr; }
+}
 
-  .rail {
-    margin-bottom: var(--space-5);
-    max-width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .enter { animation: none; }
+}
 
-  .rail :global(.workspace-navigation) {
-    position: static;
-    width: max-content;
-    min-width: 100%;
-    flex-direction: row;
-    flex-wrap: nowrap;
-  }
-
-  .rail :global(.ds-navigation-item) {
-    flex: none;
-    border-left: 0;
-    border-bottom: 3px solid transparent;
-  }
-
-  .rail :global(.ds-navigation-item[aria-current]) {
-    border-bottom-color: var(--action);
+@media (prefers-reduced-transparency: reduce) {
+  :global(.workspace-property-header), .rail {
+    background: var(--canvas);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 
-@media (min-width: 768px) and (max-width: 1199px) {
-  .body { grid-template-columns: 10rem minmax(0, 1fr); padding-inline: var(--space-6); gap: var(--space-4); }
-  :global(.workspace-property-header) { padding-inline: var(--space-6); }
+/* Printing is the route's own document: frame chrome and gutters drop out entirely. */
+@media print {
+  :global(.workspace-property-header), .side { display: none !important; }
+  .body { display: block; width: auto; padding: 0; margin: 0; }
+  .enter { animation: none; }
 }

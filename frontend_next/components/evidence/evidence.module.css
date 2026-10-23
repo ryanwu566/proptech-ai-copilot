@@ -52,6 +52,27 @@
 .gaps a { text-decoration: underline; min-height: 44px; display: inline-flex; align-items: center; }
 .mobile, .printOnly, .printBlocked { display: none; }
 .report { max-width: 1000px; background: var(--surface-primary); margin-block: var(--space-6); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); }
+/* On screen the report is the finished deliverable: the toolbar sits on the canvas and the evidence is one
+   sheet of paper. Screen-only; the print layout above and below is untouched. */
+@media screen {
+  .report { max-width: 52rem; padding-inline: 0; background: transparent; border: 0; border-radius: 0; }
+  .reportEvidence { padding: clamp(var(--space-6), 6vw, var(--space-16)); border-radius: 4px; background: var(--surface-primary); box-shadow: 0 0 0 1px rgb(15 23 42 / 0.05), 0 2px 4px rgb(15 23 42 / 0.04), 0 18px 48px rgb(15 23 42 / 0.08); }
+  .reportTable :is(th, td) { border-width: 0 0 1px; }
+  .reportTable th { color: var(--text-secondary); font-weight: 500; }
+}
+@media screen and (min-width: 768px) {
+  .selection label { transition: border-color var(--duration-feedback) var(--ease-standard), background-color var(--duration-feedback) var(--ease-standard); }
+  .selection label:hover { border-color: var(--border-control); }
+  .selection label:has(input:checked) { border-color: var(--action); background: var(--action-subtle); }
+  /* Compare reads by rows: hairlines between rows, no full cell grid. */
+  .table :is(th, td) { border-width: 0 0 1px; }
+  .table tbody tr:not(.domainRow):nth-child(even) { background: transparent; }
+  .domainRow th { padding-top: var(--space-6); background: transparent; border-bottom-color: var(--border-strong); }
+  /* Case columns stay labelled while reading down; only rows that genuinely differ get a quiet tint. Never a winner. */
+  .table thead th { position: sticky; top: 0; z-index: 1; background: var(--canvas); box-shadow: inset 0 -1px var(--border-strong); }
+  .table tr[data-row-relation="differs"] td { background: color-mix(in srgb, var(--action-subtle) 55%, transparent); }
+  .table td :global([data-numeric]), .table td .numeric { text-align: right; }
+}
 .reportEvidence { display: grid; gap: var(--space-6); }
 .reportTable th, .reportLabelColumn { width: 32%; }
 /* Page-one executive summary: one bordered block, stacked lists, no dense grid. */

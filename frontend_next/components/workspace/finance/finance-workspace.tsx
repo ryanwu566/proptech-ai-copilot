@@ -109,11 +109,11 @@ export function FinanceWorkspace() {
 
   return <div data-testid="finance-workspace" className={`workspace-view ${styles.root}`}>
     <header className="space-y-2"><h1 className="text-page">{c("title")}</h1><p className="text-body">{c("intro")}</p></header>
-    <div data-testid="money-summary">
+    <div data-testid="money-summary" className={styles.summary}>
       <SummaryStrip label={c("summary")}>
         <MetricItem label={c("cashSubtotal")} value={wan(currentDownPaymentWan)} primary note={c("closingUnknown")} />
-        <MetricItem label={c((finance.loan.gracePeriodYears ?? 0) > 0 ? "afterGrace" : "payment")} value={monthly(currentLoan ? finance.loan.monthlyPaymentTwd : null)} note={c("userAssumption")} />
-        <MetricItem label={c("holdingSubtotal")} value={monthly(currentHolding ? finance.holding.knownMonthlySubtotalTwd : null)} note={c("monthlyNote")} />
+        <MetricItem label={c((finance.loan.gracePeriodYears ?? 0) > 0 ? "afterGrace" : "payment")} value={monthly(currentLoan ? finance.loan.monthlyPaymentTwd : null)} primary note={c("userAssumption")} />
+        <MetricItem label={c("holdingSubtotal")} value={monthly(currentHolding ? finance.holding.knownMonthlySubtotalTwd : null)} primary note={c("monthlyNote")} />
       </SummaryStrip>
       <MoneyFreshness model={finance} dirty={dirty} />
       {saved?.freshness.source === "saved_snapshot" && <SavedMoneyAssumptions model={saved} />}

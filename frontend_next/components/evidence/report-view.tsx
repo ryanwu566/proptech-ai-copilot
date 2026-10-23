@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { reportToolbarCopy } from "@/lib/workspace/report-toolbar-copy";
 import { identityConfirmationCopy, identityConfirmationKind } from "@/lib/workspace/identity-confirmation-copy";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Section, ActionSection } from "@/components/design-system/section";
@@ -25,6 +26,7 @@ function currentEvidence(read: WorkspaceReadDiagnostic, caseId: string): CaseEvi
 function invalid(read: WorkspaceReadDiagnostic, caseId: string): boolean { return storageBlocked(read) || read.issues.some((issue) => issue.caseId === caseId); }
 export function ReportView({ caseId }: { caseId: string }) {
   const { copyFrom } = useExperienceLocale();
+  const t = (key: keyof (typeof reportToolbarCopy)["en"]) => copyFrom(reportToolbarCopy, key);
   const repository = useMemo(createBrowserCaseRepository, []);
   const [read, setRead] = useState<WorkspaceReadDiagnostic | null>(null);
   const [frozen, setFrozen] = useState<{ evidence: CaseEvidenceModel; generatedAt: string } | null>(null);
@@ -72,18 +74,18 @@ export function ReportView({ caseId }: { caseId: string }) {
     root.current?.setAttribute("data-print-blocked", "false"); window.print();
   }
   return <main id="main-content" ref={root} className={`${styles.page} ${styles.report}`} data-print-blocked={Boolean(blocked)}>
-    {(!report || blocked) && <header className={styles.screenOnly}><h1 className="text-page">案件證據報告</h1></header>}
-    {!read || !roomRead ? <AsyncState kind="loading" title="正在讀取案件快照" /> : <>
+    {(!report || blocked) && <header className={styles.screenOnly}><h1 className="text-page">{t("title")}</h1></header>}
+    {!read || !roomRead ? <AsyncState kind="loading" title={t("loading")} /> : <>
       <div className={styles.screenOnly}><RepositoryNotice read={read} /></div>
       {blocked || !report ? <div className={styles.screenOnly} data-testid="report-identity-gate"><Message variant="error">
-        {invalid(read, caseId) ? "案件儲存紀錄無效或識別衝突；正式報告與列印已停止。" : !current ? "找不到已儲存案件，或案件已被移除；正式列印已停止。" : copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationReport" : "pendingReport")}
-        <ActionSection><Link href="/cases" className="ds-button ds-button--secondary">回到已儲存案件</Link>{current && <Link href={`/cases/${encodeURIComponent(caseId)}/${reconfirmation ? "overview" : "location"}`} className="ds-button ds-button--secondary">{copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationAction" : "pendingAction")}</Link>}</ActionSection>
+        {invalid(read, caseId) ? t("invalid") : !current ? t("missing") : copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationReport" : "pendingReport")}
+        <ActionSection><Link href="/cases" className="ds-button ds-button--secondary">{t("backToCases")}</Link>{current && <Link href={`/cases/${encodeURIComponent(caseId)}/${reconfirmation ? "overview" : "location"}`} className="ds-button ds-button--secondary">{copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationAction" : "pendingAction")}</Link>}</ActionSection>
       </Message></div> : <>
         <div className={styles.screenOnly} data-testid="report-controls">
           <CopilotLink caseId={caseId} />
-          <ActionSection><CommercialButton onClick={print}>列印／另存 PDF</CommercialButton><Link href={`/cases/${encodeURIComponent(caseId)}/overview`} className="ds-button ds-button--secondary">返回案件工作區</Link>{roomUi && <roomUi.OpenRoomLink caseId={caseId} />}<Link href="/cases" className="ds-button ds-button--secondary">已儲存案件</Link></ActionSection>
-          <p className="text-meta">開啟瀏覽器列印對話框，可選擇另存為 PDF。</p>
-          {assessment === "snapshot_changed" && <div data-testid="snapshot-change"><Message variant="warning" action={<CommercialButton variant="secondary" onClick={loadNewer}>載入較新快照</CommercialButton>}>案件已有較新快照；目前畫面與列印仍使用你正在檢視的保存快照。</Message></div>}
+          <ActionSection><CommercialButton onClick={print}>{t("print")}</CommercialButton><Link href={`/cases/${encodeURIComponent(caseId)}/overview`} className="ds-button ds-button--secondary">{t("backToWorkspace")}</Link>{roomUi && <roomUi.OpenRoomLink caseId={caseId} />}<Link href="/cases" className="ds-button ds-button--tertiary">{t("savedCases")}</Link></ActionSection>
+          <p className="text-meta">{t("printHint")}</p>
+          {assessment === "snapshot_changed" && <div data-testid="snapshot-change"><Message variant="warning" action={<CommercialButton variant="secondary" onClick={loadNewer}>{t("loadNewer")}</CommercialButton>}>{t("newer")}</Message></div>}
         </div>
         <article data-testid="report-evidence" className={styles.reportEvidence}>
           <header className={styles.reportCover}><h1 className="text-page">案件證據報告 · {report.evidence!.title}</h1><p>{report.evidence!.displayAddress}</p><ReportPreparedBy branding={EMPTY_REPORT_BRANDING} /><div className={styles.screenOnly}><p>案件保存：{date(report.evidence!.savedAt)} · 報告產生：{date(report.generatedAt)}</p><p>{report.status === "ready_with_limits" ? "可閱讀的證據摘要，含待查證限制" : "可閱讀的保存證據摘要"}</p><Message>本報告依已儲存證據快照製作；不是即時重新查詢。{report.evidence!.identity.limitation}</Message></div></header>
