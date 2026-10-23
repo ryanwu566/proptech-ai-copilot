@@ -8,9 +8,9 @@ import { Message } from "@/components/design-system/message";
 import { Panel } from "@/components/design-system/section";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
-import { api } from "@/lib/api";
 import { confirmSavedCaseIdentity, type ConfirmIdentityResult } from "@/lib/case-storage";
-import { acquireLocationResolution, buildConfirmedLocationAnchor, type LocationCandidateResult, type LocationCandidate, type LocationCandidateBlock } from "@/lib/workspace/location-confirmation";
+import { buildConfirmedLocationAnchor, type LocationCandidateResult, type LocationCandidate, type LocationCandidateBlock } from "@/lib/workspace/location-confirmation";
+import { acquireCaseLocation } from "@/lib/workspace/location-acquisition";
 import { locationStartHandoff } from "@/lib/workspace/location-start-handoff";
 import { locationConfirmationCopy, type LocationConfirmationCopyKey } from "@/lib/workspace/location-confirmation-copy";
 
@@ -32,7 +32,9 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
   const workspace = useWorkspace();
   const { copyFrom } = useExperienceLocale();
   const copy = (key: LocationConfirmationCopyKey) => copyFrom(locationConfirmationCopy, key);
-  const [step, setStep] = useState<Step>(() => locationStartHandoff.read(workspace.caseId, workspace.displayAddress) ? { kind: "finding" } : { kind: "idle" });
+  const [step, setStep] = useState<Step>(() => workspace.pendingLocationCandidate
+    ? { kind: "candidate", candidate: workspace.pendingLocationCandidate, confirming: false }
+    : locationStartHandoff.read(workspace.caseId, workspace.displayAddress) ? { kind: "finding" } : { kind: "idle" });
   const busy = useRef(step.kind === "finding");
   const request = useRef<AbortController | null>(null);
   const result = useRef<HTMLDivElement>(null);
@@ -40,13 +42,18 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
   useEffect(() => { if (step.kind === "candidate" && !step.confirming) result.current?.focus(); }, [step]);
   useEffect(() => {
     const pending = locationStartHandoff.read(workspace.caseId, workspace.displayAddress);
-    if (!pending) return;
+    if (!pending || workspace.pendingLocationCandidate) return;
     let active = true;
     pending.then((resolution) => {
       if (active) { busy.current = false; setStep(candidateStep(resolution)); }
     });
     return () => { active = false; };
-  }, [workspace.caseId, workspace.displayAddress]);
+  }, [workspace.caseId, workspace.displayAddress, workspace.pendingLocationCandidate]);
+  useEffect(() => {
+    if (!workspace.pendingLocationCandidate) return;
+    busy.current = false;
+    setStep({ kind: "candidate", candidate: workspace.pendingLocationCandidate, confirming: false });
+  }, [workspace.pendingLocationCandidate]);
 
   async function find() {
     if (busy.current) return;
@@ -56,7 +63,7 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
     const controller = new AbortController();
     request.current = controller;
     try {
-      const resolution = await acquireLocationResolution(workspace.displayAddress, (signal) => api.locationResolve(workspace.displayAddress, signal), controller.signal);
+      const resolution = await acquireCaseLocation(workspace.caseId, workspace.displayAddress, controller.signal);
       if (!controller.signal.aborted) setStep(candidateStep(resolution));
     } finally {
       busy.current = false;

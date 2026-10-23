@@ -19,6 +19,8 @@ import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidenc
 import { invalidateChangedChecklist, normalizeChecklistReview, type StoredChecklistReviewV1 } from "@/lib/workspace/checklist-persistence";
 import { planAddressDraft, type AddressDraftResult } from "@/lib/workspace/case-draft";
 import { planIdentityConfirmation } from "@/lib/workspace/location-confirmation";
+import type { LocationCandidate } from "@/lib/workspace/location-confirmation";
+import { capturePendingLocation, restorePendingLocation, type PendingLocationCandidate } from "@/lib/workspace/pending-location";
 import { normalizeNearbyFacilities, type NearbyFacilitiesEvidence } from "@/lib/workspace/nearby-facilities";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
@@ -32,6 +34,7 @@ export const MAX_SAVED_CASES = 10;
 export type SavedCaseData = {
   inputs: ValuationInputs;
   propertyIdentityAnchor?: JourneyPropertyIdentityAnchorV1;
+  pendingLocationCandidate?: PendingLocationCandidate;
   propertySearch?: PropertySearchResult;
   valuation?: ValuationResult;
   valuationEvidence?: PropertyCaseEvidence;
@@ -230,6 +233,31 @@ export type ConfirmIdentityResult =
   | { status: "confirmed"; saved: SavedCase }
   | { status: "blocked"; reason: "lock_unavailable" | "storage_unavailable" | "case_changed" | "already_identified" | "invalid_anchor" | "write_failed" };
 
+export type SavePendingLocationResult = { status: "saved"; saved: SavedCase } | Extract<ConfirmIdentityResult, { status: "blocked" }>;
+
+/** Local compare-and-swap write under the same origin-wide lock as every case writer. */
+export async function savePendingLocationCandidate(caseId: string, candidate: LocationCandidate, expectedVersion: string): Promise<SavePendingLocationResult> {
+  if (typeof window === "undefined" || !window.navigator?.locks?.request) return { status: "blocked", reason: "lock_unavailable" };
+  return mutateSavedCases<SavePendingLocationResult>({ status: "blocked", reason: "lock_unavailable" }, () => {
+    try {
+      const snapshot = readStorageSnapshot();
+      if (["parse_error", "invalid_storage", "storage_unavailable"].includes(snapshot.diagnostic.status)) return { status: "blocked", reason: "storage_unavailable" };
+      const rows = snapshot.diagnostic.cases;
+      const index = rows.findIndex((row) => row.id === caseId);
+      const current = rows[index];
+      if (!current || JSON.stringify(current) !== expectedVersion) return { status: "blocked", reason: "case_changed" };
+      if (current.data.propertyIdentityAnchor) return { status: "blocked", reason: "already_identified" };
+      const pending = capturePendingLocation(current, candidate);
+      if (!pending) return { status: "blocked", reason: "invalid_anchor" };
+      const updated = { ...current, updatedAt: new Date().toISOString(), data: { ...current.data, pendingLocationCandidate: pending } };
+      rows[index] = updated;
+      if (!writeCases(rows, snapshot.raw)) return { status: "blocked", reason: "write_failed" };
+      window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+      return { status: "saved", saved: updated };
+    } catch { return { status: "blocked", reason: "write_failed" }; }
+  });
+}
+
 /**
  * Persist an explicitly user-confirmed location anchor on a never-located case.
  * Compare-and-swap on the exact read version; never overwrites an existing anchor
@@ -245,7 +273,7 @@ export async function confirmSavedCaseIdentity(caseId: string, anchor: JourneyPr
       const index = rows.findIndex((row) => row.id === caseId);
       const plan = planIdentityConfirmation(rows[index], anchor, expectedVersion);
       if (plan.kind === "blocked") return { status: "blocked", reason: plan.reason };
-      const updated: SavedCase = { ...rows[index], updatedAt: new Date().toISOString(), data: compactCaseData({ ...rows[index].data, propertyIdentityAnchor: plan.anchor }) };
+      const updated: SavedCase = { ...rows[index], updatedAt: new Date().toISOString(), data: compactCaseData({ ...rows[index].data, pendingLocationCandidate: undefined, propertyIdentityAnchor: plan.anchor }) };
       rows[index] = updated;
       if (!writeCases(rows, snapshot.raw)) return { status: "blocked", reason: "write_failed" };
       window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
@@ -559,7 +587,9 @@ function normalizeSavedCase(row: SavedCase): SavedCase | null {
   try {
     const fallbackInputs = { city: "", district: "", road: "", building_type: "", area_ping: 0, building_age_years: 0, floor: 0 };
     const data = row.data && typeof row.data === "object" ? row.data : { inputs: fallbackInputs };
-    return { ...row, title: typeof row.title === "string" ? row.title : "", data: compactCaseData(data as SavedCaseData) };
+    const normalized = { ...row, title: typeof row.title === "string" ? row.title : "", data: compactCaseData(data as SavedCaseData) };
+    normalized.data.pendingLocationCandidate = restorePendingLocation(normalized);
+    return normalized;
   } catch {
     return null;
   }

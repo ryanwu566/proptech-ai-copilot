@@ -2,6 +2,8 @@ import { expect, test } from "./fixtures";
 import type { Page, Route } from "@playwright/test";
 import { isProviderRequest } from "./helpers/provider-request";
 import { locationConfirmationCopy } from "../lib/workspace/location-confirmation-copy";
+import { identityConfirmationCopy } from "../lib/workspace/identity-confirmation-copy";
+import { e9Case } from "../lib/workspace/e9-test-fixtures";
 
 const ADDRESS = "臺北市信義區市府路1號";
 const KEY = "proptech.savedCases.v1";
@@ -42,13 +44,17 @@ test("Home lookup deadline preserves the case and address, ignores late success 
   await page.getByRole("button", { name: locationConfirmationCopy["zh-TW"].retry, exact: true }).click();
   await expect(page.getByTestId("location-candidate")).toBeVisible();
   expect(calls.resolve).toHaveLength(2);
-  expect(await stored(page)).toEqual(before);
-  for (const path of [`/cases/${caseId}/overview`, `/cases/${caseId}/report`, "/compare", `/cases/${caseId}/location`]) {
+  // Only the fresh explicit retry result is saved, and only as unconfirmed UI data.
+  const pending = (await stored(page))[0];
+  expect(pending.data.pendingLocationCandidate).toMatchObject({ state: "unconfirmed", caseId, candidate: { addressInput: ADDRESS } });
+  expect(pending.data.propertyIdentityAnchor).toBeUndefined();
+  for (const path of [`/cases/${caseId}/overview`, `/cases/${caseId}/risk`, `/cases/${caseId}/report`, "/compare", `/cases/${caseId}/location`]) {
     await page.goto(path);
   }
   await page.reload();
-  await expect(page.getByTestId("location-find")).toBeEnabled();
-  expect(await stored(page)).toEqual(before);
+  await expect(page.getByTestId("location-candidate")).toBeVisible();
+  await expect(page.getByTestId("location-find")).toHaveCount(0);
+  expect(await stored(page)).toEqual([pending]);
   expect(calls.resolve).toHaveLength(2);
   expect(calls.other).toEqual([]);
 });
@@ -158,9 +164,43 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     expect(calls.resolve).toEqual([{ address: ADDRESS }]);
     expect(calls.other).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    // A full reload clears the Home handoff. Saved pending UI must restore with no acquisition.
+    await page.reload();
+    await expect(page.getByTestId("location-candidate-map")).toBeVisible();
+    await expect(page.getByTestId("location-confirm")).toBeEnabled();
+    const pendingRow = (await stored(page))[0];
+    expect(pendingRow.data.pendingLocationCandidate).toMatchObject({ state: "unconfirmed", caseId, candidate: { addressInput: ADDRESS } });
+    expect(pendingRow.data.propertyIdentityAnchor).toBeUndefined();
+    await page.goto("/");
+    await page.locator("#commercial-address").fill(ADDRESS);
+    expect(await clickStart(page, locale)).toBe(caseId);
+    await expect(page.getByTestId("location-candidate")).toBeVisible();
+    expect(await stored(page)).toHaveLength(1);
+    const gates = identityConfirmationCopy[locale];
+    await page.goto(`/cases/${caseId}/risk`);
+    await expect(page.getByTestId("risk-identity-gate")).toHaveText(gates.pendingRisk);
+    await expect(page.getByTestId("risk-buyer-summary").getByRole("button")).toBeDisabled();
+    await page.goto(`/cases/${caseId}/report`);
+    await expect(page.getByTestId("report-identity-gate")).toContainText(gates.pendingReport);
+    await expect(page.getByTestId("report-controls")).toHaveCount(0);
+    await page.goto(`/compare?cases=${caseId}`);
+    await page.goto(`/cases/${caseId}/overview`);
+    await expect(page.getByTestId("case-pulse")).toBeVisible();
+    await page.getByTestId("command-palette-trigger").click();
+    await expect(page.getByTestId("command-palette")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("command-palette")).toHaveCount(0);
+    await page.goto(`/cases/${caseId}/location`);
+    await expect(page.getByTestId("location-candidate")).toContainText(ADDRESS);
+    await expect(page.getByTestId("location-confirm")).toHaveText(copy.confirm);
+    await page.waitForLoadState("networkidle");
+    expect(calls.resolve).toHaveLength(1);
+    expect(calls.other).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole("button", { name: copy.confirm, exact: true }).click();
     await expect(page.getByTestId("location-administrative-incomplete")).toContainText(copy.adminIncomplete);
     const row = (await stored(page))[0];
+    expect(row.data.pendingLocationCandidate).toBeUndefined();
     expect(row.data.propertyIdentityAnchor).toMatchObject({
       coordinates: { latitude: SPATIAL.latitude, longitude: SPATIAL.longitude },
       administrative_location: { city: null, district: null },
@@ -208,10 +248,10 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const status of 
     expect(calls.other).toEqual([]);
     await page.goto(`/cases/${caseId}/overview`);
     await page.goto(`/cases/${caseId}/location`);
-    await expect(page.getByRole("button", { name: copy.find, exact: true })).toBeVisible();
+    await expect(page.getByTestId("location-candidate")).toBeVisible();
     expect(calls.resolve).toHaveLength(2);
     await page.reload();
-    await expect(page.getByRole("button", { name: copy.find, exact: true })).toBeVisible();
+    await expect(page.getByTestId("location-candidate")).toBeVisible();
     await page.waitForLoadState("networkidle");
     expect(calls.resolve).toHaveLength(2);
   });
@@ -238,5 +278,85 @@ for (const mode of ["double click", "repeated submit"]) test(`${mode} and slow l
   await page.getByRole("button", { name: "確認位置", exact: true }).click();
   await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
   expect(calls.resolve).toHaveLength(1);
+  expect(calls.other).toEqual([]);
+});
+
+for (const locale of ["zh-TW", "en", "ja", "ko"] as const) test(`changed confirmed identity uses reconfirmation copy in ${locale}`, async ({ page }) => {
+  const calls = await prepare(page);
+  await page.goto("/");
+  await page.getByTestId("locale-switcher").selectOption(locale);
+  const changed = e9Case("changed-case");
+  changed.data.journeyContext!.propertyContext.addressSummary = ADDRESS;
+  await page.evaluate(({ key, changed }) => localStorage.setItem(key, JSON.stringify([changed])), { key: KEY, changed });
+  const copy = identityConfirmationCopy[locale];
+  await page.goto("/cases/changed-case/location");
+  await expect(page.getByTestId("commercial-location-workspace")).toContainText(copy.reconfirmationTitle);
+  await expect(page.getByTestId("location-confirm")).toHaveCount(0);
+  await page.goto("/cases/changed-case/risk");
+  await expect(page.getByTestId("risk-identity-gate")).toHaveText(copy.reconfirmationRisk);
+  await page.goto("/cases/changed-case/report");
+  await expect(page.getByTestId("report-identity-gate")).toContainText(copy.reconfirmationReport);
+  await expect(page.getByTestId("report-controls")).toHaveCount(0);
+  await page.waitForLoadState("networkidle");
+  expect(calls).toEqual({ resolve: [], other: [] });
+});
+
+test("pending candidate is invalidated by address edit and cannot leak into another case", async ({ page }) => {
+  const calls = await prepare(page);
+  await page.goto("/");
+  await page.locator("#commercial-address").fill(ADDRESS);
+  const caseId = await clickStart(page);
+  await expect(page.getByTestId("location-candidate")).toBeVisible();
+  await page.evaluate((key) => {
+    const rows = JSON.parse(localStorage.getItem(key)!);
+    rows[0].inputSummary.road = "已編輯的地址";
+    localStorage.setItem(key, JSON.stringify(rows));
+    window.dispatchEvent(new StorageEvent("storage", { key }));
+  }, KEY);
+  // The displayed journey summary did not change; the hidden address edit still invalidates local UI.
+  await expect(page.getByTestId("location-candidate")).toHaveCount(0);
+  await expect(page.getByTestId("location-find")).toBeVisible();
+  const changedAddress = "臺中市西屯區臺灣大道三段100號";
+  await page.evaluate(({ key, changedAddress }) => {
+    const rows = JSON.parse(localStorage.getItem(key)!);
+    const foreign = structuredClone(rows[0]); foreign.id = "foreign-case"; delete foreign.inputSummary.road;
+    rows.push(foreign);
+    rows[0].data.journeyContext.propertyContext.addressSummary = changedAddress;
+    localStorage.setItem(key, JSON.stringify(rows));
+  }, { key: KEY, changedAddress });
+  await page.reload();
+  await expect(page.getByTestId("location-confirmation")).toContainText(changedAddress);
+  await expect(page.getByTestId("location-candidate")).toHaveCount(0);
+  await page.goto("/cases/foreign-case/location");
+  await expect(page.getByTestId("location-find")).toBeVisible();
+  await expect(page.getByTestId("location-candidate")).toHaveCount(0);
+  await page.goto(`/cases/${caseId}/location`);
+  await page.waitForLoadState("networkidle");
+  expect(calls.resolve).toHaveLength(1);
+  expect(calls.other).toEqual([]);
+});
+
+test("hung Home lookup exits pending, preserves address and retries only on explicit intent", async ({ page }) => {
+  let attempts = 0;
+  const calls = await prepare(page, async (route) => {
+    if (++attempts === 1) return; // Deliberately leave the first transport unresolved.
+    await route.fulfill({ json: SPATIAL });
+  });
+  await page.goto("/");
+  await page.locator("#commercial-address").fill(ADDRESS);
+  const caseId = await clickStart(page);
+  await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "unavailable", { timeout: 15_000 });
+  await expect(page.getByRole("button", { name: locationConfirmationCopy["zh-TW"].retry, exact: true })).toBeEnabled();
+  expect(calls.resolve).toHaveLength(1);
+  expect((await stored(page))[0].data.journeyContext.propertyContext.addressSummary).toBe(ADDRESS);
+  await page.goto(`/cases/${caseId}/overview`);
+  await page.goto(`/cases/${caseId}/location`);
+  // A full document navigation clears the transient error; the saved address still offers an explicit lookup.
+  await expect(page.getByTestId("location-find")).toBeVisible();
+  expect(calls.resolve).toHaveLength(1);
+  await page.getByTestId("location-find").click();
+  await expect(page.getByTestId("location-candidate")).toBeVisible();
+  expect(calls.resolve).toHaveLength(2);
+  expect((await stored(page))[0].id).toBe(caseId);
   expect(calls.other).toEqual([]);
 });

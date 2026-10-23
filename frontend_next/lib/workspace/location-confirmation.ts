@@ -7,7 +7,7 @@ import { buildJourneyPropertyIdentityAnchor, normalizeJourneyPropertyIdentityAnc
 
 /**
  * In-case location confirmation for an address-only case.
- * Step 1 interprets ONE geocode-only /location/resolve result (no persistence).
+ * Step 1 interprets ONE geocode-only /location/resolve result as unconfirmed UI data.
  * Step 2 builds the identity anchor only after the user explicitly confirms it.
  * Geocoder confidence never confirms anything on its own.
  */
@@ -21,7 +21,7 @@ export type LocationCandidate = {
   source: "tgos" | "google";
 };
 export type LocationCandidateBlock = "unresolved" | "unavailable" | "capacity_unavailable" | "provider_unavailable" | "invalid" | "low_confidence" | "missing_coordinates";
-export type LocationCandidateResult = { kind: "candidate"; candidate: LocationCandidate } | { kind: "blocked"; reason: LocationCandidateBlock };
+export type LocationCandidateResult = { kind: "candidate"; candidate: LocationCandidate } | { kind: "blocked"; reason: LocationCandidateBlock | "case_changed" | "already_identified" | "invalid_anchor" | "write_failed" | "lock_unavailable" | "storage_unavailable" };
 
 const GEOCODER_SOURCE_IDS = { tgos: "tgos_geocoding", google: "google_geocoding" } as const;
 // Taiwan, Penghu, Kinmen and Matsu; anything outside is not this product's property.

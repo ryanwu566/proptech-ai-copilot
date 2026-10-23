@@ -28,6 +28,137 @@ const { buildReportModel, buildComparisonModel } = load('lib/workspace/compare-r
 const { buildMarketRefreshContext, canCommitMarketPriceResponse } = load('lib/workspace/market-price-refresh.ts');
 const { SAVED_CASES_STORAGE_KEY: key } = storage;
 const { captureNearbyFacilities } = load('lib/workspace/nearby-facilities.ts');
+const { buildAddressDraftCase } = load('lib/workspace/case-draft.ts');
+const { interpretLocationResolution, buildConfirmedLocationAnchor } = load('lib/workspace/location-confirmation.ts');
+const pendingAddress = '臺北市信義區市府路1號';
+const pendingDraft = (id = 'pending-a') => buildAddressDraftCase(pendingAddress, { id, now: '2026-10-21T00:00:00Z' });
+const pendingCandidate = () => interpretLocationResolution({ status: 'resolved', source: 'google', confidence: 'high', latitude: 25.0375, longitude: 121.5637, formatted_address: pendingAddress }, pendingAddress).candidate;
+
+test('pending candidate roundtrip stays separate from identity, isolates cases and promotes only on confirmation', async () => browser(JSON.stringify([pendingDraft(), pendingDraft('pending-b')]), async values => {
+  const repo = createBrowserCaseRepository();
+  const version = repo.getCase('pending-a').storageVersion;
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', { ...pendingCandidate(), rawProviderPayload: 'must not persist' }, version)).status, 'saved');
+  const reopened = repo.getCase('pending-a');
+  assert.deepEqual(reopened.pendingLocationCandidate, pendingCandidate());
+  assert.equal(reopened.identity.state, 'unconfirmed');
+  assert.equal(reopened.identity.anchor, null);
+  assert.equal(reopened.location.property.coordinates, null);
+  assert.equal(repo.getCase('pending-b').pendingLocationCandidate, undefined);
+  assert.equal(values.get(key).includes('rawProviderPayload'), false);
+  assert.equal(buildMarketRefreshContext(reopened, storage.readSavedCases()[0]), null);
+  const before = values.get(key);
+  const evidence = projectCaseEvidence(reopened);
+  assert.equal(buildReportModel(evidence).sections.length, 0);
+  buildComparisonModel([evidence, projectCaseEvidence(repo.getCase('pending-b'))], ['pending-a', 'pending-b']);
+  assert.equal(values.get(key), before);
+  const anchor = buildConfirmedLocationAnchor(pendingCandidate(), { now: () => '2026-10-21T01:00:00Z', idFactory: () => '11111111-2222-4333-8444-555555555555' });
+  assert.equal((await storage.confirmSavedCaseIdentity('pending-a', anchor, reopened.storageVersion)).status, 'confirmed');
+  assert.equal(repo.getCase('pending-a').identity.state, 'confirmed');
+  assert.equal(repo.getCase('pending-a').pendingLocationCandidate, undefined);
+  assert.equal(storage.readSavedCases()[0].data.pendingLocationCandidate, undefined);
+}));
+
+test('pending restore rejects changed address, foreign case, malformed candidate and existing identity', async () => browser(JSON.stringify([pendingDraft(), e9Case()]), async values => {
+  const repo = createBrowserCaseRepository();
+  const version = repo.getCase('pending-a').storageVersion;
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', pendingCandidate(), version)).status, 'saved');
+  const rows = JSON.parse(values.get(key));
+  const original = structuredClone(rows[0]);
+  for (const alter of [
+    row => { row.data.journeyContext.propertyContext.addressSummary = '另一個地址'; },
+    row => { row.inputSummary.road = '新地址'; },
+    row => { row.id = 'foreign-case'; },
+    row => { row.data.pendingLocationCandidate.candidate.latitude = 35; },
+    row => { row.data.pendingLocationCandidate.state = 'confirmed'; },
+    row => { row.data.propertyIdentityAnchor = e9Case().data.propertyIdentityAnchor; },
+  ]) {
+    const changed = structuredClone(original); alter(changed);
+    values.set(key, JSON.stringify([changed]));
+    assert.ok(repo.getCase(changed.id), 'invalid pending data must not destroy the case');
+    assert.equal(repo.getCase(changed.id).pendingLocationCandidate, undefined);
+  }
+  values.set(key, JSON.stringify(rows));
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', pendingCandidate(), version)).status, 'blocked');
+  assert.equal((await storage.savePendingLocationCandidate('case-a', pendingCandidate(), repo.getCase('case-a').storageVersion)).status, 'blocked');
+}));
+
+test('pending write failure preserves the case and typed address', async () => browser(JSON.stringify([pendingDraft()]), async values => {
+  const before = values.get(key);
+  assert.equal((await storage.savePendingLocationCandidate('pending-a', pendingCandidate(), createBrowserCaseRepository().getCase('pending-a').storageVersion)).status, 'blocked');
+  assert.equal(values.get(key), before);
+}, true));
+
+const { api } = load('lib/api.ts');
+const { acquireCaseLocation } = load('lib/workspace/location-acquisition.ts');
+const incidentAddress = '新北市新莊區中正路191號';
+const googleResult = formatted => ({ status: 'resolved', source: 'google', confidence: 'high', latitude: 25.0359, longitude: 121.4326, county: '新北市', district: formatted.includes('樹林區') ? '樹林區' : '新莊區', formatted_address: formatted });
+async function withResolver(resolve, run) {
+  const original = api.locationResolve;
+  let calls = 0;
+  api.locationResolve = (address, signal) => { calls++; return resolve(address, signal); };
+  try { return await run(() => calls); } finally { api.locationResolve = original; }
+}
+
+test('strict resolver result is the only thing persisted as pending, and reads never resolve again', async () => browser(JSON.stringify([buildAddressDraftCase(incidentAddress, { id: 'incident', now: '2026-10-21T00:00:00Z' })]), async values => withResolver(async () => googleResult('238台灣新北市樹林區金寮里中正路191號'), async calls => {
+  const before = values.get(key);
+  assert.deepEqual(await acquireCaseLocation('incident', incidentAddress), { kind: 'blocked', reason: 'invalid' });
+  assert.equal(values.get(key), before, 'a contradicted district must never be stored as a pending candidate');
+  api.locationResolve = async () => googleResult('242台灣新北市新莊區中正路191號');
+  const accepted = await acquireCaseLocation('incident', incidentAddress);
+  assert.equal(accepted.kind, 'candidate');
+  const repo = createBrowserCaseRepository();
+  for (let i = 0; i < 5; i++) {
+    const reopened = repo.getCase('incident');
+    assert.deepEqual(reopened.pendingLocationCandidate, accepted.candidate);
+    assert.equal(reopened.identity.state, 'unconfirmed');
+    assert.equal(reopened.identity.anchor, null);
+    projectCaseEvidence(reopened);
+  }
+  assert.equal(calls(), 1, 'reopen/read paths make zero resolver calls');
+})));
+
+test('incompatible pending record from an older resolver contract fails closed without losing the case', async () => browser(JSON.stringify([buildAddressDraftCase(incidentAddress, { id: 'legacy', now: '2026-10-21T00:00:00Z' })]), async values => {
+  const valid = interpretLocationResolution(googleResult('新北市新莊區中正路191號'), incidentAddress).candidate;
+  assert.equal((await storage.savePendingLocationCandidate('legacy', valid, createBrowserCaseRepository().getCase('legacy').storageVersion)).status, 'saved');
+  const rows = JSON.parse(values.get(key));
+  Object.assign(rows[0].data.pendingLocationCandidate.candidate, { interpretedAddress: '238台灣新北市樹林區金寮里中正路191號', district: '樹林區' });
+  values.set(key, JSON.stringify(rows));
+  const reopened = createBrowserCaseRepository().getCase('legacy');
+  assert.ok(reopened);
+  assert.equal(reopened.pendingLocationCandidate, undefined);
+  assert.equal(reopened.identity.anchor, null);
+  assert.equal(storage.readSavedCases()[0].data.pendingLocationCandidate, undefined);
+  assert.equal((await storage.savePendingLocationCandidate('legacy', { ...valid, interpretedAddress: '238台灣新北市樹林區金寮里中正路191號', district: '樹林區' }, reopened.storageVersion)).status, 'blocked');
+}));
+
+test('timeout and provider/capacity failures store nothing; explicit retry replaces pending only with a fresh valid result', async (t) => browser(JSON.stringify([pendingDraft()]), async values => withResolver(async () => { throw Object.assign(new Error('busy'), { status: 503 }); }, async calls => {
+  const before = values.get(key);
+  assert.deepEqual(await acquireCaseLocation('pending-a', pendingAddress), { kind: 'blocked', reason: 'provider_unavailable' });
+  api.locationResolve = async () => { throw Object.assign(new Error('rate'), { status: 429 }); };
+  assert.deepEqual(await acquireCaseLocation('pending-a', pendingAddress), { kind: 'blocked', reason: 'capacity_unavailable' });
+  assert.equal(values.get(key), before);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let transport;
+  api.locationResolve = (_address, signal) => { transport = signal; return new Promise(() => {}); };
+  const hung = acquireCaseLocation('pending-a', pendingAddress);
+  await Promise.resolve();
+  t.mock.timers.tick(10_000);
+  assert.deepEqual(await hung, { kind: 'blocked', reason: 'unavailable' });
+  assert.equal(transport.aborted, true);
+  t.mock.timers.reset();
+  assert.equal(values.get(key), before, 'a timeout must not persist a fake candidate');
+  api.locationResolve = async () => ({ status: 'resolved', source: 'google', confidence: 'high', latitude: 25.0375, longitude: 121.5637, formatted_address: pendingAddress });
+  const first = await acquireCaseLocation('pending-a', pendingAddress);
+  assert.equal(first.kind, 'candidate');
+  api.locationResolve = async () => { throw Object.assign(new Error('busy'), { status: 503 }); };
+  assert.equal((await acquireCaseLocation('pending-a', pendingAddress)).kind, 'blocked');
+  assert.deepEqual(createBrowserCaseRepository().getCase('pending-a').pendingLocationCandidate, first.candidate, 'a failed retry keeps the earlier unconfirmed candidate');
+  api.locationResolve = async () => ({ status: 'resolved', source: 'tgos', confidence: 'high', latitude: 25.0376, longitude: 121.5638, formatted_address: pendingAddress });
+  const fresh = await acquireCaseLocation('pending-a', pendingAddress);
+  assert.equal(fresh.kind, 'candidate');
+  assert.deepEqual(createBrowserCaseRepository().getCase('pending-a').pendingLocationCandidate, fresh.candidate);
+  assert.equal(calls(), 1);
+})));
 function nearby() {
   const origin = { lat: 24.16525, lng: 120.64555 };
   return captureNearbyFacilities({ center: origin, radius_m: 800, source: 'google_places', categories: [{ category: 'park', places: [{ place_id: 'park', name: 'Local park', ...origin }] }] }, origin);
