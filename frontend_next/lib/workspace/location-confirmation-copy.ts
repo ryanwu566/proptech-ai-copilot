@@ -3,7 +3,8 @@ import type { IdentityConfirmationBlock, LocationCandidateBlock } from "./locati
 import type { ConfirmIdentityResult } from "../case-storage";
 
 type WriteBlock = Extract<ConfirmIdentityResult, { status: "blocked" }>["reason"];
-export type LocationConfirmationCopyKey = "find" | "finding" | "findNote" | "candidateTitle" | "details" | "mapContext" | "stages" | "stageCase" | "stageLocate" | "stageConfirm" | "interpreted" | "county" | "district" | "coordinates" | "source" | "sourceTgos" | "sourceGoogle" | "confirm" | "confirming" | "reject" | "confirmNote" | "confirmed" | "adminUnknown" | "adminPendingTitle" | "adminIncomplete" | "retry" | "failedTitle" | LocationCandidateBlock | IdentityConfirmationBlock | WriteBlock;
+type AdministrativeRepairCopyKey = "adminRecheck" | "adminRepairNote" | "adminRepairConfirm" | "adminRepairFailed" | "adminRepairCandidate" | "adminRepairCancel";
+export type LocationConfirmationCopyKey = "find" | "finding" | "findNote" | "candidateTitle" | "details" | "mapContext" | "stages" | "stageCase" | "stageLocate" | "stageConfirm" | "interpreted" | "county" | "district" | "coordinates" | "source" | "sourceTgos" | "sourceGoogle" | "confirm" | "confirming" | "reject" | "confirmNote" | "confirmed" | "adminUnknown" | "adminPendingTitle" | "adminIncomplete" | "retry" | "failedTitle" | LocationCandidateBlock | IdentityConfirmationBlock | WriteBlock | AdministrativeRepairCopyKey;
 
 /** In-case location confirmation copy. Must never imply that analysis ran or parcel/building identity was verified. */
 export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey> = {
@@ -27,6 +28,12 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     adminUnknown: "尚未取得",
     adminPendingTitle: "行政區資訊尚未完整取得",
     adminIncomplete: "位置已確認；行政區資訊尚未完整取得，因此部分市場資料暫時無法使用。",
+    adminRecheck: "重新核對行政區",
+    adminRepairNote: "核對會查詢一次地址。確認後只補齊縣市與行政區，保留已確認的地址、座標與其他證據。",
+    adminRepairConfirm: "確認並保存行政區",
+    adminRepairCandidate: "請核對這次取得的行政區",
+    adminRepairFailed: "無法安全補齊行政區。請稍後重新核對；原有位置與案件資料已保留。",
+    adminRepairCancel: "取消核對",
     capacity_unavailable: "目前查詢較忙碌，請稍後再試。",
     provider_unavailable: "定位服務暫時無法使用，請稍後再試。",
     retry: "重新確認位置",
@@ -69,6 +76,12 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     adminUnknown: "Not yet resolved",
     adminPendingTitle: "Administrative area is incomplete",
     adminIncomplete: "Location confirmed. Administrative area details are incomplete, so some market data is temporarily unavailable.",
+    adminRecheck: "Recheck administrative area",
+    adminRepairNote: "Rechecking looks up the address once. Confirming fills in the city and district while keeping your confirmed address, coordinates and other evidence.",
+    adminRepairConfirm: "Confirm and save administrative area",
+    adminRepairCandidate: "Review the returned administrative area",
+    adminRepairFailed: "The administrative area could not be filled in safely. Recheck later; your existing location and case data are kept.",
+    adminRepairCancel: "Cancel recheck",
     capacity_unavailable: "Location searches are busy right now. Please try again later.",
     provider_unavailable: "The location service is temporarily unavailable. Please try again later.",
     retry: "Check location again",
@@ -111,6 +124,12 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     adminUnknown: "未取得",
     adminPendingTitle: "行政区情報が揃っていません",
     adminIncomplete: "位置を確定しました。行政区情報が揃っていないため、一部の市場データは現在利用できません。",
+    adminRecheck: "行政区を再確認",
+    adminRepairNote: "住所を1回照会します。確認後は県市と行政区のみを補完し、確定済みの住所、座標、その他の根拠を保持します。",
+    adminRepairConfirm: "行政区を確認して保存",
+    adminRepairCandidate: "取得した行政区を確認してください",
+    adminRepairFailed: "行政区を安全に補完できませんでした。後でもう一度確認してください。既存の位置と案件データは保持されています。",
+    adminRepairCancel: "確認をキャンセル",
     capacity_unavailable: "現在、位置の検索が混み合っています。しばらくしてからお試しください。",
     provider_unavailable: "位置情報サービスが一時的に利用できません。しばらくしてからお試しください。",
     retry: "位置を再確認",
@@ -153,6 +172,12 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     adminUnknown: "아직 확인되지 않음",
     adminPendingTitle: "행정구 정보가 불완전합니다",
     adminIncomplete: "위치를 확인했습니다. 행정구 정보가 불완전하여 일부 시장 데이터는 현재 사용할 수 없습니다.",
+    adminRecheck: "행정구 다시 확인",
+    adminRepairNote: "주소를 한 번 조회합니다. 확인하면 시·현과 행정구만 보완하며 확정된 주소, 좌표 및 다른 근거는 유지합니다.",
+    adminRepairConfirm: "행정구 확인 및 저장",
+    adminRepairCandidate: "조회된 행정구를 확인하세요",
+    adminRepairFailed: "행정구를 안전하게 보완할 수 없습니다. 나중에 다시 확인하세요. 기존 위치와 사례 데이터는 유지됩니다.",
+    adminRepairCancel: "확인 취소",
     capacity_unavailable: "현재 위치 검색 요청이 많습니다. 잠시 후 다시 시도하세요.",
     provider_unavailable: "위치 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요.",
     retry: "위치 다시 확인",

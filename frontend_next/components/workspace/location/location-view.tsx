@@ -24,6 +24,7 @@ import { identityConfirmationCopy, identityConfirmationKind } from "@/lib/worksp
 import { hasCompleteAdministrativeArea } from "@/lib/journey-property-identity";
 import { nearbyFacilitiesCopy } from "@/lib/workspace/nearby-facilities-copy";
 import { LocationConfirmationPanel } from "./location-confirmation-panel";
+import { AdministrativeAreaRepairPanel } from "./administrative-area-repair-panel";
 import { NearbyFacilitiesPanel } from "./nearby-facilities-panel";
 import { ExplicitMap } from "@/components/map/explicit-map";
 
@@ -99,7 +100,7 @@ export function LocationView() {
     </header>
 
     <div role="status" data-testid="location-confirmation-status">{locationConfirmed && !neverLocated && <Message variant="success">{copyFrom(locationConfirmationCopy, "confirmed")}</Message>}</div>
-    {anchor && !hasCompleteAdministrativeArea(anchor) && <div data-testid="location-administrative-incomplete"><Message variant="information">{copyFrom(locationConfirmationCopy, "adminIncomplete")}</Message></div>}
+    {anchor && !hasCompleteAdministrativeArea(anchor) && <div data-testid="location-administrative-incomplete"><Message variant="information">{copyFrom(locationConfirmationCopy, "adminIncomplete")}</Message><AdministrativeAreaRepairPanel key={`${workspace.caseId}:${workspace.storageVersion}`} /></div>}
 
     <SummaryStrip label="區位與通勤狀態">
       <MetricItem label="物件位置" value={<StatusLabel semanticRole={identity.role}>{identity.label[locale]}</StatusLabel>} />

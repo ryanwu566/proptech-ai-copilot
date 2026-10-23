@@ -19,6 +19,7 @@ import { normalizeLocationInsightEvidence } from "@/lib/location-insight-evidenc
 import { invalidateChangedChecklist, normalizeChecklistReview, type StoredChecklistReviewV1 } from "@/lib/workspace/checklist-persistence";
 import { planAddressDraft, type AddressDraftResult } from "@/lib/workspace/case-draft";
 import { planIdentityConfirmation } from "@/lib/workspace/location-confirmation";
+import { planAdministrativeAreaRepair } from "@/lib/workspace/administrative-area-repair";
 import type { LocationCandidate } from "@/lib/workspace/location-confirmation";
 import { capturePendingLocation, restorePendingLocation, type PendingLocationCandidate } from "@/lib/workspace/pending-location";
 import { normalizeNearbyFacilities, type NearbyFacilitiesEvidence } from "@/lib/workspace/nearby-facilities";
@@ -281,6 +282,27 @@ export async function confirmSavedCaseIdentity(caseId: string, anchor: JourneyPr
     } catch {
       return { status: "blocked", reason: "write_failed" };
     }
+  });
+}
+
+/** Explicit administrative repair: exact-version locked write; preserves all other case data. */
+export async function repairSavedCaseAdministrativeArea(caseId: string, candidate: LocationCandidate, expectedVersion: string, canCommit?: SavedCaseCommitGuard): Promise<ConfirmIdentityResult> {
+  if (typeof window === "undefined" || !window.navigator?.locks?.request) return { status: "blocked", reason: "lock_unavailable" };
+  return mutateSavedCases<ConfirmIdentityResult>({ status: "blocked", reason: "lock_unavailable" }, () => {
+    try {
+      if (canCommit && !canCommit()) return { status: "blocked", reason: "case_changed" };
+      const snapshot = readStorageSnapshot();
+      if (["parse_error", "invalid_storage", "storage_unavailable"].includes(snapshot.diagnostic.status)) return { status: "blocked", reason: "storage_unavailable" };
+      const rows = snapshot.diagnostic.cases;
+      const index = rows.findIndex((row) => row.id === caseId);
+      const plan = planAdministrativeAreaRepair(rows[index], candidate, expectedVersion, new Date().toISOString());
+      if (plan.kind === "blocked") return { status: "blocked", reason: plan.reason };
+      const updated: SavedCase = { ...rows[index], updatedAt: new Date().toISOString(), data: { ...rows[index].data, propertyIdentityAnchor: plan.anchor } };
+      rows[index] = updated;
+      if (!writeCases(rows, snapshot.raw)) return { status: "blocked", reason: "write_failed" };
+      window.dispatchEvent(new CustomEvent<SavedCase>(CASE_UPDATED_EVENT, { detail: updated }));
+      return { status: "confirmed", saved: updated };
+    } catch { return { status: "blocked", reason: "write_failed" }; }
   });
 }
 

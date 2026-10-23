@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { ComparableExplanation } from "./comparable-explanation";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -313,6 +314,7 @@ export function MarketPriceView() {
 
     {workspace.identity.state === "confirmed" && !hasCompleteAdministrativeArea(workspace.identity.anchor) && <div data-testid="market-administrative-unavailable"><Message variant="information" title={copyFrom(locationConfirmationCopy, "adminPendingTitle")}>
       {copyFrom(locationConfirmationCopy, "adminIncomplete")}
+      <Link className="mt-3 inline-flex min-h-11 items-center font-semibold underline" href={`/cases/${workspace.caseId}/location`} data-testid="market-admin-repair-link">{copyFrom(locationConfirmationCopy, "adminRecheck")}</Link>
     </Message></div>}
     {(!marketContext || !valuationContext) && !(workspace.identity.state === "confirmed" && !hasCompleteAdministrativeArea(workspace.identity.anchor)) && <div data-testid="market-refresh-input-required">
       <AsyncState
