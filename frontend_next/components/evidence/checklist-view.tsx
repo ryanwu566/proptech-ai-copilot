@@ -17,7 +17,15 @@ import { reviewDate } from "./manual-review-summary";
 // The Decision Room store and copy load only when an outstanding item offers the action.
 const AddToDecisionRoom = dynamic(() => import("@/components/decision-room/add-to-decision-room").then((module) => module.AddToDecisionRoom), { ssr: false });
 
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { checklistCopy, checklistDomainLabel, checklistItemName, checklistReviewLabel, checklistEvidenceStatus, checklistGapLabel, presentChecklistAction } from "@/lib/workspace/overview-presentation";
+
 export function ChecklistView({ workspace }: { workspace: PropertyCaseWorkspace }) {
+  const { locale, copyFrom } = useExperienceLocale();
+  const c = (key: keyof typeof checklistCopy.en, values?: Record<string, string>) => copyFrom(checklistCopy, key, values);
+  const domainName = (domain: keyof typeof CHECKLIST_DOMAINS) => checklistDomainLabel(domain, locale, CHECKLIST_DOMAINS[domain]);
+  const itemName = (item: { id: string; name: string }) => checklistItemName(item.id, locale, item.name);
+  const reviewLabel = (state: ManualReviewState) => checklistReviewLabel(state, locale, MANUAL_REVIEW_LABELS[state]);
   const repository = useMemo(createBrowserCaseRepository, []);
   const [draft, setDraft] = useState<{ base: string; review: StoredChecklistReviewV1 } | null>(null);
   const [notice, setNotice] = useState<{ error: boolean; text: string } | null>(null);
@@ -39,42 +47,42 @@ export function ChecklistView({ workspace }: { workspace: PropertyCaseWorkspace 
     setSaving(true);
     try {
       const result = await repository.saveChecklist(workspace, submittedDraft.review);
-      if (result.status === "blocked") { setNotice({ error: true, text: `人工核對狀態未保存。${result.message}` }); return; }
-      setDraft((current) => current === submittedDraft ? null : current); setNotice({ error: false, text: "人工核對狀態已保存於此瀏覽器案件。" });
-    } catch { setNotice({ error: true, text: "人工核對狀態未保存。瀏覽器儲存失敗；請恢復儲存空間或存取後重試。" }); }
+      if (result.status === "blocked") { setNotice({ error: true, text: `${c("notSaved")}${result.message}` }); return; }
+      setDraft((current) => current === submittedDraft ? null : current); setNotice({ error: false, text: c("saved") });
+    } catch { setNotice({ error: true, text: c("notSavedStorage") }); }
     finally { savingRef.current = false; setSaving(false); }
   }
-  return <Section title="證據查證清單" description="人工核對是使用者提供的紀錄，不代表官方查證；未知、未命中與無法取得仍保留原狀。">
+  return <Section title={c("title")} description={c("description")}>
     <div id="evidence-checklist" className={styles.checklist}>
-      <ul className={styles.preview}>{items.filter((item) => item.reviewState !== "reviewed").slice(0, 3).map((item) => <li key={item.id}><strong>{item.name}</strong> · {MANUAL_REVIEW_LABELS[item.reviewState]}<p>{item.nextAction}</p>
+      <ul className={styles.preview}>{items.filter((item) => item.reviewState !== "reviewed").slice(0, 3).map((item) => <li key={item.id}><strong>{itemName(item)}</strong> · {reviewLabel(item.reviewState)}<p>{presentChecklistAction(item.nextAction, locale)}</p>
         {item.outstanding && <AddToDecisionRoom caseId={workspace.caseId} candidate={{ origin: (item.domain as string) === "overview" ? "identity" : item.domain, sourceKey: item.id, title: item.name, note: item.nextAction }} />}</li>)}</ul>
-      {workspace.identity.state !== "confirmed" && <Message variant="warning">物件身分需重新確認；先前人工核對僅保留為歷史紀錄，目前不能新增核對。</Message>}
-      {staleDraft && <Message variant="warning">案件已有較新快照；草稿不能覆蓋新證據。請載入已保存核對狀態後再核對。</Message>}
+      {workspace.identity.state !== "confirmed" && <Message variant="warning">{c("identityStale")}</Message>}
+      {staleDraft && <Message variant="warning">{c("staleDraft")}</Message>}
       {notice && <div role={notice.error ? undefined : "status"}><Message variant={notice.error ? "error" : "information"}>{notice.text}</Message></div>}
-      {draft && <div role="status"><Message>尚未保存人工核對變更。</Message></div>}
-      <DetailsDisclosure summary="開啟完整查證清單">
-        {Object.entries(CHECKLIST_DOMAINS).map(([domain, label]) => <section key={domain} className={styles.domain} aria-label={`${label}查證項目`}>
-          <h3 className="text-subsection">{label}</h3>
+      {draft && <div role="status"><Message>{c("unsaved")}</Message></div>}
+      <DetailsDisclosure summary={c("openFull")}>
+        {Object.keys(CHECKLIST_DOMAINS).map((domain) => <section key={domain} className={styles.domain} aria-label={c("domainItems", { domain: domainName(domain as keyof typeof CHECKLIST_DOMAINS) })}>
+          <h3 className="text-subsection">{domainName(domain as keyof typeof CHECKLIST_DOMAINS)}</h3>
           <ul>{items.filter((item) => item.domain === domain).map((item) => <li key={item.id} data-testid={`checklist-${item.id}`} className={styles.item}>
-            <h4>{item.name}</h4>
-            <p>來源證據狀態：{[...new Set(item.fields.map((field) => EVIDENCE_STATUS_LABELS[field.status]))].join("；") || "自動查證未支援"}</p>
-            <p>缺少或受限原因：{[...new Set(item.gaps.map((gap) => GAP_LABELS[gap.reason]))].join("；") || "保存摘要仍有來源與適用範圍限制"}</p>
-            <p>為何重要：{item.impact}</p>
-            <p>來源：{[...new Set(item.fields.map((field) => field.source).concat(item.sources.map((source) => source.name)))].join("；") || "來源未保存"}</p>
-            {item.sources.filter((source) => source.url).map((source) => <p key={source.id}><a href={source.url!} target="_blank" rel="noopener noreferrer">查看保存的來源：{source.name}</a></p>)}
-            <p>下一步：{item.nextAction}</p><Link href={item.href}>前往{CHECKLIST_DOMAINS[item.domain]}工作區</Link>
+            <h4>{itemName(item)}</h4>
+            <p>{c("evidenceStatus")}{[...new Set(item.fields.map((field) => checklistEvidenceStatus(field.status, locale, EVIDENCE_STATUS_LABELS[field.status])))].join("；") || c("unsupportedAuto")}</p>
+            <p>{c("gapReason")}{[...new Set(item.gaps.map((gap) => checklistGapLabel(gap.reason, locale, GAP_LABELS[gap.reason])))].join("；") || c("gapDefault")}</p>
+            <p>{c("whyMatters")}<span lang="zh-TW">{item.impact}</span></p>
+            <p>{c("sources")}{[...new Set(item.fields.map((field) => field.source).concat(item.sources.map((source) => source.name)))].join("；") || c("noSources")}</p>
+            {item.sources.filter((source) => source.url).map((source) => <p key={source.id}><a href={source.url!} target="_blank" rel="noopener noreferrer">{c("viewSource")}{source.name}</a></p>)}
+            <p>{c("next")}{presentChecklistAction(item.nextAction, locale)}</p><Link href={item.href}>{c("goTo", { domain: domainName(item.domain) })}</Link>
             <div className={styles.controls}>
-              <label><input type="checkbox" checked={item.reviewState === "reviewed"} disabled={!canReview} onChange={(event) => change(item.id, event.target.checked ? "reviewed" : "not_checked")} />已由使用者核對：{item.name}</label>
-              <label>人工核對狀態：{item.name}<select value={item.reviewState} disabled={!canReview} onChange={(event) => change(item.id, event.target.value as ManualReviewState)}>{Object.entries(MANUAL_REVIEW_LABELS).map(([state, label]) => <option key={state} value={state}>{label}</option>)}</select></label>
+              <label><input type="checkbox" checked={item.reviewState === "reviewed"} disabled={!canReview} onChange={(event) => change(item.id, event.target.checked ? "reviewed" : "not_checked")} />{c("reviewedBy")}{itemName(item)}</label>
+              <label>{c("reviewState")}{itemName(item)}<select value={item.reviewState} disabled={!canReview} onChange={(event) => change(item.id, event.target.value as ManualReviewState)}>{Object.keys(MANUAL_REVIEW_LABELS).map((state) => <option key={state} value={state}>{reviewLabel(state as ManualReviewState)}</option>)}</select></label>
             </div>
-            {item.reviewedAt && <p className="text-meta">先前人工核對：{reviewDate(item.reviewedAt)}{item.reviewState === "recheck" ? "；證據或物件已變更，需再次核對。" : "；僅為使用者紀錄。"}</p>}
-            {!item.outstanding && <p>原缺口已由保存的來源證據補齊；人工核對紀錄仍保留。</p>}
+            {item.reviewedAt && <p className="text-meta">{c("previousReview")}{reviewDate(item.reviewedAt)}{item.reviewState === "recheck" ? c("recheck") : c("userRecord")}</p>}
+            {!item.outstanding && <p>{c("resolved")}</p>}
           </li>)}</ul>
         </section>)}
       </DetailsDisclosure>
       <ActionSection>
-        <CommercialButton onClick={save} disabled={!draft || !canReview}>保存人工核對</CommercialButton>
-        {draft && <CommercialButton variant="secondary" disabled={saving} onClick={() => { if (!savingRef.current) { setDraft(null); setNotice(null); } }}>載入已保存核對狀態</CommercialButton>}
+        <CommercialButton onClick={save} disabled={!draft || !canReview}>{c("save")}</CommercialButton>
+        {draft && <CommercialButton variant="secondary" disabled={saving} onClick={() => { if (!savingRef.current) { setDraft(null); setNotice(null); } }}>{c("loadSaved")}</CommercialButton>}
       </ActionSection>
     </div>
   </Section>;

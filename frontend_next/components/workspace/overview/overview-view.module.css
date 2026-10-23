@@ -1,14 +1,23 @@
-.page { display: grid; gap: var(--space-6); min-width: 0; }
-.decisionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-5); }
-.decisionGroup { min-width: 0; border-top: 2px solid var(--border-strong); padding-top: var(--space-3); }
+.page { display: grid; gap: var(--gap-section); min-width: 0; }
+/* Readiness reads as one line under the title, not a boxed metric. */
+.readiness { margin-top: calc(var(--space-6) - var(--gap-section)); border: 0; }
+.readiness :global(.ds-metric) { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-1) var(--space-3); padding: 0; }
+.readiness :global(.ds-metric__value), .readiness :global(.ds-metric__note) { margin: 0; }
+.readiness :global(.ds-metric__value) { font-size: var(--text-body-size); }
+.decisionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-6) var(--space-8); }
+.decisionGroup { min-width: 0; border-top: 1px solid var(--border-subtle); padding-top: var(--space-4); }
 .decisionGroup h3 { margin: 0 0 var(--space-2); }
-.decisionGrid .decisionGroup:first-child { grid-column: 1/-1; border-top-color: var(--status-warning-border); }
+/* The one group a buyer must read first: what needs attention now. */
+.decisionGrid .decisionGroup:first-child { grid-column: 1/-1; border-top: 2px solid var(--status-warning-border); }
+.decisionGrid .decisionGroup:first-child h3 { font-size: var(--text-section-size); line-height: var(--text-section-line); }
 .list { display: grid; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
 .list li { min-width: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: var(--space-3); }
 .list strong, .list p { overflow-wrap: anywhere; }
 .list p { margin: var(--space-1) 0 0; color: var(--text-muted); }
 .list a { display: inline-block; margin-top: var(--space-2); color: var(--action); font-weight: 650; }
-.domain { border-top: 1px solid var(--border-strong); padding-top: var(--space-5); }
+.domains { display: grid; gap: var(--space-8) var(--space-10); min-width: 0; }
+.domains > .domain { border-top: 1px solid var(--border-subtle); padding-top: var(--space-5); }
+.domain :global(.ds-section__description) { font-size: var(--text-dense-size); line-height: var(--text-dense-line); }
 .domainBody { display: grid; gap: var(--space-4); min-width: 0; }
 .domainAction { margin-top: var(--space-4); }
 .metricRows { display: grid; gap: 0; border-block: 1px solid var(--border-subtle); }
@@ -21,6 +30,10 @@
 .provenance div { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr); gap: var(--space-3); }
 .provenance dt { color: var(--text-muted); }
 .provenance dd { margin: 0; overflow-wrap: anywhere; }
+
+@media (min-width: 1100px) {
+  .domains { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 @media (max-width: 767px) {
   .decisionGrid { grid-template-columns: 1fr; }
