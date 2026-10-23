@@ -34,6 +34,108 @@ const pendingAddress = '臺北市信義區市府路1號';
 const pendingDraft = (id = 'pending-a') => buildAddressDraftCase(pendingAddress, { id, now: '2026-10-21T00:00:00Z' });
 const pendingCandidate = () => interpretLocationResolution({ status: 'resolved', source: 'google', confidence: 'high', latitude: 25.0375, longitude: 121.5637, formatted_address: pendingAddress }, pendingAddress).candidate;
 
+function missingAdminCase() {
+  const row = pendingDraft('missing-admin');
+  row.data.propertyIdentityAnchor = buildConfirmedLocationAnchor(pendingCandidate(), { now: () => '2026-10-21T01:00:00Z', idFactory: () => '11111111-2222-4333-8444-555555555555' });
+  return row;
+}
+
+test('administrative repair is explicit, preserves other cases and data, and survives storage reopen', async () => browser(JSON.stringify([missingAdminCase(), e9Case('other-case')]), async values => {
+  const before = storage.readSavedCases();
+  const version = JSON.stringify(before[0]);
+  const repo = createBrowserCaseRepository();
+  const raw = values.get(key);
+  for (let i = 0; i < 5; i++) {
+    const workspace = repo.getCase('missing-admin');
+    assert.equal(workspace.identity.state, 'confirmed');
+    assert.equal(buildMarketRefreshContext(workspace, before[0]), null);
+    projectCaseEvidence(workspace);
+  }
+  assert.equal(values.get(key), raw, 'ordinary reads never fill in geography');
+  const candidate = { ...pendingCandidate(), county: '臺北市', district: '信義區' };
+  const result = await storage.repairSavedCaseAdministrativeArea('missing-admin', candidate, version);
+  assert.equal(result.status, 'confirmed');
+  const after = storage.readSavedCases();
+  assert.deepEqual(after[1], before[1]);
+  const expectedData = { ...before[0].data, propertyIdentityAnchor: after[0].data.propertyIdentityAnchor };
+  assert.deepEqual(after[0].data, expectedData);
+  assert.deepEqual(after[0].data.propertyIdentityAnchor.coordinates, before[0].data.propertyIdentityAnchor.coordinates);
+  assert.equal(after[0].data.propertyIdentityAnchor.journey_anchor_id, before[0].data.propertyIdentityAnchor.journey_anchor_id);
+  assert.deepEqual(buildMarketRefreshContext(repo.getCase('missing-admin'), after[0]).payload, { county: '臺北市', district: '信義區' });
+  const repairedRaw = values.get(key);
+  repo.getCase('missing-admin');
+  assert.equal(values.get(key), repairedRaw);
+}));
+
+test('administrative repair write failure preserves the original case without publishing success', async () => browser(JSON.stringify([missingAdminCase()]), async values => {
+  let events = 0;
+  global.window.dispatchEvent = () => { events++; return true; };
+  const before = values.get(key);
+  const row = storage.readSavedCases()[0];
+  const result = await storage.repairSavedCaseAdministrativeArea(row.id, { ...pendingCandidate(), county: '臺北市', district: '信義區' }, JSON.stringify(row));
+  assert.deepEqual(result, { status: 'blocked', reason: 'write_failed' });
+  assert.equal(values.get(key), before);
+  assert.equal(events, 0);
+}, true));
+
+test('administrative repair keeps populated market, finance, commute and risk evidence intact', async () => {
+  const populated = e9Case();
+  const anchor = populated.data.propertyIdentityAnchor;
+  const candidate = { addressInput: anchor.address_input, interpretedAddress: anchor.normalized_address,
+    county: anchor.administrative_location.city, district: anchor.administrative_location.district,
+    latitude: anchor.coordinates.latitude, longitude: anchor.coordinates.longitude, source: 'google' };
+  anchor.administrative_location.city = null;
+  anchor.administrative_location.district = null;
+  await browser(JSON.stringify([populated]), async () => {
+    const before = storage.readSavedCases()[0];
+    assert.equal((await storage.repairSavedCaseAdministrativeArea(before.id, candidate, JSON.stringify(before))).status, 'confirmed');
+    const after = storage.readSavedCases()[0];
+    for (const field of ['marketInsight', 'valuation', 'financeEvidence', 'commuteRoute', 'terrainReference', 'locationInsight', 'nearbyFacilities']) {
+      assert.deepEqual(after.data[field], before.data[field], field);
+    }
+  });
+});
+
+test('administrative repair rechecks case version after acquiring the shared storage lock', async () => browser(JSON.stringify([missingAdminCase()]), async values => {
+  const row = storage.readSavedCases()[0];
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  const blocker = global.window.navigator.locks.request(key, { mode: 'exclusive' }, () => held);
+  const pending = storage.repairSavedCaseAdministrativeArea(row.id, { ...pendingCandidate(), county: '臺北市', district: '信義區' }, JSON.stringify(row));
+  const newer = JSON.stringify([{ ...row, title: 'Edited in another tab' }]);
+  values.set(key, newer);
+  release(); await blocker;
+  assert.deepEqual(await pending, { status: 'blocked', reason: 'case_changed' });
+  assert.equal(values.get(key), newer);
+}));
+
+test('administrative repair cancelled while waiting for the lock cannot mutate or publish', async () => browser(JSON.stringify([missingAdminCase()]), async values => {
+  const row = storage.readSavedCases()[0];
+  const before = values.get(key);
+  let release; let active = true; let events = 0;
+  global.window.dispatchEvent = () => { events++; return true; };
+  const held = new Promise(resolve => { release = resolve; });
+  const blocker = global.window.navigator.locks.request(key, { mode: 'exclusive' }, () => held);
+  const pending = storage.repairSavedCaseAdministrativeArea(row.id, { ...pendingCandidate(), county: '臺北市', district: '信義區' }, JSON.stringify(row), () => active);
+  active = false;
+  release(); await blocker;
+  assert.deepEqual(await pending, { status: 'blocked', reason: 'case_changed' });
+  assert.equal(values.get(key), before);
+  assert.equal(events, 0);
+}));
+
+test('administrative repair fails closed without locks or readable storage', async () => browser(JSON.stringify([missingAdminCase()]), async values => {
+  const row = storage.readSavedCases()[0];
+  const candidate = { ...pendingCandidate(), county: '臺北市', district: '信義區' };
+  const locks = global.window.navigator.locks;
+  global.window.navigator.locks = undefined;
+  assert.deepEqual(await storage.repairSavedCaseAdministrativeArea(row.id, candidate, JSON.stringify(row)), { status: 'blocked', reason: 'lock_unavailable' });
+  global.window.navigator.locks = locks;
+  values.set(key, '{invalid json');
+  assert.deepEqual(await storage.repairSavedCaseAdministrativeArea(row.id, candidate, JSON.stringify(row)), { status: 'blocked', reason: 'storage_unavailable' });
+  assert.equal(values.get(key), '{invalid json');
+}));
+
 test('pending candidate roundtrip stays separate from identity, isolates cases and promotes only on confirmation', async () => browser(JSON.stringify([pendingDraft(), pendingDraft('pending-b')]), async values => {
   const repo = createBrowserCaseRepository();
   const version = repo.getCase('pending-a').storageVersion;
