@@ -8,7 +8,7 @@ export async function acquireCaseLocation(caseId: string, address: string, signa
   const current = readSavedCases().find((row) => row.id === caseId);
   if (!current) return { kind: "blocked", reason: "case_changed" };
   const version = JSON.stringify(current);
-  const resolution = await acquireLocationResolution(address, (requestSignal) => api.locationResolve(address, requestSignal), { signal });
+  const resolution = await acquireLocationResolution(address, (requestSignal) => api.locationResolve(address, requestSignal), signal);
   if (resolution.kind !== "candidate" || signal?.aborted) return resolution;
   const saved = await savePendingLocationCandidate(caseId, resolution.candidate, version);
   // A settled candidate must only be restored through the saved case/address binding.

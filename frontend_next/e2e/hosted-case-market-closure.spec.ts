@@ -219,7 +219,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
       await page.locator("#evidence-checklist summary").click();
       await page.getByTestId("checklist-identity-legal").getByRole("combobox").selectOption(s.review);
       await page.getByRole("button", { name: "保存人工核對", exact: true }).click();
-      await expect(page.getByRole("status")).toContainText("人工核對狀態已保存");
+      await expect(page.getByTestId("commercial-overview-workspace").getByRole("status")).toContainText("人工核對狀態已保存");
       await page.reload(); await expect(page.getByRole("banner", { name: "目前物件" })).toContainText(s.displayAddress);
       const persisted = (await rows(page)).find(item => item.id === saved.id)!;
       expect(persisted.data.journeyContext?.priceBasis).toBe("manual"); expect(persisted.data.journeyContext?.manualPriceWan).toBe(s.price);
@@ -359,7 +359,7 @@ test("queued Checklist save protects its draft until the storage lock completes"
   } finally {
     await page.evaluate(() => (window as unknown as { releaseChecklistTestLock: () => void }).releaseChecklistTestLock());
   }
-  await expect(page.getByRole("status")).toContainText("人工核對狀態已保存");
+  await expect(page.getByTestId("commercial-overview-workspace").getByRole("status")).toContainText("人工核對狀態已保存");
   expect((await rows(page))[0].data.checklistReview?.entries.find(item => item.id === "identity-legal")?.state).toBe("reviewed");
   await expect(review.getByRole("combobox")).toBeEnabled();
   assertZeroRequests(calls, before, "Queued Checklist save");
@@ -389,7 +389,7 @@ test("failed Checklist save retains the draft and restores controls for a succes
   expect(await page.evaluate(key => localStorage.getItem(key), KEY)).toBe(original);
   await page.evaluate(() => (window as unknown as { restoreChecklistTestStorage: () => void }).restoreChecklistTestStorage());
   await page.getByRole("button", { name: "保存人工核對", exact: true }).click();
-  await expect(page.getByRole("status")).toContainText("人工核對狀態已保存");
+  await expect(page.getByTestId("commercial-overview-workspace").getByRole("status")).toContainText("人工核對狀態已保存");
   expect((await rows(page))[0].data.checklistReview?.entries.find(item => item.id === "identity-legal")?.state).toBe("reviewed");
   assertZeroRequests(calls, before, "Failed Checklist save and explicit retry");
 });

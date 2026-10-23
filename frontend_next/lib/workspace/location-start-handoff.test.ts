@@ -8,20 +8,6 @@ import { acquireLocationResolution } from "./location-confirmation.ts";
 const address = "臺北市信義區市府路1號";
 const spatial = { status: "resolved", source: "google", confidence: "high", latitude: 25.0375, longitude: 121.5637, formatted_address: address };
 
-test("a hung lookup times out once, aborts transport and ignores a late success", async () => {
-  let signal: AbortSignal | undefined;
-  let release!: (value: unknown) => void;
-  let calls = 0;
-  const result = await acquireLocationResolution(address, (requestSignal: AbortSignal) => {
-    calls++; signal = requestSignal;
-    return new Promise((resolve) => { release = resolve; });
-  }, { timeoutMs: 10 });
-  assert.deepEqual(result, { kind: "blocked", reason: "unavailable" });
-  assert.equal(signal?.aborted, true);
-  release(spatial);
-  assert.equal(calls, 1);
-});
-
 test("an explicit Start shares one acquisition across repeated submits and reads, without confirming identity", async () => {
   const handoff = new LocationStartHandoff();
   let calls = 0;

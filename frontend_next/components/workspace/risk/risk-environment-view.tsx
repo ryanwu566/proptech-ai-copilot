@@ -26,6 +26,7 @@ import {
   type RiskQueryContext,
 } from "@/lib/workspace/risk-evidence-model";
 import { RiskEvidenceMap } from "./risk-evidence-map";
+import { ExplicitMap } from "@/components/map/explicit-map";
 import { buildRiskBuyerModel, buyerState } from "@/lib/workspace/risk-buyer-model";
 import { hazardBuyerCopy, riskBuyerCopy, riskBuyerSummary } from "@/lib/workspace/risk-buyer-copy";
 import { RiskBuyerCard, RiskSourceEvidence } from "./risk-buyer-card";
@@ -150,7 +151,7 @@ export function RiskEnvironmentView() {
 
     {coordinates && <Section title={c.mapTitle} description={c.mapNote}>
       <MapFrame title={c.mapRegion} description={c.mapNote} attribution={c.mapAttribution}>
-        <RiskEvidenceMap center={coordinates} radiusM={500} hazardGeometries={result?.hazard_geometries} selectedKey={selectedRow?.key} />
+        <ExplicitMap key={`${workspace.caseId}:${coordinates.latitude}:${coordinates.longitude}`} kind="risk"><RiskEvidenceMap center={coordinates} radiusM={500} hazardGeometries={result?.hazard_geometries} selectedKey={selectedRow?.key} /></ExplicitMap>
       </MapFrame>
     </Section>}
 

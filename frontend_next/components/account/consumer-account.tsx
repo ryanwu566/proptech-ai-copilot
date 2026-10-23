@@ -5,15 +5,18 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { accountCopy } from "@/lib/account-copy";
+import { authEntryHref, safeAuthReturn } from "@/lib/navigation/auth-return";
 import { restoreConsumerAccount, type AccountState } from "@/lib/account-client";
 import { getVNextAuthClient, requestPasswordResetVNext, signInVNext, signOutVNext, signUpVNext, validConsumerEmail, V_NEXT_SESSION_EXPIRED_EVENT } from "@/lib/vnext-auth-session";
 import styles from "./consumer-account.module.css";
 
 type MessageKey = keyof typeof accountCopy.en;
-export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account" }) {
+export function ConsumerAccount({ mode, returnIntent = null }: { mode: "login" | "signup" | "account"; returnIntent?: string | null }) {
   const { copyFrom, formatDate } = useExperienceLocale();
   const c = (key: MessageKey) => copyFrom(accountCopy, key);
   const router = useRouter();
+  const safeReturn = safeAuthReturn(returnIntent);
+  const destination = safeReturn ?? "/account";
   const [account, setAccount] = useState<AccountState | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +35,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
       const result = await restoreConsumerAccount();
       if (disposed || ownVersion !== version.current || logoutPending.current) return;
       setAccount(result);
-      if (result.status === "ready" && mode !== "account") router.replace("/account");
+      if (result.status === "ready" && mode !== "account") router.replace(destination);
     }
     void load();
     const subscription = getVNextAuthClient()?.auth.onAuthStateChange((event) => {
@@ -57,7 +60,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
       disposed = true; version.current += 1; clearTimeout(timer);
       subscription?.unsubscribe(); window.removeEventListener(V_NEXT_SESSION_EXPIRED_EVENT, expired);
     };
-  }, [mode, router]);
+  }, [mode, router, destination]);
 
   useEffect(() => { if (message) statusRef.current?.focus(); }, [message]);
 
@@ -73,7 +76,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
       const result = mode === "signup" ? await signUpVNext(email, password)
         : { status: await signInVNext(email.trim(), password) ? "authenticated" : getVNextAuthClient() ? "provider_error" : "configuration_unavailable" };
       setPassword("");
-      if (result.status === "authenticated") router.replace("/account");
+      if (result.status === "authenticated") router.replace(destination);
       else setMessage({ key: result.status === "configuration_unavailable" ? "unavailable" : result.status === "validation_error" ? "validation" : result.status === "provider_error" ? "provider" : "accepted", error: ["configuration_unavailable", "validation_error", "provider_error"].includes(result.status) });
     } finally { setBusy(false); }
   }
@@ -118,12 +121,15 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
       <h1 className="text-page-title">{c(mode)}</h1>
       <p className={styles.lead}>{c("intro")}</p>
       {mode !== "account" && <p>{c(mode === "login" ? "loginNote" : "signupNote")}</p>}
-      <Link className={styles.explore} href="/">{c("explore")} <span aria-hidden="true">→</span></Link>
+      <Link className={styles.explore} href={safeReturn ?? "/"}>{c(safeReturn ? "backToJourney" : "explore")} <span aria-hidden="true">→</span></Link>
     </section>
     <div className={styles.content}>
       <section className={styles.card} aria-label={c(mode)} aria-busy={busy || account === null}>
         {stateKey && <p role={account?.status === "configuration_unavailable" || account?.status === "account_unavailable" ? "alert" : "status"} className={styles.notice}>{c(stateKey)}</p>}
-        {message && <p id="account-message" ref={statusRef} tabIndex={-1} role={message.error ? "alert" : "status"} className={styles.notice}>{c(message.key)}</p>}
+        {message && <>
+          <p id="account-message" ref={statusRef} tabIndex={-1} role={message.error ? "alert" : "status"} className={styles.notice}>{c(message.key)}</p>
+          {mode === "signup" && message.key === "accepted" && <Link className={styles.secondary} href={safeReturn ?? "/"}>{c("explore")}</Link>}
+        </>}
         {mode !== "account" ? <>
           <form className={styles.form} onSubmit={submit} noValidate>
             <label htmlFor="consumer-email">{c("email")}</label>
@@ -135,7 +141,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
           </form>
           {mode === "login" && <button className={styles.textButton} type="button" disabled={busy || !configured} onClick={() => void reset()}>{c("reset")}</button>}
           <p className={styles.hint}>{c("privacy")}</p>
-          <p>{c(mode === "login" ? "noAccount" : "hasAccount")} <Link href={mode === "login" ? "/signup" : "/login"}>{c(mode === "login" ? "signup" : "login")}</Link></p>
+          <p>{c(mode === "login" ? "noAccount" : "hasAccount")} <Link href={authEntryHref(mode === "login" ? "signup" : "login", safeReturn)}>{c(mode === "login" ? "signup" : "login")}</Link></p>
         </> : account?.status === "ready" ? <>
           {account.email && <p className={styles.email}>{account.email}</p>}
           <dl className={styles.facts}>
@@ -147,6 +153,7 @@ export function ConsumerAccount({ mode }: { mode: "login" | "signup" | "account"
         </> : <div className={styles.actions}>
           {account === null ? <p role="status">{c("working")}</p> : <>
             <Link className={styles.primary} href="/login">{c("login")}</Link>
+            <Link className={styles.secondary} href="/signup">{c("signup")}</Link>
             {account.status === "account_unavailable" && <button className={styles.secondary} type="button" disabled={busy} onClick={() => void retry()}>{c("retry")}</button>}
             {account.status === "account_unavailable" && <button className={styles.textButton} type="button" disabled={busy} onClick={() => void logout()}>{c("signout")}</button>}
           </>}

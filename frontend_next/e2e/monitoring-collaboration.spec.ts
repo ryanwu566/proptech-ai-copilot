@@ -245,7 +245,7 @@ test("logout in another tab clears Cloud data and discards a late open response"
   await account.goto("/account"); await account.getByTestId("locale-switcher").selectOption("en");
   await expect(account.getByTestId("account-status")).toHaveText("Active");
   await account.getByRole("button", { name: "Sign out of this device" }).click();
-  await expect(account.getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
+  await expect(account.locator("main").getByRole("link", { name: "Sign in", exact: true })).toBeVisible();
   expect(await account.evaluate(() => localStorage.getItem("sb-slice8-auth-auth-token"))).toBeNull();
   await expect(page.getByTestId("cloud-status")).toContainText("帳號狀態已變更");
   const response = page.waitForResponse(`${API}/v1/saved-cases/${ID}`);

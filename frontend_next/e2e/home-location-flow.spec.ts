@@ -13,6 +13,48 @@ const BASEMAP = /(^|\.)tile\.openstreetmap\.org$|(^|\.)basemaps\.cartocdn\.com$|
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
 const stored = (page: Page) => page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "[]"), KEY);
 
+test("Home lookup deadline preserves the case and address, ignores late success and retries only explicitly", async ({ page }) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  let attempt = 0;
+  const calls = await prepare(page, async (route) => {
+    if (++attempt === 1) await gate;
+    await route.fulfill({ json: SPATIAL }).catch(() => {});
+  });
+  await page.goto("/");
+  await page.clock.install();
+  await page.locator("#commercial-address").fill(ADDRESS);
+  const caseId = await clickStart(page);
+  await expect.poll(() => calls.resolve.length).toBe(1);
+  const before = await stored(page);
+  await expect(page.getByTestId("location-find")).toBeDisabled();
+  await page.clock.fastForward(10_001);
+  const failure = page.getByTestId("location-confirmation-failure");
+  await expect(failure).toHaveAttribute("data-reason", "unavailable");
+  await expect(failure).toHaveText(locationConfirmationCopy["zh-TW"].unavailable);
+  await expect(page.getByTestId("location-find")).toHaveCount(0);
+  await expect(page.getByTestId("location-candidate")).toHaveCount(0);
+  expect(await stored(page)).toEqual(before);
+  expect(before[0].data.journeyContext.propertyContext.addressSummary).toBe(ADDRESS);
+  expect(before[0].data.propertyIdentityAnchor).toBeUndefined();
+  release();
+  await page.clock.fastForward(30_000);
+  await expect(failure).toBeVisible();
+  expect(calls.resolve).toHaveLength(1);
+  await page.getByRole("button", { name: locationConfirmationCopy["zh-TW"].retry, exact: true }).click();
+  await expect(page.getByTestId("location-candidate")).toBeVisible();
+  expect(calls.resolve).toHaveLength(2);
+  expect(await stored(page)).toEqual(before);
+  for (const path of [`/cases/${caseId}/overview`, `/cases/${caseId}/report`, "/compare", `/cases/${caseId}/location`]) {
+    await page.goto(path);
+  }
+  await page.reload();
+  await expect(page.getByTestId("location-find")).toBeEnabled();
+  expect(await stored(page)).toEqual(before);
+  expect(calls.resolve).toHaveLength(2);
+  expect(calls.other).toEqual([]);
+});
+
 async function prepare(page: Page, respond: (route: Route) => Promise<void> = (route) => route.fulfill({ json: SPATIAL })) {
   await page.addInitScript((key) => {
     if (!sessionStorage.getItem("home-location-seeded")) {

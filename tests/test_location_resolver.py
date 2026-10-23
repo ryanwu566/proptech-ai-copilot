@@ -56,7 +56,7 @@ def test_tgos_success_returns_resolved_without_raw_payload(monkeypatch) -> None:
             {
                 "AddressList": [
                     {
-                        "FULL_ADDR": "測試格式化地址",
+                        "FULL_ADDR": "臺北市信義區市府路1號",
                         "X": "121.56",
                         "Y": "25.03",
                         "provider_secret": "should not leak",
@@ -76,16 +76,17 @@ def test_tgos_success_returns_resolved_without_raw_payload(monkeypatch) -> None:
     assert_safe_response(result)
 
 
-def test_tgos_failure_falls_back_to_google_success() -> None:
+def test_google_success_never_calls_tgos() -> None:
     tgos = FakeProvider(LocationResolveResult(status="unavailable"), configured=True)
     google = FakeProvider(
         LocationResolveResult(
             status="resolved",
             source="google",
-            formatted_address="測試格式化地址",
+            formatted_address="臺北市信義區市府路1號",
             latitude=25.03,
             longitude=121.56,
             confidence="high",
+            acceptance_validated=True,
             message="已取得可信位置（Google）。",
         ),
         configured=True,
@@ -95,7 +96,7 @@ def test_tgos_failure_falls_back_to_google_success() -> None:
 
     assert result["status"] == "resolved"
     assert result["source"] == "google"
-    assert tgos.calls == 1
+    assert tgos.calls == 0
     assert google.calls == 1
     assert_safe_response(result)
 
@@ -178,7 +179,7 @@ def test_google_administrative_area_ignores_villages_and_normalizes_tai(monkeypa
     calls: list[str] = []
     payload = {"status": "OK", "results": [{
         "formatted_address": "110台北市信義區市府路1號",
-        "geometry": {"location": {"lat": 25.0375, "lng": 121.5637}},
+        "geometry": {"location_type": "ROOFTOP", "location": {"lat": 25.0375, "lng": 121.5637}},
         "address_components": [
             {"long_name": "台北市", "types": ["administrative_area_level_1", "political"]},
             {"long_name": "西村里", "types": ["administrative_area_level_2", "political"]},
@@ -207,7 +208,7 @@ def test_missing_or_malformed_administrative_area_stays_unknown(monkeypatch) -> 
 
     result = TgosAddressProvider(app_id="configured", api_key="configured").resolve("臺北市信義區市府路1號").to_safe_dict()
 
-    assert result["status"] == "resolved"
+    assert result["status"] == "unresolved"
     assert result["county"] is None
     assert result["district"] is None
 
@@ -219,7 +220,7 @@ def test_google_resolved_coordinates_do_not_infer_administrative_area_from_addre
         calls.append(url)
         return FakeHttpResponse({"status": "OK", "results": [{
             "formatted_address": "臺北市信義區市府路1號",
-            "geometry": {"location": {"lat": 25.0375, "lng": 121.5637}},
+            "geometry": {"location_type": "ROOFTOP", "location": {"lat": 25.0375, "lng": 121.5637}},
             "address_components": [{"long_name": "西村里", "types": ["administrative_area_level_2"]}],
         }]})
 

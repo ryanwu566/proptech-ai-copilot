@@ -3,17 +3,24 @@ import { e9Case } from "../lib/workspace/e9-test-fixtures";
 
 const LEGACY_NAMES = /Market Insight|Map Insight|Terrain Risk|TaxOracle|Aegis|房價估算|物件身分方法|Property identity|進階案件規劃|Advanced case planning|競賽展示參考|Demo reference|探索功能|Explore features/;
 
-test("first-time global navigation is Home, Cases, Compare, Account and Locale only", async ({ page }) => {
+test("Home preserves navigation and accessibility alongside explicit account actions", async ({ page }) => {
   await page.goto("/");
   const header = page.locator(".commercial-global-header");
+  await expect(header).toHaveCount(1);
   await expect(header.locator(".commercial-global-nav").getByRole("button")).toHaveText(["首頁"]);
   await expect(header.locator(".commercial-global-nav").getByRole("link")).toHaveText(["已儲存案件", "比較案件"]);
-  await expect(header.locator(".commercial-global-tools").getByRole("link")).toHaveText(["帳戶"]);
+  await expect(header.getByTestId("auth-entry-actions").getByRole("link")).toHaveText(["登入", "建立帳戶"]);
+  await expect(page.getByTestId("locale-switcher")).toHaveCount(1);
   await expect(header.getByTestId("locale-switcher")).toBeVisible();
-  await expect(header.getByRole("searchbox")).toHaveCount(0);
-  // Home keeps only its accessibility controls behind a disclosure; it lists no product tools.
+  await expect(header.locator(".commercial-skip-link")).toHaveAttribute("href", "#main-content");
   await header.locator(".commercial-methods > summary").click();
   await expect(header.locator(".commercial-methods__panel a")).toHaveCount(0);
+  await page.goto("/cases");
+  await expect(header.locator(".commercial-global-nav").getByRole("link")).toHaveText(["首頁", "已儲存案件", "比較案件"]);
+  await expect(header.locator(".commercial-global-tools").getByRole("link")).toHaveText(["登入", "建立帳戶"]);
+  await expect(header.getByTestId("locale-switcher")).toBeVisible();
+  await expect(header.getByRole("searchbox")).toHaveCount(0);
+  await expect(header.locator(".commercial-methods")).toHaveCount(0);
   await expect(header).not.toContainText(LEGACY_NAMES);
   await expect(page.locator('a[href*="?tool="], a[href^="/vnext"], a[href$="/planning"]')).toHaveCount(0);
   await expect(header.locator('[aria-current="page"]')).toHaveCount(1);
@@ -26,7 +33,7 @@ test("case routes show no product catalogue and one active case destination", as
   await expect(header.locator(".commercial-methods")).toHaveCount(0);
   await expect(header).not.toContainText(LEGACY_NAMES);
   const nav = page.locator(".workspace-navigation");
-  await expect(nav.locator("a")).toHaveText(["物件總覽", "價格與市場", "區位與通勤", "風險與環境", "資金與持有成本", "購屋決策室", "案件報告", "情境實驗室", /通勤/, /文件|證據/, "比較案件"]);
+  await expect(nav.locator("a")).toHaveText(["物件總覽", "價格與市場", "區位與通勤", "風險與環境", "購屋資金", "購屋決策室", "案件報告", "情境實驗室", /通勤/, /文件|證據/, "比較案件"]);
   await expect(nav.locator(".workspace-navigation__secondary")).toHaveCount(4);
   await expect(nav.locator('[aria-current="page"]')).toHaveText(["風險與環境"]);
   await expect(page.locator('a[href$="/planning"]')).toHaveCount(0);

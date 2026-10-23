@@ -1,4 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
+import { moneyText } from "../lib/workspace/money-copy";
+import { isProviderRequest } from "./helpers/provider-request";
+import { e9Case } from "../lib/workspace/e9-test-fixtures";
 
 const NOW = "2026-10-06T08:00:00.000Z";
 
@@ -99,7 +102,7 @@ test.beforeEach(async ({ page }) => {
 test("Finance route calculates loan and holding costs while keeping affordability unassessed", async ({ page }) => {
   await page.goto("/cases/finance-case/finance");
 
-  await expect(page.getByRole("heading", { level: 1, name: "資金與持有成本" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "購屋資金" })).toBeVisible();
   await expect(page.getByTestId("finance-price-basis")).toContainText("1,850 萬元");
   await expect(page.getByTestId("finance-price-basis")).toContainText("沿用案件價格");
   await page.getByTestId("calculate-loan").click();
@@ -111,7 +114,7 @@ test("Finance route calculates loan and holding costs while keeping affordabilit
   const breakdown = page.getByTestId("holding-breakdown");
   await expect(breakdown).toContainText("管理費");
   await expect(breakdown).toContainText("尚未估算（缺少坪數）");
-  await expect(breakdown.getByRole("row", { name: /管理費/ })).not.toContainText("NT$0");
+  await expect(breakdown.getByText("管理費", { exact: true }).locator("..")).not.toContainText("NT$0");
   await expect(page.getByTestId("holding-summary")).toContainText("已估算成本小計");
 });
 
@@ -185,7 +188,7 @@ test("Tax evidence is contextual and preliminary", async ({ page }) => {
   const tax = page.getByTestId("tax-summary");
   await expect(tax).toContainText("稅務條件初步檢查");
   await expect(tax).toContainText("需專業複核");
-  await expect(tax).toContainText("不是主管機關核定、個人稅務紀錄或稅務／法律意見");
+  await expect(tax).toContainText("不是全面購屋稅額計算、主管機關核定、個人稅務紀錄或稅務／法律意見");
   await expect(tax).not.toContainText("TX009");
   await expect(tax).not.toContainText("deterministic");
 });
@@ -215,7 +218,7 @@ test("ordinary income submits and a later edit rejects an in-flight loan respons
   await loanForm.getByLabel("年利率").fill("3.1");
   await page.waitForTimeout(500);
   await expect(page.getByTestId("freshness-status")).toContainText("條件已變更");
-  await expect(page.getByTestId("loan-summary")).toContainText("待重新計算");
+  await expect(page.getByTestId("loan-summary")).toContainText("需重新計算");
 });
 
 test("saved non-default assumptions survive reopen and remain historical after case inputs change", async ({ page }) => {
@@ -256,3 +259,151 @@ test("saved non-default assumptions survive reopen and remain historical after c
   await page.getByTestId("calculate-holding").click();
   await expect(page.getByTestId("loan-summary")).not.toContainText("NT$56,196／月");
 });
+
+test("Money asking and manual offer change cash and mortgage without extra requests, reopen and project to Report / Compare", async ({ page, baseURL }) => {
+  let loanCalls = 0;
+  let holdingCalls = 0;
+  const unexpectedCalls: string[] = [];
+  await page.route("**/*", route => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    if (isProviderRequest(request, baseURL!) && !/\/(loan|holding-cost)\/calculate$/.test(path) && !/telemetry|client-error|web-vitals/.test(path)) {
+      unexpectedCalls.push(request.url()); return route.abort();
+    }
+    return route.fallback();
+  });
+  await page.unroute("**/loan/calculate");
+  await page.route("**/loan/calculate", route => {
+    loanCalls++;
+    const input = route.request().postDataJSON();
+    const principal = input.property_price * (1 - input.down_payment_ratio) * 10000;
+    const rate = input.annual_interest_rate / 1200;
+    const months = input.loan_years * 12;
+    const payment = Math.round(rate === 0 ? principal / months : principal * rate / (1 - (1 + rate) ** -months));
+    return route.fulfill({ json: { ...loanResponse, property_price_wan: input.property_price,
+      down_payment_ratio: input.down_payment_ratio, down_payment_wan: input.property_price * input.down_payment_ratio,
+      loan_amount_wan: principal / 10000, annual_interest_rate: input.annual_interest_rate, loan_years: input.loan_years,
+      monthly_payment: payment, total_payment: payment * months, total_interest: payment * months - principal } });
+  });
+  await page.unroute("**/holding-cost/calculate");
+  await page.route("**/holding-cost/calculate", route => {
+    holdingCalls++;
+    const input = route.request().postDataJSON();
+    return route.fulfill({ json: { ...holdingResponse, property_price_wan: input.property_price,
+      loan_monthly_payment: input.loan_monthly_payment,
+      input: { ...holdingResponse.input, property_price_wan: input.property_price, loan_monthly_payment: input.loan_monthly_payment },
+      monthly_total_holding_cost: input.loan_monthly_payment + 3642,
+      annual_total_holding_cost: (input.loan_monthly_payment + 3642) * 12,
+      cost_breakdown: holdingResponse.cost_breakdown.map(row => row.key === "loan" ? { ...row, monthly_amount: input.loan_monthly_payment } : row) } });
+  });
+  await page.goto("/cases/finance-case/finance");
+  const form = page.getByTestId("loan-form");
+  await form.getByLabel("自備款比例").fill("30");
+  await form.getByLabel("年利率").fill("2.65");
+  await form.getByLabel("貸款年期").fill("25");
+  await page.getByTestId("calculate-loan").click();
+  const asking = page.getByTestId("money-asking-projection");
+  await expect(asking).toContainText("NT$5,550,000");
+  await expect(asking).toContainText("NT$12,950,000");
+  const askingPayment = Number((await asking.getByText("每月房貸支出", { exact: true }).locator("..").innerText()).match(/NT\$([\d,]+)/)![1].replaceAll(",", ""));
+  await page.getByTestId("money-offer-input").fill("1700");
+  const offer = page.getByTestId("money-offer-projection");
+  await expect(offer).toContainText("NT$5,100,000");
+  await expect(offer).toContainText("NT$11,900,000");
+  const offerPayment = Number((await offer.getByText("每月房貸支出", { exact: true }).locator("..").innerText()).match(/NT\$([\d,]+)/)![1].replaceAll(",", ""));
+  expect(offerPayment).toBeLessThan(askingPayment);
+  expect(loanCalls).toBe(1);
+  expect(holdingCalls).toBe(0);
+  await expect(page.getByTestId("money-cash-needed")).toContainText("未提供／尚未估算");
+  await page.getByTestId("money-use-offer").click();
+  await expect(page.getByTestId("holding-form").getByLabel("每月房貸支出")).toHaveValue("");
+  await page.getByTestId("calculate-loan").click();
+  await expect(page.getByTestId("loan-summary")).toContainText("1,190 萬元");
+  await page.getByTestId("calculate-holding").click();
+  await page.getByTestId("finance-save").click();
+  await expect(page.getByTestId("finance-save-status")).toContainText("已儲存");
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1")!)[0]);
+  expect(stored.data.financeEvidence.assumptions.active_price_wan).toBe(1700);
+  expect(stored.data.financeEvidence.assumptions.price_source).toBe("MANUAL_SCENARIO");
+  expect(stored.data.journeyContext.activePriceWan).toBe(1850);
+  await page.reload();
+  await expect(page.getByTestId("finance-price-basis")).toContainText("1,700 萬元");
+  await expect(page.getByTestId("loan-form").getByLabel("自備款比例")).toHaveValue("30");
+  await expect(page.getByTestId("loan-form").getByLabel("年利率")).toHaveValue("2.65");
+  await expect(page.getByTestId("loan-form").getByLabel("貸款年期")).toHaveValue("25");
+  await expect(page.getByTestId("money-offer-input")).toHaveValue("1700");
+  await expect(page.getByTestId("money-asking-projection")).toContainText("1,850 萬元");
+  await expect(page.getByTestId("finance-workspace")).not.toContainText(/TaxOracle|Aegis|信用評分|最佳出價|AI 推薦|best offer|winner|approval probability/i);
+  expect(loanCalls).toBe(2);
+  expect(holdingCalls).toBe(1);
+  await page.evaluate(other => {
+    const rows = JSON.parse(localStorage.getItem("proptech.savedCases.v1")!);
+    rows.push(other); localStorage.setItem("proptech.savedCases.v1", JSON.stringify(rows));
+  }, e9Case("case-b"));
+  await page.goto("/cases/finance-case/report");
+  const report = page.getByTestId("report-evidence");
+  await expect(report).toBeVisible();
+  await expect(report.getByRole("row").filter({ has: page.getByRole("rowheader", { name: "房貸月付", exact: true }) })).toContainText(stored.data.financeEvidence.loan.monthly_payment_twd.toLocaleString("zh-TW"));
+  await page.goto("/compare?cases=finance-case,case-b");
+  await expect(page.getByTestId("compare-desktop").getByTestId("compare-row-finance-payment")).toContainText(stored.data.financeEvidence.loan.monthly_payment_twd.toLocaleString("zh-TW"));
+  expect(unexpectedCalls).toEqual([]);
+});
+
+test("recalculating the mortgage preserves unsaved holding assumptions and requires a holding refresh", async ({ page }) => {
+  await page.goto("/cases/finance-case/finance");
+  await page.getByTestId("calculate-loan").click();
+  await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196");
+  await page.getByTestId("holding-form").getByLabel("每坪管理費").fill("125");
+  await page.getByTestId("holding-form").getByLabel("每月房貸支出").fill("4");
+  await page.getByTestId("calculate-loan").click();
+  await expect(page.getByTestId("holding-form").getByLabel("每月房貸支出")).toHaveValue("5.6196");
+  await expect(page.getByTestId("finance-save")).toBeDisabled();
+  await expect(page.getByTestId("holding-form").getByLabel("每坪管理費")).toHaveValue("125");
+  await page.getByTestId("calculate-holding").click();
+  await expect(page.getByTestId("finance-save")).toBeEnabled();
+});
+
+test("a holding edit while the mortgage request is pending cannot become clean on response", async ({ page }) => {
+  let finish!: () => void;
+  let requested = false;
+  const pending = new Promise<void>(resolve => { finish = resolve; });
+  await page.unroute("**/loan/calculate");
+  await page.route("**/loan/calculate", async route => {
+    requested = true; await pending;
+    await route.fulfill({ json: loanResponse });
+  });
+  await page.goto("/cases/finance-case/finance");
+  await page.getByTestId("calculate-loan").click();
+  await expect.poll(() => requested).toBe(true);
+  await page.getByTestId("holding-form").getByLabel("每坪管理費").fill("125");
+  finish();
+  await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196");
+  await expect(page.getByTestId("finance-save")).toBeDisabled();
+  await expect(page.getByTestId("holding-form").getByLabel("每坪管理費")).toHaveValue("125");
+});
+
+for (const locale of ["zh-TW", "en", "ja", "ko"] as const) {
+  for (const width of [390, 430]) {
+    test(`Money ${locale} at ${width}px has four sections and no horizontal overflow`, async ({ page }) => {
+      await page.addInitScript(value => localStorage.setItem("proptech.locale.v1", JSON.stringify({ version: 1, locale: value })), locale);
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto("/cases/finance-case/finance");
+      const money = page.getByTestId("finance-workspace");
+      await expect(money.getByRole("heading", { level: 1 })).toHaveText(moneyText(locale, "title"));
+      for (const key of ["cash", "monthly", "transaction", "offers"] as const) await expect(money.getByRole("heading", { level: 2, name: moneyText(locale, key), exact: true })).toBeVisible();
+      await expect(money).toContainText(moneyText(locale, "unknown"));
+      await expect(money).toContainText(moneyText(locale, "taxBoundary"));
+      await expect(money).not.toContainText(/TaxOracle|Aegis|AI recommendation|best offer|credit score/i);
+      await page.getByTestId("calculate-loan").click();
+      await expect(page.getByTestId("loan-summary")).toContainText("NT$");
+      await page.getByTestId("calculate-holding").click();
+      await expect(page.getByTestId("holding-breakdown")).toBeVisible();
+      await page.getByTestId("money-offer-input").fill("1700");
+      await expect(page.getByTestId("money-offer-projection")).toContainText("NT$");
+      await expect(page.getByTestId("calculate-loan")).toHaveCSS("min-height", "44px");
+      expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+      expect(await money.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(false);
+      expect(await page.getByTestId("holding-breakdown").evaluate(element => element.scrollWidth > element.clientWidth)).toBe(false);
+    });
+  }
+}

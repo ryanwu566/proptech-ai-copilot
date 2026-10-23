@@ -6,10 +6,10 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { AppPage } from "@/components/sidebar";
-import { accountEntryCopy } from "@/lib/account-entry-copy";
+import { AuthEntryActions } from "@/components/account/auth-entry-actions";
 import { navigationCopy } from "@/lib/navigation/copy";
 
-/** First-time navigation is the case workflow only: Home, Cases, Compare, Account and Locale. */
+/** Global navigation keeps the case workflow and explicit session-aware account actions. */
 export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: AppPage; onNavigate?: (page: AppPage) => void; children?: ReactNode }) {
   const pathname = usePathname();
   const { t, copyFrom } = useExperienceLocale();
@@ -21,6 +21,7 @@ export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: 
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, []);
+  // Home owns its app header; suppress only the duplicate layout header.
   if (pathname === "/" && !onNavigate) return null;
   function navigate(next: AppPage) {
     if (disclosure.current) disclosure.current.open = false;
@@ -36,7 +37,7 @@ export function CommercialGlobalHeader({ page, onNavigate, children }: { page?: 
         <Link prefetch={false} href="/compare" aria-current={pathname === "/compare" ? "page" : undefined}>{copyFrom(navigationCopy, "compare")}</Link>
       </nav>
       <div className="commercial-global-tools">
-        <Link prefetch={false} href="/account" aria-current={pathname === "/account" ? "page" : undefined}>{copyFrom(accountEntryCopy, "entry")}</Link>
+        <AuthEntryActions />
         <LocaleSwitcher />
       </div>
       {children && <details ref={disclosure} className="commercial-methods" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) event.currentTarget.open = false; }} onKeyDown={(event) => { if (event.key === "Escape" && disclosure.current?.open) { event.preventDefault(); event.stopPropagation(); disclosure.current.open = false; disclosure.current.querySelector("summary")?.focus(); } }}>
