@@ -44,13 +44,17 @@ test("Home lookup deadline preserves the case and address, ignores late success 
   await page.getByRole("button", { name: locationConfirmationCopy["zh-TW"].retry, exact: true }).click();
   await expect(page.getByTestId("location-candidate")).toBeVisible();
   expect(calls.resolve).toHaveLength(2);
-  expect(await stored(page)).toEqual(before);
-  for (const path of [`/cases/${caseId}/overview`, `/cases/${caseId}/report`, "/compare", `/cases/${caseId}/location`]) {
+  // Only the fresh explicit retry result is saved, and only as unconfirmed UI data.
+  const pending = (await stored(page))[0];
+  expect(pending.data.pendingLocationCandidate).toMatchObject({ state: "unconfirmed", caseId, candidate: { addressInput: ADDRESS } });
+  expect(pending.data.propertyIdentityAnchor).toBeUndefined();
+  for (const path of [`/cases/${caseId}/overview`, `/cases/${caseId}/risk`, `/cases/${caseId}/report`, "/compare", `/cases/${caseId}/location`]) {
     await page.goto(path);
   }
   await page.reload();
-  await expect(page.getByTestId("location-find")).toBeEnabled();
-  expect(await stored(page)).toEqual(before);
+  await expect(page.getByTestId("location-candidate")).toBeVisible();
+  await expect(page.getByTestId("location-find")).toHaveCount(0);
+  expect(await stored(page)).toEqual([pending]);
   expect(calls.resolve).toHaveLength(2);
   expect(calls.other).toEqual([]);
 });
@@ -181,6 +185,11 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await expect(page.getByTestId("report-controls")).toHaveCount(0);
     await page.goto(`/compare?cases=${caseId}`);
     await page.goto(`/cases/${caseId}/overview`);
+    await expect(page.getByTestId("case-pulse")).toBeVisible();
+    await page.getByTestId("command-palette-trigger").click();
+    await expect(page.getByTestId("command-palette")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("command-palette")).toHaveCount(0);
     await page.goto(`/cases/${caseId}/location`);
     await expect(page.getByTestId("location-candidate")).toContainText(ADDRESS);
     await expect(page.getByTestId("location-confirm")).toHaveText(copy.confirm);

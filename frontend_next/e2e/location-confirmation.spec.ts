@@ -67,7 +67,10 @@ test("in-case lookup deadline ends loading and an explicit retry remains usable"
   await page.getByRole("button", { name: locationConfirmationCopy["zh-TW"].retry, exact: true }).click();
   await expect(page.getByTestId("location-candidate")).toBeVisible();
   expect(calls.resolve).toBe(2);
-  expect(await stored(page)).toEqual(before);
+  const [row] = await stored(page);
+  expect(row.data.pendingLocationCandidate).toMatchObject({ state: "unconfirmed", caseId });
+  expect(row.data.propertyIdentityAnchor).toBeUndefined();
+  expect(row.data.journeyContext).toEqual(before[0].data.journeyContext);
   expect(calls.provider).toEqual([]);
 });
 
@@ -78,6 +81,10 @@ test("a contradictory district response is never presented as a trusted candidat
   await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "invalid");
   await expect(page.getByTestId("location-candidate")).toHaveCount(0);
   expect((await stored(page))[0].data.propertyIdentityAnchor).toBeUndefined();
+  expect((await stored(page))[0].data.pendingLocationCandidate).toBeUndefined();
+  await page.reload();
+  await expect(page.getByTestId("location-find")).toBeVisible();
+  await expect(page.getByTestId("location-candidate")).toHaveCount(0);
   expect(calls.resolve).toBe(1);
 });
 

@@ -3,6 +3,8 @@ import type { RoomRead } from "../decision-room-store";
 import type { ExperienceLocale } from "../experience-i18n";
 // @ts-expect-error Native TS runner extension.
 import { casePulseCopy, type PulseMessage } from "./case-pulse-copy.ts";
+// @ts-expect-error Native TS runner extension.
+import { identityConfirmationKind } from "./identity-confirmation-copy.ts";
 
 type PulseSection = "location" | "market" | "risk" | "money" | "decision";
 type PulseState = "known" | "available" | "needs_attention" | "not_queried" | "unavailable";
@@ -22,7 +24,8 @@ export function buildCasePulse(workspace: PropertyCaseWorkspace, roomRead: RoomR
   const nearby = workspace.location.nearbyFacilities;
   const location = workspace.identity.state === "confirmed"
     ? item("location", "known", nearby ? nearby.partial ? "nearbyLimited" : "nearbySaved" : "located")
-    : ["conflict", "revalidation_required"].includes(workspace.identity.state)
+    // Only a previously confirmed anchor can need reconfirmation; a never-confirmed case stays neutral.
+    : identityConfirmationKind(workspace.identity) === "reconfirmation"
       ? item("location", "needs_attention", "reconfirm") : item("location", "not_queried", "unconfirmed");
   const marketStatus = workspace.marketPrice.market.status;
   const market = marketStatus === "not_started" ? item("market", "not_queried", "notQueried")

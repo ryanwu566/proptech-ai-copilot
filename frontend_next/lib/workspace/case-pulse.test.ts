@@ -97,6 +97,14 @@ test("stale Money and revalidated identity remain attention states", () => {
   assert.equal(pulse.items[3].message, "stale");
 });
 
+test("a never-confirmed case in conflict or revalidation keeps neutral location wording", () => {
+  for (const state of ["conflict", "revalidation_required"] as const) {
+    const w = workspace();
+    w.identity = { ...w.identity, state, anchor: null };
+    assert.equal(buildCasePulse(w, empty()).items[0].message, "unconfirmed");
+  }
+});
+
 test("Decision outstanding counts every unfinished work kind and manual follow-ups once each", () => {
   const room = emptyDecisionRoom("case-a");
   room.items = ["checklist", "task", "question"].map((kind, i) => ({ id: `${i}`, kind: kind as "task", title: "Work", owner: "", dueDate: "", status: "open", resolution: "" }));
