@@ -1,0 +1,58 @@
+[
+  {
+    "name": "taipei-city-hall",
+    "address": "臺北市信義區市府路1號",
+    "google": {
+      "status": "OK",
+      "results": [{
+        "formatted_address": "110台灣台北市信義區市府路1號",
+        "partial_match": false,
+        "geometry": {"location_type": "ROOFTOP", "location": {"lat": 25.037525, "lng": 121.563782}},
+        "address_components": [
+          {"long_name": "1", "short_name": "1", "types": ["street_number"]},
+          {"long_name": "市府路", "short_name": "市府路", "types": ["route"]},
+          {"long_name": "西村里", "short_name": "西村里", "types": ["administrative_area_level_4", "political"]},
+          {"long_name": "信義區", "short_name": "信義區", "types": ["administrative_area_level_3", "political"]},
+          {"long_name": "台北市", "short_name": "台北市", "types": ["administrative_area_level_1", "political"]},
+          {"long_name": "台灣", "short_name": "TW", "types": ["country", "political"]},
+          {"long_name": "110", "short_name": "110", "types": ["postal_code"]}
+        ],
+        "types": ["street_address"]
+      }]
+    },
+    "response": {
+      "status": "resolved", "source": "google", "confidence": "high",
+      "formatted_address": "110台灣台北市信義區市府路1號",
+      "latitude": 25.037525, "longitude": 121.563782,
+      "county": "臺北市", "district": "信義區", "message": "已取得可信位置（Google）。"
+    }
+  },
+  {
+    "name": "zhongzheng-zhongshan-south-road",
+    "address": "臺北市中正區中山南路21號",
+    "google": {
+      "status": "OK",
+      "results": [{
+        "formatted_address": "100台灣台北市中正區中山南路21號",
+        "partial_match": false,
+        "geometry": {"location_type": "ROOFTOP", "location": {"lat": 25.034555, "lng": 121.521947}},
+        "address_components": [
+          {"long_name": "21", "short_name": "21", "types": ["street_number"]},
+          {"long_name": "中山南路", "short_name": "中山南路", "types": ["route"]},
+          {"long_name": "東門里", "short_name": "東門里", "types": ["administrative_area_level_4", "political"]},
+          {"long_name": "中正區", "short_name": "中正區", "types": ["administrative_area_level_3", "political"]},
+          {"long_name": "台北市", "short_name": "台北市", "types": ["administrative_area_level_1", "political"]},
+          {"long_name": "台灣", "short_name": "TW", "types": ["country", "political"]},
+          {"long_name": "100", "short_name": "100", "types": ["postal_code"]}
+        ],
+        "types": ["street_address"]
+      }]
+    },
+    "response": {
+      "status": "resolved", "source": "google", "confidence": "high",
+      "formatted_address": "100台灣台北市中正區中山南路21號",
+      "latitude": 25.034555, "longitude": 121.521947,
+      "county": "臺北市", "district": "中正區", "message": "已取得可信位置（Google）。"
+    }
+  }
+]
