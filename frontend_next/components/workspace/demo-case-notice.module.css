@@ -1,0 +1,9 @@
+.notice {
+  margin-block: var(--space-3, 0.75rem);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.notice p:empty {
+  display: none;
+}
