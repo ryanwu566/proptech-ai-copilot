@@ -3,17 +3,24 @@ import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { StatusLabel } from "@/components/design-system/status-label";
 import { Message } from "@/components/design-system/message";
 import { formatExactDate } from "@/lib/commercial/formatters";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { documentEvidenceCopy } from "@/lib/workspace/document-evidence-copy";
+import { formatEvidenceDate } from "@/lib/workspace/evidence-date";
 import type { EvidenceField, CaseEvidenceModel } from "@/lib/workspace/case-evidence";
 import { EVIDENCE_STATUS_LABELS, GAP_LABELS } from "@/lib/workspace/evidence-labels";
 import type { WorkspaceReadDiagnostic } from "@/lib/workspace/case-repository";
 import styles from "./evidence.module.css";
 import { riskFacilityReasonLabel } from "@/lib/location-insight-evidence";
 
-export function date(value: string | null): string { return value ? formatExactDate(value) : "未保存／未知"; }
+export function date(value: string | null): string { return formatEvidenceDate(value, formatExactDate, "未保存／未知"); }
+function EvidenceDate({ value, kind = "date" }: { value: string | null; kind?: "date" | "source" }) {
+  const { copyFrom } = useExperienceLocale();
+  return <>{formatEvidenceDate(value, formatExactDate, copyFrom(documentEvidenceCopy, "unknownDate"), kind)}</>;
+}
 function valueText(value: string | number, unit: string): string { return `${typeof value === "number" ? value.toLocaleString("zh-TW", { maximumFractionDigits: 2 }) : value}${unit ? ` ${unit}` : ""}`; }
 function Provenance({ field }: { field: EvidenceField<string | number> }) {
   return <div className={styles.provenance}>
-    <p>來源：{field.source}</p><p>檢查／計算時間：{date(field.freshness.checkedAt)}</p><p>來源更新時間：{date(field.freshness.sourceUpdatedAt)}</p>
+    <p>來源：{field.source}</p><p>檢查／計算時間：<EvidenceDate value={field.freshness.checkedAt} /></p><p>來源更新時間：<EvidenceDate value={field.freshness.sourceUpdatedAt} kind="source" /></p>
     {field.sourceReason && <p>查詢狀態說明：{riskFacilityReasonLabel(field.sourceReason)}</p>}
     <p>保存快照 · 輸入關聯：{{ matches: "符合保存條件", stale: "已失效", unknown: "未知" }[field.freshness.inputRelation]} · 時間：{{ within_source_policy: "依來源政策有效", stale: "來源已標示過期", unknown: "未保存有效期政策" }[field.freshness.timeRelation]}</p>
     <p>限制：{field.limitation}</p><p>下一步：{field.nextAction}</p>
@@ -51,7 +58,7 @@ export function EvidenceSources({ cases }: { cases: CaseEvidenceModel[] }) {
   return <div className={styles.sources}><p>由本機案件保存摘要產生。沒有執行新查詢、財務重算或 AI 撰文。儲存時間、報告產生時間、來源檢查時間與來源更新時間各自獨立。</p>
     {cases.map((item) => <div key={item.caseId}><h3 className="text-subsection">{item.title}</h3>{item.sources.map((source) => <article key={source.id}>
       <h4>{source.name}</h4>
-      <p>檢查／計算：{date(source.checkedAt)} · 更新：{date(source.updatedAt)}</p>
+      <p>檢查／計算：<EvidenceDate value={source.checkedAt} /> · 更新：<EvidenceDate value={source.updatedAt} kind="source" /></p>
       <p>資料期間：{source.period ?? "未保存"} · 版本：{source.version ?? "未保存"}</p>
       <p>覆蓋：{coverageLabels[source.coverage] ?? source.coverage} · 查詢條件：{source.queryCondition}</p>
       <p>限制：{source.limitation}</p>
