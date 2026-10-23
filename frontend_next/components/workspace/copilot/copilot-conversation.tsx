@@ -8,6 +8,7 @@ import { assembleCopilotContext, answerQuestion, createResponseGate, type Copilo
 import { copilotCopy, copilotTopicLabel, copilotStatusLabel, copilotEvidenceLabel } from "@/lib/workspace/copilot-copy";
 import { composeAnswer, type KeyFact } from "@/lib/workspace/copilot-compose";
 import { answerCopy, answerText, formatQuantity, formatRange, headlineText, nextActionLabel, originLabel, travelMode } from "@/lib/workspace/copilot-answer-copy";
+import { formatEvidenceDate } from "@/lib/workspace/evidence-date";
 import styles from "./copilot.module.css";
 
 export function CopilotConversation() {
@@ -35,7 +36,7 @@ export function CopilotConversation() {
 }
 
 function Conversation({ context }: { context: CopilotContext }) {
-  const { locale } = useExperienceLocale();
+  const { locale, formatDate } = useExperienceLocale();
   const c = copilotCopy(locale);
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<Array<{ question: string; answer: CopilotAnswer }>>([]);
@@ -56,7 +57,7 @@ function Conversation({ context }: { context: CopilotContext }) {
   const askTopic = (topic: CopilotTopic) => void ask(copilotTopicLabel(topic, locale));
   return <section className={styles.panel} aria-label={c.title} data-testid="copilot-conversation">
     <header><h2>{c.title}</h2><p>{c.intro}</p><p className={styles.muted}>{c.mode}</p></header>
-    <div className={styles.context} data-testid="copilot-context"><strong>{c.context}</strong><p>{context.title} · {context.address}</p><p>{context.caseId} · {context.savedAt}</p><div className={styles.chips}><span>{c.saved}</span><span>{c.live}</span></div></div>
+    <div className={styles.context} data-testid="copilot-context"><strong>{c.context}</strong><p>{context.title} · {context.address}</p><p>{c.savedAt}: {formatEvidenceDate(context.savedAt, formatDate, c.unknown)}</p><div className={styles.chips}><span>{c.saved}</span><span>{c.live}</span></div></div>
     <p>{c.boundary}</p><p className={styles.muted}>{c.scope}</p>
     <nav className={styles.actions} aria-label={c.suggestions}>
       <button className="ds-button ds-button--secondary ds-button--compact" disabled={pending} onClick={() => void ask(c.summary)}>{c.summary}</button>
@@ -76,7 +77,7 @@ function Conversation({ context }: { context: CopilotContext }) {
 
 /** Answer first: headline, cited key facts, gaps, one next action, follow-ups, then collapsed evidence and provenance. */
 function Answer({ answer, context, index, pending, onFollowup }: { answer: CopilotAnswer; context: CopilotContext; index: number; pending: boolean; onFollowup: (question: string) => void }) {
-  const { locale } = useExperienceLocale(); const c = copilotCopy(locale); const a = answerCopy(locale);
+  const { locale, formatDate } = useExperienceLocale(); const c = copilotCopy(locale); const a = answerCopy(locale);
   const view = useMemo(() => composeAnswer(answer, context), [answer, context]);
   const limitation = (value: string) => value === "user_record" ? c.decisionNote : ["known_subtotal", "scenario_assumptions"].includes(value) ? c.scenarioNote : value || c.boundary;
   const source = (row: CopilotEvidence) => row.source === "scenarios" || row.source === "decision-room" ? copilotTopicLabel(row.topic, locale) : row.source;
@@ -144,7 +145,7 @@ function Answer({ answer, context, index, pending, onFollowup }: { answer: Copil
     <details data-testid="copilot-provenance"><summary>{answerText(a.provenance, { count: used.length })}</summary><p className={styles.muted}>{c.provenance}</p><ul className={styles.evidence}>{used.map(row => <li id={anchor(row)} key={row.ref} data-evidence-ref={row.ref} tabIndex={-1}>
       <strong>{copilotEvidenceLabel(row.id, row.label, locale)}</strong> · <EvidenceValue row={row} />
       <p className={styles.chips}><span>{source(row)}</span><span>{c.saved}</span><span>{copilotStatusLabel(row.status, locale)}</span></p>
-      <p>{row.checkedAt || c.unknown} / {row.updatedAt || c.unknown}</p><p>{c.limitation}: {limitation(row.limitation)}</p><a href={row.href}>{c.inspect}</a>
+      <p>{formatEvidenceDate(row.checkedAt, formatDate, c.unknown)} / {formatEvidenceDate(row.updatedAt, formatDate, c.unknown, "source")}</p><p>{c.limitation}: {limitation(row.limitation)}</p><a href={row.href}>{c.inspect}</a>
     </li>)}</ul></details>
   </div>;
 }

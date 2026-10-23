@@ -7,6 +7,18 @@ import { adaptSavedCaseToWorkspace } from "./legacy-case-adapter.ts";
 // @ts-expect-error Native TS runner extension.
 const featureModule = await import("./case-evidence.ts").catch(() => null);
 function project(saved = e9Case()) { return featureModule?.projectCaseEvidence(adaptSavedCaseToWorkspace(saved)); }
+
+test("shared evidence uses the income from the saved affordability ratio basis", () => {
+  const ws = adaptSavedCaseToWorkspace(e9Case());
+  ws.finance!.loan.monthlyIncomeWan = 12;
+  ws.finance!.holding.assumptions.monthlyIncomeWan = 24;
+  ws.finance!.affordability = { status: "assessed", ratio: 0.25, basis: "total_housing_cost", reason: null };
+  const evidence = featureModule!.projectCaseEvidence(ws);
+  assert.equal(evidence.finance.monthlyIncome.value, 24);
+  assert.equal(evidence.finance.burdenRatio.value, 25);
+  ws.finance!.affordability.basis = "loan_payment";
+  assert.equal(featureModule!.projectCaseEvidence(ws).finance.monthlyIncome.value, 12);
+});
 test("price concepts remain separate and failed valuation is unavailable", () => {
   const model = project();
   assert.equal(model?.price.asking.value, 2480);

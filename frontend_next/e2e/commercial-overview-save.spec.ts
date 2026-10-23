@@ -361,11 +361,11 @@ test("Risk pre-query summary stays unknown instead of displaying zero findings",
   await page.goto("/cases/partial-case/risk");
   const summary = page.getByTestId("risk-buyer-summary");
   await expect(summary).toContainText("尚未查詢");
-  await expect(summary).toContainText("UNKNOWN ≠ SAFE");
+  await expect(summary).toContainText("未知不代表安全");
   await expect(summary).not.toContainText("0 項");
   const cards = page.locator("[data-buyer-card]");
   await expect(cards).toHaveCount(6);
-  for (const card of await cards.all()) await expect(card).toContainText("NOT QUERIED");
+  for (const card of await cards.all()) await expect(card).toContainText("尚未查詢");
   expect(analysis).toEqual([]);
   await expect(page.locator("body")).not.toContainText(/\b(?:not_started|partial|available|unavailable|no_match|POINT_REFERENCE)\b/);
 });

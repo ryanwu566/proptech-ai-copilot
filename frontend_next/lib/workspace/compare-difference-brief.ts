@@ -86,7 +86,7 @@ export function buildDifferenceBrief(cases: CaseEvidenceModel[], locale: BriefLo
     const counts: Record<string, number> = Object.fromEntries(riskKeys.map((key) => [key, 0]));
     for (const row of item.risk) {
       const f = row.evidence;
-      const key = stale(f) ? "stale" : f.status === "not_run" ? "notQueried" : f.status === "unavailable" ? "unavailable" : ["unsupported", "no_coverage"].includes(f.status) ? "unsupported" : !usable(f) ? "unknown" : row.matched === true ? "matched" : row.matched === false ? "noMatch" : "unknown";
+      const key = stale(f) ? "stale" : f.status === "not_run" ? "notQueried" : f.status === "unavailable" ? "unavailable" : ["unsupported", "no_coverage"].includes(f.status) ? "unsupported" : !usable(f) ? "unknown" : row.matched === true ? "matched" : f.status === "no_match" ? "noMatch" : "unknown";
       counts[key]++;
     }
     return statement(item, riskKeys.flatMap((key, i) => counts[key] > 0 || key === "matched" ? [`${riskLabels[i]} ${counts[key]}`] : []).join(sep), item.risk.map((row) => row.evidence), { counts });
