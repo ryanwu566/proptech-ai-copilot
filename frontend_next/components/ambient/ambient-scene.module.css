@@ -53,6 +53,10 @@
 
 .scene[data-paused], .scene[data-paused] * { animation-play-state: paused !important; }
 
+/* In-app section change within one session: a short cross-fade, already settled, no new drift. */
+.hosted[data-continuity] { transition-duration: 360ms; }
+.hosted[data-continuity] img { animation: none; transform: none; }
+
 @media (max-width: 767px) {
   .hosted {
     /* Dedicated portrait crops; fade before forms/cards. Never an in-flow band. */
@@ -76,4 +80,8 @@
 
 @media print {
   .scene { display: none !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .scene { display: none; }
 }

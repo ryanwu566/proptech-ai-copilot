@@ -30,22 +30,21 @@ export const WAKE: Record<AmbientVariant, WakeRhythm> = {
   report: null,
 };
 
-/** Case routes whose last path segment selects a scene; other case routes (evidence, scenarios, planning…) stay plain. */
+/**
+ * Case routes whose last path segment selects a scene. Photography sets the mood where place matters
+ * (overview, market, location, risk); decision surfaces — Money, Decision Room, Report, Compare — stay plain paper.
+ */
 const CASE_SCENES: Record<string, AmbientVariant> = {
   overview: "overview",
   market: "market",
   location: "location",
   risk: "risk",
-  finance: "finance",
-  "decision-room": "decision",
-  report: "report",
 };
 
 /** Home places its own scene inside the start section, so the route host returns null for "/". */
 export function ambientVariantForPath(pathname: string | null | undefined): AmbientVariant | null {
   if (!pathname) return null;
   const path = pathname.replace(/\/+$/, "") || "/";
-  if (path === "/compare") return "compare";
   const match = /^\/cases\/[^/]+\/([^/]+)$/.exec(path);
   return match ? CASE_SCENES[match[1]] ?? null : null;
 }

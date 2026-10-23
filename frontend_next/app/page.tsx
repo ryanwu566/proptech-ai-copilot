@@ -694,7 +694,7 @@ function MapLegend({ labels }: { labels: Record<string, string> }) {
 }
 
 function MapLoadingSkeleton() {
-  return <div className="grid min-h-[560px] animate-pulse overflow-hidden rounded-2xl border border-stone-200 bg-white xl:grid-cols-[minmax(0,1fr)_380px]"><div className="bg-gradient-to-br from-stone-100 via-cyan-50 to-stone-200" /><div className="space-y-4 border-l border-stone-200 p-4"><div className="h-8 w-2/3 rounded bg-stone-100" /><div className="h-16 rounded bg-stone-100" />{[1, 2, 3, 4, 5, 6].map((item) => <div key={item} className="h-8 rounded bg-stone-100" />)}</div></div>;
+  return <div className="grid min-h-[560px] animate-pulse motion-reduce:animate-none overflow-hidden rounded-2xl border border-stone-200 bg-white xl:grid-cols-[minmax(0,1fr)_380px]"><div className="bg-gradient-to-br from-stone-100 via-cyan-50 to-stone-200" /><div className="space-y-4 border-l border-stone-200 p-4"><div className="h-8 w-2/3 rounded bg-stone-100" /><div className="h-16 rounded bg-stone-100" />{[1, 2, 3, 4, 5, 6].map((item) => <div key={item} className="h-8 rounded bg-stone-100" />)}</div></div>;
 }
 
 function SourceBadge({ source }: { source: string }) {

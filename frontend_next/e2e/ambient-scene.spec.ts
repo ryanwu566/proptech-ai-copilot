@@ -10,11 +10,9 @@ const ROUTES = {
   location: "/cases/case-a/location",
   risk: "/cases/case-a/risk",
   overview: "/cases/case-a/overview",
-  finance: "/cases/case-a/finance",
-  decision: "/cases/case-a/decision-room",
-  report: "/cases/case-a/report",
-  compare: "/compare?cases=case-a,case-b",
 } as const;
+// Decision surfaces stay plain paper.
+const PLAIN = ["/cases/case-a/finance", "/cases/case-a/decision-room", "/cases/case-a/report", "/compare?cases=case-a,case-b"] as const;
 const VIEWPORTS = [[1440, 900], [390, 844], [1920, 1080], [1024, 768], [430, 932]] as const;
 const SCENE = "[data-ambient-scene]";
 const screenshots = path.resolve(process.cwd(), "../.local/photo-ambient/screenshots");
@@ -66,7 +64,7 @@ for (const [variant, route] of Object.entries(ROUTES)) {
     await expect(scene).toHaveAttribute("data-phase", "resolve", { timeout: 7000 });
     await expect(scene.locator("img")).toHaveAttribute("alt", "");
     expect(await scene.locator("svg, canvas, iframe, video, a, text").count()).toBe(0);
-    const family = variant === "compare" || variant === "report" ? "overview" : variant;
+    const family = variant;
     await mkdir(screenshots, { recursive: true });
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height });
@@ -179,7 +177,7 @@ test("delayed or failed photographs never move content or prevent use", async ({
 
 test("routes without an ambient scene stay plain", async ({ page }) => {
   await seed(page);
-  for (const route of ["/cases", "/cases/case-a/scenarios"]) {
+  for (const route of ["/cases", "/cases/case-a/scenarios", ...PLAIN]) {
     await page.goto(route);
     await expect(page.locator("main").first()).toBeVisible();
     await expect(page.locator(SCENE)).toHaveCount(0);

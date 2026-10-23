@@ -10,8 +10,10 @@ import styles from "./ambient-scene.module.css";
  * stacking and pointer behaviour; each variant only supplies local photographs (./scenes.tsx).
  * State is written to data-* attributes on the root, so the motion never re-renders React or reads layout.
  */
-export function AmbientScene({ variant, ready = true, className, children }: { variant: AmbientVariant; ready?: boolean; className?: string; children?: ReactNode }) {
+export function AmbientScene({ variant, ready = true, continuity = false, className, children }: { variant: AmbientVariant; ready?: boolean; continuity?: boolean; className?: string; children?: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
+  // Fixed at mount: a later re-render must not restart or change the settle.
+  const [continued] = useState(continuity);
   const scene = SCENES[variant];
   const [photoLoaded, setPhotoLoaded] = useState(false);
   const watch = useCallback((image: HTMLImageElement | null) => {
@@ -72,7 +74,7 @@ export function AmbientScene({ variant, ready = true, className, children }: { v
     return () => { clear(); document.removeEventListener("visibilitychange", onVisibility); reduced.removeEventListener("change", run); observer?.disconnect(); };
   }, [variant, canReveal]);
   const hold = WAKE[variant]?.hold;
-  return <div ref={root} className={[styles.scene, styles[variant], className].filter(Boolean).join(" ")} style={hold ? { "--ambient-hold": `${hold}ms` } as CSSProperties : undefined} data-ambient-scene={variant} aria-hidden="true">
+  return <div ref={root} className={[styles.scene, styles[variant], className].filter(Boolean).join(" ")} style={hold ? { "--ambient-hold": `${hold}ms` } as CSSProperties : undefined} data-ambient-scene={variant} data-continuity={continued || undefined} aria-hidden="true">
     {children}
     {scene && <picture className={styles.photograph}>
       <source media="(max-width: 767px)" type="image/avif" srcSet={`${scene.mobile}.avif`} />
