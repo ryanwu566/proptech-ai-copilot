@@ -11,6 +11,7 @@ import { Panel, Section } from "@/components/design-system/section";
 import { StatusLabel } from "@/components/design-system/status-label";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
+import { identityConfirmationCopy, identityConfirmationKind } from "@/lib/workspace/identity-confirmation-copy";
 import { api, type TerrainRiskResult } from "@/lib/api";
 import { readSavedCases, updateSavedCaseRiskEvidence } from "@/lib/case-storage";
 import { resolveCommercialState } from "@/lib/commercial/state";
@@ -133,7 +134,7 @@ export function RiskEnvironmentView() {
       {model && <p className="text-meta">{c[model.freshness.status]} · {c.checked}: <span data-numeric>{model.freshness.checkedAt ?? c.unknown}</span></p>}
       <div className={styles.headingActions}>
         <CommercialButton size="touch" loading={loading} loadingLabel={c.loading} disabled={!queryContext} onClick={() => void refreshEvidence()}>{c.query}</CommercialButton>
-        {!queryContext && <span className="text-helper">{c.identity}</span>}
+        {!queryContext && <span className="text-helper" data-testid="risk-identity-gate">{identityConfirmationCopy[locale][identityConfirmationKind(workspace.identity) === "reconfirmation" ? "reconfirmationRisk" : "pendingRisk"]}</span>}
       </div>
     </Panel>
 

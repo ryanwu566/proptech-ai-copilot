@@ -1,5 +1,7 @@
 import type { SavedCase } from "../case-storage";
 import type { SavedCaseReadDiagnostic } from "./saved-case-diagnostics";
+// @ts-expect-error Native TS runner extension.
+import { restorePendingLocation } from "./pending-location.ts";
 
 /**
  * Home address start → bounded local case draft.
@@ -48,13 +50,13 @@ export function hasPlaceholderInputs(saved: Pick<SavedCase, "data">): boolean {
   return !inputs.city.trim() && !inputs.district.trim() && !inputs.road.trim() && !inputs.building_type.trim();
 }
 
-/** An untouched Home draft for the same address can be reopened instead of duplicated. */
+/** An untouched or pending-only Home draft can be reopened instead of acquired again. */
 export function isPristineAddressDraft(saved: SavedCase, address: string): boolean {
   const journey = saved.data.journeyContext;
   const context = journey?.propertyContext;
   const summary = saved.inputSummary;
   return Boolean(context && journey)
-    && saved.title === address && saved.updatedAt === saved.createdAt && saved.progress === 0
+    && saved.title === address && (saved.updatedAt === saved.createdAt || Boolean(restorePendingLocation(saved))) && saved.progress === 0
     && journey!.priceBasis === "asking"
     && context!.addressSummary === address
     && context!.buildingType === undefined && context!.buildingAgeYears === undefined && context!.floor === undefined

@@ -13,8 +13,7 @@ import { RepositoryNotice, storageBlocked } from "@/components/evidence/evidence
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { createBrowserCaseRepository, type WorkspaceReadDiagnostic } from "@/lib/workspace/case-repository";
 import { MAX_DRAFT_ADDRESS_LENGTH, normalizeDraftAddress, type AddressDraftFailure } from "@/lib/workspace/case-draft";
-import { api } from "@/lib/api";
-import { acquireLocationResolution } from "@/lib/workspace/location-confirmation";
+import { acquireCaseLocation } from "@/lib/workspace/location-acquisition";
 import { locationStartHandoff } from "@/lib/workspace/location-start-handoff";
 import { createAddressDraftCase } from "@/lib/case-storage";
 import { formatExactDate } from "@/lib/commercial/formatters";
@@ -56,7 +55,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
     }
     const query = normalizeDraftAddress(address);
     // Reopening an existing draft is read-only; only creation from this explicit Start acquires a candidate.
-    if (result.status === "created" && query) locationStartHandoff.begin(result.caseId, query, () => acquireLocationResolution(query, (signal) => api.locationResolve(query, signal)));
+    if (result.status === "created" && query) locationStartHandoff.begin(result.caseId, query, () => acquireCaseLocation(result.caseId, query));
     router.push(caseDestination(result.caseId, "location"));
   }
   const recent = read?.cases.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3) ?? [];

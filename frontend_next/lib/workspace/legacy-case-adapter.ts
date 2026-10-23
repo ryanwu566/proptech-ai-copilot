@@ -1,4 +1,6 @@
 import type { SavedCase } from "../case-storage";
+// @ts-expect-error Native TS runner extension.
+import { restorePendingLocation } from "./pending-location.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { areJourneyPropertyAddressesEquivalent, type JourneyPropertyIdentityAnchorV1 } from "../journey-property-identity.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
@@ -150,6 +152,7 @@ export function adaptSavedCaseToWorkspace(saved: SavedCase): PropertyCaseWorkspa
     updatedAt: saved.updatedAt,
     storageVersion: JSON.stringify(saved),
     identity,
+    pendingLocationCandidate: restorePendingLocation(saved)?.candidate,
     assumptions: {
       activePriceBasis: basis,
       ...(activePriceWan ? { activePriceWan } : {}),

@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 HERO = (ROOT / "frontend_next" / "components" / "hero-intro.tsx").read_text(encoding="utf-8")
 PAGE = (ROOT / "frontend_next" / "app" / "page.tsx").read_text(encoding="utf-8")
 HOME = (ROOT / "frontend_next" / "components" / "commercial-home.tsx").read_text(encoding="utf-8")
+ACQUISITION = (ROOT / "frontend_next" / "lib" / "workspace" / "location-acquisition.ts").read_text(encoding="utf-8")
 CSS = (ROOT / "frontend_next" / "app" / "home.css").read_text(encoding="utf-8")
 WALKTHROUGH = (ROOT / "frontend_next" / "components" / "friendly-intro-walkthrough.tsx").read_text(encoding="utf-8")
 
@@ -46,7 +47,14 @@ def test_hero_ctas_keep_real_navigation_handlers() -> None:
     # The explicit Start owns one location lookup for a newly created case, never automatic analysis.
     assert 'result.status === "created" && query' in start
     assert "locationStartHandoff.begin" in start
-    assert start.count("api.locationResolve(") == 1
+    # Start delegates to the single case-bound acquisition path, which issues exactly one resolve.
+    assert start.count("acquireCaseLocation(result.caseId, query)") == 1
+    assert start.count("acquireCaseLocation(") == 1
+    assert "api.locationResolve(" not in start
+    acquire = ACQUISITION.split("export async function acquireCaseLocation(", 1)[1]
+    assert acquire.count("acquireLocationResolution(") == 1
+    assert acquire.count("api.locationResolve(") == 1
+    assert all(term not in acquire for term in ("fetch(", "locationInsight", "mapNearby", "commuteRoute", "terrainRisk"))
     assert all(term not in start for term in ("fetch(", "locationInsight", "mapNearby", "commuteRoute", "terrainRisk", "workflow=property"))
     assert 'href={`/cases/${encodeURIComponent(workspace.caseId)}/overview`}' in HOME
 

@@ -20,6 +20,7 @@ import { buildLocationOverviewHandoff } from "@/lib/workspace/location-context";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { homeStartCopy } from "@/lib/home-start-copy";
 import { locationConfirmationCopy } from "@/lib/workspace/location-confirmation-copy";
+import { identityConfirmationCopy, identityConfirmationKind } from "@/lib/workspace/identity-confirmation-copy";
 import { hasCompleteAdministrativeArea } from "@/lib/journey-property-identity";
 import { nearbyFacilitiesCopy } from "@/lib/workspace/nearby-facilities-copy";
 import { LocationConfirmationPanel } from "./location-confirmation-panel";
@@ -44,7 +45,7 @@ const MODE_LABELS = { transit: "大眾運輸", driving: "開車", walking: "步�
 
 export function LocationView() {
   const workspace = useWorkspace();
-  const { copyFrom } = useExperienceLocale();
+  const { copyFrom, locale } = useExperienceLocale();
   const latestWorkspace = useRef(workspace);
   latestWorkspace.current = workspace;
   const persistence = useRef({ route: 0, transit: 0, mounted: true });
@@ -70,6 +71,7 @@ export function LocationView() {
   const anchor = workspace.identity.state === "confirmed" ? workspace.identity.anchor : undefined;
   // An address-only case was never located; "changed / re-confirm" copy would be untrue for it.
   const neverLocated = workspace.identity.state === "unconfirmed" && !workspace.identity.anchor;
+  const reconfirmation = identityConfirmationKind(workspace.identity) === "reconfirmation";
   const identityExpectation = anchor?.coordinates ? {
     journeyAnchorId: anchor.journey_anchor_id,
     normalizedAddress: anchor.normalized_address,
@@ -100,7 +102,7 @@ export function LocationView() {
     {anchor && !hasCompleteAdministrativeArea(anchor) && <div data-testid="location-administrative-incomplete"><Message variant="information">{copyFrom(locationConfirmationCopy, "adminIncomplete")}</Message></div>}
 
     <SummaryStrip label="區位與通勤狀態">
-      <MetricItem label="物件位置" value={<StatusLabel semanticRole={identity.role}>{identity.label["zh-TW"]}</StatusLabel>} />
+      <MetricItem label="物件位置" value={<StatusLabel semanticRole={identity.role}>{identity.label[locale]}</StatusLabel>} />
       <MetricItem label="周邊證據" value={<StatusLabel semanticRole={locationState.role}>{locationState.label["zh-TW"]}</StatusLabel>} note="案件重開後的摘要會標示為有限證據" />
       <MetricItem label="目的地通勤" value={<StatusLabel semanticRole={readiness.role}>{readiness.label["zh-TW"]}</StatusLabel>} />
     </SummaryStrip>
@@ -115,8 +117,8 @@ export function LocationView() {
       <ExplicitMap key={`${workspace.caseId}:${coordinates.latitude}:${coordinates.longitude}`} kind="location"><GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} /></ExplicitMap>
     </MapFrame> : neverLocated ? <div data-testid="location-not-yet-confirmed" className="space-y-3"><Message variant="information" title={copyFrom(homeStartCopy, "locationPendingTitle")}>
       {copyFrom(homeStartCopy, "locationPending")}
-    </Message><LocationConfirmationPanel key={workspace.caseId} onConfirmed={() => setLocationConfirmed(true)} /></div> : <Message variant="warning" title="物件位置已變更，需重新確認">
-      目前不把先前位置或通勤結果當作本案現況；完成物件位置重新確認後再查看地圖與路線。
+    </Message><LocationConfirmationPanel key={JSON.stringify([workspace.caseId, workspace.storageVersion, workspace.displayAddress])} onConfirmed={() => setLocationConfirmed(true)} /></div> : <Message variant="warning" title={copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationTitle" : "pendingTitle")}>
+      {copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationLocation" : "pendingLocation")}
     </Message>}
 
 </div>
@@ -133,7 +135,7 @@ export function LocationView() {
         onRouteEvidence={persistRoute}
         onTransitStatusChange={() => undefined}
         onTransitResult={persistTransit}
-      /> : <Message variant="warning">{neverLocated ? copyFrom(homeStartCopy, "routePending") : "請先重新確認物件位置，再查詢目的地路線。"}</Message>}
+      /> : <Message variant="warning">{copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationRoute" : "pendingRoute")}</Message>}
       </div>
     </Section>
 

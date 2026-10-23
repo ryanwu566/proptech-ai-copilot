@@ -11,6 +11,8 @@ import { adaptSavedCaseToWorkspace } from "./legacy-case-adapter.ts";
 import { parseSavedCasesDiagnostic } from "./saved-case-diagnostics.ts";
 // @ts-expect-error Node's native TypeScript test runner requires the source extension.
 import { e9Case } from "./e9-test-fixtures.ts";
+// @ts-expect-error Native TS runner extension.
+import { capturePendingLocation } from "./pending-location.ts";
 
 const NOW = "2026-10-18T08:00:00.000Z";
 const ADDRESS = "臺中市西屯區臺灣大道三段100號";
@@ -93,6 +95,15 @@ test("an untouched draft for the same address is reopened, never duplicated", ()
   assert.equal(planAddressDraft(ready([draft]), "臺北市信義區市府路1號", options).kind, "create");
   const full = [draft, ...Array.from({ length: 9 }, (_, index) => e9Case(`case-${index}`))];
   assert.equal(planAddressDraft(ready(full), ADDRESS, options).kind, "reopen");
+});
+
+test("a pending-only draft reopens on repeated Home Start without another acquisition", () => {
+  const draft = draftCase("draft-0");
+  draft.data.pendingLocationCandidate = capturePendingLocation(draft, { addressInput: ADDRESS, interpretedAddress: ADDRESS, county: null, district: null, latitude: 24.16, longitude: 120.64, source: "google" });
+  draft.updatedAt = "2026-10-21T01:00:00Z";
+  assert.equal(planAddressDraft(ready([draft]), ADDRESS, options).kind, "reopen");
+  draft.data.pendingLocationCandidate!.caseId = "foreign-case";
+  assert.equal(planAddressDraft(ready([draft]), ADDRESS, options).kind, "create");
 });
 
 test("a draft with saved evidence or assumptions is no longer pristine", () => {
