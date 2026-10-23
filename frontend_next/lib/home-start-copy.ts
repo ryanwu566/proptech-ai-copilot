@@ -1,7 +1,7 @@
 import type { CopyCatalogue } from "./copy-catalogue";
 import type { AddressDraftFailure } from "./workspace/case-draft";
 
-type Key = "boundary" | "locationPendingTitle" | "locationPending" | "routePending" | "creating" | "resume" | "example" | "whatTitle" | "what" | "trust" | "failedTitle" | "manageCases" | "completeExample" | "completeExampleHint" | "completeExampleOpening" | "demoLimit" | AddressDraftFailure;
+type Key = "boundary" | "locationPendingTitle" | "locationPending" | "routePending" | "creating" | "resume" | "example" | "whatTitle" | "what" | "trust" | "failedTitle" | "manageCases" | "completeExample" | "completeExampleHint" | "completeExampleOpening" | "demoLimit" | "demoFailedTitle" | "demoWriteFailed" | AddressDraftFailure;
 
 /** Home start copy. Case creation is local; no copy may imply cloud sync or completed analysis. */
 export const homeStartCopy: CopyCatalogue<Key> = {
@@ -9,6 +9,8 @@ export const homeStartCopy: CopyCatalogue<Key> = {
     completeExample: "查看完整範例案件",
     completeExampleHint: "一鍵開啟兩件示範案件 A／B：市場、區位、風險、資金、決策室、報告與比較都已填好。示範快照資料，不執行任何查詢。",
     completeExampleOpening: "正在開啟範例案件…",
+    demoFailedTitle: "範例案件尚未準備完成",
+    demoWriteFailed: "未能完整儲存示範內容。其他案件仍保留；請確認儲存空間後再試一次。",
     demoLimit: "此瀏覽器的案件已接近 10 件上限，無法加入示範案件。現有案件都未變更；請先移除不需要的案件。",
     boundary: "價格推估不是正式鑑價；案件只儲存在此瀏覽器。",
     locationPendingTitle: "確認物件位置",
@@ -33,6 +35,8 @@ export const homeStartCopy: CopyCatalogue<Key> = {
     completeExample: "View complete example cases",
     completeExampleHint: "Opens demo cases A and B in one click — market, location, risk, money, Decision Room, report and compare are already filled in. Demo snapshot data; no queries are run.",
     completeExampleOpening: "Opening example cases…",
+    demoFailedTitle: "Example cases are not ready",
+    demoWriteFailed: "The demo content could not be fully saved. Your other cases are kept; check storage and try again.",
     demoLimit: "This browser is too close to the 10-case limit to add the demo cases. Your existing cases are unchanged; remove a case you no longer need first.",
     boundary: "Estimates are not appraisals; cases stay in this browser.",
     locationPendingTitle: "Confirm property location",
@@ -57,6 +61,8 @@ export const homeStartCopy: CopyCatalogue<Key> = {
     completeExample: "完全な事例を見る",
     completeExampleHint: "デモ案件 A／B をワンクリックで開きます。市場・立地・リスク・資金・意思決定ルーム・レポート・比較が入力済みです。デモ用スナップショットで、照会は実行しません。",
     completeExampleOpening: "事例を開いています…",
+    demoFailedTitle: "サンプル案件の準備が完了していません",
+    demoWriteFailed: "デモ内容を完全に保存できませんでした。他の案件は保持されています。保存容量を確認して再度お試しください。",
     demoLimit: "このブラウザーの案件数が上限の10件に近いため、デモ案件を追加できません。既存の案件は変更されていません。不要な案件を先に削除してください。",
     boundary: "価格推定は正式な鑑定ではありません。案件はこのブラウザーにのみ保存されます。",
     locationPendingTitle: "物件の位置を確認",
@@ -81,6 +87,8 @@ export const homeStartCopy: CopyCatalogue<Key> = {
     completeExample: "전체 예시 사례 보기",
     completeExampleHint: "예시 사례 A·B를 한 번에 엽니다. 시장, 입지, 위험, 자금, 의사결정 룸, 보고서, 비교가 모두 채워져 있습니다. 예시 스냅샷 데이터이며 조회를 실행하지 않습니다.",
     completeExampleOpening: "예시 사례 여는 중…",
+    demoFailedTitle: "예시 사례가 아직 준비되지 않았습니다",
+    demoWriteFailed: "예시 내용을 모두 저장하지 못했습니다. 다른 사례는 유지됩니다. 저장 공간을 확인한 뒤 다시 시도하세요.",
     demoLimit: "이 브라우저의 사례가 최대 10개에 가까워 예시 사례를 추가할 수 없습니다. 기존 사례는 변경되지 않았습니다. 필요 없는 사례를 먼저 삭제하세요.",
     boundary: "가격 추정은 감정평가가 아닙니다. 사례는 이 브라우저에만 저장됩니다.",
     locationPendingTitle: "부동산 위치 확인",

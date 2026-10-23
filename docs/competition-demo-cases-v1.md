@@ -37,6 +37,8 @@ reading saved evidence; there is no separate demo UI.
 - **Restore (button in the demo disclosure):** resets both demos and their Decision Rooms to the
   snapshot. Never touches other cases.
 - **Deleted demo:** the next CTA click reinstalls it.
+- **Interrupted room write:** install/restore reports failure. Repeating the CTA seeds only missing
+  rooms under their room locks, preserving any existing room; explicit restore retries both rooms.
 - **Capacity:** if the 10-case limit cannot fit the missing demos, nothing is written or evicted and
   Home shows a bounded message with a link to case management.
 

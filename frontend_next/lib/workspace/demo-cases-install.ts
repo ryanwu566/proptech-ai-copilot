@@ -11,18 +11,24 @@ export type DemoInstallResult = { status: "ready"; caseId: string; installed: st
 
 /**
  * Local only; never runs a provider. Installs missing demo snapshots ("ensure") or resets both
- * ("restore"). A reinstalled demo gets its seeded Decision Room; an existing demo keeps its room.
+ * ("restore"). A reinstalled demo gets its seeded Decision Room; an existing demo keeps any
+ * present room. Missing rooms can be seeded on retry after a partially completed install.
  */
 export async function installDemoCases(mode: DemoInstallMode, locale: ExperienceLocale): Promise<DemoInstallResult> {
   const result = await writeReservedCases((read) => planDemoInstall(read, mode, buildDemoCases(locale), MAX_SAVED_CASES));
   if (result.kind === "blocked") return { status: "blocked", reason: result.reason as DemoInstallFailure };
   const installed = result.kind === "write" ? result.installed : [];
-  for (const room of buildDemoRooms(locale).filter((row) => installed.includes(row.caseId))) {
-    if (validateRoom(room, room.caseId)) continue;
+  for (const room of buildDemoRooms(locale)) {
+    if (validateRoom(room, room.caseId)) return { status: "blocked", reason: "write_failed" };
     try {
-      await navigator.locks.request(decisionRoomKey(room.caseId), () => window.localStorage.setItem(decisionRoomKey(room.caseId), JSON.stringify(room)));
-      window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: room.caseId }));
-    } catch { /* The case is installed; its room opens empty rather than failing the example. */ }
+      const changed = await navigator.locks.request(decisionRoomKey(room.caseId), () => {
+        const key = decisionRoomKey(room.caseId);
+        if (!installed.includes(room.caseId) && window.localStorage.getItem(key) !== null) return false;
+        window.localStorage.setItem(key, JSON.stringify(room));
+        return true;
+      });
+      if (changed) window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: room.caseId }));
+    } catch { return { status: "blocked", reason: "write_failed" }; }
   }
   return { status: "ready", caseId: DEMO_CASE_A_ID, installed };
 }
