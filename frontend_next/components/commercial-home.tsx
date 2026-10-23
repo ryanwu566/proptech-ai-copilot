@@ -25,6 +25,7 @@ import { navigationCopy } from "@/lib/navigation/copy";
 import { caseDestination } from "@/lib/navigation/model";
 import { homeStartCopy } from "@/lib/home-start-copy";
 import { HomeCityBackdrop } from "@/components/home-city-backdrop";
+import type { DemoInstallFailure } from "@/lib/workspace/demo-cases-install";
 
 /** Explicit Start saves a local draft, then acquires one unconfirmed location candidate. No analysis. */
 export function CommercialHome({ onFinder }: { onFinder: () => void }) {
@@ -34,11 +35,13 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<AddressDraftFailure | null>(null);
   const submitting = useRef(false);
+  const [examplePending, setExamplePending] = useState(false);
+  const [exampleFailure, setExampleFailure] = useState<DemoInstallFailure | null>(null);
   const repository = useMemo(createBrowserCaseRepository, []);
   const [read, setRead] = useState<WorkspaceReadDiagnostic | null>(null);
   useEffect(() => { const load = () => setRead(repository.readDiagnostic()); load(); return repository.subscribe(load); }, [repository]);
   // If the case navigation is interrupted (e.g. Back mid-push), Home stays mounted; re-enable the start.
-  useEffect(() => { const reset = () => { submitting.current = false; setPending(false); }; window.addEventListener("popstate", reset); return () => window.removeEventListener("popstate", reset); }, []);
+  useEffect(() => { const reset = () => { submitting.current = false; setPending(false); setExamplePending(false); }; window.addEventListener("popstate", reset); return () => window.removeEventListener("popstate", reset); }, []);
   async function start(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current) return;
@@ -59,6 +62,21 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
     if (result.status === "created" && query) locationStartHandoff.begin(result.caseId, query, () => acquireLocationResolution(query, (signal) => api.locationResolve(query, signal)));
     router.push(caseDestination(result.caseId, "location"));
   }
+  /** Installs the two local demo snapshots (idempotent, provider-free) and opens Demo A's real Overview. */
+  async function openCompleteExample() {
+    if (examplePending) return;
+    setExamplePending(true);
+    setExampleFailure(null);
+    try {
+      const { installDemoCases } = await import("@/lib/workspace/demo-cases-install");
+      const result = await installDemoCases("ensure", locale);
+      if (result.status === "ready") { router.push(caseDestination(result.caseId, "overview")); return; }
+      setExampleFailure(result.reason);
+    } catch {
+      setExampleFailure("write_failed");
+    }
+    setExamplePending(false);
+  }
   const recent = read?.cases.slice().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3) ?? [];
   return <div className="commercial-home">
     <section className="commercial-home__start" aria-labelledby="commercial-home-heading">
@@ -68,6 +86,11 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
         <Field required label={t("commercial.address")} helperText={t("commercial.addressHint")}><input id="commercial-address" name="address" className="ds-control" required maxLength={MAX_DRAFT_ADDRESS_LENGTH} onChange={() => setFailure(null)} autoComplete="street-address" placeholder={t("commercial.addressPlaceholder")} /></Field>
         <CommercialButton type="submit" size="touch" loading={pending} loadingLabel={copyFrom(homeStartCopy, "creating")}>{t("commercial.start")}</CommercialButton>
       </form>
+      <div className="commercial-home__example" data-testid="home-complete-example">
+        <CommercialButton variant="secondary" size="touch" data-testid="complete-example-start" loading={examplePending} loadingLabel={copyFrom(homeStartCopy, "completeExampleOpening")} onClick={openCompleteExample}>{copyFrom(homeStartCopy, "completeExample")}</CommercialButton>
+        <p className="text-meta">{copyFrom(homeStartCopy, "completeExampleHint")}</p>
+        {exampleFailure && <Message variant="error" title={copyFrom(homeStartCopy, "failedTitle")} action={<Link prefetch={false} className="commercial-text-action" href="/cases">{copyFrom(homeStartCopy, "manageCases")}</Link>}><span data-testid="complete-example-error">{copyFrom(homeStartCopy, exampleFailure === "limit_reached" ? "demoLimit" : exampleFailure)}</span></Message>}
+      </div>
       <div data-testid="home-start-status">{failure && <Message variant="error" title={copyFrom(homeStartCopy, "failedTitle")} action={failure === "limit_reached" || failure === "storage_invalid" ? <Link prefetch={false} className="commercial-text-action" href="/cases">{copyFrom(homeStartCopy, "manageCases")}</Link> : undefined}>{copyFrom(homeStartCopy, failure)}</Message>}</div>
       <div className="commercial-home__secondary">
         {recent.length > 0 && <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href="/cases">{copyFrom(homeStartCopy, "resume")}</Link>}

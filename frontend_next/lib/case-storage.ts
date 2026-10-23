@@ -201,6 +201,31 @@ export async function createAddressDraftCase(address: string): Promise<AddressDr
   });
 }
 
+export type ReservedCasesPlan = { kind: "blocked"; reason: string } | { kind: "unchanged" } | { kind: "write"; rows: SavedCase[]; installed: string[] };
+
+/**
+ * Demo installer only: plan against the locked read, then write through the validated writer.
+ * Only rows named in `installed` are compacted here; every other row keeps its exact stored object.
+ */
+export async function writeReservedCases<P extends ReservedCasesPlan>(plan: (read: SavedCaseReadDiagnostic) => P): Promise<P | { kind: "blocked"; reason: "lock_unavailable" | "write_failed" }> {
+  const locked = { kind: "blocked", reason: "lock_unavailable" } as const;
+  const failed = { kind: "blocked", reason: "write_failed" } as const;
+  if (typeof window === "undefined" || !window.navigator?.locks?.request) return locked;
+  return mutateSavedCases<P | typeof locked | typeof failed>(locked, () => {
+    try {
+      const snapshot = readStorageSnapshot();
+      const result = plan(snapshot.diagnostic);
+      if (result.kind !== "write") return result;
+      const installed = new Set(result.installed);
+      const stored = new Map((snapshot.raw ? JSON.parse(snapshot.raw) as SavedCase[] : []).filter((row) => row && typeof row === "object").map((row) => [row.id, row]));
+      const rows = result.rows.map((row) => installed.has(row.id) ? { ...row, data: compactCaseData(row.data) } : stored.get(row.id) ?? row);
+      return writeCases(rows, snapshot.raw) ? result : failed;
+    } catch {
+      return failed;
+    }
+  });
+}
+
 export type ConfirmIdentityResult =
   | { status: "confirmed"; saved: SavedCase }
   | { status: "blocked"; reason: "lock_unavailable" | "storage_unavailable" | "case_changed" | "already_identified" | "invalid_anchor" | "write_failed" };
