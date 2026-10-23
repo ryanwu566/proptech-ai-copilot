@@ -17,5 +17,5 @@ let shownVariant: string | null = null;
 export function AmbientSceneHost() {
   const variant = ambientVariantForPath(usePathname());
   useEffect(() => { if (variant) shownVariant = variant; }, [variant]);
-  return variant ? <AmbientScene key={variant} variant={variant} continuity={shownVariant !== null && shownVariant !== variant} className={styles.hosted} /> : null;
+  return variant ? <AmbientScene key={variant} variant={variant} continuity={shownVariant !== null} className={styles.hosted} /> : null;
 }

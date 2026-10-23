@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { overviewViewCopy } from "../lib/workspace/overview-presentation";
@@ -34,6 +34,7 @@ for (const locale of locales) {
         const copy = overviewViewCopy[locale];
         const view = page.getByTestId("commercial-overview-workspace");
         await expect(view.getByRole("heading", { level: 1 })).toHaveText(copy.title);
+        await expect(view.getByRole("heading", { level: 1 })).toHaveCSS("font-weight", "600");
         await expect(view.getByRole("heading", { name: copy.decisionTitle, exact: true })).toBeVisible();
         await expect(view.getByTestId("overview-finance-summary")).toContainText(copy.unassessed);
         if (locale !== "zh-TW") {
@@ -44,6 +45,11 @@ for (const locale of locales) {
       for (const width of [390, 430, 1024, 1440, 720]) {
         // A 1440px screen at 200% browser zoom has a 720 CSS-pixel layout viewport.
         await page.setViewportSize({ width, height: width === 720 ? 450 : 900 });
+        const zoom = width === 720 ? await page.context().newCDPSession(page) : null;
+        if (zoom) {
+          await zoom.send("Emulation.setDeviceMetricsOverride", { width: 720, height: 450, deviceScaleFactor: 2, mobile: false, screenWidth: 1440, screenHeight: 900 });
+          await expect.poll(() => page.evaluate(() => `${innerWidth}:${devicePixelRatio}`)).toBe("720:2");
+        }
         await page.evaluate(() => scrollTo(0, 0));
         if (route.startsWith("/cases/")) await expect(page.locator("[data-case-rail] [aria-current='page']")).toBeInViewport({ ratio: 0.9 });
         const overflowing = await page.evaluate(() => {
@@ -54,7 +60,17 @@ for (const locale of locales) {
           }).slice(0, 12).map((node) => ({ tag: node.tagName, class: node.className, text: node.textContent?.slice(0, 80), right: node.getBoundingClientRect().right }));
         });
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${locale} ${route} ${width}: ${JSON.stringify(overflowing)}`).toBe(true);
-        if (locale === "zh-TW" || route.endsWith("/overview")) await page.screenshot({ path: path.join(output, `${locale}-${route.split("/").pop()?.split("?")[0] || "home"}-${width === 720 ? "zoom200" : width}.png`) });
+        if (locale === "zh-TW" || route.endsWith("/overview")) {
+          const target = path.join(output, `${locale}-${route.split("/").pop()?.split("?")[0] || "home"}-${width === 720 ? "zoom200" : width}.png`);
+          if (zoom) {
+            await page.evaluate(async () => { await document.fonts.ready; });
+            const capture = await zoom.send("Page.captureScreenshot", { format: "png", fromSurface: true, captureBeyondViewport: false });
+            const shot = Buffer.from(capture.data, "base64");
+            await writeFile(target, shot);
+            expect([shot.readUInt32BE(16), shot.readUInt32BE(20)]).toEqual([1440, 900]);
+          } else await page.screenshot({ path: target });
+        }
+        await zoom?.detach();
       }
     }
     expect(providers).toEqual([]);
