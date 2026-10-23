@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import type { Citation } from "@/lib/workspace/document-evidence";
 import { documentEvidenceCopy, type DocumentEvidenceCopyKey } from "@/lib/workspace/document-evidence-copy";
+import { formatEvidenceDate } from "@/lib/workspace/evidence-date";
 import styles from "./document-evidence.module.css";
 
 export function EvidenceCitation({ citation, number, report = false }: { citation: Citation; number?: number; report?: boolean }) {
@@ -17,13 +18,13 @@ export function EvidenceCitation({ citation, number, report = false }: { citatio
 export function EvidenceProvenance({ citation, report = false }: { citation: Citation; report?: boolean }) {
   const { copyFrom, formatDate, formatNumber } = useExperienceLocale();
   const text = (key: DocumentEvidenceCopyKey) => copyFrom(documentEvidenceCopy, key);
-  const date = (value: string | null) => value ? formatDate(value) : text("unknownDate");
+  const date = (value: string | null, kind: "date" | "source" = "date") => formatEvidenceDate(value, formatDate, text("unknownDate"), kind);
   return <dl className={styles.provenance}>
     <dt>{text("source")}</dt><dd>{text(citation.source.kind === "document" ? "document" : "snapshot")} · {citation.source.label}</dd>
     <dt>{text("original")}</dt><dd>{citation.label}</dd>
     <dt>{text("observed")}</dt><dd>{date(citation.observedAt)}</dd>
     <dt>{text("effective")}</dt><dd>{date(citation.effectiveAt)}</dd>
-    <dt>{text("updated")}</dt><dd>{date(citation.sourceUpdatedAt)}</dd>
+    <dt>{text("updated")}</dt><dd>{date(citation.sourceUpdatedAt, "source")}</dd>
     <dt>{text("verification")}</dt><dd>{text(citation.verification)}</dd>
     <dt>{text("state")}</dt><dd data-evidence-state={citation.state}>{text(citation.state)}</dd>
     <dt>{text("relation")}</dt><dd>{text(citation.relation)}</dd>
