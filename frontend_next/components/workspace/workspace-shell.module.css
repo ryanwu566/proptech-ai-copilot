@@ -67,6 +67,10 @@
 
 .rail :global(.workspace-navigation__label:first-child) { margin-top: 0; }
 
+.rail :global(.workspace-navigation__tools) { border: 0; margin-top: var(--space-3); min-width: 0; }
+.rail :global(.workspace-navigation__tools > summary) { min-height: var(--control-touch); padding: var(--space-2) var(--space-3); font-size: var(--text-dense-size); }
+.rail :global(.workspace-navigation__tools > .ds-disclosure__content) { display: grid; padding: 0; gap: 1px; }
+
 .content,
 .page,
 .main {
@@ -320,6 +324,10 @@
   }
 
   .rail :global(.workspace-navigation__label) { display: none; }
+
+  .rail :global(.workspace-navigation__tools) { flex: none; margin: 0; }
+  .rail :global(.workspace-navigation__tools[open]) { display: grid; grid-template-columns: auto auto; align-items: start; }
+  .rail :global(.workspace-navigation__tools > .ds-disclosure__content) { display: flex; gap: var(--space-1); }
 
   .rail :global(.ds-navigation-item) {
     flex: none;
