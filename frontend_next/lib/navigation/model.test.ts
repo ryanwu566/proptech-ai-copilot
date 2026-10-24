@@ -21,9 +21,20 @@ test("case paths resolve the exact current case", () => {
   assert.equal(caseIdFromPath("/cases/%E0%A4%A/overview"), undefined);
 });
 
-test("handoffs connect analysis, scenario, decision, comparison and report without inferring completion", () => {
-  assert.equal(nextCaseStep("market"), "scenarios");
-  assert.equal(nextCaseStep("scenarios"), "decision-room");
+test("handoffs follow evidence, brief, comparison and report without requiring tools", () => {
+  assert.equal(nextCaseStep("market"), "location");
+  assert.equal(nextCaseStep("location"), "risk");
+  assert.equal(nextCaseStep("risk"), "finance");
+  assert.equal(nextCaseStep("finance"), "overview");
+  assert.equal(nextCaseStep("overview"), "compare");
+  assert.equal(nextCaseStep("scenarios"), "overview");
   assert.equal(nextCaseStep("decision-room"), "compare");
   assert.equal(nextCaseStep("report"), "overview");
+});
+
+test("location suggests market before a market query has started, then risk on the evidence pass", () => {
+  assert.equal(nextCaseStep("location", false), "market");
+  assert.equal(nextCaseStep("location", true), "risk");
+  assert.equal(nextCaseStep("commute-planner"), "overview");
+  assert.equal(nextCaseStep("unknown"), "overview");
 });

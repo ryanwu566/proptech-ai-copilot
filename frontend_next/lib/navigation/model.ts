@@ -21,9 +21,13 @@ export function caseIdFromPath(pathname: string): string | undefined {
   const match = /^\/cases\/([^/]+)(?:\/|$)/.exec(pathname);
   try { return match ? decodeURIComponent(match[1]) : undefined; } catch { return undefined; }
 }
-export function nextCaseStep(section: string): "scenarios" | "decision-room" | "compare" | "overview" {
-  if (section === "scenarios") return "decision-room";
+/** A suggested destination only; never evidence completion or a request to run analysis. */
+export function nextCaseStep(section: string, marketStarted = true): CaseDestination | "compare" {
+  if (section === "market") return "location";
+  if (section === "location") return marketStarted ? "risk" : "market";
+  if (section === "risk") return "finance";
+  if (section === "finance") return "overview";
+  if (section === "overview") return "compare";
   if (section === "decision-room") return "compare";
-  if (section === "report") return "overview";
-  return "scenarios";
+  return "overview";
 }

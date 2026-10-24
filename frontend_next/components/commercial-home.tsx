@@ -80,7 +80,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
   return <div className="commercial-home">
     <section className="commercial-home__start" aria-labelledby="commercial-home-heading">
       <HomeCityBackdrop />
-      <header data-page-heading tabIndex={-1}><p className="text-meta">{t("commercial.workspace")}</p><h1 id="commercial-home-heading" className="text-display">{t("commercial.homeTitle")}</h1><p className="text-lead">{t("commercial.homeDescription")}</p></header>
+      <header data-page-heading tabIndex={-1}><p className="text-meta">{t("commercial.workspace")}</p><h1 id="commercial-home-heading" className="text-display">{t("commercial.homeTitle")}</h1><p className="text-lead">{t("commercial.homeDescription")}</p><p className="text-meta" data-testid="home-case-journey">{copyFrom(homeStartCopy, "journey")}</p></header>
       <form onSubmit={start} className="commercial-home__form" aria-busy={pending || undefined}>
         <Field required label={t("commercial.address")} helperText={t("commercial.addressHint")}><input id="commercial-address" name="address" className="ds-control" required maxLength={MAX_DRAFT_ADDRESS_LENGTH} onChange={() => setFailure(null)} autoComplete="street-address" placeholder={t("commercial.addressPlaceholder")} /></Field>
         <CommercialButton type="submit" size="touch" loading={pending} loadingLabel={copyFrom(homeStartCopy, "creating")}>{t("commercial.start")}</CommercialButton>
@@ -92,8 +92,8 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
       </div>
       <div data-testid="home-start-status">{failure && <Message variant="error" title={copyFrom(homeStartCopy, "failedTitle")} action={failure === "limit_reached" || failure === "storage_invalid" ? <Link prefetch={false} className="commercial-text-action" href="/cases">{copyFrom(homeStartCopy, "manageCases")}</Link> : undefined}>{copyFrom(homeStartCopy, failure)}</Message>}</div>
       <div className="commercial-home__secondary">
-        {/* After Start: resume, then the complete example, then quieter help. */}
-        {recent.length > 0 && <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href="/cases">{copyFrom(homeStartCopy, "resume")}</Link>}
+        {/* Supporting entries stay reachable below the two primary actions. */}
+        {recent.length > 0 && <Link prefetch={false} className="commercial-text-action" href="/cases">{copyFrom(homeStartCopy, "resume")}</Link>}
         <button type="button" data-testid="demo-start" className="commercial-text-action commercial-home__demo" onClick={(event) => startDemo?.(event.currentTarget)}>{copyFrom(homeStartCopy, "example")}<span aria-hidden="true">→</span></button>
         <GuidedTourEntry cta="create" />
         <button type="button" className="commercial-text-action" onClick={onFinder}>{t("commercial.finder")}</button>

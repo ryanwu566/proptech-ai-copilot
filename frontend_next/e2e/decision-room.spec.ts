@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
+import { openWorkspaceTools } from "./helpers/commercial-navigation";
 
 test.beforeEach(({}, testInfo) => { test.setTimeout(Math.max(60_000, testInfo.project.timeout)); });
 
@@ -61,7 +62,8 @@ test("workspace entry opens a real editable room", async ({ page }) => {
   await installCases(page);
   await page.goto("/cases/case-a/overview");
   await page.getByTestId("locale-switcher").selectOption("en");
-  await page.getByRole("link", { name: "Property Decision Room", exact: true }).click();
+  await openWorkspaceTools(page);
+  await page.locator(".workspace-navigation").getByRole("link", { name: "Property Decision Room", exact: true }).click();
   await expect(page).toHaveURL(/\/cases\/case-a\/decision-room$/);
   await expect(page.getByTestId("room-heading")).toHaveText("Property Decision Room");
   await expect(page.getByTestId("new-note-form")).toBeVisible();
@@ -120,7 +122,11 @@ test("records, edits, resolves and reopens manual work without touching cases or
   await check.getByLabel("Manual check outcome").selectOption("needs_follow_up");
   await check.getByRole("button", { name: "Save", exact: true }).click();
   await expect(checks).toContainText("Needs follow-up");
+  await page.getByTestId("room-evidence-details").locator("summary").click();
+  await expect(page.getByTestId("saved-evidence")).toBeVisible();
   await expect(page.getByTestId("saved-evidence")).toContainText("Evidence unavailable");
+  await page.getByTestId("room-history-details").locator("summary").click();
+  await expect(page.getByTestId("activity-history")).toBeVisible();
   await expect(page.getByTestId("activity-history")).toContainText("Manual check added");
   await expect(page.getByTestId("evidence-gaps")).toContainText("Manual check needs follow-up");
   await page.reload();
@@ -223,6 +229,8 @@ test("editing and removing records preserves actual activity; resolving requires
   await question.getByRole("button", { name: "Save", exact: true }).click();
   await expect(questions).toContainText("Completed");
   const history = page.getByTestId("activity-history");
+  await page.getByTestId("room-history-details").locator("summary").click();
+  await expect(history).toBeVisible();
   await expect(history).toContainText("Viewing note edited");
   await expect(history).toContainText("Viewing note removed");
   const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), ROOM_KEY);
@@ -378,6 +386,7 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
   async function switchCase(caseId: string) {
     await page.locator('.commercial-global-nav a[href="/cases"]').click();
     await page.locator(`a[href="/cases/${caseId}/overview"]`).click();
+    await openWorkspaceTools(page);
     await page.locator(`.workspace-navigation a[href="/cases/${caseId}/decision-room"]`).click();
     await expect(page.getByTestId("room-heading")).toBeVisible();
     expect(await page.evaluate(() => (window as NavigationWindow).priceNavigationToken)).toBe("same document");
