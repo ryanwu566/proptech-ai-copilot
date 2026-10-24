@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { documentEvidenceCopy } from "../lib/workspace/document-evidence-copy";
 import { isProviderRequest } from "./helpers/provider-request";
+import { openWorkspaceTools } from "./helpers/commercial-navigation";
 
 for (const locale of ["zh-TW", "en", "ja", "ko"] as const) {
   test(`${locale}: mobile keyboard provenance, stable references and no provider calls`, async ({ page, baseURL }) => {
@@ -56,6 +57,7 @@ test("desktop evidence navigation and malformed case diagnostics", async ({ page
   await page.addInitScript(rows => { if (!localStorage.getItem("proptech.savedCases.v1")) localStorage.setItem("proptech.savedCases.v1", JSON.stringify(rows)); }, [e9Case()]);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/cases/case-a/overview");
+  await openWorkspaceTools(page);
   await page.getByRole("link", { name: "證據與引用", exact: true }).click();
   await expect(page.getByTestId("document-evidence-page")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

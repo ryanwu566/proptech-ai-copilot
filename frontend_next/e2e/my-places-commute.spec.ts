@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { placesCopy } from "../lib/my-places-copy";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
+import { openWorkspaceTools } from "./helpers/commercial-navigation";
 
 const CASES = "proptech.savedCases.v1";
 const PLACES = "proptech.my-places.v1";
@@ -224,6 +225,7 @@ test("storage write failures are visible and preserve authored destinations", as
 test("current case navigation reaches the read-only planner", async ({ page }) => {
   await seed(page);
   await page.goto("/cases/case-a/overview");
+  await openWorkspaceTools(page);
   await page.getByRole("link", { name: placesCopy["zh-TW"].planner, exact: true }).click();
   await expect(page).toHaveURL(/\/cases\/case-a\/commute-planner$/);
   await expect(page.getByRole("heading", { name: placesCopy["zh-TW"].planner, exact: true })).toBeVisible();

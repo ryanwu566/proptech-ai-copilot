@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openWorkspaceTools } from "./helpers/commercial-navigation";
 
 test("Scenario Lab code and full locale copy load only after entering the lab", async ({ page }) => {
   const scripts: Promise<string>[] = [];
@@ -31,6 +32,7 @@ test("Scenario Lab code and full locale copy load only after entering the lab", 
   await Promise.all([...scripts, ...documents]);
   await page.goto("/cases/loading-case/finance");
   await page.getByTestId("locale-switcher").selectOption("en");
+  await openWorkspaceTools(page);
   const entry = page.getByRole("link", { name: "Scenario Lab", exact: true }).last();
   await expect(entry).toBeVisible();
   await entry.scrollIntoViewIfNeeded();
