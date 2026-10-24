@@ -20,6 +20,7 @@
 .commercial-home__start header { max-width: 780px; }
 .commercial-home__start h1 { margin: var(--space-3) 0 var(--space-4); max-width: 14em; }
 .commercial-home__start p { margin: 0; }
+.commercial-home__start [data-testid="home-case-journey"] { margin-top: var(--space-4); overflow-wrap: anywhere; }
 .commercial-home__form { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: var(--space-3); max-width: 780px; margin-top: var(--space-8); }
 .commercial-home__form .ds-control { min-height: 3.25rem; padding-inline: var(--space-4); font-size: 1.0625rem; border-radius: var(--radius-panel); box-shadow: 0 1px 2px rgb(15 23 42 / 0.04); }
 .commercial-home__form .ds-control:focus-visible { border-color: var(--action); }

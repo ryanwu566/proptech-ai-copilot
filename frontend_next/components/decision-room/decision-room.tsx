@@ -13,6 +13,7 @@ import { resolveCommercialState } from "@/lib/commercial/state";
 import { documentEvidenceCopy } from "@/lib/workspace/document-evidence-copy";
 import styles from "./decision-room.module.css";
 import { CopilotLink } from "@/components/workspace/copilot/copilot-link";
+import { DetailsDisclosure } from "@/components/design-system/disclosure";
 
 type Save = (change: (room: DecisionRoom) => DecisionRoom | null) => Promise<boolean>;
 type EditorError = RoomError | "case_unreadable" | "record_removed";
@@ -101,6 +102,20 @@ export function DecisionRoomPage({ caseId }: { caseId: string }) {
   const loading = caseRead === null || (caseRead.status === "ready" && roomRead === null);
   const context = caseRead?.status === "ready" ? caseRead.context : null;
   const room = roomRead?.status === "ready" || roomRead?.status === "empty" ? roomRead.room : null;
+  const hasRoom = room !== null;
+  // Existing document/evidence links must still reveal their target inside a closed disclosure.
+  useEffect(() => {
+    if (!hasRoom) return;
+    const revealTarget = () => {
+      const target = document.getElementById(window.location.hash.slice(1));
+      let disclosure = target?.closest("details");
+      while (disclosure) { disclosure.open = true; disclosure = disclosure.parentElement?.closest("details") ?? null; }
+      if (target) target.scrollIntoView({ block: "start" });
+    };
+    revealTarget();
+    window.addEventListener("hashchange", revealTarget);
+    return () => window.removeEventListener("hashchange", revealTarget);
+  }, [caseId, hasRoom]);
   return <main id="main-content" className={styles.room} data-testid="decision-room">
     <header className={styles.hero}>
       {context && <p data-testid="room-case-context" className={styles.eyebrow}>{context.title} · {context.address}</p>}
@@ -140,13 +155,15 @@ export function DecisionRoomPage({ caseId }: { caseId: string }) {
             <PriceForm key={caseId} initial={room.askingPrice} save={(value) => save((r) => ({ ...r, askingPrice: value }))} c={c} />
           </section>
           <Gaps room={room} context={context} c={c} />
-          <Evidence context={context} c={c} />
+          <DetailsDisclosure summary={c.evidence} data-testid="room-evidence-details"><Evidence context={context} c={c} /></DetailsDisclosure>
         </aside>
       </fieldset>
+      <DetailsDisclosure summary={c.history} data-testid="room-history-details">
       <section id="activity-history" data-testid="activity-history" className={styles.panel} aria-labelledby="history-heading">
         <h2 id="history-heading">{c.history}</h2><p className={styles.muted}>{c.historyHint}</p>
         {!room.history.length ? <Empty c={c} /> : <ol className={styles.history}>{[...room.history].reverse().map((event) => <li key={event.id}><span><strong>{c[event.kind]}</strong>{event.subject && <span className={styles.userText}> · {event.subject}</span>}</span><time dateTime={event.at}>{new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(new Date(event.at))}</time></li>)}</ol>}
       </section>
+      </DetailsDisclosure>
     </>}
   </main>;
 }

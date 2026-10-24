@@ -33,7 +33,8 @@ test("case routes show no product catalogue and one active case destination", as
   await expect(header.locator(".commercial-methods")).toHaveCount(0);
   await expect(header).not.toContainText(LEGACY_NAMES);
   const nav = page.locator(".workspace-navigation");
-  await expect(nav.locator("a")).toHaveText(["物件總覽", "價格與市場", "區位與通勤", "風險與環境", "購屋資金", "購屋決策室", "案件報告", "情境實驗室", /通勤/, /文件|證據/, "比較案件"]);
+  await expect(nav.locator("a")).toHaveText(["物件總覽", "價格與市場", "區位與通勤", "風險與環境", "購屋資金", "比較案件", "案件報告", "購屋決策室", "情境實驗室", /通勤/, /文件|證據/]);
+  await expect(nav.getByRole("link")).toHaveCount(7);
   await expect(nav.locator(".workspace-navigation__secondary")).toHaveCount(4);
   await expect(nav.locator('[aria-current="page"]')).toHaveText(["風險與環境"]);
   await expect(page.locator('a[href$="/planning"]')).toHaveCount(0);

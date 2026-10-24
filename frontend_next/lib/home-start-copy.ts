@@ -1,13 +1,16 @@
 import type { CopyCatalogue } from "./copy-catalogue";
 import type { AddressDraftFailure } from "./workspace/case-draft";
 
-type Key = "boundary" | "locationPendingTitle" | "locationPending" | "routePending" | "creating" | "resume" | "example" | "whatTitle" | "what" | "trust" | "failedTitle" | "manageCases" | "completeExample" | "completeExampleHint" | "completeExampleOpening" | "demoLimit" | "demoFailedTitle" | "demoWriteFailed" | AddressDraftFailure;
+type Key = "buildPack" | "buildPackHint" | "journey" | "boundary" | "locationPendingTitle" | "locationPending" | "routePending" | "creating" | "resume" | "example" | "whatTitle" | "what" | "trust" | "failedTitle" | "manageCases" | "completeExample" | "completeExampleHint" | "completeExampleOpening" | "demoLimit" | "demoFailedTitle" | "demoWriteFailed" | AddressDraftFailure;
 
 /** Home start copy. Case creation is local; no copy may imply cloud sync or completed analysis. */
 export const homeStartCopy: CopyCatalogue<Key> = {
   "zh-TW": {
     completeExample: "查看完整範例案件",
-    completeExampleHint: "一鍵開啟兩件示範案件 A／B：市場、區位、風險、資金、決策室、報告與比較都已填好。示範快照資料，不執行任何查詢。",
+    journey: "一個地址 → 確認位置 → 看屋前資料包 → 簡報 → 比較 → 報告",
+    buildPack: "建立看屋前資料包",
+    buildPackHint: "從市場開始，再查看區位、風險與資金。每項查詢由你主動執行；未取得的證據會保留為未知。",
+    completeExampleHint: "開啟示範案件 A 的看屋前簡報，再比較 A／B 與查看報告。資料包含市場、區位、風險與資金；皆為示範快照，不執行查詢。",
     completeExampleOpening: "正在開啟範例案件…",
     demoFailedTitle: "範例案件尚未準備完成",
     demoWriteFailed: "未能完整儲存示範內容。其他案件仍保留；請確認儲存空間後再試一次。",
@@ -33,7 +36,10 @@ export const homeStartCopy: CopyCatalogue<Key> = {
   },
   en: {
     completeExample: "View complete example cases",
-    completeExampleHint: "Opens demo cases A and B in one click — market, location, risk, money, Decision Room, report and compare are already filled in. Demo snapshot data; no queries are run.",
+    journey: "One address → Confirm location → Pre-viewing pack → Brief → Compare → Report",
+    buildPack: "Build pre-viewing pack",
+    buildPackHint: "Start with market, then review location, risk and money. You run each query explicitly; missing evidence stays unknown.",
+    completeExampleHint: "Open Demo A’s pre-viewing brief, compare A/B, then view a report. The pack contains market, location, risk and money evidence. Demo snapshots; no queries are run.",
     completeExampleOpening: "Opening example cases…",
     demoFailedTitle: "Example cases are not ready",
     demoWriteFailed: "The demo content could not be fully saved. Your other cases are kept; check storage and try again.",
@@ -59,7 +65,10 @@ export const homeStartCopy: CopyCatalogue<Key> = {
   },
   ja: {
     completeExample: "完全な事例を見る",
-    completeExampleHint: "デモ案件 A／B をワンクリックで開きます。市場・立地・リスク・資金・意思決定ルーム・レポート・比較が入力済みです。デモ用スナップショットで、照会は実行しません。",
+    journey: "一つの住所 → 位置確認 → 内見前の資料 → 概要 → 比較 → レポート",
+    buildPack: "内見前の資料を作成",
+    buildPackHint: "市場から始め、立地・リスク・資金を確認します。照会は自分で実行し、取得できない根拠は不明のまま残ります。",
+    completeExampleHint: "デモ A の内見前の概要を開き、A／B を比較してレポートへ進めます。市場・立地・リスク・資金のデモ資料です。照会は実行しません。",
     completeExampleOpening: "事例を開いています…",
     demoFailedTitle: "サンプル案件の準備が完了していません",
     demoWriteFailed: "デモ内容を完全に保存できませんでした。他の案件は保持されています。保存容量を確認して再度お試しください。",
@@ -85,7 +94,10 @@ export const homeStartCopy: CopyCatalogue<Key> = {
   },
   ko: {
     completeExample: "전체 예시 사례 보기",
-    completeExampleHint: "예시 사례 A·B를 한 번에 엽니다. 시장, 입지, 위험, 자금, 의사결정 룸, 보고서, 비교가 모두 채워져 있습니다. 예시 스냅샷 데이터이며 조회를 실행하지 않습니다.",
+    journey: "주소 하나 → 위치 확인 → 방문 전 자료 → 브리프 → 비교 → 보고서",
+    buildPack: "방문 전 자료 만들기",
+    buildPackHint: "시장부터 시작해 입지·위험·자금을 확인하세요. 각 조회는 직접 실행하며, 없는 근거는 미확인으로 유지됩니다.",
+    completeExampleHint: "예시 A의 방문 전 브리프를 열고 A·B 비교와 보고서로 이어갑니다. 시장·입지·위험·자금 자료는 예시 스냅샷이며 조회를 실행하지 않습니다.",
     completeExampleOpening: "예시 사례 여는 중…",
     demoFailedTitle: "예시 사례가 아직 준비되지 않았습니다",
     demoWriteFailed: "예시 내용을 모두 저장하지 못했습니다. 다른 사례는 유지됩니다. 저장 공간을 확인한 뒤 다시 시도하세요.",
