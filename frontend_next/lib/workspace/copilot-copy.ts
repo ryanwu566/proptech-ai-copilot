@@ -10,6 +10,7 @@ const words = {
   saved: ["已儲存證據", "Saved evidence", "保存済み根拠", "저장된 근거"],
   live: ["即時證據：未要求更新", "Live evidence: refresh not requested", "ライブ根拠：更新未要求", "실시간 근거: 갱신 요청 안 함"],
   context: ["目前案件／物件", "Current case / property", "現在の案件／物件", "현재 사례 / 부동산"],
+  savedAt: ["案件保存時間", "Case saved", "案件の保存日時", "사례 저장 시간"],
   boundary: ["保存時間不代表資料仍為最新。地籍、分區與權利身分需另行查證；無法取得、未命中或未查詢都不代表安全。", "Saved dates do not establish current facts. Parcel, zoning and ownership require separate verification. Unavailable, no match and not queried never establish safety.", "保存日時は最新性を保証しません。地番・用途地域・権利は別途確認が必要です。取得不可・該当なし・未照会は安全を意味しません。", "저장 날짜는 최신 사실을 보장하지 않습니다. 필지·용도지역·소유권은 별도 확인이 필요합니다. 조회 불가·일치 없음·미조회는 안전을 뜻하지 않습니다."],
   question: ["詢問本案件的已儲存證據", "Ask about this case’s saved evidence", "この案件の保存済み根拠について質問", "이 사례의 저장된 근거에 질문"],
   send: ["詢問", "Ask", "質問する", "질문하기"],

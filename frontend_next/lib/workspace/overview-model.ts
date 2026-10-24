@@ -160,7 +160,7 @@ export function buildWorkspaceOverview(workspace: PropertyCaseWorkspace): Worksp
     known.push(item(workspace, { id: "finance-calculation", label: "已保存資金試算摘要", reason: "已保留頭期款與每月付款等有界結果；計算完成不代表負擔能力已評估。", section: "finance", evidenceKeys: ["finance"], state: workspace.evidence.finance.summaryOnly ? "saved_snapshot" : "known" }));
   }
   if (financeCurrent && finance?.calculationStatus === "succeeded" && finance.affordabilityStatus === "unassessed") {
-    unknown.push(item(workspace, { id: "finance-affordability-unassessed", label: "負擔能力尚未評估", reason: "未提供月收入；試算完成與負擔能力評估維持不同狀態。", section: "finance", evidenceKeys: ["finance"], state: "partial" }));
+    unknown.push(item(workspace, { id: "finance-affordability-unassessed", label: "負擔能力尚未評估", reason: `${workspace.finance?.affordability.reason ?? "收入或可用負擔比例不足"}；試算完成與負擔能力評估維持不同狀態。`, section: "finance", evidenceKeys: ["finance"], state: "partial" }));
   }
 
   const orderedKnown = known.slice(0, 5);

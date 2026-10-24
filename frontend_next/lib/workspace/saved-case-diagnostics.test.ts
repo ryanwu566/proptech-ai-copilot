@@ -1,9 +1,28 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Native TS runner extension.
+import { e9Case } from "./e9-test-fixtures.ts";
+// @ts-expect-error Native TS runner extension.
+import { adaptSavedCaseToWorkspace } from "./legacy-case-adapter.ts";
+// @ts-expect-error Native TS runner extension.
 const featureModule = await import("./saved-case-diagnostics.ts").catch(() => null);
 const row = { id: "case-a", title: "案件 A", version: 1, workflowMode: "buying_wizard", activeWizardStep: "report", progress: 50, createdAt: "2026-10-01T00:00:00Z", updatedAt: "2026-10-07T00:00:00Z", inputSummary: { road: "市府路1號" }, data: { inputs: { city: "臺北市", district: "信義區", road: "市府路1號", area_ping: 30, building_type: "大樓", building_age_years: 5, floor: 8 } } };
 const read = (raw: string | null) => featureModule?.parseSavedCasesDiagnostic(raw, (item) => item) ?? { status: "missing", cases: [], issues: [] };
+
+test("contradictory affordability keeps the saved case visible with other evidence intact", () => {
+  const saved = e9Case();
+  saved.data.financeEvidence!.affordability = { status: "assessed", ratio: 0.3, reason: null, basis: "total_housing_cost" };
+  const before = JSON.stringify(saved);
+  const result = read(JSON.stringify([saved]));
+  assert.equal(result.status, "ready");
+  assert.equal(result.cases.length, 1);
+  const ws = adaptSavedCaseToWorkspace(result.cases[0]);
+  assert.equal(ws.finance!.loan.monthlyPaymentTwd, 55_111);
+  assert.equal(ws.finance!.affordability.status, "unassessed");
+  assert.equal(ws.finance!.overview.affordabilityStatus, "unassessed");
+  assert.ok(ws.risk!.rows.length > 0);
+  assert.equal(JSON.stringify(saved), before);
+});
 test("partial Location survives Save/Reopen with unknown failed-category counts", () => {
   const saved = { ...row, data: { ...row.data, locationInsight: { data_quality: { status: "limited", missing_sources: ["poi:school"], warnings: [] }, poi_summary: { transit_count: 1, convenience_count: 2, school_count: null, park_count: 0, medical_count: 1, risk_facility_count: null } } } };
   const result = read(JSON.stringify([saved]));

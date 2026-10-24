@@ -178,6 +178,17 @@ test("affordability records whether the ratio uses loan-only or total holding co
   assert.equal(totalHousing.affordability.ratio, holding.income_burden_ratio);
 });
 
+test("present income with a missing burden ratio is not described as missing income", () => {
+  const model = buildFinanceModel(baseInput({
+    loanResult: { ...loan, income_burden_ratio: null },
+    holdingResult: { ...holding, income_burden_ratio: null },
+  }));
+  assert.equal(model.affordability.status, "unassessed");
+  assert.equal(model.affordability.ratio, null);
+  assert.doesNotMatch(model.affordability.reason!, /未提供月收入/);
+  assert.match(model.affordability.reason!, /比例/);
+});
+
 test("price changes make old calculations stale without changing the active price", () => {
   const model = buildFinanceModel(baseInput({ activePriceWan: 1_900 }));
 

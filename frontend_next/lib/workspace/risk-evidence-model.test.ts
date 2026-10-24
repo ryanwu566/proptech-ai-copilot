@@ -19,6 +19,91 @@ const SOURCE = {
   data_vintage: "2026 年版",
 };
 
+test("unusable positive flags never become matched findings or material handoffs", () => {
+  for (const [key, status, coverage, expected] of [
+    ["flood", "unavailable", "unknown", "unavailable"],
+    ["liquefaction", "error", "unknown", "unavailable"],
+    ["flood", "available", "not_covered", "no_coverage"],
+    ["active_fault", "available", "covered", "unsupported"],
+  ] as const) {
+    const result = terrainResult();
+    result.hazards[key] = hazard({ key, label: key, status, matched: true, level: "high" });
+    result.source_transparency!.layers.find((layer) => layer.layer_id === key)!.coverage_status = coverage;
+    const model = buildRiskEvidenceModel(result);
+    const row = model.rows.find((item) => item.key === key)!;
+    assert.equal(row.usability, expected);
+    assert.equal(row.matched, null);
+    assert.equal(row.sourceLevel, "unknown");
+    assert.doesNotMatch(row.result, /本次位置符合/);
+    assert.ok(!model.overview.materialMatchedEvidence.some((item) => item.key === key));
+    assert.ok(model.overview.unknownOrUnavailableEvidence.some((item) => item.key === key));
+  }
+});
+
+test("negative queries require explicit completed assessment and covered scope", () => {
+  for (const coverage of ["partial", "unknown"] as const) {
+    const result = terrainResult();
+    const layer = result.source_transparency!.layers.find((item) => item.layer_id === "flood")!;
+    layer.coverage_status = coverage;
+    layer.assessment_status = "not_assessed";
+    const model = buildRiskEvidenceModel(result);
+    assert.notEqual(model.rows.find((row) => row.key === "flood")!.usability, "no_match");
+    assert.ok(!model.overview.noMatchEvidence.some((row) => row.key === "flood"));
+  }
+  const result = terrainResult();
+  delete result.source_transparency;
+  const row = buildRiskEvidenceModel(result).rows.find((item) => item.key === "flood")!;
+  assert.equal(row.coverage, "unknown");
+  assert.notEqual(row.usability, "no_match");
+});
+
+test("terrain with missing coverage stays unknown through save and reopen", () => {
+  const result = terrainResult();
+  delete result.source_transparency;
+  const model = buildRiskEvidenceModel(result);
+  assert.equal(model.rows.find((row) => row.key === "terrain")!.coverage, "unknown");
+  const reopened = buildStoredRiskEvidenceModel(buildStoredRiskEvidenceSnapshot(model), { stale: false, checkedAt: null });
+  assert.equal(reopened.rows.find((row) => row.key === "terrain")!.coverage, "unknown");
+});
+
+test("positive flood wording retains the source scenario and simulated depth", () => {
+  const result = terrainResult();
+  result.hazards.flood = hazard({ key: "flood", label: "淹水潛勢", matched: true, level: "high", value: { scenario_label: "24 小時 650 毫米", canonical_depth: "1–2 公尺" } as never });
+  const row = buildRiskEvidenceModel(result).rows.find((item) => item.key === "flood")!;
+  assert.match(row.result, /24 小時 650 毫米/);
+  assert.match(row.result, /1–2 公尺/);
+  assert.match(row.result, /情境模擬/);
+  assert.match(row.result, /不代表.*實際/);
+});
+
+test("partial liquefaction positives retain classification without claiming a complete assessment", () => {
+  const result = terrainResult();
+  result.hazards.liquefaction = hazard({ key: "liquefaction", label: "土壤液化", status: "limited", matched: true, value: { official_classification: "中潛勢" } as never });
+  const model = buildRiskEvidenceModel(result);
+  const row = model.rows.find((item) => item.key === "liquefaction")!;
+  assert.equal(row.matched, true);
+  assert.equal(row.usability, "limited");
+  assert.match(row.result, /中潛勢/);
+  assert.match(row.result, /區域性初級評估/);
+  assert.match(row.result, /未完成|不完整/);
+  const reopened = buildStoredRiskEvidenceModel(buildStoredRiskEvidenceSnapshot(model), { stale: false, checkedAt: null });
+  assert.equal(reopened.rows.find((item) => item.key === "liquefaction")!.matched, true);
+  assert.equal(reopened.rows.find((item) => item.key === "liquefaction")!.usability, "limited");
+});
+
+test("saved legacy no-match cannot override absent coverage or turn terrain into a hazard match", () => {
+  for (const coverage of ["not_covered", "partial", "unknown"] as const) {
+    const model = buildStoredRiskEvidenceModel({ schema_version: 1, kind: "terrain_reference", status: "no_match", summary: "legacy", notice: "saved", layers: [
+      { layer_id: "flood", display_name: "淹水潛勢", state: "no_match", coverage_status: coverage, source_name: "水利署", caveat: "需查證" },
+      { layer_id: "terrain", display_name: "地形", state: "available", coverage_status: "covered", source_name: "地形來源", caveat: "僅供參考" },
+    ] }, { stale: false, checkedAt: null });
+    assert.notEqual(model.rows[0].usability, "no_match");
+    assert.equal(model.rows[1].matched, null);
+    assert.equal(model.materialEvidenceCount, 0);
+    assert.equal(model.overview.noMatchEvidence.length, 0);
+  }
+});
+
 test("partial positive hazard coverage remains partial through Save/Reopen", () => {
   const snapshot = { kind: "terrain_reference", schema_version: 1, status: "partial", notice: "Partial source", summary: "Positive point match", layers: [{ layer_id: "flood", display_name: "Flood", state: "partial", source_name: "WRA", coverage_status: "partial", caveat: "Partial source; manual verification required" }] };
   const restored = normalizeStoredTerrainReferenceEvidence(snapshot);

@@ -108,7 +108,7 @@ test("Finance route calculates loan and holding costs while keeping affordabilit
   await page.getByTestId("calculate-loan").click();
   await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196／月");
   await expect(page.getByTestId("loan-summary")).toContainText("1,480 萬元");
-  await expect(page.getByTestId("affordability-status")).toContainText("未評估（未提供月收入）");
+  await expect(page.getByTestId("affordability-status")).toContainText("未評估（收入或可用負擔比例不足）");
 
   await page.getByTestId("calculate-holding").click();
   const breakdown = page.getByTestId("holding-breakdown");

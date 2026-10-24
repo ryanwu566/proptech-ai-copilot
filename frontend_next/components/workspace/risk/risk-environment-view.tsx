@@ -27,7 +27,8 @@ import {
 } from "@/lib/workspace/risk-evidence-model";
 import { RiskEvidenceMap } from "./risk-evidence-map";
 import { ExplicitMap } from "@/components/map/explicit-map";
-import { buildRiskBuyerModel, buyerState } from "@/lib/workspace/risk-buyer-model";
+import { buildRiskBuyerModel } from "@/lib/workspace/risk-buyer-model";
+import { formatEvidenceDate } from "@/lib/workspace/evidence-date";
 import { hazardBuyerCopy, riskBuyerCopy, riskBuyerSummary } from "@/lib/workspace/risk-buyer-copy";
 import { RiskBuyerCard, RiskSourceEvidence } from "./risk-buyer-card";
 import styles from "./risk-environment.module.css";
@@ -48,7 +49,7 @@ function RowStatuses({ row }: { row: RiskEvidenceRow }) {
 
 export function RiskEnvironmentView() {
   const workspace = useWorkspace();
-  const { locale } = useExperienceLocale();
+  const { locale, formatDate } = useExperienceLocale();
   const queryContext = useMemo(() => buildRiskQueryContext(workspace), [workspace]);
   const latestContext = useRef<RiskQueryContext | null>(queryContext);
   latestContext.current = queryContext;
@@ -131,7 +132,7 @@ export function RiskEnvironmentView() {
       <h2 className="text-section">{riskBuyerSummary(buyer.verificationCount, locale)}</h2>
       <p className="text-body"><strong>{c.principle}</strong> · {c.caution}</p>
       <p className="text-meta">{c.countNote}</p>
-      {model && <p className="text-meta">{c[model.freshness.status]} · {c.checked}: <span data-numeric>{model.freshness.checkedAt ?? c.unknown}</span></p>}
+      {model && <p className="text-meta">{c[model.freshness.status]} · {c.checked}: <span data-numeric>{formatEvidenceDate(model.freshness.checkedAt, formatDate, c.unknown)}</span></p>}
       <div className={styles.headingActions}>
         <CommercialButton size="touch" loading={loading} loadingLabel={c.loading} disabled={!queryContext} onClick={() => void refreshEvidence()}>{c.query}</CommercialButton>
         {!queryContext && <span className="text-helper" data-testid="risk-identity-gate">{identityConfirmationCopy[locale][identityConfirmationKind(workspace.identity) === "reconfirmation" ? "reconfirmationRisk" : "pendingRisk"]}</span>}
@@ -165,7 +166,7 @@ export function RiskEnvironmentView() {
 }
 
 function EvidenceTable({ model, selectedKey, onSelect }: { model: RiskEvidenceModel | null; selectedKey?: string; onSelect: (key: string) => void }) {
-  const { locale } = useExperienceLocale();
+  const { locale, formatDate } = useExperienceLocale();
   const c = riskBuyerCopy(locale);
   return <Section title={c.table} description={c.tableNote}>
     {model?.rows.length ? <DataTable caption={c.table} regionLabel={c.table}><thead><tr>
@@ -173,10 +174,10 @@ function EvidenceTable({ model, selectedKey, onSelect }: { model: RiskEvidenceMo
       <DataTableHeader>{c.coverage}</DataTableHeader><DataTableHeader>{c.version}</DataTableHeader><DataTableHeader>{c.sourceDetails}</DataTableHeader>
     </tr></thead><tbody>{model.rows.map((row) => <tr key={row.key}>
       <DataTableCell className={styles.sourceCell}><p className="text-meta">{row.sourceAgency ?? row.source}</p><button type="button" className={styles.tableButton} aria-pressed={row.key === selectedKey} onClick={() => onSelect(row.key)}>{row.key === "terrain" ? c.terrain : hazardBuyerCopy(row.key, locale).name}</button></DataTableCell>
-      <DataTableCell><code>{buyerState(row)}</code><RowStatuses row={row} /></DataTableCell>
+      <DataTableCell><RowStatuses row={row} /></DataTableCell>
       <DataTableCell className={styles.resultCell}>{row.result}{row.categories && <ul className={styles.categoryList}>{row.categories.map((category) => <li key={`${category.official}-${category.canonical}`}>{category.official}</li>)}</ul>}</DataTableCell>
       <DataTableCell className={styles.metadataCell}>{c[row.coverage]}</DataTableCell>
-      <DataTableCell className={styles.metadataCell}>{row.datasetVersion ?? row.effectivePeriod}</DataTableCell>
+      <DataTableCell className={styles.metadataCell}>{row.datasetVersion ?? formatEvidenceDate(row.effectivePeriod, formatDate, c.unknown, "source")}</DataTableCell>
       <DataTableCell className={styles.resultCell}><DetailsDisclosure summary={c.sourceDetails}><RiskSourceEvidence row={row} checkedAt={model.freshness.checkedAt} /></DetailsDisclosure></DataTableCell>
     </tr>)}</tbody></DataTable> : <Message title={c.not_queried}>{c.preQuery}</Message>}
   </Section>;

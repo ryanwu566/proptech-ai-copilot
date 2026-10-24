@@ -151,9 +151,12 @@ function hazardUsability(hazard: TerrainHazardLayer, transparency?: TerrainRiskS
   if (hazard.key === "active_fault") return "unsupported";
   if (hazard.status === "unavailable" || hazard.status === "error") return "unavailable";
   if (hazard.status === "skipped") return "unsupported";
-  if (hazard.status === "limited") return "limited";
   if (transparency?.coverage_status === "not_covered") return "no_coverage";
-  if (hazard.status === "available" && !hazard.matched) return "no_match";
+  if (hazard.status === "limited") return "limited";
+  if (hazard.status === "available" && !hazard.matched) {
+    if (transparency?.assessment_status === "not_matched" && transparency.coverage_status === "covered") return "no_match";
+    return transparency?.coverage_status === "partial" ? "limited" : "unverified";
+  }
   if (hazard.status === "available") return "usable";
   return "unverified";
 }
@@ -179,6 +182,16 @@ function hazardInterpretation(
 }
 
 function matchedResult(hazard: TerrainHazardLayer, categories: GeologicalSensitivityCategory[]): string {
+  if (hazard.key === "flood") {
+    const value = sourceValue(hazard);
+    const scenario = text(value?.scenario_label);
+    const depth = text(value?.canonical_depth);
+    return `本次位置符合來源${scenario ? `「${scenario}」情境的` : "的"}淹水潛勢圖資${depth ? `，模擬深度級距為 ${depth}` : ""}；此為情境模擬，不代表實際淹水或必然受損。`;
+  }
+  if (hazard.key === "liquefaction") {
+    const classification = classificationFor(hazard);
+    return `本次位置符合來源${classification ? `「${classification}」` : "的"}土壤液化潛勢圖資；屬區域性初級評估，不代表基地鑽探、建物受損或工程安全結論。`;
+  }
   if (hazard.key === "geological_sensitivity") {
     const names = categories.map((category) => category.official).join("、");
     return names
@@ -196,7 +209,9 @@ function hazardResult(
   categories: GeologicalSensitivityCategory[],
 ): string {
   if (hazard.key === "active_fault") return "目前自動查詢路徑尚未提供完成的活動斷層判讀結果。";
-  if (hazard.matched) return matchedResult(hazard, categories);
+  if (hazard.matched && (usability === "usable" || usability === "limited")) {
+    return `${matchedResult(hazard, categories)}${usability === "limited" ? " 部分查詢未完成，本次判讀不完整，仍需核對來源。" : ""}`;
+  }
   if (usability === "no_match") return "本次查詢範圍未比對到來源定義的符合資料；此結果僅限已確認的涵蓋與查詢範圍。";
   if (usability === "no_coverage") return "此位置不在目前資料涵蓋範圍，無法形成風險判讀。";
   if (usability === "limited") return "目前僅取得部分來源結果，無法形成完整判讀。";
@@ -229,19 +244,19 @@ function hazardRow(result: TerrainRiskResult, key: Exclude<RiskEvidenceKey, "ter
     queryStatus: "succeeded",
     usability,
     interpretation: hazardInterpretation(hazard, usability, transparency),
-    matched: usability === "unavailable" || usability === "unsupported" ? null : hazard.matched,
+    matched: ["unavailable", "unsupported", "no_coverage", "unverified"].includes(usability) ? null : hazard.matched,
     result: hazardResult(hazard, usability, categories),
     source: source.name,
     ...(source.agency ? { sourceAgency: source.agency } : {}),
     ...(source.url ? { sourceUrl: source.url } : {}),
     ...(classificationFor(hazard) ? { sourceClassification: classificationFor(hazard) } : {}),
-    sourceLevel: key === "geological_sensitivity" || usability === "unavailable" || usability === "unsupported"
+    sourceLevel: key === "geological_sensitivity" || ["unavailable", "unsupported", "no_coverage", "unverified"].includes(usability)
       ? "unknown"
       : hazard.level,
     effectivePeriod: source.period,
     limitation: hazardLimitation(hazard, usability),
     nextVerification: SOURCE_ACTIONS[key],
-    coverage: transparency?.coverage_status ?? (usability === "unavailable" ? "unknown" : "covered"),
+    coverage: transparency?.coverage_status ?? "unknown",
     ...(datasetVersion ? { datasetVersion } : {}),
     ...(categories.length ? { categories } : {}),
   };
@@ -272,7 +287,7 @@ function terrainRow(result: TerrainRiskResult): RiskEvidenceRow {
     effectivePeriod: source.period,
     limitation: text(terrain.source?.limitation) ?? text(terrain.explanation) ?? "地形資料不等同基地工程鑑定。",
     nextVerification: SOURCE_ACTIONS.terrain,
-    coverage: transparency?.coverage_status ?? (unusable ? "unknown" : "covered"),
+    coverage: transparency?.coverage_status ?? "unknown",
   };
 }
 
@@ -335,19 +350,27 @@ export function buildStoredRiskEvidenceModel(
     if (!key) return [];
     const usability: EvidenceUsabilityState = options.stale
       ? "stale"
+      : key === "active_fault" ? "unsupported"
+      : layer.state === "unavailable" || layer.state === "error" || layer.evidence_metadata?.usability === "unavailable" ? "unavailable"
+      : layer.coverage_status === "not_covered" ? "no_coverage"
+      : (layer.evidence_metadata?.usability === "no_match" || layer.state === "no_match") && layer.coverage_status !== "covered"
+        ? layer.coverage_status === "partial" ? "limited" : "unverified"
       : layer.evidence_metadata ? layer.evidence_metadata.usability
       : layer.state === "no_match"
         ? "no_match"
-        : layer.state === "unavailable" || layer.state === "error"
-          ? "unavailable"
-          : "limited";
-    const matched = options.stale ? null : layer.evidence_metadata ? layer.evidence_metadata.matched : layer.state === "available" ? true : usability === "no_match" ? false : null;
+        : "limited";
+    const matched = key === "terrain" || ["stale", "unavailable", "unsupported", "no_coverage", "unverified"].includes(usability)
+      ? null : layer.evidence_metadata ? layer.evidence_metadata.matched : layer.state === "available" ? true : usability === "no_match" ? false : null;
     const result = options.stale
       ? "此摘要屬於先前物件狀態，不能作為目前證據。"
       : usability === "no_match"
         ? "已儲存的查詢摘要為未命中；此結果不代表安全。"
         : usability === "unavailable"
           ? "目前無法取得此項已儲存證據，風險仍無法判定。"
+          : usability === "no_coverage"
+            ? "此位置不在已儲存來源的資料涵蓋範圍，無法形成風險判讀。"
+          : usability === "unsupported"
+            ? "目前不支援此項自動判讀，仍需至官方圖台人工查證。"
           : matched
             ? "已儲存摘要記錄此來源曾有符合資料；需重新查詢才能檢視完整結果。"
             : "此為已儲存的摘要證據；需重新查詢才能檢視完整結果。";

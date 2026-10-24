@@ -7,6 +7,17 @@ import type { PropertyCaseWorkspace } from "./workspace-model.ts";
 
 const NOW = "2026-10-07T03:00:00.000Z";
 
+test("unassessed Overview does not assert income is absent when only the ratio is missing", () => {
+  const current = workspace();
+  current.evidence.finance = { query: "succeeded", usability: "limited", completeness: "partial", summaryOnly: true };
+  current.finance!.loan.monthlyIncomeWan = 12;
+  current.finance!.affordability.reason = "尚未取得可用負擔比例";
+  current.finance!.overview.calculationStatus = "succeeded";
+  const item = buildWorkspaceOverview(current).unknown.find((row) => row.id === "finance-affordability-unassessed")!;
+  assert.match(item.reason, /比例/);
+  assert.doesNotMatch(item.reason, /未提供月收入/);
+});
+
 function workspace(overrides: Partial<PropertyCaseWorkspace> = {}): PropertyCaseWorkspace {
   const base = {
     caseId: "case-b",
