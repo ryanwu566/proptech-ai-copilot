@@ -1,5 +1,13 @@
 import { expect, type Page } from "@playwright/test";
 
+/** Supporting routes are behind the workspace's native Tools disclosure. */
+export async function openWorkspaceTools(page: Page) {
+  const tools = page.getByTestId("workspace-tools");
+  await expect(tools).toBeVisible();
+  if (!(await tools.evaluate((node) => (node as HTMLDetailsElement).open))) await tools.locator("summary").click();
+  await expect(tools).toHaveAttribute("open", "");
+}
+
 // Legacy single-tool pages are no longer listed in public navigation; they keep their
 // direct /?tool= URLs. Labels are the former menu names in every locale.
 const LEGACY_TOOLS: [RegExp, string][] = [

@@ -78,8 +78,8 @@ test("case chooser preserves intent and local case identity", async ({ page }) =
   await expect(page).toHaveURL(/\/cases\/case-a\/decision-room$/);
   await expect(page.getByTestId("case-workflow-handoff").getByRole("link", { name: "比較案件", exact: true })).toHaveAttribute("href", "/compare?cases=case-a");
   await page.goto("/cases/case-a/scenarios");
-  await page.getByTestId("case-workflow-handoff").getByRole("link", { name: "購屋決策室", exact: true }).click();
-  await expect(page).toHaveURL(/case-a\/decision-room$/);
+  await page.getByTestId("case-workflow-handoff").getByRole("link", { name: "物件總覽", exact: true }).click();
+  await expect(page).toHaveURL(/case-a\/overview$/);
   await page.goto("/compare?cases=case-a%2Ccase-b");
   await expect(page.getByTestId("compare-report-handoff").getByRole("link")).toHaveCount(2);
   await page.getByTestId("compare-report-handoff").getByRole("link").first().click();

@@ -4,6 +4,7 @@ import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
 import { locationConfirmationCopy } from "../lib/workspace/location-confirmation-copy";
 import { buildAddressDraftCase } from "../lib/workspace/case-draft";
+import { homeStartCopy } from "../lib/home-start-copy";
 
 /**
  * In-case location confirmation: Find = one geocode-only /location/resolve; Confirm = identity only.
@@ -143,6 +144,12 @@ test("existing address-only case → lookup → confirm unlocks actions with one
   for (const field of ["marketInsight", "valuation", "locationInsight", "terrainReference", "commuteRoute", "commuteTransit", "financeEvidence"]) expect(created.data[field]).toBeUndefined();
 
   // Downstream unlock matrix — every action stays explicit; nothing auto-runs.
+  const pack = page.getByTestId("build-preview-pack");
+  await expect(pack).toContainText("未取得的證據會保留為未知");
+  await expect(pack.getByRole("link", { name: "建立看屋前資料包", exact: true })).toHaveAttribute("href", `/cases/${caseId}/market`);
+  await expect(page.getByTestId("case-workflow-handoff").getByRole("link").first()).toHaveAttribute("href", `/cases/${caseId}/market`);
+  await pack.getByRole("link", { name: "建立看屋前資料包", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/cases/${caseId}/market$`));
   const nav = page.locator(".workspace-navigation");
   await nav.getByRole("link", { name: "物件總覽", exact: true }).click();
   await expect(page.getByTestId("commercial-overview-workspace")).not.toContainText("確認物件位置");
@@ -221,6 +228,8 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await confirm.click();
     await expect(page.getByTestId("location-administrative-incomplete")).toContainText(copy.adminIncomplete);
     await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
+    await expect(page.getByTestId("build-preview-pack")).toContainText(homeStartCopy[locale].buildPackHint);
+    await expect(page.getByTestId("build-preview-pack").getByRole("link", { name: homeStartCopy[locale].buildPack, exact: true })).toHaveAttribute("href", `/cases/${caseId}/market`);
     await expect(page.getByTestId("nearby-facilities").getByRole("button").first()).toBeEnabled();
     await expect(page.getByTestId("commute-route-card").getByRole("button").first()).toBeEnabled();
     const row = (await stored(page)).find((item) => item.id === caseId)!;

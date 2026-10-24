@@ -24,7 +24,7 @@ type ViewKey =
 
 export const overviewViewCopy: CopyCatalogue<ViewKey> = {
   "zh-TW": {
-    eyebrow: "案件版本 {{revision}} · 瀏覽器本機快照", title: "物件總覽", intro: "先處理阻擋判讀的事項，再檢視已知證據與下一步查證。",
+    eyebrow: "看屋前簡報 · 案件版本 {{revision}} · 瀏覽器本機快照", title: "物件總覽", intro: "將市場、區位、風險與資金整理成一份看屋前簡報：已知、未知、重要證據與待查證事項，再比較案件與查看報告。",
     decisionTitle: "決策摘要", decisionDescription: "只綜合目前案件版本中的有界證據；未查詢、無法取得與過期各自保留。",
     attention: "需要特別留意", attentionEmpty: "目前沒有額外需優先留意的狀態；仍應依證據限制查證。", known: "已掌握", knownEmpty: "目前沒有可在證據邊界內綜合的已知項目。", unknown: "尚未確認", unknownEmpty: "目前沒有額外尚未確認項目。",
     statusLabel: "目前案件狀態", readinessLabel: "看屋前準備", readinessNote: "{{count}} 項待確認或限制",
@@ -43,7 +43,7 @@ export const overviewViewCopy: CopyCatalogue<ViewKey> = {
     basis_asking: "開價", basis_estimate: "成交資料推估中點", basis_manual: "比較基準價格",
   },
   en: {
-    eyebrow: "Case version {{revision}} · Saved in this browser", title: "Case overview", intro: "Clear what blocks a judgement first, then review what is known and what to verify next.",
+    eyebrow: "Pre-viewing Brief · Case version {{revision}} · Saved in this browser", title: "Case overview", intro: "One brief from market, location, risk and money evidence: what is known, unknown, material and still needs verification. Then compare cases and view a report.",
     decisionTitle: "Decision summary", decisionDescription: "Combines only the bounded evidence in this case version. Not queried, unavailable and outdated each stay as they are.",
     attention: "Needs attention", attentionEmpty: "Nothing else needs priority attention right now. Still verify within the evidence limits.", known: "Known", knownEmpty: "Nothing known can be combined within the evidence limits yet.", unknown: "Not yet confirmed", unknownEmpty: "Nothing else is waiting for confirmation.",
     statusLabel: "Current case status", readinessLabel: "Before viewing", readinessNote: "{{count}} items to confirm or limited",
@@ -62,7 +62,7 @@ export const overviewViewCopy: CopyCatalogue<ViewKey> = {
     basis_asking: "asking price", basis_estimate: "transaction-based estimate midpoint", basis_manual: "comparison base price",
   },
   ja: {
-    eyebrow: "案件バージョン {{revision}} · このブラウザーに保存", title: "物件概要", intro: "判断を妨げる事項を先に解消し、分かっている根拠と次の確認事項を見ていきます。",
+    eyebrow: "内見前の概要 · 案件バージョン {{revision}} · このブラウザーに保存", title: "物件概要", intro: "市場・立地・リスク・資金の根拠から、既知・不明・重要な根拠・要確認事項を一つに整理します。その後、物件比較とレポートへ進めます。",
     decisionTitle: "判断のまとめ", decisionDescription: "この案件バージョンの範囲内の根拠だけをまとめます。未照会・取得不可・古い情報はそれぞれそのまま残します。",
     attention: "特に注意が必要", attentionEmpty: "現在、優先して注意すべき追加の状態はありません。根拠の制約に沿って確認してください。", known: "分かっていること", knownEmpty: "根拠の範囲内でまとめられる既知の項目はまだありません。", unknown: "未確認", unknownEmpty: "その他の未確認項目はありません。",
     statusLabel: "現在の案件の状態", readinessLabel: "内見前の準備", readinessNote: "確認待ち・制約あり {{count}} 件",
@@ -81,7 +81,7 @@ export const overviewViewCopy: CopyCatalogue<ViewKey> = {
     basis_asking: "売出価格", basis_estimate: "取引データ推計の中央値", basis_manual: "比較基準価格",
   },
   ko: {
-    eyebrow: "사례 버전 {{revision}} · 이 브라우저에 저장", title: "물건 개요", intro: "판단을 막는 사항을 먼저 해결한 뒤, 확인된 근거와 다음 확인 사항을 살펴보세요.",
+    eyebrow: "방문 전 브리프 · 사례 버전 {{revision}} · 이 브라우저에 저장", title: "물건 개요", intro: "시장·입지·위험·자금 근거를 하나로 정리합니다. 확인된 내용, 미확인 항목, 중요한 근거와 검증할 사항을 보고 사례 비교와 보고서로 이어가세요.",
     decisionTitle: "결정 요약", decisionDescription: "현재 사례 버전의 범위 안에 있는 근거만 종합합니다. 미조회, 가져올 수 없음, 오래됨은 각각 그대로 유지됩니다.",
     attention: "특히 주의할 사항", attentionEmpty: "지금 우선 주의할 추가 상태는 없습니다. 근거의 한계 안에서 확인하세요.", known: "확인된 내용", knownEmpty: "근거 범위 안에서 종합할 수 있는 확인된 항목이 아직 없습니다.", unknown: "아직 확인되지 않음", unknownEmpty: "추가로 확인을 기다리는 항목이 없습니다.",
     statusLabel: "현재 사례 상태", readinessLabel: "방문 전 준비", readinessNote: "확인 필요 또는 제한 {{count}}건",

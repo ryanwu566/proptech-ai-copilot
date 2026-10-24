@@ -6,11 +6,11 @@ import { navigationCopy } from "@/lib/navigation/copy";
 import { caseDestination, nextCaseStep } from "@/lib/navigation/model";
 
 /** Navigation only: no repository writes, readiness inference or provider requests. */
-export function CaseWorkflowHandoff({ caseId }: { caseId: string }) {
+export function CaseWorkflowHandoff({ caseId, marketStarted = true }: { caseId: string; marketStarted?: boolean }) {
   const pathname = usePathname();
   const { copyFrom } = useExperienceLocale();
   const section = pathname.split("/").at(-1) ?? "overview";
-  const next = nextCaseStep(section);
+  const next = nextCaseStep(section, marketStarted);
   const href = next === "compare" ? `/compare?cases=${encodeURIComponent(caseId)}` : caseDestination(caseId, next);
   return <nav className="case-workflow-handoff" data-testid="case-workflow-handoff" aria-label={copyFrom(navigationCopy, "next")}>
     <div><strong>{copyFrom(navigationCopy, "next")}</strong><p className="text-meta">{copyFrom(navigationCopy, next === "compare" ? "compareHint" : "nextHint")}</p></div>

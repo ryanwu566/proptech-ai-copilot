@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CommuteEvidencePanel } from "@/components/commute-evidence-panel";
 import { DemographicsInsightCard } from "@/components/demographics-insight-card";
@@ -100,6 +101,7 @@ export function LocationView() {
     </header>
 
     <div role="status" data-testid="location-confirmation-status">{locationConfirmed && !neverLocated && <Message variant="success">{copyFrom(locationConfirmationCopy, "confirmed")}</Message>}</div>
+    {anchor && workspace.evidence.market.query === "not_started" && <div data-testid="build-preview-pack"><Message variant="information" action={<Link prefetch={false} className="ds-button ds-button--primary" href={`/cases/${encodeURIComponent(workspace.caseId)}/market`}>{copyFrom(homeStartCopy, "buildPack")}</Link>}>{copyFrom(homeStartCopy, "buildPackHint")}</Message></div>}
     {anchor && !hasCompleteAdministrativeArea(anchor) && <div data-testid="location-administrative-incomplete"><Message variant="information">{copyFrom(locationConfirmationCopy, "adminIncomplete")}</Message><AdministrativeAreaRepairPanel key={`${workspace.caseId}:${workspace.storageVersion}`} /></div>}
 
     <SummaryStrip label="區位與通勤狀態">

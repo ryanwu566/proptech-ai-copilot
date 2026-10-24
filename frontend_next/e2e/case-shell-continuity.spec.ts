@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { isProviderRequest } from "./helpers/provider-request";
+import { openWorkspaceTools } from "./helpers/commercial-navigation";
 
 test.beforeEach(() => { test.setTimeout(90_000); });
 
@@ -38,6 +39,7 @@ test("rail navigation stays in one document and one case frame, across snapshot 
   });
   const address = (await page.getByRole("banner", { name: "目前物件" }).locator("strong").first().innerText()).trim();
   for (const [label, path] of [["案件報告", "report"], ["價格與市場", "market"], ["風險與環境", "risk"], ["購屋決策室", "decision-room"], ["物件總覽", "overview"]] as const) {
+    if (path === "decision-room") await openWorkspaceTools(page);
     // Hover first: with prefetch off, hovering a destination must not load or request anything.
     await rail(page).getByRole("link", { name: label, exact: true }).hover();
     await rail(page).getByRole("link", { name: label, exact: true }).click();

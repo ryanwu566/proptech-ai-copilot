@@ -35,7 +35,10 @@ export function CaseFrame({ caseId, header, pulse, children }: { caseId: string;
     const keepCurrentVisible = () => {
       const current = strip.querySelector<HTMLElement>("[aria-current='page']");
       if (!current || strip.scrollWidth <= strip.clientWidth) return;
-      strip.scrollLeft = current.offsetLeft - (strip.clientWidth - current.offsetWidth) / 2;
+      // Supporting links can have a positioned disclosure ancestor; offsetLeft is not rail-relative.
+      const item = current.getBoundingClientRect();
+      const viewport = strip.getBoundingClientRect();
+      strip.scrollLeft += item.left - viewport.left - (strip.clientWidth - item.width) / 2;
     };
     keepCurrentVisible();
     const observer = new ResizeObserver(keepCurrentVisible);
@@ -61,7 +64,7 @@ export function CaseFrame({ caseId, header, pulse, children }: { caseId: string;
     const observer = new MutationObserver(sync);
     observer.observe(slot, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-pulse-state", "href"] });
     return () => observer.disconnect();
-  }, [caseId]);
+  }, [caseId, pathname]);
   return <div className={styles.shell} data-case-frame>
     {header}
     <div className={styles.body}>
@@ -80,5 +83,5 @@ export function CaseFrame({ caseId, header, pulse, children }: { caseId: string;
 export function WorkspaceContent({ children }: { children: ReactNode }) {
   const workspace = useWorkspace();
   // The assistant entry follows the route content so each section opens on its own title.
-  return <main className={styles.main} id="main-content" tabIndex={-1}>{children}<CopilotEntry /><CaseWorkflowHandoff caseId={workspace.caseId} /></main>;
+  return <main className={styles.main} id="main-content" tabIndex={-1}>{children}<CopilotEntry /><CaseWorkflowHandoff caseId={workspace.caseId} marketStarted={workspace.evidence.market.query !== "not_started"} /></main>;
 }
