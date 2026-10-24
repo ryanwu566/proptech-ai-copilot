@@ -176,12 +176,12 @@ export function CommuteRouteCard({ originLatitude, originLongitude, initialEvide
       <span className="sr-only" data-testid="commute-route-state" data-status={routeDisplayStatus} data-reason-code={reasonCode} />
       <p className="text-xs font-bold text-slate-900">目的地路線時間與距離</p>
       <p className="mt-1 text-[11px] leading-5 text-slate-600">以目前物件位置為起點，查詢指定目的地；周邊大眾運輸資料即使暫時不可用，也不會清除有效路線。</p>
-      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-        <input aria-label="目的地地址" value={destination} onChange={(event) => { setDestination(event.target.value); clearRoute(); }} placeholder="例如：台北車站" className="min-w-0 flex-1 rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
-        <select aria-label="交通方式" value={mode} onChange={(event) => { setMode(event.target.value as CommuteRouteMode); clearRoute(); }} className="rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200">
+      <div className="mt-3 flex flex-wrap gap-2">
+        <input aria-label="目的地地址" value={destination} onChange={(event) => { setDestination(event.target.value); clearRoute(); }} placeholder="例如：台北車站" className="min-w-0 flex-1 basis-48 rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200" />
+        <select aria-label="交通方式" value={mode} onChange={(event) => { setMode(event.target.value as CommuteRouteMode); clearRoute(); }} className="min-w-0 w-full rounded-lg bg-stone-50 px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-cyan-200 sm:w-auto">
           {(Object.keys(MODE_LABELS) as CommuteRouteMode[]).map((key) => <option key={key} value={key}>{MODE_LABELS[key]}</option>)}
         </select>
-        <Button secondary className="w-full shrink-0 sm:w-auto" disabled={loading} onClick={lookupRoute}>{loading ? "查詢中…" : "估算通勤"}</Button>
+        <Button secondary className="w-full max-w-full whitespace-normal sm:w-auto" disabled={loading} onClick={lookupRoute}>{loading ? "查詢中…" : "估算通勤"}</Button>
       </div>
       {message && <p className="mt-3 text-xs leading-5 text-slate-600">{message}</p>}
       {result?.status === "resolved" && (

@@ -37,13 +37,14 @@ test("case routes show no product catalogue and one active case destination", as
   await expect(nav.locator(".workspace-navigation__secondary")).toHaveCount(4);
   await expect(nav.locator('[aria-current="page"]')).toHaveText(["風險與環境"]);
   await expect(page.locator('a[href$="/planning"]')).toHaveCount(0);
-  // Standalone case routes keep the same case navigation and tour entry, so none is a dead end.
+  // Standalone case routes share the same case frame: identity header, tour entry and rail, so none is a dead end.
   for (const [section, label] of [["report", "案件報告"], ["decision-room", "購屋決策室"], ["evidence", /證據/], ["commute-planner", /通勤/]] as const) {
     await page.goto(`/cases/case-a/${section}`);
     await expect(page.locator(".workspace-navigation")).toHaveCount(1);
     await expect(page.locator(".workspace-navigation [aria-current='page']")).toHaveText(label);
     await expect(page.locator(".workspace-navigation a[href='/cases/case-a/overview']")).toBeVisible();
-    await expect(page.locator(".case-standalone-nav").getByTestId("tour-start")).toBeVisible();
+    await expect(page.getByTestId("case-context-header").getByTestId("tour-start")).toBeVisible();
+    await expect(page.locator("[data-case-frame]")).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });

@@ -4,7 +4,7 @@ import type { ConfirmIdentityResult } from "../case-storage";
 
 type WriteBlock = Extract<ConfirmIdentityResult, { status: "blocked" }>["reason"];
 type AdministrativeRepairCopyKey = "adminRecheck" | "adminRepairNote" | "adminRepairConfirm" | "adminRepairFailed" | "adminRepairCandidate" | "adminRepairCancel";
-export type LocationConfirmationCopyKey = "find" | "finding" | "findNote" | "candidateTitle" | "details" | "mapContext" | "interpreted" | "county" | "district" | "coordinates" | "source" | "sourceTgos" | "sourceGoogle" | "confirm" | "confirming" | "reject" | "confirmNote" | "confirmed" | "adminUnknown" | "adminPendingTitle" | "adminIncomplete" | "retry" | "failedTitle" | LocationCandidateBlock | IdentityConfirmationBlock | WriteBlock | AdministrativeRepairCopyKey;
+export type LocationConfirmationCopyKey = "find" | "finding" | "findNote" | "candidateTitle" | "details" | "mapContext" | "stages" | "stageCase" | "stageLocate" | "stageConfirm" | "interpreted" | "county" | "district" | "coordinates" | "source" | "sourceTgos" | "sourceGoogle" | "confirm" | "confirming" | "reject" | "confirmNote" | "confirmed" | "adminUnknown" | "adminPendingTitle" | "adminIncomplete" | "retry" | "failedTitle" | LocationCandidateBlock | IdentityConfirmationBlock | WriteBlock | AdministrativeRepairCopyKey;
 
 /** In-case location confirmation copy. Must never imply that analysis ran or parcel/building identity was verified. */
 export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey> = {
@@ -51,6 +51,10 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     write_failed: "儲存空間不足或寫入失敗，未保存確認；現有案件仍保留。",
     details: "定位資訊",
     mapContext: "待確認的位置",
+    stages: "位置確認進度",
+    stageCase: "案件已建立",
+    stageLocate: "比對地址位置",
+    stageConfirm: "由你確認位置",
   },
   en: {
     find: "Check property location",
@@ -95,6 +99,10 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     write_failed: "Storage is full or the write failed; the confirmation was not saved. Existing cases are kept.",
     details: "Location details",
     mapContext: "Location to confirm",
+    stages: "Location check progress",
+    stageCase: "Case created",
+    stageLocate: "Matching the address",
+    stageConfirm: "You confirm the location",
   },
   ja: {
     find: "物件の位置を確認",
@@ -139,6 +147,10 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     write_failed: "保存容量の不足または書き込みの失敗により、確認は保存されていません。既存の案件は保持されています。",
     details: "位置情報の詳細",
     mapContext: "確認する位置",
+    stages: "位置確認の進行状況",
+    stageCase: "案件を作成済み",
+    stageLocate: "住所の位置を照合",
+    stageConfirm: "あなたが位置を確定",
   },
   ko: {
     find: "부동산 위치 확인",
@@ -183,5 +195,9 @@ export const locationConfirmationCopy: CopyCatalogue<LocationConfirmationCopyKey
     write_failed: "저장 공간 부족 또는 쓰기 실패로 확인을 저장하지 않았습니다. 기존 사례는 유지됩니다.",
     details: "위치 정보",
     mapContext: "확인할 위치",
+    stages: "위치 확인 진행 상황",
+    stageCase: "사례 생성됨",
+    stageLocate: "주소 위치 확인",
+    stageConfirm: "직접 위치 확정",
   },
 };

@@ -1,4 +1,4 @@
-import type { DetailsHTMLAttributes, ReactNode } from "react";
+import type { DetailsHTMLAttributes, ReactNode, Ref } from "react";
 import { joinClassNames } from "./types";
 
 export function DetailsDisclosure({
@@ -11,6 +11,7 @@ export function DetailsDisclosure({
   summary: ReactNode;
   children: ReactNode;
   variant?: "standard" | "compact";
+  ref?: Ref<HTMLDetailsElement>;
 }) {
   return <details className={joinClassNames("ds-disclosure", `ds-disclosure--${variant}`, className)} {...props}>
     <summary className="ds-disclosure__summary">{summary}</summary>

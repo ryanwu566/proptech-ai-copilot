@@ -16,6 +16,7 @@ test("unassessed Overview does not assert income is absent when only the ratio i
   const item = buildWorkspaceOverview(current).unknown.find((row) => row.id === "finance-affordability-unassessed")!;
   assert.match(item.reason, /比例/);
   assert.doesNotMatch(item.reason, /未提供月收入/);
+  assert.equal(buildWorkspaceOverview(current).domains.finance.affordabilityReason, "尚未取得可用負擔比例");
 });
 
 function workspace(overrides: Partial<PropertyCaseWorkspace> = {}): PropertyCaseWorkspace {

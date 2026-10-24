@@ -104,12 +104,12 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
   return (
     <div className="rounded-xl border border-cyan-100 bg-cyan-50/50 p-3">
       <span className="sr-only" data-testid="commute-transit-context-state" data-status={status === "resolved" ? "available" : status === "unresolved" ? "no_data" : status === "error" ? "unavailable" : status} />
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 basis-40">
           <p className="text-xs font-bold text-slate-900">{copy("commute.title")}</p>
           <p className="mt-1 text-[11px] leading-5 text-slate-600">{copy("commute.description")}</p>
         </div>
-        <Button secondary className="w-full shrink-0 sm:w-auto" disabled={status === "loading"} onClick={lookupCommute}>
+        <Button secondary className="w-full max-w-full whitespace-normal sm:w-auto" disabled={status === "loading"} onClick={lookupCommute}>
           {status === "loading" ? copy("commute.checking") : copy("commute.check")}
         </Button>
       </div>

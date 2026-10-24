@@ -1,23 +1,21 @@
+/* Case Pulse lives in the rail: quiet situational awareness, one dot and one short line per section.
+   On phones it follows the route content as a two-row grid. */
 .pulse {
-  width: min(100%, var(--width-content));
   min-width: 0;
-  margin-inline: auto;
-  padding: 12px var(--space-8) 0;
   color: var(--text-primary);
 }
 
 .heading {
-  margin-bottom: 6px;
-  font-size: 11px;
+  margin: 0 var(--space-3) var(--space-2);
+  font-size: var(--text-meta-size);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .items {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1px;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -28,37 +26,38 @@
 .item {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-height: 52px;
+  gap: 2px;
+  min-height: 44px;
   height: 100%;
-  padding: 7px 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  background: var(--surface-primary);
+  padding: 6px var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--text-primary);
   text-decoration: none;
   overflow-wrap: anywhere;
-  transition: background-color 180ms ease, border-color 180ms ease;
+  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 
-.item:hover { background: var(--surface-secondary); border-color: var(--action); }
-.item:focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
-.label { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; }
-.dot { width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; background: currentColor; opacity: 0.3; transition: opacity 180ms ease; }
-.item[data-pulse-state="known"] .dot, .item[data-pulse-state="available"] .dot { opacity: 0.75; }
-.item[data-pulse-state="needs_attention"] .dot { border: 1px solid currentColor; background: transparent; opacity: 0.75; }
-.value { font-size: 12px; line-height: 1.45; color: var(--text-secondary); animation: reveal 180ms ease-out; }
-.activity { min-height: 18px; margin: 5px 0 0; font-size: 11px; line-height: 1.5; color: var(--text-secondary); overflow-wrap: anywhere; }
-@keyframes reveal { from { opacity: 0.55; transform: translateY(1px); } to { opacity: 1; transform: translateY(0); } }
+.item:hover { background: var(--surface-sunken); }
+.item:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.label { display: flex; align-items: center; gap: 6px; font-size: var(--text-dense-size); font-weight: 600; }
+/* Hollow ring = not known yet; filled = known; amber = needs attention. Never a score. */
+.dot { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; opacity: 0.55; transition: opacity var(--duration-base) var(--ease-standard); }
+.item[data-pulse-state="known"] .dot, .item[data-pulse-state="available"] .dot { background: currentColor; opacity: 0.75; }
+.item[data-pulse-state="needs_attention"] .dot { background: var(--status-warning-border); box-shadow: none; opacity: 1; }
+.value { padding-left: 12px; font-size: var(--text-meta-size); line-height: var(--text-meta-line); color: var(--text-secondary); animation: reveal var(--duration-enter) var(--ease-out); }
+.activity { min-height: 18px; margin: var(--space-2) var(--space-3) 0; font-size: var(--text-meta-size); line-height: var(--text-meta-line); color: var(--text-muted); overflow-wrap: anywhere; }
+@keyframes reveal { from { opacity: 0.55; transform: translateY(1px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 767px) {
-  .pulse { padding-inline: var(--space-4); }
-  .items { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .heading { margin-inline: 0; }
+  .items { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
   .items li { grid-column: span 2; }
   .items li:nth-last-child(-n + 2) { grid-column: span 3; }
-  .item { padding: 7px 8px; }
-  .value { font-size: 11px; }
+  .item { padding: 7px 8px; background: var(--surface-primary); border-color: var(--border-subtle); border-radius: var(--radius-panel); }
+  .value { padding-left: 0; }
+  .activity { margin-inline: 0; }
 }
 
-@media (min-width: 768px) and (max-width: 1199px) { .pulse { padding-inline: var(--space-6); } }
 @media (prefers-reduced-motion: reduce) { .item, .dot { transition: none; } .value { animation: none; } }
 @media print { .pulse { display: none; } }

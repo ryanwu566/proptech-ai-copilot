@@ -55,6 +55,7 @@ export type WorkspaceOverviewModel = {
       knownRecurringMonthlyTwd: number | null;
       missingCosts: string[];
       affordabilityStatus: "assessed" | "unassessed" | "stale";
+      affordabilityReason: string | null;
       unresolvedActions: string[];
       freshness: OverviewFreshness;
     };
@@ -192,7 +193,7 @@ export function buildWorkspaceOverview(workspace: PropertyCaseWorkspace): Worksp
       market: { href: href(workspace, "market"), askingPrice: workspace.marketPrice.priceContext.askingPrice, activePrice: workspace.marketPrice.priceContext.activePrice, evidenceStatus: workspace.marketPrice.overview.evidenceStatus, valuationStatus: workspace.marketPrice.valuation.status, estimateRange: workspace.marketPrice.overview.estimateRange, marketRange: workspace.marketPrice.overview.marketRange, marketMedianUnit: workspace.marketPrice.priceContext.marketMedianUnit, sampleCount: workspace.marketPrice.market.sampleCount, unresolvedChecks: workspace.marketPrice.overview.unresolvedChecks, freshness: evidenceFreshness(workspace, ["market", "valuation"]) },
       location: { ...location, href: href(workspace, "location"), route: location.selectedRoute ?? null, secondaryTransitStatus: !workspace.location.transitContext ? "not_started" : workspace.location.transitContext.status === "resolved" ? "available" : "unavailable", freshness: evidenceFreshness(workspace, ["location", "commute"]) },
       risk: { href: href(workspace, "risk"), materialMatchedEvidence: risk?.materialMatchedEvidence ?? [], noMatchEvidence: risk?.noMatchEvidence ?? [], unknownOrUnavailableEvidence: risk?.unknownOrUnavailableEvidence ?? [], outstandingVerificationActions: risk?.outstandingVerificationActions ?? [], evidenceFreshness: risk?.evidenceFreshness ?? null, freshness: evidenceFreshness(workspace, ["risk"]) },
-      finance: { priceSource: workspace.finance?.priceSource, href: href(workspace, "finance"), activePriceBasis: finance?.activePriceBasis ?? workspace.assumptions.activePriceBasis, calculationStatus: finance?.calculationStatus ?? "not_started", monthlyPaymentTwd: financeCurrent ? finance?.monthlyPaymentTwd ?? null : null, knownRecurringMonthlyTwd: financeCurrent ? finance?.knownRecurringMonthlyTwd ?? null : null, missingCosts: finance?.missingCosts ?? [], affordabilityStatus: financeCurrent ? finance?.affordabilityStatus ?? "unassessed" : "stale", unresolvedActions: finance?.unresolvedActions ?? [], freshness: financeFreshness },
+      finance: { priceSource: workspace.finance?.priceSource, href: href(workspace, "finance"), activePriceBasis: finance?.activePriceBasis ?? workspace.assumptions.activePriceBasis, calculationStatus: finance?.calculationStatus ?? "not_started", monthlyPaymentTwd: financeCurrent ? finance?.monthlyPaymentTwd ?? null : null, knownRecurringMonthlyTwd: financeCurrent ? finance?.knownRecurringMonthlyTwd ?? null : null, missingCosts: finance?.missingCosts ?? [], affordabilityStatus: financeCurrent ? finance?.affordabilityStatus ?? "unassessed" : "stale", affordabilityReason: financeCurrent ? workspace.finance?.affordability.reason ?? null : null, unresolvedActions: finance?.unresolvedActions ?? [], freshness: financeFreshness },
     },
     known: orderedKnown,
     unknown,

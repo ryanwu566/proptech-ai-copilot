@@ -11,7 +11,7 @@ type OverlayState = "loading" | "visible" | "unavailable" | "not_configured";
 
 function MapLoadingShell() {
   return <div className="grid h-[320px] place-items-center bg-slate-100 sm:h-[420px]" aria-hidden="true">
-    <span className="h-9 w-9 animate-pulse rounded-full border-4 border-white bg-slate-800 shadow-lg" />
+    <span className="h-9 w-9 rounded-full border-4 border-white bg-slate-800 shadow-lg" />
   </div>;
 }
 

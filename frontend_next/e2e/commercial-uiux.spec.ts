@@ -76,6 +76,7 @@ test("starting another address clears the previous property assumptions", async 
   await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
   const banner = page.getByRole("banner", { name: "目前物件" });
   await expect(banner).toContainText("臺北市信義區松仁路100號");
+  await banner.locator(".workspace-property-header__more > summary").click();
   await expect(banner).toContainText("未提供");
   await expect(banner).not.toContainText("2,480");
   const created = await page.evaluate(() => JSON.parse(localStorage.getItem("proptech.savedCases.v1") ?? "[]")[0]);
@@ -127,8 +128,10 @@ for (const width of [1440, 1024, 390]) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     await page.goto("/cases/case-a/market");
-    await expect(page.getByRole("banner", { name: "目前物件" })).toContainText(address);
-    await expect(page.getByRole("banner", { name: "目前物件" })).toContainText("123,456,790");
+    const banner = page.locator(".workspace-property-header");
+    await expect(banner).toContainText(address);
+    await banner.locator(".workspace-property-header__more > summary").click();
+    await expect(banner).toContainText("123,456,790");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: testInfo.outputPath(`long-context-${width}.png`), fullPage: true });
   });

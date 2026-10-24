@@ -10,11 +10,9 @@ const ROUTES = {
   location: "/cases/case-a/location",
   risk: "/cases/case-a/risk",
   overview: "/cases/case-a/overview",
-  finance: "/cases/case-a/finance",
-  decision: "/cases/case-a/decision-room",
-  report: "/cases/case-a/report",
-  compare: "/compare?cases=case-a,case-b",
 } as const;
+// Decision surfaces stay plain paper.
+const PLAIN = ["/cases/case-a/finance", "/cases/case-a/decision-room", "/cases/case-a/report", "/compare?cases=case-a,case-b"] as const;
 const VIEWPORTS = [[1440, 900], [390, 844], [1920, 1080], [1024, 768], [430, 932]] as const;
 const SCENE = "[data-ambient-scene]";
 const screenshots = path.resolve(process.cwd(), "../.local/photo-ambient/screenshots");
@@ -66,7 +64,7 @@ for (const [variant, route] of Object.entries(ROUTES)) {
     await expect(scene).toHaveAttribute("data-phase", "resolve", { timeout: 7000 });
     await expect(scene.locator("img")).toHaveAttribute("alt", "");
     expect(await scene.locator("svg, canvas, iframe, video, a, text").count()).toBe(0);
-    const family = variant === "compare" || variant === "report" ? "overview" : variant;
+    const family = variant;
     await mkdir(screenshots, { recursive: true });
     for (const [width, height] of VIEWPORTS) {
       await page.setViewportSize({ width, height });
@@ -133,7 +131,12 @@ test("hidden tabs and offscreen scenes freeze the photograph and resume without 
   });
   await expect(scene).toHaveAttribute("data-paused", "");
   await expect(scene.locator("img")).toHaveCSS("animation-play-state", "paused");
-  const time = await scene.locator("img").evaluate((image) => Number(image.getAnimations()[0].currentTime));
+  // A paused CSS property can precede the animation timeline's committed pause by one frame.
+  const time = await scene.locator("img").evaluate(async (image) => {
+    const animation = image.getAnimations()[0];
+    await animation.ready;
+    return Number(animation.currentTime);
+  });
   await page.waitForTimeout(250);
   expect(await scene.locator("img").evaluate((image) => Number(image.getAnimations()[0].currentTime))).toBeCloseTo(time, 0);
   await page.evaluate(() => {
@@ -145,7 +148,11 @@ test("hidden tabs and offscreen scenes freeze the photograph and resume without 
   await expect.poll(() => scene.locator("img").evaluate((image) => Number(image.getAnimations()[0].currentTime))).toBeGreaterThan(time);
   await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
   await expect(scene).toHaveAttribute("data-paused", "");
-  const offscreenTime = await scene.locator("img").evaluate((image) => Number(image.getAnimations()[0].currentTime));
+  const offscreenTime = await scene.locator("img").evaluate(async (image) => {
+    const animation = image.getAnimations()[0];
+    await animation.ready;
+    return Number(animation.currentTime);
+  });
   expect(offscreenTime).toBeGreaterThanOrEqual(time);
   await page.waitForTimeout(100);
   expect(await scene.locator("img").evaluate((image) => Number(image.getAnimations()[0].currentTime))).toBeCloseTo(offscreenTime, 0);
@@ -179,9 +186,22 @@ test("delayed or failed photographs never move content or prevent use", async ({
 
 test("routes without an ambient scene stay plain", async ({ page }) => {
   await seed(page);
-  for (const route of ["/cases", "/cases/case-a/scenarios"]) {
+  for (const route of ["/cases", "/cases/case-a/scenarios", ...PLAIN]) {
     await page.goto(route);
     await expect(page.locator("main").first()).toBeVisible();
     await expect(page.locator(SCENE)).toHaveCount(0);
   }
+});
+
+test("returning through a plain route cross-fades an already revealed scene", async ({ page }) => {
+  await seed(page);
+  await open(page, ROUTES.overview);
+  await expect(page.locator(SCENE)).not.toHaveAttribute("data-continuity", /.*/);
+  await page.locator("[data-case-rail] a[href$='/finance']").click();
+  await expect(page).toHaveURL(/\/finance$/);
+  await expect(page.locator(SCENE)).toHaveCount(0);
+  await page.locator("[data-case-rail] a[href$='/overview']").click();
+  await expect(page).toHaveURL(/\/overview$/);
+  await expect(page.locator(SCENE)).toHaveAttribute("data-continuity", "true");
+  await expect(page.locator(SCENE).locator("img")).toHaveCSS("animation-name", "none");
 });

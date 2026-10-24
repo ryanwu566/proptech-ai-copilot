@@ -67,7 +67,8 @@ export function CommandPaletteLauncher() {
   return <>
     <button ref={trigger} type="button" className="case-command-trigger" data-testid="command-palette-trigger" aria-haspopup="dialog" aria-expanded={open}
       aria-busy={open && !Runtime} aria-keyshortcuts="Control+K Meta+K" onClick={show}>
-      <span>{commandPaletteTriggerCopy[locale]}</span><kbd aria-hidden="true">{shortcut}</kbd>
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="7" cy="7" r="4.75" /><path d="m10.5 10.5 3.25 3.25" /></svg>
+      <span className="case-command-trigger__label">{commandPaletteTriggerCopy[locale]}</span><kbd aria-hidden="true">{shortcut}</kbd>
     </button>
     {Runtime && <Runtime open={open} onClose={close} opener={opener.current} trigger={trigger} />}
   </>;

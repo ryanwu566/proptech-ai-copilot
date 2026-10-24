@@ -190,7 +190,10 @@ test("fresh query leads with buyer cards and keeps full evidence and source deta
   await expect(page.getByRole("table").getByText("2024-06-27", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("table").getByText("活動斷層地質敏感區", { exact: true })).toBeVisible();
   await expect(page.getByRole("table").getByText("山崩與地滑地質敏感區", { exact: true })).toBeVisible();
-  await expect(page.getByTestId("risk-buyer-card-active_fault")).toContainText("UNSUPPORTED");
+  // The state code stays machine-readable; buyers read the localized state.
+  await expect(page.getByTestId("risk-buyer-card-active_fault")).toHaveAttribute("data-buyer-state", "UNSUPPORTED");
+  await expect(page.getByTestId("risk-buyer-card-active_fault")).toContainText("目前不支援此項資料");
+  await expect(page.getByTestId("risk-buyer-card-active_fault")).not.toContainText("UNSUPPORTED");
   await expect(page.getByTestId("risk-buyer-summary")).toContainText("查詢／保存時間: 2026年10月1日");
   await expect(page.getByTestId("risk-buyer-summary")).not.toContainText(NOW);
   await expect(page.getByText("legacy aggregate")).toHaveCount(0);
@@ -222,7 +225,9 @@ test("partial provider failure remains local and mobile has no document overflow
   await page.getByRole("button", { name: "查詢目前物件風險證據" }).click();
 
   await page.getByTestId("risk-buyer-card-debris_flow").locator("summary").first().click();
-  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toContainText("UNAVAILABLE");
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toHaveAttribute("data-buyer-state", "UNAVAILABLE");
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toContainText("目前無法取得證據");
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).not.toContainText("UNAVAILABLE");
   await page.getByTestId("risk-details").locator("summary").first().click();
 
   await expect(page.getByRole("button", { name: "土石流", exact: true })).toBeVisible();
@@ -247,8 +252,12 @@ test("NO COVERAGE stays distinct from UNAVAILABLE and card disclosures make zero
   expect(providers.length).toBe(beforeQuery);
   await page.getByRole("button", { name: "查詢目前物件風險證據" }).click();
   const flood = page.getByTestId("risk-buyer-card-flood");
-  await expect(flood).toContainText("NO COVERAGE");
-  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toContainText("UNAVAILABLE");
+  await expect(flood).toHaveAttribute("data-buyer-state", "NO COVERAGE");
+  await expect(flood).toContainText("不在資料涵蓋範圍");
+  await expect(flood).not.toContainText("NO COVERAGE");
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toHaveAttribute("data-buyer-state", "UNAVAILABLE");
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).toContainText("目前無法取得證據");
+  await expect(page.getByTestId("risk-buyer-card-debris_flow")).not.toContainText("UNAVAILABLE");
   await expect(flood).toContainText("未涵蓋不是未命中");
   await expect(flood.getByRole("button", { name: /重試/ })).toHaveCount(0);
   const afterQuery = providers.length;

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { caseFrameCopy } from "../lib/workspace/case-frame-copy";
 import type { Page } from "@playwright/test";
 import { isProviderRequest } from "./helpers/provider-request";
 import { openLegacyJourneyWithAddress } from "./helpers/commercial-navigation";
@@ -188,12 +189,12 @@ for (const [locale, label, unavailable] of [
   ["en", "Address and coordinates associated", "No usable evidence"],
   ["ja", "住所と座標を関連付け済み", "利用可能な根拠なし"],
   ["ko", "주소와 좌표 연결됨", "사용 가능한 근거 없음"],
-]) {
+] as const) {
   test(`${locale} limits workspace and guided identity to address association`, async ({ page }) => {
     await seed(page);
     await page.goto("/cases/case-a/overview");
     await page.getByTestId("locale-switcher").selectOption(locale);
-    await expect(page.getByRole("banner", { name: "目前物件" })).toContainText(label);
+    await expect(page.getByRole("banner", { name: caseFrameCopy[locale].current, exact: true })).toContainText(label);
     await page.goto("/");
     await page.getByTestId("locale-switcher").selectOption(locale);
     const card = page.getByTestId("journey-property-identity-card");

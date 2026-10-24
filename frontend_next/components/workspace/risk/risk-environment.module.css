@@ -20,15 +20,25 @@
 .unknownItem p, .actionItem p, .sourceItem p { margin-top: var(--space-1); color: var(--text-secondary); font-size: var(--text-dense-size); line-height: var(--text-dense-line); }
 .categoryList { margin-top: var(--space-2); color: var(--text-secondary); font-size: var(--text-meta-size); }
 .supportingEvidence { max-width: 36rem; }
-.buyerSummary { display: grid; gap: var(--space-3); }
-.buyerGrid { display: grid; gap: var(--space-4); min-width: 0; }
-.buyerCard { min-width: 0; overflow-wrap: anywhere; }
+.buyerSummary { display: grid; gap: var(--space-3); border: 0; background: transparent; padding: 0; }
+.buyerSummary > h2 { max-width: 46rem; }
+.buyerSummary > p { margin: 0; max-width: 52rem; }
+.buyerGrid { display: grid; gap: var(--space-3); min-width: 0; }
+.buyerCard { min-width: 0; overflow-wrap: anywhere; transition: border-color var(--duration-feedback) var(--ease-standard), box-shadow var(--duration-standard) var(--ease-standard); }
+.buyerCard:hover { border-color: var(--border-control); }
+.buyerCard:has(> details[open]) { box-shadow: var(--shadow-raised); }
+/* Severity emphasis only where a source matched; anything not established stays visibly "not known", never clear. */
+.buyerCard[data-buyer-state="MATCHED"] { box-shadow: inset 3px 0 var(--status-warning-border); }
+.buyerCard:is([data-buyer-state="UNKNOWN"], [data-buyer-state="UNAVAILABLE"], [data-buyer-state="UNSUPPORTED"], [data-buyer-state="NO COVERAGE"], [data-buyer-state="LIMITED"], [data-buyer-state="STALE"], [data-buyer-state="NOT QUERIED"]) { border-style: dashed; background: var(--surface-secondary); }
+.buyerCard[data-buyer-state="MATCHED"]:has(> details[open]) { box-shadow: inset 3px 0 var(--status-warning-border), var(--shadow-raised); }
 .buyerDisclosure { height: 100%; border-top: 0; }
+.buyerDisclosure > summary::before { display: none; }
 .cardSummary { display: grid; gap: var(--space-2); min-width: 0; }
 .buyerMeaning { color: var(--text-secondary); font-size: var(--text-body-size); font-weight: 500; line-height: var(--text-body-line); }
 .cardMeta { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-3); color: var(--text-muted); font-size: var(--text-meta-size); font-weight: 400; }
 .cardMeta code { color: var(--text-secondary); font-size: var(--text-meta-size); }
 .cardAction { color: var(--action); font-size: var(--text-meta-size); font-weight: 500; }
+.buyerDisclosure[open] .cardAction { color: var(--text-muted); }
 .buyerSections, .sourceEvidence { display: grid; gap: var(--space-4); }
 .buyerSections p { margin-top: var(--space-2); color: var(--text-secondary); line-height: var(--text-body-line); }
 .buyerActions { display: grid; gap: var(--space-2); margin-top: var(--space-3); padding-left: var(--space-5); list-style: disc; color: var(--text-secondary); }
@@ -50,3 +60,4 @@
   .headingActions :global(.ds-button) { width: 100%; }
   .resultCell { min-width: 14rem; }
 }
+@media (prefers-reduced-motion: reduce) { .buyerCard { transition: none; } }

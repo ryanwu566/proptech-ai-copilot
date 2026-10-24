@@ -3,15 +3,15 @@ import test from "node:test";
 // @ts-expect-error Node's native test runner uses source extensions.
 import { AMBIENT_VARIANTS, PHASE_START, WAKE, ambientVariantForPath, nextWake, wakeDelay } from "./scene-model.ts";
 
-test("major product routes map to their own ambient scene", () => {
-  assert.equal(ambientVariantForPath("/compare"), "compare");
-  assert.equal(ambientVariantForPath("/compare/"), "compare");
-  for (const [segment, variant] of [["overview", "overview"], ["market", "market"], ["location", "location"], ["risk", "risk"], ["finance", "finance"], ["decision-room", "decision"], ["report", "report"]]) {
+test("place-led case routes map to their own ambient scene", () => {
+  for (const [segment, variant] of [["overview", "overview"], ["market", "market"], ["location", "location"], ["risk", "risk"]]) {
     assert.equal(ambientVariantForPath(`/cases/case%2Fa/${segment}`), variant, segment);
   }
 });
 
 test("other routes stay plain; Home places its own scene", () => {
+  // Decision surfaces read as paper: no photograph behind Money, Decision Room, Report or Compare.
+  for (const path of ["/compare", "/compare/", "/cases/a/finance", "/cases/a/decision-room", "/cases/a/report"]) assert.equal(ambientVariantForPath(path), null, path);
   for (const path of [null, undefined, "", "/", "/cases", "/cases/a", "/cases/a/evidence", "/cases/a/scenarios", "/cases/a/planning", "/cases/a/commute-planner", "/cases/a/market/extra", "/account", "/admin/users", "/compare-old"]) {
     assert.equal(ambientVariantForPath(path), null, String(path));
   }

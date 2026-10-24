@@ -376,7 +376,7 @@ test("asking-price edits rebase untouched fields, reset after save and stay case
   type NavigationWindow = Window & { priceNavigationToken?: string };
   await page.evaluate(() => { (window as NavigationWindow).priceNavigationToken = "same document"; });
   async function switchCase(caseId: string) {
-    await page.getByTestId("decision-room").locator('a[href="/cases"]').click();
+    await page.locator('.commercial-global-nav a[href="/cases"]').click();
     await page.locator(`a[href="/cases/${caseId}/overview"]`).click();
     await page.locator(`.workspace-navigation a[href="/cases/${caseId}/decision-room"]`).click();
     await expect(page.getByTestId("room-heading")).toBeVisible();

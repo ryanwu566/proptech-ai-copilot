@@ -35,7 +35,7 @@ const labels = {
   sourceDetails: ["來源／證據詳情", "Source / evidence details", "出典・証拠の詳細", "출처 / 근거 상세"],
   openCard: ["展開查證指引", "Open verification guidance", "確認の指針を開く", "확인 안내 펼치기"],
   evidenceType: ["證據類型", "Evidence type", "証拠の種類", "근거 유형"],
-  topicIdentity: ["主題代碼", "Topic identifier", "項目コード", "항목 코드"],
+  topicIdentity: ["查證主題", "Topic", "確認項目", "확인 항목"],
   details: ["詳細證據", "Detailed evidence", "証拠の詳細", "상세 근거"],
   table: ["風險證據表", "Risk evidence table", "リスク証拠一覧", "위험 근거 표"],
   tableNote: ["保留來源原文與技術欄位；查詢完成不等於風險較低。", "Original evidence text and technical fields are retained. A completed query does not establish lower risk.", "元の証拠文と技術項目を保持します。照会の完了はリスクが低いことを意味しません。", "원문과 기술 필드를 유지합니다. 조회 완료가 위험이 낮다는 뜻은 아닙니다."],

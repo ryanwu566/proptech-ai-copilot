@@ -56,7 +56,7 @@ async function ordinaryViews(page: Page, id: string) {
   await page.waitForLoadState("networkidle");
 }
 
-for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [390, 430]) {
+for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [390, 430, 720, 1024, 1440]) {
   const index = width === 390 ? 0 : 1;
   const fixture = fixtures[index];
   test(`Home confirmation preserves ${fixture.name} administrative context in ${locale} at ${width}px`, async ({ page }) => {

@@ -100,3 +100,36 @@ test('Risk table uses existing localized states rather than raw codes', () => {
   assert.ok(states.length > 0);
   assert.ok(states.every(text => !/\b(?:LIMITED|UNKNOWN|UNAVAILABLE|NO MATCH|UNSUPPORTED)\b/.test(text)));
 });
+
+test('Risk source details use localized states and dates without internal keys or canonical ids', () => {
+  const { RiskSourceEvidence } = load('components/workspace/risk/risk-buyer-card.tsx');
+  const model = adaptSavedCaseToWorkspace(e9Case()).risk;
+  const row = { ...model.rows[0], categories: [{ official: '山崩與地滑', canonical: 'landslide_canonical_id' }], effectivePeriod: '2024-05-01', datasetVersion: '2025-01-02T03:04:05Z' };
+  for (locale of ['zh-TW', 'en', 'ja', 'ko']) {
+    const html = renderToStaticMarkup(React.createElement(RiskSourceEvidence, { row, checkedAt: model.freshness.checkedAt ?? '2026-10-07T03:00:00.000Z' }));
+    const text = visible(html);
+    assert.ok(!/\d{4}-\d{2}-\d{2}/.test(text));
+    assert.ok(!/(?:MATCHED|NO MATCH|NO COVERAGE|LIMITED|UNKNOWN|UNAVAILABLE|UNSUPPORTED|STALE|NOT QUERIED)/.test(text));
+    assert.ok(!text.includes('landslide_canonical_id'));
+    assert.ok(!text.includes(`>${row.key}<`) && !new RegExp(`(^|[^a-z_])${row.key}([^a-z_]|$)`).test(text));
+    assert.ok(text.includes('山崩與地滑'));
+    // Internal traceability survives in machine-readable attributes only.
+    assert.ok(html.includes(`data-topic-key="${row.key}"`));
+    assert.ok(html.includes('data-categories="landslide_canonical_id"'));
+  }
+});
+
+test('Risk card details state a differing card state in words, never as a code', () => {
+  const { RiskBuyerCard } = load('components/workspace/risk/risk-buyer-card.tsx');
+  const { buyerStateCopy } = load('lib/workspace/risk-buyer-copy.ts');
+  const row = adaptSavedCaseToWorkspace(e9Case()).risk.rows.find(item => item.key !== 'terrain');
+  for (locale of ['zh-TW', 'en', 'ja', 'ko']) {
+    const card = { key: row.key, actionKey: row.key, state: 'STALE', freshness: 'stale', evidence: row, checkedAt: '2026-10-07T03:00:00.000Z' };
+    const html = renderToStaticMarkup(React.createElement(RiskBuyerCard, { card }));
+    const text = visible(html);
+    assert.ok(html.includes('data-buyer-state="STALE"'));
+    assert.ok(text.includes(buyerStateCopy('STALE', locale).meaning));
+    assert.ok(!/\b(?:STALE|NO MATCH|MATCHED|UNKNOWN|LIMITED|UNAVAILABLE)\b/.test(text));
+    assert.ok(!/\d{4}-\d{2}-\d{2}T/.test(text));
+  }
+});

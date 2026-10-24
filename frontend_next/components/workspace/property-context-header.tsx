@@ -1,71 +1,100 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { CommercialButton } from "@/components/design-system/button";
 import { createBrowserCaseRepository } from "@/lib/workspace/case-repository";
-import { Panel } from "@/components/design-system/section";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { StatusLabel } from "@/components/design-system/status-label";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { formatExactDate, formatWan } from "@/lib/commercial/formatters";
-import { useWorkspace } from "./workspace-provider";
+import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { journeyIdentityCopy, journeyIdentityEvidenceLabel } from "@/lib/journey-identity-copy";
 import { scenarioEntryCopy } from "@/lib/workspace/scenario-entry-copy";
 import { GuidedTourEntry } from "@/components/guided-tour-entry";
+import { caseFrameCopy } from "@/lib/workspace/case-frame-copy";
 
-const priceLabels = { asking: "開價", estimate: "成交資料推估中點", manual: "比較基準價格" } as const;
+/** Closes an open popover disclosure on an outside press or Escape, returning focus to its summary. */
+export function usePopoverDisclosure() {
+  const ref = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const close = (event: Event) => {
+      const details = ref.current;
+      if (!details?.open) return;
+      if (event instanceof KeyboardEvent) {
+        if (event.key !== "Escape") return;
+        details.open = false;
+        details.querySelector("summary")?.focus();
+      } else if (!details.contains(event.target as Node)) details.open = false;
+    };
+    document.addEventListener("pointerdown", close);
+    document.addEventListener("keydown", close);
+    return () => { document.removeEventListener("pointerdown", close); document.removeEventListener("keydown", close); };
+  }, []);
+  return ref;
+}
 
-export function PropertyContextHeader() {
+/** The case bar: identity on the left, save and secondary details on the right, one row on wide screens. */
+export function PropertyContextHeader({ workspace, readOnly = false }: { workspace: PropertyCaseWorkspace; readOnly?: boolean }) {
   const { locale, copyFrom } = useExperienceLocale();
+  const copy = (key: keyof (typeof caseFrameCopy)["en"]) => copyFrom(caseFrameCopy, key);
   const identityCopy = journeyIdentityCopy(locale);
-  const workspace = useWorkspace();
-  const isFinance = usePathname().endsWith("/finance");
-  const isScenario = usePathname().endsWith("/scenarios");
+  const pathname = usePathname();
+  const isFinance = pathname.endsWith("/finance");
+  const isScenario = pathname.endsWith("/scenarios");
   const repository = useMemo(createBrowserCaseRepository, []);
   const [saveStatus, setSaveStatus] = useState("");
+  const more = usePopoverDisclosure();
+  useEffect(() => {
+    setSaveStatus("");
+    if (more.current) more.current.open = false;
+  }, [pathname, more]);
   async function saveSnapshot() {
     setSaveStatus("");
     try {
       const result = await repository.saveSnapshot(workspace);
       setSaveStatus(result.status === "saved"
-        ? "已保存目前已知狀態；未知、無法取得與尚未完成的項目仍保持原狀。"
-        : result.reason === "storage_unavailable" ? `儲存失敗：${result.message}` : result.message);
+        ? copy("saved")
+        : result.reason === "storage_unavailable" ? `${copy("saveFailed")}${result.message}` : result.message);
     } catch {
-      setSaveStatus("儲存失敗：瀏覽器儲存空間無法寫入。請保留目前頁面，確認儲存設定後重試。");
+      setSaveStatus(copy("saveStorageFailed"));
     }
   }
   const identity = resolveCommercialState("identity", workspace.identity.state);
   const activePrice = workspace.assumptions.activePriceWan;
   const anchor = workspace.identity.anchor;
-  return <header role="banner" aria-label="目前物件" className="workspace-property-header">
-    <Panel className="workspace-property-header__panel">
+  return <header role="banner" aria-label={copy("current")} className="workspace-property-header" data-testid="case-context-header">
+    <div className="workspace-property-header__panel">
       <div className="workspace-property-header__primary">
         <div className="workspace-property-header__title">
-          <p className="text-meta">目前物件 · {workspace.title}</p>
+          <p className="text-meta">{copy("current")} · {workspace.title}</p>
           <strong>{workspace.displayAddress}</strong>
         </div>
         <StatusLabel semanticRole={identity.role}>{identity.label[locale]}</StatusLabel>
-        <div className="workspace-property-header__save"><GuidedTourEntry cta="demo" className="ds-button ds-button--tertiary ds-button--compact" />{isScenario ? <span className="text-meta">{copyFrom(scenarioEntryCopy, "readonly")}</span> : isFinance ? <a className="ds-button ds-button--secondary ds-button--compact" href="#finance-save-section">儲存財務摘要</a> : <CommercialButton size="compact" onClick={saveSnapshot}>保存目前案件快照</CommercialButton>}</div>
+        <div className="workspace-property-header__save">
+          <GuidedTourEntry cta="demo" className="ds-button ds-button--tertiary ds-button--compact" />
+          {!readOnly && (isScenario ? <span className="text-meta">{copyFrom(scenarioEntryCopy, "readonly")}</span> : isFinance ? <a className="ds-button ds-button--secondary ds-button--compact" href="#finance-save-section">{copy("saveFinance")}</a> : <CommercialButton size="compact" variant="secondary" onClick={saveSnapshot}>{copy("saveSnapshot")}</CommercialButton>)}
+          {/* Secondary facts live one layer down: price basis, snapshot time and source boundary. */}
+          <DetailsDisclosure ref={more} summary={copy("details")} variant="compact" className="workspace-property-header__more">
+            <div className="workspace-property-header__secondary">
+              <span><span className="text-meta">{copy(workspace.assumptions.activePriceBasis)}</span> <strong data-numeric>{activePrice ? formatWan(activePrice) : copy("notProvided")}</strong></span>
+              <StatusLabel semanticRole="information">{copy("snapshotSaved")}</StatusLabel>
+              <span className="text-meta">{copy("lastSaved")}：{formatExactDate(workspace.updatedAt)}</span>
+            </div>
+            <dl className="workspace-property-header__details text-dense">
+              <div><dt>{copy("normalized")}</dt><dd>{anchor?.normalized_address || copy("notYet")}</dd></div>
+              <div><dt>{copy("scope")}</dt><dd>{anchor ? copy("scopeAnchor") : copy("scopePending")}</dd></div>
+              <div><dt>{identityCopy.parcel}</dt><dd>{journeyIdentityEvidenceLabel(anchor?.parcel.status, locale)}</dd></div>
+              <div><dt>{identityCopy.building}</dt><dd>{journeyIdentityEvidenceLabel(anchor?.building.status, locale)}</dd></div>
+              <div><dt>{copy("checkedAt")}</dt><dd>{anchor ? formatExactDate(anchor.evidence.checked_at) : copy("notChecked")}</dd></div>
+              <div><dt>{copy("boundary")}</dt><dd>{identityCopy.boundary}</dd></div>
+            </dl>
+          </DetailsDisclosure>
+        </div>
       </div>
-      <div className="workspace-property-header__secondary">
-        <span><span className="text-meta">{priceLabels[workspace.assumptions.activePriceBasis]}</span> <strong data-numeric>{activePrice ? formatWan(activePrice) : "未提供"}</strong></span>
-        <StatusLabel semanticRole="information">已儲存快照</StatusLabel>
-        <span className="text-meta">最後儲存：{formatExactDate(workspace.updatedAt)}</span>
-      </div>
-      {workspace.identity.state === "revalidation_required" && <p className="workspace-property-header__warning">先前受影響的證據保留為過期狀態，重新確認前不會顯示為目前證據。</p>}
+      {workspace.identity.state === "revalidation_required" && <p className="workspace-property-header__warning">{copy("revalidation")}</p>}
       <div data-testid="context-save-status"><p data-testid="overview-save-status" aria-live="polite" className="workspace-property-header__save-status text-dense">{saveStatus}</p></div>
-      <DetailsDisclosure summary="物件與來源詳細資料" variant="compact">
-        <dl className="workspace-property-header__details text-dense">
-          <div><dt>正規化地址</dt><dd>{anchor?.normalized_address || "尚未取得"}</dd></div>
-          <div><dt>關聯範圍</dt><dd>{anchor ? "瀏覽器案件關聯錨點" : "物件尚待確認"}</dd></div>
-          <div><dt>{identityCopy.parcel}</dt><dd>{journeyIdentityEvidenceLabel(anchor?.parcel.status, locale)}</dd></div>
-          <div><dt>{identityCopy.building}</dt><dd>{journeyIdentityEvidenceLabel(anchor?.building.status, locale)}</dd></div>
-          <div><dt>證據檢查時間</dt><dd>{anchor ? formatExactDate(anchor.evidence.checked_at) : "尚未檢查"}</dd></div>
-          <div><dt>邊界</dt><dd>{identityCopy.boundary}</dd></div>
-        </dl>
-      </DetailsDisclosure>
-    </Panel>
+    </div>
   </header>;
 }

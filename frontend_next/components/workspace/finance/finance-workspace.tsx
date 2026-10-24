@@ -72,6 +72,7 @@ export function FinanceWorkspace() {
   // Tax evidence is a bounded saved checklist, independent of an offer preview.
   if (saved) finance = { ...finance, tax: saved.tax };
   const dirty = loanDirty || holdingDirty;
+  const affordabilityStale = dirty || finance.freshness.status === "stale";
   const expectation = identityExpectation(workspace);
   const savedLoanNeedsRefresh = saved?.loan.monthlyPaymentTwd != null && finance.loan.status !== "available";
   const saveDisabled = dirty || savedLoanNeedsRefresh || finance.freshness.status !== "current" || finance.freshness.calculatedAt === null || finance.calculation.query !== "succeeded" || !expectation;
@@ -109,11 +110,11 @@ export function FinanceWorkspace() {
 
   return <div data-testid="finance-workspace" className={`workspace-view ${styles.root}`}>
     <header className="space-y-2"><h1 className="text-page">{c("title")}</h1><p className="text-body">{c("intro")}</p></header>
-    <div data-testid="money-summary">
+    <div data-testid="money-summary" className={styles.summary}>
       <SummaryStrip label={c("summary")}>
         <MetricItem label={c("cashSubtotal")} value={wan(currentDownPaymentWan)} primary note={c("closingUnknown")} />
-        <MetricItem label={c((finance.loan.gracePeriodYears ?? 0) > 0 ? "afterGrace" : "payment")} value={monthly(currentLoan ? finance.loan.monthlyPaymentTwd : null)} note={c("userAssumption")} />
-        <MetricItem label={c("holdingSubtotal")} value={monthly(currentHolding ? finance.holding.knownMonthlySubtotalTwd : null)} note={c("monthlyNote")} />
+        <MetricItem label={c((finance.loan.gracePeriodYears ?? 0) > 0 ? "afterGrace" : "payment")} value={monthly(currentLoan ? finance.loan.monthlyPaymentTwd : null)} primary note={c("userAssumption")} />
+        <MetricItem label={c("holdingSubtotal")} value={monthly(currentHolding ? finance.holding.knownMonthlySubtotalTwd : null)} primary note={c("monthlyNote")} />
       </SummaryStrip>
       <MoneyFreshness model={finance} dirty={dirty} />
       {saved?.freshness.source === "saved_snapshot" && <SavedMoneyAssumptions model={saved} />}
@@ -149,8 +150,9 @@ export function FinanceWorkspace() {
           <MoneyHoldingSummary model={finance} dirty={holdingDirty} />
         </div>
       </div>
-      <div data-testid="affordability-status" className="mt-5 text-body">
-        <p>{finance.affordability.status === "assessed" ? `${c("burden")}: ${percent(finance.affordability.ratio)}` : c("unassessed")}</p>
+      {/* An edited or stale scenario keeps the earlier ratio only as a labelled previous assessment. */}
+      <div data-testid="affordability-status" data-freshness={affordabilityStale ? "stale" : "current"} className="mt-5 text-body">
+        <p>{finance.affordability.status === "assessed" ? `${c(affordabilityStale ? "previousBurden" : "burden")}: ${percent(finance.affordability.ratio)}` : c("unassessed")}</p>
         <p className="mt-2 text-helper">{c("burdenNote")}</p>
       </div>
     </Section>
