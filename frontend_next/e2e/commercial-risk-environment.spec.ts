@@ -186,12 +186,13 @@ test("fresh query leads with buyer cards and keeps full evidence and source deta
   await expect(page.getByTestId("risk-property-marker")).toBeVisible();
   await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
   await expect(page.getByRole("button", { name: "淹水潛勢", exact: true })).toBeVisible();
-  await expect(page.getByRole("cell", { name: "本次位置符合來源分類「中潛勢」。", exact: true })).toBeVisible();
+  await expect(page.getByRole("cell", { name: "本次位置符合來源「中潛勢」土壤液化潛勢圖資；屬區域性初級評估，不代表基地鑽探、建物受損或工程安全結論。", exact: true })).toBeVisible();
   await expect(page.getByRole("table").getByText("2024-06-27", { exact: true }).first()).toBeVisible();
   await expect(page.getByRole("table").getByText("活動斷層地質敏感區", { exact: true })).toBeVisible();
   await expect(page.getByRole("table").getByText("山崩與地滑地質敏感區", { exact: true })).toBeVisible();
   await expect(page.getByTestId("risk-buyer-card-active_fault")).toContainText("UNSUPPORTED");
-  await expect(page.getByTestId("risk-buyer-summary")).toContainText(NOW);
+  await expect(page.getByTestId("risk-buyer-summary")).toContainText("查詢／保存時間: 2026年10月1日");
+  await expect(page.getByTestId("risk-buyer-summary")).not.toContainText(NOW);
   await expect(page.getByText("legacy aggregate")).toHaveCount(0);
 
   const stored = await page.evaluate(() => JSON.parse(window.localStorage.getItem("proptech.savedCases.v1") ?? "[]")[0]);

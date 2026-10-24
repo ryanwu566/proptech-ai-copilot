@@ -37,7 +37,10 @@ for (const width of [390, 430, 1024, 1440]) {
     await seed(page); const requests = await watch(page, baseURL!);
     await page.setViewportSize({ width, height: 900 }); await open(page);
     const panel = page.getByTestId("copilot-conversation");
-    await expect(panel.getByTestId("copilot-context")).toContainText("case-a");
+    // The case is identified by its title and a locale-formatted save date; the internal case ID stays hidden.
+    await expect(panel.getByTestId("copilot-context")).toContainText("案件 A");
+    await expect(panel.getByTestId("copilot-context")).toContainText("案件保存時間: 2026年10月7日");
+    await expect(panel.getByTestId("copilot-context")).not.toContainText("case-a");
     await expect(panel).toContainText("即時證據：未要求更新");
     const before = await page.evaluate(key => localStorage.getItem(key), key);
     // Measure user click -> committed answer in the browser, excluding driver
@@ -117,7 +120,8 @@ test("missing evidence, injection, case switches and snapshot changes discard ol
   await panel.getByRole("navigation", { name: "建議問題" }).getByRole("button", { name: "通勤路線", exact: true }).click();
   await expect(panel.getByTestId("copilot-answer")).toHaveAttribute("data-answer-status", "conflicting_evidence");
   await page.goto("/cases/case-b/overview?copilot=1");
-  await expect(panel.getByTestId("copilot-context")).toContainText("case-b");
+  await expect(panel.getByTestId("copilot-context")).toContainText("案件 B");
+  await expect(panel.getByTestId("copilot-context")).not.toContainText("case-b");
   await expect(panel.getByTestId("copilot-answer")).toHaveCount(0);
   await expect(panel).not.toContainText("different property");
   await panel.getByRole("navigation", { name: "建議問題" }).getByRole("button", { name: "整理本案件的證據與缺口", exact: true }).click();
