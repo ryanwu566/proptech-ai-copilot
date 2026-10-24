@@ -1,0 +1,96 @@
+/*
+ * Entrance sequence, 1000ms total, transform and opacity only:
+ *   0–420ms    mark settles (opacity, scale 0.92 → 1)
+ *   120–480ms  wordmark rises 6px into place
+ *   220–620ms  evidence rule draws left to right
+ *   300–660ms  three evidence points land on the rule, 80ms apart
+ *   640–1000ms layer fades out while the stage recedes; ends hidden, then unmounts
+ */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-toast) + 10);
+  display: grid;
+  place-items: center;
+  background: var(--canvas);
+  pointer-events: none;
+  user-select: none;
+  contain: strict;
+  animation: layer-exit 360ms var(--ease-standard) 640ms both;
+}
+
+.stage {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  animation: stage-recede 360ms var(--ease-standard) 640ms both;
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--surface-primary);
+  color: var(--action);
+  font: 650 1.25rem/1 var(--font-sans);
+  animation: mark-settle 420ms var(--ease-out) both;
+}
+
+.wordmark {
+  color: var(--text-primary);
+  font: 650 0.9375rem/1.4 var(--font-sans);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  animation: rise 360ms var(--ease-out) 120ms both;
+}
+
+.trace {
+  position: relative;
+  width: 96px;
+  height: 5px;
+}
+
+.rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2px;
+  height: 1px;
+  background: var(--border-subtle);
+  transform-origin: left center;
+  animation: draw 400ms var(--ease-out) 220ms both;
+}
+
+.point {
+  position: absolute;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: var(--action);
+  animation: land 200ms var(--ease-out) both;
+}
+.point:nth-child(2) { left: 20%; animation-delay: 300ms; }
+.point:nth-child(3) { left: 52%; animation-delay: 380ms; opacity: 0.7; }
+.point:nth-child(4) { left: 80%; animation-delay: 460ms; }
+
+@keyframes mark-settle { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes land { from { opacity: 0; transform: scale(0.4); } }
+@keyframes stage-recede { to { opacity: 0; transform: scale(0.985) translateY(-4px); } }
+@keyframes layer-exit { to { opacity: 0; visibility: hidden; } }
+
+/* Reduced motion: nothing moves; the canvas lifts in 160ms with no hold. */
+@media (prefers-reduced-motion: reduce) {
+  .layer { animation: layer-exit 160ms linear both; }
+  .stage, .mark, .wordmark, .rule, .point { animation: none; }
+}
+
+@media print {
+  .layer { display: none; }
+}
