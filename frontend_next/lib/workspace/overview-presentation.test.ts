@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Native Node tests use source extensions.
-import { overviewViewCopy, presentOverviewItem, presentWanText, presentMonthlyTwd, presentRiskResult, presentChecklistAction } from "./overview-presentation.ts";
+import { overviewViewCopy, presentOverviewItem, presentWanText, presentMonthlyTwd, presentRiskResult, presentChecklistAction, unassessedAffordabilityKey } from "./overview-presentation.ts";
 import type { OverviewItem } from "./overview-model";
 
 test("presentation preserves evidence state, links, user text and the canonical wording", () => {
@@ -59,4 +59,23 @@ test("overview translations keep price direction and detailed risk evidence", ()
     assert.notEqual(stale.reason, coverage.reason);
   }
   assert.equal(presentOverviewItem({ ...entry, reason: "New source finding" }, "ja").reason, "New source finding");
+});
+
+test("unassessed affordability follows the money model reason and never assumes missing income", () => {
+  assert.equal(unassessedAffordabilityKey("未提供月收入"), "unassessed");
+  assert.equal(unassessedAffordabilityKey("尚未取得可用負擔比例"), "unassessedRatio");
+  assert.equal(unassessedAffordabilityKey("保存的負擔評估資料不一致，需重新計算"), "unassessedRecalc");
+  assert.equal(unassessedAffordabilityKey(null), "unassessedOther");
+  assert.equal(unassessedAffordabilityKey("New model reason"), "unassessedOther");
+  const item: OverviewItem = { id: "finance-affordability-unassessed", label: "負擔能力尚未評估", reason: "尚未取得可用負擔比例；試算完成與負擔能力評估維持不同狀態。", state: "partial", section: "finance", href: "/cases/a/finance", evidenceKeys: ["finance"] };
+  assert.equal(presentOverviewItem(item, "zh-TW").reason, item.reason);
+  const noIncome = { en: /No monthly income/, ja: /月収が入力されていません/, ko: /월 소득이 입력되지 않았습니다/ } as const;
+  for (const locale of ["zh-TW", "en", "ja", "ko"] as const) {
+    const copy = overviewViewCopy[locale];
+    for (const key of ["unassessedRatio", "unassessedRecalc", "unassessedOther"] as const) assert.notEqual(copy[key], copy.unassessed);
+    if (locale === "zh-TW") continue;
+    assert.doesNotMatch(presentOverviewItem(item, locale).reason, noIncome[locale]);
+    assert.doesNotMatch(presentOverviewItem({ ...item, reason: "Unrecognized；試算完成與負擔能力評估維持不同狀態。" }, locale).reason, noIncome[locale]);
+    assert.match(presentOverviewItem({ ...item, reason: "未提供月收入；試算完成與負擔能力評估維持不同狀態。" }, locale).reason, noIncome[locale]);
+  }
 });

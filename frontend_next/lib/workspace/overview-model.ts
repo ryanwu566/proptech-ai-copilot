@@ -55,6 +55,7 @@ export type WorkspaceOverviewModel = {
       knownRecurringMonthlyTwd: number | null;
       missingCosts: string[];
       affordabilityStatus: "assessed" | "unassessed" | "stale";
+      affordabilityReason: string | null;
       unresolvedActions: string[];
       freshness: OverviewFreshness;
     };
@@ -160,7 +161,7 @@ export function buildWorkspaceOverview(workspace: PropertyCaseWorkspace): Worksp
     known.push(item(workspace, { id: "finance-calculation", label: "已保存資金試算摘要", reason: "已保留頭期款與每月付款等有界結果；計算完成不代表負擔能力已評估。", section: "finance", evidenceKeys: ["finance"], state: workspace.evidence.finance.summaryOnly ? "saved_snapshot" : "known" }));
   }
   if (financeCurrent && finance?.calculationStatus === "succeeded" && finance.affordabilityStatus === "unassessed") {
-    unknown.push(item(workspace, { id: "finance-affordability-unassessed", label: "負擔能力尚未評估", reason: "未提供月收入；試算完成與負擔能力評估維持不同狀態。", section: "finance", evidenceKeys: ["finance"], state: "partial" }));
+    unknown.push(item(workspace, { id: "finance-affordability-unassessed", label: "負擔能力尚未評估", reason: `${workspace.finance?.affordability.reason ?? "收入或可用負擔比例不足"}；試算完成與負擔能力評估維持不同狀態。`, section: "finance", evidenceKeys: ["finance"], state: "partial" }));
   }
 
   const orderedKnown = known.slice(0, 5);
@@ -192,7 +193,7 @@ export function buildWorkspaceOverview(workspace: PropertyCaseWorkspace): Worksp
       market: { href: href(workspace, "market"), askingPrice: workspace.marketPrice.priceContext.askingPrice, activePrice: workspace.marketPrice.priceContext.activePrice, evidenceStatus: workspace.marketPrice.overview.evidenceStatus, valuationStatus: workspace.marketPrice.valuation.status, estimateRange: workspace.marketPrice.overview.estimateRange, marketRange: workspace.marketPrice.overview.marketRange, marketMedianUnit: workspace.marketPrice.priceContext.marketMedianUnit, sampleCount: workspace.marketPrice.market.sampleCount, unresolvedChecks: workspace.marketPrice.overview.unresolvedChecks, freshness: evidenceFreshness(workspace, ["market", "valuation"]) },
       location: { ...location, href: href(workspace, "location"), route: location.selectedRoute ?? null, secondaryTransitStatus: !workspace.location.transitContext ? "not_started" : workspace.location.transitContext.status === "resolved" ? "available" : "unavailable", freshness: evidenceFreshness(workspace, ["location", "commute"]) },
       risk: { href: href(workspace, "risk"), materialMatchedEvidence: risk?.materialMatchedEvidence ?? [], noMatchEvidence: risk?.noMatchEvidence ?? [], unknownOrUnavailableEvidence: risk?.unknownOrUnavailableEvidence ?? [], outstandingVerificationActions: risk?.outstandingVerificationActions ?? [], evidenceFreshness: risk?.evidenceFreshness ?? null, freshness: evidenceFreshness(workspace, ["risk"]) },
-      finance: { priceSource: workspace.finance?.priceSource, href: href(workspace, "finance"), activePriceBasis: finance?.activePriceBasis ?? workspace.assumptions.activePriceBasis, calculationStatus: finance?.calculationStatus ?? "not_started", monthlyPaymentTwd: financeCurrent ? finance?.monthlyPaymentTwd ?? null : null, knownRecurringMonthlyTwd: financeCurrent ? finance?.knownRecurringMonthlyTwd ?? null : null, missingCosts: finance?.missingCosts ?? [], affordabilityStatus: financeCurrent ? finance?.affordabilityStatus ?? "unassessed" : "stale", unresolvedActions: finance?.unresolvedActions ?? [], freshness: financeFreshness },
+      finance: { priceSource: workspace.finance?.priceSource, href: href(workspace, "finance"), activePriceBasis: finance?.activePriceBasis ?? workspace.assumptions.activePriceBasis, calculationStatus: finance?.calculationStatus ?? "not_started", monthlyPaymentTwd: financeCurrent ? finance?.monthlyPaymentTwd ?? null : null, knownRecurringMonthlyTwd: financeCurrent ? finance?.knownRecurringMonthlyTwd ?? null : null, missingCosts: finance?.missingCosts ?? [], affordabilityStatus: financeCurrent ? finance?.affordabilityStatus ?? "unassessed" : "stale", affordabilityReason: financeCurrent ? workspace.finance?.affordability.reason ?? null : null, unresolvedActions: finance?.unresolvedActions ?? [], freshness: financeFreshness },
     },
     known: orderedKnown,
     unknown,

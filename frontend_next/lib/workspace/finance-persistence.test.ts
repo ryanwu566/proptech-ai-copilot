@@ -101,6 +101,33 @@ test("stored finance evidence contains only the bounded v1 snapshot", () => {
   }
 });
 
+test("contradictory saved affordability is downgraded without discarding valid calculations", () => {
+  for (const affordability of [
+    { status: "assessed", ratio: null, reason: null, basis: "loan_payment" },
+    { status: "assessed", ratio: 0.3, reason: null, basis: "total_housing_cost" },
+    { status: "unassessed", ratio: 0.3, reason: "missing", basis: null },
+  ]) {
+    const stored = { ...createStoredFinanceEvidence(currentModel(), { caseId: "property-a", revision: 7, areaPing: null }), affordability };
+    const normalized = normalizeStoredFinanceEvidence(stored)!;
+    assert.ok(normalized);
+    assert.equal(normalized.affordability.status, "unassessed");
+    assert.equal(normalized.affordability.ratio, null);
+    assert.equal(normalized.affordability.basis, null);
+    assert.equal(normalized.loan.monthly_payment_twd, 56_196);
+    assert.equal(stored.affordability.status, affordability.status);
+  }
+});
+
+test("valid assessed affordability keeps its basis and a legitimate zero ratio", () => {
+  for (const basis of ["loan_payment", "total_housing_cost"] as const) {
+    const stored = createStoredFinanceEvidence(currentModel(), { caseId: "property-a", revision: 7, areaPing: null });
+    stored.loan.monthly_income_wan = 12;
+    stored.holding.assumptions.monthly_income_wan = 24;
+    stored.affordability = { status: "assessed", ratio: 0, reason: null, basis };
+    assert.deepEqual(normalizeStoredFinanceEvidence(stored)!.affordability, stored.affordability);
+  }
+});
+
 test("saved compact finance evidence reopens as distinguishable saved evidence", () => {
   const stored = createStoredFinanceEvidence(currentModel(), { caseId: "property-a", revision: 7, areaPing: null });
   const reopened = restoreFinanceModelFromSnapshot(stored, {

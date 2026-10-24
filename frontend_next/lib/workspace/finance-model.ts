@@ -294,7 +294,7 @@ export function buildFinanceModel(input: BuildFinanceModelInput): FinanceModel {
       : null;
   const affordability = affordabilityRatio !== null && nonNegative(affordabilityRatio)
     ? { status: "assessed" as const, ratio: affordabilityRatio, reason: null, basis: affordabilityBasis }
-    : { status: "unassessed" as const, ratio: null, reason: "未提供月收入", basis: null };
+    : { status: "unassessed" as const, ratio: null, reason: positive(holdingResult?.input.monthly_income_wan) || positive(loanResult?.monthly_income_wan) ? "尚未取得可用負擔比例" : "未提供月收入", basis: null };
 
   const query: QueryExecutionState = activePriceWan === null && !hasResult
     ? "input_required"
@@ -399,7 +399,7 @@ export function buildFinanceModel(input: BuildFinanceModelInput): FinanceModel {
 }
 
 function holdingResultIncomePresent(result: HoldingCostResult): boolean {
-  return result.input.monthly_income_wan !== null && result.income_burden_ratio !== null;
+  return positive(result.input.monthly_income_wan) && nonNegative(result.income_burden_ratio);
 }
 
 export function mergeFinanceEvidence(base: FinanceModel, live: FinanceModel, hasLoanResult: boolean, hasHoldingResult: boolean): FinanceModel {

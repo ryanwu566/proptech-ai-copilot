@@ -108,7 +108,7 @@ test("Finance route calculates loan and holding costs while keeping affordabilit
   await page.getByTestId("calculate-loan").click();
   await expect(page.getByTestId("loan-summary")).toContainText("NT$56,196／月");
   await expect(page.getByTestId("loan-summary")).toContainText("1,480 萬元");
-  await expect(page.getByTestId("affordability-status")).toContainText("未評估（未提供月收入）");
+  await expect(page.getByTestId("affordability-status")).toContainText("未評估（收入或可用負擔比例不足）");
 
   await page.getByTestId("calculate-holding").click();
   const breakdown = page.getByTestId("holding-breakdown");
@@ -258,6 +258,30 @@ test("saved non-default assumptions survive reopen and remain historical after c
   await expect(page.getByTestId("holding-form").getByLabel("每坪管理費")).toHaveValue("90");
   await page.getByTestId("calculate-holding").click();
   await expect(page.getByTestId("loan-summary")).not.toContainText("NT$56,196／月");
+});
+
+test("an edited scenario labels the earlier affordability ratio as a previous assessment", async ({ page }) => {
+  const assessedLoan = { ...loanResponse, monthly_income_wan: 15, income_burden_ratio: 0.37464 };
+  const assessedHolding = { ...holdingResponse, input: { ...holdingResponse.input, monthly_income_wan: 15 }, income_burden_ratio: 0.39892 };
+  await page.unroute("**/loan/calculate");
+  await page.unroute("**/holding-cost/calculate");
+  await page.route("**/loan/calculate", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(assessedLoan) }));
+  await page.route("**/holding-cost/calculate", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(assessedHolding) }));
+  await page.goto("/cases/finance-case/finance");
+
+  await page.getByTestId("loan-form").getByLabel("每月收入").fill("15");
+  await page.getByTestId("calculate-loan").click();
+  await page.getByTestId("holding-form").getByLabel("每月收入").fill("15");
+  await page.getByTestId("calculate-holding").click();
+  const affordability = page.getByTestId("affordability-status");
+  await expect(affordability).toHaveAttribute("data-freshness", "current");
+  await expect(affordability).toContainText("支出占月收入比例");
+  await expect(affordability).not.toContainText("先前評估");
+
+  await page.getByTestId("holding-form").getByLabel("每坪管理費").fill("95");
+  await expect(page.getByTestId("freshness-status")).toContainText("條件已變更");
+  await expect(affordability).toHaveAttribute("data-freshness", "stale");
+  await expect(affordability).toContainText("先前評估（條件已變更，非目前結論）");
 });
 
 test("Money asking and manual offer change cash and mortgage without extra requests, reopen and project to Report / Compare", async ({ page, baseURL }) => {

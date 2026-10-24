@@ -15,7 +15,7 @@ import { ChecklistView } from "@/components/evidence/checklist-view";
 
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { resolveTaskReadiness } from "@/lib/commercial/readiness";
-import { overviewViewCopy, presentOverviewItem, hazardName, presentRiskResult, presentWanText, presentMissingCost, presentMonthlyTwd, presentDistance, presentDuration, readinessDetailFor } from "@/lib/workspace/overview-presentation";
+import { overviewViewCopy, presentOverviewItem, hazardName, presentRiskResult, presentWanText, presentMissingCost, presentMonthlyTwd, presentDistance, presentDuration, readinessDetailFor, unassessedAffordabilityKey } from "@/lib/workspace/overview-presentation";
 
 function useOverviewCopy() {
   const { locale, copyFrom } = useExperienceLocale();
@@ -141,7 +141,7 @@ function FinanceSummary({ model }: { model: WorkspaceOverviewModel }) {
       <MetricRow label={c("priceBasis")} value={(locale === "zh-TW" ? financePriceSourceLabel(finance.priceSource) : c(`source_${finance.priceSource ?? "none"}`))} />
       <MetricRow label={c("monthlyPayment")} value={finance.freshness === "stale" ? c("staleSnapshot") : (locale === "zh-TW" ? formatMonthlyTwd(finance.monthlyPaymentTwd) : presentMonthlyTwd(finance.monthlyPaymentTwd, locale))} />
       <MetricRow label={c("monthlyHousing")} value={finance.freshness === "stale" ? c("staleSnapshot") : (locale === "zh-TW" ? formatMonthlyTwd(finance.knownRecurringMonthlyTwd) : presentMonthlyTwd(finance.knownRecurringMonthlyTwd, locale))} />
-      <MetricRow label={c("affordability")} value={finance.affordabilityStatus === "stale" ? c("staleAssessment") : finance.affordabilityStatus === "assessed" ? c("assessed") : c("unassessed")} />
+      <MetricRow label={c("affordability")} value={finance.affordabilityStatus === "stale" ? c("staleAssessment") : finance.affordabilityStatus === "assessed" ? c("assessed") : c(unassessedAffordabilityKey(finance.affordabilityReason))} />
     </div>
     {finance.freshness === "stale" && <Message variant="warning">{c("financeStale")}</Message>}
     {finance.freshness !== "stale" && finance.calculationStatus === "succeeded" && finance.affordabilityStatus === "unassessed" && <Message variant="warning">{c("financeUnassessed")}</Message>}

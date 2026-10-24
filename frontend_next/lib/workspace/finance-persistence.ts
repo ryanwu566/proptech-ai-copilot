@@ -213,6 +213,16 @@ export function normalizeStoredFinanceEvidence(value: unknown): StoredFinanceEvi
   if (![holdingAssumptions.loan_monthly_payment_twd, holdingAssumptions.monthly_income_wan, holdingAssumptions.area_ping, holdingAssumptions.management_fee_per_ping_twd, holdingAssumptions.repair_reserve_per_ping_twd, holdingAssumptions.annual_home_tax_rate_percent, holdingAssumptions.annual_land_tax_rate_percent, holdingAssumptions.annual_insurance_twd].every(nullableAmount)) return null;
   if (row.loan.monthly_payment_twd !== null && row.holding.known_monthly_subtotal_twd !== null && holdingAssumptions.loan_monthly_payment_twd !== row.loan.monthly_payment_twd) return null;
   if (!row.affordability || !["assessed", "unassessed"].includes(row.affordability.status) || !nullableAmount(row.affordability.ratio) || (row.affordability.reason !== null && typeof row.affordability.reason !== "string") || ![null, "loan_payment", "total_housing_cost"].includes(row.affordability.basis)) return null;
+  const income = row.affordability.basis === "loan_payment" ? row.loan.monthly_income_wan
+    : row.affordability.basis === "total_housing_cost" ? holdingAssumptions.monthly_income_wan : null;
+  const affordabilityConsistent = row.affordability.status === "assessed"
+    ? row.affordability.ratio !== null && finitePositive(income)
+    : row.affordability.ratio === null && row.affordability.basis === null;
+  // A contradictory assessment cannot support a claim, but is not corruption of
+  // the entire case. Preserve the valid calculations and the original stored data.
+  const affordability: FinanceModel["affordability"] = affordabilityConsistent
+    ? { ...row.affordability }
+    : { status: "unassessed", ratio: null, basis: null, reason: "保存的負擔評估資料不一致，需重新計算" };
   if (!row.tax || !["not_started", "input_required", "in_progress", "succeeded", "failed", "cancelled"].includes(row.tax.query) || !validTaxSummary(row.tax.summary)) return null;
   if (!Array.isArray(row.missing_costs) || row.missing_costs.length > 20 || !row.missing_costs.every(text) || !Array.isArray(row.unresolved_actions) || row.unresolved_actions.length > 20 || !row.unresolved_actions.every(text)) return null;
   if (!text(row.calculated_at) || !Number.isFinite(Date.parse(row.calculated_at))) return null;
@@ -232,7 +242,7 @@ export function normalizeStoredFinanceEvidence(value: unknown): StoredFinanceEvi
     calculation: {
       query: row.calculation.query,
       usability: row.calculation.usability,
-      completeness: row.calculation.completeness,
+      completeness: !affordabilityConsistent && row.calculation.completeness === "sufficient_for_task" ? "partial" : row.calculation.completeness,
     },
     loan: {
       property_price_wan: row.loan.property_price_wan,
@@ -270,12 +280,7 @@ export function normalizeStoredFinanceEvidence(value: unknown): StoredFinanceEvi
         missing_reason: item.missing_reason,
       })),
     },
-    affordability: {
-      status: row.affordability.status,
-      ratio: row.affordability.ratio,
-      reason: row.affordability.reason,
-      basis: row.affordability.basis,
-    },
+    affordability,
     tax: {
       query: row.tax.query,
       summary: row.tax.summary ? {

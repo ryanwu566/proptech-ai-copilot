@@ -11,6 +11,14 @@ import { buildEvidenceChecklist } from "./evidence-checklist.ts";
 // @ts-expect-error Native TS runner extension.
 const feature = await import("./compare-difference-brief.ts").catch(() => null);
 const evidence = (id = "case-a") => projectCaseEvidence(adaptSavedCaseToWorkspace(e9Case(id)));
+
+test("an incomplete negative remains unknown in Compare instead of becoming no-match", () => {
+  const item = evidence();
+  item.risk = [{ ...item.risk[1], matched: false, evidence: { ...item.risk[1].evidence, status: "limited", value: "部分來源尚未完成，無法判定。" } }];
+  const counts = brief(item, evidence("case-b")).categories.find((row) => row.id === "risk")!.statements[0].counts!;
+  assert.equal(counts.unknown, 1);
+  assert.equal(counts.noMatch, 0);
+});
 const brief = (...cases: ReturnType<typeof evidence>[]) => {
   assert.ok(feature, "Difference Brief builder exists");
   return feature.buildDifferenceBrief(cases);

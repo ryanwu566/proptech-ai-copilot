@@ -72,6 +72,7 @@ export function FinanceWorkspace() {
   // Tax evidence is a bounded saved checklist, independent of an offer preview.
   if (saved) finance = { ...finance, tax: saved.tax };
   const dirty = loanDirty || holdingDirty;
+  const affordabilityStale = dirty || finance.freshness.status === "stale";
   const expectation = identityExpectation(workspace);
   const savedLoanNeedsRefresh = saved?.loan.monthlyPaymentTwd != null && finance.loan.status !== "available";
   const saveDisabled = dirty || savedLoanNeedsRefresh || finance.freshness.status !== "current" || finance.freshness.calculatedAt === null || finance.calculation.query !== "succeeded" || !expectation;
@@ -149,8 +150,9 @@ export function FinanceWorkspace() {
           <MoneyHoldingSummary model={finance} dirty={holdingDirty} />
         </div>
       </div>
-      <div data-testid="affordability-status" className="mt-5 text-body">
-        <p>{finance.affordability.status === "assessed" ? `${c("burden")}: ${percent(finance.affordability.ratio)}` : c("unassessed")}</p>
+      {/* An edited or stale scenario keeps the earlier ratio only as a labelled previous assessment. */}
+      <div data-testid="affordability-status" data-freshness={affordabilityStale ? "stale" : "current"} className="mt-5 text-body">
+        <p>{finance.affordability.status === "assessed" ? `${c(affordabilityStale ? "previousBurden" : "burden")}: ${percent(finance.affordability.ratio)}` : c("unassessed")}</p>
         <p className="mt-2 text-helper">{c("burdenNote")}</p>
       </div>
     </Section>

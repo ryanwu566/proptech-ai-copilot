@@ -27,7 +27,7 @@ test("all four locales have complete copy, state explanations and hazard actions
   }
 });
 
-test("required labels and UNKNOWN principle remain explicit", () => {
+test("required labels and localized safety principle remain explicit", () => {
   const labels = [
     ["zh-TW", "已知", "不能證明", "下一步查證"],
     ["en", "What we know", "What this does not prove", "Verify next"],
@@ -37,7 +37,7 @@ test("required labels and UNKNOWN principle remain explicit", () => {
   for (const [locale, known, limits, next] of labels) {
     const c = riskBuyerCopy(locale);
     assert.deepEqual([c.known, c.limits, c.next], [known, limits, next]);
-    assert.equal(c.principle, "UNKNOWN ≠ SAFE");
+    assert.doesNotMatch(c.principle, /\bUNKNOWN\b/);
     assert.notEqual(buyerStateCopy("NO COVERAGE", locale).meaning, buyerStateCopy("UNAVAILABLE", locale).meaning);
     assert.ok(buyerStateCopy("NO MATCH", locale).next);
   }
