@@ -8,6 +8,7 @@ import { CommercialGlobalHeader } from "@/components/commercial-global-header";
 import { AmbientSceneHost } from "@/components/ambient/ambient-scene-host";
 import { CommandPaletteLauncher } from "@/components/command-palette/command-palette-launcher";
 import { AppEntranceMotion } from "@/components/app-entrance-motion/app-entrance-motion";
+import { PageHelpLauncher } from "@/components/page-help/page-help-launcher";
 
 export const metadata: Metadata = {
   title: "PropTech AI Copilot",
@@ -17,7 +18,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-Hant">
-      <body><AppEntranceMotion /><ExperienceLocaleProvider><ClientErrorMonitor /><PerformanceTelemetry /><CommercialGlobalHeader /><AmbientSceneHost />{children}<CommandPaletteLauncher /></ExperienceLocaleProvider></body>
+      <body><AppEntranceMotion /><ExperienceLocaleProvider><ClientErrorMonitor /><PerformanceTelemetry /><CommercialGlobalHeader /><AmbientSceneHost />{children}<PageHelpLauncher /><CommandPaletteLauncher /></ExperienceLocaleProvider></body>
     </html>
   );
 }

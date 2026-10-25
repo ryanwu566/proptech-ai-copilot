@@ -3,14 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "./app-entrance-motion.module.css";
 
-/** Upper bound for removing the layer when the Web Animations API is unavailable. The CSS sequence itself is 1000ms. */
-export const ENTRANCE_FALLBACK_MS = 1600;
+/** Upper bound for removing the layer when the Web Animations API is unavailable. The CSS sequence itself is 1800ms. */
+export const ENTRANCE_FALLBACK_MS = 2600;
+
+/** Input that means someone wants the app now; any of these fast-forwards the entrance to its end. */
+const INTENT_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
 
 /**
  * A once-per-document entrance layer. It is server-rendered so it is present at first paint, runs as a pure CSS
  * sequence that ends hidden even without JavaScript, and never blocks input. It lives in the root layout, which
  * client navigation never remounts, so in-app route changes cannot replay it. After hydration it unmounts as soon
- * as its own animations finish. It reads no data and waits for nothing: the application renders underneath.
+ * as its own animations finish, or at once on the first pointer, wheel or key press. It reads no data and waits for
+ * nothing: the application renders underneath.
  */
 export function AppEntranceMotion() {
   const ref = useRef<HTMLDivElement>(null);
@@ -27,18 +31,25 @@ export function AppEntranceMotion() {
       const fallback = window.setTimeout(finish, ENTRANCE_FALLBACK_MS);
       return () => { active = false; window.clearTimeout(fallback); };
     }
+    const skip = () => { for (const animation of layer.getAnimations({ subtree: true })) animation.finish(); };
+    for (const type of INTENT_EVENTS) window.addEventListener(type, skip, { capture: true, passive: true, once: true });
     Promise.all(layer.getAnimations({ subtree: true }).map((animation) => animation.finished)).then(finish, finish);
-    return () => { active = false; };
+    return () => {
+      active = false;
+      for (const type of INTENT_EVENTS) window.removeEventListener(type, skip, { capture: true });
+    };
   }, []);
 
   if (done) return null;
   return (
     <div ref={ref} className={styles.layer} data-app-entrance="" aria-hidden="true">
+      <span className={styles.glow} />
       <div className={styles.stage}>
-        <span className={styles.mark}>P</span>
+        <span className={styles.mark}>P<span className={styles.ring} /></span>
         <span className={styles.wordmark}>PropTech Copilot</span>
         <span className={styles.trace}>
           <span className={styles.rule} />
+          <span className={styles.point} />
           <span className={styles.point} />
           <span className={styles.point} />
           <span className={styles.point} />

@@ -1,0 +1,333 @@
+import type { ExperienceLocale } from "../experience-i18n";
+import type { HelpNext, HelpTopic } from "./page-help";
+
+/**
+ * Contextual page guides. Each guide says what the page is for in the buying decision, what is on it, how to read
+ * its evidence (confirmed, still unknown, not to be over-read) and where people usually go next. Guides describe
+ * the page only: they never state a result, imply completeness or rank cases.
+ */
+export type PageGuide = {
+  title: string;
+  role: string;
+  see: readonly [string, string, string];
+  known: string;
+  unknown: string;
+  caution: string;
+  next: string;
+};
+
+type Chrome = "eyebrow" | "role" | "see" | "read" | "known" | "unknown" | "caution" | "next" | "close" | "footnote";
+type NextLabel = HelpNext["label"];
+
+export const pageHelpChrome: Record<ExperienceLocale, Record<Chrome, string>> = {
+  "zh-TW": { eyebrow: "頁面說明", role: "在決策流程中的角色", see: "這裡可以看什麼", read: "怎麼讀這頁的證據", known: "已確認", unknown: "仍未知", caution: "不要過度解讀", next: "下一步", close: "關閉說明", footnote: "說明只介紹這頁怎麼用，不會查詢資料，也不會變更案件。" },
+  en: { eyebrow: "About this page", role: "Role in your decision", see: "What you can see here", read: "How to read the evidence", known: "Confirmed", unknown: "Still unknown", caution: "Don't over-read", next: "Next step", close: "Close guide", footnote: "This guide only explains the page. It runs no queries and changes nothing in your case." },
+  ja: { eyebrow: "ページ説明", role: "判断の流れでの役割", see: "ここで見られること", read: "根拠の読み方", known: "確認済み", unknown: "まだ不明", caution: "読み過ぎに注意", next: "次のステップ", close: "説明を閉じる", footnote: "この説明はページの使い方だけを示します。検索は行わず、物件の内容も変更しません。" },
+  ko: { eyebrow: "페이지 안내", role: "의사결정에서의 역할", see: "여기서 볼 수 있는 것", read: "근거 읽는 법", known: "확인됨", unknown: "아직 알 수 없음", caution: "과도하게 해석하지 마세요", next: "다음 단계", close: "안내 닫기", footnote: "이 안내는 페이지 사용법만 설명합니다. 조회를 실행하거나 사례를 변경하지 않습니다." },
+};
+
+export const pageHelpNextLabels: Record<ExperienceLocale, Record<NextLabel, string>> = {
+  "zh-TW": { address: "前往地址欄", market: "價格與市場", location: "區位與通勤", risk: "風險與環境", money: "購屋資金", overview: "物件總覽", compare: "比較案件", report: "案件報告" },
+  en: { address: "Go to the address field", market: "Price and market", location: "Location and commute", risk: "Risk and environment", money: "Money", overview: "Case overview", compare: "Compare cases", report: "Case report" },
+  ja: { address: "住所欄へ移動", market: "価格と市場", location: "立地と通勤", risk: "リスクと環境", money: "購入資金", overview: "物件概要", compare: "物件を比較", report: "物件レポート" },
+  ko: { address: "주소 입력란으로 이동", market: "가격과 시장", location: "입지와 통근", risk: "위험과 환경", money: "매입 자금", overview: "물건 개요", compare: "사례 비교", report: "사례 보고서" },
+};
+
+export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> = {
+  "zh-TW": {
+    home: {
+      title: "首頁：從一個地址開始",
+      role: "決策流程的起點。輸入地址會建立一個只存在此瀏覽器的案件，之後的市場、區位、風險與資金證據都掛在這個案件下。",
+      see: ["地址欄與「開始物件評估」：建立案件並取得一個待確認的位置。", "「查看完整範例案件」：直接開啟示範案件 A 的看屋前簡報。", "最近案件：從上次保存的進度繼續。"],
+      known: "你輸入的地址，以及此瀏覽器中已保存的案件。",
+      unknown: "開始後只會取得一個「待確認」的位置候選；市場、區位、風險與資金都還沒有查詢。",
+      caution: "建立案件不等於完成分析；範例案件是示範快照，不代表任何真實物件。",
+      next: "輸入地址後先確認位置，再逐項建立看屋前資料包。",
+    },
+    location: {
+      title: "區位與通勤",
+      role: "先確認「這個案件指的是哪裡」。周邊設施、通勤與風險比對，都以你確認過的位置為準。",
+      see: ["位置確認與行政區：確認或修正系統找到的位置。", "周邊設施摘要：交通、生活機能、學校、醫療等類別。", "通勤：到你常去地點的路線與時間（我的地點）。"],
+      known: "你確認過的位置，以及已保存、標示查詢時間的周邊與通勤結果。",
+      unknown: "尚未確認的位置、沒有查詢的設施類別、沒有設定的目的地，都維持未知。",
+      caution: "設施數量不等於生活品質；路線時間是查詢當下的估計，不代表每天的實際通勤。",
+      next: "位置確認後，通常先查價格與市場，再看風險與環境。",
+    },
+    market: {
+      title: "價格與市場",
+      role: "看這一帶最近實際成交在什麼價位，作為判斷開價是否合理的參考。",
+      see: ["主要發現與比較範圍：用了哪個行政區、哪些路段。", "價格推估與可比成交：推估怎麼來、用了哪些成交。", "成交趨勢摘要：近期成交的變化方向與筆數。"],
+      known: "已查詢並保存的實價登錄成交與範圍，每筆結果都附查詢時間。",
+      unknown: "樣本不足、超出範圍或尚未查詢的部分，會標示為未知或資料不足，不會補成數字。",
+      caution: "價格推估不是正式鑑價；趨勢反映的是過去成交，不預測未來漲跌。",
+      next: "接著看區位與通勤，確認生活圈是否符合需求。",
+    },
+    risk: {
+      title: "風險與環境",
+      role: "逐項比對公開的災害與環境圖資，找出看屋前需要追問或實地確認的地方。",
+      see: ["買方摘要：哪些項目需要你特別留意。", "逐項結果：符合、未命中、無法判定，分開列出。", "來源紀錄：每項圖資的來源與時間。"],
+      known: "命中的項目，以及在公開圖資中確實未命中的項目，都附來源。",
+      unknown: "圖資無法取得、超出範圍或已過期時，該項維持「無法判定」。",
+      caution: "未命中不等於安全。這裡沒有整體安全分數，也不取代結構鑑定、地質調查或主管機關判定。",
+      next: "接著看購屋資金，確認價格與每月負擔。",
+    },
+    money: {
+      title: "購屋資金",
+      role: "檢查這個價格是否負擔得起：需要準備的現金、房貸月付與每月持有成本。",
+      see: ["價格基準：用的是開價、推估價或你的出價。", "需要準備的現金與月付估算。", "負擔評估與出價情境。"],
+      known: "你輸入的假設，以及依這些假設計算出的結果。",
+      unknown: "沒有填收入時不會評估負擔；沒有提供的費用會標示未提供，不會當成零。",
+      caution: "結果取決於你填的假設，利率與費用都會變動；這不是貸款核准或財務建議。",
+      next: "保存後到物件總覽，查看整份看屋前簡報。",
+    },
+    overview: {
+      title: "物件總覽 · 看屋前簡報",
+      role: "把市場、區位、風險與資金整理成一份看屋前簡報，是去看屋前最後確認的地方。",
+      see: ["需要特別留意：證據中值得優先追問的項目。", "已掌握與尚未確認：兩份清單分開列出。", "各面向摘要，以及保存時間與資料新鮮度。"],
+      known: "「已掌握」只收錄有證據支持的項目。",
+      unknown: "「尚未確認」會一直保留，提醒你看屋時要問、要查。",
+      caution: "簡報不是買或不買的結論；項目少不代表物件好，可能只是查得少。",
+      next: "有兩個以上案件時去比較案件，或開啟案件報告。",
+    },
+    compare: {
+      title: "比較案件",
+      role: "把兩個以上案件的同一組證據並排，看清楚差異在哪裡、哪裡還缺資料。",
+      see: ["關鍵差異：各案件之間最明顯的不同。", "逐列比較：同一欄位、同一標準並排。", "資料缺口與可比性提醒：哪些比較還不能直接比。"],
+      known: "各案件已保存的證據，用相同欄位並排呈現。",
+      unknown: "缺資料的欄位會標示缺口，不會用其他案件的資料補上。",
+      caution: "系統不會指定贏家，欄位順序也不是排名；哪一項比較重要，由你決定。",
+      next: "決定要深入的案件後，從該案件開啟案件報告。",
+    },
+    report: {
+      title: "案件報告",
+      role: "決策流程的輸出：把案件證據整理成一份可分享、可列印、可追溯來源的報告。",
+      see: ["執行摘要：需要留意的事項與關鍵數字。", "逐項證據與引用來源。", "限制、人工複核事項與附錄。"],
+      known: "報告只引用案件中已保存的證據，並標示每項的來源與時間。",
+      unknown: "尚未確認的項目會原樣列出，不會在報告中消失。",
+      caution: "報告是保存當下的快照，不會自動重新查詢；也不是鑑價、法律或財務意見。",
+      next: "需要補資料時回到物件總覽；有多個候選時到比較案件。",
+    },
+  },
+  en: {
+    home: {
+      title: "Home: start from one address",
+      role: "Where the decision starts. An address creates a case kept only in this browser; market, location, risk and money evidence all attach to it.",
+      see: ["Address and \"Start property review\": creates the case and finds one location to confirm.", "\"View complete example cases\": opens Demo case A's pre-viewing brief directly.", "Recent cases: continue from what you last saved."],
+      known: "The address you entered and the cases saved in this browser.",
+      unknown: "Starting finds one location candidate that still needs your confirmation. Market, location, risk and money have not been queried.",
+      caution: "Creating a case is not a finished analysis. The example cases are demo snapshots, not real properties.",
+      next: "Enter an address, confirm the location, then build the pre-viewing pack one area at a time.",
+    },
+    location: {
+      title: "Location and commute",
+      role: "First confirm where this case actually is. Nearby facilities, commutes and risk checks all use the location you confirmed.",
+      see: ["Location and district: confirm or correct the place that was found.", "Nearby facilities: transport, daily needs, schools and healthcare.", "Commute: routes and times to the places you go often (My places)."],
+      known: "The location you confirmed, plus saved nearby and commute results with their query times.",
+      unknown: "An unconfirmed location, facility types you did not query and destinations you did not set stay unknown.",
+      caution: "A facility count is not quality of life. Route times are estimates at query time, not your daily commute.",
+      next: "Once the location is confirmed, people usually check price and market, then risk and environment.",
+    },
+    market: {
+      title: "Price and market",
+      role: "See what nearby homes actually sold for recently, as a reference for whether the asking price is reasonable.",
+      see: ["Main finding and scope: which district and roads were used.", "Price estimate and comparable sales: how the estimate was built and from which sales.", "Trend summary: the direction and number of recent sales."],
+      known: "Recorded transactions you queried and saved, with their scope and query time.",
+      unknown: "Thin samples, out-of-scope areas and anything not queried are marked unknown or insufficient, never filled in with a number.",
+      caution: "The estimate is not a formal appraisal. Trends describe past sales and do not predict prices.",
+      next: "Next, check location and commute to see whether the area fits your daily life.",
+    },
+    risk: {
+      title: "Risk and environment",
+      role: "Checks public hazard and environment maps item by item, so you know what to ask or inspect before a viewing.",
+      see: ["Buyer summary: the items that need your attention.", "Item results: matched, not matched and cannot be determined, listed separately.", "Source records: where each map came from and when."],
+      known: "Matched items, and items the public maps genuinely did not match, each with its source.",
+      unknown: "When a map is unavailable, out of coverage or outdated, that item stays \"cannot be determined\".",
+      caution: "Not matched does not mean safe. There is no overall safety score, and this does not replace structural, geological or official assessments.",
+      next: "Next, open Money to check the price against what you can carry each month.",
+    },
+    money: {
+      title: "Money",
+      role: "Checks whether the price is affordable: the cash you need, the monthly mortgage and the monthly cost of owning.",
+      see: ["Price basis: asking price, estimate or your own offer.", "Cash needed and monthly payment estimates.", "Affordability and offer scenarios."],
+      known: "The assumptions you entered and the results calculated from them.",
+      unknown: "Without an income, affordability is not assessed. Costs you did not provide are marked as not provided, never as zero.",
+      caution: "Results depend on your assumptions, and rates and fees change. This is not a loan approval or financial advice.",
+      next: "Save, then open Case overview for the full pre-viewing brief.",
+    },
+    overview: {
+      title: "Case overview · Pre-viewing brief",
+      role: "Brings market, location, risk and money together into one pre-viewing brief: the last check before you go and see the home.",
+      see: ["Needs attention: what the evidence suggests you ask about first.", "Known and not yet confirmed: two separate lists.", "A summary per area, with save time and evidence freshness."],
+      known: "\"Known\" only includes items backed by evidence.",
+      unknown: "\"Not yet confirmed\" stays visible as a reminder of what to ask or check at the viewing.",
+      caution: "The brief is not a buy-or-don't verdict. Fewer items does not mean a better home; it may mean less was checked.",
+      next: "With two or more cases, compare them, or open the case report.",
+    },
+    compare: {
+      title: "Compare cases",
+      role: "Puts the same evidence for two or more cases side by side, so you can see where they differ and what is still missing.",
+      see: ["Key differences: the clearest differences between the cases.", "Row by row: the same field, on the same terms, side by side.", "Gaps and comparability notes: what cannot be compared directly yet."],
+      known: "The evidence saved in each case, shown in the same fields.",
+      unknown: "Missing fields are marked as gaps and are never filled in from another case.",
+      caution: "Nothing here picks a winner, and column order is not a ranking. You decide which differences matter.",
+      next: "Once you know which case to look into, open that case's report.",
+    },
+    report: {
+      title: "Case report",
+      role: "The output of the decision flow: the case evidence as one shareable, printable report with traceable sources.",
+      see: ["Executive summary: points that need attention and key figures.", "Evidence item by item, with citations.", "Limitations, manual review items and the appendix."],
+      known: "The report cites only evidence saved in the case, with each item's source and time.",
+      unknown: "Unconfirmed items are listed as they are; they never disappear from the report.",
+      caution: "The report is a snapshot from when it was saved and does not re-query. It is not an appraisal, legal or financial opinion.",
+      next: "To fill gaps, go back to Case overview; with several candidates, compare cases.",
+    },
+  },
+  ja: {
+    home: {
+      title: "ホーム：住所ひとつから始める",
+      role: "判断の出発点です。住所を入力すると、このブラウザだけに保存される物件が作られ、市場・立地・リスク・資金の根拠はすべてこの物件にまとまります。",
+      see: ["住所欄と「物件の検討を開始」：物件を作成し、確認待ちの位置をひとつ見つけます。", "「完全な事例を見る」：デモ物件 A の内見前ブリーフを直接開きます。", "最近の物件：前回保存した続きから再開します。"],
+      known: "入力した住所と、このブラウザに保存された物件。",
+      unknown: "開始時に得られるのは確認待ちの位置候補ひとつだけです。市場・立地・リスク・資金はまだ検索していません。",
+      caution: "物件の作成は分析の完了ではありません。例の物件はデモ用のスナップショットで、実在の物件ではありません。",
+      next: "住所を入力して位置を確認し、内見前の資料を一項目ずつ揃えます。",
+    },
+    location: {
+      title: "立地と通勤",
+      role: "まず「この物件がどこか」を確認します。周辺施設・通勤・リスク照合はすべて確認した位置を基準にします。",
+      see: ["位置と行政区：見つかった位置を確認または修正します。", "周辺施設：交通・生活利便・学校・医療など。", "通勤：よく行く場所までのルートと時間（マイプレイス）。"],
+      known: "確認した位置と、検索時刻付きで保存された周辺・通勤の結果。",
+      unknown: "未確認の位置、検索していない施設の種類、設定していない目的地は不明のままです。",
+      caution: "施設の数は暮らしやすさそのものではありません。所要時間は検索時点の目安で、毎日の通勤時間ではありません。",
+      next: "位置を確認したら、通常は価格と市場、次にリスクと環境を見ます。",
+    },
+    market: {
+      title: "価格と市場",
+      role: "周辺で最近実際にいくらで取引されたかを見て、売り出し価格が妥当かを判断する参考にします。",
+      see: ["主な結果と範囲：どの行政区・路線を使ったか。", "価格推定と比較事例：推定の根拠と使った取引。", "取引動向の概要：最近の取引の方向と件数。"],
+      known: "検索して保存した実取引データとその範囲、各結果の検索時刻。",
+      unknown: "サンプル不足・範囲外・未検索の部分は不明またはデータ不足と表示され、数字で補われることはありません。",
+      caution: "価格推定は正式な鑑定ではありません。動向は過去の取引を示すもので、将来の価格を予測しません。",
+      next: "次に立地と通勤で、生活圏が合うか確認します。",
+    },
+    risk: {
+      title: "リスクと環境",
+      role: "公開されている災害・環境マップを項目ごとに照合し、内見前に質問・確認すべき点を見つけます。",
+      see: ["購入者向けサマリー：特に注意が必要な項目。", "項目別の結果：該当・非該当・判定不可を分けて表示。", "出典記録：各マップの出典と時点。"],
+      known: "該当した項目と、公開マップで実際に該当しなかった項目。いずれも出典付きです。",
+      unknown: "マップが取得できない・範囲外・古い場合、その項目は「判定できません」のままです。",
+      caution: "非該当は安全という意味ではありません。全体の安全スコアはなく、構造・地質の調査や行政の判断の代わりにもなりません。",
+      next: "次に購入資金で、価格と毎月の負担を確認します。",
+    },
+    money: {
+      title: "購入資金",
+      role: "この価格が無理なく払えるかを確認します：必要な現金、毎月のローン返済、毎月の保有コスト。",
+      see: ["価格の基準：売り出し価格・推定価格・あなたの提示価格のどれか。", "必要な現金と月々の返済の試算。", "負担の評価と提示価格のシナリオ。"],
+      known: "入力した前提と、それに基づく計算結果。",
+      unknown: "収入が未入力なら負担は評価しません。入力していない費用は「未入力」と表示され、ゼロとしては扱いません。",
+      caution: "結果は入力した前提次第で、金利や費用は変わります。ローン審査や金融アドバイスではありません。",
+      next: "保存したら物件概要で内見前ブリーフ全体を確認します。",
+    },
+    overview: {
+      title: "物件概要 · 内見前ブリーフ",
+      role: "市場・立地・リスク・資金をひとつの内見前ブリーフにまとめます。内見に行く前の最終確認の場所です。",
+      see: ["特に注意が必要：根拠から優先して確認したい項目。", "分かっていること・未確認：二つのリストに分けて表示。", "分野別の要約と、保存時刻・根拠の鮮度。"],
+      known: "「分かっていること」には根拠のある項目だけが入ります。",
+      unknown: "「未確認」は残り続け、内見で質問・確認すべきことを示します。",
+      caution: "ブリーフは買う・買わないの結論ではありません。項目が少ないのは物件が良いからではなく、調べた範囲が狭いだけかもしれません。",
+      next: "物件が二つ以上あれば比較へ、または物件レポートを開きます。",
+    },
+    compare: {
+      title: "物件を比較",
+      role: "二つ以上の物件の同じ根拠を並べ、どこが違うか、何がまだ足りないかを見ます。",
+      see: ["主な違い：物件間でいちばんはっきりした違い。", "行ごとの比較：同じ項目を同じ基準で並べます。", "データの欠落と比較可能性の注意：まだ直接比べられない点。"],
+      known: "各物件に保存された根拠を、同じ項目で並べて表示します。",
+      unknown: "データがない項目は欠落として表示され、他の物件のデータで補われることはありません。",
+      caution: "勝者を決めることはなく、列の順番も順位ではありません。どの違いが大事かはあなたが決めます。",
+      next: "詳しく見る物件が決まったら、その物件のレポートを開きます。",
+    },
+    report: {
+      title: "物件レポート",
+      role: "判断の流れの成果物です。物件の根拠を、共有・印刷でき出典をたどれるレポートにまとめます。",
+      see: ["エグゼクティブサマリー：注意点と主要な数字。", "項目別の根拠と引用元。", "制約、手動確認が必要な事項、付録。"],
+      known: "レポートは物件に保存された根拠だけを引用し、各項目の出典と時点を示します。",
+      unknown: "未確認の項目はそのまま載り、レポートから消えることはありません。",
+      caution: "レポートは保存時点のスナップショットで、自動で再検索はしません。鑑定・法律・金融の意見でもありません。",
+      next: "情報を補うなら物件概要へ、候補が複数あれば比較へ。",
+    },
+  },
+  ko: {
+    home: {
+      title: "홈: 주소 하나로 시작하기",
+      role: "의사결정의 출발점입니다. 주소를 입력하면 이 브라우저에만 저장되는 사례가 만들어지고, 시장·입지·위험·자금 근거가 모두 이 사례에 연결됩니다.",
+      see: ["주소 입력과 \"부동산 검토 시작\": 사례를 만들고 확인할 위치 하나를 찾습니다.", "\"전체 예시 사례 보기\": 데모 사례 A의 방문 전 브리프를 바로 엽니다.", "최근 사례: 마지막으로 저장한 진행 상황에서 이어갑니다."],
+      known: "입력한 주소와 이 브라우저에 저장된 사례.",
+      unknown: "시작하면 확인이 필요한 위치 후보 하나만 얻습니다. 시장·입지·위험·자금은 아직 조회하지 않았습니다.",
+      caution: "사례를 만든다고 분석이 끝난 것은 아닙니다. 예시 사례는 데모 스냅숏이며 실제 부동산이 아닙니다.",
+      next: "주소를 입력하고 위치를 확인한 뒤, 방문 전 자료를 한 영역씩 채웁니다.",
+    },
+    location: {
+      title: "입지와 통근",
+      role: "먼저 이 사례가 정확히 어디인지 확인합니다. 주변 시설, 통근, 위험 대조는 모두 확인한 위치를 기준으로 합니다.",
+      see: ["위치와 행정구역: 찾은 위치를 확인하거나 수정합니다.", "주변 시설: 교통, 생활 편의, 학교, 의료 등.", "통근: 자주 가는 곳까지의 경로와 시간(내 장소)."],
+      known: "확인한 위치, 그리고 조회 시각과 함께 저장된 주변·통근 결과.",
+      unknown: "확인하지 않은 위치, 조회하지 않은 시설 유형, 설정하지 않은 목적지는 알 수 없음으로 남습니다.",
+      caution: "시설 수가 곧 생활의 질은 아닙니다. 경로 시간은 조회 시점의 추정치이며 매일의 통근 시간이 아닙니다.",
+      next: "위치를 확인한 뒤에는 보통 가격과 시장, 다음으로 위험과 환경을 봅니다.",
+    },
+    market: {
+      title: "가격과 시장",
+      role: "주변에서 최근 실제로 얼마에 거래되었는지 보고, 호가가 적절한지 판단하는 참고로 삼습니다.",
+      see: ["주요 결과와 범위: 어느 행정구역과 도로를 사용했는지.", "가격 추정과 비교 거래: 추정의 근거와 사용한 거래.", "거래 추세 요약: 최근 거래의 방향과 건수."],
+      known: "조회해서 저장한 실거래 기록과 그 범위, 각 결과의 조회 시각.",
+      unknown: "표본 부족, 범위 밖, 조회하지 않은 부분은 알 수 없음 또는 자료 부족으로 표시되며 숫자로 채우지 않습니다.",
+      caution: "가격 추정은 정식 감정이 아닙니다. 추세는 과거 거래를 보여줄 뿐 향후 가격을 예측하지 않습니다.",
+      next: "다음으로 입지와 통근에서 생활권이 맞는지 확인합니다.",
+    },
+    risk: {
+      title: "위험과 환경",
+      role: "공개된 재해·환경 지도를 항목별로 대조해, 방문 전에 묻거나 직접 확인할 점을 찾습니다.",
+      see: ["구매자 요약: 특히 주의가 필요한 항목.", "항목별 결과: 해당, 해당 없음, 판단 불가를 나누어 표시.", "출처 기록: 각 지도의 출처와 시점."],
+      known: "해당된 항목과, 공개 지도에서 실제로 해당되지 않은 항목. 모두 출처가 함께 표시됩니다.",
+      unknown: "지도를 가져올 수 없거나 범위 밖이거나 오래된 경우 그 항목은 \"판단할 수 없음\"으로 남습니다.",
+      caution: "해당 없음이 안전하다는 뜻은 아닙니다. 전체 안전 점수는 없으며 구조·지질 조사나 관계 기관의 판단을 대신하지 않습니다.",
+      next: "다음으로 매입 자금에서 가격과 매월 부담을 확인합니다.",
+    },
+    money: {
+      title: "매입 자금",
+      role: "이 가격을 감당할 수 있는지 확인합니다: 준비할 현금, 월 대출 상환액, 매월 보유 비용.",
+      see: ["가격 기준: 호가, 추정가, 또는 내가 제시할 가격.", "필요한 현금과 월 상환액 추정.", "부담 평가와 제시 가격 시나리오."],
+      known: "입력한 가정과 그 가정으로 계산한 결과.",
+      unknown: "소득을 입력하지 않으면 부담을 평가하지 않습니다. 입력하지 않은 비용은 '미입력'으로 표시되며 0으로 처리하지 않습니다.",
+      caution: "결과는 입력한 가정에 따라 달라지며 금리와 비용은 변합니다. 대출 승인이나 금융 조언이 아닙니다.",
+      next: "저장한 뒤 물건 개요에서 방문 전 브리프 전체를 확인합니다.",
+    },
+    overview: {
+      title: "물건 개요 · 방문 전 브리프",
+      role: "시장·입지·위험·자금을 하나의 방문 전 브리프로 모읍니다. 집을 보러 가기 전 마지막으로 확인하는 곳입니다.",
+      see: ["특히 주의할 사항: 근거상 먼저 확인할 항목.", "확인된 내용과 아직 확인되지 않음: 두 목록으로 나누어 표시.", "영역별 요약과 저장 시각, 근거의 최신성."],
+      known: "\"확인된 내용\"에는 근거가 있는 항목만 들어갑니다.",
+      unknown: "\"아직 확인되지 않음\"은 계속 남아, 방문 때 묻고 확인할 것을 알려 줍니다.",
+      caution: "브리프는 살지 말지의 결론이 아닙니다. 항목이 적다고 좋은 집이 아니라, 확인한 범위가 좁았을 수 있습니다.",
+      next: "사례가 둘 이상이면 비교하거나, 사례 보고서를 엽니다.",
+    },
+    compare: {
+      title: "사례 비교",
+      role: "둘 이상의 사례에서 같은 근거를 나란히 놓고, 어디가 다른지와 무엇이 아직 빠졌는지 봅니다.",
+      see: ["주요 차이: 사례 간 가장 뚜렷한 차이.", "행별 비교: 같은 항목을 같은 기준으로 나란히.", "자료 공백과 비교 가능성 안내: 아직 바로 비교할 수 없는 점."],
+      known: "각 사례에 저장된 근거를 같은 항목으로 나란히 보여 줍니다.",
+      unknown: "자료가 없는 항목은 공백으로 표시되며 다른 사례의 자료로 채우지 않습니다.",
+      caution: "승자를 정하지 않으며 열 순서도 순위가 아닙니다. 어떤 차이가 중요한지는 직접 판단합니다.",
+      next: "자세히 볼 사례를 정했다면 그 사례의 보고서를 엽니다.",
+    },
+    report: {
+      title: "사례 보고서",
+      role: "의사결정 흐름의 결과물입니다. 사례 근거를 공유·인쇄할 수 있고 출처를 추적할 수 있는 보고서로 정리합니다.",
+      see: ["요약: 주의할 점과 주요 수치.", "항목별 근거와 인용 출처.", "한계, 수동 검토 사항, 부록."],
+      known: "보고서는 사례에 저장된 근거만 인용하고, 각 항목의 출처와 시점을 표시합니다.",
+      unknown: "확인되지 않은 항목은 그대로 실리며 보고서에서 사라지지 않습니다.",
+      caution: "보고서는 저장 시점의 스냅숏이며 자동으로 다시 조회하지 않습니다. 감정, 법률, 금융 의견이 아닙니다.",
+      next: "자료를 보완하려면 물건 개요로, 후보가 여럿이면 사례 비교로 갑니다.",
+    },
+  },
+};

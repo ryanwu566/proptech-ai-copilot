@@ -139,7 +139,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .commercial-global-tools select { max-width: 110px; }
   .commercial-methods__panel { max-height: min(65dvh, calc(100dvh - 190px)); }
 }
-@media print { .case-workflow-handoff, .case-command-trigger { display: none !important; } }
+@media print { .case-workflow-handoff, .case-command-trigger, .page-help-trigger { display: none !important; } }
 /* Phones: one compact header row. Destinations and account tools scroll sideways behind an edge fade;
    headers with the accessibility popover keep their wrapped layout so the popover is never clipped. */
 @media (max-width: 767px) {
@@ -163,11 +163,16 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .case-command-trigger:active { transform: scale(0.97); transition-duration: 60ms; }
 .case-command-trigger:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
 .case-command-trigger kbd { display: inline-block; flex-shrink: 0; padding: 1px 6px; border: 1px solid var(--border-subtle); border-radius: var(--radius-pill); background: var(--surface-secondary); color: var(--text-secondary); font: 11px/1.6 var(--font-sans); }
+.page-help-trigger { position: fixed; z-index: var(--z-sticky, 20); right: 20px; bottom: 76px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid var(--border-subtle); border-radius: 50%; background: var(--surface-primary); color: var(--text-secondary); box-shadow: var(--shadow-raised); cursor: pointer; -webkit-tap-highlight-color: transparent; transition: color var(--duration-feedback) var(--ease-standard), border-color var(--duration-feedback) var(--ease-standard), box-shadow var(--duration-standard) var(--ease-standard), transform var(--duration-standard) var(--ease-out); }
+.page-help-trigger:hover, .page-help-trigger[aria-expanded="true"] { border-color: var(--border-control); color: var(--action); box-shadow: 0 2px 4px rgb(15 23 42 / 0.05), 0 12px 28px rgb(15 23 42 / 0.09); }
+.page-help-trigger:active { transform: scale(0.94); transition-duration: 60ms; }
+.page-help-trigger:focus-visible { outline: 2px solid var(--action); outline-offset: 3px; }
 /* Phones: a 44px search button; the label stays as its accessible name. */
 @media (max-width: 600px) {
   .case-command-trigger { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); width: 44px; height: 44px; padding: 0; justify-content: center; }
   .case-command-trigger kbd { display: none; }
   .case-command-trigger__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .page-help-trigger { right: 12px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 52px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -176,5 +181,5 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
     animation: none !important;
     transition-duration: 0.01ms !important;
   }
-  .case-command-trigger:active { transform: none; }
+  .case-command-trigger:active, .page-help-trigger:active { transform: none; }
 }

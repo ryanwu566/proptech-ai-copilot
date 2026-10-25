@@ -13,6 +13,7 @@ const STAGED = {
   "components/workspace/workspace-shell.module.css": ["case-fade", "case-settle"],
   "components/workspace/overview/overview-view.module.css": ["brief-group"],
   "components/evidence/evidence.module.css": ["compare-settle", "compare-fade", "report-sheet"],
+  "components/page-help/page-help.module.css": ["help-sheet", "help-sheet-rise", "help-fade", "help-settle", "help-land", "help-land-diamond"],
 };
 
 /** Every top-level `@media <query>` block body with that exact query. */
