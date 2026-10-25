@@ -31,6 +31,15 @@
 .provenance dt { color: var(--text-muted); }
 .provenance dd { margin: 0; overflow-wrap: anywhere; }
 
+/* Entering the Brief from another section, the three decision groups arrive in reading order:
+   what needs attention, then what is known, then what is still unknown. Same motion for every group. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  :global([data-route-enter]) .decisionGrid > .decisionGroup { animation: brief-group var(--duration-settle) var(--ease-out) backwards; animation-delay: calc(3 * var(--motion-stagger)); }
+  :global([data-route-enter]) .decisionGrid > .decisionGroup:nth-child(2) { animation-delay: calc(4 * var(--motion-stagger)); }
+  :global([data-route-enter]) .decisionGrid > .decisionGroup:nth-child(3) { animation-delay: calc(5 * var(--motion-stagger)); }
+}
+@keyframes brief-group { from { opacity: 0; transform: translateY(var(--motion-rise)); } }
+
 @media (min-width: 1100px) {
   .domains { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

@@ -61,7 +61,7 @@
   .reportTable th { color: var(--text-secondary); font-weight: 500; }
 }
 @media screen and (min-width: 768px) {
-  .selection label { transition: border-color var(--duration-feedback) var(--ease-standard), background-color var(--duration-feedback) var(--ease-standard); }
+  .selection label { transition: border-color var(--duration-feedback) var(--ease-standard), background-color var(--duration-feedback) var(--ease-standard), box-shadow var(--duration-standard) var(--ease-standard), transform var(--duration-standard) var(--ease-out); }
   .selection label:hover { border-color: var(--border-control); }
   .selection label:has(input:checked) { border-color: var(--action); background: var(--action-subtle); }
   /* Compare reads by rows: hairlines between rows, no full cell grid. */
@@ -71,9 +71,27 @@
   /* Case columns stay labelled while reading down; only rows that genuinely differ get a quiet tint. Never a winner. */
   .table thead th { position: sticky; top: 0; z-index: 1; background: var(--canvas); box-shadow: inset 0 -1px var(--border-strong); }
   .table tr[data-row-relation="differs"] td { background: color-mix(in srgb, var(--action-subtle) 55%, transparent); }
+  .table tbody tr { transition: background-color var(--duration-fast) var(--ease-standard); }
+}
+/* Selectable cases are the only Compare surfaces that lift: depth marks what can be picked, never a preferred case. */
+@media screen and (min-width: 768px) and (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .selection label:hover { transform: translateY(-1px); box-shadow: var(--shadow-lift); }
+}
+/* Compare enters in one motion: every case column arrives together (no case leads), then each evidence area
+   fades in one short stagger after the last. Rows revealed later by "show all" fade in the same way. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  .table thead th, .mobileHeader { animation: compare-settle var(--duration-settle) var(--ease-out) backwards; }
+  .table tbody tr, .mobileRow { animation: compare-fade var(--duration-panel) var(--ease-standard) backwards; animation-delay: var(--motion-stagger); }
+  .table tbody:nth-of-type(2) tr { animation-delay: calc(2 * var(--motion-stagger)); }
+  .table tbody:nth-of-type(n + 3) tr { animation-delay: calc(3 * var(--motion-stagger)); }
+  /* The report lands as a finished sheet of paper: one settle, screen only, never in print. */
+  .reportEvidence { animation: report-sheet var(--duration-settle) var(--ease-out) var(--motion-stagger) backwards; }
   .table td :global([data-numeric]), .table td .numeric { text-align: right; }
 }
 .reportEvidence { display: grid; gap: var(--space-6); }
+@keyframes compare-settle { from { opacity: 0; transform: translateY(calc(var(--motion-rise) / 2)); } }
+@keyframes compare-fade { from { opacity: 0; } }
+@keyframes report-sheet { from { opacity: 0; transform: translateY(var(--motion-rise)); } }
 .reportTable th, .reportLabelColumn { width: 32%; }
 /* Page-one executive summary: one bordered block, stacked lists, no dense grid. */
 .executive { display: grid; gap: var(--space-4); padding: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel); background: var(--surface-secondary); min-width: 0; }

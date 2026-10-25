@@ -134,8 +134,13 @@
   --duration-panel: 240ms;
   --duration-page: 240ms;
   --duration-route: var(--duration-page);
+  /* Staged content and deliverables settling into place; each step in a sequence starts one stagger later. */
+  --duration-settle: 360ms;
+  --motion-stagger: 40ms;
+  --motion-rise: 8px;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --shadow-lift: 0 1px 2px rgb(15 23 42 / 0.05), 0 6px 16px rgb(15 23 42 / 0.08);
 
   --width-content: 90rem;
   --width-reading: 60rem;
@@ -210,6 +215,11 @@ html:is(:lang(zh-TW), :lang(zh-Hant), :lang(ja)) body { line-break: strict; }
 .ds-button--touch { min-height: var(--control-touch); }
 .ds-button--primary { background: var(--action); color: var(--text-inverse); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 1px 2px rgb(8 58 77 / 0.24); }
 .ds-button--primary:hover { background: var(--action-hover); }
+/* Only the primary action lifts on hover, so the strongest feedback marks the one next step. Pointer devices only;
+   pressing drops the lift so the press scale above still reads. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .ds-button--primary:not(:disabled):not([aria-disabled="true"]):not(:active):hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 4px 12px rgb(8 58 77 / 0.22); }
+}
 .ds-button--primary:active { background: var(--action-active); box-shadow: none; }
 /* Secondary actions are a quiet filled surface, not an outline competing with the primary. */
 .ds-button--secondary { background: var(--surface-sunken); border-color: transparent; color: var(--text-primary); }
@@ -234,8 +244,9 @@ html:is(:lang(zh-TW), :lang(zh-Hant), :lang(ja)) body { line-break: strict; }
 .ds-unit-input .ds-control { min-width: 0; border: 0; border-radius: 0; outline: 0; }
 .ds-unit-input__adornment { display: inline-flex; align-items: center; flex: none; background: var(--surface-secondary); color: var(--text-secondary); padding: 0 var(--space-3); font-size: var(--text-dense-size); }
 
-.ds-status { display: inline-flex; align-items: center; gap: var(--space-2); width: fit-content; border: 1px solid var(--status-border); border-radius: var(--radius-pill); background: var(--status-surface); color: var(--status-color); padding: var(--space-1) var(--space-2); font-size: var(--text-meta-size); font-weight: 600; line-height: var(--text-meta-line); }
-.ds-status__icon { font-weight: 800; }
+/* Evidence state changes cross-fade rather than snap, so a status that just changed is noticed once. */
+.ds-status { display: inline-flex; align-items: center; gap: var(--space-2); width: fit-content; border: 1px solid var(--status-border); border-radius: var(--radius-pill); background: var(--status-surface); color: var(--status-color); padding: var(--space-1) var(--space-2); font-size: var(--text-meta-size); font-weight: 600; line-height: var(--text-meta-line); transition: color var(--duration-standard) var(--ease-standard), background-color var(--duration-standard) var(--ease-standard), border-color var(--duration-standard) var(--ease-standard); }
+.ds-status__icon { font-weight: 800; transition: background-color var(--duration-standard) var(--ease-standard), box-shadow var(--duration-standard) var(--ease-standard); }
 /* Quiet status on screen: a small dot and ink text. Only warning and error keep a tinted pill, so
    attention is reserved for what needs it. Neutral (unknown, not assessed) uses a hollow ring that
    stays as legible as a known state and never reads as "clear". */
@@ -334,6 +345,7 @@ html:is(:lang(zh-TW), :lang(zh-Hant), :lang(ja)) body { line-break: strict; }
 @media (prefers-reduced-motion: reduce) {
   .ds-button { transition-duration: 0.01ms; }
   .ds-button:not(:disabled):active { transform: none; }
+  .ds-status, .ds-status__icon { transition: none; }
   .ds-spinner { animation: none; }
   .ds-disclosure__summary::before { transition: none; }
   .ds-disclosure[open] > .ds-disclosure__content, .ds-reveal { animation: none; }

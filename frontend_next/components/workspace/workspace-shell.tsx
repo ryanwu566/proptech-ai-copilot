@@ -16,7 +16,7 @@ let settledPath: string | null = null;
 function RouteEnter({ path, children }: { path: string; children: ReactNode }) {
   const [animate] = useState(() => settledPath !== null && settledPath !== path);
   useEffect(() => { settledPath = path; }, [path]);
-  return <div className={animate ? `${styles.page} ${styles.enter}` : styles.page} data-case-route-content>{children}</div>;
+  return <div className={animate ? `${styles.page} ${styles.enter}` : styles.page} data-case-route-content data-route-enter={animate ? "" : undefined}>{children}</div>;
 }
 
 /**

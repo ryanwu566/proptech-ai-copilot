@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test:design-system": "node --test scripts/commercial-design-foundations.test.mjs",
-    "test:entrance": "node --test scripts/app-entrance-motion.test.mjs",
+    "test:entrance": "node --test scripts/app-entrance-motion.test.mjs scripts/motion-polish.test.mjs",
     "test:e2e:entrance": "npm run build:e2e && node e2e/run-e2e.cjs e2e/app-entrance-motion.spec.ts --project=chromium --workers=1 --retries=0",
     "test:reliability": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/monetary-units.test.ts lib/valuation-result-state.test.ts",
     "test:preferences": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/preferences/profile.test.ts lib/preferences/tradeoff.test.ts",

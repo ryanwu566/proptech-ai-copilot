@@ -42,7 +42,7 @@
 .item:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .label { display: flex; align-items: center; gap: 6px; font-size: var(--text-dense-size); font-weight: 600; }
 /* Hollow ring = not known yet; filled = known; amber = needs attention. Never a score. */
-.dot { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; opacity: 0.55; transition: opacity var(--duration-base) var(--ease-standard); }
+.dot { width: 6px; height: 6px; flex: 0 0 6px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px currentColor; opacity: 0.55; transition: opacity var(--duration-base) var(--ease-standard), background-color var(--duration-base) var(--ease-standard), box-shadow var(--duration-base) var(--ease-standard); }
 .item[data-pulse-state="known"] .dot, .item[data-pulse-state="available"] .dot { background: currentColor; opacity: 0.75; }
 .item[data-pulse-state="needs_attention"] .dot { background: var(--status-warning-border); box-shadow: none; opacity: 1; }
 .value { padding-left: 12px; font-size: var(--text-meta-size); line-height: var(--text-meta-line); color: var(--text-secondary); animation: reveal var(--duration-enter) var(--ease-out); }
