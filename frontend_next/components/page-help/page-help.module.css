@@ -1,0 +1,92 @@
+/*
+ * The page guide shares the entrance's motion language: the sheet arrives from the edge it is anchored to, its
+ * blocks settle one stagger step apart, and the evidence markers land last, like the entrance's evidence points.
+ * Opening takes about 520ms, all transform and opacity; closing is instant. Reduced motion and print stay still.
+ */
+.sheet {
+  position: fixed;
+  inset: 12px 12px 12px auto;
+  width: min(420px, calc(100vw - 24px));
+  max-width: none;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  color: var(--text-primary);
+  background: var(--surface-primary);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 24px 64px rgb(23 32 51 / 0.18);
+}
+.sheet[open] { display: flex; flex-direction: column; }
+.sheet::backdrop { background: rgb(23 32 51 / 0.24); }
+
+.head { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); padding: var(--space-5) var(--space-5) var(--space-4); border-bottom: 1px solid var(--border-subtle); }
+.head h2 { margin: var(--space-1) 0 0; font-size: var(--text-section-size); line-height: var(--text-section-line); font-weight: 650; letter-spacing: -0.01em; outline: none; overflow-wrap: anywhere; }
+.eyebrow { margin: 0; color: var(--action); font-size: var(--text-meta-size); line-height: var(--text-meta-line); font-weight: 650; letter-spacing: 0.02em; }
+.close { flex: none; display: grid; place-items: center; width: 44px; height: 44px; margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0 0; border: 0; border-radius: 10px; background: transparent; color: var(--text-secondary); cursor: pointer; transition: background-color var(--duration-feedback) var(--ease-standard); }
+.close:hover { background: var(--surface-secondary); }
+.close:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+.body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: var(--space-2) var(--space-5) var(--space-5); }
+.block { padding-block: var(--space-4); }
+.block + .block { border-top: 1px solid var(--border-subtle); }
+.block h3 { margin: 0 0 var(--space-2); color: var(--text-muted); font-size: var(--text-meta-size); line-height: var(--text-meta-line); font-weight: 650; letter-spacing: 0.02em; }
+.block p { margin: 0; font-size: var(--text-body-size); line-height: var(--text-body-line); color: var(--text-secondary); }
+.block .lead { color: var(--text-primary); font-size: 0.9375rem; line-height: 1.6; }
+
+.see { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; counter-reset: see; }
+.see li { position: relative; padding-left: 28px; font-size: var(--text-body-size); line-height: var(--text-body-line); color: var(--text-secondary); counter-increment: see; }
+.see li::before { content: counter(see); position: absolute; left: 0; top: 1px; display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid var(--border-subtle); border-radius: 50%; color: var(--action); font-size: 11px; font-weight: 650; line-height: 1; }
+
+.legend { display: grid; gap: var(--space-3); margin: 0; }
+.legend > div { display: grid; gap: 2px; }
+.legend dt { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-dense-size); line-height: var(--text-dense-line); font-weight: 650; }
+.legend dd { margin: 0 0 0 18px; font-size: var(--text-body-size); line-height: var(--text-body-line); color: var(--text-secondary); }
+/* Shapes, not only colour: solid for confirmed, hollow for unknown, an outlined diamond for caution. */
+.marker { flex: none; width: 10px; height: 10px; border-radius: 50%; }
+[data-state="known"] .marker { background: var(--action); }
+[data-state="unknown"] .marker { box-shadow: inset 0 0 0 1.5px var(--status-neutral); }
+[data-state="caution"] .marker { width: 9px; height: 9px; border-radius: 1px; box-shadow: inset 0 0 0 1.5px var(--status-warning); transform: rotate(45deg); }
+
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
+.actions > a > span { transition: transform var(--duration-standard) var(--ease-out); }
+.foot { padding: var(--space-3) var(--space-5) calc(var(--space-3) + env(safe-area-inset-bottom)); border-top: 1px solid var(--border-subtle); background: var(--surface-secondary); }
+.foot p { margin: 0; color: var(--text-muted); font-size: var(--text-meta-size); line-height: var(--text-meta-line); }
+
+@media (max-width: 600px) {
+  /* A bottom sheet: it rises from the edge it is anchored to. */
+  .sheet { inset: auto 0 0; width: 100%; max-height: 86dvh; border-bottom: 0; border-radius: 18px 18px 0 0; }
+  .head { padding-top: var(--space-6); }
+  .head::before { content: ""; position: absolute; top: 8px; left: 50%; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--border-subtle); }
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .sheet[open] { animation: help-sheet var(--duration-settle) var(--ease-out); }
+  .sheet[open]::backdrop { animation: help-fade var(--duration-panel) var(--ease-standard); }
+  .head, .block { animation: help-settle var(--duration-settle) var(--ease-out) both; }
+  .head { animation-delay: 60ms; }
+  .block:nth-child(1) { animation-delay: calc(60ms + 1 * var(--motion-stagger)); }
+  .block:nth-child(2) { animation-delay: calc(60ms + 2 * var(--motion-stagger)); }
+  .block:nth-child(3) { animation-delay: calc(60ms + 3 * var(--motion-stagger)); }
+  .block:nth-child(4) { animation-delay: calc(60ms + 4 * var(--motion-stagger)); }
+  .legend > div:nth-child(1) .marker { animation: help-land 200ms var(--ease-out) 280ms both; }
+  .legend > div:nth-child(2) .marker { animation: help-land 200ms var(--ease-out) 320ms both; }
+  .legend > div:nth-child(3) .marker { animation: help-land-diamond 200ms var(--ease-out) 360ms both; }
+  @media (hover: hover) { .actions > a:hover > span { transform: translateX(3px); } }
+  @media (max-width: 600px) { .sheet[open] { animation-name: help-sheet-rise; } }
+}
+@keyframes help-sheet { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes help-sheet-rise { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: none; } }
+@keyframes help-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes help-settle { from { opacity: 0; transform: translateY(var(--motion-rise)); } to { opacity: 1; transform: none; } }
+@keyframes help-land { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: none; } }
+@keyframes help-land-diamond { from { opacity: 0; transform: rotate(45deg) scale(0.4); } to { opacity: 1; transform: rotate(45deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .close, .actions > a > span { transition: none; }
+}
+@media print {
+  .sheet { display: none !important; }
+}

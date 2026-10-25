@@ -18,6 +18,9 @@ const onTop = (page: Page, name: string) => page.getByRole("button", { name, exa
 async function openHome(page: Page) {
   await page.goto("/");
   await expect(page.locator(".commercial-home [data-page-heading]")).toBeFocused();
+  // The document-load opening (and the start layering it gates) is its own one-shot sequence, covered by
+  // app-entrance-motion.spec.ts; the hero's own motion is measured once it has lifted.
+  await expect(page.locator("[data-app-entrance]")).toHaveCount(0, { timeout: 5_000 });
 }
 
 for (const [width, height, source] of [[1440, 900, "home-hero-taipei-desktop"], [390, 844, "home-hero-taipei-mobile"], [1920, 1080, "home-hero-taipei-desktop"], [1024, 768, "home-hero-taipei-desktop"], [430, 932, "home-hero-taipei-mobile"]] as const) {

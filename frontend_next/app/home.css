@@ -67,6 +67,15 @@
   .commercial-recent-cases li { grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-2); }
   .commercial-recent-cases li > div { grid-column: 1/-1; }
 }
+/* Opening layering: while the document-load entrance lifts (1200–1800ms), the start content settles in behind it,
+   heading first, then the address form, then the example and secondary entries. Gated on the entrance layer itself,
+   so in-app navigation to Home stays still, and every step ends by 1800ms, when the layer unmounts. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  body:has(> [data-app-entrance]) .commercial-home__start > header { animation: home-arrive 520ms var(--ease-out) 1150ms both; }
+  body:has(> [data-app-entrance]) .commercial-home__form { animation: home-arrive 520ms var(--ease-out) 1220ms both; }
+  body:has(> [data-app-entrance]) :is(.commercial-home__example, .commercial-home__secondary) { animation: home-arrive 520ms var(--ease-out) 1280ms both; }
+}
+@keyframes home-arrive { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @media print {
   .commercial-home-hero { display: none !important; }
 }

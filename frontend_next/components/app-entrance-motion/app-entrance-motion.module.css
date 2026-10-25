@@ -1,10 +1,13 @@
 /*
- * Entrance sequence, 1000ms total, transform and opacity only:
- *   0–420ms    mark settles (opacity, scale 0.92 → 1)
- *   120–480ms  wordmark rises 6px into place
- *   220–620ms  evidence rule draws left to right
- *   300–660ms  three evidence points land on the rule, 80ms apart
- *   640–1000ms layer fades out while the stage recedes; ends hidden, then unmounts
+ * "Entering the Decision Room", 1800ms total, transform and opacity only:
+ *   0–700ms     the room lights: a soft glow rises behind the stage
+ *   0–560ms     mark arrives from depth with a slight settle; a hairline ring opens once around it (160–1000ms)
+ *   260–740ms   wordmark rises into place
+ *   480–1000ms  evidence rule draws left to right
+ *   600–1040ms  four evidence points land, 80ms apart; one stays hollow, because unknown stays unknown
+ *   1100–1600ms the stage moves toward the viewer and fades, as if walking through it
+ *   1200–1800ms the canvas lifts; Home's start content settles in behind it (see home.css); then it unmounts
+ * Any pointer, wheel or key press fast-forwards to the end, so the entrance never delays a first action.
  */
 .layer {
   position: fixed;
@@ -12,83 +15,116 @@
   z-index: calc(var(--z-toast) + 10);
   display: grid;
   place-items: center;
+  overflow: hidden;
   background: var(--canvas);
   pointer-events: none;
   user-select: none;
   contain: strict;
-  animation: layer-exit 360ms var(--ease-standard) 640ms both;
+  animation: layer-exit 600ms var(--ease-standard) 1200ms both;
+}
+
+.glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 920px;
+  height: 920px;
+  margin: -460px 0 0 -460px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(15 92 120 / 0.14), rgb(15 92 120 / 0.05) 55%, transparent);
+  animation: glow-in 700ms var(--ease-out) both;
 }
 
 .stage {
+  position: relative;
   display: grid;
   justify-items: center;
-  gap: var(--space-3);
-  animation: stage-recede 360ms var(--ease-standard) 640ms both;
+  gap: var(--space-4);
+  animation: stage-through 500ms cubic-bezier(0.4, 0, 1, 1) 1100ms both;
 }
 
 .mark {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-control);
+  border-radius: 14px;
   background: var(--surface-primary);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 12px 32px rgb(15 92 120 / 0.14);
   color: var(--action);
-  font: 650 1.25rem/1 var(--font-sans);
-  animation: mark-settle 420ms var(--ease-out) both;
+  font: 650 1.5rem/1 var(--font-sans);
+  animation: mark-arrive 560ms cubic-bezier(0.3, 1.3, 0.5, 1) both;
+}
+
+.ring {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--action);
+  border-radius: 14px;
+  opacity: 0;
+  animation: ring-open 840ms var(--ease-out) 160ms both;
 }
 
 .wordmark {
   color: var(--text-primary);
-  font: 650 0.9375rem/1.4 var(--font-sans);
+  font: 650 1.0625rem/1.4 var(--font-sans);
   letter-spacing: -0.01em;
   white-space: nowrap;
-  animation: rise 360ms var(--ease-out) 120ms both;
+  animation: rise 480ms var(--ease-out) 260ms both;
 }
 
 .trace {
   position: relative;
-  width: 96px;
-  height: 5px;
+  width: 132px;
+  height: 7px;
 }
 
 .rule {
   position: absolute;
   left: 0;
   right: 0;
-  top: 2px;
+  top: 3px;
   height: 1px;
   background: var(--border-subtle);
   transform-origin: left center;
-  animation: draw 400ms var(--ease-out) 220ms both;
+  animation: draw 520ms var(--ease-out) 480ms both;
 }
 
 .point {
   position: absolute;
   top: 0;
-  width: 5px;
-  height: 5px;
-  margin-left: -2.5px;
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
   border-radius: 50%;
   background: var(--action);
   animation: land 200ms var(--ease-out) both;
 }
-.point:nth-child(2) { left: 20%; animation-delay: 300ms; }
-.point:nth-child(3) { left: 52%; animation-delay: 380ms; opacity: 0.7; }
-.point:nth-child(4) { left: 80%; animation-delay: 460ms; }
+.point:nth-child(2) { left: 12%; animation-delay: 600ms; }
+.point:nth-child(3) { left: 38%; animation-delay: 680ms; }
+/* The unknown point: hollow, never filled in. */
+.point:nth-child(4) { left: 64%; animation-delay: 760ms; background: var(--canvas); box-shadow: inset 0 0 0 1.5px var(--status-neutral); }
+.point:nth-child(5) { left: 88%; animation-delay: 840ms; }
 
-@keyframes mark-settle { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
-@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes glow-in { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: none; } }
+@keyframes mark-arrive { from { opacity: 0; transform: translateY(14px) scale(0.72); } to { opacity: 1; transform: none; } }
+@keyframes ring-open { from { opacity: 0.55; transform: scale(1); } to { opacity: 0; transform: scale(1.9); } }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes land { from { opacity: 0; transform: scale(0.4); } }
-@keyframes stage-recede { to { opacity: 0; transform: scale(0.985) translateY(-4px); } }
+@keyframes stage-through { to { opacity: 0; transform: scale(1.08); } }
 @keyframes layer-exit { to { opacity: 0; visibility: hidden; } }
+
+@media (max-width: 600px) {
+  .glow { width: 560px; height: 560px; margin: -280px 0 0 -280px; }
+}
 
 /* Reduced motion: nothing moves; the canvas lifts in 160ms with no hold. */
 @media (prefers-reduced-motion: reduce) {
   .layer { animation: layer-exit 160ms linear both; }
-  .stage, .mark, .wordmark, .rule, .point { animation: none; }
+  .glow, .stage, .mark, .ring, .wordmark, .rule, .point { animation: none; }
 }
 
 @media print {

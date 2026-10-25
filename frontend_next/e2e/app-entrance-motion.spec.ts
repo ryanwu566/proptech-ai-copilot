@@ -21,7 +21,7 @@ function watchErrors(page: Page) {
   return errors;
 }
 
-/** Holds the whole sequence at one moment so assertions do not race a 1s animation. */
+/** Holds the whole sequence at one moment so assertions do not race a 1.8s animation. */
 const holdAt = (page: Page, time: number) => page.locator(LAYER).evaluate((layer, at) => {
   for (const animation of layer.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = at; }
 }, time);
@@ -42,7 +42,7 @@ test("a fresh document load plays the entrance over an already-rendered app, the
     const computed = animation.effect!.getComputedTiming();
     return { end: Number(computed.endTime), iterations: computed.iterations };
   }));
-  expect(Math.max(...timing.map((item) => item.end))).toBe(1000);
+  expect(Math.max(...timing.map((item) => item.end))).toBeCloseTo(1800, 0);
   expect(timing.every((item) => item.iterations === 1)).toBe(true);
   await resume(page);
   await expect(layer).toHaveCount(0, { timeout: 5_000 });
@@ -50,7 +50,7 @@ test("a fresh document load plays the entrance over an already-rendered app, the
   expect(errors).toEqual([]);
 });
 
-test("the entrance is aria-hidden and never takes a click or focus", async ({ page }) => {
+test("the entrance is aria-hidden and never takes a click or focus; a key press fast-forwards it", async ({ page }) => {
   await page.goto("/privacy", { waitUntil: "commit" });
   await page.locator(LAYER).waitFor({ state: "attached" });
   await holdAt(page, 500);
@@ -62,14 +62,53 @@ test("the entrance is aria-hidden and never takes a click or focus", async ({ pa
     return points.some((element) => element && node.contains(element));
   });
   expect(hit).toBe(false);
-  await page.waitForLoadState("domcontentloaded");
-  for (let index = 0; index < 4; index += 1) {
-    await page.keyboard.press("Tab");
-    expect(await layer.evaluate((node) => node.contains(document.activeElement))).toBe(false);
-  }
   expect(await layer.locator("a, button, input, [tabindex]").count()).toBe(0);
-  await resume(page);
-  await expect(layer).toHaveCount(0, { timeout: 5_000 });
+  await page.waitForLoadState("load");
+  // The sequence is held, so only intent can end it. Retried because hydration attaches the listener.
+  await expect.poll(async () => {
+    await page.keyboard.press("Tab");
+    return layer.count();
+  }, { timeout: 10_000 }).toBe(0);
+  expect(await page.evaluate((selector) => Boolean(document.activeElement?.closest(selector)), LAYER)).toBe(false);
+});
+
+test("a pointer press during the opening ends it at once instead of waiting out the sequence", async ({ page }) => {
+  await page.goto("/privacy", { waitUntil: "load" });
+  const layer = page.locator(LAYER);
+  if (await layer.count()) {
+    await holdAt(page, 300);
+    await expect.poll(async () => {
+      await page.mouse.down({ button: "left" });
+      await page.mouse.up({ button: "left" });
+      return layer.count();
+    }, { timeout: 10_000 }).toBe(0);
+  }
+  await expect(layer).toHaveCount(0);
+});
+
+test("Home's start content settles in behind the opening once, and stays still on in-app return", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("proptech_onboarding_seen", "true"));
+  await page.goto("/", { waitUntil: "commit" });
+  await page.locator(LAYER).waitFor({ state: "attached" });
+  await page.waitForLoadState("domcontentloaded");
+  const layered = () => page.evaluate(() => document.getAnimations()
+    .filter((animation) => (animation as CSSAnimation).animationName === "home-arrive")
+    .map((animation) => ({ end: Number(animation.effect!.getComputedTiming().endTime), iterations: animation.effect!.getComputedTiming().iterations })));
+  const during = await layered();
+  // Heading, address form, then the example and secondary entries together.
+  expect(during.length).toBe(4);
+  for (const item of during) { expect(item.iterations).toBe(1); expect(item.end).toBeLessThanOrEqual(1800); }
+  await expect(page.locator(LAYER)).toHaveCount(0, { timeout: 5_000 });
+  expect(await layered()).toEqual([]);
+  await expect(page.locator(".commercial-home__start > header")).toHaveCSS("opacity", "1");
+  await expect(page.locator(".commercial-home__start > header")).toHaveCSS("transform", "none");
+  // In-app return to Home: no entrance, so no layering.
+  await page.locator('a[href="/cases"]').first().click();
+  await expect(page).toHaveURL(/\/cases$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.locator(".commercial-home__start > header")).toBeVisible();
+  expect(await layered()).toEqual([]);
 });
 
 test("internal navigation between home, cases and workspace sections never replays the entrance", async ({ page }) => {
@@ -123,6 +162,8 @@ test("reduced motion skips every movement and lifts the layer in under 200ms", a
   }))).catch(() => [] as { end: number; self: boolean }[]);
   expect(animations.every((item) => item.self && item.end <= 200)).toBe(true);
   await expect(page.locator(LAYER)).toHaveCount(0, { timeout: 3_000 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  expect(await page.evaluate(() => document.getAnimations().filter((animation) => (animation as CSSAnimation).animationName === "home-arrive").length)).toBe(0);
   expect(errors).toEqual([]);
 });
 

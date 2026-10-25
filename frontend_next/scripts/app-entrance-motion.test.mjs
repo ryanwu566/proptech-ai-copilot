@@ -38,8 +38,9 @@ function rules(css) {
 }
 
 function mediaBlock(css, query) {
-  const start = css.indexOf(`@media (${query})`);
-  assert.notEqual(start, -1, `missing @media (${query})`);
+  const at = query.startsWith("screen") ? `@media ${query}` : `@media (${query})`;
+  const start = css.indexOf(at);
+  assert.notEqual(start, -1, `missing ${at}`);
   const open = css.indexOf("{", start);
   let depth = 0;
   for (let index = open; index < css.length; index += 1) {
@@ -75,7 +76,7 @@ test("the entrance reads no data and loads nothing", () => {
   assert.doesNotMatch(read(STYLES), /url\(|@import/);
 });
 
-test("the sequence is 800–1200ms, compositor-only, finite and ends hidden without JavaScript", () => {
+test("the sequence is 1200–2200ms, compositor-only, finite and ends hidden without JavaScript", () => {
   const css = read(STYLES);
   const top = rules(css);
   const layer = top.get(".layer");
@@ -83,7 +84,7 @@ test("the sequence is 800–1200ms, compositor-only, finite and ends hidden with
   assert.match(layer, /pointer-events:\s*none/);
   const ends = [...top.values()].flatMap(animationEnds);
   const total = Math.max(...ends);
-  assert.ok(total >= 800 && total <= 1200, `sequence lasts ${total}ms`);
+  assert.ok(total >= 1200 && total <= 2200, `sequence lasts ${total}ms`);
   assert.equal(Math.max(...animationEnds(layer)), total, "the layer exit is the last thing to finish");
   assert.match(css, /@keyframes layer-exit\s*\{\s*to\s*\{[^}]*opacity:\s*0;[^}]*visibility:\s*hidden/);
   assert.doesNotMatch(css, /infinite|alternate/);
@@ -95,7 +96,7 @@ test("the sequence is 800–1200ms, compositor-only, finite and ends hidden with
 
 test("reduced motion removes all movement and lifts the layer within 200ms", () => {
   const reduced = mediaBlock(read(STYLES), "prefers-reduced-motion: reduce");
-  assert.match(reduced, /\.stage, \.mark, \.wordmark, \.rule, \.point\s*\{\s*animation:\s*none;/);
+  assert.match(reduced, /\.glow, \.stage, \.mark, \.ring, \.wordmark, \.rule, \.point\s*\{\s*animation:\s*none;/);
   const layer = reduced.match(/\.layer\s*\{([^}]*)\}/)[1];
   assert.ok(Math.max(...animationEnds(layer)) <= 200);
   assert.doesNotMatch(layer, /\d+ms\s+\d+ms/, "no delay before the layer lifts");
@@ -116,4 +117,36 @@ test("the root layout mounts the entrance once, outside every route segment", ()
   walk("app");
   walk("components");
   assert.deepEqual(users.sort(), ["app/layout.tsx", COMPONENT]);
+});
+
+test("the evidence trace keeps one point hollow: the opening never shows every item as confirmed", async () => {
+  const { AppEntranceMotion } = await loadComponent();
+  const markup = renderToStaticMarkup(React.createElement(AppEntranceMotion));
+  assert.equal((markup.match(/class="point"/g) ?? []).length, 4);
+  const hollow = rules(read(STYLES)).get(".point:nth-child(4)");
+  assert.match(hollow, /background:\s*var\(--canvas\)/);
+  assert.match(hollow, /box-shadow:\s*inset/);
+});
+
+test("a pointer, wheel or key press fast-forwards the entrance instead of waiting it out", () => {
+  const source = read(COMPONENT);
+  assert.match(source, /INTENT_EVENTS = \["pointerdown", "keydown", "wheel", "touchstart"\]/);
+  assert.match(source, /passive: true/);
+  assert.match(source, /animation\.finish\(\)/);
+  assert.match(source, /removeEventListener\(type, skip/);
+});
+
+test("Home's opening layering is gated on the entrance layer, opt-in, compositor-only and done when the layer ends", () => {
+  const home = read("app/home.css").replace(/\/\*[\s\S]*?\*\//g, "");
+  const total = Math.max(...[...rules(read(STYLES)).values()].flatMap(animationEnds));
+  const block = mediaBlock(home, "screen and (prefers-reduced-motion: no-preference)");
+  const uses = [...home.matchAll(/^.*home-arrive \d.*$/gm)].map((match) => match[0]);
+  assert.equal(uses.length, 3);
+  for (const use of uses) {
+    assert.ok(block.includes(use.trim()), `home-arrive used outside the opt-in block: ${use}`);
+    assert.match(use, /^\s*body:has\(> \[data-app-entrance\]\) /, "layering only plays while the entrance layer is mounted");
+    assert.ok(Math.max(...animationEnds(use)) <= total, `${use} ends after the layer`);
+  }
+  const frames = home.match(/@keyframes home-arrive\s*\{([\s\S]*?\})\s*\}/)[1];
+  for (const [, property] of frames.matchAll(/([a-z-]+):/g)) assert.ok(["opacity", "transform"].includes(property), `home-arrive animates ${property}`);
 });
