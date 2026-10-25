@@ -21,7 +21,7 @@ function watchErrors(page: Page) {
   return errors;
 }
 
-/** Holds the whole sequence at one moment so assertions do not race a 1.8s animation. */
+/** Holds the whole sequence at one moment so assertions do not race a 2.6s animation. */
 const holdAt = (page: Page, time: number) => page.locator(LAYER).evaluate((layer, at) => {
   for (const animation of layer.getAnimations({ subtree: true })) { animation.pause(); animation.currentTime = at; }
 }, time);
@@ -42,7 +42,7 @@ test("a fresh document load plays the entrance over an already-rendered app, the
     const computed = animation.effect!.getComputedTiming();
     return { end: Number(computed.endTime), iterations: computed.iterations };
   }));
-  expect(Math.max(...timing.map((item) => item.end))).toBeCloseTo(1800, 0);
+  expect(Math.max(...timing.map((item) => item.end))).toBeCloseTo(2600, 0);
   expect(timing.every((item) => item.iterations === 1)).toBe(true);
   await resume(page);
   await expect(layer).toHaveCount(0, { timeout: 5_000 });
@@ -86,6 +86,44 @@ test("a pointer press during the opening ends it at once instead of waiting out 
   await expect(layer).toHaveCount(0);
 });
 
+test("a wheel turn during the opening ends it at once", async ({ page }) => {
+  await page.goto("/privacy", { waitUntil: "load" });
+  const layer = page.locator(LAYER);
+  if (await layer.count()) {
+    await holdAt(page, 1200);
+    await expect.poll(async () => {
+      await page.mouse.move(200, 200);
+      await page.mouse.wheel(0, 120);
+      return layer.count();
+    }, { timeout: 10_000 }).toBe(0);
+  }
+  await expect(layer).toHaveCount(0);
+});
+
+test("the camera moves forward through the corridor and the doorway fills the view before the stage lifts", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/privacy", { waitUntil: "commit" });
+  await page.locator(LAYER).waitFor({ state: "attached" });
+  await page.waitForLoadState("domcontentloaded");
+  // Planes paint far to near: the doorway first, the nearest frame fifth.
+  const plane = (index: number) => page.locator(`${LAYER} > div > span:nth-child(${index})`);
+  const widthAt = async (index: number, time: number) => { await holdAt(page, time); return (await plane(index).boundingBox())!.width; };
+  const nearAtRest = await widthAt(5, 600);
+  const nearMoving = await widthAt(5, 1200);
+  expect(nearMoving).toBeGreaterThan(nearAtRest * 1.3);
+  const doorFar = await widthAt(1, 600);
+  const doorNear = await widthAt(1, 2050);
+  expect(doorNear).toBeGreaterThan(doorFar * 5);
+  await holdAt(page, 2100);
+  const door = (await page.locator(`${LAYER} > div > span:nth-child(1) > span:first-child`).boundingBox())!;
+  expect(door.x).toBeLessThanOrEqual(0);
+  expect(door.y).toBeLessThanOrEqual(0);
+  expect(door.x + door.width).toBeGreaterThanOrEqual(1440);
+  expect(door.y + door.height).toBeGreaterThanOrEqual(900);
+  await resume(page);
+  await expect(page.locator(LAYER)).toHaveCount(0, { timeout: 5_000 });
+});
+
 test("Home's start content settles in behind the opening once, and stays still on in-app return", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("proptech_onboarding_seen", "true"));
   await page.goto("/", { waitUntil: "commit" });
@@ -97,7 +135,7 @@ test("Home's start content settles in behind the opening once, and stays still o
   const during = await layered();
   // Heading, address form, then the example and secondary entries together.
   expect(during.length).toBe(4);
-  for (const item of during) { expect(item.iterations).toBe(1); expect(item.end).toBeLessThanOrEqual(1800); }
+  for (const item of during) { expect(item.iterations).toBe(1); expect(item.end).toBeLessThanOrEqual(2600); }
   await expect(page.locator(LAYER)).toHaveCount(0, { timeout: 5_000 });
   expect(await layered()).toEqual([]);
   await expect(page.locator(".commercial-home__start > header")).toHaveCSS("opacity", "1");
@@ -184,8 +222,9 @@ for (const width of [390, 430, 1024, 1440]) {
     await page.goto("/privacy", { waitUntil: "commit" });
     await page.locator(LAYER).waitFor({ state: "attached" });
     await page.waitForLoadState("domcontentloaded");
-    await holdAt(page, 620);
-    const stage = await page.locator(`${LAYER} > div`).boundingBox();
+    // The brand and its threshold are fully formed and the camera has not yet carried them close.
+    await holdAt(page, 1100);
+    const stage = await page.locator(`${LAYER} > div > span:last-child > span`).boundingBox();
     expect(stage!.x).toBeGreaterThanOrEqual(16);
     expect(stage!.x + stage!.width).toBeLessThanOrEqual(width - 16);
     expect(await page.evaluate(() => [scrollX, scrollY])).toEqual([0, 0]);

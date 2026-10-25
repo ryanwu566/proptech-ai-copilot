@@ -1,130 +1,200 @@
 /*
- * "Entering the Decision Room", 1800ms total, transform and opacity only:
- *   0–700ms     the room lights: a soft glow rises behind the stage
- *   0–560ms     mark arrives from depth with a slight settle; a hairline ring opens once around it (160–1000ms)
- *   260–740ms   wordmark rises into place
- *   480–1000ms  evidence rule draws left to right
- *   600–1040ms  four evidence points land, 80ms apart; one stays hollow, because unknown stays unknown
- *   1100–1600ms the stage moves toward the viewer and fades, as if walking through it
- *   1200–1800ms the canvas lifts; Home's start content settles in behind it (see home.css); then it unmounts
+ * "Through the entrance into the Decision Room", 2600ms total, transform and opacity only.
+ * A dark stage holds a corridor of architectural frames in real CSS perspective, ending in a lit doorway whose light
+ * is the app's own canvas. The camera dollies forward through it:
+ *   0–450ms     the stage is set: a dim doorway opens far away
+ *   80–760ms    four frames resolve near to far, so the eye travels into depth
+ *   300–960ms   the mark arrives from the distance; the wordmark rises under it
+ *   650–1260ms  an evidence threshold draws across the second frame; four points land, one stays hollow,
+ *               because unknown stays unknown
+ *   700–2100ms  the camera moves forward: near frames pass first (gone by 1450ms), then the brand, the threshold and the
+ *               far frames; true perspective makes near planes rush and far planes drift
+ *   1100–1750ms the doorway's light comes on as the camera nears it
+ *   1890–2100ms the doorway fills the view and its light becomes the canvas
+ *   1980–2600ms Home's start content lands in place behind the lifting stage (see home.css); then it unmounts
+ * Every plane fades out before it gets close to the camera, so nothing is ever drawn at a huge scale.
  * Any pointer, wheel or key press fast-forwards to the end, so the entrance never delays a first action.
  */
 .layer {
+  --stage: #0b1320;
+  --hairline: rgb(203 213 225 / 0.3);
+  --evidence: #6fb7cf;
+  --dolly: cubic-bezier(0.42, 0, 0.58, 1);
+  /* Corridor frames keep a door's proportion and scale with the viewport: tall on phones, large on desktop. */
+  --frame-w: min(82vw, 60vh, 600px);
+  --frame-h: calc(var(--frame-w) * 1.42);
   position: fixed;
   inset: 0;
   z-index: calc(var(--z-toast) + 10);
-  display: grid;
-  place-items: center;
   overflow: hidden;
-  background: var(--canvas);
+  background: radial-gradient(ellipse at 50% 48%, #18263b, var(--stage) 62%);
   pointer-events: none;
   user-select: none;
   contain: strict;
-  animation: layer-exit 600ms var(--ease-standard) 1200ms both;
+  animation: layer-exit 500ms var(--ease-standard) 2100ms both;
 }
 
-.glow {
+.space {
+  position: absolute;
+  inset: 0;
+  perspective: 1000px;
+  perspective-origin: 50% 48%;
+}
+
+.plane {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 920px;
-  height: 920px;
-  margin: -460px 0 0 -460px;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(15 92 120 / 0.14), rgb(15 92 120 / 0.05) 55%, transparent);
-  animation: glow-in 700ms var(--ease-out) both;
+  width: var(--frame-w);
+  height: var(--frame-h);
+  margin: calc(var(--frame-h) / -2) 0 0 calc(var(--frame-w) / -2);
 }
 
-.stage {
-  position: relative;
+/* The doorway: a dim opening at the end of the corridor whose light comes on as the camera nears it. */
+.doorPlane { transform: translate3d(0, 0, -1800px); animation: dolly-door 1400ms var(--dolly) 700ms both; }
+.door, .light {
+  position: absolute;
+  inset: 8%;
+  border-radius: 2px;
+}
+.door {
+  border: 1px solid rgb(203 213 225 / 0.36);
+  background: linear-gradient(180deg, rgb(148 178 200 / 0.16), rgb(148 178 200 / 0.06));
+  animation: door-light 450ms var(--ease-out) both;
+}
+/* The Decision Room's light is the app's own canvas. */
+.light {
+  background: linear-gradient(180deg, #fbfcfd, var(--canvas));
+  box-shadow: 0 0 96px 12px rgb(226 236 244 / 0.16);
+  opacity: 0;
+  animation: light-on 650ms cubic-bezier(0.5, 0, 0.75, 0) 1100ms both;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  animation: frame-resolve 440ms var(--ease-out) both;
+}
+
+.frame1 { transform: translate3d(0, 0, -180px); animation: dolly-1 750ms var(--dolly) 700ms both, pass 220ms linear 1230ms both; }
+.frame2 { transform: translate3d(0, 0, -560px); animation: dolly-2 1050ms var(--dolly) 700ms both, pass 240ms linear 1510ms both; }
+.frame3 { transform: translate3d(0, 0, -1000px); animation: dolly-3 1250ms var(--dolly) 700ms both, pass 240ms linear 1710ms both; }
+.frame4 { transform: translate3d(0, 0, -1450px); animation: dolly-4 1400ms var(--dolly) 700ms both, pass 240ms linear 1860ms both; }
+.frame1 .frame { animation-delay: 80ms; border-color: rgb(203 213 225 / 0.38); }
+.frame2 .frame { animation-delay: 160ms; }
+.frame3 .frame { animation-delay: 240ms; border-color: rgb(203 213 225 / 0.22); }
+.frame4 .frame { animation-delay: 320ms; border-color: rgb(203 213 225 / 0.16); }
+
+.brandPlane {
+  display: grid;
+  place-items: center;
+  transform: translate3d(0, 0, -250px);
+  animation: dolly-brand 950ms var(--dolly) 700ms both, pass 260ms linear 1390ms both;
+}
+
+.brand {
   display: grid;
   justify-items: center;
-  gap: var(--space-4);
-  animation: stage-through 500ms cubic-bezier(0.4, 0, 1, 1) 1100ms both;
+  gap: clamp(12px, 2.4vmin, 24px);
+  margin-top: -8%;
 }
 
 .mark {
-  position: relative;
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
+  width: clamp(64px, 11vmin, 112px);
+  height: clamp(64px, 11vmin, 112px);
+  border-radius: 22%;
   background: var(--surface-primary);
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 12px 32px rgb(15 92 120 / 0.14);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 0.35);
   color: var(--action);
-  font: 650 1.5rem/1 var(--font-sans);
-  animation: mark-arrive 560ms cubic-bezier(0.3, 1.3, 0.5, 1) both;
-}
-
-.ring {
-  position: absolute;
-  inset: -1px;
-  border: 1px solid var(--action);
-  border-radius: 14px;
-  opacity: 0;
-  animation: ring-open 840ms var(--ease-out) 160ms both;
+  font: 650 clamp(1.75rem, 5.6vmin, 3.5rem)/1 var(--font-sans);
+  animation: mark-arrive 660ms var(--ease-out) 300ms both;
 }
 
 .wordmark {
-  color: var(--text-primary);
-  font: 650 1.0625rem/1.4 var(--font-sans);
-  letter-spacing: -0.01em;
+  color: #eef2f7;
+  font: 650 clamp(1.25rem, 1rem + 1.6vmin, 2.25rem)/1.3 var(--font-sans);
+  letter-spacing: -0.015em;
   white-space: nowrap;
-  animation: rise 480ms var(--ease-out) 260ms both;
+  text-shadow: 0 1px 16px rgb(11 19 32 / 0.6);
+  animation: rise 500ms var(--ease-out) 460ms both;
 }
 
+/* The evidence threshold, laid across the foot of the second frame: the camera steps over it. */
 .trace {
-  position: relative;
-  width: 132px;
-  height: 7px;
+  position: absolute;
+  left: 15%;
+  right: 15%;
+  bottom: 10%;
+  height: 13px;
 }
 
 .rule {
   position: absolute;
   left: 0;
   right: 0;
-  top: 3px;
-  height: 1px;
-  background: var(--border-subtle);
+  top: 6px;
+  height: 1.5px;
+  background: rgb(203 213 225 / 0.45);
   transform-origin: left center;
-  animation: draw 520ms var(--ease-out) 480ms both;
+  animation: draw 500ms var(--ease-out) 650ms both;
 }
 
 .point {
   position: absolute;
   top: 0;
-  width: 7px;
-  height: 7px;
-  margin-left: -3.5px;
+  width: 13px;
+  height: 13px;
+  margin-left: -6.5px;
   border-radius: 50%;
-  background: var(--action);
-  animation: land 200ms var(--ease-out) both;
+  background: var(--evidence);
+  animation: land 220ms var(--ease-out) both;
 }
-.point:nth-child(2) { left: 12%; animation-delay: 600ms; }
-.point:nth-child(3) { left: 38%; animation-delay: 680ms; }
+.point:nth-child(2) { left: 10%; animation-delay: 800ms; }
+.point:nth-child(3) { left: 37%; animation-delay: 880ms; }
 /* The unknown point: hollow, never filled in. */
-.point:nth-child(4) { left: 64%; animation-delay: 760ms; background: var(--canvas); box-shadow: inset 0 0 0 1.5px var(--status-neutral); }
-.point:nth-child(5) { left: 88%; animation-delay: 840ms; }
+.point:nth-child(4) { left: 63%; animation-delay: 960ms; background: var(--stage); box-shadow: inset 0 0 0 2px rgb(203 213 225 / 0.75); }
+.point:nth-child(5) { left: 90%; animation-delay: 1040ms; }
 
-@keyframes glow-in { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: none; } }
-@keyframes mark-arrive { from { opacity: 0; transform: translateY(14px) scale(0.72); } to { opacity: 1; transform: none; } }
-@keyframes ring-open { from { opacity: 0.55; transform: scale(1); } to { opacity: 0; transform: scale(1.9); } }
-@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+/* Once the doorway fills the view, its light is the canvas; this guarantees full cover on any aspect ratio. */
+.wash {
+  position: absolute;
+  inset: 0;
+  background: var(--canvas);
+  opacity: 0;
+  animation: wash-in 210ms linear 1890ms both;
+}
+
+/* Portrait phones: a taller doorway so the corridor fills the height, not just the middle of the screen. */
+@media (max-aspect-ratio: 3/4) {
+  .layer { --frame-h: calc(var(--frame-w) * 1.75); }
+}
+
+@keyframes door-light { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
+@keyframes light-on { to { opacity: 1; } }
+@keyframes frame-resolve { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: none; } }
+@keyframes mark-arrive { from { opacity: 0; transform: scale(0.42); } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @keyframes land { from { opacity: 0; transform: scale(0.4); } }
-@keyframes stage-through { to { opacity: 0; transform: scale(1.08); } }
+@keyframes dolly-door { from { transform: translate3d(0, 0, -1800px); } to { transform: translate3d(0, 0, 860px); } }
+@keyframes dolly-1 { from { transform: translate3d(0, 0, -180px); } to { transform: translate3d(0, 0, 700px); } }
+@keyframes dolly-2 { from { transform: translate3d(0, 0, -560px); } to { transform: translate3d(0, 0, 700px); } }
+@keyframes dolly-3 { from { transform: translate3d(0, 0, -1000px); } to { transform: translate3d(0, 0, 700px); } }
+@keyframes dolly-4 { from { transform: translate3d(0, 0, -1450px); } to { transform: translate3d(0, 0, 700px); } }
+@keyframes dolly-brand { from { transform: translate3d(0, 0, -250px); } to { transform: translate3d(0, 0, 700px); } }
+@keyframes pass { to { opacity: 0; } }
+@keyframes wash-in { to { opacity: 1; } }
 @keyframes layer-exit { to { opacity: 0; visibility: hidden; } }
 
-@media (max-width: 600px) {
-  .glow { width: 560px; height: 560px; margin: -280px 0 0 -280px; }
-}
-
-/* Reduced motion: nothing moves; the canvas lifts in 160ms with no hold. */
+/* Reduced motion: no scene, no depth, nothing moves; a plain canvas lifts in 160ms with no hold. */
 @media (prefers-reduced-motion: reduce) {
-  .layer { animation: layer-exit 160ms linear both; }
-  .glow, .stage, .mark, .ring, .wordmark, .rule, .point { animation: none; }
+  .layer { background: var(--canvas); animation: layer-exit 160ms linear both; }
+  .space, .wash { display: none; }
+  .plane, .door, .light, .frame, .mark, .wordmark, .rule, .point { animation: none; }
 }
 
 @media print {
