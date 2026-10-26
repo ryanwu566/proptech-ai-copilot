@@ -33,6 +33,6 @@ def test_browser_job_declares_cross_platform_e2e_environment() -> None:
     assert 'run: npm --prefix frontend_next run test:e2e -- --workers=1' in WORKFLOW
 
 
-def test_browser_job_has_bounded_75_minute_hard_timeout() -> None:
+def test_browser_job_has_bounded_90_minute_hard_timeout() -> None:
     browser_job = WORKFLOW.split("\n  browser:\n", 1)[1]
-    assert "\n    timeout-minutes: 75\n" in browser_job
+    assert "\n    timeout-minutes: 90\n" in browser_job

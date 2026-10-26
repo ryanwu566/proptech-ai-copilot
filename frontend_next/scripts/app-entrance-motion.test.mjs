@@ -50,14 +50,38 @@ function mediaBlock(css, query) {
   throw new Error("unterminated media block");
 }
 
-/** End time in ms of every `animation:` shorthand (duration + delay). */
-function animationEnds(declarations) {
+/** Splits an `animation:` value into its comma-separated layers, ignoring commas inside cubic-bezier() and var(). */
+function layers(value) {
+  const out = [];
+  let depth = 0;
+  let start = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    if (value[index] === "(") depth += 1;
+    if (value[index] === ")") depth -= 1;
+    if (value[index] === "," && depth === 0) { out.push(value.slice(start, index)); start = index + 1; }
+  }
+  return [...out, value.slice(start)].map((layer) => layer.trim());
+}
+
+/** Each layer of every `animation:` shorthand as { name, start, end } in ms. */
+function animationLayers(declarations) {
   return [...declarations.matchAll(/animation:\s*([^;]+);/g)]
     .filter((match) => match[1].trim() !== "none")
-    .map((match) => {
-      const times = match[1].match(/\d+(?:\.\d+)?m?s\b/g) ?? [];
-      return times.map(ms).reduce((sum, value) => sum + value, 0);
-    });
+    .flatMap((match) => layers(match[1]).map((layer) => {
+      const [duration = 0, delay = 0] = (layer.match(/\d+(?:\.\d+)?m?s\b/g) ?? []).map(ms);
+      return { name: layer.split(/\s+/)[0], start: delay, end: duration + delay };
+    }));
+}
+
+/** End time in ms of every animation layer (duration + delay). */
+function animationEnds(declarations) {
+  return animationLayers(declarations).map((layer) => layer.end);
+}
+
+/** The translateZ, in px, of each frame of a keyframes rule. */
+function keyframeZ(css, name) {
+  const body = css.match(new RegExp(`@keyframes ${name}\\s*\\{([\\s\\S]*?\\})\\s*\\}`))[1];
+  return [...body.matchAll(/translate3d\(0, 0, (-?\d+)px\)/g)].map((match) => Number(match[1]));
 }
 
 test("the entrance is server-rendered as one hidden, non-interactive decorative layer", async () => {
@@ -76,7 +100,7 @@ test("the entrance reads no data and loads nothing", () => {
   assert.doesNotMatch(read(STYLES), /url\(|@import/);
 });
 
-test("the sequence is 1200–2200ms, compositor-only, finite and ends hidden without JavaScript", () => {
+test("the sequence is 2200–2800ms, compositor-only, finite and ends hidden without JavaScript", () => {
   const css = read(STYLES);
   const top = rules(css);
   const layer = top.get(".layer");
@@ -84,7 +108,7 @@ test("the sequence is 1200–2200ms, compositor-only, finite and ends hidden wit
   assert.match(layer, /pointer-events:\s*none/);
   const ends = [...top.values()].flatMap(animationEnds);
   const total = Math.max(...ends);
-  assert.ok(total >= 1200 && total <= 2200, `sequence lasts ${total}ms`);
+  assert.ok(total >= 2200 && total <= 2800, `sequence lasts ${total}ms`);
   assert.equal(Math.max(...animationEnds(layer)), total, "the layer exit is the last thing to finish");
   assert.match(css, /@keyframes layer-exit\s*\{\s*to\s*\{[^}]*opacity:\s*0;[^}]*visibility:\s*hidden/);
   assert.doesNotMatch(css, /infinite|alternate/);
@@ -96,8 +120,10 @@ test("the sequence is 1200–2200ms, compositor-only, finite and ends hidden wit
 
 test("reduced motion removes all movement and lifts the layer within 200ms", () => {
   const reduced = mediaBlock(read(STYLES), "prefers-reduced-motion: reduce");
-  assert.match(reduced, /\.glow, \.stage, \.mark, \.ring, \.wordmark, \.rule, \.point\s*\{\s*animation:\s*none;/);
+  assert.match(reduced, /\.plane, \.door, \.light, \.frame, \.mark, \.wordmark, \.rule, \.point\s*\{\s*animation:\s*none;/);
+  assert.match(reduced, /\.space, \.wash\s*\{\s*display:\s*none;/, "no scene, no perspective, no depth");
   const layer = reduced.match(/\.layer\s*\{([^}]*)\}/)[1];
+  assert.match(layer, /background:\s*var\(--canvas\)/, "a plain canvas, not the dark stage");
   assert.ok(Math.max(...animationEnds(layer)) <= 200);
   assert.doesNotMatch(layer, /\d+ms\s+\d+ms/, "no delay before the layer lifts");
 });
@@ -124,7 +150,7 @@ test("the evidence trace keeps one point hollow: the opening never shows every i
   const markup = renderToStaticMarkup(React.createElement(AppEntranceMotion));
   assert.equal((markup.match(/class="point"/g) ?? []).length, 4);
   const hollow = rules(read(STYLES)).get(".point:nth-child(4)");
-  assert.match(hollow, /background:\s*var\(--canvas\)/);
+  assert.match(hollow, /background:\s*var\(--stage\)/);
   assert.match(hollow, /box-shadow:\s*inset/);
 });
 
@@ -149,4 +175,39 @@ test("Home's opening layering is gated on the entrance layer, opt-in, compositor
   }
   const frames = home.match(/@keyframes home-arrive\s*\{([\s\S]*?\})\s*\}/)[1];
   for (const [, property] of frames.matchAll(/([a-z-]+):/g)) assert.ok(["opacity", "transform"].includes(property), `home-arrive animates ${property}`);
+});
+
+test("the camera moves through a corridor in real perspective, painted far to near", async () => {
+  const css = read(STYLES);
+  const top = rules(css);
+  assert.match(top.get(".space"), /perspective:\s*\d+px/);
+  const { AppEntranceMotion } = await loadComponent();
+  const markup = renderToStaticMarkup(React.createElement(AppEntranceMotion));
+  const planes = [...markup.matchAll(/class="plane (\w+)"/g)].map((match) => match[1]);
+  assert.deepEqual(planes, ["doorPlane", "frame4", "frame3", "frame2", "frame1", "brandPlane"]);
+  const depth = (plane) => keyframeZ(css, animationLayers(top.get(`.${plane}`))[0].name);
+  const starts = planes.slice(0, 5).map((plane) => depth(plane)[0]);
+  assert.deepEqual([...starts].sort((a, b) => a - b), starts, "the frames paint in depth order");
+  for (const plane of planes) {
+    const [from, to] = depth(plane);
+    assert.ok(to > from, `${plane} comes toward the camera`);
+    assert.ok(to < 1000, `${plane} never reaches the camera plane`);
+  }
+});
+
+test("every plane that nears the camera fades first, and the doorway hands over to the canvas before the stage lifts", () => {
+  const css = read(STYLES);
+  const top = rules(css);
+  const exit = animationLayers(top.get(".layer")).find((layer) => layer.name === "layer-exit");
+  for (const plane of ["frame1", "frame2", "frame3", "frame4", "brandPlane"]) {
+    const [dolly, pass] = animationLayers(top.get(`.${plane}`));
+    assert.equal(pass.name, "pass", `${plane} fades as it passes`);
+    assert.equal(pass.end, dolly.end, `${plane} is gone when it stops moving`);
+    assert.ok(dolly.end <= exit.start, `${plane} finishes before the stage lifts`);
+  }
+  const door = animationLayers(top.get(".doorPlane"))[0];
+  const wash = animationLayers(top.get(".wash"))[0];
+  assert.ok(wash.end <= door.end && door.end <= exit.start, "the canvas covers the view before the stage lifts");
+  assert.match(css, /@keyframes pass\s*\{\s*to\s*\{\s*opacity:\s*0;/);
+  assert.doesNotMatch(css, /filter:|blur\(/, "no blur");
 });
