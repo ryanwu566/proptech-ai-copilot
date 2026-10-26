@@ -7,6 +7,7 @@ import json
 import logging
 import math
 import os
+import re
 import sys
 import threading
 import time
@@ -21,9 +22,16 @@ from services.anti_abuse import AbuseRejected, provider_operation
 from services.trusted_address_structure import addresses_agree, address_parts, normalize_address
 
 
-LocationResolveStatus = Literal["resolved", "unresolved", "unavailable"]
+LocationResolveStatus = Literal["resolved", "ambiguous", "unresolved", "unavailable"]
 LocationResolveSource = Literal["tgos", "google", "none"]
 LocationResolveConfidence = Literal["high", "unknown"]
+# Public, bounded outcome categories. Never provider status strings or payloads.
+ResolutionReason = Literal[
+    "accepted", "multiple_candidates", "administrative_mismatch", "address_mismatch",
+    "low_precision", "no_match", "unavailable",
+]
+CandidateBlock = Literal["administrative_mismatch", "address_mismatch", "low_precision"]
+AdminCheck = Literal["consistent", "county_unverified", "county_mismatch", "district_mismatch"]
 
 SAFE_RESPONSE_KEYS = {
     "status",
@@ -35,7 +43,13 @@ SAFE_RESPONSE_KEYS = {
     "message",
     "county",
     "district",
+    "postal_code",
+    "place_id",
+    "resolution_reason",
+    "candidates",
 }
+# Bounded candidate choice: never more Google results than this are evaluated or shown.
+MAX_GOOGLE_CANDIDATES = 5
 
 TGOS_URL = "https://addr.tgos.tw/addrws/v30/QueryAddr.asmx/QueryAddr"
 GOOGLE_GEOCODING_URL = "https://maps.googleapis.com/maps/api/geocode/json"
@@ -75,6 +89,11 @@ class LocationResolveResult:
     message: str = "定位服務暫時無法完成查詢，請稍後再試。"
     county: str | None = None
     district: str | None = None
+    postal_code: str | None = None
+    place_id: str | None = None
+    resolution_reason: ResolutionReason = "unavailable"
+    # Bounded, already-validated candidate summaries (see _candidate); never raw payloads.
+    candidates: tuple[dict[str, Any], ...] = ()
     # Internal proof only; never included in the API or accepted-resolution cache.
     acceptance_validated: bool = False
     # Internal bounded outcome category for observability; never in the API.
@@ -91,6 +110,10 @@ class LocationResolveResult:
             "message": self.message,
             "county": self.county,
             "district": self.district,
+            "postal_code": self.postal_code,
+            "place_id": self.place_id,
+            "resolution_reason": self.resolution_reason,
+            "candidates": [dict(candidate) for candidate in self.candidates],
         }
 
 
@@ -145,7 +168,50 @@ def _google_administrative_area(result: dict[str, Any]) -> tuple[str | None, str
     return _administrative_name(county, COUNTY_SUFFIXES), _administrative_name(level_2, DISTRICT_SUFFIXES) or _administrative_name(level_3, DISTRICT_SUFFIXES)
 
 
-def _resolved(source: LocationResolveSource, formatted_address: str | None, latitude: Any, longitude: Any, county: Any = None, district: Any = None, *, address: str, precision_accepted: bool) -> LocationResolveResult:
+def _google_postal_code(result: dict[str, Any]) -> str | None:
+    components = result.get("address_components")
+    for component in components if isinstance(components, list) else []:
+        if isinstance(component, dict) and isinstance(component.get("types"), list) and "postal_code" in component["types"]:
+            value = component.get("long_name")
+            if isinstance(value, str) and re.fullmatch(r"\d{3,6}", value.strip()):
+                return value.strip()
+    return None
+
+
+def _bounded_place_id(value: Any) -> str | None:
+    return value if isinstance(value, str) and re.fullmatch(r"[A-Za-z0-9_-]{1,300}", value) else None
+
+
+def _admin_check(address: str, formatted_address: Any, county: str | None, district: str | None) -> AdminCheck:
+    """Compare only administrative units the user actually supplied; never infer a missing one."""
+    expected = address_parts(address) or {}
+    returned = address_parts(formatted_address) or {}
+    for key, metadata, verdict in (("county", county, "county_mismatch"), ("district", district, "district_mismatch")):
+        supplied = expected.get(key)
+        observed = {value for value in (returned.get(key), normalize_address(metadata) if metadata else None) if value}
+        if supplied and observed and observed != {supplied}:
+            return verdict  # type: ignore[return-value]
+    return "county_unverified" if "county" not in expected else "consistent"
+
+
+def _candidate(source: LocationResolveSource, formatted_address: Any, latitude: float, longitude: float, county: Any, district: Any, *, admin_check: AdminCheck, block: CandidateBlock | None, postal_code: str | None = None, place_id: str | None = None) -> dict[str, Any]:
+    text = formatted_address.strip() if isinstance(formatted_address, str) and 0 < len(formatted_address.strip()) <= 500 else None
+    return {
+        "source": source,
+        "formatted_address": text,
+        "latitude": round(float(latitude), 7),
+        "longitude": round(float(longitude), 7),
+        "county": _administrative_name(county, COUNTY_SUFFIXES),
+        "district": _administrative_name(district, DISTRICT_SUFFIXES),
+        "postal_code": postal_code,
+        "place_id": place_id,
+        "admin_check": admin_check,
+        "confirmable": block is None,
+        "block_reason": block,
+    }
+
+
+def _resolved(source: LocationResolveSource, formatted_address: str | None, latitude: Any, longitude: Any, county: Any = None, district: Any = None, *, address: str, precision_accepted: bool, postal_code: str | None = None, place_id: str | None = None) -> LocationResolveResult:
     if source not in {"google", "tgos"} or not precision_accepted:
         return _unresolved("precision_rejected")
     if not _is_valid_coordinate(latitude, longitude):
@@ -155,6 +221,9 @@ def _resolved(source: LocationResolveSource, formatted_address: str | None, lati
     lat = float(latitude)
     lon = float(longitude)
     provider_label = "TGOS" if source == "tgos" else "Google"
+    county_name = _administrative_name(county, COUNTY_SUFFIXES)
+    district_name = _administrative_name(district, DISTRICT_SUFFIXES)
+    candidate = _candidate(source, formatted_address, lat, lon, county_name, district_name, admin_check=_admin_check(address, formatted_address, county_name, district_name), block=None, postal_code=postal_code, place_id=place_id)
     return LocationResolveResult(
         status="resolved",
         source=source,
@@ -163,19 +232,36 @@ def _resolved(source: LocationResolveSource, formatted_address: str | None, lati
         longitude=lon,
         confidence="high",
         message=f"已取得可信位置（{provider_label}）。",
-        county=_administrative_name(county, COUNTY_SUFFIXES),
-        district=_administrative_name(district, DISTRICT_SUFFIXES),
+        county=county_name,
+        district=district_name,
+        postal_code=postal_code,
+        place_id=place_id,
+        resolution_reason="accepted",
+        candidates=(candidate,),
         acceptance_validated=True,
         reason="accepted",
     )
 
 
-def _unresolved(reason: str = "no_match") -> LocationResolveResult:
+def _unresolved(reason: str = "no_match", *, resolution_reason: ResolutionReason = "no_match", candidates: tuple[dict[str, Any], ...] = ()) -> LocationResolveResult:
     return LocationResolveResult(
         status="unresolved",
         source="none",
         message="找不到可信位置，請確認縣市、區域與門牌是否完整。",
+        resolution_reason=resolution_reason,
+        candidates=candidates,
         reason=reason,
+    )
+
+
+def _ambiguous(candidates: tuple[dict[str, Any], ...]) -> LocationResolveResult:
+    return LocationResolveResult(
+        status="ambiguous",
+        source="google",
+        message="找到多個可能位置，請選擇正確的一個。",
+        resolution_reason="multiple_candidates",
+        candidates=candidates,
+        reason="multiple_candidates",
     )
 
 
@@ -337,43 +423,95 @@ class GoogleAddressProvider:
         results = payload.get("results")
         if not isinstance(results, list) or not results:
             return _unavailable("malformed_response")
-        first = results[0]
-        if not isinstance(first, dict):
+        if not isinstance(results[0], dict):
             return _unavailable("malformed_response")
-        location = ((first.get("geometry") or {}).get("location") if isinstance(first.get("geometry"), dict) else None)
-        if not isinstance(location, dict):
-            return _unavailable("malformed_response")
-        latitude = location.get("lat")
-        longitude = location.get("lng")
-        if not _is_valid_coordinate(latitude, longitude):
-            return _unavailable("invalid_coordinate")
-        formatted_address = first.get("formatted_address")
-        county, district = _google_administrative_area(first)
-        precision_accepted = first["geometry"].get("location_type") == "ROOFTOP" and first.get("partial_match", False) is False
-        # Also validate structured route/number/admin fields from this same response.
-        actual = address_parts(formatted_address)
-        components = first.get("address_components", [])
-        if not isinstance(components, list):
-            return _unresolved("malformed_response")
-        for component in components:
-            if not isinstance(component, dict) or not isinstance(component.get("types"), list):
-                return _unresolved("malformed_response")
-            types = component["types"]
-            name = component.get("long_name")
-            if "route" in types:
-                route = address_parts(name)
-                if not route or not actual or any(actual.get(key) != value for key, value in route.items()):
-                    return _unresolved("structural_mismatch")
-            if "street_number" in types:
-                number = address_parts(normalize_address(name) + "號")
-                if not number or not actual or number.get("number") != actual.get("number"):
-                    return _unresolved("structural_mismatch")
-            if any(t in types for t in ("administrative_area_level_1", "administrative_area_level_2", "administrative_area_level_3")):
-                admin = _administrative_name(name, COUNTY_SUFFIXES if "administrative_area_level_1" in types else DISTRICT_SUFFIXES)
-                key = "county" if "administrative_area_level_1" in types else "district"
-                if admin and (not actual or actual.get(key) != admin):
-                    return _unresolved("structural_mismatch")
-        return _resolved("google", formatted_address, latitude, longitude, county, district, address=address, precision_accepted=precision_accepted)
+        accepted: list[LocationResolveResult] = []
+        blocked: list[dict[str, Any]] = []
+        first_failure: LocationResolveResult | None = None
+        for item in results[:MAX_GOOGLE_CANDIDATES]:
+            outcome, shown = _evaluate_google_result(address, item)
+            if outcome.status == "resolved":
+                if not any(_same_place(outcome, other) for other in accepted):
+                    accepted.append(outcome)
+                continue
+            first_failure = first_failure or outcome
+            if shown is not None:
+                blocked.append(shown)
+        if len(accepted) == 1:
+            return accepted[0]
+        if len(accepted) > 1:
+            # Never guess between plausible accepted addresses; the user chooses.
+            return _ambiguous(tuple(result.candidates[0] for result in accepted))
+        assert first_failure is not None
+        if first_failure.status == "unavailable":
+            return first_failure
+        reasons = {candidate["block_reason"] for candidate in blocked}
+        verdict: ResolutionReason = next((reason for reason in ("administrative_mismatch", "address_mismatch", "low_precision") if reason in reasons), "no_match")  # type: ignore[assignment]
+        return _unresolved(first_failure.reason, resolution_reason=verdict, candidates=tuple(blocked))
+
+
+def _same_place(left: LocationResolveResult, right: LocationResolveResult) -> bool:
+    if left.place_id and left.place_id == right.place_id:
+        return True
+    return abs((left.latitude or 0) - (right.latitude or 0)) <= 0.000001 and abs((left.longitude or 0) - (right.longitude or 0)) <= 0.000001
+
+
+def _evaluate_google_result(address: str, first: Any) -> tuple[LocationResolveResult, dict[str, Any] | None]:
+    """Strict acceptance for one Google result; a visible blocked summary only when it is locatable."""
+    if not isinstance(first, dict):
+        return _unavailable("malformed_response"), None
+    location = ((first.get("geometry") or {}).get("location") if isinstance(first.get("geometry"), dict) else None)
+    if not isinstance(location, dict):
+        return _unavailable("malformed_response"), None
+    latitude = location.get("lat")
+    longitude = location.get("lng")
+    if not _is_valid_coordinate(latitude, longitude):
+        return _unavailable("invalid_coordinate"), None
+    formatted_address = first.get("formatted_address")
+    county, district = _google_administrative_area(first)
+    postal_code = _google_postal_code(first)
+    place_id = _bounded_place_id(first.get("place_id"))
+    admin = _admin_check(address, formatted_address, county, district)
+
+    def blocked(reason: str, block: CandidateBlock) -> tuple[LocationResolveResult, dict[str, Any] | None]:
+        # Administrative contradiction outranks any other defect: it is the user-visible risk.
+        if admin in {"county_mismatch", "district_mismatch"}:
+            block = "administrative_mismatch"
+        shown = _candidate("google", formatted_address, float(latitude), float(longitude), county, district, admin_check=admin, block=block, postal_code=postal_code, place_id=place_id) if isinstance(formatted_address, str) and formatted_address.strip() else None
+        return _unresolved(reason), shown
+
+    if admin in {"county_mismatch", "district_mismatch"}:
+        return blocked("structural_mismatch", "administrative_mismatch")
+    precision_accepted = first["geometry"].get("location_type") == "ROOFTOP" and first.get("partial_match", False) is False
+    # Also validate structured route/number/admin fields from this same response.
+    actual = address_parts(formatted_address)
+    components = first.get("address_components", [])
+    if not isinstance(components, list):
+        return _unresolved("malformed_response"), None
+    for component in components:
+        if not isinstance(component, dict) or not isinstance(component.get("types"), list):
+            return _unresolved("malformed_response"), None
+        types = component["types"]
+        name = component.get("long_name")
+        if "route" in types:
+            route = address_parts(name)
+            if not route or not actual or any(actual.get(key) != value for key, value in route.items()):
+                return blocked("structural_mismatch", "address_mismatch")
+        if "street_number" in types:
+            number = address_parts(normalize_address(name) + "號")
+            if not number or not actual or number.get("number") != actual.get("number"):
+                return blocked("structural_mismatch", "address_mismatch")
+        if any(t in types for t in ("administrative_area_level_1", "administrative_area_level_2", "administrative_area_level_3")):
+            admin_name = _administrative_name(name, COUNTY_SUFFIXES if "administrative_area_level_1" in types else DISTRICT_SUFFIXES)
+            key = "county" if "administrative_area_level_1" in types else "district"
+            if admin_name and (not actual or actual.get(key) != admin_name):
+                return blocked("structural_mismatch", "address_mismatch")
+    if not precision_accepted:
+        return blocked("precision_rejected", "low_precision")
+    result = _resolved("google", formatted_address, latitude, longitude, county, district, address=address, precision_accepted=True, postal_code=postal_code, place_id=place_id)
+    if result.status != "resolved":
+        return blocked(result.reason, "address_mismatch")
+    return result, None
 
 
 _DEFAULT_GOOGLE_PROVIDER: GoogleAddressProvider | None = None
@@ -424,7 +562,7 @@ def _process_phase() -> tuple[bool, str]:
 
 
 def _emit_resolve_event(fields: dict[str, Any]) -> None:
-    degraded = fields.get("outcome") not in {"google_resolved", "tgos_resolved", "unresolved", "reused"}
+    degraded = fields.get("outcome") not in {"google_resolved", "tgos_resolved", "ambiguous", "unresolved", "reused"}
     record = {"severity": "WARNING" if degraded else "INFO", "message": "location_resolve", **fields}
     _EVENT_LOGGER.log(logging.WARNING if degraded else logging.INFO, json.dumps(record, ensure_ascii=True, separators=(",", ":")))
 
@@ -499,6 +637,9 @@ def _resolve_with_providers(normalized_address: str, providers: list[AddressProv
     saw_unresolved = False
     saw_configured = False
     budget_skipped = False
+    # Visible-but-blocked candidates (e.g. a wrong district) and the strongest bounded reason.
+    blocked: list[dict[str, Any]] = []
+    verdict: ResolutionReason = "no_match"
     deadline = _DEADLINE.get()
     for name, provider in zip(("google", "tgos"), providers):
         if not provider.configured:
@@ -514,6 +655,8 @@ def _resolve_with_providers(normalized_address: str, providers: list[AddressProv
         result = provider.resolve(normalized_address)
         trace[f"{name}_ms"] = int((time.monotonic() - provider_started) * 1000)
         trace[name] = result.reason or result.status
+        if result.status == "ambiguous" and len(result.candidates) > 1 and all(candidate.get("confirmable") is True for candidate in result.candidates):
+            return result.to_safe_dict()
         if result.status == "resolved":
             if result.acceptance_validated and _accepted_resolution(result.to_safe_dict()) and addresses_agree(normalized_address, result.formatted_address, county=result.county, district=result.district):
                 return result.to_safe_dict()
@@ -521,12 +664,15 @@ def _resolve_with_providers(normalized_address: str, providers: list[AddressProv
             saw_unresolved = True
         if result.status == "unresolved":
             saw_unresolved = True
+            blocked.extend(candidate for candidate in result.candidates if candidate.get("confirmable") is False)
+            if verdict == "no_match" or result.resolution_reason == "administrative_mismatch":
+                verdict = result.resolution_reason if result.resolution_reason != "accepted" else verdict
 
     # An incomplete strict chain is retryable, never a confident "not found".
     if budget_skipped:
         return _unavailable("deadline_exhausted").to_safe_dict()
     if saw_unresolved:
-        return _unresolved().to_safe_dict()
+        return _unresolved(resolution_reason=verdict, candidates=tuple(blocked[:MAX_GOOGLE_CANDIDATES])).to_safe_dict()
     if not saw_configured:
         return _unavailable().to_safe_dict()
     return _unavailable().to_safe_dict()

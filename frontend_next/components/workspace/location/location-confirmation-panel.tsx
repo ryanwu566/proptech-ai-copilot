@@ -9,7 +9,7 @@ import { Panel } from "@/components/design-system/section";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import { confirmSavedCaseIdentity, type ConfirmIdentityResult } from "@/lib/case-storage";
-import { buildConfirmedLocationAnchor, type LocationCandidateResult, type LocationCandidate, type LocationCandidateBlock } from "@/lib/workspace/location-confirmation";
+import { buildConfirmedLocationAnchor, type LocationCandidateResult, type LocationCandidate, type LocationCandidateBlock, type RejectedLocationCandidate } from "@/lib/workspace/location-confirmation";
 import { acquireCaseLocation } from "@/lib/workspace/location-acquisition";
 import { locationStartHandoff } from "@/lib/workspace/location-start-handoff";
 import { locationConfirmationCopy, type LocationConfirmationCopyKey } from "@/lib/workspace/location-confirmation-copy";
@@ -19,12 +19,15 @@ type Step =
   | { kind: "idle" }
   | { kind: "finding" }
   | { kind: "candidate"; candidate: LocationCandidate; confirming: boolean }
-  | { kind: "failed"; reason: Failure; candidate?: LocationCandidate };
+  | { kind: "choice"; candidates: LocationCandidate[] }
+  | { kind: "failed"; reason: Failure; candidate?: LocationCandidate; rejected?: RejectedLocationCandidate[] };
 
 const CandidateMap = dynamic(() => import("@/components/map/geo-map"), { ssr: false });
 
 function candidateStep(resolution: LocationCandidateResult): Step {
-  return resolution.kind === "candidate" ? { kind: "candidate", candidate: resolution.candidate, confirming: false } : { kind: "failed", reason: resolution.reason };
+  if (resolution.kind === "candidate") return { kind: "candidate", candidate: resolution.candidate, confirming: false };
+  if (resolution.kind === "choice") return { kind: "choice", candidates: resolution.candidates };
+  return { kind: "failed", reason: resolution.reason, rejected: resolution.rejected };
 }
 
 /** Adopt the explicit Home lookup, or look up on an explicit in-case retry. Only Confirm saves identity. */
@@ -39,7 +42,7 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
   const request = useRef<AbortController | null>(null);
   const result = useRef<HTMLDivElement>(null);
   useEffect(() => () => request.current?.abort(), []);
-  useEffect(() => { if (step.kind === "candidate" && !step.confirming) result.current?.focus(); }, [step]);
+  useEffect(() => { if ((step.kind === "candidate" && !step.confirming) || step.kind === "choice") result.current?.focus(); }, [step]);
   useEffect(() => {
     const pending = locationStartHandoff.read(workspace.caseId, workspace.displayAddress);
     if (!pending || workspace.pendingLocationCandidate) return;
@@ -84,6 +87,7 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
   }
 
   const sourceLabel = (source: LocationCandidate["source"]) => copy(source === "tgos" ? "sourceTgos" : "sourceGoogle");
+  const admin = (item: { county: string | null; district: string | null }) => `${item.county ?? copy("adminUnknown")} · ${item.district ?? copy("adminUnknown")}`;
   return <Panel className="location-confirmation space-y-3" data-testid="location-confirmation" data-step={step.kind}>
     {(step.kind === "idle" || step.kind === "finding") && <div className="space-y-2">
       <h2 className="text-subsection">{copy(step.kind === "finding" ? "finding" : "find")}</h2>
@@ -103,7 +107,9 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
       <div role="region" aria-label={copy("mapContext")} data-testid="location-candidate-map" className="h-56 overflow-hidden rounded-xl [&_.leaflet-container]:!min-h-0">
         <CandidateMap center={{ lat: step.candidate.latitude, lng: step.candidate.longitude }} zoom={16} categories={[]} centerLabel={step.candidate.interpretedAddress} radiusMeters={0} scrollWheelZoomEnabled={false} />
       </div>
+      {step.candidate.countyUnverified && <Message variant="warning"><span data-testid="location-county-unverified">{copy("countyUnverified")}</span></Message>}
       <p className="text-helper">{copy("confirmNote")}</p>
+      <p className="text-helper" data-testid="location-not-legal">{copy("notLegal")}</p>
       <div className="flex flex-wrap gap-3">
         <CommercialButton size="touch" loading={step.confirming} loadingLabel={copy("confirming")} onClick={() => void confirm(step.candidate)} data-testid="location-confirm">{copy("confirm")}</CommercialButton>
         <CommercialButton size="touch" variant="secondary" disabled={step.confirming} onClick={() => void find()}>{copy("reject")}</CommercialButton>
@@ -111,14 +117,39 @@ export function LocationConfirmationPanel({ onConfirmed }: { onConfirmed: () => 
       <DetailsDisclosure summary={copy("details")} data-testid="location-candidate-details" variant="compact">
         <dl className="grid gap-2 text-dense sm:grid-cols-2">
           <div><dt className="font-bold">{copy("interpreted")}</dt><dd className="break-words">{step.candidate.interpretedAddress}</dd></div>
-          <div><dt className="font-bold">{copy("county")} · {copy("district")}</dt><dd>{step.candidate.county ?? copy("adminUnknown")} · {step.candidate.district ?? copy("adminUnknown")}</dd></div>
+          <div><dt className="font-bold">{copy("county")} · {copy("district")}</dt><dd>{admin(step.candidate)}</dd></div>
+          {step.candidate.postalCode && <div><dt className="font-bold">{copy("postalCode")}</dt><dd>{step.candidate.postalCode}</dd></div>}
           <div><dt className="font-bold">{copy("coordinates")}</dt><dd className="font-mono">{step.candidate.latitude.toFixed(6)}, {step.candidate.longitude.toFixed(6)}</dd></div>
           <div><dt className="font-bold">{copy("source")}</dt><dd>{sourceLabel(step.candidate.source)}</dd></div>
         </dl>
       </DetailsDisclosure>
     </div>}
-    {step.kind === "failed" && <Message variant="error" title={copy("failedTitle")} action={<CommercialButton size="touch" variant="secondary" onClick={() => { if (step.candidate && ["write_failed", "lock_unavailable", "storage_unavailable"].includes(step.reason)) setStep({ kind: "candidate", candidate: step.candidate, confirming: false }); else void find(); }}>{copy("retry")}</CommercialButton>}>
+    {step.kind === "choice" && <div ref={result} tabIndex={-1} className="ds-reveal space-y-3" data-testid="location-choice" aria-labelledby="location-choice-title">
+      <h2 id="location-choice-title" className="text-subsection">{copy("choiceTitle")}</h2>
+      <p className="text-helper">{copy("choiceNote")}</p>
+      <ul className="space-y-3">
+        {step.candidates.map((candidate, index) => <li key={`${candidate.latitude}:${candidate.longitude}:${index}`} data-testid="location-choice-option" className="min-w-0 rounded-xl border border-stone-200 p-3 [overflow-wrap:anywhere]">
+          <p className="text-body font-semibold">{candidate.interpretedAddress}</p>
+          <p className="text-helper">{copy("county")} · {copy("district")}：{admin(candidate)}{candidate.postalCode ? ` · ${copy("postalCode")} ${candidate.postalCode}` : ""}</p>
+          <p className="text-helper">{copy("coordinates")}：<span className="font-mono">{candidate.latitude.toFixed(6)}, {candidate.longitude.toFixed(6)}</span> · {copy("source")}：{sourceLabel(candidate.source)}</p>
+          <CommercialButton size="touch" variant="secondary" className="mt-2" onClick={() => setStep({ kind: "candidate", candidate, confirming: false })}>{copy("choose")}</CommercialButton>
+        </li>)}
+      </ul>
+      <CommercialButton size="touch" variant="secondary" onClick={() => void find()}>{copy("reject")}</CommercialButton>
+    </div>}
+    {step.kind === "failed" && <Message variant="error" title={copy("failedTitle")} action={<CommercialButton size="touch" variant="secondary" onClick={() => { if (step.candidate && ["write_failed", "lock_unavailable", "storage_unavailable"].includes(step.reason)) setStep({ kind: "candidate", candidate: step.candidate, confirming: false }); else void find(); }}>{copy(["administrative_mismatch", "address_mismatch", "low_precision"].includes(step.reason) ? "reject" : "retry")}</CommercialButton>}>
       <span data-testid="location-confirmation-failure" data-reason={step.reason}>{copy(step.reason)}</span>
     </Message>}
+    {step.kind === "failed" && step.rejected?.length ? <div className="space-y-2" data-testid="location-rejected">
+      <h3 className="text-subsection">{copy("rejectedTitle")}</h3>
+      <p className="text-helper">{copy("rejectedNote")}</p>
+      <ul className="space-y-2">
+        {step.rejected.map((item, index) => <li key={`${item.latitude}:${item.longitude}:${index}`} data-testid="location-rejected-option" data-block-reason={item.blockReason} aria-disabled="true" className="min-w-0 rounded-xl border border-dashed border-rose-300 bg-rose-50 p-3 [overflow-wrap:anywhere]">
+          <p className="text-meta font-bold text-rose-800">⊘ {copy(`badge_${item.blockReason}`)}</p>
+          <p className="text-body">{item.interpretedAddress}</p>
+          <p className="text-helper">{copy("county")} · {copy("district")}：{admin(item)} · {copy("source")}：{sourceLabel(item.source)}</p>
+        </li>)}
+      </ul>
+    </div> : null}
   </Panel>;
 }

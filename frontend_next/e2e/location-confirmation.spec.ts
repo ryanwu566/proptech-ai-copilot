@@ -79,7 +79,7 @@ test("a contradictory district response is never presented as a trusted candidat
   const calls = await prepare(page, [], (route) => route.fulfill({ json: { ...RESOLVED, district: "大安區", formatted_address: "臺北市大安區市府路1號" } }));
   await startCase(page);
   await page.getByTestId("location-find").click();
-  await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "invalid");
+  await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "administrative_mismatch");
   await expect(page.getByTestId("location-candidate")).toHaveCount(0);
   expect((await stored(page))[0].data.propertyIdentityAnchor).toBeUndefined();
   expect((await stored(page))[0].data.pendingLocationCandidate).toBeUndefined();

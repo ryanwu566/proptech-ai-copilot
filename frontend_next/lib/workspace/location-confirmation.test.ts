@@ -103,8 +103,8 @@ test("leaving an in-case lookup aborts its transport without acquiring again", a
 });
 
 test("an explicit administrative contradiction cannot be shown as a trusted candidate", () => {
-  assert.deepEqual(interpretLocationResolution({ ...RESOLVED, district: "樹林區", county: "新北市", formatted_address: "238台灣新北市樹林區金寮里中正路191號" }, "新北市新莊區中正路191號"), { kind: "blocked", reason: "invalid" });
-  assert.deepEqual(interpretLocationResolution({ ...RESOLVED, district: "大安區" }, ADDRESS), { kind: "blocked", reason: "invalid" });
+  assert.deepEqual(interpretLocationResolution({ ...RESOLVED, district: "樹林區", county: "新北市", formatted_address: "238台灣新北市樹林區金寮里中正路191號" }, "新北市新莊區中正路191號"), { kind: "blocked", reason: "administrative_mismatch" });
+  assert.deepEqual(interpretLocationResolution({ ...RESOLVED, district: "大安區" }, ADDRESS), { kind: "blocked", reason: "administrative_mismatch" });
 });
 
 test("location request failures distinguish capacity, provider and network unavailability", () => {

@@ -21,6 +21,10 @@ SAFE_KEYS = {
     "message",
     "county",
     "district",
+    "postal_code",
+    "place_id",
+    "resolution_reason",
+    "candidates",
 }
 
 

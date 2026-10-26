@@ -19,9 +19,27 @@ export type LocationCandidate = {
   latitude: number;
   longitude: number;
   source: "tgos" | "google";
+  /** Optional provider evidence; never identity on its own. */
+  postalCode?: string | null;
+  /** The user's address named no county; the candidate's county is the provider's and must be checked. */
+  countyUnverified?: boolean;
 };
-export type LocationCandidateBlock = "unresolved" | "unavailable" | "capacity_unavailable" | "provider_unavailable" | "invalid" | "low_confidence" | "missing_coordinates";
-export type LocationCandidateResult = { kind: "candidate"; candidate: LocationCandidate } | { kind: "blocked"; reason: LocationCandidateBlock | "case_changed" | "already_identified" | "invalid_anchor" | "write_failed" | "lock_unavailable" | "storage_unavailable" };
+/** A provider result shown only so the user can see why it cannot be confirmed. */
+export type RejectedLocationCandidate = {
+  interpretedAddress: string;
+  county: string | null;
+  district: string | null;
+  latitude: number;
+  longitude: number;
+  source: "tgos" | "google";
+  blockReason: "administrative_mismatch" | "address_mismatch" | "low_precision";
+};
+export type LocationCandidateBlock = "unresolved" | "unavailable" | "capacity_unavailable" | "provider_unavailable" | "invalid" | "low_confidence" | "missing_coordinates" | "administrative_mismatch" | "address_mismatch" | "low_precision";
+export type LocationCandidateResult =
+  | { kind: "candidate"; candidate: LocationCandidate }
+  | { kind: "choice"; candidates: LocationCandidate[] }
+  | { kind: "blocked"; reason: LocationCandidateBlock | "case_changed" | "already_identified" | "invalid_anchor" | "write_failed" | "lock_unavailable" | "storage_unavailable"; rejected?: RejectedLocationCandidate[] };
+export const MAX_LOCATION_CANDIDATES = 5;
 
 const GEOCODER_SOURCE_IDS = { tgos: "tgos_geocoding", google: "google_geocoding" } as const;
 // Taiwan, Penghu, Kinmen and Matsu; anything outside is not this product's property.
@@ -73,18 +91,47 @@ export function administrativeParts(address: string): { county?: string; distric
   return { county, district: text.match(/^([\u4e00-\u9fff]{1,8}?[區鄉鎮]|[\u4e00-\u9fff]{1,8}?市)(?![區鄉鎮路街])/)?.[0] };
 }
 
+const BLOCK_REASONS = ["administrative_mismatch", "address_mismatch", "low_precision"] as const;
+const inTaiwan = (latitude: number, longitude: number) => latitude >= TAIWAN_BOUNDS.minLatitude && latitude <= TAIWAN_BOUNDS.maxLatitude && longitude >= TAIWAN_BOUNDS.minLongitude && longitude <= TAIWAN_BOUNDS.maxLongitude;
+const finite = (value: unknown): value is number => typeof value === "number" && Number.isFinite(value);
+
+function rejectedCandidates(value: unknown): RejectedLocationCandidate[] {
+  return (Array.isArray(value) ? value : []).slice(0, MAX_LOCATION_CANDIDATES).flatMap((raw): RejectedLocationCandidate[] => {
+    const item = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+    const blockReason = BLOCK_REASONS.find((reason) => reason === item.block_reason);
+    const address = boundedText(item.formatted_address, 500);
+    if (item.confirmable !== false || !blockReason || !address || (item.source !== "google" && item.source !== "tgos")
+      || !finite(item.latitude) || !finite(item.longitude) || !inTaiwan(item.latitude, item.longitude)) return [];
+    return [{ interpretedAddress: address, county: boundedText(item.county, 20), district: boundedText(item.district, 20), latitude: item.latitude, longitude: item.longitude, source: item.source, blockReason }];
+  });
+}
+
 /** Confirm only trusted, high-confidence Taiwan coordinates; administrative completeness is independent. */
 export function interpretLocationResolution(value: unknown, addressInput: string): LocationCandidateResult {
   if (!value || typeof value !== "object" || Array.isArray(value)) return { kind: "blocked", reason: "invalid" };
   const result = value as Partial<LocationResolveResult>;
-  if (result.status === "unresolved") return { kind: "blocked", reason: "unresolved" };
+  if (result.status === "ambiguous") {
+    // Each choice passes the same acceptance as a single result; never guess between them.
+    const choices = (Array.isArray(result.candidates) ? result.candidates : []).slice(0, MAX_LOCATION_CANDIDATES).flatMap((item) => {
+      if (!item || item.confirmable !== true) return [];
+      const one = interpretLocationResolution({ status: "resolved", confidence: "high", ...item }, addressInput);
+      return one.kind === "candidate" ? [one.candidate] : [];
+    });
+    if (choices.length > 1) return { kind: "choice", candidates: choices };
+    return choices.length === 1 ? { kind: "candidate", candidate: choices[0] } : { kind: "blocked", reason: "invalid" };
+  }
+  if (result.status === "unresolved") {
+    const reason = BLOCK_REASONS.find((item) => item === result.resolution_reason) ?? "unresolved";
+    const rejected = rejectedCandidates(result.candidates);
+    return rejected.length ? { kind: "blocked", reason, rejected } : { kind: "blocked", reason };
+  }
   if (result.status === "unavailable") return { kind: "blocked", reason: "unavailable" };
   if (result.status !== "resolved" || (result.source !== "tgos" && result.source !== "google")) return { kind: "blocked", reason: "invalid" };
   // The resolver reports "high" only for trusted accepted geocodes; "unknown" is never promoted.
   if (result.confidence !== "high") return { kind: "blocked", reason: "low_confidence" };
   const { latitude, longitude } = result;
-  if (typeof latitude !== "number" || typeof longitude !== "number" || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return { kind: "blocked", reason: "missing_coordinates" };
-  if (latitude < TAIWAN_BOUNDS.minLatitude || latitude > TAIWAN_BOUNDS.maxLatitude || longitude < TAIWAN_BOUNDS.minLongitude || longitude > TAIWAN_BOUNDS.maxLongitude) return { kind: "blocked", reason: "invalid" };
+  if (!finite(latitude) || !finite(longitude)) return { kind: "blocked", reason: "missing_coordinates" };
+  if (!inTaiwan(latitude, longitude)) return { kind: "blocked", reason: "invalid" };
   const county = boundedText(result.county, 20);
   const district = boundedText(result.district, 20);
   const input = boundedText(addressInput, 500);
@@ -93,9 +140,15 @@ export function interpretLocationResolution(value: unknown, addressInput: string
   const formatted = administrativeParts(boundedText(result.formatted_address, 500) ?? "");
   for (const key of ["county", "district"] as const) {
     const metadata = key === "county" ? county : district;
-    if (supplied[key] && [metadata?.replaceAll("台", "臺"), formatted[key]].some((value) => value && value !== supplied[key])) return { kind: "blocked", reason: "invalid" };
+    // Defence in depth: a district/county the user typed can never be overridden by the provider.
+    if (supplied[key] && [metadata?.replaceAll("台", "臺"), formatted[key]].some((value) => value && value !== supplied[key])) return { kind: "blocked", reason: "administrative_mismatch" };
   }
-  return { kind: "candidate", candidate: { addressInput: input, interpretedAddress: boundedText(result.formatted_address, 500) ?? input, county, district, latitude, longitude, source: result.source } };
+  const postalCode = typeof result.postal_code === "string" && /^\d{3,6}$/.test(result.postal_code) ? result.postal_code : null;
+  return { kind: "candidate", candidate: {
+    addressInput: input, interpretedAddress: boundedText(result.formatted_address, 500) ?? input, county, district, latitude, longitude, source: result.source,
+    ...(postalCode ? { postalCode } : {}),
+    ...(!supplied.county ? { countyUnverified: true } : {}),
+  } };
 }
 
 /** Explicit user confirmation → the same browser-anchor contract the guided journey produces. */

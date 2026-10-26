@@ -203,7 +203,7 @@ async function withResolver(resolve, run) {
 
 test('strict resolver result is the only thing persisted as pending, and reads never resolve again', async () => browser(JSON.stringify([buildAddressDraftCase(incidentAddress, { id: 'incident', now: '2026-10-21T00:00:00Z' })]), async values => withResolver(async () => googleResult('238台灣新北市樹林區金寮里中正路191號'), async calls => {
   const before = values.get(key);
-  assert.deepEqual(await acquireCaseLocation('incident', incidentAddress), { kind: 'blocked', reason: 'invalid' });
+  assert.deepEqual(await acquireCaseLocation('incident', incidentAddress), { kind: 'blocked', reason: 'administrative_mismatch' });
   assert.equal(values.get(key), before, 'a contradicted district must never be stored as a pending candidate');
   api.locationResolve = async () => googleResult('242台灣新北市新莊區中正路191號');
   const accepted = await acquireCaseLocation('incident', incidentAddress);
