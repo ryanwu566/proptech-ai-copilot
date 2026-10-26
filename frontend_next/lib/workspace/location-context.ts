@@ -13,6 +13,8 @@ import { areJourneyPropertyAddressesEquivalent } from "../journey-property-ident
 import { normalizeNearbyFacilities, type NearbyFacilitiesEvidence } from "./nearby-facilities.ts";
 // @ts-expect-error Native TS runner extension.
 import { normalizeVillageDemographics, villageDemographicsMatches, type VillageDemographicsEvidence } from "./village-demographics.ts";
+// @ts-expect-error Native TS runner extension.
+import { locationViewCopy, type LocationUnresolvedKey } from "./location-view-copy.ts";
 
 export type LocationPropertyContext = {
   address: string;
@@ -46,7 +48,9 @@ export type LocationOverviewHandoff = {
     durationMinutes: number;
     checkedAt: string;
   };
+  /** zh-TW text of the unresolved items, kept for existing consumers; render `unresolvedKeys` in the active locale. */
   unresolved: string[];
+  unresolvedKeys: Array<LocationUnresolvedKey | "identityPending" | "identityReconfirmation">;
 };
 
 function addressFrom(saved: SavedCase, anchor: JourneyPropertyIdentityAnchorV1 | undefined): string {
@@ -112,14 +116,15 @@ export function buildLocationOverviewHandoff(workspace: PropertyCaseWorkspace): 
     ? candidateRoute
     : undefined;
   const transitAvailable = snapshot.transitContext?.status === "resolved";
-  const unresolved: string[] = [];
+  const unresolvedKeys: LocationOverviewHandoff["unresolvedKeys"] = [];
 
-  if (!identityConfirmed) unresolved.push(identityConfirmationCopy["zh-TW"][identityConfirmationKind(workspace.identity) === "reconfirmation" ? "reconfirmationTitle" : "pendingTitle"]);
-  if (identityConfirmed && !route) {
-    unresolved.push(snapshot.routeInvalidated ? "先前目的地路線不屬於目前物件" : snapshot.routeEvidence ? "目的地路線目前無法取得" : "尚未設定通勤目的地");
-  }
-  if (candidateRoute && !route) unresolved.push("路線僅為模擬、備援或部分結果，不能建立正式通勤就緒狀態。");
-  if (snapshot.transitContext && !transitAvailable) unresolved.push("大眾運輸周邊資料目前無法取得");
+  if (!identityConfirmed) unresolvedKeys.push(identityConfirmationKind(workspace.identity) === "reconfirmation" ? "identityReconfirmation" : "identityPending");
+  if (identityConfirmed && !route) unresolvedKeys.push(snapshot.routeInvalidated ? "routeInvalidated" : snapshot.routeEvidence ? "routeUnavailable" : "routeNotSet");
+  if (candidateRoute && !route) unresolvedKeys.push("routeCandidateOnly");
+  if (snapshot.transitContext && !transitAvailable) unresolvedKeys.push("transitUnavailable");
+  const unresolved = unresolvedKeys.map((key) => key === "identityPending" ? identityConfirmationCopy["zh-TW"].pendingTitle
+    : key === "identityReconfirmation" ? identityConfirmationCopy["zh-TW"].reconfirmationTitle
+      : locationViewCopy["zh-TW"][key]);
 
   const commuteReadiness: TaskReadinessState = !identityConfirmed
     ? "blocked"
@@ -141,5 +146,6 @@ export function buildLocationOverviewHandoff(workspace: PropertyCaseWorkspace): 
       },
     } : {}),
     unresolved,
+    unresolvedKeys,
   };
 }

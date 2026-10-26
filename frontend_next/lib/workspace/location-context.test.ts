@@ -229,6 +229,15 @@ test("missing destination is input-required and stale identity blocks current lo
   assert.ok(stale.unresolved.includes("物件位置已變更，需重新確認"));
 });
 
+test("unresolved items are keyed so the Location view renders them in the active locale", () => {
+  const missing = buildLocationOverviewHandoff(adaptSavedCaseToWorkspace(savedCase() as never));
+  assert.deepEqual(missing.unresolvedKeys, ["routeNotSet"]);
+  const stale = buildLocationOverviewHandoff(adaptSavedCaseToWorkspace(savedCase({ stale: true, destination: "台北車站", tdxStatus: "resolved" }) as never));
+  assert.deepEqual(stale.unresolvedKeys, ["identityReconfirmation"]);
+  // The zh-TW text stays derived from the same keys for existing consumers.
+  assert.equal(missing.unresolved.length, missing.unresolvedKeys.length);
+});
+
 test("reopen treats bounded geocoder enrichment as the same browser property", () => {
   const row = savedCase() as never as ReturnType<typeof savedCase>;
   row.data.propertyIdentityAnchor.address_input = "台北市信義區市府路1號";

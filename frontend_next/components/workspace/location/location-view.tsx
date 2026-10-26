@@ -13,8 +13,6 @@ import { StatusLabel } from "@/components/design-system/status-label";
 import { useWorkspace } from "@/components/workspace/workspace-provider";
 import type { CommuteAddressLookupResult, CommuteRouteEvidence } from "@/lib/api";
 import { updateSavedCaseLocationEvidence } from "@/lib/case-storage";
-import { formatDistance, formatDuration, formatExactDate } from "@/lib/commercial/formatters";
-import { riskFacilityReasonLabel } from "@/lib/location-insight-evidence";
 import { resolveCommercialState } from "@/lib/commercial/state";
 import { buildLocationOverviewHandoff } from "@/lib/workspace/location-context";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
@@ -29,27 +27,43 @@ import { NearbyFacilitiesPanel } from "./nearby-facilities-panel";
 import { VillageDemographicsPanel } from "./village-demographics-panel";
 import { villageDemographicsCopy } from "@/lib/workspace/village-demographics-copy";
 import { formatDemographicsMonth } from "@/lib/workspace/village-demographics";
+import { formatLocationDistance, formatLocationDuration, locationViewCopy, type LocationViewCopyKey } from "@/lib/workspace/location-view-copy";
 import { ExplicitMap } from "@/components/map/explicit-map";
+
+function MapLoading() {
+  const { copyFrom } = useExperienceLocale();
+  return <div className="grid min-h-[360px] place-items-center bg-stone-100 text-sm text-slate-500">{copyFrom(locationViewCopy, "mapLoading")}</div>;
+}
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), {
   ssr: false,
-  loading: () => <div className="grid min-h-[360px] place-items-center bg-stone-100 text-sm text-slate-500">正在載入地圖…</div>,
+  loading: () => <MapLoading />,
 });
 
 const POI_LABELS = {
-  transit_count: "交通",
-  convenience_count: "日常便利",
-  school_count: "學校",
-  park_count: "公園綠地",
-  medical_count: "醫療",
-  risk_facility_count: "需實地確認設施",
-} as const;
+  transit_count: "poiTransit",
+  convenience_count: "poiConvenience",
+  school_count: "poiSchool",
+  park_count: "poiPark",
+  medical_count: "poiMedical",
+  risk_facility_count: "poiRiskFacility",
+} as const satisfies Record<string, LocationViewCopyKey>;
 
-const MODE_LABELS = { transit: "大眾運輸", driving: "開車", walking: "步行" } as const;
+const MODE_LABELS = { transit: "modeTransit", driving: "modeDriving", walking: "modeWalking" } as const satisfies Record<string, LocationViewCopyKey>;
+
+const RISK_STATUS: Record<string, LocationViewCopyKey> = { available: "riskAvailable", no_match: "riskNoMatch", no_coverage: "riskNoCoverage", unavailable: "riskUnavailable", unknown: "riskUnknown" };
+const RISK_REASON: Record<string, LocationViewCopyKey> = {
+  risk_facilities_source_unavailable: "riskReasonSourceUnavailable",
+  risk_facilities_coverage_not_preserved: "riskReasonCoverageNotPreserved",
+  successful_query: "riskReasonSuccess",
+  property_identity_mismatch: "riskReasonIdentityMismatch",
+};
 
 export function LocationView() {
   const workspace = useWorkspace();
   const { copyFrom, locale } = useExperienceLocale();
+  const copy = (key: LocationViewCopyKey, values?: Record<string, string | number>) => copyFrom(locationViewCopy, key, values);
+  const unknown = copy("unknownNotRetrieved");
   const latestWorkspace = useRef(workspace);
   latestWorkspace.current = workspace;
   const persistence = useRef({ route: 0, transit: 0, mounted: true });
@@ -104,27 +118,27 @@ export function LocationView() {
 
   return <div className="workspace-view" data-testid="commercial-location-workspace">
     <header className="workspace-view__heading">
-      <p className="text-meta">案件分析區段</p>
-      <h1 ref={heading} tabIndex={-1} className="text-page">區位與通勤</h1>
-      <p className="text-body">這個物件位在什麼位置，周邊有哪些可核對的設施，前往重要目的地是否實際可行？</p>
+      <p className="text-meta">{copy("eyebrow")}</p>
+      <h1 ref={heading} tabIndex={-1} className="text-page">{copy("title")}</h1>
+      <p className="text-body">{copy("intro")}</p>
     </header>
 
     <div role="status" data-testid="location-confirmation-status">{locationConfirmed && !neverLocated && <Message variant="success">{copyFrom(locationConfirmationCopy, "confirmed")}</Message>}</div>
     {anchor && workspace.evidence.market.query === "not_started" && <div data-testid="build-preview-pack"><Message variant="information" action={<Link prefetch={false} className="ds-button ds-button--primary" href={`/cases/${encodeURIComponent(workspace.caseId)}/market`}>{copyFrom(homeStartCopy, "buildPack")}</Link>}>{copyFrom(homeStartCopy, "buildPackHint")}</Message></div>}
     {anchor && !hasCompleteAdministrativeArea(anchor) && <div data-testid="location-administrative-incomplete"><Message variant="information">{copyFrom(locationConfirmationCopy, "adminIncomplete")}</Message><AdministrativeAreaRepairPanel key={`${workspace.caseId}:${workspace.storageVersion}`} /></div>}
 
-    <SummaryStrip label="區位與通勤狀態">
-      <MetricItem label="物件位置" value={<StatusLabel semanticRole={identity.role}>{identity.label[locale]}</StatusLabel>} />
-      <MetricItem label="周邊證據" value={<StatusLabel semanticRole={locationState.role}>{locationState.label["zh-TW"]}</StatusLabel>} note="案件重開後的摘要會標示為有限證據" />
-      <MetricItem label="目的地通勤" value={<StatusLabel semanticRole={readiness.role}>{readiness.label["zh-TW"]}</StatusLabel>} />
+    <SummaryStrip label={copy("statusStrip")}>
+      <MetricItem label={copy("metricProperty")} value={<StatusLabel semanticRole={identity.role}>{identity.label[locale]}</StatusLabel>} />
+      <MetricItem label={copy("metricNearby")} value={<StatusLabel semanticRole={locationState.role}>{locationState.label[locale]}</StatusLabel>} note={copy("metricNearbyNote")} />
+      <MetricItem label={copy("metricCommute")} value={<StatusLabel semanticRole={readiness.role}>{readiness.label[locale]}</StatusLabel>} />
     </SummaryStrip>
 
     <div className="commercial-location-grid">
       <div className="min-w-0">    {handoff.mapReady && coordinates ? <MapFrame
-      title="目前物件位置與周邊證據"
+      title={copy("mapTitle")}
       description={snapshot.property.normalizedAddress}
-      attribution="地圖底圖依畫面標示；點位不是地籍界線"
-      detail={<span>位置核對：{snapshot.property.checkedAt ?? "未提供"}</span>}
+      attribution={copy("mapAttribution")}
+      detail={<span>{copy("mapChecked", { date: snapshot.property.checkedAt ?? copy("notProvided") })}</span>}
     >
       <ExplicitMap key={`${workspace.caseId}:${coordinates.latitude}:${coordinates.longitude}`} kind="location"><GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} /></ExplicitMap>
     </MapFrame> : neverLocated ? <div data-testid="location-not-yet-confirmed" className="space-y-3"><Message variant="information" title={copyFrom(homeStartCopy, "locationPendingTitle")}>
@@ -134,9 +148,9 @@ export function LocationView() {
     </Message>}
 
 </div>
-      <div className="min-w-0">    <Section title="目的地通勤證據" description="目的地路線與大眾運輸周邊資料是兩個獨立來源；其中一項不可用時，另一項仍可判讀。">
+      <div className="min-w-0">    <Section title={copy("commuteTitle")} description={copy("commuteDescription")}>
       <div data-evidence-key="commute" className="space-y-3">
-      {handoff.selectedRoute && snapshot.transitContext?.status !== "resolved" && <Message variant="warning">目的地路線可用；大眾運輸周邊資料目前無法取得。</Message>}
+      {handoff.selectedRoute && snapshot.transitContext?.status !== "resolved" && <Message variant="warning">{copy("routeOnlyTransitUnavailable")}</Message>}
       {handoff.mapReady && coordinates ? <CommuteEvidencePanel
         address={snapshot.property.normalizedAddress}
         locationResult={snapshot.insight ?? null}
@@ -156,64 +170,69 @@ export function LocationView() {
 
     <NearbyFacilitiesPanel key={JSON.stringify([workspace.caseId, workspace.identity.state, anchor?.journey_anchor_id, coordinates])} autoAcquire={refreshNearby} onAutoAcquire={nearbyRefreshStarted} />
 
-    {((!snapshot.nearbyFacilities && (snapshot.insight || snapshot.poiSummary)) || snapshot.insight?.risk_facility_evidence) && <Section title="重要周邊證據" description="以實際設施筆數與距離為主；設施較多不代表物件較好。">
+    {((!snapshot.nearbyFacilities && (snapshot.insight || snapshot.poiSummary)) || snapshot.insight?.risk_facility_evidence) && <Section title={copy("legacyTitle")} description={copy("legacyDescription")}>
       <div data-evidence-key="location" className="space-y-3">
-      {!snapshot.nearbyFacilities && <>{snapshot.poiSummary ? <SummaryStrip label="周邊設施摘要" className="location-poi-summary">
-        {(Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => <MetricItem key={key} label={POI_LABELS[key]} value={snapshot.poiSummary?.[key] ?? "未知／未取得"} />)}
-      </SummaryStrip> : <Message variant="inline" title="尚未取得周邊設施摘要">此案件尚未保存可供判讀的周邊設施結果。</Message>}
-      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? Object.entries(POI_LABELS).map(([key, label]) => `${label} ${snapshot.poiSummary?.[key as keyof typeof snapshot.poiSummary] ?? "未知／未取得"}`).join("；") : "尚未取得周邊設施摘要"}</div>
+      {!snapshot.nearbyFacilities && <>{snapshot.poiSummary ? <SummaryStrip label={copy("poiSummaryLabel")} className="location-poi-summary">
+        {(Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => <MetricItem key={key} label={copy(POI_LABELS[key])} value={snapshot.poiSummary?.[key] ?? unknown} />)}
+      </SummaryStrip> : <Message variant="inline" title={copy("poiSummaryMissingTitle")}>{copy("poiSummaryMissing")}</Message>}
+      <div data-testid="poi-summary" className="sr-only">{snapshot.poiSummary ? (Object.keys(POI_LABELS) as Array<keyof typeof POI_LABELS>).map((key) => copy("poiSummaryItem", { label: copy(POI_LABELS[key]), value: snapshot.poiSummary?.[key] ?? unknown })).join(copy("listSeparator")) : copy("poiSummaryMissingTitle")}</div>
       {snapshot.insight && (!Array.isArray(snapshot.insight.nearest_pois) || snapshot.insight.nearest_pois.length === 0) && <Message variant="information" title={copyFrom(nearbyFacilitiesCopy, "legacyTitle")}>{copyFrom(nearbyFacilitiesCopy, "legacySummary")}</Message>}
       </>}
       {snapshot.insight?.risk_facility_evidence && <Panel variant="plain" data-testid="risk-facility-source">
-        <h3 className="text-subsection">需留意設施的來源與限制</h3>
-        <p className="text-body">{({ available: "已取得來源涵蓋", no_match: "來源查詢無符合設施，不代表安全", no_coverage: "不在來源涵蓋範圍", unavailable: "來源目前無法取得", unknown: "涵蓋未知／未取得" } as Record<string, string>)[snapshot.insight.risk_facility_evidence.status] ?? "涵蓋未知／未取得"}</p>
-        <p className="text-helper">{snapshot.insight.risk_facility_evidence.source ?? "來源未保存"} · {formatExactDate(snapshot.insight.risk_facility_evidence.checked_at)}</p>
-        <p className="text-helper">{riskFacilityReasonLabel(snapshot.insight.risk_facility_evidence.reason)}；{snapshot.insight.risk_facility_evidence.limitation}</p>
+        <h3 className="text-subsection">{copy("riskTitle")}</h3>
+        <p className="text-body">{copy(RISK_STATUS[snapshot.insight.risk_facility_evidence.status] ?? "riskUnknown")}</p>
+        {/* A saved source is a provider identifier and is shown as stored. */}
+        <p className="text-helper">{snapshot.insight.risk_facility_evidence.source ?? copy("riskSourceMissing")} · {snapshot.insight.risk_facility_evidence.checked_at?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? copy("notProvided")}</p>
+        {/* The saved limitation is kept verbatim in zh-TW, the language it is recorded in; other locales get the localized equivalent. */}
+        <p className="text-helper">{copy("riskReasonLimitation", { reason: copy(RISK_REASON[snapshot.insight.risk_facility_evidence.reason ?? ""] ?? "riskReasonOther"), limitation: locale === "zh-TW" && snapshot.insight.risk_facility_evidence.limitation ? snapshot.insight.risk_facility_evidence.limitation : copy("riskLimitation") })}</p>
       </Panel>}
       </div>
     </Section>}
 
     <VillageDemographicsPanel key={JSON.stringify(["demographics", workspace.caseId, workspace.identity.state, anchor?.journey_anchor_id, coordinates])} autoAcquire={confirmedCaseId === workspace.caseId} onAutoAcquire={() => setConfirmedCaseId(null)} />
 
-    <Section title="未知事項與限制">
+    <Section title={copy("limitsTitle")}>
       <div className="grid gap-3 md:grid-cols-2">
         <Panel variant="plain">
-          <h2 className="text-subsection">目前限制</h2>
+          <h2 className="text-subsection">{copy("currentLimits")}</h2>
           <ul className="mt-2 space-y-1 text-dense">
-            {handoff.unresolved.length ? handoff.unresolved.map((item) => <li key={item}>• {item}</li>) : <li>• 目前沒有阻擋此區段判讀的主要限制。</li>}
-            {snapshot.insight?.data_quality?.warnings?.map((item) => <li key={item}>• {item}</li>)}
+            {handoff.unresolvedKeys.length ? handoff.unresolvedKeys.map((key) => <li key={key}>• {key === "identityPending" ? copyFrom(identityConfirmationCopy, "pendingTitle") : key === "identityReconfirmation" ? copyFrom(identityConfirmationCopy, "reconfirmationTitle") : copy(key)}</li>) : <li>• {copy("noLimits")}</li>}
+            {/* Saved analysis warnings are backend text recorded in zh-TW only; other locales get a localized count, never mixed text. */}
+            {locale === "zh-TW"
+              ? snapshot.insight?.data_quality?.warnings?.map((item) => <li key={item}>• {item}</li>)
+              : snapshot.insight?.data_quality?.warnings?.length ? <li>• {copy("savedWarnings", { count: snapshot.insight.data_quality.warnings.length })}</li> : null}
           </ul>
         </Panel>
         <Panel variant="plain">
-          <h2 className="text-subsection">下一步</h2>
+          <h2 className="text-subsection">{copy("nextTitle")}</h2>
           <ul className="mt-2 space-y-1 text-dense">
-            <li>• 加入工作地點、客戶據點或常用車站，逐一比較實際路線。</li>
-            <li>• 對重要設施核對營業狀態、出入口與現場步行條件。</li>
-            <li>• 將無法取得的資料列入看屋或客戶討論清單。</li>
+            <li>• {copy("next1")}</li>
+            <li>• {copy("next2")}</li>
+            <li>• {copy("next3")}</li>
           </ul>
         </Panel>
       </div>
     </Section>
 
     <EvidenceSection>
-      <DetailsDisclosure summary="來源與查詢細節">
+      <DetailsDisclosure summary={copy("sourcesTitle")}>
         <dl className="grid gap-3 text-dense sm:grid-cols-2">
-          <SourceDetail label="物件位置" value={`${friendlySources(snapshot.property.sourceIds)}；核對時間 ${snapshot.property.checkedAt ?? "未提供"}`} />
+          <SourceDetail label={copy("metricProperty")} value={copy("sourcePropertyValue", { sources: friendlySources(snapshot.property.sourceIds, copy), date: snapshot.property.checkedAt ?? copy("notProvided") })} />
           {coordinates && <SourceDetail label={copyFrom(locationConfirmationCopy, "coordinates")} value={`${coordinates.latitude.toFixed(6)}, ${coordinates.longitude.toFixed(6)}`} />}
-          <SourceDetail label="行政位置" value={`${snapshot.property.village.name ?? "村里未確認"}${snapshot.insight?.village_resolution?.source_vintage ? `；圖資版本 ${snapshot.insight.village_resolution.source_vintage}` : ""}`} />
-          <SourceDetail label="目的地路線" value={handoff.identityState !== "confirmed" ? "物件位置需重新確認" : snapshot.routeEvidence ? `${snapshot.routeEvidence.source === "google_routes" ? "Google Routes" : "模擬／備援路線"}；${snapshot.routeEvidence.checked_at}` : "尚未取得"} />
-          <SourceDetail label="大眾運輸周邊" value={snapshot.transitContext ? `TDX；${snapshot.transitContext.source_updated_at ?? snapshot.transitContext.snapshot_generated_at ?? "日期未提供"}` : "尚未取得"} />
-          <SourceDetail label="人口背景" value={demographicsSource ? copyFrom(villageDemographicsCopy, "sourceSummary", { month: formatDemographicsMonth(demographicsSource.statistic_yyymm, locale) ?? copyFrom(villageDemographicsCopy, "insufficient") }) : copyFrom(villageDemographicsCopy, "sourceSummaryNone")} />
+          <SourceDetail label={copy("adminLocation")} value={`${snapshot.property.village.name ?? copy("villageUnconfirmed")}${snapshot.insight?.village_resolution?.source_vintage ? copy("boundaryVintage", { vintage: snapshot.insight.village_resolution.source_vintage }) : ""}`} />
+          <SourceDetail label={copy("routeSource")} value={handoff.identityState !== "confirmed" ? copy("routeNeedsReconfirm") : snapshot.routeEvidence ? copy("sourceDated", { source: snapshot.routeEvidence.source === "google_routes" ? "Google Routes" : copy("routeSimulated"), date: snapshot.routeEvidence.checked_at }) : copy("notRetrieved")} />
+          <SourceDetail label={copy("transitSource")} value={snapshot.transitContext ? copy("sourceDated", { source: "TDX", date: snapshot.transitContext.source_updated_at ?? snapshot.transitContext.snapshot_generated_at ?? copy("dateNotProvided") }) : copy("notRetrieved")} />
+          <SourceDetail label={copy("demographicsSource")} value={demographicsSource ? copyFrom(villageDemographicsCopy, "sourceSummary", { month: formatDemographicsMonth(demographicsSource.statistic_yyymm, locale) ?? copyFrom(villageDemographicsCopy, "insufficient") }) : copyFrom(villageDemographicsCopy, "sourceSummaryNone")} />
         </dl>
-        {handoff.selectedRoute && <p className="mt-3 text-meta">已選路線：{handoff.selectedRoute.destination} · {MODE_LABELS[handoff.selectedRoute.mode]} · {formatDistance(handoff.selectedRoute.distanceM)} · {formatDuration(handoff.selectedRoute.durationMinutes)}</p>}
+        {handoff.selectedRoute && <p className="mt-3 text-meta">{copy("selectedRoute", { destination: handoff.selectedRoute.destination, mode: copy(MODE_LABELS[handoff.selectedRoute.mode]), distance: formatLocationDistance(handoff.selectedRoute.distanceM, locale), duration: formatLocationDuration(handoff.selectedRoute.durationMinutes, locale) })}</p>}
       </DetailsDisclosure>
     </EvidenceSection>
   </div>;
 }
 
-function friendlySources(sourceIds: string[]): string {
-  if (!sourceIds.length) return "來源未提供";
-  return sourceIds.map((source) => source === "google_geocoding" ? "Google 地址解析" : source === "tgos_geocoding" ? "TGOS 地址解析" : source === "nlsc_village_boundary" ? "NLSC 村里界" : "使用者確認").join("、");
+function friendlySources(sourceIds: string[], copy: (key: LocationViewCopyKey) => string): string {
+  if (!sourceIds.length) return copy("sourceNone");
+  return sourceIds.map((source) => copy(source === "google_geocoding" ? "sourceGoogle" : source === "tgos_geocoding" ? "sourceTgos" : source === "nlsc_village_boundary" ? "sourceNlsc" : "sourceUser")).join(copy("sourceSeparator"));
 }
 
 function SourceDetail({ label, value }: { label: string; value: string }) {

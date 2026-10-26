@@ -533,18 +533,18 @@ test("Google route remains usable when TDX is unavailable and retry replaces sta
   await expect(page.getByTestId("commute-transit-context-state")).toHaveAttribute("data-status", "unavailable");
 
   const routeCard = page.getByTestId("commute-route-card");
-  await routeCard.getByLabel("目的地地址").fill("Taipei Main Station");
-  await routeCard.getByRole("button", { name: "估算通勤" }).click();
+  await routeCard.getByLabel("Destination address").fill("Taipei Main Station");
+  await routeCard.getByRole("button", { name: "Estimate commute" }).click();
   await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "provider_timeout");
-  await routeCard.getByRole("button", { name: "估算通勤" }).click();
+  await routeCard.getByRole("button", { name: "Estimate commute" }).click();
   await expect(routeCard).toContainText("23");
-  await expect(routeCard).toContainText("8.1 公里");
+  await expect(routeCard).toContainText("8.1 km");
   await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "success");
   await expect(page.locator("section[aria-labelledby=location-market-status-heading]").getByText("Data is incomplete")).toBeVisible();
   expect(routeCalls).toBe(2);
 
-  await routeCard.getByLabel("目的地地址").fill("New destination");
-  await expect(routeCard).not.toContainText("8.1 公里");
+  await routeCard.getByLabel("Destination address").fill("New destination");
+  await expect(routeCard).not.toContainText("8.1 km");
   await expect(routeCard.getByTestId("commute-route-state")).toHaveAttribute("data-reason-code", "destination_required");
   const deferredResponse = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith("/commute/route"));
   await routeCard.getByRole("button").last().click();
@@ -557,7 +557,7 @@ test("Google route remains usable when TDX is unavailable and retry replaces sta
   await page.locator("#location-insight-calculator").getByRole("button", { name: "Start location analysis" }).click();
   await expect(page.getByTestId("location-result")).toContainText("Property B");
   await expect(page.getByTestId("commute-route-card")).toBeVisible();
-  await expect(page.getByTestId("commute-route-card")).not.toContainText("8.1 公里");
+  await expect(page.getByTestId("commute-route-card")).not.toContainText("8.1 km");
   expect(routeCalls).toBe(3);
 });
 

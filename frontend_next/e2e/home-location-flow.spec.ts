@@ -1,3 +1,4 @@
+import { locationViewCopy } from "../lib/workspace/location-view-copy";
 import { expect, test } from "./fixtures";
 import type { Page, Route } from "@playwright/test";
 import { isProviderRequest } from "./helpers/provider-request";
@@ -226,7 +227,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.goto(`/cases/${caseId}/location`);
     await page.reload();
     await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
-    await expect(page.getByRole("region", { name: "目前物件位置與周邊證據" })).toBeVisible();
+    await expect(page.getByRole("region", { name: locationViewCopy[locale].mapTitle })).toBeVisible();
     await page.waitForLoadState("networkidle");
     expect(calls.resolve).toHaveLength(1);
     expect(calls.other).toEqual([]);

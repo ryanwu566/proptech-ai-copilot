@@ -59,7 +59,7 @@ test("wrong-district candidate is visibly blocked, cannot be confirmed, and sear
   await expect(page.getByTestId("location-confirmation-failure")).toHaveAttribute("data-reason", "administrative_mismatch");
   const rejected = page.getByTestId("location-rejected-option");
   await expect(rejected).toContainText("樹林區");
-  await expect(rejected).toContainText("行政區不一致・不可確認");
+  await expect(rejected).toContainText("行政區不一致 · 不可確認");
   await expect(rejected).toHaveAttribute("aria-disabled", "true");
   await expect(page.getByTestId("location-confirm")).toHaveCount(0);
   expect((await stored(page, "lxv2-draft")).data.pendingLocationCandidate).toBeUndefined();

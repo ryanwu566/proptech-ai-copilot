@@ -3,9 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type CommuteAddressLookupResult } from "@/lib/api";
 import { Button, Notice } from "@/components/ui";
-import { COMMUTE_LIVABILITY_NOTICE, isBlankAddress, normalizeCommuteResult, type CommuteLivabilityStatus } from "@/lib/commute-livability-ui";
+import { isBlankAddress, normalizeCommuteResult, type CommuteLivabilityStatus } from "@/lib/commute-livability-ui";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
-import { formatDistance } from "@/lib/commercial/formatters";
+import { commuteRouteCopy } from "@/lib/commute-route-copy";
+import { formatLocationDistance, locationViewCopy } from "@/lib/workspace/location-view-copy";
 
 
 function restoredStatus(result: CommuteAddressLookupResult | undefined): CommuteLivabilityStatus {
@@ -19,7 +20,7 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
   const [status, setStatus] = useState<CommuteLivabilityStatus>(() => restoredStatus(initialResult));
   const [result, setResult] = useState<CommuteAddressLookupResult | null>(initialResult?.status === "resolved" ? initialResult : null);
   const [message, setMessage] = useState("");
-  const { copy } = useExperienceLocale();
+  const { copy, copyFrom, locale } = useExperienceLocale();
   const latestAddressRef = useRef(address);
   const onStatusRef = useRef(onStatusChange);
   const onResultRef = useRef(onResult);
@@ -123,11 +124,11 @@ export function CommuteLivabilityCard({ address, initialResult, onStatusChange, 
       {result?.status === "resolved" && (
         <div className="mt-3 grid gap-2 rounded-lg border border-cyan-100 bg-white p-3 text-xs text-slate-700 sm:grid-cols-2">
           <SafeField label={copy("commute.station")} value={result.station_name ?? copy("commute.noData")} />
-          <SafeField label={copy("commute.lines")} value={result.line_ids.length ? result.line_ids.join("、") : copy("commute.noData")} />
-          <SafeField label={copy("commute.distance")} value={result.distance_meters === null ? copy("commute.noData") : formatDistance(result.distance_meters)} />
+          <SafeField label={copy("commute.lines")} value={result.line_ids.length ? result.line_ids.join(copyFrom(locationViewCopy, "sourceSeparator")) : copy("commute.noData")} />
+          <SafeField label={copy("commute.distance")} value={result.distance_meters === null ? copy("commute.noData") : formatLocationDistance(result.distance_meters, locale)} />
           <SafeField label={copy("commute.updated")} value={`${copy("commute.source")} / ${result.source_updated_at ?? result.snapshot_generated_at ?? copy("commute.noData")}`} />
           <div className="sm:col-span-2">
-            <Notice>{COMMUTE_LIVABILITY_NOTICE}</Notice>
+            <Notice>{copyFrom(commuteRouteCopy, "livabilityNotice")}</Notice>
           </div>
         </div>
       )}

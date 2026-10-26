@@ -5,6 +5,7 @@ import { isProviderRequest } from "./helpers/provider-request";
 import { isNearbyRequest, routeNearby, type NearbyCall } from "./helpers/nearby-route";
 import { locationConfirmationCopy } from "../lib/workspace/location-confirmation-copy";
 import { buildAddressDraftCase } from "../lib/workspace/case-draft";
+import { locationViewCopy } from "../lib/workspace/location-view-copy";
 import { homeStartCopy } from "../lib/home-start-copy";
 
 /**
@@ -272,7 +273,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await expect(page.getByTestId("market-administrative-unavailable")).toContainText(copy.adminIncomplete);
     await page.goto(`/cases/${caseId}/location`);
     await page.reload();
-    await expect(page.getByRole("region", { name: "目前物件位置與周邊證據" })).toBeVisible();
+    await expect(page.getByRole("region", { name: locationViewCopy[locale].mapTitle })).toBeVisible();
     await expect(page.getByTestId("location-administrative-incomplete")).toContainText(copy.adminIncomplete);
     await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
     await page.waitForLoadState("networkidle");
