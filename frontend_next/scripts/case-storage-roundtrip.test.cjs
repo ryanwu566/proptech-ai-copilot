@@ -297,6 +297,41 @@ test('nearby evidence rejects mismatched origin and failed storage without erasi
     assert.equal(values.get(key), original);
   }, true);
 });
+test('post-confirm demographics and Nearby from one snapshot both persist; any other change still blocks', async () => {
+  const { captureVillageDemographics } = load('lib/workspace/village-demographics.ts');
+  const demographics = () => captureVillageDemographics({ latitude: 24.16525, longitude: 120.64555, checked_at: '2026-10-20T08:00:00+00:00', village_resolution: { status: 'resolved', county: '臺中市', town: '西屯區', village: '潮洋里', village_code: '66000060020', district_code: '66000060020', source: 'nlsc_village_boundary', source_vintage: 'ROC-1150817', reason: 'unique_intersection' }, demographics: { status: 'no_data', reason: 'demographics_not_available_for_village_code' } }, { latitude: 24.16525, longitude: 120.64555 });
+  const original = JSON.stringify([e9Case()]);
+  await browser(original, async () => {
+    const row = storage.readSavedCases()[0];
+    const expected = { ...expectation(row), snapshotVersion: JSON.stringify(row) };
+    // Both acquisitions start from the same snapshot; the second save lands after the first has bumped the row.
+    const village = demographics(); const facilities = nearby();
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { villageDemographics: village }, expected), true);
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { nearbyFacilities: facilities }, expected), true);
+    const saved = storage.readSavedCases()[0];
+    assert.deepEqual(saved.data.villageDemographics, village);
+    assert.deepEqual(saved.data.nearbyFacilities, facilities);
+    // The same field written concurrently from the old snapshot is still a conflict.
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { nearbyFacilities: nearby() }, expected), false);
+  });
+  await browser(original, async values => {
+    const row = storage.readSavedCases()[0];
+    const expected = { ...expectation(row), snapshotVersion: JSON.stringify(row) };
+    const changed = JSON.parse(values.get(key)); changed[0].title = 'edited elsewhere'; values.set(key, JSON.stringify(changed));
+    const before = values.get(key);
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { nearbyFacilities: nearby() }, expected), false);
+    assert.equal(values.get(key), before);
+  });
+  await browser(original, async values => {
+    const row = storage.readSavedCases()[0];
+    const expected = { ...expectation(row), snapshotVersion: JSON.stringify(row) };
+    const moved = JSON.parse(values.get(key)); moved[0].data.propertyIdentityAnchor.journey_anchor_id = 'address-b'; values.set(key, JSON.stringify(moved));
+    const before = values.get(key);
+    assert.equal(await storage.updateSavedCaseLocationEvidence(row.id, { villageDemographics: demographics() }, expected), false);
+    assert.equal(values.get(key), before);
+  });
+});
+
 function input() {
   const row = e9Case();
   delete row.data.financeEvidence;

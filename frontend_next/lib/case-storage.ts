@@ -349,6 +349,27 @@ function deleteSavedCaseUnlocked(id: string) {
   return writeCases(snapshot.diagnostic.cases.filter((row) => row.id !== id), snapshot.raw);
 }
 
+const LOCATION_EVIDENCE_FIELDS = ["nearbyFacilities", "villageDemographics", "commuteRoute", "commuteTransit"] as const;
+
+/**
+ * Field-level version check for location evidence. A confirmation acquires demographics and Nearby concurrently from
+ * one snapshot; whichever saves second must not be rejected because its sibling saved first. Any other change since
+ * the snapshot — including to the field being written — is still a conflict.
+ */
+function unchangedExceptSiblingLocationEvidence(current: SavedCase, snapshotVersion: string, patched: string[]): boolean {
+  const serialized = JSON.stringify(current);
+  if (serialized === snapshotVersion) return true;
+  let previous: SavedCase;
+  try { previous = JSON.parse(snapshotVersion) as SavedCase; } catch { return false; }
+  if (!previous || typeof previous !== "object" || !previous.data || typeof previous.data !== "object") return false;
+  const withoutSiblings = (row: SavedCase) => {
+    const data: Record<string, unknown> = { ...row.data };
+    for (const field of LOCATION_EVIDENCE_FIELDS) if (!patched.includes(field)) delete data[field];
+    return JSON.stringify({ ...row, updatedAt: undefined, data });
+  };
+  return withoutSiblings(current) === withoutSiblings(previous);
+}
+
 export function updateSavedCaseLocationEvidence(caseId: string, patch: {
   nearbyFacilities?: NearbyFacilitiesEvidence;
   villageDemographics?: VillageDemographicsEvidence;
@@ -369,7 +390,7 @@ function updateSavedCaseLocationEvidenceUnlocked(caseId: string, patch: {
   const index = rows.findIndex((row) => row.id === caseId);
   if (index < 0) return false;
   const current = rows[index];
-  if (JSON.stringify(current) !== snapshotVersion || !identityMatches(current, expectedIdentity)) return false;
+  if (!unchangedExceptSiblingLocationEvidence(current, snapshotVersion, Object.keys(patch)) || !identityMatches(current, expectedIdentity)) return false;
   const data: SavedCaseData = { ...current.data };
   if (Object.prototype.hasOwnProperty.call(patch, "nearbyFacilities")) {
     const nearby = normalizeNearbyFacilities(patch.nearbyFacilities);

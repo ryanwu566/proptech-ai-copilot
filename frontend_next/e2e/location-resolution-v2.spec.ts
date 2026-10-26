@@ -1,11 +1,13 @@
 import { expect, test } from "./fixtures";
 import type { Page, Route } from "@playwright/test";
 import { buildAddressDraftCase } from "../lib/workspace/case-draft";
+import { isNearbyRequest, routeNearby, type NearbyCall } from "./helpers/nearby-route";
 import { isProviderRequest } from "./helpers/provider-request";
 
 /**
  * Gate L1-1: Google-first resolution. A candidate contradicting the typed district is shown but blocked;
- * several plausible candidates require an explicit choice; only explicit Find/Search again geocodes.
+ * several plausible candidates require an explicit choice; only explicit Find/Search again geocodes. Only a confirmed
+ * candidate acquires village demographics and Nearby, once each, for its own coordinates.
  */
 const KEY = "proptech.savedCases.v1";
 const BASEMAP = /(^|\.)tile\.openstreetmap\.org$|(^|\.)basemaps\.cartocdn\.com$|(^|\.)arcgisonline\.com$/;
@@ -17,10 +19,16 @@ async function prepare(page: Page, resolve: (route: Route) => Promise<void>) {
     sessionStorage.setItem("lxv2-resolve-seeded", "1");
     localStorage.setItem(key, "[]");
   }, { key: KEY });
-  const calls = { resolve: 0, other: [] as string[] };
+  const calls = { resolve: 0, other: [] as string[], demographics: [] as string[], nearby: [] as NearbyCall[] };
+  await routeNearby(page, calls.nearby);
+  await page.route("**/demographics/location?*", async (route) => {
+    const url = new URL(route.request().url());
+    calls.demographics.push(`${url.searchParams.get("latitude")},${url.searchParams.get("longitude")}`);
+    await route.fulfill({ json: { latitude: Number(url.searchParams.get("latitude")), longitude: Number(url.searchParams.get("longitude")), checked_at: "2026-10-20T08:00:00+00:00", village_resolution: { status: "unresolved", reason: "no_intersection" }, demographics: { status: "unavailable", reason: "village_unresolved" } } });
+  });
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (BASEMAP.test(url.hostname)) return;
+    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/demographics/location") || isNearbyRequest(url)) return;
     if (url.pathname.endsWith("/location/resolve")) calls.resolve++;
     else if (isProviderRequest(request, url.hostname === "127.0.0.1" ? url.origin : "http://127.0.0.1")) calls.other.push(url.pathname);
   });
@@ -58,6 +66,8 @@ test("wrong-district candidate is visibly blocked, cannot be confirmed, and sear
   // Downstream analysis cannot start from a blocked candidate.
   await expect(page.getByTestId("nearby-facilities").getByRole("button").first()).toBeDisabled();
   expect(calls.resolve).toBe(1);
+  expect(calls.demographics).toEqual([]);
+  expect(calls.nearby).toEqual([]);
   await page.getByTestId("location-confirmation").getByRole("button", { name: "重新尋找", exact: true }).click();
   await expect(page.getByTestId("location-candidate")).toContainText("242台灣新北市新莊區中正路191號");
   await page.getByTestId("location-candidate-details").locator("summary").click();
@@ -68,9 +78,15 @@ test("wrong-district candidate is visibly blocked, cannot be confirmed, and sear
   const anchor = (await stored(page, "lxv2-draft")).data.propertyIdentityAnchor;
   expect(anchor.coordinates).toEqual({ latitude: 25.0359, longitude: 121.4326 });
   expect(calls.resolve).toBe(2);
+  // Confirming the accepted candidate acquires demographics and Nearby once each, for its coordinates only.
+  await expect(page.getByTestId("nearby-facilities")).toContainText("Confirmed fixture station");
+  await expect.poll(() => calls.demographics).toEqual(["25.0359,121.4326"]);
+  expect(calls.nearby).toEqual([expect.objectContaining({ lat: 25.0359, lng: 121.4326 })]);
   await page.reload();
   await page.waitForLoadState("networkidle");
   expect(calls.resolve).toBe(2);
+  expect(calls.demographics).toHaveLength(1);
+  expect(calls.nearby).toHaveLength(1);
   expect(calls.other).toEqual([]);
 });
 
@@ -91,4 +107,9 @@ test("several plausible Google candidates require an explicit choice before conf
   await page.getByTestId("location-confirm").click();
   await expect.poll(async () => (await stored(page, "lxv2-draft")).data.propertyIdentityAnchor?.coordinates).toEqual({ latitude: 25.13, longitude: 121.75 });
   expect(calls.resolve).toBe(1);
+  // Only the chosen candidate is enriched; the other plausible candidate never is.
+  await expect.poll(() => calls.demographics).toEqual(["25.13,121.75"]);
+  await expect.poll(() => calls.nearby.length).toBe(1);
+  expect(calls.nearby).toEqual([expect.objectContaining({ lat: 25.13, lng: 121.75 })]);
+  expect(calls.other).toEqual([]);
 });

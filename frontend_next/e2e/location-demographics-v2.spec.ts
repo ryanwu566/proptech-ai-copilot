@@ -4,6 +4,7 @@ import { e9Case } from "../lib/workspace/e9-test-fixtures";
 import { buildAddressDraftCase } from "../lib/workspace/case-draft";
 import { captureVillageDemographics } from "../lib/workspace/village-demographics";
 import { villageDemographicsCopy } from "../lib/workspace/village-demographics-copy";
+import { isNearbyRequest, routeNearby, type NearbyCall } from "./helpers/nearby-route";
 import { isProviderRequest } from "./helpers/provider-request";
 
 /**
@@ -39,7 +40,7 @@ const STATE_TEST_IDS: Record<keyof typeof STATES, string> = {
   unavailable: "demographics-unavailable", unresolved: "demographics-village-unresolved", ambiguous: "demographics-village-ambiguous",
 };
 
-type Calls = { demographics: string[]; provider: string[]; forbidden: string[] };
+type Calls = { demographics: string[]; nearby: NearbyCall[]; provider: string[]; forbidden: string[] };
 
 async function prepare(page: Page, rows: unknown[], respond: (route: Route, point: string) => Promise<void> = (route) => route.fulfill({ json: STATES.available })) {
   await page.addInitScript(({ key, rows }) => {
@@ -47,11 +48,13 @@ async function prepare(page: Page, rows: unknown[], respond: (route: Route, poin
     sessionStorage.setItem("demographics-v2-seeded", "1");
     localStorage.setItem(key, JSON.stringify(rows));
   }, { key: KEY, rows });
-  const calls: Calls = { demographics: [], provider: [], forbidden: [] };
+  const calls: Calls = { demographics: [], nearby: [], provider: [], forbidden: [] };
+  // Confirm also refreshes Nearby once (Gate L1-2); it is counted on its own, never as an unrelated provider.
+  await routeNearby(page, calls.nearby);
   page.on("request", (request) => {
     const url = new URL(request.url());
     if (FORBIDDEN.test(request.url())) calls.forbidden.push(request.url());
-    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/demographics/location") || url.pathname.endsWith("/location/resolve")) return;
+    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/demographics/location") || url.pathname.endsWith("/location/resolve") || isNearbyRequest(url)) return;
     if (isProviderRequest(request, url.hostname === "127.0.0.1" ? url.origin : "http://127.0.0.1")) calls.provider.push(url.pathname);
   });
   await page.route((url) => BASEMAP.test(url.hostname), (route) => route.fulfill({ contentType: "image/png", body: PNG }));
@@ -108,7 +111,7 @@ for (const locale of LOCALES) for (const width of [390, 430, 1024, 1440]) {
       expect(await noOverflow(page)).toBe(true);
     }
     await page.waitForLoadState("networkidle");
-    expect(calls).toEqual({ demographics: [], provider: [], forbidden: [] });
+    expect(calls).toEqual({ demographics: [], nearby: [], provider: [], forbidden: [] });
   });
 }
 
@@ -131,7 +134,7 @@ test("locale switch, Report and Compare reuse saved demographics without refetch
   await page.goto("/cases/case-b/location");
   await expect(page.getByTestId("demographics-not-run")).toBeVisible();
   await page.waitForLoadState("networkidle");
-  expect(calls).toEqual({ demographics: [], provider: [], forbidden: [] });
+  expect(calls).toEqual({ demographics: [], nearby: [], provider: [], forbidden: [] });
 });
 
 test("explicit refresh re-runs once for the confirmed anchor and replaces the saved result", async ({ page }) => {
@@ -202,6 +205,9 @@ test("stale A: a late result for case A lands only on case A, never on case B", 
   await expect(page.getByTestId("demographics-available")).toContainText("99,999");
   await page.waitForLoadState("networkidle");
   expect(calls.demographics).toHaveLength(1);
+  expect(calls.nearby).toEqual([expect.objectContaining({ lat: 25.0375, lng: 121.5637 })]);
+  expect((await stored(page, "case-x")).data.nearbyFacilities?.origin).toEqual({ lat: 25.0375, lng: 121.5637 });
+  expect((await stored(page, "case-b")).data.nearbyFacilities).toBeUndefined();
   expect(calls.provider).toEqual([]);
   expect(calls.forbidden).toEqual([]);
 });

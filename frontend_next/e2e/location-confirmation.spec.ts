@@ -112,7 +112,7 @@ async function startCase(page: Page) {
   return draft.id;
 }
 
-test("existing address-only case → lookup → confirm unlocks actions with one explicit lookup and no enrichment", async ({ page }) => {
+test("existing address-only case → lookup → confirm unlocks actions with one explicit lookup and one bounded Location enrichment each", async ({ page }) => {
   const calls = await prepare(page, [e9Case()]);
   await page.goto("/");
   record(page, calls);
@@ -161,7 +161,8 @@ test("existing address-only case → lookup → confirm unlocks actions with one
   expect(rows).toHaveLength(2);
   const created = rows.find((row) => row.id === caseId)!;
   expect(created.data.propertyIdentityAnchor).toMatchObject({ address_input: ADDRESS, coordinates: { latitude: 25.0375, longitude: 121.5637 }, administrative_location: { city: "臺北市", district: "信義區", village: null }, parcel: { status: "unavailable" }, building: { status: "unavailable" }, revalidation: { status: "current" } });
-  for (const field of ["marketInsight", "valuation", "locationInsight", "nearbyFacilities", "terrainReference", "commuteRoute", "commuteTransit", "financeEvidence"]) expect(created.data[field]).toBeUndefined();
+  for (const field of ["marketInsight", "valuation", "locationInsight", "terrainReference", "commuteRoute", "commuteTransit", "financeEvidence"]) expect(created.data[field]).toBeUndefined();
+  expect(created.data.nearbyFacilities).toMatchObject({ origin: { lat: 25.0375, lng: 121.5637 } });
   expect(created.data.villageDemographics).toMatchObject({ origin: { lat: 25.0375, lng: 121.5637 }, demographics: { status: "no_data" } });
 
   // Downstream unlock matrix — every action stays explicit; nothing auto-runs.
