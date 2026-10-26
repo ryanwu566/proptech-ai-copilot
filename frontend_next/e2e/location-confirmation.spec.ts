@@ -7,8 +7,9 @@ import { buildAddressDraftCase } from "../lib/workspace/case-draft";
 import { homeStartCopy } from "../lib/home-start-copy";
 
 /**
- * In-case location confirmation: Find = one geocode-only /location/resolve; Confirm = identity only.
- * Rendering a case, finding or confirming never runs nearby, commute, market, valuation or risk providers.
+ * In-case location confirmation: Find = one geocode-only /location/resolve; Confirm = identity plus exactly one
+ * internal /demographics/location read bound to the new anchor. Rendering a case, finding or confirming never runs
+ * nearby, commute, market, valuation or risk providers.
  */
 const KEY = "proptech.savedCases.v1";
 const ADDRESS = "臺北市信義區市府路1號";
@@ -17,7 +18,12 @@ const RESOLVED = { status: "resolved", source: "tgos", formatted_address: "臺�
 const BASEMAP = /(^|\.)tile\.openstreetmap\.org$|(^|\.)basemaps\.cartocdn\.com$|(^|\.)arcgisonline\.com$/;
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
 
-type Calls = { provider: string[]; resolve: number; basemap: number };
+type Calls = { provider: string[]; resolve: number; basemap: number; demographics: string[] };
+const DEMOGRAPHICS = (latitude: number, longitude: number) => ({
+  latitude, longitude, checked_at: "2026-10-20T08:00:00+00:00",
+  village_resolution: { status: "resolved", county: "臺北市", town: "信義區", village: "西村里", village_code: "63000020032", district_code: "63000020032", source: "nlsc_village_boundary", source_vintage: "ROC-1150817", reason: "unique_intersection" },
+  demographics: { status: "no_data", reason: "demographics_not_available_for_village_code" },
+});
 
 async function prepare(page: Page, rows: unknown[] = [], resolve: (route: import("@playwright/test").Route) => Promise<void> = (route) => route.fulfill({ json: RESOLVED })) {
   await page.addInitScript(({ key, rows }) => {
@@ -25,8 +31,13 @@ async function prepare(page: Page, rows: unknown[] = [], resolve: (route: import
     sessionStorage.setItem("location-confirmation-seeded", "1");
     localStorage.setItem(key, JSON.stringify(rows));
   }, { key: KEY, rows });
-  const calls: Calls = { provider: [], resolve: 0, basemap: 0 };
+  const calls: Calls = { provider: [], resolve: 0, basemap: 0, demographics: [] };
   await page.route("**/location/resolve", async (route) => { calls.resolve++; await resolve(route); });
+  await page.route("**/demographics/location?*", async (route) => {
+    const url = new URL(route.request().url());
+    calls.demographics.push(`${url.searchParams.get("latitude")},${url.searchParams.get("longitude")}`);
+    await route.fulfill({ json: DEMOGRAPHICS(Number(url.searchParams.get("latitude")), Number(url.searchParams.get("longitude"))) });
+  });
   await page.route((url) => BASEMAP.test(url.hostname), (route) => { calls.basemap++; return route.fulfill({ status: 200, contentType: "image/png", body: PNG }); });
   return calls;
 }
@@ -35,7 +46,8 @@ function record(page: Page, calls: Calls) {
   const origin = new URL(page.url()).origin;
   page.on("request", (request: Request) => {
     const url = new URL(request.url());
-    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve")) return;
+    // Village demographics are the internal backend read counted separately; they are not a Google/Places provider.
+    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve") || url.pathname.endsWith("/demographics/location")) return;
     if (isProviderRequest(request, origin)) calls.provider.push(`${request.method()} ${url.host}${url.pathname}`);
   });
 }
@@ -107,7 +119,7 @@ test("existing address-only case → lookup → confirm unlocks actions with one
   await expect(panel).toBeVisible();
   await page.waitForLoadState("networkidle");
   // A + B + C: Home start, opening the case and rendering Location run nothing.
-  expect(calls).toEqual({ provider: [], resolve: 0, basemap: 0 });
+  expect(calls).toEqual({ provider: [], resolve: 0, basemap: 0, demographics: [] });
 
   // D + E: Find runs exactly one geocode-only resolve and saves only unconfirmed UI data.
   const before = JSON.stringify(await stored(page));
@@ -123,25 +135,29 @@ test("existing address-only case → lookup → confirm unlocks actions with one
   await page.waitForLoadState("networkidle");
   expect(calls.resolve).toBe(1);
   expect(calls.provider).toEqual([]);
+  expect(calls.demographics).toEqual([]);
   expect(JSON.stringify(await stored(page))).not.toBe(before);
   const pending = (await stored(page)).find((row) => row.id === caseId)!;
   expect(pending.data.propertyIdentityAnchor).toBeUndefined();
   expect(pending.data.pendingLocationCandidate).toMatchObject({ state: "unconfirmed", caseId });
 
-  // F: Confirm persists identity only and runs no provider.
+  // F: Confirm persists identity, runs no provider, and reads village demographics once for the new anchor.
   await candidate.getByRole("button", { name: "確認位置", exact: true }).click();
   await expect(page.getByTestId("location-confirmation-status")).toContainText("已確認物件位置");
   await expect(panel).toHaveCount(0);
   await expect(page.getByRole("banner", { name: "目前物件" })).not.toContainText("物件尚待確認");
   await expect(page.getByRole("region", { name: "目前物件位置與周邊證據" })).toBeVisible();
+  await expect(page.getByTestId("demographics-no-data")).toBeVisible();
   await page.waitForLoadState("networkidle");
   expect(calls.resolve).toBe(1);
   expect(calls.provider).toEqual([]);
+  expect(calls.demographics).toEqual(["25.0375,121.5637"]);
   const rows = await stored(page);
   expect(rows).toHaveLength(2);
   const created = rows.find((row) => row.id === caseId)!;
   expect(created.data.propertyIdentityAnchor).toMatchObject({ address_input: ADDRESS, coordinates: { latitude: 25.0375, longitude: 121.5637 }, administrative_location: { city: "臺北市", district: "信義區", village: null }, parcel: { status: "unavailable" }, building: { status: "unavailable" }, revalidation: { status: "current" } });
-  for (const field of ["marketInsight", "valuation", "locationInsight", "terrainReference", "commuteRoute", "commuteTransit", "financeEvidence"]) expect(created.data[field]).toBeUndefined();
+  for (const field of ["marketInsight", "valuation", "locationInsight", "nearbyFacilities", "terrainReference", "commuteRoute", "commuteTransit", "financeEvidence"]) expect(created.data[field]).toBeUndefined();
+  expect(created.data.villageDemographics).toMatchObject({ origin: { lat: 25.0375, lng: 121.5637 }, demographics: { status: "no_data" } });
 
   // Downstream unlock matrix — every action stays explicit; nothing auto-runs.
   const pack = page.getByTestId("build-preview-pack");
@@ -179,6 +195,9 @@ test("existing address-only case → lookup → confirm unlocks actions with one
   await page.waitForLoadState("networkidle");
   expect(calls.resolve).toBe(1);
   expect(calls.provider).toEqual([]);
+  // Report, Compare and reopening read the saved result; none acquires again.
+  expect(calls.demographics).toHaveLength(1);
+  await expect(page.getByTestId("demographics-no-data")).toBeVisible();
 });
 
 const FAILURES: Array<[string, (route: import("@playwright/test").Route) => Promise<void>, string, string]> = [

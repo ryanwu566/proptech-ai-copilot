@@ -118,7 +118,13 @@ export function projectCaseEvidence(workspace: PropertyCaseWorkspace): CaseEvide
   const insight = location.insight;
   const locationOptions: FieldOptions = { inputRelation: "unknown", status: !insight ? "not_run" : insight.data_quality?.status === "unavailable" ? "unavailable" : "limited", source: "已保存區位摘要（個別 POI 來源未保存）", limitation: "POI 明細已移除；計數受查詢半徑、類別與來源覆蓋限制。" };
   const poi = insight?.poi_summary;
-  const demographic = insight?.demographics;
+  // Coordinate-bound village demographics win over the legacy insight copy; both are saved reads only.
+  const savedDemographics = location.villageDemographics;
+  const demographic = savedDemographics?.demographics ?? insight?.demographics;
+  const demographicsVillage = savedDemographics?.village.status === "resolved" ? savedDemographics.village.village : location.property.village.name;
+  const demographicsOptions: FieldOptions = savedDemographics
+    ? { ...locationOptions, status: "limited", checkedAt: savedDemographics.checkedAt, source: "內政部戶政司村里人口統計" }
+    : locationOptions;
   const locationModel: CaseEvidenceModel["location"] = {
     radius: field("poi-radius", "POI 查詢半徑", "location", number(insight?.radius_m), "公尺", locationOptions),
     coverage: field("poi-coverage", "POI 覆蓋與限制", "location", insight ? (insight.data_quality?.missing_sources?.length ? `未取得來源：${insight.data_quality.missing_sources.join("、")}` : "來源覆蓋未完整保存") : null, "", locationOptions),
@@ -133,8 +139,8 @@ export function projectCaseEvidence(workspace: PropertyCaseWorkspace): CaseEvide
       sourceReason: insight?.risk_facility_evidence?.reason,
       limitation: `${insight?.risk_facility_evidence?.limitation ?? "未知涵蓋不等於零處設施。"} 物件關聯未完整保存。`, }),
     poiDetails: field<string>("poi-details", "POI 明細与個別來源", "location", null, "", { ...locationOptions, missingReason: "not_preserved" }),
-    population: field("demographics-population", "行政區人口（次要脈絡）", "location", demographic?.status === "available" ? number(demographic.total_population) : null, "人", { ...locationOptions, source: demographic?.status === "available" ? demographic.source_provider : "人口資料來源未保存", status: demographic?.status === "available" ? "limited" : demographic ? "insufficient" : "not_run", limitation: "行政區域統計，不代表本物件住戶特徵。" }),
-    demographicsContext: field("demographics-context", "人口資料範圍", "location", demographic?.status === "available" ? `${location.property.village.name ?? "行政區"}；${demographic.last_month ?? "期間未保存"}` : null, "", { ...locationOptions, limitation: "僅為行政區次要脈絡；不能推論本物件住戶。" }),
+    population: field("demographics-population", "行政區人口（次要脈絡）", "location", demographic?.status === "available" ? number(demographic.total_population) : null, "人", { ...demographicsOptions, source: demographic?.status === "available" ? "內政部戶政司村里人口統計" : "人口資料來源未保存", status: demographic?.status === "available" ? "limited" : demographic ? "insufficient" : "not_run", limitation: "行政區域統計，不代表本物件住戶特徵。" }),
+    demographicsContext: field("demographics-context", "人口資料範圍", "location", demographic?.status === "available" ? `${demographicsVillage ?? "行政區"}；${demographic.last_month ?? "期間未保存"}` : null, "", { ...demographicsOptions, limitation: "僅為行政區次要脈絡；不能推論本物件住戶。" }),
   };
   const route = location.routeEvidence;
   const validRoute = validIdentity && route?.status === "resolved" && route.source === "google_routes" && !route.partial && !route.fallback;

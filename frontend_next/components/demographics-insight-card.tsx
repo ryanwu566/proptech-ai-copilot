@@ -1,264 +1,209 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type {
-  DemographicsAvailable,
-  DemographicsInsight,
-  VillageResolution,
-} from "@/lib/api";
+import type { DemographicsAvailable, DemographicsInsight, VillageResolution } from "@/lib/api";
 import { SectionCard, MetricTile } from "@/components/product-ui";
 import { Notice } from "@/components/ui";
+import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { villageDemographicsCopy, type VillageDemographicsCopyKey } from "@/lib/workspace/village-demographics-copy";
+import {
+  demographicsFreshness,
+  demographicsViewState,
+  formatBoundaryVintage,
+  formatDemographicsCount,
+  formatDemographicsMonth,
+  formatDemographicsRatio,
+  formatDemographicsSignedCount,
+  formatDemographicsSignedRatio,
+  formatHouseholdSizeValue,
+  hasSufficientTrend,
+  type DemographicsViewState,
+} from "@/lib/workspace/village-demographics";
 
-// ---------------------------------------------------------------------------
-// Pure formatting helpers (exported for deterministic unit testing).
-// Rules:
-//   ratio 0.187 -> "18.7%"
-//   ratio null  -> "資料不足" (never rendered as 0)
-//   ratio 0     -> "0.0%"     (a real observed value)
-// No filling, interpolation, forecasting, or smoothing is performed anywhere.
-// ---------------------------------------------------------------------------
+// Presentation rules: ratio null -> localized "insufficient" (never 0), ratio 0 -> "0.0%" (a real observed
+// value). No filling, interpolation, forecasting or smoothing. Raw RIS keys, village codes and backend
+// reason codes are never rendered.
 
-export const INSUFFICIENT_LABEL = "資料不足";
+type Copy = (key: VillageDemographicsCopyKey, values?: Record<string, string | number>) => string;
+/** Workspace-only states that exist before or around an acquisition. */
+export type DemographicsPendingState = "loading" | "not_run" | "confirm_first";
 
-export function formatRatio(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return INSUFFICIENT_LABEL;
-  return `${(value * 100).toFixed(1)}%`;
-}
+const STATE_TEST_IDS: Record<Exclude<DemographicsViewState, "available">, (village?: VillageResolution) => string> = {
+  unavailable: (village) => village?.status === "unavailable" ? "demographics-village-unavailable" : "demographics-unavailable",
+  unresolved: () => "demographics-village-unresolved",
+  ambiguous: () => "demographics-village-ambiguous",
+  no_data: () => "demographics-no-data",
+};
 
-export function formatHouseholdSize(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return INSUFFICIENT_LABEL;
-  return `${value.toFixed(2)} 人`;
-}
-
-export function formatCount(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return INSUFFICIENT_LABEL;
-  return value.toLocaleString("zh-TW");
-}
-
-// Signed integer change, e.g. +120 / -45 / 0.
-export function formatSignedCount(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return INSUFFICIENT_LABEL;
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toLocaleString("zh-TW")}`;
-}
-
-// Signed ratio change, e.g. +1.8% / -0.4% / null -> 資料不足.
-export function formatSignedRatio(value: number | null | undefined): string {
-  if (value === null || value === undefined || Number.isNaN(value)) return INSUFFICIENT_LABEL;
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${(value * 100).toFixed(1)}%`;
-}
-
-// ROC yyymm (e.g. "11507") -> "民國115年07月". Falls back to raw text otherwise.
-export function formatRocMonth(value: string | null | undefined): string {
-  if (!value) return INSUFFICIENT_LABEL;
-  const text = String(value).trim();
-  if (/^\d{5,6}$/.test(text)) {
-    const year = text.slice(0, text.length - 2);
-    const month = text.slice(text.length - 2);
-    return `民國${Number(year)}年${month}月`;
-  }
-  return text;
-}
-
-export function trendLabel(status: DemographicsAvailable["trend_status"]): string {
-  switch (status) {
-    case "increasing":
-      return "人口增加";
-    case "decreasing":
-      return "人口減少";
-    case "stable":
-    default:
-      return "人口大致持平";
-  }
-}
-
-// A trend summary is only meaningful with at least two observed months.
-export function hasSufficientTrend(demographics: DemographicsAvailable): boolean {
-  return demographics.observed_month_count >= 2;
-}
-
-// ---------------------------------------------------------------------------
-// Presentational helpers
-// ---------------------------------------------------------------------------
-
-function CardShell({ children }: { children: ReactNode }) {
+function CardShell({ copy, state, children, action }: { copy: Copy; state: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <SectionCard title="里人口概況" description="官方村里人口統計，供區位理解參考。">
-      <div data-testid="demographics-insight" className="min-w-0 space-y-4">
+    <SectionCard title={copy("title")} description={copy("description")}>
+      <div data-testid="demographics-insight" data-demographics-state={state} className="min-w-0 space-y-4 [overflow-wrap:anywhere]">
         {children}
+        {action}
       </div>
     </SectionCard>
   );
 }
 
-const AUDIT_CAVEATS = [
-  "官方人口統計",
-  "行政界可能調整",
-  "歷史比較依同一行政 identity",
-  "僅供區位理解，不代表投資建議",
-];
-
-function CaveatFooter({ auditFlagged }: { auditFlagged?: boolean }) {
+function CaveatFooter({ copy, auditFlagged }: { copy: Copy; auditFlagged?: boolean }) {
   return (
     <div className="space-y-2">
       {auditFlagged && (
-        <div
-          data-testid="demographics-audit-warning"
-          className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800"
-        >
-          此期資料有品質註記
+        <div data-testid="demographics-audit-warning" className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+          {copy("auditWarning")}
         </div>
       )}
-      <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] leading-5 text-slate-400">
-        {AUDIT_CAVEATS.map((item) => (
-          <li key={item} className="break-words">• {item}</li>
+      <ul className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] leading-5 text-slate-500">
+        {(["caveatOfficial", "caveatBoundary", "caveatIdentity", "caveatNotAdvice"] as const).map((key) => (
+          <li key={key} className="break-words">• {copy(key)}</li>
         ))}
       </ul>
     </div>
   );
 }
 
-function AdministrativeHeader({ village }: { village: VillageResolution }) {
-  const parts = [village.county, village.town, village.village].filter(Boolean) as string[];
-  const label = parts.length > 0 ? parts.join(" ") : INSUFFICIENT_LABEL;
+function AdministrativeHeader({ copy, village }: { copy: Copy; village: VillageResolution }) {
+  const rows = [["county", village.county], ["district", village.town], ["village", village.village]] as const;
   return (
     <div className="rounded-xl border border-stone-200 bg-stone-50 px-4 py-3">
-      <p className="text-xs font-semibold text-slate-500">行政位置</p>
-      <p data-testid="demographics-admin-location" className="mt-1 break-words text-base font-bold text-slate-900">
-        {label}
-      </p>
-      {village.village_code && (
-        <p className="mt-1 break-all text-[10px] text-slate-400">村里代碼 {village.village_code}</p>
-      )}
+      <p className="text-xs font-semibold text-slate-500">{copy("adminTitle")}</p>
+      <dl data-testid="demographics-admin-location" className="mt-2 grid min-w-0 grid-cols-1 gap-2 min-[420px]:grid-cols-3">
+        {rows.map(([key, value]) => (
+          <div key={key} className="min-w-0" data-testid={`demographics-admin-${key}`}>
+            <dt className="text-[10px] font-semibold text-slate-500">{copy(key)}</dt>
+            <dd className="break-words text-base font-bold text-slate-900">{value ?? copy("insufficient")}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   );
 }
 
-function StateNotice({ testId, children }: { testId: string; children: ReactNode }) {
+function SourceFooter({ copy, village, insight, checkedAt }: { copy: Copy; village?: VillageResolution; insight?: DemographicsAvailable; checkedAt?: string }) {
+  const { locale, formatDate } = useExperienceLocale();
+  const vintage = formatBoundaryVintage(village?.source_vintage, locale);
+  const freshness = insight ? demographicsFreshness(insight) : undefined;
   return (
-    <CardShell>
-      <div data-testid={testId}>
-        <Notice tone="warning">{children}</Notice>
+    <dl data-testid="demographics-source" className="grid min-w-0 gap-2 rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs text-slate-600 sm:grid-cols-2">
+      <div className="min-w-0">
+        <dt className="font-semibold text-slate-500">{copy("sourceLabel")}</dt>
+        <dd className="break-words">{copy("sourceValue")}</dd>
+        {vintage && <dd className="break-words text-[10px] text-slate-500">{copy("boundaryVintage", { date: vintage })}</dd>}
       </div>
-      <CaveatFooter />
-    </CardShell>
+      <div className="min-w-0">
+        <dt className="font-semibold text-slate-500">{copy("freshnessLabel")}</dt>
+        {freshness && <dd data-testid="demographics-freshness" data-freshness={freshness.kind} className="break-words">
+          {freshness.kind === "unknown" ? copy("freshUnknown") : copy(freshness.kind === "stale" ? "freshStale" : "freshCurrent", { months: freshness.months ?? 0 })}
+        </dd>}
+        {checkedAt && Number.isFinite(Date.parse(checkedAt)) && <dd className="break-words text-[10px] text-slate-500">{copy("checkedAt", { date: formatDate(checkedAt) })}</dd>}
+      </div>
+    </dl>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Main component
-// ---------------------------------------------------------------------------
 
 export function DemographicsInsightCard({
   village,
   demographics,
+  checkedAt,
+  pending,
+  action,
   loading = false,
 }: {
   village?: VillageResolution;
   demographics?: DemographicsInsight;
+  checkedAt?: string;
+  pending?: DemographicsPendingState;
+  action?: ReactNode;
   loading?: boolean;
 }) {
-  if (loading) {
+  const { copyFrom, locale } = useExperienceLocale();
+  const copy: Copy = (key, values) => copyFrom(villageDemographicsCopy, key, values);
+  const orInsufficient = (value: string | null) => value ?? copy("insufficient");
+  const pendingState = loading ? "loading" : pending;
+
+  if (pendingState) {
     return (
-      <CardShell>
-        <div
-          data-testid="demographics-loading"
-          className="grid min-h-24 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 text-sm text-slate-500"
-        >
-          正在載入人口統計…
+      <CardShell copy={copy} state={pendingState} action={action}>
+        <div data-testid={`demographics-${pendingState === "loading" ? "loading" : pendingState === "not_run" ? "not-run" : "confirm-first"}`} role="status"
+          className="grid min-h-24 place-items-center rounded-xl border border-dashed border-stone-300 bg-stone-50 px-4 text-center text-sm text-slate-500">
+          {copy(pendingState === "loading" ? "loading" : pendingState === "not_run" ? "notRun" : "confirmFirst")}
         </div>
       </CardShell>
     );
   }
 
-  // Backward compatibility: a legacy response without demographics must not crash.
-  if (!demographics && !village) return null;
-
-  // Village resolution states take precedence when demographics cannot apply.
-  if (village) {
-    if (village.status === "unavailable") {
-      return <StateNotice testId="demographics-village-unavailable">目前無法取得此地點的村里人口資料。</StateNotice>;
-    }
-    if (village.status === "unresolved") {
-      return <StateNotice testId="demographics-village-unresolved">無法對應到明確的村里範圍，暫不顯示人口統計。</StateNotice>;
-    }
-    if (village.status === "ambiguous") {
-      const count = village.candidate_count;
-      return (
-        <StateNotice testId="demographics-village-ambiguous">
-          此位置落在多個村里交界{typeof count === "number" ? `（${count} 個候選）` : ""}，無法唯一判定，暫不顯示人口統計。
-        </StateNotice>
-      );
-    }
+  // Every outcome renders a state; a missing payload is "unavailable", never a silently absent section.
+  const state = demographicsViewState(village, demographics);
+  if (state !== "available" || demographics?.status !== "available") {
+    const fallback = state === "available" ? "unavailable" : state;
+    const count = village?.candidate_count;
+    const message = fallback === "ambiguous"
+      ? typeof count === "number" ? copy("stateAmbiguousCount", { count }) : copy("stateAmbiguous")
+      : copy(fallback === "unresolved" ? "stateUnresolved" : fallback === "no_data" ? "stateNoData" : "stateUnavailable");
+    return (
+      <CardShell copy={copy} state={fallback} action={action}>
+        <div data-testid={STATE_TEST_IDS[fallback](village)}><Notice tone="warning">{message}</Notice></div>
+        <SourceFooter copy={copy} village={village} checkedAt={checkedAt} />
+        <CaveatFooter copy={copy} />
+      </CardShell>
+    );
   }
 
-  if (!demographics || demographics.status === "no_data") {
-    return <StateNotice testId="demographics-no-data">此村里目前沒有可用的人口統計資料。</StateNotice>;
-  }
-
-  // status === "available"
   const auditFlagged = Array.isArray(demographics.audit_reasons) && demographics.audit_reasons.length > 0;
-  const sufficientTrend = hasSufficientTrend(demographics);
+  const trendLabel = copy(demographics.trend_status === "increasing" ? "trendIncreasing" : demographics.trend_status === "decreasing" ? "trendDecreasing" : "trendStable");
+  const household = formatHouseholdSizeValue(demographics.average_household_size);
 
   return (
-    <CardShell>
-      {village && village.status === "resolved" ? (
-        <AdministrativeHeader village={village} />
-      ) : null}
+    <CardShell copy={copy} state="available" action={action}>
+      {village?.status === "resolved" && <AdministrativeHeader copy={copy} village={village} />}
 
       <div data-testid="demographics-available" className="space-y-4">
         <div className="rounded-lg border border-stone-200 bg-white px-3 py-2 text-xs text-slate-600">
-          統計月份：
+          {copy("statisticMonth")}：
           <span data-testid="demographics-statistic-month" className="font-bold text-slate-900">
-            {formatRocMonth(demographics.statistic_yyymm)}
+            {orInsufficient(formatDemographicsMonth(demographics.statistic_yyymm, locale))}
           </span>
         </div>
 
-        {/* Metrics grid: 3 cols desktop, 2 cols small, 1 col at 390px */}
+        {/* 1 col at 390px, 2 cols from 420px, 3 cols on wide screens. */}
         <div className="grid min-w-0 grid-cols-1 gap-3 min-[420px]:grid-cols-2 xl:grid-cols-3">
-          <MetricTile label="總人口" value={formatCount(demographics.total_population)} note="人" />
-          <MetricTile label="戶數" value={formatCount(demographics.household_count)} note="戶" />
-          <MetricTile label="平均每戶人口" value={formatHouseholdSize(demographics.average_household_size)} />
-          <MetricTile label="0–14 歲比例" value={formatRatio(demographics.child_ratio)} />
-          <MetricTile label="15–64 歲比例" value={formatRatio(demographics.working_age_ratio)} />
-          <MetricTile label="65 歲以上比例" value={formatRatio(demographics.elderly_ratio)} />
+          <MetricTile label={copy("population")} value={orInsufficient(formatDemographicsCount(demographics.total_population, locale))} note={copy("populationUnit")} />
+          <MetricTile label={copy("households")} value={orInsufficient(formatDemographicsCount(demographics.household_count, locale))} note={copy("householdsUnit")} />
+          <MetricTile label={copy("householdSize")} value={household === null ? copy("insufficient") : copy("householdSizeValue", { value: household })} />
+          <MetricTile label={copy("age0to14")} value={orInsufficient(formatDemographicsRatio(demographics.child_ratio))} />
+          <MetricTile label={copy("age15to64")} value={orInsufficient(formatDemographicsRatio(demographics.working_age_ratio))} />
+          <MetricTile label={copy("age65plus")} value={orInsufficient(formatDemographicsRatio(demographics.elderly_ratio))} />
         </div>
 
-        {/* Trend */}
-        <div
-          data-testid="demographics-trend"
-          className="min-w-0 rounded-xl border border-stone-200 bg-stone-50 p-3"
-        >
-          <p className="text-xs font-bold text-slate-800">近期人口變化</p>
-          {sufficientTrend ? (
+        <div data-testid="demographics-trend" className="min-w-0 rounded-xl border border-stone-200 bg-stone-50 p-3">
+          <p className="text-xs font-bold text-slate-800">{copy("trendTitle")}</p>
+          {hasSufficientTrend(demographics) ? (
             <div className="mt-2 space-y-2">
               <p data-testid="demographics-trend-summary" className="break-words text-xs leading-5 text-slate-600">
-                {formatRocMonth(demographics.first_month)} 至 {formatRocMonth(demographics.last_month)}
-                （共 {demographics.observed_month_count} 個月）· {trendLabel(demographics.trend_status)}
+                {copy("trendSummary", {
+                  from: orInsufficient(formatDemographicsMonth(demographics.first_month, locale)),
+                  to: orInsufficient(formatDemographicsMonth(demographics.last_month, locale)),
+                  count: demographics.observed_month_count,
+                  trend: trendLabel,
+                })}
               </p>
               <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
-                <MiniStat label="人口變化" value={formatSignedCount(demographics.population_change)} />
-                <MiniStat label="人口變化率" value={formatSignedRatio(demographics.population_change_ratio)} />
-                <MiniStat label="戶數變化" value={formatSignedCount(demographics.household_change)} />
+                <MiniStat label={copy("populationChange")} value={orInsufficient(formatDemographicsSignedCount(demographics.population_change, locale))} />
+                <MiniStat label={copy("populationChangeRatio")} value={orInsufficient(formatDemographicsSignedRatio(demographics.population_change_ratio))} />
+                <MiniStat label={copy("householdChange")} value={orInsufficient(formatDemographicsSignedCount(demographics.household_change, locale))} />
               </div>
               {demographics.has_month_gaps && (
-                <p
-                  data-testid="demographics-month-gap-caveat"
-                  className="break-words text-[10px] leading-5 text-amber-700"
-                >
-                  ⚠ 觀測月份不連續，未補月、未插值。
-                </p>
+                <p data-testid="demographics-month-gap-caveat" className="break-words text-[10px] leading-5 text-amber-700">{copy("monthGap")}</p>
               )}
             </div>
           ) : (
-            <p data-testid="demographics-trend-insufficient" className="mt-2 text-xs leading-5 text-slate-500">
-              歷史資料不足
-            </p>
+            <p data-testid="demographics-trend-insufficient" className="mt-2 text-xs leading-5 text-slate-500">{copy("trendInsufficient")}</p>
           )}
         </div>
 
-        <CaveatFooter auditFlagged={auditFlagged} />
+        <SourceFooter copy={copy} village={village} insight={demographics} checkedAt={checkedAt} />
+        <CaveatFooter copy={copy} auditFlagged={auditFlagged} />
       </div>
     </CardShell>
   );

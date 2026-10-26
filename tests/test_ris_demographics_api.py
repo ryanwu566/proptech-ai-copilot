@@ -222,12 +222,122 @@ def test_database_unavailable_is_safe_503_without_exception_or_sql_leak() -> Non
         assert forbidden not in body
 
 
-def test_router_registration_and_openapi_expose_only_the_three_get_paths() -> None:
+def test_router_registration_and_openapi_expose_only_the_read_only_get_paths() -> None:
     paths = app.openapi()["paths"]
 
     assert set(path for path in paths if path.startswith("/demographics/")) == {
+        "/demographics/location",
         "/demographics/villages/{district_code}/latest",
         "/demographics/villages/{district_code}/history",
         "/demographics/villages/{district_code}",
     }
     assert all(set(paths[path]) == {"get"} for path in paths if path.startswith("/demographics/"))
+
+
+class FakeVillageResolver:
+    def __init__(self, result: object = None, *, error: Exception | None = None) -> None:
+        self.result = result
+        self.error = error
+        self.calls: list[tuple[float, float]] = []
+
+    def resolve(self, *, latitude: float, longitude: float):
+        self.calls.append((latitude, longitude))
+        if self.error is not None:
+            raise self.error
+        return self.result
+
+
+def _location_client(resolver: FakeVillageResolver) -> TestClient:
+    from backend.api.routes_demographics import get_village_demographics_resolver
+
+    app.dependency_overrides[get_village_demographics_resolver] = lambda: resolver
+    return TestClient(app)
+
+
+def _clear_location_override() -> None:
+    from backend.api.routes_demographics import get_village_demographics_resolver
+
+    app.dependency_overrides.pop(get_village_demographics_resolver, None)
+
+
+def _resolved_village() -> dict[str, object]:
+    return {
+        "status": "resolved", "county": "臺北市", "town": "大安區", "village": "測試里",
+        "village_code": DISTRICT_CODE, "district_code": DISTRICT_CODE,
+        "source": "nlsc_village_boundary", "source_vintage": "ROC-1150817", "reason": "unique_intersection",
+    }
+
+
+def test_location_demographics_joins_the_confirmed_coordinate_only() -> None:
+    from services.ris_demographics_insight import build_demographics_insight
+
+    demographics = build_demographics_insight(_observation("11507"), [_observation("11506"), _observation("11507")])
+    resolver = FakeVillageResolver({"location": _resolved_village(), "demographics": demographics})
+    client = _location_client(resolver)
+    try:
+        response = client.get("/demographics/location?latitude=25.026&longitude=121.534")
+    finally:
+        _clear_location_override()
+
+    assert response.status_code == 200
+    body = response.json()
+    # The coordinate is the only spatial input; no geocoder administrative label is accepted or forwarded.
+    assert resolver.calls == [(25.026, 121.534)]
+    assert (body["latitude"], body["longitude"]) == (25.026, 121.534)
+    assert body["checked_at"].endswith("+00:00")
+    assert body["village_resolution"]["status"] == "resolved"
+    assert body["demographics"]["status"] == "available"
+    assert body["demographics"]["observed_month_count"] == 2
+
+
+def test_location_demographics_rejects_admin_label_parameters_as_inputs() -> None:
+    resolver = FakeVillageResolver({"location": _resolved_village(), "demographics": {"status": "no_data", "reason": "x"}})
+    client = _location_client(resolver)
+    try:
+        response = client.get("/demographics/location?latitude=25.026&longitude=121.534&county=新北市&village=別的里")
+    finally:
+        _clear_location_override()
+
+    assert response.status_code == 200
+    assert response.json()["village_resolution"]["village"] == "測試里"
+
+
+def test_location_demographics_preserves_unresolved_and_ambiguous_states() -> None:
+    for status, extra in (("unresolved", {}), ("ambiguous", {"candidate_count": 2})):
+        village = {"status": status, "county": None, "town": None, "village": None, "village_code": None,
+                   "district_code": None, "source": "nlsc_village_boundary", "source_vintage": "ROC-1150817",
+                   "reason": "zero_polygon", **extra}
+        resolver = FakeVillageResolver({"location": village, "demographics": {"status": "no_data", "reason": "village_identity_not_resolved"}})
+        client = _location_client(resolver)
+        try:
+            response = client.get("/demographics/location?latitude=25.0&longitude=121.5")
+        finally:
+            _clear_location_override()
+        assert response.status_code == 200
+        assert response.json()["village_resolution"]["status"] == status
+        assert response.json()["demographics"] == {"status": "no_data", "reason": "village_identity_not_resolved"}
+
+
+def test_location_demographics_fails_closed_when_resolver_breaks() -> None:
+    for resolver in (FakeVillageResolver(error=RuntimeError("artifact")), FakeVillageResolver({"unexpected": True})):
+        client = _location_client(resolver)
+        try:
+            response = client.get("/demographics/location?latitude=25.0&longitude=121.5")
+        finally:
+            _clear_location_override()
+        assert response.status_code == 200
+        assert response.json()["village_resolution"] == {"status": "unavailable", "reason": "village_resolver_unavailable"}
+        assert response.json()["demographics"] == {"status": "no_data", "reason": "demographics_unavailable"}
+
+
+def test_location_demographics_bounds_coordinates() -> None:
+    resolver = FakeVillageResolver({"location": _resolved_village(), "demographics": {"status": "no_data", "reason": "x"}})
+    client = _location_client(resolver)
+    try:
+        responses = [client.get(f"/demographics/location?{query}") for query in (
+            "latitude=91&longitude=121.5", "latitude=25&longitude=181", "latitude=nan&longitude=121.5", "latitude=25",
+        )]
+    finally:
+        _clear_location_override()
+    assert [response.status_code for response in responses] == [422, 422, 422, 422]
+    assert resolver.calls == []

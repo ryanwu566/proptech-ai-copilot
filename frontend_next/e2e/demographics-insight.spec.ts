@@ -180,7 +180,12 @@ test.describe("里人口概況 demographics card", () => {
     const card = page.getByTestId("demographics-insight");
     await expect(card).toBeVisible();
     await expect(page.getByTestId("demographics-available")).toBeVisible();
-    await expect(page.getByTestId("demographics-admin-location")).toContainText("臺北市 大安區 龍泉里");
+    await expect(page.getByTestId("demographics-admin-county")).toContainText("臺北市");
+    await expect(page.getByTestId("demographics-admin-district")).toContainText("大安區");
+    await expect(page.getByTestId("demographics-admin-village")).toContainText("龍泉里");
+    // The raw village code is a join key, never display copy.
+    await expect(card).not.toContainText("63000020001");
+    await expect(page.getByTestId("demographics-source")).toContainText("內政部戶政司村里人口統計");
     await expect(page.getByTestId("demographics-statistic-month")).toContainText("民國115年07月");
     await expect(card).toContainText("12,345");
     await expect(card).toContainText("4,567");
@@ -290,13 +295,13 @@ test.describe("里人口概況 demographics card", () => {
     await expect(page.getByTestId("demographics-available")).toContainText("12,345");
   });
 
-  test("CASE 13: legacy response without demographics does not crash", async ({ page }) => {
+  test("CASE 13: legacy response without demographics shows an explicit unavailable state", async ({ page }) => {
     await routeLocation(page, locationResponse({ omitDemographicFields: true }));
     await gotoLocationStage(page);
     await analyze(page);
-    // Location result still renders; the demographics card is simply absent.
+    // A successful analysis never silently drops the demographics section.
     await expect(page.getByTestId("location-result")).toBeVisible();
-    await expect(page.getByTestId("demographics-insight")).toHaveCount(0);
+    await expect(page.getByTestId("demographics-unavailable")).toBeVisible();
   });
 
   test("CASE 14+15: address change clears old data and stale response cannot overwrite", async ({ page }) => {

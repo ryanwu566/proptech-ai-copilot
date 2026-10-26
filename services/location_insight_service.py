@@ -206,22 +206,9 @@ def _resolve_village(
     longitude: float,
     village_resolver: Any | None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    try:
-        if village_resolver is None:
-            from services.ris_village_resolver import get_default_ris_village_resolver
+    from services.ris_village_resolver import resolve_village_demographics
 
-            village_resolver = get_default_ris_village_resolver()
-        result = village_resolver.resolve(latitude=latitude, longitude=longitude)
-        village = result.get("location") if isinstance(result, dict) else None
-        demographics = result.get("demographics") if isinstance(result, dict) else None
-        if not isinstance(village, dict) or not isinstance(demographics, dict):
-            raise ValueError("invalid village resolver result")
-        return village, demographics
-    except Exception:
-        return (
-            {"status": "unavailable", "reason": "village_resolver_unavailable"},
-            {"status": "no_data", "reason": "demographics_unavailable"},
-        )
+    return resolve_village_demographics(latitude=latitude, longitude=longitude, resolver=village_resolver)
 
 
 def _empty_nearby() -> dict[str, Any]:
