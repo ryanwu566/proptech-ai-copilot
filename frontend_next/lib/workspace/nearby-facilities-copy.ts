@@ -1,5 +1,5 @@
 import type { CopyCatalogue } from "../copy-catalogue";
-export type NearbyCopyKey = "title" | "intro" | "explore" | "refresh" | "loading" | "confirmFirst" | "limits" | "partial" | "empty" | "failed" | "unsaved" | "save" | "saving" | "saved" | "checked" | "scope" | "distance" | "transit" | "convenience" | "education" | "healthcare" | "parks" | "legacyTitle" | "legacySummary";
+export type NearbyCopyKey = "title" | "intro" | "explore" | "refresh" | "loading" | "confirmFirst" | "limits" | "partial" | "empty" | "failed" | "unsaved" | "save" | "saving" | "saved" | "checked" | "scope" | "distance" | "transit" | "education" | "healthcare" | "parks" | "shopping" | "food" | "other" | "kindRail" | "kindBus" | "kindTransit" | "legend" | "filter" | "filterAll" | "filterCount" | "filteredEmpty" | "locate" | "selected" | "property" | "mapTitle" | "legacyTitle" | "legacySummary";
 export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
   "zh-TW": {
     legacyTitle: "完整設施明細未隨案件保存",
@@ -13,7 +13,10 @@ export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
     unsaved: "已取得結果，但未能保存至案件。請重新整理確認案件是否變更，或重試保存；重試保存不會重新查詢設施。",
     save: "重試保存結果", saving: "正在保存…", saved: "已保存設施證據；重開案件只讀取保存結果。",
     checked: "來源查詢時間：{{date}}", scope: "查詢範圍：物件周圍 {{radius}} m · Google Places", distance: "距物件約 {{distance}} m（直線）",
-    transit: "交通", convenience: "採買與餐飲", education: "學校與教育", healthcare: "醫療", parks: "公園綠地",
+    transit: "交通", education: "學校與教育", healthcare: "醫療", parks: "公園綠地", shopping: "購物與日常採買", food: "餐飲", other: "其他設施",
+    kindRail: "捷運／鐵路車站", kindBus: "公車站", kindTransit: "交通站點",
+    legend: "地圖圖例", filter: "依類別篩選", filterAll: "全部類別", filterCount: "顯示 {{shown}} / {{total}} 個設施", filteredEmpty: "目前篩選的類別沒有設施；請選擇其他類別。",
+    locate: "在地圖標示", selected: "已在地圖標示", property: "物件位置", mapTitle: "附近設施地圖",
   },
   en: {
     legacyTitle: "Full facility details were not saved with this case",
@@ -27,7 +30,10 @@ export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
     unsaved: "Results were acquired but could not be saved to this case. Reload to check for case changes, or retry saving. Retrying a save does not query facilities again.",
     save: "Retry saving results", saving: "Saving…", saved: "Facility evidence saved. Reopening the case reads the saved results.",
     checked: "Source checked: {{date}}", scope: "Search area: {{radius}} m around the property · Google Places", distance: "About {{distance}} m from the property (straight line)",
-    transit: "Transit", convenience: "Shops & food", education: "Schools & education", healthcare: "Healthcare", parks: "Parks & green space",
+    transit: "Transport", education: "Schools & education", healthcare: "Healthcare", parks: "Parks & green space", shopping: "Shopping & daily needs", food: "Food & dining", other: "Other facilities",
+    kindRail: "Metro / rail station", kindBus: "Bus stop", kindTransit: "Transit stop",
+    legend: "Map legend", filter: "Filter by category", filterAll: "All categories", filterCount: "Showing {{shown}} of {{total}} facilities", filteredEmpty: "No facilities in the selected categories. Choose another category.",
+    locate: "Show on map", selected: "Shown on map", property: "Property location", mapTitle: "Nearby facilities map",
   },
   ja: {
     legacyTitle: "施設の詳細は案件に保存されていません",
@@ -41,7 +47,10 @@ export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
     unsaved: "結果は取得できましたが案件に保存できませんでした。再読み込みして案件の変更を確認するか、保存を再試行してください。保存の再試行では施設を再検索しません。",
     save: "保存を再試行", saving: "保存中…", saved: "施設情報を保存しました。案件を開き直すと保存済みの結果を表示します。",
     checked: "情報取得日時：{{date}}", scope: "検索範囲：物件から {{radius}} m · Google Places", distance: "物件から約 {{distance}} m（直線距離）",
-    transit: "交通", convenience: "買い物・飲食", education: "学校・教育", healthcare: "医療", parks: "公園・緑地",
+    transit: "交通", education: "学校・教育", healthcare: "医療", parks: "公園・緑地", shopping: "買い物・日用品", food: "飲食", other: "その他の施設",
+    kindRail: "地下鉄・鉄道駅", kindBus: "バス停", kindTransit: "交通拠点",
+    legend: "地図の凡例", filter: "カテゴリで絞り込む", filterAll: "すべてのカテゴリ", filterCount: "{{total}} 件中 {{shown}} 件を表示", filteredEmpty: "選択したカテゴリに施設はありません。別のカテゴリを選択してください。",
+    locate: "地図で表示", selected: "地図で表示中", property: "物件の位置", mapTitle: "周辺施設の地図",
   },
   ko: {
     legacyTitle: "시설 상세 정보가 케이스에 저장되지 않았습니다",
@@ -55,6 +64,9 @@ export const nearbyFacilitiesCopy: CopyCatalogue<NearbyCopyKey> = {
     unsaved: "결과를 가져왔지만 케이스에 저장하지 못했습니다. 새로고침하여 케이스 변경을 확인하거나 저장을 다시 시도하세요. 저장 재시도는 시설을 다시 조회하지 않습니다.",
     save: "결과 저장 재시도", saving: "저장 중…", saved: "시설 근거를 저장했습니다. 케이스를 다시 열면 저장된 결과를 표시합니다.",
     checked: "정보 조회 시각: {{date}}", scope: "조회 범위: 부동산 주변 {{radius}} m · Google Places", distance: "부동산에서 약 {{distance}} m (직선거리)",
-    transit: "교통", convenience: "쇼핑 및 음식점", education: "학교 및 교육", healthcare: "의료", parks: "공원 및 녹지",
+    transit: "교통", education: "학교 및 교육", healthcare: "의료", parks: "공원 및 녹지", shopping: "쇼핑 및 생활용품", food: "음식점", other: "기타 시설",
+    kindRail: "지하철·철도역", kindBus: "버스 정류장", kindTransit: "교통 정류장",
+    legend: "지도 범례", filter: "분류별 필터", filterAll: "전체 분류", filterCount: "전체 {{total}}개 중 {{shown}}개 표시", filteredEmpty: "선택한 분류에 시설이 없습니다. 다른 분류를 선택하세요.",
+    locate: "지도에 표시", selected: "지도에 표시됨", property: "부동산 위치", mapTitle: "주변 시설 지도",
   },
 };

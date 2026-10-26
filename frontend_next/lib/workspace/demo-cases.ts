@@ -4,6 +4,8 @@ import type { DecisionRoom, WorkItem } from "../decision-room-store";
 import type { ExperienceLocale } from "../experience-i18n";
 // @ts-expect-error Native TS runner extension.
 import { DEMO_CASE_A_ID, DEMO_CASE_B_ID, DEMO_CASE_IDS, DEMO_SNAPSHOT_DATE } from "./demo-case-ids.ts";
+// @ts-expect-error Native TS runner extension.
+import { classifyNearbyPlace } from "./nearby-poi-category.ts";
 
 /**
  * Demonstration snapshots for the complete example. Values are illustrative, dated
@@ -12,7 +14,7 @@ import { DEMO_CASE_A_ID, DEMO_CASE_B_ID, DEMO_CASE_IDS, DEMO_SNAPSHOT_DATE } fro
  */
 const AT = `${DEMO_SNAPSHOT_DATE}T02:00:00.000Z`;
 const NOTE = "示範快照：範例資料，非即時查詢、非正式官方證據。";
-type Facility = { name: string; category: "transport" | "shopping" | "food" | "school" | "medical" | "park"; dLat: number; dLng: number };
+type Facility = { name: string; category: "transport" | "shopping" | "food" | "school" | "medical" | "park"; types?: string[]; dLat: number; dLng: number };
 type Spec = {
   id: string; anchor: string; city: string; district: string; road: string; village: string; villageCode: string;
   lat: number; lng: number; askingWan: number; areaPing: number; age: number; floor: number; buildingType: string;
@@ -43,8 +45,8 @@ const SPECS: Spec[] = [{
   commute: { destination: "臺北車站", mode: "transit", minutes: 24, meters: 9100 },
   transit: { station: "府中", lines: ["BL"], meters: 640 },
   facilities: [
-    { name: "捷運府中站出入口", category: "transport", dLat: -0.0052, dLng: -0.0030 },
-    { name: "公車站（文化路）", category: "transport", dLat: 0.0006, dLng: 0.0004 },
+    { name: "捷運府中站出入口", category: "transport", types: ["subway_station", "transit_station"], dLat: -0.0052, dLng: -0.0030 },
+    { name: "公車站（文化路）", category: "transport", types: ["bus_stop", "transit_station"], dLat: 0.0006, dLng: 0.0004 },
     { name: "連鎖超市", category: "shopping", dLat: 0.0012, dLng: -0.0009 },
     { name: "便利商店", category: "shopping", dLat: -0.0004, dLng: 0.0007 },
     { name: "早午餐店", category: "food", dLat: 0.0009, dLng: 0.0011 },
@@ -87,7 +89,7 @@ const SPECS: Spec[] = [{
   commute: { destination: "臺北車站", mode: "transit", minutes: 41, meters: 13600 },
   transit: { station: "木柵", lines: ["BR"], meters: 420 },
   facilities: [
-    { name: "捷運木柵站", category: "transport", dLat: 0.0021, dLng: 0.0018 },
+    { name: "捷運木柵站", category: "transport", types: ["subway_station", "transit_station"], dLat: 0.0021, dLng: 0.0018 },
     { name: "傳統市場", category: "shopping", dLat: -0.0011, dLng: 0.0008 },
     { name: "便利商店", category: "shopping", dLat: 0.0003, dLng: -0.0005 },
     { name: "小吃店", category: "food", dLat: -0.0006, dLng: -0.0010 },
@@ -131,7 +133,7 @@ const TITLES: Record<ExperienceLocale, [string, string]> = {
 
 function buildCase(spec: Spec, title: string): SavedCase {
   const address = `${spec.city}${spec.district}${spec.road}`;
-  const places = spec.facilities.map((f, index) => ({ id: `${spec.id}-place-${index + 1}`, name: f.name, category: f.category, lat: Number((spec.lat + f.dLat).toFixed(6)), lng: Number((spec.lng + f.dLng).toFixed(6)), distanceM: 0 }));
+  const places = spec.facilities.map((f, index) => ({ id: `${spec.id}-place-${index + 1}`, name: f.name, category: f.category, kind: classifyNearbyPlace(f.types, f.category), lat: Number((spec.lat + f.dLat).toFixed(6)), lng: Number((spec.lng + f.dLng).toFixed(6)), distanceM: 0 }));
   return {
     id: spec.id, title, createdAt: AT, updatedAt: AT, version: 1, workflowMode: "buying_wizard", activeWizardStep: "report", progress: 70,
     inputSummary: { city: spec.city, district: spec.district, road: spec.road, propertyPrice: spec.askingWan, areaPing: spec.areaPing },

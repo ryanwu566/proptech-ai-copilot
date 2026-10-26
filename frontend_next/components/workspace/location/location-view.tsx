@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CommuteEvidencePanel } from "@/components/commute-evidence-panel";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { MapFrame } from "@/components/design-system/map-frame";
@@ -57,6 +57,9 @@ export function LocationView() {
   const [locationConfirmed, setLocationConfirmed] = useState(false);
   // Case whose location was confirmed in this view; only that confirmation may acquire demographics.
   const [confirmedCaseId, setConfirmedCaseId] = useState<string | null>(null);
+  // A successful explicit confirmation refreshes Nearby once for the accepted coordinates; reopening never does.
+  const [refreshNearby, setRefreshNearby] = useState(false);
+  const nearbyRefreshStarted = useCallback(() => setRefreshNearby(false), []);
   useEffect(() => {
     persistence.current.mounted = true;
     return () => { persistence.current.mounted = false; persistence.current.route++; persistence.current.transit++; };
@@ -126,7 +129,7 @@ export function LocationView() {
       <ExplicitMap key={`${workspace.caseId}:${coordinates.latitude}:${coordinates.longitude}`} kind="location"><GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} /></ExplicitMap>
     </MapFrame> : neverLocated ? <div data-testid="location-not-yet-confirmed" className="space-y-3"><Message variant="information" title={copyFrom(homeStartCopy, "locationPendingTitle")}>
       {copyFrom(homeStartCopy, "locationPending")}
-    </Message><LocationConfirmationPanel key={JSON.stringify([workspace.caseId, workspace.storageVersion, workspace.displayAddress])} onConfirmed={() => { setLocationConfirmed(true); setConfirmedCaseId(workspace.caseId); }} /></div> : <Message variant="warning" title={copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationTitle" : "pendingTitle")}>
+    </Message><LocationConfirmationPanel key={JSON.stringify([workspace.caseId, workspace.storageVersion, workspace.displayAddress])} onConfirmed={() => { setLocationConfirmed(true); setConfirmedCaseId(workspace.caseId); setRefreshNearby(true); }} /></div> : <Message variant="warning" title={copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationTitle" : "pendingTitle")}>
       {copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationLocation" : "pendingLocation")}
     </Message>}
 
@@ -151,7 +154,7 @@ export function LocationView() {
 </div>
     </div>
 
-    <NearbyFacilitiesPanel key={JSON.stringify([workspace.caseId, workspace.identity.state, anchor?.journey_anchor_id, coordinates])} />
+    <NearbyFacilitiesPanel key={JSON.stringify([workspace.caseId, workspace.identity.state, anchor?.journey_anchor_id, coordinates])} autoAcquire={refreshNearby} onAutoAcquire={nearbyRefreshStarted} />
 
     {((!snapshot.nearbyFacilities && (snapshot.insight || snapshot.poiSummary)) || snapshot.insight?.risk_facility_evidence) && <Section title="重要周邊證據" description="以實際設施筆數與距離為主；設施較多不代表物件較好。">
       <div data-evidence-key="location" className="space-y-3">

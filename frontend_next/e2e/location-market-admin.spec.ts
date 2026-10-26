@@ -2,6 +2,7 @@ import fixtures from "../../tests/fixtures/location_market_google.json";
 import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
 import { isProviderRequest } from "./helpers/provider-request";
+import { isNearbyRequest, routeNearby, type NearbyCall } from "./helpers/nearby-route";
 import { buildAddressDraftCase } from "../lib/workspace/case-draft";
 import { buildConfirmedLocationAnchor, interpretLocationResolution } from "../lib/workspace/location-confirmation";
 import { locationConfirmationCopy } from "../lib/workspace/location-confirmation-copy";
@@ -31,11 +32,12 @@ async function prepare(page: Page, rows: SavedCase[] = [], respond?: (address: s
     sessionStorage.setItem("admin-contract-seeded", "1");
     localStorage.setItem(key, JSON.stringify(rows));
   }, { key: KEY, rows });
-  const calls = { resolve: [] as string[], other: [] as string[], demographics: [] as string[] };
+  const calls = { resolve: [] as string[], other: [] as string[], demographics: [] as string[], nearby: [] as NearbyCall[] };
+  await routeNearby(page, calls.nearby);
   page.on("request", request => {
     const url = new URL(request.url());
-    // Internal village demographics are counted separately from the Google/Places/provider boundary.
-    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve") || url.pathname.endsWith("/demographics/location")) return;
+    // Internal village demographics and Nearby reads are counted separately from the Google/Places/provider boundary.
+    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve") || url.pathname.endsWith("/demographics/location") || isNearbyRequest(url)) return;
     if (isProviderRequest(request, url.hostname === "127.0.0.1" ? url.origin : "http://127.0.0.1")) calls.other.push(url.pathname);
   });
   await page.route(url => BASEMAP.test(url.hostname), route => route.fulfill({ contentType: "image/png", body: PNG }));
@@ -75,7 +77,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.goto("/");
     await page.getByTestId("locale-switcher").selectOption(locale);
     await page.locator("#commercial-address").fill(fixture.address);
-    expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
+    expect(calls).toEqual({ resolve: [], other: [], demographics: [], nearby: [] });
     await page.getByRole("button", { name: START[locale], exact: true }).click();
     await expect(page).toHaveURL(/\/cases\/[^/]+\/location$/);
     const id = new URL(page.url()).pathname.split("/")[2];
@@ -83,7 +85,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     expect((await stored(page))[0].data.propertyIdentityAnchor).toBeUndefined();
     await page.getByTestId("location-confirm").click();
     await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
-    // Confirm acquires village demographics once for the new anchor and renders them in the active locale.
+    // Confirm acquires village demographics and Nearby once each for the new anchor; demographics render in the active locale.
     const demographics = page.getByTestId("demographics-available");
     await expect(demographics).toContainText(villageDemographicsCopy[locale].population);
     await expect(demographics).toContainText(villageDemographicsCopy[locale].monthGap);
@@ -91,7 +93,10 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await expect(page.getByTestId("demographics-insight")).not.toContainText("63000020032");
     await expect(page.getByTestId("demographics-insight")).not.toContainText("ODRP014");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await expect.poll(() => calls.nearby.length).toBe(1);
     const [confirmed] = await stored(page);
+    const accepted = confirmed.data.propertyIdentityAnchor!.coordinates!;
+    const nearby = [expect.objectContaining({ lat: accepted.latitude, lng: accepted.longitude })];
     expect(confirmed.data.propertyIdentityAnchor?.administrative_location).toEqual({ city: "臺北市", district: fixture.response.district, village: null, village_code: null });
     await page.goto(`/cases/${id}/market`);
     await expect(page.getByTestId("market-refresh-button")).toBeEnabled();
@@ -104,8 +109,8 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.goto(`/cases/${id}/location`);
     await ordinaryViews(page, id);
     expect((await stored(page))[0].data.propertyIdentityAnchor).toEqual(confirmed.data.propertyIdentityAnchor);
-    // Reopen, Location, Report and Compare read the saved demographics; nothing refetches.
-    expect(calls).toEqual({ resolve: [fixture.address], other: [], demographics: [expect.stringMatching(/^25\./)] });
+    // Reopen, Location, Report and Compare read the saved demographics and Nearby; nothing refetches.
+    expect(calls).toEqual({ resolve: [fixture.address], other: [], demographics: [expect.stringMatching(/^25\./)], nearby });
     // Explicitly supply facts as a saved-case update; never derive them from the geocoder.
     await page.evaluate(({ key, road }) => {
       const rows = JSON.parse(localStorage.getItem(key)!);
@@ -115,7 +120,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.goto(`/cases/${id}/market`);
     await expect(page.getByTestId("market-refresh-button")).toBeEnabled();
     await expect(page.getByTestId("valuation-refresh-button")).toBeEnabled();
-    expect(calls).toEqual({ resolve: [fixture.address], other: [], demographics: [expect.stringMatching(/^25\./)] });
+    expect(calls).toEqual({ resolve: [fixture.address], other: [], demographics: [expect.stringMatching(/^25\./)], nearby });
   });
 
   test(`saved missing-admin repair requires recheck and confirmation in ${locale} at ${width}px`, async ({ page }) => {
@@ -125,7 +130,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.goto("/");
     await page.getByTestId("locale-switcher").selectOption(locale);
     await ordinaryViews(page, original.id);
-    expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
+    expect(calls).toEqual({ resolve: [], other: [], demographics: [], nearby: [] });
     expect((await stored(page))[0]).toEqual(original);
     await page.goto(`/cases/${original.id}/market`);
     await expect(page.getByTestId("market-refresh-button")).toBeDisabled();
@@ -162,7 +167,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.reload();
     await expect(page.getByTestId("market-refresh-button")).toBeEnabled();
     expect((await stored(page))[0]).toEqual(repaired);
-    expect(calls).toEqual({ resolve: [fixture.address, fixture.address], other: [], demographics: [] });
+    expect(calls).toEqual({ resolve: [fixture.address, fixture.address], other: [], demographics: [], nearby: [] });
   });
 }
 
@@ -182,7 +187,7 @@ test("old backend, mismatched address and changed coordinates cannot repair save
     await expect(page.getByTestId("administrative-area-confirm")).toHaveCount(0);
     expect((await stored(page))[0]).toEqual(original);
   }
-  expect(calls).toEqual({ resolve: Array(4).fill(fixtures[0].address), other: [], demographics: [] });
+  expect(calls).toEqual({ resolve: Array(4).fill(fixtures[0].address), other: [], demographics: [], nearby: [] });
 });
 
 test("concurrent saved-case changes prevent a previously reviewed administrative repair", async ({ page }) => {
@@ -200,7 +205,7 @@ test("concurrent saved-case changes prevent a previously reviewed administrative
   await page.getByTestId("administrative-area-confirm").click();
   await expect(page.getByTestId("administrative-area-repair-failure")).toBeVisible();
   expect(await stored(page)).toEqual(before);
-  expect(calls).toEqual({ resolve: [fixtures[0].address], other: [], demographics: [] });
+  expect(calls).toEqual({ resolve: [fixtures[0].address], other: [], demographics: [], nearby: [] });
 });
 
 test("repair double-click and deadline make one lookup; late success cannot save or auto-retry", async ({ page }) => {
@@ -220,7 +225,7 @@ test("repair double-click and deadline make one lookup; late success cannot save
   expect((await stored(page))[0]).toEqual(original);
   await page.goto(`/cases/${original.id}/market`);
   await expect(page.getByTestId("market-refresh-button")).toBeDisabled();
-  expect(calls).toEqual({ resolve: [fixtures[0].address], other: [], demographics: [] });
+  expect(calls).toEqual({ resolve: [fixtures[0].address], other: [], demographics: [], nearby: [] });
 });
 
 test("leaving Location cancels a repair confirmation queued behind a storage lock", async ({ page }) => {
@@ -250,5 +255,5 @@ test("leaving Location cancels a repair confirmation queued behind a storage loc
   expect((await stored(page))[0]).toEqual(original);
   await page.goto(`/cases/${original.id}/market`);
   await expect(page.getByTestId("market-refresh-button")).toBeDisabled();
-  expect(calls).toEqual({ resolve: [fixtures[0].address], other: [], demographics: [] });
+  expect(calls).toEqual({ resolve: [fixtures[0].address], other: [], demographics: [], nearby: [] });
 });

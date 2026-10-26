@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 import type { Page, Route } from "@playwright/test";
 import { isProviderRequest } from "./helpers/provider-request";
+import { isNearbyRequest, routeNearby, type NearbyCall } from "./helpers/nearby-route";
 import { locationConfirmationCopy } from "../lib/workspace/location-confirmation-copy";
 import { identityConfirmationCopy } from "../lib/workspace/identity-confirmation-copy";
 import { e9Case } from "../lib/workspace/e9-test-fixtures";
@@ -66,11 +67,12 @@ async function prepare(page: Page, respond: (route: Route) => Promise<void> = (r
       localStorage.setItem(key, "[]");
     }
   }, KEY);
-  const calls = { resolve: [] as unknown[], other: [] as string[], demographics: [] as string[] };
+  const calls = { resolve: [] as unknown[], other: [] as string[], demographics: [] as string[], nearby: [] as NearbyCall[] };
+  await routeNearby(page, calls.nearby);
   page.on("request", (request) => {
     const url = new URL(request.url());
-    // The internal village demographics read is counted on its own; `other` stays the Google/Places/provider boundary.
-    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve") || url.pathname.endsWith("/demographics/location")) return;
+    // The internal village demographics read and the Nearby read are counted on their own; `other` stays the Google/Places/provider boundary.
+    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve") || url.pathname.endsWith("/demographics/location") || isNearbyRequest(url)) return;
     if (isProviderRequest(request, url.hostname === "127.0.0.1" ? url.origin : "http://127.0.0.1")) calls.other.push(url.pathname);
   });
   await page.route((url) => BASEMAP.test(url.hostname), (route) => route.fulfill({ contentType: "image/png", body: PNG }));
@@ -132,7 +134,7 @@ for (const width of [1280, 390]) test(`real pointer and keyboard keep Home addre
   const decorations = page.locator('[data-ambient-scene]');
   await expect(decorations.first()).toBeAttached();
   for (const layer of await decorations.all()) expect(await layer.evaluate((element) => getComputedStyle(element).pointerEvents)).toBe("none");
-  expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
+  expect(calls).toEqual({ resolve: [], other: [], demographics: [], nearby: [] });
   await clickStart(page);
   await expect(page.getByTestId("location-candidate")).toBeVisible();
   expect(calls.resolve).toEqual([{ address: ADDRESS }]);
@@ -146,7 +148,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.goto("/");
     await page.getByTestId("locale-switcher").selectOption(locale);
     await page.waitForLoadState("networkidle");
-    expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
+    expect(calls).toEqual({ resolve: [], other: [], demographics: [], nearby: [] });
     await page.locator("#commercial-address").fill(ADDRESS);
     expect(calls.resolve).toHaveLength(0);
     const caseId = await clickStart(page, locale);
@@ -231,6 +233,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     // Market detour, reopen and reload read the saved state only.
     expect(calls.demographics).toHaveLength(1);
     await expect(page.getByTestId("demographics-village-unresolved")).toBeVisible();
+    expect(calls.nearby).toEqual([expect.objectContaining({ lat: SPATIAL.latitude, lng: SPATIAL.longitude })]);
     expect((await stored(page))[0].data.propertyIdentityAnchor).toEqual(row.data.propertyIdentityAnchor);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
@@ -290,6 +293,7 @@ for (const mode of ["double click", "repeated submit"]) test(`${mode} and slow l
   await expect(page.getByTestId("location-candidate")).toBeVisible();
   await page.getByRole("button", { name: "確認位置", exact: true }).click();
   await expect(page.getByTestId("location-confirmation")).toHaveCount(0);
+  await expect.poll(() => calls.nearby.length).toBe(1);
   expect(calls.resolve).toHaveLength(1);
   expect(calls.other).toEqual([]);
 });
@@ -311,7 +315,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) test(`changed confirm
   await expect(page.getByTestId("report-identity-gate")).toContainText(copy.reconfirmationReport);
   await expect(page.getByTestId("report-controls")).toHaveCount(0);
   await page.waitForLoadState("networkidle");
-  expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
+  expect(calls).toEqual({ resolve: [], other: [], demographics: [], nearby: [] });
 });
 
 test("pending candidate is invalidated by address edit and cannot leak into another case", async ({ page }) => {

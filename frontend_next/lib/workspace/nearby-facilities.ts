@@ -1,10 +1,15 @@
-/** Bounded contextual evidence. No provider scores, ratings, addresses or opening hours. */
+// @ts-expect-error Native TS runner extension.
+import { classifyNearbyPlace, compatibleNearbyKind, NEARBY_POI_GROUPS, nearbyPoiGroup, type NearbyPoiGroup, type NearbyPoiKind } from "./nearby-poi-category.ts";
+
+/** Bounded contextual evidence. No provider scores, ratings, addresses, opening hours or raw types. */
 export const NEARBY_CATEGORIES = ["transport", "shopping", "food", "school", "medical", "park"] as const;
 export const NEARBY_RADIUS_M = 800;
 type Category = (typeof NEARBY_CATEGORIES)[number];
-export type FacilityGroup = "transit" | "convenience" | "education" | "healthcare" | "parks";
+export type FacilityGroup = NearbyPoiGroup;
 type Point = { lat: number; lng: number };
-type Facility = Point & { id: string; name: string; category: Category; distanceM: number };
+/** `kind` is the product category derived once from provider types at capture; types are not kept. */
+export type NearbyFacility = Point & { id: string; name: string; category: Category; kind: NearbyPoiKind; distanceM: number };
+type Facility = NearbyFacility;
 export type NearbyFacilitiesEvidence = {
   version: 1;
   source: "google_places";
@@ -32,6 +37,10 @@ function distance(a: Point, b: Point): number {
 
 /** Capture the existing /map/nearby contract; distances always come from coordinates. */
 export function captureNearbyFacilities(value: unknown, expectedOrigin: Point, now = () => new Date().toISOString()): NearbyFacilitiesEvidence {
+  return capture(value, expectedOrigin, now, false);
+}
+
+function capture(value: unknown, expectedOrigin: Point, now: () => string, saved: boolean): NearbyFacilitiesEvidence {
   const data = record(value);
   const origin = point(data.center);
   if (!origin || !point(expectedOrigin) || Math.abs(origin.lat - expectedOrigin.lat) > 0.000001 || Math.abs(origin.lng - expectedOrigin.lng) > 0.000001
@@ -59,7 +68,9 @@ export function captureNearbyFacilities(value: unknown, expectedOrigin: Point, n
       const distanceM = distance(origin, coordinates);
       if (seen.has(id) || distanceM > NEARBY_RADIUS_M || count >= 10) continue;
       seen.add(id);
-      places.push({ id, name, category: key, ...coordinates, distanceM });
+      // Provider responses are classified from types[]; saved evidence keeps its kind only if still compatible.
+      const kind = (saved ? compatibleNearbyKind(p.kind, key) : undefined) ?? classifyNearbyPlace(saved ? undefined : p.types, key);
+      places.push({ id, name, category: key, kind, ...coordinates, distanceM });
       count++;
     }
   }
@@ -77,14 +88,13 @@ export function normalizeNearbyFacilities(value: unknown): NearbyFacilitiesEvide
     category: key,
     places: (stored.places as unknown[]).slice(0, 60).map(record).filter((p) => p.category === key).map((p) => ({ ...p, place_id: p.id })),
   }));
-  try { return captureNearbyFacilities({ center: stored.origin, source: stored.source, radius_m: stored.radiusM, checked_at: stored.checkedAt, partial: stored.partial, categories }, point(stored.origin)!); }
+  try { return capture({ center: stored.origin, source: stored.source, radius_m: stored.radiusM, checked_at: stored.checkedAt, partial: stored.partial, categories }, point(stored.origin)!, () => new Date().toISOString(), true); }
   catch { return undefined; }
 }
 
-const GROUPS: Record<Category, FacilityGroup> = { transport: "transit", shopping: "convenience", food: "convenience", school: "education", medical: "healthcare", park: "parks" };
 export function groupNearbyFacilities(evidence: NearbyFacilitiesEvidence): Array<{ category: FacilityGroup; places: Facility[] }> {
-  return (["transit", "convenience", "education", "healthcare", "parks"] as const).flatMap((category) => {
-    const places = evidence.places.filter((p) => GROUPS[p.category] === category).sort((a, b) => a.distanceM - b.distanceM);
+  return NEARBY_POI_GROUPS.flatMap((category) => {
+    const places = evidence.places.filter((p) => nearbyPoiGroup(p.kind) === category).sort((a, b) => a.distanceM - b.distanceM);
     return places.length ? [{ category, places }] : [];
   });
 }
