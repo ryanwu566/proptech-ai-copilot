@@ -239,6 +239,8 @@ for (const width of [360, 390, 430, 1024, 1440]) {
     await seed(page, [e9Case(), e9Case("case-b")]);
     await page.setViewportSize({ width, height: width < 600 ? 780 : 900 });
     await openHome(page);
+    // Layout is measured at rest: the document-load opening scales Home's start content in until its layer unmounts.
+    await expect(page.locator("[data-app-entrance]")).toHaveCount(0, { timeout: 5_000 });
     expect(await noOverflow(page)).toBe(true);
     const home = page.locator(".commercial-home");
     await expect(home.getByRole("heading", { level: 1 })).toBeInViewport();

@@ -217,6 +217,8 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await seed(page, { locale });
     const watcher = await watch(page, baseURL!);
     await page.goto("/");
+    // Layout is measured at rest: the document-load opening scales Home's start content in until its layer unmounts.
+    await expect(page.locator("[data-app-entrance]")).toHaveCount(0, { timeout: 5_000 });
     const cta = page.getByTestId("complete-example-start");
     await expect(cta).toBeVisible();
     const box = (await cta.boundingBox())!;
