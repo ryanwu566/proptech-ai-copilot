@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import date
-from typing import Annotated, Literal
+from datetime import date, datetime, timezone
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -67,8 +67,25 @@ class DemographicsHistoryResponse(BaseModel):
     items: list[DemographicsObservation]
 
 
+class LocationDemographicsResponse(BaseModel):
+    """Village identity and demographics for one confirmed coordinate, echoed for client binding."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    latitude: float
+    longitude: float
+    checked_at: str
+    village_resolution: dict[str, Any]
+    demographics: dict[str, Any]
+
+
 def get_demographics_query_service() -> RisPopulationQueryService:
     return RisPopulationQueryService()
+
+
+def get_village_demographics_resolver() -> Any | None:
+    """None selects the process-wide default resolver; tests override this dependency."""
+    return None
 
 
 def _not_found() -> HTTPException:
@@ -99,6 +116,27 @@ def _validate_statistic_month(value: str) -> str:
             detail={"code": "invalid_month", "message": "Statistic month is invalid."},
         )
     return value
+
+
+@router.get("/location", response_model=LocationDemographicsResponse)
+def get_location_demographics(
+    latitude: Annotated[float, Query(ge=-90, le=90)],
+    longitude: Annotated[float, Query(ge=-180, le=180)],
+    resolver: Annotated[Any | None, Depends(get_village_demographics_resolver)],
+) -> LocationDemographicsResponse:
+    """Confirmed coordinate -> NLSC village polygon -> RIS village code join. Never a geocoder label join."""
+    from services.ris_village_resolver import resolve_village_demographics
+
+    village, demographics = resolve_village_demographics(
+        latitude=latitude, longitude=longitude, resolver=resolver
+    )
+    return LocationDemographicsResponse(
+        latitude=latitude,
+        longitude=longitude,
+        checked_at=datetime.now(timezone.utc).isoformat(),
+        village_resolution=village,
+        demographics=demographics,
+    )
 
 
 @router.get(

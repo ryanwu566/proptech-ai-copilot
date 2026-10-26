@@ -61,6 +61,30 @@ class RisVillageResolver:
         return {"location": boundary, "demographics": demographics}
 
 
+def resolve_village_demographics(
+    *,
+    latitude: float,
+    longitude: float,
+    resolver: Any | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Fail closed: any resolver fault yields bounded unavailable states, never an exception."""
+
+    try:
+        if resolver is None:
+            resolver = get_default_ris_village_resolver()
+        result = resolver.resolve(latitude=latitude, longitude=longitude)
+        village = result.get("location") if isinstance(result, dict) else None
+        demographics = result.get("demographics") if isinstance(result, dict) else None
+        if not isinstance(village, dict) or not isinstance(demographics, dict):
+            raise ValueError("invalid village resolver result")
+        return village, demographics
+    except Exception:
+        return (
+            {"status": "unavailable", "reason": "village_resolver_unavailable"},
+            {"status": "no_data", "reason": "demographics_unavailable"},
+        )
+
+
 _DEFAULT_RESOLVER: RisVillageResolver | None = None
 _DEFAULT_RESOLVER_LOCK = Lock()
 

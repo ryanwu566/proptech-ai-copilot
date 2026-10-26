@@ -11,6 +11,8 @@ import { normalizeLocationInsightEvidence } from "../location-insight-evidence.t
 import { areJourneyPropertyAddressesEquivalent } from "../journey-property-identity.ts";
 // @ts-expect-error Native TS runner extension.
 import { normalizeNearbyFacilities, type NearbyFacilitiesEvidence } from "./nearby-facilities.ts";
+// @ts-expect-error Native TS runner extension.
+import { normalizeVillageDemographics, villageDemographicsMatches, type VillageDemographicsEvidence } from "./village-demographics.ts";
 
 export type LocationPropertyContext = {
   address: string;
@@ -23,6 +25,8 @@ export type LocationPropertyContext = {
 
 export type LocationWorkspaceSnapshot = {
   nearbyFacilities?: NearbyFacilitiesEvidence;
+  /** Present only for the currently confirmed coordinate; never carried across a re-located identity. */
+  villageDemographics?: VillageDemographicsEvidence;
   property: LocationPropertyContext;
   insight?: LocationInsightResult;
   poiSummary?: LocationInsightResult["poi_summary"];
@@ -63,6 +67,8 @@ export function buildLocationWorkspaceSnapshot(saved: SavedCase, identityConfirm
   const nearby = normalizeNearbyFacilities(saved.data.nearbyFacilities);
   const nearbyCurrent = identityConfirmed && nearby && coordinates && anchor?.revalidation.status === "current"
     && Math.abs(nearby.origin.lat - coordinates.latitude) <= 0.000001 && Math.abs(nearby.origin.lng - coordinates.longitude) <= 0.000001;
+  const demographics = normalizeVillageDemographics(saved.data.villageDemographics);
+  const demographicsCurrent = identityConfirmed && anchor?.revalidation.status === "current" && villageDemographicsMatches(demographics, coordinates);
   const storedRoute = saved.data.commuteRoute;
   const routeCurrent = Boolean(storedRoute && coordinates && routeMatchesOrigin(storedRoute, coordinates));
   let insight = saved.data.locationInsight ? normalizeLocationInsightEvidence(saved.data.locationInsight) : undefined;
@@ -76,6 +82,7 @@ export function buildLocationWorkspaceSnapshot(saved: SavedCase, identityConfirm
 
   return {
     ...(nearbyCurrent ? { nearbyFacilities: nearby } : {}),
+    ...(demographicsCurrent ? { villageDemographics: demographics } : {}),
     property: {
       address: addressFrom(saved, anchor),
       normalizedAddress: anchor?.normalized_address || addressFrom(saved, anchor),

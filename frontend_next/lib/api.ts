@@ -517,6 +517,15 @@ export type DemographicsNoData = {
 
 export type DemographicsInsight = DemographicsAvailable | DemographicsNoData;
 
+/** GET /demographics/location: the confirmed coordinate, echoed so the caller can bind the result to it. */
+export type LocationDemographicsResult = {
+  latitude: number;
+  longitude: number;
+  checked_at: string;
+  village_resolution: VillageResolution;
+  demographics: DemographicsInsight;
+};
+
 export type RiskFacilityEvidence = { status: string; count: number | null; source: string | null; checked_at: string | null; reason: string; limitation: string };
 export type LocationAdvisoryContext = { version: 1; property_price_wan: number | null; area_ping: number | null };
 
@@ -784,6 +793,7 @@ export const api = {
   loanCalculate: (payload: Record<string, number | boolean | undefined>) => request<LoanCalculationResult>("/loan/calculate", { method: "POST", body: JSON.stringify(payload) }),
   holdingCostCalculate: (payload: Record<string, number | boolean | undefined>) => request<HoldingCostResult>("/holding-cost/calculate", { method: "POST", body: JSON.stringify(payload) }),
   locationResolve: (address: string, signal?: AbortSignal) => request<LocationResolveResult>("/location/resolve", { method: "POST", body: JSON.stringify({ address }), signal }, true),
+  locationDemographics: (latitude: number, longitude: number) => request<LocationDemographicsResult>(`/demographics/location?${new URLSearchParams({ latitude: String(latitude), longitude: String(longitude) })}`),
   locationInsight: (payload: Record<string, string | number | boolean | undefined>) => request<LocationInsightResult>("/location/insight", { method: "POST", body: JSON.stringify(payload) }),
   commuteAddressLookup: (payload: { address: string }) => request<CommuteAddressLookupResult>("/commute/address-lookup", { method: "POST", body: JSON.stringify(payload) }),
   commuteRoute: (payload: { origin_latitude: number; origin_longitude: number; destination_address?: string; destination_latitude?: number; destination_longitude?: number; mode?: CommuteRouteMode }, signal?: AbortSignal) => request<CommuteRouteResult>("/commute/route", { method: "POST", body: JSON.stringify(payload), signal }),

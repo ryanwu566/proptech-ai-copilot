@@ -9,6 +9,8 @@ import { adaptSavedCaseToWorkspace } from "./legacy-case-adapter.ts";
 import { projectCaseEvidence } from "./case-evidence.ts";
 // @ts-expect-error Native TS runner extension.
 import { captureNearbyFacilities } from "./nearby-facilities.ts";
+// @ts-expect-error Native TS runner extension.
+import { captureVillageDemographics } from "./village-demographics.ts";
 
 test("saved nearby evidence is read locally and is hidden for a foreign property", () => {
   const saved: import("../case-storage").SavedCase = savedCase();
@@ -50,6 +52,43 @@ test("foreign unavailable legacy location without POI fields does not hide the s
   const workspace = adaptSavedCaseToWorkspace(saved);
   assert.equal(workspace.caseId, saved.id);
   assert.equal(workspace.location.insight, undefined);
+});
+
+function demographicsFor(latitude: number, longitude: number, population: number) {
+  return captureVillageDemographics({
+    latitude, longitude, checked_at: CHECKED_AT,
+    village_resolution: { status: "resolved", county: "臺北市", town: "大安區", village: "龍泉里", village_code: "63000020001", district_code: "63000020001", source: "nlsc_village_boundary", source_vintage: "ROC-1150817", reason: "unique_intersection" },
+    demographics: { status: "available", reason: null, statistic_yyymm: "11507", statistic_month: "2026-07-01", total_population: population, household_count: 10, average_household_size: 2.5, child_ratio: 0.1, working_age_ratio: 0.8, elderly_ratio: 0.1, first_month: "11507", last_month: "11507", observed_month_count: 1, population_change: 0, population_change_ratio: null, household_change: 0, has_month_gaps: false, trend_status: "stable", source_provider: "RIS", source_dataset: "ODRP014" },
+  }, { latitude, longitude });
+}
+
+test("saved village demographics bind to the confirmed coordinate and feed Report without acquisition", () => {
+  const saved: import("../case-storage").SavedCase = savedCase();
+  const c = saved.data.propertyIdentityAnchor!.coordinates!;
+  saved.data.villageDemographics = demographicsFor(c.latitude, c.longitude, 4321);
+  const workspace = adaptSavedCaseToWorkspace(saved);
+  assert.equal(workspace.location.villageDemographics?.demographics.status, "available");
+  const evidence = projectCaseEvidence(workspace).location;
+  assert.equal(evidence.population.value, 4321);
+  assert.match(String(evidence.demographicsContext.value), /^龍泉里；/);
+});
+
+test("Address A demographics never surface once the case is anchored at Address B", () => {
+  const saved: import("../case-storage").SavedCase = savedCase();
+  const c = saved.data.propertyIdentityAnchor!.coordinates!;
+  saved.data.villageDemographics = demographicsFor(c.latitude + 0.01, c.longitude, 9999);
+  saved.data.locationInsight!.demographics = undefined;
+  const workspace = adaptSavedCaseToWorkspace(saved);
+  assert.equal(workspace.location.villageDemographics, undefined);
+  assert.equal(projectCaseEvidence(workspace).location.population.value, null);
+});
+
+test("village demographics are hidden while the identity requires revalidation", () => {
+  const saved: import("../case-storage").SavedCase = savedCase();
+  const c = saved.data.propertyIdentityAnchor!.coordinates!;
+  saved.data.villageDemographics = demographicsFor(c.latitude, c.longitude, 4321);
+  saved.data.journeyContext!.propertyContext.addressSummary = "臺中市西屯區臺灣大道三段999號";
+  assert.equal(adaptSavedCaseToWorkspace(saved).location.villageDemographics, undefined);
 });
 
 const CHECKED_AT = "2026-09-27T08:00:00.000Z";

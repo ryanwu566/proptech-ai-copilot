@@ -66,14 +66,21 @@ async function prepare(page: Page, respond: (route: Route) => Promise<void> = (r
       localStorage.setItem(key, "[]");
     }
   }, KEY);
-  const calls = { resolve: [] as unknown[], other: [] as string[] };
+  const calls = { resolve: [] as unknown[], other: [] as string[], demographics: [] as string[] };
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve")) return;
+    // The internal village demographics read is counted on its own; `other` stays the Google/Places/provider boundary.
+    if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/location/resolve") || url.pathname.endsWith("/demographics/location")) return;
     if (isProviderRequest(request, url.hostname === "127.0.0.1" ? url.origin : "http://127.0.0.1")) calls.other.push(url.pathname);
   });
   await page.route((url) => BASEMAP.test(url.hostname), (route) => route.fulfill({ contentType: "image/png", body: PNG }));
   await page.route("**/location/resolve", async (route) => { calls.resolve.push(route.request().postDataJSON()); await respond(route); });
+  await page.route("**/demographics/location?*", async (route) => {
+    const url = new URL(route.request().url());
+    const [latitude, longitude] = [Number(url.searchParams.get("latitude")), Number(url.searchParams.get("longitude"))];
+    calls.demographics.push(`${latitude},${longitude}`);
+    await route.fulfill({ json: { latitude, longitude, checked_at: "2026-10-20T08:00:00+00:00", village_resolution: { status: "unresolved", county: null, town: null, village: null, village_code: null, district_code: null, source: "nlsc_village_boundary", source_vintage: null, reason: "zero_polygon" }, demographics: { status: "no_data", reason: "village_identity_not_resolved" } } });
+  });
   return calls;
 }
 
@@ -125,7 +132,7 @@ for (const width of [1280, 390]) test(`real pointer and keyboard keep Home addre
   const decorations = page.locator('[data-ambient-scene]');
   await expect(decorations.first()).toBeAttached();
   for (const layer of await decorations.all()) expect(await layer.evaluate((element) => getComputedStyle(element).pointerEvents)).toBe("none");
-  expect(calls).toEqual({ resolve: [], other: [] });
+  expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
   await clickStart(page);
   await expect(page.getByTestId("location-candidate")).toBeVisible();
   expect(calls.resolve).toEqual([{ address: ADDRESS }]);
@@ -139,7 +146,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.goto("/");
     await page.getByTestId("locale-switcher").selectOption(locale);
     await page.waitForLoadState("networkidle");
-    expect(calls).toEqual({ resolve: [], other: [] });
+    expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
     await page.locator("#commercial-address").fill(ADDRESS);
     expect(calls.resolve).toHaveLength(0);
     const caseId = await clickStart(page, locale);
@@ -199,6 +206,9 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole("button", { name: copy.confirm, exact: true }).click();
     await expect(page.getByTestId("location-administrative-incomplete")).toContainText(copy.adminIncomplete);
+    // Confirm reads village demographics exactly once for the new anchor; an unresolved village stays explicit.
+    await expect(page.getByTestId("demographics-village-unresolved")).toBeVisible();
+    expect(calls.demographics).toEqual([`${SPATIAL.latitude},${SPATIAL.longitude}`]);
     const row = (await stored(page))[0];
     expect(row.data.pendingLocationCandidate).toBeUndefined();
     expect(row.data.propertyIdentityAnchor).toMatchObject({
@@ -218,6 +228,9 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) for (const width of [
     await page.waitForLoadState("networkidle");
     expect(calls.resolve).toHaveLength(1);
     expect(calls.other).toEqual([]);
+    // Market detour, reopen and reload read the saved state only.
+    expect(calls.demographics).toHaveLength(1);
+    await expect(page.getByTestId("demographics-village-unresolved")).toBeVisible();
     expect((await stored(page))[0].data.propertyIdentityAnchor).toEqual(row.data.propertyIdentityAnchor);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   });
@@ -298,7 +311,7 @@ for (const locale of ["zh-TW", "en", "ja", "ko"] as const) test(`changed confirm
   await expect(page.getByTestId("report-identity-gate")).toContainText(copy.reconfirmationReport);
   await expect(page.getByTestId("report-controls")).toHaveCount(0);
   await page.waitForLoadState("networkidle");
-  expect(calls).toEqual({ resolve: [], other: [] });
+  expect(calls).toEqual({ resolve: [], other: [], demographics: [] });
 });
 
 test("pending candidate is invalidated by address edit and cannot leak into another case", async ({ page }) => {

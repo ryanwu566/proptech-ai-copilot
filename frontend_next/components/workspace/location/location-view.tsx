@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CommuteEvidencePanel } from "@/components/commute-evidence-panel";
-import { DemographicsInsightCard } from "@/components/demographics-insight-card";
 import { DetailsDisclosure } from "@/components/design-system/disclosure";
 import { MapFrame } from "@/components/design-system/map-frame";
 import { Message } from "@/components/design-system/message";
@@ -27,6 +26,9 @@ import { nearbyFacilitiesCopy } from "@/lib/workspace/nearby-facilities-copy";
 import { LocationConfirmationPanel } from "./location-confirmation-panel";
 import { AdministrativeAreaRepairPanel } from "./administrative-area-repair-panel";
 import { NearbyFacilitiesPanel } from "./nearby-facilities-panel";
+import { VillageDemographicsPanel } from "./village-demographics-panel";
+import { villageDemographicsCopy } from "@/lib/workspace/village-demographics-copy";
+import { formatDemographicsMonth } from "@/lib/workspace/village-demographics";
 import { ExplicitMap } from "@/components/map/explicit-map";
 
 const GeoMap = dynamic(() => import("@/components/map/geo-map"), {
@@ -53,6 +55,8 @@ export function LocationView() {
   const persistence = useRef({ route: 0, transit: 0, mounted: true });
   const heading = useRef<HTMLHeadingElement>(null);
   const [locationConfirmed, setLocationConfirmed] = useState(false);
+  // Case whose location was confirmed in this view; only that confirmation may acquire demographics.
+  const [confirmedCaseId, setConfirmedCaseId] = useState<string | null>(null);
   useEffect(() => {
     persistence.current.mounted = true;
     return () => { persistence.current.mounted = false; persistence.current.route++; persistence.current.transit++; };
@@ -63,6 +67,8 @@ export function LocationView() {
     return () => window.cancelAnimationFrame(frame);
   }, []);
   const snapshot = workspace.location;
+  const savedDemographics = snapshot.villageDemographics?.demographics ?? snapshot.insight?.demographics;
+  const demographicsSource = savedDemographics?.status === "available" ? savedDemographics : undefined;
   const handoff = buildLocationOverviewHandoff(workspace);
   const coordinates = snapshot.property.coordinates;
   const identity = resolveCommercialState("identity", workspace.identity.state);
@@ -120,7 +126,7 @@ export function LocationView() {
       <ExplicitMap key={`${workspace.caseId}:${coordinates.latitude}:${coordinates.longitude}`} kind="location"><GeoMap center={{ lat: coordinates.latitude, lng: coordinates.longitude }} zoom={16} categories={[]} centerLabel={snapshot.property.normalizedAddress} radiusMeters={snapshot.insight?.radius_m ?? 800} scrollWheelZoomEnabled={false} /></ExplicitMap>
     </MapFrame> : neverLocated ? <div data-testid="location-not-yet-confirmed" className="space-y-3"><Message variant="information" title={copyFrom(homeStartCopy, "locationPendingTitle")}>
       {copyFrom(homeStartCopy, "locationPending")}
-    </Message><LocationConfirmationPanel key={JSON.stringify([workspace.caseId, workspace.storageVersion, workspace.displayAddress])} onConfirmed={() => setLocationConfirmed(true)} /></div> : <Message variant="warning" title={copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationTitle" : "pendingTitle")}>
+    </Message><LocationConfirmationPanel key={JSON.stringify([workspace.caseId, workspace.storageVersion, workspace.displayAddress])} onConfirmed={() => { setLocationConfirmed(true); setConfirmedCaseId(workspace.caseId); }} /></div> : <Message variant="warning" title={copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationTitle" : "pendingTitle")}>
       {copyFrom(identityConfirmationCopy, reconfirmation ? "reconfirmationLocation" : "pendingLocation")}
     </Message>}
 
@@ -164,11 +170,7 @@ export function LocationView() {
       </div>
     </Section>}
 
-    <Section title="次要社區背景" description="人口資料只協助理解行政區位，不作為物件好壞或投資判斷。">
-      <DetailsDisclosure summary="次要里鄰人口背景">
-        <DemographicsInsightCard village={snapshot.insight?.village_resolution} demographics={snapshot.insight?.demographics} />
-      </DetailsDisclosure>
-    </Section>
+    <VillageDemographicsPanel key={JSON.stringify(["demographics", workspace.caseId, workspace.identity.state, anchor?.journey_anchor_id, coordinates])} autoAcquire={confirmedCaseId === workspace.caseId} onAutoAcquire={() => setConfirmedCaseId(null)} />
 
     <Section title="未知事項與限制">
       <div className="grid gap-3 md:grid-cols-2">
@@ -198,7 +200,7 @@ export function LocationView() {
           <SourceDetail label="行政位置" value={`${snapshot.property.village.name ?? "村里未確認"}${snapshot.insight?.village_resolution?.source_vintage ? `；圖資版本 ${snapshot.insight.village_resolution.source_vintage}` : ""}`} />
           <SourceDetail label="目的地路線" value={handoff.identityState !== "confirmed" ? "物件位置需重新確認" : snapshot.routeEvidence ? `${snapshot.routeEvidence.source === "google_routes" ? "Google Routes" : "模擬／備援路線"}；${snapshot.routeEvidence.checked_at}` : "尚未取得"} />
           <SourceDetail label="大眾運輸周邊" value={snapshot.transitContext ? `TDX；${snapshot.transitContext.source_updated_at ?? snapshot.transitContext.snapshot_generated_at ?? "日期未提供"}` : "尚未取得"} />
-          <SourceDetail label="人口背景" value={snapshot.insight?.demographics?.status === "available" ? `RIS；統計期 ${snapshot.insight.demographics.statistic_yyymm ?? "未提供"}` : "目前無可用資料"} />
+          <SourceDetail label="人口背景" value={demographicsSource ? copyFrom(villageDemographicsCopy, "sourceSummary", { month: formatDemographicsMonth(demographicsSource.statistic_yyymm, locale) ?? copyFrom(villageDemographicsCopy, "insufficient") }) : copyFrom(villageDemographicsCopy, "sourceSummaryNone")} />
         </dl>
         {handoff.selectedRoute && <p className="mt-3 text-meta">已選路線：{handoff.selectedRoute.destination} · {MODE_LABELS[handoff.selectedRoute.mode]} · {formatDistance(handoff.selectedRoute.distanceM)} · {formatDuration(handoff.selectedRoute.durationMinutes)}</p>}
       </DetailsDisclosure>
