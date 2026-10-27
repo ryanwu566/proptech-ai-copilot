@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { CommercialButton } from "@/components/design-system/button";
 import { StatusLabel } from "@/components/design-system/status-label";
 import type { VisualRole } from "@/components/design-system/types";
@@ -11,9 +11,10 @@ import { resolveCommercialState } from "@/lib/commercial/state";
 import { getMarketDisplayState } from "@/lib/market-result-state";
 import { isActiveRun, isTerminalStep, type AutoBriefRun, type AutoBriefStep, type AutoBriefStepId } from "@/lib/workspace/auto-brief";
 import type { autoBriefCopy } from "@/lib/workspace/auto-brief-copy";
-import { AUTO_BRIEF_BEAT_MS, nextScene, plotNearby, railItems, sceneStep, targetScene, type AutoBriefScene, type RailStatus } from "@/lib/workspace/auto-brief-presentation";
+import { nextScene, presentRail, RAIL_SCENE, sceneHold, plotNearby, railItems, sceneStep, targetScene, type AutoBriefScene, type RailStatus } from "@/lib/workspace/auto-brief-presentation";
 import { NEARBY_POI_STYLES, NEARBY_PROPERTY_STYLE, nearbyPoiIconSvg } from "@/lib/workspace/nearby-poi-category";
-import { hazardName, presentMonthlyTwd } from "@/lib/workspace/overview-presentation";
+import { buildWorkspaceOverview, type OverviewItem } from "@/lib/workspace/overview-model";
+import { hazardName, presentMonthlyTwd, presentOverviewItem } from "@/lib/workspace/overview-presentation";
 import { formatDemographicsCount, formatDemographicsMonth, formatDemographicsRatio } from "@/lib/workspace/village-demographics";
 import type { PropertyCaseWorkspace } from "@/lib/workspace/workspace-model";
 import styles from "./auto-brief-stage.module.css";
@@ -31,20 +32,20 @@ function Status({ c, status }: { c: Translate; status: RailStatus }) {
 }
 
 /** Walks the displayed scene toward the real one, one short beat per scene; never ahead of the run. */
-function useDisplayedScene(target: AutoBriefScene, motion: boolean, paused: boolean): AutoBriefScene {
-  const [shown, setShown] = useState<AutoBriefScene>(target);
+function useDisplayedScene(target: AutoBriefScene, motion: boolean, paused: boolean, showcase: boolean, fromStart: boolean): AutoBriefScene {
+  // A run this viewer just started plays from the lock-in even if it already finished (a fixture run ends at once);
+  // a reopened run shows where it is.
+  const [shown, setShown] = useState<AutoBriefScene>(fromStart && motion && target !== "halted" ? "lockin" : target);
   useEffect(() => {
     const next = nextScene(shown, target, motion);
     if (next.scene === shown) return;
     if (!next.wait) { setShown(next.scene); return; }
     if (paused) return;
-    const timer = window.setTimeout(() => setShown(next.scene), AUTO_BRIEF_BEAT_MS);
+    const timer = window.setTimeout(() => setShown(next.scene), sceneHold(shown, showcase));
     return () => window.clearTimeout(timer);
-  }, [shown, target, motion, paused]);
+  }, [shown, target, motion, paused, showcase]);
   return shown;
 }
-
-const RAIL_SCENE: Record<"lockin" | AutoBriefStepId, AutoBriefScene> = { lockin: "lockin", market: "market", location: "location", risk: "risk", money: "money", brief: "converge" };
 
 export type AutoBriefStageActions = {
   cancel(): void;
@@ -54,23 +55,38 @@ export type AutoBriefStageActions = {
   canRestart: boolean;
 };
 
-export function AutoBriefStage({ c, run, workspace, motion, paused, onPause, onSkip, actions, manualHref, briefHref, moneyHref }: {
-  c: Translate; run: AutoBriefRun; workspace: PropertyCaseWorkspace; motion: boolean; paused: boolean;
+/** Showcase-only end of story: the demo hands off to Compare, Report or the visitor's own property. */
+export type ShowcaseLinks = { compareHref: string; reportHref: string; homeHref: string };
+
+export function AutoBriefStage({ c, run, workspace, motion, paused, onPause, onSkip, actions, manualHref, briefHref, moneyHref, showcase, fromStart = false }: {
+  c: Translate; run: AutoBriefRun; workspace: PropertyCaseWorkspace; motion: boolean; paused: boolean; showcase?: ShowcaseLinks; fromStart?: boolean;
   onPause(): void; onSkip(): void; actions: AutoBriefStageActions; manualHref: string; briefHref: string; moneyHref: string;
 }) {
-  const shown = useDisplayedScene(targetScene(run), motion, paused);
+  const target = targetScene(run);
+  const shown = useDisplayedScene(target, motion, paused, Boolean(showcase), fromStart);
   const active = isActiveRun(run.status);
+  // The presentation may trail the run (always in a showcase, where a fixture run ends at once).
+  const presenting = shown !== target;
   // After a run ends, each finished chapter can be reopened; a new run always returns to the live scene.
   const [review, setReview] = useState<AutoBriefScene | null>(null);
   useEffect(() => { if (active) setReview(null); }, [active]);
-  const visible = !active && review ? review : shown;
-  const rail = railItems(run);
+  const visible = !active && !presenting && review ? review : shown;
+  const rail = showcase && presenting ? presentRail(railItems(run), shown) : railItems(run);
+  const root = useRef<HTMLDivElement>(null);
+  const wasPresenting = useRef(presenting);
+  // When the presentation catches up its controls go away; keep keyboard focus on the result instead of the page body.
+  useEffect(() => {
+    if (wasPresenting.current && !presenting && (document.activeElement === document.body || document.activeElement === null)) {
+      root.current?.querySelector<HTMLElement>("[data-auto-brief-primary]")?.focus({ preventScroll: true });
+    }
+    wasPresenting.current = presenting;
+  }, [presenting]);
   const current = rail.find((item) => item.current);
   const stepOf = (id: AutoBriefStepId) => run.steps.find((step) => step.id === id)!;
 
-  return <div className={styles.stage} data-testid="auto-brief-stage" data-scene={visible} data-motion={motion ? "on" : "off"}>
+  return <div ref={root} className={styles.stage} data-testid="auto-brief-stage" data-scene={visible} data-motion={motion ? "on" : "off"} data-showcase={showcase ? "on" : undefined}>
     <div className={styles.live} role="status" aria-live="polite" data-testid="auto-brief-status">
-      <strong>{c(`run_${run.status}`)}</strong>
+      <strong>{c(showcase && presenting ? "run_running" : `run_${run.status}`)}</strong>
       {current && <span> · {c("currentStage", { stage: c(`rail_${current.id}`) })}</span>}
       {run.reason && run.reason !== "cancelled" && !active && <p className="text-helper">{c(`reason_${run.reason}`)}</p>}
     </div>
@@ -78,7 +94,7 @@ export function AutoBriefStage({ c, run, workspace, motion, paused, onPause, onS
     <ol className={styles.rail} aria-label={c("progress")}>
       {rail.map((item) => <li key={item.id} className={styles.railItem} data-testid={item.id === "lockin" ? "auto-brief-rail-lockin" : `auto-brief-step-${item.id}`}
         data-status={item.status} aria-current={item.current ? "step" : undefined}>
-        {!active && item.status !== "pending" && item.status !== "skipped" && item.status !== "needs_location" && shown !== "halted"
+        {!active && !presenting && item.status !== "pending" && item.status !== "skipped" && item.status !== "needs_location" && shown !== "halted"
           ? <button type="button" className={styles.railButton} aria-pressed={visible === RAIL_SCENE[item.id]} onClick={() => setReview(RAIL_SCENE[item.id])} data-testid={`auto-brief-review-${item.id}`}>{c(`rail_${item.id}`)}</button>
           : <span className={styles.railLabel}>{c(`rail_${item.id}`)}</span>}
         <Status c={c} status={item.status} />
@@ -89,26 +105,27 @@ export function AutoBriefStage({ c, run, workspace, motion, paused, onPause, onS
     <div className={styles.screen} data-testid="auto-brief-screen">
       <div key={visible} className={styles.scene} data-testid={`auto-brief-scene-${visible}`}>
         {review && !active && review !== shown && <CommercialButton variant="tertiary" size="compact" className={styles.back} onClick={() => setReview(null)} data-testid="auto-brief-back">{c("backToResult")}</CommercialButton>}
-        <SceneBody c={c} scene={visible} run={run} workspace={workspace} actions={actions} briefHref={briefHref} moneyHref={moneyHref} manualHref={manualHref} lockinStatus={rail[0].status} />
+        {showcase && visible !== "halted" && <p className={styles.narration} data-testid="auto-brief-narration">{c(`narr_${visible}`)}</p>}
+        <SceneBody c={c} scene={visible} run={run} workspace={workspace} actions={actions} briefHref={briefHref} moneyHref={moneyHref} manualHref={manualHref} lockinStatus={rail[0].status} showcase={showcase} />
       </div>
     </div>
 
     <div className={styles.context}>
       <h3 className="text-subsection">{c("sourceContext")}</h3>
       <SourceContext c={c} run={run} workspace={workspace} />
-      {(active || (paused && shown !== targetScene(run))) && <div className={styles.controls} role="group" aria-label={c("controls")}>
+      {(active || presenting) && <div className={styles.controls} role="group" aria-label={c("controls")}>
         {active && <CommercialButton data-auto-brief-cancel variant="secondary" size="touch" onClick={actions.cancel} data-testid="auto-brief-cancel">{c("cancel")}</CommercialButton>}
-        <CommercialButton variant="tertiary" size="touch" disabled={!motion} aria-pressed={paused} onClick={onPause} data-testid="auto-brief-pause">{c(paused ? "resume" : "pause")}</CommercialButton>
-        <CommercialButton variant="tertiary" size="touch" aria-pressed={!motion} disabled={!motion} onClick={onSkip} data-testid="auto-brief-skip">{c("skip")}</CommercialButton>
+        <CommercialButton data-auto-brief-control variant="tertiary" size="touch" disabled={!motion} aria-pressed={paused} onClick={onPause} data-testid="auto-brief-pause">{c(paused ? "resume" : "pause")}</CommercialButton>
+        <CommercialButton data-auto-brief-control variant="tertiary" size="touch" aria-pressed={!motion} disabled={!motion} onClick={onSkip} data-testid="auto-brief-skip">{c("skip")}</CommercialButton>
       </div>}
     </div>
   </div>;
 
 }
 
-function SceneBody({ c, scene, run, workspace, actions, briefHref, moneyHref, manualHref, lockinStatus }: {
+function SceneBody({ c, scene, run, workspace, actions, briefHref, moneyHref, manualHref, lockinStatus, showcase }: {
   c: Translate; scene: AutoBriefScene; run: AutoBriefRun; workspace: PropertyCaseWorkspace; actions: AutoBriefStageActions;
-  briefHref: string; moneyHref: string; manualHref: string; lockinStatus: RailStatus;
+  briefHref: string; moneyHref: string; manualHref: string; lockinStatus: RailStatus; showcase?: ShowcaseLinks;
 }) {
   const id = sceneStep(scene);
   const step = id ? run.steps.find((row) => row.id === id)! : null;
@@ -121,7 +138,7 @@ function SceneBody({ c, scene, run, workspace, actions, briefHref, moneyHref, ma
   const waiting = <p className={styles.waiting} aria-busy="true">{c("waiting")}</p>;
   if (scene === "lockin") return <>{header(c("scene_lockin"), lockinStatus)}<LockIn c={c} workspace={workspace} /></>;
   if (scene === "halted") return <Halted c={c} run={run} actions={actions} manualHref={manualHref} />;
-  if (scene === "complete") return <Completion c={c} run={run} actions={actions} briefHref={briefHref} moneyHref={moneyHref} manualHref={manualHref} />;
+  if (scene === "complete") return <Completion c={c} run={run} workspace={workspace} actions={actions} briefHref={briefHref} moneyHref={moneyHref} manualHref={manualHref} showcase={showcase} />;
   if (scene === "market") return <>{header(c("scene_market"))}{ready ? <MarketEvidence c={c} step={step!} workspace={workspace} /> : waiting}</>;
   if (scene === "location") return <>{header(c("scene_location"))}{ready ? <LocationEvidence c={c} step={step!} workspace={workspace} /> : <><PropertyStage points={[]} />{waiting}</>}</>;
   if (scene === "risk") return <>{header(c("scene_risk"))}{ready ? <RiskEvidence c={c} step={step!} workspace={workspace} /> : waiting}</>;
@@ -276,7 +293,7 @@ function Convergence({ c, run }: { c: Translate; run: AutoBriefRun }) {
   </div>;
 }
 
-function Completion({ c, run, actions, briefHref, moneyHref, manualHref }: { c: Translate; run: AutoBriefRun; actions: AutoBriefStageActions; briefHref: string; moneyHref: string; manualHref: string }) {
+function Completion({ c, run, workspace, actions, briefHref, moneyHref, manualHref, showcase }: { c: Translate; run: AutoBriefRun; workspace: PropertyCaseWorkspace; actions: AutoBriefStageActions; briefHref: string; moneyHref: string; manualHref: string; showcase?: ShowcaseLinks }) {
   const gaps = run.steps.filter((step) => step.status !== "available");
   const retryable = run.steps.filter((step) => step.retryable);
   const money = run.steps.find((step) => step.id === "money");
@@ -286,13 +303,21 @@ function Completion({ c, run, actions, briefHref, moneyHref, manualHref }: { c: 
     {run.gapCount !== null && <p className="text-helper" data-testid="auto-brief-gaps">{run.gapCount ? c("gaps", { count: run.gapCount }) : c("noGaps")}</p>}
     {gaps.length > 0 && <div><h4 className="text-subsection">{c("remaining")}</h4>
       <ul className={styles.gapList}>{gaps.map((step) => <li key={step.id}><span>{c(`rail_${step.id}`)}</span><Status c={c} status={step.status} /></li>)}</ul></div>}
+    <BriefDigest c={c} workspace={workspace} />
     <div className={styles.actions}>
       <Link data-auto-brief-primary prefetch={false} className="ds-button ds-button--primary ds-button--touch" href={briefHref} data-testid="auto-brief-view-brief">{c("viewBrief")}</Link>
-      <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href={manualHref} data-testid="auto-brief-manual">{c("manual")}</Link>
-      {money?.status === "needs_input" && <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href={moneyHref} data-testid="auto-brief-go-money">{c("goMoney")}</Link>}
-      {actions.canRestart && <CommercialButton variant="tertiary" size="touch" onClick={actions.start} data-testid="auto-brief-restart">{c("restart")}</CommercialButton>}
+      {showcase ? <>
+        <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href={showcase.compareHref} data-testid="auto-brief-compare">{c("compareDemo")}</Link>
+        <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href={showcase.reportHref} data-testid="auto-brief-report">{c("openReport")}</Link>
+        {actions.canRestart && <CommercialButton variant="tertiary" size="touch" onClick={actions.start} data-testid="auto-brief-replay">{c("replay")}</CommercialButton>}
+        <Link prefetch={false} className="ds-button ds-button--tertiary ds-button--touch" href={showcase.homeHref} data-testid="auto-brief-analyze-own">{c("analyzeOwn")}</Link>
+      </> : <>
+        <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href={manualHref} data-testid="auto-brief-manual">{c("manual")}</Link>
+        {money?.status === "needs_input" && <Link prefetch={false} className="ds-button ds-button--secondary ds-button--touch" href={moneyHref} data-testid="auto-brief-go-money">{c("goMoney")}</Link>}
+        {actions.canRestart && <CommercialButton variant="tertiary" size="touch" onClick={actions.start} data-testid="auto-brief-restart">{c("restart")}</CommercialButton>}
+      </>}
     </div>
-    {retryable.length > 0 && actions.canRestart && <div role="group" aria-label={c("retryIncomplete")} className={styles.actions}>
+    {!showcase && retryable.length > 0 && actions.canRestart && <div role="group" aria-label={c("retryIncomplete")} className={styles.actions}>
       {retryable.map((step) => <CommercialButton key={step.id} variant="tertiary" size="compact" onClick={() => actions.retry(step.id)} aria-label={c("retryStep", { step: c(`rail_${step.id}`) })} data-testid={`auto-brief-retry-${step.id}`}>{c("retry")} · {c(`rail_${step.id}`)}</CommercialButton>)}
     </div>}
   </div>;
@@ -320,4 +345,24 @@ function SourceContext({ c, run, workspace }: { c: Translate; run: AutoBriefRun;
     [c("part_demographics"), status("location") === "pending" || demographics?.status !== "available" ? null : demographics.source_provider],
   ];
   return <dl className={styles.facts}>{rows.map(([label, value]) => <Fact key={label} label={label} value={value ?? "—"} />)}</dl>;
+}
+
+/** The final brief at a glance, from the same Overview model the full Brief uses. Nothing is ranked or added. */
+function BriefDigest({ c, workspace }: { c: Translate; workspace: PropertyCaseWorkspace }) {
+  const { locale } = useExperienceLocale();
+  const overview = buildWorkspaceOverview(workspace);
+  const groups: Array<[keyof typeof autoBriefCopy.en, OverviewItem[], string]> = [
+    ["digestKnown", overview.known, "known"],
+    ["digestAttention", [...overview.blockers, ...overview.attention], "attention"],
+    ["digestUnknown", overview.unknown, "unknown"],
+    ["digestQuestions", overview.actions, "questions"],
+  ];
+  return <section className={styles.digest} aria-label={c("digestTitle")} data-testid="auto-brief-digest">
+    <h4 className="text-subsection">{c("digestTitle")}</h4>
+    <div className={styles.digestGrid}>{groups.map(([title, items, key]) => <div key={key} className={styles.digestGroup} data-group={key}>
+      <h5 className={styles.digestHeading}>{c(title)} <span data-numeric>{items.length}</span></h5>
+      {items.length ? <ul>{items.slice(0, 3).map((item) => <li key={item.id}>{presentOverviewItem(item, locale).label}</li>)}</ul> : <p className="text-helper">{c("digestNone")}</p>}
+      {items.length > 3 && <p className="text-helper">{c("digestMore", { count: items.length - 3 })}</p>}
+    </div>)}</div>
+  </section>;
 }

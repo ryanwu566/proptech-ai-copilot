@@ -45,7 +45,9 @@ test("a failed room write is reported and another install fills missing rooms wi
     localStorage.setItem(room, "viewer-kept-room");
   }, { fail: FAIL, room: ROOM_B });
   await page.getByTestId("complete-example-start").click();
-  await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
+  // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  await page.goto(`/cases/${A}/overview`);
   const saved = await page.evaluate(({ cases, roomA, roomB }) => ({ rows: JSON.parse(localStorage.getItem(cases)!), room: JSON.parse(localStorage.getItem(roomA)!), kept: localStorage.getItem(roomB) }), { cases: CASES, roomA: ROOM_A, roomB: ROOM_B });
   expect(saved.rows.map((row: { id: string }) => row.id).sort()).toEqual([A, "proptech-demo-b", real.id].sort());
   expect(saved.rows.find((row: { id: string }) => row.id === real.id)).toEqual(real);
@@ -58,7 +60,9 @@ test("restore reports a room write failure and succeeds only after its retry res
   const { real, calls } = await prepare(page, baseURL!);
   await page.goto("/");
   await page.getByTestId("complete-example-start").click();
-  await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
+  // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  await page.goto(`/cases/${A}/overview`);
   await page.evaluate(({ room, fail }) => {
     const value = JSON.parse(localStorage.getItem(room)!);
     value.items[0].title = "Viewer edited action";

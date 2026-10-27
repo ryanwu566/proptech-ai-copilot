@@ -2,6 +2,10 @@
 .stage {
   --scene-enter: 360ms;
   --reveal: 280ms;
+  --wave-step: 120ms;
+  --row-step: 70ms;
+  --tile-step: 60ms;
+  --brief-delay: 300ms;
   display: grid;
   grid-template-areas: "live" "screen" "rail" "context";
   gap: var(--space-4);
@@ -60,7 +64,7 @@
 .property { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); line-height: 0; z-index: 2; }
 .poi {
   position: absolute; transform: translate(-50%, -50%); line-height: 0;
-  animation: poi-in var(--reveal) var(--ease-out) both; animation-delay: calc(var(--wave, 0) * 120ms);
+  animation: poi-in var(--reveal) var(--ease-out) both; animation-delay: calc(var(--wave, 0) * var(--wave-step));
 }
 
 .lockin { display: grid; gap: var(--space-4); align-items: center; min-width: 0; }
@@ -69,14 +73,14 @@
 
 .locationGrid { display: grid; gap: var(--space-4); min-width: 0; }
 .legend, .layers, .ages, .tiles, .gapList { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; min-width: 0; }
-.legend li { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-2); align-items: center; animation: reveal var(--reveal) var(--ease-out) both; animation-delay: calc(var(--wave, 0) * 120ms); }
+.legend li { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-2); align-items: center; animation: reveal var(--reveal) var(--ease-out) both; animation-delay: calc(var(--wave, 0) * var(--wave-step)); }
 .ages li { display: grid; grid-template-columns: minmax(4.5rem, auto) 1fr auto; gap: var(--space-2); align-items: center; }
 .bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--border-selected) var(--share), var(--surface-sunken) var(--share)); }
 
 .layers li {
   display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: center; padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-control); background: var(--surface-primary); box-shadow: inset 0 0 0 1px var(--border-subtle);
-  animation: reveal var(--reveal) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms);
+  animation: reveal var(--reveal) var(--ease-out) both; animation-delay: calc(var(--i, 0) * var(--row-step));
 }
 .layerName { font-weight: 600; min-width: 0; flex: 1 1 8rem; }
 
@@ -86,9 +90,9 @@
 .tiles { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
 .tiles li {
   display: grid; gap: var(--space-1); padding: var(--space-3); border-radius: var(--radius-control); background: var(--surface-primary);
-  box-shadow: inset 0 0 0 1px var(--border-subtle); animation: gather 420ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms);
+  box-shadow: inset 0 0 0 1px var(--border-subtle); animation: gather 420ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * var(--tile-step));
 }
-.briefCard { display: grid; gap: var(--space-1); padding: var(--space-4); border-radius: var(--radius-panel); border: 1px solid var(--border-selected); background: var(--surface-primary); animation: reveal var(--reveal) var(--ease-out) 300ms both; }
+.briefCard { display: grid; gap: var(--space-1); padding: var(--space-4); border-radius: var(--radius-panel); border: 1px solid var(--border-selected); background: var(--surface-primary); animation: reveal var(--reveal) var(--ease-out) var(--brief-delay) both; }
 
 .completion { display: grid; gap: var(--space-3); min-width: 0; }
 .gapList li { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; justify-content: space-between; }
@@ -106,6 +110,15 @@
 @container (min-width: 960px) {
   .stage { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) minmax(200px, 240px); grid-template-areas: "live live live" "rail screen context"; }
 }
+
+/* Showcase pacing: the same reveals, spread out so a provider-free example reads as a story. */
+.stage[data-showcase="on"] { --reveal: 420ms; --wave-step: 1100ms; --row-step: 900ms; --tile-step: 700ms; --brief-delay: 3000ms; }
+.narration { margin: 0; color: var(--text-secondary); max-width: 60ch; animation: reveal var(--reveal) var(--ease-out) both; }
+.digest { display: grid; gap: var(--space-3); min-width: 0; }
+.digestGrid { display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); min-width: 0; }
+.digestGroup { display: grid; gap: var(--space-1); align-content: start; padding: var(--space-3); border-radius: var(--radius-control); background: var(--surface-primary); box-shadow: inset 0 0 0 1px var(--border-subtle); overflow-wrap: anywhere; }
+.digestGroup ul { margin: 0; padding-left: 1.1em; display: grid; gap: var(--space-1); }
+.digestHeading { margin: 0; font-size: var(--text-meta-size); font-weight: 700; }
 
 /* Skip animation and reduced motion: the same states as a fast progress interface. */
 .stage[data-motion="off"] *, .stage[data-motion="off"] { animation: none !important; transition: none !important; }

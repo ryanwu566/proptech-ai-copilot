@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 // @ts-expect-error Native TS runner extension.
-import { AUTO_BRIEF_SCENES, nextScene, plotNearby, POI_REVEAL_ORDER, railItems, sceneStep, targetScene } from "./auto-brief-presentation.ts";
+import { AUTO_BRIEF_BEAT_MS, AUTO_BRIEF_SCENES, nextScene, plotNearby, POI_REVEAL_ORDER, presentRail, railItems, sceneHold, sceneStep, SHOWCASE_SCENE_MS, targetScene } from "./auto-brief-presentation.ts";
 // @ts-expect-error Native TS runner extension.
 import { AUTO_BRIEF_STEP_IDS } from "./auto-brief.ts";
 import type { AutoBriefRun, AutoBriefStepId, AutoBriefStepStatus } from "./auto-brief";
@@ -78,4 +78,21 @@ test("POIs come only from saved evidence, ordered property → transport → sch
   assert.ok(rail.x > 50 && Math.abs(rail.y - 50) < 1, "east of the property");
   assert.deepEqual(plotNearby(undefined), { points: [], groups: [] });
   assert.equal(POI_REVEAL_ORDER[0], "transit");
+});
+
+test("showcase pacing tells the story in about 45–60s; real cases keep the short beat", () => {
+  const story = (["lockin", "market", "location", "risk", "money", "converge"] as const).reduce((total, scene) => total + sceneHold(scene, true), 0);
+  assert.ok(story >= 45_000 && story <= 60_000, `showcase ${story}ms`);
+  assert.equal(SHOWCASE_SCENE_MS.location > SHOWCASE_SCENE_MS.market, true);
+  for (const scene of AUTO_BRIEF_SCENES) assert.equal(sceneHold(scene, false), AUTO_BRIEF_BEAT_MS);
+  assert.equal(sceneHold("complete", true), AUTO_BRIEF_BEAT_MS);
+});
+
+test("showcase rail reveals chapters as they are presented and never ahead of the run", () => {
+  const done = run("completed_with_gaps", null, { market: "available", location: "partial", risk: "partial", money: "needs_input", brief: "available" });
+  const atMarket = presentRail(railItems(done), "market");
+  assert.deepEqual(atMarket.map((item: { status: string }) => item.status), ["available", "available", "pending", "pending", "pending", "pending"]);
+  assert.deepEqual(atMarket.filter((item: { current: boolean }) => item.current).map((item: { id: string }) => item.id), ["market"]);
+  assert.deepEqual(presentRail(railItems(done), "money").map((item: { status: string }) => item.status), ["available", "available", "partial", "partial", "needs_input", "pending"]);
+  assert.deepEqual(presentRail(railItems(done), "complete"), railItems(done));
 });

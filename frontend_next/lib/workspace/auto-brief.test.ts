@@ -317,7 +317,9 @@ test("DEMO_FIXTURE uses saved snapshots only: zero provider calls, same step mod
   assert.deepEqual(h.calls, { market: 0, location: 0, risk: 0, geocode: 0 });
   assert.deepEqual(run.steps.map((step) => step.id), ["market", "location", "risk", "money", "brief"]);
   assert.equal(run.steps.every((step) => step.status !== "pending" && step.status !== "running"), true);
-  assert.equal(statuses(run).market, "available");
+  // The showcase story is truthful: complete market and location snapshots, partial risk and money.
+  assert.deepEqual(statuses(run), { market: "available", location: "available", risk: "partial", money: "partial", brief: "available" });
+  assert.equal(run.status, "completed_with_gaps");
   const again = await h.controller.start(DEMO_CASE_A_ID);
   assert.deepEqual(statuses(again), statuses(run));
 });

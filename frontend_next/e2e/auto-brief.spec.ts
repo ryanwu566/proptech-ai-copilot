@@ -329,6 +329,9 @@ test("demo fixture runs the same cinematic steps with zero provider calls", asyn
   await expect(page.getByTestId("auto-brief-demo-note")).toHaveText(autoBriefCopy.en.demoNote);
   await page.getByTestId("auto-brief-start").click();
   await expect(panel(page)).toHaveAttribute("data-run-status", /completed/);
+  // Demo cases use showcase pacing; skipping shortens the presentation only.
+  await expect(stage(page)).toHaveAttribute("data-showcase", "on");
+  await page.getByTestId("auto-brief-skip").click();
   await expect(page.getByTestId("auto-brief-completion")).toBeVisible({ timeout: 10_000 });
   for (const id of STEPS) await expect(step(page, id)).not.toHaveAttribute("data-status", /pending|running/);
   await review(page, "location");

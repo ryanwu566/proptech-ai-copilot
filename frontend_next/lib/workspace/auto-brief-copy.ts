@@ -13,13 +13,15 @@ type Key =
   | `group_${"transit" | "education" | "healthcare" | "parks" | "shopping" | "food" | "other"}`
   | "riskNote" | "riskNone" | "moneyMissingTitle" | "moneyMissing" | "moneyPayment" | "moneyHolding" | "moneyAssessed" | "moneyUnassessed"
   | "convergeText" | "briefTarget" | "leadCompleted" | "leadGaps" | "remaining" | "retryIncomplete"
-  | "pause" | "resume" | "skip" | "controls" | "sourceContext" | "backToResult";
+  | "pause" | "resume" | "skip" | "controls" | "sourceContext" | "backToResult"
+  | `narr_${"lockin" | "market" | "location" | "risk" | "money" | "converge" | "complete"}`
+  | "replay" | "compareDemo" | "openReport" | "analyzeOwn" | "digestTitle" | "digestKnown" | "digestAttention" | "digestUnknown" | "digestQuestions" | "digestNone" | "digestMore";
 
 /** Auto Brief copy. Automation never implies success: every gap is named and nothing is invented. */
 export const autoBriefCopy: CopyCatalogue<Key> = {
   "zh-TW": {
     title: "一鍵分析", intro: "依序檢查市場、區位、風險與資金，再整理成看屋前簡報。已保存的生活機能與人口資料會直接沿用，不會重新定位。",
-    start: "一鍵分析", manual: "自行逐項查看", demoNote: "示範案件只讀取示範快照，不會呼叫任何外部服務。", progress: "分析進度",
+    start: "一鍵分析", manual: "自行逐項查看", demoNote: "完整示範 · 使用預先保存的證據快照，不會呼叫即時資料服務", progress: "分析進度",
     cancel: "取消分析", retry: "重試", retryStep: "重試：{{step}}", restart: "重新分析", continue: "繼續未完成的步驟", viewBrief: "查看看屋前簡報", goLocation: "前往確認位置", goMoney: "前往填寫資金條件",
     gaps: "簡報中有 {{count}} 項待查證事項", noGaps: "簡報目前沒有待查證事項", reused: "沿用已保存資料",
     step_market: "檢查市場行情", step_location: "檢視區位證據", step_risk: "檢查風險", step_money: "檢視資金條件", step_brief: "建立看屋前簡報",
@@ -42,10 +44,15 @@ export const autoBriefCopy: CopyCatalogue<Key> = {
     moneyMissingTitle: "尚未提供資金條件", moneyMissing: "分析會繼續進行，不會自行假設任何數字；之後可再補填。", moneyPayment: "每月房貸", moneyHolding: "已知每月居住成本", moneyAssessed: "已評估負擔比", moneyUnassessed: "尚未評估負擔能力（未提供收入）",
     convergeText: "每項結果都依實際狀態整理進簡報，缺口也一併保留。", briefTarget: "看屋前簡報", leadCompleted: "所有分析步驟都取得了證據。", leadGaps: "部分步驟仍有缺口，已列為簡報中的待查證事項。", remaining: "未完整取得", retryIncomplete: "重試未完成的分析",
     pause: "暫停呈現", resume: "繼續呈現", skip: "略過動畫", controls: "分析控制", sourceContext: "即時狀態與來源", backToResult: "回到分析結果",
+    narr_lockin: "讓我們建立一份看屋前簡報。分析只從已確認的位置開始。", narr_market: "區域成交提供價格背景，但不等於這間物件的價值。", narr_location: "周邊設施與村里人口都來自已保存的證據；只有實際找到的類別才會出現。",
+    narr_risk: "每一個官方圖層各自判讀；未命中不能證明安全。", narr_money: "資金只使用已提供的條件；沒有提供的部分維持未評估。", narr_converge: "已知、未知與無法取得的證據一起整理進簡報，缺口也保留。",
+    narr_complete: "不指定贏家，也不宣稱安全：列出看屋前仍需查證的事項。",
+    replay: "重新播放示範", compareDemo: "比較示範案件 A／B", openReport: "開啟報告", analyzeOwn: "分析我的物件",
+    digestTitle: "看屋前簡報重點", digestKnown: "已知證據", digestAttention: "需要注意", digestUnknown: "仍未知", digestQuestions: "看屋前要查證", digestNone: "目前沒有項目", digestMore: "另有 {{count}} 項",
   },
   en: {
     title: "One-click analysis", intro: "Checks market, location, risk and money in order, then builds the pre-viewing brief. Saved nearby and demographics evidence is reused; the location is never looked up again.",
-    start: "One-click analysis", manual: "Explore manually", demoNote: "Demo cases read demo snapshots only; no external service is called.", progress: "Analysis progress",
+    start: "One-click analysis", manual: "Explore manually", demoNote: "Complete example · Uses pre-saved evidence snapshots; no live data services are called", progress: "Analysis progress",
     cancel: "Cancel analysis", retry: "Retry", retryStep: "Retry: {{step}}", restart: "Run analysis again", continue: "Continue unfinished steps", viewBrief: "View pre-viewing brief", goLocation: "Confirm location", goMoney: "Add financial inputs",
     gaps: "{{count}} items to verify in the Brief", noGaps: "The Brief has no open items to verify", reused: "Reused saved evidence",
     step_market: "Checking market", step_location: "Reviewing location evidence", step_risk: "Checking risks", step_money: "Reviewing financial inputs", step_brief: "Building pre-viewing brief",
@@ -68,10 +75,15 @@ export const autoBriefCopy: CopyCatalogue<Key> = {
     moneyMissingTitle: "Financial inputs not provided", moneyMissing: "The analysis continues without them and assumes no numbers. You can add them later.", moneyPayment: "Monthly loan payment", moneyHolding: "Known monthly housing costs", moneyAssessed: "Affordability assessed", moneyUnassessed: "Affordability not assessed (income not provided)",
     convergeText: "Each result goes into the brief as it is, gaps included.", briefTarget: "Pre-viewing brief", leadCompleted: "Every analysis step returned evidence.", leadGaps: "Some steps have gaps. They are listed in the brief as items to verify.", remaining: "Not fully available", retryIncomplete: "Retry incomplete analysis",
     pause: "Pause presentation", resume: "Resume presentation", skip: "Skip animation", controls: "Analysis controls", sourceContext: "Live status and sources", backToResult: "Back to result",
+    narr_lockin: "Let's build a pre-viewing brief. Analysis starts only from a confirmed location.", narr_market: "Area transactions add price context. They are not this home's value.", narr_location: "Nearby places and village population come from saved evidence. A category appears only if it was found.",
+    narr_risk: "Each official layer is read on its own. No match is not proof of safety.", narr_money: "Money uses only the inputs on file. Anything not provided stays unassessed.", narr_converge: "Known, unknown and unavailable evidence go into one brief, gaps included.",
+    narr_complete: "No winner and no safety verdict: the brief lists what still needs checking before the viewing.",
+    replay: "Replay demo", compareDemo: "Compare examples A / B", openReport: "Open report", analyzeOwn: "Analyze my property",
+    digestTitle: "Pre-viewing brief highlights", digestKnown: "Known evidence", digestAttention: "Needs attention", digestUnknown: "Still unknown", digestQuestions: "Verify before viewing", digestNone: "No items", digestMore: "{{count}} more",
   },
   ja: {
     title: "ワンクリック分析", intro: "市場・立地・リスク・資金を順番に確認し、内見前の概要を作成します。保存済みの周辺施設と人口データはそのまま使い、位置を再検索しません。",
-    start: "ワンクリック分析", manual: "自分で順に確認する", demoNote: "デモ案件はデモ用スナップショットのみを読み込み、外部サービスは呼び出しません。", progress: "分析の進行状況",
+    start: "ワンクリック分析", manual: "自分で順に確認する", demoNote: "完全なデモ · 事前に保存した根拠のスナップショットを使用し、リアルタイムのデータサービスは呼び出しません", progress: "分析の進行状況",
     cancel: "分析をキャンセル", retry: "再試行", retryStep: "再試行：{{step}}", restart: "もう一度分析する", continue: "未完了の手順を続ける", viewBrief: "内見前の概要を見る", goLocation: "位置を確認する", goMoney: "資金条件を入力する",
     gaps: "概要に確認が必要な項目が {{count}} 件あります", noGaps: "概要に未確認の項目はありません", reused: "保存済みデータを使用",
     step_market: "市場を確認中", step_location: "立地の根拠を確認中", step_risk: "リスクを確認中", step_money: "資金条件を確認中", step_brief: "内見前の概要を作成中",
@@ -94,10 +106,15 @@ export const autoBriefCopy: CopyCatalogue<Key> = {
     moneyMissingTitle: "資金条件が未入力です", moneyMissing: "分析はこのまま続き、数値を仮定することはありません。後から入力できます。", moneyPayment: "毎月のローン返済", moneyHolding: "把握済みの毎月の住居費", moneyAssessed: "負担率を評価済み", moneyUnassessed: "負担能力は未評価（収入が未入力）",
     convergeText: "各結果は実際の状態のまま概要にまとめ、不足も残します。", briefTarget: "内見前の概要", leadCompleted: "すべての分析手順で根拠を取得しました。", leadGaps: "一部の手順に不足があります。概要に確認事項として記載しています。", remaining: "完全には取得できなかった項目", retryIncomplete: "未完了の分析を再試行",
     pause: "表示を一時停止", resume: "表示を再開", skip: "アニメーションを省略", controls: "分析の操作", sourceContext: "現在の状態と情報源", backToResult: "分析結果に戻る",
+    narr_lockin: "内見前の概要を作成します。分析は確認済みの位置からのみ始まります。", narr_market: "地域の取引は価格の背景情報であり、この物件の価値ではありません。", narr_location: "周辺施設と村里の人口は保存済みの根拠から表示します。見つかった種類だけが表示されます。",
+    narr_risk: "公的な層を一つずつ読み取ります。該当なしは安全の証明ではありません。", narr_money: "資金は入力済みの条件だけを使います。未入力の部分は未評価のままです。", narr_converge: "確認済み・不明・取得できなかった根拠を、不足も含めて一つの概要にまとめます。",
+    narr_complete: "優劣も安全性も判定しません。内見前に確認すべき事項を示します。",
+    replay: "デモを再生", compareDemo: "事例 A／B を比較", openReport: "レポートを開く", analyzeOwn: "自分の物件を分析",
+    digestTitle: "内見前の概要の要点", digestKnown: "確認済みの根拠", digestAttention: "注意が必要", digestUnknown: "まだ不明", digestQuestions: "内見前に確認", digestNone: "項目はありません", digestMore: "ほか {{count}} 件",
   },
   ko: {
     title: "원클릭 분석", intro: "시장·입지·위험·자금을 순서대로 확인한 뒤 방문 전 브리프를 만듭니다. 저장된 주변 시설과 인구 자료는 그대로 사용하며 위치를 다시 찾지 않습니다.",
-    start: "원클릭 분석", manual: "직접 하나씩 살펴보기", demoNote: "예시 사례는 예시 스냅샷만 읽으며 외부 서비스를 호출하지 않습니다.", progress: "분석 진행 상황",
+    start: "원클릭 분석", manual: "직접 하나씩 살펴보기", demoNote: "전체 데모 · 미리 저장한 근거 스냅샷을 사용하며 실시간 데이터 서비스를 호출하지 않습니다", progress: "분석 진행 상황",
     cancel: "분석 취소", retry: "다시 시도", retryStep: "다시 시도: {{step}}", restart: "다시 분석하기", continue: "끝나지 않은 단계 계속하기", viewBrief: "방문 전 브리프 보기", goLocation: "위치 확인하기", goMoney: "자금 조건 입력하기",
     gaps: "브리프에 확인할 항목이 {{count}}개 있습니다", noGaps: "브리프에 확인할 항목이 없습니다", reused: "저장된 자료 사용",
     step_market: "시장 확인 중", step_location: "입지 근거 검토 중", step_risk: "위험 확인 중", step_money: "자금 조건 검토 중", step_brief: "방문 전 브리프 작성 중",
@@ -120,5 +137,10 @@ export const autoBriefCopy: CopyCatalogue<Key> = {
     moneyMissingTitle: "자금 조건이 입력되지 않았습니다", moneyMissing: "분석은 계속되며 어떤 숫자도 가정하지 않습니다. 나중에 입력할 수 있습니다.", moneyPayment: "월 대출 상환액", moneyHolding: "파악된 월 주거비", moneyAssessed: "부담률 평가됨", moneyUnassessed: "부담 능력 미평가(소득 미입력)",
     convergeText: "각 결과를 실제 상태 그대로 브리프에 정리하며 누락도 그대로 남깁니다.", briefTarget: "방문 전 브리프", leadCompleted: "모든 분석 단계에서 근거를 확보했습니다.", leadGaps: "일부 단계에 누락이 있습니다. 브리프에 확인할 항목으로 정리했습니다.", remaining: "완전히 확보하지 못한 항목", retryIncomplete: "끝나지 않은 분석 다시 시도",
     pause: "표시 일시 정지", resume: "표시 다시 시작", skip: "애니메이션 건너뛰기", controls: "분석 제어", sourceContext: "실시간 상태와 출처", backToResult: "분석 결과로 돌아가기",
+    narr_lockin: "방문 전 브리프를 만들어 보겠습니다. 분석은 확인된 위치에서만 시작합니다.", narr_market: "지역 거래는 가격 맥락일 뿐 이 매물의 가치가 아닙니다.", narr_location: "주변 시설과 리·동 인구는 저장된 근거에서 가져오며, 실제로 찾은 유형만 표시됩니다.",
+    narr_risk: "공식 레이어를 하나씩 따로 읽습니다. 해당 없음은 안전하다는 증거가 아닙니다.", narr_money: "자금은 입력된 조건만 사용합니다. 입력되지 않은 부분은 평가하지 않은 상태로 남습니다.", narr_converge: "확인된 근거, 미확인 근거, 가져올 수 없던 근거를 누락까지 포함해 하나의 브리프로 정리합니다.",
+    narr_complete: "우열이나 안전 여부를 판정하지 않고, 방문 전에 확인할 사항을 정리합니다.",
+    replay: "데모 다시 보기", compareDemo: "예시 A·B 비교", openReport: "보고서 열기", analyzeOwn: "내 매물 분석하기",
+    digestTitle: "방문 전 브리프 요점", digestKnown: "확인된 근거", digestAttention: "주의 필요", digestUnknown: "아직 미확인", digestQuestions: "방문 전 확인할 사항", digestNone: "항목 없음", digestMore: "외 {{count}}개",
   },
 };

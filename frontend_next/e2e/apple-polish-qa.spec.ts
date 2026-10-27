@@ -144,7 +144,9 @@ for (const locale of locales) {
     });
     await page.goto("/");
     await page.getByTestId("complete-example-start").click();
-    await expect(page).toHaveURL(/\/cases\/proptech-demo-a\/overview$/);
+    // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+    await expect(page).toHaveURL(new RegExp(`/cases/proptech-demo-a/location$`));
+    await page.goto(`/cases/proptech-demo-a/overview`);
     const frame = await page.locator("[data-case-frame]").elementHandle();
     const notice = await page.getByTestId("demo-case-notice").elementHandle();
     await page.locator("[data-case-rail] a[href$='/report']").click();

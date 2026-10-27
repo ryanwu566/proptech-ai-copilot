@@ -19,6 +19,19 @@ export const AUTO_BRIEF_RAIL: readonly AutoBriefRailId[] = ["lockin", "market", 
 /** Presentation beat between scenes; transitions stay within 150–450ms. Zero when motion is skipped. */
 export const AUTO_BRIEF_BEAT_MS = 450;
 
+/**
+ * Showcase pacing (DEMO_FIXTURE only): how long each scene stays before the next, so the provider-free
+ * example reads as a ~45–60s story. Real cases never wait on these; skip and reduced motion bypass them.
+ */
+export const SHOWCASE_SCENE_MS: Readonly<Record<Exclude<AutoBriefScene, "complete" | "halted">, number>> = {
+  lockin: 3500, market: 7000, location: 11000, risk: 9000, money: 7000, converge: 7500,
+};
+
+export function sceneHold(scene: AutoBriefScene, showcase: boolean): number {
+  if (!showcase || scene === "complete" || scene === "halted") return AUTO_BRIEF_BEAT_MS;
+  return SHOWCASE_SCENE_MS[scene];
+}
+
 const STEP_SCENE: Record<AutoBriefStepId, AutoBriefScene> = { market: "market", location: "location", risk: "risk", money: "money", brief: "converge" };
 
 /** The scene the real run is in right now. */
@@ -85,4 +98,18 @@ export function plotNearby(evidence: NearbyFacilitiesEvidence | undefined | null
     return { id: place.id, kind: place.kind, group, x: clamp(50 + dx * 46), y: clamp(50 - dy * 46), wave: wave(group) };
   });
   return { points, groups: present.map((group) => ({ group, count: evidence.places.filter((place) => nearbyPoiGroup(place.kind) === group).length, wave: wave(group) })) };
+}
+
+export const RAIL_SCENE: Readonly<Record<AutoBriefRailId, AutoBriefScene>> = { lockin: "lockin", market: "market", location: "location", risk: "risk", money: "money", brief: "converge" };
+
+/**
+ * Showcase rail: a fixture run finishes instantly, so chapters not yet presented stay "pending" and the
+ * presented chapter is current. Never shows a chapter as further along than the real run.
+ */
+export function presentRail(items: ReturnType<typeof railItems>, shown: AutoBriefScene): ReturnType<typeof railItems> {
+  if (shown === "complete" || shown === "halted") return items;
+  return items.map((item) => {
+    const at = order(RAIL_SCENE[item.id]);
+    return at > order(shown) ? { ...item, status: "pending", current: false } : { ...item, current: at === order(shown) };
+  });
 }

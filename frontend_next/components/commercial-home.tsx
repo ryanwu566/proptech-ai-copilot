@@ -25,6 +25,7 @@ import { caseDestination } from "@/lib/navigation/model";
 import { homeStartCopy } from "@/lib/home-start-copy";
 import { HomeCityBackdrop } from "@/components/home-city-backdrop";
 import type { DemoInstallFailure } from "@/lib/workspace/demo-cases-install";
+import { SHOWCASE_PARAM } from "@/lib/workspace/demo-case-ids";
 
 /** Explicit Start saves a local draft, then acquires one unconfirmed location candidate. No analysis. */
 export function CommercialHome({ onFinder }: { onFinder: () => void }) {
@@ -61,7 +62,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
     if (result.status === "created" && query) locationStartHandoff.begin(result.caseId, query, () => acquireCaseLocation(result.caseId, query));
     router.push(caseDestination(result.caseId, "location"));
   }
-  /** Installs the two local demo snapshots (idempotent, provider-free) and opens Demo A's real Overview. */
+  /** Installs the two local demo snapshots (idempotent, provider-free) and plays Demo A's Auto Brief showcase. */
   async function openCompleteExample() {
     if (examplePending) return;
     setExamplePending(true);
@@ -69,7 +70,7 @@ export function CommercialHome({ onFinder }: { onFinder: () => void }) {
     try {
       const { installDemoCases } = await import("@/lib/workspace/demo-cases-install");
       const result = await installDemoCases("ensure", locale);
-      if (result.status === "ready") { router.push(caseDestination(result.caseId, "overview")); return; }
+      if (result.status === "ready") { router.push(`${caseDestination(result.caseId, "location")}?${SHOWCASE_PARAM}=1`); return; }
       setExampleFailure(result.reason);
     } catch {
       setExampleFailure("write_failed");

@@ -38,7 +38,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "首頁：從一個地址開始",
       role: "決策流程的起點。輸入地址會建立一個只存在此瀏覽器的案件，之後的市場、區位、風險與資金證據都掛在這個案件下。",
-      see: ["地址欄與「開始物件評估」：建立案件並取得一個待確認的位置。", "「查看完整範例案件」：直接開啟示範案件 A 的看屋前簡報。", "最近案件：從上次保存的進度繼續。"],
+      see: ["地址欄與「開始物件評估」：建立案件並取得一個待確認的位置。", "「觀看完整示範」：約一分鐘看示範案件 A 從確認位置到看屋前簡報，只使用預先保存的示範快照。", "最近案件：從上次保存的進度繼續。"],
       known: "你輸入的地址，以及此瀏覽器中已保存的案件。",
       unknown: "開始後只會取得一個「待確認」的位置候選；市場、區位、風險與資金都還沒有查詢。",
       caution: "建立案件不等於完成分析；範例案件是示範快照，不代表任何真實物件。",
@@ -112,7 +112,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "Home: start from one address",
       role: "Where the decision starts. An address creates a case kept only in this browser; market, location, risk and money evidence all attach to it.",
-      see: ["Address and \"Start property review\": creates the case and finds one location to confirm.", "\"View complete example cases\": opens Demo case A's pre-viewing brief directly.", "Recent cases: continue from what you last saved."],
+      see: ["Address and \"Start property review\": creates the case and finds one location to confirm.", "\"Watch complete example\": a one-minute walk-through of Demo case A from confirmed location to pre-viewing brief, using saved demo snapshots only.", "Recent cases: continue from what you last saved."],
       known: "The address you entered and the cases saved in this browser.",
       unknown: "Starting finds one location candidate that still needs your confirmation. Market, location, risk and money have not been queried.",
       caution: "Creating a case is not a finished analysis. The example cases are demo snapshots, not real properties.",
@@ -186,7 +186,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "ホーム：住所ひとつから始める",
       role: "判断の出発点です。住所を入力すると、このブラウザだけに保存される物件が作られ、市場・立地・リスク・資金の根拠はすべてこの物件にまとまります。",
-      see: ["住所欄と「物件の検討を開始」：物件を作成し、確認待ちの位置をひとつ見つけます。", "「完全な事例を見る」：デモ物件 A の内見前ブリーフを直接開きます。", "最近の物件：前回保存した続きから再開します。"],
+      see: ["住所欄と「物件の検討を開始」：物件を作成し、確認待ちの位置をひとつ見つけます。", "「完全なデモを見る」：デモ物件 A を位置確認から内見前ブリーフまで約1分で紹介します。保存済みのデモ用スナップショットのみを使います。", "最近の物件：前回保存した続きから再開します。"],
       known: "入力した住所と、このブラウザに保存された物件。",
       unknown: "開始時に得られるのは確認待ちの位置候補ひとつだけです。市場・立地・リスク・資金はまだ検索していません。",
       caution: "物件の作成は分析の完了ではありません。例の物件はデモ用のスナップショットで、実在の物件ではありません。",
@@ -260,7 +260,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "홈: 주소 하나로 시작하기",
       role: "의사결정의 출발점입니다. 주소를 입력하면 이 브라우저에만 저장되는 사례가 만들어지고, 시장·입지·위험·자금 근거가 모두 이 사례에 연결됩니다.",
-      see: ["주소 입력과 \"부동산 검토 시작\": 사례를 만들고 확인할 위치 하나를 찾습니다.", "\"전체 예시 사례 보기\": 데모 사례 A의 방문 전 브리프를 바로 엽니다.", "최근 사례: 마지막으로 저장한 진행 상황에서 이어갑니다."],
+      see: ["주소 입력과 \"부동산 검토 시작\": 사례를 만들고 확인할 위치 하나를 찾습니다.", "\"전체 데모 보기\": 데모 사례 A를 위치 확인부터 방문 전 브리프까지 약 1분 동안 보여 주며, 저장된 데모 스냅샷만 사용합니다.", "최근 사례: 마지막으로 저장한 진행 상황에서 이어갑니다."],
       known: "입력한 주소와 이 브라우저에 저장된 사례.",
       unknown: "시작하면 확인이 필요한 위치 후보 하나만 얻습니다. 시장·입지·위험·자금은 아직 조회하지 않았습니다.",
       caution: "사례를 만든다고 분석이 끝난 것은 아닙니다. 예시 사례는 데모 스냅숏이며 실제 부동산이 아닙니다.",
