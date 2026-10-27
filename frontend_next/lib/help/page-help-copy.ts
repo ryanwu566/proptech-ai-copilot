@@ -50,7 +50,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["位置確認與行政區：確認或修正系統找到的位置。", "周邊設施摘要：交通、生活機能、學校、醫療等類別。", "通勤：到你常去地點的路線與時間（我的地點）。"],
       known: "你確認過的位置、確認後各查詢一次的村里人口與周邊設施，以及已保存、標示查詢時間的通勤結果。",
       unknown: "尚未確認的位置、沒有查詢的設施類別、沒有設定的目的地，都維持未知。",
-      caution: "設施數量不等於生活品質；路線時間是查詢當下的估計，不代表每天的實際通勤。",
+      caution: "設施數量不等於生活品質；路線時間是查詢當下的估計，不代表每天的實際通勤。「一鍵分析」只是自動執行同樣的查證：不會產生事實、不是鑑價，也不替你做購買決定；缺少的結果不代表安全。",
       next: "位置確認後，通常先查價格與市場，再看風險與環境。",
     },
     market: {
@@ -124,7 +124,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["Location and district: confirm or correct the place that was found.", "Nearby facilities: transport, daily needs, schools and healthcare.", "Commute: routes and times to the places you go often (My places)."],
       known: "The location you confirmed, the village population and nearby facilities checked once each after confirming, and saved commute results with their query times.",
       unknown: "An unconfirmed location, facility types you did not query and destinations you did not set stay unknown.",
-      caution: "A facility count is not quality of life. Route times are estimates at query time, not your daily commute.",
+      caution: "A facility count is not quality of life. Route times are estimates at query time, not your daily commute. One-click analysis only runs these same checks for you: it creates no facts, is not an appraisal and makes no purchase decision, and a missing result does not mean safe.",
       next: "Once the location is confirmed, people usually check price and market, then risk and environment.",
     },
     market: {
@@ -198,7 +198,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["位置と行政区：見つかった位置を確認または修正します。", "周辺施設：交通・生活利便・学校・医療など。", "通勤：よく行く場所までのルートと時間（マイプレイス）。"],
       known: "確認した位置、確定後にそれぞれ一度だけ確認した村里人口と周辺施設、検索時刻付きで保存された通勤の結果。",
       unknown: "未確認の位置、検索していない施設の種類、設定していない目的地は不明のままです。",
-      caution: "施設の数は暮らしやすさそのものではありません。所要時間は検索時点の目安で、毎日の通勤時間ではありません。",
+      caution: "施設の数は暮らしやすさそのものではありません。所要時間は検索時点の目安で、毎日の通勤時間ではありません。ワンクリック分析は同じ確認を自動で行うだけです。事実を作らず、鑑定でも購入判断でもありません。結果がないことは安全を意味しません。",
       next: "位置を確認したら、通常は価格と市場、次にリスクと環境を見ます。",
     },
     market: {
@@ -272,7 +272,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["위치와 행정구역: 찾은 위치를 확인하거나 수정합니다.", "주변 시설: 교통, 생활 편의, 학교, 의료 등.", "통근: 자주 가는 곳까지의 경로와 시간(내 장소)."],
       known: "확인한 위치, 확정 후 각각 한 번 확인한 마을 인구와 주변 시설, 그리고 조회 시각과 함께 저장된 통근 결과.",
       unknown: "확인하지 않은 위치, 조회하지 않은 시설 유형, 설정하지 않은 목적지는 알 수 없음으로 남습니다.",
-      caution: "시설 수가 곧 생활의 질은 아닙니다. 경로 시간은 조회 시점의 추정치이며 매일의 통근 시간이 아닙니다.",
+      caution: "시설 수가 곧 생활의 질은 아닙니다. 경로 시간은 조회 시점의 추정치이며 매일의 통근 시간이 아닙니다. 원클릭 분석은 같은 확인을 자동으로 실행할 뿐이며 사실을 만들거나 감정평가·매입 결정을 하지 않습니다. 결과가 없다고 안전하다는 뜻은 아닙니다.",
       next: "위치를 확인한 뒤에는 보통 가격과 시장, 다음으로 위험과 환경을 봅니다.",
     },
     market: {

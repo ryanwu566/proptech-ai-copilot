@@ -322,7 +322,8 @@ test.describe("里人口概況 demographics card", () => {
     const forbidden: string[] = [];
     page.on("request", (request) => {
       const url = request.url();
-      if (/r2\.|cloudflarestorage|\/ris\/|nlsc|ris_village|village_boundary/i.test(url)) forbidden.push(url);
+      // Content-hashed build chunks (e.g. "…cr2.js") are the app itself, never a direct provider call.
+      if (/r2\.|cloudflarestorage|\/ris\/|nlsc|ris_village|village_boundary/i.test(url) && !new URL(url).pathname.startsWith("/_next/")) forbidden.push(url);
     });
     await routeLocation(page, locationResponse({}));
     await gotoLocationStage(page);

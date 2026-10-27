@@ -1,0 +1,114 @@
+/* Auto Brief stage: a calm, architectural presentation of the real run. CSS transforms and opacity only. */
+.stage {
+  --scene-enter: 360ms;
+  --reveal: 280ms;
+  display: grid;
+  grid-template-areas: "live" "screen" "rail" "context";
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.live { grid-area: live; min-width: 0; overflow-wrap: anywhere; }
+
+.rail { grid-area: rail; display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; min-width: 0; }
+.railItem {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-1) var(--space-2);
+  min-width: 0; padding: var(--space-2) var(--space-3);
+  border-left: 3px solid var(--border-subtle); border-radius: var(--radius-control);
+  background: var(--surface-secondary); overflow-wrap: anywhere;
+  transition: border-color var(--duration-panel) var(--ease-standard), background-color var(--duration-panel) var(--ease-standard);
+}
+.railItem > :global(.text-helper) { flex-basis: 100%; }
+.railItem[aria-current="step"] { border-left-color: var(--border-selected); background: var(--surface-primary); box-shadow: inset 0 0 0 1px var(--border-subtle); }
+.railLabel { font-weight: 600; min-width: 0; }
+.railButton {
+  min-width: 0; min-height: 44px; padding: 0; border: 0; background: none; font: inherit; font-weight: 600; text-align: start;
+  color: var(--text-primary); text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.railButton[aria-pressed="true"] { text-decoration-thickness: 2px; }
+.railButton:focus-visible { outline: 2px solid var(--border-selected); outline-offset: 2px; border-radius: 2px; }
+.back { justify-self: start; }
+
+.screen {
+  grid-area: screen; position: relative; min-width: 0; overflow: hidden;
+  padding: var(--space-5); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel);
+  background: linear-gradient(180deg, var(--surface-primary), var(--surface-secondary));
+  min-height: 320px;
+}
+.scene { display: grid; gap: var(--space-4); min-width: 0; animation: scene-enter var(--scene-enter) var(--ease-out) both; }
+.sceneHeader { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2); min-width: 0; }
+.waiting { color: var(--text-secondary, inherit); }
+
+.context { grid-area: context; display: grid; gap: var(--space-3); align-content: start; min-width: 0; }
+.controls, .actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; min-width: 0; }
+.controls > *, .actions > * { max-width: 100%; }
+
+.facts { display: grid; gap: var(--space-2); margin: 0; min-width: 0; }
+.fact { display: grid; gap: 2px; min-width: 0; }
+.fact dt { font-size: var(--text-meta-size); color: var(--text-secondary, inherit); }
+.fact dd { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.badge { font-weight: 600; }
+.evidence { display: grid; gap: var(--space-3); align-content: start; min-width: 0; animation: reveal var(--reveal) var(--ease-out) both; }
+
+/* Schematic location stage: rings at the saved search radius, the property at the centre, saved places around it. */
+.plot { position: relative; width: min(100%, 320px); aspect-ratio: 1; margin-inline: auto; }
+.plot[data-settle] { animation: settle var(--scene-enter) var(--ease-out) both; }
+.ring {
+  position: absolute; left: 50%; top: 50%; width: var(--r); aspect-ratio: 1; transform: translate(-50%, -50%);
+  border: 1px solid var(--border-subtle); border-radius: 50%;
+}
+.property { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); line-height: 0; z-index: 2; }
+.poi {
+  position: absolute; transform: translate(-50%, -50%); line-height: 0;
+  animation: poi-in var(--reveal) var(--ease-out) both; animation-delay: calc(var(--wave, 0) * 120ms);
+}
+
+.lockin { display: grid; gap: var(--space-4); align-items: center; min-width: 0; }
+.lockinCard { display: grid; gap: var(--space-3); min-width: 0; }
+.address { font-size: var(--text-section-size, 1.125rem); font-weight: 700; overflow-wrap: anywhere; }
+
+.locationGrid { display: grid; gap: var(--space-4); min-width: 0; }
+.legend, .layers, .ages, .tiles, .gapList { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; min-width: 0; }
+.legend li { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-2); align-items: center; animation: reveal var(--reveal) var(--ease-out) both; animation-delay: calc(var(--wave, 0) * 120ms); }
+.ages li { display: grid; grid-template-columns: minmax(4.5rem, auto) 1fr auto; gap: var(--space-2); align-items: center; }
+.bar { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--border-selected) var(--share), var(--surface-sunken) var(--share)); }
+
+.layers li {
+  display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-2); align-items: center; padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control); background: var(--surface-primary); box-shadow: inset 0 0 0 1px var(--border-subtle);
+  animation: reveal var(--reveal) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms);
+}
+.layerName { font-weight: 600; min-width: 0; flex: 1 1 8rem; }
+
+.pauseCard { display: grid; gap: var(--space-2); padding: var(--space-4); border-radius: var(--radius-panel); border: 1px dashed var(--border-strong); background: var(--surface-primary); animation: reveal var(--reveal) var(--ease-out) both; }
+
+.converge { display: grid; gap: var(--space-4); min-width: 0; }
+.tiles { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); }
+.tiles li {
+  display: grid; gap: var(--space-1); padding: var(--space-3); border-radius: var(--radius-control); background: var(--surface-primary);
+  box-shadow: inset 0 0 0 1px var(--border-subtle); animation: gather 420ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 60ms);
+}
+.briefCard { display: grid; gap: var(--space-1); padding: var(--space-4); border-radius: var(--radius-panel); border: 1px solid var(--border-selected); background: var(--surface-primary); animation: reveal var(--reveal) var(--ease-out) 300ms both; }
+
+.completion { display: grid; gap: var(--space-3); min-width: 0; }
+.gapList li { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; justify-content: space-between; }
+
+@keyframes scene-enter { from { opacity: 0; transform: translateY(var(--motion-rise)) scale(0.99); } to { opacity: 1; transform: none; } }
+@keyframes reveal { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes settle { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+@keyframes poi-in { from { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } to { opacity: 1; transform: translate(-50%, -50%); } }
+@keyframes gather { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+
+@container (min-width: 620px) {
+  .stage { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr); grid-template-areas: "live live" "rail screen" "context context"; }
+  .lockin, .locationGrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+}
+@container (min-width: 960px) {
+  .stage { grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) minmax(200px, 240px); grid-template-areas: "live live live" "rail screen context"; }
+}
+
+/* Skip animation and reduced motion: the same states as a fast progress interface. */
+.stage[data-motion="off"] *, .stage[data-motion="off"] { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .stage *, .stage { animation: none !important; transition: none !important; }
+}
