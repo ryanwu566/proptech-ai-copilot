@@ -1,0 +1,36 @@
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--surface-raised);
+}
+
+.heading { display: grid; gap: var(--space-2); min-width: 0; }
+
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; min-width: 0; }
+.actions > * { max-width: 100%; }
+
+.progress { display: grid; gap: var(--space-3); min-width: 0; }
+.summary { min-width: 0; overflow-wrap: anywhere; }
+
+.steps { display: grid; gap: var(--space-2); margin: 0; padding: 0; list-style: none; min-width: 0; }
+.step {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--surface-secondary);
+  overflow-wrap: anywhere;
+}
+.step[aria-current="step"] { outline: 2px solid var(--border-selected); outline-offset: -2px; }
+.stepLine { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; justify-content: space-between; min-width: 0; }
+.stepLabel { font-weight: 600; min-width: 0; }
+
+@media (max-width: 480px) {
+  .panel { padding: var(--space-4); }
+  .actions > * { flex: 1 1 100%; }
+}

@@ -29,6 +29,7 @@ import { villageDemographicsCopy } from "@/lib/workspace/village-demographics-co
 import { formatDemographicsMonth } from "@/lib/workspace/village-demographics";
 import { formatLocationDistance, formatLocationDuration, locationViewCopy, type LocationViewCopyKey } from "@/lib/workspace/location-view-copy";
 import { ExplicitMap } from "@/components/map/explicit-map";
+import { AutoBriefPanel } from "@/components/workspace/auto-brief-panel";
 
 function MapLoading() {
   const { copyFrom } = useExperienceLocale();
@@ -125,6 +126,7 @@ export function LocationView() {
 
     <div role="status" data-testid="location-confirmation-status">{locationConfirmed && !neverLocated && <Message variant="success">{copyFrom(locationConfirmationCopy, "confirmed")}</Message>}</div>
     {anchor && workspace.evidence.market.query === "not_started" && <div data-testid="build-preview-pack"><Message variant="information" action={<Link prefetch={false} className="ds-button ds-button--primary" href={`/cases/${encodeURIComponent(workspace.caseId)}/market`}>{copyFrom(homeStartCopy, "buildPack")}</Link>}>{copyFrom(homeStartCopy, "buildPackHint")}</Message></div>}
+    <AutoBriefPanel key={JSON.stringify(["auto-brief", workspace.caseId])} />
     {anchor && !hasCompleteAdministrativeArea(anchor) && <div data-testid="location-administrative-incomplete"><Message variant="information">{copyFrom(locationConfirmationCopy, "adminIncomplete")}</Message><AdministrativeAreaRepairPanel key={`${workspace.caseId}:${workspace.storageVersion}`} /></div>}
 
     <SummaryStrip label={copy("statusStrip")}>
