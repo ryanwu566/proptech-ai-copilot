@@ -52,8 +52,8 @@ test("open and pre-CTA are zero calls; double click acquires once, persists, and
   release();
   await expect(panel(page)).toContainText("已保存設施證據");
   expect(calls.nearby).toEqual([{ ...origin, radius_m: 800, categories: [...NEARBY_CATEGORIES], language_code: "zh-TW" }]);
-  await expect(page.getByTestId("nearby-group-convenience")).toContainText("Facility shopping");
-  await expect(page.getByTestId("nearby-group-convenience")).toContainText("Facility food");
+  await expect(page.getByTestId("nearby-group-shopping")).toContainText("Facility shopping");
+  await expect(page.getByTestId("nearby-group-food")).toContainText("Facility food");
   for (const group of ["transit", "education", "healthcare", "parks"]) await expect(page.getByTestId(`nearby-group-${group}`)).toBeVisible();
   await expect(panel(page)).toContainText("11 m（直線）");
   await expect(panel(page)).not.toContainText("99999");
@@ -210,7 +210,7 @@ test("partial response shows only supported returned categories and retains miss
   await panel(page).getByRole("button", { name: "查附近生活機能", exact: true }).click();
   await expect(panel(page)).toContainText("部分類別未取得完整資料");
   await expect(page.getByTestId("nearby-group-transit")).toBeVisible();
-  for (const group of ["healthcare", "education", "convenience", "parks"]) await expect(page.getByTestId(`nearby-group-${group}`)).toHaveCount(0);
+  for (const group of ["healthcare", "education", "shopping", "food", "parks"]) await expect(page.getByTestId(`nearby-group-${group}`)).toHaveCount(0);
   await page.reload();
   await expect(panel(page)).toContainText("部分類別未取得完整資料");
 });
@@ -251,7 +251,7 @@ for (const [locale, title, cta] of [
   await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
   await panel(page).getByRole("button", { name: cta, exact: true }).click();
   await expect(panel(page)).toContainText("Facility school");
-  await expect(panel(page).getByRole("button")).toBeEnabled();
+  await expect(panel(page).getByRole("button").first()).toBeEnabled();
   if (locale === "en" || locale === "ko") expect(await panel(page).innerText()).not.toMatch(/[一-鿿]/);
   expect(calls.nearby).toHaveLength(1);
 });
@@ -264,7 +264,7 @@ for (const [width, height] of [[390, 844], [430, 932]]) test(`${width}×${height
   await cta.scrollIntoViewIfNeeded();
   expect((await cta.boundingBox())!.height).toBeGreaterThanOrEqual(44);
   await cta.click();
-  await expect(panel(page).getByRole("listitem")).toHaveCount(6);
+  await expect(panel(page).locator("li[data-selected]")).toHaveCount(6);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(await panel(page).evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
 });

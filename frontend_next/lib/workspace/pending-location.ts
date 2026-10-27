@@ -26,7 +26,7 @@ function addressKey(saved: SavedCase): string {
 export function capturePendingLocation(saved: SavedCase, value: LocationCandidate): PendingLocationCandidate | undefined {
   if (saved.data.propertyIdentityAnchor || value?.addressInput !== caseLocationAddress(saved)) return undefined;
   const result = interpretLocationResolution({ status: "resolved", confidence: "high", source: value.source, formatted_address: value.interpretedAddress,
-    county: value.county, district: value.district, latitude: value.latitude, longitude: value.longitude }, value.addressInput);
+    county: value.county, district: value.district, latitude: value.latitude, longitude: value.longitude, postal_code: value.postalCode ?? null }, value.addressInput);
   if (result.kind !== "candidate" || result.candidate.interpretedAddress !== value.interpretedAddress) return undefined;
   return { version: 1, state: "unconfirmed", caseId: saved.id, addressKey: addressKey(saved), candidate: result.candidate };
 }

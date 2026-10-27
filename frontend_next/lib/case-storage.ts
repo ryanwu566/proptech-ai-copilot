@@ -23,6 +23,7 @@ import { planAdministrativeAreaRepair } from "@/lib/workspace/administrative-are
 import type { LocationCandidate } from "@/lib/workspace/location-confirmation";
 import { capturePendingLocation, restorePendingLocation, type PendingLocationCandidate } from "@/lib/workspace/pending-location";
 import { normalizeNearbyFacilities, type NearbyFacilitiesEvidence } from "@/lib/workspace/nearby-facilities";
+import { normalizeVillageDemographics, villageDemographicsMatches, type VillageDemographicsEvidence } from "@/lib/workspace/village-demographics";
 
 export const SAVED_CASES_STORAGE_KEY = "proptech.savedCases.v1";
 export const CASE_LOADED_EVENT = "proptech:saved-case-loaded";
@@ -45,6 +46,7 @@ export type SavedCaseData = {
   holdingCost?: HoldingCostResult;
   locationInsight?: LocationInsightResult;
   nearbyFacilities?: NearbyFacilitiesEvidence;
+  villageDemographics?: VillageDemographicsEvidence;
   commuteRoute?: CommuteRouteEvidence;
   commuteTransit?: CommuteAddressLookupResult;
   marketInsight?: MarketResult;
@@ -347,8 +349,30 @@ function deleteSavedCaseUnlocked(id: string) {
   return writeCases(snapshot.diagnostic.cases.filter((row) => row.id !== id), snapshot.raw);
 }
 
+const LOCATION_EVIDENCE_FIELDS = ["nearbyFacilities", "villageDemographics", "commuteRoute", "commuteTransit"] as const;
+
+/**
+ * Field-level version check for location evidence. A confirmation acquires demographics and Nearby concurrently from
+ * one snapshot; whichever saves second must not be rejected because its sibling saved first. Any other change since
+ * the snapshot — including to the field being written — is still a conflict.
+ */
+function unchangedExceptSiblingLocationEvidence(current: SavedCase, snapshotVersion: string, patched: string[]): boolean {
+  const serialized = JSON.stringify(current);
+  if (serialized === snapshotVersion) return true;
+  let previous: SavedCase;
+  try { previous = JSON.parse(snapshotVersion) as SavedCase; } catch { return false; }
+  if (!previous || typeof previous !== "object" || !previous.data || typeof previous.data !== "object") return false;
+  const withoutSiblings = (row: SavedCase) => {
+    const data: Record<string, unknown> = { ...row.data };
+    for (const field of LOCATION_EVIDENCE_FIELDS) if (!patched.includes(field)) delete data[field];
+    return JSON.stringify({ ...row, updatedAt: undefined, data });
+  };
+  return withoutSiblings(current) === withoutSiblings(previous);
+}
+
 export function updateSavedCaseLocationEvidence(caseId: string, patch: {
   nearbyFacilities?: NearbyFacilitiesEvidence;
+  villageDemographics?: VillageDemographicsEvidence;
   commuteRoute?: CommuteRouteEvidence | null;
   commuteTransit?: CommuteAddressLookupResult | null;
 }, expectedIdentity?: SavedCaseIdentityExpectation, canCommit?: SavedCaseCommitGuard): Promise<boolean> {
@@ -357,6 +381,7 @@ export function updateSavedCaseLocationEvidence(caseId: string, patch: {
 
 function updateSavedCaseLocationEvidenceUnlocked(caseId: string, patch: {
   nearbyFacilities?: NearbyFacilitiesEvidence;
+  villageDemographics?: VillageDemographicsEvidence;
   commuteRoute?: CommuteRouteEvidence | null;
   commuteTransit?: CommuteAddressLookupResult | null;
 }, expectedIdentity: SavedCaseIdentityExpectation | undefined, snapshotVersion: string): boolean {
@@ -365,13 +390,19 @@ function updateSavedCaseLocationEvidenceUnlocked(caseId: string, patch: {
   const index = rows.findIndex((row) => row.id === caseId);
   if (index < 0) return false;
   const current = rows[index];
-  if (JSON.stringify(current) !== snapshotVersion || !identityMatches(current, expectedIdentity)) return false;
+  if (!unchangedExceptSiblingLocationEvidence(current, snapshotVersion, Object.keys(patch)) || !identityMatches(current, expectedIdentity)) return false;
   const data: SavedCaseData = { ...current.data };
   if (Object.prototype.hasOwnProperty.call(patch, "nearbyFacilities")) {
     const nearby = normalizeNearbyFacilities(patch.nearbyFacilities);
     if (!nearby || !expectedIdentity || Math.abs(nearby.origin.lat - expectedIdentity.coordinates.latitude) > 0.000001
       || Math.abs(nearby.origin.lng - expectedIdentity.coordinates.longitude) > 0.000001) return false;
     data.nearbyFacilities = nearby;
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, "villageDemographics")) {
+    // A result for Address A can never land on a case now anchored at Address B.
+    const demographics = normalizeVillageDemographics(patch.villageDemographics);
+    if (!demographics || !expectedIdentity || !villageDemographicsMatches(demographics, expectedIdentity.coordinates)) return false;
+    data.villageDemographics = demographics;
   }
   if (Object.prototype.hasOwnProperty.call(patch, "commuteRoute")) {
     data.commuteRoute = compactCommuteRouteEvidence(patch.commuteRoute ?? undefined);
@@ -590,6 +621,7 @@ export function compactCaseData(data: SavedCaseData): SavedCaseData {
     trend: compactActionableValuationTrendSummary(data.trend),
     locationInsight: data.locationInsight ? { ...normalizeLocationInsightEvidence(data.locationInsight), resolved_location: null, nearest_pois: [] } : undefined,
     nearbyFacilities: normalizeNearbyFacilities(data.nearbyFacilities),
+    villageDemographics: normalizeVillageDemographics(data.villageDemographics),
     financePriceEvidence: normalizeFinancePriceEvidence(data.financePriceEvidence) ?? undefined,
     marketInsight: compactMarketInsight(data.marketInsight),
     commuteRoute: compactCommuteRouteEvidence(data.commuteRoute),

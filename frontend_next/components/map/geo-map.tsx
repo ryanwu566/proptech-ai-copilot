@@ -5,24 +5,30 @@ import L from "leaflet";
 import { Circle, LayersControl, MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { NearbyCategory, NearbyPlace } from "@/lib/api";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
+import { classifyNearbyPlace, NEARBY_POI_STYLES, NEARBY_PROPERTY_STYLE, nearbyPoiIconSvg, type NearbyPoiKind, type NearbyQueryCategory } from "@/lib/workspace/nearby-poi-category";
 
-const categoryColors: Record<string, string> = {
-  transport: "#2563eb",
-  school: "#7c3aed",
-  park: "#16a34a",
-  medical: "#e11d48",
-  shopping: "#ea580c",
-  food: "#d97706",
-};
+/** A saved nearby facility already classified into a product kind, with localized text. */
+export type GeoMapPoi = { id: string; name: string; lat: number; lng: number; kind: NearbyPoiKind; label: string };
 
-function markerIcon(color: string, center = false, selected = false) {
-  const size = center ? 20 : selected ? 18 : 14;
+const QUERY_CATEGORIES = new Set<string>(["transport", "school", "park", "medical", "shopping", "food"]);
+
+function poiIcon(kind: NearbyPoiKind, selected = false) {
+  const size = selected ? 36 : 26;
   return L.divIcon({
     className: "",
-    html: `<span style="display:block;width:${size}px;height:${size}px;border-radius:999px;background:${color};border:${selected ? 4 : 3}px solid white;box-shadow:0 2px ${selected ? 14 : 8}px rgba(15,23,42,.35)"></span>`,
+    html: `<span data-testid="nearby-marker" data-kind="${kind}" data-selected="${selected}" style="display:block;width:${size}px;height:${size}px;border-radius:999px;${selected ? "box-shadow:0 0 0 3px #fff,0 0 0 6px #0f172a,0 4px 14px rgba(15,23,42,.45)" : "box-shadow:0 2px 8px rgba(15,23,42,.35)"}">${nearbyPoiIconSvg(NEARBY_POI_STYLES[kind], size)}</span>`,
+    iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
 }
+
+// The property is a larger rounded-square pin with a house glyph and amber outline, unlike any circular POI.
+const propertyIcon = () => L.divIcon({
+  className: "",
+  html: `<span data-testid="property-marker" style="display:block;width:38px;height:38px;filter:drop-shadow(0 3px 8px rgba(15,23,42,.45))">${nearbyPoiIconSvg(NEARBY_PROPERTY_STYLE, 38, "pin")}</span>`,
+  iconSize: [38, 38],
+  iconAnchor: [19, 19],
+});
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character] ?? character);
@@ -44,7 +50,13 @@ function Recenter({ center, zoom, selected, selectedLabel, distanceLabel, rating
   return null;
 }
 
-export default function GeoMap({ center, zoom, categories, selectedPlace, onSelectPlace, centerLabel, radiusMeters = 800, scrollWheelZoomEnabled = true }: { center: { lat: number; lng: number }; zoom: number; categories: NearbyCategory[]; selectedPlace?: NearbyPlace; onSelectPlace?: (place: NearbyPlace) => void; centerLabel?: string; radiusMeters?: number; scrollWheelZoomEnabled?: boolean }) {
+function FocusPoi({ poi }: { poi?: GeoMapPoi }) {
+  const map = useMap();
+  useEffect(() => { if (poi) map.panTo([poi.lat, poi.lng]); }, [map, poi]);
+  return null;
+}
+
+export default function GeoMap({ center, zoom, categories, selectedPlace, onSelectPlace, centerLabel, radiusMeters = 800, scrollWheelZoomEnabled = true, pois = [], selectedPoiId, onSelectPoi }: { center: { lat: number; lng: number }; zoom: number; categories: NearbyCategory[]; selectedPlace?: NearbyPlace; onSelectPlace?: (place: NearbyPlace) => void; centerLabel?: string; radiusMeters?: number; scrollWheelZoomEnabled?: boolean; pois?: GeoMapPoi[]; selectedPoiId?: string; onSelectPoi?: (id: string) => void }) {
   const { copy } = useExperienceLocale();
   const baseLayers = {
     standard: copy("map.baseStandard"),
@@ -65,7 +77,9 @@ export default function GeoMap({ center, zoom, categories, selectedPlace, onSele
       </LayersControl.BaseLayer>
     </LayersControl>
     <Circle center={[center.lat, center.lng]} radius={radiusMeters} pathOptions={{ color: "#0891b2", fillColor: "#22d3ee", fillOpacity: 0.05, weight: 2 }} />
-    <Marker position={[center.lat, center.lng]} icon={markerIcon("#0f172a", true)}><Popup>{centerLabel ?? copy("map.selected")}</Popup></Marker>
-    {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={markerIcon(categoryColors[group.category] ?? "#64748b", false, selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {Math.round(place.distance_m)} m{place.rating === null ? "" : ` · ${copy("map.rating")} ${place.rating}`}<br />{place.opening_status_label}<br />{place.address}</Popup></Marker>))}
+    <Marker position={[center.lat, center.lng]} icon={propertyIcon()} zIndexOffset={2000} title={centerLabel ?? copy("map.selected")} alt={centerLabel ?? copy("map.selected")}><Popup>{centerLabel ?? copy("map.selected")}</Popup></Marker>
+    <FocusPoi poi={pois.find((poi) => poi.id === selectedPoiId)} />
+    {pois.map((poi) => <Marker key={poi.id} position={[poi.lat, poi.lng]} icon={poiIcon(poi.kind, poi.id === selectedPoiId)} zIndexOffset={poi.id === selectedPoiId ? 1000 : 0} title={`${poi.name} · ${poi.label}`} alt={`${poi.name} · ${poi.label}`} eventHandlers={{ click: () => onSelectPoi?.(poi.id) }} />)}
+    {categories.flatMap((group) => group.places.map((place) => <Marker key={place.place_id} position={[place.lat, place.lng]} icon={poiIcon(QUERY_CATEGORIES.has(group.category) ? classifyNearbyPlace(place.types, group.category as NearbyQueryCategory) : "other", selectedPlace?.place_id === place.place_id)} eventHandlers={{ click: () => onSelectPlace?.(place) }}><Popup><strong>{place.name}</strong><br />{group.label} · {Math.round(place.distance_m)} m{place.rating === null ? "" : ` · ${copy("map.rating")} ${place.rating}`}<br />{place.opening_status_label}<br />{place.address}</Popup></Marker>))}
   </MapContainer>;
 }

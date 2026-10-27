@@ -517,11 +517,22 @@ export type DemographicsNoData = {
 
 export type DemographicsInsight = DemographicsAvailable | DemographicsNoData;
 
+/** GET /demographics/location: the confirmed coordinate, echoed so the caller can bind the result to it. */
+export type LocationDemographicsResult = {
+  latitude: number;
+  longitude: number;
+  checked_at: string;
+  village_resolution: VillageResolution;
+  demographics: DemographicsInsight;
+};
+
 export type RiskFacilityEvidence = { status: string; count: number | null; source: string | null; checked_at: string | null; reason: string; limitation: string };
 export type LocationAdvisoryContext = { version: 1; property_price_wan: number | null; area_ping: number | null };
 
 /** Geocode-only resolution: one TGOS-first / Google-fallback lookup, no nearby, route, market or risk enrichment. */
-export type LocationResolveResult = { status: "resolved" | "unresolved" | "unavailable"; source: "tgos" | "google" | "none"; formatted_address: string | null; latitude: number | null; longitude: number | null; confidence: "high" | "unknown"; message: string; county?: string | null; district?: string | null };
+/** One bounded provider candidate. Blocked candidates are shown for transparency but are never confirmable. */
+export type LocationResolveCandidateResult = { source: "tgos" | "google"; formatted_address: string | null; latitude: number; longitude: number; county: string | null; district: string | null; postal_code: string | null; place_id: string | null; admin_check: "consistent" | "county_unverified" | "county_mismatch" | "district_mismatch"; confirmable: boolean; block_reason: "administrative_mismatch" | "address_mismatch" | "low_precision" | null };
+export type LocationResolveResult = { status: "resolved" | "ambiguous" | "unresolved" | "unavailable"; source: "tgos" | "google" | "none"; formatted_address: string | null; latitude: number | null; longitude: number | null; confidence: "high" | "unknown"; message: string; county?: string | null; district?: string | null; postal_code?: string | null; place_id?: string | null; resolution_reason?: "accepted" | "multiple_candidates" | "administrative_mismatch" | "address_mismatch" | "low_precision" | "no_match" | "unavailable"; candidates?: LocationResolveCandidateResult[] };
 export type LocationInsightResult = { advisory_context?: LocationAdvisoryContext; risk_facility_evidence?: RiskFacilityEvidence; input: Record<string, string | number | boolean | null>; resolved_location: { address_label: string; latitude: number; longitude: number; geocoding_confidence: string } | null; village_resolution?: VillageResolution; demographics?: DemographicsInsight; geocoding_acceptance?: GeocodingAcceptance | null; radius_m: number; location_score: number | null; category_scores: { transit_score: number | null; convenience_score: number | null; education_score: number | null; green_space_score: number | null; medical_score: number | null; risk_score: number | null }; poi_summary: { transit_count: number | null; convenience_count: number | null; school_count: number | null; park_count: number | null; medical_count: number | null; risk_facility_count: number | null }; nearest_pois: { category: string; name: string; distance_m: number; source: string }[]; strengths: string[]; weaknesses: string[]; buyer_fit: { self_use_family: string; commuter: string; investor: string; elderly: string }; valuation_context: { supports_price_reasonableness: boolean | "unknown"; explanation: string }; data_quality: { source?: string; partial?: boolean; checked_at?: string; failed_categories?: string[]; category_status?: Record<string, { status: string; source: string }>; coverage?: { requested: number; successful: number; failed: number }; status: "good" | "limited" | "unavailable"; missing_sources: string[]; warnings: string[] }; scoring_method: { weights: Record<string, number>; explanation: string }; disclaimer: string };
 export type CommuteAddressLookupResult = { snapshot_version?: string | null; snapshot_schema_version?: string; snapshot_source_updated_at?: string | null; source_age_days?: number | null; stale_after_days?: number; freshness_status?: string; freshness_reason_code?: string; freshness_as_of?: string; status: "resolved" | "unresolved" | "unavailable"; source: "tdx" | "none"; station_name: string | null; line_ids: string[]; distance_meters: number | null; source_updated_at: string | null; snapshot_generated_at: string | null; message: string };
 export type CommuteRouteMode = "transit" | "driving" | "walking";
@@ -784,6 +795,7 @@ export const api = {
   loanCalculate: (payload: Record<string, number | boolean | undefined>) => request<LoanCalculationResult>("/loan/calculate", { method: "POST", body: JSON.stringify(payload) }),
   holdingCostCalculate: (payload: Record<string, number | boolean | undefined>) => request<HoldingCostResult>("/holding-cost/calculate", { method: "POST", body: JSON.stringify(payload) }),
   locationResolve: (address: string, signal?: AbortSignal) => request<LocationResolveResult>("/location/resolve", { method: "POST", body: JSON.stringify({ address }), signal }, true),
+  locationDemographics: (latitude: number, longitude: number) => request<LocationDemographicsResult>(`/demographics/location?${new URLSearchParams({ latitude: String(latitude), longitude: String(longitude) })}`),
   locationInsight: (payload: Record<string, string | number | boolean | undefined>) => request<LocationInsightResult>("/location/insight", { method: "POST", body: JSON.stringify(payload) }),
   commuteAddressLookup: (payload: { address: string }) => request<CommuteAddressLookupResult>("/commute/address-lookup", { method: "POST", body: JSON.stringify(payload) }),
   commuteRoute: (payload: { origin_latitude: number; origin_longitude: number; destination_address?: string; destination_latitude?: number; destination_longitude?: number; mode?: CommuteRouteMode }, signal?: AbortSignal) => request<CommuteRouteResult>("/commute/route", { method: "POST", body: JSON.stringify(payload), signal }),

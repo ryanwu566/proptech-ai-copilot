@@ -50,8 +50,24 @@ class LocationResolveRequest(BoundedInputModel):
         return normalized
 
 
+class LocationResolveCandidate(BaseModel):
+    """One bounded provider candidate; blocked candidates are shown but never confirmable."""
+
+    source: Literal["tgos", "google"]
+    formatted_address: str | None = None
+    latitude: float
+    longitude: float
+    county: str | None = None
+    district: str | None = None
+    postal_code: str | None = None
+    place_id: str | None = None
+    admin_check: Literal["consistent", "county_unverified", "county_mismatch", "district_mismatch"]
+    confirmable: bool
+    block_reason: Literal["administrative_mismatch", "address_mismatch", "low_precision"] | None = None
+
+
 class LocationResolveResponse(BaseModel):
-    status: Literal["resolved", "unresolved", "unavailable"]
+    status: Literal["resolved", "ambiguous", "unresolved", "unavailable"]
     source: Literal["tgos", "google", "none"]
     formatted_address: str | None = None
     latitude: float | None = None
@@ -61,6 +77,10 @@ class LocationResolveResponse(BaseModel):
     # Administrative area already present in the same geocoder response; never a second provider call.
     county: str | None = None
     district: str | None = None
+    postal_code: str | None = None
+    place_id: str | None = None
+    resolution_reason: Literal["accepted", "multiple_candidates", "administrative_mismatch", "address_mismatch", "low_precision", "no_match", "unavailable"] = "unavailable"
+    candidates: list[LocationResolveCandidate] = Field(default_factory=list, max_length=5)
 
 
 @router.post("/insight")

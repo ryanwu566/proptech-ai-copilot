@@ -80,7 +80,8 @@ test("location workspace leads with the active property map and explainable evid
   await expect(route).toContainText("約 23 分鐘");
   await expect(route).toContainText("8.1 公里");
   await expect(page.getByText("目的地路線可用；大眾運輸周邊資料目前無法取得。")).toBeVisible();
-  await expect(page.getByText("次要里鄰人口背景", { exact: true })).toBeVisible();
+  // Gate L1-3 replaced the legacy population disclosure with the village demographics section.
+  await expect(page.getByRole("heading", { name: "里人口概況", exact: true })).toBeVisible();
   await expect(page.getByText("來源與查詢細節", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByTestId("commute-route-card")).toContainText("約 23 分鐘");

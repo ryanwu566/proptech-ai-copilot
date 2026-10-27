@@ -157,7 +157,8 @@ def post_commute_address_lookup(request: CommuteAddressLookupRequest) -> Commute
         return _unavailable_lookup("通勤資料尚未更新，暫時無法提供最近捷運站資訊。")
 
     resolved_location = location_resolver.resolve_address(request.address)
-    if resolved_location.get("status") == "unresolved":
+    # An ambiguous address cannot be chosen here; it is never silently picked.
+    if resolved_location.get("status") in {"unresolved", "ambiguous"}:
         return _unresolved_lookup("找不到可信位置，請確認縣市、區域與門牌是否完整。")
     if resolved_location.get("status") != "resolved":
         return _unavailable_lookup("定位服務暫時無法完成查詢，請稍後再試。")
@@ -293,7 +294,7 @@ def post_commute_route(request: CommuteRouteRequest) -> CommuteRouteResponse:
     else:
         resolved = location_resolver.resolve_address(request.destination_address or "")
         status = resolved.get("status")
-        if status == "unresolved":
+        if status in {"unresolved", "ambiguous"}:
             return _route_unresolved(request.mode, "找不到可信的目的地位置，請確認地址是否完整。")
         if status != "resolved":
             return _route_unavailable(request.mode, "目的地定位服務暫時無法完成查詢，請稍後再試。")

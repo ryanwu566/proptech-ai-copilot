@@ -27,8 +27,8 @@ test("groups only returned facilities and computes straight-line distance locall
     { category: "school", places: [] },
   ]), origin);
   const groups = groupNearbyFacilities(evidence);
-  assert.deepEqual(groups.map((g) => g.category), ["convenience"]);
-  assert.equal(groups[0].places.length, 2);
+  assert.deepEqual(groups.map((g) => g.category), ["shopping", "food"]);
+  assert.deepEqual(groups.map((g) => g.places.length), [1, 1]);
   assert.ok(groups[0].places[0].distanceM > 110 && groups[0].places[0].distanceM < 112);
   assert.equal(JSON.stringify(evidence).includes("rating"), false);
   assert.equal(JSON.stringify(evidence).includes("must not persist"), false);
