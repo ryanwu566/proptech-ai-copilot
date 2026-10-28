@@ -12,7 +12,7 @@ const B = "proptech-demo-b";
 const ROOM_A = `proptech.decisionRoom.v1.${A}`;
 const BASEMAP = /(^|\.)tile\.openstreetmap\.org$|(^|\.)basemaps\.cartocdn\.com$|(^|\.)arcgisonline\.com$/;
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", "base64");
-const CTA = { "zh-TW": "查看完整範例案件", en: "View complete example cases", ja: "完全な事例を見る", ko: "전체 예시 사례 보기" } as const;
+const CTA = { "zh-TW": "觀看完整示範", en: "Watch complete example", ja: "完全なデモを見る", ko: "전체 데모 보기" } as const;
 const NOTICE = { "zh-TW": "示範案件", en: "Demo case", ja: "デモ案件", ko: "예시 사례" } as const;
 const FORBIDDEN = /winner|recommended|ranking|best buy|最佳|勝出|較安全|值得買|推薦購買/i;
 type Locale = keyof typeof CTA;
@@ -45,7 +45,9 @@ async function openExample(page: Page, locale: Locale = "zh-TW") {
   const cta = page.getByTestId("complete-example-start");
   await expect(cta).toHaveText(CTA[locale]);
   await cta.click();
-  await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
+  // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  await page.goto(`/cases/${A}/overview`);
 }
 
 test("one click installs Demo A/B, opens the real Overview, and every surface is populated with zero provider calls", async ({ page, baseURL }) => {
@@ -56,7 +58,9 @@ test("one click installs Demo A/B, opens the real Overview, and every surface is
   await expect(page.getByTestId("complete-example-start")).toBeVisible();
   watcher.recording = true;
   await page.getByTestId("complete-example-start").click();
-  await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
+  // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  await page.goto(`/cases/${A}/overview`);
 
   // Installed beside, never over, the viewer's own cases.
   const rows = await stored(page);

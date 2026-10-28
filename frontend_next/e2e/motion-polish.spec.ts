@@ -84,7 +84,9 @@ test("Compare columns enter together, revealed rows fade in, and only selectable
   const calls = await guard(page, baseURL!);
   await page.goto("/");
   await page.getByTestId("complete-example-start").click();
-  await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
+  // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  await page.goto(`/cases/${A}/overview`);
   await page.getByTestId("demo-compare").click();
   await expect(page).toHaveURL(/\/compare\?cases=/);
   const heads = page.getByTestId("compare-desktop").locator("thead th");
@@ -114,7 +116,9 @@ test("the Report lands as one sheet on screen, prints still, and its primary act
   const calls = await guard(page, baseURL!);
   await page.goto("/");
   await page.getByTestId("complete-example-start").click();
-  await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
+  // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  await page.goto(`/cases/${A}/overview`);
   await page.goto(`/cases/${A}/report`);
   const sheet = page.getByTestId("report-evidence");
   await expect(sheet).toBeVisible();
@@ -151,7 +155,9 @@ for (const width of [390, 430, 1024, 1440]) test(`at ${width}px the complete jou
   await page.goto("/");
   await capture("home");
   await page.getByTestId("complete-example-start").click();
-  await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
+  // "Watch complete example" plays Demo A's provider-free Auto Brief showcase; the Overview stays one step away.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  await page.goto(`/cases/${A}/overview`);
   for (const section of ["market", "risk"]) {
     await page.locator(`[data-case-rail] a[href$='/${section}']`).click();
     await expect(page).toHaveURL(new RegExp(`/${section}$`));

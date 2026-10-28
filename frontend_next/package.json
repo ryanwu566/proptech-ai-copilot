@@ -25,6 +25,8 @@
     "test:e2e:ambient": "npm run build:e2e && node e2e/run-e2e.cjs e2e/ambient-scene.spec.ts e2e/home-editorial-hero.spec.ts --project=chromium --workers=1 --retries=0",
     "test:demo-cases": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/workspace/demo-cases.test.ts",
     "test:e2e:demo-cases": "npm run build:e2e && node e2e/run-e2e.cjs e2e/competition-demo-cases.spec.ts e2e/competition-demo-cases-storage.spec.ts --project=chromium --workers=1 --retries=0",
+    "test:auto-brief": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/workspace/auto-brief.test.ts lib/workspace/auto-brief-presentation.test.ts",
+    "test:e2e:auto-brief": "npm run build:e2e && node e2e/run-e2e.cjs e2e/auto-brief.spec.ts --project=chromium --workers=1 --retries=0",
     "test:tour":"node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/guided-tour.test.ts",
     "test:home-start": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test lib/workspace/case-draft.test.ts lib/workspace/location-confirmation.test.ts lib/workspace/location-start-handoff.test.ts lib/workspace/workspace-model.test.ts lib/workspace/overview-model.test.ts",
     "test:e2e:home-start": "npm run build:e2e && node e2e/run-e2e.cjs e2e/home-start.spec.ts e2e/location-confirmation.spec.ts e2e/home-location-flow.spec.ts --project=chromium --workers=1 --retries=0",

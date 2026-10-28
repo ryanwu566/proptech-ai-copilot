@@ -38,7 +38,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "首頁：從一個地址開始",
       role: "決策流程的起點。輸入地址會建立一個只存在此瀏覽器的案件，之後的市場、區位、風險與資金證據都掛在這個案件下。",
-      see: ["地址欄與「開始物件評估」：建立案件並取得一個待確認的位置。", "「查看完整範例案件」：直接開啟示範案件 A 的看屋前簡報。", "最近案件：從上次保存的進度繼續。"],
+      see: ["地址欄與「開始物件評估」：建立案件並取得一個待確認的位置。", "「觀看完整示範」：約一分鐘看示範案件 A 從確認位置到看屋前簡報，只使用預先保存的示範快照。", "最近案件：從上次保存的進度繼續。"],
       known: "你輸入的地址，以及此瀏覽器中已保存的案件。",
       unknown: "開始後只會取得一個「待確認」的位置候選；市場、區位、風險與資金都還沒有查詢。",
       caution: "建立案件不等於完成分析；範例案件是示範快照，不代表任何真實物件。",
@@ -50,7 +50,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["位置確認與行政區：確認或修正系統找到的位置。", "周邊設施摘要：交通、生活機能、學校、醫療等類別。", "通勤：到你常去地點的路線與時間（我的地點）。"],
       known: "你確認過的位置、確認後各查詢一次的村里人口與周邊設施，以及已保存、標示查詢時間的通勤結果。",
       unknown: "尚未確認的位置、沒有查詢的設施類別、沒有設定的目的地，都維持未知。",
-      caution: "設施數量不等於生活品質；路線時間是查詢當下的估計，不代表每天的實際通勤。",
+      caution: "設施數量不等於生活品質；路線時間是查詢當下的估計，不代表每天的實際通勤。「一鍵分析」只是自動執行同樣的查證：不會產生事實、不是鑑價，也不替你做購買決定；缺少的結果不代表安全。",
       next: "位置確認後，通常先查價格與市場，再看風險與環境。",
     },
     market: {
@@ -112,7 +112,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "Home: start from one address",
       role: "Where the decision starts. An address creates a case kept only in this browser; market, location, risk and money evidence all attach to it.",
-      see: ["Address and \"Start property review\": creates the case and finds one location to confirm.", "\"View complete example cases\": opens Demo case A's pre-viewing brief directly.", "Recent cases: continue from what you last saved."],
+      see: ["Address and \"Start property review\": creates the case and finds one location to confirm.", "\"Watch complete example\": a one-minute walk-through of Demo case A from confirmed location to pre-viewing brief, using saved demo snapshots only.", "Recent cases: continue from what you last saved."],
       known: "The address you entered and the cases saved in this browser.",
       unknown: "Starting finds one location candidate that still needs your confirmation. Market, location, risk and money have not been queried.",
       caution: "Creating a case is not a finished analysis. The example cases are demo snapshots, not real properties.",
@@ -124,7 +124,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["Location and district: confirm or correct the place that was found.", "Nearby facilities: transport, daily needs, schools and healthcare.", "Commute: routes and times to the places you go often (My places)."],
       known: "The location you confirmed, the village population and nearby facilities checked once each after confirming, and saved commute results with their query times.",
       unknown: "An unconfirmed location, facility types you did not query and destinations you did not set stay unknown.",
-      caution: "A facility count is not quality of life. Route times are estimates at query time, not your daily commute.",
+      caution: "A facility count is not quality of life. Route times are estimates at query time, not your daily commute. One-click analysis only runs these same checks for you: it creates no facts, is not an appraisal and makes no purchase decision, and a missing result does not mean safe.",
       next: "Once the location is confirmed, people usually check price and market, then risk and environment.",
     },
     market: {
@@ -186,7 +186,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "ホーム：住所ひとつから始める",
       role: "判断の出発点です。住所を入力すると、このブラウザだけに保存される物件が作られ、市場・立地・リスク・資金の根拠はすべてこの物件にまとまります。",
-      see: ["住所欄と「物件の検討を開始」：物件を作成し、確認待ちの位置をひとつ見つけます。", "「完全な事例を見る」：デモ物件 A の内見前ブリーフを直接開きます。", "最近の物件：前回保存した続きから再開します。"],
+      see: ["住所欄と「物件の検討を開始」：物件を作成し、確認待ちの位置をひとつ見つけます。", "「完全なデモを見る」：デモ物件 A を位置確認から内見前ブリーフまで約1分で紹介します。保存済みのデモ用スナップショットのみを使います。", "最近の物件：前回保存した続きから再開します。"],
       known: "入力した住所と、このブラウザに保存された物件。",
       unknown: "開始時に得られるのは確認待ちの位置候補ひとつだけです。市場・立地・リスク・資金はまだ検索していません。",
       caution: "物件の作成は分析の完了ではありません。例の物件はデモ用のスナップショットで、実在の物件ではありません。",
@@ -198,7 +198,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["位置と行政区：見つかった位置を確認または修正します。", "周辺施設：交通・生活利便・学校・医療など。", "通勤：よく行く場所までのルートと時間（マイプレイス）。"],
       known: "確認した位置、確定後にそれぞれ一度だけ確認した村里人口と周辺施設、検索時刻付きで保存された通勤の結果。",
       unknown: "未確認の位置、検索していない施設の種類、設定していない目的地は不明のままです。",
-      caution: "施設の数は暮らしやすさそのものではありません。所要時間は検索時点の目安で、毎日の通勤時間ではありません。",
+      caution: "施設の数は暮らしやすさそのものではありません。所要時間は検索時点の目安で、毎日の通勤時間ではありません。ワンクリック分析は同じ確認を自動で行うだけです。事実を作らず、鑑定でも購入判断でもありません。結果がないことは安全を意味しません。",
       next: "位置を確認したら、通常は価格と市場、次にリスクと環境を見ます。",
     },
     market: {
@@ -260,7 +260,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
     home: {
       title: "홈: 주소 하나로 시작하기",
       role: "의사결정의 출발점입니다. 주소를 입력하면 이 브라우저에만 저장되는 사례가 만들어지고, 시장·입지·위험·자금 근거가 모두 이 사례에 연결됩니다.",
-      see: ["주소 입력과 \"부동산 검토 시작\": 사례를 만들고 확인할 위치 하나를 찾습니다.", "\"전체 예시 사례 보기\": 데모 사례 A의 방문 전 브리프를 바로 엽니다.", "최근 사례: 마지막으로 저장한 진행 상황에서 이어갑니다."],
+      see: ["주소 입력과 \"부동산 검토 시작\": 사례를 만들고 확인할 위치 하나를 찾습니다.", "\"전체 데모 보기\": 데모 사례 A를 위치 확인부터 방문 전 브리프까지 약 1분 동안 보여 주며, 저장된 데모 스냅샷만 사용합니다.", "최근 사례: 마지막으로 저장한 진행 상황에서 이어갑니다."],
       known: "입력한 주소와 이 브라우저에 저장된 사례.",
       unknown: "시작하면 확인이 필요한 위치 후보 하나만 얻습니다. 시장·입지·위험·자금은 아직 조회하지 않았습니다.",
       caution: "사례를 만든다고 분석이 끝난 것은 아닙니다. 예시 사례는 데모 스냅숏이며 실제 부동산이 아닙니다.",
@@ -272,7 +272,7 @@ export const pageGuides: Record<ExperienceLocale, Record<HelpTopic, PageGuide>> 
       see: ["위치와 행정구역: 찾은 위치를 확인하거나 수정합니다.", "주변 시설: 교통, 생활 편의, 학교, 의료 등.", "통근: 자주 가는 곳까지의 경로와 시간(내 장소)."],
       known: "확인한 위치, 확정 후 각각 한 번 확인한 마을 인구와 주변 시설, 그리고 조회 시각과 함께 저장된 통근 결과.",
       unknown: "확인하지 않은 위치, 조회하지 않은 시설 유형, 설정하지 않은 목적지는 알 수 없음으로 남습니다.",
-      caution: "시설 수가 곧 생활의 질은 아닙니다. 경로 시간은 조회 시점의 추정치이며 매일의 통근 시간이 아닙니다.",
+      caution: "시설 수가 곧 생활의 질은 아닙니다. 경로 시간은 조회 시점의 추정치이며 매일의 통근 시간이 아닙니다. 원클릭 분석은 같은 확인을 자동으로 실행할 뿐이며 사실을 만들거나 감정평가·매입 결정을 하지 않습니다. 결과가 없다고 안전하다는 뜻은 아닙니다.",
       next: "위치를 확인한 뒤에는 보통 가격과 시장, 다음으로 위험과 환경을 봅니다.",
     },
     market: {

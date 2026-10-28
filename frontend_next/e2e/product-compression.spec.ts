@@ -66,7 +66,7 @@ for (const width of [390, 430]) for (const locale of ["zh-TW", "en", "ja", "ko"]
   });
 }
 
-test("complete demo uses the existing Brief → A/B comparison → three-page Report journey", async ({ page, baseURL }) => {
+test("complete demo uses the Auto Brief showcase → Brief → A/B comparison → three-page Report journey", async ({ page, baseURL }) => {
   const calls: string[] = [];
   await page.addInitScript(() => localStorage.setItem("proptech_onboarding_seen", "true"));
   await page.route("**/*", (route) => {
@@ -75,6 +75,13 @@ test("complete demo uses the existing Brief → A/B comparison → three-page Re
   });
   await page.goto("/");
   await page.getByTestId("complete-example-start").click();
+  // The showcase opens on Demo A Location; its timing is owned by auto-brief-showcase.spec.ts, so skip only the presentation.
+  await expect(page).toHaveURL(new RegExp(`/cases/${A}/location$`));
+  const stage = page.getByTestId("auto-brief-stage");
+  await expect(stage).toHaveAttribute("data-showcase", "on");
+  await page.getByTestId("auto-brief-skip").click();
+  await expect(stage).toHaveAttribute("data-scene", "complete");
+  await page.getByTestId("auto-brief-view-brief").click();
   await expect(page).toHaveURL(new RegExp(`/cases/${A}/overview$`));
   await expect(page.getByTestId("commercial-overview-workspace")).toContainText("看屋前簡報");
   await expect(page.getByTestId("demo-compare")).toHaveCount(1);

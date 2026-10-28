@@ -131,6 +131,28 @@ const TITLES: Record<ExperienceLocale, [string, string]> = {
   ko: ["예시 사례 A · 반차오 엘리베이터 아파트", "예시 사례 B · 무자 저층 아파트"],
 };
 
+/**
+ * Illustrative village population for each demo, in the saved Location V2 shape and dated to the demo
+ * snapshot like every other demo value. Never acquired from RIS; the demo notice labels it as a demo.
+ */
+const DEMO_POPULATION: Record<string, { total: number; households: number; child: number; working: number; elderly: number; change: number; trend: "increasing" | "decreasing" | "stable" }> = {
+  [DEMO_CASE_A_ID]: { total: 6842, households: 2915, child: 0.118, working: 0.687, elderly: 0.195, change: -21, trend: "stable" },
+  [DEMO_CASE_B_ID]: { total: 5127, households: 2264, child: 0.102, working: 0.654, elderly: 0.244, change: -63, trend: "decreasing" },
+};
+
+function demoVillageDemographics(spec: Spec): NonNullable<SavedCase["data"]["villageDemographics"]> {
+  const people = DEMO_POPULATION[spec.id];
+  return {
+    version: 1, origin: { lat: spec.lat, lng: spec.lng }, checkedAt: AT,
+    village: { status: "resolved", county: spec.city, town: spec.district, village: spec.village, village_code: spec.villageCode.replace("-", ""), district_code: spec.villageCode.split("-")[0],
+      source: "nlsc_village_boundary", source_vintage: DEMO_SNAPSHOT_DATE, reason: "demo_snapshot" },
+    demographics: { status: "available", reason: null, statistic_yyymm: "11508", statistic_month: "2026-08-01", total_population: people.total, household_count: people.households,
+      average_household_size: Number((people.total / people.households).toFixed(2)), child_ratio: people.child, working_age_ratio: people.working, elderly_ratio: people.elderly,
+      first_month: "11408", last_month: "11508", observed_month_count: 13, population_change: people.change, population_change_ratio: Number((people.change / people.total).toFixed(4)),
+      household_change: Math.round(people.change / 3), has_month_gaps: false, trend_status: people.trend, source_provider: "RIS", source_dataset: "ODRP014" },
+  };
+}
+
 function buildCase(spec: Spec, title: string): SavedCase {
   const address = `${spec.city}${spec.district}${spec.road}`;
   const places = spec.facilities.map((f, index) => ({ id: `${spec.id}-place-${index + 1}`, name: f.name, category: f.category, kind: classifyNearbyPlace(f.types, f.category), lat: Number((spec.lat + f.dLat).toFixed(6)), lng: Number((spec.lng + f.dLng).toFixed(6)), distanceM: 0 }));
@@ -149,6 +171,7 @@ function buildCase(spec: Spec, title: string): SavedCase {
       },
       journeyContext: { version: 1, propertyContext: { city: spec.city, district: spec.district, road: address, addressSummary: address, sourceLabel: "示範快照", selectionStatus: "selected", askingPriceWan: spec.askingWan }, priceBasis: "asking", activePriceWan: spec.askingWan, valuationStatus: "unavailable" },
       marketInsight: spec.market,
+      villageDemographics: demoVillageDemographics(spec),
       nearbyFacilities: { version: 1, source: "google_places", origin: { lat: spec.lat, lng: spec.lng }, radiusM: 800, checkedAt: AT, partial: false, successfulCategories: ["transport", "shopping", "food", "school", "medical", "park"], places },
       commuteRoute: { source: "google_routes", origin: { latitude: spec.lat, longitude: spec.lng }, destination: { address: spec.commute.destination }, mode: spec.commute.mode, distance_m: spec.commute.meters, duration_seconds: spec.commute.minutes * 60, duration_min: spec.commute.minutes, checked_at: AT, reason_code: "success", status: "resolved", partial: false, fallback: false },
       commuteTransit: { status: "resolved", source: "tdx", station_name: spec.transit.station, line_ids: spec.transit.lines, distance_meters: spec.transit.meters, source_updated_at: DEMO_SNAPSHOT_DATE, snapshot_generated_at: AT, message: "resolved" },

@@ -53,7 +53,8 @@ async function prepare(page: Page, rows: unknown[], respond: (route: Route, poin
   await routeNearby(page, calls.nearby);
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (FORBIDDEN.test(request.url())) calls.forbidden.push(request.url());
+    // Content-hashed build chunks (e.g. "…cr2.js") are the app itself, never a direct provider call.
+    if (FORBIDDEN.test(request.url()) && !url.pathname.startsWith("/_next/")) calls.forbidden.push(request.url());
     if (BASEMAP.test(url.hostname) || url.pathname.endsWith("/demographics/location") || url.pathname.endsWith("/location/resolve") || isNearbyRequest(url)) return;
     if (isProviderRequest(request, url.hostname === "127.0.0.1" ? url.origin : "http://127.0.0.1")) calls.provider.push(url.pathname);
   });
