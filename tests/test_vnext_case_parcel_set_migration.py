@@ -49,14 +49,14 @@ def test_migration_018_remains_registered_without_historical_checksum_drift() ->
     assert registration.sha256 == checksum(MIGRATION)
     assert MIGRATION in migration_runner.MIGRATIONS
     assert MIGRATION in migration_validator.MIGRATIONS
-    assert next_safe_sequence(registrations) == 23
+    assert next_safe_sequence(registrations) == 24
 
 
 def test_registry_contains_exactly_one_new_018_entry() -> None:
     entries = json.loads(REGISTRY.read_text(encoding="utf-8"))["migrations"]
 
-    assert len(entries) == 23
-    assert [item["registry_order"] for item in entries] == list(range(1, 24))
+    assert len(entries) == 24
+    assert [item["registry_order"] for item in entries] == list(range(1, 25))
     assert len([item for item in entries if item["sequence"] == 18]) == 1
     assert next(item for item in entries if item["sequence"] == 18)["logical_id"] == (
         "production-018-vnext-case-parcel-set-v1"

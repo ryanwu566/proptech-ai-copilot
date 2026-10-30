@@ -4,6 +4,9 @@ import os
 import subprocess
 from pathlib import Path
 
+import pytest
+from fastapi.testclient import TestClient
+
 from backend.api_main import app
 from scripts.migration_registry import load_registry, next_safe_sequence
 from services.vnext.errors import ErrorCode
@@ -12,6 +15,22 @@ from services.vnext.feature_flags import VNextFeatureFlags
 
 ROOT = Path(__file__).resolve().parents[1]
 FRONTEND = ROOT / "frontend_next"
+
+# Accepted Stage 4A contract: docs/contracts/auth-user-api-v1.md. Supabase is
+# identity authority; these routes persist only the authenticated owner's data.
+STAGE4A_ROUTES = {
+    ("GET", "/v1/session"),
+    ("POST", "/v1/session/logout"),
+    ("GET", "/v1/profile"),
+    ("PATCH", "/v1/profile"),
+    ("GET", "/v1/preferences"),
+    ("PUT", "/v1/preferences"),
+    ("DELETE", "/v1/saved-cases/{case_id}"),
+    ("GET", "/v1/reports"),
+    ("POST", "/v1/reports"),
+    ("GET", "/v1/reports/{report_id}"),
+    ("DELETE", "/v1/reports/{report_id}"),
+}
 
 APPROVED_ROUTES = {
     ("GET", "/v1/admin/{section}"),
@@ -50,7 +69,7 @@ APPROVED_ROUTES = {
     ("POST", "/v1/cases/{case_id}/parcel-set/reorder"),
     ("POST", "/v1/cases/{case_id}/parcel-set/review"),
     ("POST", "/v1/planning/taipei/observe"),
-}
+} | STAGE4A_ROUTES
 HEADER_IDEMPOTENCY = {("POST", path) for path in {
     "/v1/property-resolutions",
     "/v1/property-resolutions/{identity_resolution_id}/confirm",
@@ -77,6 +96,18 @@ BODY_COMMAND_ID = {
     ("POST", "/v1/admin/accounts/{target}/commands"): "AccountCommand",
     ("POST", "/v1/admin/quota-policy/commands"): "QuotaCommand",
 }
+# Do not exempt Stage 4A mutations from review: exhaustively classify their
+# accepted concurrency/retry contracts, including durable session revocation.
+REVISION_CAS = {
+    ("PATCH", "/v1/profile"): "ProfileUpdate",
+    ("PUT", "/v1/preferences"): "PreferencesUpdate",
+    ("DELETE", "/v1/saved-cases/{case_id}"): None,
+}
+OWNER_RESOURCE_DELETE = {("DELETE", "/v1/reports/{report_id}")}
+OWN_SESSION_REVOCATION = {("POST", "/v1/session/logout")}
+# The accepted contract explicitly forbids blind retry after an uncertain
+# report-create response: reload the owner's report list instead.
+NONIDEMPOTENT_CREATE = {("POST", "/v1/reports")}
 
 
 def _schema() -> dict[str, object]:
@@ -117,7 +148,7 @@ def test_executable_vnext_route_surface_is_exact_and_has_no_shortcuts() -> None:
     )
 
 
-def test_openapi_requires_bearer_and_bounded_idempotency_on_every_command() -> None:
+def test_openapi_requires_bearer_and_explicit_retry_semantics_on_every_command() -> None:
     schema = _schema()
     assert schema["components"]["securitySchemes"]["SupabaseBearer"]["scheme"] == "bearer"
     for method, path in APPROVED_ROUTES:
@@ -132,8 +163,10 @@ def test_openapi_requires_bearer_and_bounded_idempotency_on_every_command() -> N
         if method in {"post", "put", "patch", "delete"}
         and path != "/v1/planning/taipei/observe"
     }
-    assert HEADER_IDEMPOTENCY.isdisjoint(BODY_COMMAND_ID)
-    assert HEADER_IDEMPOTENCY | set(BODY_COMMAND_ID) == writes
+    contracts = [HEADER_IDEMPOTENCY, set(BODY_COMMAND_ID), set(REVISION_CAS),
+                 OWNER_RESOURCE_DELETE, OWN_SESSION_REVOCATION, NONIDEMPOTENT_CREATE]
+    assert sum(map(len, contracts)) == len(set().union(*contracts))
+    assert set().union(*contracts) == writes
     for method, path in HEADER_IDEMPOTENCY:
         operation = schema["paths"][path][method.lower()]
         parameters = {
@@ -162,6 +195,58 @@ def test_openapi_requires_bearer_and_bounded_idempotency_on_every_command() -> N
         assert command["properties"]["command_id"]["type"] == "string"
         assert command["properties"]["command_id"]["format"] == "uuid"
         assert command["additionalProperties"] is False
+
+    for (method, path), body_type in REVISION_CAS.items():
+        operation = schema["paths"][path][method.lower()]
+        if body_type:
+            assert operation["requestBody"]["required"] is True
+            assert operation["requestBody"]["content"]["application/json"]["schema"] == {
+                "$ref": f"#/components/schemas/{body_type}"
+            }
+            body = schema["components"]["schemas"][body_type]
+            assert body["additionalProperties"] is False
+            assert "expected_revision" in body["required"]
+            revision = body["properties"]["expected_revision"]
+        else:
+            revision_parameter = next(p for p in operation["parameters"] if p["name"] == "expected_revision")
+            assert revision_parameter["in"] == "query" and revision_parameter["required"] is True
+            revision = revision_parameter["schema"]
+        assert revision["type"] == "integer" and revision["minimum"] == 1
+
+    logout = schema["paths"]["/v1/session/logout"]["post"]
+    assert "requestBody" not in logout  # Session identity comes only from verified bearer claims.
+    report = schema["paths"]["/v1/reports"]["post"]
+    assert report["requestBody"]["required"] is True
+    report_body = schema["components"]["schemas"]["ReportCreate"]
+    assert report_body["additionalProperties"] is False
+    assert set(report_body["required"]) == {"case_id", "title", "payload"}
+    assert "201" in report["responses"]
+    for method, path in OWNER_RESOURCE_DELETE | {("DELETE", "/v1/saved-cases/{case_id}")}:
+        responses = schema["paths"][path][method.lower()]["responses"]
+        assert "204" in responses and "404" in responses
+
+
+@pytest.mark.parametrize("method,path", sorted(STAGE4A_ROUTES))
+@pytest.mark.parametrize("authorization", [None, "Bearer malformed", "Basic invalid"])
+def test_stage4a_routes_reject_missing_or_malformed_bearer_before_storage(method, path, authorization):
+    from services.professor_userdb import get_repository
+
+    def deny_storage():
+        pytest.fail("Unauthenticated Stage 4A request reached application storage")
+
+    previous = dict(app.dependency_overrides)
+    app.dependency_overrides[get_repository] = deny_storage
+    try:
+        with TestClient(app) as client:
+            concrete = path.replace("{case_id}", "11111111-1111-4111-8111-111111111111").replace(
+                "{report_id}", "22222222-2222-4222-8222-222222222222")
+            response = client.request(method, concrete, headers={"Authorization": authorization} if authorization else {})
+        assert response.status_code == 401
+        assert response.json()["error"]["code"] == "authentication_required"
+        assert response.headers["WWW-Authenticate"] == "Bearer"
+    finally:
+        app.dependency_overrides.clear()
+        app.dependency_overrides.update(previous)
 
 
 def test_openapi_errors_are_allowlisted_and_internal_fields_are_absent() -> None:
@@ -217,10 +302,12 @@ def test_stage1_feature_flags_and_example_configuration_are_default_off() -> Non
         assert "feature_case_parcel_set_v1=true" not in text
 
 
-def test_migrations_are_registered_through_022_and_next_sequence_is_023() -> None:
+def test_migrations_are_registered_through_023_and_next_sequence_is_024() -> None:
     registrations = load_registry()
-    assert next_safe_sequence(registrations) == 23
-    assert max(item.sequence for item in registrations) == 22
+    # Stage 1's additive exclusions migration is accepted and separately operated.
+    # Its frozen checksum and non-replay policy are covered by Stage 3 regression.
+    assert next_safe_sequence(registrations) == 24
+    assert max(item.sequence for item in registrations) == 23
     assert [
         path.name for path in (ROOT / "database" / "migrations").glob("018_*.sql")
     ] == ["018_vnext_case_parcel_set_v1.sql"]
@@ -229,6 +316,9 @@ def test_migrations_are_registered_through_022_and_next_sequence_is_023() -> Non
     ] == ["019_add_ris_village_demographics.sql"]
     assert [path.name for path in (ROOT / "database" / "migrations").glob("022_*.sql")] == [
         "022_admin_control_plane.sql"
+    ]
+    assert [path.name for path in (ROOT / "database" / "migrations").glob("023_*.sql")] == [
+        "023_add_market_serving_exclusions.sql"
     ]
     assert all(len(item.sha256) == 64 for item in registrations)
 

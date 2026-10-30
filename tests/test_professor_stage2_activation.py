@@ -194,7 +194,10 @@ def test_only_reviewed_services_recreated_and_proxy_starts_after_direct_acceptan
 def test_candidate_uses_the_committed_fastapi_module():
     import subprocess
     expected='backend/api_main.py'
-    result=subprocess.run(['git','cat-file','-e',a.SOURCE_COMMIT+':'+expected],cwd=PATH.parents[2],capture_output=True)
+    # The publication branch is a squash and CI checks it out shallowly. The
+    # archived operator release pin is deliberately not part of that history.
+    # Verify the committed module in this checkout, without repinning activation.
+    result=subprocess.run(['git','cat-file','-e','HEAD:'+expected],cwd=PATH.parents[2],capture_output=True)
     assert result.returncode==0
     source=PATH.read_text()
     assert "context/'"+expected+"'" in source
@@ -326,3 +329,33 @@ def test_receipt_publication_failure_is_nonzero_and_incomplete(monkeypatch,tmp_p
     assert runner.invalidated
     out=capsys.readouterr().out
     assert 'receipt_unavailable' in out and 'synthetic private' not in out
+
+
+def test_missing_operator_source_pin_never_falls_back_to_checkout_head(monkeypatch,tmp_path):
+    import os
+    import subprocess
+    repo=tmp_path/'repo';repo.mkdir()
+    env={'PATH':os.defpath,'HOME':str(tmp_path)}
+    def git(*args):
+        return subprocess.run(['git',*args],cwd=repo,env=env,capture_output=True,check=True)
+    git('init','-q')
+    (repo/'backend').mkdir()
+    (repo/'backend/api_main.py').write_text('# Synthetic current checkout module\n')
+    git('add','backend/api_main.py')
+    git('-c','user.name=Synthetic Test','-c','user.email=fixture@users.noreply.github.com',
+        'commit','-q','-m','synthetic checkout')
+    assert git('cat-file','-e','HEAD:backend/api_main.py').returncode==0
+    monkeypatch.setattr(a,'REPO',repo)
+    runner=a.Activation();runner.root=tmp_path/'evidence';runner.root.mkdir()
+    monkeypatch.setattr(runner,'checkpoint',lambda phase:None)
+    calls=[]
+    original_run=runner.run
+    def run(args,**kwargs):
+        calls.append(args)
+        return original_run(args,**kwargs)
+    monkeypatch.setattr(runner,'run',run)
+    monkeypatch.setattr(runner,'docker',lambda *args,**kwargs:pytest.fail('Docker must never run without the pinned source'))
+    with pytest.raises(a.Refused,match='command_failed_output_suppressed'):
+        runner.build()
+    assert calls==[['git','ls-tree','-rz','--full-tree',a.SOURCE_COMMIT]]
+    assert not (runner.root/'context/backend/api_main.py').exists()
