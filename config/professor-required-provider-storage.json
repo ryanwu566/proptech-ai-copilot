@@ -1,0 +1,117 @@
+{
+  "schema": "professor-required-provider-storage-policy-v1",
+  "policy": "ALL_LISTED_BACKEND_PROVIDER_CREDENTIALS_REQUIRED_EVEN_WHILE_DISABLED",
+  "values_included": false,
+  "secret_names": [
+    "GOOGLE_MAPS_API_KEY",
+    "GOOGLE_APPLICATION_CREDENTIALS",
+    "TGOS_APP_ID",
+    "TGOS_API_KEY",
+    "TDX_CLIENT_ID",
+    "TDX_CLIENT_SECRET",
+    "R2_ACCESS_KEY_ID",
+    "R2_SECRET_ACCESS_KEY",
+    "OPENAI_API_KEY"
+  ],
+  "public_provider_config_names": [
+    "EARTH_ENGINE_PROJECT",
+    "R2_ENDPOINT",
+    "R2_BUCKET",
+    "R2_REGION"
+  ],
+  "groups": {
+    "earth_engine": [
+      "GOOGLE_APPLICATION_CREDENTIALS",
+      "EARTH_ENGINE_PROJECT"
+    ],
+    "google": [
+      "GOOGLE_MAPS_API_KEY"
+    ],
+    "openai": [
+      "OPENAI_API_KEY"
+    ],
+    "r2": [
+      "R2_ACCESS_KEY_ID",
+      "R2_SECRET_ACCESS_KEY",
+      "R2_ENDPOINT",
+      "R2_BUCKET",
+      "R2_REGION"
+    ],
+    "tdx": [
+      "TDX_CLIENT_ID",
+      "TDX_CLIENT_SECRET"
+    ],
+    "tgos": [
+      "TGOS_APP_ID",
+      "TGOS_API_KEY"
+    ]
+  },
+  "core_runtime_names_preserved": [
+    "DATABASE_URL",
+    "API_USAGE_DATABASE_URL",
+    "API_USAGE_PEER_HMAC_KEY",
+    "PILOT_SESSION_SIGNING_KEY",
+    "VALUATION_DATABASE_URL",
+    "PROFESSOR_USER_DATABASE_URL"
+  ],
+  "browser_public_only": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+    "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY",
+    "NEXT_PUBLIC_API_BASE_URL"
+  ],
+  "migration_implies_activation": false,
+  "forbidden_actions": [
+    "automatic_paid_provider_activation",
+    "browser_secret_transfer",
+    "service_recreation",
+    "network_configuration_changes",
+    "credential_generation_or_rotation"
+  ],
+  "public_provider_config_root": "/etc/proptech-selfhost/provider-config",
+  "earth_engine_auth": {
+    "strategy": "ADC_IMPERSONATION",
+    "service_account": "proptech-render-earth-engine@project-3bd34c3e-daee-493f-ad6.iam.gserviceaccount.com",
+    "allowed_adc_type": "impersonated_service_account",
+    "allowed_source_type": "authorized_user",
+    "service_account_private_keys_allowed": false,
+    "organization_key_creation_policy_preserved": true,
+    "runtime_token_lifetime_seconds": 3600,
+    "live_iam_verified": false,
+    "unattended_session_policy_acceptance": "PENDING",
+    "provider_activation": false,
+    "reboot_provider_restore_option": "--stage-stored-providers",
+    "operator_iam_status": "PENDING_IAM"
+  },
+  "independent_installation": {
+    "preferred": true,
+    "selector": "--provider",
+    "providers": [
+      "google",
+      "tgos",
+      "tdx",
+      "r2",
+      "openai",
+      "earth-engine"
+    ],
+    "selected_restore_selector": "--stage-provider",
+    "all_mode_still_requires_complete_population": true,
+    "earth_engine_pending_iam_blocks_other_providers": false,
+    "unselected_existing_credentials_still_scanned": true,
+    "provider_functional_tests_during_installation": false,
+    "live_runtime_changes": false
+  },
+  "google_server_key_policy": {
+    "credential_name": "GOOGLE_MAPS_API_KEY",
+    "shared_consumers": [
+      "Geocoding API",
+      "Places API (New)",
+      "Routes API"
+    ],
+    "expected_public_egress_ipv4": "140.119.55.43",
+    "key_created": "OPERATOR_REPORTED",
+    "restriction_evidence": "OPERATOR_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+    "provider_calls_performed": false,
+    "browser_key_allowed": false
+  }
+}

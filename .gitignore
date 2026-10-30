@@ -41,3 +41,19 @@ artifacts/
 /.slice4-pgdata-*/
 /.slice4-postgresql-*/
 /.slice4-pytest-temp-*/
+
+# Operator credential values are never repository artifacts.
+**/.env.*
+!**/.env.example
+!.env.selfhost.example
+secrets/
+credentials/
+**/application_default_credentials.json
+**/service-account*.json
+**/*service_account*.json
+**/*-credentials.json
+*.pem
+*.key
+*.p12
+*.pfx
+!config/professor-server-credentials.json

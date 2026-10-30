@@ -35,12 +35,14 @@ from backend.api.routes_taxoracle import router as taxoracle_router
 from backend.api.routes_terrain_risk import router as terrain_risk_router
 from backend.api.routes_satellite_reference import router as satellite_reference_router
 from backend.api.routes_valuation import router as valuation_router
+from backend.api.routes_valuation_ml import router as valuation_ml_router
 from backend.api.routes_pilot import router as pilot_router
 from backend.api.routes_performance import router as performance_router
 from backend.api.routes_parcel_geometry import router as parcel_geometry_router
 from backend.api.routes_demographics import router as demographics_router
 from backend.api.v1 import router as vnext_router
 from backend.api.account import router as account_router
+from backend.api.user_data import router as user_data_router
 from backend.api.durable_cases import router as durable_cases_router
 from backend.api.v1.errors import structured_error_response, vnext_error_handler
 from services.metrics import (
@@ -54,7 +56,7 @@ from services.observability import build_observation, normalize_correlation_id
 from services.production_config import assert_startup_configuration
 from services.security import safe_origin, security_headers
 from services.production_config import MAINTENANCE_MODE_ENV
-from services.satellite_reference import feature_enabled
+from services.satellite_reference import feature_enabled, selected_imagery_provider
 from services.vnext.errors import ErrorCode, VNextError
 from backend.api.abuse_middleware import AbuseMiddleware
 from backend.api.ingress_middleware import IngressMiddleware
@@ -98,6 +100,9 @@ async def app_lifespan(_app: FastAPI):
     """Validate production configuration before accepting requests."""
 
     assert_startup_configuration()
+    from services.professor_userdb import enabled, validate_configuration
+    if enabled():
+        validate_configuration()
     assert_guardrail_configuration()
     from services.api_usage import USAGE
     from services.usage_ledger import start_usage_ledger
@@ -115,11 +120,12 @@ async def app_lifespan(_app: FastAPI):
     earth_engine_manager = None
     try:
         try:
-            earth_engine_manager = _get_earth_engine_worker_manager()
-            earth_engine_manager.start(
-                enabled=feature_enabled(os.getenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "")) and capability_enabled("satellite"),
-                project=os.getenv("EARTH_ENGINE_PROJECT", ""),
-            )
+            if selected_imagery_provider() == "earth_engine":
+                earth_engine_manager = _get_earth_engine_worker_manager()
+                earth_engine_manager.start(
+                    enabled=feature_enabled(os.getenv("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "")) and capability_enabled("satellite"),
+                    project=os.getenv("EARTH_ENGINE_PROJECT", ""),
+                )
         except Exception:
             # Earth Engine is an optional capability; unrelated routes must start.
             pass
@@ -139,6 +145,8 @@ async def app_lifespan(_app: FastAPI):
 
             close_green_pool()
             close_vnext_database_pool()
+        from services.professor_userdb import close_pool
+        close_pool()
 
 
 app = FastAPI(
@@ -285,12 +293,14 @@ app.include_router(road_router)
 app.include_router(mortgage_rates_router)
 app.include_router(lite_router)
 app.include_router(valuation_router)
+app.include_router(valuation_ml_router)
 app.include_router(pilot_router)
 app.include_router(performance_router)
 app.include_router(parcel_geometry_router)
 app.include_router(demographics_router)
 app.include_router(vnext_router)
 app.include_router(account_router)
+app.include_router(user_data_router)
 app.include_router(durable_cases_router)
 
 http_metrics = BoundedMetricsRegistry(

@@ -1,0 +1,142 @@
+{
+  "schema": "professor-stage2-activation-failure-diagnosis-v1",
+  "recorded_at": "2026-10-29T10:12:39.841983+00:00",
+  "run_id": "20261029T094222Z-c65a7ae397ac",
+  "operator_evidence": "/var/backups/proptech-selfhost/stage2-activation/20261029T094222Z-c65a7ae397ac",
+  "sanitized_receipt": "/tmp/professor-stage2-activation-78d77527ffee4d7db2ed8727a5bd4e8d",
+  "readable_files": [
+    "acceptance.json",
+    "change-plan.json",
+    "containers-before.json",
+    "host-validation.json",
+    "secret-host-metadata.json"
+  ],
+  "operator_confirmed_activate": true,
+  "recorded_reason": "command_failed_output_suppressed",
+  "recorded_phase": null,
+  "inferred_failed_phase": "first preactivation database-probe operation; before baseline snapshot save and clean-build checkpoint",
+  "underlying_database_or_docker_subcommand_cause": "UNKNOWN: failed subprocess output was discarded before parsed/persisted",
+  "observability_defect": "Activation.run raises on nonzero status before probe can preserve sanitized failure JSON; no checkpoint precedes first database probe.",
+  "proof": [
+    "ACTIVATE follows completed preflight/change-plan creation",
+    "activate starts with self.before_db=self.probe(--database)",
+    "database-before.json absent from complete sanitized allowlist publication",
+    "phase/build/candidate/recreation/rollback receipts absent",
+    "new canonical /etc override absent",
+    "activation script hash matches previously recorded reviewed source"
+  ],
+  "container_baseline": {
+    "api": {
+      "id": "ec5f86ee56c661940c5edeecb17fde9fa5610ce3ba494dfb21f7e9c57854ade7",
+      "image_id": "sha256:9d563647cf1ea2788f86be46b54a8420b2fe0bd0c0bbb5c7a2ba0b4d474f353e",
+      "health": "healthy"
+    },
+    "postgres_app": {
+      "id": "bd8ceb47493d2ead5b5eb089d03fb566a0850b3c71237b32a7fa182c1cddd736",
+      "image_id": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+      "health": "healthy"
+    },
+    "postgres_usage": {
+      "id": "002d3a646fe2ab369d415655a044c5ea5d8db5f2eb362ea5ac65c3f6e54f59ad",
+      "image_id": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+      "health": "healthy"
+    },
+    "reverse_proxy": {
+      "id": "4afae9a40e6e1e793c5c1c0db116605ad02a5e3e51f37e6646cfc9600623991a",
+      "image_id": "sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5",
+      "health": "healthy"
+    }
+  },
+  "current_docker_inspection": "UNAVAILABLE: nonprivileged socket permission denied; operator-only readonly collector prepared",
+  "current_live_api": {
+    "status": "PASS",
+    "checks": [
+      {
+        "name": "health",
+        "status": "PASS"
+      },
+      {
+        "name": "readiness",
+        "status": "PASS"
+      },
+      {
+        "name": "demographics_village",
+        "status": "PASS"
+      },
+      {
+        "name": "demographics_location",
+        "status": "PASS"
+      },
+      {
+        "name": "valuation_status",
+        "status": "PASS"
+      },
+      {
+        "name": "valuation_estimate",
+        "status": "PASS"
+      },
+      {
+        "name": "valuation_trend",
+        "status": "PASS"
+      },
+      {
+        "name": "finder",
+        "status": "PASS"
+      },
+      {
+        "name": "market",
+        "status": "PASS"
+      },
+      {
+        "name": "market_known_special_period",
+        "status": "PASS"
+      },
+      {
+        "name": "wra_matched",
+        "status": "PASS"
+      },
+      {
+        "name": "wra_no_match",
+        "status": "PASS"
+      }
+    ]
+  },
+  "listeners": {
+    "8080": "127.0.0.1:8080 only",
+    "host_5432_listener": false
+  },
+  "changes_by_failed_attempt": {
+    "container_recreation": false,
+    "image_build_or_pull": false,
+    "runtime_configuration_installed": false,
+    "database_schema_or_source_dml": false,
+    "database_volume_recreation": false,
+    "consumer_secret_mount_renewal": false,
+    "normal_runtime_telemetry_writes_possible": true,
+    "private_preflight_backups_and_planned_override_created": true
+  },
+  "rollback_required": false,
+  "automatic_resume_available": false,
+  "in_place_investigation_safe": true,
+  "safe_to_retry_now": false,
+  "secret_inode_current_host_match": "UNVERIFIED: only preflight host metadata available; readonly collector compares actual mounted files",
+  "previous_yaml_metadata_gate": "RESOLVED by operator before this attempt; current existing overrides root-owned0640 and preflight passed",
+  "next_operator_action": "sudo python3 -B /home/andy/proptech-ai-copilot/scripts/ops/professor_stage2_readonly_diagnose.py",
+  "diagnostic_script_sha256": "46e791cc1c1e2da92a3e3f660c80b4abe97173710402bb734abe02fff77422c5",
+  "diagnostic_synthetic_tests_passed": 9,
+  "diagnostic_independent_review": "PASS",
+  "diagnostic_executed_by_agent": false,
+  "private_evidence_copy_needed": false,
+  "discarded_probe_output_recoverable_from_existing_private_files": false,
+  "next_sanitized_artifact": "/tmp/professor-stage2-readonly-<random>/diagnosis.json",
+  "safety": {
+    "sudo_used": false,
+    "activation_rerun": false,
+    "rollback_executed": false,
+    "secret_contents_requested_or_output": false,
+    "providers_enabled": false,
+    "dev_sda_modified": false,
+    "frontend_preserved": true,
+    "pushed": false
+  }
+}

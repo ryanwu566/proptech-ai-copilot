@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
+from pathlib import Path
 from urllib.parse import urlsplit
+
+from services.imagery_reference import CSRSR_MIN_YEAR, CSRSR_MAX_YEAR
 
 R2 = ("R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY", "R2_ENDPOINT", "R2_BUCKET", "R2_REGION")
 REQUIREMENTS = {
@@ -28,7 +31,7 @@ REQUIREMENTS = {
     "tdx": ("TDX_CLIENT_ID", "TDX_CLIENT_SECRET", "COMMUTE_REFRESH_TOKEN"),
     "ris": ("DATABASE_URL", "NLSC_VILLAGE_BOUNDARY_ARTIFACT_SHA256", "NLSC_VILLAGE_BOUNDARY_SOURCE_VINTAGE"),
     "nlsc": ("NLSC_GATEWAY_BASE_URL", "NLSC_GATEWAY_CLIENT_TOKEN"),
-    "satellite": ("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "EARTH_ENGINE_PROJECT"),
+    "satellite": ("SATELLITE_REFERENCE_PROVIDER",),
     "hosted": ("FRONTEND_PRODUCTION_URL", "BACKEND_PRODUCTION_URL", "EXPECTED_FRONTEND_COMMIT_SHA", "EXPECTED_BACKEND_COMMIT_SHA"),
     "active-fault": (),
     "tax-legal": (),
@@ -36,6 +39,7 @@ REQUIREMENTS = {
 SOURCES = {"geocoding": "google_geocoding", "routes": "google_routes", "places": "google_places", "valuation": "blue_or_green", "finder": "blue", "trend": "blue", "market": "blue", "plvr": "official_plvr_opendata", "wra": "WRA", "gsmma": "GSMMA", "ardswc": "ARDSWC", "liquefaction": "GeologyCloud", "tdx": "TDX", "ris": "RIS_ODRP014", "nlsc": "NLSC_gateway", "satellite": "Sentinel-2", "maps": "Google_Maps", "street-view": "Google_Street_View", "hosted": "deployed_release", "active-fault": "official_manual_verification", "tax-legal": "professional_manual_verification"}
 SOURCES.update({"ardswc-landslide": "ARDSWC", "ardswc-debris-flow": "ARDSWC"})
 SOURCES["tgos"] = "TGOS"
+SOURCES["satellite"] = "imagery_reference"
 
 
 def valid_sha(value: str) -> bool:
@@ -60,6 +64,26 @@ def configuration_status(capability: str, environ: Mapping[str, str]) -> dict[st
     if capability not in REQUIREMENTS:
         raise ValueError("unsupported capability")
     names = list(REQUIREMENTS[capability])
+    if capability == "satellite":
+        provider = environ.get("SATELLITE_REFERENCE_PROVIDER", "nlsc_photo2").strip().lower()
+        if provider not in {"nlsc_photo2", "csrsr_spot", "earth_engine"}:
+            return {"SATELLITE_REFERENCE_PROVIDER": "invalid-contract"}
+        if provider == "nlsc_photo2":
+            return {"SATELLITE_REFERENCE_PROVIDER": "present"}
+        if provider == "csrsr_spot":
+            year = environ.get("CSRSR_SPOT_YEAR", "2025")
+            valid_year = len(year) == 4 and year.isascii() and year.isdigit() and CSRSR_MIN_YEAR <= int(year) <= CSRSR_MAX_YEAR
+            return {
+                "SATELLITE_REFERENCE_PROVIDER": "present",
+                "CSRSR_SPOT_YEAR": "present" if valid_year else "invalid-contract",
+                "CSRSR_SPOT_NONCOMMERCIAL_USE": "present" if environ.get("CSRSR_SPOT_NONCOMMERCIAL_USE", "").strip().lower() == "true" else "invalid-contract",
+            }
+        names.extend(("EARTH_ENGINE_SATELLITE_REFERENCE_V1", "EARTH_ENGINE_PROJECT"))
+    local_root_name = {"wra": "WRA_FLOOD_LOCAL_ROOT", "gsmma": "GSMMA_GEOLOGICAL_SENSITIVITY_LOCAL_ROOT"}.get(capability)
+    if local_root_name and local_root_name in environ:
+        names = [local_root_name]
+        if capability == "gsmma":
+            names.append("GSMMA_GEOLOGICAL_SENSITIVITY_DATASET_VERSION")
     if capability == "valuation" and environ.get("PLVR_DATA_BACKEND", "blue").strip().lower() == "green":
         names.append("COMPACT_GREEN_DATABASE_URL")
     if capability == "ris":
@@ -72,7 +96,10 @@ def configuration_status(capability: str, environ: Mapping[str, str]) -> dict[st
         status = "present" if value else "missing"
         if value:
             valid = True
-            if name.endswith("DATABASE_URL"):
+            if name.endswith("LOCAL_ROOT"):
+                path = Path(value)
+                valid = path.is_absolute() and ".." not in path.parts
+            elif name.endswith("DATABASE_URL"):
                 valid = _url(value, postgres=True)
             elif name.endswith("COMMIT_SHA") or name.endswith("ARTIFACT_SHA256"):
                 valid = valid_sha(value) if name.endswith("COMMIT_SHA") else re.fullmatch(r"[0-9a-fA-F]{64}", value) is not None

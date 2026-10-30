@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from services.plvr_data_freshness import evaluate_plvr_freshness
+from services.plvr_serving_quality import serving_relation, serving_sql
 
 
 DATA_QUALITY_NOTE = (
@@ -42,6 +43,9 @@ class PostgresValuationProvider:
         self._clock = time.monotonic
         self.last_query_metadata: dict[str, Any] = {}
 
+    def _cache_key(self) -> str:
+        return self.database_url if serving_relation() == 'real_price_transactions' else self.database_url+'|reviewed-exclusions-v1'
+
     @classmethod
     def reset_data_status_cache(cls) -> None:
         """Clear the shared data-status cache (for testing)."""
@@ -50,18 +54,18 @@ class PostgresValuationProvider:
     def available(self) -> bool:
         """Test connectivity only when provider selection is first requested."""
 
-        cached = self._availability_cache.get(self.database_url)
+        cached = self._availability_cache.get(self._cache_key())
         if cached and time.monotonic() - cached[0] < self.availability_cache_seconds:
             return cached[1]
         try:
             with self._connect() as connection:
                 with connection.cursor() as cursor:
-                    cursor.execute("select 1 from real_price_transactions limit 1")
+                    cursor.execute(serving_sql("select 1 from real_price_transactions limit 1"))
                     cursor.fetchone()
             result = True
         except Exception:
             result = False
-        self._availability_cache[self.database_url] = (time.monotonic(), result)
+        self._availability_cache[self._cache_key()] = (time.monotonic(), result)
         return result
 
     def load_transactions(self) -> tuple[dict[str, Any], ...]:
@@ -116,7 +120,7 @@ class PostgresValuationProvider:
             with self._connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        r"""
+                        serving_sql(r"""
                         select transaction_period, city, district, road, building_type,
                                area_ping, building_age_years, unit_price_per_ping, total_price,
                                source
@@ -130,7 +134,7 @@ class PostgresValuationProvider:
                           and area_ping > 0 and area_ping < 'Infinity'::numeric
                         order by transaction_period desc
                         limit %s
-                        """,
+                        """),
                         [
                             window_start, current,
                             _normalize_city(str(request.get("city", ""))),
@@ -178,7 +182,7 @@ class PostgresValuationProvider:
             with self._connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        f"""
+                        serving_sql(f"""
                         select transaction_period, city, district, road, building_type,
                                area_ping, building_age_years, floor, unit_price_per_ping,
                                total_price, source
@@ -186,7 +190,7 @@ class PostgresValuationProvider:
                         where {' and '.join(clauses)}
                         order by transaction_period desc
                         limit %s
-                        """,
+                        """),
                         params,
                     )
                     rows = [_normalize_row(dict(row)) for row in cursor.fetchall()]
@@ -227,7 +231,7 @@ class PostgresValuationProvider:
         """Summarize indexed coverage and official/sample composition."""
 
         # Check shared class-level cache keyed by database URL
-        cached = self._data_status_cache.get(self.database_url)
+        cached = self._data_status_cache.get(self._cache_key())
         if cached and self._clock() - cached[0] < self.data_status_cache_seconds:
             self.is_demo_data = cached[1].get("is_demo_data", True)
             return cached[1]
@@ -237,7 +241,7 @@ class PostgresValuationProvider:
             with self._connect() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        r"""
+                        serving_sql(r"""
                         select count(*) as records_count,
                                count(distinct city) as cities_count,
                                count(distinct district) as districts_count,
@@ -267,13 +271,23 @@ class PostgresValuationProvider:
                                      and transaction_period < %s
                                ) as excluded_too_old_period_count
                         from real_price_transactions
-                        """,
+                        """),
                         [trend_window_start, current_period, trend_window_start, current_period, current_period, trend_window_start],
                     )
                     summary = dict(cursor.fetchone())
-                    cursor.execute("select distinct city from real_price_transactions order by city")
+                    if serving_sql('from real_price_transactions') != 'from real_price_transactions':
+                        # Forensic population counts remain raw; availability,
+                        # geography and effective periods use the serving view.
+                        cursor.execute("""select
+                            count(*) filter (where source='official_plvr_opendata') as official_records_count,
+                            count(*) filter (where source in ('sample','real_price_sample','community_building_sample')) as sample_records_count,
+                            min(transaction_period) filter (where source='official_plvr_opendata') as raw_official_period_min,
+                            max(transaction_period) filter (where source='official_plvr_opendata') as raw_official_period_max
+                            from real_price_transactions""")
+                        summary.update(dict(cursor.fetchone()))
+                    cursor.execute(serving_sql("select distinct city from real_price_transactions order by city"))
                     cities = [row["city"] for row in cursor.fetchall()]
-                    cursor.execute("select distinct district from real_price_transactions order by district")
+                    cursor.execute(serving_sql("select distinct district from real_price_transactions order by district"))
                     districts = [row["district"] for row in cursor.fetchall()]
                     cursor.execute(
                         """
@@ -344,7 +358,7 @@ class PostgresValuationProvider:
                 "user_message": USER_MESSAGE,
                 **freshness,
             }
-            self._data_status_cache[self.database_url] = (self._clock(), status)
+            self._data_status_cache[self._cache_key()] = (self._clock(), status)
             return status
         except Exception:
             return {
@@ -516,7 +530,7 @@ def _comparable_query(request: dict[str, Any], scope: str, limit: int) -> tuple[
         request.get("lng"),
         request.get("lng"),
     ]
-    return sql, [*scope_params, *ranking_params]
+    return serving_sql(sql), [*scope_params, *ranking_params]
 
 
 def _normalize_city(value: str) -> str:

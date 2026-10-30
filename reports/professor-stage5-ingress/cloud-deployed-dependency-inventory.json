@@ -1,0 +1,756 @@
+{
+  "schema": "professor-stage5-deployed-dependency-inventory-v1",
+  "checked_at": "2026-10-30T08:12:16.982061+00:00",
+  "base_head": "8164242bc99fbe4d4a4298554c53de652becbc44",
+  "evidence_classes": {
+    "VERIFIED_LIVE": "observed public/platform metadata at timestamp; applies only to asserted field",
+    "VERIFIED_REPO": "tracked source/configuration fact; not actual deployed presence",
+    "HISTORICAL_ONLY": "dated prior observation; not current live state",
+    "UNKNOWN": "no adequate evidence; not absent/missing"
+  },
+  "cloud_run": {
+    "live_inventory_status": "PARTIAL",
+    "referenced_service_name": {
+      "value": "proptech-earth-engine-api",
+      "evidence_class": "VERIFIED_REPO",
+      "evidence": "cloud-retirement-dependencies.json",
+      "limitation": "referenced endpoint responds; complete service universe not supplied"
+    },
+    "region_reference": {
+      "value": "asia-east1",
+      "evidence_class": "VERIFIED_REPO",
+      "evidence": "public-route-observation.json",
+      "limitation": "region encoded in referenced hostname; no control-plane region listing"
+    },
+    "complete_service_job_list": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "no authenticated Cloud Run listing or sanitized control-plane receipt"
+    },
+    "public_endpoint": {
+      "value": "https://proptech-earth-engine-api-712372598609.asia-east1.run.app",
+      "evidence_class": "VERIFIED_LIVE",
+      "evidence": "public-route-observation.json",
+      "limitation": "anonymous GET health/readiness/OpenAPI only; not configured ingress or IAM policy"
+    },
+    "api_paths": {
+      "value": 109,
+      "evidence_class": "VERIFIED_LIVE",
+      "evidence": "public-route-observation.json",
+      "limitation": "advertised paths only; provider/write endpoints not executed"
+    },
+    "public_release_identity": {
+      "value": {
+        "commit_sha": "unconfigured",
+        "release_version": "unconfigured",
+        "api_contract_version": "api-contract-v1",
+        "schema_version": "schema-007",
+        "build_timestamp": "unconfigured"
+      },
+      "evidence_class": "VERIFIED_LIVE",
+      "evidence": "live-release-metadata.json",
+      "limitation": "commit/release/build timestamp are unconfigured; no image/revision identity proven"
+    },
+    "documented_earth_engine_identity": {
+      "value": "proptech-render-earth-engine@project-3bd34c3e-daee-493f-ad6.iam.gserviceaccount.com",
+      "evidence_class": "VERIFIED_REPO",
+      "evidence": "repository-history-cloud-metadata.json",
+      "limitation": "documented user-managed account; actual current attachment and IAM unknown"
+    },
+    "documented_earth_engine_project": {
+      "value": "project-3bd34c3e-daee-493f-ad6",
+      "evidence_class": "VERIFIED_REPO",
+      "evidence": "repository-history-cloud-metadata.json",
+      "limitation": "public project identifier; actual service-project relationship and API access not proven"
+    },
+    "actual_service_account_adc_iam": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "must verify attached identity, ADC source, effective role/scope and retained revisions"
+    },
+    "actual_environment_names": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "repository names are contracts, not deployed env inventory"
+    },
+    "actual_secret_reference_names": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "no Secret Manager reference names from live control plane"
+    },
+    "current_retained_revisions_and_images": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "public build identity is unconfigured; no current/retained image digest or traffic listing"
+    },
+    "configured_ingress_and_invoker_policy": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "anonymous successful GET proves public availability only"
+    },
+    "cloud_scheduler_or_native_jobs": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "GitHub schedule history does not cover Cloud Scheduler, native jobs or external schedulers"
+    },
+    "frontend_consumer_reference": {
+      "value": "Vercel public code contains this Cloud Run origin",
+      "evidence_class": "VERIFIED_LIVE",
+      "evidence": "public-caller-references.json",
+      "limitation": "code reference at observed frontend release; no browser API trace or complete callers"
+    },
+    "all_callers_and_unique_state": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "require caller/job targets and unique remote database/store write inventory"
+    }
+  },
+  "render": {
+    "live_inventory_status": "BLOCKED",
+    "referenced_service_name": {
+      "value": "proptech-ai-copilot-api",
+      "evidence_class": "VERIFIED_REPO",
+      "evidence": "repository-history-cloud-metadata.json",
+      "limitation": "one web service declared; all actual services/jobs/groups not listed"
+    },
+    "blueprint_environment_names": {
+      "value": [
+        "ANTI_ABUSE_ENFORCEMENT_MODE",
+        "API_ALLOWED_HOSTS",
+        "API_CONTRACT_VERSION",
+        "APP_ENV",
+        "APP_RUNTIME",
+        "BACKEND_PUBLIC_URL",
+        "BUILD_TIMESTAMP",
+        "COMMUTE_REFRESH_TOKEN",
+        "COMPACT_GREEN_DATABASE_URL",
+        "CORS_ALLOWED_ORIGINS",
+        "DATABASE_URL",
+        "EARTH_ENGINE_PROJECT",
+        "EARTH_ENGINE_SATELLITE_REFERENCE_V1",
+        "GOOGLE_MAPS_API_KEY",
+        "MAINTENANCE_MODE",
+        "NLSC_GATEWAY_BASE_URL",
+        "NLSC_GATEWAY_CLIENT_TOKEN",
+        "PILOT_ADMIN_TOKEN",
+        "PILOT_EVIDENCE_DATABASE_URL",
+        "PILOT_REVIEW_TOKEN",
+        "PILOT_SESSION_SIGNING_KEY",
+        "PLVR_DATA_BACKEND",
+        "POSTGRES_SSLMODE",
+        "PUBLIC_APP_BASE_URL",
+        "RELEASE_COMMIT_SHA",
+        "RELEASE_VERSION",
+        "SCHEMA_VERSION",
+        "TAIPEI_PLANNING_READ_V1",
+        "TAIPEI_PLANNING_SOURCE_MODE",
+        "TDX_CLIENT_ID",
+        "TDX_CLIENT_SECRET",
+        "TGOS_API_KEY",
+        "TGOS_APP_ID",
+        "VALUATION_DATABASE_URL"
+      ],
+      "evidence_class": "VERIFIED_REPO",
+      "evidence": "repository-history-cloud-metadata.json",
+      "limitation": "34 declarations; sync:false does not prove deployed presence"
+    },
+    "native_cron_or_worker_blueprint": {
+      "value": "none declared in reviewed render.yaml",
+      "evidence_class": "VERIFIED_REPO",
+      "evidence": "repository-history-cloud-metadata.json",
+      "limitation": "does not prove none exist in Render control plane"
+    },
+    "last_available_release": {
+      "value": {
+        "evidence_class": "HISTORICAL_ONLY",
+        "observed_at": "2026-10-11T07:02:19.682813+00:00",
+        "origin": "https://proptech-ai-copilot-api.onrender.com",
+        "commit_sha": "ef1c49c55a58eb0ab63beefe0cd2ddc1f2f9717b",
+        "http_status": 200,
+        "currently_deployed_proven": false
+      },
+      "evidence_class": "HISTORICAL_ONLY",
+      "evidence": "repository-history-cloud-metadata.json",
+      "limitation": "2026-10-11 observation cannot establish current deployment"
+    },
+    "public_network_observation": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "bounded local public checks unavailable; remote read tool also could not access release/health; service not declared absent"
+    },
+    "actual_service_job_environment_group_list": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "no authenticated Render metadata or sanitized receipt"
+    },
+    "actual_environment_secret_file_names": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "no live env/group/file names; public source references only"
+    },
+    "current_retained_deploy_images": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "historical source revision available, current runtime/digest unknown"
+    },
+    "native_schedules_background_callers_and_state": {
+      "value": null,
+      "evidence_class": "UNKNOWN",
+      "evidence": null,
+      "limitation": "three GitHub manual jobs known, Render-native jobs/current callers/state not known"
+    },
+    "manual_workflow_history": {
+      "value": {
+        "total": 21,
+        "coverage": 13,
+        "market": 7,
+        "commute": 1
+      },
+      "evidence_class": "VERIFIED_LIVE",
+      "evidence": "maintenance-dispatch-history.json",
+      "limitation": "GitHub history only; actual target URL/credential presence/current enablement not proven"
+    }
+  },
+  "github_scheduled_workflows": {
+    "evidence_class": "VERIFIED_LIVE",
+    "visible_total": 374,
+    "query_complete": true,
+    "workflow_summary": [
+      {
+        "workflow": ".github/workflows/authenticated-identity-smoke.yml",
+        "visible_scheduled_run_count": 40,
+        "latest_visible_run": {
+          "workflow": ".github/workflows/authenticated-identity-smoke.yml",
+          "run_id": 40861588959,
+          "head_sha": "9cc40d645757af4513d9afdf0c008939cc489a77",
+          "event": "schedule",
+          "status": "completed",
+          "conclusion": "failure",
+          "created_at": "2026-10-29T10:57:18Z",
+          "updated_at": "2026-10-29T10:57:27Z"
+        },
+        "oldest_visible_created_at": "2026-09-20T09:20:33Z",
+        "conclusion_counts": {
+          "failure": 40
+        }
+      },
+      {
+        "workflow": ".github/workflows/hosted-production-smoke.yml",
+        "visible_scheduled_run_count": 329,
+        "latest_visible_run": {
+          "workflow": ".github/workflows/hosted-production-smoke.yml",
+          "run_id": 41010706312,
+          "head_sha": "9cc40d645757af4513d9afdf0c008939cc489a77",
+          "event": "schedule",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-30T05:51:04Z",
+          "updated_at": "2026-10-30T05:51:14Z"
+        },
+        "oldest_visible_created_at": "2026-08-01T19:35:00Z",
+        "conclusion_counts": {
+          "success": 77,
+          "failure": 252
+        }
+      },
+      {
+        "workflow": ".github/workflows/import-official-market-data.yml",
+        "visible_scheduled_run_count": 5,
+        "latest_visible_run": {
+          "workflow": ".github/workflows/import-official-market-data.yml",
+          "run_id": 38711214584,
+          "head_sha": "59631992e03c05ff01e67fb691710c738fcc6d1b",
+          "event": "schedule",
+          "status": "completed",
+          "conclusion": "success",
+          "created_at": "2026-10-15T09:12:19Z",
+          "updated_at": "2026-10-15T09:12:28Z"
+        },
+        "oldest_visible_created_at": "2026-08-15T04:50:07Z",
+        "conclusion_counts": {
+          "success": 1,
+          "failure": 4
+        }
+      }
+    ],
+    "configuration_and_cron_evidence": "repository-history-cloud-metadata.json",
+    "current_target_values_or_credentials_proven": false
+  },
+  "component_replacement_rows": [
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Private API baseline availability",
+      "professor_replacement": "accepted Professor API",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Local NLSC/RIS/WRA replacement",
+      "professor_replacement": "verified local datasets and existing APIs",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Local ML replacement",
+      "professor_replacement": "accepted pinned ML companion",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Supabase-backed authorized user flows",
+      "professor_replacement": "accepted Stage4 backend; real provider/caller migration acceptance pending",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "real authorized session/profile/saved-case persistence and cross-user public E2E",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Application/usage/valuation/user runtime credentials",
+      "professor_replacement": "existing six-file Stage2/4 profile",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Public deployed callers",
+      "professor_replacement": "direct NGINX HTTPS plus Vercel Preview/Production",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Unique remote mutable data and background users",
+      "professor_replacement": "verified Professor data authority and scoped local jobs",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Reboot / trusted TLS renewal / rollback",
+      "professor_replacement": "reviewed persistent restoration and service ordering",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Provider keys and ADC/service identity/IAM",
+      "professor_replacement": "protected optional provider files and individually approved IAM",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "cloud_run",
+      "current_cloud_component": "Current/retained revision and rollback inventory",
+      "professor_replacement": "verified cloud metadata plus retained Professor release artifacts",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Private API baseline availability",
+      "professor_replacement": "accepted Professor API",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Local NLSC/RIS/WRA replacement",
+      "professor_replacement": "verified local datasets and existing APIs",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Local ML replacement",
+      "professor_replacement": "accepted pinned ML companion",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Supabase-backed authorized user flows",
+      "professor_replacement": "accepted Stage4 backend; real provider/caller migration acceptance pending",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "real authorized session/profile/saved-case persistence and cross-user public E2E",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Application/usage/valuation/user runtime credentials",
+      "professor_replacement": "existing six-file Stage2/4 profile",
+      "migration_status": "LOCAL_REPLACEMENT_ACCEPTED_REMOTE_CUTOVER_UNPROVEN",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "HISTORICAL_ONLY",
+      "local_replacement_accepted": "YES",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Public deployed callers",
+      "professor_replacement": "direct NGINX HTTPS plus Vercel Preview/Production",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Unique remote mutable data and background users",
+      "professor_replacement": "verified Professor data authority and scoped local jobs",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Reboot / trusted TLS renewal / rollback",
+      "professor_replacement": "reviewed persistent restoration and service ordering",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "Render provider/env-group/file inventory",
+      "professor_replacement": "verified names-only inventory and Stage2 adoption",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "commute maintenance workflow",
+      "professor_replacement": "proposed local manual one-shot; not installed; persistent snapshot producer plus API loader/reload contract; separate CLI cannot update API process memory",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "market maintenance workflow",
+      "professor_replacement": "proposed local manual one-shot; not installed; reviewed local operations adapter and scoped role",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "render",
+      "current_cloud_component": "coverage maintenance workflow",
+      "professor_replacement": "proposed local manual one-shot; not installed; reviewed local operations adapter and scoped role",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "actual deployed dependency evidence and approved public cutover",
+      "retirement_blocker": "deployed dependency closure plus approved public cutover and retirement gate",
+      "retirement_ready": "NO",
+      "scope": "local replacement evidence does not prove this specific cloud component is currently deployed",
+      "cloud_component_evidence_class": "UNKNOWN",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "shared_ci",
+      "current_cloud_component": "hosted-production-smoke",
+      "professor_replacement": "Existing bounded smoke against approved Professor public origin; protected operator/CI consumer only",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "accept actual target names/scopes then Preview/Production contract and build identities",
+      "retirement_blocker": "actual current targets/consumer decision and approved public cutover; no automatic retarget/dispatch",
+      "retirement_ready": "NO",
+      "scope": "GitHub schedules and API-visible run metadata; no Cloud Scheduler or Render-native scope inferred",
+      "cloud_component_evidence_class": "VERIFIED_REPO",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "shared_ci",
+      "current_cloud_component": "authenticated-identity-smoke",
+      "professor_replacement": "Existing protected identity smoke against approved Professor origin; user-owned scope, no API secret mounts",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "resolve observed failures without inferring missing secrets; real auth/session/ownership tests; keep writes gated",
+      "retirement_blocker": "actual current targets/consumer decision and approved public cutover; no automatic retarget/dispatch",
+      "retirement_ready": "NO",
+      "scope": "GitHub schedules and API-visible run metadata; no Cloud Scheduler or Render-native scope inferred",
+      "cloud_component_evidence_class": "VERIFIED_REPO",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    },
+    {
+      "platform": "shared_ci",
+      "current_cloud_component": "import-official-market-data",
+      "professor_replacement": "Local approved checksum/scope-bound operator importer if retained; separate restricted writer, not serving runtime",
+      "migration_status": "NOT_MIGRATED",
+      "validation_required": "scheduled notice is not an import; approve local import adapter/role, source quality/exclusions and rollback before migration",
+      "retirement_blocker": "actual current targets/consumer decision and approved public cutover; no automatic retarget/dispatch",
+      "retirement_ready": "NO",
+      "scope": "GitHub schedules and API-visible run metadata; no Cloud Scheduler or Render-native scope inferred",
+      "cloud_component_evidence_class": "VERIFIED_REPO",
+      "replacement_evidence_class": "VERIFIED_REPO",
+      "local_replacement_accepted": "NO",
+      "remote_cutover_verified": false
+    }
+  ],
+  "eventual_credential_retirement": [
+    {
+      "names": [
+        "RENDER_API_KEY",
+        "RENDER_API_BASE_URL",
+        "RENDER_GIT_COMMIT"
+      ],
+      "eventual_disposition": "retire Render-only deployment access/config after no service/job/caller/rollback consumer remains",
+      "required_gate": "prove exclusive scope; preserve any shared account key; explicit retirement approval",
+      "ready_now": false
+    },
+    {
+      "names": [
+        "COMMUTE_REFRESH_TOKEN",
+        "MARKET_READ_MODEL_REFRESH_TOKEN"
+      ],
+      "eventual_disposition": "retire legacy endpoint tokens only after each job migrates locally or is explicitly retired",
+      "required_gate": "three job dispositions, restricted local adapters accepted; no public maintenance retarget",
+      "ready_now": false
+    },
+    {
+      "names": [
+        "GCP_SERVICE_ACCOUNT_KEY",
+        "GCP_SA_KEY",
+        "GCP_WORKLOAD_IDENTITY_PROVIDER",
+        "GCP_SERVICE_ACCOUNT"
+      ],
+      "eventual_disposition": "retire Cloud Run-only deployment/CI bindings or keys if no other consumer remains",
+      "required_gate": "actual service/CI identity and shared-scope IAM inventory; not automatically runtime ADC",
+      "ready_now": false
+    },
+    {
+      "names": [
+        "Cloud Run invoker bindings and documented Earth Engine service identity"
+      ],
+      "eventual_disposition": "service-specific invoker access may retire; retain Earth Engine identity/roles if still required by approved local provider",
+      "required_gate": "actual attachment/ADC/IAM proof, local identity admission and all consumer inventory",
+      "ready_now": false
+    },
+    {
+      "names": [
+        "GOOGLE_MAPS_API_KEY",
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY",
+        "TGOS_APP_ID",
+        "TGOS_API_KEY",
+        "TDX_CLIENT_ID",
+        "TDX_CLIENT_SECRET"
+      ],
+      "eventual_disposition": "retain/adopt any still-required provider credential; retire only unused cloud-specific copies or exclusively unused keys",
+      "required_gate": "provider retention, shared consumer/restriction/quotas and local validated contract; no automatic activation",
+      "ready_now": false
+    },
+    {
+      "names": [
+        "SUPABASE_JWT_SECRET",
+        "SUPABASE_SECRET_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "SUPABASE_ACCESS_TOKEN",
+        "SUPABASE_DB_URL"
+      ],
+      "eventual_disposition": "legacy server/ops uses may retire if proven unused; preserve Supabase identity users/browser configuration",
+      "required_gate": "actual consumer inventory; no auth signing-key revocation or password migration as a cutover shortcut",
+      "ready_now": false
+    },
+    {
+      "names": [
+        "DATABASE_URL",
+        "API_USAGE_DATABASE_URL",
+        "VALUATION_DATABASE_URL",
+        "PROFESSOR_USER_DATABASE_URL",
+        "API_USAGE_PEER_HMAC_KEY",
+        "PILOT_SESSION_SIGNING_KEY"
+      ],
+      "eventual_disposition": "retain accepted Professor runtime credentials; separate remote DB access may retire only after no unique writes/state",
+      "required_gate": "protected backups, authority/persistence proof and precise remote-only credential scope",
+      "ready_now": false
+    },
+    {
+      "names": [
+        "GITHUB_TOKEN"
+      ],
+      "eventual_disposition": "ephemeral per-job identity; never migrate to Professor and no permanent secret retirement assumed",
+      "required_gate": "review retained CI workflows separately",
+      "ready_now": false
+    }
+  ],
+  "provider_credentials_audited": false,
+  "production_critical_credentials_on_professor": "PARTIAL",
+  "criticality_scope": "known current-profile six files accepted; no optional or unknown cloud credential labeled production-critical without retained-consumer evidence",
+  "missing_required_credentials": [],
+  "credentials_ready_for_cutover": false,
+  "retirement_allowed": false,
+  "ready_to_retire_now": [],
+  "cli_metadata_access": {
+    "gcloud_render_vercel_gh_installed": false,
+    "additional_gcloud_paths_found": [],
+    "authenticated_control_plane_metadata_reader_available": false,
+    "credential_store_or_auth_token_content_read": false
+  },
+  "safety": {
+    "secret_values_exported": false,
+    "raw_deployment_exports_read": false,
+    "runtime_or_database_modified": false,
+    "cloud_or_workflow_modified": false,
+    "hardening_modified": false,
+    "paid_provider_calls": 0,
+    "sudo_executed": false,
+    "frontend_modified": false,
+    "dev_sda_operations": false,
+    "x9_mutations": false,
+    "push_performed": false
+  }
+}

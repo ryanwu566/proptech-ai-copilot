@@ -1,0 +1,647 @@
+{
+  "schema": "professor-local-acceptance-v2",
+  "recorded_at": "2026-10-29T02:30:40.812410+00:00",
+  "overall_status": "PASS",
+  "stage_1_server_data_db_integration_complete": true,
+  "stage_1_reason": "Successful guarded apply receipt, hashed SQL/application evidence and post-apply security/artifact checks verified; ordinary live checks pass. No remaining Stage 1 host/database gates.",
+  "production_ready": false,
+  "local_frontend_acceptance_ready": true,
+  "local_frontend_exploratory_use_possible": true,
+  "ordinary_runtime_needs_x9": false,
+  "operator_apply": {
+    "evidence_directory": "/var/backups/proptech-selfhost/final-data-integration/apply-20261029T013804Z-MREVbS6x",
+    "operator_reported_exit_code": 0,
+    "receipt_read_by_agent": true,
+    "rerun_by_agent": false,
+    "verified_status": "PASS",
+    "completed_at": "2026-10-29T01:59:43.423007+00:00",
+    "readable_evidence_directory": "/tmp/professor-apply-success-evidence",
+    "new_api_id": "ec5f86ee56c661940c5edeecb17fde9fa5610ce3ba494dfb21f7e9c57854ade7",
+    "new_image": "proptech-professor-api:apply-20261029t013804z-mrevbs6x",
+    "new_image_id": "sha256:9d563647cf1ea2788f86be46b54a8420b2fe0bd0c0bbb5c7a2ba0b4d474f353e"
+  },
+  "git": {
+    "branch": "server/final-data-integration-20261028",
+    "baseline_head": "9cc40d645757af4513d9afdf0c008939cc489a77",
+    "pre_final_commit_head": "cfa1290c62525b84a1a1f408ced8e12e0ccccba2",
+    "commit_reference": "the local commit containing this report",
+    "preexisting_user_change_preserved": "frontend_next/next-env.d.ts",
+    "implementation_commit": "0a4843796d3429169389380db7ee1c447c96aa40",
+    "prior_acceptance_commit": "0a4843796d3429169389380db7ee1c447c96aa40",
+    "acceptance_commit_reference": "the documentation-only commit containing this updated report"
+  },
+  "items": [
+    {
+      "item": "Server copy integrity",
+      "status": "PASS",
+      "evidence": "Previously completed full byte verification: 11511 files,14061730283 bytes,zero mismatches. Full multi-GB comparison intentionally not repeated.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Docker services and health",
+      "status": "PASS",
+      "evidence": "Successful receipt confirms API/proxy healthy after recreation/restart. Retained PostgreSQL containers passed post-apply TLS/database-identity/private-network checks; usage health passed.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "NLSC",
+      "status": "PASS",
+      "evidence": "Verified applied read-only /srv/proptech-data/DB bind, pinned SHA256 and7691features; live NLSC→RIS returns65000050016/population6134.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "RIS",
+      "status": "PASS",
+      "evidence": "Live village/location contracts return11507,population6134,households3834; freshness remains explicitly stale.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "PLVR raw archive",
+      "status": "PASS",
+      "evidence": "Original reference evidence and inventory preserved; no source modifications performed.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "PLVR serving DB",
+      "status": "PASS",
+      "evidence": "Committed SQL snapshot guards preserve all451744rawrows,451672official+72samples,futureofficial0; row38652 remains physically stored.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "PLVR special-transaction filtering",
+      "status": "PASS",
+      "evidence": "Row38652 retained in real_price_transactions and absent from serving view.117986 additive exclusions; runtime exclusion flag true and all serving consumer code hashes verified. Known May2026 Market result is explicit no_data.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Ambiguous PLVR evidence protection",
+      "status": "PASS",
+      "evidence": "Applied SQL candidate set exactly equals117986 UNIQUE_MATCH identities.59721 MULTIPLE_MATCH and958681 NO_MATCH groups have no proposed serving ID and were not automatically applied.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Market",
+      "status": "PASS",
+      "evidence": "Committed aggregate/coverage equality guard passed:7500activegroups,368coverageentries; global coverage remains partial. Live road count370; known special period no_data.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Valuation",
+      "status": "PASS",
+      "evidence": "Focused live estimate available,sourcepostgres,query_statusok,10comparables; no target price forced.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Trend",
+      "status": "PASS",
+      "evidence": "Focused live official trend available,query_statusok,29monthlypoints.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Finder",
+      "status": "PASS",
+      "evidence": "Focused live search available,query_statusok,5matches.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "WRA",
+      "status": "PASS",
+      "evidence": "Verified applied read-only processed WRA bind from /srv. All10scenario hashes/counts verified with0R2calls; fresh Terrain hit/no-match uses local provenance and pinnedSHA; no-match remainsunknown.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "GSMMA sensitivity",
+      "status": "BLOCKED",
+      "evidence": "No production-schema immutable artifact/version established; archive preserved and no versioned local dataset activated.",
+      "required_for_stage_1": false,
+      "scope": "later_optional_provider_activation",
+      "stage_1_archive_disposition": "PASS: preserved and explicitly unsupported for local runtime"
+    },
+    {
+      "item": "ARDSWC",
+      "status": "BLOCKED",
+      "evidence": "115-year copied datasets have no reviewed equivalence to113-public-mvt runtime semantic/version contract; archive only.",
+      "required_for_stage_1": false,
+      "scope": "later_optional_provider_activation",
+      "stage_1_archive_disposition": "PASS: preserved and explicitly unsupported for local runtime"
+    },
+    {
+      "item": "Liquefaction",
+      "status": "BLOCKED",
+      "evidence": "35/36snapshot hashes match and18/36fully valid polygon files; archive/reference only.",
+      "required_for_stage_1": false,
+      "scope": "later_optional_provider_activation",
+      "stage_1_archive_disposition": "PASS: preserved and explicitly unsupported for local runtime"
+    },
+    {
+      "item": "CWA",
+      "status": "PASS",
+      "evidence": "Archive validation preserved; no current production consumer. Accepted1897-1989gap untouched.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Postgres security",
+      "status": "PASS",
+      "evidence": "Post-apply TLSv1.3 and least-privilege probes passed.valuation_runtime has SELECT-only access to9serving/forensic objects,no public-schema CREATE or writes; databases are on internal Docker networks with no published ports. Fresh host listener check passes.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "API health",
+      "status": "PASS",
+      "evidence": "Fresh/healthok and/readinessready through127.0.0.1:8080.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "X9 runtime dependency",
+      "status": "PASS",
+      "evidence": "Applied configuration and post-recreation inspection gates confirm no active API X9 bind; ordinary runtime no longer requires X9. No unmount performed.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "market_ops disabled",
+      "status": "PASS",
+      "evidence": "Applied/effective Compose guard verifies ANTI_ABUSE_MARKET_OPS_DISABLED=true. No operator refresh invoked.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Paid providers disabled",
+      "status": "PASS",
+      "evidence": "Applied/effective Compose guards keep geocoding,places,routes,satellite,location,parcel,ARDSWC,liquefaction,NLSC gateway andTGOS operations disabled; Earth Engine false. No paid E2E run.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Public ingress",
+      "status": "PASS",
+      "evidence": "No DNS,tunnel,public8080orDB exposure changed.8080loopback only; unrelated existing80/3322listeners untouched.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Vercel / Cloud Run / Render / GitHub remote",
+      "status": "PASS",
+      "evidence": "Untouched; no deployment,remote write or push.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "/dev/sda safety",
+      "status": "PASS",
+      "evidence": "Reviewed guarded apply checked backing devices before writes and performed no device operations. Final acceptance used no privileged/device operations; this is workflow evidence,not disk forensics.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    },
+    {
+      "item": "Frontend preservation",
+      "status": "PASS",
+      "evidence": "Pre-existing frontend_next/next-env.d.ts hash0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc unchanged; excluded from commit.",
+      "required_for_stage_1": true,
+      "scope": "stage_1"
+    }
+  ],
+  "plvr_reconciliation": {
+    "status": "APPLIED_AND_VERIFIED",
+    "UNIQUE_MATCH": 117986,
+    "MULTIPLE_MATCH": 59721,
+    "NO_MATCH": 958681,
+    "known_row_unique_match_proven": true,
+    "source_rows_modified": 0,
+    "exclusions_applied": 117986,
+    "serving_queries_changed": true,
+    "known_row_id": 38652,
+    "source_rows_modified_by_agent": 0,
+    "offline_evidence": "failed-apply-diagnosis.json",
+    "known_bad_market_result_reproduced": false,
+    "known_raw_row_retained": true,
+    "known_row_excluded_from_serving": true,
+    "ambiguous_groups_automatically_applied": 0,
+    "sql_candidates_exactly_unique_matches": true,
+    "raw_rows_after_commit": 451744,
+    "official_rows": 451672,
+    "sample_rows": 72,
+    "future_official_rows": 0,
+    "serving_snapshot_sha256": "8d673a1f0eec2f2055880df8ac1ebb52dfb659717c9dc603a9e3ebde4952dafe",
+    "sql_sha256": "af9e67ff48c52d1e1516274b245a8352d150a303d10e69d926ced0994f04cd49",
+    "evidence_scope": "Receipt+committed guarded SQL+complete classification/candidate comparison; forensic raw row counts intentionally include exclusions."
+  },
+  "docker_services": {
+    "status": "PASS",
+    "verification_basis": "Successful privileged apply evidence; no duplicate Docker socket access required.",
+    "post_apply_evidence_at": "2026-10-29T01:59:43.423007+00:00",
+    "services": [
+      {
+        "name": "/proptech-selfhost-reverse_proxy-1",
+        "id": "4afae9a40e6e1e793c5c1c0db116605ad02a5e3e51f37e6646cfc9600623991a",
+        "image": "sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5",
+        "pre_apply_health": "healthy",
+        "post_apply_check": "Docker restart/wait_healthy and current HTTP contracts PASS"
+      },
+      {
+        "name": "/proptech-selfhost-api-1",
+        "id": "ec5f86ee56c661940c5edeecb17fde9fa5610ce3ba494dfb21f7e9c57854ade7",
+        "image": "sha256:9d563647cf1ea2788f86be46b54a8420b2fe0bd0c0bbb5c7a2ba0b4d474f353e",
+        "pre_apply_health": "healthy",
+        "post_apply_check": "Docker wait_healthy and current HTTP contracts PASS"
+      },
+      {
+        "name": "/proptech-selfhost-postgres_usage-1",
+        "id": "002d3a646fe2ab369d415655a044c5ea5d8db5f2eb362ea5ac65c3f6e54f59ad",
+        "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+        "pre_apply_health": "healthy",
+        "post_apply_check": "Retained container identity, TLS SQL/private-network checks PASS"
+      },
+      {
+        "name": "/proptech-selfhost-postgres_app-1",
+        "id": "bd8ceb47493d2ead5b5eb089d03fb566a0850b3c71237b32a7fa182c1cddd736",
+        "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+        "pre_apply_health": "healthy",
+        "post_apply_check": "Retained container identity, TLS SQL/private-network checks PASS"
+      }
+    ],
+    "database_containers": {
+      "proptech_api_usage": "002d3a646fe2ab369d415655a044c5ea5d8db5f2eb362ea5ac65c3f6e54f59ad",
+      "proptech_app": "bd8ceb47493d2ead5b5eb089d03fb566a0850b3c71237b32a7fa182c1cddd736",
+      "proptech_valuation": "bd8ceb47493d2ead5b5eb089d03fb566a0850b3c71237b32a7fa182c1cddd736"
+    },
+    "api_published_ports": false,
+    "postgres_published_ports": false,
+    "postgres_networks_internal": true,
+    "reverse_proxy_binding": "127.0.0.1:8080"
+  },
+  "deployment": {
+    "operator_host_runtime_apply_reported": true,
+    "agent_host_runtime_changes": false,
+    "dns_changes": false,
+    "vercel_changes": false,
+    "cloud_run_changes": false,
+    "render_changes": false,
+    "tunnel_created": false,
+    "paid_provider_calls_by_acceptance": 0,
+    "market_ops_invocations_by_acceptance": 0,
+    "pushed": false,
+    "operator_host_runtime_apply_verified": true,
+    "paid_providers_enabled": false,
+    "market_ops_enabled": false
+  },
+  "blockers": [],
+  "tests": {
+    "final_full_suite": {
+      "passed": 4260,
+      "skipped": 149,
+      "failed": 0,
+      "warnings": 191,
+      "seconds": 170.14,
+      "command": "python -m pytest -q (pinned Node24 + venv PATH)",
+      "scope": "full suite before final probe HTTP503 status correction; focused regression check follows"
+    },
+    "initial_full_suite": {
+      "passed": 4242,
+      "skipped": 149,
+      "failed": 11,
+      "failure_cause": "System Node22 compiled without TypeScript support (10), venv python absent from PATH (1)."
+    },
+    "runner": "PATH=/tmp/proptech-node/node-v24.21.0-linux-x64/bin:/tmp/proptech-integration-venv/bin:$PATH python -m pytest -q",
+    "provider_network_calls_in_local_tests": 0,
+    "live_paid_e2e": false,
+    "final_focused_regressions": {
+      "passed": 23,
+      "failed": 0,
+      "files": [
+        "tests/test_professor_local_api_acceptance.py",
+        "tests/test_local_dataset_inventory.py",
+        "tests/test_local_terrain_artifacts.py"
+      ]
+    },
+    "python_compile_check": "PASS",
+    "git_diff_check": "PASS",
+    "override_safety_assertions": "PASS",
+    "historical_evidence_only": true,
+    "full_suite_rerun_during_final_acceptance": false,
+    "prior_repair_focused_regressions": {
+      "passed": 131,
+      "failed": 0,
+      "warnings": 1,
+      "evidence": "failed-apply-diagnosis.json"
+    },
+    "fresh_final_checks": [
+      "49-file success-evidence inspection; protected configuration values not decoded",
+      "17application/migration hashes and copied image code verified",
+      "backup SHA256,size and TOC receipt verified",
+      "complete SQL-candidate/classification equality and guard checks",
+      "12ordinary loopback API contracts",
+      "listener boundaries",
+      "frontend hash and commit exclusion"
+    ],
+    "fresh_evidence_verification": "PASS"
+  },
+  "evidence_files": [
+    "acceptance.json",
+    "api-acceptance.json",
+    "final-live-api-acceptance.json",
+    "final-local-security-checks.json",
+    "failed-apply-diagnosis.json",
+    "reference-artifact-validation.json",
+    "archive-validation.json",
+    "source-reference-inventory.json"
+  ],
+  "handoff": "docs/operations/professor-server-final-handoff.md",
+  "final_acceptance_checks": {
+    "status": "PASS",
+    "strict_api_contracts_passed": 12,
+    "nlsc_ris_contracts_passed": true,
+    "public_postgres_listener": false,
+    "port_8080_loopback_only": true,
+    "frontend_file_preserved": true,
+    "protected_host_database_evidence_readable": true,
+    "full_test_suite_rerun": false,
+    "apply_script_rerun": false,
+    "implementation_changed_during_closure": false,
+    "json_and_diff_checks": "PASS"
+  },
+  "overall_status_scope": "Stage 1: supported local runtime/data/DB integration and explicitly accepted archive-only datasets; optional provider activation and public/frontend acceptance are later stages.",
+  "local_frontend_acceptance_ready_meaning": "Ready to BEGIN local frontend acceptance; frontend acceptance itself is not completed.",
+  "market_read_model": {
+    "status": "PASS",
+    "active_aggregate_groups": 7500,
+    "canonical_coverage_entries": 368,
+    "persisted_coverage_consistency": true,
+    "source_coverage_status": "partial",
+    "nationwide_complete_claimed": false,
+    "raw_transactions_deleted": false,
+    "guard": "coverage_reconciliation_mismatch must not occur before commit"
+  },
+  "dataset_runtime": {
+    "mounts": [
+      {
+        "type": "bind",
+        "source": "/srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/nlsc/village-boundary/v1/features.json.gz",
+        "target": "/srv/proptech/datasets/processed/nlsc/village-boundary/v1/features.json.gz",
+        "read_only": true,
+        "bind": {
+          "create_host_path": false
+        }
+      },
+      {
+        "type": "bind",
+        "source": "/srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/wra/flood/v1",
+        "target": "/srv/proptech/datasets/wra/flood/v1",
+        "read_only": true,
+        "bind": {
+          "create_host_path": false
+        }
+      }
+    ],
+    "mount_proof": "Planned overrides validated against effective Compose before API recreation; post-recreation image/mount checks completed before PASS.",
+    "nlsc_sha256": "1b1db799708e61ee337d1ac6ae0fa359eafd8c28b8cf297d80b0c83cb5a2b03d",
+    "nlsc_features": 7691,
+    "wra_scenarios_verified": 10,
+    "wra_r2_calls_in_verified_local_mode": 0,
+    "x9_needed_for_ordinary_runtime": false
+  },
+  "runtime_guards": {
+    "ANTI_ABUSE_GEOCODING_DISABLED": "true",
+    "ANTI_ABUSE_PLACES_DISABLED": "true",
+    "ANTI_ABUSE_ROUTES_DISABLED": "true",
+    "ANTI_ABUSE_SATELLITE_DISABLED": "true",
+    "ANTI_ABUSE_LOCATION_DISABLED": "true",
+    "ANTI_ABUSE_PARCEL_DISABLED": "true",
+    "ANTI_ABUSE_ARDSWC_DISABLED": "true",
+    "ANTI_ABUSE_LIQUEFACTION_DISABLED": "true",
+    "ANTI_ABUSE_NLSC_DISABLED": "true",
+    "ANTI_ABUSE_TGOS_DISABLED": "true",
+    "PLVR_SERVING_EXCLUSIONS_ENABLED": "true",
+    "POSTGRES_SSLMODE": "verify-full",
+    "ANTI_ABUSE_MARKET_OPS_DISABLED": "true",
+    "EARTH_ENGINE_SATELLITE_REFERENCE_V1": "false",
+    "WRA_FLOOD_LOCAL_ROOT": "/srv/proptech/datasets/wra/flood/v1"
+  },
+  "postgres_security": {
+    "status": "PASS",
+    "tls_version": "TLSv1.3",
+    "certificate_verification": "verify-full",
+    "app_ris_select_only": true,
+    "valuation_role": "valuation_runtime",
+    "valuation_database": "proptech_valuation",
+    "valuation_select_only_objects": 9,
+    "valuation_privileges": {
+      "SELECT": true,
+      "INSERT": false,
+      "UPDATE": false,
+      "DELETE": false,
+      "TRUNCATE": false,
+      "TRIGGER": false
+    },
+    "valuation_role_attributes": {
+      "LOGIN": true,
+      "SUPERUSER": false,
+      "BYPASSRLS": false,
+      "CREATEDB": false,
+      "CREATEROLE": false,
+      "REPLICATION": false
+    },
+    "valuation_public_schema_create": false,
+    "usage_tls_and_health": "PASS",
+    "postgres_host_listener": false
+  },
+  "stage_1_blockers": [],
+  "later_stage_blockers": [
+    {
+      "stage": "Stage 2",
+      "item": "Local frontend acceptance",
+      "detail": "Server is ready for the frontend acceptance run; browser/user-flow acceptance has not been performed."
+    },
+    {
+      "stage": "Optional provider activation",
+      "item": "GSMMA sensitivity",
+      "detail": "Production-schema immutable artifact/version/provenance is absent."
+    },
+    {
+      "stage": "Optional provider activation",
+      "item": "ARDSWC",
+      "detail": "Copied115-year datasets lack reviewed equivalence to113-public-mvt runtime semantics."
+    },
+    {
+      "stage": "Optional provider activation",
+      "item": "Liquefaction",
+      "detail": "Resolve snapshot checksum/geometry/provenance limitations before local runtime support."
+    },
+    {
+      "stage": "Public/production acceptance",
+      "item": "Ingress and hosting",
+      "detail": "Separate review/authorization for public ingress,authentication/abuse boundaries,CORS and Vercel/cloud hosting. No production-readiness claim."
+    },
+    {
+      "stage": "Operational resilience",
+      "item": "Restore rehearsal",
+      "detail": "Verify backup restoration into an isolated target before production operation; archive checksum/TOC checks already passed."
+    }
+  ],
+  "successful_apply_evidence_review": {
+    "status": "PASS",
+    "verified_at": "2026-10-29T02:28:24.509893+00:00",
+    "files_inspected": 49,
+    "private_configuration_values_decoded": false,
+    "protected_files_copied_into_git": false,
+    "hashes": {
+      "acceptance.json": "e4fd4d0c313ee1b696f3ef453e82b87ba4874c1149429b9b1413e40b42a21182",
+      "api-acceptance.json": "7f5d2f6f4aa74b679ccff989e8c0cd0be59052e2dc88f2297424629f580122fe",
+      "application-sha256.json": "326206c08fcf6302166910217f1e55b0f11f8dfd1e948705a29a401bb06ca79b",
+      "apply-report.json": "e4fd4d0c313ee1b696f3ef453e82b87ba4874c1149429b9b1413e40b42a21182",
+      "apply-valuation.sql": "af9e67ff48c52d1e1516274b245a8352d150a303d10e69d926ced0994f04cd49",
+      "backup-verification.json": "e842ce20afd8bea503d2578cea310f4e3f784209ec876b2e85e7550347530169",
+      "local-artifact-verification.json": "8bce9214fb279035e1d9e0056656445e738fab2404fd8906354eea70d5b0dd52",
+      "planned-datasets.override.yml": "5f884db3c1bd9bcda180d40e26ed0eeb9f93dff47fe80e8389460cf7ecf09f0c",
+      "planned-local-frontend.override.yml": "73b27b4cbdf5fa12a7887aba4d992ff8438eec5df1f3de4fa3648e06b5b3ffe7",
+      "reconciliation/classifications.jsonl": "8fe1bea74ca473b8a93a369f522a8cfff48e627571ecacac6b2122fa4ff0b53a",
+      "reconciliation/raw-file-sha256.jsonl": "5045548879d90c2eaca3c8eb053d0a8c9331711628e79bf7bc89cf8f1d830f27",
+      "reconciliation/summary.json": "954bfdd8117d1b16e385ebaa08b9f3e624d7cb0a3ab0427ebc6be6fcd387c87a",
+      "security-after.json": "fd06fc35c5a68fe4167105ad8a8ed659bb01505e016710ff003cb6d1df48b002",
+      "serving-before.jsonl": "8d673a1f0eec2f2055880df8ac1ebb52dfb659717c9dc603a9e3ebde4952dafe",
+      "valuation-before.dump": "ea91d564b345e9efdc75c2b9060a8fe435a1b3d29078d504e35080ef01460dfe"
+    },
+    "application_files_verified": 17,
+    "classification_output_matches_independently_verified_reference": true,
+    "raw_file_hash_manifest_matches_original_reference": true,
+    "sql_candidates_exactly_unique_matches": true,
+    "database_guard_markers": [
+      "coverage_reconciliation_mismatch",
+      "current_serving_snapshot_changed",
+      "known_row_retention_or_exclusion_failed",
+      "known_transaction_not_unique",
+      "prior_exclusion_evidence_conflicts"
+    ],
+    "sudo_used": false,
+    "docker_socket_used": false,
+    "apply_rerun": false
+  },
+  "final_live_checks": {
+    "status": "PASS",
+    "checked_at": "2026-10-29T02:28:40.820513+00:00",
+    "checks": {
+      "/health": {
+        "status": "PASS",
+        "result": "ok"
+      },
+      "/readiness": {
+        "status": "PASS",
+        "result": "ready"
+      },
+      "ris": {
+        "status": "PASS",
+        "population": 6134,
+        "households": 3834,
+        "month": "11507"
+      },
+      "nlsc_ris": {
+        "status": "PASS",
+        "district_code": "65000050016",
+        "population": 6134,
+        "freshness_status": "stale"
+      },
+      "forensic_population": {
+        "status": "PASS",
+        "official_records_count": 451672,
+        "sample_records_count": 72,
+        "freshness_status": "aging",
+        "is_full_taiwan": false
+      },
+      "valuation": {
+        "status": "PASS",
+        "valuation_status": "available",
+        "query_status": "ok"
+      },
+      "trend": {
+        "status": "PASS",
+        "trend_status": "available",
+        "query_status": "ok"
+      },
+      "finder": {
+        "status": "PASS",
+        "search_status": "available",
+        "query_status": "ok"
+      },
+      "market_road": {
+        "status": "PASS",
+        "data_status": "available",
+        "coverage_status": "covered",
+        "transaction_count": 370,
+        "average_unit_price": 44.71,
+        "reason_code": null
+      },
+      "market_special_period": {
+        "status": "PASS",
+        "data_status": "no_data",
+        "coverage_status": "covered",
+        "transaction_count": null,
+        "average_unit_price": null,
+        "reason_code": "market_summary_missing"
+      },
+      "wra_matched": {
+        "status": "PASS",
+        "matched": true,
+        "level": "medium",
+        "storage_backend": "local",
+        "artifact_sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631"
+      },
+      "wra_no_match": {
+        "status": "PASS",
+        "matched": false,
+        "level": "unknown",
+        "storage_backend": "local",
+        "artifact_sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631"
+      }
+    },
+    "http_contract_count": 12,
+    "postgres_host_listener": false,
+    "port8080_binding": "127.0.0.1:8080",
+    "frontend_hash_preserved": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+    "frontend_excluded_from_commit": true,
+    "sudo_used": false,
+    "docker_socket_used": false,
+    "apply_rerun": false,
+    "paid_e2e": false,
+    "full_test_suite_rerun": false
+  },
+  "superseded_evidence_notes": "The earlier PARTIAL report in0a48437 and final-local-security-checks.json describe the prior evidence-access block. This verified success-evidence review closes that block; historical probe/test artifacts are retained without rewriting them.",
+  "implementation_files_in_0a48437": [
+    "database/migrations/023_add_market_serving_exclusions.sql",
+    "docs/operations/professor-server-final-handoff.md",
+    "reports/professor-final-integration/acceptance.json",
+    "reports/professor-final-integration/api-acceptance.json",
+    "reports/professor-final-integration/failed-apply-diagnosis.json",
+    "reports/professor-final-integration/final-live-api-acceptance.json",
+    "reports/professor-final-integration/final-local-security-checks.json",
+    "scripts/ops/professor_server_privileged_apply.sh",
+    "scripts/ops/professor_server_privileged_apply.DRYRUN.md",
+    "scripts/ops/reconcile_plvr_special_notes.py",
+    "services/market_segmentation_service.py",
+    "services/plvr_market_aggregate_service.py",
+    "services/plvr_serving_quality.py",
+    "services/valuation_providers/postgres_provider.py",
+    "tests/test_plvr_serving_quality.py",
+    "tests/test_plvr_serving_quality_postgres.py",
+    "tests/test_professor_privileged_apply_static.py"
+  ],
+  "changed_files": [
+    "reports/professor-final-integration/acceptance.json",
+    "docs/operations/professor-server-final-handoff.md"
+  ]
+}

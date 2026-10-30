@@ -1,7 +1,7 @@
 """Phase 3A runtime loader for WRA flood potential processed artifacts.
 
 This module is a *read-only* runtime that loads immutable processed artifacts
-from Cloudflare R2 (``processed/wra/flood/v1/{scenario}/``), verifies their
+from an explicit local root or Cloudflare R2 (``processed/wra/flood/v1/{scenario}/``), verifies their
 integrity against the manifest ``artifact_sha256``, decodes them into Phase 1
 :class:`~services.wra_flood_offline_dataset.FloodFeature` objects (reusing the
 existing WKB/gzip/JSON deserialization in :mod:`services.wra_flood_artifact` --
@@ -38,7 +38,7 @@ import math
 import os
 import re
 import threading
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Optional, Protocol
 
 from shapely.geometry import Point
@@ -172,6 +172,7 @@ class LoadedScenario:
     geometries: list[Any]
     tree: STRtree
     feature_count: int
+    storage_backend: str = "r2"
 
     def status(self) -> str:
         return "loaded"
@@ -234,7 +235,7 @@ def _get_object_bytes(client: R2Client, bucket: str, key: str) -> bytes:
         response = client.get_object(Bucket=bucket, Key=key)
     except Exception as exc:  # noqa: BLE001 - normalize to a failure status
         # boto3 raises ClientError (incl. 404 NoSuchKey) and connection errors.
-        raise SourceUnavailableError(f"R2 GET failed for {key}: {exc}") from exc
+        raise SourceUnavailableError(f"artifact read failed: {type(exc).__name__}") from exc
 
     body = response.get("Body")
     if body is None:
@@ -346,9 +347,10 @@ class WraFloodRuntime:
     once (single-flight), while different scenarios can still load in parallel.
     """
 
-    def __init__(self, client_factory=build_default_r2_client, *, bucket: Optional[str] = None) -> None:
+    def __init__(self, client_factory=build_default_r2_client, *, bucket: Optional[str] = None, local_root: str | os.PathLike[str] | None = None) -> None:
         self._client_factory = client_factory
         self._bucket = bucket
+        self._local_root = local_root if local_root is not None else os.environ.get("WRA_FLOOD_LOCAL_ROOT")
         self._cache: dict[str, LoadedScenario] = {}
         self._registry_lock = threading.Lock()
         self._scenario_locks: dict[str, threading.Lock] = {}
@@ -406,9 +408,16 @@ class WraFloodRuntime:
             if cached is not None:
                 return cached
 
-            client = self._get_client()
-            bucket = self._resolve_bucket()
-            loaded = _load_scenario_uncached(scenario, client, bucket)
+            if self._local_root is not None:
+                from services.local_artifact_store import LocalArtifactStore
+                try:
+                    client = LocalArtifactStore(self._local_root, RELEASE_PREFIX)
+                except (OSError, ValueError) as exc:
+                    raise SourceUnavailableError("invalid local artifact root", scenario=scenario) from exc
+                loaded = replace(_load_scenario_uncached(scenario, client, "local"), storage_backend="local")
+            else:
+                client = self._get_client()
+                loaded = _load_scenario_uncached(scenario, client, self._resolve_bucket())
             self.cold_load_count += 1
             with self._registry_lock:
                 self._cache[scenario] = loaded
@@ -453,6 +462,7 @@ class WraFloodRuntime:
 def _query_loaded(loaded: LoadedScenario, lon: float, lat: float) -> dict[str, Any]:
     point = Point(float(lon), float(lat))
     provenance = {
+        "storage_backend": loaded.storage_backend,
         "dataset_version": "v1",
         "artifact_sha256": loaded.artifact_sha256,
         "source_vintage": loaded.manifest.get("source_vintage") or "unknown",

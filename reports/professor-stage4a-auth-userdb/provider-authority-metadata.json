@@ -1,0 +1,22 @@
+{
+  "schema": "professor-supabase-authority-metadata-v1",
+  "observed_at": "2026-10-30T03:28:04.448280+00:00",
+  "method": "connected Supabase SELECT aggregate only; no identity row or credential export",
+  "project_ref": "flyhsjcynreuofbcdxod",
+  "project_name": "proptech-valuation-db",
+  "project_status": "ACTIVE_HEALTHY",
+  "auth_users": 1,
+  "confirmed_users": 1,
+  "prior_signin_users": 1,
+  "banned_users": 0,
+  "deleted_users": 0,
+  "anonymous_users": 0,
+  "subject_storage_type": "uuid",
+  "legacy_account_authority_present": false,
+  "legacy_workspace_cases_present": false,
+  "cloud_writes": false,
+  "credential_values_returned": false,
+  "user_ids_or_emails_exported": false,
+  "authenticated_audience_users": 1,
+  "authenticated_role_users": 1
+}

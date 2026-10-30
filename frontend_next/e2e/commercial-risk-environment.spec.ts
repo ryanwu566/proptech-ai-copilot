@@ -146,7 +146,7 @@ test("risk refresh blocks duplicate same-turn submit and disclosure remains free
   finish();
   await page.getByTestId("risk-details").locator("summary").first().click();
   await expect(page.getByRole("table", { name: "風險證據表" })).toBeVisible();
-  await page.getByText("衛星影像參考（輔助證據）").click();
+  await page.getByText("地表影像參考（輔助證據）").click();
   await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
   expect(satelliteCalls).toBe(0);
   await page.reload();
@@ -206,7 +206,7 @@ test("fresh query leads with buyer cards and keeps full evidence and source deta
 
   await page.getByText("來源與方法詳情").click();
   await expect(page.getByTestId("risk-source-records")).toContainText("地質敏感區範圍數值檔");
-  await page.getByText("衛星影像參考（輔助證據）").click();
+  await page.getByText("地表影像參考（輔助證據）").click();
   await expect(page.getByTestId("satellite-evidence-card")).toBeVisible();
 
   await page.reload();
@@ -270,7 +270,7 @@ test("NO COVERAGE stays distinct from UNAVAILABLE and card disclosures make zero
   }
   await page.getByTestId("risk-details").locator("summary").first().click();
   await page.getByText("來源與方法詳情", { exact: true }).click();
-  await page.getByText("衛星影像參考（輔助證據）", { exact: true }).click();
+  await page.getByText("地表影像參考（輔助證據）", { exact: true }).click();
   await expect(page.getByTestId("satellite-evidence-status")).toHaveAttribute("data-status", "not_run");
   expect(calls).toBe(1);
   expect(providers.length).toBe(afterQuery);

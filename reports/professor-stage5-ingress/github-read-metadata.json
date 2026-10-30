@@ -1,0 +1,22 @@
+{
+  "schema": "professor-stage5-github-read-metadata-v1",
+  "repository": "ryanwu566/proptech-ai-copilot",
+  "default_branch": "main",
+  "remote_main": "9cc40d645757af4513d9afdf0c008939cc489a77",
+  "latest_sampled_workflow": [
+    {
+      "path": ".github/workflows/hosted-production-smoke.yml",
+      "head_sha": "9cc40d645757af4513d9afdf0c008939cc489a77",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "connector_repository_read_available": true,
+  "connector_secrets_api": "UNSUPPORTED_EXPLICIT_TOOL_CAPABILITY",
+  "repository_environment_org_secret_names_collected": false,
+  "workflow_logs_downloaded": false,
+  "secret_or_variable_values_requested": false,
+  "remote_mutations": false,
+  "source_scope": "Repository/branch/workflow-run metadata only; does not establish deployed credentials",
+  "local_commits_pushed": false
+}

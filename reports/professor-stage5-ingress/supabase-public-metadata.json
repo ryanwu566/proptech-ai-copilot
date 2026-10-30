@@ -1,0 +1,19 @@
+{
+  "schema": "professor-stage5-supabase-public-metadata-v1",
+  "project_ref": "flyhsjcynreuofbcdxod",
+  "project_url": "https://flyhsjcynreuofbcdxod.supabase.co",
+  "project_url_matches_accepted_authority": true,
+  "edge_function_count": 0,
+  "tools_used": [
+    "supabase_get_project_url",
+    "supabase_list_edge_functions"
+  ],
+  "key_or_user_endpoints_called": false,
+  "sql_or_user_mutations": false,
+  "identity_provider_unchanged": true,
+  "observation_scope": "public project URL and empty function metadata only; no key-presence or full Supabase configuration audit claim",
+  "sources": [
+    "https://supabase.com/docs/guides/auth/jwts",
+    "https://supabase.com/changelog"
+  ]
+}

@@ -125,10 +125,10 @@ def test_registry_freezes_every_historical_migration_exactly_once() -> None:
     registrations = load_registry()
     actual_files = {path.name for path in MIGRATION_DIRECTORY.glob("*.sql")}
 
-    assert len(registrations) == len(actual_files) == 23
+    assert len(registrations) == len(actual_files) == 24
     assert {item.filename for item in registrations} == actual_files
     assert len({item.logical_id for item in registrations}) == len(registrations)
-    assert [item.registry_order for item in registrations] == list(range(1, 24))
+    assert [item.registry_order for item in registrations] == list(range(1, 25))
     assert [item.filename for item in registrations][1:3] == [
         "002_add_market_direct_query_indexes.sql",
         "002_expand_valuation_import_runs.sql",
@@ -188,7 +188,7 @@ def test_registry_checksum_is_stable_across_checkout_line_endings(tmp_path: Path
 def test_registry_allocates_next_sequence_after_admin_control_plane() -> None:
     registrations = load_registry()
 
-    assert next_safe_sequence(registrations) == 23
+    assert next_safe_sequence(registrations) == 24
     assert sum(item.filename.startswith("013_") for item in registrations) == 1
     assert sum(item.filename.startswith("014_") for item in registrations) == 1
     assert sum(item.filename.startswith("015_") for item in registrations) == 1
@@ -203,8 +203,8 @@ def test_dry_run_reports_frozen_registry_and_next_allocation() -> None:
     assert result == {
         "status": "ready",
         "migration_count": 18,
-        "registry_count": 23,
-        "next_migration_sequence": "023",
+        "registry_count": 24,
+        "next_migration_sequence": "024",
         "mode": "dry_run",
     }
 

@@ -1,0 +1,1274 @@
+{
+  "schema": "professor-stage2-final-activation-evidence-v1",
+  "accepted_at": "2026-10-29T11:53:11.889057+00:00",
+  "status": "PASS",
+  "stage2_complete": true,
+  "scope": "Professor Server current local profile; no public ingress or frontend migration acceptance",
+  "private_evidence": "/var/backups/proptech-selfhost/stage2-activation/20261029T114148Z-b7ae118d6efa",
+  "sanitized_receipt": "/tmp/professor-stage2-activation-1a7f601581fe4939a107cfe6b6d33d29",
+  "receipt_files_sha256": {
+    "acceptance.json": "2490a15712b00498e823cd994f9fa937b79faf610ce5970c1087248f5b7fed88",
+    "api-before.json": "9f19289757d261ce6c166f810f8f6d7332e24144bfba1fd3ba9d61e6cd215397",
+    "api-direct-after.json": "9f19289757d261ce6c166f810f8f6d7332e24144bfba1fd3ba9d61e6cd215397",
+    "api-loopback-after.json": "9f19289757d261ce6c166f810f8f6d7332e24144bfba1fd3ba9d61e6cd215397",
+    "build.json": "dd21f5624269c283df1ce7dab3012f2807ce97bf654768a7723eca49f8b8b54a",
+    "candidate-artifacts.json": "48345b12a2bab4c84061c9ca87982390c119232884937466025a3f1ae03a2028",
+    "candidate-validation.json": "2a3e5846a2ca807717ab6637c852652fcd7dc0bcfe7d9cbeadd39be9c21b020d",
+    "change-plan.json": "79112d203b0620ea79e86601883e3ed125ff0de740150a803e8a8f1f5d891760",
+    "containers-after.json": "26ee83bf16db4dff374df9d42aa75cafb24c2c952bd4f7e41489c25040089482",
+    "containers-before.json": "82d25a2cd432ffb0602d1b8a7363eb53baff75ae81b73334d5fb8e68e84fc9cd",
+    "database-after.json": "f05c343a77be25efddf3d25fb99dc6fdf19d1e24a9a93bf3f9116d0fcba0193e",
+    "database-before.json": "f05c343a77be25efddf3d25fb99dc6fdf19d1e24a9a93bf3f9116d0fcba0193e",
+    "host-validation.json": "4d2e9fb7db40055611487c67a96183302460e4679aa0522030238fa51c2ddc2f",
+    "image-scan.json": "61ded139c53b0fc17b499977f8a4c905904d441161880e9124de418b0eaa7b0c",
+    "secret-host-metadata.json": "aa8fbc0661fbfc30bc61d8713c308bbbbf892ed10c66b2f35ce3aec8db259839",
+    "secret-mounts-after.json": "51ac0fcea38bc1a13359f2fc4a50968bfd209130b198f1d331f45681272e1d46"
+  },
+  "operator_receipt": {
+    "acceptance.json": {
+      "api_image_id": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+      "completed_at": "2026-10-29T11:49:11.907533+00:00",
+      "configuration_override": "/etc/proptech-selfhost/stage2-secrets.override.yml",
+      "core_secret_mounts": 5,
+      "database_schema_or_source_mutations": false,
+      "health_readiness": true,
+      "loopback_8080": true,
+      "market_ops_disabled": true,
+      "normal_application_telemetry_may_write": true,
+      "original_compose_files_preserved": true,
+      "paid_providers_disabled": true,
+      "phase": "complete",
+      "postgresql_private": true,
+      "postgresql_secret_mounts_each": 1,
+      "production_ready": false,
+      "provider_activation": false,
+      "run_id": "20261029T114148Z-b7ae118d6efa",
+      "schema": "professor-stage2-activation-v1",
+      "source_commit": "d8a93492eb900550ce490990fade7726766b18da",
+      "source_frontend_preserved": true,
+      "stage2_complete": true,
+      "status": "PASS"
+    },
+    "api-before.json": {
+      "checks": [
+        {
+          "name": "health",
+          "status": "PASS"
+        },
+        {
+          "name": "readiness",
+          "status": "PASS"
+        },
+        {
+          "name": "demographics_village",
+          "status": "PASS"
+        },
+        {
+          "name": "demographics_location",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_status",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_estimate",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_trend",
+          "status": "PASS"
+        },
+        {
+          "name": "finder",
+          "status": "PASS"
+        },
+        {
+          "name": "market",
+          "status": "PASS"
+        },
+        {
+          "name": "market_known_special_period",
+          "status": "PASS"
+        },
+        {
+          "name": "wra_matched",
+          "status": "PASS"
+        },
+        {
+          "name": "wra_no_match",
+          "status": "PASS"
+        }
+      ],
+      "mode": "api",
+      "status": "PASS"
+    },
+    "api-direct-after.json": {
+      "checks": [
+        {
+          "name": "health",
+          "status": "PASS"
+        },
+        {
+          "name": "readiness",
+          "status": "PASS"
+        },
+        {
+          "name": "demographics_village",
+          "status": "PASS"
+        },
+        {
+          "name": "demographics_location",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_status",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_estimate",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_trend",
+          "status": "PASS"
+        },
+        {
+          "name": "finder",
+          "status": "PASS"
+        },
+        {
+          "name": "market",
+          "status": "PASS"
+        },
+        {
+          "name": "market_known_special_period",
+          "status": "PASS"
+        },
+        {
+          "name": "wra_matched",
+          "status": "PASS"
+        },
+        {
+          "name": "wra_no_match",
+          "status": "PASS"
+        }
+      ],
+      "mode": "api",
+      "status": "PASS"
+    },
+    "api-loopback-after.json": {
+      "checks": [
+        {
+          "name": "health",
+          "status": "PASS"
+        },
+        {
+          "name": "readiness",
+          "status": "PASS"
+        },
+        {
+          "name": "demographics_village",
+          "status": "PASS"
+        },
+        {
+          "name": "demographics_location",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_status",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_estimate",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation_trend",
+          "status": "PASS"
+        },
+        {
+          "name": "finder",
+          "status": "PASS"
+        },
+        {
+          "name": "market",
+          "status": "PASS"
+        },
+        {
+          "name": "market_known_special_period",
+          "status": "PASS"
+        },
+        {
+          "name": "wra_matched",
+          "status": "PASS"
+        },
+        {
+          "name": "wra_no_match",
+          "status": "PASS"
+        }
+      ],
+      "mode": "api",
+      "status": "PASS"
+    },
+    "build.json": {
+      "api_image": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+      "backend_image": "sha256:68d42ee94e13348f445beb634f988140003f68e1136e1baf7e7408cdedd381d7",
+      "base_digest": "python@sha256:aa943ce411423c7582288f18707ff66eddcbaeb510502d747a72aeb34f30d159",
+      "clean_committed_context": true,
+      "offline_install_build": true,
+      "private_registry_credentials_used": false,
+      "source_commit": "d8a93492eb900550ce490990fade7726766b18da"
+    },
+    "candidate-artifacts.json": {
+      "network_calls": 0,
+      "nlsc_sha256_verified": true,
+      "status": "PASS",
+      "wra": [
+        {
+          "features": 1254,
+          "scenario": "6h-150mm",
+          "sha256": "7998e29b02e5df83ae1ccb74e5116bd6631fc889232c4d18dbd5cc74b0b42058"
+        },
+        {
+          "features": 1651,
+          "scenario": "6h-250mm",
+          "sha256": "fb42111bd0ca4daecefdb956cb5066dc6b2742f3112336bc47a4dae116072ec7"
+        },
+        {
+          "features": 2038,
+          "scenario": "6h-350mm",
+          "sha256": "9e2036b069c6eb07d005f6dc694ced51974d98b0a1de6d1a328f25a34d4bb4ff"
+        },
+        {
+          "features": 1342,
+          "scenario": "12h-200mm",
+          "sha256": "fef6a949f96bc6068dfc8192713e6ba05456474681c9bff8b8ea9fbca6001d3e"
+        },
+        {
+          "features": 1692,
+          "scenario": "12h-300mm",
+          "sha256": "ac7f932b768ff966e1fb52730bc06a460349846b21bc77a414e4be78ea06fc85"
+        },
+        {
+          "features": 1977,
+          "scenario": "12h-400mm",
+          "sha256": "8cfecad748b3910c6aec9f4a36dfb616871676d1b0b645509d83df98281a1a38"
+        },
+        {
+          "features": 1204,
+          "scenario": "24h-200mm",
+          "sha256": "01e2ef43ff8f6c91d9b38cbf051feacad17eb86a2895bef9f7b8643a30ef1fc9"
+        },
+        {
+          "features": 1739,
+          "scenario": "24h-350mm",
+          "sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631"
+        },
+        {
+          "features": 2050,
+          "scenario": "24h-500mm",
+          "sha256": "2f25d1eb8613764b2187ff36692fd64c9d84cf8060f3d8a1107aebdd64cce5f9"
+        },
+        {
+          "features": 2356,
+          "scenario": "24h-650mm",
+          "sha256": "8712c21f606a38b0ab463bac6e61da04368a118f9ca57393abe055fa5092fa86"
+        }
+      ]
+    },
+    "candidate-validation.json": {
+      "configuration": {
+        "core_files": 5,
+        "guards": "disabled_operations_preserved",
+        "profile": "local",
+        "status": "pass",
+        "values_returned": false
+      },
+      "import_smoke": {
+        "app_import": true,
+        "build_commit": "d8a93492eb900550ce490990fade7726766b18da",
+        "status": "PASS"
+      },
+      "network": "none"
+    },
+    "change-plan.json": {
+      "api_image_after": "proptech-professor-api:stage2-20261029t114148z-b7ae118d6efa",
+      "changes": [
+        "Build from pinned official Python base, exact existing package versions, committed public source",
+        "Add one final /etc override; preserve existing four configs and all databases",
+        "Renew API five secret inodes; PostgreSQL admin-only mounts",
+        "Stop proxy during maintenance; restart only after focused acceptance"
+      ],
+      "compose_files_after": [
+        "/home/andy/proptech-ai-copilot/docker-compose.selfhost.yml",
+        "/etc/proptech-selfhost/datasets.override.yml",
+        "/etc/proptech-selfhost/valuation.override.yml",
+        "/etc/proptech-selfhost/local-frontend.override.yml",
+        "/etc/proptech-selfhost/stage2-secrets.override.yml"
+      ],
+      "containers": {
+        "api": "ec5f86ee56c661940c5edeecb17fde9fa5610ce3ba494dfb21f7e9c57854ade7",
+        "postgres_app": "bd8ceb47493d2ead5b5eb089d03fb566a0850b3c71237b32a7fa182c1cddd736",
+        "postgres_usage": "002d3a646fe2ab369d415655a044c5ea5d8db5f2eb362ea5ac65c3f6e54f59ad",
+        "reverse_proxy": "4afae9a40e6e1e793c5c1c0db116605ad02a5e3e51f37e6646cfc9600623991a"
+      },
+      "evidence": "/var/backups/proptech-selfhost/stage2-activation/20261029T114148Z-b7ae118d6efa",
+      "market_ops_disabled": true,
+      "no_database_sql_mutation": true,
+      "optional_providers_disabled": true,
+      "proxy_restart_command": [
+        "docker",
+        "start",
+        "4afae9a40e6e1e793c5c1c0db116605ad02a5e3e51f37e6646cfc9600623991a"
+      ],
+      "recreate": [
+        "postgres_app",
+        "postgres_usage",
+        "api"
+      ],
+      "recreate_commands": [
+        [
+          "docker",
+          "compose",
+          "--project-name",
+          "proptech-selfhost",
+          "--project-directory",
+          "/home/andy/proptech-ai-copilot",
+          "--env-file",
+          "/etc/proptech-selfhost/compose.env",
+          "-f",
+          "/home/andy/proptech-ai-copilot/docker-compose.selfhost.yml",
+          "-f",
+          "/etc/proptech-selfhost/datasets.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/valuation.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/local-frontend.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/stage2-secrets.override.yml",
+          "up",
+          "-d",
+          "--no-deps",
+          "--no-build",
+          "--pull",
+          "never",
+          "--force-recreate",
+          "postgres_app"
+        ],
+        [
+          "docker",
+          "compose",
+          "--project-name",
+          "proptech-selfhost",
+          "--project-directory",
+          "/home/andy/proptech-ai-copilot",
+          "--env-file",
+          "/etc/proptech-selfhost/compose.env",
+          "-f",
+          "/home/andy/proptech-ai-copilot/docker-compose.selfhost.yml",
+          "-f",
+          "/etc/proptech-selfhost/datasets.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/valuation.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/local-frontend.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/stage2-secrets.override.yml",
+          "up",
+          "-d",
+          "--no-deps",
+          "--no-build",
+          "--pull",
+          "never",
+          "--force-recreate",
+          "postgres_usage"
+        ],
+        [
+          "docker",
+          "compose",
+          "--project-name",
+          "proptech-selfhost",
+          "--project-directory",
+          "/home/andy/proptech-ai-copilot",
+          "--env-file",
+          "/etc/proptech-selfhost/compose.env",
+          "-f",
+          "/home/andy/proptech-ai-copilot/docker-compose.selfhost.yml",
+          "-f",
+          "/etc/proptech-selfhost/datasets.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/valuation.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/local-frontend.override.yml",
+          "-f",
+          "/etc/proptech-selfhost/stage2-secrets.override.yml",
+          "up",
+          "-d",
+          "--no-deps",
+          "--no-build",
+          "--pull",
+          "never",
+          "--force-recreate",
+          "api"
+        ]
+      ],
+      "restart_only": [
+        "reverse_proxy"
+      ],
+      "rollback": "Original four-file compose, pinned old image IDs, same named volumes; proxy last after acceptance",
+      "secret_mounts_after": {
+        "api": [
+          "app_database_url",
+          "pilot_session_signing_key",
+          "usage_database_url",
+          "usage_peer_hmac_key",
+          "valuation_database_url"
+        ],
+        "postgres_app": [
+          "app_admin_password"
+        ],
+        "postgres_usage": [
+          "usage_admin_password"
+        ]
+      },
+      "source_commit": "d8a93492eb900550ce490990fade7726766b18da",
+      "stop_commands": [
+        [
+          "docker",
+          "stop",
+          "--time",
+          "30",
+          "4afae9a40e6e1e793c5c1c0db116605ad02a5e3e51f37e6646cfc9600623991a"
+        ],
+        [
+          "docker",
+          "stop",
+          "--time",
+          "30",
+          "ec5f86ee56c661940c5edeecb17fde9fa5610ce3ba494dfb21f7e9c57854ade7"
+        ]
+      ],
+      "unchanged_database_volumes": {
+        "postgres_app": [
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "Name": "proptech-selfhost_app_data",
+            "Propagation": "",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_app_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "postgres_usage": [
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "Name": "proptech-selfhost_usage_data",
+            "Propagation": "",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_usage_data/_data",
+            "Type": "volume"
+          }
+        ]
+      }
+    },
+    "containers-after.json": {
+      "api": {
+        "data_mount": [],
+        "health": "healthy",
+        "id": "089353992fa75928ecb2a9fbb0c4e28e58353634e640eda42666116152b77c07",
+        "image_id": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+        "mounts": [
+          {
+            "Destination": "/run/secrets/app_database_url",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/app_database_url",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/pilot_session_signing_key",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/pilot_session_signing_key",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/usage_database_url",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/usage_database_url",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/usage_peer_hmac_key",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/usage_peer_hmac_key",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/valuation_database_url",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/valuation_database_url",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/selfhost-ca/ca.crt",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/tls/ca.crt",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/srv/proptech/datasets/wra/flood/v1",
+            "RW": false,
+            "Source": "/srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/wra/flood/v1",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/srv/proptech/datasets/processed/nlsc/village-boundary/v1/features.json.gz",
+            "RW": false,
+            "Source": "/srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/nlsc/village-boundary/v1/features.json.gz",
+            "Type": "bind"
+          }
+        ],
+        "ports": {}
+      },
+      "postgres_app": {
+        "data_mount": [
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "Name": "proptech-selfhost_app_data",
+            "Propagation": "",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_app_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "health": "healthy",
+        "id": "9456474b254be7c758a0cf7db1552f45575e88d201d25c072e358937c7254f94",
+        "image_id": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+        "mounts": [
+          {
+            "Destination": "/docker-entrypoint-initdb.d/10-selfhost.sh",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/init-database.sh",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/postgres-tls",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/tls/app",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/etc/postgresql/pg_hba.conf",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/pg_hba.conf",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/app_admin_password",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/app_admin_password",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_app_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "ports": {}
+      },
+      "postgres_usage": {
+        "data_mount": [
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "Name": "proptech-selfhost_usage_data",
+            "Propagation": "",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_usage_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "health": "healthy",
+        "id": "52f546e8a5c574f79fc880a0785467270a9c2839637126ea56b516b603fc6d46",
+        "image_id": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+        "mounts": [
+          {
+            "Destination": "/docker-entrypoint-initdb.d/10-selfhost.sh",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/init-database.sh",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/postgres-tls",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/tls/usage",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/etc/postgresql/pg_hba.conf",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/pg_hba.conf",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/usage_admin_password",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/usage_admin_password",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_usage_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "ports": {}
+      },
+      "reverse_proxy": {
+        "data_mount": [],
+        "health": "healthy",
+        "id": "4afae9a40e6e1e793c5c1c0db116605ad02a5e3e51f37e6646cfc9600623991a",
+        "image_id": "sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5",
+        "mounts": [
+          {
+            "Destination": "/etc/nginx/nginx.conf",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/nginx.conf",
+            "Type": "bind"
+          }
+        ],
+        "ports": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "8080"
+            }
+          ]
+        }
+      }
+    },
+    "containers-before.json": {
+      "api": {
+        "data_mount": [],
+        "health": "healthy",
+        "id": "ec5f86ee56c661940c5edeecb17fde9fa5610ce3ba494dfb21f7e9c57854ade7",
+        "image_id": "sha256:9d563647cf1ea2788f86be46b54a8420b2fe0bd0c0bbb5c7a2ba0b4d474f353e",
+        "mounts": [
+          {
+            "Destination": "/run/secrets/app_database_url",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/app_database_url",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/pilot_session_signing_key",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/pilot_session_signing_key",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/usage_database_url",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/usage_database_url",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/usage_peer_hmac_key",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/usage_peer_hmac_key",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/valuation_database_url",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/valuation_database_url",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/selfhost-ca/ca.crt",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/tls/ca.crt",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/srv/proptech/datasets/wra/flood/v1",
+            "RW": false,
+            "Source": "/srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/wra/flood/v1",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/srv/proptech/datasets/processed/nlsc/village-boundary/v1/features.json.gz",
+            "RW": false,
+            "Source": "/srv/proptech-data/DB/Cloudflare R2/proptech-government-data/processed/nlsc/village-boundary/v1/features.json.gz",
+            "Type": "bind"
+          }
+        ],
+        "ports": {}
+      },
+      "postgres_app": {
+        "data_mount": [
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "Name": "proptech-selfhost_app_data",
+            "Propagation": "",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_app_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "health": "healthy",
+        "id": "bd8ceb47493d2ead5b5eb089d03fb566a0850b3c71237b32a7fa182c1cddd736",
+        "image_id": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+        "mounts": [
+          {
+            "Destination": "/docker-entrypoint-initdb.d/10-selfhost.sh",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/init-database.sh",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/postgres-tls",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/tls/app",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/etc/postgresql/pg_hba.conf",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/pg_hba.conf",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/app_admin_password",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/app_admin_password",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/app_runtime_password",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/app_runtime_password",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_app_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "ports": {}
+      },
+      "postgres_usage": {
+        "data_mount": [
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "Driver": "local",
+            "Mode": "rw",
+            "Name": "proptech-selfhost_usage_data",
+            "Propagation": "",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_usage_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "health": "healthy",
+        "id": "002d3a646fe2ab369d415655a044c5ea5d8db5f2eb362ea5ac65c3f6e54f59ad",
+        "image_id": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+        "mounts": [
+          {
+            "Destination": "/docker-entrypoint-initdb.d/10-selfhost.sh",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/init-database.sh",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/postgres-tls",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/tls/usage",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/etc/postgresql/pg_hba.conf",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/pg_hba.conf",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/usage_admin_password",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/usage_admin_password",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/run/secrets/usage_migration_password",
+            "RW": false,
+            "Source": "/run/proptech-selfhost/secrets/usage_migration_password",
+            "Type": "bind"
+          },
+          {
+            "Destination": "/var/lib/postgresql/data",
+            "RW": true,
+            "Source": "/var/lib/docker/volumes/proptech-selfhost_usage_data/_data",
+            "Type": "volume"
+          }
+        ],
+        "ports": {}
+      },
+      "reverse_proxy": {
+        "data_mount": [],
+        "health": "healthy",
+        "id": "4afae9a40e6e1e793c5c1c0db116605ad02a5e3e51f37e6646cfc9600623991a",
+        "image_id": "sha256:970364228b1e4f932abc22d321932816782cca8a20b85a77552a7cfe9acfb3b5",
+        "mounts": [
+          {
+            "Destination": "/etc/nginx/nginx.conf",
+            "RW": false,
+            "Source": "/home/andy/proptech-ai-copilot/infra/selfhost/nginx.conf",
+            "Type": "bind"
+          }
+        ],
+        "ports": {
+          "8080/tcp": [
+            {
+              "HostIp": "127.0.0.1",
+              "HostPort": "8080"
+            }
+          ]
+        }
+      }
+    },
+    "database-after.json": {
+      "checks": [
+        {
+          "name": "app",
+          "status": "PASS"
+        },
+        {
+          "name": "usage",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation",
+          "status": "PASS"
+        }
+      ],
+      "counts": {
+        "active_aggregates": 7500,
+        "coverage_regions": 368,
+        "eligible_regions": 322,
+        "exclusions": 117986,
+        "future_official_rows": 0,
+        "known_raw_rows": 1,
+        "known_row_and_exclusion_sha256": "af8b07359363aaba2c54ba04c8ef88d84cb8119a075a562938297b4dee4038c1",
+        "known_serving_rows": 0,
+        "official_rows": 451672,
+        "raw_rows": 451744,
+        "sample_rows": 72,
+        "zero_candidate_regions": 46
+      },
+      "mode": "database",
+      "status": "PASS"
+    },
+    "database-before.json": {
+      "checks": [
+        {
+          "name": "app",
+          "status": "PASS"
+        },
+        {
+          "name": "usage",
+          "status": "PASS"
+        },
+        {
+          "name": "valuation",
+          "status": "PASS"
+        }
+      ],
+      "counts": {
+        "active_aggregates": 7500,
+        "coverage_regions": 368,
+        "eligible_regions": 322,
+        "exclusions": 117986,
+        "future_official_rows": 0,
+        "known_raw_rows": 1,
+        "known_row_and_exclusion_sha256": "af8b07359363aaba2c54ba04c8ef88d84cb8119a075a562938297b4dee4038c1",
+        "known_serving_rows": 0,
+        "official_rows": 451672,
+        "raw_rows": 451744,
+        "sample_rows": 72,
+        "zero_candidate_regions": 46
+      },
+      "mode": "database",
+      "status": "PASS"
+    },
+    "host-validation.json": {
+      "least_privilege_modes": true,
+      "live_stage2_activation_certified": false,
+      "nonsecret_configuration": true,
+      "operation": "validate-host",
+      "provider_calls": 0,
+      "root_owned_files": true,
+      "status": "pass",
+      "tls_key_contents_read": false,
+      "tls_key_metadata_valid": true
+    },
+    "image-scan.json": {
+      "build_context_scanned": true,
+      "build_output_scanned_in_memory": true,
+      "coverage": "Known installed credential values, supported encodings/password variants and private-key signatures; not a proof against arbitrary unknown encodings",
+      "full_history_and_config_scanned": true,
+      "image_id": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+      "scan": {
+        "archive_members": 29,
+        "config_files": 2,
+        "format": "docker_oci",
+        "images": 1,
+        "layer_members": 21549,
+        "layers": 18
+      },
+      "status": "PASS"
+    },
+    "secret-host-metadata.json": {
+      "app_admin_password": {
+        "device": 28,
+        "gid": 70,
+        "inode": 110818,
+        "mode": "0o440",
+        "size": 64,
+        "uid": 0
+      },
+      "app_database_url": {
+        "device": 28,
+        "gid": 10001,
+        "inode": 110813,
+        "mode": "0o440",
+        "size": 115,
+        "uid": 0
+      },
+      "app_runtime_password": {
+        "device": 28,
+        "gid": 70,
+        "inode": 110819,
+        "mode": "0o440",
+        "size": 64,
+        "uid": 0
+      },
+      "pilot_session_signing_key": {
+        "device": 28,
+        "gid": 10001,
+        "inode": 110817,
+        "mode": "0o440",
+        "size": 64,
+        "uid": 0
+      },
+      "usage_admin_password": {
+        "device": 28,
+        "gid": 70,
+        "inode": 110820,
+        "mode": "0o440",
+        "size": 64,
+        "uid": 0
+      },
+      "usage_database_url": {
+        "device": 28,
+        "gid": 10001,
+        "inode": 110814,
+        "mode": "0o440",
+        "size": 137,
+        "uid": 0
+      },
+      "usage_migration_password": {
+        "device": 28,
+        "gid": 70,
+        "inode": 110821,
+        "mode": "0o440",
+        "size": 64,
+        "uid": 0
+      },
+      "usage_peer_hmac_key": {
+        "device": 28,
+        "gid": 10001,
+        "inode": 110816,
+        "mode": "0o440",
+        "size": 64,
+        "uid": 0
+      },
+      "valuation_database_url": {
+        "device": 28,
+        "gid": 10001,
+        "inode": 110815,
+        "mode": "0o440",
+        "size": 189,
+        "uid": 0
+      }
+    },
+    "secret-mounts-after.json": {
+      "api": {
+        "app_database_url": {
+          "device": 28,
+          "gid": 10001,
+          "inode": 110813,
+          "mode": "0o440",
+          "size": 115,
+          "uid": 0
+        },
+        "pilot_session_signing_key": {
+          "device": 28,
+          "gid": 10001,
+          "inode": 110817,
+          "mode": "0o440",
+          "size": 64,
+          "uid": 0
+        },
+        "usage_database_url": {
+          "device": 28,
+          "gid": 10001,
+          "inode": 110814,
+          "mode": "0o440",
+          "size": 137,
+          "uid": 0
+        },
+        "usage_peer_hmac_key": {
+          "device": 28,
+          "gid": 10001,
+          "inode": 110816,
+          "mode": "0o440",
+          "size": 64,
+          "uid": 0
+        },
+        "valuation_database_url": {
+          "device": 28,
+          "gid": 10001,
+          "inode": 110815,
+          "mode": "0o440",
+          "size": 189,
+          "uid": 0
+        }
+      },
+      "postgres_app": {
+        "app_admin_password": {
+          "device": 28,
+          "gid": 70,
+          "inode": 110818,
+          "mode": "0o440",
+          "size": 64,
+          "uid": 0
+        }
+      },
+      "postgres_usage": {
+        "usage_admin_password": {
+          "device": 28,
+          "gid": 70,
+          "inode": 110820,
+          "mode": "0o440",
+          "size": 64,
+          "uid": 0
+        }
+      }
+    }
+  },
+  "previous_mounted_api_inode_metadata": {
+    "app_database_url": {
+      "uid": 0,
+      "gid": 10001,
+      "mode": "0o440",
+      "device": 28,
+      "inode": 51310,
+      "size": 115
+    },
+    "usage_database_url": {
+      "uid": 0,
+      "gid": 10001,
+      "mode": "0o440",
+      "device": 28,
+      "inode": 51311,
+      "size": 137
+    },
+    "valuation_database_url": {
+      "uid": 0,
+      "gid": 10001,
+      "mode": "0o440",
+      "device": 28,
+      "inode": 55258,
+      "size": 189
+    },
+    "usage_peer_hmac_key": {
+      "uid": 0,
+      "gid": 10001,
+      "mode": "0o440",
+      "device": 28,
+      "inode": 51307,
+      "size": 65
+    },
+    "pilot_session_signing_key": {
+      "uid": 0,
+      "gid": 10001,
+      "mode": "0o440",
+      "device": 28,
+      "inode": 51308,
+      "size": 65
+    }
+  },
+  "final_checks": [
+    {
+      "item": "Successful controlled activation",
+      "status": "PASS",
+      "basis": "Root-owned sanitized acceptance receipt; operator reports exit 0."
+    },
+    {
+      "item": "Clean API image active",
+      "status": "PASS",
+      "basis": "Active container, build and scan identities agree; immutable official base and committed public source."
+    },
+    {
+      "item": "All four containers healthy",
+      "status": "PASS",
+      "basis": "containers-after.json."
+    },
+    {
+      "item": "Stage 2 profile active",
+      "status": "PASS",
+      "basis": "Activation PASS requires live Compose hashes to match the final five-file model before and after proxy restart."
+    },
+    {
+      "item": "Required API mounts and renewed inodes",
+      "status": "PASS",
+      "basis": "All five active root:10001 0440 files match staged metadata and differ from the previous mounted inodes."
+    },
+    {
+      "item": "postgres_app admin-only secret",
+      "status": "PASS",
+      "basis": "Exactly one root:70 0440 admin file; runtime/init role passwords removed from container mounts."
+    },
+    {
+      "item": "postgres_app volume preserved",
+      "status": "PASS",
+      "basis": "Container recreated against the same populated named volume and original PostgreSQL image."
+    },
+    {
+      "item": "postgres_usage admin-only secret",
+      "status": "PASS",
+      "basis": "Exactly one root:70 0440 admin file; runtime/init role passwords removed from container mounts."
+    },
+    {
+      "item": "postgres_usage volume preserved",
+      "status": "PASS",
+      "basis": "Container recreated against the same populated named volume and original PostgreSQL image."
+    },
+    {
+      "item": "Credential scan of image and build",
+      "status": "PASS",
+      "basis": "Streaming complete historical-layer and metadata/attestation scan; known installed values/variants and credential/private-key signatures. No universal claim about arbitrary unknown encodings."
+    },
+    {
+      "item": "Compose output and container logs scanned",
+      "status": "PASS",
+      "basis": "Reviewed runner scans captured Compose stdout/stderr in memory; scans all four full container logs before writing final PASS. No raw output persisted."
+    },
+    {
+      "item": "Clean-image configuration validated",
+      "status": "PASS",
+      "basis": "New entrypoint validates intended files and local guards inside isolated clean image; import/build identity smoke passes."
+    },
+    {
+      "item": "NLSC and WRA immutable local artifacts",
+      "status": "PASS",
+      "basis": "NLSC hash and all ten WRA manifest/hash/decode scenarios validated offline inside clean image."
+    },
+    {
+      "item": "Local datasets; ordinary runtime independent of X9",
+      "status": "PASS",
+      "basis": "Active read-only NLSC/WRA mounts use the verified server copy; no active service mount references X9."
+    },
+    {
+      "item": "Database TLS and least privilege",
+      "status": "PASS",
+      "basis": "Read-only TLS verify-full probes require exact nonprivileged login identities; app RIS and valuation objects SELECT-only; usage retains scoped RLS/writer permissions."
+    },
+    {
+      "item": "PLVR exclusions and coverage unchanged",
+      "status": "PASS",
+      "basis": "451744 rows, 451672 official, 72 sample, future official 0; row 38652 retained once and absent from serving; 117986 UNIQUE_MATCH exclusions; 7500 aggregates; 368 canonical regions, 322 eligible and 46 unknown; deterministic coverage/metadata checks pass."
+    },
+    {
+      "item": "api-direct-after.json",
+      "status": "PASS",
+      "basis": "health/readiness, village and NLSC→RIS, WRA hit/no-match, valuation status/estimate, trend, finder, Market and known special-period exclusion."
+    },
+    {
+      "item": "api-loopback-after.json",
+      "status": "PASS",
+      "basis": "health/readiness, village and NLSC→RIS, WRA hit/no-match, valuation status/estimate, trend, finder, Market and known special-period exclusion."
+    },
+    {
+      "item": "Private PostgreSQL and loopback 8080",
+      "status": "PASS",
+      "basis": "Activation verifies internal PostgreSQL networks, no API/DB published ports and loopback proxy binding."
+    },
+    {
+      "item": "market_ops and optional/paid providers disabled",
+      "status": "PASS",
+      "basis": "Exact merged local guard model validated before apply, inside clean image and through active configuration hashes."
+    },
+    {
+      "item": "Data safety boundaries",
+      "status": "PASS",
+      "basis": "Reviewed operator path has no block-device mutation, X9 source operation or database schema/source DML; storage guards reject /dev/sda backing; same volumes and facts. No block device opened during acceptance."
+    },
+    {
+      "item": "Frontend preserved",
+      "status": "PASS",
+      "basis": "Pre-existing working-tree modification preserved byte-for-byte; excluded from final commit."
+    },
+    {
+      "item": "Fresh nonprivileged listener check",
+      "status": "PASS",
+      "basis": "ss -lntH during final acceptance."
+    }
+  ],
+  "fresh_live_api_probe": {
+    "command": "python3 -B scripts/ops/professor_stage2_probe.py --api",
+    "exit_code": 0,
+    "status": "PASS",
+    "checks_passed": 12,
+    "basis": "Observed successful nonprivileged execution during this final acceptance turn; actual output contains only fixed check names/statuses."
+  },
+  "fresh_listeners": {
+    "postgresql": [],
+    "8080": [
+      "127.0.0.1:8080"
+    ]
+  },
+  "frontend_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+  "verification_limits": {
+    "direct_docker_socket_access": false,
+    "docker_and_database_evidence": "Operator-run root-owned sanitized receipts; not duplicated with privileged access.",
+    "secret_scanner_coverage": "Known installed credential values, supported encodings/password variants and private-key signatures; not a proof against arbitrary unknown encodings",
+    "no_forensic_block_device_scan": true
+  },
+  "actions_by_agent": {
+    "activation": false,
+    "secret_installation": false,
+    "image_build": false,
+    "sudo": false,
+    "actual_secret_values_read": false,
+    "providers_enabled": false,
+    "database_mutations": false,
+    "dev_sda_operations": 0,
+    "cloud_or_dns_changes": false,
+    "push": false
+  }
+}

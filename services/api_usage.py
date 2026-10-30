@@ -15,9 +15,10 @@ from services.production_identity import backend_identity
 from services.usage_principal import UsagePrincipal, verified_principal
 
 PROVIDERS = {"geocoding": "google_geocoding", "places": "google_places", "routes": "google_routes", "satellite": "earth_engine", "ardswc": "ardswc", "liquefaction": "geologycloud", "nlsc": "nlsc", "tgos": "tgos", "identity": "nlsc_cadastral"}
-PROVIDER_NAMES = frozenset({*PROVIDERS.values(), "none", "unknown", "tdx_mrt"})
+PROVIDER_NAMES = frozenset({*PROVIDERS.values(), "none", "unknown", "tdx_mrt", "nlsc_photo2", "csrsr_spot"})
 PROVIDER_COST_CLASSES = {"google_geocoding": "moderate", "google_places": "expensive", "google_routes": "expensive", "earth_engine": "very_expensive", "ardswc": "expensive", "geologycloud": "expensive", "nlsc": "expensive", "tgos": "moderate", "nlsc_cadastral": "expensive", "none": "not_applicable", "unknown": "unknown"}
 PROVIDER_COST_CLASSES["tdx_mrt"] = "unknown"
+PROVIDER_COST_CLASSES.update({"nlsc_photo2": "unknown", "csrsr_spot": "unknown"})
 # Only these HTTP pipelines have fully covered physical transport boundaries.
 # Composite analyses may include uninstrumented storage/DB/subprovider reads.
 COMPLETE_PROVIDER_CAPABILITIES = frozenset({"geocoding", "places", "routes", "satellite"})
@@ -249,6 +250,9 @@ def record_cost_event(capability, event, count, *, provider=None):
     # Unadmitted identity churn must not grow the durable telemetry namespace.
     # Durable quota rejections for existing subjects live in quota_hourly.
     identified = context is not None and not (event == "rejected_requests" and not context.request_admitted)
+    if provider is None and capability == "satellite":
+        from services.satellite_reference import selected_imagery_provider
+        provider = selected_imagery_provider()
     USAGE.observe(capability=capability, event=event, count=count,
                   principal_class=context.principal.principal_class if identified else "system",
                   principal_id=context.principal.principal_id if identified else "",

@@ -1,0 +1,43 @@
+{
+  "schema": "professor-required-provider-migration-v1",
+  "status": "REFUSED",
+  "values_returned": false,
+  "activation_performed": false,
+  "existing_api_recreated": false,
+  "provider_functional_tests": "NOT_RUN",
+  "new_provider_environment_or_live_mounts": false,
+  "paid_provider_calls": 0,
+  "phases": [],
+  "reason_code": "provider_guard_unavailable",
+  "provider_classification": {
+    "GOOGLE_MAPS_API_KEY": "MISSING",
+    "GOOGLE_APPLICATION_CREDENTIALS": "MISSING",
+    "TGOS_APP_ID": "MISSING",
+    "TGOS_API_KEY": "MISSING",
+    "TDX_CLIENT_ID": "MISSING",
+    "TDX_CLIENT_SECRET": "MISSING",
+    "R2_ACCESS_KEY_ID": "MISSING",
+    "R2_SECRET_ACCESS_KEY": "MISSING",
+    "OPENAI_API_KEY": "MISSING",
+    "EARTH_ENGINE_PROJECT": "MISSING",
+    "R2_ENDPOINT": "MISSING",
+    "R2_BUCKET": "MISSING",
+    "R2_REGION": "MISSING"
+  },
+  "filesystem_presence": {
+    "GOOGLE_MAPS_API_KEY": "ABSENT",
+    "GOOGLE_APPLICATION_CREDENTIALS": "ABSENT",
+    "TGOS_APP_ID": "ABSENT",
+    "TGOS_API_KEY": "ABSENT",
+    "TDX_CLIENT_ID": "ABSENT",
+    "TDX_CLIENT_SECRET": "ABSENT",
+    "R2_ACCESS_KEY_ID": "ABSENT",
+    "R2_SECRET_ACCESS_KEY": "ABSENT",
+    "OPENAI_API_KEY": "ABSENT",
+    "EARTH_ENGINE_PROJECT": "ABSENT",
+    "R2_ENDPOINT": "ABSENT",
+    "R2_BUCKET": "ABSENT",
+    "R2_REGION": "ABSENT"
+  },
+  "classification_scope": "MISSING means migration acceptance missing; consult filesystem_presence, UNKNOWN is not confirmed absence"
+}

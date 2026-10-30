@@ -31,6 +31,13 @@ POST_CAPABILITIES = {
 def capability(scope):
     path = scope["path"].rstrip("/")
     method = scope["method"]
+    # Stage 4A local data reuses existing bounded peer/principal request budgets.
+    # It never reserves a provider operation or enables a paid capability.
+    import os
+    if os.getenv('PROFESSOR_USERDB_ENABLED')=='true' and (
+        path in {'/v1/account','/v1/session','/v1/session/logout','/v1/profile','/v1/preferences','/v1/reports','/v1/saved-cases'}
+        or path.startswith(('/v1/reports/','/v1/saved-cases/'))):
+        return 'metadata'
     if method == "POST":
         if path in POST_CAPABILITIES:
             return POST_CAPABILITIES[path]

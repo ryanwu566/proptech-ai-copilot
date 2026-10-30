@@ -1,0 +1,899 @@
+{
+  "schema": "professor-server-stage2-acceptance-v2",
+  "status": "PASS",
+  "ready_for_operator_secret_installation": false,
+  "baseline_head": "da86107bd721096c23036d404ee61cc02a1648dd",
+  "credential_inventory": "config/professor-server-credentials.json",
+  "credential_entries": 58,
+  "additional_configuration_names": 206,
+  "credential_values_included": false,
+  "stage1_core_runtime_files": 5,
+  "postgresql_initialization_files": 4,
+  "tests": {
+    "focused_passed": 185,
+    "failed": 0,
+    "warnings": 37,
+    "warning_scope": "Existing Starlette/httpx and Shapely deprecations",
+    "new_synthetic_tests_passed": 74,
+    "independent_installer_tests_included": 19,
+    "full_suite_rerun": false,
+    "files": [
+      "tests/test_professor_secrets.py",
+      "tests/test_professor_secret_installer.py",
+      "tests/test_selfhost_runtime.py",
+      "tests/test_production_config.py",
+      "tests/test_production_metrics.py",
+      "tests/test_deployment_configuration_contract.py",
+      "tests/test_production_deployment_config.py",
+      "tests/test_plvr_serving_quality.py",
+      "tests/test_local_terrain_artifacts.py"
+    ],
+    "seconds": 7.15,
+    "scope": "Previously executed focused implementation tests; not rerun during final acceptance."
+  },
+  "static_validation": {
+    "python_ast": "PASS",
+    "dockerfile_run_shell_syntax": "PASS",
+    "explicit_copy_sources_not_ignored": "PASS",
+    "credential_context_exclusions": "PASS",
+    "real_compose_parser_with_synthetic_files": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "independent_security_review": "PASS; no remaining critical/important preparation issues",
+  "safety": {
+    "actual_secret_values_read_by_agent": false,
+    "actual_dotenv_files_opened_by_agent": false,
+    "privileged_changes_executed": false,
+    "sudo_executed": false,
+    "docker_service_actions": false,
+    "image_build_executed": false,
+    "provider_calls": 0,
+    "database_mutations": 0,
+    "dev_sda_operations": 0,
+    "frontend_next_env_preserved": true,
+    "dns_vercel_cloud_run_render_changes": false,
+    "paid_providers_enabled": false,
+    "market_ops_enabled": false,
+    "pushed": false,
+    "installation_rerun_by_agent": false,
+    "direct_database_schema_or_source_mutations": 0,
+    "normal_application_telemetry_may_write": true,
+    "scope": "Actions executed by the Codex agent; successful privileged operator activation is recorded separately in successful_activation."
+  },
+  "installation_acceptance": {
+    "operator_installation": "PASS_OPERATOR_REPORTED",
+    "per_file_live_ownership": "PASS_OPERATOR_VALIDATED_FOR_REQUIRED_PERSISTENT_AND_HOST_STAGING_FILES",
+    "tls_private_key_metadata": "PASS_OPERATOR_VALIDATED_METADATA_ONLY",
+    "reviewed_clean_image_build": "PASS; active image equals complete streaming scan and clean committed-context build identity",
+    "controlled_runtime_activation": "PASS",
+    "production_ready": false,
+    "required_secret_files_exist": "PASS_OPERATOR_VALIDATED",
+    "persistent_staged_equality": "PASS_OPERATOR_VALIDATED",
+    "active_stage2_mount_inode_permissions": "PASS"
+  },
+  "operator_procedure": [
+    "adopt-existing",
+    "optional install/generate: store-only,not mounted/enabled",
+    "stage",
+    "validate-host; reconcile metadata/nonsecret config if refused",
+    "separate reviewed image validation/activation"
+  ],
+  "no_new_external_credentials_required_for_current_local_profile": true,
+  "retirement": "Deferred; never revoke credentials or decommission Vercel/CloudRun/Render/CI while other consumers/rollback may depend on them.",
+  "runbook": "docs/operations/professor-server-secrets-runbook.md",
+  "changed_files": [
+    ".dockerignore",
+    ".gitignore",
+    "infra/selfhost/Dockerfile",
+    "config/professor-server-credentials.json",
+    "services/selfhost_secret_files.py",
+    "scripts/ops/professor_server_secrets.py",
+    "scripts/ops/professor_runtime_entrypoint.py",
+    "infra/selfhost/professor-secrets.override.yml",
+    "infra/selfhost/professor-secrets.env.example",
+    "docs/operations/professor-server-secrets-runbook.md",
+    "docs/superpowers/plans/2026-10-29-professor-server-secrets.md",
+    "tests/test_professor_secrets.py",
+    "tests/test_professor_secret_installer.py",
+    "reports/professor-stage2-secrets/acceptance.json",
+    "scripts/ops/professor_stage2_activation.py",
+    "scripts/ops/professor_stage2_probe.py",
+    "services/professor_activation_scan.py",
+    "tests/test_professor_stage2_activation.py",
+    "tests/test_professor_stage2_probe.py",
+    "tests/test_professor_activation_scan.py",
+    "scripts/ops/professor_stage2_activation.DRYRUN.md",
+    "reports/professor-stage2-secrets/preactivation-api.json",
+    "reports/professor-stage2-secrets/configuration-name-diagnosis.json",
+    "scripts/ops/professor_stage2_readonly_diagnose.py",
+    "tests/test_professor_stage2_readonly_diagnose.py",
+    "reports/professor-stage2-secrets/activation-failure-20261029T094222Z.json",
+    "tests/test_professor_stage2_coverage_sql.py",
+    "reports/professor-stage2-secrets/coverage-probe-repair.json",
+    "scripts/ops/professor_stage2_image_diagnose.py",
+    "tests/test_professor_stage2_image_diagnose.py",
+    "reports/professor-stage2-secrets/image-scan-failure-20261029T104746Z.json",
+    "reports/professor-stage2-secrets/image-scanner-repair.json",
+    "reports/professor-stage2-secrets/final-activation-evidence.json"
+  ],
+  "public_source_sha256": {
+    ".dockerignore": "886a01ddb08fca128d4b0e472e3a9421d6236b022891659366a49e8c18261592",
+    ".gitignore": "40c7c4bfa767973768dc763dcc854f95055f9e2638295d27c92132f5a44e67d8",
+    "infra/selfhost/Dockerfile": "c2f4260dc4c8aecae58712ab2903e97e7bc4432dfbfc8f4ace9e2c46ee62cd26",
+    "config/professor-server-credentials.json": "43a9d693039ca0d2b05e1f61636911537c6b3b3311141238dd97bd53c28ea78a",
+    "services/selfhost_secret_files.py": "c125aa6fd0356daf55e596c8b9211beb16da0eab741c1b14c7cd3c4ee1fd508a",
+    "scripts/ops/professor_server_secrets.py": "b435d707e4cec05169b1d8763d04576883fdd453f160043153df494f47f9b764",
+    "scripts/ops/professor_runtime_entrypoint.py": "866ca5c0ee3f6cd7f6ce659a87c705315984db1222d0d0ccd52dabc4b2bd6887",
+    "infra/selfhost/professor-secrets.override.yml": "d663d62375e14c427530fc7ef246289ec35cdc31218cc7dcd67baced7dfe6ad1",
+    "infra/selfhost/professor-secrets.env.example": "76731875667d9f109b477c661d3b2075a0b29a45b2349d36c23faddcd280431a",
+    "docs/operations/professor-server-secrets-runbook.md": "ded1c1db3a8f7cc27bdf54cd5fd81dd9195f33cc85fe6c27c73496c4098ed099",
+    "docs/superpowers/plans/2026-10-29-professor-server-secrets.md": "bbba6e1d099b3c0e77052bc3cc7857bb6104bbbeccbb8fdcde2c9f10fac9ed5f",
+    "tests/test_professor_secrets.py": "2fe9c490b41a2b226931904c7cfa50f9536d8d1f031b962dd554bab525e2a9c8",
+    "tests/test_professor_secret_installer.py": "2e39cd3b56ec31951c18a4323093ed93b523d4235627df14df322660afa065ff"
+  },
+  "recorded_at": "2026-10-29T03:29:42.725346+00:00",
+  "postgresql_runtime_files_per_initialized_service": 1,
+  "postgresql_init_only_passwords": "preserved_on_host_for_recovery;unmounted_in_prepared_ordinary_runtime_profile",
+  "compose": {
+    "minimum_version": "2.24.4",
+    "observed_cli_version": "5.6.1",
+    "exact_secret_lists_enforced_with_override": true,
+    "legacy_extra_credential_drift_test": "PASS",
+    "api_secret_count": 5,
+    "postgres_app_secret_count": 1,
+    "postgres_usage_secret_count": 1
+  },
+  "phase": "complete",
+  "secret_installation_complete": true,
+  "stage2_complete": true,
+  "status_scope": "Stage 2 COMPLETE for the current Professor Server local profile; successful operator activation receipts plus final ordinary live checks. No frontend/public-ingress/production readiness claim.",
+  "stage2_completion_reason": "Clean API image/profile, renewed least-privilege mounts, TLS/roles, unchanged data/exclusions/coverage, local dataset/API contracts and private listener boundaries all accepted.",
+  "operator_secret_installation_needed": false,
+  "preparation_ready_for_operator_installation_was": true,
+  "operator_execution_evidence": {
+    "basis": "Explicit operator confirmation in conversation; raw stdout/privileged receipts were not requested.",
+    "source_hashes_match_reviewed_preparation": true,
+    "actions": [
+      {
+        "operation": "adopt-existing",
+        "reported_exit_code": 0
+      },
+      {
+        "operation": "stage",
+        "reported_exit_code": 0
+      },
+      {
+        "operation": "validate-host",
+        "reported_exit_code": 0
+      }
+    ],
+    "installation_rerun_by_agent": false,
+    "validator_rerun_by_agent": false,
+    "per_file_direct_agent_metadata_access": "Not needed; intentionally blocked by root-only parents. Audited validator success used as declared evidence.",
+    "parent_metadata": [
+      {
+        "path": "/etc/proptech-selfhost/secrets",
+        "uid": 0,
+        "gid": 0,
+        "mode": "0700",
+        "direct_lstat": "PASS"
+      },
+      {
+        "path": "/run/proptech-selfhost/secrets",
+        "uid": 0,
+        "gid": 0,
+        "mode": "0700",
+        "direct_lstat": "PASS"
+      }
+    ],
+    "required_files": [
+      {
+        "filename": "app_database_url",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 10001,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "usage_database_url",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 10001,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "valuation_database_url",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 10001,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "usage_peer_hmac_key",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 10001,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "pilot_session_signing_key",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 10001,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "app_admin_password",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 70,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "app_runtime_password",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 70,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "usage_admin_password",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 70,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      },
+      {
+        "filename": "usage_migration_password",
+        "status": "PASS_OPERATOR_VALIDATED",
+        "persistent": {
+          "owner_uid": 0,
+          "group_gid": 0,
+          "mode": "0600"
+        },
+        "staged": {
+          "owner_uid": 0,
+          "group_gid": 70,
+          "mode": "0440"
+        },
+        "contents_opened_by_agent": false,
+        "basis": "Operator reports unchanged audited validate-host exited0; validator checks existence,regular/single-link metadata,format and persistent/staged equality."
+      }
+    ],
+    "scope": "Historical operator adoption/staging/host-validation only; successful_activation contains actual subsequent activation receipt evidence."
+  },
+  "post_install_acceptance": {
+    "items": [
+      {
+        "item": "Required secret ownership and permissions",
+        "status": "PASS",
+        "scope": "Host validation and final active mount metadata PASS: API root:10001 0440; each PostgreSQL admin file root:70 0440; protected persistent/staging roots preserved."
+      },
+      {
+        "item": "Required files exist; contents not exposed",
+        "status": "PASS",
+        "scope": "Operator validators and final mount evidence prove required files; no credential content opened by agent."
+      },
+      {
+        "item": "Git and known Docker source-context exclusions",
+        "status": "PASS",
+        "scope": "Public source/context exclusions and selected commit paths audited; no credential values or private paths staged. Actual clean context scan passed inside operator process."
+      },
+      {
+        "item": "API intended credential mount scope",
+        "status": "PASS",
+        "scope": "Exactly five read-only intended API files confirmed on active container; no admin/provider/browser/bootstrap files."
+      },
+      {
+        "item": "Legacy credential alias/merge protection",
+        "status": "PASS",
+        "scope": "Exact final five-file model, startup validator and active Compose hash equality passed; no inherited credential environment or extra secret mount."
+      },
+      {
+        "item": "Database admin/runtime separation",
+        "status": "PASS",
+        "scope": "API runtime URLs only; each initialized PostgreSQL service now mounts just its own admin password, without initialization role passwords."
+      },
+      {
+        "item": "Clean-image configuration model",
+        "status": "PASS",
+        "scope": "Clean-image entrypoint validates five core files with network disabled; local guards and import/build identity smoke pass."
+      },
+      {
+        "item": "Built clean-image/layer provenance",
+        "status": "PASS",
+        "scope": "Active API image equals accepted clean build and image scan identity; 18 unique layers and 21549 members plus metadata/history, context, output scanned."
+      },
+      {
+        "item": "Stage2active inode/mode and startup guard acceptance",
+        "status": "PASS",
+        "scope": "All five active API files match staged device/inode/metadata and differ from old mounted inodes; live startup profile and guards accepted."
+      },
+      {
+        "item": "Current local runtime",
+        "status": "PASS",
+        "scope": "12 fresh final loopback API contracts PASS; direct and proxy post-apply probes PASS."
+      },
+      {
+        "item": "No provider activation",
+        "status": "PASS",
+        "scope": "Final applied local model and candidate validation preserve market_ops/optional/paid-disabled flags; no optional credentials mounted."
+      },
+      {
+        "item": "Private DB and loopback8080",
+        "status": "PASS",
+        "scope": "Actual operator post-state networks/ports plus fresh nonprivileged ss: internal PostgreSQL/no host5432 and only127.0.0.1:8080."
+      },
+      {
+        "item": "Frontend and repository boundaries",
+        "status": "PASS",
+        "scope": "frontend_next/next-env.d.ts remains byte-identical to preactivation working copy and outside commit; no cloud/DNS/remote changes."
+      }
+    ],
+    "live_checks": {
+      "status": "PASS",
+      "checked_at": "2026-10-29T03:26:07.069801+00:00",
+      "checks": {
+        "/health": {
+          "status": "PASS",
+          "result": "ok"
+        },
+        "/readiness": {
+          "status": "PASS",
+          "result": "ready"
+        },
+        "ris": {
+          "status": "PASS",
+          "population": 6134,
+          "households": 3834
+        },
+        "nlsc_ris": {
+          "status": "PASS",
+          "district_code": "65000050016",
+          "population": 6134
+        },
+        "raw_population": {
+          "status": "PASS",
+          "official": 451672,
+          "sample": 72,
+          "freshness_status": "aging"
+        },
+        "valuation": {
+          "status": "PASS",
+          "valuation_status": "available",
+          "query_status": "ok"
+        },
+        "trend": {
+          "status": "PASS",
+          "trend_status": "available",
+          "query_status": "ok"
+        },
+        "finder": {
+          "status": "PASS",
+          "search_status": "available",
+          "query_status": "ok"
+        },
+        "market_road": {
+          "status": "PASS",
+          "data_status": "available",
+          "transaction_count": 370
+        },
+        "market_special_period": {
+          "status": "PASS",
+          "data_status": "no_data",
+          "transaction_count": null
+        },
+        "wra_hit": {
+          "status": "PASS",
+          "matched": true,
+          "storage_backend": "local",
+          "level": "medium"
+        },
+        "wra_no_match": {
+          "status": "PASS",
+          "matched": false,
+          "storage_backend": "local",
+          "level": "unknown"
+        }
+      },
+      "http_contract_count": 12,
+      "postgres_host_listener": false,
+      "proxy_binding": "127.0.0.1:8080",
+      "optional_or_paid_providers_called": false,
+      "operator_routes_called": false,
+      "frontend_hash": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+      "secrets_read_or_values_displayed": false,
+      "privileged_operations": false,
+      "superseded_by_final_evidence": "reports/professor-stage2-secrets/final-activation-evidence.json"
+    },
+    "source_context_audit": {
+      "status": "PASS",
+      "scope": "Operator-built clean committed public context and actual complete image scan accepted; current Git candidates audited without opening ignored/private credential files.",
+      "installed_secret_roots_outside_checkout": true,
+      "tracked_credential_like_files": 0,
+      "known_local_credential_like_paths": [
+        "frontend_next/.env.local"
+      ],
+      "known_paths_excluded_from_git_and_source_context": true,
+      "new_credentials_committed": false,
+      "staged_files": [],
+      "dockerfile_copy_sources_explicit": true,
+      "clean_image_layers_verified": true,
+      "secret_contents_opened": false
+    },
+    "fresh_focused_tests": {
+      "passed": 16,
+      "failed": 0,
+      "full_suite_rerun": false,
+      "scope": "Prepared Compose credential drift,credential/libpq alias refusal,nonsecret template and security-guard validation."
+    },
+    "runtime_baseline": {
+      "receipt": "/var/backups/proptech-selfhost/final-data-integration/apply-20261029T013804Z-MREVbS6x",
+      "last_verified_image_id": "sha256:9d563647cf1ea2788f86be46b54a8420b2fe0bd0c0bbb5c7a2ba0b4d474f353e",
+      "installer_recreates_services": false,
+      "new_stage2_image_or_activation_evidence_received": true,
+      "stage2_image_build_evidence_received": true,
+      "stage2_runtime_activated": true,
+      "active_stage2_image_id": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0"
+    },
+    "status": "SUPERSEDED_BY_SUCCESSFUL_FINAL_ACTIVATION_ACCEPTANCE"
+  },
+  "remaining_stage2_gates": [],
+  "future_optional_credentials": {
+    "current_local_profile_needs_additional_credentials": false,
+    "provider_supplied_later": [
+      "GOOGLE_MAPS_API_KEY",
+      "GOOGLE_APPLICATION_CREDENTIALS",
+      "TGOS_APP_ID",
+      "TGOS_API_KEY",
+      "TDX_CLIENT_ID",
+      "TDX_CLIENT_SECRET",
+      "R2_ACCESS_KEY_ID",
+      "R2_SECRET_ACCESS_KEY"
+    ],
+    "public_browser_configuration_later": [
+      "NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_KEY",
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      "NEXT_PUBLIC_SUPABASE_URL"
+    ],
+    "local_auth_admin_ops_later": [
+      "VNEXT_DATABASE_URL",
+      "VNEXT_CURSOR_SIGNING_KEY",
+      "ADMIN_DATABASE_URL",
+      "ADMIN_USAGE_DATABASE_URL",
+      "METRICS_SCRAPE_TOKEN",
+      "PILOT_ADMIN_TOKEN",
+      "PILOT_REVIEW_TOKEN",
+      "COMMUTE_REFRESH_TOKEN",
+      "MARKET_READ_MODEL_REFRESH_TOKEN"
+    ],
+    "notes": "No additional credential is required for the accepted local profile. Any future optional provider/auth/Admin/VNext/ops consumer requires separate credential,role,scope and activation review. No cloud credentials revoked."
+  },
+  "local_commit_recommendation": {
+    "should_create": true,
+    "scope": "Final reviewed Stage2 operator implementation/tests plus sanitized successful evidence and COMPLETE local-profile acceptance; preserve frontend_next/next-env.d.ts and all secrets outside commit.",
+    "rationale": "Record completed Stage2 source and acceptance locally. Actual API build source remains d8a93492eb900550ce490990fade7726766b18da.",
+    "final_commit_reference": "The local Git commit containing this acceptance; obtain its immutable SHA with git rev-parse HEAD.",
+    "push": false
+  },
+  "ready_for_operator_activation": false,
+  "preactivation_local_commit": "425729b9a1c2a2ee53b9908df288087ee87dd581",
+  "activation_operator_command": "sudo python3 -B /home/andy/proptech-ai-copilot/scripts/ops/professor_stage2_activation.py --apply",
+  "activation_dry_run": "scripts/ops/professor_stage2_activation.DRYRUN.md",
+  "updated_at": "2026-10-29T11:56:14.503102+00:00",
+  "activation_preparation": {
+    "status": "COMPLETE_ACTIVATED_AND_ACCEPTED",
+    "operator_execution_performed": true,
+    "runner": "scripts/ops/professor_stage2_activation.py",
+    "dry_run": "scripts/ops/professor_stage2_activation.DRYRUN.md",
+    "independent_orchestration_reviews": 2,
+    "review_result": "PASS; all reported critical/important findings addressed",
+    "scanner_specialized_review": "PASS; strict OCI 1.1 support independently reviewed; actual successful image scan accepted.",
+    "focused_tests": {
+      "passed": 129,
+      "failed": 0,
+      "files": [
+        "tests/test_professor_stage2_activation.py",
+        "tests/test_professor_stage2_probe.py",
+        "tests/test_professor_activation_scan.py"
+      ],
+      "full_suite_completed": false,
+      "interrupted_broader_attempt": {
+        "attempted_by_subagent": true,
+        "stopped_immediately_on_detection": true,
+        "passed_before_stop": 176,
+        "skipped_before_stop": 46,
+        "used_for_acceptance": false
+      }
+    },
+    "static": {
+      "python_ast_files": 6,
+      "embedded_python_expressions": 2,
+      "artifact_probe_ast": "PASS_IN_FOCUSED_TEST",
+      "dockerfile_run_bash_n": "PASS",
+      "real_compose_parser_with_synthetic_env": "PASS",
+      "real_compose_service_hash_format": "PASS",
+      "frontend_hash_preserved": true
+    },
+    "build_source_commit": "d8a93492eb900550ce490990fade7726766b18da",
+    "clean_image_built": true,
+    "recreate_services": [
+      "postgres_app",
+      "postgres_usage",
+      "api"
+    ],
+    "restart_only": [
+      "reverse_proxy"
+    ],
+    "database_volumes": "Existing populated physical named-volume identities required; no create/delete/reset instruction",
+    "secret_mounts_after": {
+      "api": 5,
+      "postgres_app": 1,
+      "postgres_usage": 1
+    },
+    "backup": "Original nonsecret /etc configs plus immutable image/volume identities; no credential copies",
+    "rollback": "Bounded original four-file profile, same volumes and pre-change serving fingerprint; proxy last after all gates",
+    "receipt_root": "/var/backups/proptech-selfhost/stage2-activation",
+    "readable_receipt_pattern": "/tmp/professor-stage2-activation-<random>",
+    "paid_or_optional_providers_enabled": false,
+    "market_ops_enabled": false,
+    "configuration_name_repair_tests": {
+      "passed": 212,
+      "failed": 0,
+      "full_suite_rerun": false
+    },
+    "retry_ready": false,
+    "readonly_diagnostic_ready": false,
+    "coverage_repair_tests": {
+      "passed": 142,
+      "failed": 0,
+      "actual_postgres_readonly_synthetic_cases": 14,
+      "full_suite_rerun": false,
+      "independent_review": "PASS"
+    },
+    "readonly_image_diagnostic_ready": false,
+    "image_scanner_repair_tests": {
+      "focused_passed": 80,
+      "subtests_passed": 28,
+      "failed": 0,
+      "test_files": [
+        "tests/test_professor_activation_scan.py",
+        "tests/test_professor_stage2_image_diagnose.py",
+        "tests/test_professor_stage2_activation.py"
+      ],
+      "original_refusal_reproduced_before_fix": true,
+      "negative_attestation_cases": 24,
+      "python_ast": "PASS",
+      "git_diff_check": "PASS",
+      "real_compose_synthetic_merge": "PASS",
+      "independent_review": "PASS; no remaining important findings; independent 39 tests and 28 subtests passed",
+      "full_suite_rerun": false,
+      "independent_tests_passed": 39
+    },
+    "candidate_images_built_by_operator": true,
+    "actual_repaired_image_scan": "PASS",
+    "preparation_performed_by_agent_source_only": true,
+    "operator_execution_performed_by_agent": false,
+    "completion_basis": "Successful operator activation run20261029T114148Z-b7ae118d6efa; final complete receipts and live checks in final-activation-evidence.json."
+  },
+  "current_runtime_acceptance": {
+    "status": "PASS",
+    "checks_passed": 12,
+    "evidence": "reports/professor-stage2-secrets/final-activation-evidence.json",
+    "checked_at": "2026-10-29T11:53:11.889057+00:00",
+    "scope": "Successful active Stage 2 image/profile, post-apply direct/proxy checks and fresh final loopback probe."
+  },
+  "activation_source_sha256": {
+    "scripts/ops/professor_stage2_activation.py": "4608c2813cee3b43aa41ccb140d458de8562276549bdf8764016dc7ee091c41a",
+    "scripts/ops/professor_stage2_probe.py": "2eba08fa2d2d9478515102969dc6e7f13684be8970395a902d383434cd5d5ab7",
+    "services/professor_activation_scan.py": "4c1156387bde3cc7c20d8b5629019e69bd445f46b002057ec5dddda24ae7ce95",
+    "tests/test_professor_stage2_activation.py": "a37faa4218817ae3ecc6d21f7ec71a19df77a4cf1ada8f475410e55585f3e34a",
+    "tests/test_professor_stage2_probe.py": "04470fa11da5079625450e16faf06e3c709c58c5cce96c7a1ad983f65d4d8655",
+    "tests/test_professor_activation_scan.py": "6ccb8ccc9a441f606f58163968b0de3843f3c0ec1efab086eb6133e9e6fc57ca",
+    "scripts/ops/professor_stage2_activation.DRYRUN.md": "77c88396628df6d7391712a2371173c2264259827152451c9571fc027b735c67",
+    "reports/professor-stage2-secrets/preactivation-api.json": "b150426f98acf51150d0561e9db5be836df4555571ba1465841856330a6bb1fe",
+    "reports/professor-stage2-secrets/configuration-name-diagnosis.json": "e277e5803853daa2c0e226914b6f77ad6b7803c87d60e5d088fdb9a7217bd0e6",
+    "scripts/ops/professor_stage2_readonly_diagnose.py": "d60ffd310485a799cf168bb8fcd384629148299bcb9b3b5421279a0230f3a450",
+    "tests/test_professor_stage2_readonly_diagnose.py": "3eaf8486925155a699c6dbb24eeaea78ba6a8671a039089baca71a17519c579f",
+    "reports/professor-stage2-secrets/activation-failure-20261029T094222Z.json": "68f5744772c9b2007f70a185b32a9efc9d436c8ed0aea15672e91bdff4f47829",
+    "tests/test_professor_stage2_coverage_sql.py": "73e49f1e31cb4208287fe2d843fcb7a93c70068394113e38045f9d0e57a07cc0",
+    "reports/professor-stage2-secrets/coverage-probe-repair.json": "113abd09c05349fef8fe8820f342bc3c7d77d545be82623f52c58292cd752482",
+    "scripts/ops/professor_stage2_image_diagnose.py": "f14e135cab0b250daff3cec9d8ff86a3ac5b6fee991d15f046174e2c6caaf468",
+    "tests/test_professor_stage2_image_diagnose.py": "6c7a410537770d703a21f9c0083aa86a878f5fa2e722f0d1bf285ba2644c5c20",
+    "reports/professor-stage2-secrets/image-scan-failure-20261029T104746Z.json": "350a77c4129ef65aa8cc54bcc02505449f1588cbab3533197959c829f54983d6",
+    "reports/professor-stage2-secrets/image-scanner-repair.json": "c71b2fd0a6795613fd38191185f2382ac766e3dc09c10a8facb42aa640c0eb65",
+    "reports/professor-stage2-secrets/final-activation-evidence.json": "3f9366fc1e70f48bf6c63fbb50c3822f7460ab74ea9adc4077d57693c8569ca5"
+  },
+  "ready_for_operator_activation_retry": false,
+  "configuration_name_repair": "reports/professor-stage2-secrets/configuration-name-diagnosis.json",
+  "operator_activation_attempt": {
+    "status": "PASS",
+    "exit_code": 0,
+    "phase": "complete",
+    "run_id": "20261029T114148Z-b7ae118d6efa",
+    "activate_confirmed": true,
+    "runtime_activation_reached": true,
+    "evidence": "/tmp/professor-stage2-activation-1a7f601581fe4939a107cfe6b6d33d29",
+    "private_evidence": "/var/backups/proptech-selfhost/stage2-activation/20261029T114148Z-b7ae118d6efa",
+    "completed_at": "2026-10-29T11:49:11.907533+00:00"
+  },
+  "operator_activation_attempt_history": [
+    {
+      "status": "REFUSED",
+      "reason_code": "configuration_name_unsupported",
+      "exit_code": 1,
+      "confirmation_reached": false,
+      "container_recreation": false,
+      "rollback_needed": false
+    },
+    {
+      "status": "FAILED",
+      "exit_code": 1,
+      "reason_code": "command_failed_output_suppressed",
+      "activate_confirmed": true,
+      "runtime_activation_reached": false,
+      "evidence": "/tmp/professor-stage2-activation-78d77527ffee4d7db2ed8727a5bd4e8d"
+    },
+    {
+      "status": "FAILED",
+      "exit_code": 1,
+      "reason_code": "archive_unsupported",
+      "phase": "image-layer-scan",
+      "activate_confirmed": true,
+      "candidate_build_completed": true,
+      "runtime_activation_reached": false,
+      "evidence": "/tmp/professor-stage2-activation-986412c2c9a24bf4b4508bc1e054fc79"
+    }
+  ],
+  "latest_failure_diagnosis": "reports/professor-stage2-secrets/image-scan-failure-20261029T104746Z.json",
+  "coverage_probe_repair": "reports/professor-stage2-secrets/coverage-probe-repair.json",
+  "image_scanner_repair": {
+    "report": "reports/professor-stage2-secrets/image-scanner-repair.json",
+    "diagnostic": "/tmp/professor-stage2-image-readonly-f0u3n1uf/diagnosis.json",
+    "status": "SOURCE_REPAIRED_INDEPENDENT_REVIEW_PASS",
+    "unsupported_media_type": "application/vnd.oci.empty.v1+json",
+    "actual_existing_image_rescan_completed": false,
+    "ready_for_guarded_operator_activation_retry": false,
+    "superseding_successful_candidate_scan": {
+      "status": "PASS",
+      "image_id": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+      "run_id": "20261029T114148Z-b7ae118d6efa",
+      "scope": "New operator activation candidate; earlier failed candidate was not redeployed or independently rescanned."
+    }
+  },
+  "successful_activation": {
+    "status": "PASS",
+    "run_id": "20261029T114148Z-b7ae118d6efa",
+    "completed_at": "2026-10-29T11:49:11.907533+00:00",
+    "api_image_id": "sha256:035a049691b0038f7508acc00c3e9bb82c101a295c9f45edcea8d1b03b3d42a0",
+    "backend_image_id": "sha256:68d42ee94e13348f445beb634f988140003f68e1136e1baf7e7408cdedd381d7",
+    "application_build_source_commit": "d8a93492eb900550ce490990fade7726766b18da",
+    "active_api_container_id": "089353992fa75928ecb2a9fbb0c4e28e58353634e640eda42666116152b77c07",
+    "configuration_override": "/etc/proptech-selfhost/stage2-secrets.override.yml",
+    "evidence": "reports/professor-stage2-secrets/final-activation-evidence.json",
+    "evidence_sha256": "3f9366fc1e70f48bf6c63fbb50c3822f7460ab74ea9adc4077d57693c8569ca5",
+    "root_owned_sanitized_receipt_files_verified": 16,
+    "final_acceptance_assertions_passed": 23
+  },
+  "final_acceptance_checks": [
+    {
+      "item": "Successful controlled activation",
+      "status": "PASS",
+      "basis": "Root-owned sanitized acceptance receipt; operator reports exit 0."
+    },
+    {
+      "item": "Clean API image active",
+      "status": "PASS",
+      "basis": "Active container, build and scan identities agree; immutable official base and committed public source."
+    },
+    {
+      "item": "All four containers healthy",
+      "status": "PASS",
+      "basis": "containers-after.json."
+    },
+    {
+      "item": "Stage 2 profile active",
+      "status": "PASS",
+      "basis": "Activation PASS requires live Compose hashes to match the final five-file model before and after proxy restart."
+    },
+    {
+      "item": "Required API mounts and renewed inodes",
+      "status": "PASS",
+      "basis": "All five active root:10001 0440 files match staged metadata and differ from the previous mounted inodes."
+    },
+    {
+      "item": "postgres_app admin-only secret",
+      "status": "PASS",
+      "basis": "Exactly one root:70 0440 admin file; runtime/init role passwords removed from container mounts."
+    },
+    {
+      "item": "postgres_app volume preserved",
+      "status": "PASS",
+      "basis": "Container recreated against the same populated named volume and original PostgreSQL image."
+    },
+    {
+      "item": "postgres_usage admin-only secret",
+      "status": "PASS",
+      "basis": "Exactly one root:70 0440 admin file; runtime/init role passwords removed from container mounts."
+    },
+    {
+      "item": "postgres_usage volume preserved",
+      "status": "PASS",
+      "basis": "Container recreated against the same populated named volume and original PostgreSQL image."
+    },
+    {
+      "item": "Credential scan of image and build",
+      "status": "PASS",
+      "basis": "Streaming complete historical-layer and metadata/attestation scan; known installed values/variants and credential/private-key signatures. No universal claim about arbitrary unknown encodings."
+    },
+    {
+      "item": "Compose output and container logs scanned",
+      "status": "PASS",
+      "basis": "Reviewed runner scans captured Compose stdout/stderr in memory; scans all four full container logs before writing final PASS. No raw output persisted."
+    },
+    {
+      "item": "Clean-image configuration validated",
+      "status": "PASS",
+      "basis": "New entrypoint validates intended files and local guards inside isolated clean image; import/build identity smoke passes."
+    },
+    {
+      "item": "NLSC and WRA immutable local artifacts",
+      "status": "PASS",
+      "basis": "NLSC hash and all ten WRA manifest/hash/decode scenarios validated offline inside clean image."
+    },
+    {
+      "item": "Local datasets; ordinary runtime independent of X9",
+      "status": "PASS",
+      "basis": "Active read-only NLSC/WRA mounts use the verified server copy; no active service mount references X9."
+    },
+    {
+      "item": "Database TLS and least privilege",
+      "status": "PASS",
+      "basis": "Read-only TLS verify-full probes require exact nonprivileged login identities; app RIS and valuation objects SELECT-only; usage retains scoped RLS/writer permissions."
+    },
+    {
+      "item": "PLVR exclusions and coverage unchanged",
+      "status": "PASS",
+      "basis": "451744 rows, 451672 official, 72 sample, future official 0; row 38652 retained once and absent from serving; 117986 UNIQUE_MATCH exclusions; 7500 aggregates; 368 canonical regions, 322 eligible and 46 unknown; deterministic coverage/metadata checks pass."
+    },
+    {
+      "item": "api-direct-after.json",
+      "status": "PASS",
+      "basis": "health/readiness, village and NLSC→RIS, WRA hit/no-match, valuation status/estimate, trend, finder, Market and known special-period exclusion."
+    },
+    {
+      "item": "api-loopback-after.json",
+      "status": "PASS",
+      "basis": "health/readiness, village and NLSC→RIS, WRA hit/no-match, valuation status/estimate, trend, finder, Market and known special-period exclusion."
+    },
+    {
+      "item": "Private PostgreSQL and loopback 8080",
+      "status": "PASS",
+      "basis": "Activation verifies internal PostgreSQL networks, no API/DB published ports and loopback proxy binding."
+    },
+    {
+      "item": "market_ops and optional/paid providers disabled",
+      "status": "PASS",
+      "basis": "Exact merged local guard model validated before apply, inside clean image and through active configuration hashes."
+    },
+    {
+      "item": "Data safety boundaries",
+      "status": "PASS",
+      "basis": "Reviewed operator path has no block-device mutation, X9 source operation or database schema/source DML; storage guards reject /dev/sda backing; same volumes and facts. No block device opened during acceptance."
+    },
+    {
+      "item": "Frontend preserved",
+      "status": "PASS",
+      "basis": "Pre-existing working-tree modification preserved byte-for-byte; excluded from final commit."
+    },
+    {
+      "item": "Fresh nonprivileged listener check",
+      "status": "PASS",
+      "basis": "ss -lntH during final acceptance."
+    }
+  ],
+  "final_acceptance_verification": {
+    "status": "PASS",
+    "mode": "FINAL_ACCEPTANCE_ONLY",
+    "receipt_files_verified": 16,
+    "assertions_passed": 23,
+    "live_api_contracts_passed": 12,
+    "focused_source_suites_rerun": false,
+    "full_test_suite_rerun": false,
+    "secret_installation_rerun": false,
+    "activation_rerun": false,
+    "images_rebuilt": false,
+    "sudo_used": false,
+    "credential_values_requested_or_opened": false,
+    "direct_docker_checks_duplicated": false,
+    "source_static_validation": "PASS",
+    "generic_signature_scan_of_commit_candidates": "PASS; excludes actual ignored credentials; all selected files public code/tests/templates/sanitized evidence"
+  },
+  "remaining_later_stage_work": [
+    "Local frontend migration, API routing and browser/auth acceptance; keep frontend/server credentials separate.",
+    "ML work only when requested; no ML migration was started.",
+    "Optional providers require a separately approved credential/runtime/billing review; no automatic paid-provider activation.",
+    "Public TLS/ingress, authentication, rate/abuse controls and production-specific acceptance before exposing traffic.",
+    "Backup/restore and reboot recovery rehearsal; /run credentials and TLS need protected rehydration; no reboot test performed.",
+    "Review all remaining cloud/CI consumers and rollback windows before any Vercel/Cloud Run/Render/DNS cutover or credential retirement."
+  ],
+  "repository_head_before_final_stage2_commit": "d8a93492eb900550ce490990fade7726766b18da",
+  "independent_final_acceptance_review": {
+    "status": "PASS",
+    "receipt_files_independently_compared": 16,
+    "scope": "Complete sanitized receipt hashes/data, final assertions and completion documentation; no duplicate privileged checks or test-suite rerun.",
+    "stale_historical_status_labels_resolved": true
+  }
+}

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useExperienceLocale } from "@/components/experience-locale-provider";
 import Image from "next/image";
+import { imageryMetadata, embeddedJpeg } from "@/lib/imagery-reference";
 
 import { api, type SatelliteReference } from "@/lib/api";
 
@@ -14,22 +15,22 @@ export type AcceptedSatelliteCoordinate = {
   propertyKey?: string;
 };
 
-const DISCLAIMER = "Satellite reference imagery — not cadastral or statutory evidence.";
+const DISCLAIMER = "Imagery reference — not cadastral or statutory evidence.";
 
 const fallbackResponse: SatelliteReference = {
   status: "unavailable",
   reason_code: "provider_error",
-  source: "Sentinel-2 / Copernicus",
-  dataset: "COPERNICUS/S2_SR_HARMONIZED",
-  window_start: "—",
-  window_end: "—",
+  source: "Unknown",
+  dataset: "",
+  window_start: null,
+  window_end: null,
   retrieval_time: "—",
   aoi_radius_m: 500,
-  composite_method: "Median satellite reference composite across a fixed 90-day window.",
-  cloud_filter_percent: 35,
+  composite_method: "",
+  cloud_filter_percent: null,
   image_reference: null,
-  attribution: "Contains modified Copernicus Sentinel data processed by Google Earth Engine.",
-  limitations: ["Satellite reference is temporarily unavailable."],
+  attribution: "",
+  limitations: ["Imagery reference is temporarily unavailable."],
   disclaimer: DISCLAIMER,
 };
 
@@ -80,6 +81,8 @@ export function SatelliteEvidence({ coordinate }: { coordinate: AcceptedSatellit
     }
   }
 
+  const metadata = imageryMetadata(evidence ?? {});
+  const image = embeddedJpeg(evidence?.image_reference);
   const status = evidence?.status ?? "not_run";
   const statusLabel = !coordinate?.accepted
     ? t("commercial.confirmationRequired")
@@ -102,7 +105,7 @@ export function SatelliteEvidence({ coordinate }: { coordinate: AcceptedSatellit
     <div className="flex flex-wrap items-start justify-between gap-2">
       <div>
         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-700">{t("commercial.reference")}</p>
-        <h3 className="mt-1 text-base font-black text-slate-950">{t("commercial.satelliteTitle")}</h3>
+        <h3 className="mt-1 text-base font-black text-slate-950">{t(metadata.titleKey)}</h3>
       </div>
       <span data-testid="satellite-evidence-status" data-status={status} className={`rounded-full px-2 py-1 text-[10px] font-black ${badgeClass}`}>{statusLabel}</span>
     </div>
@@ -113,15 +116,22 @@ export function SatelliteEvidence({ coordinate }: { coordinate: AcceptedSatellit
     {loading && <p className="mt-3 text-xs leading-5 text-slate-600">{t("commercial.satelliteLoading")}</p>}
 
     {evidence && <>
-      {evidence.image_reference && <Image unoptimized width={512} height={512} data-testid="satellite-reference-image" src={evidence.image_reference} alt="Bounded Sentinel-2 satellite reference composite" className="mt-3 aspect-square w-full rounded-lg border border-stone-200 object-cover" />}
+      {image && <Image unoptimized width={512} height={512} data-testid="satellite-reference-image" src={image} alt={t(metadata.titleKey)} className="mt-3 aspect-square w-full rounded-lg border border-stone-200 object-cover" />}
       <dl className="mt-3 grid gap-2 text-[11px] leading-5 text-slate-700">
         <div><dt className="font-black text-slate-900">{t("commercial.sourceLabel")}</dt><dd>{evidence.source}</dd></div>
-        <div><dt className="font-black text-slate-900">{t("commercial.datasetLabel")}</dt><dd className="break-all">{evidence.dataset}</dd></div>
-        <div><dt className="font-black text-slate-900">{t("commercial.windowLabel")}</dt><dd>{evidence.window_start} — {evidence.window_end}</dd></div>
-        <div><dt className="font-black text-slate-900">{t("commercial.compositeLabel")}</dt><dd>{evidence.composite_method}</dd></div>
+        <div><dt className="font-black text-slate-900">{t("commercial.datasetLabel")}</dt><dd className="break-all">{evidence.dataset_or_layer || evidence.dataset}</dd></div>
+        <div><dt className="font-black text-slate-900">{t("commercial.vintageLabel")}</dt><dd>{metadata.captureDate || t("commercial.captureUnknown")}</dd></div>
+        {metadata.vintage && <div><dt>{t("commercial.vintageLabel")}</dt><dd>{metadata.vintage}</dd></div>}
+        {metadata.annual && <div>{t("commercial.annualMosaic")}</div>}
+        {evidence.window_start && evidence.window_end && <div><dt>{t("commercial.windowLabel")}</dt><dd>{evidence.window_start} — {evidence.window_end}</dd></div>}
+        <div><dt className="font-black text-slate-900">{t("commercial.compositeLabel")}</dt><dd>{evidence.processing_method || evidence.composite_method}</dd></div>
         <div><dt className="font-black text-slate-900">{t(evidence.status === "unavailable" ? "commercial.checkedLabel" : "commercial.retrievedLabel")}</dt><dd>{evidence.retrieval_time}</dd></div>
-        <div><dt className="font-black text-slate-900">{t("commercial.cloudLabel")}</dt><dd>{locale === "zh-TW" ? "場景雲量門檻" : "Scene threshold"} ≤ {evidence.cloud_filter_percent}% · SCL</dd></div>
+        {metadata.showCloud && <div><dt className="font-black text-slate-900">{t("commercial.cloudLabel")}</dt><dd>{locale === "zh-TW" ? "場景雲量門檻" : "Scene threshold"} ≤ {evidence.cloud_filter_percent}% · SCL</dd></div>}
       </dl>
+      <p className="mt-2 text-xs">{t("commercial.retrievalCaveat")}</p>
+      {metadata.annual && <p className="mt-2 text-xs">{t("commercial.noncommercial")}</p>}
+      {evidence.usage_restriction && <p className="mt-2 text-xs">{evidence.usage_restriction}</p>}
+      <p className="mt-2 text-xs">{evidence.disclaimer}</p>
       <ul className="mt-3 space-y-1 text-[10px] leading-5 text-slate-600">{evidence.limitations.map((limitation) => <li key={limitation}>• {limitation}</li>)}</ul>
       <p className="mt-3 text-[10px] leading-5 text-slate-500">{evidence.attribution}</p>
     </>}

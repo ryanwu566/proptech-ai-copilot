@@ -1,0 +1,15 @@
+{
+  "schema": "professor-direct-ingress-plan-v1",
+  "identity": {"kind": null, "name": null, "control_verified": false, "dns_addresses": []},
+  "network": {
+    "lan_ipv4": "192.168.200.215", "gateway": "192.168.200.1", "interface": "enp2s0",
+    "public_ipv4_observations": ["140.119.55.43", "140.119.55.43"],
+    "router_wan_ipv4": null, "global_ipv6": [], "ipv6_default_route": false,
+    "outside_lan_inbound_confirmed": false
+  },
+  "origins": {"production": "https://proptech-ai-copilot.vercel.app", "previews": [], "development": []},
+  "acme": {"client": null, "version": null, "staging_passed": false, "production_chain_verified": false, "renewal_tested": false},
+  "approvals": {"host_change": false, "firewall": false, "router": false, "dns": false},
+  "host": {"port443_free": true, "effective_firewall_reviewed": false, "runtime_safe": true, "runtime_tls_recovery_verified": false, "boot_plan_reviewed": false},
+  "credentials": {"current_local_profile_on_server": true, "remote_stores_audited": false}
+}

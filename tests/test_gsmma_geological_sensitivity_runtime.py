@@ -287,6 +287,7 @@ def test_successful_no_match_contains_no_safety_or_risk_level(tmp_path) -> None:
         "dataset_version": VERSION,
         "artifact_sha256": runtime.load_dataset().artifact_sha256,
         "source_vintage": "2024-06-27",
+        "storage_backend": "r2",
     }
 
 

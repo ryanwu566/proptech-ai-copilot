@@ -1,0 +1,41 @@
+{
+  "schema": "professor-stage5-maintenance-activity-observation-v1",
+  "scope": "bounded repository workflow-run metadata; no logs or credential APIs",
+  "status": "PASS_BOUNDED_METADATA_ONLY",
+  "repository_total_runs": 1490,
+  "sampled_runs": 50,
+  "per_workflow_endpoint_attempts": [
+    {
+      "workflow": ".github/workflows/refresh-commute-snapshot.yml",
+      "status": "UNAVAILABLE_NOT_INFERRED_EMPTY",
+      "total_runs": null,
+      "last_run": null,
+      "secret_presence_proven": false,
+      "workflow_executed_by_agent": false,
+      "logs_downloaded": false
+    },
+    {
+      "workflow": ".github/workflows/refresh-market-read-model.yml",
+      "status": "UNAVAILABLE_NOT_INFERRED_EMPTY",
+      "total_runs": null,
+      "last_run": null,
+      "secret_presence_proven": false,
+      "workflow_executed_by_agent": false,
+      "logs_downloaded": false
+    },
+    {
+      "workflow": ".github/workflows/reconcile-market-coverage.yml",
+      "status": "UNAVAILABLE_NOT_INFERRED_EMPTY",
+      "total_runs": null,
+      "last_run": null,
+      "secret_presence_proven": false,
+      "workflow_executed_by_agent": false,
+      "logs_downloaded": false
+    }
+  ],
+  "matching_runs": [],
+  "absence_is_not_nonuse_proof": true,
+  "secret_values_requested": false,
+  "secret_names_inventory_proven": false,
+  "workflow_dispatch_or_modification": false
+}

@@ -184,6 +184,14 @@
       "filename": "022_admin_control_plane.sql",
       "execution_policy": "production_runner",
       "sha256": "f9c3c389d15cd3702a31be12f4e0f68e56f482ecc03eecf4d5c6e7b92c4fc709"
+    },
+    {
+      "registry_order": 24,
+      "logical_id": "legacy-023-market-serving-exclusions",
+      "sequence": 23,
+      "filename": "023_add_market_serving_exclusions.sql",
+      "execution_policy": "legacy_operator",
+      "sha256": "ea428c74d058e697966d04b504760bb7c5f3865f979b1d50a20e12aef6072083"
     }
   ]
 }

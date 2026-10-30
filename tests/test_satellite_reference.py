@@ -27,6 +27,12 @@ from services import satellite_reference as satellite
 client = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def explicit_earth_engine_profile(monkeypatch):
+    """These legacy tests exercise the preserved EE path, not the Taiwan default."""
+    monkeypatch.setenv("SATELLITE_REFERENCE_PROVIDER", "earth_engine")
+
+
 def jpeg_with_dimensions(width: int, height: int) -> bytes:
     """Return a minimal JPEG marker stream with a baseline SOF dimension record."""
 
@@ -125,6 +131,8 @@ def test_satellite_reference_is_unavailable_without_project_and_returns_only_all
         "attribution",
         "limitations",
         "disclaimer",
+        "provider", "source_type", "dataset_or_layer", "observation_date", "vintage",
+        "date_precision", "processing_method", "center", "bbox", "bbox_crs", "usage_restriction",
     }
     assert payload["status"] == "unavailable"
     assert payload["reason_code"] == "credential_unavailable"

@@ -1,0 +1,544 @@
+{
+  "gsmma": [
+    {
+      "file": "Terrain Risk/GSMMA 地質敏感區/00_manifest/gsmma_archive_integrity.csv",
+      "rows": 70,
+      "fields": [
+        "Filename",
+        "Extension",
+        "Bytes",
+        "ExitCode",
+        "Status"
+      ]
+    },
+    {
+      "file": "Terrain Risk/GSMMA 地質敏感區/00_manifest/gsmma_classified_downloads.csv",
+      "rows": 70,
+      "fields": [
+        "Category",
+        "Description",
+        "URL"
+      ]
+    },
+    {
+      "file": "Terrain Risk/GSMMA 地質敏感區/00_manifest/gsmma_download_manifest.csv",
+      "rows": 70,
+      "fields": [
+        "Index",
+        "Category",
+        "Description",
+        "OriginalFilename",
+        "SavedFilename",
+        "Bytes",
+        "SHA256",
+        "SourceURL",
+        "Status"
+      ]
+    },
+    {
+      "file": "Terrain Risk/GSMMA 地質敏感區/00_manifest/gsmma_extraction_validation.csv",
+      "rows": 70,
+      "fields": [
+        "Archive",
+        "Extension",
+        "ExtractedTo",
+        "ExtractedFiles",
+        "SHP",
+        "SHX",
+        "DBF",
+        "PRJ",
+        "Status"
+      ]
+    },
+    {
+      "file": "Terrain Risk/GSMMA 地質敏感區/00_manifest/gsmma_final_validation.csv",
+      "rows": 70,
+      "fields": [
+        "Archive",
+        "ExtractedFiles",
+        "SHP",
+        "SHX",
+        "DBF",
+        "PRJ",
+        "CRS_Declared",
+        "ValidationClass"
+      ]
+    }
+  ],
+  "liquefaction": [
+    {
+      "file": "Terrain Risk/土壤液化/00_manifest/geologycloud_liquefaction_snapshot_20261016.csv",
+      "rows": 36,
+      "fields": [
+        "Area",
+        "Classification",
+        "Filename",
+        "Features",
+        "Bytes",
+        "SHA256",
+        "API",
+        "Status"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/00_manifest/soil_liquefaction_catalog.csv",
+      "rows": 51,
+      "fields": [
+        "資料名稱",
+        "縣市代碼",
+        "檔案格式",
+        "編碼",
+        "資源網址"
+      ]
+    }
+  ],
+  "cwa": [
+    {
+      "file": "CWA 地震/00_manifest/cwa_current_snapshot_manifest.csv",
+      "rows": 2,
+      "fields": [
+        "Filename",
+        "Bytes",
+        "Success",
+        "SHA256",
+        "Status"
+      ]
+    }
+  ],
+  "ardswc": [
+    {
+      "file": "Terrain Risk/ARDSWC/01_debris_flow/debrisstream1753_20260126_twd97.zip",
+      "sha256": "383e7ff4f60a5bec078709a975e3b27fb413a4efc64f5398fdd9130d436eff02",
+      "members": [
+        "debrisstream1753_20260126_twd97.prj",
+        "debrisstream1753_20260126_twd97.shp"
+      ]
+    },
+    {
+      "file": "Terrain Risk/ARDSWC/02_debris_watershed/debris_watershed.zip",
+      "sha256": "18c98716a787608bc96fd9b715b57984a3e5effaec5c1031975957809227918f",
+      "members": [
+        "watershed1753_20260102_twd97_UTF8.prj",
+        "watershed1753_20260102_twd97_UTF8.shp"
+      ]
+    },
+    {
+      "file": "Terrain Risk/ARDSWC/03_debris_impact/debris_impact.zip",
+      "sha256": "900b8f7876f2cf96f0d00bc9c78c0e848dfb2ab4ea618b97383d35fcedb8781b",
+      "members": [
+        "debris1753_20260126_twd97.prj",
+        "debris1753_20260126_twd97.shp"
+      ]
+    },
+    {
+      "file": "Terrain Risk/ARDSWC/04_landslide_potential/landslide_potential.zip",
+      "sha256": "d34d502265842d9dfe638009218dfa5ade51b1ac7c98fd678b2d0d163d7fba04",
+      "members": [
+        "115年_94處警戒發布區潛勢範圍_TWD97_UTF8.prj",
+        "115年_94處警戒發布區潛勢範圍_TWD97_UTF8.shp"
+      ]
+    },
+    {
+      "file": "Terrain Risk/ARDSWC/05_landslide_impact/landslide_impact.zip",
+      "sha256": "ef7593c53db4aa39e9e708bd25f5ce780ba5abf0613108619625e9fbbb331400",
+      "members": [
+        "115年_94處警戒發布區影響範圍_TWD97_UTF8.prj",
+        "115年_94處警戒發布區影響範圍_TWD97_UTF8.shp"
+      ]
+    }
+  ],
+  "liquefaction_geojson": [
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺北/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺北/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺北/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/新竹/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 3,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/新竹/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 16,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/新竹/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 4,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺中/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 9,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺中/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺中/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/彰化/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 4,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/彰化/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/彰化/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/雲林/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/雲林/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/雲林/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/嘉義/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/嘉義/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/嘉義/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺南/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 15,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺南/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 20,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/臺南/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 10,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/高雄/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 21,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/高雄/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 2,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/高雄/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 2,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/屏東/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/屏東/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/屏東/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/恆春半島/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/恆春半島/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/恆春半島/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 0,
+      "fields": []
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/宜蘭/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/宜蘭/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/宜蘭/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 1,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/花蓮/低潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 9,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/花蓮/中潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 13,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    },
+    {
+      "file": "Terrain Risk/土壤液化/02_current_geologycloud/花蓮/高潛勢.geojson",
+      "type": "FeatureCollection",
+      "crs": null,
+      "features": 3,
+      "fields": [
+        "classify",
+        "分級",
+        "area"
+      ]
+    }
+  ]
+}

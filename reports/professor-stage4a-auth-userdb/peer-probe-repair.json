@@ -1,0 +1,51 @@
+{
+  "schema": "professor-stage4a-peer-probe-repair-v1",
+  "checked_at": "2026-10-30T02:58:03.291973+00:00",
+  "source_diagnosis": "/tmp/professor-stage4a-postprovision-_ui6386e/diagnosis.json",
+  "source_sha256": "9314b6c8b94bb8e8112b4ff8191342766db7971d7ede78fe7858ce59e6a4e49c",
+  "failed_phase": "readonly_psql_transport_before_catalog_result",
+  "failed_invariant": "subprocess_returncode_must_equal_zero",
+  "root_cause": "PGSERVICE set to empty string selects an empty libpq service instead of unsetting the variable",
+  "deterministic_reproduction": {
+    "legacy_returncode": 2,
+    "legacy_error": "definition of service \"\" not found",
+    "server_sqlstate": null,
+    "before_database_connection": true,
+    "clean_environment_returncode": 0,
+    "read_only": true,
+    "unix_socket": true
+  },
+  "live_checks_passed": [
+    "provision_receipt_valid",
+    "new_secret_metadata_valid",
+    "containers_healthy",
+    "postgres_no_host_bindings",
+    "proxy_8080_loopback",
+    "disabled_guards_preserved",
+    "stage4a_runtime_inactive",
+    "x9_runtime_dependency_absent",
+    "new_user_secret_not_mounted"
+  ],
+  "live_schema_status": "verification_incomplete_no_live_schema_defect_established",
+  "auth_authority_status": "PENDING",
+  "ready_for_controlled_activation": false,
+  "repair": "diagnostic child uses env -i, explicit local socket/user/database, password-file suppression and READ ONLY; all schema/ownership/catalog/authority gates unchanged",
+  "focused_tests": "24 passed (12 readonly-probe, 12 operator-tool tests)",
+  "static_checks": "Python AST, no database/container mutation verbs, offline --plan, git diff --check PASS",
+  "independent_security_review": "PASS; no issues; reviewer ran no live actions or tests",
+  "rollback_required": false,
+  "host_database_repair_required": false,
+  "secret_changes_required": false,
+  "next_operator_operation": "scripts/ops/professor_stage4a_postprovision.py --inspect (read-only retry only)",
+  "safety": {
+    "sudo_executed": false,
+    "provisioning_rerun": false,
+    "activation_performed": false,
+    "database_mutation": false,
+    "secrets_opened": false,
+    "frontend_modified": false,
+    "x9_touched": false,
+    "dev_sda_touched": false,
+    "pushed": false
+  }
+}

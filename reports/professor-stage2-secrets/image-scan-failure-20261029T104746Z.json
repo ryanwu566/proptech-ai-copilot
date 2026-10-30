@@ -1,0 +1,132 @@
+{
+  "schema": "professor-stage2-image-scan-failure-diagnosis-v1",
+  "recorded_at": "2026-10-29T11:16:13.504900+00:00",
+  "failed_run": "20261029T104746Z-2993da4548b9",
+  "private_evidence": "/var/backups/proptech-selfhost/stage2-activation/20261029T104746Z-2993da4548b9",
+  "sanitized_receipt": "/tmp/professor-stage2-activation-986412c2c9a24bf4b4508bc1e054fc79",
+  "readable_files": [
+    "acceptance.json",
+    "api-before.json",
+    "change-plan.json",
+    "containers-before.json",
+    "database-before.json",
+    "host-validation.json",
+    "secret-host-metadata.json"
+  ],
+  "failed_phase": "image-layer-scan",
+  "reason_code": "archive_unsupported",
+  "failure_scope": "scan_image_archive structural/format validator; no later assertion in this phase can emit archive_unsupported",
+  "exact_rejected_feature": "UNKNOWN: current receipt does not retain the scanner source refusal location or format descriptor",
+  "candidate_build_completed": true,
+  "candidate_security_acceptance_completed": false,
+  "build_completion_proof": "build() calls scan_image() only after both Docker builds, both image inspections and clean-backend ancestry validation succeed",
+  "candidate_image_tag": "proptech-professor-api:stage2-20261029t104746z-2993da4548b9",
+  "new_backend_image_tag": "proptech-professor-backend:stage2-20261029t104746z-2993da4548b9",
+  "secret_leak_classification": "No credential_detected finding was reported. Unsupported archive feature; entire image remains unverified, so no clean-image certification or false-positive exemption.",
+  "changes_by_attempt": {
+    "public_python_base_pulled": true,
+    "frozen_public_wheels_downloaded": true,
+    "backend_and_api_images_built": true,
+    "local_images_and_build_cache_remain": true,
+    "private_preflight_backups_and_planned_config_created": true,
+    "runtime_containers_recreated": false,
+    "runtime_config_installed": false,
+    "secret_mount_inodes_renewed": false,
+    "database_schema_or_source_dml": false,
+    "database_volume_recreation": false,
+    "rollback_executed": false
+  },
+  "database_precheck": {
+    "checks": [
+      {
+        "name": "app",
+        "status": "PASS"
+      },
+      {
+        "name": "usage",
+        "status": "PASS"
+      },
+      {
+        "name": "valuation",
+        "status": "PASS"
+      }
+    ],
+    "counts": {
+      "active_aggregates": 7500,
+      "coverage_regions": 368,
+      "eligible_regions": 322,
+      "exclusions": 117986,
+      "future_official_rows": 0,
+      "known_raw_rows": 1,
+      "known_row_and_exclusion_sha256": "af8b07359363aaba2c54ba04c8ef88d84cb8119a075a562938297b4dee4038c1",
+      "known_serving_rows": 0,
+      "official_rows": 451672,
+      "raw_rows": 451744,
+      "sample_rows": 72,
+      "zero_candidate_regions": 46
+    },
+    "mode": "database",
+    "status": "PASS"
+  },
+  "current_live_checks": {
+    "status": "PASS",
+    "api_contracts_passed": 12,
+    "checks": [
+      "health",
+      "readiness",
+      "demographics_village",
+      "NLSC_RIS",
+      "valuation_status",
+      "valuation_estimate",
+      "trend",
+      "finder",
+      "Market",
+      "Market_special_period_filter",
+      "WRA_hit",
+      "WRA_no_match"
+    ],
+    "port8080": "127.0.0.1 only",
+    "host_postgresql_listener": false,
+    "direct_docker_socket": "DENIED without operator privileges"
+  },
+  "rollback_required": false,
+  "safe_to_retry_now": false,
+  "safe_to_investigate_existing_image_in_place": true,
+  "required_additional_evidence": "Only a new sanitized image diagnostic JSON; existing private files do not retain the rejected feature",
+  "private_artifact_copy_required": false,
+  "raw_image_archive_config_history_logs_or_secret_contents_requested": false,
+  "next_operator_command": "sudo python3 -B /home/andy/proptech-ai-copilot/scripts/ops/professor_stage2_image_diagnose.py",
+  "expected_sanitized_output": "/tmp/professor-stage2-image-readonly-<random>/diagnosis.json",
+  "diagnostic_policy": {
+    "no_build_pull_or_deployment": true,
+    "existing_image_only": true,
+    "no_raw_archive_saved": true,
+    "no_verifier_bypass": true,
+    "known_installed_values_compared_only_in_operator_memory": true,
+    "output": "Only source location, selected media/format counts and current container metadata"
+  },
+  "diagnostic_tests": {
+    "new_synthetic_passed": 8,
+    "scanner_regressions_passed": 25,
+    "combined_passed": 33,
+    "independent_review": "PASS",
+    "static_ast": "PASS",
+    "full_suite_rerun": false
+  },
+  "source_sha256": {
+    "services/professor_activation_scan.py": "daf136cf0261b9df9bb2e107df80c4053a71ce8f90de7f8574b13ecbc31ed581",
+    "scripts/ops/professor_stage2_activation.py": "4608c2813cee3b43aa41ccb140d458de8562276549bdf8764016dc7ee091c41a",
+    "scripts/ops/professor_stage2_image_diagnose.py": "578db6bae2ff36e964ffad63a141f8f08047bc7da41cee95a8c1ae147385039d",
+    "tests/test_professor_stage2_image_diagnose.py": "73abc16b340620330bf9e9aa2db03cac02522538cce3727346ca32e9c50ad245"
+  },
+  "safety": {
+    "sudo_used_by_agent": false,
+    "activation_executed_by_agent": false,
+    "image_diagnostic_executed_by_agent": false,
+    "secrets_modified": false,
+    "providers_enabled": false,
+    "runtime_changes_by_agent": false,
+    "frontend_preserved": true,
+    "pushed": false
+  }
+}

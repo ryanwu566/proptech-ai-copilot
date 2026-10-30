@@ -1,0 +1,166 @@
+{
+  "schema": "professor-server-failed-apply-diagnosis-v1",
+  "failed_run_id": "apply-20261029t004605z-vay9viaw",
+  "source_evidence": [
+    {
+      "name": "ROLLBACK.md",
+      "bytes": 1757,
+      "sha256": "2cfc1f7eafd0eb4a3283ae3bbc4abdf5efcf901f3de5daf603ae54aa71f647b0"
+    },
+    {
+      "name": "acceptance.json",
+      "bytes": 1367,
+      "sha256": "d2c36e0e95db9d8fe9ead12cc01ef62a81f004985ba10d0bc243040f4bd6f5db"
+    },
+    {
+      "name": "apply-report.json",
+      "bytes": 1367,
+      "sha256": "d2c36e0e95db9d8fe9ead12cc01ef62a81f004985ba10d0bc243040f4bd6f5db"
+    },
+    {
+      "name": "backup-verification.json",
+      "bytes": 128,
+      "sha256": "734f63a2482df625f1102d7f9f18383c66494e7048cf26780ebb501333327dcd"
+    },
+    {
+      "name": "population-before.json",
+      "bytes": 107,
+      "sha256": "cc861eff43c8a2c416d4e776cf4b38e388e2b172a7780ade656b8fe2710ad2b0"
+    },
+    {
+      "name": "security-before.json",
+      "bytes": 2174,
+      "sha256": "10a987d0cfb8c7c8cba2799aa94d74e2f07933cac979bc7c46dcc0e7b8f6fae4"
+    },
+    {
+      "name": "serving-before.jsonl",
+      "bytes": 246215688,
+      "sha256": "8d673a1f0eec2f2055880df8ac1ebb52dfb659717c9dc603a9e3ebde4952dafe"
+    }
+  ],
+  "observed_failure": {
+    "phase": "plvr-strong-fact-reconciliation",
+    "reason_code": "command_failed_2",
+    "child_exit_code": 2,
+    "failed_invariant": "offline reconciliation child must exit zero",
+    "matching_invariants_reached": false,
+    "database_apply_attempted": false,
+    "database_committed": false,
+    "api_stopped": false,
+    "configuration_written": false,
+    "runtime_recreated": false,
+    "historical_child_stderr_available": false
+  },
+  "reconstructed_launch_defect": {
+    "cause": "Private umask staged application directories as 0700; COPY assigned owner UID10001 while the offline reconciler ran as UID0 with all capabilities dropped. UID0 could not traverse those directories.",
+    "confidence_basis": "Deterministic ownership/mode policy and independently reproduced Python launch exit 2; original stderr was not retained.",
+    "fix": "Only public staged application directories are 0755 and code files 0644; evidence/context parents remain 0700. Add identical-UID/capability --help launch gate.",
+    "capabilities_relaxed": false,
+    "matching_rules_relaxed": false
+  },
+  "additional_sqlite_defects": {
+    "private_disk_scratch": "SQLITE_TMPDIR and TMPDIR explicitly point to writable private /evidence/sqlite-temp in the read-only container.",
+    "bounded_query_plan": "Materialized private identity/fact/serving counts with primary-key lookups replace the quadratic CTE plan.",
+    "immediate_failed_run_cause": false,
+    "reason": "Caught SQLite exceptions exit 1; a quadratic timeout does not explain recorded child exit 2."
+  },
+  "offline_reconciliation": {
+    "source": "Previously byte-verified original reference dataset, read only; operator retry uses /srv/proptech-data/DB.",
+    "evidence_directory": "/tmp/professor-failed-run-reconcile-_gki1etn/reconciliation",
+    "exit_code": 0,
+    "status": "REVIEW_REQUIRED",
+    "serving_snapshot_sha256": "8d673a1f0eec2f2055880df8ac1ebb52dfb659717c9dc603a9e3ebde4952dafe",
+    "counts": {
+      "serving_total_rows": 451744,
+      "serving_nonofficial_rows": 72,
+      "serving_official_rows": 451672,
+      "raw_files": 880,
+      "raw_rows": 3507266,
+      "nonblank_note_rows": 1662819,
+      "rejected_nonblank_note_rows": 488889,
+      "eligible_note_occurrences": 1136388
+    },
+    "classifications": {
+      "UNIQUE_MATCH": 117986,
+      "MULTIPLE_MATCH": 59721,
+      "NO_MATCH": 958681
+    },
+    "unique_serving_rows_eligible": 117986,
+    "summary_sha256": "954bfdd8117d1b16e385ebaa08b9f3e624d7cb0a3ab0427ebc6be6fcd387c87a",
+    "classifications_sha256": "8fe1bea74ca473b8a93a369f522a8cfff48e627571ecacac6b2122fa4ff0b53a",
+    "raw_file_manifest_sha256": "5045548879d90c2eaca3c8eb053d0a8c9331711628e79bf7bc89cf8f1d830f27",
+    "known_serial": [
+      {
+        "classification": "UNIQUE_MATCH",
+        "official_id": "RPWNMLNKNHLGFBF78EA",
+        "fact_sha256": "4b3787fe56703bd6a2d1d422b4ac3ae86d7568840a4b053fefd557925e7a9c4d",
+        "serving_transaction_id": 38652,
+        "serving_matches": 1,
+        "identity_versions": 1,
+        "official_id_count": 1,
+        "note_removed_in_other_release": false,
+        "blocked_identity_reason": null,
+        "occurrences": 1,
+        "source_file": "115S2/f_lvr_land_a.csv",
+        "source_row": 17
+      }
+    ],
+    "all_ten_strong_facts_exactly_equal": true,
+    "dedupe_key_used": false,
+    "all_unique_candidates_match_snapshot_index": true,
+    "all_non_unique_serving_identities_null": true,
+    "ambiguous_reason_counts_nonexclusive": {
+      "multiple_serving_rows": 619,
+      "multiple_fact_versions": 1,
+      "multiple_official_identities": 606,
+      "note_removed_in_other_release": 0,
+      "blocked_identity": 59401
+    },
+    "application_database_changes_applied": false
+  },
+  "validation": {
+    "bash_syntax": "PASS",
+    "outer_python_ast": "PASS",
+    "embedded_python_ast": [
+      "ENTRYPOINT",
+      "SECURITY",
+      "VERIFY_ARTIFACTS",
+      "inline_yaml_reader"
+    ],
+    "static_safety": "PASS",
+    "git_diff_check": "PASS",
+    "focused_tests": {
+      "files": [
+        "tests/test_plvr_serving_quality.py",
+        "tests/test_professor_privileged_apply_static.py",
+        "tests/test_postgres_valuation_provider.py",
+        "tests/test_postgres_data_status.py",
+        "tests/test_plvr_market_aggregate_service.py",
+        "tests/test_market_segmentation_service.py",
+        "tests/test_valuation_service.py",
+        "tests/test_valuation_trend_service.py",
+        "tests/test_property_search_service.py"
+      ],
+      "passed": 131,
+      "warnings": 1,
+      "warning": "Pre-existing Starlette/httpx deprecation",
+      "full_suite_rerun": false
+    },
+    "independent_review": "PASS",
+    "independently_verified_candidates_against_supplied_snapshot": 117986
+  },
+  "repair_files_sha256": {
+    "scripts/ops/professor_server_privileged_apply.sh": "f07f52bafec556392cf29128c2f1b2a3b67e42e794c6ba24696841fe53dcac0e",
+    "scripts/ops/professor_server_privileged_apply.DRYRUN.md": "58dffe9be5e88080f2b30a6fd162ceebb7f91be6953a6e3e69bd6cdd7b10eff5",
+    "scripts/ops/reconcile_plvr_special_notes.py": "fea250c942ec96858a89c300acefc1801befb02e308abe560ff8b3fb8f42d8d4",
+    "services/plvr_serving_quality.py": "8b8ea6d1c35469f75c3419fa87bdca96c4534f3678662d053090bcb7f42fa5fe",
+    "tests/test_plvr_serving_quality.py": "903cb668fa855a62a3ad34d16fc71bd7670931a5d2cdc2f7eedc5aa5f32980df",
+    "tests/test_professor_privileged_apply_static.py": "37d1951d1d509130e775accad27e9fb1799465b7c3dd62f001a05c14ee3a4f23"
+  },
+  "operator_retry_ready": true,
+  "live_exclusion_applied_by_this_repair": false,
+  "retry_requirements": "Fresh source/snapshot hashes, unchanged strong-fact gates and locked full-row equality must pass before additive apply. Row38652 must remain stored and absent from the serving view. Non-unique evidence must not be applied.",
+  "production_ready": false,
+  "apply_script_executed": false,
+  "sudo_executed": false
+}

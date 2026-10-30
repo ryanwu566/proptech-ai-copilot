@@ -1,0 +1,193 @@
+{
+  "schema": "professor-stage5-provider-only-closeout-v1",
+  "checked_at": "2026-10-30T07:59:47.638970+00:00",
+  "base_commit": "f05d079bbef624df4f9980cb861223aea0647427",
+  "scope": "provider names, Cloud Run/Render dependencies, adoption/retirement and cutover evidence only; hardening owned by parallel session",
+  "status": "PARTIAL_DEPLOYED_METADATA_UNAVAILABLE",
+  "provider_credentials_audited": false,
+  "production_critical_credentials_on_professor": "PARTIAL",
+  "known_current_profile_credential_status": "PASS_ACCEPTED_STAGE4A_NOT_FRESH_INSPECTION",
+  "required_current_profile_secret_files": [
+    "app_database_url",
+    "pilot_session_signing_key",
+    "professor_user_database_url",
+    "usage_database_url",
+    "usage_peer_hmac_key",
+    "valuation_database_url"
+  ],
+  "missing_required_credentials": [],
+  "missing_scope": "No current-profile credential confirmed missing; unique production cloud dependencies cannot be ruled out without deployed metadata.",
+  "repository_identifier_count": 333,
+  "credential_subset_count": 83,
+  "file_only_contracts": 9,
+  "classifications": [
+    "LEGACY_CLOUD_ONLY",
+    "PROFESSOR_SERVER_ACTIVE",
+    "PROFESSOR_SERVER_OPTIONAL",
+    "UNKNOWN",
+    "VERCEL_BROWSER_PUBLIC"
+  ],
+  "cloud_run_dependencies_fully_inventoried": false,
+  "render_dependencies_fully_inventoried": false,
+  "referenced_services": {
+    "cloud_run": {
+      "name": "proptech-earth-engine-api",
+      "universe_complete": false,
+      "public_route_count": 109,
+      "public_observation": "public-route-observation.json",
+      "actual_secret_names": "UNKNOWN",
+      "service_account_adc_iam": "UNKNOWN",
+      "current_retained_revisions": "UNKNOWN",
+      "callers_jobs_unique_state": "UNKNOWN",
+      "retirement_matrix": "cloud-run-retirement-matrix.csv"
+    },
+    "render": {
+      "name": "proptech-ai-copilot-api",
+      "universe_complete": false,
+      "public_network_observation": "UNAVAILABLE_NOT_ABSENT",
+      "actual_secret_groups_file_names": "UNKNOWN",
+      "current_retained_deploys": "UNKNOWN",
+      "other_callers_jobs_unique_state": "UNKNOWN",
+      "retirement_matrix": "render-retirement-matrix.csv"
+    }
+  },
+  "maintenance_workflows": [
+    {
+      "workflow": ".github/workflows/reconcile-market-coverage.yml",
+      "visible_manual_run_count": 13,
+      "latest_visible_run": {
+        "workflow": ".github/workflows/reconcile-market-coverage.yml",
+        "workflow_id": 305200371,
+        "run_id": 30200155886,
+        "head_sha": "e151a490701d26ebe2ce802133890b7aa70da79b",
+        "event": "workflow_dispatch",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-07-26T11:27:28Z",
+        "updated_at": "2026-07-26T11:32:22Z",
+        "run_attempt": 1
+      }
+    },
+    {
+      "workflow": ".github/workflows/refresh-market-read-model.yml",
+      "visible_manual_run_count": 7,
+      "latest_visible_run": {
+        "workflow": ".github/workflows/refresh-market-read-model.yml",
+        "workflow_id": 304118316,
+        "run_id": 28426073703,
+        "head_sha": "ac7725fd2cb66f3918d119c986221d022f97e51e",
+        "event": "workflow_dispatch",
+        "status": "completed",
+        "conclusion": "failure",
+        "created_at": "2026-06-30T06:53:58Z",
+        "updated_at": "2026-06-30T06:54:17Z",
+        "run_attempt": 1
+      }
+    },
+    {
+      "workflow": ".github/workflows/refresh-commute-snapshot.yml",
+      "visible_manual_run_count": 1,
+      "latest_visible_run": {
+        "workflow": ".github/workflows/refresh-commute-snapshot.yml",
+        "workflow_id": 303801387,
+        "run_id": 28345058812,
+        "head_sha": "592f80a6a3fa8486bb3ca25d400f911646c4f353",
+        "event": "workflow_dispatch",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-06-29T02:35:09Z",
+        "updated_at": "2026-06-29T02:35:19Z",
+        "run_attempt": 1
+      }
+    }
+  ],
+  "manual_run_history_scope": {
+    "query_event": "workflow_dispatch",
+    "visible_total": 21,
+    "returned": 21,
+    "query_complete": true,
+    "deleted_or_inaccessible_history_proven": false,
+    "current_activation_proven": false,
+    "current_secret_presence_proven": false,
+    "future_activity_proven": false
+  },
+  "workflow_disposition": {
+    "target": "A_MOVE_TO_PROFESSOR_IF_RETAINED",
+    "interim": "C_EXISTING_REMOTE_DEFINITION_AND_ACTIVITY_UNCHANGED",
+    "whole_workflow_retired": false,
+    "local_coverage_bootstrap": "B_NOT_CARRIED_FORWARD_ALREADY_PROVISIONED",
+    "manual_cadence_preserved": true,
+    "local_jobs_installed": false,
+    "public_api_retarget_allowed": false
+  },
+  "provider_adoption_matrix": "professor-adoption-matrix.csv",
+  "full_names_matrix": "provider-dependency-matrix.json",
+  "credential_adoption_procedure": "docs/operations/professor-stage5/credential-evidence-collection.md",
+  "cutover_checklist": "docs/operations/professor-stage5/provider-cutover-dependencies.md",
+  "receipts_required": [
+    "CR-SERVICES",
+    "CR-NAMES",
+    "CR-IDENTITY",
+    "CR-CALLERS",
+    "RENDER-SERVICES",
+    "RENDER-NAMES",
+    "RENDER-CALLERS",
+    "FRONTEND-CI",
+    "STATE-ROLLBACK"
+  ],
+  "live_name_scopes": {
+    "cloud_run": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+    "github_actions": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+    "render": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED",
+    "vercel": "UNKNOWN_NAMES_INVENTORY_NOT_SUPPLIED"
+  },
+  "no_missing_required_file_confirmed": true,
+  "operator_secret_installation_required_now": false,
+  "operator_installation_command": null,
+  "ready_to_retire_credentials": [],
+  "retirement_allowed": false,
+  "credentials_ready_for_cutover": false,
+  "waiting_only_for_hardening_wan": false,
+  "external_metadata_access": {
+    "gcloud_render_vercel_gh_cli_available": false,
+    "authenticated_cloud_run_render_vercel_connector_available": false,
+    "github_secret_api_supported": false,
+    "github_public_run_metadata_available": true
+  },
+  "hardening_implementation_modified": false,
+  "safety": {
+    "secret_values_opened": false,
+    "secret_values_exported": false,
+    "sudo_executed": false,
+    "runtime_database_or_volume_changes": false,
+    "nginx_firewall_router_wan_dns_listener_changes": false,
+    "cloud_or_vercel_changes": false,
+    "workflow_runs_dispatched": false,
+    "optional_or_paid_provider_activation": false,
+    "paid_provider_calls": 0,
+    "frontend_edits": false,
+    "dev_sda_operations": false,
+    "x9_mutations": false,
+    "push_performed": false
+  },
+  "verification": {
+    "tests": {
+      "tests": 50,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "test_report": "provider-only-focused-tests.xml",
+    "static": "PASS",
+    "literal_scan": "PASS_KNOWN_FORMATS_NO_INSTALLED_VALUE_COMPARISON",
+    "independent_review": {
+      "status": "PASS_PREPARATION_ONLY",
+      "reviewer": "stage5_security_review",
+      "remaining_critical_findings": 0,
+      "remaining_important_findings": 0,
+      "scope": "provider docs/evidence and retirement scope; no live runtime, secret, or hardening implementation review",
+      "test_results_reviewed_by_reviewer": false
+    }
+  },
+  "next_operator_metadata_action": "Provide paths to sanitized names-only control-plane, identity, caller and state receipts; no credentials."
+}

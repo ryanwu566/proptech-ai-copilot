@@ -1,0 +1,21 @@
+{
+  "schema": "professor-stage5-deployed-inventory-validation-v1",
+  "status": "PASS",
+  "focused_tests": {
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "field_evidence_classes": "PASS",
+  "source_hashes": 11,
+  "repository_not_promoted_to_live": "PASS",
+  "csv_rows": 25,
+  "retirement_ready_rows": 0,
+  "scheduled_event_scope": "PASS_374_API_VISIBLE_ONLY",
+  "literal_scanner": "PASS_KNOWN_FORMATS_NO_INSTALLED_SECRET_COMPARISON",
+  "only_provider_docs_and_reports_changed": true,
+  "main_next_env_preserved": true,
+  "runtime_cloud_database_network_mutations": false,
+  "independent_review": "PASS_PREPARATION_ONLY"
+}

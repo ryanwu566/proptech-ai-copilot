@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "Bounded reported-transfer v1 completion under revised user criteria",
+  "final_clearance": "COMPLETE",
+  "remaining_important_findings": 0,
+  "evidence_contract_version": "plvr-bounded-transfer-evidence-v1",
+  "checks": [
+    "Frozen-admission checksum binding and forged-summary regression",
+    "API restricted purposes, real feature parity and scope/provenance",
+    "Unchanged dataset/split hashes, artifact/fitting hashes and frontend",
+    "Refreshed 255-pass log and live scope/model pin/8080 health"
+  ],
+  "excluded_claims_remain_unapproved": [
+    "Authenticated historical PIT and exhaustive cancellation/current-validity guarantees",
+    "Parking price/area separation and parking-exclusive valuation",
+    "Verified whole-dwelling/full-property or share-specific valuation"
+  ]
+}

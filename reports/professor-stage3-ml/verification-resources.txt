@@ -1,0 +1,23 @@
+	Command being timed: "python3 -B scripts/ml/prepare_historical_transactions.py verify --artifact /home/andy/proptech-ml-data/plvr-history/bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee"
+	User time (seconds): 302.55
+	System time (seconds): 121.28
+	Percent of CPU this job got: 55%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 12:42.95
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 46464
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 11032
+	Voluntary context switches: 1866738
+	Involuntary context switches: 128765
+	Swaps: 0
+	File system inputs: 34341800
+	File system outputs: 132848
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

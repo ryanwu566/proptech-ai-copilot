@@ -1,0 +1,56 @@
+{
+  "apply_prerequisites": [
+    "operator network authority approval",
+    "stable LAN reservation",
+    "exact trusted HTTPS identity and renewal",
+    "effective firewall review",
+    "reviewed controlled installer",
+    "outside-LAN acceptance after activation"
+  ],
+  "cgnat": "UNKNOWN",
+  "conditional_forwarding": [],
+  "decision_logic_ready": true,
+  "dhcp_reservation_confirmed": false,
+  "external_tunnel_allowed": false,
+  "forwarding_authority_confirmed": false,
+  "inbound_reachability": "PENDING",
+  "inbound_reachability_confirmed": false,
+  "ingress_apply_allowed": false,
+  "nat_assessment": "ROUTER_WAN_UNKNOWN",
+  "observed_public_ipv4": "140.119.55.43",
+  "operator_command": null,
+  "path": [
+    "Internet TCP443",
+    "approved router forwarding",
+    "192.168.200.215:443",
+    "NGINX TLS edge",
+    "127.0.0.1:8080"
+  ],
+  "private_only": [
+    5432,
+    8080,
+    8081,
+    2375,
+    2376
+  ],
+  "public_ip_status": "PUBLIC_IP_OBSERVED",
+  "public_ipv4": "YES",
+  "public_ipv6": "NO",
+  "required_operator_values": [
+    "router_wan_ipv4",
+    "router_behind_router_or_modem",
+    "dhcp_reservation_exists",
+    "inbound_forwarding_authority_confirmed"
+  ],
+  "router_changes_performed": false,
+  "router_evidence_complete": false,
+  "router_inspection_required": true,
+  "schema": "professor-conditional-https-plan-v1",
+  "self_hosted_compatible_unblock_options": [
+    "ISP public IPv4",
+    "ISP static IPv4",
+    "separately approved routable/firewallable IPv6"
+  ],
+  "upstream_router_reported": null,
+  "wan_equals_observed_public_ipv4": null
+}

@@ -1,0 +1,102 @@
+{
+  "schema": "professor-stage4a-postprovision-agent-verification-v1",
+  "checked_at": "2026-10-30T03:32:18.301520+00:00",
+  "status": "PARTIAL",
+  "ready_for_controlled_activation": false,
+  "runtime_activated": false,
+  "operator_report": {
+    "provisioning_exit_code": 0,
+    "status": "PASS",
+    "receipt_independently_read": false,
+    "receipt_validated_via_sanitized_operator_diagnosis": true
+  },
+  "access_limits": {
+    "docker_socket": "permission_denied",
+    "provision_receipt": "root_only_parent_0700",
+    "sudo_attempted": false,
+    "readable_tmp_receipt_available": true
+  },
+  "checks": {
+    "primary_supabase_users": "PASS_SCOPE_AND_AGGREGATES",
+    "expected_issuer_public_jwks": "PASS",
+    "health": "PASS",
+    "readiness": "PASS",
+    "nlsc_ris_e2e": "PASS",
+    "wra_matched_and_no_match": "PASS",
+    "market_and_known_related_party_period": "PASS",
+    "valuation_trend_finder": "PASS",
+    "stage3_ml_companion_8081": "PASS_PIN_AND_NON_ACTIONABLE_SCOPE",
+    "postgres_no_host_5432_listener": "PASS",
+    "8080_loopback_only": "PASS",
+    "live_migration_catalog": "PASS_OFFLINE_RECONCILIATION_OF_CAPTURED_LIVE_CATALOG",
+    "live_application_tables_and_ownership": "PASS_OFFLINE_RECONCILIATION_OF_CAPTURED_LIVE_CATALOG",
+    "live_runtime_role_privileges": "PASS_CAPTURED_LIVE_ROLE_CHECKS_AND_EXACT_CATALOG",
+    "live_secret_file_parent_and_leaf_metadata": "PASS_OPERATOR_READONLY_EVIDENCE",
+    "live_actual_compose_and_disabled_guards": "PASS_OPERATOR_READONLY_EVIDENCE"
+  },
+  "supabase_aggregate": {
+    "users": 1,
+    "prior_signin_users": 1,
+    "banned_users": 0,
+    "deleted_users": 0,
+    "anonymous_users": 0,
+    "email_confirmed_users": 1,
+    "legacy_account_authority_present": false,
+    "legacy_workspace_cases_present": false,
+    "user_rows_or_credentials_exported": false,
+    "cloud_writes": false,
+    "count_alone_not_identity_checksum_proof": true
+  },
+  "jwks": {
+    "expected_issuer": "https://flyhsjcynreuofbcdxod.supabase.co/auth/v1",
+    "reachable": true,
+    "supported_asymmetric_keys": 1,
+    "private_key_fields_present": false,
+    "key_values_returned": false
+  },
+  "stage3": {
+    "accepted_endpoint": "http://127.0.0.1:8081",
+    "health": 200,
+    "status": 200,
+    "estimate": 200,
+    "model_manifest_pin_matches": true,
+    "is_actionable": false,
+    "ml_routes_on_8080": "404_expected_existing_stage2_image_not_ml_companion",
+    "restarted": false,
+    "trained": false
+  },
+  "readonly_tool": {
+    "path": "scripts/ops/professor_stage4a_postprovision.py",
+    "agent_ran": "--plan only",
+    "operator_mode": "--inspect",
+    "sql": "BEGIN READ ONLY; SELECT catalog and counts; ROLLBACK",
+    "credential_files_opened": false,
+    "host_writes": "new sanitized /tmp receipt only",
+    "expected_catalog_source": "fresh disposable schema, not live proof",
+    "expected_catalog_sha256": "4d26d17f2f2be229650716fd22d128c6cefccf4f978c2d3245b5481ef9b6575c",
+    "tests": "10 passed",
+    "independent_review": "no remaining critical/important findings; PGHOSTADDR hardening applied",
+    "unknown_catalog_drift": "fails closed"
+  },
+  "remaining_steps": [
+    "Record the now-proven authority review in local configuration only through a reviewed operator apply.",
+    "Prepare a clean scanned API image; validate actual runtime TLS/role and exact Compose merge/rollback.",
+    "Perform API-only controlled activation and authenticated acceptance; keep databases, dataset mounts and Stage3 companion intact."
+  ],
+  "safety": {
+    "secret_values_read": false,
+    "credential_installation_rerun": false,
+    "host_database_mutations": false,
+    "docker_changes": false,
+    "provider_activation": false,
+    "frontend_modified": false,
+    "dev_sda_touched": false,
+    "x9_touched": false,
+    "pushed": false
+  },
+  "readonly_probe_failed_phase": "readonly_psql_transport_before_catalog_result",
+  "readonly_probe_repair": "reports/professor-stage4a-auth-userdb/peer-probe-repair.json",
+  "catalog_reconciliation": "reports/professor-stage4a-auth-userdb/catalog-reconciliation.json",
+  "auth_authority": "PASS",
+  "auth_authority_evidence": "reports/professor-stage4a-auth-userdb/auth-authority.json"
+}

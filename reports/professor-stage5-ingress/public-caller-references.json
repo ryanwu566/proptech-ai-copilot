@@ -1,0 +1,156 @@
+{
+  "schema": "professor-stage5-public-caller-reference-observation-v1",
+  "checked_at": "2026-10-30T07:27:36.030481+00:00",
+  "frontend_origin": "https://proptech-ai-copilot.vercel.app",
+  "raw_assets_saved": false,
+  "raw_bodies_or_credentials_returned": false,
+  "auth_or_provider_requests": false,
+  "cloud_secret_inventory_proven": false,
+  "actual_browser_api_call_trace": false,
+  "outside_lan_professor_acceptance": false,
+  "deployment_modified": false,
+  "status": "PASS_REFERENCE_OBSERVATION_ONLY",
+  "release_commit": "9cc40d645757af4513d9afdf0c008939cc489a77",
+  "release_stable": true,
+  "pages": [
+    {
+      "path": "/",
+      "sha256": "a11b8e931eb9a62b46a1ed102389ba6945be10b9791775db919d695cceb80205"
+    },
+    {
+      "path": "/login",
+      "sha256": "da2ccc8c3a960300af7d89a2385bae08b172dcb38a16f82af67a5b45fdeb60b0"
+    }
+  ],
+  "assets": [
+    {
+      "path": "/_next/static/immutable/chunks/0_nue99o4za8a.js",
+      "sha256": "51e146bad57686f812bb189f6a4d7ceea231da608693da67f614cd917ca549ba",
+      "bytes": 49989,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0a2wclaft8gj6.js",
+      "sha256": "1397a7f8163b62c78603274411c7fba78021d56dae36d9b926500835dd78e8fd",
+      "bytes": 35060,
+      "legacy_origin_references": [
+        "https://proptech-earth-engine-api-712372598609.asia-east1.run.app"
+      ]
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0arh4omyomitl.js",
+      "sha256": "0eeee0537fe1d51c8124c02bc60ac4022c96640d861a9b38278d6e9982e17838",
+      "bytes": 601202,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0c0hxoamwjsbw.js",
+      "sha256": "0973c1d64c88adc8e3c950410cb58b288f72118d5965b78049438deb8f2f9683",
+      "bytes": 112594,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/0wzlajdwbtqir.js",
+      "sha256": "63124392178c1b87e9e6906af186d2a44a4c33b147db66a56baf830c30d9b07f",
+      "bytes": 1107,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/10a-526l5gmua.js",
+      "sha256": "dfeec6cb9e13c6a1a0edaaa74e87b6baed7e714a029839f1ee1d36d102bf73c9",
+      "bytes": 8257,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/117-iitn7m63f.js",
+      "sha256": "8b964720c0c1dd1f7b53b9ca44ec7778ca19c70bc494233df66858de1ac825a1",
+      "bytes": 798,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/1hz09_6gysuo8.js",
+      "sha256": "7feaca0a71dec77e6400271070c5a7ce47bd1f152712dcb390628db32031315e",
+      "bytes": 100704,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/1m4w77skc3fbp.js",
+      "sha256": "c29f23c5e364fb1144a515a2ff16fffb6b1f7380401703e6b3072dfbcd93689a",
+      "bytes": 24912,
+      "legacy_origin_references": [
+        "https://proptech-earth-engine-api-712372598609.asia-east1.run.app"
+      ]
+    },
+    {
+      "path": "/_next/static/immutable/chunks/2-fqapvpacn86.js",
+      "sha256": "f0d648fefd3935182d46d9ab5d5c4d85638665e327a34ecfee6660d11c19ebc3",
+      "bytes": 17120,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/24eovwj7h-l_s.js",
+      "sha256": "9b0b2a8514c58d1bde0969b7b9f71f2d75dc788dca5aa2b7ad5f78090c780ba9",
+      "bytes": 158608,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/258knkf-wsb82.js",
+      "sha256": "169cddfe25c5e1ad43e338460f49d8479f493857d8f13485cbd112ef76e6ba8f",
+      "bytes": 30554,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/26n62s386a7lr.js",
+      "sha256": "cf1541b1a9d82bfbf40dd6a39d4d2ef259406c9e0cd8fea86f7bf48e9996114c",
+      "bytes": 246984,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/28_mshq0x50li.js",
+      "sha256": "39cf21f28d4ca1104c5f229e12bc5e61003ed42db7d2c6a10aa09d0567a4c7ba",
+      "bytes": 248203,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/2fzm8tbm2hykh.js",
+      "sha256": "a5df40735fc754aeb70b41079bc47e1081cef8ceb617830906c92065b9b4b697",
+      "bytes": 253463,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/2n4z01x20u7ut.js",
+      "sha256": "4f3eb97477c1ea4fcc704fa3f4342aab0c19d08044a6f2dec190ed61320d20b8",
+      "bytes": 67076,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/3mixgk7f4asc-.js",
+      "sha256": "2089541a057ff6005e0319865b089b3716d80d3efb15d7f57f40824a3332804f",
+      "bytes": 235256,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/3nhbfvvlm0bdj.js",
+      "sha256": "ee24b3bdb085f1392273db9a77df7b7a5c8eb63812e9075922b28dfdfe30a71a",
+      "bytes": 1098,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/3qarn0hn0imrw.js",
+      "sha256": "3fa3499b9c96b9dc0272632af0723bca71339aae2baf738aa48a24d83c4bdd7d",
+      "bytes": 68445,
+      "legacy_origin_references": []
+    },
+    {
+      "path": "/_next/static/immutable/chunks/turbopack-1cvbnb3nlabgn.js",
+      "sha256": "8bbb58cbfd4633c1d828c6bc37bc32abc768a149c01b1dfc4f5131fd81274551",
+      "bytes": 10030,
+      "legacy_origin_references": []
+    }
+  ],
+  "legacy_origins_observed": [
+    "https://proptech-earth-engine-api-712372598609.asia-east1.run.app"
+  ],
+  "total_bytes": 2318355,
+  "scope": "Public deployed code references only; no request trace or live env-name/secret-presence proof"
+}

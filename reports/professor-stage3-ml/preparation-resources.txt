@@ -1,0 +1,23 @@
+	Command being timed: ".venv/bin/python scripts/ml/train_stage3.py prepare --dataset /home/andy/proptech-ml-data/plvr-history/bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee --verification reports/professor-stage3-ml/independent-verification.json --work /home/andy/proptech-ml-data/stage3/gross-v1-run2"
+	User time (seconds): 105.68
+	System time (seconds): 0.90
+	Percent of CPU this job got: 70%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:30.68
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 183256
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 4
+	Minor (reclaiming a frame) page faults: 12748
+	Voluntary context switches: 2116
+	Involuntary context switches: 29413
+	Swaps: 0
+	File system inputs: 1750408
+	File system outputs: 246648
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

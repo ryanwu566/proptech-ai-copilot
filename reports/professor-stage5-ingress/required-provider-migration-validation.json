@@ -1,0 +1,74 @@
+{
+  "schema": "professor-required-provider-preparation-validation-v1",
+  "status": "PASS",
+  "focused_tests": {
+    "tests": 198,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "python_ast": "PASS",
+  "known_format_literal_scan": "PASS_NO_ACTUAL_SECRET_COMPARISON",
+  "required_secret_files": 9,
+  "public_config_files": 4,
+  "isolated_group_profiles": 6,
+  "policy_json_matches_implementation": true,
+  "current_filesystem_unknown_not_claimed_absent": true,
+  "operator_migration_executed": false,
+  "host_ephemeral_probes_executed": false,
+  "provider_functional_tests": "NOT_RUN",
+  "independent_review": {
+    "status": "PASS_PREPARATION_ONLY",
+    "reviewer": "stage5_security_review",
+    "remaining_critical_findings": 0,
+    "remaining_important_findings": 0,
+    "resolved_findings": [
+      "ancestor/descendant and legacy-flat live mounts blocked",
+      "all existing targets compared during write and final original-value verification after probes",
+      "public config kept outside Stage2 secret scan inventory"
+    ],
+    "reviewer_live_or_credential_or_root_access": false,
+    "final_lock_parent_review": "PASS_NO_IMPORTANT_FINDINGS"
+  },
+  "main_next_env_preserved": true,
+  "nginx_firewall_wan_router_dns_vercel_database_changes": false,
+  "source_files": {
+    "scripts/ops/professor_provider_storage.py": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d",
+    "scripts/ops/professor_provider_credentials.py": "1ded81c6f0dd856c90ba2a9280cfb841a86686e6d639398a4e49512bf9ff95d7",
+    "config/professor-required-provider-storage.json": "0797021d6c1965577dd0dec7d580a8bd070022b820d08f882cd1ac83a4ae8419",
+    "config/professor-server-credentials.json": "b9cb0ef8cc998e8b13053284a49e2bde72ffc985132d9551fa50e6e74b90480d"
+  },
+  "pytest_summary": {
+    "top_level_passed": 170,
+    "subtests_passed": 28,
+    "junit_cases": 198
+  },
+  "post_lock_parent_pinning_regression": "30 required-provider tests PASS",
+  "provider_guard_repair": {
+    "schema": "professor-provider-guard-repair-validation-v1",
+    "status": "PASS",
+    "focused_tests": {
+      "tests": 64,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "red_green": "accepted issuer-only profile reproduced original provider_guard_unavailable before repair; all six profile cases pass after repair",
+    "python_ast": "PASS",
+    "migration_retried": false,
+    "provider_calls": 0,
+    "real_secret_values_read": false,
+    "independent_review": {
+      "status": "PASS_PREPARATION_ONLY",
+      "reviewer": "stage5_security_review",
+      "remaining_critical_findings": 0,
+      "remaining_important_findings": 0,
+      "scope": "optional legacy alias compatibility only; exact issuer/audience, conflicting alias and mandatory disable guards remain fail-closed",
+      "historical_cause_precision": "generic original receipt does not identify the field; accepted-profile compatibility failure reproduced",
+      "actual_provider_sources_discovered": false,
+      "operator_retry_workflow_appropriate_with_private_inputs": true,
+      "tests_or_privileged_operations_run_by_reviewer": false
+    },
+    "source_sha256": "ef4b6541d7f89e7e166b6d307703550310b4bc2739aeca2fbf6028c141b8932d"
+  }
+}

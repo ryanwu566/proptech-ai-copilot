@@ -1,0 +1,4709 @@
+{
+  "baseline": {
+    "absolute_error_quantiles_ntd_ping": {
+      "p100": 1870648.6316826767,
+      "p50": 58133.74866405039,
+      "p75": 108175.20843017663,
+      "p90": 166933.31133565487,
+      "p95": 210041.1313741161,
+      "p99": 399112.365447783
+    },
+    "absolute_percentage_error_quantiles": {
+      "p50": 17.871436707561017,
+      "p75": 33.16142191022543,
+      "p90": 61.56418956705064,
+      "p95": 92.98610683523273,
+      "p99": 211.10531003602844
+    },
+    "mae_ntd_ping": 79668.86983056915,
+    "mape_percent": 29.514299698483164,
+    "median_absolute_error_ntd_ping": 58133.74866405039,
+    "median_absolute_percentage_error": 17.871436707561017,
+    "rmse_ntd_ping": 115440.68704953317,
+    "rows": 43404,
+    "signed_bias_ntd_ping": 1730.064990531889,
+    "smape_percent": 24.010822680367472,
+    "wape_percent": 22.310697688028508
+  },
+  "building_community_identity": "Unavailable. Full normalized-address hash proxy and road groups are diagnostic only; different units in the same building can still evade this proxy. No complete building-disjoint claim.",
+  "drift": {
+    "age_years": {
+      "fit_median": 13.0,
+      "holdout_median": 11.083333015441895,
+      "population_stability_index": 0.2869202007407315
+    },
+    "floor": {
+      "fit_median": 6.0,
+      "holdout_median": 6.0,
+      "population_stability_index": 0.0010740639238803538
+    },
+    "log_area_ping": {
+      "fit_median": 3.6403698921203613,
+      "holdout_median": 3.5752649307250977,
+      "population_stability_index": 0.03484653169381796
+    },
+    "month_index": {
+      "fit_median": 43.0,
+      "holdout_median": 108.0,
+      "population_stability_index": 12.305112033417455
+    },
+    "total_floor": {
+      "fit_median": 13.0,
+      "holdout_median": 13.0,
+      "population_stability_index": 0.0051549574350541975
+    }
+  },
+  "entity_overlap": {
+    "seen_address": {
+      "seen": 6919,
+      "unseen": 36485
+    },
+    "seen_road": {
+      "seen": 41112,
+      "unseen": 2292
+    }
+  },
+  "fitted_rows": 673009,
+  "holdout_reused_for_selection": false,
+  "holdout_rows": 43404,
+  "overall": {
+    "absolute_error_quantiles_ntd_ping": {
+      "p100": 1329700.5944495513,
+      "p50": 32038.092827131113,
+      "p75": 60725.79606844326,
+      "p90": 104451.28109553183,
+      "p95": 145554.02241835007,
+      "p99": 261922.43627612607
+    },
+    "absolute_percentage_error_quantiles": {
+      "p50": 10.5644758024775,
+      "p75": 18.84672809258368,
+      "p90": 30.436856227180908,
+      "p95": 41.333145341172035,
+      "p99": 80.84890381998619
+    },
+    "mae_ntd_ping": 47731.31071107794,
+    "mape_percent": 14.855654950759307,
+    "median_absolute_error_ntd_ping": 32038.092827131113,
+    "median_absolute_percentage_error": 10.5644758024775,
+    "rmse_ntd_ping": 73722.11613240164,
+    "rows": 43404,
+    "signed_bias_ntd_ping": -2868.6527126899155,
+    "smape_percent": 13.876179289360696,
+    "wape_percent": 13.366812480118865
+  },
+  "price_band_edges_ntd_ping": [
+    100000,
+    200000,
+    400000,
+    800000
+  ],
+  "release_decision": "bounded_observational_capability_only",
+  "selected_iterations": 500,
+  "selected_model": "lightgbm_log_l1_leaves63",
+  "selection_criterion": "Lowest validation MAE among two predeclared tree capacities; must beat market median and ridge.",
+  "slices": {
+    "area_outlier": {
+      "inside": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 31864.62695993003,
+          "p75": 60326.41310772218,
+          "p90": 103724.70454830826,
+          "p95": 144745.68631299553,
+          "p99": 256065.39115040872
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.500290306067644,
+          "p75": 18.71468393175892,
+          "p90": 30.155827668406054,
+          "p95": 41.09080616739939,
+          "p99": 80.03771825022282
+        },
+        "mae_ntd_ping": 47231.06758053169,
+        "mape_percent": 14.728369497924671,
+        "median_absolute_error_ntd_ping": 31864.62695993003,
+        "median_absolute_percentage_error": 10.500290306067644,
+        "rmse_ntd_ping": 72034.05428466033,
+        "rows": 42253,
+        "signed_bias_ntd_ping": -2416.186914209618,
+        "smape_percent": 13.766176016429215,
+        "wape_percent": 13.239381944431397
+      },
+      "outside_fit_1_99_percent": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 917936.8765998799,
+          "p50": 38797.14040668955,
+          "p75": 76283.41584721254,
+          "p90": 133413.0381552562,
+          "p95": 194544.23579178948,
+          "p99": 616341.1825875168
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.325385915276556,
+          "p75": 25.322708594194534,
+          "p90": 37.19366223405236,
+          "p95": 52.02457030366359,
+          "p99": 133.09011467948648
+        },
+        "mae_ntd_ping": 66095.14476404949,
+        "mape_percent": 19.528280701082405,
+        "median_absolute_error_ntd_ping": 38797.14040668955,
+        "median_absolute_percentage_error": 13.325385915276556,
+        "rmse_ntd_ping": 120279.8123723693,
+        "rows": 1151,
+        "signed_bias_ntd_ping": -19478.589622497042,
+        "smape_percent": 17.914379368573425,
+        "wape_percent": 17.881812607597652
+      }
+    },
+    "building_type": {
+      "住宅大樓(11層含以上有電梯)": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 917936.8765998799,
+          "p50": 32344.94708185317,
+          "p75": 61152.99135475105,
+          "p90": 103730.15950560228,
+          "p95": 145001.10454280418,
+          "p99": 265655.83397543704
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.506828214803175,
+          "p75": 16.740879202278965,
+          "p90": 26.0512088875342,
+          "p95": 33.59702876871108,
+          "p99": 55.78590313123971
+        },
+        "mae_ntd_ping": 47975.213366910095,
+        "mape_percent": 12.526242585360428,
+        "median_absolute_error_ntd_ping": 32344.94708185317,
+        "median_absolute_percentage_error": 9.506828214803175,
+        "rmse_ntd_ping": 73974.99331947233,
+        "rows": 27269,
+        "signed_bias_ntd_ping": -4348.031505201095,
+        "smape_percent": 12.063619789263985,
+        "wape_percent": 12.111270939374364
+      },
+      "公寓(5樓含以下無電梯)": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 36275.368495950854,
+          "p75": 68914.3346576044,
+          "p90": 116990.43639161557,
+          "p95": 158011.40344305275,
+          "p99": 283663.8797391645
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 15.795154877981759,
+          "p75": 28.18476710609311,
+          "p90": 48.857874105182994,
+          "p95": 69.02624134730017,
+          "p99": 133.60119619036135
+        },
+        "mae_ntd_ping": 54134.19469482014,
+        "mape_percent": 23.056114902417622,
+        "median_absolute_error_ntd_ping": 36275.368495950854,
+        "median_absolute_percentage_error": 15.795154877981759,
+        "rmse_ntd_ping": 87212.1934251792,
+        "rows": 4768,
+        "signed_bias_ntd_ping": 256.16151521254574,
+        "smape_percent": 20.27523319669898,
+        "wape_percent": 18.972883751943808
+      },
+      "華廈(10層含以下有電梯)": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 600807.0128954272,
+          "p50": 30108.214257225045,
+          "p75": 56253.30161204838,
+          "p90": 99058.22406221679,
+          "p95": 142746.63044901736,
+          "p99": 237417.0286735346
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.73591210543987,
+          "p75": 20.93883832397865,
+          "p90": 34.82710952690664,
+          "p95": 50.93746434822076,
+          "p99": 92.50716146931457
+        },
+        "mae_ntd_ping": 44460.44484001523,
+        "mape_percent": 17.00406286336203,
+        "median_absolute_error_ntd_ping": 30108.214257225045,
+        "median_absolute_percentage_error": 11.73591210543987,
+        "rmse_ntd_ping": 66593.51987181586,
+        "rows": 11367,
+        "signed_bias_ntd_ping": -630.4134187382658,
+        "smape_percent": 15.540294357360022,
+        "wape_percent": 15.145592816452549
+      }
+    },
+    "city": {
+      "南投縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 168830.9556499986,
+          "p50": 23138.61273283526,
+          "p75": 40895.963089788405,
+          "p90": 57428.07911547199,
+          "p95": 70787.15401792829,
+          "p99": 109802.18838738344
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.775102612748062,
+          "p75": 20.53447050818649,
+          "p90": 31.727614605251137,
+          "p95": 39.312295819068765,
+          "p99": 67.65143179535559
+        },
+        "mae_ntd_ping": 28085.518275903756,
+        "mape_percent": 14.76218146659748,
+        "median_absolute_error_ntd_ping": 23138.61273283526,
+        "median_absolute_percentage_error": 11.775102612748062,
+        "rmse_ntd_ping": 36933.25379841704,
+        "rows": 285,
+        "signed_bias_ntd_ping": 4959.8019854519,
+        "smape_percent": 13.973984694928854,
+        "wape_percent": 14.179529032076127
+      },
+      "台中市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 365954.6955497377,
+          "p50": 31307.76753333729,
+          "p75": 54614.66844108739,
+          "p90": 85520.44136202979,
+          "p95": 107854.85526721869,
+          "p99": 167037.39314124445
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.787716007875046,
+          "p75": 18.921441393276044,
+          "p90": 29.887627886505474,
+          "p95": 37.91647308929145,
+          "p99": 70.44362278284055
+        },
+        "mae_ntd_ping": 40362.485501598945,
+        "mape_percent": 14.332945569157344,
+        "median_absolute_error_ntd_ping": 31307.76753333729,
+        "median_absolute_percentage_error": 10.787716007875046,
+        "rmse_ntd_ping": 54056.96409304331,
+        "rows": 7626,
+        "signed_bias_ntd_ping": 6651.4367625813375,
+        "smape_percent": 13.36460431622965,
+        "wape_percent": 13.189270834766667
+      },
+      "台北市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 91586.28652634047,
+          "p75": 167360.90802030545,
+          "p90": 256319.76890556954,
+          "p95": 349225.581304375,
+          "p99": 561932.3029315394
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.590804634945153,
+          "p75": 19.577272374410185,
+          "p90": 27.96021613625925,
+          "p95": 34.71449284269457,
+          "p99": 57.535386033658135
+        },
+        "mae_ntd_ping": 122880.69194259815,
+        "mape_percent": 13.974633931802144,
+        "median_absolute_error_ntd_ping": 91586.28652634047,
+        "median_absolute_percentage_error": 11.590804634945153,
+        "rmse_ntd_ping": 171076.25749765977,
+        "rows": 3042,
+        "signed_bias_ntd_ping": -49884.83350875239,
+        "smape_percent": 14.171074060098581,
+        "wape_percent": 14.198537976430641
+      },
+      "台南市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 216455.40575254167,
+          "p50": 23750.655733837557,
+          "p75": 44238.34754571515,
+          "p90": 68162.39505092263,
+          "p95": 87668.84868731948,
+          "p99": 144686.11123917034
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.85159104539159,
+          "p75": 18.391732039174556,
+          "p90": 29.47964686815397,
+          "p95": 39.86896643003276,
+          "p99": 75.2296228469187
+        },
+        "mae_ntd_ping": 31945.580556072233,
+        "mape_percent": 14.267655398097999,
+        "median_absolute_error_ntd_ping": 23750.655733837557,
+        "median_absolute_percentage_error": 9.85159104539159,
+        "rmse_ntd_ping": 43472.83337335093,
+        "rows": 3142,
+        "signed_bias_ntd_ping": 4450.46792884774,
+        "smape_percent": 13.161108821681546,
+        "wape_percent": 12.520418657348479
+      },
+      "台東縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 125957.64427213368,
+          "p50": 31473.84739418373,
+          "p75": 55997.95240250495,
+          "p90": 75942.1783719768,
+          "p95": 87773.61104653846,
+          "p99": 112080.18791111799
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 16.285281351612625,
+          "p75": 28.17245518612878,
+          "p90": 77.04656827300305,
+          "p95": 100.86670290663288,
+          "p99": 208.3885508667673
+        },
+        "mae_ntd_ping": 36666.616750542016,
+        "mape_percent": 29.319764119759707,
+        "median_absolute_error_ntd_ping": 31473.84739418373,
+        "median_absolute_percentage_error": 16.285281351612625,
+        "rmse_ntd_ping": 45910.84783105229,
+        "rows": 136,
+        "signed_bias_ntd_ping": -5209.3576419375395,
+        "smape_percent": 23.14592746057087,
+        "wape_percent": 18.97009409872442
+      },
+      "嘉義縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 188416.6079112958,
+          "p50": 53309.29587677517,
+          "p75": 91165.70281892027,
+          "p90": 126399.00129862908,
+          "p95": 131634.3766892063,
+          "p99": 149066.585922343
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 21.981788444312354,
+          "p75": 29.404802110392577,
+          "p90": 33.48143311413116,
+          "p95": 35.434102164810604,
+          "p99": 46.15268042612224
+        },
+        "mae_ntd_ping": 62606.29942024714,
+        "mape_percent": 21.326676871829463,
+        "median_absolute_error_ntd_ping": 53309.29587677517,
+        "median_absolute_percentage_error": 21.981788444312354,
+        "rmse_ntd_ping": 74925.83958026514,
+        "rows": 212,
+        "signed_bias_ntd_ping": -58739.104754614986,
+        "smape_percent": 24.35337838536419,
+        "wape_percent": 23.25958618325997
+      },
+      "基隆市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 221361.22695371648,
+          "p50": 24202.861118252753,
+          "p75": 43504.394146511084,
+          "p90": 69247.04545885799,
+          "p95": 88443.0160248159,
+          "p99": 146020.28539075833
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.272922084884943,
+          "p75": 22.738124030772127,
+          "p90": 36.30773298410443,
+          "p95": 50.83669381539334,
+          "p99": 87.22811371990595
+        },
+        "mae_ntd_ping": 32337.40866221933,
+        "mape_percent": 17.73211002515535,
+        "median_absolute_error_ntd_ping": 24202.861118252753,
+        "median_absolute_percentage_error": 12.272922084884943,
+        "rmse_ntd_ping": 44229.73544645364,
+        "rows": 1267,
+        "signed_bias_ntd_ping": -4533.2644018450255,
+        "smape_percent": 16.57402567356117,
+        "wape_percent": 15.47408765532329
+      },
+      "宜蘭縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 248612.43323896552,
+          "p50": 26555.84306299605,
+          "p75": 45112.27189995194,
+          "p90": 66716.00640937776,
+          "p95": 84890.84045794443,
+          "p99": 199826.7726651037
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.383243536081814,
+          "p75": 20.45417840979237,
+          "p90": 33.46962477234132,
+          "p95": 42.64769208582989,
+          "p99": 60.67199702882451
+        },
+        "mae_ntd_ping": 34154.68198258222,
+        "mape_percent": 15.458208354778918,
+        "median_absolute_error_ntd_ping": 26555.84306299605,
+        "median_absolute_percentage_error": 12.383243536081814,
+        "rmse_ntd_ping": 47828.5260482793,
+        "rows": 781,
+        "signed_bias_ntd_ping": -8082.4072439783895,
+        "smape_percent": 15.062583787474887,
+        "wape_percent": 14.796970069032572
+      },
+      "屏東縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 125874.65175664955,
+          "p50": 21595.279079203967,
+          "p75": 37767.48383015346,
+          "p90": 53488.62444332366,
+          "p95": 62056.8377076633,
+          "p99": 86992.85725312101
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.02605007065342,
+          "p75": 19.07151822877894,
+          "p90": 30.199088257754248,
+          "p95": 42.76418169152545,
+          "p99": 96.10865145561957
+        },
+        "mae_ntd_ping": 26173.82104102708,
+        "mape_percent": 16.072486162482583,
+        "median_absolute_error_ntd_ping": 21595.279079203967,
+        "median_absolute_percentage_error": 12.02605007065342,
+        "rmse_ntd_ping": 33021.23855328663,
+        "rows": 1136,
+        "signed_bias_ntd_ping": -1290.9695405550665,
+        "smape_percent": 14.717573528053713,
+        "wape_percent": 13.648179524456495
+      },
+      "彰化縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 302124.40945336083,
+          "p50": 21473.631850671605,
+          "p75": 37962.86320986986,
+          "p90": 60017.39978325693,
+          "p95": 79402.6251357548,
+          "p99": 115562.95714575693
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.488067822843993,
+          "p75": 16.395125214042643,
+          "p90": 26.108327667030185,
+          "p95": 40.8487114146436,
+          "p99": 86.09429829919968
+        },
+        "mae_ntd_ping": 28029.546779998545,
+        "mape_percent": 13.821175952574464,
+        "median_absolute_error_ntd_ping": 21473.631850671605,
+        "median_absolute_percentage_error": 9.488067822843993,
+        "rmse_ntd_ping": 38412.97640748053,
+        "rows": 691,
+        "signed_bias_ntd_ping": -3856.071668862821,
+        "smape_percent": 12.90058668606481,
+        "wape_percent": 12.211565690303313
+      },
+      "新北市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1032686.0754133034,
+          "p50": 44372.62943535799,
+          "p75": 83894.49752912734,
+          "p90": 134774.8715446178,
+          "p95": 176139.68829694507,
+          "p99": 283129.7612442848
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.288750584370062,
+          "p75": 18.42224202594924,
+          "p90": 30.54675472279224,
+          "p95": 40.68761411283078,
+          "p99": 76.72359279359668
+        },
+        "mae_ntd_ping": 61608.07496849989,
+        "mape_percent": 14.639671430621204,
+        "median_absolute_error_ntd_ping": 44372.62943535799,
+        "median_absolute_percentage_error": 10.288750584370062,
+        "rmse_ntd_ping": 87609.83336894705,
+        "rows": 8659,
+        "signed_bias_ntd_ping": -4816.173696343904,
+        "smape_percent": 13.77723535675881,
+        "wape_percent": 13.222576952015617
+      },
+      "新竹縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 331674.47365087597,
+          "p50": 39828.3738866442,
+          "p75": 69448.88521644758,
+          "p90": 107975.45145863725,
+          "p95": 144468.89566091294,
+          "p99": 246295.08549908386
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.986345217347903,
+          "p75": 20.294642885309354,
+          "p90": 33.41785575002782,
+          "p95": 42.89620436550524,
+          "p99": 94.49819052364575
+        },
+        "mae_ntd_ping": 52547.96924788976,
+        "mape_percent": 16.103128623784993,
+        "median_absolute_error_ntd_ping": 39828.3738866442,
+        "median_absolute_percentage_error": 10.986345217347903,
+        "rmse_ntd_ping": 71064.1199105379,
+        "rows": 1126,
+        "signed_bias_ntd_ping": 974.7029589549438,
+        "smape_percent": 14.851210105758742,
+        "wape_percent": 13.912418960899064
+      },
+      "桃園市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 540921.4440248377,
+          "p50": 29276.294553319487,
+          "p75": 55899.96177241973,
+          "p90": 91146.44534718861,
+          "p95": 128896.52748324219,
+          "p99": 170824.8966443003
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.416425617428555,
+          "p75": 19.195773268374893,
+          "p90": 33.64277192038231,
+          "p95": 54.67243216768695,
+          "p99": 88.78204021474485
+        },
+        "mae_ntd_ping": 41109.53618144094,
+        "mape_percent": 15.872365115518825,
+        "median_absolute_error_ntd_ping": 29276.294553319487,
+        "median_absolute_percentage_error": 10.416425617428555,
+        "rmse_ntd_ping": 56931.13671441219,
+        "rows": 7059,
+        "signed_bias_ntd_ping": 1394.7424367501776,
+        "smape_percent": 14.587581144628068,
+        "wape_percent": 13.976207351710906
+      },
+      "花蓮縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 130030.69760670551,
+          "p50": 27230.196068043122,
+          "p75": 44649.33564441616,
+          "p90": 63923.46917677504,
+          "p95": 72122.8415973876,
+          "p99": 110505.11413669116
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.63698022878525,
+          "p75": 23.029573841002783,
+          "p90": 39.80414643700784,
+          "p95": 60.44842093885108,
+          "p99": 130.99218217783417
+        },
+        "mae_ntd_ping": 31346.04697979463,
+        "mape_percent": 20.688924160844522,
+        "median_absolute_error_ntd_ping": 27230.196068043122,
+        "median_absolute_percentage_error": 12.63698022878525,
+        "rmse_ntd_ping": 39013.04867792672,
+        "rows": 317,
+        "signed_bias_ntd_ping": 9954.361321762826,
+        "smape_percent": 16.69970360633847,
+        "wape_percent": 14.874252765871843
+      },
+      "苗栗縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 472728.21195197647,
+          "p50": 27954.645727619267,
+          "p75": 50266.49292226473,
+          "p90": 67696.18236253315,
+          "p95": 83823.2125685122,
+          "p99": 134559.23133807682
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.174462151921137,
+          "p75": 21.218870952663124,
+          "p90": 35.45158490971441,
+          "p95": 52.42830200342417,
+          "p99": 110.29248808369142
+        },
+        "mae_ntd_ping": 35279.86637044211,
+        "mape_percent": 18.282869246346817,
+        "median_absolute_error_ntd_ping": 27954.645727619267,
+        "median_absolute_percentage_error": 12.174462151921137,
+        "rmse_ntd_ping": 49446.490101585085,
+        "rows": 657,
+        "signed_bias_ntd_ping": 11821.234255767366,
+        "smape_percent": 16.195262605041567,
+        "wape_percent": 15.204540868717562
+      },
+      "雲林縣": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 109039.92058536329,
+          "p50": 18509.017820661713,
+          "p75": 34249.37570246527,
+          "p90": 55085.21267093908,
+          "p95": 70289.3829176207,
+          "p99": 94477.34316504019
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.571362961204965,
+          "p75": 18.82890567734102,
+          "p90": 28.739159454390343,
+          "p95": 39.77929478678802,
+          "p99": 66.90439016032444
+        },
+        "mae_ntd_ping": 24057.28757221968,
+        "mape_percent": 14.031564563935998,
+        "median_absolute_error_ntd_ping": 18509.017820661713,
+        "median_absolute_percentage_error": 10.571362961204965,
+        "rmse_ntd_ping": 32092.83637785096,
+        "rows": 429,
+        "signed_bias_ntd_ping": -2076.1710621111283,
+        "smape_percent": 13.542526672304378,
+        "wape_percent": 13.213250579482027
+      },
+      "高雄市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 338305.7548487948,
+          "p50": 25308.25292965195,
+          "p75": 45541.7822850951,
+          "p90": 67913.04271838166,
+          "p95": 82933.44638873052,
+          "p99": 131567.2299789189
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.337740834462286,
+          "p75": 16.633266875788056,
+          "p90": 26.510162520038712,
+          "p95": 37.60803819040507,
+          "p99": 73.18807877538401
+        },
+        "mae_ntd_ping": 32313.967809600203,
+        "mape_percent": 13.404601868015696,
+        "median_absolute_error_ntd_ping": 25308.25292965195,
+        "median_absolute_percentage_error": 9.337740834462286,
+        "rmse_ntd_ping": 43140.05615959055,
+        "rows": 6746,
+        "signed_bias_ntd_ping": 1790.9766718004223,
+        "smape_percent": 12.348943980432225,
+        "wape_percent": 11.368202770355868
+      }
+    },
+    "fit_cell_density": {
+      "0": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 472728.21195197647,
+          "p50": 27035.465057154594,
+          "p75": 44321.57581767149,
+          "p90": 66183.52625550692,
+          "p95": 82730.26045675598,
+          "p99": 112419.49218148265
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.517270770739408,
+          "p75": 23.508948085612168,
+          "p90": 40.6504269016628,
+          "p95": 57.21561549926668,
+          "p99": 186.1337088204014
+        },
+        "mae_ntd_ping": 33693.50126704766,
+        "mape_percent": 23.48750592634265,
+        "median_absolute_error_ntd_ping": 27035.465057154594,
+        "median_absolute_percentage_error": 14.517270770739408,
+        "rmse_ntd_ping": 50255.96745371338,
+        "rows": 402,
+        "signed_bias_ntd_ping": 3481.9305345848816,
+        "smape_percent": 18.856531028496182,
+        "wape_percent": 17.175874353632654
+      },
+      "1": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 370649.1318188442,
+          "p50": 23892.56946438813,
+          "p75": 43833.25692278889,
+          "p90": 67233.04756420088,
+          "p95": 86068.39875856042,
+          "p99": 130006.29588752553
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.23200394882154,
+          "p75": 22.060672049464987,
+          "p90": 32.24071309310613,
+          "p95": 49.10288399505095,
+          "p99": 107.59501566767045
+        },
+        "mae_ntd_ping": 31439.6824473847,
+        "mape_percent": 17.658913007369957,
+        "median_absolute_error_ntd_ping": 23892.56946438813,
+        "median_absolute_percentage_error": 12.23200394882154,
+        "rmse_ntd_ping": 42970.68567489987,
+        "rows": 1473,
+        "signed_bias_ntd_ping": -3631.8106308472543,
+        "smape_percent": 16.023625206962492,
+        "wape_percent": 14.876207532869062
+      },
+      "2": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 26455.092605355778,
+          "p75": 48558.20085921843,
+          "p90": 80983.9722903215,
+          "p95": 112944.34372631137,
+          "p99": 232108.447674338
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.657500254092083,
+          "p75": 21.05863396956939,
+          "p90": 33.79013669425459,
+          "p95": 46.18769001331502,
+          "p99": 96.4382882274811
+        },
+        "mae_ntd_ping": 38685.994081517514,
+        "mape_percent": 16.67715721987845,
+        "median_absolute_error_ntd_ping": 26455.092605355778,
+        "median_absolute_percentage_error": 11.657500254092083,
+        "rmse_ntd_ping": 61438.88872406562,
+        "rows": 7157,
+        "signed_bias_ntd_ping": -1516.585536060211,
+        "smape_percent": 15.331383872770463,
+        "wape_percent": 14.648118816945757
+      },
+      "3": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1278408.745532586,
+          "p50": 33937.33263583301,
+          "p75": 64490.76331699378,
+          "p90": 111757.16063600402,
+          "p95": 154459.10988953497,
+          "p99": 269892.8357480934
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.243779609655554,
+          "p75": 18.244205153739735,
+          "p90": 29.488152242234218,
+          "p95": 39.618032101104234,
+          "p99": 76.36217071961839
+        },
+        "mae_ntd_ping": 50477.095039795626,
+        "mape_percent": 14.255291429589235,
+        "median_absolute_error_ntd_ping": 33937.33263583301,
+        "median_absolute_percentage_error": 10.243779609655554,
+        "rmse_ntd_ping": 77255.75353785053,
+        "rows": 34372,
+        "signed_bias_ntd_ping": -3191.751387049787,
+        "smape_percent": 13.422897884751608,
+        "wape_percent": 13.12532422367118
+      }
+    },
+    "geography": {
+      "南投縣|南投市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 168830.9556499986,
+          "p50": 22522.246575111327,
+          "p75": 35156.92561551934,
+          "p90": 58826.65389962812,
+          "p95": 82728.49308093965,
+          "p99": 118655.12222719671
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.966795549259626,
+          "p75": 19.29858488475786,
+          "p90": 27.23438672138845,
+          "p95": 32.68258533777639,
+          "p99": 47.358242432182934
+        },
+        "mae_ntd_ping": 27696.69585588552,
+        "mape_percent": 13.876991298861482,
+        "median_absolute_error_ntd_ping": 22522.246575111327,
+        "median_absolute_percentage_error": 11.966795549259626,
+        "rmse_ntd_ping": 38878.4423592316,
+        "rows": 82,
+        "signed_bias_ntd_ping": -6133.870010142253,
+        "smape_percent": 14.041211984122059,
+        "wape_percent": 14.669529683323463
+      },
+      "南投縣|草屯鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 88811.21603391369,
+          "p50": 22541.102788554097,
+          "p75": 44124.159959816694,
+          "p90": 56102.13214955745,
+          "p95": 68908.41378596977,
+          "p99": 80053.8941175145
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.58738240619566,
+          "p75": 20.291155684026172,
+          "p90": 27.693857689528393,
+          "p95": 38.86170754652593,
+          "p99": 69.8457912304596
+        },
+        "mae_ntd_ping": 27664.935322419504,
+        "mape_percent": 14.619605534477186,
+        "median_absolute_error_ntd_ping": 22541.102788554097,
+        "median_absolute_percentage_error": 11.58738240619566,
+        "rmse_ntd_ping": 34531.28312912455,
+        "rows": 114,
+        "signed_bias_ntd_ping": 11491.239778607978,
+        "smape_percent": 13.431949924877792,
+        "wape_percent": 13.163849820809837
+      },
+      "台中市|中區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 145231.10041618632,
+          "p50": 29333.676326070083,
+          "p75": 49863.51315419729,
+          "p90": 75723.45100998547,
+          "p95": 99152.36699351929,
+          "p99": 115059.59272604443
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.977878142167253,
+          "p75": 21.58449037709699,
+          "p90": 35.493296324127925,
+          "p95": 67.82820613684041,
+          "p99": 164.56590728294603
+        },
+        "mae_ntd_ping": 35494.66254967858,
+        "mape_percent": 19.664851315557552,
+        "median_absolute_error_ntd_ping": 29333.676326070083,
+        "median_absolute_percentage_error": 10.977878142167253,
+        "rmse_ntd_ping": 46128.53893256508,
+        "rows": 112,
+        "signed_bias_ntd_ping": 12046.732306268468,
+        "smape_percent": 16.40533992473135,
+        "wape_percent": 14.588933944019594
+      },
+      "台中市|北區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 209309.91311314842,
+          "p50": 32878.36087435519,
+          "p75": 60213.00279078925,
+          "p90": 88323.67861467159,
+          "p95": 106979.8226213346,
+          "p99": 150919.2092815277
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.822002861962208,
+          "p75": 21.476392779696297,
+          "p90": 39.34063550401045,
+          "p95": 53.77200718099406,
+          "p99": 92.44401232604986
+        },
+        "mae_ntd_ping": 41804.210225272356,
+        "mape_percent": 17.21604121991079,
+        "median_absolute_error_ntd_ping": 32878.36087435519,
+        "median_absolute_percentage_error": 11.822002861962208,
+        "rmse_ntd_ping": 54400.757448039,
+        "rows": 663,
+        "signed_bias_ntd_ping": 15446.758528727683,
+        "smape_percent": 15.294881075973926,
+        "wape_percent": 14.824294130327873
+      },
+      "台中市|北屯區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 365954.6955497377,
+          "p50": 35385.849779258424,
+          "p75": 62073.92579561134,
+          "p90": 93150.05886280163,
+          "p95": 123211.58281019691,
+          "p99": 189042.83766003663
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.129538767447302,
+          "p75": 18.307001959578137,
+          "p90": 26.46783204708059,
+          "p95": 31.200012705744754,
+          "p99": 46.378226756260524
+        },
+        "mae_ntd_ping": 45540.284087040316,
+        "mape_percent": 13.080406470249448,
+        "median_absolute_error_ntd_ping": 35385.849779258424,
+        "median_absolute_percentage_error": 11.129538767447302,
+        "rmse_ntd_ping": 61433.44943162835,
+        "rows": 1343,
+        "signed_bias_ntd_ping": -9328.633592877803,
+        "smape_percent": 13.067993888574808,
+        "wape_percent": 13.328837071664108
+      },
+      "台中市|南區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 161873.85988286513,
+          "p50": 27653.67268861443,
+          "p75": 44603.080940963264,
+          "p90": 63144.8952224882,
+          "p95": 73854.9844247219,
+          "p99": 100796.39510404745
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.454883446414224,
+          "p75": 16.230578282873438,
+          "p90": 24.16556704897375,
+          "p95": 34.04993773227296,
+          "p99": 56.657516857658834
+        },
+        "mae_ntd_ping": 32198.84971115015,
+        "mape_percent": 12.379591410926377,
+        "median_absolute_error_ntd_ping": 27653.67268861443,
+        "median_absolute_percentage_error": 9.454883446414224,
+        "rmse_ntd_ping": 39659.14305356401,
+        "rows": 505,
+        "signed_bias_ntd_ping": 17032.56664982118,
+        "smape_percent": 11.393855796398288,
+        "wape_percent": 10.825138352280458
+      },
+      "台中市|南屯區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 298029.12827390473,
+          "p50": 48475.34067895755,
+          "p75": 81383.24669295065,
+          "p90": 108309.58517674635,
+          "p95": 125857.34464118784,
+          "p99": 204497.7525918907
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.02962843858559,
+          "p75": 23.305044174972096,
+          "p90": 33.646316673197816,
+          "p95": 39.731353149861576,
+          "p99": 70.98065780046359
+        },
+        "mae_ntd_ping": 56590.44624084349,
+        "mape_percent": 16.917515282341082,
+        "median_absolute_error_ntd_ping": 48475.34067895755,
+        "median_absolute_percentage_error": 14.02962843858559,
+        "rmse_ntd_ping": 71178.44231114675,
+        "rows": 662,
+        "signed_bias_ntd_ping": 13215.686581719341,
+        "smape_percent": 15.704788686874949,
+        "wape_percent": 15.820840938243228
+      },
+      "台中市|大甲區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 119139.62694683275,
+          "p50": 24529.73788028324,
+          "p75": 40696.368172940536,
+          "p90": 52883.667499066105,
+          "p95": 67378.75553808147,
+          "p99": 106042.099271125
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.311754873532673,
+          "p75": 18.911878428647373,
+          "p90": 27.82457353933213,
+          "p95": 33.61136085514268,
+          "p99": 49.38460622842392
+        },
+        "mae_ntd_ping": 29286.0295976594,
+        "mape_percent": 14.663460352972814,
+        "median_absolute_error_ntd_ping": 24529.73788028324,
+        "median_absolute_percentage_error": 13.311754873532673,
+        "rmse_ntd_ping": 37296.19520754834,
+        "rows": 53,
+        "signed_bias_ntd_ping": -4200.487666308719,
+        "smape_percent": 14.413142219867654,
+        "wape_percent": 14.369141666108359
+      },
+      "台中市|大里區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 157832.6259295738,
+          "p50": 26203.394058975784,
+          "p75": 52208.19495297102,
+          "p90": 86503.59648919049,
+          "p95": 95016.14135512683,
+          "p99": 117019.56258765234
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.870146376121813,
+          "p75": 19.177416047275237,
+          "p90": 36.400369310462985,
+          "p95": 42.09674467303689,
+          "p99": 68.38355680814007
+        },
+        "mae_ntd_ping": 36098.62673250242,
+        "mape_percent": 14.846959557745128,
+        "median_absolute_error_ntd_ping": 26203.394058975784,
+        "median_absolute_percentage_error": 10.870146376121813,
+        "rmse_ntd_ping": 46777.81992330646,
+        "rows": 290,
+        "signed_bias_ntd_ping": 13926.77376113095,
+        "smape_percent": 13.544686873074745,
+        "wape_percent": 13.437309190125
+      },
+      "台中市|大雅區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 90965.18019030693,
+          "p50": 19604.144323733402,
+          "p75": 37142.02436646139,
+          "p90": 54241.52379980319,
+          "p95": 58245.886254240395,
+          "p99": 80092.4014917511
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 7.581617098229719,
+          "p75": 14.604634230571929,
+          "p90": 20.8638264487084,
+          "p95": 27.3461826074833,
+          "p99": 42.96062809817359
+        },
+        "mae_ntd_ping": 25015.01425611789,
+        "mape_percent": 10.391656158630822,
+        "median_absolute_error_ntd_ping": 19604.144323733402,
+        "median_absolute_percentage_error": 7.581617098229719,
+        "rmse_ntd_ping": 32495.881661708907,
+        "rows": 94,
+        "signed_bias_ntd_ping": 3892.145016030079,
+        "smape_percent": 9.856140756741283,
+        "wape_percent": 9.43399282280296
+      },
+      "台中市|太平區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 279918.5505486467,
+          "p50": 25157.192245868326,
+          "p75": 40641.168401815725,
+          "p90": 58435.42582568254,
+          "p95": 73580.02594815314,
+          "p99": 113063.5592289301
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.67292395631575,
+          "p75": 14.825857196510844,
+          "p90": 25.52768601861913,
+          "p95": 35.71266251772452,
+          "p99": 54.31822124991601
+        },
+        "mae_ntd_ping": 30342.579627459083,
+        "mape_percent": 12.042185938423659,
+        "median_absolute_error_ntd_ping": 25157.192245868326,
+        "median_absolute_percentage_error": 8.67292395631575,
+        "rmse_ntd_ping": 39443.38545015327,
+        "rows": 537,
+        "signed_bias_ntd_ping": 19774.931301163626,
+        "smape_percent": 10.984368947115838,
+        "wape_percent": 10.605701782840555
+      },
+      "台中市|東區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 167069.4785446073,
+          "p50": 25992.522599504897,
+          "p75": 48033.75400223807,
+          "p90": 72635.07161962912,
+          "p95": 87852.6269462579,
+          "p99": 122033.81323893751
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.748454628655875,
+          "p75": 16.15380752061322,
+          "p90": 26.754840123825105,
+          "p95": 35.18633396439992,
+          "p99": 44.28854396080842
+        },
+        "mae_ntd_ping": 34362.33891458556,
+        "mape_percent": 12.298141851969449,
+        "median_absolute_error_ntd_ping": 25992.522599504897,
+        "median_absolute_percentage_error": 8.748454628655875,
+        "rmse_ntd_ping": 44308.40176285623,
+        "rows": 214,
+        "signed_bias_ntd_ping": 1567.0957042047116,
+        "smape_percent": 11.707304496194986,
+        "wape_percent": 11.288540938853314
+      },
+      "台中市|梧棲區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 129169.3659260961,
+          "p50": 27473.561940181316,
+          "p75": 40625.06435476169,
+          "p90": 58583.748373394796,
+          "p95": 84454.7640973789,
+          "p99": 125459.14409045465
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.353321044527364,
+          "p75": 18.905201642211694,
+          "p90": 27.906967621809724,
+          "p95": 32.57933163725426,
+          "p99": 48.54363657778683
+        },
+        "mae_ntd_ping": 31070.188033738603,
+        "mape_percent": 13.934248693805605,
+        "median_absolute_error_ntd_ping": 27473.561940181316,
+        "median_absolute_percentage_error": 12.353321044527364,
+        "rmse_ntd_ping": 40151.99359496763,
+        "rows": 334,
+        "signed_bias_ntd_ping": 10016.265354151094,
+        "smape_percent": 13.261617542820522,
+        "wape_percent": 13.741660453463775
+      },
+      "台中市|沙鹿區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 177276.2816266948,
+          "p50": 25863.45071122152,
+          "p75": 44530.26310810287,
+          "p90": 60269.03475590226,
+          "p95": 96241.52313266783,
+          "p99": 142726.99732522792
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.138460095732613,
+          "p75": 18.0408127134004,
+          "p90": 25.86185255152345,
+          "p95": 31.058468525552723,
+          "p99": 83.37841324093408
+        },
+        "mae_ntd_ping": 32844.195861007815,
+        "mape_percent": 13.464439614869502,
+        "median_absolute_error_ntd_ping": 25863.45071122152,
+        "median_absolute_percentage_error": 10.138460095732613,
+        "rmse_ntd_ping": 44652.38443901992,
+        "rows": 167,
+        "signed_bias_ntd_ping": 7521.730834868218,
+        "smape_percent": 12.549317001344829,
+        "wape_percent": 12.33614127934224
+      },
+      "台中市|清水區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 112789.71303247771,
+          "p50": 18564.54363782049,
+          "p75": 27407.09867813692,
+          "p90": 39036.25217596453,
+          "p95": 47579.799831927725,
+          "p99": 84921.21619858187
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.062462057233539,
+          "p75": 12.434042379975981,
+          "p90": 20.54360047533178,
+          "p95": 25.57307988508076,
+          "p99": 36.85242462153073
+        },
+        "mae_ntd_ping": 21085.769911752177,
+        "mape_percent": 10.307613866833833,
+        "median_absolute_error_ntd_ping": 18564.54363782049,
+        "median_absolute_percentage_error": 9.062462057233539,
+        "rmse_ntd_ping": 27159.06930076368,
+        "rows": 136,
+        "signed_bias_ntd_ping": 6726.683138628706,
+        "smape_percent": 9.981483453506442,
+        "wape_percent": 10.104433064360272
+      },
+      "台中市|潭子區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 109310.10787875275,
+          "p50": 27514.62622722017,
+          "p75": 38603.743482833976,
+          "p90": 50570.02048111684,
+          "p95": 60372.177939156056,
+          "p99": 85812.76742633333
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.473879096264461,
+          "p75": 14.02073019039268,
+          "p90": 21.024771806556316,
+          "p95": 27.298399558824517,
+          "p99": 41.6713641212027
+        },
+        "mae_ntd_ping": 28466.761105310947,
+        "mape_percent": 10.833712264622578,
+        "median_absolute_error_ntd_ping": 27514.62622722017,
+        "median_absolute_percentage_error": 9.473879096264461,
+        "rmse_ntd_ping": 34026.93112296547,
+        "rows": 216,
+        "signed_bias_ntd_ping": 13789.288196139894,
+        "smape_percent": 10.281418462516632,
+        "wape_percent": 10.031550194871599
+      },
+      "台中市|烏日區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 155309.69439550984,
+          "p50": 24113.031856103276,
+          "p75": 44949.0080293873,
+          "p90": 75061.28690458614,
+          "p95": 85317.84730703749,
+          "p99": 143093.64901057823
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 7.650908631115643,
+          "p75": 14.445105884433572,
+          "p90": 22.95907856693712,
+          "p95": 29.545583333646444,
+          "p99": 60.99578447036274
+        },
+        "mae_ntd_ping": 32044.12046981904,
+        "mape_percent": 10.767356322415521,
+        "median_absolute_error_ntd_ping": 24113.031856103276,
+        "median_absolute_percentage_error": 7.650908631115643,
+        "rmse_ntd_ping": 43195.03567754702,
+        "rows": 247,
+        "signed_bias_ntd_ping": 8924.787475857851,
+        "smape_percent": 10.115867499515497,
+        "wape_percent": 9.871455570501194
+      },
+      "台中市|西區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 305919.4234374074,
+          "p50": 35119.76554938164,
+          "p75": 59962.52436527226,
+          "p90": 85644.55346692636,
+          "p95": 113535.59232481825,
+          "p99": 201711.15866620504
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.665056525591709,
+          "p75": 22.109840873565883,
+          "p90": 34.204094173136724,
+          "p95": 43.18812737771947,
+          "p99": 58.49964528916542
+        },
+        "mae_ntd_ping": 44025.790197445865,
+        "mape_percent": 15.937833919881783,
+        "median_absolute_error_ntd_ping": 35119.76554938164,
+        "median_absolute_percentage_error": 11.665056525591709,
+        "rmse_ntd_ping": 60069.3785060626,
+        "rows": 358,
+        "signed_bias_ntd_ping": 7289.389049290286,
+        "smape_percent": 14.8586517832488,
+        "wape_percent": 14.651931191372464
+      },
+      "台中市|西屯區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 287702.5297021522,
+          "p50": 40089.63888677172,
+          "p75": 67334.54472812917,
+          "p90": 98539.51313619147,
+          "p95": 125396.28541449894,
+          "p99": 200205.96912427747
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.579570610900692,
+          "p75": 21.55700873111857,
+          "p90": 32.55051570781587,
+          "p95": 39.56733150342256,
+          "p99": 59.89522161872679
+        },
+        "mae_ntd_ping": 48829.65020685071,
+        "mape_percent": 15.008673456916403,
+        "median_absolute_error_ntd_ping": 40089.63888677172,
+        "median_absolute_percentage_error": 11.579570610900692,
+        "rmse_ntd_ping": 63853.47566759075,
+        "rows": 1121,
+        "signed_bias_ntd_ping": 3846.1131659521807,
+        "smape_percent": 14.180590000848396,
+        "wape_percent": 13.722260860309198
+      },
+      "台中市|豐原區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 183230.54103966698,
+          "p50": 23119.423628076736,
+          "p75": 38838.02287628915,
+          "p90": 66008.08135210222,
+          "p95": 91227.3046772529,
+          "p99": 167803.39944543075
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.088929430784477,
+          "p75": 15.285525430675863,
+          "p90": 25.801987071844824,
+          "p95": 32.16038018475868,
+          "p99": 96.28942528592022
+        },
+        "mae_ntd_ping": 31042.8725434118,
+        "mape_percent": 12.812482148027245,
+        "median_absolute_error_ntd_ping": 23119.423628076736,
+        "median_absolute_percentage_error": 8.088929430784477,
+        "rmse_ntd_ping": 44188.50290469316,
+        "rows": 202,
+        "signed_bias_ntd_ping": 4292.474818540033,
+        "smape_percent": 11.637057035795587,
+        "wape_percent": 10.939303986717611
+      },
+      "台中市|霧峰區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 95728.32919609791,
+          "p50": 22039.97691962117,
+          "p75": 41285.62613046018,
+          "p90": 52942.8747003451,
+          "p95": 81260.94224940492,
+          "p99": 94774.57109483739
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.448447484190531,
+          "p75": 20.12333098184534,
+          "p90": 26.842618656330064,
+          "p95": 28.79395244724102,
+          "p99": 33.35293285655749
+        },
+        "mae_ntd_ping": 29174.56247826092,
+        "mape_percent": 14.153541750746951,
+        "median_absolute_error_ntd_ping": 22039.97691962117,
+        "median_absolute_percentage_error": 12.448447484190531,
+        "rmse_ntd_ping": 36796.24611993612,
+        "rows": 51,
+        "signed_bias_ntd_ping": -10255.965028198993,
+        "smape_percent": 14.459285430724664,
+        "wape_percent": 14.86589142995394
+      },
+      "台中市|龍井區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 149967.79128193518,
+          "p50": 33740.323038562434,
+          "p75": 65020.514059625515,
+          "p90": 99727.40888754814,
+          "p95": 116274.98255282789,
+          "p99": 143442.51963723265
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.57018971549197,
+          "p75": 25.231458214399872,
+          "p90": 30.94412524753709,
+          "p95": 46.14411956833128,
+          "p99": 112.21447779316279
+        },
+        "mae_ntd_ping": 43568.56447459015,
+        "mape_percent": 21.35010690713645,
+        "median_absolute_error_ntd_ping": 33740.323038562434,
+        "median_absolute_percentage_error": 14.57018971549197,
+        "rmse_ntd_ping": 56982.4587837847,
+        "rows": 146,
+        "signed_bias_ntd_ping": -9785.451162109532,
+        "smape_percent": 18.01281641877594,
+        "wape_percent": 17.235845701241782
+      },
+      "台北市|中山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 644125.9438487124,
+          "p50": 96580.54308958119,
+          "p75": 174293.89711753966,
+          "p90": 257328.59610847806,
+          "p95": 301369.39477120695,
+          "p99": 536138.5500538911
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.160617998313066,
+          "p75": 19.57139229320084,
+          "p90": 29.672366972125296,
+          "p95": 38.95435803392659,
+          "p99": 62.52905376827366
+        },
+        "mae_ntd_ping": 123645.64772104163,
+        "mape_percent": 14.568195809921006,
+        "median_absolute_error_ntd_ping": 96580.54308958119,
+        "median_absolute_percentage_error": 12.160617998313066,
+        "rmse_ntd_ping": 162588.62742543162,
+        "rows": 365,
+        "signed_bias_ntd_ping": -15809.700893171683,
+        "smape_percent": 14.222353851833835,
+        "wape_percent": 14.169161001451535
+      },
+      "台北市|中正區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 661188.2700961351,
+          "p50": 148806.9366654975,
+          "p75": 277603.036528972,
+          "p90": 444156.89541078685,
+          "p95": 515613.7209808354,
+          "p99": 576729.2874972346
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.332308825290136,
+          "p75": 24.184006437132645,
+          "p90": 31.933645761453487,
+          "p95": 36.24778176549419,
+          "p99": 43.46749281517934
+        },
+        "mae_ntd_ping": 190958.57189284696,
+        "mape_percent": 16.1971524444912,
+        "median_absolute_error_ntd_ping": 148806.9366654975,
+        "median_absolute_percentage_error": 14.332308825290136,
+        "rmse_ntd_ping": 246475.39600047222,
+        "rows": 201,
+        "signed_bias_ntd_ping": -125513.39106956996,
+        "smape_percent": 17.382077847319106,
+        "wape_percent": 17.070271001012344
+      },
+      "台北市|信義區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1278408.745532586,
+          "p50": 115079.68212580169,
+          "p75": 202359.9293388666,
+          "p90": 321017.29938707396,
+          "p95": 462868.4210711951,
+          "p99": 791020.5109429152
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.267315511291452,
+          "p75": 21.422574557935306,
+          "p90": 33.794938687876176,
+          "p95": 39.60596694477644,
+          "p99": 65.04106434219634
+        },
+        "mae_ntd_ping": 161095.92501056704,
+        "mape_percent": 16.9049339735311,
+        "median_absolute_error_ntd_ping": 115079.68212580169,
+        "median_absolute_percentage_error": 13.267315511291452,
+        "rmse_ntd_ping": 230874.38882713215,
+        "rows": 187,
+        "signed_bias_ntd_ping": -74053.72041136413,
+        "smape_percent": 17.42614549097065,
+        "wape_percent": 17.68320306643249
+      },
+      "台北市|內湖區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 564329.0478832651,
+          "p50": 70153.04934002366,
+          "p75": 128899.0299908043,
+          "p90": 176884.35639312907,
+          "p95": 204708.63300420414,
+          "p99": 269557.8996201565
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.020413777650955,
+          "p75": 16.443917379703578,
+          "p90": 23.24394693910625,
+          "p95": 30.186085164406254,
+          "p99": 51.71299689151024
+        },
+        "mae_ntd_ping": 87313.67182666589,
+        "mape_percent": 11.938005796433467,
+        "median_absolute_error_ntd_ping": 70153.04934002366,
+        "median_absolute_percentage_error": 10.020413777650955,
+        "rmse_ntd_ping": 111741.37396573191,
+        "rows": 270,
+        "signed_bias_ntd_ping": -25094.136060331486,
+        "smape_percent": 11.88398087570787,
+        "wape_percent": 11.703315433740368
+      },
+      "台北市|北投區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 647451.006960232,
+          "p50": 97590.6390860281,
+          "p75": 170965.55985776373,
+          "p90": 223065.1058903527,
+          "p95": 249576.17153183458,
+          "p99": 391598.03792368755
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 15.501453026636389,
+          "p75": 23.348894423400107,
+          "p90": 31.818490102355423,
+          "p95": 40.787312497137066,
+          "p99": 66.28086597143192
+        },
+        "mae_ntd_ping": 115597.82800566309,
+        "mape_percent": 17.60339726929907,
+        "median_absolute_error_ntd_ping": 97590.6390860281,
+        "median_absolute_percentage_error": 15.501453026636389,
+        "rmse_ntd_ping": 145657.96585888957,
+        "rows": 275,
+        "signed_bias_ntd_ping": -52272.11454341172,
+        "smape_percent": 17.7404161537845,
+        "wape_percent": 17.114617039011975
+      },
+      "台北市|南港區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 511994.25913959334,
+          "p50": 72607.77072191157,
+          "p75": 133132.86540119984,
+          "p90": 203320.72841801753,
+          "p95": 249769.18457496815,
+          "p99": 366015.97258280474
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.23231358589066,
+          "p75": 16.08586080480827,
+          "p90": 22.119994561891993,
+          "p95": 27.85027611097172,
+          "p99": 35.90691348305172
+        },
+        "mae_ntd_ping": 94486.04411168417,
+        "mape_percent": 10.925941762234972,
+        "median_absolute_error_ntd_ping": 72607.77072191157,
+        "median_absolute_percentage_error": 9.23231358589066,
+        "rmse_ntd_ping": 125456.25623919955,
+        "rows": 147,
+        "signed_bias_ntd_ping": -42689.29500230977,
+        "smape_percent": 11.14774360946733,
+        "wape_percent": 11.107184114285213
+      },
+      "台北市|士林區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 413531.6928901721,
+          "p50": 96959.59288716596,
+          "p75": 149967.78094815518,
+          "p90": 213380.65848007856,
+          "p95": 264418.574301402,
+          "p99": 381122.6176281055
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.706954702803863,
+          "p75": 21.623996751244878,
+          "p90": 30.09951916096001,
+          "p95": 39.93298054022958,
+          "p99": 69.96337267456983
+        },
+        "mae_ntd_ping": 109967.69876471249,
+        "mape_percent": 16.332890827522423,
+        "median_absolute_error_ntd_ping": 96959.59288716596,
+        "median_absolute_percentage_error": 13.706954702803863,
+        "rmse_ntd_ping": 137321.86981023732,
+        "rows": 228,
+        "signed_bias_ntd_ping": -39427.69592423822,
+        "smape_percent": 16.26509829742867,
+        "wape_percent": 15.172197510981672
+      },
+      "台北市|大同區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 595299.1901198627,
+          "p50": 91581.46240513795,
+          "p75": 136257.01713726856,
+          "p90": 212718.1373319993,
+          "p95": 256181.64731883496,
+          "p99": 363025.3125656597
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.44798388184036,
+          "p75": 15.029011264428219,
+          "p90": 22.083081625253143,
+          "p95": 29.292036815180015,
+          "p99": 45.82116749666801
+        },
+        "mae_ntd_ping": 105558.2859337772,
+        "mape_percent": 11.817815719303457,
+        "median_absolute_error_ntd_ping": 91581.46240513795,
+        "median_absolute_percentage_error": 10.44798388184036,
+        "rmse_ntd_ping": 135750.28019073926,
+        "rows": 179,
+        "signed_bias_ntd_ping": -33462.24101901139,
+        "smape_percent": 11.852001824295787,
+        "wape_percent": 11.745773387787557
+      },
+      "台北市|大安區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 149493.60348892852,
+          "p75": 276641.77022459236,
+          "p90": 432613.83685898146,
+          "p95": 510032.4713679467,
+          "p99": 798930.087920531
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.38888923785055,
+          "p75": 21.79474045266332,
+          "p90": 30.41179811919492,
+          "p95": 35.49952849847644,
+          "p99": 52.39115294727561
+        },
+        "mae_ntd_ping": 198317.622187649,
+        "mape_percent": 15.26257757194036,
+        "median_absolute_error_ntd_ping": 149493.60348892852,
+        "median_absolute_percentage_error": 13.38888923785055,
+        "rmse_ntd_ping": 268123.5552658133,
+        "rows": 354,
+        "signed_bias_ntd_ping": -116006.38636513635,
+        "smape_percent": 15.952658682573158,
+        "wape_percent": 16.22379575933514
+      },
+      "台北市|文山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 320956.30925121263,
+          "p50": 66912.7262092412,
+          "p75": 119418.76607982349,
+          "p90": 177390.29330319067,
+          "p95": 202055.4226608409,
+          "p99": 278084.6908056817
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.217053098184223,
+          "p75": 18.69075505291495,
+          "p90": 24.791635521297636,
+          "p95": 30.14365626972512,
+          "p99": 43.61021302387038
+        },
+        "mae_ntd_ping": 84745.38360995072,
+        "mape_percent": 13.026860031958998,
+        "median_absolute_error_ntd_ping": 66912.7262092412,
+        "median_absolute_percentage_error": 11.217053098184223,
+        "rmse_ntd_ping": 106661.37060849219,
+        "rows": 288,
+        "signed_bias_ntd_ping": -31643.802804678548,
+        "smape_percent": 13.107711964598106,
+        "wape_percent": 12.794627808492395
+      },
+      "台北市|松山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 661771.9623973959,
+          "p50": 87849.03856938786,
+          "p75": 176399.55213074933,
+          "p90": 252475.18838734276,
+          "p95": 288825.13023944735,
+          "p99": 514203.06130418845
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.569919400978428,
+          "p75": 17.242437304839832,
+          "p90": 25.382778379799923,
+          "p95": 30.66875466668635,
+          "p99": 37.967515314905455
+        },
+        "mae_ntd_ping": 121116.424210564,
+        "mape_percent": 12.108618728661193,
+        "median_absolute_error_ntd_ping": 87849.03856938786,
+        "median_absolute_percentage_error": 9.569919400978428,
+        "rmse_ntd_ping": 160625.1755175097,
+        "rows": 257,
+        "signed_bias_ntd_ping": -17219.102371571455,
+        "smape_percent": 12.147101323964904,
+        "wape_percent": 12.315046792692563
+      },
+      "台北市|萬華區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 336837.9424015834,
+          "p50": 57054.97440176096,
+          "p75": 109020.38768589392,
+          "p90": 175979.29800775019,
+          "p95": 191134.9686948423,
+          "p99": 245583.86142967225
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.251775255059263,
+          "p75": 15.631331045813669,
+          "p90": 20.74599263694915,
+          "p95": 25.60334134276698,
+          "p99": 38.1765765975552
+        },
+        "mae_ntd_ping": 72871.65535354409,
+        "mape_percent": 10.310632704528025,
+        "median_absolute_error_ntd_ping": 57054.97440176096,
+        "median_absolute_percentage_error": 8.251775255059263,
+        "rmse_ntd_ping": 96847.45965113804,
+        "rows": 291,
+        "signed_bias_ntd_ping": -33996.80302753359,
+        "smape_percent": 10.531737777998334,
+        "wape_percent": 10.375744525690617
+      },
+      "台南市|中西區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 216455.40575254167,
+          "p50": 38963.53525853518,
+          "p75": 71382.13000983695,
+          "p90": 147220.03831531983,
+          "p95": 184482.12892427068,
+          "p99": 196236.213182302
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 17.54675956509313,
+          "p75": 29.815909670558483,
+          "p90": 43.52674758823191,
+          "p95": 47.99275612463925,
+          "p99": 98.00829675799191
+        },
+        "mae_ntd_ping": 56180.56406342246,
+        "mape_percent": 23.32684204630946,
+        "median_absolute_error_ntd_ping": 38963.53525853518,
+        "median_absolute_percentage_error": 17.54675956509313,
+        "rmse_ntd_ping": 76665.52133518744,
+        "rows": 188,
+        "signed_bias_ntd_ping": -16797.417550421455,
+        "smape_percent": 21.88017545673923,
+        "wape_percent": 21.434271637380522
+      },
+      "台南市|仁德區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 193744.1474961784,
+          "p50": 16241.521224277036,
+          "p75": 31787.986951099214,
+          "p90": 47740.57515876741,
+          "p95": 73622.40638889017,
+          "p99": 96403.42824058367
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 6.5324710665835966,
+          "p75": 12.677539226485345,
+          "p90": 22.77659295785905,
+          "p95": 25.755856037113347,
+          "p99": 43.2738320676749
+        },
+        "mae_ntd_ping": 23188.730879562387,
+        "mape_percent": 9.199102982707506,
+        "median_absolute_error_ntd_ping": 16241.521224277036,
+        "median_absolute_percentage_error": 6.5324710665835966,
+        "rmse_ntd_ping": 33207.0585041029,
+        "rows": 222,
+        "signed_bias_ntd_ping": -5362.974046699551,
+        "smape_percent": 9.150619684794018,
+        "wape_percent": 8.803024570957392
+      },
+      "台南市|佳里區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 73574.83680351742,
+          "p50": 9578.061767916603,
+          "p75": 23034.112860210575,
+          "p90": 37999.22707279384,
+          "p95": 50729.10568678762,
+          "p99": 66875.59607314662
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 4.368670283755638,
+          "p75": 10.970635769542362,
+          "p90": 22.38159478564674,
+          "p95": 32.330298832938894,
+          "p99": 57.82999375190142
+        },
+        "mae_ntd_ping": 16621.928340985593,
+        "mape_percent": 9.667902770813042,
+        "median_absolute_error_ntd_ping": 9578.061767916603,
+        "median_absolute_percentage_error": 4.368670283755638,
+        "rmse_ntd_ping": 22726.23369950696,
+        "rows": 79,
+        "signed_bias_ntd_ping": 6616.749372284543,
+        "smape_percent": 8.793779872764766,
+        "wape_percent": 7.998741833352298
+      },
+      "台南市|北區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 154884.30498317024,
+          "p50": 31249.72193300468,
+          "p75": 53604.76881732431,
+          "p90": 80938.85640108059,
+          "p95": 98993.79175245723,
+          "p99": 129018.24636348084
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.04497467461754,
+          "p75": 22.424539019345154,
+          "p90": 36.225151767859984,
+          "p95": 57.54910249052978,
+          "p99": 90.91572807068131
+        },
+        "mae_ntd_ping": 39046.56641828884,
+        "mape_percent": 17.188858262602388,
+        "median_absolute_error_ntd_ping": 31249.72193300468,
+        "median_absolute_percentage_error": 12.04497467461754,
+        "rmse_ntd_ping": 49717.001598144496,
+        "rows": 265,
+        "signed_bias_ntd_ping": 13633.883666314763,
+        "smape_percent": 15.294240760182145,
+        "wape_percent": 14.457145077885606
+      },
+      "台南市|南區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 149891.02121484533,
+          "p50": 20699.27105341805,
+          "p75": 34063.459185340165,
+          "p90": 50460.2202907061,
+          "p95": 64327.00721799814,
+          "p99": 108215.30281506541
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.123909578528579,
+          "p75": 18.90152512141021,
+          "p90": 33.293530443670015,
+          "p95": 39.57680988960564,
+          "p99": 64.5791379998717
+        },
+        "mae_ntd_ping": 25768.506368619863,
+        "mape_percent": 15.033289147730796,
+        "median_absolute_error_ntd_ping": 20699.27105341805,
+        "median_absolute_percentage_error": 9.123909578528579,
+        "rmse_ntd_ping": 34298.92895164409,
+        "rows": 210,
+        "signed_bias_ntd_ping": 11449.697143969724,
+        "smape_percent": 13.367695636679233,
+        "wape_percent": 12.409687993174632
+      },
+      "台南市|善化區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 172807.00084564596,
+          "p50": 28938.64761260338,
+          "p75": 42897.65951477463,
+          "p90": 61860.67328824898,
+          "p95": 78048.21984273172,
+          "p99": 125464.83772655136
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.907319802160833,
+          "p75": 15.734371041554335,
+          "p90": 21.56469813994385,
+          "p95": 31.794945356784254,
+          "p99": 67.74479160787266
+        },
+        "mae_ntd_ping": 33313.94082774221,
+        "mape_percent": 12.770233213650906,
+        "median_absolute_error_ntd_ping": 28938.64761260338,
+        "median_absolute_percentage_error": 9.907319802160833,
+        "rmse_ntd_ping": 43825.541768095914,
+        "rows": 77,
+        "signed_bias_ntd_ping": 26010.642407746727,
+        "smape_percent": 11.356708131129484,
+        "wape_percent": 11.382109327878517
+      },
+      "台南市|安南區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 141368.50556460425,
+          "p50": 25849.62101187819,
+          "p75": 41137.51643078675,
+          "p90": 57727.69340981182,
+          "p95": 68466.03948800662,
+          "p99": 99087.07371027465
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.001891639798256,
+          "p75": 15.613182378098907,
+          "p90": 24.47584202292708,
+          "p95": 31.709267798283772,
+          "p99": 52.13292518020009
+        },
+        "mae_ntd_ping": 30209.595332812605,
+        "mape_percent": 12.351093074319747,
+        "median_absolute_error_ntd_ping": 25849.62101187819,
+        "median_absolute_percentage_error": 10.001891639798256,
+        "rmse_ntd_ping": 37561.11647692246,
+        "rows": 259,
+        "signed_bias_ntd_ping": 13520.526584462217,
+        "smape_percent": 11.582645814037008,
+        "wape_percent": 11.276514750348657
+      },
+      "台南市|安平區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 189106.46711639367,
+          "p50": 27845.49640016489,
+          "p75": 54500.11566367846,
+          "p90": 81036.33706974445,
+          "p95": 101246.99961904256,
+          "p99": 136645.29946965125
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.82088557463414,
+          "p75": 21.586010968032802,
+          "p90": 30.337588965463745,
+          "p95": 37.450358002497595,
+          "p99": 56.92722362504345
+        },
+        "mae_ntd_ping": 36445.583093909074,
+        "mape_percent": 14.875475724798793,
+        "median_absolute_error_ntd_ping": 27845.49640016489,
+        "median_absolute_percentage_error": 11.82088557463414,
+        "rmse_ntd_ping": 48476.21820871388,
+        "rows": 352,
+        "signed_bias_ntd_ping": 10652.863931001477,
+        "smape_percent": 13.922769644504395,
+        "wape_percent": 14.673033870032548
+      },
+      "台南市|新營區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 84051.69780449625,
+          "p50": 16606.887022320938,
+          "p75": 27420.642894800243,
+          "p90": 45185.48373835274,
+          "p95": 50827.6767789806,
+          "p99": 79924.56225034726
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.674579136697831,
+          "p75": 15.253254969300265,
+          "p90": 34.924912536587485,
+          "p95": 58.51649817494541,
+          "p99": 117.52430843590282
+        },
+        "mae_ntd_ping": 21051.828757524618,
+        "mape_percent": 17.520874711982366,
+        "median_absolute_error_ntd_ping": 16606.887022320938,
+        "median_absolute_percentage_error": 9.674579136697831,
+        "rmse_ntd_ping": 27367.976641335947,
+        "rows": 129,
+        "signed_bias_ntd_ping": -836.124413901959,
+        "smape_percent": 14.937058894550088,
+        "wape_percent": 12.168092358150204
+      },
+      "台南市|東區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 187987.71608356514,
+          "p50": 27889.34266397485,
+          "p75": 49466.3154566095,
+          "p90": 74535.75466300391,
+          "p95": 92955.27743208746,
+          "p99": 126378.96321538015
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.148586211646805,
+          "p75": 18.67019871367409,
+          "p90": 29.001203653083557,
+          "p95": 44.043699847192926,
+          "p99": 82.72565792734805
+        },
+        "mae_ntd_ping": 34898.23133813488,
+        "mape_percent": 14.669366767493493,
+        "median_absolute_error_ntd_ping": 27889.34266397485,
+        "median_absolute_percentage_error": 10.148586211646805,
+        "rmse_ntd_ping": 45853.10491949648,
+        "rows": 449,
+        "signed_bias_ntd_ping": 604.4306587693234,
+        "smape_percent": 13.35615734997297,
+        "wape_percent": 12.116765724420716
+      },
+      "台南市|歸仁區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 168120.31954584713,
+          "p50": 20028.896035124024,
+          "p75": 41729.14638867955,
+          "p90": 67807.00385756248,
+          "p95": 95555.41665296715,
+          "p99": 131012.21567092533
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 7.18748222553403,
+          "p75": 14.686274788798716,
+          "p90": 22.589729223632517,
+          "p95": 26.46901478216268,
+          "p99": 34.06147719782556
+        },
+        "mae_ntd_ping": 30496.371051312475,
+        "mape_percent": 10.681525683069625,
+        "median_absolute_error_ntd_ping": 20028.896035124024,
+        "median_absolute_percentage_error": 7.18748222553403,
+        "rmse_ntd_ping": 43449.093525890545,
+        "rows": 178,
+        "signed_bias_ntd_ping": -15497.087391171728,
+        "smape_percent": 10.654534708006077,
+        "wape_percent": 10.310017892539816
+      },
+      "台南市|永康區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 127439.50726265181,
+          "p50": 22855.214741038973,
+          "p75": 41077.81355424831,
+          "p90": 54975.967340576935,
+          "p95": 66076.67854061876,
+          "p99": 106782.89195674578
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.316205839336474,
+          "p75": 16.341025340344093,
+          "p90": 24.520894715937565,
+          "p95": 34.045617672808675,
+          "p99": 59.396673366027144
+        },
+        "mae_ntd_ping": 27745.679305292077,
+        "mape_percent": 12.348799448161317,
+        "median_absolute_error_ntd_ping": 22855.214741038973,
+        "median_absolute_percentage_error": 9.316205839336474,
+        "rmse_ntd_ping": 35437.3690233414,
+        "rows": 547,
+        "signed_bias_ntd_ping": 4925.999619000862,
+        "smape_percent": 11.667184063358954,
+        "wape_percent": 10.963104183873924
+      },
+      "台東縣|台東市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 125957.64427213368,
+          "p50": 29650.06397972518,
+          "p75": 56153.644026329275,
+          "p90": 81677.25280767068,
+          "p95": 90114.0419130644,
+          "p99": 113706.4831500899
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.981253648711354,
+          "p75": 23.83546401384565,
+          "p90": 39.85002932869993,
+          "p95": 85.70740585273775,
+          "p99": 142.9230946708611
+        },
+        "mae_ntd_ping": 35904.924266454655,
+        "mape_percent": 22.700400897505162,
+        "median_absolute_error_ntd_ping": 29650.06397972518,
+        "median_absolute_percentage_error": 13.981253648711354,
+        "rmse_ntd_ping": 45868.208706420955,
+        "rows": 119,
+        "signed_bias_ntd_ping": -9400.653917489157,
+        "smape_percent": 19.32978028819681,
+        "wape_percent": 17.197742747225973
+      },
+      "嘉義縣|太保市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 149611.80982356987,
+          "p50": 86111.00497634785,
+          "p75": 119538.67862604669,
+          "p90": 128799.7811445243,
+          "p95": 132384.63312400432,
+          "p99": 142554.22042727287
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 26.775088943730562,
+          "p75": 32.34764774298443,
+          "p90": 33.6030098684393,
+          "p95": 34.69411394551028,
+          "p99": 39.03558449225595
+        },
+        "mae_ntd_ping": 80405.45955459902,
+        "mape_percent": 23.853055477902142,
+        "median_absolute_error_ntd_ping": 86111.00497634785,
+        "median_absolute_percentage_error": 26.775088943730562,
+        "rmse_ntd_ping": 90632.64828628337,
+        "rows": 93,
+        "signed_bias_ntd_ping": -79761.37915372818,
+        "smape_percent": 27.76955384333878,
+        "wape_percent": 25.511811955739304
+      },
+      "嘉義縣|朴子市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 188416.6079112958,
+          "p50": 43893.93577509481,
+          "p75": 72293.10214079221,
+          "p90": 91186.86205925755,
+          "p95": 139208.74734134413,
+          "p99": 165345.65338187074
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 18.807255952458632,
+          "p75": 26.761469773231802,
+          "p90": 35.53227731971439,
+          "p95": 44.537858127030546,
+          "p99": 49.03340493364985
+        },
+        "mae_ntd_ping": 52778.55820522741,
+        "mape_percent": 20.315343161858046,
+        "median_absolute_error_ntd_ping": 43893.93577509481,
+        "median_absolute_percentage_error": 18.807255952458632,
+        "rmse_ntd_ping": 65011.294090884934,
+        "rows": 71,
+        "signed_bias_ntd_ping": -49151.86986306978,
+        "smape_percent": 23.311632700997414,
+        "wape_percent": 21.801052061346706
+      },
+      "基隆市|七堵區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 189566.34853326008,
+          "p50": 34165.57041698444,
+          "p75": 60326.41310772218,
+          "p90": 101344.34350539854,
+          "p95": 132385.09971232,
+          "p99": 165364.77726747523
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.130653649005593,
+          "p75": 24.871827033631096,
+          "p90": 44.233814221665654,
+          "p95": 53.32382517539609,
+          "p99": 103.97461033803309
+        },
+        "mae_ntd_ping": 46150.579850418784,
+        "mape_percent": 20.22640535233673,
+        "median_absolute_error_ntd_ping": 34165.57041698444,
+        "median_absolute_percentage_error": 14.130653649005593,
+        "rmse_ntd_ping": 60105.778473152626,
+        "rows": 121,
+        "signed_bias_ntd_ping": -15824.763066750105,
+        "smape_percent": 19.33556565690529,
+        "wape_percent": 18.43060307957237
+      },
+      "基隆市|中山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 81229.53575524777,
+          "p50": 18968.117176765336,
+          "p75": 32672.359033665518,
+          "p90": 49414.08686756118,
+          "p95": 66158.12237863247,
+          "p99": 81043.03081918573
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.156657935961425,
+          "p75": 17.382063942947624,
+          "p90": 29.29161727684315,
+          "p95": 56.79314080577582,
+          "p99": 80.25121452320192
+        },
+        "mae_ntd_ping": 24186.03769461556,
+        "mape_percent": 13.979006987578302,
+        "median_absolute_error_ntd_ping": 18968.117176765336,
+        "median_absolute_percentage_error": 8.156657935961425,
+        "rmse_ntd_ping": 31006.173773433802,
+        "rows": 86,
+        "signed_bias_ntd_ping": 2501.0196186835915,
+        "smape_percent": 13.083307709072695,
+        "wape_percent": 10.269671805761448
+      },
+      "基隆市|中正區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 216641.82825812942,
+          "p50": 19414.269490137405,
+          "p75": 34649.16579009569,
+          "p90": 60578.37118677047,
+          "p95": 85442.39335645517,
+          "p99": 116604.03613747732
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.565372103321899,
+          "p75": 19.14803535296197,
+          "p90": 44.74150887006767,
+          "p95": 56.13651602487726,
+          "p99": 162.14502076279115
+        },
+        "mae_ntd_ping": 27075.25278139699,
+        "mape_percent": 19.18366661056459,
+        "median_absolute_error_ntd_ping": 19414.269490137405,
+        "median_absolute_percentage_error": 10.565372103321899,
+        "rmse_ntd_ping": 38872.62042653127,
+        "rows": 301,
+        "signed_bias_ntd_ping": 5398.129442980267,
+        "smape_percent": 15.984689621272032,
+        "wape_percent": 14.590848755166133
+      },
+      "基隆市|仁愛區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 215214.5869514671,
+          "p50": 43807.68525477196,
+          "p75": 69965.12974186591,
+          "p90": 111930.74810859037,
+          "p95": 144866.73041622274,
+          "p99": 167566.2404884782
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 17.566253400021342,
+          "p75": 27.35584633515263,
+          "p90": 42.23815749346897,
+          "p95": 62.78718670108963,
+          "p99": 107.23939377475945
+        },
+        "mae_ntd_ping": 52178.36098308668,
+        "mape_percent": 21.547766746232842,
+        "median_absolute_error_ntd_ping": 43807.68525477196,
+        "median_absolute_percentage_error": 17.566253400021342,
+        "rmse_ntd_ping": 68198.88756218638,
+        "rows": 79,
+        "signed_bias_ntd_ping": -13285.192354952318,
+        "smape_percent": 20.278230935281147,
+        "wape_percent": 19.521435321378235
+      },
+      "基隆市|信義區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 221361.22695371648,
+          "p50": 21955.75358461024,
+          "p75": 37954.91697683775,
+          "p90": 63394.89493919344,
+          "p95": 82015.04093570191,
+          "p99": 178483.85533941962
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.465356546121438,
+          "p75": 23.241177371630084,
+          "p90": 36.163766927278324,
+          "p95": 49.99831732859932,
+          "p99": 73.79909445104123
+        },
+        "mae_ntd_ping": 29571.598677151615,
+        "mape_percent": 16.255596919262977,
+        "median_absolute_error_ntd_ping": 21955.75358461024,
+        "median_absolute_percentage_error": 11.465356546121438,
+        "rmse_ntd_ping": 43047.19694648724,
+        "rows": 217,
+        "signed_bias_ntd_ping": -6292.158951847769,
+        "smape_percent": 15.853150510758477,
+        "wape_percent": 14.971542503701176
+      },
+      "基隆市|安樂區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 140810.92603288818,
+          "p50": 26440.350624529005,
+          "p75": 43991.79473566073,
+          "p90": 67303.63033694318,
+          "p95": 79845.39585583989,
+          "p99": 106493.39310516848
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.042814021600405,
+          "p75": 21.84940946882942,
+          "p90": 33.560538850619025,
+          "p95": 43.000937972013084,
+          "p99": 83.56809387302718
+        },
+        "mae_ntd_ping": 31695.634189170454,
+        "mape_percent": 16.967391635423812,
+        "median_absolute_error_ntd_ping": 26440.350624529005,
+        "median_absolute_percentage_error": 13.042814021600405,
+        "rmse_ntd_ping": 39912.863268345594,
+        "rows": 335,
+        "signed_bias_ntd_ping": -5183.47197473316,
+        "smape_percent": 16.3884079411203,
+        "wape_percent": 15.17358463744305
+      },
+      "基隆市|暖暖區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 106130.29860403502,
+          "p50": 23771.99558113396,
+          "p75": 48747.5301372549,
+          "p90": 63730.52340077341,
+          "p95": 77515.46839538682,
+          "p99": 97684.01398887929
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.356228010759162,
+          "p75": 25.07875473460542,
+          "p90": 31.767970433892025,
+          "p95": 36.39662656070717,
+          "p99": 48.916438552290785
+        },
+        "mae_ntd_ping": 31253.604689187036,
+        "mape_percent": 16.631998447093522,
+        "median_absolute_error_ntd_ping": 23771.99558113396,
+        "median_absolute_percentage_error": 14.356228010759162,
+        "rmse_ntd_ping": 39600.00031917408,
+        "rows": 128,
+        "signed_bias_ntd_ping": -11854.550902163488,
+        "smape_percent": 17.11640999950183,
+        "wape_percent": 16.386259738434976
+      },
+      "宜蘭縣|五結鄉": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 159941.17342081302,
+          "p50": 26161.527213167952,
+          "p75": 40509.35329415935,
+          "p90": 61075.74910288956,
+          "p95": 69730.84083537702,
+          "p99": 104759.20656075291
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.404313978261984,
+          "p75": 22.79339289786174,
+          "p90": 34.65588447585384,
+          "p95": 43.15794160504201,
+          "p99": 99.15335117431833
+        },
+        "mae_ntd_ping": 30272.019002460387,
+        "mape_percent": 18.579078986067948,
+        "median_absolute_error_ntd_ping": 26161.527213167952,
+        "median_absolute_percentage_error": 13.404313978261984,
+        "rmse_ntd_ping": 39612.6377844155,
+        "rows": 106,
+        "signed_bias_ntd_ping": -3648.655603752041,
+        "smape_percent": 17.217651734540084,
+        "wape_percent": 16.15582215480029
+      },
+      "宜蘭縣|冬山鄉": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 99765.00287198843,
+          "p50": 31234.318444799457,
+          "p75": 54966.98841384286,
+          "p90": 79077.53306720454,
+          "p95": 83668.65975830199,
+          "p99": 93097.11587902853
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.605577153486838,
+          "p75": 24.469265555466766,
+          "p90": 44.49325139039345,
+          "p95": 48.853638422930125,
+          "p99": 54.163623991055246
+        },
+        "mae_ntd_ping": 37896.40455857329,
+        "mape_percent": 18.84717209884034,
+        "median_absolute_error_ntd_ping": 31234.318444799457,
+        "median_absolute_percentage_error": 14.605577153486838,
+        "rmse_ntd_ping": 45893.03889825675,
+        "rows": 70,
+        "signed_bias_ntd_ping": 16274.84477124613,
+        "smape_percent": 16.95854958212634,
+        "wape_percent": 17.006466132104574
+      },
+      "宜蘭縣|宜蘭市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 123793.222399068,
+          "p50": 23155.316779668094,
+          "p75": 42422.140191308106,
+          "p90": 63369.43050004708,
+          "p95": 73868.40813661637,
+          "p99": 108933.22640441294
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.376459659746951,
+          "p75": 18.364395516700988,
+          "p90": 27.88123646773345,
+          "p95": 35.018981541080144,
+          "p99": 54.469145363762046
+        },
+        "mae_ntd_ping": 29736.158717808165,
+        "mape_percent": 13.624554510669363,
+        "median_absolute_error_ntd_ping": 23155.316779668094,
+        "median_absolute_percentage_error": 10.376459659746951,
+        "rmse_ntd_ping": 38538.72751334581,
+        "rows": 179,
+        "signed_bias_ntd_ping": -6283.088228320731,
+        "smape_percent": 13.18751765375028,
+        "wape_percent": 12.604160346903761
+      },
+      "宜蘭縣|礁溪鄉": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 102444.64905912394,
+          "p50": 23551.74092003501,
+          "p75": 40606.11604393491,
+          "p90": 59240.941269857925,
+          "p95": 71532.08821581624,
+          "p99": 83984.44568312322
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.388684958285012,
+          "p75": 15.792581995977985,
+          "p90": 23.22677437899272,
+          "p95": 28.030092394432632,
+          "p99": 41.778933050398706
+        },
+        "mae_ntd_ping": 28603.043831037165,
+        "mape_percent": 11.861457816249182,
+        "median_absolute_error_ntd_ping": 23551.74092003501,
+        "median_absolute_percentage_error": 10.388684958285012,
+        "rmse_ntd_ping": 35986.84887693633,
+        "rows": 136,
+        "signed_bias_ntd_ping": -7343.170171648095,
+        "smape_percent": 11.679909209864647,
+        "wape_percent": 11.626848707699617
+      },
+      "宜蘭縣|羅東鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 197315.78924852159,
+          "p50": 25686.093322805653,
+          "p75": 45006.05538730518,
+          "p90": 67369.26289324574,
+          "p95": 82125.41634160426,
+          "p99": 137582.20226023364
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.92422563474605,
+          "p75": 18.197835470737935,
+          "p90": 29.170770764387555,
+          "p95": 36.04293814630725,
+          "p99": 56.752441142749646
+        },
+        "mae_ntd_ping": 32313.78222379427,
+        "mape_percent": 14.185455172851352,
+        "median_absolute_error_ntd_ping": 25686.093322805653,
+        "median_absolute_percentage_error": 11.92422563474605,
+        "rmse_ntd_ping": 43273.84193917836,
+        "rows": 143,
+        "signed_bias_ntd_ping": -12741.919716354574,
+        "smape_percent": 14.208349433443711,
+        "wape_percent": 13.861705399131486
+      },
+      "宜蘭縣|頭城鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 248612.43323896552,
+          "p50": 39262.08426063713,
+          "p75": 76792.17329930987,
+          "p90": 206356.0330079123,
+          "p95": 224516.5455199797,
+          "p99": 235756.4567736965
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 16.746195628726184,
+          "p75": 30.59061035125504,
+          "p90": 43.33978680530973,
+          "p95": 44.290254604998076,
+          "p99": 45.19370697617776
+        },
+        "mae_ntd_ping": 69711.7809317141,
+        "mape_percent": 19.518508723743093,
+        "median_absolute_error_ntd_ping": 39262.08426063713,
+        "median_absolute_percentage_error": 16.746195628726184,
+        "rmse_ntd_ping": 102484.44677728615,
+        "rows": 60,
+        "signed_bias_ntd_ping": -48096.91010205164,
+        "smape_percent": 21.765588698527083,
+        "wape_percent": 23.308707946371634
+      },
+      "屏東縣|內埔鄉": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 94117.76357849306,
+          "p50": 16620.726896444496,
+          "p75": 35486.32038501206,
+          "p90": 54762.92122258054,
+          "p95": 62873.11271586698,
+          "p99": 83370.57424299188
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.238087408428285,
+          "p75": 20.436010959223427,
+          "p90": 36.82928858244186,
+          "p95": 45.19044104587427,
+          "p99": 95.99910249295782
+        },
+        "mae_ntd_ping": 24553.383406185636,
+        "mape_percent": 17.040910879901855,
+        "median_absolute_error_ntd_ping": 16620.726896444496,
+        "median_absolute_percentage_error": 11.238087408428285,
+        "rmse_ntd_ping": 31660.896301936824,
+        "rows": 102,
+        "signed_bias_ntd_ping": 15190.496274054405,
+        "smape_percent": 15.018613783906003,
+        "wape_percent": 14.432542445243419
+      },
+      "屏東縣|屏東市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 125874.65175664955,
+          "p50": 22547.900872746686,
+          "p75": 41387.19999177713,
+          "p90": 58521.68797444761,
+          "p95": 69051.19810383358,
+          "p99": 108183.92813352427
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.270941579453485,
+          "p75": 18.95899823475369,
+          "p90": 33.82800181006373,
+          "p95": 52.532031514355644,
+          "p99": 105.59776152831662
+        },
+        "mae_ntd_ping": 28124.089579356172,
+        "mape_percent": 17.323176044199233,
+        "median_absolute_error_ntd_ping": 22547.900872746686,
+        "median_absolute_percentage_error": 12.270941579453485,
+        "rmse_ntd_ping": 36165.49055572951,
+        "rows": 507,
+        "signed_bias_ntd_ping": -3120.267616063067,
+        "smape_percent": 15.509767317441456,
+        "wape_percent": 14.49957858696024
+      },
+      "屏東縣|恆春鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 80079.53645962654,
+          "p50": 18480.825217929065,
+          "p75": 32677.484570851473,
+          "p90": 42651.791338969524,
+          "p95": 49442.970996619886,
+          "p99": 69014.30619900624
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 15.15354239889713,
+          "p75": 21.995191294468057,
+          "p90": 42.471998439325795,
+          "p95": 46.1894240570711,
+          "p99": 64.45412442436522
+        },
+        "mae_ntd_ping": 22475.52470911674,
+        "mape_percent": 18.515825022395845,
+        "median_absolute_error_ntd_ping": 18480.825217929065,
+        "median_absolute_percentage_error": 15.15354239889713,
+        "rmse_ntd_ping": 27745.55992598508,
+        "rows": 62,
+        "signed_bias_ntd_ping": -4154.942000264946,
+        "smape_percent": 17.36654184472189,
+        "wape_percent": 15.567650140451864
+      },
+      "屏東縣|東港鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 82937.43289753038,
+          "p50": 21886.964260357418,
+          "p75": 37782.01889280198,
+          "p90": 55392.885625008086,
+          "p95": 61750.54368345823,
+          "p99": 81951.5765015318
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.710129842310817,
+          "p75": 18.34941011106566,
+          "p90": 25.17231577009969,
+          "p95": 28.121495066123277,
+          "p99": 40.69296686650598
+        },
+        "mae_ntd_ping": 26523.777003453928,
+        "mape_percent": 12.220927036405513,
+        "median_absolute_error_ntd_ping": 21886.964260357418,
+        "median_absolute_percentage_error": 11.710129842310817,
+        "rmse_ntd_ping": 33505.376279601245,
+        "rows": 128,
+        "signed_bias_ntd_ping": -16558.891258230477,
+        "smape_percent": 12.435427669321035,
+        "wape_percent": 11.821956233255511
+      },
+      "屏東縣|潮州鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 61360.279074523074,
+          "p50": 20091.18900173089,
+          "p75": 33359.720205185775,
+          "p90": 44563.405383951686,
+          "p95": 50402.53065390405,
+          "p99": 55050.7250047378
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.75138340222987,
+          "p75": 17.319925652680027,
+          "p90": 25.813861133076333,
+          "p95": 30.108587123909736,
+          "p99": 39.61050895733313
+        },
+        "mae_ntd_ping": 23371.693793328,
+        "mape_percent": 13.393388140246541,
+        "median_absolute_error_ntd_ping": 20091.18900173089,
+        "median_absolute_percentage_error": 10.75138340222987,
+        "rmse_ntd_ping": 27758.715377885746,
+        "rows": 116,
+        "signed_bias_ntd_ping": -4581.870749123372,
+        "smape_percent": 12.942445861723886,
+        "wape_percent": 11.853699584674539
+      },
+      "彰化縣|北斗鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 54235.694423101,
+          "p50": 17288.192743188847,
+          "p75": 29286.58587271333,
+          "p90": 37756.82689790505,
+          "p95": 42355.45977897736,
+          "p99": 51509.95620034519
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 6.860886687880518,
+          "p75": 10.818854344762242,
+          "p90": 14.363976149286826,
+          "p95": 15.422311014552015,
+          "p99": 20.36223640619121
+        },
+        "mae_ntd_ping": 19302.062842187202,
+        "mape_percent": 7.4615318718221095,
+        "median_absolute_error_ntd_ping": 17288.192743188847,
+        "median_absolute_percentage_error": 6.860886687880518,
+        "rmse_ntd_ping": 23442.463037231562,
+        "rows": 56,
+        "signed_bias_ntd_ping": -10796.564729200301,
+        "smape_percent": 7.672299577202361,
+        "wape_percent": 7.557240448906015
+      },
+      "彰化縣|員林市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 302124.40945336083,
+          "p50": 18751.371657655458,
+          "p75": 37949.86501720798,
+          "p90": 61595.23509764548,
+          "p95": 75970.43532309314,
+          "p99": 100465.93067153676
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.39534283569559,
+          "p75": 16.320828035538852,
+          "p90": 22.761673536144695,
+          "p95": 36.60717936286946,
+          "p99": 86.12039796668267
+        },
+        "mae_ntd_ping": 27406.553458829465,
+        "mape_percent": 12.93527244919008,
+        "median_absolute_error_ntd_ping": 18751.371657655458,
+        "median_absolute_percentage_error": 8.39534283569559,
+        "rmse_ntd_ping": 41047.05040514294,
+        "rows": 189,
+        "signed_bias_ntd_ping": -4832.326600412733,
+        "smape_percent": 12.353853720005793,
+        "wape_percent": 11.90533537194232
+      },
+      "彰化縣|彰化市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 129689.12819682197,
+          "p50": 26955.575569138135,
+          "p75": 42581.421066295065,
+          "p90": 64106.98226105924,
+          "p95": 89914.52189070705,
+          "p99": 115528.61050743065
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.587371332382087,
+          "p75": 21.126188033550008,
+          "p90": 32.976991513746235,
+          "p95": 48.64588295678747,
+          "p99": 131.35529329963785
+        },
+        "mae_ntd_ping": 32609.957695983947,
+        "mape_percent": 17.747199082267596,
+        "median_absolute_error_ntd_ping": 26955.575569138135,
+        "median_absolute_percentage_error": 11.587371332382087,
+        "rmse_ntd_ping": 41745.95174678037,
+        "rows": 216,
+        "signed_bias_ntd_ping": 1223.7864389790577,
+        "smape_percent": 15.589355193944035,
+        "wape_percent": 14.323423791415143
+      },
+      "新北市|三峽區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 211684.12476402742,
+          "p50": 31158.274104460434,
+          "p75": 56115.41422100362,
+          "p90": 90880.0147939091,
+          "p95": 122231.46542904443,
+          "p99": 177433.64444556352
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.43842740194293,
+          "p75": 14.850524768599229,
+          "p90": 26.2564847514037,
+          "p95": 38.57901678021985,
+          "p99": 60.00541624704606
+        },
+        "mae_ntd_ping": 41242.28150694524,
+        "mape_percent": 11.96911920321619,
+        "median_absolute_error_ntd_ping": 31158.274104460434,
+        "median_absolute_percentage_error": 8.43842740194293,
+        "rmse_ntd_ping": 56029.77714169986,
+        "rows": 267,
+        "signed_bias_ntd_ping": 6429.871558677797,
+        "smape_percent": 11.203730410654817,
+        "wape_percent": 10.701166589332917
+      },
+      "新北市|三芝區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 70598.36935165268,
+          "p50": 10721.673550007334,
+          "p75": 20031.906516766416,
+          "p90": 37680.06410834932,
+          "p95": 44280.40345855957,
+          "p99": 59523.28848103106
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.566597207940905,
+          "p75": 15.6116100788915,
+          "p90": 32.944542761665375,
+          "p95": 44.38379448017048,
+          "p99": 66.01396679981055
+        },
+        "mae_ntd_ping": 15783.7555444251,
+        "mape_percent": 13.52222414941893,
+        "median_absolute_error_ntd_ping": 10721.673550007334,
+        "median_absolute_percentage_error": 8.566597207940905,
+        "rmse_ntd_ping": 21360.136457163066,
+        "rows": 84,
+        "signed_bias_ntd_ping": 1819.1905218319318,
+        "smape_percent": 12.49245241929113,
+        "wape_percent": 12.16389521299509
+      },
+      "新北市|三重區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 422958.9744942209,
+          "p50": 52505.97630128387,
+          "p75": 93896.74984326799,
+          "p90": 156278.84723624578,
+          "p95": 190078.78711051613,
+          "p99": 273775.59066379786
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.558764474460366,
+          "p75": 17.20947229147066,
+          "p90": 25.31301429623277,
+          "p95": 34.83326189110013,
+          "p99": 61.59084726769206
+        },
+        "mae_ntd_ping": 69591.1175684973,
+        "mape_percent": 12.782992458835595,
+        "median_absolute_error_ntd_ping": 52505.97630128387,
+        "median_absolute_percentage_error": 9.558764474460366,
+        "rmse_ntd_ping": 93656.16631990868,
+        "rows": 787,
+        "signed_bias_ntd_ping": 8493.495103424671,
+        "smape_percent": 12.22715667745751,
+        "wape_percent": 12.186754006893093
+      },
+      "新北市|中和區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 678027.657085045,
+          "p50": 57401.90545251791,
+          "p75": 91219.14987120825,
+          "p90": 132414.62181567407,
+          "p95": 168220.09175023634,
+          "p99": 258729.22257415473
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.331970405726207,
+          "p75": 16.601277722979063,
+          "p90": 24.788976853048823,
+          "p95": 31.665053949120377,
+          "p99": 48.204194191469796
+        },
+        "mae_ntd_ping": 66753.85517168404,
+        "mape_percent": 12.293350100305469,
+        "median_absolute_error_ntd_ping": 57401.90545251791,
+        "median_absolute_percentage_error": 10.331970405726207,
+        "rmse_ntd_ping": 88487.21657057256,
+        "rows": 726,
+        "signed_bias_ntd_ping": -16071.1712082781,
+        "smape_percent": 12.274773551561523,
+        "wape_percent": 11.985933195470047
+      },
+      "新北市|五股區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 240203.90842544843,
+          "p50": 23829.817966521485,
+          "p75": 41336.922976703936,
+          "p90": 61290.83391728325,
+          "p95": 82929.19545517612,
+          "p99": 155083.61231107992
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 6.552817040481289,
+          "p75": 11.720034676619258,
+          "p90": 19.45460821915745,
+          "p95": 25.389025553562263,
+          "p99": 60.524320415347376
+        },
+        "mae_ntd_ping": 31462.866412233983,
+        "mape_percent": 9.601352426063471,
+        "median_absolute_error_ntd_ping": 23829.817966521485,
+        "median_absolute_percentage_error": 6.552817040481289,
+        "rmse_ntd_ping": 44149.190570169885,
+        "rows": 321,
+        "signed_bias_ntd_ping": 6377.218546102718,
+        "smape_percent": 8.999718885102912,
+        "wape_percent": 8.607197394413783
+      },
+      "新北市|八里區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 119071.46142127016,
+          "p50": 20976.290794128145,
+          "p75": 37720.74961659298,
+          "p90": 49914.13443492359,
+          "p95": 60612.15419421078,
+          "p99": 95981.02468118597
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.365704300352046,
+          "p75": 12.956936911043426,
+          "p90": 18.492132413032145,
+          "p95": 25.590321781064137,
+          "p99": 48.78113448105004
+        },
+        "mae_ntd_ping": 26575.693969216103,
+        "mape_percent": 10.091295779180518,
+        "median_absolute_error_ntd_ping": 20976.290794128145,
+        "median_absolute_percentage_error": 8.365704300352046,
+        "rmse_ntd_ping": 33522.36554980468,
+        "rows": 139,
+        "signed_bias_ntd_ping": 5448.859254233117,
+        "smape_percent": 9.671830930686733,
+        "wape_percent": 9.533332239545453
+      },
+      "新北市|土城區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 252314.72834962024,
+          "p50": 55195.601772478316,
+          "p75": 94069.03682504274,
+          "p90": 129752.56219305837,
+          "p95": 156257.58881776556,
+          "p99": 214142.52122068664
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.638715915533314,
+          "p75": 18.319494897591547,
+          "p90": 30.411848514834627,
+          "p95": 42.76076563676961,
+          "p99": 83.38024908676098
+        },
+        "mae_ntd_ping": 64817.0394607073,
+        "mape_percent": 14.731322023604745,
+        "median_absolute_error_ntd_ping": 55195.601772478316,
+        "median_absolute_percentage_error": 10.638715915533314,
+        "rmse_ntd_ping": 80740.68769027345,
+        "rows": 437,
+        "signed_bias_ntd_ping": 2686.3644298667045,
+        "smape_percent": 13.696689696280437,
+        "wape_percent": 12.8969168686311
+      },
+      "新北市|新店區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 451002.7098136196,
+          "p50": 82776.87814650853,
+          "p75": 153147.7343045866,
+          "p90": 225974.65703303606,
+          "p95": 277060.8039880046,
+          "p99": 358105.87259977957
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 17.246440134876405,
+          "p75": 30.25573789447403,
+          "p90": 43.408848424319025,
+          "p95": 62.546700363443094,
+          "p99": 283.0175716563422
+        },
+        "mae_ntd_ping": 105855.00013681951,
+        "mape_percent": 25.764487263281012,
+        "median_absolute_error_ntd_ping": 82776.87814650853,
+        "median_absolute_percentage_error": 17.246440134876405,
+        "rmse_ntd_ping": 134940.93821986485,
+        "rows": 619,
+        "signed_bias_ntd_ping": -38515.26225867305,
+        "smape_percent": 22.759174614286785,
+        "wape_percent": 20.59436794787654
+      },
+      "新北市|新莊區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 456148.33754237904,
+          "p50": 47960.944822539575,
+          "p75": 81113.59709873563,
+          "p90": 119768.87686705274,
+          "p95": 144399.06520323717,
+          "p99": 210796.23734675933
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.831562882933728,
+          "p75": 16.388679535467325,
+          "p90": 27.911498599058113,
+          "p95": 38.15116368185399,
+          "p99": 56.18379348851051
+        },
+        "mae_ntd_ping": 57470.84784496889,
+        "mape_percent": 12.50370015384489,
+        "median_absolute_error_ntd_ping": 47960.944822539575,
+        "median_absolute_percentage_error": 8.831562882933728,
+        "rmse_ntd_ping": 75147.08934825842,
+        "rows": 853,
+        "signed_bias_ntd_ping": 15190.547270206622,
+        "smape_percent": 11.77385142767381,
+        "wape_percent": 11.41153068908913
+      },
+      "新北市|板橋區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1032686.0754133034,
+          "p50": 60610.63162014872,
+          "p75": 118858.66849555996,
+          "p90": 174394.18961811537,
+          "p95": 227856.27434250465,
+          "p99": 485456.34598975215
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.826674923958723,
+          "p75": 21.46093303041229,
+          "p90": 35.45241459152345,
+          "p95": 41.83181369260422,
+          "p99": 58.96885369039998
+        },
+        "mae_ntd_ping": 88208.39124828701,
+        "mape_percent": 15.10238545757414,
+        "median_absolute_error_ntd_ping": 60610.63162014872,
+        "median_absolute_percentage_error": 10.826674923958723,
+        "rmse_ntd_ping": 129322.97880625894,
+        "rows": 1032,
+        "signed_bias_ntd_ping": -7198.5712521496425,
+        "smape_percent": 14.754289682875823,
+        "wape_percent": 14.691638445353956
+      },
+      "新北市|林口區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 211981.11624778237,
+          "p50": 40129.211080521985,
+          "p75": 66546.27115310433,
+          "p90": 96727.42119081882,
+          "p95": 119607.5842504067,
+          "p99": 181313.8417316788
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.994702364260837,
+          "p75": 14.53937601068976,
+          "p90": 20.685814691800505,
+          "p95": 24.958117734848706,
+          "p99": 33.06460337723451
+        },
+        "mae_ntd_ping": 46823.168755592684,
+        "mape_percent": 10.139301205912414,
+        "median_absolute_error_ntd_ping": 40129.211080521985,
+        "median_absolute_percentage_error": 8.994702364260837,
+        "rmse_ntd_ping": 60449.73429439235,
+        "rows": 455,
+        "signed_bias_ntd_ping": -24222.35396627367,
+        "smape_percent": 10.424826342353139,
+        "wape_percent": 10.270827315378849
+      },
+      "新北市|樹林區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 210939.38687441382,
+          "p50": 28971.53373275089,
+          "p75": 59308.24395791681,
+          "p90": 82173.76287336391,
+          "p95": 98327.93429527362,
+          "p99": 141151.20484691494
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.006321615367636,
+          "p75": 15.997697114022584,
+          "p90": 26.500969790454775,
+          "p95": 30.900339617564768,
+          "p99": 42.7665566097408
+        },
+        "mae_ntd_ping": 38999.827183932175,
+        "mape_percent": 11.032652803067602,
+        "median_absolute_error_ntd_ping": 28971.53373275089,
+        "median_absolute_percentage_error": 8.006321615367636,
+        "rmse_ntd_ping": 52103.93784807157,
+        "rows": 216,
+        "signed_bias_ntd_ping": -6669.637816091402,
+        "smape_percent": 10.904401812853271,
+        "wape_percent": 10.626900534606085
+      },
+      "新北市|永和區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 532282.8077567394,
+          "p50": 55823.84644895024,
+          "p75": 93775.16024716187,
+          "p90": 129575.2684246475,
+          "p95": 170834.38195913506,
+          "p99": 228579.75732223326
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.167386299448168,
+          "p75": 16.077286372396955,
+          "p90": 25.21205743135622,
+          "p95": 29.96795626303377,
+          "p99": 62.400912598142384
+        },
+        "mae_ntd_ping": 66566.02317947232,
+        "mape_percent": 11.808500338502244,
+        "median_absolute_error_ntd_ping": 55823.84644895024,
+        "median_absolute_percentage_error": 9.167386299448168,
+        "rmse_ntd_ping": 89226.6094064613,
+        "rows": 273,
+        "signed_bias_ntd_ping": 6562.479380709706,
+        "smape_percent": 11.290788918185795,
+        "wape_percent": 10.951853724849325
+      },
+      "新北市|汐止區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 308398.05750659434,
+          "p50": 64243.78045817884,
+          "p75": 104780.39594312225,
+          "p90": 158233.10142289978,
+          "p95": 187181.54176897174,
+          "p99": 228305.99201959785
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.434229823527716,
+          "p75": 24.652787207108286,
+          "p90": 47.38706575085646,
+          "p95": 73.3694365135275,
+          "p99": 157.23937636477433
+        },
+        "mae_ntd_ping": 74456.60406681344,
+        "mape_percent": 22.403784908808497,
+        "median_absolute_error_ntd_ping": 64243.78045817884,
+        "median_absolute_percentage_error": 13.434229823527716,
+        "rmse_ntd_ping": 93469.98046842992,
+        "rows": 568,
+        "signed_bias_ntd_ping": 15563.349114114468,
+        "smape_percent": 18.524800914277368,
+        "wape_percent": 16.911385708111133
+      },
+      "新北市|泰山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 148680.71526530455,
+          "p50": 30388.889985207818,
+          "p75": 63695.817304347445,
+          "p90": 91664.42843282151,
+          "p95": 106638.4558239231,
+          "p99": 131800.022846585
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.393727394151481,
+          "p75": 15.520446211846346,
+          "p90": 26.538523807906948,
+          "p95": 34.966678904781496,
+          "p99": 43.34749474842013
+        },
+        "mae_ntd_ping": 41999.775745906634,
+        "mape_percent": 11.432827376636377,
+        "median_absolute_error_ntd_ping": 30388.889985207818,
+        "median_absolute_percentage_error": 8.393727394151481,
+        "rmse_ntd_ping": 54429.242471582336,
+        "rows": 144,
+        "signed_bias_ntd_ping": 7249.062759384129,
+        "smape_percent": 10.918577941699956,
+        "wape_percent": 10.421913646127482
+      },
+      "新北市|淡水區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 246505.44340293092,
+          "p50": 31040.728648702032,
+          "p75": 55782.525964993954,
+          "p90": 96499.23141147496,
+          "p95": 133250.6361818937,
+          "p99": 191540.88342345646
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.693950532319262,
+          "p75": 18.438524949370276,
+          "p90": 29.530175094572044,
+          "p95": 36.42621739126286,
+          "p99": 57.42731488081013
+        },
+        "mae_ntd_ping": 42711.88906223045,
+        "mape_percent": 13.82528760880821,
+        "median_absolute_error_ntd_ping": 31040.728648702032,
+        "median_absolute_percentage_error": 10.693950532319262,
+        "rmse_ntd_ping": 58996.17717889998,
+        "rows": 1115,
+        "signed_bias_ntd_ping": -18366.90028374274,
+        "smape_percent": 14.073654981636539,
+        "wape_percent": 13.929248558509903
+      },
+      "新北市|蘆洲區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 605309.9229818569,
+          "p50": 48089.75152543231,
+          "p75": 81212.46881433061,
+          "p90": 111531.26874556404,
+          "p95": 126623.30847406533,
+          "p99": 244356.7462749897
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.912184488534017,
+          "p75": 14.89159229915775,
+          "p90": 22.69000355843805,
+          "p95": 26.73471855132671,
+          "p99": 48.2945851898788
+        },
+        "mae_ntd_ping": 57938.23781261687,
+        "mape_percent": 11.393266861155082,
+        "median_absolute_error_ntd_ping": 48089.75152543231,
+        "median_absolute_percentage_error": 9.912184488534017,
+        "rmse_ntd_ping": 80211.02953949079,
+        "rows": 266,
+        "signed_bias_ntd_ping": -11452.514429339159,
+        "smape_percent": 11.329366329296615,
+        "wape_percent": 11.256510888212318
+      },
+      "新北市|鶯歌區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 112239.7323291506,
+          "p50": 20727.343162529738,
+          "p75": 35742.93043550112,
+          "p90": 62220.895030050175,
+          "p95": 73412.77748712827,
+          "p99": 86689.14058403287
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 6.535266991773593,
+          "p75": 12.23040940401888,
+          "p90": 22.520073190341577,
+          "p95": 27.658139674582507,
+          "p99": 30.63699822975789
+        },
+        "mae_ntd_ping": 26246.905267679427,
+        "mape_percent": 8.987263603394645,
+        "median_absolute_error_ntd_ping": 20727.343162529738,
+        "median_absolute_percentage_error": 6.535266991773593,
+        "rmse_ntd_ping": 34543.41161958249,
+        "rows": 176,
+        "signed_bias_ntd_ping": 7021.6344822734045,
+        "smape_percent": 8.669813846855458,
+        "wape_percent": 8.513324782171994
+      },
+      "新竹縣|新豐鄉": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 107930.22898478001,
+          "p50": 33946.48032691772,
+          "p75": 62556.65920635553,
+          "p90": 82694.07183818454,
+          "p95": 95854.6786309574,
+          "p99": 105000.54260814966
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.58628503649263,
+          "p75": 21.79158772319269,
+          "p90": 31.389605328257066,
+          "p95": 64.5953237008502,
+          "p99": 112.35032320390752
+        },
+        "mae_ntd_ping": 41322.75404049396,
+        "mape_percent": 18.973587852507396,
+        "median_absolute_error_ntd_ping": 33946.48032691772,
+        "median_absolute_percentage_error": 13.58628503649263,
+        "rmse_ntd_ping": 50297.05523567195,
+        "rows": 112,
+        "signed_bias_ntd_ping": 15661.177516000627,
+        "smape_percent": 16.54287719347878,
+        "wape_percent": 15.437572086035
+      },
+      "新竹縣|湖口鄉": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 191551.7400198445,
+          "p50": 36958.327748052776,
+          "p75": 63626.991226401195,
+          "p90": 93342.77693019169,
+          "p95": 121189.03451105882,
+          "p99": 171364.46220447015
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.50656835438618,
+          "p75": 28.86208152259225,
+          "p90": 39.288477205698854,
+          "p95": 49.36822408328897,
+          "p99": 92.59699812261677
+        },
+        "mae_ntd_ping": 46977.247943122864,
+        "mape_percent": 19.8381971833002,
+        "median_absolute_error_ntd_ping": 36958.327748052776,
+        "median_absolute_percentage_error": 13.50656835438618,
+        "rmse_ntd_ping": 60515.3005471408,
+        "rows": 213,
+        "signed_bias_ntd_ping": 8356.866965429102,
+        "smape_percent": 18.424111830025904,
+        "wape_percent": 18.388496862257746
+      },
+      "新竹縣|竹北市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 331674.47365087597,
+          "p50": 47498.35763178114,
+          "p75": 83904.33657892577,
+          "p90": 130315.36387736269,
+          "p95": 179893.5484898676,
+          "p99": 277621.14591233456
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.244147726713974,
+          "p75": 16.89505172360663,
+          "p90": 28.799122626201815,
+          "p95": 38.947506848637566,
+          "p99": 60.07572576722073
+        },
+        "mae_ntd_ping": 63152.911833441365,
+        "mape_percent": 14.488499071148796,
+        "median_absolute_error_ntd_ping": 47498.35763178114,
+        "median_absolute_percentage_error": 10.244147726713974,
+        "rmse_ntd_ping": 84120.99456449125,
+        "rows": 588,
+        "signed_bias_ntd_ping": -4617.652445121579,
+        "smape_percent": 13.374636708193123,
+        "wape_percent": 13.081631867641716
+      },
+      "新竹縣|竹東鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 176472.71592059563,
+          "p50": 28799.326800890267,
+          "p75": 50321.842007765634,
+          "p90": 84356.26487834292,
+          "p95": 99673.23978522352,
+          "p99": 135494.504923727
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.965992336261634,
+          "p75": 22.814721806507976,
+          "p90": 36.834433572515024,
+          "p95": 47.75291278220139,
+          "p99": 91.07638481081868
+        },
+        "mae_ntd_ping": 36306.44865092653,
+        "mape_percent": 16.620469972970795,
+        "median_absolute_error_ntd_ping": 28799.326800890267,
+        "median_absolute_percentage_error": 9.965992336261634,
+        "rmse_ntd_ping": 48306.1703737569,
+        "rows": 131,
+        "signed_bias_ntd_ping": -3998.628333620239,
+        "smape_percent": 15.79740180627164,
+        "wape_percent": 14.307878272721267
+      },
+      "桃園市|中壢區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 540921.4440248377,
+          "p50": 37691.044008902856,
+          "p75": 67335.50485627435,
+          "p90": 104722.17318808091,
+          "p95": 128163.12628181344,
+          "p99": 180408.235783579
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.4369633250167,
+          "p75": 21.51490533641664,
+          "p90": 33.829363399657325,
+          "p95": 44.2408739981204,
+          "p99": 70.76482637569903
+        },
+        "mae_ntd_ping": 47923.19515387424,
+        "mape_percent": 16.21267654887375,
+        "median_absolute_error_ntd_ping": 37691.044008902856,
+        "median_absolute_percentage_error": 12.4369633250167,
+        "rmse_ntd_ping": 64121.94059707086,
+        "rows": 1589,
+        "signed_bias_ntd_ping": -2930.9284615765337,
+        "smape_percent": 15.39376250612654,
+        "wape_percent": 15.305308051245541
+      },
+      "桃園市|八德區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 154912.07978964515,
+          "p50": 19826.14995904945,
+          "p75": 37085.00578718624,
+          "p90": 54570.980630930266,
+          "p95": 75578.0711841543,
+          "p99": 113128.28045487875
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 6.73788270316957,
+          "p75": 12.77553276768882,
+          "p90": 17.073034588968987,
+          "p95": 29.73662562145096,
+          "p99": 72.3413857108702
+        },
+        "mae_ntd_ping": 26211.459888308156,
+        "mape_percent": 10.072237281708233,
+        "median_absolute_error_ntd_ping": 19826.14995904945,
+        "median_absolute_percentage_error": 6.73788270316957,
+        "rmse_ntd_ping": 35863.16273421072,
+        "rows": 504,
+        "signed_bias_ntd_ping": -3018.057244776869,
+        "smape_percent": 9.514275527639963,
+        "wape_percent": 8.865702521394173
+      },
+      "桃園市|大園區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 203396.1953903446,
+          "p50": 106847.57798581033,
+          "p75": 142718.08843178017,
+          "p90": 160950.50718248347,
+          "p95": 170868.06469436584,
+          "p99": 189892.2871187292
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 37.441577718000204,
+          "p75": 72.34535136204187,
+          "p90": 86.94513175782534,
+          "p95": 95.53400975977884,
+          "p99": 117.6177426712691
+        },
+        "mae_ntd_ping": 99025.90952110487,
+        "mape_percent": 46.457366352726694,
+        "median_absolute_error_ntd_ping": 106847.57798581033,
+        "median_absolute_percentage_error": 37.441577718000204,
+        "rmse_ntd_ping": 112089.60793679851,
+        "rows": 470,
+        "signed_bias_ntd_ping": 64455.948180117244,
+        "smape_percent": 36.10359234018932,
+        "wape_percent": 38.62496042449631
+      },
+      "桃園市|大溪區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 199222.93170052726,
+          "p50": 18467.139574677538,
+          "p75": 38058.30623879636,
+          "p90": 62350.886919767756,
+          "p95": 78074.8174992831,
+          "p99": 87252.62481225526
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.533720530210262,
+          "p75": 20.373692307873633,
+          "p90": 32.383201980907366,
+          "p95": 54.42557417054802,
+          "p99": 185.88640838211728
+        },
+        "mae_ntd_ping": 27448.685185837712,
+        "mape_percent": 19.259756076956524,
+        "median_absolute_error_ntd_ping": 18467.139574677538,
+        "median_absolute_percentage_error": 10.533720530210262,
+        "rmse_ntd_ping": 38238.49880897889,
+        "rows": 129,
+        "signed_bias_ntd_ping": -4685.416809569961,
+        "smape_percent": 16.64449169223652,
+        "wape_percent": 14.74205277434244
+      },
+      "桃園市|平鎮區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 345047.27198934334,
+          "p50": 25974.399397012967,
+          "p75": 48815.80282481942,
+          "p90": 74495.74986977561,
+          "p95": 96006.28404789757,
+          "p99": 204912.3908542035
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.60122926677664,
+          "p75": 19.702521886787434,
+          "p90": 30.041089504946733,
+          "p95": 35.28698921041071,
+          "p99": 68.10329105754958
+        },
+        "mae_ntd_ping": 35336.48534459813,
+        "mape_percent": 14.906487590013839,
+        "median_absolute_error_ntd_ping": 25974.399397012967,
+        "median_absolute_percentage_error": 10.60122926677664,
+        "rmse_ntd_ping": 51402.45238908786,
+        "rows": 484,
+        "signed_bias_ntd_ping": -10906.605460362767,
+        "smape_percent": 14.06174060980553,
+        "wape_percent": 13.880530271759946
+      },
+      "桃園市|新屋區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 370649.1318188442,
+          "p50": 42559.3869488599,
+          "p75": 58616.21731771443,
+          "p90": 66700.34637130829,
+          "p95": 80865.44631580758,
+          "p99": 233691.90120541572
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 18.772165174398108,
+          "p75": 31.268081831376822,
+          "p90": 38.02256214232758,
+          "p95": 59.33873052108838,
+          "p99": 82.43806430220074
+        },
+        "mae_ntd_ping": 47714.24960335977,
+        "mape_percent": 22.947164248861256,
+        "median_absolute_error_ntd_ping": 42559.3869488599,
+        "median_absolute_percentage_error": 18.772165174398108,
+        "rmse_ntd_ping": 69557.00781873931,
+        "rows": 51,
+        "signed_bias_ntd_ping": 8990.408389111277,
+        "smape_percent": 21.87981723043371,
+        "wape_percent": 21.71757902736428
+      },
+      "桃園市|桃園區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 186320.3570182074,
+          "p50": 28689.75970083181,
+          "p75": 51586.52017413771,
+          "p90": 74432.71330239125,
+          "p95": 87294.50048770581,
+          "p99": 134680.738279496
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.880668570014592,
+          "p75": 15.522524403589141,
+          "p90": 23.438848703893196,
+          "p95": 32.0408593002525,
+          "p99": 55.726592250267444
+        },
+        "mae_ntd_ping": 35612.354259709995,
+        "mape_percent": 11.60907097267742,
+        "median_absolute_error_ntd_ping": 28689.75970083181,
+        "median_absolute_percentage_error": 8.880668570014592,
+        "rmse_ntd_ping": 46041.656385009104,
+        "rows": 1612,
+        "signed_bias_ntd_ping": -4634.827906319684,
+        "smape_percent": 11.248732108661494,
+        "wape_percent": 10.639149605670674
+      },
+      "桃園市|楊梅區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 178235.76636638938,
+          "p50": 19147.271804198623,
+          "p75": 31373.119070745073,
+          "p90": 46865.95482540613,
+          "p95": 58218.4943170507,
+          "p99": 96806.35113245883
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.946085005611689,
+          "p75": 15.772601618099893,
+          "p90": 25.232379153260467,
+          "p95": 40.95819963847519,
+          "p99": 77.3524266093548
+        },
+        "mae_ntd_ping": 23464.19220150573,
+        "mape_percent": 12.76441797292891,
+        "median_absolute_error_ntd_ping": 19147.271804198623,
+        "median_absolute_percentage_error": 8.946085005611689,
+        "rmse_ntd_ping": 31604.017511691723,
+        "rows": 565,
+        "signed_bias_ntd_ping": 7949.719108404933,
+        "smape_percent": 11.751547164777943,
+        "wape_percent": 11.061147308719049
+      },
+      "桃園市|蘆竹區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 185280.89947317974,
+          "p50": 27392.011102959455,
+          "p75": 51484.80508673773,
+          "p90": 75442.74812812173,
+          "p95": 105227.85243088368,
+          "p99": 153712.31007001782
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.30811142020653,
+          "p75": 16.458633103394586,
+          "p90": 26.09779848900286,
+          "p95": 39.410905660693366,
+          "p99": 76.46417920748371
+        },
+        "mae_ntd_ping": 37149.51379728609,
+        "mape_percent": 13.401934252932751,
+        "median_absolute_error_ntd_ping": 27392.011102959455,
+        "median_absolute_percentage_error": 9.30811142020653,
+        "rmse_ntd_ping": 49823.11800777176,
+        "rows": 369,
+        "signed_bias_ntd_ping": 2345.8332343494917,
+        "smape_percent": 12.463828126015164,
+        "wape_percent": 12.203281707936405
+      },
+      "桃園市|觀音區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 166848.75146285203,
+          "p50": 25084.37401237467,
+          "p75": 41258.85537479978,
+          "p90": 65587.34326555312,
+          "p95": 85761.02757949315,
+          "p99": 99894.32812115923
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.54655580182781,
+          "p75": 19.365154559941868,
+          "p90": 31.639008908117315,
+          "p95": 53.2025245813349,
+          "p99": 66.11737434111619
+        },
+        "mae_ntd_ping": 30788.03772172172,
+        "mape_percent": 15.082063008664944,
+        "median_absolute_error_ntd_ping": 25084.37401237467,
+        "median_absolute_percentage_error": 10.54655580182781,
+        "rmse_ntd_ping": 39752.59321789689,
+        "rows": 301,
+        "signed_bias_ntd_ping": 4927.537875384284,
+        "smape_percent": 13.93719682971675,
+        "wape_percent": 13.375929760017602
+      },
+      "桃園市|龍潭區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 147155.8405083646,
+          "p50": 24385.87069761977,
+          "p75": 42305.432572161124,
+          "p90": 66895.89731244098,
+          "p95": 83722.90687064867,
+          "p99": 124465.78042803734
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.928869234155147,
+          "p75": 20.30747692944286,
+          "p90": 29.235489192100555,
+          "p95": 33.83062124257397,
+          "p99": 48.300062934292804
+        },
+        "mae_ntd_ping": 31340.375272384008,
+        "mape_percent": 14.176757988363416,
+        "median_absolute_error_ntd_ping": 24385.87069761977,
+        "median_absolute_percentage_error": 10.928869234155147,
+        "rmse_ntd_ping": 41559.909597818594,
+        "rows": 256,
+        "signed_bias_ntd_ping": -15803.15145680996,
+        "smape_percent": 14.76138884898559,
+        "wape_percent": 14.16092834032927
+      },
+      "桃園市|龜山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 297746.2624779202,
+          "p50": 29734.896606205788,
+          "p75": 54978.22504091967,
+          "p90": 85626.07743989883,
+          "p95": 113114.88070434464,
+          "p99": 181361.03030405886
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.85674636091892,
+          "p75": 17.127974405497476,
+          "p90": 30.880662007366748,
+          "p95": 36.56845555011663,
+          "p99": 60.35673936869807
+        },
+        "mae_ntd_ping": 40534.22475371545,
+        "mape_percent": 12.97692088026925,
+        "median_absolute_error_ntd_ping": 29734.896606205788,
+        "median_absolute_percentage_error": 8.85674636091892,
+        "rmse_ntd_ping": 55716.75797855513,
+        "rows": 729,
+        "signed_bias_ntd_ping": -5719.068485186908,
+        "smape_percent": 12.804562651346943,
+        "wape_percent": 11.673282902401082
+      },
+      "花蓮縣|吉安鄉": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 84080.10999348035,
+          "p50": 36321.65963109187,
+          "p75": 51318.983554445964,
+          "p90": 64197.527836215304,
+          "p95": 68505.00118480422,
+          "p99": 80666.33176395677
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 16.521642233850372,
+          "p75": 27.194302294458023,
+          "p90": 37.9541126232734,
+          "p95": 47.44279325209468,
+          "p99": 70.26482098033895
+        },
+        "mae_ntd_ping": 34576.16267880223,
+        "mape_percent": 19.58263790607673,
+        "median_absolute_error_ntd_ping": 36321.65963109187,
+        "median_absolute_percentage_error": 16.521642233850372,
+        "rmse_ntd_ping": 41103.284520286106,
+        "rows": 81,
+        "signed_bias_ntd_ping": 20145.398095151897,
+        "smape_percent": 17.280805898701747,
+        "wape_percent": 16.514462480938644
+      },
+      "花蓮縣|花蓮市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 130030.69760670551,
+          "p50": 25593.46815028343,
+          "p75": 38143.33198193289,
+          "p90": 53835.66906515813,
+          "p95": 76750.33291533041,
+          "p99": 113460.97969605595
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.98215788648789,
+          "p75": 18.710875388391294,
+          "p90": 39.90386789279159,
+          "p95": 71.9379147609488,
+          "p99": 135.65808980593334
+        },
+        "mae_ntd_ping": 28817.591360788192,
+        "mape_percent": 20.845564976186136,
+        "median_absolute_error_ntd_ping": 25593.46815028343,
+        "median_absolute_percentage_error": 10.98215788648789,
+        "rmse_ntd_ping": 37000.837628380694,
+        "rows": 208,
+        "signed_bias_ntd_ping": 2687.882298311182,
+        "smape_percent": 16.07135441312583,
+        "wape_percent": 13.544468660312022
+      },
+      "苗栗縣|竹南鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 146608.60194616008,
+          "p50": 29407.499649857113,
+          "p75": 50732.110370020935,
+          "p90": 68490.03213011487,
+          "p95": 87062.35655295622,
+          "p99": 116721.52068044781
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.99069898566237,
+          "p75": 18.60474834611398,
+          "p90": 29.12206131657452,
+          "p95": 35.56104468906974,
+          "p99": 53.9938147264408
+        },
+        "mae_ntd_ping": 35301.53707566634,
+        "mape_percent": 15.11383097089973,
+        "median_absolute_error_ntd_ping": 29407.499649857113,
+        "median_absolute_percentage_error": 10.99069898566237,
+        "rmse_ntd_ping": 44434.87426213362,
+        "rows": 189,
+        "signed_bias_ntd_ping": 15315.735008748727,
+        "smape_percent": 13.470268091564423,
+        "wape_percent": 13.454612437333285
+      },
+      "苗栗縣|苗栗市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 128554.95801261213,
+          "p50": 18780.875019756873,
+          "p75": 37426.08367951568,
+          "p90": 58757.43485660468,
+          "p95": 71933.44841099916,
+          "p99": 92606.78988510519
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.216061743362612,
+          "p75": 20.724819726692132,
+          "p90": 41.126841946551885,
+          "p95": 64.60491546220054,
+          "p99": 104.53461355703635
+        },
+        "mae_ntd_ping": 25962.115720939433,
+        "mape_percent": 17.80739650739817,
+        "median_absolute_error_ntd_ping": 18780.875019756873,
+        "median_absolute_percentage_error": 10.216061743362612,
+        "rmse_ntd_ping": 34878.05165515592,
+        "rows": 132,
+        "signed_bias_ntd_ping": -1728.1238785818005,
+        "smape_percent": 16.254977062995934,
+        "wape_percent": 14.147916213015149
+      },
+      "苗栗縣|頭份市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 184874.49113057053,
+          "p50": 34151.44222012558,
+          "p75": 54955.76023603961,
+          "p90": 75913.81650386074,
+          "p95": 83942.50469577312,
+          "p99": 112957.04429544062
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 14.074965718767086,
+          "p75": 23.14824622979276,
+          "p90": 38.524700201291,
+          "p95": 56.08818087502963,
+          "p99": 122.5841226668935
+        },
+        "mae_ntd_ping": 38640.84368268415,
+        "mape_percent": 20.556834751989815,
+        "median_absolute_error_ntd_ping": 34151.44222012558,
+        "median_absolute_percentage_error": 14.074965718767086,
+        "rmse_ntd_ping": 47428.12857795464,
+        "rows": 278,
+        "signed_bias_ntd_ping": 22501.072015105387,
+        "smape_percent": 17.24961001443458,
+        "wape_percent": 15.768278538942926
+      },
+      "雲林縣|斗六市": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 101092.66769887635,
+          "p50": 20458.770403803515,
+          "p75": 39411.194407753625,
+          "p90": 59614.14751880345,
+          "p95": 73933.23115329126,
+          "p99": 95660.8922702953
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.07383610927053,
+          "p75": 19.772663088998097,
+          "p90": 33.047533187424875,
+          "p95": 40.038270491442596,
+          "p99": 68.24590227573222
+        },
+        "mae_ntd_ping": 26462.893395124112,
+        "mape_percent": 14.726060157567723,
+        "median_absolute_error_ntd_ping": 20458.770403803515,
+        "median_absolute_percentage_error": 11.07383610927053,
+        "rmse_ntd_ping": 35142.41727249465,
+        "rows": 208,
+        "signed_bias_ntd_ping": -5357.816645236047,
+        "smape_percent": 14.159658742351358,
+        "wape_percent": 14.13437609873108
+      },
+      "雲林縣|斗南鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 66030.7024805386,
+          "p50": 18507.551635689,
+          "p75": 30931.96972864845,
+          "p90": 40252.02434717732,
+          "p95": 42506.241223982994,
+          "p99": 57652.79254019464
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.662414999728284,
+          "p75": 15.448965090365533,
+          "p90": 27.044843496701052,
+          "p95": 28.27124276213732,
+          "p99": 43.10214730819309
+        },
+        "mae_ntd_ping": 21601.79143369756,
+        "mape_percent": 12.499274741680846,
+        "median_absolute_error_ntd_ping": 18507.551635689,
+        "median_absolute_percentage_error": 9.662414999728284,
+        "rmse_ntd_ping": 25804.273754945632,
+        "rows": 54,
+        "signed_bias_ntd_ping": -9566.148038865094,
+        "smape_percent": 12.824730916736588,
+        "wape_percent": 11.372578866573578
+      },
+      "雲林縣|虎尾鎮": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 109039.92058536329,
+          "p50": 17890.331564519962,
+          "p75": 27130.762587745485,
+          "p90": 61451.82783324308,
+          "p95": 75615.77505451159,
+          "p99": 97359.26117363272
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.021386915809284,
+          "p75": 15.27294274347171,
+          "p90": 35.459802643313964,
+          "p95": 44.40140247298076,
+          "p99": 63.797580509839435
+        },
+        "mae_ntd_ping": 22669.02748603661,
+        "mape_percent": 13.06985285839446,
+        "median_absolute_error_ntd_ping": 17890.331564519962,
+        "median_absolute_percentage_error": 9.021386915809284,
+        "rmse_ntd_ping": 32500.93653560774,
+        "rows": 87,
+        "signed_bias_ntd_ping": 7794.455275863185,
+        "smape_percent": 11.904422671702545,
+        "wape_percent": 11.73865725371875
+      },
+      "高雄市|三民區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 313429.1517686704,
+          "p50": 25944.87235479892,
+          "p75": 47918.174683220954,
+          "p90": 65458.68620986704,
+          "p95": 79530.90487294772,
+          "p99": 133411.2483349033
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.876904668116307,
+          "p75": 15.42765438856345,
+          "p90": 25.647516591091517,
+          "p95": 36.465565964700346,
+          "p99": 75.37426810330193
+        },
+        "mae_ntd_ping": 33080.40208258655,
+        "mape_percent": 12.875016587895217,
+        "median_absolute_error_ntd_ping": 25944.87235479892,
+        "median_absolute_percentage_error": 8.876904668116307,
+        "rmse_ntd_ping": 44173.51378910331,
+        "rows": 1086,
+        "signed_bias_ntd_ping": -654.1658209027154,
+        "smape_percent": 11.98781999372359,
+        "wape_percent": 10.853608479313717
+      },
+      "高雄市|仁武區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 114634.23377780564,
+          "p50": 16847.635040912544,
+          "p75": 27406.761271579504,
+          "p90": 37600.068700777345,
+          "p95": 42416.03744310546,
+          "p99": 76432.56412642013
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 5.913252899377486,
+          "p75": 9.865473379370075,
+          "p90": 14.755086934263096,
+          "p95": 18.220735234115416,
+          "p99": 44.80625136938294
+        },
+        "mae_ntd_ping": 19773.017293126653,
+        "mape_percent": 7.99422204910149,
+        "median_absolute_error_ntd_ping": 16847.635040912544,
+        "median_absolute_percentage_error": 5.913252899377486,
+        "rmse_ntd_ping": 25409.742136611632,
+        "rows": 260,
+        "signed_bias_ntd_ping": 5592.33770686856,
+        "smape_percent": 7.510313435449062,
+        "wape_percent": 6.905431044123842
+      },
+      "高雄市|前金區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 174619.61446201167,
+          "p50": 25766.754610891978,
+          "p75": 40284.41331405257,
+          "p90": 59967.0598250945,
+          "p95": 72713.487173806,
+          "p99": 140355.65794285215
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.612630203802421,
+          "p75": 15.401468294594164,
+          "p90": 25.25187938977767,
+          "p95": 32.815358096636835,
+          "p99": 56.29612778933391
+        },
+        "mae_ntd_ping": 30594.060553977957,
+        "mape_percent": 12.437649346975808,
+        "median_absolute_error_ntd_ping": 25766.754610891978,
+        "median_absolute_percentage_error": 9.612630203802421,
+        "rmse_ntd_ping": 41486.80978330992,
+        "rows": 135,
+        "signed_bias_ntd_ping": 3129.4958560073665,
+        "smape_percent": 11.54988042943248,
+        "wape_percent": 10.567864280985953
+      },
+      "高雄市|前鎮區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 141966.40049673597,
+          "p50": 23272.51931777,
+          "p75": 37922.659155227186,
+          "p90": 59875.727648309185,
+          "p95": 77489.37572323509,
+          "p99": 116370.81439371567
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.137560620335908,
+          "p75": 14.829659402484658,
+          "p90": 24.030030591641207,
+          "p95": 32.848074019611815,
+          "p99": 88.02206442954197
+        },
+        "mae_ntd_ping": 28621.038270597648,
+        "mape_percent": 12.345786919192447,
+        "median_absolute_error_ntd_ping": 23272.51931777,
+        "median_absolute_percentage_error": 8.137560620335908,
+        "rmse_ntd_ping": 37190.61689071107,
+        "rows": 408,
+        "signed_bias_ntd_ping": -3070.33177874799,
+        "smape_percent": 11.562464221804818,
+        "wape_percent": 9.928999623641845
+      },
+      "高雄市|大寮區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 100393.09541167063,
+          "p50": 15419.031518589763,
+          "p75": 27607.19649341835,
+          "p90": 42018.199865717455,
+          "p95": 53157.77721147867,
+          "p99": 84528.11871834661
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.48005501978567,
+          "p75": 14.909426170167345,
+          "p90": 25.99831358512869,
+          "p95": 36.11180570763927,
+          "p99": 80.85954375024629
+        },
+        "mae_ntd_ping": 20208.18397744037,
+        "mape_percent": 12.435407974816195,
+        "median_absolute_error_ntd_ping": 15419.031518589763,
+        "median_absolute_percentage_error": 8.48005501978567,
+        "rmse_ntd_ping": 26768.68297122492,
+        "rows": 145,
+        "signed_bias_ntd_ping": 7221.758464537877,
+        "smape_percent": 11.285508283520777,
+        "wape_percent": 10.076564924084163
+      },
+      "高雄市|大社區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 75127.57925712841,
+          "p50": 19224.800816961157,
+          "p75": 30844.5910764855,
+          "p90": 43275.22670214996,
+          "p95": 55039.40154489768,
+          "p99": 70656.74508777205
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.74805712312781,
+          "p75": 15.829806085318541,
+          "p90": 23.176828565863005,
+          "p95": 26.928684359944384,
+          "p99": 66.22243249906033
+        },
+        "mae_ntd_ping": 23409.297123123793,
+        "mape_percent": 12.471297288045973,
+        "median_absolute_error_ntd_ping": 19224.800816961157,
+        "median_absolute_percentage_error": 8.74805712312781,
+        "rmse_ntd_ping": 28160.634499893957,
+        "rows": 66,
+        "signed_bias_ntd_ping": 4545.335851936603,
+        "smape_percent": 11.73622416310936,
+        "wape_percent": 10.287105675753695
+      },
+      "高雄市|小港區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 104875.64864266047,
+          "p50": 21832.994644036866,
+          "p75": 36789.131618187996,
+          "p90": 50711.1671270364,
+          "p95": 54184.10768065387,
+          "p99": 74648.87843950145
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.511936285321063,
+          "p75": 16.246306509857856,
+          "p90": 27.65867743022159,
+          "p95": 35.49415553268445,
+          "p99": 68.60473901921647
+        },
+        "mae_ntd_ping": 24687.10988785137,
+        "mape_percent": 12.565856492323626,
+        "median_absolute_error_ntd_ping": 21832.994644036866,
+        "median_absolute_percentage_error": 9.511936285321063,
+        "rmse_ntd_ping": 30794.604505330863,
+        "rows": 295,
+        "signed_bias_ntd_ping": 1661.6743328156458,
+        "smape_percent": 11.935889705036285,
+        "wape_percent": 10.761935161254192
+      },
+      "高雄市|岡山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 115211.88883258037,
+          "p50": 19358.56132711099,
+          "p75": 35488.585883399195,
+          "p90": 62432.17139360139,
+          "p95": 72581.78898266282,
+          "p99": 87193.032171659
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.335082627449975,
+          "p75": 13.411922394326837,
+          "p90": 23.0507358951611,
+          "p95": 31.085488176970518,
+          "p99": 75.99734312293096
+        },
+        "mae_ntd_ping": 26513.22443879886,
+        "mape_percent": 12.432361056253082,
+        "median_absolute_error_ntd_ping": 19358.56132711099,
+        "median_absolute_percentage_error": 9.335082627449975,
+        "rmse_ntd_ping": 34463.85758020413,
+        "rows": 128,
+        "signed_bias_ntd_ping": -5012.601615949587,
+        "smape_percent": 11.715970984144668,
+        "wape_percent": 10.719683795391122
+      },
+      "高雄市|左營區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 243251.99319963055,
+          "p50": 35509.61407154746,
+          "p75": 58676.8727686471,
+          "p90": 86845.20475964289,
+          "p95": 116418.42074153514,
+          "p99": 154770.20188901934
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.444660494318866,
+          "p75": 19.811964252224936,
+          "p90": 30.34036352746068,
+          "p95": 40.47299548172084,
+          "p99": 62.96092546271369
+        },
+        "mae_ntd_ping": 42568.39853472348,
+        "mape_percent": 15.123759074063955,
+        "median_absolute_error_ntd_ping": 35509.61407154746,
+        "median_absolute_percentage_error": 11.444660494318866,
+        "rmse_ntd_ping": 55249.152022983195,
+        "rows": 662,
+        "signed_bias_ntd_ping": 7505.933719673492,
+        "smape_percent": 14.046378041627266,
+        "wape_percent": 13.810122861972275
+      },
+      "高雄市|新興區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 177789.5308112472,
+          "p50": 32745.73269511148,
+          "p75": 57768.946717501574,
+          "p90": 78539.62424029307,
+          "p95": 95392.53478317334,
+          "p99": 139854.2051146877
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.377469710122305,
+          "p75": 19.808581468330527,
+          "p90": 34.21812398458146,
+          "p95": 39.97724280033147,
+          "p99": 62.37777996852038
+        },
+        "mae_ntd_ping": 39969.72130879743,
+        "mape_percent": 15.044245420829668,
+        "median_absolute_error_ntd_ping": 32745.73269511148,
+        "median_absolute_percentage_error": 11.377469710122305,
+        "rmse_ntd_ping": 51490.98279642281,
+        "rows": 222,
+        "signed_bias_ntd_ping": -9893.386948110292,
+        "smape_percent": 14.614464685226396,
+        "wape_percent": 13.4469829725262
+      },
+      "高雄市|林園區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 65510.73303749206,
+          "p50": 14289.605102213827,
+          "p75": 24183.36817274114,
+          "p90": 36091.94591118489,
+          "p95": 40978.13573038807,
+          "p99": 65061.551282852975
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.70832640900064,
+          "p75": 14.269732741623042,
+          "p90": 22.967563062278707,
+          "p95": 32.561714156195194,
+          "p99": 67.03275145807697
+        },
+        "mae_ntd_ping": 17776.02224674258,
+        "mape_percent": 11.636753485570399,
+        "median_absolute_error_ntd_ping": 14289.605102213827,
+        "median_absolute_percentage_error": 8.70832640900064,
+        "rmse_ntd_ping": 22569.34342742759,
+        "rows": 79,
+        "signed_bias_ntd_ping": -6767.792796242887,
+        "smape_percent": 11.614270570212545,
+        "wape_percent": 10.147080157013328
+      },
+      "高雄市|楠梓區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 204473.08951660185,
+          "p50": 24290.13982863218,
+          "p75": 43251.56050752217,
+          "p90": 58478.00944773288,
+          "p95": 68298.83717964958,
+          "p99": 88537.66698659428
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.043281114896242,
+          "p75": 15.14471015659418,
+          "p90": 20.877249982751152,
+          "p95": 27.52831033838648,
+          "p99": 48.29070336683896
+        },
+        "mae_ntd_ping": 28793.307148811582,
+        "mape_percent": 10.947879734032876,
+        "median_absolute_error_ntd_ping": 24290.13982863218,
+        "median_absolute_percentage_error": 9.043281114896242,
+        "rmse_ntd_ping": 36620.83877452007,
+        "rows": 893,
+        "signed_bias_ntd_ping": 1473.0410451156392,
+        "smape_percent": 10.583475646787573,
+        "wape_percent": 10.09480371762899
+      },
+      "高雄市|橋頭區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 101928.90537648875,
+          "p50": 34235.23411367397,
+          "p75": 64316.74462841757,
+          "p90": 80342.95280354872,
+          "p95": 85567.5809510294,
+          "p99": 89974.04025425116
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 12.126292912293877,
+          "p75": 18.841905045102916,
+          "p90": 21.750367210970936,
+          "p95": 24.5746567112273,
+          "p99": 44.49668129164724
+        },
+        "mae_ntd_ping": 39833.1398926112,
+        "mape_percent": 12.943915100724007,
+        "median_absolute_error_ntd_ping": 34235.23411367397,
+        "median_absolute_percentage_error": 12.126292912293877,
+        "rmse_ntd_ping": 48523.59676211786,
+        "rows": 223,
+        "signed_bias_ntd_ping": -14697.652871310935,
+        "smape_percent": 13.013159250603278,
+        "wape_percent": 12.863917829585755
+      },
+      "高雄市|苓雅區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 242047.4865990468,
+          "p50": 27668.499431829405,
+          "p75": 56160.81579104345,
+          "p90": 80104.20397308713,
+          "p95": 99893.73347384449,
+          "p99": 168706.23130409277
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.01119390256486,
+          "p75": 21.06696483032707,
+          "p90": 36.87722581827481,
+          "p95": 54.073045763302495,
+          "p99": 84.832426951307
+        },
+        "mae_ntd_ping": 38932.34122062043,
+        "mape_percent": 16.055912602785515,
+        "median_absolute_error_ntd_ping": 27668.499431829405,
+        "median_absolute_percentage_error": 10.01119390256486,
+        "rmse_ntd_ping": 53451.945350079885,
+        "rows": 509,
+        "signed_bias_ntd_ping": 11160.927575859196,
+        "smape_percent": 14.55400140219222,
+        "wape_percent": 13.082749966226134
+      },
+      "高雄市|鳥松區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 86041.80355052784,
+          "p50": 32080.388541708846,
+          "p75": 47611.281375538616,
+          "p90": 58820.83321248726,
+          "p95": 65100.42062851412,
+          "p99": 77189.07587261683
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 11.57541772113749,
+          "p75": 16.43055070968624,
+          "p90": 24.759256986788408,
+          "p95": 38.3332943698681,
+          "p99": 58.103932494018544
+        },
+        "mae_ntd_ping": 31786.087733095977,
+        "mape_percent": 13.76077630460634,
+        "median_absolute_error_ntd_ping": 32080.388541708846,
+        "median_absolute_percentage_error": 11.57541772113749,
+        "rmse_ntd_ping": 37743.24938934105,
+        "rows": 69,
+        "signed_bias_ntd_ping": -6606.960105263907,
+        "smape_percent": 13.147371435654723,
+        "wape_percent": 11.646961142611753
+      },
+      "高雄市|鳳山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 251506.99677248366,
+          "p50": 23031.1958924106,
+          "p75": 39032.912264480736,
+          "p90": 59570.41199734508,
+          "p95": 74396.47884963453,
+          "p99": 103465.1794600211
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 8.686666540741985,
+          "p75": 16.29208397242219,
+          "p90": 25.891681512186935,
+          "p95": 35.88308843906727,
+          "p99": 65.97094744058374
+        },
+        "mae_ntd_ping": 28740.62864413907,
+        "mape_percent": 12.491373586577465,
+        "median_absolute_error_ntd_ping": 23031.1958924106,
+        "median_absolute_percentage_error": 8.686666540741985,
+        "rmse_ntd_ping": 37904.29277918186,
+        "rows": 850,
+        "signed_bias_ntd_ping": 4258.47368140633,
+        "smape_percent": 11.779653189086304,
+        "wape_percent": 10.927782949918809
+      },
+      "高雄市|鹽埕區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 149190.85903149343,
+          "p50": 33932.17502174247,
+          "p75": 51829.650263662625,
+          "p90": 71029.44820694071,
+          "p95": 83886.27841890998,
+          "p99": 126699.6936514803
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 15.318074057518508,
+          "p75": 27.638494591952128,
+          "p90": 44.201450891031435,
+          "p95": 52.45358134928449,
+          "p99": 183.86786808005138
+        },
+        "mae_ntd_ping": 37270.09896477626,
+        "mape_percent": 23.94457304147985,
+        "median_absolute_error_ntd_ping": 33932.17502174247,
+        "median_absolute_percentage_error": 15.318074057518508,
+        "rmse_ntd_ping": 47497.77336768005,
+        "rows": 53,
+        "signed_bias_ntd_ping": 5654.347653649749,
+        "smape_percent": 19.133713275510562,
+        "wape_percent": 16.384709470306873
+      },
+      "高雄市|鼓山區": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 338305.7548487948,
+          "p50": 30813.61725478375,
+          "p75": 54467.626331980064,
+          "p90": 79890.93234660765,
+          "p95": 95955.75476596065,
+          "p99": 142865.46824871536
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.389325652187411,
+          "p75": 17.396500928928724,
+          "p90": 25.78917026456545,
+          "p95": 38.78043634152931,
+          "p99": 84.09435909904056
+        },
+        "mae_ntd_ping": 38827.411431570355,
+        "mape_percent": 14.030505301114594,
+        "median_absolute_error_ntd_ping": 30813.61725478375,
+        "median_absolute_percentage_error": 9.389325652187411,
+        "rmse_ntd_ping": 52102.64159952158,
+        "rows": 486,
+        "signed_bias_ntd_ping": 6752.391881986712,
+        "smape_percent": 12.5962685635277,
+        "wape_percent": 11.713872946741567
+      }
+    },
+    "price_band_ntd_ping": {
+      "0": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 290315.80031955487,
+          "p50": 42951.191116209186,
+          "p75": 64906.4791605583,
+          "p90": 95385.73917050421,
+          "p95": 119689.01419036972,
+          "p99": 235200.06431692003
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 54.495398089167026,
+          "p75": 89.9811686973181,
+          "p90": 153.1809998287097,
+          "p95": 231.67526449395058,
+          "p99": 421.7047595747209
+        },
+        "mae_ntd_ping": 50983.330354651065,
+        "mape_percent": 76.06360714804363,
+        "median_absolute_error_ntd_ping": 42951.191116209186,
+        "median_absolute_percentage_error": 54.495398089167026,
+        "rmse_ntd_ping": 65815.85816014485,
+        "rows": 686,
+        "signed_bias_ntd_ping": 50305.412504545646,
+        "smape_percent": 46.94016784668709,
+        "wape_percent": 65.45580210265987
+      },
+      "1": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 331674.47365087597,
+          "p50": 24510.92899953213,
+          "p75": 46563.295189150085,
+          "p90": 75942.96945355124,
+          "p95": 104935.11633716515,
+          "p99": 166341.13859202366
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 15.479002413231,
+          "p75": 29.190727294307646,
+          "p90": 49.66100815873073,
+          "p95": 69.03099592206827,
+          "p99": 101.5053922473615
+        },
+        "mae_ntd_ping": 34820.80692701625,
+        "mape_percent": 22.104733105880925,
+        "median_absolute_error_ntd_ping": 24510.92899953213,
+        "median_absolute_percentage_error": 15.479002413231,
+        "rmse_ntd_ping": 49229.7385681257,
+        "rows": 6865,
+        "signed_bias_ntd_ping": 26830.70276770545,
+        "smape_percent": 18.777535892172907,
+        "wape_percent": 21.69900839144808
+      },
+      "2": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 334852.8114803389,
+          "p50": 26616.41645590414,
+          "p75": 47529.02798773095,
+          "p90": 73703.51100553756,
+          "p95": 94068.06870981115,
+          "p99": 151568.17524584185
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.275811167983763,
+          "p75": 16.397878520409822,
+          "p90": 25.577399795090706,
+          "p95": 32.62933518202732,
+          "p99": 54.479825498657874
+        },
+        "mae_ntd_ping": 34653.758055961734,
+        "mape_percent": 12.09092026835565,
+        "median_absolute_error_ntd_ping": 26616.41645590414,
+        "median_absolute_percentage_error": 9.275811167983763,
+        "rmse_ntd_ping": 46995.84788634104,
+        "rows": 23791,
+        "signed_bias_ntd_ping": 6432.436000478803,
+        "smape_percent": 11.71589904848681,
+        "wape_percent": 11.831622859463547
+      },
+      "3": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 540921.4440248377,
+          "p50": 53053.12523249391,
+          "p75": 89786.32365051273,
+          "p90": 137300.9411330047,
+          "p95": 173219.26400815495,
+          "p99": 252315.3386663839
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.195501355242142,
+          "p75": 17.069575101926105,
+          "p90": 25.51105068652729,
+          "p95": 31.56486015655427,
+          "p99": 43.832252106723125
+        },
+        "mae_ntd_ping": 65136.343946560955,
+        "mape_percent": 12.272081247574224,
+        "median_absolute_error_ntd_ping": 53053.12523249391,
+        "median_absolute_percentage_error": 10.195501355242142,
+        "rmse_ntd_ping": 85112.76688928797,
+        "rows": 10199,
+        "signed_bias_ntd_ping": -23991.093371347994,
+        "smape_percent": 12.865339663807143,
+        "wape_percent": 12.234138772187327
+      },
+      "4": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 133326.97845191287,
+          "p75": 220638.9522175073,
+          "p90": 354600.0136468792,
+          "p95": 446846.297257024,
+          "p99": 647723.1035860594
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.429563908666738,
+          "p75": 21.348380619708514,
+          "p90": 29.59459915540201,
+          "p95": 35.702348400495985,
+          "p99": 47.29208008190863
+        },
+        "mae_ntd_ping": 165827.84546753025,
+        "mape_percent": 15.055383499123842,
+        "median_absolute_error_ntd_ping": 133326.97845191287,
+        "median_absolute_percentage_error": 13.429563908666738,
+        "rmse_ntd_ping": 219623.42354988918,
+        "rows": 1863,
+        "signed_bias_ntd_ping": -135030.710366625,
+        "smape_percent": 16.76134908164178,
+        "wape_percent": 15.877801658853041
+      }
+    },
+    "recency_quarter": {
+      "34": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 31096.474471811758,
+          "p75": 59669.41055946221,
+          "p90": 102432.88427997104,
+          "p95": 147068.80829605734,
+          "p99": 273571.24551069783
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.308925758685731,
+          "p75": 18.659029879126454,
+          "p90": 30.64415142408304,
+          "p95": 41.56692593657276,
+          "p99": 78.5089204310216
+        },
+        "mae_ntd_ping": 47289.98279635563,
+        "mape_percent": 14.75147907530902,
+        "median_absolute_error_ntd_ping": 31096.474471811758,
+        "median_absolute_percentage_error": 10.308925758685731,
+        "rmse_ntd_ping": 75001.1118534208,
+        "rows": 9869,
+        "signed_bias_ntd_ping": -3484.4144367360122,
+        "smape_percent": 13.760530804684032,
+        "wape_percent": 13.23648415687809
+      },
+      "35": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1278408.745532586,
+          "p50": 31542.1634064159,
+          "p75": 60259.300203488005,
+          "p90": 105330.51713263257,
+          "p95": 143634.7736161427,
+          "p99": 238717.5809439327
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.380478765218708,
+          "p75": 18.66922411901097,
+          "p90": 30.464993919855694,
+          "p95": 41.96541415856952,
+          "p99": 85.33302416834896
+        },
+        "mae_ntd_ping": 47101.07136459423,
+        "mape_percent": 14.816377780160133,
+        "median_absolute_error_ntd_ping": 31542.1634064159,
+        "median_absolute_percentage_error": 10.380478765218708,
+        "rmse_ntd_ping": 71961.96779593448,
+        "rows": 11252,
+        "signed_bias_ntd_ping": -952.1828955207001,
+        "smape_percent": 13.828259902509268,
+        "wape_percent": 13.249025267080484
+      },
+      "36": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1032686.0754133034,
+          "p50": 32353.262999459257,
+          "p75": 61518.69779625993,
+          "p90": 104488.46087462611,
+          "p95": 144192.90322794096,
+          "p99": 264065.54689926177
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.74035188660363,
+          "p75": 19.29638876210164,
+          "p90": 31.194872874787492,
+          "p95": 42.14313786059098,
+          "p99": 80.81496728336573
+        },
+        "mae_ntd_ping": 48047.991446030355,
+        "mape_percent": 15.221514560871295,
+        "median_absolute_error_ntd_ping": 32353.262999459257,
+        "median_absolute_percentage_error": 10.74035188660363,
+        "rmse_ntd_ping": 74125.40896294253,
+        "rows": 10496,
+        "signed_bias_ntd_ping": -1529.1300015578533,
+        "smape_percent": 14.129705040596996,
+        "wape_percent": 13.680355335868697
+      },
+      "37": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 802749.2271307581,
+          "p50": 33016.50103441386,
+          "p75": 61266.95044550269,
+          "p90": 105000.39600325628,
+          "p95": 150021.29385144124,
+          "p99": 267001.28136128315
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.774200569074473,
+          "p75": 18.838787657901424,
+          "p90": 29.670723627819438,
+          "p95": 39.628211954467766,
+          "p99": 75.20689122901689
+        },
+        "mae_ntd_ping": 48420.46294005637,
+        "mape_percent": 14.654585634619947,
+        "median_absolute_error_ntd_ping": 33016.50103441386,
+        "median_absolute_percentage_error": 10.774200569074473,
+        "rmse_ntd_ping": 73941.71944696862,
+        "rows": 11787,
+        "signed_bias_ntd_ping": -5375.380150054742,
+        "smape_percent": 13.792995913705322,
+        "wape_percent": 13.314288217208286
+      }
+    },
+    "seen_address": {
+      "seen": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 605309.9229818569,
+          "p50": 28017.03137556475,
+          "p75": 52082.084946907926,
+          "p90": 84528.13780844005,
+          "p95": 113084.29714141965,
+          "p99": 206655.25449904162
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 9.771847814826778,
+          "p75": 17.51182767667447,
+          "p90": 27.3218524742891,
+          "p95": 35.73972944863032,
+          "p99": 66.0390293174512
+        },
+        "mae_ntd_ping": 39657.91583830985,
+        "mape_percent": 13.304227176647009,
+        "median_absolute_error_ntd_ping": 28017.03137556475,
+        "median_absolute_percentage_error": 9.771847814826778,
+        "rmse_ntd_ping": 58909.96565881043,
+        "rows": 6919,
+        "signed_bias_ntd_ping": -4018.543509317367,
+        "smape_percent": 12.788518012556779,
+        "wape_percent": 12.217661431584101
+      },
+      "unseen": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 32973.392827454896,
+          "p75": 62600.75505753636,
+          "p90": 108582.04530337537,
+          "p95": 151420.02263979585,
+          "p99": 269442.1513693638
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.72632826603909,
+          "p75": 19.118927997536787,
+          "p90": 31.1080105816768,
+          "p95": 42.47336866163834,
+          "p99": 82.90447504327467
+        },
+        "mae_ntd_ping": 49262.34590704019,
+        "mape_percent": 15.149867058997843,
+        "median_absolute_error_ntd_ping": 32973.392827454896,
+        "median_absolute_percentage_error": 10.72632826603909,
+        "rmse_ntd_ping": 76207.02028696654,
+        "rows": 36485,
+        "signed_bias_ntd_ping": -2650.5879073763526,
+        "smape_percent": 14.082442914801463,
+        "wape_percent": 13.561546589785417
+      }
+    },
+    "seen_road": {
+      "seen": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 1329700.5944495513,
+          "p50": 31675.174380766694,
+          "p75": 60396.919398671904,
+          "p90": 102586.06072890665,
+          "p95": 144513.55777649855,
+          "p99": 266204.5217792213
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 10.416846229880335,
+          "p75": 18.65298585248075,
+          "p90": 29.86650737829492,
+          "p95": 39.82608199038393,
+          "p99": 76.35152461264815
+        },
+        "mae_ntd_ping": 47484.42668211365,
+        "mape_percent": 14.535209695212572,
+        "median_absolute_error_ntd_ping": 31675.174380766694,
+        "median_absolute_percentage_error": 10.416846229880335,
+        "rmse_ntd_ping": 73903.96417814995,
+        "rows": 41112,
+        "signed_bias_ntd_ping": -3554.4016755188586,
+        "smape_percent": 13.640608662826944,
+        "wape_percent": 13.169047730729327
+      },
+      "unseen": {
+        "absolute_error_quantiles_ntd_ping": {
+          "p100": 279918.5505486467,
+          "p50": 38173.51093394174,
+          "p75": 66056.93481856654,
+          "p90": 132408.43901767343,
+          "p95": 155120.89594099004,
+          "p99": 188894.45495628502
+        },
+        "absolute_percentage_error_quantiles": {
+          "p50": 13.327930134344083,
+          "p75": 23.619253108018363,
+          "p90": 58.53215142788108,
+          "p95": 75.46564884060278,
+          "p99": 104.29258334342805
+        },
+        "mae_ntd_ping": 52159.712193966174,
+        "mape_percent": 20.603536864388165,
+        "median_absolute_error_ntd_ping": 38173.51093394174,
+        "median_absolute_percentage_error": 13.327930134344083,
+        "rmse_ntd_ping": 70380.5213144722,
+        "rows": 2292,
+        "signed_bias_ntd_ping": 9431.74491376013,
+        "smape_percent": 18.101650318180816,
+        "wape_percent": 17.709662086073127
+      }
+    },
+    "unknown_road": {
+      "rows": 0
+    }
+  },
+  "top_one_percent_target_sensitivity": {
+    "excluding_top_percent_for_diagnostic_only": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 700536.9932964129,
+        "p50": 31625.417950820905,
+        "p75": 59494.56025497522,
+        "p90": 100083.26300851094,
+        "p95": 137007.1876371461,
+        "p99": 221412.016520032
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 10.484503729568585,
+        "p75": 18.73435348149306,
+        "p90": 30.327228991122606,
+        "p95": 41.42239470852553,
+        "p99": 81.20456402434765
+      },
+      "mae_ntd_ping": 45243.43561084799,
+      "mape_percent": 14.801327905620186,
+      "median_absolute_error_ntd_ping": 31625.417950820905,
+      "median_absolute_percentage_error": 10.484503729568585,
+      "rmse_ntd_ping": 65198.351133699136,
+      "rows": 42969,
+      "signed_bias_ntd_ping": -51.342368839698985,
+      "smape_percent": 13.780344338400946,
+      "wape_percent": 13.057379701735861
+    },
+    "full": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1329700.5944495513,
+        "p50": 32038.092827131113,
+        "p75": 60725.79606844326,
+        "p90": 104451.28109553183,
+        "p95": 145554.02241835007,
+        "p99": 261922.43627612607
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 10.5644758024775,
+        "p75": 18.84672809258368,
+        "p90": 30.436856227180908,
+        "p95": 41.333145341172035,
+        "p99": 80.84890381998619
+      },
+      "mae_ntd_ping": 47731.31071107794,
+      "mape_percent": 14.855654950759307,
+      "median_absolute_error_ntd_ping": 32038.092827131113,
+      "median_absolute_percentage_error": 10.5644758024775,
+      "rmse_ntd_ping": 73722.11613240164,
+      "rows": 43404,
+      "signed_bias_ntd_ping": -2868.6527126899155,
+      "smape_percent": 13.876179289360696,
+      "wape_percent": 13.366812480118865
+    }
+  },
+  "unknown_road_rows": 0,
+  "validation_comparison": {
+    "global_median": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 2040104.8281809355,
+        "p50": 97456.49825345531,
+        "p75": 193843.5888045139,
+        "p90": 372193.41585139924,
+        "p95": 514453.24335008144,
+        "p99": 824974.6916001147
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 35.27474779729289,
+        "p75": 52.690790392403315,
+        "p90": 69.22650412877225,
+        "p95": 77.68565539170393,
+        "p99": 154.15493506493445
+      },
+      "mae_ntd_ping": 154208.60855336752,
+      "mape_percent": 39.22722438948184,
+      "median_absolute_error_ntd_ping": 97456.49825345531,
+      "median_absolute_percentage_error": 35.27474779729289,
+      "rmse_ntd_ping": 232686.24383454316,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -131375.12017529592,
+      "smape_percent": 46.008918008237515,
+      "wape_percent": 44.564261914638294
+    },
+    "lightgbm_log_l1_leaves31": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1215645.753041998,
+        "p50": 33067.34634622643,
+        "p75": 63450.86864781176,
+        "p90": 109113.64511007318,
+        "p95": 147202.74000517442,
+        "p99": 256408.66015284325
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 11.205719098750784,
+        "p75": 19.388047710253446,
+        "p90": 30.069413045279134,
+        "p95": 38.92758107969923,
+        "p99": 77.48324008830986
+      },
+      "mae_ntd_ping": 49065.47738890633,
+      "mape_percent": 15.092412687515745,
+      "median_absolute_error_ntd_ping": 33067.34634622643,
+      "median_absolute_percentage_error": 11.205719098750784,
+      "rmse_ntd_ping": 73879.54555910811,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -19991.70110761698,
+      "smape_percent": 14.806044823068545,
+      "wape_percent": 14.17927835441996
+    },
+    "lightgbm_log_l1_leaves63": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1254980.4727052245,
+        "p50": 32806.29055833795,
+        "p75": 62499.30082811891,
+        "p90": 107688.45163700382,
+        "p95": 144752.9472323971,
+        "p99": 254265.35384570376
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 11.04964915363648,
+        "p75": 19.162253445248204,
+        "p90": 29.677925161526307,
+        "p95": 38.872005380682054,
+        "p99": 75.63786726976149
+      },
+      "mae_ntd_ping": 48405.286519025525,
+      "mape_percent": 14.884692936760814,
+      "median_absolute_error_ntd_ping": 32806.29055833795,
+      "median_absolute_percentage_error": 11.04964915363648,
+      "rmse_ntd_ping": 72855.75980795285,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -19529.804180127794,
+      "smape_percent": 14.615200550495947,
+      "wape_percent": 13.988491866460443
+    },
+    "recent_district_type_median": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1376465.6161063751,
+        "p50": 56694.33771843983,
+        "p75": 104320.69203509076,
+        "p90": 163076.88754024103,
+        "p95": 207875.8725552778,
+        "p99": 338169.78915004065
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 18.18626609985517,
+        "p75": 30.517584028494106,
+        "p90": 48.49206559872097,
+        "p95": 76.73828173651022,
+        "p99": 186.37888496417605
+      },
+      "mae_ntd_ping": 76190.73151039344,
+      "mape_percent": 26.524456323301536,
+      "median_absolute_error_ntd_ping": 56694.33771843983,
+      "median_absolute_percentage_error": 18.18626609985517,
+      "rmse_ntd_ping": 106580.25835880982,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -25485.715910912437,
+      "smape_percent": 23.746821680201784,
+      "wape_percent": 22.018120430170445
+    },
+    "ridge_log": {
+      "absolute_error_quantiles_ntd_ping": {
+        "p100": 1258649.0837270955,
+        "p50": 47310.71334109639,
+        "p75": 85471.19269604476,
+        "p90": 137322.9123772788,
+        "p95": 184901.80779644276,
+        "p99": 318726.25139187934
+      },
+      "absolute_percentage_error_quantiles": {
+        "p50": 15.942924699679178,
+        "p75": 25.7900751928618,
+        "p90": 37.170777030489546,
+        "p95": 47.46160329486748,
+        "p99": 91.65913588723134
+      },
+      "mae_ntd_ping": 64815.127208662336,
+      "mape_percent": 19.74725969424392,
+      "median_absolute_error_ntd_ping": 47310.71334109639,
+      "median_absolute_percentage_error": 15.942924699679178,
+      "rmse_ntd_ping": 92806.54480591239,
+      "rows": 39552,
+      "signed_bias_ntd_ping": -22148.391254863483,
+      "smape_percent": 19.63108357482889,
+      "wape_percent": 18.730720237047045
+    }
+  }
+}

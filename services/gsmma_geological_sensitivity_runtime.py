@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import hashlib
 import json
 import math
@@ -151,6 +151,7 @@ class LoadedDataset:
     features: list[NormalizedFeature]
     geometries: list[Any]
     tree: STRtree
+    storage_backend: str = "r2"
 
 
 def _parse_manifest(payload: bytes, version: str) -> dict[str, Any]:
@@ -238,9 +239,11 @@ class GsmmaGeologicalSensitivityRuntime:
         *,
         bucket: str | None = None,
         dataset_version: str | None = None,
+        local_root: str | os.PathLike[str] | None = None,
     ) -> None:
         self._client_factory = client_factory
         self._bucket = bucket
+        self._local_root = local_root if local_root is not None else os.environ.get("GSMMA_GEOLOGICAL_SENSITIVITY_LOCAL_ROOT")
         self._explicit_version = dataset_version
         self._client: R2Client | None = None
         self._loaded: LoadedDataset | None = None
@@ -280,8 +283,16 @@ class GsmmaGeologicalSensitivityRuntime:
         with self._lock:
             if self._loaded is not None:
                 return self._loaded
-            bucket = self._bucket or _bucket_name()
-            loaded = _load_uncached(version, self._get_client(), bucket)
+            if self._local_root is not None:
+                from services.local_artifact_store import LocalArtifactStore
+                try:
+                    client = LocalArtifactStore(self._local_root, RELEASE_PREFIX)
+                except (OSError, ValueError) as exc:
+                    raise SourceUnavailableError("invalid local artifact root", dataset_version=version) from exc
+                loaded = replace(_load_uncached(version, client, "local"), storage_backend="local")
+            else:
+                bucket = self._bucket or _bucket_name()
+                loaded = _load_uncached(version, self._get_client(), bucket)
             self._loaded = loaded
             self.cold_load_count += 1
             return loaded
@@ -355,6 +366,7 @@ class GsmmaGeologicalSensitivityRuntime:
             ),
         )
         common = {
+            "storage_backend": loaded.storage_backend,
             "dataset_version": loaded.dataset_version,
             "artifact_sha256": loaded.artifact_sha256,
             "source_vintage": loaded.source_vintage,

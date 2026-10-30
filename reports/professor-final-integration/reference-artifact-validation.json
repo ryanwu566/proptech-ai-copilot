@@ -1,0 +1,438 @@
+{
+  "root": "/run/media/andy/Crucial X9/DB",
+  "evidence_class": "read_only_source_reference_not_server_copy",
+  "wra": [
+    {
+      "scenario": "6h-150mm",
+      "artifact_sha256": "7998e29b02e5df83ae1ccb74e5116bd6631fc889232c4d18dbd5cc74b0b42058",
+      "feature_count": 1254,
+      "matched_point": [
+        120.51510288101208,
+        23.68303256534591
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "6h-150mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "雲林縣",
+        "town_name": "斗六市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "7998e29b02e5df83ae1ccb74e5116bd6631fc889232c4d18dbd5cc74b0b42058",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "6h-150mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "7998e29b02e5df83ae1ccb74e5116bd6631fc889232c4d18dbd5cc74b0b42058",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "6h-250mm",
+      "artifact_sha256": "fb42111bd0ca4daecefdb956cb5066dc6b2742f3112336bc47a4dae116072ec7",
+      "feature_count": 1651,
+      "matched_point": [
+        120.5439450755119,
+        23.73477204519015
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "6h-250mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "雲林縣",
+        "town_name": "斗六市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "fb42111bd0ca4daecefdb956cb5066dc6b2742f3112336bc47a4dae116072ec7",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "6h-250mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "fb42111bd0ca4daecefdb956cb5066dc6b2742f3112336bc47a4dae116072ec7",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "6h-350mm",
+      "artifact_sha256": "9e2036b069c6eb07d005f6dc694ced51974d98b0a1de6d1a328f25a34d4bb4ff",
+      "feature_count": 2038,
+      "matched_point": [
+        121.54560773528466,
+        25.056158928566802
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "6h-350mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "臺北市",
+        "town_name": "松山區",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "9e2036b069c6eb07d005f6dc694ced51974d98b0a1de6d1a328f25a34d4bb4ff",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "6h-350mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "9e2036b069c6eb07d005f6dc694ced51974d98b0a1de6d1a328f25a34d4bb4ff",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "12h-200mm",
+      "artifact_sha256": "fef6a949f96bc6068dfc8192713e6ba05456474681c9bff8b8ea9fbca6001d3e",
+      "feature_count": 1342,
+      "matched_point": [
+        120.82743217700099,
+        24.58243625639319
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "12h-200mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "苗栗縣",
+        "town_name": "苗栗市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "fef6a949f96bc6068dfc8192713e6ba05456474681c9bff8b8ea9fbca6001d3e",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "12h-200mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "fef6a949f96bc6068dfc8192713e6ba05456474681c9bff8b8ea9fbca6001d3e",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "12h-300mm",
+      "artifact_sha256": "ac7f932b768ff966e1fb52730bc06a460349846b21bc77a414e4be78ea06fc85",
+      "feature_count": 1692,
+      "matched_point": [
+        120.82743242383314,
+        24.58225635825937
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "12h-300mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "苗栗縣",
+        "town_name": "苗栗市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "ac7f932b768ff966e1fb52730bc06a460349846b21bc77a414e4be78ea06fc85",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "12h-300mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "ac7f932b768ff966e1fb52730bc06a460349846b21bc77a414e4be78ea06fc85",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "12h-400mm",
+      "artifact_sha256": "8cfecad748b3910c6aec9f4a36dfb616871676d1b0b645509d83df98281a1a38",
+      "feature_count": 1977,
+      "matched_point": [
+        121.77733762534018,
+        25.150740727979322
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "12h-400mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "基隆市",
+        "town_name": "中正區",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "8cfecad748b3910c6aec9f4a36dfb616871676d1b0b645509d83df98281a1a38",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "12h-400mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "8cfecad748b3910c6aec9f4a36dfb616871676d1b0b645509d83df98281a1a38",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "24h-200mm",
+      "artifact_sha256": "01e2ef43ff8f6c91d9b38cbf051feacad17eb86a2895bef9f7b8643a30ef1fc9",
+      "feature_count": 1204,
+      "matched_point": [
+        120.54168357427142,
+        24.0836220018081
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "24h-200mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "彰化縣",
+        "town_name": "彰化市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "01e2ef43ff8f6c91d9b38cbf051feacad17eb86a2895bef9f7b8643a30ef1fc9",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "24h-200mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "01e2ef43ff8f6c91d9b38cbf051feacad17eb86a2895bef9f7b8643a30ef1fc9",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "24h-350mm",
+      "artifact_sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631",
+      "feature_count": 1739,
+      "matched_point": [
+        120.5340143447583,
+        24.083055294020838
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "24h-350mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "彰化縣",
+        "town_name": "彰化市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "24h-350mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "13b0bf6e0029259ead7e6fd4688ac030f5a2f500a171418f59377c50033cf631",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "24h-500mm",
+      "artifact_sha256": "2f25d1eb8613764b2187ff36692fd64c9d84cf8060f3d8a1107aebdd64cce5f9",
+      "feature_count": 2050,
+      "matched_point": [
+        120.55493983277576,
+        23.732090649060602
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "24h-500mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "雲林縣",
+        "town_name": "斗六市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "2f25d1eb8613764b2187ff36692fd64c9d84cf8060f3d8a1107aebdd64cce5f9",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "24h-500mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "2f25d1eb8613764b2187ff36692fd64c9d84cf8060f3d8a1107aebdd64cce5f9",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    },
+    {
+      "scenario": "24h-650mm",
+      "artifact_sha256": "8712c21f606a38b0ab463bac6e61da04368a118f9ca57393abe055fa5092fa86",
+      "feature_count": 2356,
+      "matched_point": [
+        120.5330945775838,
+        23.69681429394012
+      ],
+      "hit": {
+        "status": "loaded",
+        "scenario": "24h-650mm",
+        "matched": true,
+        "matched_count": 1,
+        "class": 1,
+        "canonical_depth": "0.3-0.5 m",
+        "flood_dept_raw": "0.3-0.5",
+        "flood_dept_malformed": false,
+        "city_name": "雲林縣",
+        "town_name": "斗六市",
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "8712c21f606a38b0ab463bac6e61da04368a118f9ca57393abe055fa5092fa86",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      },
+      "no_match": {
+        "status": "no_match",
+        "scenario": "24h-650mm",
+        "matched": false,
+        "matched_count": 0,
+        "storage_backend": "local",
+        "dataset_version": "v1",
+        "artifact_sha256": "8712c21f606a38b0ab463bac6e61da04368a118f9ca57393abe055fa5092fa86",
+        "source_vintage": "unknown",
+        "match_semantics": "point_intersects_scenario_polygon"
+      }
+    }
+  ],
+  "nlsc": {
+    "sha256": "1b1db799708e61ee337d1ac6ae0fa359eafd8c28b8cf297d80b0c83cb5a2b03d",
+    "root_type": "dict",
+    "schema_keys": [
+      "dataset",
+      "features",
+      "schema_version",
+      "source_crs",
+      "source_vintage",
+      "target_crs",
+      "type"
+    ],
+    "feature_count": 7691
+  },
+  "gsmma_processed_roots": [],
+  "Terrain Risk/ARDSWC": {
+    "files": 38,
+    "suffix_counts": {
+      ".zip": 5,
+      ".csv": 3,
+      ".cpg": 5,
+      ".dbf": 5,
+      ".prj": 5,
+      ".qmd": 5,
+      ".shp": 5,
+      ".shx": 5
+    },
+    "manifest_files": [
+      "Terrain Risk/ARDSWC/00_manifest/ardswc_download_manifest.csv",
+      "Terrain Risk/ARDSWC/00_manifest/ardswc_source_sha256_and_integrity.csv",
+      "Terrain Risk/ARDSWC/00_manifest/ardswc_source_sha256.csv"
+    ]
+  },
+  "Terrain Risk/土壤液化": {
+    "files": 38,
+    "suffix_counts": {
+      ".csv": 2,
+      ".geojson": 36
+    },
+    "manifest_files": [
+      "Terrain Risk/土壤液化/00_manifest/soil_liquefaction_catalog.csv",
+      "Terrain Risk/土壤液化/00_manifest/geologycloud_liquefaction_snapshot_20261016.csv"
+    ]
+  },
+  "CWA 地震": {
+    "files": 56,
+    "suffix_counts": {
+      ".csv": 9,
+      ".json": 2,
+      ".html": 2,
+      ".py": 5,
+      ".txt": 1,
+      ".zip": 1,
+      ".xml": 36
+    },
+    "manifest_files": [
+      "CWA 地震/00_manifest/cwa_current_snapshot_manifest.csv",
+      "CWA 地震/04_instrumental_earthquake_catalog/00_manifest/cwa_xml_validation.csv",
+      "CWA 地震/04_instrumental_earthquake_catalog/00_manifest/cwa_catalog_year_counts.csv",
+      "CWA 地震/04_instrumental_earthquake_catalog/00_manifest/cwa_earthquake_catalog_1990_2025_sha256.txt"
+    ]
+  }
+}

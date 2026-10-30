@@ -1,0 +1,33 @@
+{
+  "schema": "professor-stage4a-activation-static-v1",
+  "status": "PASS",
+  "checked_at": "2026-10-30T03:58:21.405910+00:00",
+  "checks": [
+    "scripts/ops/professor_stage4a_activation.py",
+    "embedded Python:250",
+    "embedded Python:431",
+    "embedded Python:592",
+    "scripts/ops/professor_stage2_activation.py",
+    "tests/test_professor_stage4a_activation.py",
+    "candidate approved=False",
+    "candidate approved=True",
+    "proxy recovery",
+    "artifact no-network probe",
+    "rollback embedded Python",
+    "rollback embedded Python",
+    "rollback embedded Python",
+    "bash -n generated ROLLBACK.sh"
+  ],
+  "frontend_sha256": "0f70629890b72a0a82e91972cc032c04b658b26c265373cb711cf576bfbf8fcc",
+  "frontend_changed": false,
+  "activation_executed": false,
+  "sudo_executed": false,
+  "secret_files_opened": false,
+  "host_or_database_mutated": false,
+  "full_suite_run": false,
+  "public_source_sha256": {
+    "scripts/ops/professor_stage4a_activation.py": "e56074f506ee98cfbbe754266d724dc18fa5d5ed405f650afeefcf290a9cd186",
+    "scripts/ops/professor_stage2_activation.py": "c8be19390d8fe6dd6a0f3bd03f45a62f35fcb7fa43eebbf82fd64e83783b07cc",
+    "tests/test_professor_stage4a_activation.py": "22e341c8cdb1a5c082bce4f564e083567e6e2b02db432b86aee990778216e6e8"
+  }
+}

@@ -44,6 +44,12 @@ def freshness(published: str | None, as_of: date, max_age_days: int | None) -> s
 def artifact_projection(values: Mapping[str, str], *, as_of: date, root: Path = ROOT) -> list[dict]:
     rows = []
     for logical, provider, storage, location, schema, version, required in REGISTRY:
+        local_root_name = {'wra-flood': 'WRA_FLOOD_LOCAL_ROOT', 'gsmma-sensitivity': 'GSMMA_GEOLOGICAL_SENSITIVITY_LOCAL_ROOT'}.get(logical)
+        runtime_local = bool(local_root_name and local_root_name in values)
+        if runtime_local:
+            storage = 'local'
+            member = '{scenario}' if logical == 'wra-flood' else '{dataset_version}'
+            location = f'{local_root_name}/{member}/features.json.gz'
         if logical == 'gsmma-sensitivity':
             from services.provider_config_contract import exact_version
             selected = values.get('GSMMA_GEOLOGICAL_SENSITIVITY_DATASET_VERSION', '')
@@ -56,7 +62,7 @@ def artifact_projection(values: Mapping[str, str], *, as_of: date, root: Path = 
                'presence': 'UNKNOWN', 'freshness': 'UNKNOWN', 'freshness_as_of': as_of.isoformat(),
                'production_required': required, 'production_active': 'UNKNOWN', 'status': 'UNKNOWN',
                'limitation': 'Active deployed artifact, source date, checksum and coverage require operator evidence.'}
-        if storage == 'local':
+        if storage == 'local' and not runtime_local:
             path = root / location
             row['presence'] = 'PRESENT' if path.is_file() else 'ABSENT'
             if path.is_file() and path.stat().st_size <= 1_000_000:

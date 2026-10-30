@@ -1,0 +1,115 @@
+{
+  "schema": "professor-stage5-final-adoption-acceptance-v1",
+  "checked_at": "2026-10-30T07:38:38.848061+00:00",
+  "status": "PARTIAL_EXTERNAL_DEPLOYMENT_AND_HOST_EVIDENCE_BLOCKED",
+  "continuation_base_head": "e02917e8ba45bcb078922dba862439ba50c364eb",
+  "scope": "final non-network adoption/retirement preparation; no runtime activation",
+  "provider_credentials_audited": false,
+  "production_critical_credentials_on_professor": "PARTIAL",
+  "known_local_profile_six_files": "PASS_HASH_BOUND_ACCEPTED_STAGE4A_EVIDENCE_NOT_FRESH_ROOT_INSPECTION",
+  "missing_required_credentials": [],
+  "missing_scope": "no current-profile credential confirmed missing; all production-critical legacy-cloud requirements not yet known",
+  "cloud_run_dependencies_fully_inventoried": false,
+  "render_dependencies_fully_inventoried": false,
+  "provider_adoption_rows": 11,
+  "cloud_run_retirement_rows": 10,
+  "render_retirement_rows": 12,
+  "all_retirement_ready": "NO",
+  "ready_to_retire_credentials": [],
+  "tested_scope": "capability-specific saved local GIS/ML checks and accepted private DB probe; no successful authorized real-user provider flow or public cutover inferred",
+  "workflow_target_decisions": {
+    ".github/workflows/refresh-commute-snapshot.yml": "A_MOVE_TO_PROFESSOR",
+    ".github/workflows/refresh-market-read-model.yml": "A_MOVE_TO_PROFESSOR",
+    ".github/workflows/reconcile-market-coverage.yml": "A_MOVE_TO_PROFESSOR"
+  },
+  "workflow_interim_decision": "C_KEEP_EXISTING_EXTERNAL_DEFINITION_AND_ACTIVITY_UNCHANGED; no execution requested",
+  "commute_persistence_gap": "API process memory; separate one-shot cannot update API without persistent producer/loader adapter",
+  "market_write_gap": "legacy refresh deletes/replaces derived rows; serving role SELECT-only; new reviewed restricted writer/adapter required if admitted",
+  "coverage_bootstrap_local_disposition": "B_NOT_CARRIED_FORWARD_ALREADY_PROVISIONED; external definition untouched",
+  "public_caller_observation": {
+    "evidence": "public-caller-references.json",
+    "status": "PASS_REFERENCE_OBSERVATION_ONLY",
+    "release": "9cc40d645757af4513d9afdf0c008939cc489a77",
+    "observed_legacy_origin_refs": [
+      "https://proptech-earth-engine-api-712372598609.asia-east1.run.app"
+    ],
+    "scope": "deployed public code references only; no browser API trace, secret inventory or credentials"
+  },
+  "maintenance_activity": {
+    "evidence": "maintenance-activity-observation.json",
+    "sampled_runs": 50,
+    "total_runs": 1490,
+    "matching_sample_count": 0,
+    "nonuse_proven": false,
+    "per_workflow_history": "UNAVAILABLE_NOT_INFERRED_EMPTY"
+  },
+  "actual_cloud_run_metadata_still_required": [
+    "actual env/secret-reference names",
+    "attached service-account identity and ADC source",
+    "effective IAM roles/API restrictions",
+    "deployed callers and scheduled/background consumers",
+    "retained revisions and rollback identity"
+  ],
+  "actual_render_metadata_still_required": [
+    "actual env/group/file names",
+    "deployed callers and current service identity",
+    "three workflow activity/disposition and validation",
+    "unique mutable state and rollback"
+  ],
+  "evidence_request": {
+    "channel": "asynchronous user input",
+    "request": "paths to readable sanitized names-only exports, never credential values",
+    "response_received": false,
+    "elapsed_time_not_treated_as_approval_or_evidence": true
+  },
+  "privileged_installation_required_now": false,
+  "operator_installation_command": null,
+  "no_speculative_privileged_scripts": "no missing current-profile secret; optional adapters/roles must be reviewed and admitted before a concrete installer",
+  "https_plan_ready": true,
+  "waiting_only_for_router_wan": false,
+  "ready_for_operator_ingress_apply": false,
+  "retirement_blockers": [
+    "outside-LAN trusted Professor HTTPS",
+    "Vercel Preview and Production authenticated E2E",
+    "profile/saved-case ownership and persistence",
+    "ML/GIS/Market/Valuation accepted behavior",
+    "all required credential dependencies adopted",
+    "reboot and renewal acceptance",
+    "no unique remote state/caller remains",
+    "explicit retirement approval"
+  ],
+  "tests": {
+    "focused_adoption_retirement_cli": {
+      "tests": 33,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "final_evidence_guards": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "static_validation": "adoption-static-validation.json",
+  "independent_review": "review.json final_adoption_continuation",
+  "matrix_files": [
+    "adoption-retirement-plan.json",
+    "retirement-readiness-matrix.csv",
+    "professor-adoption-matrix.csv"
+  ],
+  "safety": {
+    "sudo_executed": false,
+    "router_wan_firewall_dns_listener_changes": false,
+    "runtime_database_or_volume_changes": false,
+    "vercel_cloud_run_render_changes": false,
+    "provider_activation": false,
+    "paid_provider_calls": 0,
+    "credential_values_exposed": false,
+    "dev_sda_operations": false,
+    "x9_mutations": false,
+    "frontend_edits": false,
+    "push_performed": false
+  }
+}

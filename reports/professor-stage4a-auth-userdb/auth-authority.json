@@ -1,0 +1,162 @@
+{
+  "schema": "professor-stage4a-auth-authority-v1",
+  "checked_at": "2026-10-30T04:21:50.379110+00:00",
+  "status": "PASS",
+  "issuer_conflict": false,
+  "existing_users_preserved": true,
+  "credential_values_compared": false,
+  "operator_metadata_needed": null,
+  "identity_provider": "supabase",
+  "project_ref": "flyhsjcynreuofbcdxod",
+  "project_url": "https://flyhsjcynreuofbcdxod.supabase.co",
+  "issuer": "https://flyhsjcynreuofbcdxod.supabase.co/auth/v1",
+  "audience": "authenticated",
+  "subject_type": "uuid",
+  "authority_sha256": "ffd784ac6e456727b17ad7daf4db013351e76b43599c27ec4f4aa830958b588e",
+  "subject_mapping": "verified_supabase_sub_uuid_unchanged",
+  "password_migration_required": false,
+  "reason_code": "public_frontend_provider_backend_authority_agree",
+  "runtime_activation_authorized": true,
+  "ready_for_controlled_activation": false,
+  "runtime_activated": true,
+  "public_deployment": {
+    "origin": "https://proptech-ai-copilot.vercel.app",
+    "release_commit": "9cc40d645757af4513d9afdf0c008939cc489a77",
+    "stable_during_observation": true,
+    "auth_asset_path": "/_next/static/immutable/chunks/28_mshq0x50li.js",
+    "auth_asset_sha256": "39cf21f28d4ca1104c5f229e12bc5e61003ed42db7d2c6a10aa09d0567a4c7ba",
+    "SDK_source_git_blob": "7f04beb6b86010a002747c99ca67b5d0786405de",
+    "sdk_source_unchanged_between_deployed_release_and_current_checkout": true,
+    "public_loaded_auth_page_asset_count": 13,
+    "other_public_supabase_project_origins_observed": []
+  },
+  "proof_method": "manual review of this immutable public asset, verified by SHA256; no generic identifier/substring-based JavaScript authority inference",
+  "source_artifacts": [
+    "frontend-authority-observation.json",
+    "reviewed-frontend-authority.json",
+    "provider-authority-metadata.json",
+    "public-origin-reference-scan.json",
+    "catalog-reconciliation.json",
+    "public-sdk-constructor-metadata.json"
+  ],
+  "proof_source_hashes": {
+    "frontend-authority-observation.json": "1bc26f3c374cce4b6e6d4931e66102f458e4077e2a4cbedc87312e444cc5e161",
+    "reviewed-frontend-authority.json": "d6dbfdd758954fcce7342308b0b06fae07251798d7e593213d83d30ffb11d338",
+    "provider-authority-metadata.json": "857cb78aaf6d84250545aa4655d0f3d4b6fda3db38728fefbf88af3771b465e6",
+    "public-origin-reference-scan.json": "032c492349c7f609fc3742ded0595b55ee4f387878a05f4d4127b406f20d550f",
+    "public-sdk-constructor-metadata.json": "52bcb843394b4dc4ed0d9567365035f36d5878438045aa985118aa930b3cf551"
+  },
+  "frontend_configuration_names": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+  ],
+  "existing_user": {
+    "project_ref": "flyhsjcynreuofbcdxod",
+    "users": 1,
+    "confirmed": 1,
+    "previous_signin": 1,
+    "authenticated_audience": 1,
+    "authenticated_role": 1,
+    "banned": 0,
+    "deleted": 0,
+    "anonymous": 0,
+    "subject_type": "uuid",
+    "identity_row_password_email_or_token_fetched": false,
+    "belongs_to_captured_frontend_authority": true
+  },
+  "local_identity_mapping": {
+    "canonical_id": "verified Supabase sub UUID, unchanged",
+    "local_profile_owner_id": "same UUID",
+    "local_saved_case_owner_id": "same UUID",
+    "identity_or_password_migration_required": false,
+    "local_user_count_in_captured_receipt": 0,
+    "local_user_creation": "lazy only after verified JWT; no user rows created by audit"
+  },
+  "account_authority": {
+    "semantic_review": "PASS",
+    "legacy_consumer_accounts_table_present": false,
+    "legacy_workspace_cases_table_present": false,
+    "captured_local_issuer_matches": true,
+    "operator_database_approval_flag": true,
+    "operator_database_approval": "RECORDED_AND_APPLIED_BY_SUCCESSFUL_CONTROLLED_ACTIVATION",
+    "before_activation_approval_flag": false
+  },
+  "conflict_audit": {
+    "observed_active_issuer_conflict": false,
+    "legacy_green_project": {
+      "project_ref": "osypacuurzkqerfhcqty",
+      "state": "INACTIVE",
+      "bound_by_captured_frontend": false,
+      "modified_or_resumed": false
+    },
+    "test_fixture_projects": [
+      "slice8-auth",
+      "slice9-auth",
+      "fixture",
+      "other"
+    ],
+    "fixtures_are_live_authority": false,
+    "server_local_frontend_profile": {
+      "source": "/home/andy/proptech-ai-copilot/frontend_next/.env.local",
+      "supabase_public_config_names_present": [],
+      "classification": "unconfigured local auth, not a conflicting issuer",
+      "file_modified": false
+    },
+    "protected_runtime_files": {
+      "contents_read": false,
+      "frontend_authority_proof_depends_on_their_values": false,
+      "future_actual_merge_must_match_pinned_public_issuer": true
+    }
+  },
+  "JWKS": {
+    "issuer": "https://flyhsjcynreuofbcdxod.supabase.co/auth/v1",
+    "reachable": true,
+    "supported_asymmetric_keys": 1,
+    "public_only": true,
+    "key_values_returned": false
+  },
+  "tests": {
+    "python_authority_and_existing_jwt": "52 passed (19 authority + 33 JWT)",
+    "node_public_metadata": "8 passed",
+    "full_suite_run": false,
+    "live_login_or_signup_performed": false,
+    "publishable_key_value_validated": false
+  },
+  "security_review": {
+    "status": "PASS",
+    "remaining_critical_or_important_findings": 0,
+    "initial_general_ast_inference": "removed; exact reviewed artifact identity is mandatory",
+    "reviewer_ran_tests_or_live_calls": false
+  },
+  "remaining_activation_gates": [],
+  "operator_action": "NONE; integrate frontend contract and record authenticated flow outcomes.",
+  "next_command": "NONE",
+  "safety": {
+    "supabase_users_changed": false,
+    "secrets_changed_or_compared": false,
+    "secret_values_printed": false,
+    "frontend_changed": false,
+    "runtime_activated": true,
+    "database_mutated": true,
+    "sudo_executed": false,
+    "dev_sda_touched": false,
+    "X9_touched": false,
+    "pushed": false,
+    "protected_root_secret_files_opened": false,
+    "local_public_config_names_only_inspected": true,
+    "runtime_activated_by": "operator; not agent",
+    "database_mutated_by_agent": false,
+    "operator_configuration_approval_flag_changed": true,
+    "database_mutation_scope": "Operator changed local application authority_reviewed flag only; agent made no direct live SQL writes or real user-data mutations. Ordinary API telemetry may persist."
+  },
+  "controlled_operator_workflow_authorized": true,
+  "approval_review": "authority-approval-review.json",
+  "activation_workflow": "controlled-activation-readiness.json",
+  "final_live_acceptance": "final-live-acceptance.json",
+  "remaining_frontend_acceptance": {
+    "status": "PENDING_FRONTEND_AUTHENTICATED_LIVE_FLOW",
+    "reason": "No valid real Supabase user session was supplied/read; the successful receipt expressly defers authenticated browser acceptance. No second Supabase user may be created for this test. Live signed-user profile/case/logout/new-login and real two-user end-to-end checks are not established.",
+    "what_passed": "Actual active schema/image/role/TLS and negative/public live APIs; positive persistence, session and ownership behavior on private disposable PostgreSQL.",
+    "next": "Frontend contract integration; collect sanitized existing-user authenticated-flow outcomes only. A real second account requires separate authorization if no approved account already exists."
+  }
+}

@@ -1,0 +1,23 @@
+	Command being timed: ".venv/bin/python scripts/ml/train_stage3.py train --work /home/andy/proptech-ml-data/stage3/gross-v1-run1 --output-parent /home/andy/proptech-model-artifacts"
+	User time (seconds): 212.13
+	System time (seconds): 1.54
+	Percent of CPU this job got: 133%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:39.70
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 618104
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 47
+	Minor (reclaiming a frame) page faults: 118288
+	Voluntary context switches: 1793
+	Involuntary context switches: 84411
+	Swaps: 0
+	File system inputs: 77440
+	File system outputs: 29240
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

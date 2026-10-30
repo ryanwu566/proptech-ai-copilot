@@ -1,0 +1,181 @@
+{
+  "schema": "professor-independent-provider-migration-preparation-v1",
+  "checked_at": "2026-10-30T11:49:01.338148+00:00",
+  "status": "PASS_PREPARED_NOT_INSTALLED_OR_ACTIVE",
+  "providers": {
+    "google": {
+      "code_ready": true,
+      "credential_names": [
+        "GOOGLE_MAPS_API_KEY"
+      ],
+      "operator_installation_executed": false,
+      "functional_acceptance": "NOT_RUN",
+      "provider_activation": false,
+      "iam_state": "NOT_APPLICABLE"
+    },
+    "tgos": {
+      "code_ready": true,
+      "credential_names": [
+        "TGOS_APP_ID",
+        "TGOS_API_KEY"
+      ],
+      "operator_installation_executed": false,
+      "functional_acceptance": "NOT_RUN",
+      "provider_activation": false,
+      "iam_state": "NOT_APPLICABLE"
+    },
+    "tdx": {
+      "code_ready": true,
+      "credential_names": [
+        "TDX_CLIENT_ID",
+        "TDX_CLIENT_SECRET"
+      ],
+      "operator_installation_executed": false,
+      "functional_acceptance": "NOT_RUN",
+      "provider_activation": false,
+      "iam_state": "NOT_APPLICABLE"
+    },
+    "r2": {
+      "code_ready": true,
+      "credential_names": [
+        "R2_ACCESS_KEY_ID",
+        "R2_SECRET_ACCESS_KEY",
+        "R2_ENDPOINT",
+        "R2_BUCKET",
+        "R2_REGION"
+      ],
+      "operator_installation_executed": false,
+      "functional_acceptance": "NOT_RUN",
+      "provider_activation": false,
+      "iam_state": "NOT_APPLICABLE"
+    },
+    "openai": {
+      "code_ready": true,
+      "credential_names": [
+        "OPENAI_API_KEY"
+      ],
+      "operator_installation_executed": false,
+      "functional_acceptance": "NOT_RUN",
+      "provider_activation": false,
+      "iam_state": "NOT_APPLICABLE"
+    },
+    "earth-engine": {
+      "code_ready": true,
+      "credential_names": [
+        "GOOGLE_APPLICATION_CREDENTIALS",
+        "EARTH_ENGINE_PROJECT"
+      ],
+      "operator_installation_executed": false,
+      "functional_acceptance": "NOT_RUN",
+      "provider_activation": false,
+      "iam_state": "PENDING_IAM"
+    }
+  },
+  "earth_engine_iam_blocks_other_providers": false,
+  "supabase_verification": "ACCEPTED_AUTHORITY_GUARDS_PRESERVED_REGRESSION_PASS_NOT_FRESH_LIVE",
+  "selected_provider_scope": [
+    "hidden/protected input",
+    "complete selected group validation",
+    "protected writes and staging",
+    "isolated offline visibility probe",
+    "metadata acceptance",
+    "explicit reboot staging"
+  ],
+  "global_leak_scan_scope": [
+    "core credentials",
+    "selected credentials",
+    "all already-present valid provider credentials",
+    "tracked checkout",
+    "immutable API image layers/history",
+    "API environment",
+    "all project container logs"
+  ],
+  "unselected_missing_credentials_required": false,
+  "unselected_existing_credentials_scanned_and_rechecked": true,
+  "google_key": {
+    "canonical_name": "GOOGLE_MAPS_API_KEY",
+    "shared_consumers": [
+      "Geocoding API",
+      "Places API (New)",
+      "Routes API"
+    ],
+    "expected_ip_restriction": "140.119.55.43",
+    "restriction_evidence": "OPERATOR_REPORTED_NOT_INDEPENDENTLY_VERIFIED",
+    "backend_endpoint_contract": "MATCHES_SOURCE",
+    "provider_calls": 0
+  },
+  "operator_commands": [
+    "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --provider google",
+    "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --provider tgos",
+    "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --provider tdx",
+    "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --provider r2",
+    "sudo python3 -B /home/andy/.codex/worktrees/7d59/proptech-ai-copilot/scripts/ops/professor_provider_credentials.py --provider openai"
+  ],
+  "earth_engine_operator_command_while_pending": null,
+  "restore_interface": "--stage-provider NAME",
+  "legacy_full_mode": "REQUIRES_COMPLETE_POPULATION_NOT_NEEDED_FOR_INDEPENDENT_INSTALLS",
+  "no_secret_values_returned": true,
+  "actual_credentials_opened": false,
+  "actual_host_secret_installation_executed": false,
+  "providers_activated": false,
+  "runtime_services_changed": false,
+  "public_or_cloud_network_changes": false,
+  "paid_provider_calls": 0,
+  "focused_tests": {
+    "status": "PASS",
+    "junit": "reports/professor-stage5-ingress/independent-provider-tests.xml",
+    "warnings": [
+      "pre-existing Starlette TestClient/httpx deprecation"
+    ],
+    "tests": 287,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "static": {
+    "python_ast": "PASS",
+    "embedded_python_ast": "PASS",
+    "json": "PASS",
+    "literal_secret_scan": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "independent_security_review": {
+    "status": "PASS",
+    "reviewer": "independent_provider_security_review",
+    "focused_tests_passed": 105,
+    "critical_or_important_findings": 0,
+    "real_credentials_or_runtime_accessed": false
+  },
+  "source_files": [
+    {
+      "path": "scripts/ops/professor_provider_credentials.py",
+      "sha256": "ed57f1ea1d279c872eb322a2aa365de5b3a5bc33c3b3e9010ae882e648691d46"
+    },
+    {
+      "path": "scripts/ops/professor_provider_storage.py",
+      "sha256": "e3525ad834bd37603936e4aa7f387d0636a1dfd30562b07019e7376254f5be5a"
+    },
+    {
+      "path": "services/earth_engine_adc.py",
+      "sha256": "5847d05a959614e99128f30f9910318298a47acecc18ea7b7163f20e0cafbe50"
+    },
+    {
+      "path": "services/selfhost_secret_files.py",
+      "sha256": "ec297f783a509f578429a7e4dc39c33f34592922c3c58fb5157fe999aa8a10a2"
+    },
+    {
+      "path": "config/professor-required-provider-storage.json",
+      "sha256": "7bb55d321d182b242130ce1775838c8c592da8f1018eefad4ebb2b224890511a"
+    },
+    {
+      "path": "tests/test_professor_independent_providers.py",
+      "sha256": "e12069c68d8bb062ca268e815ff2e44fecd00996da838177a0c0a7aa03cffcb3"
+    },
+    {
+      "path": "docs/operations/professor-stage5/independent-provider-installation.md",
+      "sha256": "0a56207aec07c42bf929e2d85346c72844fc45a92399a0613243622e386a6160"
+    }
+  ],
+  "functional_acceptance": "NOT_RUN",
+  "runbook": "docs/operations/professor-stage5/independent-provider-installation.md"
+}

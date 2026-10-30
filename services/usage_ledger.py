@@ -16,6 +16,10 @@ RETENTION_SECONDS = 3600  # Never replay a batch beyond its two-hour marker TTL.
 DIMENSIONS = ("bucket_start", "principal_class", "principal_id", "capability", "provider", "route_class", "status_class", "cache_state", "release_id")
 _COLUMNS = (*DIMENSIONS, *COUNTERS)
 _UPSERT = ("INSERT INTO api_usage.hourly (" + ",".join(_COLUMNS) + ") VALUES (" + ",".join(["%s"] * len(_COLUMNS)) + ") ON CONFLICT (" + ",".join(DIMENSIONS) + ") DO UPDATE SET " + ",".join(f"{name}=api_usage.hourly.{name}+EXCLUDED.{name}" for name in COUNTERS))
+# Preserve the accepted immutable 021 catalog. Exact imagery provenance remains
+# in API metadata/process-local observations; this older durable dimension only
+# supports the NLSC family and an explicit unknown bucket for unregistered names.
+DURABLE_PROVIDER_ALIASES = {"nlsc_photo2": "nlsc", "csrsr_spot": "unknown"}
 
 
 class _ProbeComplete(Exception):
@@ -90,7 +94,8 @@ class PostgresUsageStore:
                 if marker is not None:
                     values = []
                     for row in rows:
-                        values.append((datetime.fromtimestamp(row["bucket_start"], UTC), *(row[name] for name in _COLUMNS[1:])))
+                        durable_row = {**row, "provider": DURABLE_PROVIDER_ALIASES.get(row["provider"], row["provider"])}
+                        values.append((datetime.fromtimestamp(row["bucket_start"], UTC), *(durable_row[name] for name in _COLUMNS[1:])))
                     with connection.cursor() as cursor:
                         cursor.executemany(_UPSERT, values)
                 # Bounded deletion work, including quiet periods. A maintenance
@@ -115,6 +120,8 @@ class PostgresUsageStore:
                 self._timeouts(connection)
                 result = connection.execute(query, tuple(parameters)).fetchall()
         return {"scope": "durable_aggregates", "window_hours": hours,
+                "provider_dimension_contract": "legacy_hourly_v1",
+                "provider_dimension_aliases": dict(DURABLE_PROVIDER_ALIASES),
                 "rows": [dict(zip(("principal_class", "capability", "provider", *COUNTERS), row)) for row in result],
                 "quota_enforcement_scope": "not_reported", "unflushed_usage_included": False}
 

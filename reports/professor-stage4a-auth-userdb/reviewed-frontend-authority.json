@@ -1,0 +1,21 @@
+{
+  "schema": "professor-reviewed-public-auth-binding-v1",
+  "frontend_origin": "https://proptech-ai-copilot.vercel.app",
+  "release_commit": "9cc40d645757af4513d9afdf0c008939cc489a77",
+  "asset_path": "/_next/static/immutable/chunks/28_mshq0x50li.js",
+  "asset_sha256": "39cf21f28d4ca1104c5f229e12bc5e61003ed42db7d2c6a10aa09d0567a4c7ba",
+  "public_origin": "https://flyhsjcynreuofbcdxod.supabase.co",
+  "binding_proof": "manually_reviewed_immutable_asset_sha256",
+  "reviewed_dataflow": [
+    "s_ constructs URL from the literal public project origin and returns its .origin plus existing key reference",
+    "sk calls s_; a single local URL alias feeds new sh(alias, configuration.key, options)",
+    "sh is the bundled Supabase client: _initSupabaseAuthClient, from/rpc, Storage and Functions",
+    "SDK persistSession/autoRefreshToken are true; detectSessionInUrl is false",
+    "existing vnext-auth-session source matches accepted release source; exact JWT issuer suffix/authenticated audience checked"
+  ],
+  "credential_values_included": false,
+  "credential_values_compared": false,
+  "scope": "This exact reviewed asset only. Unknown release/hash needs another public-metadata review; no generic JavaScript authority inference.",
+  "source_sdk_git_blob": "7f04beb6b86010a002747c99ca67b5d0786405de",
+  "source_sdk_matches_accepted_release": true
+}

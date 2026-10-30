@@ -1,0 +1,58 @@
+{
+  "checked_at": "2026-10-29T04:12:24.752801+00:00",
+  "scope": "existing runtime before Stage 2 activation",
+  "base_url": "http://127.0.0.1:8080",
+  "probe_sha256": "c33464f5be009f2269462698e65c9238396e81c871abeba07c8b924f378c4512",
+  "checks": [
+    {
+      "name": "health",
+      "status": "PASS"
+    },
+    {
+      "name": "readiness",
+      "status": "PASS"
+    },
+    {
+      "name": "demographics_village",
+      "status": "PASS"
+    },
+    {
+      "name": "demographics_location",
+      "status": "PASS"
+    },
+    {
+      "name": "valuation_status",
+      "status": "PASS"
+    },
+    {
+      "name": "valuation_estimate",
+      "status": "PASS"
+    },
+    {
+      "name": "valuation_trend",
+      "status": "PASS"
+    },
+    {
+      "name": "finder",
+      "status": "PASS"
+    },
+    {
+      "name": "market",
+      "status": "PASS"
+    },
+    {
+      "name": "market_known_special_period",
+      "status": "PASS"
+    },
+    {
+      "name": "wra_matched",
+      "status": "PASS"
+    },
+    {
+      "name": "wra_no_match",
+      "status": "PASS"
+    }
+  ],
+  "mode": "api",
+  "status": "PASS"
+}

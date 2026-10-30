@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "checked_at": "2026-10-30T07:06:26.446116+00:00",
+  "checks": {
+    "/health": true,
+    "/readiness": true,
+    "8080_loopback_only": true,
+    "no_postgres_or_docker_api_listener": true
+  },
+  "outside_lan_acceptance": false,
+  "runtime_changes": false
+}

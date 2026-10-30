@@ -1,0 +1,8 @@
+# Install only inside a project-local environment. Native model loading requires
+# the artifact's recorded Python/numpy/lightgbm versions; pin the full environment
+# with reports/professor-stage3-ml/environment.lock.txt for this model release.
+-r requirements.txt
+numpy>=2,<3
+scipy>=1.14,<2
+scikit-learn>=1.7,<1.8
+lightgbm>=4.6,<4.7

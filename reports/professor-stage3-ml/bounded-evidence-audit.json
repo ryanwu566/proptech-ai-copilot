@@ -1,0 +1,737 @@
+{
+  "by_release": {
+    "105S4": {
+      "canonical_rows": 40613,
+      "parking_reported_positive": 18549,
+      "parking_reported_zero": 22064
+    },
+    "106S1": {
+      "admitted_parking_reported_positive": 172,
+      "admitted_parking_reported_zero": 276,
+      "admitted_rights_UNVERIFIED": 448,
+      "admitted_rows": 448,
+      "canonical_rows": 42942,
+      "parking_reported_positive": 20005,
+      "parking_reported_zero": 22937
+    },
+    "106S2": {
+      "admitted_parking_reported_positive": 5511,
+      "admitted_parking_reported_zero": 5246,
+      "admitted_rights_UNVERIFIED": 10757,
+      "admitted_rows": 10757,
+      "canonical_rows": 36375,
+      "parking_reported_positive": 16431,
+      "parking_reported_zero": 19944
+    },
+    "106S3": {
+      "admitted_parking_reported_positive": 7294,
+      "admitted_parking_reported_zero": 7070,
+      "admitted_rights_UNVERIFIED": 14364,
+      "admitted_rows": 14364,
+      "canonical_rows": 44198,
+      "parking_reported_positive": 19929,
+      "parking_reported_zero": 24269
+    },
+    "106S4": {
+      "admitted_parking_reported_positive": 7781,
+      "admitted_parking_reported_zero": 7253,
+      "admitted_rights_UNVERIFIED": 15034,
+      "admitted_rows": 15034,
+      "canonical_rows": 44554,
+      "parking_reported_positive": 20153,
+      "parking_reported_zero": 24401
+    },
+    "107S1": {
+      "admitted_parking_reported_positive": 13952,
+      "admitted_parking_reported_zero": 8985,
+      "admitted_rights_UNVERIFIED": 22937,
+      "admitted_rows": 22937,
+      "canonical_rows": 43152,
+      "parking_reported_positive": 18609,
+      "parking_reported_zero": 24543
+    },
+    "107S2": {
+      "admitted_parking_reported_positive": 10903,
+      "admitted_parking_reported_zero": 7235,
+      "admitted_rights_UNVERIFIED": 18138,
+      "admitted_rows": 18138,
+      "canonical_rows": 32748,
+      "parking_reported_positive": 14176,
+      "parking_reported_zero": 18572
+    },
+    "107S3": {
+      "admitted_parking_reported_positive": 15047,
+      "admitted_parking_reported_zero": 9326,
+      "admitted_rights_UNVERIFIED": 24373,
+      "admitted_rows": 24373,
+      "canonical_rows": 43371,
+      "parking_reported_positive": 19481,
+      "parking_reported_zero": 23890
+    },
+    "107S4": {
+      "admitted_parking_reported_positive": 14857,
+      "admitted_parking_reported_zero": 8420,
+      "admitted_rights_UNVERIFIED": 23277,
+      "admitted_rows": 23277,
+      "canonical_rows": 39831,
+      "parking_reported_positive": 18967,
+      "parking_reported_zero": 20864
+    },
+    "108S1": {
+      "admitted_parking_reported_positive": 14587,
+      "admitted_parking_reported_zero": 7761,
+      "admitted_rights_UNVERIFIED": 22348,
+      "admitted_rows": 22348,
+      "canonical_rows": 38739,
+      "parking_reported_positive": 18147,
+      "parking_reported_zero": 20592
+    },
+    "108S2": {
+      "admitted_parking_reported_positive": 15357,
+      "admitted_parking_reported_zero": 8539,
+      "admitted_rights_UNVERIFIED": 23896,
+      "admitted_rows": 23896,
+      "canonical_rows": 41288,
+      "parking_reported_positive": 19331,
+      "parking_reported_zero": 21957
+    },
+    "108S3": {
+      "admitted_parking_reported_positive": 18041,
+      "admitted_parking_reported_zero": 9918,
+      "admitted_rights_UNVERIFIED": 27959,
+      "admitted_rows": 27959,
+      "canonical_rows": 46774,
+      "parking_reported_positive": 22171,
+      "parking_reported_zero": 24603
+    },
+    "108S4": {
+      "admitted_parking_reported_positive": 16842,
+      "admitted_parking_reported_zero": 9092,
+      "admitted_rights_UNVERIFIED": 25934,
+      "admitted_rows": 25934,
+      "canonical_rows": 42392,
+      "parking_reported_positive": 20152,
+      "parking_reported_zero": 22240
+    },
+    "109S1": {
+      "admitted_parking_reported_positive": 16847,
+      "admitted_parking_reported_zero": 8774,
+      "admitted_rights_UNVERIFIED": 25621,
+      "admitted_rows": 25621,
+      "canonical_rows": 42313,
+      "parking_reported_positive": 19888,
+      "parking_reported_zero": 22425
+    },
+    "109S2": {
+      "admitted_parking_reported_positive": 15720,
+      "admitted_parking_reported_zero": 8310,
+      "admitted_rights_UNVERIFIED": 24030,
+      "admitted_rows": 24030,
+      "canonical_rows": 39555,
+      "parking_reported_positive": 18370,
+      "parking_reported_zero": 21185
+    },
+    "109S3": {
+      "admitted_parking_reported_positive": 23071,
+      "admitted_parking_reported_zero": 13805,
+      "admitted_rights_UNVERIFIED": 36876,
+      "admitted_rows": 36876,
+      "canonical_rows": 57020,
+      "parking_reported_positive": 26646,
+      "parking_reported_zero": 30374
+    },
+    "109S4": {
+      "admitted_parking_reported_positive": 17817,
+      "admitted_parking_reported_zero": 10708,
+      "admitted_rights_UNVERIFIED": 28525,
+      "admitted_rows": 28525,
+      "canonical_rows": 42262,
+      "parking_reported_positive": 20245,
+      "parking_reported_zero": 22017
+    },
+    "110S1": {
+      "admitted_parking_reported_positive": 14539,
+      "admitted_parking_reported_zero": 8996,
+      "admitted_rights_UNVERIFIED": 23535,
+      "admitted_rows": 23535,
+      "canonical_rows": 36342,
+      "parking_reported_positive": 16765,
+      "parking_reported_zero": 19577
+    },
+    "110S2": {
+      "admitted_parking_reported_positive": 16924,
+      "admitted_parking_reported_zero": 10668,
+      "admitted_rights_UNVERIFIED": 27592,
+      "admitted_rows": 27592,
+      "canonical_rows": 42490,
+      "parking_reported_positive": 19749,
+      "parking_reported_zero": 22741
+    },
+    "110S3": {
+      "admitted_parking_reported_positive": 12739,
+      "admitted_parking_reported_zero": 8179,
+      "admitted_rights_UNVERIFIED": 20918,
+      "admitted_rows": 20918,
+      "canonical_rows": 32443,
+      "parking_reported_positive": 14847,
+      "parking_reported_zero": 17596
+    },
+    "110S4": {
+      "admitted_parking_reported_positive": 16781,
+      "admitted_parking_reported_zero": 10265,
+      "admitted_rights_UNVERIFIED": 27046,
+      "admitted_rows": 27046,
+      "canonical_rows": 39870,
+      "parking_reported_positive": 18934,
+      "parking_reported_zero": 20936
+    },
+    "111S1": {
+      "admitted_parking_reported_positive": 13831,
+      "admitted_parking_reported_zero": 8935,
+      "admitted_rights_UNVERIFIED": 22766,
+      "admitted_rows": 22766,
+      "canonical_rows": 34459,
+      "parking_reported_positive": 15800,
+      "parking_reported_zero": 18659
+    },
+    "111S2": {
+      "admitted_parking_reported_positive": 12998,
+      "admitted_parking_reported_zero": 9990,
+      "admitted_rights_UNVERIFIED": 22988,
+      "admitted_rows": 22988,
+      "canonical_rows": 35455,
+      "parking_reported_positive": 15055,
+      "parking_reported_zero": 20400
+    },
+    "111S3": {
+      "admitted_parking_reported_positive": 9981,
+      "admitted_parking_reported_zero": 8144,
+      "admitted_rights_UNVERIFIED": 18125,
+      "admitted_rows": 18125,
+      "canonical_rows": 27651,
+      "parking_reported_positive": 11528,
+      "parking_reported_zero": 16123
+    },
+    "111S4": {
+      "admitted_parking_reported_positive": 9461,
+      "admitted_parking_reported_zero": 7777,
+      "admitted_rights_UNVERIFIED": 17238,
+      "admitted_rows": 17238,
+      "canonical_rows": 26353,
+      "parking_reported_positive": 10936,
+      "parking_reported_zero": 15417
+    },
+    "112S1": {
+      "admitted_parking_reported_positive": 7808,
+      "admitted_parking_reported_zero": 6267,
+      "admitted_rights_UNVERIFIED": 14075,
+      "admitted_rows": 14075,
+      "canonical_rows": 21620,
+      "parking_reported_positive": 9022,
+      "parking_reported_zero": 12598
+    },
+    "112S2": {
+      "admitted_parking_reported_positive": 10126,
+      "admitted_parking_reported_zero": 8165,
+      "admitted_rights_UNVERIFIED": 18291,
+      "admitted_rows": 18291,
+      "canonical_rows": 27247,
+      "parking_reported_positive": 11528,
+      "parking_reported_zero": 15719
+    },
+    "112S3": {
+      "admitted_parking_reported_positive": 7998,
+      "admitted_parking_reported_zero": 7048,
+      "admitted_rights_UNVERIFIED": 15046,
+      "admitted_rows": 15046,
+      "canonical_rows": 25465,
+      "parking_reported_positive": 11358,
+      "parking_reported_zero": 14107
+    },
+    "112S4": {
+      "admitted_parking_reported_positive": 11765,
+      "admitted_parking_reported_zero": 8264,
+      "admitted_rights_UNVERIFIED": 20029,
+      "admitted_rows": 20029,
+      "canonical_rows": 28612,
+      "parking_reported_positive": 13377,
+      "parking_reported_zero": 15235
+    },
+    "113S1": {
+      "admitted_parking_reported_positive": 10794,
+      "admitted_parking_reported_zero": 7549,
+      "admitted_rights_UNVERIFIED": 18343,
+      "admitted_rows": 18343,
+      "canonical_rows": 26549,
+      "parking_reported_positive": 12386,
+      "parking_reported_zero": 14163
+    },
+    "113S2": {
+      "admitted_parking_reported_positive": 13599,
+      "admitted_parking_reported_zero": 9350,
+      "admitted_rights_UNVERIFIED": 22949,
+      "admitted_rows": 22949,
+      "canonical_rows": 32214,
+      "parking_reported_positive": 15409,
+      "parking_reported_zero": 16805
+    },
+    "113S3": {
+      "admitted_parking_reported_positive": 2703,
+      "admitted_parking_reported_zero": 2366,
+      "admitted_rights_UNVERIFIED": 5069,
+      "admitted_rows": 5069,
+      "canonical_rows": 33829,
+      "parking_reported_positive": 16933,
+      "parking_reported_zero": 16896
+    },
+    "113S4": {
+      "admitted_parking_reported_positive": 6554,
+      "admitted_parking_reported_zero": 5447,
+      "admitted_rights_UNVERIFIED": 12001,
+      "admitted_rows": 12001,
+      "canonical_rows": 20404,
+      "parking_reported_positive": 9541,
+      "parking_reported_zero": 10863
+    },
+    "114S1": {
+      "admitted_parking_reported_positive": 5772,
+      "admitted_parking_reported_zero": 4920,
+      "admitted_rights_UNVERIFIED": 10692,
+      "admitted_rows": 10692,
+      "canonical_rows": 16335,
+      "parking_reported_positive": 7250,
+      "parking_reported_zero": 9085
+    },
+    "114S2": {
+      "admitted_parking_reported_positive": 6454,
+      "admitted_parking_reported_zero": 5335,
+      "admitted_rights_UNVERIFIED": 11789,
+      "admitted_rows": 11789,
+      "canonical_rows": 17092,
+      "parking_reported_positive": 7580,
+      "parking_reported_zero": 9512
+    },
+    "114S3": {
+      "admitted_parking_reported_positive": 980,
+      "admitted_parking_reported_zero": 1168,
+      "admitted_rights_UNVERIFIED": 2148,
+      "admitted_rows": 2148,
+      "canonical_rows": 15660,
+      "parking_reported_positive": 6988,
+      "parking_reported_zero": 8672
+    },
+    "114S4": {
+      "admitted_parking_reported_positive": 5006,
+      "admitted_parking_reported_zero": 3985,
+      "admitted_rights_UNVERIFIED": 8991,
+      "admitted_rows": 8991,
+      "canonical_rows": 14401,
+      "parking_reported_positive": 6822,
+      "parking_reported_zero": 7579
+    },
+    "115S1": {
+      "admitted_parking_reported_positive": 6065,
+      "admitted_parking_reported_zero": 4264,
+      "admitted_rights_UNVERIFIED": 10329,
+      "admitted_rows": 10329,
+      "canonical_rows": 14542,
+      "parking_reported_positive": 7073,
+      "parking_reported_zero": 7469
+    },
+    "115S2": {
+      "admitted_parking_reported_positive": 7071,
+      "admitted_parking_reported_zero": 4795,
+      "admitted_rights_UNVERIFIED": 11866,
+      "admitted_rows": 11866,
+      "canonical_rows": 16567,
+      "parking_reported_positive": 8219,
+      "parking_reported_zero": 8348
+    },
+    "115S3": {
+      "admitted_parking_reported_positive": 6517,
+      "admitted_parking_reported_zero": 3553,
+      "admitted_rights_UNVERIFIED": 10070,
+      "admitted_rows": 10070,
+      "canonical_rows": 17332,
+      "parking_reported_positive": 9091,
+      "parking_reported_zero": 8241
+    }
+  },
+  "dataset_fingerprint": "bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee",
+  "evidence_contract_version": "plvr-bounded-transfer-evidence-v1",
+  "impact": {
+    "admitted_rows": 716413,
+    "canonical_rows": 1321059,
+    "cohort_changed": false,
+    "features_changed": false,
+    "model_artifact_regeneration_required": false,
+    "reason": "Every admitted identity, split membership and existing model feature remains unchanged; only evidence and API claim boundaries are made explicit. No parameter search or holdout reuse for model selection.",
+    "retraining_required": false,
+    "split_counts": {
+      "holdout": 43404,
+      "train": 633457,
+      "validation": 39552
+    },
+    "split_identity_sha256": {
+      "holdout": "bb160969594bcce1165cda21e7ffe44ab5dabf847ee39e738d4f0629db680e5e",
+      "train": "92fc1227de933b7c049980bbafbabffaaefc3285b0081427b6fc86a88916ec9b",
+      "validation": "d86b6af733d37279182218daf8d337b63d7f74b7b250896099806e8a302afa3d"
+    }
+  },
+  "known_related_party": {
+    "admitted_occurrences": 0,
+    "clean_occurrences": 0,
+    "disposition": "known_related_party_serial",
+    "legacy_serving_row": 38652,
+    "raw_occurrences": 1
+  },
+  "parking": {
+    "basis_profile": {
+      "UNVERIFIED": 1321059
+    },
+    "canonical_count_profile": {
+      "reported_positive": 607441,
+      "reported_zero": 713618
+    },
+    "decision": "EXCLUDED FROM V1",
+    "inference_parking_fields_accepted": false,
+    "interpretation": "Reported count distributions describe source values only. Missing/zero never proves absence; no parking price/area adjustment or count feature is used. Stable semantic price/area basis is unproved.",
+    "parking_price_area_retained": false,
+    "retained_parking_fields": [
+      "parking_basis",
+      "parking_count_reported"
+    ]
+  },
+  "prior_full_verification": {
+    "clean_transactions": 1321059,
+    "dataset_fingerprint": "bccf2ec1bc19110b9f55e35c3eaec284c2ad57a97318acea7381c5be5002ccee",
+    "logical_dataset_sha256": "76030e8498ebe3f3e34f6dce5920be85b39d0f5048f15aeb061416a836257272",
+    "status": "PASS",
+    "training_authorized": false
+  },
+  "public_scope": {
+    "cancellation_event_ledger_available": false,
+    "cancellation_handling": "exclude_observed_conflicts_and_note_tainted_families",
+    "current_cancellation_state_verified": false,
+    "evidence_contract_version": "plvr-bounded-transfer-evidence-v1",
+    "historical_pit_supported": false,
+    "parking_exclusive_value_supported": false,
+    "parking_features_included": false,
+    "partial_rights_valuation_supported": false,
+    "publication_evidence": "bounded_archive_snapshot",
+    "requested_value_basis": "reported_transfer",
+    "rights_basis": "reported_transfer_only_rights_unverified",
+    "total_price_basis": "unit_estimate_times_reported_registered_transferred_area",
+    "unobserved_cancellation_risk": "not_eliminated",
+    "whole_dwelling_value_supported": false,
+    "whole_property_scaling_supported": false
+  },
+  "publication": {
+    "cancellation_named_inventory_members": [],
+    "decision": "BOUNDED",
+    "exclusion_counts": {
+      "abnormal_unit_price": 423,
+      "ambiguous_fact_identity": 13891,
+      "ambiguous_revision": 9,
+      "ambiguous_special_note_match": 351,
+      "future_transaction_date": 3,
+      "invalid_numeric_facts": 444281,
+      "invalid_official_unit_price": 99,
+      "invalid_transaction_day": 189,
+      "known_related_party_serial": 1,
+      "missing_location": 51743,
+      "non_building_transaction": 12385,
+      "special_note_requires_review": 1662797
+    },
+    "handling": "Quarantine all observed semantic-version conflicts, identity/fact ambiguity and note-tainted families. No latest-release-wins selection or disappearance-as-cancellation inference.",
+    "known_conflict_clean_rows": 0,
+    "known_revision_conflict_families": 31,
+    "main_schemas_by_release": {
+      "105S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "f50e6305aa5356fc6e7245cb2adba040e835e8fedf6c7482f8f0e4e2f6502684"
+        }
+      ],
+      "106S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "f50e6305aa5356fc6e7245cb2adba040e835e8fedf6c7482f8f0e4e2f6502684"
+        }
+      ],
+      "106S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "f50e6305aa5356fc6e7245cb2adba040e835e8fedf6c7482f8f0e4e2f6502684"
+        }
+      ],
+      "106S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "f50e6305aa5356fc6e7245cb2adba040e835e8fedf6c7482f8f0e4e2f6502684"
+        }
+      ],
+      "106S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "f50e6305aa5356fc6e7245cb2adba040e835e8fedf6c7482f8f0e4e2f6502684"
+        }
+      ],
+      "107S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "107S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "107S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "107S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "108S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "108S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "108S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "108S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "109S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "109S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "109S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "109S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "110S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "110S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "110S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "110S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "111S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "111S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "111S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "111S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "112S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "112S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "112S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "112S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "113S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "113S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "113S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "113S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "114S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "114S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "114S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "114S4": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "115S1": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "115S2": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ],
+      "115S3": [
+        {
+          "sale_main_files": 22,
+          "schema_sha256": "7f55c588eaa63d1f02eed9f724ecc3c167e6ea6b7ae044a65b08ffebee61c21b"
+        }
+      ]
+    },
+    "manifest_publication_proven": false,
+    "release_count": 40,
+    "release_range": [
+      "105S4",
+      "115S3"
+    ],
+    "residual_risk": "Unreported cancellation, supersession under a changed serial/fact key, or events outside retained archives may remain. Neither absence from a later release nor a build timestamp certifies current active legal state. Evaluation concerns frozen reported observations, not a cancellation-complete transaction register.",
+    "row_publication_profile": {
+      "historical_publication_proven": 0,
+      "nonnull_source_release_available_at": 0
+    },
+    "sqlite_tables": [
+      "clean_transactions",
+      "dispositions",
+      "fact_stats",
+      "identity_stats",
+      "occurrences",
+      "source_files",
+      "versions"
+    ]
+  },
+  "resource_usage": {
+    "nice": 15,
+    "peak_rss_bytes": 85073920,
+    "seconds": 112.70295919605996,
+    "sqlite_cache_bytes": 16777216,
+    "workers": 1
+  },
+  "rights": {
+    "canonical_rights_profile": {
+      "UNVERIFIED": 1321059
+    },
+    "decision": "RESTRICTED",
+    "interpretation": "Blank notes, residential use, building type and counts do not prove complete dwelling rights. Land ownership fractions are not dwelling transfer fractions. Unknown rights are reported-transfer observations only; explicit partial-right requests and whole-value scaling are unsupported.",
+    "known_partial_admitted_rows": 0,
+    "whole_dwelling_proof_fields_retained": false
+  },
+  "status": "PASS",
+  "verification_basis": "All artifact hashes rechecked and bound to prior complete row/lineage verifier; no archive rebuild.",
+  "verified_artifact_hashes": {
+    "coverage.json": "d6c24d44e3e961edb35ceb178e00f3869de55b3b61686aface7f785c544a5315",
+    "lineage.sqlite": "32d6af1de921fec9bdf8eaf5d3673daeed9049961237221c2f88fac7ff6d42d1",
+    "provenance-manifest.json": "6b3b595616f2d3d72c754e485968f5196c889ff5b2a6805550c7325428bc901d",
+    "schema.json": "1896f76e483540a06c509f0ac1e6a0c5975f4c13ec1b7675aaa168b88d896ca5",
+    "transactions.jsonl.gz": "d3901b98da8354e95b444c6f6a1c243e74ad403f72c69f1d6ba1d29fb7958032"
+  }
+}

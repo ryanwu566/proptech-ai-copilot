@@ -1,0 +1,6 @@
+{
+  "schema": "professor-provider-install-plan-v1",
+  "values_included": false,
+  "operation": "store_only",
+  "required": []
+}

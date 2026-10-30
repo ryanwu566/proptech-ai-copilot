@@ -1,0 +1,11 @@
+dependency,replacement,migrated,tested,retirement_ready,evidence_scope,remaining_proof
+Private API baseline availability,accepted Professor API,YES,YES,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Local NLSC/RIS/WRA replacement,verified local datasets and existing APIs,YES,YES,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Local ML replacement,accepted pinned ML companion,YES,YES,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Supabase-backed authorized user flows,accepted Stage4 backend; real provider/caller migration acceptance pending,NO,NO,NO,accepted local replacement only; not production caller cutover,real authorized session/profile/saved-case persistence and cross-user public E2E
+Application/usage/valuation/user runtime credentials,existing six-file Stage2/4 profile,YES,YES,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Public deployed callers,direct NGINX HTTPS plus Vercel Preview/Production,NO,NO,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Unique remote mutable data and background users,verified Professor data authority and scoped local jobs,NO,NO,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Reboot / trusted TLS renewal / rollback,reviewed persistent restoration and service ordering,NO,NO,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Provider keys and ADC/service identity/IAM,protected optional provider files and individually approved IAM,NO,NO,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
+Current/retained revision and rollback inventory,verified cloud metadata plus retained Professor release artifacts,NO,NO,NO,accepted local replacement only; not production caller cutover,actual deployed dependency evidence and approved public cutover
