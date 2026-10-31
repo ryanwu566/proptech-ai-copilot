@@ -116,13 +116,23 @@ def _audit_schema_error(audit: object) -> str | None:
                 isinstance(value, str) and value for value in cwe
             ):
                 return "invalid nested advisory CWE list"
-            if (
-                not isinstance(cvss, dict)
-                or isinstance(cvss.get("score"), bool)
-                or not isinstance(cvss.get("score"), (int, float))
-                or not isinstance(cvss.get("vectorString"), str)
-            ):
-                return "invalid nested advisory CVSS data"
+            # npm forwards supplemental CVSS data, including missing/null data
+            # or a null vector. None of these lower the validated severity.
+            # Blocking advisories still require complete, valid CVSS evidence.
+            blocking_advisory = item["severity"] in BLOCKING_SEVERITIES
+            if cvss is not None or blocking_advisory:
+                if (
+                    not isinstance(cvss, dict)
+                    or isinstance(cvss.get("score"), bool)
+                    or not isinstance(cvss.get("score"), (int, float))
+                    or not 0 <= cvss["score"] <= 10
+                    or "vectorString" not in cvss
+                    or (
+                        not isinstance(cvss["vectorString"], str)
+                        and (blocking_advisory or cvss["vectorString"] is not None)
+                    )
+                ):
+                    return "invalid nested advisory CVSS data"
         if not isinstance(finding.get("effects"), list) or not all(
             isinstance(effect, str) and effect for effect in finding["effects"]
         ):

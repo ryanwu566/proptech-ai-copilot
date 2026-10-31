@@ -8,6 +8,8 @@ from copy import deepcopy
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/npm_audit_gate.py"
@@ -1114,3 +1116,153 @@ def test_malformed_dependency_root_fails_closed() -> None:
 
     assert result["status"] == "failed"
     assert any("malformed" in error.lower() for error in result["errors"])
+
+
+# npm 11.19.0 / auditReportVersion 2 forwards supplemental registry CVSS data.
+# Live moderate evidence includes a numeric score with a null vectorString.
+OPTIONAL_CVSS = ("missing", None, {"score": 0, "vectorString": None})
+
+
+def _set_advisory_cvss(advisory: dict, cvss: object) -> None:
+    if cvss == "missing":
+        advisory.pop("cvss", None)
+    else:
+        advisory["cvss"] = deepcopy(cvss)
+
+
+def _single_cvss_audit(severity: str, cvss: object) -> dict:
+    audit = deepcopy(EMPTY_AUDIT)
+    finding = deepcopy(mixed_severity_audit()["vulnerabilities"]["postcss-selector-parser"])
+    finding["severity"] = severity
+    finding["effects"] = []
+    finding["via"][0]["severity"] = severity
+    _set_advisory_cvss(finding["via"][0], cvss)
+    audit["vulnerabilities"] = {finding["name"]: finding}
+    audit["metadata"]["vulnerabilities"][severity] = 1
+    audit["metadata"]["vulnerabilities"]["total"] = 1
+    return audit
+
+
+def _evaluate_cvss_audits(full: dict, production: dict = EMPTY_AUDIT) -> dict:
+    return load_gate().evaluate_json(
+        json.dumps(full), json.dumps(production), json.dumps(CURRENT_EXPLANATION),
+        json.dumps(POLICY), today=date(2026, 10, 5),
+    )
+
+
+@pytest.mark.parametrize("severity", ["info", "low", "moderate"])
+@pytest.mark.parametrize("cvss", OPTIONAL_CVSS)
+def test_optional_nonblocking_cvss_preserves_reviewed_exception(severity, cvss):
+    audit = mixed_severity_audit()
+    finding = audit["vulnerabilities"]["postcss-selector-parser"]
+    finding["severity"] = finding["via"][0]["severity"] = severity
+    if severity != "moderate":
+        audit["metadata"]["vulnerabilities"]["moderate"] -= 1
+        audit["metadata"]["vulnerabilities"][severity] += 1
+    _set_advisory_cvss(finding["via"][0], cvss)
+    result = _evaluate_cvss_audits(audit)
+    assert result["status"] == "pass"
+    assert result["accepted"] == [{
+        "id": POLICY["exceptions"][0]["id"], "expiresOn": "2026-11-04",
+    }]
+
+
+@pytest.mark.parametrize("severity", ["info", "low", "moderate"])
+@pytest.mark.parametrize("cvss", OPTIONAL_CVSS)
+def test_optional_cvss_with_no_blockers_needs_no_exception(severity, cvss):
+    audit = _single_cvss_audit(severity, cvss)
+    result = _evaluate_cvss_audits(audit, audit)
+    assert result == {"status": "pass", "accepted": [], "errors": []}
+
+
+@pytest.mark.parametrize("severity", ["high", "critical"])
+@pytest.mark.parametrize("cvss", OPTIONAL_CVSS)
+def test_blocking_advisories_still_require_complete_cvss(severity, cvss):
+    result = _evaluate_cvss_audits(_single_cvss_audit(severity, cvss))
+    assert result["status"] == "failed"
+    assert "invalid nested advisory CVSS data" in result["errors"][0]
+
+
+@pytest.mark.parametrize("severity", ["moderate", "high", "critical"])
+@pytest.mark.parametrize("cvss", [
+    [], "unknown", {}, {"score": None, "vectorString": None},
+    {"score": True, "vectorString": "CVSS:3.1/AV:N"},
+    {"score": "5.9", "vectorString": "CVSS:3.1/AV:N"},
+    {"score": 5.9}, {"score": 5.9, "vectorString": False},
+    {"score": -1, "vectorString": "CVSS:3.1/AV:N"},
+    {"score": 11, "vectorString": "CVSS:3.1/AV:N"},
+])
+def test_malformed_cvss_objects_are_never_silently_ignored(severity, cvss):
+    result = _evaluate_cvss_audits(_single_cvss_audit(severity, cvss))
+    assert result["status"] == "failed"
+    assert "invalid nested advisory CVSS data" in result["errors"][0]
+
+
+@pytest.mark.parametrize("severity", ["high", "critical"])
+@pytest.mark.parametrize("cvss", OPTIONAL_CVSS)
+def test_optional_cvss_cannot_hide_production_blockers(severity, cvss):
+    full = _single_cvss_audit("moderate", cvss)
+    production = _single_cvss_audit(severity, {
+        "score": 9.8, "vectorString": "CVSS:3.1/AV:N",
+    })
+    result = _evaluate_cvss_audits(full, production)
+    assert result["status"] == "failed"
+    assert "High or critical production dependency vulnerabilities" in result["errors"][0]
+
+
+@pytest.mark.parametrize("severity", ["high", "critical"])
+@pytest.mark.parametrize("cvss", OPTIONAL_CVSS)
+def test_optional_cvss_cannot_hide_unreviewed_full_audit_blockers(severity, cvss):
+    full = _single_cvss_audit("moderate", cvss)
+    other = _single_cvss_audit(severity, {"score": 9.8, "vectorString": "CVSS:3.1/AV:N"})
+    finding = other["vulnerabilities"]["postcss-selector-parser"]
+    finding["name"] = "unreviewed-dev-package"
+    finding["via"][0].update(name="unreviewed-dev-package", dependency="unreviewed-dev-package")
+    finding["nodes"] = ["node_modules/unreviewed-dev-package"]
+    full["vulnerabilities"][finding["name"]] = finding
+    full["metadata"]["vulnerabilities"].update({severity: 1, "total": 2})
+    result = _evaluate_cvss_audits(full)
+    assert result["status"] == "failed"
+    assert any("Unreviewed high or critical audit findings" in error for error in result["errors"])
+
+
+@pytest.mark.parametrize("mutation", ["identity", "severity", "source", "reference", "nodes", "counts"])
+def test_optional_cvss_does_not_bypass_other_audit_validation(mutation):
+    audit = _single_cvss_audit("moderate", None)
+    finding = audit["vulnerabilities"]["postcss-selector-parser"]
+    if mutation == "identity": finding["name"] = "wrong-package"
+    elif mutation == "severity": finding["via"][0]["severity"] = "unknown"
+    elif mutation == "source": finding["via"][0]["source"] = True
+    elif mutation == "reference": finding["via"].append("missing-package")
+    elif mutation == "nodes": finding["nodes"] = [""]
+    elif mutation == "counts": audit["metadata"]["vulnerabilities"]["total"] = 0
+    result = _evaluate_cvss_audits(audit)
+    assert result["status"] == "failed"
+
+
+@pytest.mark.parametrize("constant", ["NaN", "Infinity", "-Infinity"])
+def test_nonstandard_cvss_json_constants_fail_closed(constant):
+    audit = json.dumps(_single_cvss_audit("moderate", {"score": 0, "vectorString": None}))
+    audit = audit.replace('"score": 0', '"score": ' + constant)
+    result = load_gate().evaluate_json(audit, json.dumps(EMPTY_AUDIT), "[]",
+                                       json.dumps(POLICY), today=date(2026, 10, 5))
+    assert result["status"] == "failed"
+    assert "Malformed" in result["errors"][0]
+
+
+def test_duplicate_keys_in_optional_cvss_fail_closed():
+    audit = json.dumps(_single_cvss_audit("moderate", {"score": 0, "vectorString": None}))
+    audit = audit.replace('"score": 0', '"score": 0, "score": 1')
+    result = load_gate().evaluate_json(audit, json.dumps(EMPTY_AUDIT), "[]",
+                                       json.dumps(POLICY), today=date(2026, 10, 5))
+    assert result["status"] == "failed"
+    assert "Malformed" in result["errors"][0]
+
+
+def test_numeric_overflow_is_not_valid_cvss_evidence():
+    audit = json.dumps(_single_cvss_audit("high", {"score": 0, "vectorString": "CVSS:3.1/AV:N"}))
+    audit = audit.replace('"score": 0', '"score": 1e309')
+    result = load_gate().evaluate_json(audit, json.dumps(EMPTY_AUDIT), "[]",
+                                       json.dumps(POLICY), today=date(2026, 10, 5))
+    assert result["status"] == "failed"
+    assert "invalid nested advisory CVSS data" in result["errors"][0]
